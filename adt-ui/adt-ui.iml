@@ -9,7 +9,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="android-annotations" />
+    <orderEntry type="module" module-name="annotations" />
     <orderEntry type="library" name="Trove4j" level="project" />
     <orderEntry type="module" module-name="platform-api" />
     <orderEntry type="module" module-name="platform-impl" />
@@ -18,5 +18,6 @@
     <orderEntry type="library" name="truth" level="project" />
     <orderEntry type="module" module-name="testutils" scope="TEST" />
     <orderEntry type="library" name="mockito" level="project" />
+    <orderEntry type="module" module-name="adt-ui-model" />
   </component>
 </module>

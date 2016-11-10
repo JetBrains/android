@@ -24,6 +24,7 @@ import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.flamegraph.SampledMethodUsage;
 import com.android.tools.adtui.flamegraph.SampledMethodUsageHRenderer;
 import com.android.tools.adtui.model.LongDataSeries;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.visualtests.VisualTest;
 import com.intellij.ui.components.JBLayeredPane;
@@ -94,7 +95,6 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
     list.add(mSelector);
     list.add(mAxis);
     list.add(mLineChart);
-    list.add(mTimeSelectionRangeUs);
     return list;
   }
 

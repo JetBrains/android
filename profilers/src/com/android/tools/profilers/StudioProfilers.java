@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.Range;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.cpu.CpuProfiler;
 import com.android.tools.profilers.memory.MemoryProfiler;

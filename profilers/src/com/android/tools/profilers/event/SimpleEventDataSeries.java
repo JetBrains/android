@@ -15,10 +15,9 @@
  */
 package com.android.tools.profilers.event;
 
-import com.android.tools.adtui.Range;
-import com.android.tools.adtui.SimpleEventComponent;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.EventAction;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
@@ -34,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * This class is responsible for making an RPC call to perfd/datastore and converting the resulting proto into UI data.
  */
-public class SimpleEventDataSeries implements DataSeries<EventAction<SimpleEventComponent.Action, EventActionType>> {
+public class SimpleEventDataSeries implements DataSeries<EventAction<EventAction.Action, EventActionType>> {
 
   private static final int ACTION_DOWN = 0;
   private static final int ACTION_UP = 1;
@@ -49,8 +48,8 @@ public class SimpleEventDataSeries implements DataSeries<EventAction<SimpleEvent
   }
 
   @Override
-  public ImmutableList<SeriesData<EventAction<SimpleEventComponent.Action, EventActionType>>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
-    List<SeriesData<EventAction<SimpleEventComponent.Action, EventActionType>>> seriesData = new ArrayList<>();
+  public ImmutableList<SeriesData<EventAction<EventAction.Action, EventActionType>>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+    List<SeriesData<EventAction<EventAction.Action, EventActionType>>> seriesData = new ArrayList<>();
     EventServiceGrpc.EventServiceBlockingStub eventService = myClient.getEventClient();
     EventProfiler.EventDataRequest.Builder dataRequestBuilder = EventProfiler.EventDataRequest.newBuilder()
       .setAppId(myProcessId)
@@ -63,7 +62,7 @@ public class SimpleEventDataSeries implements DataSeries<EventAction<SimpleEvent
       }
 
       EventProfiler.SystemEventData systemData = data.getSystemData();
-      SimpleEventComponent.Action action = SimpleEventComponent.Action.NONE;
+      EventAction.Action action = EventAction.Action.NONE;
       long actionStart = TimeUnit.NANOSECONDS.toMicros(data.getBasicInfo().getEndTimestamp());
       long eventTimestamp = actionStart;
       long actionEnd = 0;
@@ -77,15 +76,15 @@ public class SimpleEventDataSeries implements DataSeries<EventAction<SimpleEvent
         // TODO: Seperate KeyEvents to use their own icon.
         switch (systemData.getActionId()) {
           case ACTION_DOWN:
-            action = SimpleEventComponent.Action.DOWN;
+            action = EventAction.Action.DOWN;
             break;
           case ACTION_UP:
-            action = SimpleEventComponent.Action.UP;
+            action = EventAction.Action.UP;
             actionEnd = actionStart;
             actionStart = TimeUnit.MILLISECONDS.toMicros(systemData.getActionDowntime());
             break;
         }
-        if (action != SimpleEventComponent.Action.NONE) {
+        if (action != EventAction.Action.NONE) {
           seriesData.add(new SeriesData<>(eventTimestamp, new EventAction<>(actionStart, actionEnd, action, EventActionType.TOUCH)));
         }
       }

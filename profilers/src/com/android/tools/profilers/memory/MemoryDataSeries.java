@@ -15,8 +15,8 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.DataSeries;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;

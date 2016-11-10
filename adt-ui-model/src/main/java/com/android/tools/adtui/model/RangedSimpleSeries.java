@@ -16,7 +16,6 @@
 
 package com.android.tools.adtui.model;
 
-import com.android.tools.adtui.Range;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

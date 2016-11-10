@@ -22,9 +22,9 @@ import com.android.tools.adtui.model.SeriesData;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-public class StackedEventTestDataGenerator extends TestDataGenerator<EventAction<StackedEventComponent.Action, String>> {
+public class StackedEventTestDataGenerator extends TestDataGenerator<EventAction<EventAction.ActivityAction, String>> {
 
-  private ArrayList<EventAction<StackedEventComponent.Action, String>> mData = new ArrayList<>();
+  private ArrayList<EventAction<EventAction.ActivityAction, String>> mData = new ArrayList<>();
   private String mName;
 
 
@@ -33,7 +33,7 @@ public class StackedEventTestDataGenerator extends TestDataGenerator<EventAction
   }
 
   @Override
-  public SeriesData<EventAction<StackedEventComponent.Action, String>> get(int index) {
+  public SeriesData<EventAction<EventAction.ActivityAction, String>> get(int index) {
     return new SeriesData<>(mTime.get(index), mData.get(index));
   }
   @Override
@@ -57,9 +57,9 @@ public class StackedEventTestDataGenerator extends TestDataGenerator<EventAction
       mTime.add(TimeUnit.NANOSECONDS.toMicros(System.nanoTime()));
 
       if (mData.size() > 0) {
-        EventAction<StackedEventComponent.Action, String> lastAction = mData.get(mData.size() - 1);
+        EventAction<EventAction.ActivityAction, String> lastAction = mData.get(mData.size() - 1);
         // If our last action was an activity started action, our next should be an activity completed.
-        if (lastAction.getValue() == StackedEventComponent.Action.ACTIVITY_STARTED) {
+        if (lastAction.getValue() == EventAction.ActivityAction.ACTIVITY_STARTED) {
           createAction = false;
           endTimeUs = currentTimeUs;
           startTimeUs = lastAction.getStartUs();
@@ -67,8 +67,8 @@ public class StackedEventTestDataGenerator extends TestDataGenerator<EventAction
       }
       mData.add(new EventAction<>(startTimeUs, endTimeUs,
                                   createAction
-                                  ? StackedEventComponent.Action.ACTIVITY_STARTED
-                                  : StackedEventComponent.Action.ACTIVITY_COMPLETED,
+                                  ? EventAction.ActivityAction.ACTIVITY_STARTED
+                                  : EventAction.ActivityAction.ACTIVITY_COMPLETED,
                                   mName));
     }
   }

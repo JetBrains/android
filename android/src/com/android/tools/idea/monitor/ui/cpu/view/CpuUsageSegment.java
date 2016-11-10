@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.monitor.ui.cpu.view;
 
-import com.android.tools.adtui.Range;
+import com.android.tools.adtui.AnimatedRange;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.datastore.SeriesDataType;
+import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.BaseLineChartSegment;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
-import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.intellij.ui.JBColor;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
@@ -65,7 +66,7 @@ public class CpuUsageSegment extends BaseLineChartSegment {
    */
   public CpuUsageSegment(@NotNull Range timeCurrentRangeUs, @NotNull SeriesDataStore dataStore,
                          @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
-    super(SEGMENT_NAME, timeCurrentRangeUs, dataStore, CPU_USAGE_AXIS_SIMPLE, CPU_USAGE_AXIS, NUM_THREADS_AXIS, new Range(0, 100), null, dispatcher);
+    super(SEGMENT_NAME, timeCurrentRangeUs, dataStore, CPU_USAGE_AXIS_SIMPLE, CPU_USAGE_AXIS, NUM_THREADS_AXIS, new AnimatedRange(0, 100), null, dispatcher);
   }
 
   @Override

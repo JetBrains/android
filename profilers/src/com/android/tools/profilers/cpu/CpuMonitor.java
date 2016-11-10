@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.Range;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.ProfilerMonitor;

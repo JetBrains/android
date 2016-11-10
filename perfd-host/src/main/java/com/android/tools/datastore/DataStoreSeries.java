@@ -15,7 +15,7 @@
  */
 package com.android.tools.datastore;
 
-import com.android.tools.adtui.Range;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.intellij.util.containers.ImmutableList;
@@ -51,5 +51,4 @@ public class DataStoreSeries<E> implements DataSeries<E> {
   public ImmutableList<SeriesData<E>> getDataForXRange(@NotNull Range xRange) {
     return mStore.getSeriesData(mType, xRange, mTarget);
   }
-
 }

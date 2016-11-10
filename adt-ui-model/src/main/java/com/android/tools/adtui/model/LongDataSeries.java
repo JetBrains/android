@@ -15,12 +15,8 @@
  */
 package com.android.tools.adtui.model;
 
-import com.android.tools.adtui.Range;
-import com.intellij.util.containers.ImmutableList;
 import gnu.trove.TLongArrayList;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
 
 
 public class LongDataSeries extends BaseDataSeries<Long> {

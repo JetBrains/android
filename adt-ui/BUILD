@@ -9,7 +9,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//tools/base/annotations:studio.android-annotations[module]",
+        "//tools:idea.annotations[module]",
         "//tools/idea/.idea/libraries:Trove4j",
         "//tools:idea.platform-api[module]",
         "//tools:idea.platform-impl_and_others[module]",
@@ -18,6 +18,7 @@ iml_module(
         "//tools/idea/.idea/libraries:truth",
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools/idea/.idea/libraries:mockito",
+        "//tools/adt/idea/adt-ui-model:adt-ui-model[module]",
     ],
 )
 

@@ -17,10 +17,10 @@
 package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
-import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
+import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.*;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBPanel;
@@ -29,7 +29,9 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ItemEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -78,8 +80,8 @@ public class AxisLineChartVisualTest extends VisualTest {
     mLineChart = new LineChart();
 
     mStartTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-    final Range timeCurrentRangeUs = new Range(0, 0);
-    mTimeGlobalRangeUs = new Range(0, 0);
+    final Range timeCurrentRangeUs = new Range();
+    mTimeGlobalRangeUs = new Range();
     mAnimatedTimeRange = new AnimatedTimeRange(mTimeGlobalRangeUs, mStartTimeUs);
     mScrollbar = new RangeScrollbar(mTimeGlobalRangeUs, timeCurrentRangeUs);
 
@@ -89,7 +91,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     mTimeAxis = builder.build();
 
     // left memory data + axis
-    Range yRange1Animatable = new Range(0, 100);
+    AnimatedRange yRange1Animatable = new AnimatedRange(0, 100);
     builder = new AxisComponent.Builder(yRange1Animatable, MemoryAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.LEFT)
       .setLabel(SERIES1_LABEL)
       .showMinMax(true);
@@ -101,7 +103,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     mData.add(series1);
 
     // right memory data + axis
-    Range yRange2Animatable = new Range(0, 100);
+    AnimatedRange yRange2Animatable = new AnimatedRange(0, 100);
     builder = new AxisComponent.Builder(yRange2Animatable, MemoryAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.RIGHT)
       .setLabel(SERIES2_LABEL)
       .showMinMax(true);
@@ -127,7 +129,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     mGrid.addAxis(mTimeAxis);
     mGrid.addAxis(mMemoryAxis1);
 
-    final Range timeSelectionRangeUs = new Range(0, 0);
+    final AnimatedRange timeSelectionRangeUs = new AnimatedRange();
     mSelection = new SelectionComponent(mLineChart, mTimeAxis, timeSelectionRangeUs, mTimeGlobalRangeUs, timeCurrentRangeUs);
 
     // Note: the order below is important as some components depend on
@@ -143,8 +145,6 @@ public class AxisLineChartVisualTest extends VisualTest {
                          yRange1Animatable, // Interpolate y1.
                          yRange2Animatable, // Interpolate y2.
                          mGrid, // No-op.
-                         timeCurrentRangeUs, // Reset flags.
-                         mTimeGlobalRangeUs, // Reset flags.
                          timeSelectionRangeUs,
                          mLegendComponent); // Reset flags.
   }

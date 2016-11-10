@@ -57,6 +57,7 @@ iml_module(
         "//tools/adt/idea:layoutlib[module, test]",
         "//tools/adt/idea:sherpa-ui[module, test]",
         "//tools/adt/idea/adt-ui:adt-ui[module, test]",
+        "//tools/adt/idea/adt-ui-model:adt-ui-model[module, test]",
         "//tools/adt/idea/observable:observable[module, test]",
         "//tools/adt/idea/perfd-host:perfd-host[module, test]",
         "//tools/analytics-library:analytics-protos[module, test]",

@@ -17,7 +17,9 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.EventAction;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.SeriesData;
 import com.google.common.primitives.Ints;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +27,9 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import static com.android.tools.adtui.common.AdtUiUtils.getFittedString;
@@ -35,16 +39,6 @@ import static com.android.tools.adtui.common.AdtUiUtils.getFittedString;
  */
 public class StackedEventComponent extends AnimatedComponent {
 
-  /**
-   * Enum that defines an activity state. Each activity started action, should have an associated
-   * activity completed action.
-   */
-  public enum Action {
-    NONE,
-    ACTIVITY_STARTED,
-    ACTIVITY_COMPLETED,
-  }
-
   private static final Color DISABLED_ACTION = new Color(221, 222, 224);
   private static final Color ENABLED_ACTION = new Color(106, 189, 180);
   private static final int CHARACTERS_TO_SHRINK_BY = 1;
@@ -52,7 +46,7 @@ public class StackedEventComponent extends AnimatedComponent {
   private static final int NORMALIZED_END = 1;
 
   @NotNull
-  private final RangedSeries<EventAction<Action, String>> mData;
+  private final RangedSeries<EventAction<EventAction.ActivityAction, String>> mData;
 
   private final int myMaxHeight;
 
@@ -62,13 +56,13 @@ public class StackedEventComponent extends AnimatedComponent {
    * This map is used to pair actions, to their draw location. This is used primarily to store the
    * location where to draw the name of the incoming event.
    */
-  private HashMap<EventAction<Action, String>, EventRenderData> myActionToDrawLocationMap = new HashMap<>();
+  private HashMap<EventAction<EventAction.ActivityAction, String>, EventRenderData> myActionToDrawLocationMap = new HashMap<>();
   private List<EventRenderData> myActivities = new ArrayList<>();
 
   /**
    * @param data The state chart data.
    */
-  public StackedEventComponent(@NotNull RangedSeries<EventAction<Action, String>> data, int maxHeight) {
+  public StackedEventComponent(@NotNull RangedSeries<EventAction<EventAction.ActivityAction, String>> data, int maxHeight) {
     mData = data;
     myMaxHeight = maxHeight;
     setFont(AdtUiUtils.DEFAULT_FONT);
@@ -83,16 +77,16 @@ public class StackedEventComponent extends AnimatedComponent {
     // EventAction competed events with the EventAction start events. This is done this way as
     // a event started and completed events may come in in any order at any time.
     // TODO: Combine start/stop events, that means pulling this logic out into the supportlib.
-    HashMap<Long, EventAction<Action, String>> downEvents = new HashMap<>();
+    HashMap<Long, EventAction<EventAction.ActivityAction, String>> downEvents = new HashMap<>();
 
     // A queue of open index values, this allows us to pack our events without leaving gaps.
 
     myActivities.clear();
     myActionToDrawLocationMap.clear();
     int lastIndex = 0;
-    EventAction<Action, String> lastStart = null;
+    EventAction<EventAction.ActivityAction, String> lastStart = null;
     int lastStartIndex = 0;
-    ImmutableList<SeriesData<EventAction<Action, String>>> series = mData.getSeries();
+    ImmutableList<SeriesData<EventAction<EventAction.ActivityAction, String>>> series = mData.getSeries();
     int size = series.size();
 
     // Loop through the data series looking at all of the start events, and stop events.
@@ -100,13 +94,13 @@ public class StackedEventComponent extends AnimatedComponent {
     // Once we find a stop event we determine the draw order, name, start and stop locations and
     // cache off a path to draw.
     for (int i = 0; i < size; i++) {
-      SeriesData<EventAction<Action, String>> seriesData = series.get(i);
-      EventAction<Action, String> data = seriesData.value;
-      if (data.getValue() == Action.ACTIVITY_STARTED) {
+      SeriesData<EventAction<EventAction.ActivityAction, String>> seriesData = series.get(i);
+      EventAction<EventAction.ActivityAction, String> data = seriesData.value;
+      if (data.getValue() == EventAction.ActivityAction.ACTIVITY_STARTED) {
         //TODO: This should be managed by perfa not the profilers.
         downEvents.put(data.getStartUs(), data);
       }
-      else if (data.getValue() == Action.ACTIVITY_COMPLETED) {
+      else if (data.getValue() == EventAction.ActivityAction.ACTIVITY_COMPLETED) {
         // TODO: check/assert that ACTIVITY_COMPLETED event time is greater than or equal to ACTIVITY_STARTED time
         Path2D.Float path = new Path2D.Float();
         // Here we normalize the position to a value between 0 and 1. This allows us to scale the width of the line based on the
@@ -122,7 +116,7 @@ public class StackedEventComponent extends AnimatedComponent {
     }
 
     for (Long key : downEvents.keySet()) {
-      EventAction<Action, String> event = downEvents.get(key);
+      EventAction<EventAction.ActivityAction, String> event = downEvents.get(key);
       Path2D.Float path = new Path2D.Float();
       double normalizedEndPosition = NORMALIZED_END;
       double normalizedstartPosition = ((event.getStartUs() - min) / (max - min));
@@ -161,7 +155,7 @@ public class StackedEventComponent extends AnimatedComponent {
     while (itor.hasNext()) {
       g2d.setStroke(str);
       EventRenderData renderData = itor.next();
-      EventAction<Action, String> event = renderData.getAction();
+      EventAction<EventAction.ActivityAction, String> event = renderData.getAction();
       if (event.getEndUs() != 0) {
         g2d.setColor(DISABLED_ACTION);
       }
@@ -218,10 +212,10 @@ public class StackedEventComponent extends AnimatedComponent {
 
   private static class EventRenderData {
 
-    private final EventAction<Action, String> mAction;
+    private final EventAction<EventAction.ActivityAction, String> mAction;
     private final Path2D mPath;
 
-    public EventAction<Action, String> getAction() {
+    public EventAction<EventAction.ActivityAction, String> getAction() {
       return mAction;
     }
 
@@ -229,7 +223,7 @@ public class StackedEventComponent extends AnimatedComponent {
       return mPath;
     }
 
-    public EventRenderData(EventAction<Action, String> action, Path2D path) {
+    public EventRenderData(EventAction<EventAction.ActivityAction, String> action, Path2D path) {
       mAction = action;
       mPath = path;
     }

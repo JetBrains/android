@@ -29,6 +29,26 @@ import org.jetbrains.annotations.NotNull;
 
 public class EventAction<T0, T1> {
 
+  /**
+   * Enum that defines the action of an event, used when the event has a Down, and Up action such
+   * as MouseClick
+   */
+  public enum Action {
+    NONE,
+    DOWN,
+    UP
+  }
+
+  /**
+   * Enum that defines an activity state. Each activity started action, should have an associated
+   * activity completed action.
+   */
+  public enum ActivityAction {
+    NONE,
+    ACTIVITY_STARTED,
+    ACTIVITY_COMPLETED,
+  }
+
   @NotNull
   private final T0 mValue;
   @NotNull

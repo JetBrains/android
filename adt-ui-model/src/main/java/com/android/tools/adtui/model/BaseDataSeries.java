@@ -15,12 +15,9 @@
  */
 package com.android.tools.adtui.model;
 
-import com.android.tools.adtui.Range;
 import com.intellij.util.containers.ImmutableList;
 import gnu.trove.TLongArrayList;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
 
 
 public abstract class BaseDataSeries<E> implements DataSeries<E> {
@@ -28,7 +25,7 @@ public abstract class BaseDataSeries<E> implements DataSeries<E> {
   protected final TLongArrayList mX = new TLongArrayList();
 
   @NotNull
-  private ImmutableList<SeriesData<E>> getDataSubList(final int fromIndex,final int toIndex) {
+  private ImmutableList<SeriesData<E>> getDataSubList(final int fromIndex, final int toIndex) {
     return new ImmutableList<SeriesData<E>>() {
       @Override
       public int size() {

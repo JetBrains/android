@@ -16,6 +16,8 @@
 
 package com.android.tools.adtui;
 
+import com.android.tools.adtui.model.Range;
+
 import java.util.concurrent.TimeUnit;
 
 /**

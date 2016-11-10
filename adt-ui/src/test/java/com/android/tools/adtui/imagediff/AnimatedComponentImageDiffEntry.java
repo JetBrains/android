@@ -16,8 +16,8 @@
 package com.android.tools.adtui.imagediff;
 
 import com.android.tools.adtui.Animatable;
+import com.android.tools.adtui.AnimatedRange;
 import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.Range;
 
 import javax.swing.*;
 import java.awt.*;
@@ -61,7 +61,7 @@ abstract class AnimatedComponentImageDiffEntry extends ImageDiffEntry {
 
   protected long myRangeEndUs;
 
-  protected Range myXRange;
+  protected AnimatedRange myXRange;
 
   protected List<Animatable> myComponents;
 
@@ -110,7 +110,7 @@ abstract class AnimatedComponentImageDiffEntry extends ImageDiffEntry {
     myCurrentTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     myRangeStartUs = myCurrentTimeUs;
     myRangeEndUs = myRangeStartUs + TOTAL_VALUES * TIME_DELTA_US;
-    myXRange = new Range(myRangeStartUs, myRangeEndUs);
+    myXRange = new AnimatedRange(myRangeStartUs, myRangeEndUs);
     // We don't need to set a proper FPS to the choreographer, as we're interested in the final image only, not the animation.
     myChoreographer = new Choreographer(-1, myContentPane);
     myChoreographer.setUpdate(false);

@@ -16,8 +16,8 @@
 package com.android.tools.idea.monitor.ui.memory.view;
 
 import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.Range;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.memory.model.AllocationTrackingSample;

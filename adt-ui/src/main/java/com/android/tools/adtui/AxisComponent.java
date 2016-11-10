@@ -18,6 +18,7 @@ package com.android.tools.adtui;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.RotatedLabel;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
+import com.android.tools.adtui.model.Range;
 import com.intellij.ui.components.JBLabel;
 import gnu.trove.TFloatArrayList;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +33,7 @@ import static com.android.tools.adtui.AxisComponent.AxisOrientation.LEFT;
 import static com.android.tools.adtui.AxisComponent.AxisOrientation.RIGHT;
 
 /**
- * A component that draw an axis based on data from a {@link Range} object.
+ * A component that draws an axis based on data from a {@link Range} object.
  */
 public final class AxisComponent extends AnimatedComponent {
 
@@ -278,8 +279,8 @@ public final class AxisComponent extends AnimatedComponent {
 
   @Override
   protected void updateData() {
-    double maxTarget = myRange.getMaxTarget() - myOffset;
-    double rangeTarget = myRange.getTargetLength();
+    double maxTarget = myRange.getMax() - myOffset;
+    double rangeTarget = myRange.getLength();
     double clampedMaxTarget;
 
     // During the animate/updateData phase, the axis updates the range's max to a new target based on whether:
@@ -299,7 +300,7 @@ public final class AxisComponent extends AnimatedComponent {
       clampedMaxTarget = myParentAxis.myMajorNumTicksTarget * majorInterval;
     }
 
-    myRange.setMaxTarget(clampedMaxTarget + myOffset);
+    myRange.setMax(clampedMaxTarget + myOffset);
   }
 
   @Override

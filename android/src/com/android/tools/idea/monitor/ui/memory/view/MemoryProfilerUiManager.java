@@ -19,7 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.Range;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.datastore.DataAdapter;
 import com.android.tools.datastore.Poller;
 import com.android.tools.datastore.SeriesDataStore;

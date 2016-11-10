@@ -16,10 +16,14 @@
 
 package com.android.tools.adtui.visualtests;
 
-import com.android.tools.adtui.*;
+import com.android.tools.adtui.Animatable;
+import com.android.tools.adtui.AnimatedComponent;
+import com.android.tools.adtui.AnimatedTimeRange;
+import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.Range;
 import com.intellij.ui.JBColor;
 import gnu.trove.TIntArrayList;
 import org.jetbrains.annotations.NotNull;
@@ -105,7 +109,7 @@ public class StateChartVisualTest extends VisualTest {
     mRadioStateChart.addSeries(radioData);
     mRadioDataEntries.add(radioSeries);
 
-    return Arrays.asList(mAnimatedTimeRange, mTimeGlobalRangeUs, mNetworkStatusChart, mRadioStateChart);
+    return Arrays.asList(mAnimatedTimeRange, mNetworkStatusChart, mRadioStateChart);
   }
 
   @Override

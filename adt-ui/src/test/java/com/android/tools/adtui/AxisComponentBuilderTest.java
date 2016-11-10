@@ -16,6 +16,7 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.Range;
 import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -25,7 +26,7 @@ public class AxisComponentBuilderTest {
   @Test
   public void testBuilder() throws Exception {
     // A simple test to validate that the AxisComponent generated from the Builder has consistent values as the input.
-    Range testRange1 = new Range(0, 100);
+    AnimatedRange testRange1 = new AnimatedRange(0, 100);
     TimeAxisFormatter testFormatter1 = new TimeAxisFormatter(5, 5, 10);
     AxisComponent.Builder builder = new AxisComponent.Builder(testRange1, testFormatter1, AxisComponent.AxisOrientation.BOTTOM);
 

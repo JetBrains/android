@@ -20,7 +20,10 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.DefaultDataSeries;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.SeriesData;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.util.containers.ImmutableList;
@@ -40,8 +43,8 @@ public class DataReducerVisualTest extends VisualTest {
   private static final int AXIS_SIZE = 80;
 
   private Range myGlobalXRange;
-  private Range myViewXRange;
-  private Range mySelectionXRange;
+  private AnimatedRange myViewXRange;
+  private AnimatedRange mySelectionXRange;
   private Range myYRange;
 
   private LineChart myLineChart;
@@ -56,10 +59,9 @@ public class DataReducerVisualTest extends VisualTest {
 
   @Override
   protected List<Animatable> createComponentsList() {
-
     myGlobalXRange = new Range();
-    myViewXRange = new Range();
-    mySelectionXRange = new Range();
+    myViewXRange = new AnimatedRange();
+    mySelectionXRange = new AnimatedRange();
     myYRange = new Range();
 
     myLineChart = new LineChart((shape, config) -> shape);
@@ -69,14 +71,12 @@ public class DataReducerVisualTest extends VisualTest {
     mySelection = new SelectionComponent(myOptimizedLineChart, myXAxis, mySelectionXRange, myGlobalXRange, myViewXRange);
 
     myData = new DefaultDataSeries<>();
-    mySeries =
-      new RangedContinuousSeries("Straight", myViewXRange, myYRange, myData);
+    mySeries = new RangedContinuousSeries("Straight", myViewXRange, myYRange, myData);
 
     myLineChart.addLine(mySeries, new LineConfig(JBColor.BLUE));
     myOptimizedLineChart.addLine(mySeries, new LineConfig(JBColor.RED));
 
-    return Arrays
-      .asList(myGlobalXRange, myViewXRange, mySelectionXRange, myYRange, myLineChart, myOptimizedLineChart, myXAxis, mySelection);
+    return Arrays.asList(myViewXRange, mySelectionXRange, myLineChart, myOptimizedLineChart, myXAxis, mySelection);
   }
 
   @Override

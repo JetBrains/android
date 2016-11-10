@@ -20,6 +20,7 @@ import com.android.tools.adtui.*;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.visualtests.VisualTest;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
@@ -128,13 +129,10 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     List<Animatable> componentsList = new ArrayList<>();
     componentsList.add(mLayout);
     // Get latest data time from the data store.
-    componentsList.add(frameLength -> mTimeGlobalRange.setMaxTarget(mDataStore.getLatestTimeUs()));
+    componentsList.add(frameLength -> mTimeGlobalRange.setMax(mDataStore.getLatestTimeUs()));
     componentsList.add(mSelection);            // Update selection range immediate.
     componentsList.add(mScrollbar);            // Update current range immediate.
     componentsList.add(mTimeAxis);             // Read ranges.
-    componentsList.add(mTimeCurrentRange);               // Reset flags.
-    componentsList.add(mTimeGlobalRange);         // Reset flags.
-    componentsList.add(mTimeSelectionRange);      // Reset flags.
     return componentsList;
   }
 

@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.model;
 
-import com.android.tools.adtui.Range;
 import com.intellij.util.containers.ImmutableList;
 
 /**

@@ -17,14 +17,16 @@
 package com.android.tools.adtui.visualtests.threadgraph;
 
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.chart.hchart.Method;
-import com.android.tools.adtui.chart.hchart.JavaMethodHRenderer;
-import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.chart.hchart.HNode;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
+import com.android.tools.adtui.chart.hchart.JavaMethodHRenderer;
+import com.android.tools.adtui.chart.hchart.Method;
 import com.android.tools.adtui.chart.linechart.LineChart;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.visualtests.VisualTest;
+import com.android.tools.adtui.model.LongDataSeries;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
@@ -95,7 +97,6 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
     list.add(mSelector);
     list.add(mAxis);
     list.add(mLineChart);
-    list.add(mTimeSelectionRangeUs);
     return list;
   }
 
@@ -154,13 +155,10 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
     viewPanel.setLayout(new BoxLayout(viewPanel, BoxLayout.X_AXIS));
     viewPanel.add(mChart);
     mScrollBar = new JScrollBar(JScrollBar.VERTICAL);
-    mScrollBar.addAdjustmentListener(new AdjustmentListener() {
-      @Override
-      public void adjustmentValueChanged(AdjustmentEvent e) {
-        Range yRange = mChart.getYRange();
-        int yOffset = e.getValue();
-        yRange.setMin(yOffset);
-      }
+    mScrollBar.addAdjustmentListener(e -> {
+      Range yRange = mChart.getYRange();
+      int yOffset = e.getValue();
+      yRange.setMin(yOffset);
     });
 
     viewPanel.add(mScrollBar);

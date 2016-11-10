@@ -18,8 +18,8 @@ package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
+import com.android.tools.adtui.AnimatedRange;
 import com.android.tools.adtui.AnimatedTimeRange;
-import com.android.tools.adtui.Range;
 import com.android.tools.adtui.chart.linechart.EventConfig;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.common.AdtUiUtils;
@@ -33,7 +33,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -71,18 +70,17 @@ public class LineChartVisualTest extends VisualTest {
 
     // Add the scene components to the list
     componentsList.add(mAnimatedTimeRange);
-    componentsList.add(timeGlobalRangeUs);
     componentsList.add(mLineChart);
 
-    Range mYRange = new Range(0.0, 100.0);
+    AnimatedRange yRange = new AnimatedRange(0.0, 100.0);
     for (int i = 0; i < 4; i++) {
       if (i % 2 == 0) {
-        mYRange = new Range(0.0, 100.0);
-        componentsList.add(mYRange);
+        yRange = new AnimatedRange(0.0, 100.0);
+        componentsList.add(yRange);
       }
       DefaultDataSeries<Long> series = new DefaultDataSeries<>();
       RangedContinuousSeries ranged =
-        new RangedContinuousSeries("Widgets", timeGlobalRangeUs, mYRange, series);
+        new RangedContinuousSeries("Widgets", timeGlobalRangeUs, yRange, series);
       mRangedData.add(ranged);
       mData.add(series);
     }

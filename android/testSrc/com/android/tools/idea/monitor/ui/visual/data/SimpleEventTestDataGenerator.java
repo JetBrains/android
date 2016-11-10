@@ -15,22 +15,20 @@
  */
 package com.android.tools.idea.monitor.ui.visual.data;
 
-import com.android.tools.adtui.SimpleEventComponent;
 import com.android.tools.adtui.model.EventAction;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.idea.monitor.ui.events.view.EventSegment;
 import com.android.tools.profilers.event.EventActionType;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 public class SimpleEventTestDataGenerator
-  extends TestDataGenerator<EventAction<SimpleEventComponent.Action, EventActionType>> {
+  extends TestDataGenerator<EventAction<EventAction.Action, EventActionType>> {
 
-  private ArrayList<EventAction<SimpleEventComponent.Action, EventActionType>> mData = new ArrayList<>();
+  private ArrayList<EventAction<EventAction.Action, EventActionType>> mData = new ArrayList<>();
 
   @Override
-  public SeriesData<EventAction<SimpleEventComponent.Action, EventActionType>> get(int index) {
+  public SeriesData<EventAction<EventAction.Action, EventActionType>> get(int index) {
     return new SeriesData<>(mTime.get(index), mData.get(index));
   }
 
@@ -48,16 +46,16 @@ public class SimpleEventTestDataGenerator
     if (Math.random() > 0.5) {
       mTime.add(TimeUnit.NANOSECONDS.toMicros(System.nanoTime()));
       if (mData.size() > 0) {
-        EventAction<SimpleEventComponent.Action, EventActionType> lastAction = mData.get(mData.size() - 1);
+        EventAction<EventAction.Action, EventActionType> lastAction = mData.get(mData.size() - 1);
         // If our last action was a down action, our next action should be an up action.
-        if (lastAction.getValue() == SimpleEventComponent.Action.DOWN) {
+        if (lastAction.getValue() == EventAction.Action.DOWN) {
           downAction = false;
           endTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
           currentTimeUs = lastAction.getStartUs();
         }
       }
       mData.add(new EventAction<>(currentTimeUs, endTimeUs,
-                                  downAction ? SimpleEventComponent.Action.DOWN : SimpleEventComponent.Action.UP,
+                                  downAction ? EventAction.Action.DOWN : EventAction.Action.UP,
                                   EventActionType.HOLD));
 
     }
