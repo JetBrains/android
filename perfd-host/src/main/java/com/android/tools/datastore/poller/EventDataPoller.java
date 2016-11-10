@@ -40,7 +40,7 @@ public class EventDataPoller extends EventServiceGrpc.EventServiceImplBase imple
 
   private long myDataRequestStartTimestampNs = Long.MIN_VALUE;
   private EventServiceGrpc.EventServiceBlockingStub myEventPollingService;
-  private DataStoreService myService;
+  private int myProcessId = -1;
 
   //TODO: Pull into a storage class that can manage caching data to disk.
   protected PriorityQueue<EventProfiler.EventProfilerData> myData = new PriorityQueue<>(1000, new Comparator<EventProfiler.EventProfilerData>() {
@@ -50,15 +50,14 @@ public class EventDataPoller extends EventServiceGrpc.EventServiceImplBase imple
     }
   });
 
-  public EventDataPoller(@NotNull DataStoreService service) {
-    myService = service;
+  public EventDataPoller() {
+
   }
 
   @Override
   public void poll() throws StatusRuntimeException {
     EventProfiler.EventDataRequest.Builder dataRequestBuilder = EventProfiler.EventDataRequest.newBuilder()
-      //TODO: Use the right appId from a separate RPC call to this service.
-      .setAppId(-1)
+      .setAppId(myProcessId)
       .setStartTimestamp(myDataRequestStartTimestampNs)
       .setEndTimestamp(Long.MAX_VALUE);
     EventProfiler.EventDataResponse response = myEventPollingService.getData(dataRequestBuilder.build());
@@ -91,6 +90,20 @@ public class EventDataPoller extends EventServiceGrpc.EventServiceImplBase imple
       }
     }
     observer.onNext(response.build());
+    observer.onCompleted();
+  }
+
+  @Override
+  public void startMonitoringApp(EventProfiler.EventStartRequest request, StreamObserver<EventProfiler.EventStartResponse> observer) {
+    myProcessId = request.getAppId();
+    observer.onNext(myEventPollingService.startMonitoringApp(request));
+    observer.onCompleted();
+  }
+
+  @Override
+  public void stopMonitoringApp(EventProfiler.EventStopRequest request, StreamObserver<EventProfiler.EventStopResponse> observer) {
+    myProcessId = -1;
+    observer.onNext(myEventPollingService.stopMonitoringApp(request));
     observer.onCompleted();
   }
 
