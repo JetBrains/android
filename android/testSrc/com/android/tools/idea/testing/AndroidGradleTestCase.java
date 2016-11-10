@@ -76,8 +76,6 @@ import java.util.regex.Pattern;
 import static com.android.SdkConstants.*;
 import static com.android.testutils.TestUtils.getSdk;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
-import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_BUILD_TOOLS_VERSION;
-import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_COMPILE_VERSION;
 import static com.android.tools.idea.gradle.util.Projects.isLegacyIdeaAndroidProject;
 import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 import static com.android.tools.idea.testing.FileSubject.file;
@@ -360,16 +358,15 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   public static void updateGradleVersions(@NotNull File file) throws IOException {
-    updateGradleVersions(file, getLocalRepositories(), GRADLE_PLUGIN_RECOMMENDED_VERSION, CURRENT_BUILD_TOOLS_VERSION);
+    updateGradleVersions(file, getLocalRepositories());
   }
 
-  public static void updateGradleVersions(@NotNull File file, @NotNull String localRepositories,
-                                          String gradlePluginVersion, String buildToolsVersion) throws IOException {
+  private static void updateGradleVersions(@NotNull File file, @NotNull String localRepositories) throws IOException {
     if (file.isDirectory()) {
       File[] files = file.listFiles();
       if (files != null) {
         for (File child : files) {
-          updateGradleVersions(child, localRepositories, gradlePluginVersion, buildToolsVersion);
+          updateGradleVersions(child, localRepositories);
         }
       }
     }
@@ -377,13 +374,16 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       String contentsOrig = Files.toString(file, Charsets.UTF_8);
       String contents = contentsOrig;
 
-      contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]", gradlePluginVersion);
-      contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle-experimental:(.+)['\"]",
-                                   GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION);
+      BuildEnvironment buildEnvironment = BuildEnvironment.getInstance();
 
-      contents = replaceRegexGroup(contents, "buildToolsVersion ['\"](.+)['\"]", buildToolsVersion);
-      contents = replaceRegexGroup(contents, "compileSdkVersion ([0-9]+)", Integer.toString(CURRENT_COMPILE_VERSION));
-      contents = replaceRegexGroup(contents, "targetSdkVersion ([0-9]+)", Integer.toString(CURRENT_COMPILE_VERSION));
+      contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]",
+                                   buildEnvironment.getGradlePluginVersion());
+      contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle-experimental:(.+)['\"]",
+                                   buildEnvironment.getExperimentalPluginVersion());
+
+      contents = replaceRegexGroup(contents, "buildToolsVersion ['\"](.+)['\"]", buildEnvironment.getBuildToolsVersion());
+      contents = replaceRegexGroup(contents, "compileSdkVersion ([0-9]+)", buildEnvironment.getCompileSdkVersion());
+      contents = replaceRegexGroup(contents, "targetSdkVersion ([0-9]+)", buildEnvironment.getTargetSdkVersion());
       contents = contents.replaceAll("repositories[ ]+\\{", "repositories {\n" + localRepositories);
 
       if (!contents.equals(contentsOrig)) {
