@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGr
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.BuildEnvironment;
 import com.intellij.openapi.module.Module;
 
 import java.util.List;
@@ -63,7 +64,7 @@ public class AndroidGradlePluginVersionReaderTest extends AndroidGradleTestCase 
     loadSimpleApplication();
     Module appModule = myModules.getAppModule();
     String version = myVersionReader.getComponentVersion(appModule);
-    assertEquals(GRADLE_PLUGIN_RECOMMENDED_VERSION, version);
+    assertEquals(BuildEnvironment.getInstance().getGradlePluginVersion(), version);
   }
 
   public void testGetComponentVersionWithExperimentalPlugin() throws Exception {

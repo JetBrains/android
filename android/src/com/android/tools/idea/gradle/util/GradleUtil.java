@@ -109,8 +109,6 @@ public final class GradleUtil {
   @NonNls public static final String BUILD_DIR_DEFAULT_NAME = "build";
   @NonNls public static final String GRADLEW_PROPERTIES_PATH = join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_PROPERTIES);
 
-  @NonNls public static final String GRADLE_PLUGIN_RECOMMENDED_VERSION = getGradlePluginRecommendedVersion();
-
   private static final Logger LOG = Logger.getInstance(GradleUtil.class);
 
   /**
@@ -831,22 +829,41 @@ public final class GradleUtil {
     return null;
   }
 
-  @NotNull
-  private static String getGradlePluginRecommendedVersion() {
-    if (isAndroidStudio() && !AndroidPlugin.isGuiTestingMode() &&
-        !ApplicationManager.getApplication().isInternal() &&
-        !ApplicationManager.getApplication().isUnitTestMode()) {
-      // In a release build, Android Studio will use the latest version available in its offline repo(s).
-      FileOp fop = FileOpUtils.create();
-      GradleCoordinate version = EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPaths().stream()
-        .map(path -> MavenRepositories.getHighestInstalledVersion("com.android.tools.build", "gradle", path, null, true, fop))
-        .max(COMPARE_PLUS_HIGHER).get();
+  public enum PluginType {
+    STANDARD("gradle", GRADLE_PLUGIN_RECOMMENDED_VERSION),
+    EXPERIMENTAL("gradle-experimental", GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION);
 
-      if (version == null) {
-        throw new IllegalStateException("Gradle plugin missing from the offline Maven repo");
-      }
-      return version.getRevision();
+    @NotNull private final String pluginName;
+    @NotNull private final String defaultVersion;
+
+    PluginType(@NotNull String pluginName, @NotNull String defaultVersion) {
+      this.pluginName = pluginName;
+      this.defaultVersion = defaultVersion;
     }
-    return SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
+  }
+
+  @NotNull
+  public static String getLatestKnownPluginVersion(PluginType pluginType) {
+    FileOp fop = FileOpUtils.create();
+    Optional<GradleCoordinate> highestValueCoordinate = EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPaths().stream()
+      .map(path -> MavenRepositories.getHighestInstalledVersion("com.android.tools.build", pluginType.pluginName, path, null, true, fop))
+      .filter(coordinate -> coordinate != null)
+      .max(COMPARE_PLUS_HIGHER);
+
+    if (!highestValueCoordinate.isPresent()) {
+      if (isAndroidStudio() && !AndroidPlugin.isGuiTestingMode() &&
+          !ApplicationManager.getApplication().isInternal() &&
+          !ApplicationManager.getApplication().isUnitTestMode()) {
+        // In a release build, Android Studio must find the latest version in its offline repo(s).
+        throw new IllegalStateException("Gradle plugin missing from the offline Maven repo");
+      } else {
+        // In all other scenarios we will not throw an exception, but use the last known version from SdkConstants.
+        // TODO: revisit this when tests are running with the latest (source) build.
+        LOG.info(pluginType.pluginName + " plugin missing the offline Maven repo, will use default " + pluginType.defaultVersion);
+        return pluginType.defaultVersion;
+      }
+    }
+
+    return highestValueCoordinate.get().getRevision();
   }
 }
