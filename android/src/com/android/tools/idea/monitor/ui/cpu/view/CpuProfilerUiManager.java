@@ -29,7 +29,8 @@ import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.cpu.model.AppTrace;
-import com.android.tools.profilers.cpu.ThreadStatesDataModel;
+import com.android.tools.idea.monitor.ui.cpu.model.CpuDataPoller;
+import com.android.tools.idea.monitor.ui.cpu.model.ThreadStatesDataModel;
 import com.android.utils.SparseArray;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.project.Project;
@@ -47,6 +48,8 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
   static final Dimension DEFAULT_DIMENSION = new Dimension(2000, 2000);
 
   private ThreadsSegment myThreadSegment;
+
+  private CpuDataPoller myCpuDataPoller;
 
   private Range myTimeSelectionRangeUs;
 
@@ -95,7 +98,8 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
   @NotNull
   @Override
   public Set<Poller> createPollers(int pid) {
-    return Sets.newHashSet();
+    myCpuDataPoller = new CpuDataPoller(myDataStore, pid);
+    return Sets.newHashSet(myCpuDataPoller);
   }
 
   @Override
@@ -103,6 +107,8 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
     super.setupExtendedOverviewUi(toolbar, overviewPanel);
 
     myThreadSegment = new ThreadsSegment(myTimeCurrentRangeUs, myDataStore, myEventDispatcher, this);
+    assert myCpuDataPoller != null;
+    myCpuDataPoller.setThreadAddedNotifier(myThreadSegment.getThreadAddedNotifier());
     myChoreographer.register(myThreadSegment);
     setupAndRegisterSegment(myThreadSegment, DEFAULT_MONITOR_MIN_HEIGHT, DEFAULT_MONITOR_PREFERRED_HEIGHT, DEFAULT_MONITOR_MAX_HEIGHT);
     overviewPanel.add(myThreadSegment);
