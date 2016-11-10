@@ -24,15 +24,15 @@ import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.tools.idea.fd.FlightRecorder;
 import com.android.tools.idea.fd.InstantRunBuildProgressListener;
 import com.android.tools.idea.fd.InstantRunSettings;
-import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
+import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
-import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.AfterGradleInvocationTask;
 import com.android.tools.idea.gradle.project.build.console.view.GradleConsoleToolWindowFactory;
 import com.android.tools.idea.gradle.project.build.console.view.GradleConsoleView;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.AfterGradleInvocationTask;
 import com.android.tools.idea.gradle.project.build.invoker.messages.GradleBuildTreeViewPanel;
-import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
+import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
 import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
@@ -60,7 +60,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
-import com.intellij.openapi.progress.util.AbstractProgressIndicatorExBase;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
@@ -109,7 +108,6 @@ import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPT
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.run.editor.ProfilerState.ENABLE_EXPERIMENTAL_PROFILING;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.io.Closeables.close;
@@ -125,6 +123,7 @@ import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.jetbrains.android.AndroidPlugin.*;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
 /**
@@ -189,8 +188,6 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
     };
 
     private static final long ONE_MINUTE_MS = 60L /*sec*/ * 1000L /*millisec*/;
-    private static final Logger LOG = Logger.getInstance(GradleBuildInvoker.class);
-
 
     // Dummy objects used for mapping {@link AbstractSyncErrorHandler} to the 'build messages' environment.
     private static final Notification DUMMY_NOTIFICATION = new Notification("dummy", "dummy", "dummy", NotificationType.ERROR);
@@ -283,10 +280,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
         catch (InterruptedException e) {
           Thread.currentThread().interrupt();
         }
-
-        if (!isHeadless()) {
-          addIndicatorDelegate();
-        }
+        addIndicatorDelegate();
         invokeGradleTasks();
       }
       finally {
@@ -305,7 +299,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
     private void addIndicatorDelegate() {
       if (myProgressIndicator instanceof ProgressIndicatorEx) {
         ProgressIndicatorEx indicator = (ProgressIndicatorEx)myProgressIndicator;
-        indicator.addStateDelegate(new ProgressIndicatorStateDelegate());
+        indicator.addStateDelegate(new ProgressIndicatorStateDelegate(myRequest.getTaskId(), myBuildStopper));
       }
     }
 
@@ -396,7 +390,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
             }
             logMessage = replaced.toString();
           }
-          LOG.info(logMessage);
+          getLogger().info(logMessage);
 
           List<String> jvmArguments = new ArrayList<>(myRequest.getJvmArguments());
           BuildLauncher launcher = connection.newBuild();
@@ -560,7 +554,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
     private void handleTaskExecutionError(@NotNull Throwable e) {
       if (myProgressIndicator.isCanceled()) {
-        LOG.info("Failed to complete Gradle execution. Project may be closing or already closed.", e);
+        getLogger().info("Failed to complete Gradle execution. Project may be closing or already closed.", e);
         return;
       }
       //noinspection ThrowableResultOfMethodCallIgnored
@@ -853,9 +847,14 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
         case SIMPLE:
           return MessageCategory.SIMPLE;
         default:
-          LOG.info("Unknown message kind: " + kind);
+          getLogger().warn("Unknown message kind: " + kind);
           return 0;
       }
+    }
+
+    @NotNull
+    private static Logger getLogger() {
+      return Logger.getInstance(GradleBuildInvoker.class);
     }
 
     private void notifyGradleInvocationCompleted(long durationMillis) {
@@ -1081,10 +1080,14 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
       }
     }
 
-    private class ProgressIndicatorStateDelegate extends AbstractProgressIndicatorExBase {
+    private class ProgressIndicatorStateDelegate extends TaskExecutionProgressIndicator {
+      ProgressIndicatorStateDelegate(@NotNull ExternalSystemTaskId taskId,
+                                     @NotNull BuildStopper buildStopper) {
+        super(taskId, buildStopper);
+      }
+
       @Override
-      public void cancel() {
-        super.cancel();
+      void onCancel() {
         closeView();
         stopAppIconProgress();
       }
