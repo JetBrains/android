@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.monitor.ui.cpu.model;
 
-import com.android.tools.profilers.cpu.ThreadStatesDataModel;
-
 /**
  * Notifies when a new thread model was added because a new thread was polled from the device.
  */

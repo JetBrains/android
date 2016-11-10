@@ -25,12 +25,13 @@ import com.android.tools.adtui.visualtests.VisualTest;
 import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.tool.ProfilerEventListener;
+import com.android.tools.idea.monitor.ui.cpu.model.ThreadStatesDataModel;
 import com.android.tools.idea.monitor.ui.cpu.view.CpuUsageSegment;
 import com.android.tools.idea.monitor.ui.cpu.view.ThreadsSegment;
 import com.android.tools.idea.monitor.ui.visual.data.TestDataGenerator;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profilers.cpu.ThreadStatesDataModel;
 import com.intellij.util.EventDispatcher;
+import gnu.trove.TLongArrayList;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -117,13 +118,14 @@ public class CpuProfilerVisualTest extends VisualTest {
     ThreadStatesDataModel threadStatesDataModel = new ThreadStatesDataModel(name, 0);
     mDataStore.registerAdapter(
       SeriesDataType.CPU_THREAD_STATE,
-      new ThreadStateTestDataGenerator(),
+      new ThreadStateTestDataGenerator(threadStatesDataModel.getThreadStates(), threadStatesDataModel.getTimestamps()),
       threadStatesDataModel);
+    mThreadsSegment.getThreadAddedNotifier().threadAdded(threadStatesDataModel);
   }
 
   private static final class ThreadStateTestDataGenerator extends TestDataGenerator<CpuProfiler.ThreadActivity.State> {
 
-    private List<SeriesData<CpuProfiler.ThreadActivity.State>> mStates = new ArrayList();
+    private List<CpuProfiler.ThreadActivity.State> mStates;
 
     // Set the initial state to be, arbitrary RUNNING. The other alive state is SLEEPING.
     private CpuProfiler.ThreadActivity.State mCurrentState = CpuProfiler.ThreadActivity.State.RUNNING;
@@ -133,12 +135,14 @@ public class CpuProfilerVisualTest extends VisualTest {
      */
     private boolean mIsDead = false;
 
-    private ThreadStateTestDataGenerator() {
+    private ThreadStateTestDataGenerator(List<CpuProfiler.ThreadActivity.State> states, TLongArrayList timestamps) {
+      mStates = states;
+      mTime = timestamps;
     }
 
     @Override
     public SeriesData<CpuProfiler.ThreadActivity.State> get(int index) {
-      return mStates.get(index);
+      return new SeriesData<>(mTime.get(index), mStates.get(index));
     }
 
     @Override
@@ -158,7 +162,7 @@ public class CpuProfilerVisualTest extends VisualTest {
                         CpuProfiler.ThreadActivity.State.SLEEPING : CpuProfiler.ThreadActivity.State.RUNNING;
       }
       // Otherwise, repeat last state.
-      mStates.add(new SeriesData<>(mTime.get(mTime.size()-1), mCurrentState));
+      mStates.add(mCurrentState);
     }
   }
 }
