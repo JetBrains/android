@@ -17,9 +17,12 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.profilers.cpu.CpuMonitorStage;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class StudioMonitorView extends ProfilerStageView {
 
@@ -37,9 +40,16 @@ public class StudioMonitorView extends ProfilerStageView {
     for (ProfilerMonitor m : monitor.getMonitors()) {
       myLineChart.addLine(m.getRangedSeries());
     }
-
     myChoreographer.register(myLineChart);
     myComponent.add(myLineChart, BorderLayout.CENTER);
+    myLineChart.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mousePressed(MouseEvent e) {
+        StudioProfiler profiler = monitor.getStudioProfiler();
+        CpuMonitorStage stage = new CpuMonitorStage(profiler);
+        profiler.setStage(stage);
+      }
+    });
   }
 
 
