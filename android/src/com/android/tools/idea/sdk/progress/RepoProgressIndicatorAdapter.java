@@ -53,7 +53,7 @@ public class RepoProgressIndicatorAdapter implements ProgressIndicator {
   @Override
   public boolean isCancellable() {
     // This isn't actually accurate, but it doesn't seem like there's a general way to do it.
-    return !ProgressManager.isInNonCancelableSection();
+    return !ProgressManager.getInstance().isInNonCancelableSection();
   }
 
   @Override
