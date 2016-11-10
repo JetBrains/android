@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.avdmanager;
 
-import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
@@ -28,7 +31,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRunner.class)
 public class AvdListDialogTest {
 
-  @Rule public final GuiTestRule guiTest = new LocalSdkGuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @RunIn(TestGroup.QA)
   @Test
