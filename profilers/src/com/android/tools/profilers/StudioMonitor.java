@@ -15,37 +15,38 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.Range;
-import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profilers.cpu.CpuUsageDataSeries;
+
+import java.util.LinkedList;
+import java.util.List;
 
 public class StudioMonitor extends StudioProfilerStage {
   private final StudioProfiler myProfiler;
-  private RangedContinuousSeries myRangedSeries;
   private int myProcessId;
+  private List<ProfilerMonitor> myMonitors;
 
   public StudioMonitor(StudioProfiler profiler) {
     myProfiler = profiler;
+    myMonitors = new LinkedList<>();
   }
 
   @Override
   public void enter() {
-    // TODO: Move this to a CPU specific class, and generalize multiple monitors
-    ProfilerClient client = myProfiler.getClient();
     myProcessId = myProfiler.getProcessId();
-    client.getCpuClient().startMonitoringApp(CpuProfiler.CpuStartRequest.newBuilder().setAppId(myProcessId).build());
-    CpuUsageDataSeries series = new CpuUsageDataSeries(client, false, myProcessId);
-    myRangedSeries = new RangedContinuousSeries("CPU", myProfiler.getViewRange(), new Range(0, 100), series);
+    myMonitors.clear();
+    for (BaseProfiler profiler : myProfiler.getProfilers()) {
+      myMonitors.add(profiler.newMonitor(myProcessId));
+    }
   }
 
   @Override
   public void exit() {
-    ProfilerClient client = myProfiler.getClient();
-    client.getCpuClient().stopMonitoringApp(CpuProfiler.CpuStopRequest.newBuilder().setAppId(myProcessId).build());
+    for (ProfilerMonitor monitor : myMonitors) {
+      monitor.stop();
+    }
   }
 
-  public RangedContinuousSeries getRangedSeries() {
-    return myRangedSeries;
+  public List<ProfilerMonitor> getMonitors() {
+    return myMonitors;
   }
 }
