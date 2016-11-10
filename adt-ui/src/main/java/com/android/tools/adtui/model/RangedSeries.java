@@ -29,7 +29,7 @@ public class RangedSeries<E> {
   protected final Range mXRange;
 
   @NotNull
-  protected final DataSeries<E> mSeries;
+  protected DataSeries<E> mSeries;
 
   /**
    * When constructing a RangedSeries the caller needs to supply a {@link Range} object that manages the scope of the data, and
@@ -56,5 +56,12 @@ public class RangedSeries<E> {
   @NotNull
   public Range getXRange() {
     return mXRange;
+  }
+
+  /**
+   * Update the {@link DataSeries} that backs this object.
+   */
+  public void setDataSeries(DataSeries<E> series) {
+    mSeries = series;
   }
 }
