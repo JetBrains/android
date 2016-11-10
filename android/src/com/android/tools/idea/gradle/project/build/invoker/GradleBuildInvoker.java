@@ -50,6 +50,10 @@ import java.util.*;
 import static com.android.builder.model.AndroidProject.PROPERTY_GENERATE_SOURCES_ONLY;
 import static com.android.tools.idea.gradle.AndroidGradleModel.getIdeSetupTasks;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
+import static com.android.tools.idea.gradle.util.BuildMode.*;
+import static com.android.tools.idea.gradle.util.GradleBuilds.ASSEMBLE_TRANSLATE_TASK_NAME;
+import static com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME;
+import static com.android.tools.idea.gradle.util.GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.EXECUTE_TASK;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -86,28 +90,28 @@ public class GradleBuildInvoker {
   }
 
   public void cleanProject() {
-    setProjectBuildMode(BuildMode.CLEAN);
+    setProjectBuildMode(CLEAN);
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     // "Clean" also generates sources.
-    List<String> tasks = findTasksToExecute(moduleManager.getModules(), BuildMode.SOURCE_GEN, TestCompileType.NONE);
-    tasks.add(0, GradleBuilds.CLEAN_TASK_NAME);
+    List<String> tasks = findTasksToExecute(moduleManager.getModules(), SOURCE_GEN, TestCompileType.NONE);
+    tasks.add(0, CLEAN_TASK_NAME);
     executeTasks(tasks, Collections.singletonList(createGenerateSourcesOnlyProperty()));
   }
 
   public void assembleTranslate() {
-    setProjectBuildMode(BuildMode.ASSEMBLE_TRANSLATE);
-    executeTasks(Collections.singletonList(GradleBuilds.ASSEMBLE_TRANSLATE_TASK_NAME));
+    setProjectBuildMode(ASSEMBLE_TRANSLATE);
+    executeTasks(Collections.singletonList(ASSEMBLE_TRANSLATE_TASK_NAME));
   }
 
   public void generateSources(boolean cleanProject) {
-    BuildMode buildMode = BuildMode.SOURCE_GEN;
+    BuildMode buildMode = SOURCE_GEN;
     setProjectBuildMode(buildMode);
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     List<String> tasks = findTasksToExecute(moduleManager.getModules(), buildMode, TestCompileType.NONE);
     if (cleanProject) {
-      tasks.add(0, GradleBuilds.CLEAN_TASK_NAME);
+      tasks.add(0, CLEAN_TASK_NAME);
     }
     executeTasks(tasks, Collections.singletonList(createGenerateSourcesOnlyProperty()));
   }
@@ -125,7 +129,7 @@ public class GradleBuildInvoker {
    *                        main sources, {@link TestCompileType#UNIT_TESTS} if class files for running unit tests are needed.
    */
   public void compileJava(@NotNull Module[] modules, @NotNull TestCompileType testCompileType) {
-    BuildMode buildMode = BuildMode.COMPILE_JAVA;
+    BuildMode buildMode = COMPILE_JAVA;
     setProjectBuildMode(buildMode);
     List<String> tasks = findTasksToExecute(modules, buildMode, testCompileType);
     executeTasks(tasks);
@@ -136,14 +140,14 @@ public class GradleBuildInvoker {
   }
 
   public void assemble(@NotNull Module[] modules, @NotNull TestCompileType testCompileType, @NotNull List<String> arguments) {
-    BuildMode buildMode = BuildMode.ASSEMBLE;
+    BuildMode buildMode = ASSEMBLE;
     setProjectBuildMode(buildMode);
     List<String> tasks = findTasksToExecute(modules, buildMode, testCompileType);
     executeTasks(tasks, arguments);
   }
 
   public void rebuild() {
-    BuildMode buildMode = BuildMode.REBUILD;
+    BuildMode buildMode = REBUILD;
     setProjectBuildMode(buildMode);
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     List<String> tasks = findTasksToExecute(moduleManager.getModules(), buildMode, TestCompileType.NONE);
@@ -190,7 +194,7 @@ public class GradleBuildInvoker {
         continue;
       }
       String gradlePath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
-      addTaskIfSpecified(tasks, gradlePath, GradleBuilds.CLEAN_TASK_NAME);
+      addTaskIfSpecified(tasks, gradlePath, CLEAN_TASK_NAME);
     }
     return tasks;
   }
@@ -201,11 +205,11 @@ public class GradleBuildInvoker {
                                                 @NotNull TestCompileType testCompileType) {
     List<String> tasks = new ArrayList<>();
 
-    if (BuildMode.ASSEMBLE == buildMode) {
+    if (ASSEMBLE == buildMode) {
       Project project = modules[0].getProject();
       if (GradleSyncState.getInstance(project).lastSyncFailed()) {
         // If last Gradle sync failed, just call "assemble" at the top-level. Without a model there are no other tasks we can call.
-        return Collections.singletonList(GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME);
+        return Collections.singletonList(DEFAULT_ASSEMBLE_TASK_NAME);
       }
     }
 
@@ -216,8 +220,8 @@ public class GradleBuildInvoker {
       }
       findAndAddGradleBuildTasks(module, buildMode, tasks, testCompileType);
     }
-    if (buildMode == BuildMode.REBUILD && !tasks.isEmpty()) {
-      tasks.add(0, GradleBuilds.CLEAN_TASK_NAME);
+    if (buildMode == REBUILD && !tasks.isEmpty()) {
+      tasks.add(0, CLEAN_TASK_NAME);
     }
 
     if (tasks.isEmpty()) {
