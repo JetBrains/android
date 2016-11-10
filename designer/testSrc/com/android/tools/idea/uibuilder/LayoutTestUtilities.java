@@ -45,6 +45,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.util.List;
 import java.util.Map;
 
@@ -53,7 +54,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 public class LayoutTestUtilities {
-  private static Map<NlComponent, Integer> ourComponentIds;
+  private static SoftReference<Map<NlComponent, Integer>> ourComponentIds = null;
 
   public static void moveMouse(InteractionManager manager, int x1, int y1, int x2, int y2, int modifiers) {
     Object listener = manager.getListener();
@@ -219,18 +220,21 @@ public class LayoutTestUtilities {
    */
   @VisibleForTesting
   public static void resetComponentTestIds() {
+    if (ourComponentIds != null) ourComponentIds.clear();
     ourComponentIds = null;
   }
 
   @VisibleForTesting
   private static int getInstanceId(@NotNull NlComponent root) {
-    if (ourComponentIds == null) {
-      ourComponentIds = Maps.newHashMap();
+    Map<NlComponent, Integer> map = ourComponentIds == null ? null : ourComponentIds.get();
+    if (map == null) {
+      map = Maps.newHashMap();
+      ourComponentIds = new SoftReference<>(map);
     }
-    Integer id = ourComponentIds.get(root);
+    Integer id = map.get(root);
     if (id == null) {
-      id = ourComponentIds.size();
-      ourComponentIds.put(root, id);
+      id = map.size();
+      map.put(root, id);
     }
 
     return id;
