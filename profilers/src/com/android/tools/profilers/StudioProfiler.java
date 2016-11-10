@@ -17,6 +17,7 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.Range;
 import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profilers.cpu.CpuMonitorStage;
 import com.android.tools.profilers.cpu.CpuProfiler;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -147,7 +148,7 @@ final public class StudioProfiler extends AspectModel<Aspect> {
     return myProcess.getPid();
   }
 
-  public void setStage(StudioMonitor stage) {
+  public void setStage(StudioProfilerStage stage) {
     if (myStage != null) {
       myStage.exit();
     }
