@@ -117,7 +117,7 @@ public class NewModuleWizardDynamic extends DynamicWizard {
         }
       }
     }
-    return GradleUtil.GRADLE_PLUGIN_RECOMMENDED_VERSION;
+    return GradleUtil.getLatestKnownPluginVersion(GradleUtil.PluginType.STANDARD);
   }
 
   @NotNull
