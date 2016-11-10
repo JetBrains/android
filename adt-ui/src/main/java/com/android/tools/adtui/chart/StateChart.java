@@ -16,8 +16,11 @@
 
 package com.android.tools.adtui.chart;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.common.datareducer.DefaultStateChartReducer;
+import com.android.tools.adtui.common.datareducer.StateChartReducer;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.intellij.util.containers.ImmutableList;
@@ -65,15 +68,24 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
   @NotNull
   private RenderMode mRenderMode;
 
+  @NotNull
+  private StateChartReducer<E> myReducer;
+
   /**
    * @param colors map of a state to corresponding color
    */
   public StateChart(@NotNull Map<E, Color> colors) {
+    this(colors, new DefaultStateChartReducer<>());
+  }
+
+  @VisibleForTesting
+  public StateChart(@NotNull Map<E, Color> colors, @NotNull StateChartReducer<E> reducer) {
     mColors = colors;
     mRectangles = new ArrayList<>();
     mValues = new ArrayList<>();
     mSeriesList = new ArrayList<>();
     mRenderMode = RenderMode.BAR;
+    myReducer = reducer;
     setFont(AdtUiUtils.DEFAULT_FONT);
   }
 
@@ -188,10 +200,21 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     assert mRectangles.size() == mValues.size();
+
+    List<Shape> transformedShapes = new ArrayList<>(mRectangles.size());
+    List<E> transformedValues = new ArrayList<>(mRectangles.size());
     AffineTransform scale = AffineTransform.getScaleInstance(dim.getWidth(), dim.getHeight());
-    for (int i = 0; i < mRectangles.size(); i++) {
-      g2d.setColor(mColors.get(mValues.get(i)));
-      Shape shape = scale.createTransformedShape(mRectangles.get(i));
+    for (int i = 0; i < mRectangles.size(); ++i) {
+      transformedShapes.add(scale.createTransformedShape(mRectangles.get(i)));
+      transformedValues.add(mValues.get(i));
+    }
+    myReducer.reduce(transformedShapes, transformedValues);
+    assert transformedShapes.size() == transformedValues.size();
+
+    for (int i = 0; i < transformedShapes.size(); i++) {
+      Shape shape = transformedShapes.get(i);
+      E value = transformedValues.get(i);
+      g2d.setColor(mColors.get(value));
 
       switch (mRenderMode) {
         case BAR:
@@ -201,7 +224,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
           Rectangle2D rect = shape.getBounds2D();
           g2d.draw(new Line2D.Double(rect.getX(), rect.getY(), rect.getX(), rect.getY() + rect.getHeight()));
           String text = AdtUiUtils.getFittedString(mDefaultFontMetrics,
-                                                   mValues.get(i).toString(),
+                                                   value.toString(),
                                                    (float)rect.getWidth() - TEXT_PADDING * 2,
                                                    1);
           if (!text.isEmpty()) {
@@ -211,6 +234,8 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
           break;
       }
     }
+
+    addDebugInfo("# of drawn rects: %d", transformedShapes.size());
   }
 
   private void setRectangleAndValueData(int rectCount,
