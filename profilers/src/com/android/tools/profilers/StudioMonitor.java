@@ -15,27 +15,23 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.profiler.proto.CpuProfiler;
-
 import java.util.LinkedList;
 import java.util.List;
 
 public class StudioMonitor extends StudioProfilerStage {
-  private final StudioProfiler myProfiler;
-  private int myProcessId;
   private List<ProfilerMonitor> myMonitors;
 
   public StudioMonitor(StudioProfiler profiler) {
-    myProfiler = profiler;
+    super(profiler);
     myMonitors = new LinkedList<>();
   }
 
   @Override
   public void enter() {
-    myProcessId = myProfiler.getProcessId();
+    int processId = getStudioProfiler().getProcessId();
     myMonitors.clear();
-    for (BaseProfiler profiler : myProfiler.getProfilers()) {
-      myMonitors.add(profiler.newMonitor(myProcessId));
+    for (BaseProfiler profiler : getStudioProfiler().getProfilers()) {
+      myMonitors.add(profiler.newMonitor(processId));
     }
   }
 
