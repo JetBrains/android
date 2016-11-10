@@ -17,7 +17,6 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.Range;
 import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profilers.cpu.CpuMonitorStage;
 import com.android.tools.profilers.cpu.CpuProfiler;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -26,7 +25,7 @@ import io.grpc.StatusRuntimeException;
 
 import java.util.*;
 
-final public class StudioProfiler extends AspectModel<Aspect> {
+final public class StudioProfiler extends AspectModel<ProfilerAspect> {
 
   private final ProfilerClient myClient;
 
@@ -80,7 +79,7 @@ final public class StudioProfiler extends AspectModel<Aspect> {
           long deviceNow = times.getTimestampNs();
           myDeviceDeltaUs = deviceNow - now;
           myDataRangUs.set(deviceNow / 1000, deviceNow / 1000);
-          this.changed(Aspect.CONNECTION);
+          this.changed(ProfilerAspect.CONNECTION);
         }
 
         long deviceNow = now + myDeviceDeltaUs;
@@ -110,12 +109,12 @@ final public class StudioProfiler extends AspectModel<Aspect> {
             setStage(new StudioMonitor(this));
           }
 
-          this.changed(Aspect.DEVICES);
+          this.changed(ProfilerAspect.DEVICES);
         }
       }
       catch (StatusRuntimeException e) {
         myConnected = false;
-        this.changed(Aspect.CONNECTION);
+        this.changed(ProfilerAspect.CONNECTION);
         System.err.println("Cannot find profiler service, retrying...");
       }
       try {
@@ -154,7 +153,7 @@ final public class StudioProfiler extends AspectModel<Aspect> {
     }
     myStage = stage;
     myStage.enter();
-    this.changed(Aspect.STAGE);
+    this.changed(ProfilerAspect.STAGE);
   }
 
   public Range getViewRange() {
