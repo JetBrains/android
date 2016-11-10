@@ -89,15 +89,7 @@ public class BrClassFinder extends PsiElementFinder {
   @Nullable
   @Override
   public PsiPackage findPackage(@NotNull String qualifiedName) {
-    if (!myComponent.hasAnyDataBindingEnabledFacet()) {
-      return null;
-    }
-    for (AndroidFacet facet : myComponent.getDataBindingEnabledFacets()) {
-      String generatedPackageName = DataBindingUtil.getGeneratedPackageName(facet);
-      if (generatedPackageName.equals(qualifiedName)) {
-        return myComponent.getOrCreateDataBindingPsiPackage(generatedPackageName);
-      }
-    }
+    // DO NOT find package. BR package is the same as R and it always exists
     return null;
   }
 }

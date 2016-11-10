@@ -64,4 +64,17 @@ public class InstantRunNotificationProviderTest {
     InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.HOTSWAP, "");
     assertEquals(AndroidBundle.message("instant.run.notification.hotswap", ""), provider.getNotificationText());
   }
+
+  @Test
+  public void multiProcessOnApi19() {
+    BuildSelection buildSelection = new BuildSelection(BuildMode.COLD, BuildCause.APP_USES_MULTIPLE_PROCESSES);
+
+    // if we generated an apk, then we shouldn't talk about multi process
+    InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.FULLAPK, "");
+    assertEquals("Instant Run re-installed and restarted the app", provider.getNotificationText());
+
+    // but if we generated cold swap patches, then we should specify that we did so because of multi process
+    provider = new InstantRunNotificationProvider(buildSelection, DeployType.DEX, "");
+    assertEquals(AndroidBundle.message("instant.run.notification.coldswap.multiprocess"), provider.getNotificationText());
+  }
 }

@@ -59,7 +59,6 @@ import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.WriteExternalException;
 import icons.AndroidIcons;
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jdom.Element;
 import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -77,8 +76,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.*;
-import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.LEGACY_MULTIDEX_REQUIRES_ART;
-import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.VARIANT_DOES_NOT_SUPPORT_INSTANT_RUN;
 import static com.android.tools.idea.gradle.util.Projects.requiredAndroidModelMissing;
 
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> implements
@@ -497,7 +494,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     ApkProvider apkProvider = getApkProvider(facet, applicationIdProvider);
     LaunchTasksProviderFactory providerFactory =
-      new AndroidLaunchTasksProviderFactory(this, env, facet, applicationIdProvider, apkProvider, launchOptions, processHandler,
+      new AndroidLaunchTasksProviderFactory(this, env, facet, applicationIdProvider, apkProvider, deviceFutures, launchOptions, processHandler,
                                             instantRunContext);
 
     InstantRunStatsService.get(project).notifyBuildStarted();
