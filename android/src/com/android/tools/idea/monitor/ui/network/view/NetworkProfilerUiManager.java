@@ -28,7 +28,10 @@ import com.android.tools.idea.monitor.ui.network.model.NetworkCaptureModel;
 import com.android.tools.idea.monitor.ui.network.model.NetworkDataPoller;
 import com.android.tools.idea.monitor.ui.network.model.RpcNetworkCaptureModel;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,15 +47,17 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
 
   private NetworkCaptureSegment myCaptureSegment;
 
-  private NetworkDetailedView myDetailedView = new NetworkDetailedView();
+  private NetworkDetailedView myDetailedView;
 
   @NotNull
   private final HttpDataCache myDataCache;
 
   public NetworkProfilerUiManager(@NotNull Range timeCurrentRangeUs, @NotNull Choreographer choreographer,
-                                  @NotNull SeriesDataStore dataStore, @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
+                                  @NotNull SeriesDataStore dataStore, @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher,
+                                  @NotNull Project project) {
     super(timeCurrentRangeUs, choreographer, dataStore, eventDispatcher);
     myDataCache = new HttpDataCache(myDataStore.getDeviceProfilerService().getDevice());
+    myDetailedView = new NetworkDetailedView(project);
   }
 
   @NotNull
@@ -91,9 +96,11 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
     NetworkCaptureModel captureModel = new RpcNetworkCaptureModel(myDataStore.getDeviceProfilerService(), myDataCache);
     myCaptureSegment = new NetworkCaptureSegment(myTimeCurrentRangeUs, captureModel, httpData -> {
       String responseFilePath = httpData.getHttpResponseBodyPath();
+      // TODO: Refactor to get virtual file directly from data cache.
       File file = !StringUtil.isEmptyOrSpaces(responseFilePath) ? myDataCache.getFile(responseFilePath) : null;
-      if (file != null) {
-        myDetailedView.showConnectionDetails(file);
+      VirtualFile virtualFile = file != null ? LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file) : null;
+      if (virtualFile != null) {
+        myDetailedView.showConnectionDetails(virtualFile);
         myEventDispatcher.getMulticaster().profilerExpanded(ProfilerType.NETWORK);
       }
     }, myEventDispatcher);
