@@ -16,6 +16,8 @@
 package com.android.tools.profilers;
 
 import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profilers.cpu.CpuMonitorStage;
+import com.android.tools.profilers.cpu.CpuMonitorStageView;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.application.ApplicationManager;
 
@@ -28,10 +30,12 @@ import java.util.Map;
 public class StudioProfilerView {
   private final StudioProfiler myProfiler;
   private ProfilerStageView myStageView;
+  private BorderLayout myLayout;
   private JPanel myComponent;
 
   private static Map<Class, Class> STAGE_VIEWS = ImmutableMap.of(
-    StudioMonitor.class, StudioMonitorView.class
+    StudioMonitor.class, StudioMonitorView.class,
+    CpuMonitorStage.class, CpuMonitorStageView.class
   );
 
   public StudioProfilerView(StudioProfiler profiler) {
@@ -45,7 +49,8 @@ public class StudioProfilerView {
   }
 
   private void initializeUi() {
-    myComponent = new JPanel(new BorderLayout());
+    myLayout = new BorderLayout();
+    myComponent = new JPanel(myLayout);
 
     JComboBox<Profiler.Device> deviceCombo = new JComboBox<>();
     JComboBoxView devices = new JComboBoxView<>(deviceCombo, myProfiler, Aspect.DEVICES,
@@ -73,7 +78,12 @@ public class StudioProfilerView {
     StudioProfilerStage stage = myProfiler.getStage();
     if (myStageView == null || myStageView.getStage() != stage) {
       myStageView = bindView(stage);
+      Component prev = myLayout.getLayoutComponent(BorderLayout.CENTER);
+      if (prev != null) {
+        myComponent.remove(prev);
+      }
       myComponent.add(myStageView.getComponent(), BorderLayout.CENTER);
+      myComponent.revalidate();
     }
   }
 
