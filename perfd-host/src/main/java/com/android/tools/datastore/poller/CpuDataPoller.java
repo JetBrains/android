@@ -40,13 +40,11 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
 
   private long myDataRequestStartTimestampNs = Long.MIN_VALUE;
   private CpuServiceGrpc.CpuServiceBlockingStub myPollingService;
-  private DataStoreService myService;
   //TODO Pull this into a storage container that can read/write this to disk
   protected List<CpuProfiler.CpuProfilerData> myData = new ArrayList<>();
   private int myProcessId = -1;
 
-  public CpuDataPoller(@NotNull DataStoreService service) {
-    myService = service;
+  public CpuDataPoller() {
   }
 
   @Override

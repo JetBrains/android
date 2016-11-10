@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 package com.android.tools.datastore;
-import com.android.tools.datastore.poller.CpuDataPoller;
-import com.android.tools.datastore.poller.ProfilerService;
-import com.android.tools.datastore.poller.EventDataPoller;
+import com.android.tools.datastore.poller.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.*;
@@ -51,8 +49,10 @@ public class DataStoreService {
    */
   public void createPollers() {
     registerService(new ProfilerService(this));
-    registerService(new EventDataPoller(this));
-    registerService(new CpuDataPoller(this));
+    registerService(new EventDataPoller());
+    registerService(new CpuDataPoller());
+    registerService(new MemoryDataPoller());
+    registerService(new NetworkDataPoller());
   }
 
   /**
