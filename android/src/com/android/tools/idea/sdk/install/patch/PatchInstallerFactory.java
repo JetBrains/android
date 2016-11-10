@@ -109,6 +109,6 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
     // At this point we must be on Windows.
     // There's no patch available, but if a patch installer is installed and better than KNOWN_GOOD_VERSION we can still use it.
     LocalPackage patcher = PatchInstallerUtil.getLatestPatcher(mgr);
-    return patcher != null && PatchInstallerUtil.comparePatcherPaths(patcher.getPath(), KNOWN_GOOD_VERSION) > 0;
+    return patcher != null && PatchInstallerUtil.comparePatcherPaths(patcher.getPath(), KNOWN_GOOD_VERSION) >= 0;
   }
 }
