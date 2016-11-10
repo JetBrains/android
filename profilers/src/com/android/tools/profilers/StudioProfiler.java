@@ -24,6 +24,7 @@ import com.google.common.collect.Maps;
 import io.grpc.StatusRuntimeException;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 final public class StudioProfiler extends AspectModel<ProfilerAspect> {
 
@@ -37,7 +38,7 @@ final public class StudioProfiler extends AspectModel<ProfilerAspect> {
   private Map<Profiler.Device, List<Profiler.Process>> myProcesses;
 
   private Profiler.Device myDevice;
-  private long myDeviceDeltaUs;
+  private long myDeviceDeltaNs;
   private Profiler.Process myProcess;
   private boolean myConnected;
 
@@ -73,18 +74,20 @@ final public class StudioProfiler extends AspectModel<ProfilerAspect> {
     while (true) {
       try {
         Profiler.GetDevicesResponse response = myClient.getProfilerClient().getDevices(Profiler.GetDevicesRequest.getDefaultInstance());
-        long now = System.nanoTime();
+        long nowNs = System.nanoTime();
         if (!myConnected) {
           Profiler.TimesResponse times = myClient.getProfilerClient().getTimes(Profiler.TimesRequest.getDefaultInstance());
-          long deviceNow = times.getTimestampNs();
-          myDeviceDeltaUs = deviceNow - now;
-          myDataRangUs.set(deviceNow / 1000, deviceNow / 1000);
+          long deviceNowNs = times.getTimestampNs();
+          long deviceNowUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
+          myDeviceDeltaNs = deviceNowNs - nowNs;
+          myDataRangUs.set(deviceNowUs, deviceNowUs);
           this.changed(ProfilerAspect.CONNECTION);
         }
 
-        long deviceNow = now + myDeviceDeltaUs;
-        myViewRangeUs.set(deviceNow / 1000 - 10000000, deviceNow / 1000);
-        myDataRangUs.setMax(deviceNow / 1000);
+        long deviceNowNs = nowNs + myDeviceDeltaNs;
+        long deviceNowUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
+        myViewRangeUs.set(deviceNowUs - TimeUnit.SECONDS.toMicros(10), deviceNowUs);
+        myDataRangUs.setMax(deviceNowUs);
 
         myConnected = true;
         Set<Profiler.Device> devices = new HashSet<>(response.getDeviceList());
