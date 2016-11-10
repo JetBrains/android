@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.ddmlib.Client;
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.run.testing.AndroidTestRunConfiguration;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.RunConfigurationBase;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.executors.DefaultDebugExecutor;
@@ -29,7 +28,6 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.DefaultProgramRunner;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.RunContentDescriptor;
-import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidProgramRunner extends DefaultProgramRunner {
@@ -49,7 +47,7 @@ public class AndroidProgramRunner extends DefaultProgramRunner {
       assert processHandler != null;
 
       RunProfile runProfile = env.getRunProfile();
-      int uniqueId = runProfile instanceof AndroidRunConfigurationBase ? ((AndroidRunConfigurationBase)runProfile).getUniqueID() : -1;
+      int uniqueId = runProfile instanceof RunConfigurationBase ? ((RunConfigurationBase)runProfile).getUniqueID() : -1;
       AndroidSessionInfo sessionInfo = new AndroidSessionInfo(processHandler, descriptor, uniqueId, env.getExecutor().getId(),
                                                               InstantRunUtils.isInstantRunEnabled(env));
       processHandler.putUserData(AndroidSessionInfo.KEY, sessionInfo);
