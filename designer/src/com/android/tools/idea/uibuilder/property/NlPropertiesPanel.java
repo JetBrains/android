@@ -46,6 +46,8 @@ import static com.android.SdkConstants.TOOLS_URI;
 public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction.Model {
   private static final String CARD_ADVANCED = "table";
   private static final String CARD_DEFAULT = "default";
+  private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 50;
+  private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 25;
 
   private final PTable myTable;
   private final JPanel myTablePanel;
@@ -87,7 +89,10 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     myCardPanel.add(CARD_DEFAULT, ScrollPaneFactory.createScrollPane(myInspectorPanel,
                                                                      ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                                                      ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER));
-    myCardPanel.add(CARD_ADVANCED, ScrollPaneFactory.createScrollPane(myTablePanel));
+    JScrollPane tableScrollPane = ScrollPaneFactory.createScrollPane(myTablePanel);
+    tableScrollPane.getVerticalScrollBar().setUnitIncrement(VERTICAL_SCROLLING_UNIT_INCREMENT);
+    tableScrollPane.getVerticalScrollBar().setBlockIncrement(VERTICAL_SCROLLING_BLOCK_INCREMENT);
+    myCardPanel.add(CARD_ADVANCED, tableScrollPane);
     myComponents = Collections.emptyList();
     myProperties = Collections.emptyList();
   }

@@ -35,6 +35,12 @@ import static org.fest.assertions.Assertions.assertThat;
  * Integration test that verifies that transitive dependencies are set up correctly.
  */
 public class TransitiveDependencySetupTest extends AndroidGradleTestCase {
+
+  @Override
+  protected void runTest() throws Throwable {
+    // Ignore this whole class. See http://b.android.com/221883.
+  }
+
   @Override
   protected void tearDown() throws Exception {
     super.tearDown();
