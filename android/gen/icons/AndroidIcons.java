@@ -426,6 +426,8 @@ public class AndroidIcons {
     public static final Icon EditTextPhoneLarge = load("/icons/views/EditTextPhone_large.png"); // 24x24
     public static final Icon EditTextPostalAddress = load("/icons/views/EditTextPostalAddress.png"); // 16x16
     public static final Icon EditTextPostalAddressLarge = load("/icons/views/EditTextPostalAddress_large.png"); // 24x24
+    public static final Icon EditTextTime = load("/icons/views/EditTextTime.png"); // 16x16
+    public static final Icon EditTextTimeLarge = load("/icons/views/EditTextTime_large.png"); // 24x24
     public static final Icon ExpandableListView = load("/icons/views/ExpandableListView.png"); // 16x16
     public static final Icon ExpandableListViewLarge = load("/icons/views/ExpandableListView_large.png"); // 24x24
     public static final Icon FlexBoxLayout = load("/icons/views/FlexBoxLayout.png"); // 16x16

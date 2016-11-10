@@ -113,31 +113,6 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   }
 
   @Language("XML")
-  private static final String LARGE_PROGRESS_XML =
-    "<ProgressBar\n" +
-    "  style=\"?android:attr/progressBarStyleLarge\"\n" +
-    "  android:layout_width=\"wrap_content\"\n" +
-    "  android:layout_height=\"wrap_content\"\n" +
-    "/>\n";
-
-  @Language("XML")
-  private static final String LARGE_PROGRESS_PREVIEW_XML =
-    "<ProgressBar\n" +
-    "  android:id=\"@+id/LargeProgressBar\"\n" +
-    "  style=\"?android:attr/progressBarStyleLarge\"\n" +
-    "  android:layout_width=\"wrap_content\"\n" +
-    "  android:layout_height=\"wrap_content\"\n" +
-    "/>\n";
-
-  public void assertLargeProgressBarItem(@NotNull Palette.BaseItem item) {
-    checkItem(item, "ProgressBar", "ProgressBar (Large)", AndroidIcons.Views.ProgressBar, LARGE_PROGRESS_XML, LARGE_PROGRESS_PREVIEW_XML,
-              LARGE_PROGRESS_XML, IN_PLATFORM, NO_SCALE);
-    NlComponent component = createMockComponent("ProgressBar");
-    when(component.getAttribute(null, TAG_STYLE)).thenReturn(ANDROID_STYLE_RESOURCE_PREFIX + "Widget.ProgressBar.Large");
-    checkComponent(component, "ProgressBar (Large)", AndroidIcons.Views.ProgressBar);
-  }
-
-  @Language("XML")
   private static final String NORMAL_PROGRESS_XML =
     "<ProgressBar\n" +
     "  style=\"?android:attr/progressBarStyle\"\n" +
@@ -149,31 +124,6 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     checkItem(item, "ProgressBar", "ProgressBar", AndroidIcons.Views.ProgressBar, NORMAL_PROGRESS_XML, NORMAL_PROGRESS_XML,
               NORMAL_PROGRESS_XML, IN_PLATFORM, NO_SCALE);
     checkComponent(createMockComponent("ProgressBar"), "ProgressBar", AndroidIcons.Views.ProgressBar);
-  }
-
-  @Language("XML")
-  private static final String SMALL_PROGRESS_XML =
-    "<ProgressBar\n" +
-    "  style=\"?android:attr/progressBarStyleSmall\"\n" +
-    "  android:layout_width=\"wrap_content\"\n" +
-    "  android:layout_height=\"wrap_content\"\n" +
-    "/>\n";
-
-  @Language("XML")
-  private static final String SMALL_PROGRESS_PREVIEW_XML =
-    "<ProgressBar\n" +
-    "  android:id=\"@+id/SmallProgressBar\"\n" +
-    "  style=\"?android:attr/progressBarStyleSmall\"\n" +
-    "  android:layout_width=\"wrap_content\"\n" +
-    "  android:layout_height=\"wrap_content\"\n" +
-    "/>\n";
-
-  public void assertSmallProgressBarItem(@NotNull Palette.BaseItem item) {
-    checkItem(item, "ProgressBar", "ProgressBar (Small)", AndroidIcons.Views.ProgressBar, SMALL_PROGRESS_XML, SMALL_PROGRESS_PREVIEW_XML,
-              SMALL_PROGRESS_XML, IN_PLATFORM, NO_SCALE);
-    NlComponent component = createMockComponent("ProgressBar");
-    when(component.getAttribute(null, TAG_STYLE)).thenReturn(ANDROID_STYLE_RESOURCE_PREFIX + "Widget.ProgressBar.Small");
-    checkComponent(component, "ProgressBar (Small)", AndroidIcons.Views.ProgressBar);
   }
 
   @Language("XML")
@@ -194,7 +144,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "/>\n";
 
   public void assertHorizontalProgressBarItem(@NotNull Palette.BaseItem item) {
-    checkItem(item, "ProgressBar", "ProgressBar (Horizontal)", AndroidIcons.Views.ProgressBar, HORIZONTAL_PROGRESS_XML,
+    checkItem(item, "ProgressBar", "ProgressBar (Horizontal)", AndroidIcons.Views.ProgressBarHorizontal, HORIZONTAL_PROGRESS_XML,
               HORIZONTAL_PROGRESS_PREVIEW_XML, HORIZONTAL_PROGRESS_XML, IN_PLATFORM, 2.0);
     NlComponent component = createMockComponent("ProgressBar");
     when(component.getAttribute(null, TAG_STYLE)).thenReturn(ANDROID_STYLE_RESOURCE_PREFIX + "Widget.ProgressBar.Horizontal");
