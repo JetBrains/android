@@ -16,7 +16,9 @@
 
 package com.android.tools.adtui;
 
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.EventAction;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.SeriesData;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,20 +38,10 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
   private static final int LINE_OFFSET = 3;
   private static final int NORMALIZED_END = 1;
 
-  /**
-   * Enum that defines the action of an event, used when the event has a Down, and Up action such
-   * as MouseClick
-   */
-  public enum Action {
-    NONE,
-    DOWN,
-    UP
-  }
-
   private static final long HOLD_DELAY_US = TimeUnit.MILLISECONDS.toMicros(150);
 
   @NotNull
-  private final RangedSeries<EventAction<Action, E>> mData;
+  private final RangedSeries<EventAction<EventAction.Action, E>> mData;
 
   @NotNull
   private final Icon[] mIcons;
@@ -67,7 +59,7 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
    * Component that renders EventActions as a series of icons.
    */
   public SimpleEventComponent(
-    @NotNull RangedSeries<EventAction<Action, E>> data,
+    @NotNull RangedSeries<EventAction<EventAction.Action, E>> data,
     @NotNull Icon[] icons) {
     mData = data;
     mIcons = icons;
@@ -81,19 +73,19 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
     //TODO Pull logic of combining events out of component and into EventHandler
     double min = mData.getXRange().getMin();
     double max = mData.getXRange().getMax();
-    EventAction<Action, ? extends Enum> downEvent = null;
+    EventAction<EventAction.Action, ? extends Enum> downEvent = null;
     mIconsToDraw.clear();
     mPaths.clear();
-    ImmutableList<SeriesData<EventAction<Action, E>>> series = mData.getSeries();
+    ImmutableList<SeriesData<EventAction<EventAction.Action, E>>> series = mData.getSeries();
     int size = series.size();
 
     for (int i = 0; i < size; i++) {
-      SeriesData<EventAction<Action, E>> seriesData = series.get(i);
-      EventAction<Action, ? extends Enum> data = seriesData.value;
+      SeriesData<EventAction<EventAction.Action, E>> seriesData = series.get(i);
+      EventAction<EventAction.Action, ? extends Enum> data = seriesData.value;
 
-      if (data.getValue() == Action.DOWN) {
+      if (data.getValue() == EventAction.Action.DOWN) {
         downEvent = data;
-      } else if (data.getValue() == Action.UP) {
+      } else if (data.getValue() == EventAction.Action.UP) {
         downEvent = null;
         Integer toDraw = data.getValueData().ordinal();
         if (data.getEndUs() - data.getStartUs() >= HOLD_DELAY_US) {
@@ -106,7 +98,7 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
           mPaths.add(path);
         }
         mIconsToDraw.add(new EventRenderData(toDraw, data.getStartUs()));
-      } else if (data.getValue() == Action.NONE) {
+      } else if (data.getValue() == EventAction.Action.NONE) {
         // If no action is set then we do not need to associate a down, and up event together. Instead we render the icon
         // associated with the event triggered.
         mIconsToDraw.add(new EventRenderData(data.getValueData().ordinal(), data.getStartUs()));

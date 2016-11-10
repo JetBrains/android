@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.monitor.ui.network.model;
 
-import com.android.tools.adtui.Range;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.idea.monitor.ui.network.view.NetworkCaptureSegment;
 import org.jetbrains.annotations.NotNull;
 

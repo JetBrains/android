@@ -16,10 +16,10 @@
 package com.android.tools.idea.monitor.ui.events.view;
 
 import com.android.tools.adtui.Animatable;
-import com.android.tools.adtui.Range;
 import com.android.tools.adtui.SimpleEventComponent;
 import com.android.tools.adtui.StackedEventComponent;
 import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.tool.ProfilerEventListener;

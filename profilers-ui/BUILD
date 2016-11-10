@@ -13,5 +13,6 @@ iml_module(
         "//tools:idea.core-api[module]",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/adt/idea/adt-ui:adt-ui[module]",
+        "//tools/adt/idea/adt-ui-model:adt-ui-model[module]",
     ],
 )

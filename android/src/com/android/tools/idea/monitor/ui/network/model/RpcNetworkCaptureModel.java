@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.monitor.ui.network.model;
 
-import com.android.tools.adtui.Range;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.datastore.profilerclient.DeviceProfilerService;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;

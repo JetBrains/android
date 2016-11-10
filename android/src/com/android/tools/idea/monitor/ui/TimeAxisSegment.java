@@ -16,8 +16,8 @@
 package com.android.tools.idea.monitor.ui;
 
 import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.Range;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;

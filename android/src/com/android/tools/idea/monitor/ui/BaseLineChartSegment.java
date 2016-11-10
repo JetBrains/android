@@ -20,11 +20,7 @@ import com.android.tools.adtui.chart.linechart.EventConfig;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
-import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
-import com.android.tools.adtui.model.DataSeries;
-import com.android.tools.adtui.model.LegendRenderData;
-import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.*;
 import com.android.tools.datastore.DataStoreSeries;
 import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.datastore.SeriesDataType;
@@ -65,10 +61,10 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   private static final int MULTI_CLICK_THRESHOLD = 2;
 
   @NotNull
-  protected Range mLeftAxisRange;
+  protected AnimatedRange mLeftAxisRange;
 
   @NotNull
-  protected Range mRightAxisRange;
+  protected AnimatedRange mRightAxisRange;
 
   private AxisComponent mLeftAxis;
 
@@ -112,15 +108,15 @@ public abstract class BaseLineChartSegment extends BaseSegment {
                               @NotNull BaseAxisFormatter leftAxisFormatterSimple,
                               @NotNull BaseAxisFormatter leftAxisFormatter,
                               @Nullable BaseAxisFormatter rightAxisFormatter,
-                              @Nullable Range leftAxisRange,
-                              @Nullable Range rightAxisRange,
+                              @Nullable AnimatedRange leftAxisRange,
+                              @Nullable AnimatedRange rightAxisRange,
                               @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
     super(name, timeCurrentRangeUs, dispatcher);
     mLeftAxisFormatterSimple = leftAxisFormatterSimple;
     mLeftAxisFormatter = leftAxisFormatter;
     mRightAxisFormatter = rightAxisFormatter;
-    mLeftAxisRange = leftAxisRange != null ? leftAxisRange : new Range();
-    mRightAxisRange = rightAxisRange != null ? rightAxisRange : new Range();
+    mLeftAxisRange = leftAxisRange != null ? leftAxisRange : new AnimatedRange();
+    mRightAxisRange = rightAxisRange != null ? rightAxisRange : new AnimatedRange();
     mSeriesDataStore = dataStore;
     mDelayedEvents = new ArrayDeque<>();
 
@@ -360,9 +356,9 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   protected void addLeftAxisLine(SeriesDataType type, String label, LineConfig lineConfig) {
     addLeftAxisLine(type, label, lineConfig, new DataStoreSeries<>(mSeriesDataStore, type));
   }
+
   protected void addLeftAxisLine(SeriesDataType type, String label, LineConfig lineConfig, DataSeries series) {
-    mLineChart.addLine(new RangedContinuousSeries(label, myTimeCurrentRangeUs, mLeftAxisRange, series,
-                                                  TimeAxisFormatter.DEFAULT, mLeftAxisFormatter), lineConfig);
+    mLineChart.addLine(new RangedContinuousSeries(label, myTimeCurrentRangeUs, mLeftAxisRange, series), lineConfig);
   }
 
   /**
@@ -375,8 +371,8 @@ public abstract class BaseLineChartSegment extends BaseSegment {
     if (mRightAxisFormatter == null) {
       throw new IllegalComponentStateException("Right axis formatter is not defined, cannot add right axis line.");
     }
-    mLineChart.addLine(new RangedContinuousSeries(label, myTimeCurrentRangeUs, mRightAxisRange, series,
-                                                  TimeAxisFormatter.DEFAULT, mRightAxisFormatter), lineConfig);
+
+    mLineChart.addLine(new RangedContinuousSeries(label, myTimeCurrentRangeUs, mRightAxisRange, series), lineConfig);
     mRightAxis.setVisible(true);
   }
 

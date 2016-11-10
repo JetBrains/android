@@ -64,9 +64,9 @@ public class EventVisualTest extends VisualTest {
 
   private AxisComponent myTimeAxis;
 
-  private DefaultDataSeries<EventAction<SimpleEventComponent.Action, ActionType>> myData;
+  private DefaultDataSeries<EventAction<EventAction.Action, ActionType>> myData;
 
-  private DefaultDataSeries<EventAction<StackedEventComponent.Action, String>> myActivityData;
+  private DefaultDataSeries<EventAction<EventAction.ActivityAction, String>> myActivityData;
 
   private AnimatedTimeRange myAnimatedRange;
 
@@ -76,8 +76,8 @@ public class EventVisualTest extends VisualTest {
   @Override
   protected List<Animatable> createComponentsList() {
     long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-    Range xRange = new Range(nowUs, nowUs + TimeUnit.SECONDS.toMicros(60));
-    Range xTimelineRange = new Range(0, 0);
+    AnimatedRange xRange = new AnimatedRange(nowUs, nowUs + TimeUnit.SECONDS.toMicros(60));
+    AnimatedRange xTimelineRange = new AnimatedRange(0, 0);
 
     myData = new DefaultDataSeries<>();
     myActivityData = new DefaultDataSeries<>();
@@ -114,10 +114,10 @@ public class EventVisualTest extends VisualTest {
 
   private void performTapAction() {
     long now = System.currentTimeMillis();
-    EventAction<SimpleEventComponent.Action, ActionType> event =
-      new EventAction<>(now, 0, SimpleEventComponent.Action.DOWN, ActionType.HOLD);
+    EventAction<EventAction.Action, ActionType> event =
+      new EventAction<>(now, 0, EventAction.Action.DOWN, ActionType.HOLD);
     myData.add(now, event);
-    event = new EventAction<>(now, now, SimpleEventComponent.Action.UP, ActionType.TOUCH);
+    event = new EventAction<>(now, now, EventAction.Action.UP, ActionType.TOUCH);
     myData.add(now, event);
   }
 
@@ -162,16 +162,16 @@ public class EventVisualTest extends VisualTest {
       public void mousePressed(MouseEvent e) {
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
         mDownTime = nowUs;
-        EventAction<SimpleEventComponent.Action, ActionType> event =
-          new EventAction<>(nowUs, 0, SimpleEventComponent.Action.DOWN, ActionType.HOLD);
+        EventAction<EventAction.Action, ActionType> event =
+          new EventAction<>(nowUs, 0, EventAction.Action.DOWN, ActionType.HOLD);
         myData.add(nowUs, event);
       }
 
       @Override
       public void mouseReleased(MouseEvent e) {
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-        EventAction<SimpleEventComponent.Action, ActionType> event =
-          new EventAction<>(mDownTime, nowUs, SimpleEventComponent.Action.UP, ActionType.TOUCH);
+        EventAction<EventAction.Action, ActionType> event =
+          new EventAction<>(mDownTime, nowUs, EventAction.Action.UP, ActionType.TOUCH);
         myData.add(nowUs, event);
       }
     });
@@ -251,15 +251,15 @@ public class EventVisualTest extends VisualTest {
 
     private void addSelf() {
       long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-      EventAction<StackedEventComponent.Action, String> event =
-        new EventAction<>(myStartTimeUs, 0, StackedEventComponent.Action.ACTIVITY_STARTED, myName);
+      EventAction<EventAction.ActivityAction, String> event =
+        new EventAction<>(myStartTimeUs, 0, EventAction.ActivityAction.ACTIVITY_STARTED, myName);
       myActivityData.add(nowUs, event);
     }
 
     public void tearDown() {
       long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-      EventAction<StackedEventComponent.Action, String> event =
-        new EventAction<>(myStartTimeUs, nowUs, StackedEventComponent.Action.ACTIVITY_COMPLETED, myName);
+      EventAction<EventAction.ActivityAction, String> event =
+        new EventAction<>(myStartTimeUs, nowUs, EventAction.ActivityAction.ACTIVITY_COMPLETED, myName);
       myActivityData.add(nowUs, event);
     }
   }

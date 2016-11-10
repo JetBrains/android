@@ -16,19 +16,20 @@
 package com.android.tools.idea.monitor.ui.cpu.view;
 
 import com.android.tools.adtui.AccordionLayout;
+import com.android.tools.adtui.AnimatedRange;
 import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.Range;
 import com.android.tools.adtui.chart.hchart.*;
-import com.android.tools.idea.ddms.DeviceContext;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.datastore.Poller;
 import com.android.tools.datastore.SeriesDataStore;
-import com.android.tools.idea.monitor.ui.cpu.model.TraceDataStore;
 import com.android.tools.datastore.profilerclient.DeviceProfilerService;
+import com.android.tools.idea.ddms.DeviceContext;
+import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.tool.TraceRequestHandler;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
-import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.cpu.model.AppTrace;
+import com.android.tools.idea.monitor.ui.cpu.model.TraceDataStore;
 import com.android.tools.profilers.cpu.ThreadStatesDataModel;
 import com.android.utils.SparseArray;
 import com.google.common.collect.Sets;
@@ -48,7 +49,7 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
 
   private ThreadsSegment myThreadSegment;
 
-  private Range myTimeSelectionRangeUs;
+  private AnimatedRange myTimeSelectionRangeUs;
 
   private HTreeChart<Method> myExecutionChart;
 
@@ -68,10 +69,10 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
 
   private CPUTraceController myCpuTraceControlsUi;
 
-  private Range myFlameChartRange;
+  private AnimatedRange myFlameChartRange;
 
   public CpuProfilerUiManager(@NotNull Range timeCurrentRangeUs,
-                              @NotNull Range timeSelectionRangeUs,
+                              @NotNull AnimatedRange timeSelectionRangeUs,
                               @NotNull Choreographer choreographer,
                               @NotNull SeriesDataStore dataStore,
                               @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher,
@@ -135,7 +136,7 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
     myTabbedPane.add("Bottom-up stats", myBottomupJPanel);
     detailPanel.add(myTabbedPane);
 
-    myFlameChartRange = new Range();
+    myFlameChartRange = new AnimatedRange();
     myChoreographer.register(myFlameChartRange);
   }
 
@@ -236,13 +237,13 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
     }
 
     // TODO: Selection doesn't seem right. Fix it and also set the proper color (red highlight).
+    // TODO: Reinvestigate sycning selection with the LineChart
     myTimeSelectionRangeUs.set(executionTree.getStart(), executionTree.getEnd());
-    myTimeSelectionRangeUs.lockValues();
-
+    //myTimeSelectionRangeUs.lockValues();
     // Setup view with a little bit of margin so selection can be seen.
-    long duration = executionTree.getEnd() - executionTree.getStart();
-    long durationMargin = duration / 10;
-    myTimeCurrentRangeUs.set(executionTree.getStart() - durationMargin, executionTree.getEnd() + durationMargin);
-    myTimeCurrentRangeUs.lockValues();
+    //long duration = executionTree.getEnd() - executionTree.getStart();
+    //long durationMargin = duration / 10;
+    //myTimeCurrentRangeUs.set(executionTree.getStart() - durationMargin, executionTree.getEnd() + durationMargin);
+    //myTimeCurrentRangeUs.lockValues();
   }
 }

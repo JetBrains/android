@@ -17,11 +17,11 @@ package com.android.tools.idea.monitor.ui.network.view;
 
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.LegendComponent;
-import com.android.tools.adtui.Range;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.datastore.DataStoreSeries;
 import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.datastore.SeriesDataType;
