@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers;
 
-public enum Aspect {
+public enum ProfilerAspect {
   // The connection between the profilers and the datastore has changed.
   CONNECTION,
   // The current stage of the profiler tools has changed

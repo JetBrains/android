@@ -31,8 +31,8 @@ import java.util.Map;
 import java.util.concurrent.RunnableFuture;
 
 /**
- * This class host an EventService that will provide callers access to all cached EventData. The data is populated from polling the service
- * passed into the connectService function.
+ * This class hosts an EventService that will provide callers access to all cached EventData.
+ * The data is populated from polling the service passed into the connectService function.
  */
 public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase implements ServicePassThrough  {
 
