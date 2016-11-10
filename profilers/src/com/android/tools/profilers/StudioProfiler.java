@@ -17,6 +17,7 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.Range;
 import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profilers.cpu.CpuProfiler;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -31,17 +32,21 @@ final public class StudioProfiler extends AspectModel<Aspect> {
   private Range mySelectionRangeUs;
   private final Range myViewRangeUs;
   private final Range myDataRangUs;
+  private final List<BaseProfiler> myProfilers;
 
   private Map<Profiler.Device, List<Profiler.Process>> myProcesses;
+
   private Profiler.Device myDevice;
+  private long myDeviceDeltaUs;
   private Profiler.Process myProcess;
   private boolean myConnected;
+
   private StudioProfilerStage myStage;
-  private long myDeviceDeltaUs;
 
   public StudioProfiler(ProfilerClient service) {
     myClient = service;
     myStage = null;
+    myProfilers = ImmutableList.of(new CpuProfiler(this));
 
     myViewRangeUs = new Range();
     myDataRangUs = new Range();
@@ -172,5 +177,9 @@ final public class StudioProfiler extends AspectModel<Aspect> {
       myProcess = process;
       setStage(new StudioMonitor(this));
     }
+  }
+
+  public List<BaseProfiler> getProfilers() {
+    return myProfilers;
   }
 }
