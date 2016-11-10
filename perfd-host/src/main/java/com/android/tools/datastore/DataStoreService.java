@@ -102,9 +102,4 @@ public class DataStoreService {
     }
     myChannel = null;
   }
-
-  //TODO: Remove
-  public int getSelectedProcessId() {
-    return -1;
-  }
 }

@@ -45,7 +45,7 @@ public class StudioProfilerView {
 
     myProfiler.addDependency()
       .setExecutor(ApplicationManager.getApplication()::invokeLater)
-      .onChange(Aspect.STAGE, this::updateStageView);
+      .onChange(ProfilerAspect.STAGE, this::updateStageView);
   }
 
   private void initializeUi() {
@@ -53,14 +53,14 @@ public class StudioProfilerView {
     myComponent = new JPanel(myLayout);
 
     JComboBox<Profiler.Device> deviceCombo = new JComboBox<>();
-    JComboBoxView devices = new JComboBoxView<>(deviceCombo, myProfiler, Aspect.DEVICES,
+    JComboBoxView devices = new JComboBoxView<>(deviceCombo, myProfiler, ProfilerAspect.DEVICES,
                                                 myProfiler::getDevices,
                                                 myProfiler::getDevice,
                                                 myProfiler::setDevice);
     devices.bind();
 
     JComboBox<Profiler.Process> processCombo = new JComboBox<>();
-    JComboBoxView processes = new JComboBoxView<>(processCombo, myProfiler, Aspect.DEVICES,
+    JComboBoxView processes = new JComboBoxView<>(processCombo, myProfiler, ProfilerAspect.DEVICES,
                                                   myProfiler::getProcesses,
                                                   myProfiler::getProcess,
                                                   myProfiler::setProcess);

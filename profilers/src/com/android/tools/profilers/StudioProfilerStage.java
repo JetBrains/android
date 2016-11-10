@@ -15,6 +15,9 @@
  */
 package com.android.tools.profilers;
 
+/**
+ * One of the stages the profiler tool goes through. It models a "state" in the profiler tool itself.
+ */
 public abstract class StudioProfilerStage {
 
   private final StudioProfiler myProfiler;
