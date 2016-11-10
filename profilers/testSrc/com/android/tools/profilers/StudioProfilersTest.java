@@ -27,7 +27,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-final public class StudioProfilerTest {
+final public class StudioProfilersTest {
   public static final String CHANNEL_NAME = "StudioProfilerTestChannel";
   private ProfilerServiceGrpc.ProfilerServiceBlockingStub client;
 

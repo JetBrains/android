@@ -27,18 +27,18 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
-public class StudioProfilerView {
-  private final StudioProfiler myProfiler;
-  private ProfilerStageView myStageView;
+public class StudioProfilersView {
+  private final StudioProfilers myProfiler;
+  private StageView myStageView;
   private BorderLayout myLayout;
   private JPanel myComponent;
 
   private static Map<Class, Class> STAGE_VIEWS = ImmutableMap.of(
-    StudioMonitor.class, StudioMonitorView.class,
+    StudioMonitorStage.class, StudioMonitorStageView.class,
     CpuMonitorStage.class, CpuMonitorStageView.class
   );
 
-  public StudioProfilerView(StudioProfiler profiler) {
+  public StudioProfilersView(StudioProfilers profiler) {
     myProfiler = profiler;
     myStageView = null;
     initializeUi();
@@ -75,7 +75,7 @@ public class StudioProfilerView {
   }
 
   private void updateStageView() {
-    StudioProfilerStage stage = myProfiler.getStage();
+    Stage stage = myProfiler.getStage();
     if (myStageView == null || myStageView.getStage() != stage) {
       myStageView = bindView(stage);
       Component prev = myLayout.getLayoutComponent(BorderLayout.CENTER);
@@ -91,7 +91,7 @@ public class StudioProfilerView {
     return myComponent;
   }
 
-  private ProfilerStageView bindView(StudioProfilerStage stage) {
+  private StageView bindView(Stage stage) {
     Class aClass = STAGE_VIEWS.get(stage.getClass());
     if (aClass == null) {
       throw new IllegalArgumentException("Stage of type " + stage.getClass().getCanonicalName() + " cannot be bound to a view.");
@@ -99,7 +99,7 @@ public class StudioProfilerView {
     try {
       Constructor constructor = aClass.getConstructor(stage.getClass());
       Object instance = constructor.newInstance(stage);
-      return (ProfilerStageView)instance;
+      return (StageView)instance;
     }
     catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException | ClassCastException e) {
       throw new IllegalStateException("ProfilerStageView " + aClass.getCanonicalName() + " cannot be instantiated.", e);
