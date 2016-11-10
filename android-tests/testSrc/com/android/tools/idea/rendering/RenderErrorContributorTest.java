@@ -46,10 +46,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.android.tools.idea.rendering.RenderErrorModelFactory.isBuiltByJdk7OrHigher;
+import static com.android.tools.idea.rendering.RenderErrorContributor.isBuiltByJdk7OrHigher;
 
 
-public class RenderErrorModelFactoryTest extends AndroidTestCase {
+public class RenderErrorContributorTest extends AndroidTestCase {
   public static final String BASE_PATH = "render/";
 
   // Image paths will include full resource urls which depends on the test environment
