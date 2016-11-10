@@ -11,6 +11,7 @@ import com.intellij.codeInspection.ex.InspectionToolWrapper;
 import com.intellij.codeInspection.ex.Tools;
 import com.intellij.codeInspection.lang.GlobalInspectionContextExtension;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -33,7 +34,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Eugene.Kudelevsky
@@ -93,7 +97,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
     int scopeType = scope.getScopeType();
     switch (scopeType) {
       case AnalysisScope.MODULE: {
-        SearchScope searchScope = scope.toSearchScope();
+        SearchScope searchScope = ReadAction.compute(() -> scope.toSearchScope());
         if (searchScope instanceof ModuleWithDependenciesScope) {
           ModuleWithDependenciesScope s = (ModuleWithDependenciesScope)searchScope;
           if (!s.isSearchInLibraries()) {
@@ -106,7 +110,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       case AnalysisScope.VIRTUAL_FILES:
       case AnalysisScope.UNCOMMITTED_FILES: {
         files = Lists.newArrayList();
-        SearchScope searchScope = scope.toSearchScope();
+        SearchScope searchScope = ReadAction.compute(() -> scope.toSearchScope());
         if (searchScope instanceof LocalSearchScope) {
           final LocalSearchScope localSearchScope = (LocalSearchScope)searchScope;
           final PsiElement[] elements = localSearchScope.getScope();
