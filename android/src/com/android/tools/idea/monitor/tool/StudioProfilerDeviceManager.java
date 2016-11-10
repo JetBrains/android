@@ -38,6 +38,11 @@ import java.io.File;
 import java.io.IOException;
 
 
+/**
+ * Manages the interactions between DDMLIB provided devices, and what is needed to spawn ProfilerClient's.
+ * On device connection it will spawn the performance daemon on device, and will notify the profiler system that
+ * a new device has been conected. *ALL* interaction with IDevice is encapsulated in this class.
+ */
 class StudioProfilerDeviceManager implements AndroidDebugBridge.IDeviceChangeListener,
                                              AndroidDebugBridge.IDebugBridgeChangeListener {
 
@@ -47,7 +52,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDeviceChangeLis
   private AndroidDebugBridge myBridge;
   private final ProfilerClient myClient;
 
-  public StudioProfilerDeviceManager(Project project) throws IOException {
+  public StudioProfilerDeviceManager(@NotNull Project project) throws IOException {
     final File adb = AndroidSdkUtils.getAdb(project);
     if (adb == null) {
       throw new IllegalStateException("No adb found");
@@ -97,7 +102,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDeviceChangeLis
     }
   }
 
-  static class NullReceiver implements IShellOutputReceiver {
+  private static class NullReceiver implements IShellOutputReceiver {
 
     @Override
     public void addOutput(byte[] data, int offset, int length) {
@@ -166,7 +171,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDeviceChangeLis
           }
         }
         // TODO: Handle the case where we don't have perfd for this platform.
-
+        // TODO: Add debug support for development
         String devicePath = "/data/local/tmp/perfd/";
         myDevice.executeShellCommand("mkdir -p " + devicePath, new NullReceiver());
         myDevice.pushFile(perfd.getAbsolutePath(), devicePath + "/perfd");
