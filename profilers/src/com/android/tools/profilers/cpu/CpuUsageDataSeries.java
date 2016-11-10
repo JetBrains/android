@@ -20,7 +20,6 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.android.tools.profilers.ProfilerClient;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -34,12 +33,12 @@ import java.util.concurrent.TimeUnit;
  */
 public class CpuUsageDataSeries implements DataSeries<Long> {
   @NotNull
-  private ProfilerClient myClient;
+  private CpuServiceGrpc.CpuServiceBlockingStub myClient;
 
   private boolean myCollectOtherCpuUsage;
   private final int myProcessId;
 
-  public CpuUsageDataSeries(@NotNull ProfilerClient client, boolean collectOtherCpuUsage, int id) {
+  public CpuUsageDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, boolean collectOtherCpuUsage, int id) {
     myClient = client;
     myCollectOtherCpuUsage = collectOtherCpuUsage;
     myProcessId = id;
@@ -48,12 +47,11 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
   @Override
   public ImmutableList<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
     List<SeriesData<Long>> seriesData = new ArrayList<>();
-    CpuServiceGrpc.CpuServiceBlockingStub client = myClient.getCpuClient();
     CpuProfiler.CpuDataRequest.Builder dataRequestBuilder = CpuProfiler.CpuDataRequest.newBuilder()
       .setAppId(myProcessId)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()));
-    CpuProfiler.CpuDataResponse response = client.getData(dataRequestBuilder.build());
+    CpuProfiler.CpuDataResponse response = myClient.getData(dataRequestBuilder.build());
     CpuProfiler.CpuProfilerData lastCpuData = null;
     for (CpuProfiler.CpuProfilerData data : response.getDataList()) {
       if (data.getDataCase() != CpuProfiler.CpuProfilerData.DataCase.CPU_USAGE) {

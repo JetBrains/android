@@ -33,7 +33,11 @@ public class StudioMonitorView extends ProfilerStageView {
     myComponent = new JPanel(new BorderLayout());
     myChoreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
     myLineChart = new LineChart();
-    myLineChart.addLine(monitor.getRangedSeries());
+    //TODO Have this in separate sections in the view
+    for (ProfilerMonitor m : monitor.getMonitors()) {
+      myLineChart.addLine(m.getRangedSeries());
+    }
+
     myChoreographer.register(myLineChart);
     myComponent.add(myLineChart, BorderLayout.CENTER);
   }
