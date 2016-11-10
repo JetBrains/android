@@ -24,9 +24,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-/**
- * Created by estebandlc on 11/8/16.
- */
 class JComboBoxView<T, A extends Enum<A>> implements ItemListener {
 
   private final Supplier<List<T>> myList;
