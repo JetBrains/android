@@ -53,8 +53,12 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDeviceChangeLis
       throw new IllegalStateException("No adb found");
     }
 
-    AndroidDebugBridge.addDeviceChangeListener(this);
-    AndroidDebugBridge.addDebugBridgeChangeListener(this);
+    //TODO: Spawn the datastore in the right place (service)?
+    DataStoreService datastore = new DataStoreService(DATASTORE_PORT);
+
+    // The client is referenced in the update devices callback. As such the client needs to be set before we register
+    // ourself as a listener for this callback. Otherwise we may get the callback before we are fully constructed
+    myClient = new GrpcProfilerClient(DATASTORE_PORT);
 
     ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb);
     Futures.addCallback(future, new FutureCallback<AndroidDebugBridge>() {
@@ -67,9 +71,9 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDeviceChangeLis
       }
     }, EdtExecutor.INSTANCE);
 
-    //TODO: Spawn the datastore in the right place (service)?
-    DataStoreService datastore = new DataStoreService(DATASTORE_PORT);
-    myClient = new GrpcProfilerClient(DATASTORE_PORT);
+
+    AndroidDebugBridge.addDeviceChangeListener(this);
+    AndroidDebugBridge.addDebugBridgeChangeListener(this);
   }
 
   public void updateDevices() {

@@ -48,13 +48,19 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
 
   @Override
   public void getTimes(Profiler.TimesRequest request, StreamObserver<Profiler.TimesResponse> observer) {
-    observer.onNext(myPollingService.getTimes(request));
+    // This function can get called before the datastore is connected to a device as such we need to check
+    // if we have a connection before attempting to get the time.
+    if (myPollingService != null) {
+      observer.onNext(myPollingService.getTimes(request));
+    }
     observer.onCompleted();
   }
 
   @Override
   public void getVersion(Profiler.VersionRequest request, StreamObserver<Profiler.VersionResponse> observer) {
-    observer.onNext(myPollingService.getVersion(request));
+    if (myPollingService != null) {
+      observer.onNext(myPollingService.getVersion(request));
+    }
     observer.onCompleted();
   }
 
