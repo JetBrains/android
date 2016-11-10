@@ -128,7 +128,7 @@ public abstract class RenderClassLoader extends ClassLoader {
       return loadClass(fqcn, data);
     }
     catch (IOException e) {
-      LOG.error(e);
+      LOG.warn(e);
     }
 
     return null;
