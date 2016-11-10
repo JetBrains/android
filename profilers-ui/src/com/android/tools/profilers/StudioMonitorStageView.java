@@ -24,14 +24,14 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-public class StudioMonitorView extends ProfilerStageView {
+public class StudioMonitorStageView extends StageView {
 
   private static final int CHOREOGRAPHER_FPS = 60;
   private final Choreographer myChoreographer;
   private final JPanel myComponent;
   private final LineChart myLineChart;
 
-  public StudioMonitorView(StudioMonitor monitor) {
+  public StudioMonitorStageView(StudioMonitorStage monitor) {
     super(monitor);
     myComponent = new JPanel(new BorderLayout());
     myChoreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
@@ -45,7 +45,7 @@ public class StudioMonitorView extends ProfilerStageView {
     myLineChart.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
-        StudioProfiler profiler = monitor.getStudioProfiler();
+        StudioProfilers profiler = monitor.getStudioProfiler();
         CpuMonitorStage stage = new CpuMonitorStage(profiler);
         profiler.setStage(stage);
       }

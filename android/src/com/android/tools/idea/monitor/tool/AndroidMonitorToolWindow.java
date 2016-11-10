@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.monitor.tool;
 
-import com.android.tools.profilers.StudioProfiler;
-import com.android.tools.profilers.StudioProfilerView;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.StudioProfilersView;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -33,8 +33,8 @@ public class AndroidMonitorToolWindow implements Disposable {
   public AndroidMonitorToolWindow(@NotNull final Project project) {
     try {
       StudioProfilerDeviceManager manager = new StudioProfilerDeviceManager(project);
-      StudioProfiler profiler = new StudioProfiler(manager.getClient());
-      StudioProfilerView view = new StudioProfilerView(profiler);
+      StudioProfilers profiler = new StudioProfilers(manager.getClient());
+      StudioProfilersView view = new StudioProfilersView(profiler);
       myComponent = view.getComponent();
     }
     catch (IOException e) {

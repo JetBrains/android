@@ -15,15 +15,15 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.profilers.BaseProfiler;
-import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfiler;
+import com.android.tools.profilers.ProfilerMonitor;
+import com.android.tools.profilers.StudioProfilers;
 
-public class CpuProfiler extends BaseProfiler {
+public class CpuProfiler extends StudioProfiler {
 
-  private final StudioProfiler myProfiler;
+  private final StudioProfilers myProfiler;
 
-  public CpuProfiler(StudioProfiler profiler) {
+  public CpuProfiler(StudioProfilers profiler) {
     myProfiler = profiler;
   }
 

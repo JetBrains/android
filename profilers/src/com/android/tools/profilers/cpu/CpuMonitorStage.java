@@ -15,12 +15,12 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.profilers.StudioProfiler;
-import com.android.tools.profilers.StudioProfilerStage;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.Stage;
 
-public class CpuMonitorStage extends StudioProfilerStage {
+public class CpuMonitorStage extends Stage {
 
-  public CpuMonitorStage(StudioProfiler profiler) {
+  public CpuMonitorStage(StudioProfilers profiler) {
     super(profiler);
   }
 
