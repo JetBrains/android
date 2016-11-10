@@ -15,7 +15,18 @@
  */
 package com.android.tools.profilers;
 
+import javax.swing.*;
 
-public abstract class BaseProfiler {
-  abstract public ProfilerMonitor newMonitor(int processId);
+public abstract class StageView {
+  final private Stage myStage;
+
+  public StageView(Stage stage) {
+    myStage = stage;
+  }
+
+  public Stage getStage() {
+    return myStage;
+  }
+
+  abstract public JComponent getComponent();
 }

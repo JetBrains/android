@@ -18,10 +18,10 @@ package com.android.tools.profilers;
 import java.util.LinkedList;
 import java.util.List;
 
-public class StudioMonitor extends StudioProfilerStage {
+public class StudioMonitorStage extends Stage {
   private List<ProfilerMonitor> myMonitors;
 
-  public StudioMonitor(StudioProfiler profiler) {
+  public StudioMonitorStage(StudioProfilers profiler) {
     super(profiler);
     myMonitors = new LinkedList<>();
   }
@@ -30,7 +30,7 @@ public class StudioMonitor extends StudioProfilerStage {
   public void enter() {
     int processId = getStudioProfiler().getProcessId();
     myMonitors.clear();
-    for (BaseProfiler profiler : getStudioProfiler().getProfilers()) {
+    for (StudioProfiler profiler : getStudioProfiler().getProfilers()) {
       myMonitors.add(profiler.newMonitor(processId));
     }
   }
