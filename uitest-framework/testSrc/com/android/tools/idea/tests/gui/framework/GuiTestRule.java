@@ -149,7 +149,7 @@ public class GuiTestRule implements TestRule {
   private void setUp() {
     GuiTests.setUpDefaultProjectCreationLocationPath();
     GuiTests.setIdeSettings();
-    setUpSdks();
+    GuiTests.setUpSdks();
 
     if (!HAS_EXTERNAL_WINDOW_MANAGER) {
       KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(myGlobalFocusListener);
@@ -329,10 +329,6 @@ public class GuiTestRule implements TestRule {
   @NotNull
   protected File getTestProjectDirPath(@NotNull String projectDirName) {
     return new File(GuiTests.getProjectCreationDirPath(), projectDirName);
-  }
-
-  protected void setUpSdks() {
-    GuiTests.setUpSdks();
   }
 
   public void cleanUpProjectForImport(@NotNull File projectPath) {
