@@ -57,7 +57,8 @@ public class EventDataPoller extends EventServiceGrpc.EventServiceImplBase imple
   @Override
   public void poll() throws StatusRuntimeException {
     EventProfiler.EventDataRequest.Builder dataRequestBuilder = EventProfiler.EventDataRequest.newBuilder()
-      .setAppId(myService.getSelectedProcessId())
+      //TODO: Use the right appId from a separate RPC call to this service.
+      .setAppId(-1)
       .setStartTimestamp(myDataRequestStartTimestampNs)
       .setEndTimestamp(Long.MAX_VALUE);
     EventProfiler.EventDataResponse response = myEventPollingService.getData(dataRequestBuilder.build());
