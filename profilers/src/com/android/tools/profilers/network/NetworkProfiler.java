@@ -15,6 +15,9 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.profiler.proto.NetworkProfiler.NetworkStartRequest;
+import com.android.tools.profiler.proto.NetworkProfiler.NetworkStopRequest;
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
@@ -30,5 +33,16 @@ public class NetworkProfiler extends StudioProfiler {
   @Override
   public ProfilerMonitor newMonitor(int processId) {
     return new NetworkMonitor(myProfiler, processId);
+  }
+
+  @Override
+  public void startProfiling(Profiler.Process process) {
+    //TODO: Enabling this freezes displaying bitmaps.
+    // myProfiler.getClient().getNetworkClient().startMonitoringApp(NetworkStartRequest.newBuilder().setAppId(process.getPid()).build());
+  }
+
+  @Override
+  public void stopProfiling(Profiler.Process process) {
+    // myProfiler.getClient().getNetworkClient().stopMonitoringApp(NetworkStopRequest.newBuilder().setAppId(process.getPid()).build());
   }
 }

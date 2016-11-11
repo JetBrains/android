@@ -63,7 +63,7 @@ public class StudioProfilersView {
     devices.bind();
 
     JComboBox<Profiler.Process> processCombo = new JComboBox<>();
-    JComboBoxView processes = new JComboBoxView<>(processCombo, myProfiler, ProfilerAspect.DEVICES,
+    JComboBoxView processes = new JComboBoxView<>(processCombo, myProfiler, ProfilerAspect.PROCESSES,
                                                   myProfiler::getProcesses,
                                                   myProfiler::getProcess,
                                                   myProfiler::setProcess);

@@ -24,7 +24,5 @@ import com.android.tools.adtui.model.RangedContinuousSeries;
 public abstract class ProfilerMonitor {
   public abstract RangedContinuousSeries getRangedSeries();
 
-  public abstract void stop();
-
   public abstract Stage getExpandedStage(StudioProfilers profilers);
 }

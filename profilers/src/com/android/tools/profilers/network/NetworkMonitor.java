@@ -19,7 +19,6 @@ import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.Stage;
@@ -38,7 +37,6 @@ public class NetworkMonitor extends ProfilerMonitor {
   public NetworkMonitor(StudioProfilers profiler, int pid) {
     myProcessId = pid;
     myClient = profiler.getClient().getNetworkClient();
-    myClient.startMonitoringApp(NetworkProfiler.NetworkStartRequest.newBuilder().setAppId(myProcessId).build());
 
     // TODO: Switch to the network dataseries, when bugs are sorted out:
     // NetworkTrafficDataSeries series = new NetworkTrafficDataSeries(myClient, pid, NetworkTrafficDataSeries.Type.BYTES_RECIEVED);
@@ -55,11 +53,6 @@ public class NetworkMonitor extends ProfilerMonitor {
   @Override
   public RangedContinuousSeries getRangedSeries() {
     return myRangedSeries;
-  }
-
-  @Override
-  public void stop() {
-    myClient.stopMonitoringApp(NetworkProfiler.NetworkStopRequest.newBuilder().setAppId(myProcessId).build());
   }
 
   @Override
