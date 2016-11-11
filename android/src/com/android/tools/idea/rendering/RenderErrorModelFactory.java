@@ -38,7 +38,7 @@ public class RenderErrorModelFactory {
     List<RenderErrorModel.Issue> issues = new ArrayList<>();
     for (RenderErrorContributor.Provider provider : RenderErrorContributor.Provider.EP_NAME.getExtensions()) {
       if (provider.isApplicable(result.getModule().getProject())) {
-        issues.addAll(provider.getFactory(result, dataContext).reportIssues());
+        issues.addAll(provider.getContributor(result, dataContext).reportIssues());
       }
     }
     return new RenderErrorModel(issues);
