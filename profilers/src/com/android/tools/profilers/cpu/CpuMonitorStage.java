@@ -17,10 +17,11 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.Stage;
+import org.jetbrains.annotations.NotNull;
 
 public class CpuMonitorStage extends Stage {
 
-  public CpuMonitorStage(StudioProfilers profiler) {
+  public CpuMonitorStage(@NotNull StudioProfilers profiler) {
     super(profiler);
   }
 

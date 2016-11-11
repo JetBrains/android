@@ -15,12 +15,14 @@
  */
 package com.android.tools.profilers;
 
+import org.jetbrains.annotations.NotNull;
+
 import javax.swing.*;
 
 public abstract class StageView {
   final private Stage myStage;
 
-  public StageView(Stage stage) {
+  public StageView(@NotNull Stage stage) {
     myStage = stage;
   }
 
@@ -29,4 +31,10 @@ public abstract class StageView {
   }
 
   abstract public JComponent getComponent();
+
+  protected void returnToStudioStage() {
+    StudioProfilers profilers = getStage().getStudioProfilers();
+    StudioMonitorStage monitor = new StudioMonitorStage(profilers);
+    profilers.setStage(monitor);
+  }
 }
