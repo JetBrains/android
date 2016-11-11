@@ -513,7 +513,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * <b>Do not call this method from the dispatch thread!</b>
    */
   public void render() {
-    assert !ApplicationManager.getApplication().isDispatchThread();
     boolean inflated = inflate(false);
 
     synchronized (RENDERING_LOCK) {
