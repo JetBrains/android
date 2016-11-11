@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.Notification
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.ToggleOfflineModeHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.net.UnknownHostException;
 import java.util.List;
@@ -34,14 +35,27 @@ import static com.google.common.truth.Truth.assertThat;
 public class UnknownHostErrorHandlerTest extends AndroidGradleTestCase {
 
   private SyncMessagesStub mySyncMessagesStub;
+  private Boolean myOriginalOfflineSetting;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
+    myOriginalOfflineSetting = GradleSettings.getInstance(getProject()).isOfflineWork();
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      GradleSettings.getInstance(getProject()).setOfflineWork(myOriginalOfflineSetting); // Set back to default value.
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testHandleError() throws Exception {
+    GradleSettings.getInstance(getProject()).setOfflineWork(false);
     Throwable cause = new UnknownHostException("my host");
 
     registerSyncErrorToSimulate(cause);
