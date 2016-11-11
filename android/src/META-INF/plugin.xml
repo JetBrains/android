@@ -4,7 +4,7 @@
   <description>
     Supports the development of Open Handset Alliance Android applications with IntelliJ IDEA.
   </description>
-  <version>10.2.2</version>
+  <version>10.2.2.2</version>
   <vendor>JetBrains</vendor>
 
   <depends>JUnit</depends>
@@ -569,9 +569,9 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintFullBackupContent" displayName="Valid Full Backup Content File" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintFullBackupContentInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintGetInstance" displayName="Cipher.getInstance with ECB" groupKey="android.lint.inspections.group.name.security" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintGetInstanceInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintGifUsage" displayName="Using .gif format for bitmaps is discouraged" groupKey="android.lint.inspections.group.name.usability.icons" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintGifUsageInspection"/>
-    <globalInspection hasStaticDescription="true" shortName="AndroidLintGoogleAppIndexingApiWarning" displayName="Missing support for Google App Indexing Api" groupKey="android.lint.inspections.group.name.usability" bundle="messages.AndroidBundle" enabledByDefault="false" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintGoogleAppIndexingApiWarningInspection"/>
-    <globalInspection hasStaticDescription="true" shortName="AndroidLintGoogleAppIndexingUrlError" displayName="URL not supported by app for Google App Indexing" groupKey="android.lint.inspections.group.name.usability" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintGoogleAppIndexingUrlErrorInspection"/>
-    <globalInspection hasStaticDescription="true" shortName="AndroidLintGoogleAppIndexingWarning" displayName="Missing support for Google App Indexing" groupKey="android.lint.inspections.group.name.usability" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintGoogleAppIndexingWarningInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintGoogleAppIndexingApiWarning" displayName="Missing support for Firebase App Indexing Api" groupKey="android.lint.inspections.group.name.usability" bundle="messages.AndroidBundle" enabledByDefault="false" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintGoogleAppIndexingApiWarningInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintGoogleAppIndexingUrlError" displayName="URL not supported by app for Firebase App Indexing" groupKey="android.lint.inspections.group.name.usability" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintGoogleAppIndexingUrlErrorInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintGoogleAppIndexingWarning" displayName="Missing support for Firebase App Indexing" groupKey="android.lint.inspections.group.name.usability" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintGoogleAppIndexingWarningInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintGradleCompatible" displayName="Incompatible Gradle Versions" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintGradleCompatibleInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintGradleDependency" displayName="Obsolete Gradle Dependency" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintGradleDependencyInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintGradleDeprecated" displayName="Deprecated Gradle Construct" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintGradleDeprecatedInspection"/>
@@ -833,6 +833,7 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.invoker.messages.GradleBuildTreeViewConfiguration"/>
     <projectService serviceImplementation="com.android.tools.idea.run.DevicePickerStateService" />
     <projectService serviceImplementation="com.android.tools.idea.fd.InstantRunStatsService" />
+    <projectService serviceImplementation="com.android.tools.idea.fd.FlightRecorder" />
 
     <projectService serviceInterface="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"
                     serviceImplementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"/>
@@ -1110,6 +1111,7 @@
     <java.elementFinder implementation="com.android.tools.idea.databinding.BrClassFinder" id="dataBinding.BrClassFinder" order="first, before java"/>
     <java.elementFinder implementation="com.android.tools.idea.databinding.DataBindingClassFinder" id="dataBinding.BindingClassFinder" order="first, before java"/>
     <java.elementFinder implementation="com.android.tools.idea.databinding.DataBindingComponentClassFinder" id="dataBinding.ComponentClassFinder" order="first, before java"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.DataBindingPackageFinder" id="dataBinding.DataBindingPackageFinder" order="last, after java"/>
     <psi.referenceContributor implementation="com.android.tools.idea.lang.databinding.DataBindingXmlReferenceContributor"/>
     <completion.contributor implementationClass="com.android.tools.idea.lang.databinding.DataBindingCompletionContributor" language="AndroidDataBinding"/>
   </extensions>

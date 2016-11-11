@@ -218,6 +218,11 @@ public class RenderErrorPanel extends JPanel {
       return;
     }
 
+    if (myHTMLViewer == null) {
+      // Already disposed
+      return;
+    }
+
     mySeverity = severity;
     if (html == null) {
       myResult = null;
@@ -251,6 +256,11 @@ public class RenderErrorPanel extends JPanel {
   }
 
   private void setupStyle() {
+    if (myHTMLViewer != null) {
+      // Already disposed
+      return;
+    }
+
     // Make the scrollPane transparent
     JViewport viewPort = myScrollPane.getViewport();
     viewPort.setOpaque(false);
@@ -275,7 +285,7 @@ public class RenderErrorPanel extends JPanel {
   }
 
   public int getPreferredHeight(@SuppressWarnings("UnusedParameters") int width) {
-    return myHTMLViewer.getPreferredSize().height;
+    return myHTMLViewer != null ? myHTMLViewer.getPreferredSize().height : 0;
   }
 
   @Nullable
@@ -1299,6 +1309,10 @@ public class RenderErrorPanel extends JPanel {
   @SuppressWarnings({"HardCodedStringLiteral"})
   private void showEmpty() {
     UIUtil.invokeLaterIfNeeded(() -> {
+      if (myHTMLViewer == null) {
+        // Already disposed
+        return;
+      }
       try {
         myHTMLViewer.read(new StringReader("<html><body></body></html>"), null);
       }

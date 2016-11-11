@@ -23,6 +23,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
@@ -157,6 +158,6 @@ public class NlIdPropertyItem extends NlPropertyItem {
       }
     }
 
-    super.setValue(value != null ? NEW_ID_PREFIX + value : null);
+    super.setValue(!StringUtil.isEmpty(newId) ? NEW_ID_PREFIX + newId : null);
   }
 }

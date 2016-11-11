@@ -104,6 +104,8 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
       case ATTR_DROPDOWN_WIDTH:
       case ATTR_ON_CLICK:
         return true;
+      case ATTR_ID:
+        return false;
       case ATTR_STYLE:
         String tagName = property.getTagName();
         return tagName != null && StyleFilter.hasWidgetStyles(property.getModel().getProject(), property.getResolver(), tagName);

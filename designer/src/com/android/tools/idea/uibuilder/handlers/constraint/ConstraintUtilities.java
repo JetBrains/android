@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.sherpa.drawing.decorator.TextWidget;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
+import com.android.tools.sherpa.scout.Scout;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.intellij.openapi.application.ApplicationManager;
@@ -39,12 +40,16 @@ import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
  * Utility functions managing translation of constants from the solver to the NlModel attributes
  */
 public class ConstraintUtilities {
+
+  final static int MINIMUM_SIZE = 48; // in dp
+  final static int MINIMUM_SIZE_EXPAND = 6; // in dp
 
   /**
    * Return the corresponding margin attribute for the given anchor
@@ -908,12 +913,13 @@ public class ConstraintUtilities {
    * @param constraintModel the constraint model we are working with
    * @param widget          constraint widget
    * @param component       the model component
+   * @return true if need to save the xml
    */
-  static void updateWidget(@NotNull ConstraintModel constraintModel,
+  static boolean updateWidget(@NotNull ConstraintModel constraintModel,
                            @Nullable ConstraintWidget widget,
                            @Nullable NlComponent component) {
     if (component == null || widget == null) {
-      return;
+      return false;
     }
 
     AttributesTransaction attributes = component.startAttributeTransaction();
@@ -969,53 +975,7 @@ public class ConstraintUtilities {
       }
     }
 
-    // FIXME: need to agree on the correct magic value for this rather than simply using zero.
-    String layout_width = attributes.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH);
-    if (component.w == 0 || getLayoutDimensionDpValue(component, layout_width) == 0) {
-      widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
-    }
-    else if (layout_width != null && layout_width.equalsIgnoreCase(SdkConstants.VALUE_WRAP_CONTENT)) {
-      widget.setWrapWidth(widget.getWidth());
-      widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
-    }
-    else if (layout_width != null && layout_width.equalsIgnoreCase(SdkConstants.VALUE_MATCH_PARENT)) {
-      widget.setWrapWidth(widget.getWidth());
-      if (isWidgetInsideConstraintLayout(widget)) {
-        if (widget.getAnchor(ConstraintAnchor.Type.LEFT).isConnected()
-            && widget.getAnchor(ConstraintAnchor.Type.RIGHT).isConnected()) {
-          widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
-        }
-        else {
-          widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
-        }
-      }
-    }
-    else {
-      widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
-    }
-    String layout_height = attributes.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT);
-    if (component.h == 0 || getLayoutDimensionDpValue(component, layout_height) == 0) {
-      widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
-    }
-    else if (layout_height != null && layout_height.equalsIgnoreCase(SdkConstants.VALUE_WRAP_CONTENT)) {
-      widget.setWrapHeight(widget.getHeight());
-      widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
-    }
-    else if (layout_height != null && layout_height.equalsIgnoreCase(SdkConstants.VALUE_MATCH_PARENT)) {
-      widget.setWrapHeight(widget.getHeight());
-      if (isWidgetInsideConstraintLayout(widget)) {
-        if ((widget.getAnchor(ConstraintAnchor.Type.TOP).isConnected()
-             && widget.getAnchor(ConstraintAnchor.Type.BOTTOM).isConnected())) {
-          widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
-        }
-        else {
-          widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
-        }
-      }
-    }
-    else {
-      widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
-    }
+    // First set the origin of the widget
 
     int x = constraintModel.pxToDp(component.x);
     int y = constraintModel.pxToDp(component.y);
@@ -1056,6 +1016,92 @@ public class ConstraintUtilities {
     if (widget.getX() != x || widget.getY() != y) {
       widget.setOrigin(x, y);
       widget.forceUpdateDrawPosition();
+    }
+
+    boolean overrideDimension = false;
+
+    // FIXME: need to agree on the correct magic value for this rather than simply using zero.
+    String layout_width = attributes.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH);
+    if (component.w == 0 || getLayoutDimensionDpValue(component, layout_width) == 0) {
+      widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
+    }
+    else if (layout_width != null && layout_width.equalsIgnoreCase(SdkConstants.VALUE_WRAP_CONTENT)) {
+      if (widget.getWidth() < MINIMUM_SIZE && widget instanceof WidgetContainer
+          && ((WidgetContainer) widget).getChildren().size() == 0) {
+        widget.setWidth(MINIMUM_SIZE);
+        widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
+        overrideDimension = true;
+      } else {
+        widget.setWrapWidth(widget.getWidth());
+        widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
+      }
+    }
+    else if (layout_width != null && layout_width.equalsIgnoreCase(SdkConstants.VALUE_MATCH_PARENT)) {
+      if (isWidgetInsideConstraintLayout(widget)) {
+        if (widget.getAnchor(ConstraintAnchor.Type.LEFT).isConnected()
+            && widget.getAnchor(ConstraintAnchor.Type.RIGHT).isConnected()) {
+          widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
+        }
+        else {
+          widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
+          widget.setWidth(MINIMUM_SIZE_EXPAND);
+          int height = widget.getHeight();
+          ConstraintWidget.DimensionBehaviour verticalBehaviour = widget.getVerticalDimensionBehaviour();
+          if (height <= 1 && widget instanceof WidgetContainer) {
+            widget.setHeight(MINIMUM_SIZE_EXPAND);
+          }
+          ArrayList<ConstraintWidget> widgets = new ArrayList<>();
+          widgets.add(widget);
+          Scout.arrangeWidgets(Scout.Arrange.ExpandHorizontally, widgets, true);
+          widget.setHeight(height);
+          widget.setVerticalDimensionBehaviour(verticalBehaviour);
+          overrideDimension = true;
+        }
+      }
+    }
+    else {
+      widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
+    }
+    String layout_height = attributes.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT);
+    if (component.h == 0 || getLayoutDimensionDpValue(component, layout_height) == 0) {
+      widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
+    }
+    else if (layout_height != null && layout_height.equalsIgnoreCase(SdkConstants.VALUE_WRAP_CONTENT)) {
+      if (widget.getHeight() < MINIMUM_SIZE && widget instanceof WidgetContainer
+          && ((WidgetContainer) widget).getChildren().size() == 0) {
+        widget.setHeight(MINIMUM_SIZE);
+        widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
+        overrideDimension = true;
+      } else {
+        widget.setWrapHeight(widget.getHeight());
+        widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
+      }
+    }
+    else if (layout_height != null && layout_height.equalsIgnoreCase(SdkConstants.VALUE_MATCH_PARENT)) {
+      if (isWidgetInsideConstraintLayout(widget)) {
+        if ((widget.getAnchor(ConstraintAnchor.Type.TOP).isConnected()
+             && widget.getAnchor(ConstraintAnchor.Type.BOTTOM).isConnected())) {
+          widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
+        }
+        else {
+          widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
+          widget.setHeight(MINIMUM_SIZE_EXPAND);
+          int width = widget.getWidth();
+          ConstraintWidget.DimensionBehaviour horizontalBehaviour = widget.getHorizontalDimensionBehaviour();
+          if (width <= 1 && widget instanceof WidgetContainer) {
+            widget.setWidth(MINIMUM_SIZE_EXPAND);
+          }
+          ArrayList<ConstraintWidget> widgets = new ArrayList<>();
+          widgets.add(widget);
+          Scout.arrangeWidgets(Scout.Arrange.ExpandVertically, widgets, true);
+          widget.setWidth(width);
+          widget.setHorizontalDimensionBehaviour(horizontalBehaviour);
+          overrideDimension = true;
+        }
+      }
+    }
+    else {
+      widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
     }
 
     widget.setBaselineDistance(constraintModel.pxToDp(component.getBaseline()));
@@ -1136,6 +1182,8 @@ public class ConstraintUtilities {
       //noinspection ConstantConditions
       textWidget.setTextSize(constraintModel.pxToDp(size));
     }
+
+    return overrideDimension; // if true, need to update the XML
   }
 
   /**

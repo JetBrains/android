@@ -116,8 +116,7 @@ public class ArtifactDependencySpec {
     this.extension = emptyToNull(extension);
   }
 
-  @Override
-  public boolean equals(Object o) {
+  public boolean equalsIgnoreVersion(Object o) {
     if (this == o) {
       return true;
     }
@@ -127,9 +126,17 @@ public class ArtifactDependencySpec {
     ArtifactDependencySpec that = (ArtifactDependencySpec)o;
     return Objects.equal(name, that.name) &&
            Objects.equal(group, that.group) &&
-           Objects.equal(version, that.version) &&
            Objects.equal(classifier, that.classifier) &&
            Objects.equal(extension, that.extension);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (equalsIgnoreVersion(o)) {
+      ArtifactDependencySpec that = (ArtifactDependencySpec)o;
+      return Objects.equal(version, that.version);
+    }
+    return false;
   }
 
   @Override

@@ -29,8 +29,7 @@ public class InstantRunConfiguration implements PersistentStateComponent<Instant
   public boolean RESTART_ACTIVITY = true;
   public boolean SHOW_TOAST = true;
   public boolean SHOW_IR_STATUS_NOTIFICATIONS = true;
-  public boolean COLD_SWAP = true;
-  public String COLD_SWAP_MODE;
+  public boolean ENABLE_RECORDER = false;
 
   public static InstantRunConfiguration getInstance() {
     return ServiceManager.getService(InstantRunConfiguration.class);

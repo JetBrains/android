@@ -575,7 +575,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   }
 
   public void assertTabItem(@NotNull Palette.BaseItem item) {
-    assertStandardView(item, TAB_ITEM, DESIGN_LIB_ARTIFACT, 1.0);
+    assertNoPreviewView(item, TAB_ITEM, DESIGN_LIB_ARTIFACT);
   }
 
   public void assertNestedScrollViewItem(@NotNull Palette.BaseItem item) {
@@ -607,7 +607,9 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   }
 
   public void assertTextInputLayoutItem(@NotNull Palette.BaseItem item) {
-    assertLimitedHeightLayout(item, TEXT_INPUT_LAYOUT, DESIGN_LIB_ARTIFACT);
+    checkItem(item, TEXT_INPUT_LAYOUT, STANDARD_VIEW.getTitle(TEXT_INPUT_LAYOUT), STANDARD_LAYOUT.getIcon(TEXT_INPUT_LAYOUT),
+              TEXT_INPUT_LAYOUT_XML, NO_PREVIEW, NO_PREVIEW,
+              DESIGN_LIB_ARTIFACT, NO_SCALE);
   }
 
   public void assertCardView(@NotNull Palette.BaseItem item) {
@@ -621,6 +623,17 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   public void assertRecyclerView(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, RECYCLER_VIEW, RECYCLER_VIEW_LIB_ARTIFACT);
   }
+
+  @Language("XML")
+  private static final String TEXT_INPUT_LAYOUT_XML =
+    "<android.support.design.widget.TextInputLayout\n" +
+    "  android:layout_width=\"match_parent\"\n" +
+    "  android:layout_height=\"wrap_content\">\n" +
+    "  <EditText\n" +
+    "    android:layout_width=\"match_parent\"\n" +
+    "    android:layout_height=\"wrap_content\"\n" +
+    "    android:hint=\"hint\" />\n" +
+    "  </android.support.design.widget.TextInputLayout>\n";
 
   @Language("XML")
   private static final String TOOLBAR_XML =

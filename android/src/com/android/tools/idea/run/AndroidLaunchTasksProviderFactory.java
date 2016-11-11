@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.idea.fd.InstantRunBuildAnalyzer;
-import com.android.tools.idea.fd.InstantRunContext;
-import com.android.tools.idea.fd.InstantRunStatsService;
+import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.idea.fd.*;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
 import com.android.tools.idea.run.tasks.UpdateSessionTasksProvider;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,6 +33,7 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
   private final AndroidFacet myFacet;
   private final ApplicationIdProvider myApplicationIdProvider;
   private final ApkProvider myApkProvider;
+  private final DeviceFutures myDeviceFutures;
   private final LaunchOptions myLaunchOptions;
   private final ProcessHandler myPreviousSessionProcessHandler;
   private final InstantRunContext myInstantRunContext;
@@ -42,6 +43,7 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
                                            @NotNull AndroidFacet facet,
                                            @NotNull ApplicationIdProvider applicationIdProvider,
                                            @NotNull ApkProvider apkProvider,
+                                           @NotNull DeviceFutures deviceFutures,
                                            @NotNull LaunchOptions launchOptions,
                                            @Nullable ProcessHandler processHandler,
                                            @Nullable InstantRunContext instantRunContext) {
@@ -50,6 +52,7 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
     myFacet = facet;
     myApplicationIdProvider = applicationIdProvider;
     myApkProvider = apkProvider;
+    myDeviceFutures = deviceFutures;
     myLaunchOptions = launchOptions;
     myPreviousSessionProcessHandler = processHandler;
     myInstantRunContext = instantRunContext;
@@ -58,11 +61,20 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
   @NotNull
   @Override
   public LaunchTasksProvider get() {
-    InstantRunStatsService.get(myEnv.getProject()).notifyDeployStarted();
+    Project project = myEnv.getProject();
+    InstantRunStatsService.get(project).notifyDeployStarted();
 
     InstantRunBuildAnalyzer analyzer = null;
-    if (myInstantRunContext != null && myInstantRunContext.getInstantRunBuildInfo() != null) {
-      analyzer = new InstantRunBuildAnalyzer(myEnv.getProject(), myInstantRunContext, myPreviousSessionProcessHandler);
+    InstantRunBuildInfo instantRunBuildInfo = myInstantRunContext != null ? myInstantRunContext.getInstantRunBuildInfo() : null;
+    if (instantRunBuildInfo != null) {
+      analyzer = new InstantRunBuildAnalyzer(project, myInstantRunContext, myPreviousSessionProcessHandler);
+
+      if (InstantRunSettings.isRecorderEnabled()) {
+        if (!myDeviceFutures.getDevices().isEmpty()) { // Instant Run is guaranteed to be for exactly 1 device
+          FlightRecorder.get(project).setLaunchTarget(myDeviceFutures.getDevices().get(0));
+        }
+        FlightRecorder.get(project).saveBuildInfo(instantRunBuildInfo);
+      }
     }
 
     if (analyzer != null && analyzer.canReuseProcessHandler()) {
