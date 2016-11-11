@@ -108,13 +108,12 @@ iml_module(
     deps = [
         "//tools:idea.openapi[module]",
         "//tools:idea.platform-impl_and_others[module]",
+        "//tools/idea/.idea/libraries:JUnit3[test]",
         "//tools:idea.compiler-impl_and_others[module]",
         "//tools:idea.execution-openapi[module]",
         "//tools:idea.smRunner[module]",
         "//tools:idea.junit[module]",
         "//tools:idea.maven_and_others[module]",
-        "//tools/adt/idea/profilers:profilers[module]",
-        "//tools/adt/idea/profilers-ui:profilers-ui[module]",
         "//tools:idea.java-impl[module]",
         "//tools:idea.properties[module]",
         "//tools/idea/.idea/libraries:xpp3-1.1.4-min",
@@ -148,6 +147,7 @@ iml_module(
         "//tools/adt/idea/perfd-host:perfd-host[module]",
         "//tools/adt/idea:android/lib/spantable",
         "//tools/idea/.idea/libraries:jsr305",
+        "//tools/idea/.idea/libraries:Mocks[test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:jgraphx-3.4.0.1",
         "//tools/base/repository:studio.repository[module]",
@@ -173,7 +173,10 @@ iml_module(
         "//tools/analytics-library:analytics-protos[module]",
         "//tools/analytics-library:analytics-shared[module]",
         "//tools/base/common:studio.common[module]",
+        "//tools/idea/.idea/libraries:Netty[test]",
         "//tools/adt/idea/observable:observable[module]",
+        "//tools/adt/idea/profilers:profilers[module]",
+        "//tools/adt/idea/profilers-ui:profilers-ui[module]",
     ],
 )
 
