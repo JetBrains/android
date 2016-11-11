@@ -159,8 +159,8 @@ public class InstantRunBuilderTest {
     myInstantRunClientDelegate = createInstantRunClientDelegate();
 
     myBuilder =
-      new InstantRunBuilder(myDevice, myInstantRunContext, myRunConfigContext, myTasksProvider, ourRunAsSupported, myInstalledApkCache,
-                            myInstantRunClientDelegate);
+      new InstantRunBuilder(myDevice, myInstantRunContext, myRunConfigContext, myTasksProvider, false,
+                            ourRunAsSupported, myInstalledApkCache, myInstantRunClientDelegate);
   }
 
   @NotNull
@@ -186,8 +186,8 @@ public class InstantRunBuilderTest {
   @Test
   public void cleanBuildIfNoDevice() throws Exception {
     InstantRunBuilder builder =
-      new InstantRunBuilder(null, myInstantRunContext, myRunConfigContext, myTasksProvider, ourRunAsSupported, myInstalledApkCache,
-                            myInstantRunClientDelegate);
+      new InstantRunBuilder(null, myInstantRunContext, myRunConfigContext, myTasksProvider, false,
+                            ourRunAsSupported, myInstalledApkCache, myInstantRunClientDelegate);
     builder.build(myTaskRunner, Arrays.asList("-Pdevice.api=14", "-Pprofiling=on"));
     assertEquals(
       "gradlew -Pdevice.api=14 -Pprofiling=on -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK clean :app:gen :app:assemble",
@@ -337,8 +337,8 @@ public class InstantRunBuilderTest {
     setUpDeviceForHotSwap();
 
     myBuilder =
-      new InstantRunBuilder(myDevice, myInstantRunContext, myRunConfigContext, myTasksProvider, ourRunAsNotSupported, myInstalledApkCache,
-                            myInstantRunClientDelegate);
+      new InstantRunBuilder(myDevice, myInstantRunContext, myRunConfigContext, myTasksProvider, false,
+                            ourRunAsNotSupported, myInstalledApkCache, myInstantRunClientDelegate);
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
       "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK :app:assemble",
@@ -408,6 +408,17 @@ public class InstantRunBuilderTest {
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
       "gradlew -Pandroid.optional.compilation=INSTANT_DEV :app:assemble",
+      myTaskRunner.getBuilds());
+  }
+
+  @Test
+  public void flightRecorderOptions() throws Exception {
+    InstantRunBuilder builder =
+      new InstantRunBuilder(null, myInstantRunContext, myRunConfigContext, myTasksProvider, true,
+                            ourRunAsSupported, myInstalledApkCache, myInstantRunClientDelegate);
+    builder.build(myTaskRunner, Arrays.asList("-Pdevice.api=14", "-Pprofiling=on"));
+    assertEquals(
+      "gradlew -Pdevice.api=14 -Pprofiling=on -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK --info clean :app:gen :app:assemble",
       myTaskRunner.getBuilds());
   }
 

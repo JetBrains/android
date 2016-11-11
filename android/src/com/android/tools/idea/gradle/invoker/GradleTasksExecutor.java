@@ -21,6 +21,9 @@ import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
+import com.android.tools.idea.fd.InstantRunBuildProgressListener;
+import com.android.tools.idea.fd.FlightRecorder;
+import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
@@ -288,6 +291,7 @@ public class GradleTasksExecutor extends Task.Backgroundable {
       GradleOutputForwarder output = new GradleOutputForwarder(consoleView);
 
       BuildException buildError = null;
+      InstantRunBuildProgressListener instantRunProgressListener = null;
       ExternalSystemTaskId id = myContext.getTaskId();
       CancellationTokenSource cancellationTokenSource = GradleConnector.newCancellationTokenSource();
       try {
@@ -357,6 +361,11 @@ public class GradleTasksExecutor extends Task.Backgroundable {
           }
         });
 
+        if (InstantRunSettings.isInstantRunEnabled() && InstantRunSettings.isRecorderEnabled()) {
+          instantRunProgressListener = new InstantRunBuildProgressListener();
+          launcher.addProgressListener(instantRunProgressListener);
+        }
+
         launcher.run();
       }
       catch (BuildException e) {
@@ -368,6 +377,9 @@ public class GradleTasksExecutor extends Task.Backgroundable {
       finally {
         myContext.dropCancellationInfoFor(id);
         String gradleOutput = output.toString();
+        if (instantRunProgressListener != null) {
+          FlightRecorder.get(myProject).saveBuildOutput(gradleOutput, instantRunProgressListener);
+        }
         Application application = ApplicationManager.getApplication();
         if (isGuiTestingMode()) {
           String testOutput = application.getUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY);

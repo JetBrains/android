@@ -29,6 +29,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.text.VersionComparatorUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -89,7 +90,9 @@ public class GradleOperations implements DeveloperServiceBuildSystemOperations {
         for (ArtifactDependencyModel dependency : dependenciesModel.artifacts()) {
           ArtifactDependencySpec spec = ArtifactDependencySpec.create(dependency);
           for (String dependencyValue : metadata.getDependencies()) {
-            if (spec.equals(ArtifactDependencySpec.create(dependencyValue))) {
+            ArtifactDependencySpec value = ArtifactDependencySpec.create(dependencyValue);
+            // Ensure that the found version is at least the target version.
+            if (value.equalsIgnoreVersion(spec) && VersionComparatorUtil.compare(spec.version, value.version) >= 0) {
               return true;
             }
           }

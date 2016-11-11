@@ -29,6 +29,11 @@ public class InstantRunSettings {
     return configuration.INSTANT_RUN;
   }
 
+  public static void setInstantRunEnabled(boolean en) {
+    InstantRunConfiguration configuration = InstantRunConfiguration.getInstance();
+    configuration.INSTANT_RUN = en;
+  }
+
   /** Is showing toasts enabled in the given project */
   public static boolean isShowToastEnabled() {
     InstantRunConfiguration configuration = InstantRunConfiguration.getInstance();
@@ -49,5 +54,15 @@ public class InstantRunSettings {
   public static void setShowStatusNotifications(boolean en) {
     InstantRunConfiguration configuration = InstantRunConfiguration.getInstance();
     configuration.SHOW_IR_STATUS_NOTIFICATIONS = en;
+  }
+
+  public static boolean isRecorderEnabled() {
+    InstantRunConfiguration configuration = InstantRunConfiguration.getInstance();
+    return configuration.ENABLE_RECORDER;
+  }
+
+  public static void setRecorderEnabled(boolean en) {
+    InstantRunConfiguration configuration = InstantRunConfiguration.getInstance();
+    configuration.ENABLE_RECORDER = en;
   }
 }

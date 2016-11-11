@@ -96,4 +96,36 @@ public class ArtifactDependencySpecTest {
     myDependency.extension = "ext";
     assertEquals("group:name:version:classifier@ext", myDependency.compactNotation());
   }
+
+  @Test
+  public void testEqualsFalse() {
+    myDependency = ArtifactDependencySpec.create("org.gradle.test.classifiers:service:1.0.0-alpha4:jdk15@jar");
+    ArtifactDependencySpec theirDependency =
+      ArtifactDependencySpec.create("org.gradle.test.classifiers:service:1.0.0-beta1:jdk15@jar");
+    assertFalse(myDependency.equals(theirDependency));
+  }
+
+  @Test
+  public void testEqualsTrue() {
+    myDependency = ArtifactDependencySpec.create("org.gradle.test.classifiers:service:1.0.0-alpha4:jdk15@jar");
+    ArtifactDependencySpec theirDependency =
+      ArtifactDependencySpec.create("org.gradle.test.classifiers:service:1.0.0-alpha4:jdk15@jar");
+    assertTrue(myDependency.equals(theirDependency));
+  }
+
+  @Test
+  public void testEqualsIgnoreVersionFalse() {
+    myDependency = ArtifactDependencySpec.create("org.gradle.test.classifiers:service:1.0.0-alpha4:jdk15@jar");
+    ArtifactDependencySpec theirDependency =
+      ArtifactDependencySpec.create("org.gradle.test.classifiers:service:1.0.0-alpha4:jdk16@jar");
+    assertFalse(myDependency.equalsIgnoreVersion(theirDependency));
+  }
+
+  @Test
+  public void testeEqualsIgnoreVersionTrue() {
+    myDependency = ArtifactDependencySpec.create("org.gradle.test.classifiers:service:1.0.0-alpha4:jdk15@jar");
+    ArtifactDependencySpec theirDependency =
+      ArtifactDependencySpec.create("org.gradle.test.classifiers:service:1.0.0-beta1:jdk15@jar");
+    assertTrue(myDependency.equalsIgnoreVersion(theirDependency));
+  }
 }
