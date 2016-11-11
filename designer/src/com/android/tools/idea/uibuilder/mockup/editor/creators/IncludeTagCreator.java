@@ -154,7 +154,7 @@ public class IncludeTagCreator extends SimpleViewCreator {
       }
     };
     nlModel.addListener(listener);
-    nlModel.render();
+    nlModel.requestRender();
     return getResourceName(newFile);
   }
 
