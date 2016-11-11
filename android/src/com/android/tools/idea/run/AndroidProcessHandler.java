@@ -19,22 +19,19 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
-import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.logcat.AndroidLogcatFormatter;
-import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.SmartList;
 import com.intellij.xdebugger.DefaultDebugProcessHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 
 /**
  * {@link AndroidProcessHandler} is a {@link com.intellij.execution.process.ProcessHandler} that corresponds to a single Android app
@@ -59,7 +56,6 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
 
   @NotNull private final List<String> myDevices;
   @NotNull private final Set<Client> myClients;
-  @NotNull private final Map<IDevice, AndroidLogcatService.LogcatListener> myLogListeners;
 
   private long myDeviceAdded;
   private boolean myNoKill;
@@ -72,7 +68,6 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
     myApplicationId = applicationId;
     myDevices = new SmartList<>();
     myClients = Sets.newHashSet();
-    myLogListeners = new HashMap<>();
 
     myMonitoringRemoteProcess = monitorRemoteProcess;
     if (myMonitoringRemoteProcess) {
@@ -88,7 +83,7 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
 
     Client client = device.getClient(myApplicationId);
     if (client != null) {
-        addClient(client);
+      addClient(client);
     } else {
       notifyTextAvailable("Client not ready yet..", ProcessOutputTypes.STDOUT);
     }
@@ -104,29 +99,6 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
     IDevice device = client.getDevice();
     notifyTextAvailable("Connected to process " + client.getClientData().getPid() + " on device " + device.getName() + "\n",
                         ProcessOutputTypes.STDOUT);
-
-    AndroidLogcatService.LogcatListener logListener = new ApplicationLogListener(myApplicationId, client.getClientData().getPid()) {
-      private final String SIMPLE_FORMAT = AndroidLogcatFormatter.createCustomFormat(false, false, false, true);
-
-      @Override
-      protected String formatLogLine(@NotNull LogCatMessage line) {
-        String message = AndroidLogcatFormatter.formatMessage(SIMPLE_FORMAT, line.getHeader(), line.getMessage());
-        if (myDevices.size() > 1) {
-          return String.format("[%1$s]: %2$s", client.getDevice().getName(), message);
-        }
-        else {
-          return message;
-        }
-      }
-
-      @Override
-      protected void notifyTextAvailable(@NotNull String message, @NotNull Key key) {
-        AndroidProcessHandler.this.notifyTextAvailable(message, key);
-      }
-    };
-
-    AndroidLogcatService.getInstance().addListener(device, logListener, true);
-    myLogListeners.put(device, logListener);
   }
 
   private void setMinDeviceApiLevel(@NotNull AndroidVersion deviceVersion) {
@@ -197,11 +169,6 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
     myDevices.clear();
     myClients.clear();
 
-    for (IDevice device : myLogListeners.keySet()) {
-      AndroidLogcatService.getInstance().removeListener(device, myLogListeners.get(device));
-    }
-    myLogListeners.clear();
-
     if (myMonitoringRemoteProcess) {
       AndroidDebugBridge.removeClientChangeListener(this);
       AndroidDebugBridge.removeDeviceChangeListener(this);
@@ -223,19 +190,7 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
   }
 
   private void stopMonitoring(@NotNull IDevice device) {
-    if (!myDevices.contains(device.getSerialNumber())) {
-      // TODO: normally this shouldn't happen as we check before each call of stopMonitoring,
-      //       seems like there is a thread issues and it should be fixed
-      return;
-    }
-
     myDevices.remove(device.getSerialNumber());
-
-    //  This shouldn't usually happen but occasionally does due to threading issues
-    if (myLogListeners.containsKey(device)) {
-      AndroidLogcatService.getInstance().removeListener(device, myLogListeners.get(device));
-      myLogListeners.remove(device);
-    }
 
     if (myDevices.isEmpty()) {
       detachProcess();
@@ -334,10 +289,5 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
   public void reset() {
     myDevices.clear();
     myClients.clear();
-
-    for (IDevice device : myLogListeners.keySet()) {
-      AndroidLogcatService.getInstance().removeListener(device, myLogListeners.get(device));
-    }
-    myLogListeners.clear();
   }
 }
