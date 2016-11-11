@@ -16,13 +16,12 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.profilers.StageView;
-import com.android.tools.profilers.StudioMonitorStage;
-import com.android.tools.profilers.StudioProfilers;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
 public class CpuMonitorStageView extends StageView {
-  public CpuMonitorStageView(CpuMonitorStage stage) {
+  public CpuMonitorStageView(@NotNull CpuMonitorStage stage) {
     super(stage);
   }
 
@@ -31,11 +30,7 @@ public class CpuMonitorStageView extends StageView {
     JPanel panel = new JPanel();
     panel.add(new JLabel("TODO: CPU L2"));
     JButton button = new JButton("Go back");
-    button.addActionListener(action -> {
-      StudioProfilers profilers = getStage().getStudioProfilers();
-      StudioMonitorStage monitor = new StudioMonitorStage(profilers);
-      profilers.setStage(monitor);
-    });
+    button.addActionListener(action -> returnToStudioStage());
     panel.add(button);
     return panel;
   }
