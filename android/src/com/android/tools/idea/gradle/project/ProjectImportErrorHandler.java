@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.tools.analytics.UsageTracker;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -29,7 +28,6 @@ import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHa
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.UnknownHostException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,7 +39,6 @@ import static com.intellij.openapi.util.text.StringUtil.splitByLines;
  */
 public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler {
 
-  private static final Pattern CLASS_NOT_FOUND_PATTERN = Pattern.compile("(.+) not found.");
   private static final Pattern ERROR_LOCATION_PATTERN = Pattern.compile(".* file '(.*)'( line: ([\\d]+))?");
 
   @Override
@@ -62,82 +59,6 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
 
     Pair<Throwable, String> rootCauseAndLocation = getRootCauseAndLocation(error);
     Throwable rootCause = rootCauseAndLocation.getFirst();
-
-    if (rootCause instanceof UnknownHostException) {
-      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                       .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
-                                       .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
-                                       .setGradleSyncFailure(GradleSyncFailure.UNKNOWN_HOST));
-
-      String msg = String.format("Unknown host '%1$s'. You may need to adjust the proxy settings in Gradle.", rootCause.getMessage());
-      return createUserFriendlyError(msg, null);
-    }
-
-    if (rootCause instanceof IllegalStateException || rootCause instanceof ExternalSystemException) {
-      // Missing platform in SDK now also comes as a ExternalSystemException. This may be caused by changes in IDEA's "External System
-      // Import" framework.
-      String msg = rootCause.getMessage();
-      if (msg != null) {
-        if (msg.startsWith("failed to find Build Tools")) {
-          UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                           .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
-                                           .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
-                                           .setGradleSyncFailure(GradleSyncFailure.MISSING_BUILD_TOOLS));
-
-          // Location of build.gradle is useless for this error. Omitting it.
-          return createUserFriendlyError(msg, null);
-        }
-      }
-    }
-
-    if (rootCause instanceof OutOfMemoryError) {
-      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                       .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
-                                       .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
-                                       .setGradleSyncFailure(GradleSyncFailure.OUT_OF_MEMORY));
-
-      // The OutOfMemoryError happens in the Gradle daemon process.
-      String originalMessage = rootCause.getMessage();
-      String msg = "Out of memory";
-      if (originalMessage != null && !originalMessage.isEmpty()) {
-        msg = msg + ": " + originalMessage;
-      }
-      // Location of build.gradle is useless for this error. Omitting it.
-      return createUserFriendlyError(msg, null);
-    }
-
-    if (rootCause instanceof NoSuchMethodError) {
-      String methodName = Strings.nullToEmpty(rootCause.getMessage());
-
-      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                       .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
-                                       .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
-                                       .setGradleSyncFailure(GradleSyncFailure.METHOD_NOT_FOUND)
-                                       .setGradleMissingSignature(methodName));
-
-      String msg = String.format("Unable to find method '%1$s'.", methodName);
-      // Location of build.gradle is useless for this error. Omitting it.
-      return createUserFriendlyError(msg, null);
-    }
-
-    if (rootCause instanceof ClassNotFoundException) {
-      String className = Strings.nullToEmpty(rootCause.getMessage());
-
-      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                       .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
-                                       .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
-                                       .setGradleSyncFailure(GradleSyncFailure.CLASS_NOT_FOUND)
-                                       .setGradleMissingSignature(className));
-
-      Matcher matcher = CLASS_NOT_FOUND_PATTERN.matcher(className);
-      if (matcher.matches()) {
-        className = matcher.group(1);
-      }
-
-      String msg = String.format("Unable to load class '%1$s'.", className);
-      // Location of build.gradle is useless for this error. Omitting it.
-      return createUserFriendlyError(msg, null);
-    }
 
     // Create ExternalSystemException or LocationAwareExternalSystemException, so that
     // it goes to SyncErrorHandlers directly.

@@ -344,7 +344,7 @@ public class GradleSyncTest {
     guiTest.importSimpleApplication();
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
-    ideFrame.requestProjectSyncAndSimulateError("Unable to load class 'com.android.utils.ILogger'");
+    ideFrame.requestProjectSyncAndSimulateError(new ClassNotFoundException("com.android.utils.ILogger not found."));
 
     MessagesToolWindowFixture messages = ideFrame.getMessagesToolWindow();
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Unable to load class"));
