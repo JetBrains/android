@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.monitor.ui.events.model;
+package com.android.tools.profilers.event;
 
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.StackedEventComponent;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.EventAction;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.datastore.profilerclient.DeviceProfilerService;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
+import com.android.tools.profilers.ProfilerClient;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -36,21 +36,23 @@ import java.util.concurrent.TimeUnit;
 public class ActivityEventDataSeries implements DataSeries<EventAction<StackedEventComponent.Action, String>> {
 
   @NotNull
-  private DeviceProfilerService myService;
-
-  @NotNull
   private Map<Integer, Long> myActiveActivites = new HashMap<>();
 
-  public ActivityEventDataSeries(@NotNull DeviceProfilerService service) {
-    myService = service;
+  @NotNull
+  private ProfilerClient myClient;
+  private final int myProcessId;
+
+  public ActivityEventDataSeries(@NotNull ProfilerClient client, int id) {
+    myClient = client;
+    myProcessId = id;
   }
 
   @Override
   public ImmutableList<SeriesData<EventAction<StackedEventComponent.Action, String>>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
     List<SeriesData<EventAction<StackedEventComponent.Action, String>>> seriesData = new ArrayList<>();
-    EventServiceGrpc.EventServiceBlockingStub eventService = myService.getEventService();
+    EventServiceGrpc.EventServiceBlockingStub eventService = myClient.getEventClient();
     EventProfiler.EventDataRequest.Builder dataRequestBuilder = EventProfiler.EventDataRequest.newBuilder()
-      .setAppId(myService.getSelectedProcessId())
+      .setAppId(myProcessId)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()));
     EventProfiler.EventDataResponse response = eventService.getData(dataRequestBuilder.build());
