@@ -23,7 +23,9 @@ import com.android.tools.idea.editors.gfxtrace.service.Context;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetObject;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadablePanel;
+import com.android.tools.idea.logcat.RegexFilterComponent;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.RegexFilterComponentFixture;
 import com.android.tools.rpclib.schema.Constant;
 import com.android.tools.rpclib.schema.Method;
 import com.android.tools.rpclib.schema.Primitive;
@@ -199,5 +201,32 @@ public class GfxTraceFixture extends ComponentFixture<GfxTraceFixture, LoadableP
         return new ScrollAwareJTreeDriver(robot);
       }
     };
+  }
+
+  public GfxTraceFixture searchForText(String text) {
+    RegexFilterComponentFixture.find(robot(), target()).searchForText(text);
+    return this;
+  }
+
+  public GfxTraceFixture searchForRegex(String regex) {
+    RegexFilterComponentFixture.find(robot(), target()).searchForRegex(regex);
+    return this;
+  }
+
+  public GfxTraceFixture searchAgain() {
+    RegexFilterComponentFixture.find(robot(), target()).searchAgain();
+    return this;
+  }
+
+  public boolean hasSelection() {
+    return getAtomTree().target().getLastSelectedPathComponent() != null;
+  }
+
+  // TODO this method will be replaced with a better implementation in http://ag/1594297
+  @NotNull
+  public String getAtomAsString(long atomIndex) {
+    JTreeFixture tree = getAtomTree();
+    selectAtom(tree, atomIndex);
+    return tree.target().getLastSelectedPathComponent().toString();
   }
 }

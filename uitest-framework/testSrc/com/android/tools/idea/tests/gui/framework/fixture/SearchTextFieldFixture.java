@@ -42,6 +42,13 @@ public class SearchTextFieldFixture extends AbstractJComponentFixture<SearchText
   }
 
   @NotNull
+  public SearchTextFieldFixture deleteText() {
+    driver().deleteText(target());
+
+    return this;
+  }
+
+  @NotNull
   @Override
   protected SearchTextFieldDriver createDriver(Robot robot) {
     return new SearchTextFieldDriver(robot);
