@@ -157,9 +157,11 @@ public class EventVisualTest extends VisualTest {
     }));
     JButton tapButton = VisualTest.createButton("Tap Me");
     tapButton.addMouseListener(new MouseAdapter() {
+      private long mDownTime = 0;
       @Override
       public void mousePressed(MouseEvent e) {
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
+        mDownTime = nowUs;
         EventAction<SimpleEventComponent.Action, ActionType> event =
           new EventAction<>(nowUs, 0, SimpleEventComponent.Action.DOWN, ActionType.HOLD);
         myData.add(nowUs, event);
@@ -169,7 +171,7 @@ public class EventVisualTest extends VisualTest {
       public void mouseReleased(MouseEvent e) {
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
         EventAction<SimpleEventComponent.Action, ActionType> event =
-          new EventAction<>(nowUs, nowUs, SimpleEventComponent.Action.UP, ActionType.TOUCH);
+          new EventAction<>(mDownTime, nowUs, SimpleEventComponent.Action.UP, ActionType.TOUCH);
         myData.add(nowUs, event);
       }
     });

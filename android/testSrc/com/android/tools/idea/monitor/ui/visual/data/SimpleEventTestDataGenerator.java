@@ -19,17 +19,18 @@ import com.android.tools.adtui.SimpleEventComponent;
 import com.android.tools.adtui.model.EventAction;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.idea.monitor.ui.events.view.EventSegment;
+import com.android.tools.profilers.event.EventActionType;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 public class SimpleEventTestDataGenerator
-  extends TestDataGenerator<EventAction<SimpleEventComponent.Action, EventSegment.EventActionType>> {
+  extends TestDataGenerator<EventAction<SimpleEventComponent.Action, EventActionType>> {
 
-  private ArrayList<EventAction<SimpleEventComponent.Action, EventSegment.EventActionType>> mData = new ArrayList<>();
+  private ArrayList<EventAction<SimpleEventComponent.Action, EventActionType>> mData = new ArrayList<>();
 
   @Override
-  public SeriesData<EventAction<SimpleEventComponent.Action, EventSegment.EventActionType>> get(int index) {
+  public SeriesData<EventAction<SimpleEventComponent.Action, EventActionType>> get(int index) {
     return new SeriesData<>(mTime.get(index), mData.get(index));
   }
 
@@ -47,7 +48,7 @@ public class SimpleEventTestDataGenerator
     if (Math.random() > 0.5) {
       mTime.add(TimeUnit.NANOSECONDS.toMicros(System.nanoTime()));
       if (mData.size() > 0) {
-        EventAction<SimpleEventComponent.Action, EventSegment.EventActionType> lastAction = mData.get(mData.size() - 1);
+        EventAction<SimpleEventComponent.Action, EventActionType> lastAction = mData.get(mData.size() - 1);
         // If our last action was a down action, our next action should be an up action.
         if (lastAction.getValue() == SimpleEventComponent.Action.DOWN) {
           downAction = false;
@@ -57,7 +58,7 @@ public class SimpleEventTestDataGenerator
       }
       mData.add(new EventAction<>(currentTimeUs, endTimeUs,
                                   downAction ? SimpleEventComponent.Action.DOWN : SimpleEventComponent.Action.UP,
-                                  EventSegment.EventActionType.HOLD));
+                                  EventActionType.HOLD));
 
     }
   }
