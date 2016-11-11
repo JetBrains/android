@@ -24,10 +24,10 @@ import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.memory.model.AllocationTrackingSample;
 import com.android.tools.idea.monitor.ui.memory.model.MemoryDataCache;
 import com.android.tools.idea.monitor.ui.memory.model.MemoryInfoTreeNode;
-import com.android.tools.perflib.captures.MemoryMappedFileBuffer;
 import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Snapshot;
+import com.android.tools.perflib.heap.io.InMemoryBuffer;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.HeapDumpSample;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
@@ -226,7 +226,7 @@ class ClassHistogramView implements Disposable {
 
     public HeapDump(@NotNull MemoryDataCache dataCache, @NotNull HeapDumpSample sample) throws IOException {
       mySample = sample;
-      mySnapshot = Snapshot.createSnapshot(new MemoryMappedFileBuffer(dataCache.getHeapDumpFile(sample)));
+      mySnapshot = Snapshot.createSnapshot(new InMemoryBuffer(dataCache.getHeapDumpData(sample).asReadOnlyByteBuffer()));
     }
 
     @NotNull
