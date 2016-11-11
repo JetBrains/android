@@ -37,9 +37,6 @@ public class StudioMonitorStage extends Stage {
 
   @Override
   public void exit() {
-    for (ProfilerMonitor monitor : myMonitors) {
-      monitor.stop();
-    }
   }
 
   public List<ProfilerMonitor> getMonitors() {
