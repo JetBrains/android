@@ -28,9 +28,9 @@ public class StudioMonitorStage extends Stage {
 
   @Override
   public void enter() {
-    int processId = getStudioProfiler().getProcessId();
+    int processId = getStudioProfilers().getProcessId();
     myMonitors.clear();
-    for (StudioProfiler profiler : getStudioProfiler().getProfilers()) {
+    for (StudioProfiler profiler : getStudioProfilers().getProfilers()) {
       myMonitors.add(profiler.newMonitor(processId));
     }
   }
@@ -44,5 +44,11 @@ public class StudioMonitorStage extends Stage {
 
   public List<ProfilerMonitor> getMonitors() {
     return myMonitors;
+  }
+
+  public void expand(ProfilerMonitor monitor) {
+    StudioProfilers profilers = getStudioProfilers();
+    Stage stage = monitor.getExpandedStage(profilers);
+    profilers.setStage(stage);
   }
 }

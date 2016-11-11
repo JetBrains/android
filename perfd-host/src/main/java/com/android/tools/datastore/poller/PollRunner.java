@@ -69,7 +69,7 @@ public class PollRunner implements RunnableFuture<Void> {
     }
     catch (StatusRuntimeException e) {
       // Don't do anything except log, go straight to finally block which handles this anyways.
-      getLog().info("Error during gRPC communication. Poller exiting now.");
+      getLog().info("Error during gRPC communication. Poller exiting now.", e);
     }
     catch (InterruptedException e) {
       Thread.currentThread().interrupt();
