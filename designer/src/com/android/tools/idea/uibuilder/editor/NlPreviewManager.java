@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.project.FeatureEnableService;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.ResourceNotificationManager;
@@ -45,7 +45,6 @@ import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import icons.AndroidIcons;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
@@ -340,16 +339,8 @@ public class NlPreviewManager implements ProjectComponent {
     final Document document = textEditor.getEditor().getDocument();
     final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
 
-    if (psiFile == null) {
-      return false;
-    }
-    AndroidFacet facet = AndroidFacet.getInstance(psiFile);
-    if (facet == null) {
-      return false;
-    }
-    // The preview editor currently works best with Gradle (see: b/29447486, and b/28110820), but we want to have support for
-    // legacy android projects as well. Only enable for those two cases for now.
-    if (!Projects.isBuildWithGradle(facet.getModule()) && !Projects.isLegacyIdeaAndroidModule(facet.getModule())) {
+    FeatureEnableService featureEnableService = FeatureEnableService.getInstance(myProject);
+    if (featureEnableService == null || !featureEnableService.isLayoutEditorEnabled()) {
       return false;
     }
 
