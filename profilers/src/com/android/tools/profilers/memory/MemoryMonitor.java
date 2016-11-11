@@ -40,12 +40,17 @@ public class MemoryMonitor extends ProfilerMonitor {
     // TODO fix Range and expose it to Choreographer
     return new RangedContinuousSeries("Memory", myProfilers.getViewRange(), new Range(0, 1024 * 1024),
                                       new MemoryDataSeries(client, myProcessId) {
-                                                                       @Override
-                                                                       @NotNull
-                                                                       public Long filterData(@NotNull MemoryProfiler.MemoryData.MemorySample sample) {
-                                                                         return sample.getTotalMem();
-                                                                       }
-                                                                     });
+                                        @Override
+                                        @NotNull
+                                        public Long filterData(@NotNull MemoryProfiler.MemoryData.MemorySample sample) {
+                                          return sample.getTotalMem();
+                                        }
+                                      });
+  }
+
+  @Override
+  public String getName() {
+    return "Memory";
   }
 
   public void expand() {

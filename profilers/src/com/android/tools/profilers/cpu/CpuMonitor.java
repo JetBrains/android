@@ -40,6 +40,11 @@ public class CpuMonitor extends ProfilerMonitor {
     return new RangedContinuousSeries("CPU", myProfilers.getViewRange(), new Range(0, 100), series);
   }
 
+  @Override
+  public String getName() {
+    return "CPU";
+  }
+
   public void expand() {
     myProfilers.setStage(new CpuMonitorStage(myProfilers));
   }
