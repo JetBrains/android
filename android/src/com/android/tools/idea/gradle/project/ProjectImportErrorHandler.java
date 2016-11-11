@@ -29,7 +29,6 @@ import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHa
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.UnknownHostException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -62,16 +61,6 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
 
     Pair<Throwable, String> rootCauseAndLocation = getRootCauseAndLocation(error);
     Throwable rootCause = rootCauseAndLocation.getFirst();
-
-    if (rootCause instanceof UnknownHostException) {
-      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                       .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
-                                       .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
-                                       .setGradleSyncFailure(GradleSyncFailure.UNKNOWN_HOST));
-
-      String msg = String.format("Unknown host '%1$s'. You may need to adjust the proxy settings in Gradle.", rootCause.getMessage());
-      return createUserFriendlyError(msg, null);
-    }
 
     if (rootCause instanceof OutOfMemoryError) {
       UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
