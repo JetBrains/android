@@ -18,11 +18,13 @@ package com.android.tools.idea.gradle.dsl.model.android;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.android.external.ExternalNativeBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.splits.SplitsModel;
+import com.android.tools.idea.gradle.dsl.model.android.testOptions.TestOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.android.*;
 import com.android.tools.idea.gradle.dsl.parser.android.external.ExternalNativeBuildDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.splits.SplitsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.testOptions.TestOptionsDslElement;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -42,6 +44,7 @@ import static com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDsl
 import static com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElement.SOURCE_SETS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.external.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.splits.SplitsDslElement.SPLITS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.TestOptionsDslElement.TEST_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.COMPILE_OPTIONS_BLOCK_NAME;
 
 public final class AndroidModel extends GradleDslBlockModel {
@@ -393,6 +396,16 @@ public final class AndroidModel extends GradleDslBlockModel {
       myDslElement.setNewElement(SPLITS_BLOCK_NAME, splitsDslElement);
     }
     return new SplitsModel(splitsDslElement);
+  }
+
+  @NotNull
+  public TestOptionsModel testOptions() {
+    TestOptionsDslElement testOptionsDslElement = myDslElement.getPropertyElement(TEST_OPTIONS_BLOCK_NAME, TestOptionsDslElement.class);
+    if (testOptionsDslElement == null) {
+      testOptionsDslElement = new TestOptionsDslElement(myDslElement);
+      myDslElement.setNewElement(TEST_OPTIONS_BLOCK_NAME, testOptionsDslElement);
+    }
+    return new TestOptionsModel(testOptionsDslElement);
   }
 
   @NotNull
