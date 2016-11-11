@@ -20,6 +20,7 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.lint.LintIdeClient;
 import com.android.tools.idea.lint.LintIdeIssueRegistry;
@@ -43,6 +44,7 @@ import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
@@ -71,6 +73,7 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_PROJECT_LOCATION;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 /**
@@ -261,6 +264,25 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   public void testNewProjectWithBasicActivity() throws Exception {
     checkCreateTemplate("activities", "BasicActivity", true);
+  }
+
+  public void testCppBasicActivityWithFragments() throws Exception {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=221824
+    if (DISABLED) {
+      return;
+    }
+    myApiSensitiveTemplate = false;
+    File templateFile = findTemplate("activities", "BasicActivity");
+    assertNotNull(templateFile);
+    Stopwatch stopwatch = Stopwatch.createStarted();
+    checkTemplate(templateFile, true, (templateMap, projectMap) -> {
+      projectMap.put(ATTR_CPP_SUPPORT, true);
+      templateMap.put(ATTR_CPP_SUPPORT, true);
+      projectMap.put(ATTR_CPP_FLAGS, "");
+      templateMap.put("useFragment", true);
+    });
+    stopwatch.stop();
+    System.out.println("Checked " + templateFile.getName() + " with cpp and fragments successfully in " + stopwatch.toString());
   }
 
   public void testNewEmptyActivity() throws Exception {
@@ -457,7 +479,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       assertNotNull(activity);
       activityState.setTemplateLocation(activity);
 
-      checkApiTarget(19, 19, target, state, "Test17", null, overrides);
+      checkApiTarget(19, 19, target, state, "Test17", null, overrides, null);
     }
     else {
       System.out.println("JDK 7 not supported by current SDK manager: not testing");
@@ -483,7 +505,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     assertNotNull(activity);
     activityState.setTemplateLocation(activity);
 
-    checkApiTarget(9, 18, target, state, "Test15", null, overrides);
+    checkApiTarget(9, 18, target, state, "Test15", null, overrides, null);
   }
 
   // This test is broken after the IntelliJ 2016.2.4 merge; investigate
@@ -622,7 +644,25 @@ public class TemplateTest extends AndroidGradleTestCase {
     return values;
   }
 
+  public interface ProjectStateCustomizer {
+    void customize(@NotNull Map<String, Object> templateMap, @NotNull Map<String, Object> projectMap);
+  }
+
   private void checkTemplate(File templateFile, boolean createWithProject) throws Exception {
+    checkTemplate(templateFile, createWithProject, null, null);
+  }
+
+  private void checkTemplate(File templateFile, boolean createWithProject, @NotNull ProjectStateCustomizer customizer) throws Exception {
+    Map<String, Object> templateOverrides = Maps.newHashMap();
+    Map<String, Object> projectOverrides = Maps.newHashMap();
+    customizer.customize(templateOverrides, projectOverrides);
+    checkTemplate(templateFile, createWithProject, templateOverrides, projectOverrides);
+  }
+
+  private void checkTemplate(File templateFile,
+                             boolean createWithProject,
+                             @Nullable Map<String, Object> overrides,
+                             @Nullable Map<String, Object> projectOverrides) throws Exception {
     if (KNOWN_BROKEN.contains(templateFile.getName())) {
       return;
     }
@@ -695,6 +735,18 @@ public class TemplateTest extends AndroidGradleTestCase {
           Collection<Parameter> parameters = projectMetadata.getParameters();
           projectParameters:
           for (Parameter parameter : parameters) {
+            if (overrides != null) {
+              String base = projectNameBase
+                            + "_min_" + minSdk
+                            + "_target_" + targetSdk
+                            + "_build_" + target.getVersion().getApiLevel()
+                            + "_overrides";
+              checkApiTarget(minSdk, targetSdk, target, values, base, state, overrides, projectOverrides);
+              ranTest = true;
+
+              break projectParameters;
+            }
+
             List<Element> options = parameter.getOptions();
             if (parameter.type == Parameter.Type.ENUM) {
               assertNotNull(parameter.id);
@@ -712,7 +764,7 @@ public class TemplateTest extends AndroidGradleTestCase {
                                   + "_target_" + targetSdk
                                   + "_build_" + target.getVersion().getApiLevel()
                                   + "_theme_" + optionId;
-                    checkApiTarget(minSdk, targetSdk, target, values, base, state, null);
+                    checkApiTarget(minSdk, targetSdk, target, values, base, state, null, null);
                     ranTest = true;
                     if (!TEST_VARIABLE_COMBINATIONS) {
                       break projectParameters;
@@ -750,7 +802,8 @@ public class TemplateTest extends AndroidGradleTestCase {
     @NonNull NewProjectWizardState projectValues,
     @NonNull String projectNameBase,
     @Nullable TemplateWizardState templateValues,
-    @Nullable Map<String, Object> overrides) throws Exception {
+    @Nullable Map<String, Object> overrides,
+    @Nullable Map<String, Object> projectOverrides) throws Exception {
     Boolean createActivity = (Boolean)projectValues.get(ATTR_CREATE_ACTIVITY);
     if (createActivity == null) {
       createActivity = true;
@@ -782,6 +835,11 @@ public class TemplateTest extends AndroidGradleTestCase {
         values.put(entry.getKey(), entry.getValue());
       }
     }
+    if (projectOverrides != null) {
+      for (Map.Entry<String, Object> entry : projectOverrides.entrySet()) {
+        projectValues.put(entry.getKey(), entry.getValue());
+      }
+    }
 
     String projectName;
     for (Parameter parameter : parameters) {
@@ -789,6 +847,11 @@ public class TemplateTest extends AndroidGradleTestCase {
         // TODO: Consider whether we should attempt some strings here
         continue;
       }
+
+      if (overrides != null && overrides.containsKey(parameter.id)) {
+        continue;
+      }
+
       assertNotNull(parameter.id);
 
       // The initial (default value); revert to this one after cycling,
@@ -952,7 +1015,8 @@ public class TemplateTest extends AndroidGradleTestCase {
       assertNotNull(project);
       System.out.println("Checking project " + projectName + " in " + project.getBaseDir());
 
-      invokeGradleTasks(project, "assembleDebug");
+      GradleInvocationResult result = invokeGradleTasks(project, "assembleDebug");
+      assertThat(result.isBuildSuccessful()).isTrue();
 
       if (CHECK_LINT) {
         assertLintsCleanly(project, Severity.INFORMATIONAL, Sets.newHashSet(ManifestDetector.TARGET_NEWER));
