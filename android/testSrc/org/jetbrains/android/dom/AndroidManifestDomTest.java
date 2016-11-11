@@ -466,7 +466,7 @@ public class AndroidManifestDomTest extends AndroidDomTest {
     ApplicationManager.getApplication().runWriteAction(() -> projectJdkTable.addJdk(sdk));
     try {
       doTestCompletionVariants(getTestName(true) + ".xml", "1", "2", "3", "4", "5", "6", "7",
-                               "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24");
+                               "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "N_MR1");
     }
     finally {
       ApplicationManager.getApplication().runWriteAction(() -> projectJdkTable.removeJdk(sdk));
