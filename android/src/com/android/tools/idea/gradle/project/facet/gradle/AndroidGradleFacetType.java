@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.facet;
+package com.android.tools.idea.gradle.project.facet.gradle;
 
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetType;
@@ -27,26 +27,26 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 /**
- * {@link NativeAndroidGradleFacet}'s type.
+ * {@link AndroidGradleFacet}'s type.
  */
-public class NativeAndroidGradleFacetType extends FacetType<NativeAndroidGradleFacet, NativeAndroidGradleFacetConfiguration> {
-  public NativeAndroidGradleFacetType() {
-    super(NativeAndroidGradleFacet.TYPE_ID, NativeAndroidGradleFacet.ID, NativeAndroidGradleFacet.NAME);
+public class AndroidGradleFacetType extends FacetType<AndroidGradleFacet, AndroidGradleFacetConfiguration> {
+  public AndroidGradleFacetType() {
+    super(AndroidGradleFacet.getFacetTypeId(), AndroidGradleFacet.getFacetId(), AndroidGradleFacet.getFacetName());
   }
 
   @NotNull
   @Override
-  public NativeAndroidGradleFacetConfiguration createDefaultConfiguration() {
-    return new NativeAndroidGradleFacetConfiguration();
+  public AndroidGradleFacetConfiguration createDefaultConfiguration() {
+    return new AndroidGradleFacetConfiguration();
   }
 
   @NotNull
   @Override
-  public NativeAndroidGradleFacet createFacet(@NotNull Module module,
-                                              @NotNull String name,
-                                              @NotNull NativeAndroidGradleFacetConfiguration configuration,
-                                              @Nullable Facet underlyingFacet) {
-    return new NativeAndroidGradleFacet(module, name, configuration);
+  public AndroidGradleFacet createFacet(@NotNull Module module,
+                                        @NotNull String name,
+                                        @NotNull AndroidGradleFacetConfiguration configuration,
+                                        @Nullable Facet underlyingFacet) {
+    return new AndroidGradleFacet(module, name, configuration);
   }
 
   @Override

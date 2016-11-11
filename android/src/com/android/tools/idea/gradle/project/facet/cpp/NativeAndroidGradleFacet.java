@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.facet;
+package com.android.tools.idea.gradle.project.facet.cpp;
 
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.intellij.ProjectTopics;
