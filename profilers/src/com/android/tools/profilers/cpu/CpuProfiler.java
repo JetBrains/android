@@ -21,27 +21,25 @@ import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStartRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStopRequest;
+import org.jetbrains.annotations.NotNull;
 
 public class CpuProfiler extends StudioProfiler {
-
-  private final StudioProfilers myProfiler;
-
-  public CpuProfiler(StudioProfilers profiler) {
-    myProfiler = profiler;
+  public CpuProfiler(@NotNull StudioProfilers profilers) {
+    super(profilers);
   }
 
   @Override
   public ProfilerMonitor newMonitor(int processId) {
-    return new CpuMonitor(myProfiler, processId);
+    return new CpuMonitor(myProfilers, processId);
   }
 
   @Override
   public void startProfiling(Profiler.Process process) {
-    myProfiler.getClient().getCpuClient().startMonitoringApp(CpuStartRequest.newBuilder().setAppId(process.getPid()).build());
+    myProfilers.getClient().getCpuClient().startMonitoringApp(CpuStartRequest.newBuilder().setAppId(process.getPid()).build());
   }
 
   @Override
   public void stopProfiling(Profiler.Process process) {
-    myProfiler.getClient().getCpuClient().stopMonitoringApp(CpuStopRequest.newBuilder().setAppId(process.getPid()).build());
+    myProfilers.getClient().getCpuClient().stopMonitoringApp(CpuStopRequest.newBuilder().setAppId(process.getPid()).build());
   }
 }

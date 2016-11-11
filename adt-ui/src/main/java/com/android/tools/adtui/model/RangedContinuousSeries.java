@@ -41,13 +41,13 @@ public class RangedContinuousSeries extends RangedSeries<Long> implements Report
 
   private BaseAxisFormatter mYAxisFormatter;
 
-  public RangedContinuousSeries(@NotNull String label, @NotNull Range xRange, @NotNull Range yRange, @NotNull DataSeries series) {
+  public RangedContinuousSeries(@NotNull String label, @NotNull Range xRange, @NotNull Range yRange, @NotNull DataSeries<Long> series) {
     super(xRange, series);
     mYRange = yRange;
     mLabel = label;
   }
 
-  public RangedContinuousSeries(@NotNull String label, @NotNull Range xRange, @NotNull Range yRange, @NotNull DataSeries series,
+  public RangedContinuousSeries(@NotNull String label, @NotNull Range xRange, @NotNull Range yRange, @NotNull DataSeries<Long> series,
                                 @NotNull BaseAxisFormatter xAxisFormatter, @NotNull BaseAxisFormatter yAxisFormatter) {
     this(label, xRange, yRange, series);
     mXAxisFormatter = xAxisFormatter;
