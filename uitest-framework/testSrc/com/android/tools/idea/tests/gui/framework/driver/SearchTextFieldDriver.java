@@ -21,9 +21,11 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.driver.JComponentDriver;
 import org.fest.swing.driver.TextDisplayDriver;
 import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.event.KeyEvent;
 import java.util.regex.Pattern;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -55,7 +57,19 @@ public class SearchTextFieldDriver extends JComponentDriver implements TextDispl
 
   @RunsInEDT
   public void enterText(@NotNull SearchTextField textBox, @NotNull String text) {
-    focusAndWaitForFocusGain(textBox);
+    focusAndWaitForFocusGain(textBox.getTextEditor());
     robot.enterText(text);
+  }
+
+  @RunsInEDT
+  public void deleteText(SearchTextField textBox) {
+    focusAndWaitForFocusGain(textBox.getTextEditor());
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        textBox.getTextEditor().selectAll();
+      }
+    });
+    robot.pressAndReleaseKey(KeyEvent.VK_DELETE);
   }
 }
