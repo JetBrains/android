@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser.android;
+package com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class SourceFileDslElement extends GradleDslBlockElement {
-  public SourceFileDslElement(@Nullable GradleDslElement parent, @NotNull String name) {
-    super(parent, name);
+public final class NdkBuildDslElement extends GradleDslBlockElement {
+  @NonNls public static final String NDK_BUILD_BLOCK_NAME = "ndkBuild";
+
+  public NdkBuildDslElement(@NotNull GradleDslElement parent) {
+    super(parent, NDK_BUILD_BLOCK_NAME);
   }
 }
