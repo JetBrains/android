@@ -34,7 +34,7 @@ import java.util.Set;
 public final class EventProfilerUiManager extends BaseProfilerUiManager {
 
   // The event monitor takes up constant space in different level views.
-  private static final int EVENT_MONITOR_MIN_HEIGHT = JBUI.scale(150);
+  private static final int EVENT_MONITOR_MIN_HEIGHT = JBUI.scale(55);
 
   // TODO: EventActionType enum should return its associated Icon so we don't need to keep them in sync across files.
   private static final Icon[] ICONS = {

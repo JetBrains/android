@@ -23,8 +23,8 @@ import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.tool.ProfilerEventListener;
-import com.android.tools.idea.monitor.ui.events.model.ActivityEventDataSeries;
-import com.android.tools.idea.monitor.ui.events.model.SimpleEventDataSeries;
+import com.android.tools.profilers.event.ActivityEventDataSeries;
+import com.android.tools.profilers.event.SimpleEventDataSeries;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,13 +36,6 @@ public class EventSegment extends BaseSegment {
 
   private static final String SEGMENT_NAME = "Events";
   private static final int ACTIVITY_GRAPH_SIZE = 25; // TODO what size is this?
-
-  public enum EventActionType {
-    TOUCH,
-    HOLD,
-    DOUBLE_TAP,
-    ROTATION
-  }
 
   @NotNull private SimpleEventComponent mSystemEvents;
 
@@ -66,31 +59,9 @@ public class EventSegment extends BaseSegment {
 
   @Override
   public void createComponentsList(@NotNull List<Animatable> animatables) {
-    SimpleEventDataSeries systemEventData = new SimpleEventDataSeries(mDataStore.getDeviceProfilerService());
-    ActivityEventDataSeries activityEventData = new ActivityEventDataSeries(mDataStore.getDeviceProfilerService());
-
-    mSystemEvents = new SimpleEventComponent(new RangedSeries<>(myTimeCurrentRangeUs, systemEventData), mIcons);
-    mActivityEvents = new StackedEventComponent(new RangedSeries<>(myTimeCurrentRangeUs, activityEventData), ACTIVITY_GRAPH_SIZE);
-
-    animatables.add(mSystemEvents);
-    animatables.add(mActivityEvents);
   }
 
   @Override
   protected void setCenterContent(@NotNull JPanel panel) {
-    JPanel layeredPane = new JPanel();
-    layeredPane.setLayout(new GridBagLayout());
-    //Divide up the space equally amongst the child components. Each of these may change to a specific height
-    //as decided by design.
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.fill = GridBagConstraints.BOTH;
-    gbc.weightx = 1;
-    gbc.weighty = 1;
-    gbc.gridx = 0;
-    gbc.gridy = 0;
-    layeredPane.add(mSystemEvents, gbc);
-    gbc.gridy = 1;
-    layeredPane.add(mActivityEvents, gbc);
-    panel.add(layeredPane, BorderLayout.CENTER);
   }
 }
