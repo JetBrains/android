@@ -13,43 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.service.notification.errors;
+package com.android.tools.idea.gradle.project.sync.errors;
 
+import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.util.GradleProperties;
-import com.google.common.collect.Lists;
-import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
-public class NdkIntegrationDeprecatedErrorHandler extends AbstractSyncErrorHandler {
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+
+public class NdkIntegrationDeprecatedErrorHandler extends SyncErrorHandler {
   private static final String NDK_INTEGRATION_DEPRECATED = "NDK integration is deprecated in the current plugin.";
 
   @Override
-  public boolean handleError(@NotNull List<String> message,
-                             @NotNull ExternalSystemException error,
-                             @NotNull NotificationData notification,
-                             @NotNull Project project) {
-    String firstLine = message.get(0);
-    if (firstLine.contains(NDK_INTEGRATION_DEPRECATED)) {
-      List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
-      hyperlinks.add(new OpenUrlHyperlink("http://tools.android.com/tech-docs/new-build-system/gradle-experimental",
-                                          "Consider trying the new experimental plugin"));
-      hyperlinks.add(new SetUseDeprecatedNdkHyperlink());
-      updateNotification(notification, project, NDK_INTEGRATION_DEPRECATED, hyperlinks);
-      return true;
+  @Nullable
+  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
+    String text = rootCause.getMessage();
+    if (isNotEmpty(text) && getFirstLineMessage(text).contains(NDK_INTEGRATION_DEPRECATED)) {
+      updateUsageTracker();
+      return NDK_INTEGRATION_DEPRECATED;
     }
-    return false;
+    return null;
   }
 
-  private static class SetUseDeprecatedNdkHyperlink extends NotificationHyperlink {
+  @Override
+  @NotNull
+  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
+                                                              @NotNull Project project,
+                                                              @NotNull String text) {
+    List<NotificationHyperlink> hyperlinks = new ArrayList<>();
+    hyperlinks.add(new OpenUrlHyperlink("http://tools.android.com/tech-docs/new-build-system/gradle-experimental",
+                                        "Consider trying the new experimental plugin"));
+    hyperlinks.add(new SetUseDeprecatedNdkHyperlink());
+    return hyperlinks;
+  }
+
+  public static class SetUseDeprecatedNdkHyperlink extends NotificationHyperlink {
     public SetUseDeprecatedNdkHyperlink() {
       super("useDeprecatedNdk",
             "Set \"android.useDeprecatedNdk=true\" in gradle.properties to continue using the current NDK integration");
