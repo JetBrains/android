@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.project;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.google.common.base.Splitter;
@@ -22,12 +23,16 @@ import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
 
 public class AndroidGradleModuleUtils {
 
@@ -36,7 +41,7 @@ public class AndroidGradleModuleUtils {
    * contained by any project then return null
    */
   @Nullable
-  static public Module getContainingModule(File file, Project project) {
+  public static Module getContainingModule(File file, Project project) {
     VirtualFile vFile = VfsUtil.findFileByIoFile(file, false);
     if (vFile == null) {
       return null;
@@ -67,5 +72,20 @@ public class AndroidGradleModuleUtils {
     return bestMatch;
   }
 
-
+  /**
+   * Set the executable bit on the 'gradlew' wrapper script on Mac/Linux
+   * On Windows, we use a separate gradlew.bat file which does not need an
+   * executable bit.
+   *
+   * @throws IOException
+   */
+  public static void setGradleWrapperExecutable(@NotNull File projectRoot) throws IOException {
+    if (SystemInfo.isUnix) {
+      File gradlewFile = new File(projectRoot, SdkConstants.FN_GRADLE_WRAPPER_UNIX);
+      if (!gradlewFile.isFile()) {
+        throw new IOException("Could not find gradle wrapper. Command line builds may not work properly.");
+      }
+      FileUtil.setExecutableAttribute(gradlewFile.getPath(), true);
+    }
+  }
 }
