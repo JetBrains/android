@@ -56,6 +56,12 @@ public class NetworkMonitor extends ProfilerMonitor {
     return new RangedContinuousSeries("Network", myProfilers.getViewRange(), new Range(0, 100), series);
   }
 
+  @NotNull
+  @Override
+  public String getName() {
+    return "Network";
+  }
+
   public void expand() {
     myProfilers.setStage(new NeworkProfilerStage(myProfilers));
   }

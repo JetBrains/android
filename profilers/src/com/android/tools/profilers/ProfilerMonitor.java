@@ -20,4 +20,5 @@ package com.android.tools.profilers;
  * when monitoring an app (aka L1).
  */
 public abstract class ProfilerMonitor {
+  abstract public String getName();
 }

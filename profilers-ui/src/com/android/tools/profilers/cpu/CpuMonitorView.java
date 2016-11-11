@@ -15,16 +15,27 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
 import com.android.tools.profilers.ProfilerMonitorView;
+import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class CpuMonitorView extends ProfilerMonitorView {
+
+  private static final SingleUnitAxisFormatter CPU_USAGE_AXIS = new SingleUnitAxisFormatter(1, 1, 10, "%");
+  private static final Color MY_PROCESS_LINE_COLOR = new JBColor(0x85c490, 0x85c490);
 
   @NotNull
   private final CpuMonitor myMonitor;
@@ -34,16 +45,44 @@ public class CpuMonitorView extends ProfilerMonitorView {
   }
 
   @Override
-  public JComponent initialize(Choreographer choreographer) {
-    LineChart lineChart = new LineChart();
-    lineChart.addLine(myMonitor.getCpuUsage());
+  protected void populateUi(JLayeredPane container, Choreographer choreographer) {
+    final JLabel label = new JLabel(myMonitor.getName());
+    label.setBorder(LABEL_PADDING);
+    final Dimension labelSize = label.getPreferredSize();
+
+    AxisComponent.Builder builder = new AxisComponent.Builder(myMonitor.getCpuUsage().getYRange(), CPU_USAGE_AXIS,
+                                                              AxisComponent.AxisOrientation.RIGHT)
+      .showAxisLine(false)
+      .showMax(true)
+      .showUnitAtMax(true)
+      .setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
+      .clampToMajorTicks(true)
+      .setMargins(0, labelSize.height);
+    final AxisComponent leftAxis = builder.build();
+
+    final LineChart lineChart = new LineChart();
+    lineChart.addLine(myMonitor.getCpuUsage(), new LineConfig(MY_PROCESS_LINE_COLOR).setFilled(true));
     lineChart.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
         myMonitor.expand();
       }
     });
+
     choreographer.register(lineChart);
-    return lineChart;
+    choreographer.register(leftAxis);
+
+    container.add(label);
+    container.add(leftAxis);
+    container.add(lineChart);
+    container.addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent e) {
+        Dimension size = e.getComponent().getSize();
+        lineChart.setBounds(0, labelSize.height, size.width, size.height - labelSize.height);
+        leftAxis.setBounds(0, 0, MAX_AXIS_WIDTH, size.height);
+        label.setBounds(0, 0, labelSize.width, labelSize.height);
+      }
+    });
   }
 }
