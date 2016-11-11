@@ -18,6 +18,7 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.Range;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.cpu.CpuProfiler;
+import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.network.NetworkProfiler;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -54,6 +55,7 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
     myStage = null;
     myProfilers = ImmutableList.of(
       new CpuProfiler(this),
+      new MemoryProfiler(this),
       new NetworkProfiler(this));
 
     myViewRangeUs = new Range();

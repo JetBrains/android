@@ -17,8 +17,15 @@ package com.android.tools.profilers;
 
 
 import com.android.tools.profiler.proto.Profiler;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class StudioProfiler {
+  protected final StudioProfilers myProfilers;
+
+  protected StudioProfiler(@NotNull StudioProfilers profilers) {
+    myProfilers = profilers;
+  }
+
   abstract public ProfilerMonitor newMonitor(int processId);
 
   public abstract void startProfiling(Profiler.Process process);
