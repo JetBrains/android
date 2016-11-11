@@ -57,6 +57,6 @@ public class NetworkMonitor extends ProfilerMonitor {
 
   @Override
   public Stage getExpandedStage(StudioProfilers profilers) {
-    return new NetworkMonitorStage(profilers);
+    return new NeworkProfilerStage(profilers);
   }
 }
