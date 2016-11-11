@@ -50,42 +50,6 @@ public class ProjectImportErrorHandlerTest {
   }
 
   @Test
-  public void getUserFriendlyErrorWithOutOfMemoryError() {
-    OutOfMemoryError rootCause = new OutOfMemoryError("Java heap space");
-    Throwable error = new Throwable(rootCause);
-    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
-    assertNotNull(realCause);
-    assertEquals("Out of memory: Java heap space", realCause.getMessage());
-  }
-
-  @Test
-  public void getUserFriendlyErrorWithNoSuchMethodError() {
-    NoSuchMethodError rootCause = new NoSuchMethodError("org.slf4j.spi.LocationAwareLogger.log");
-    Throwable error = new Throwable(rootCause);
-    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
-    assertNotNull(realCause);
-    assertEquals("Unable to find method 'org.slf4j.spi.LocationAwareLogger.log'.", realCause.getMessage());
-  }
-
-  @Test
-  public void getUserFriendlyErrorWithClassNotFoundException() {
-    ClassNotFoundException rootCause = new ClassNotFoundException("com.android.utils.ILogger");
-    Throwable error = new Throwable(rootCause);
-    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
-    assertNotNull(realCause);
-    assertEquals("Unable to load class 'com.android.utils.ILogger'.", realCause.getMessage());
-  }
-
-  @Test
-  public void getUserFriendlyErrorWithClassNotFoundExceptionWithLongerMessage() {
-    ClassNotFoundException rootCause = new ClassNotFoundException("com.novoda.gradle.robolectric.RobolectricPlugin not found.");
-    Throwable error = new Throwable(rootCause);
-    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
-    assertNotNull(realCause);
-    assertEquals("Unable to load class 'com.novoda.gradle.robolectric.RobolectricPlugin'.", realCause.getMessage());
-  }
-
-  @Test
   public void getErrorLocationWithBuildFileWithLocation() {
     Pair<String, Integer> location = ProjectImportErrorHandler.getErrorLocation("Build file '/xyz/build.gradle' line: 3");
     assertNotNull(location);

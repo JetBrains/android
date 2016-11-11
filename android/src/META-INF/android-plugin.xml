@@ -1185,18 +1185,18 @@
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.MissingAndroidSupportRepoErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.MissingPlatformErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.MissingBuildToolsErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.MissingCMakeErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.InternetConnectionErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.MissingDependencyErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.UnexpectedErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.UnknownHostErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.CorruptGradleDependencyErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.JavaHeapSpaceErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.ClassLoadingErrorHandler"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.gradle">
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingBuildToolsErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingCMakeErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.InternetConnectionErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingDependencyErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.UnexpectedErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.UnknownHostErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.CorruptGradleDependencyErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.JavaHeapSpaceErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.ClassLoadingErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.ObjectStreamErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.GenericErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.NdkLocationNotFoundErrorHandler"/>
