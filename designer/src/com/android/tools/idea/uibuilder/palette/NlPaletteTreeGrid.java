@@ -15,17 +15,20 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.tools.adtui.splitter.ComponentsSplitter;
 import com.android.tools.adtui.treegrid.TreeGrid;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Splitter;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.JBInsets;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,10 +42,13 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.function.Supplier;
 
+import static com.android.tools.adtui.splitter.SplitterUtil.setMinimumWidth;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
-public class NlPaletteTreeGrid extends JPanel {
+public class NlPaletteTreeGrid extends JPanel implements Disposable {
+  private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 20;
+  private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 40;
   private final Project myProject;
   private final DependencyManager myDependencyManager;
   private final Runnable myCloseAutoHideCallback;
@@ -74,9 +80,18 @@ public class NlPaletteTreeGrid extends JPanel {
 
     JScrollPane paletteScrollPane = ScrollPaneFactory.createScrollPane(myTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     paletteScrollPane.setBorder(BorderFactory.createEmptyBorder());
-    Splitter palette = new Splitter(false, 0.4f);
+    paletteScrollPane.getVerticalScrollBar().setUnitIncrement(VERTICAL_SCROLLING_UNIT_INCREMENT);
+    paletteScrollPane.getVerticalScrollBar().setBlockIncrement(VERTICAL_SCROLLING_BLOCK_INCREMENT);
+
+    // Use a ComponentSplitter instead of a Splitter here to avoid a fat splitter size.
+    ComponentsSplitter palette = new ComponentsSplitter(false, true);
     palette.setFirstComponent(categoryPane);
-    palette.setSecondComponent(paletteScrollPane);
+    palette.setInnerComponent(paletteScrollPane);
+    palette.setHonorComponentsMinimumSize(true);
+    palette.setFirstSize(JBUI.scale(100));
+    setMinimumWidth(categoryPane, 20);
+    setMinimumWidth(paletteScrollPane, 20);
+    Disposer.register(this, palette);
 
     setLayout(new BorderLayout());
     add(palette, BorderLayout.CENTER);
@@ -174,6 +189,10 @@ public class NlPaletteTreeGrid extends JPanel {
   @NotNull
   public TreeGrid<Palette.Item> getComponentTree() {
     return myTree;
+  }
+
+  @Override
+  public void dispose() {
   }
 
   private class MyItemTransferHandler extends ItemTransferHandler {
