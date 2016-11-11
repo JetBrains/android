@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profiler.proto.*;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStartRequest;
 import com.android.tools.profilers.ProfilerMonitor;
+import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
 
 public class CpuMonitor extends ProfilerMonitor {
@@ -43,5 +44,10 @@ public class CpuMonitor extends ProfilerMonitor {
   @Override
   public void stop() {
     myClient.stopMonitoringApp(com.android.tools.profiler.proto.CpuProfiler.CpuStopRequest.newBuilder().setAppId(myProcessId).build());
+  }
+
+  @Override
+  public Stage getExpandedStage(StudioProfilers profilers) {
+    return new CpuMonitorStage(profilers);
   }
 }

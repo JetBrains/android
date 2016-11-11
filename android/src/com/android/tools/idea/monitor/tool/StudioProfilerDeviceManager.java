@@ -29,6 +29,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.net.NetUtils;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -37,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 
+import static com.android.ddmlib.IDevice.CHANGE_STATE;
 
 /**
  * Manages the interactions between DDMLIB provided devices, and what is needed to spawn ProfilerClient's.
@@ -45,6 +47,8 @@ import java.io.IOException;
  */
 class StudioProfilerDeviceManager implements AndroidDebugBridge.IDeviceChangeListener,
                                              AndroidDebugBridge.IDebugBridgeChangeListener {
+
+  private static Logger getLogger() { return Logger.getInstance(StudioProfilerDeviceManager.class); }
 
   private static final int DEVICE_PORT = 12389;
   private static final int DATASTORE_PORT = 12390;
@@ -127,8 +131,9 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDeviceChangeLis
   @Override
   public void deviceConnected(@NonNull IDevice device) {
     updateDevices();
-    PerfdThread thread = new PerfdThread(device, myClient);
-    thread.start();
+    if (device.isOnline()) {
+      spawnPerfd(device);
+    }
   }
 
   @Override
@@ -139,6 +144,9 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDeviceChangeLis
   @Override
   public void deviceChanged(@NonNull IDevice device, int changeMask) {
     updateDevices();
+    if ((changeMask & CHANGE_STATE) != 0 && device.isOnline()) {
+      spawnPerfd(device);
+    }
   }
 
   @Override
@@ -148,6 +156,11 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDeviceChangeLis
 
   public ProfilerClient getClient() {
     return myClient;
+  }
+
+  private void spawnPerfd(@NonNull IDevice device) {
+    PerfdThread thread = new PerfdThread(device, myClient);
+    thread.start();
   }
 
   private static class PerfdThread extends Thread {
@@ -184,6 +197,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDeviceChangeLis
           @Override
           public void addOutput(byte[] data, int offset, int length) {
             String s = new String(data, Charsets.UTF_8);
+            getLogger().info("[perfd]: " + s);
             if (s.contains("Server listening")) {
               try {
                 myLocalPort = NetUtils.findAvailableSocketPort();
@@ -207,6 +221,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDeviceChangeLis
         }, 0);
         if (myLocalPort > 0) {
           myClient.getProfilerClient().disconnect(Profiler.DisconnectRequest.newBuilder().setPort(myLocalPort).build());
+          getLogger().info("Terminating perfd thread");
         }
       }
       catch (TimeoutException | AdbCommandRejectedException | SyncException | ShellCommandUnresponsiveException | IOException e) {

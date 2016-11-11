@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu;
+package com.android.tools.profilers.network;
 
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioMonitorStage;
@@ -21,15 +21,15 @@ import com.android.tools.profilers.StudioProfilers;
 
 import javax.swing.*;
 
-public class CpuMonitorStageView extends StageView {
-  public CpuMonitorStageView(CpuMonitorStage stage) {
+public class NetworkMonitorStageView extends StageView {
+  public NetworkMonitorStageView(NetworkMonitorStage stage) {
     super(stage);
   }
 
   @Override
   public JComponent getComponent() {
     JPanel panel = new JPanel();
-    panel.add(new JLabel("TODO: CPU L2"));
+    panel.add(new JLabel("TODO: Network profiler"));
     JButton button = new JButton("Go back");
     button.addActionListener(action -> {
       StudioProfilers profilers = getStage().getStudioProfilers();

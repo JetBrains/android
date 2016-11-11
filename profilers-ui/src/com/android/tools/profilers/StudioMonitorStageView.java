@@ -17,7 +17,6 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.chart.linechart.LineChart;
-import com.android.tools.profilers.cpu.CpuMonitorStage;
 
 import javax.swing.*;
 import java.awt.*;
@@ -29,27 +28,33 @@ public class StudioMonitorStageView extends StageView {
   private static final int CHOREOGRAPHER_FPS = 60;
   private final Choreographer myChoreographer;
   private final JPanel myComponent;
-  private final LineChart myLineChart;
 
-  public StudioMonitorStageView(StudioMonitorStage monitor) {
-    super(monitor);
+  public StudioMonitorStageView(StudioMonitorStage stage) {
+    super(stage);
     myComponent = new JPanel(new BorderLayout());
     myChoreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
-    myLineChart = new LineChart();
+    JPanel monitors = new JPanel(new GridBagLayout());
     //TODO Have this in separate sections in the view
-    for (ProfilerMonitor m : monitor.getMonitors()) {
-      myLineChart.addLine(m.getRangedSeries());
+    int y = 0;
+    for (ProfilerMonitor monitor : stage.getMonitors()) {
+      LineChart lineChart = new LineChart();
+      lineChart.addLine(monitor.getRangedSeries());
+      myChoreographer.register(lineChart);
+      lineChart.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mousePressed(MouseEvent e) {
+          stage.expand(monitor);
+        }
+      });
+      GridBagConstraints c = new GridBagConstraints();
+      c.fill = GridBagConstraints.BOTH;
+      c.gridx = 0;
+      c.gridy = y++;
+      c.weightx = 1.0;
+      c.weighty = 1.0 / stage.getMonitors().size();
+      monitors.add(lineChart, c);
     }
-    myChoreographer.register(myLineChart);
-    myComponent.add(myLineChart, BorderLayout.CENTER);
-    myLineChart.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mousePressed(MouseEvent e) {
-        StudioProfilers profiler = monitor.getStudioProfiler();
-        CpuMonitorStage stage = new CpuMonitorStage(profiler);
-        profiler.setStage(stage);
-      }
-    });
+    myComponent.add(monitors, BorderLayout.CENTER);
   }
 
 
