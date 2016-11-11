@@ -35,6 +35,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import static com.android.SdkConstants.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.xmlpull.v1.XmlPullParser.END_TAG;
 import static org.xmlpull.v1.XmlPullParser.START_TAG;
 
@@ -200,6 +202,29 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     assertEquals(END_TAG, parser.nextTag()); // NotAImageView (@id/third)
   }
 
+  /**
+   * Verifies that the passed parser contains an empty LinearLayout. That layout is returned by the LayoutPsiPullParser when the passed
+   * file is invalid or empty.
+   */
+  private static void assertEmptyParser(LayoutPullParser parser) throws XmlPullParserException {
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("LinearLayout", parser.getName());
+    assertEquals(END_TAG, parser.nextTag());
+  }
+
+  public void testEmptyLayout() throws XmlPullParserException {
+    XmlFile emptyFile = mock(XmlFile.class);
+    when(emptyFile.getRootTag()).thenReturn(null);
+    RenderLogger logger = new RenderLogger("test", myModule);
+    assertEmptyParser(LayoutPsiPullParser.create(emptyFile, logger));
+
+    XmlTag emptyTag = mock(XmlTag.class);
+    assertEmptyParser(new LayoutPsiPullParser(mock(XmlTag.class), logger));
+
+    when(emptyTag.isValid()).thenReturn(true);
+    assertEmptyParser(new LayoutPsiPullParser(mock(XmlTag.class), logger));
+  }
+
   enum NextEventType { NEXT, NEXT_TOKEN, NEXT_TAG }
 
   private void compareParsers(PsiFile file, NextEventType nextEventType) throws Exception {
@@ -242,13 +267,13 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
       }
 
       PsiElement element = null;
-      if (expected == XmlPullParser.START_TAG) {
+      if (expected == START_TAG) {
         assertNotNull(parser.getViewCookie());
         assertTrue(parser.getViewCookie() instanceof TagSnapshot);
         element = ((TagSnapshot)parser.getViewCookie()).tag;
       }
 
-      if (expected == XmlPullParser.START_TAG) {
+      if (expected == START_TAG) {
         assertEquals(referenceParser.getName(), parser.getName());
         if (element != xmlFile.getRootTag()) { // KXmlParser seems to not include xmlns: attributes on the root tag!{
           SortedSet<String> referenceAttributes = new TreeSet<>();
