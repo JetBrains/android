@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.model.RangedContinuousSeries;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A component of the StudioMonitor stage. This represents the part of each profiler that is shown
@@ -24,5 +25,5 @@ import com.android.tools.adtui.model.RangedContinuousSeries;
 public abstract class ProfilerMonitor {
   public abstract RangedContinuousSeries getRangedSeries();
 
-  public abstract Stage getExpandedStage(StudioProfilers profilers);
+  public abstract Stage getExpandedStage(@NotNull StudioProfilers profilers);
 }

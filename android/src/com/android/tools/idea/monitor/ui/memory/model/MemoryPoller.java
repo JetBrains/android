@@ -40,7 +40,7 @@ import static com.android.tools.profiler.proto.MemoryProfiler.*;
 public class MemoryPoller extends Poller {
   @NotNull private final MemoryDataCache myDataCache;
 
-  private long myStartTimestampNs;
+  private long myStartTimestampNs = Long.MIN_VALUE;
 
   private final int myAppId;
 
@@ -108,21 +108,12 @@ public class MemoryPoller extends Poller {
 
   @Override
   protected void asyncInit() throws StatusRuntimeException {
-    MemoryConfig config = MemoryConfig.newBuilder().setAppId(myAppId).addOptions(
-      MemoryConfig.Option.newBuilder().setFeature(MemoryFeature.MEMORY_LEVELS).setEnabled(true)
-        .build()
-    ).build();
-    MemoryStatus status = myService.getMemoryService().setMemoryConfig(config);
-    myStartTimestampNs = status.getStatusTimestamp();
+    myService.getMemoryService().startMonitoringApp(MemoryStartRequest.newBuilder().setAppId(myAppId).build());
   }
 
   @Override
   protected void asyncShutdown() throws StatusRuntimeException {
-    MemoryConfig config = MemoryConfig.newBuilder().setAppId(myAppId).addOptions(
-      MemoryConfig.Option.newBuilder().setFeature(MemoryFeature.MEMORY_LEVELS).setEnabled(false)
-        .build()
-    ).build();
-    myService.getMemoryService().setMemoryConfig(config);
+    myService.getMemoryService().stopMonitoringApp(MemoryStopRequest.newBuilder().setAppId(myAppId).build());
   }
 
   @Override
