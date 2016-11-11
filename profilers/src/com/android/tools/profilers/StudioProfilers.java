@@ -135,7 +135,7 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
         // Device no longer exists, or is unknown. Choose a device from the available ones if there is one.
         device  = devices.isEmpty() ? null : devices.iterator().next();
       }
-      if ((device != null && !device.equals(myDevice)) || myDevice != null) {
+      if (!Objects.equals(device, myDevice)) {
         myDevice = device;
         changed(ProfilerAspect.DEVICES);
 
@@ -154,8 +154,7 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
       // The process doesn't belong to the current device. Choose a new process.
       process = (processes == null || processes.isEmpty()) ? null : processes.iterator().next();
     }
-    if ((process != null && !process.equals(myProcess)) || myProcess != null) {
-
+    if (!Objects.equals(process, myProcess)) {
       if (myProcess != null) {
         myProfilers.forEach(profiler -> profiler.stopProfiling(myProcess));
       }

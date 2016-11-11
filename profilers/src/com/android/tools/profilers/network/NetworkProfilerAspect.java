@@ -15,22 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.profilers.Stage;
-import com.android.tools.profilers.StudioProfilers;
-
-public class NetworkMonitorStage extends Stage {
-
-  public NetworkMonitorStage(StudioProfilers profiler) {
-    super(profiler);
-  }
-
-  @Override
-  public void enter() {
-
-  }
-
-  @Override
-  public void exit() {
-
-  }
+public enum NetworkProfilerAspect {
+  CONNECTION_DATA,
+  CONNECTION
 }
