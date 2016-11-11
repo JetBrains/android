@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.annotations.NonNull;
 import com.android.build.OutputFile;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
@@ -33,8 +34,11 @@ import static com.intellij.openapi.util.text.StringUtil.capitalize;
 
 public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArtifact {
   @NotNull private final List<File> myGeneratedResourceFolders = Lists.newArrayList();
-  @NotNull private final String myApplicationId;
   @NotNull private final Collection<AndroidArtifactOutput> myOutputs;
+  @NotNull private final Collection<NativeLibrary> myNativeLibraries = Lists.newArrayList();
+  @NotNull String myApplicationId;
+
+  private InstantRun myInstantRun;
 
   AndroidArtifactStub(@NotNull String name, String dirName, @NotNull String buildType, @NotNull FileStructure fileStructure) {
     super(name, dirName, new DependenciesStub(), buildType, fileStructure);
@@ -67,6 +71,11 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
     return myApplicationId;
   }
 
+  public AndroidArtifactStub setApplicationId(String applicationId) {
+    myApplicationId = applicationId;
+    return this;
+  }
+
   @Override
   @NotNull
   public String getSourceGenTaskName() {
@@ -88,7 +97,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
   @Override
   @Nullable
   public Collection<NativeLibrary> getNativeLibraries() {
-    return null;
+    return myNativeLibraries;
   }
 
   @Override
@@ -105,7 +114,12 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
 
   @Override
   public InstantRun getInstantRun() {
-    throw new UnsupportedOperationException();
+    return myInstantRun;
+  }
+
+  public AndroidArtifactStub setInstantRun(InstantRun instantRun) {
+    myInstantRun = instantRun;
+    return this;
   }
 
   /**

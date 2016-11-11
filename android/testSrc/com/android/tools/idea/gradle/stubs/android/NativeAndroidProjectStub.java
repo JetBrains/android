@@ -35,6 +35,7 @@ public class NativeAndroidProjectStub implements NativeAndroidProject {
   @NotNull private final String myName;
   @NotNull private final FileStructure myFileStructure;
   @NotNull private final List<NativeArtifact> myNativeArtifacts = Lists.newArrayList();
+  @NotNull private final List<String> myBuildSystems = Lists.newArrayList();
 
   @NotNull private String myModelVersion = SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION + "-SNAPSHOT";
 
@@ -111,7 +112,7 @@ public class NativeAndroidProjectStub implements NativeAndroidProject {
   @NotNull
   @Override
   public Collection<String> getBuildSystems() {
-    return ImmutableList.of();
+    return myBuildSystems;
   }
 
   /**
