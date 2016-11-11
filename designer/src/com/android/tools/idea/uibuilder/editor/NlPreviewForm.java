@@ -238,7 +238,7 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
       this.file = file;
       this.model = model;
       model.addListener(this);
-      model.render(); // on file switches, render as soon as possible; the delay is for edits
+      model.requestRender(); // on file switches, render as soon as possible; the delay is for edits
     }
 
     @Override
