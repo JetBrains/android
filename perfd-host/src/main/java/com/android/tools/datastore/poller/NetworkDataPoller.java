@@ -117,6 +117,9 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
 
   @Override
   public void poll() {
+    if (myProcessId == -1) {
+      return;
+    }
     NetworkProfiler.NetworkDataRequest.Builder dataRequestBuilder = NetworkProfiler.NetworkDataRequest.newBuilder()
       .setAppId(myProcessId)
       .setStartTimestamp(myDataRequestStartTimestampNs)
