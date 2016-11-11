@@ -41,9 +41,7 @@ import static com.intellij.openapi.util.text.StringUtil.splitByLines;
  */
 public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler {
 
-  public static final String INSTALL_ANDROID_SUPPORT_REPO = "Please install the Android Support Repository from the Android SDK Manager.";
   private static final Pattern CLASS_NOT_FOUND_PATTERN = Pattern.compile("(.+) not found.");
-  private static final String EMPTY_LINE = "\n\n";
   private static final Pattern ERROR_LOCATION_PATTERN = Pattern.compile(".* file '(.*)'( line: ([\\d]+))?");
 
   @Override
@@ -80,15 +78,6 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       // Import" framework.
       String msg = rootCause.getMessage();
       if (msg != null) {
-        if (msg.startsWith("failed to find target android-")) {
-          UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                           .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
-                                           .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
-                                           .setGradleSyncFailure(GradleSyncFailure.MISSING_ANDROID_PLATFORM));
-
-          // Location of build.gradle is useless for this error. Omitting it.
-          return createUserFriendlyError(msg, null);
-        }
         if (msg.startsWith("failed to find Build Tools")) {
           UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                            .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
@@ -98,23 +87,6 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
           // Location of build.gradle is useless for this error. Omitting it.
           return createUserFriendlyError(msg, null);
         }
-      }
-    }
-
-    if (rootCause instanceof RuntimeException) {
-      String msg = rootCause.getMessage();
-
-      // With this condition we cover 2 similar messages about the same problem.
-      if (msg != null && msg.contains("Could not find") && msg.contains("com.android.support:")) {
-        UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                         .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
-                                         .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
-                                         .setGradleSyncFailure(GradleSyncFailure.MISSING_ANDROID_SUPPORT_REPO));
-
-        // We keep the original error message and we append a hint about how to fix the missing dependency.
-        String newMsg = msg + EMPTY_LINE + INSTALL_ANDROID_SUPPORT_REPO;
-        // Location of build.gradle is useless for this error. Omitting it.
-        return createUserFriendlyError(newMsg, null);
       }
     }
 
