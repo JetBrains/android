@@ -17,8 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.model.android.external.CMakeModel;
-import com.android.tools.idea.gradle.dsl.model.android.external.ExternalNativeBuildModel;
+import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModel;
 import com.google.common.collect.ImmutableList;
 
 import java.io.File;

@@ -120,7 +120,7 @@ public class AbiModel extends GradleDslBlockModel {
   }
 
   @NotNull
-  AbiModel removeReset() {
+  public AbiModel removeReset() {
     myDslElement.removeProperty(RESET);
     return this;
   }
