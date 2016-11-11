@@ -307,7 +307,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @VisibleForTesting
-  protected void setupRenderTask(@NotNull RenderTask task) {
+  protected void setupRenderTask(@Nullable RenderTask task) {
   }
 
   /**
@@ -1784,7 +1784,12 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           myRenderTask.dispose();
           myRenderTask = null;
         }
+      }
+      myRenderResultLock.writeLock().lock();
+      try {
         myRenderResult = null;
+      } finally {
+        myRenderResultLock.writeLock().unlock();
       }
     });
   }
