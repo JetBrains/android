@@ -43,7 +43,6 @@
     <orderEntry type="library" name="truth" level="project" />
     <orderEntry type="library" name="mockito" level="project" />
     <orderEntry type="module" module-name="testFramework-java" scope="TEST" />
-    <orderEntry type="module" module-name="android-plugin" scope="RUNTIME" />
     <orderEntry type="module" module-name="testutils" scope="TEST" />
   </component>
 </module>
