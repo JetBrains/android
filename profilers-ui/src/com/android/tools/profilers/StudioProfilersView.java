@@ -18,8 +18,10 @@ package com.android.tools.profilers;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.cpu.CpuMonitorStage;
 import com.android.tools.profilers.cpu.CpuMonitorStageView;
-import com.android.tools.profilers.network.NeworkProfilerStage;
+import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.memory.MemoryProfilerStageView;
 import com.android.tools.profilers.network.NetworkProfilerStageView;
+import com.android.tools.profilers.network.NeworkProfilerStage;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.application.ApplicationManager;
 
@@ -38,6 +40,7 @@ public class StudioProfilersView {
   private static Map<Class, Class> STAGE_VIEWS = ImmutableMap.of(
     StudioMonitorStage.class, StudioMonitorStageView.class,
     CpuMonitorStage.class, CpuMonitorStageView.class,
+    MemoryProfilerStage.class, MemoryProfilerStageView.class,
     NeworkProfilerStage.class, NetworkProfilerStageView.class
   );
 

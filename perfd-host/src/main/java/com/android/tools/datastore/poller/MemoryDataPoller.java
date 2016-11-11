@@ -15,17 +15,13 @@
  */
 package com.android.tools.datastore.poller;
 
-import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.intellij.openapi.application.ApplicationManager;
 import io.grpc.ManagedChannel;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -39,10 +35,10 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
 
   //TODO: Pull this into a storage container that can read/write this to disk
   //TODO: Rename MemoryData to MemoryProfilerData for consistency
-  protected List<MemoryProfiler.MemoryData.MemorySample> myMemoryData = new ArrayList<>();
-  protected List<MemoryProfiler.MemoryData.VmStatsSample> myStatsData = new ArrayList<>();
-  protected List<MemoryProfiler.MemoryData.HeapDumpSample> myHeapData = new ArrayList<>();
-  private Object myUpdatingDataLock = new Object();
+  protected final List<MemoryProfiler.MemoryData.MemorySample> myMemoryData = new ArrayList<>();
+  protected final List<MemoryProfiler.MemoryData.VmStatsSample> myStatsData = new ArrayList<>();
+  protected final List<MemoryProfiler.MemoryData.HeapDumpSample> myHeapData = new ArrayList<>();
+  private final Object myUpdatingDataLock = new Object();
   private MemoryProfiler.MemoryData.HeapDumpSample myPendingHeapDumpSample = null;
   private int myProcessId = -1;
 
@@ -79,12 +75,6 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
   }
 
   @Override
-  public void setMemoryConfig(MemoryProfiler.MemoryConfig request, StreamObserver<MemoryProfiler.MemoryStatus> responseObserver) {
-    responseObserver.onNext(myPollingService.setMemoryConfig(request));
-    responseObserver.onCompleted();
-  }
-
-  @Override
   public void triggerHeapDump(MemoryProfiler.HeapDumpRequest request, StreamObserver<MemoryProfiler.HeapDumpResponse> responseObserver) {
     responseObserver.onNext(myPollingService.triggerHeapDump(request));
     responseObserver.onCompleted();
@@ -98,25 +88,19 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
 
     //TODO: Optimize so we do not need to loop all the data every request, ideally binary search to start time and loop till end.
     synchronized (myUpdatingDataLock) {
-      Iterator<MemoryProfiler.MemoryData.MemorySample> memoryIt = myMemoryData.iterator();
-      while (memoryIt.hasNext()) {
-        MemoryProfiler.MemoryData.MemorySample obj = memoryIt.next();
+      for (MemoryProfiler.MemoryData.MemorySample obj : myMemoryData) {
         long current = obj.getTimestamp();
         if (current > startTime && current <= endTime) {
           response.addMemSamples(obj);
         }
       }
-      Iterator<MemoryProfiler.MemoryData.VmStatsSample> statsIt = myStatsData.iterator();
-      while (statsIt.hasNext()) {
-        MemoryProfiler.MemoryData.VmStatsSample obj = statsIt.next();
+      for (MemoryProfiler.MemoryData.VmStatsSample obj : myStatsData) {
         long current = obj.getTimestamp();
         if (current > startTime && current <= endTime) {
           response.addVmStatsSamples(obj);
         }
       }
-      Iterator<MemoryProfiler.MemoryData.HeapDumpSample> heapIt = myHeapData.iterator();
-      while (heapIt.hasNext()) {
-        MemoryProfiler.MemoryData.HeapDumpSample obj = heapIt.next();
+      for (MemoryProfiler.MemoryData.HeapDumpSample obj : myHeapData) {
         if (obj.getStartTime() > startTime && obj.getEndTime() <= endTime) {
           response.addHeapDumpSamples(obj);
         }
@@ -142,6 +126,7 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
         MemoryProfiler.MemoryData.HeapDumpSample sample = response.getHeapDumpSamples(i);
         if (myPendingHeapDumpSample != null) {
           // Note - if there is an existing pending heap dump, the first sample from the response should represent the same sample
+          assert myPendingHeapDumpSample.getDumpId() == sample.getDumpId();
           pendingPulls.add(myPendingHeapDumpSample);
           myPendingHeapDumpSample = null;
         }
@@ -159,7 +144,7 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
         }
       }
 
-      //TODO: Do we need to pull the heap dump file still?
+      //TODO: Fetch the file from downstream.
       //if (!pendingPulls.isEmpty()) {
       //  ApplicationManager.getApplication().executeOnPooledThread(() -> {
       //    for (MemoryProfiler.MemoryData.HeapDumpSample sample : pendingPulls) {

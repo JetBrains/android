@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * One of the stages the profiler tool goes through. It models a "state" in the profiler tool itself.
  */
@@ -22,7 +24,7 @@ public abstract class Stage {
 
   private final StudioProfilers myProfilers;
 
-  public Stage(StudioProfilers profilers) {
+  public Stage(@NotNull StudioProfilers profilers) {
     myProfilers = profilers;
   }
 

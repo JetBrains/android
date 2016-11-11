@@ -16,15 +16,13 @@
 package com.android.tools.datastore.poller;
 
 import com.intellij.openapi.diagnostic.Logger;
+import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by gijosh on 11/8/16.
- */
 public class PollRunner implements RunnableFuture<Void> {
   interface PollingCallback {
     void poll();
@@ -62,14 +60,13 @@ public class PollRunner implements RunnableFuture<Void> {
     try {
       while (myRunning.getCount() > 0) {
         long startTimeNs = System.nanoTime();
-        myPollingCallback.poll();
+        try {
+          myPollingCallback.poll();
+        }
+        catch (StatusRuntimeException ignored) {}
         long sleepTime = Math.max(myPollPeriodNs - (System.nanoTime() - startTimeNs), 0L);
         myRunning.await(sleepTime, TimeUnit.NANOSECONDS);
       }
-    }
-    catch (StatusRuntimeException e) {
-      // Don't do anything except log, go straight to finally block which handles this anyways.
-      getLog().info("Error during gRPC communication. Poller exiting now.", e);
     }
     catch (InterruptedException e) {
       Thread.currentThread().interrupt();

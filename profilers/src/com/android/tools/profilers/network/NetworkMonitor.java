@@ -24,6 +24,7 @@ import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
 import com.intellij.util.containers.ContainerUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +35,7 @@ public class NetworkMonitor extends ProfilerMonitor {
   private RangedContinuousSeries myRangedSeries;
   private final NetworkServiceGrpc.NetworkServiceBlockingStub myClient;
 
-  public NetworkMonitor(StudioProfilers profiler, int pid) {
+  public NetworkMonitor(@NotNull StudioProfilers profiler, int pid) {
     myProcessId = pid;
     myClient = profiler.getClient().getNetworkClient();
 
@@ -56,7 +57,7 @@ public class NetworkMonitor extends ProfilerMonitor {
   }
 
   @Override
-  public Stage getExpandedStage(StudioProfilers profilers) {
+  public Stage getExpandedStage(@NotNull StudioProfilers profilers) {
     return new NeworkProfilerStage(profilers);
   }
 }

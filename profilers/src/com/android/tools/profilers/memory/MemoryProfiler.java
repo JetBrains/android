@@ -13,35 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.network;
+package com.android.tools.profilers.memory;
 
-import com.android.tools.profiler.proto.NetworkProfiler.NetworkStartRequest;
-import com.android.tools.profiler.proto.NetworkProfiler.NetworkStopRequest;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
-public class NetworkProfiler extends StudioProfiler {
-  public NetworkProfiler(@NotNull StudioProfilers profilers) {
+import static com.android.tools.profiler.proto.MemoryProfiler.*;
+
+public class MemoryProfiler extends StudioProfiler {
+  public MemoryProfiler(@NotNull StudioProfilers profilers) {
     super(profilers);
   }
 
   @Override
   public ProfilerMonitor newMonitor(int processId) {
-    return new NetworkMonitor(myProfilers, processId);
+    return new MemoryMonitor(myProfilers, processId);
   }
 
   @Override
   public void startProfiling(Profiler.Process process) {
-    myProfilers.getClient().getNetworkClient().startMonitoringApp(
-      NetworkStartRequest.newBuilder().setAppId(process.getPid()).build());
+    myProfilers.getClient().getMemoryClient().startMonitoringApp(MemoryStartRequest.newBuilder().setAppId(process.getPid()).build());
   }
 
   @Override
   public void stopProfiling(Profiler.Process process) {
-    myProfilers.getClient().getNetworkClient().stopMonitoringApp(
-      NetworkStopRequest.newBuilder().setAppId(process.getPid()).build());
+    myProfilers.getClient().getMemoryClient().stopMonitoringApp(MemoryStopRequest.newBuilder().setAppId(process.getPid()).build());
   }
 }
