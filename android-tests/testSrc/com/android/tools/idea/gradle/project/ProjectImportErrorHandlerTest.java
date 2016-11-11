@@ -50,24 +50,6 @@ public class ProjectImportErrorHandlerTest {
   }
 
   @Test
-  public void getUserFriendlyErrorWithMissingAndroidSupportRepository() {
-    RuntimeException rootCause = new RuntimeException("Could not find any version that matches com.android.support:support-v4:13.0.+");
-    Throwable error = new Throwable(rootCause);
-    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
-    assertNotNull(realCause);
-    assertTrue(realCause.getMessage().contains("Please install the Android Support Repository"));
-  }
-
-  @Test
-  public void getUserFriendlyErrorWithMissingAndroidSupportRepository2() {
-    RuntimeException rootCause = new RuntimeException("Could not find com.android.support:support-v4:13.0.0");
-    Throwable error = new Throwable(rootCause);
-    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
-    assertNotNull(realCause);
-    assertTrue(realCause.getMessage().contains("Please install the Android Support Repository"));
-  }
-
-  @Test
   public void getUserFriendlyErrorWithOutOfMemoryError() {
     OutOfMemoryError rootCause = new OutOfMemoryError("Java heap space");
     Throwable error = new Throwable(rootCause);
