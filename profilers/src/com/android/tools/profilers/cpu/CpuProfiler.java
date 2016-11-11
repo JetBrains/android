@@ -15,9 +15,12 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profiler.proto.CpuProfiler.CpuStartRequest;
+import com.android.tools.profiler.proto.CpuProfiler.CpuStopRequest;
 
 public class CpuProfiler extends StudioProfiler {
 
@@ -30,5 +33,15 @@ public class CpuProfiler extends StudioProfiler {
   @Override
   public ProfilerMonitor newMonitor(int processId) {
     return new CpuMonitor(myProfiler, processId);
+  }
+
+  @Override
+  public void startProfiling(Profiler.Process process) {
+    myProfiler.getClient().getCpuClient().startMonitoringApp(CpuStartRequest.newBuilder().setAppId(process.getPid()).build());
+  }
+
+  @Override
+  public void stopProfiling(Profiler.Process process) {
+    myProfiler.getClient().getCpuClient().stopMonitoringApp(CpuStopRequest.newBuilder().setAppId(process.getPid()).build());
   }
 }

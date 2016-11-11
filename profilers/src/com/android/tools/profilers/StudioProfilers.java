@@ -27,6 +27,10 @@ import io.grpc.StatusRuntimeException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * The suite of profilers inside Android Studio. This object is responsible for maintaining the information
+ * global across all the profilers, device management, process management, current state of the tool etc.
+ */
 final public class StudioProfilers extends AspectModel<ProfilerAspect> {
 
   private final ProfilerClient myClient;
@@ -102,20 +106,9 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
         }
         if (!newProcesses.equals(myProcesses)) {
           myProcesses = newProcesses;
-
-          if (myDevice == null && !devices.isEmpty()) {
-            myDevice = devices.iterator().next();
-          }
-          else if (myDevice != null && !devices.contains(myDevice)) {
-            myDevice = null;
-          }
-
-          if (myDevice != null && myProcess == null && !myProcesses.get(myDevice).isEmpty()) {
-            myProcess = myProcesses.get(myDevice).iterator().next();
-            setStage(new StudioMonitorStage(this));
-          }
-
-          this.changed(ProfilerAspect.DEVICES);
+          // Attempt to choose the currently profiled device and process
+          setDevice(myDevice);
+          setProcess(myProcess);
         }
       }
       catch (StatusRuntimeException e) {
@@ -129,6 +122,51 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
       catch (InterruptedException e) {
         e.printStackTrace();
       }
+    }
+  }
+
+
+  /**
+   * Chooses the given device. If the device is not known or null, the first available one will be chosen instead.
+   */
+  public void setDevice(Profiler.Device device) {
+      Set<Profiler.Device> devices = myProcesses.keySet();
+      if (!devices.contains(device)) {
+        // Device no longer exists, or is unknown. Choose a device from the available ones if there is one.
+        device  = devices.isEmpty() ? null : devices.iterator().next();
+      }
+      if ((device != null && !device.equals(myDevice)) || myDevice != null) {
+        myDevice = device;
+        changed(ProfilerAspect.DEVICES);
+
+        // The device has changed, reset the process
+        setProcess(null);
+      }
+  }
+
+
+  /**
+   * Chooses the given process. If the process is not known or null, the first available one will be chosen instead.
+   */
+  public void setProcess(Profiler.Process process) {
+    List<Profiler.Process> processes = myProcesses.get(myDevice);
+    if (processes == null || !processes.contains(process)) {
+      // The process doesn't belong to the current device. Choose a new process.
+      process = (processes == null || processes.isEmpty()) ? null : processes.iterator().next();
+    }
+    if ((process != null && !process.equals(myProcess)) || myProcess != null) {
+
+      if (myProcess != null) {
+        myProfilers.forEach(profiler -> profiler.stopProfiling(myProcess));
+      }
+
+      myProcess = process;
+      changed(ProfilerAspect.PROCESSES);
+
+      if (myProcess != null) {
+        myProfilers.forEach(profiler -> profiler.startProfiling(myProcess));
+      }
+      setStage(new StudioMonitorStage(this));
     }
   }
 
@@ -174,16 +212,6 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
     return myProcess;
   }
 
-  public void setDevice(Profiler.Device device) {
-    myDevice = device;
-  }
-
-  public void setProcess(Profiler.Process process) {
-    if (!myProcess.equals(process)) {
-      myProcess = process;
-      setStage(new StudioMonitorStage(this));
-    }
-  }
 
   public List<StudioProfiler> getProfilers() {
     return myProfilers;
