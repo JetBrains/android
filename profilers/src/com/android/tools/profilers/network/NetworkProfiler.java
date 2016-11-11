@@ -13,24 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
+package com.android.tools.profilers.network;
 
-/**
- * One of the stages the profiler tool goes through. It models a "state" in the profiler tool itself.
- */
-public abstract class Stage {
+import com.android.tools.profilers.ProfilerMonitor;
+import com.android.tools.profilers.StudioProfiler;
+import com.android.tools.profilers.StudioProfilers;
 
-  private final StudioProfilers myProfilers;
+public class NetworkProfiler extends StudioProfiler {
 
-  public Stage(StudioProfilers profilers) {
-    myProfilers = profilers;
+  private final StudioProfilers myProfiler;
+
+  public NetworkProfiler(StudioProfilers profiler) {
+    myProfiler = profiler;
   }
 
-  public StudioProfilers getStudioProfilers() {
-    return myProfilers;
+  @Override
+  public ProfilerMonitor newMonitor(int processId) {
+    return new NetworkMonitor(myProfiler, processId);
   }
-
-  abstract public void enter();
-
-  abstract public void exit();
 }
