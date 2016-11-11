@@ -24,10 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AndroidProjectStub implements AndroidProject {
   private static final Collection<String> NO_UNRESOLVED_DEPENDENCIES = ImmutableList.of();
@@ -35,6 +32,8 @@ public class AndroidProjectStub implements AndroidProject {
   @NotNull private final Map<String, BuildTypeContainer> myBuildTypes = Maps.newHashMap();
   @NotNull private final Map<String, ProductFlavorContainer> myProductFlavors = Maps.newHashMap();
   @NotNull private final Map<String, Variant> myVariants = Maps.newHashMap();
+  @NotNull private final List<SigningConfig> mySigningConfigs = new ArrayList<>();
+  @NotNull private final List<String> myFlavorDimensions = new ArrayList<>();
 
   @NotNull private final String myName;
   @NotNull private final FileStructure myFileStructure;
@@ -47,6 +46,7 @@ public class AndroidProjectStub implements AndroidProject {
   @NotNull private String myModelVersion = SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION + "-SNAPSHOT";
   @Nullable private VariantStub myFirstVariant;
   private int myProjectType = PROJECT_TYPE_APP;
+  private int myPluginGeneration;
 
   public AndroidProjectStub(@NotNull String name) {
     this(name, new FileStructure(name));
@@ -169,7 +169,7 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public Collection<String> getFlavorDimensions() {
-    throw new UnsupportedOperationException();
+    return myFlavorDimensions;
   }
 
   @Override
@@ -210,7 +210,7 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public Collection<SigningConfig> getSigningConfigs() {
-    throw new UnsupportedOperationException();
+    return mySigningConfigs;
   }
 
   @Override
@@ -262,7 +262,12 @@ public class AndroidProjectStub implements AndroidProject {
 
   @Override
   public int getPluginGeneration() {
-    throw new UnsupportedOperationException();
+    return myPluginGeneration;
+  }
+
+  public AndroidProjectStub setPluginGeneration(int pluginGeneration) {
+    myPluginGeneration = pluginGeneration;
+    return this;
   }
 
   /**
