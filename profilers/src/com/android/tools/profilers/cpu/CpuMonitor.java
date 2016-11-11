@@ -17,8 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.profiler.proto.*;
-import com.android.tools.profiler.proto.CpuProfiler.CpuStartRequest;
+import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
@@ -31,7 +30,6 @@ public class CpuMonitor extends ProfilerMonitor {
   public CpuMonitor(StudioProfilers profiler, int pid) {
     myProcessId = pid;
     myClient = profiler.getClient().getCpuClient();
-    myClient.startMonitoringApp(CpuStartRequest.newBuilder().setAppId(myProcessId).build());
     CpuUsageDataSeries series = new CpuUsageDataSeries(myClient, false, myProcessId);
     myRangedSeries = new RangedContinuousSeries("CPU", profiler.getViewRange(), new Range(0, 100), series);
   }
@@ -39,11 +37,6 @@ public class CpuMonitor extends ProfilerMonitor {
   @Override
   public RangedContinuousSeries getRangedSeries() {
     return myRangedSeries;
-  }
-
-  @Override
-  public void stop() {
-    myClient.stopMonitoringApp(com.android.tools.profiler.proto.CpuProfiler.CpuStopRequest.newBuilder().setAppId(myProcessId).build());
   }
 
   @Override
