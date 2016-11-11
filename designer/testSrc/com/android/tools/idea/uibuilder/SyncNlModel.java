@@ -44,10 +44,12 @@ public class SyncNlModel extends NlModel {
   }
 
   @Override
-  protected void setupRenderTask(@NotNull RenderTask task) {
+  protected void setupRenderTask(@Nullable RenderTask task) {
     super.setupRenderTask(task);
 
-    task.disableSecurityManager();
+    if (task != null) {
+      task.disableSecurityManager();
+    }
   }
 
   @Override
