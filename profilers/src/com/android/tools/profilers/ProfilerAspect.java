@@ -20,6 +20,8 @@ public enum ProfilerAspect {
   CONNECTION,
   // The current stage of the profiler tools has changed
   STAGE,
+  // The set of processes has changed.
+  PROCESSES,
   // The overall set of devices and/or processes seen by the datastore has changed.
   DEVICES
 }
