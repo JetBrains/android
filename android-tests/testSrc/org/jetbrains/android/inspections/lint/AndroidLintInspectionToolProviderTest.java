@@ -174,7 +174,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
       StringBuilder sb = new StringBuilder(1000);
       sb.append("Missing registration for ").append(missing.size()).append(" issues (out of a total issue count of ")
         .append(allIssues.size()).append(")");
-      sb.append("\nAdd to plugin.xml (and please try to preserve the case insensitive alphabetical order):\n");
+      sb.append("\nAdd to android/src/META-INF/android-plugin.xml (and please try to preserve the case insensitive alphabetical order):\n");
       for (Issue issue : missing) {
         sb.append("    <globalInspection hasStaticDescription=\"true\" shortName=\"");
         sb.append(LINT_INSPECTION_PREFIX);
