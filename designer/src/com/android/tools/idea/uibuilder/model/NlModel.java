@@ -357,7 +357,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           myRenderTask = null;
 
           if (result == null) {
-            result = RenderResult.createBlank(myFile, logger);
+            result = RenderResult.createBlank(myFile);
           }
         }
       }
@@ -398,7 +398,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @VisibleForTesting
-  public void updateHierarchy(@Nullable XmlTag rootTag, @Nullable Iterable<ViewInfo> rootViews) {
+  public void updateHierarchy(@Nullable XmlTag rootTag, @NotNull Iterable<ViewInfo> rootViews) {
     ModelUpdater updater = new ModelUpdater(this);
     updater.update(rootTag, rootViews);
   }
@@ -814,7 +814,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
      * XML PSI file, the given tag snapshot and {@link ViewInfo} hierarchy from layoutlib.
      */
     @VisibleForTesting
-    public void update(@Nullable XmlTag newRoot, @Nullable Iterable<ViewInfo> rootViews) {
+    public void update(@Nullable XmlTag newRoot, @NotNull Iterable<ViewInfo> rootViews) {
       if (newRoot == null) {
         myModel.myComponents = Collections.emptyList();
         return;
@@ -822,10 +822,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
       // Next find the snapshots corresponding to the missing components.
       // We have to search among the view infos in the new components.
-      if (rootViews != null) {
-        for (ViewInfo rootView : rootViews) {
-          gatherTagsAndSnapshots(rootView, myTagToSnapshot);
-        }
+      for (ViewInfo rootView : rootViews) {
+        gatherTagsAndSnapshots(rootView, myTagToSnapshot);
       }
 
       NlComponent root = ApplicationManager.getApplication().runReadAction((Computable<NlComponent>)() -> {
@@ -860,10 +858,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       }
 
       // Update the bounds. This is based on the ViewInfo instances.
-      if (rootViews != null) {
-        for (ViewInfo view : rootViews) {
-          updateHierarchy(view, 0, 0);
-        }
+      for (ViewInfo view : rootViews) {
+        updateHierarchy(view, 0, 0);
       }
 
       // Finally, fix up bounds: ensure that all components not found in the view
