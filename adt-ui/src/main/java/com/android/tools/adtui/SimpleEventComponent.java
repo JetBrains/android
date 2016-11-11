@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
 
-  public static final Color LINE_COLOR = new Color(166, 129, 184);
+  public static final Color LINE_COLOR = new Color(214, 196, 228);
   private static final int LINE_OFFSET = 3;
   private static final int NORMALIZED_END = 1;
 
@@ -105,7 +105,7 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
           path.lineTo(end, LINE_OFFSET);
           mPaths.add(path);
         }
-        mIconsToDraw.add(new EventRenderData(toDraw, data.getEndUs()));
+        mIconsToDraw.add(new EventRenderData(toDraw, data.getStartUs()));
       } else if (data.getValue() == Action.NONE) {
         // If no action is set then we do not need to associate a down, and up event together. Instead we render the icon
         // associated with the event triggered.
@@ -122,7 +122,7 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
         path.lineTo(end, LINE_OFFSET);
         mPaths.add(path);
       }
-      mIconsToDraw.add(new EventRenderData(toDraw, 0));
+      mIconsToDraw.add(new EventRenderData(toDraw, downEvent.getStartUs()));
     }
   }
 
@@ -159,6 +159,25 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
   @Override
   protected void debugDraw(Graphics2D g) {
     super.debugDraw(g);
+  }
+
+  private static class EventRenderData {
+
+    private final int mIndex;
+    private final long mTimestamp;
+
+    public int getIndex() {
+      return mIndex;
+    }
+
+    public long getTimestamp() {
+      return mTimestamp;
+    }
+
+    public EventRenderData(int index, long timestamp) {
+      mIndex = index;
+      mTimestamp = timestamp;
+    }
   }
 }
 
