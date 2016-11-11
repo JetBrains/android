@@ -21,8 +21,6 @@ iml_module(
     ],
     test_runtime_deps = [
         "//tools/adt/idea/adt-branding",
-        "//tools/adt/idea/android-plugin:android-plugin",
-        "//tools/adt/idea/designer:designer",
     ],
     test_shard_count = 2,
     test_srcs = ["testSrc"],

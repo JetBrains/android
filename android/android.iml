@@ -156,7 +156,6 @@
     <orderEntry type="module" module-name="analytics-protos" />
     <orderEntry type="module" module-name="analytics-shared" />
     <orderEntry type="module" module-name="common" />
-    <orderEntry type="module" module-name="android-plugin" scope="RUNTIME" />
     <orderEntry type="library" scope="TEST" name="Netty" level="project" />
     <orderEntry type="module" module-name="observable" />
     <orderEntry type="module" module-name="profilers" />
