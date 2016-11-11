@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.monitor.ui.memory.model;
 
-import com.android.ddmlib.IDevice;
 import com.android.tools.datastore.DataAdapter;
 import com.android.tools.idea.monitor.ui.memory.view.MemoryProfilerUiManager;
-import com.intellij.openapi.diagnostic.Logger;
+import com.google.protobuf3jarjar.ByteString;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -35,16 +33,12 @@ public class MemoryDataCache {
   private List<MemoryData.MemorySample> myMemorySamples = Collections.synchronizedList(new ArrayList<>());
   private List<MemoryData.VmStatsSample> myVmStatsSamples = Collections.synchronizedList(new ArrayList<>());
   private List<MemoryData.HeapDumpSample> myHeapDumpSamples = Collections.synchronizedList(new ArrayList<>());
-  private Map<MemoryData.HeapDumpSample, File> myHeapDumpFiles = new HashMap<>();
+  private Map<MemoryData.HeapDumpSample, ByteString> myHeapDumps = new HashMap<>();
   private List<AllocationTrackingSample> myAllocationTrackingSamples = Collections.synchronizedList(new ArrayList<>());
-
-  @NotNull
-  private final IDevice myDevice;
 
   private EventDispatcher<MemoryProfilerUiManager.MemoryEventListener> myMemoryEventDispatcher;
 
-  public MemoryDataCache(@NotNull IDevice device, @NotNull EventDispatcher<MemoryProfilerUiManager.MemoryEventListener> dispatcher) {
-    myDevice = device;
+  public MemoryDataCache(@NotNull EventDispatcher<MemoryProfilerUiManager.MemoryEventListener> dispatcher) {
     myMemoryEventDispatcher = dispatcher;
   }
 
@@ -60,13 +54,13 @@ public class MemoryDataCache {
     myHeapDumpSamples.add(heapDumpSample);
   }
 
-  public void addPulledHeapDumpFile(@NotNull MemoryData.HeapDumpSample heapDumpSample, @NotNull File heapDumpFile) {
-    myHeapDumpFiles.put(heapDumpSample, heapDumpFile);
+  public void addPulledHeapDumpData(@NotNull MemoryData.HeapDumpSample heapDumpSample, @NotNull ByteString heapDumpFile) {
+    myHeapDumps.put(heapDumpSample, heapDumpFile);
     myMemoryEventDispatcher.getMulticaster().newHeapDumpSamplesRetrieved(heapDumpSample);
   }
 
-  public void executeOnHeapDumpFiles(@NotNull BiConsumer<MemoryData.HeapDumpSample, File> biConsumer) {
-    myHeapDumpFiles.forEach(biConsumer);
+  public void executeOnHeapDumpData(@NotNull BiConsumer<MemoryData.HeapDumpSample, ByteString> biConsumer) {
+    myHeapDumps.forEach(biConsumer);
   }
 
   public void addAllocationTrackingData(@NotNull AllocationTrackingSample allocationTrackingSample) {
@@ -99,9 +93,9 @@ public class MemoryDataCache {
   }
 
   @NotNull
-  public File getHeapDumpFile(@NotNull MemoryData.HeapDumpSample sample) {
-    assert myHeapDumpFiles.containsKey(sample);
-    return myHeapDumpFiles.get(sample);
+  public ByteString getHeapDumpData(@NotNull MemoryData.HeapDumpSample sample) {
+    assert myHeapDumps.containsKey(sample);
+    return myHeapDumps.get(sample);
   }
 
   public MemoryData.HeapDumpSample swapLastHeapDumpSample(@NotNull MemoryData.HeapDumpSample sample) {
@@ -157,11 +151,7 @@ public class MemoryDataCache {
     myMemorySamples.clear();
     myVmStatsSamples.clear();
     myHeapDumpSamples.clear();
-
-    for (File file : myHeapDumpFiles.values()) {
-      file.delete();
-    }
-    myHeapDumpFiles.clear();
+    myHeapDumps.clear();
     myAllocationTrackingSamples.clear();
   }
 }
