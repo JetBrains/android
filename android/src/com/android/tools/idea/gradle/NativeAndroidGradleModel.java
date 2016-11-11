@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle;
 
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.cpp.NativeAndroidGradleFacet;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;

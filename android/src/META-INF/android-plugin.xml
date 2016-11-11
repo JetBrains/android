@@ -448,9 +448,9 @@
     <configurationType implementation="com.android.tools.idea.run.testing.AndroidTestRunConfigurationType"/>
     <programRunner implementation="com.android.tools.idea.run.AndroidProgramRunner" order="first"/>
     <facetType implementation="org.jetbrains.android.facet.AndroidFacetType"/>
-    <facetType implementation="com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacetType"/>
-    <facetType implementation="com.android.tools.idea.gradle.facet.NativeAndroidGradleFacetType"/>
-    <facetType implementation="com.android.tools.idea.gradle.facet.JavaGradleFacetType"/>
+    <facetType implementation="com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacetType"/>
+    <facetType implementation="com.android.tools.idea.gradle.project.facet.cpp.NativeAndroidGradleFacetType"/>
+    <facetType implementation="com.android.tools.idea.gradle.project.facet.java.JavaGradleFacetType"/>
     <facetType implementation="com.android.tools.idea.apk.AndroidApkFacetType"/>
     <framework.detector implementation="org.jetbrains.android.facet.AndroidFrameworkDetector"/>
     <fileTemplateGroup implementation="org.jetbrains.android.AndroidFileTemplateProvider"/>

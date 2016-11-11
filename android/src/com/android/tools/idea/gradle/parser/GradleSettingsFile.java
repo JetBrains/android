@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.parser;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
