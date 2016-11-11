@@ -16,10 +16,12 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.android.sourceSets.SourceDirectoryModel;
+import com.android.tools.idea.gradle.dsl.model.android.sourceSets.SourceFileModel;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
-import com.android.tools.idea.gradle.dsl.parser.android.SourceDirectoryDslElement;
-import com.android.tools.idea.gradle.dsl.parser.android.SourceFileDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.SourceSetDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceDirectoryDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceFileDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;

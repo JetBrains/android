@@ -167,7 +167,7 @@ public class DensityModel extends GradleDslBlockModel {
   }
 
   @NotNull
-  DensityModel removeReset() {
+  public DensityModel removeReset() {
     myDslElement.removeProperty(RESET);
     return this;
   }

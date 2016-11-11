@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser.android.external;
+package com.android.tools.idea.gradle.dsl.parser.android;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public final class NdkBuildDslElement extends GradleDslBlockElement {
-  @NonNls public static final String NDK_BUILD_BLOCK_NAME = "ndkBuild";
+public class SplitsDslElement extends GradleDslBlockElement {
+  @NonNls public static final String SPLITS_BLOCK_NAME = "splits";
 
-  public NdkBuildDslElement(@NotNull GradleDslElement parent) {
-    super(parent, NDK_BUILD_BLOCK_NAME);
+  public SplitsDslElement(@NotNull GradleDslElement parent) {
+    super(parent, SPLITS_BLOCK_NAME);
   }
 }
