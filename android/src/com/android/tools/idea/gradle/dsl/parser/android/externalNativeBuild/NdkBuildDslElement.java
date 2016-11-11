@@ -13,27 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.model.android.external;
+package com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
+public final class NdkBuildDslElement extends GradleDslBlockElement {
+  @NonNls public static final String NDK_BUILD_BLOCK_NAME = "ndkBuild";
 
-public class NdkBuildModel extends AbstractBuildModel {
-  protected NdkBuildModel(@NotNull GradlePropertiesDslElement dslElement) {
-    super(dslElement);
-  }
-
-  @Override
-  @NotNull
-  public NdkBuildModel setPath(File path) {
-    return (NdkBuildModel)super.setPath(path);
-  }
-
-  @Override
-  @NotNull
-  public NdkBuildModel removePath() {
-    return (NdkBuildModel)super.removePath();
+  public NdkBuildDslElement(@NotNull GradleDslElement parent) {
+    super(parent, NDK_BUILD_BLOCK_NAME);
   }
 }

@@ -13,17 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser.android.external;
+package com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import org.jetbrains.annotations.NonNls;
+import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement;
 import org.jetbrains.annotations.NotNull;
 
-public final class ExternalNativeBuildDslElement extends GradleDslBlockElement {
-  @NonNls public static final String EXTERNAL_NATIVE_BUILD_BLOCK_NAME = "externalNativeBuild";
+import java.io.File;
 
-  public ExternalNativeBuildDslElement(@NotNull GradleDslElement parent) {
-    super(parent, EXTERNAL_NATIVE_BUILD_BLOCK_NAME);
+public class CMakeModel extends AbstractBuildModel {
+  public CMakeModel(@NotNull CMakeDslElement dslElement) {
+    super(dslElement);
+  }
+
+  @Override
+  @NotNull
+  public CMakeModel setPath(@NotNull File path) {
+    return (CMakeModel)super.setPath(path);
+  }
+
+  @Override
+  @NotNull
+  public CMakeModel removePath() {
+    return (CMakeModel)super.removePath();
   }
 }
