@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.service.notification.errors;
+package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.repository.Revision;
+import com.android.annotations.Nullable;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixBuildToolsVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.InstallBuildToolsHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
@@ -38,22 +36,45 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class SdkBuildToolsTooLowErrorHandler extends AbstractSyncErrorHandler {
+import static com.android.repository.Revision.parseRevision;
+import static com.android.sdklib.repository.meta.DetailsTypes.getBuildToolsPath;
+import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+
+public class SdkBuildToolsTooLowErrorHandler extends SyncErrorHandler {
   private static final Pattern SDK_BUILD_TOOLS_TOO_LOW_PATTERN =
     Pattern.compile("The SDK Build Tools revision \\((.*)\\) is too low for project '(.*)'. Minimum required is (.*)");
 
   @Override
-  public boolean handleError(@NotNull List<String> message,
-                             @NotNull ExternalSystemException error,
-                             @NotNull NotificationData notification,
-                             @NotNull Project project) {
-    String firstLine = message.get(0);
+  public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
+    String text = findErrorMessage(getRootCause(error), notification, project);
+    List<NotificationHyperlink> hyperlinks = getQuickFixHyperlinks(notification, project, text);
+    if (!hyperlinks.isEmpty()) {
+      updateUsageTracker();
+      SyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
+      return true;
+    }
+    return false;
+  }
 
-    Matcher matcher = SDK_BUILD_TOOLS_TOO_LOW_PATTERN.matcher(firstLine);
+  @Override
+  @Nullable
+  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
+    return rootCause.getMessage();
+  }
+
+  @Override
+  @NotNull
+  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
+                                                              @NotNull Project project,
+                                                              @NotNull String text) {
+    Matcher matcher = SDK_BUILD_TOOLS_TOO_LOW_PATTERN.matcher(getFirstLineMessage(text));
+    List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     if (matcher.matches()) {
       boolean buildToolInstalled = false;
 
@@ -67,15 +88,14 @@ public class SdkBuildToolsTooLowErrorHandler extends AbstractSyncErrorHandler {
       if (sdkHandler != null) {
         ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
         RepositoryPackages packages = sdkHandler.getSdkManager(progress).getPackages();
-        LocalPackage buildTool = packages.getLocalPackages().get(DetailsTypes.getBuildToolsPath(Revision.parseRevision(minimumVersion)));
+        LocalPackage buildTool = packages.getLocalPackages().get(getBuildToolsPath(parseRevision(minimumVersion)));
         buildToolInstalled = buildTool != null;
       }
 
       String gradlePath = matcher.group(2);
-      Module module = GradleUtil.findModuleByGradlePath(project, gradlePath);
+      Module module = findModuleByGradlePath(project, gradlePath);
       if (module != null) {
-        VirtualFile buildFile = GradleUtil.getGradleBuildFile(module);
-        List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
+        VirtualFile buildFile = getGradleBuildFile(module);
         AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.find(project);
         if (!buildToolInstalled) {
           if (androidPluginInfo != null && androidPluginInfo.isExperimental()) {
@@ -85,18 +105,14 @@ public class SdkBuildToolsTooLowErrorHandler extends AbstractSyncErrorHandler {
             hyperlinks.add(new InstallBuildToolsHyperlink(minimumVersion, buildFile));
           }
         }
-        else if (buildFile != null && androidPluginInfo!= null && !androidPluginInfo.isExperimental()) {
+        else if (buildFile != null && androidPluginInfo != null && !androidPluginInfo.isExperimental()) {
           hyperlinks.add(new FixBuildToolsVersionHyperlink(buildFile, minimumVersion));
         }
         if (buildFile != null) {
           hyperlinks.add(new OpenFileHyperlink(buildFile.getPath()));
         }
-        if (!hyperlinks.isEmpty()) {
-          updateNotification(notification, project, error.getMessage(), hyperlinks);
-          return true;
-        }
       }
     }
-    return false;
+    return hyperlinks;
   }
 }
