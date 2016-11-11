@@ -26,6 +26,7 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
@@ -320,7 +321,10 @@ public class IdeSdks {
   @NotNull
   public List<Sdk> createAndroidSdkPerAndroidTarget(@NotNull File androidSdkPath) {
     List<Sdk> sdks = createAndroidSdkPerAndroidTarget(androidSdkPath, null);
-    ActionManager.getInstance().getAction("WelcomeScreen.RunAndroidSdkManager").update(null);
+    AnAction sdkManagerAction = ActionManager.getInstance().getAction("WelcomeScreen.RunAndroidSdkManager");
+    if (sdkManagerAction != null) {
+      sdkManagerAction.update(null);
+    }
     return sdks;
   }
 
