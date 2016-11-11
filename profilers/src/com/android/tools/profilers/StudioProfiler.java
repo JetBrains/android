@@ -16,6 +16,12 @@
 package com.android.tools.profilers;
 
 
+import com.android.tools.profiler.proto.Profiler;
+
 public abstract class StudioProfiler {
   abstract public ProfilerMonitor newMonitor(int processId);
+
+  public abstract void startProfiling(Profiler.Process process);
+
+  public abstract void stopProfiling(Profiler.Process process);
 }
