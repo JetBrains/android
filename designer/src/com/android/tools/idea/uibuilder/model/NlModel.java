@@ -509,8 +509,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * method will be called.
    * <p/>
    * If the layout hasn't been inflated before, this call will inflate the layout before rendering.
+   * <p/>
+   * <b>Do not call this method from the dispatch thread!</b>
    */
   public void render() {
+    assert !ApplicationManager.getApplication().isDispatchThread();
     boolean inflated = inflate(false);
 
     synchronized (RENDERING_LOCK) {
