@@ -52,7 +52,7 @@ public final class AndroidVersionsInfoTest {
    */
   @Test
   public void remotePlatformWithAddon() {
-    FakePackage remotePlatform = new FakePackage("platforms;android-23");
+    FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-23");
     AddonDetailsType addonDetailsType = new AddonDetailsType();
     addonDetailsType.setTag(SystemImage.GLASS_TAG);
     addonDetailsType.setApiLevel(ADDON_VERSION);
