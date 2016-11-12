@@ -15,9 +15,8 @@
  */
 package com.android.tools.profilers;
 
-/**
- * A component of the StudioMonitor stage. This represents the part of each profiler that is shown
- * when monitoring an app (aka L1).
- */
-public abstract class ProfilerMonitor {
+import com.android.tools.adtui.AnimatedComponent;
+
+public abstract class ProfilerMonitorView {
+  abstract public AnimatedComponent initialize();
 }

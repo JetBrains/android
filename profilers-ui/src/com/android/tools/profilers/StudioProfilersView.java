@@ -22,32 +22,29 @@ import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfilerStageView;
 import com.android.tools.profilers.network.NetworkProfilerStageView;
 import com.android.tools.profilers.network.NeworkProfilerStage;
-import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.application.ApplicationManager;
 
 import javax.swing.*;
 import java.awt.*;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
 
 public class StudioProfilersView {
   private final StudioProfilers myProfiler;
+  private final ViewBinder<Stage, StageView> myBinder;
   private StageView myStageView;
   private BorderLayout myLayout;
   private JPanel myComponent;
 
-  private static Map<Class, Class> STAGE_VIEWS = ImmutableMap.of(
-    StudioMonitorStage.class, StudioMonitorStageView.class,
-    CpuMonitorStage.class, CpuMonitorStageView.class,
-    MemoryProfilerStage.class, MemoryProfilerStageView.class,
-    NeworkProfilerStage.class, NetworkProfilerStageView.class
-  );
 
   public StudioProfilersView(StudioProfilers profiler) {
     myProfiler = profiler;
     myStageView = null;
     initializeUi();
+
+    myBinder = new ViewBinder<>();
+    myBinder.bind(StudioMonitorStage.class, StudioMonitorStageView::new);
+    myBinder.bind(CpuMonitorStage.class, CpuMonitorStageView::new);
+    myBinder.bind(MemoryProfilerStage.class, MemoryProfilerStageView::new);
+    myBinder.bind(NeworkProfilerStage.class, NetworkProfilerStageView::new);
 
     myProfiler.addDependency()
       .setExecutor(ApplicationManager.getApplication()::invokeLater)
@@ -83,7 +80,7 @@ public class StudioProfilersView {
   private void updateStageView() {
     Stage stage = myProfiler.getStage();
     if (myStageView == null || myStageView.getStage() != stage) {
-      myStageView = bindView(stage);
+      myStageView = myBinder.build(stage);
       Component prev = myLayout.getLayoutComponent(BorderLayout.CENTER);
       if (prev != null) {
         myComponent.remove(prev);
@@ -95,20 +92,5 @@ public class StudioProfilersView {
 
   public JPanel getComponent() {
     return myComponent;
-  }
-
-  private StageView bindView(Stage stage) {
-    Class aClass = STAGE_VIEWS.get(stage.getClass());
-    if (aClass == null) {
-      throw new IllegalArgumentException("Stage of type " + stage.getClass().getCanonicalName() + " cannot be bound to a view.");
-    }
-    try {
-      Constructor constructor = aClass.getConstructor(stage.getClass());
-      Object instance = constructor.newInstance(stage);
-      return (StageView)instance;
-    }
-    catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException | ClassCastException e) {
-      throw new IllegalStateException("ProfilerStageView " + aClass.getCanonicalName() + " cannot be instantiated.", e);
-    }
   }
 }
