@@ -29,7 +29,6 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerAdapter;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFrame;
@@ -295,8 +294,10 @@ public final class GuiTests {
         }
       }).withTimeout(TimeUnit.MINUTES.toMillis(2)).using(robot);
 
-      // We know the IDE event queue was pushed in front of the AWT queue. Some JDKs will leave a dummy event in the AWT queue, which
-      // we attempt to clear here. All other events, including those posted by the Robot, will go through the IDE event queue.
+      // We know the IDE event queue was pushed in front of the AWT queue.
+      // Some JDKs will leave a dummy event in the AWT queue, which
+      // we attempt to clear here. All other events, including those posted
+      // by the Robot, will go through the IDE event queue.
       try {
         if (SYSTEM_EVENT_QUEUE.peekEvent() != null) {
           SYSTEM_EVENT_QUEUE.getNextEvent();
