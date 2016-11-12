@@ -52,6 +52,6 @@
       <implementation-class>com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors</implementation-class>
       <skipForDefaultProject/>
     </component>
-x  </project-components>
+  </project-components>
 
 </idea-plugin>
