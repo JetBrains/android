@@ -20,7 +20,7 @@ import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
@@ -63,7 +63,7 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.ide.common.rendering.RenderParamsFlags.*;
-import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_AAR;
+import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
@@ -129,7 +129,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential);
     myActionBarHandler = actionBarHandler;
 
-    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
     myHasAppCompat = androidModel != null && GradleUtil.dependsOn(androidModel, APPCOMPAT_LIB_ARTIFACT);
 
     String javaPackage = MergedManifest.get(myModule).getPackage();

@@ -26,7 +26,7 @@ import com.android.tools.idea.avdmanager.AvdScreenData;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationMatcher;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.res.ProjectResourceRepository;
@@ -663,7 +663,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * @param artifact library artifact e.g. "com.android.support:appcompat-v7"
    */
   public boolean isModuleDependency(@NotNull String artifact) {
-    AndroidGradleModel gradleModel = AndroidGradleModel.get(myFacet);
+    AndroidModuleModel gradleModel = AndroidModuleModel.get(myFacet);
     return gradleModel != null && GradleUtil.dependsOn(gradleModel, artifact);
   }
 
@@ -675,7 +675,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    */
   @Nullable
   public GradleVersion getModuleDependencyVersion(@NotNull String artifact) {
-    AndroidGradleModel gradleModel = AndroidGradleModel.get(myFacet);
+    AndroidModuleModel gradleModel = AndroidModuleModel.get(myFacet);
     return gradleModel != null ? GradleUtil.getModuleDependencyVersion(gradleModel, artifact) : null;
   }
 

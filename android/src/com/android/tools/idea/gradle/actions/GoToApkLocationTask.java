@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
@@ -53,7 +53,7 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
       myPotentialApkLocations.add(new File(apkPath));
     }
     if (isBuildWithGradle(myProject)) {
-      AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
       if (androidModel != null) {
         File buildDirPath = androidModel.getAndroidProject().getBuildFolder();
         myPotentialApkLocations.add(new File(buildDirPath, join("outputs", "apk")));

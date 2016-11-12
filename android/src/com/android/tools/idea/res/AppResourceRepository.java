@@ -24,7 +24,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.util.Pair;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -155,17 +155,17 @@ public class AppResourceRepository extends MultiResourceRepository {
   private static Map<File, String> findAarLibraries(@NotNull AndroidFacet facet, @NotNull List<AndroidFacet> dependentFacets) {
     // Use the gradle model if available, but if not, fall back to using plain IntelliJ library dependencies
     // which have been persisted since the most recent sync
-    AndroidGradleModel androidGradleModel = AndroidGradleModel.get(facet);
-    if (androidGradleModel != null) {
+    AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
+    if (androidModuleModel != null) {
       List<AndroidLibrary> libraries = Lists.newArrayList();
-      addGradleLibraries(libraries, androidGradleModel);
+      addGradleLibraries(libraries, androidModuleModel);
       for (AndroidFacet dependentFacet : dependentFacets) {
-        AndroidGradleModel dependentGradleModel = AndroidGradleModel.get(dependentFacet);
+        AndroidModuleModel dependentGradleModel = AndroidModuleModel.get(dependentFacet);
         if (dependentGradleModel != null) {
           addGradleLibraries(libraries, dependentGradleModel);
         }
       }
-      return findAarLibrariesFromGradle(androidGradleModel.getModelVersion(), dependentFacets, libraries);
+      return findAarLibrariesFromGradle(androidModuleModel.getModelVersion(), dependentFacets, libraries);
     }
     return findAarLibrariesFromIntelliJ(facet, dependentFacets);
   }
@@ -174,12 +174,12 @@ public class AppResourceRepository extends MultiResourceRepository {
   public static Collection<AndroidLibrary> findAarLibraries(@NotNull AndroidFacet facet) {
     List<AndroidLibrary> libraries = Lists.newArrayList();
     if (facet.requiresAndroidModel()) {
-      AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+      AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
       if (androidModel != null) {
         List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
         addGradleLibraries(libraries, androidModel);
         for (AndroidFacet dependentFacet : dependentFacets) {
-          AndroidGradleModel dependentGradleModel = AndroidGradleModel.get(dependentFacet);
+          AndroidModuleModel dependentGradleModel = AndroidModuleModel.get(dependentFacet);
           if (dependentGradleModel != null) {
             addGradleLibraries(libraries, dependentGradleModel);
           }
@@ -238,7 +238,7 @@ public class AppResourceRepository extends MultiResourceRepository {
           if (name.endsWith(DOT_AAR)) {
             libraryName = name.substring(0, name.length() - DOT_AAR.length());
           }
-          else if (folder.getPath().contains(AndroidGradleModel.EXPLODED_AAR)) {
+          else if (folder.getPath().contains(AndroidModuleModel.EXPLODED_AAR)) {
             libraryName = folder.getParentFile().getName();
           }
         }
@@ -269,8 +269,8 @@ public class AppResourceRepository extends MultiResourceRepository {
   }
 
   // TODO: b/23032391
-  private static void addGradleLibraries(List<AndroidLibrary> list, AndroidGradleModel androidGradleModel) {
-    Collection<AndroidLibrary> libraries = androidGradleModel.getSelectedMainCompileDependencies().getLibraries();
+  private static void addGradleLibraries(List<AndroidLibrary> list, AndroidModuleModel androidModuleModel) {
+    Collection<AndroidLibrary> libraries = androidModuleModel.getSelectedMainCompileDependencies().getLibraries();
     Set<File> unique = Sets.newHashSet();
     for (AndroidLibrary library : libraries) {
       addGradleLibrary(list, library, unique);
@@ -375,7 +375,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   @Nullable
   public FileResourceRepository findRepositoryFor(@NotNull File aarDirectory) {
     String aarPath = aarDirectory.getPath();
-    assert aarPath.endsWith(DOT_AAR) || aarPath.contains(AndroidGradleModel.EXPLODED_AAR) : aarPath;
+    assert aarPath.endsWith(DOT_AAR) || aarPath.contains(AndroidModuleModel.EXPLODED_AAR) : aarPath;
     for (LocalResourceRepository r : myLibraries) {
       if (r instanceof FileResourceRepository) {
         FileResourceRepository repository = (FileResourceRepository)r;
@@ -394,7 +394,7 @@ public class AppResourceRepository extends MultiResourceRepository {
     // we're rendering in a library module, and Gradle sync has mapped an
     // AAR library to an existing library definition in the main module. In
     // that case we need to find the corresponding resources there.
-    int exploded = aarPath.indexOf(AndroidGradleModel.EXPLODED_AAR);
+    int exploded = aarPath.indexOf(AndroidModuleModel.EXPLODED_AAR);
     if (exploded != -1) {
       String suffix = aarPath.substring(exploded) + File.separator + FD_RES;
       for (LocalResourceRepository r : myLibraries) {
@@ -432,7 +432,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   @NotNull
   public ResourceVisibilityLookup getResourceVisibility(@NotNull AndroidFacet facet) {
     // TODO: b/23032391
-    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
     if (androidModel != null) {
       ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
       if (provider != null) {
@@ -459,7 +459,7 @@ public class AppResourceRepository extends MultiResourceRepository {
         return false;
       }
       // TODO: b/23032391
-      AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
+      AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
       if (androidModel == null) {
         // normally doesn't happen since we check in getResourceVisibility,
         // but can be triggered during a sync (b/22523040)

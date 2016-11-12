@@ -26,7 +26,7 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.repository.Revision;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -420,7 +420,7 @@ public class LintIdeClient extends LintClient implements Disposable {
     if (project.isGradleProject()) {
       Module module = getModule();
       if (module != null) {
-        AndroidGradleModel model = AndroidGradleModel.get(module);
+        AndroidModuleModel model = AndroidModuleModel.get(module);
         if (model != null) {
           GradleVersion version = model.getModelVersion();
           if (version != null && version.isAtLeast(2, 1, 0)) {

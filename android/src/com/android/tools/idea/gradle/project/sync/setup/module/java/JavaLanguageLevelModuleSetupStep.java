@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -90,7 +90,7 @@ public class JavaLanguageLevelModuleSetupStep extends JavaModuleSetupStep {
                                                                 @NotNull IdeModifiableModelsProvider modelsProvider) {
     AndroidFacet facet = findFacet(module, modelsProvider, AndroidFacet.ID);
     if (facet != null) {
-      AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+      AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
       if (androidModel != null) {
         return androidModel.getJavaLanguageLevel();
       }

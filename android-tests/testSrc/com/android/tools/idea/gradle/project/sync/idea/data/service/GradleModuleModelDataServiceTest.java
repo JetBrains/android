@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
-import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.GradleModuleSetup;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.dependencies;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.AbstractDeclaredDependenciesTableModel.DependencyCellRenderer;
@@ -106,7 +106,7 @@ public class AbstractDeclaredDependenciesTableModelTest extends IdeaTestCase {
     @NotNull private final List<PsAndroidDependency> myDeclaredDependencies;
 
     public PsAndroidModuleStub(@NotNull List<PsAndroidDependency> declaredDependencies) {
-      super(new PsProject(myProject), myModule, "", mock(AndroidGradleModel.class));
+      super(new PsProject(myProject), myModule, "", mock(AndroidModuleModel.class));
       myDeclaredDependencies = declaredDependencies;
     }
 

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.npw.deprecated;
 
-import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.npw.AsyncValidator;
 import com.android.tools.idea.wizard.dynamic.AndroidStudioWizardStep;
@@ -247,7 +247,7 @@ public final class WrapArchiveOptionsStep extends ModuleWizardStep implements An
     if (myProject != null) {
       int bestMatchValue = Integer.MAX_VALUE;
       for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-        AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
+        GradleFacet facet = GradleFacet.getInstance(module);
         if (facet != null) {
           GradleModuleModel gradleModuleModel = facet.getGradleModuleModel();
           assert gradleModuleModel != null;

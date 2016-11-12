@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.android.builder.model.SyncIssue;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.ProjectLibraries;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.application.ApplicationManager;
@@ -155,7 +155,7 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     loadSimpleApplication();
 
     Module appModule = myModules.getAppModule();
-    AndroidGradleModel androidModel = AndroidGradleModel.get(appModule);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
     assertNotNull(androidModel);
     Collection<SyncIssue> issues = androidModel.getSyncIssues();
     if (issues != null && !issues.isEmpty()) {

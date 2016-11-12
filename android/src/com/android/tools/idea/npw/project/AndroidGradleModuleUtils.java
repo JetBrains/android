@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.npw.project;
 
-import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.Module;
@@ -44,7 +44,7 @@ public class AndroidGradleModuleUtils {
     Module bestMatch = null;
     int bestMatchValue = Integer.MAX_VALUE;
     for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
+      GradleFacet facet = GradleFacet.getInstance(module);
       if (facet != null) {
         GradleModuleModel gradleModuleModel = facet.getGradleModuleModel();
         assert gradleModuleModel != null;

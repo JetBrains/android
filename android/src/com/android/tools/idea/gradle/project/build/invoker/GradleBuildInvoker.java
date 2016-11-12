@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.project.build.invoker;
 
 import com.android.SdkConstants;
 import com.android.builder.model.BaseArtifact;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
-import com.android.tools.idea.gradle.project.facet.java.JavaGradleFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
@@ -48,7 +48,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.android.builder.model.AndroidProject.PROPERTY_GENERATE_SOURCES_ONLY;
-import static com.android.tools.idea.gradle.AndroidGradleModel.getIdeSetupTasks;
+import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.getIdeSetupTasks;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.BuildMode.*;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ASSEMBLE_TRANSLATE_TASK_NAME;
@@ -189,7 +189,7 @@ public class GradleBuildInvoker {
   public static List<String> findCleanTasksForModules(@NotNull Module[] modules) {
     List<String> tasks = new ArrayList<>();
     for (Module module : modules) {
-      AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
+      GradleFacet gradleFacet = GradleFacet.getInstance(module);
       if (gradleFacet == null) {
         continue;
       }
@@ -307,7 +307,7 @@ public class GradleBuildInvoker {
                                                  @NotNull BuildMode buildMode,
                                                  @NotNull List<String> tasks,
                                                  @NotNull TestCompileType testCompileType) {
-    AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
+    GradleFacet gradleFacet = GradleFacet.getInstance(module);
     if (gradleFacet == null) {
       return;
     }
@@ -327,7 +327,7 @@ public class GradleBuildInvoker {
     if (androidFacet != null) {
       JpsAndroidModuleProperties properties = androidFacet.getProperties();
 
-      AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
 
       switch (buildMode) {
         case CLEAN: // Intentional fall-through.
@@ -364,14 +364,14 @@ public class GradleBuildInvoker {
       }
     }
     else {
-      JavaGradleFacet javaFacet = JavaGradleFacet.getInstance(module);
+      JavaFacet javaFacet = JavaFacet.getInstance(module);
       if (javaFacet != null && javaFacet.getConfiguration().BUILDABLE) {
         String gradleTaskName = javaFacet.getGradleTaskName(buildMode);
         if (gradleTaskName != null) {
           tasks.add(createBuildTask(gradlePath, gradleTaskName));
         }
         if (testCompileType == TestCompileType.UNIT_TESTS) {
-          tasks.add(createBuildTask(gradlePath, JavaGradleFacet.TEST_CLASSES_TASK_NAME));
+          tasks.add(createBuildTask(gradlePath, JavaFacet.TEST_CLASSES_TASK_NAME));
         }
       }
     }
@@ -385,7 +385,7 @@ public class GradleBuildInvoker {
   private static void addAfterSyncTasksForTestArtifacts(@NotNull List<String> tasks,
                                                         @NotNull String gradlePath,
                                                         @NotNull TestCompileType testCompileType,
-                                                        @Nullable AndroidGradleModel androidModel) {
+                                                        @Nullable AndroidModuleModel androidModel) {
     Collection<BaseArtifact> testArtifacts = getArtifactsForTestCompileType(testCompileType, androidModel);
     for (BaseArtifact artifact : testArtifacts) {
       for (String taskName : getIdeSetupTasks(artifact)) {
@@ -396,7 +396,7 @@ public class GradleBuildInvoker {
 
   @NotNull
   private static Collection<BaseArtifact> getArtifactsForTestCompileType(@NotNull TestCompileType testCompileType,
-                                                                         @Nullable AndroidGradleModel androidModel) {
+                                                                         @Nullable AndroidModuleModel androidModel) {
     if (androidModel == null) {
       return Collections.emptyList();
     }

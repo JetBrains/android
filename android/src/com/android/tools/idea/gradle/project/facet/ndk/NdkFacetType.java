@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.facet.cpp;
+package com.android.tools.idea.gradle.project.facet.ndk;
 
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetType;
@@ -27,26 +27,26 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 /**
- * {@link NativeAndroidGradleFacet}'s type.
+ * {@link NdkFacet}'s type.
  */
-public class NativeAndroidGradleFacetType extends FacetType<NativeAndroidGradleFacet, NativeAndroidGradleFacetConfiguration> {
-  public NativeAndroidGradleFacetType() {
-    super(NativeAndroidGradleFacet.TYPE_ID, NativeAndroidGradleFacet.ID, NativeAndroidGradleFacet.NAME);
+public class NdkFacetType extends FacetType<NdkFacet, NdkFacetConfiguration> {
+  public NdkFacetType() {
+    super(NdkFacet.TYPE_ID, NdkFacet.ID, NdkFacet.NAME);
   }
 
   @NotNull
   @Override
-  public NativeAndroidGradleFacetConfiguration createDefaultConfiguration() {
-    return new NativeAndroidGradleFacetConfiguration();
+  public NdkFacetConfiguration createDefaultConfiguration() {
+    return new NdkFacetConfiguration();
   }
 
   @NotNull
   @Override
-  public NativeAndroidGradleFacet createFacet(@NotNull Module module,
-                                              @NotNull String name,
-                                              @NotNull NativeAndroidGradleFacetConfiguration configuration,
-                                              @Nullable Facet underlyingFacet) {
-    return new NativeAndroidGradleFacet(module, name, configuration);
+  public NdkFacet createFacet(@NotNull Module module,
+                              @NotNull String name,
+                              @NotNull NdkFacetConfiguration configuration,
+                              @Nullable Facet underlyingFacet) {
+    return new NdkFacet(module, name, configuration);
   }
 
   @Override

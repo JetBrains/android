@@ -22,7 +22,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.GradleInstantRunContext;
 import com.android.tools.idea.run.ApkProviderUtil;
 import com.android.tools.idea.run.ApkProvisionException;
@@ -40,7 +40,7 @@ import java.io.IOException;
 
 public class InstantRunGradleUtils {
   @NotNull
-  public static InstantRunGradleSupport getIrSupportStatus(@Nullable AndroidGradleModel model, @Nullable AndroidVersion deviceVersion) {
+  public static InstantRunGradleSupport getIrSupportStatus(@Nullable AndroidModuleModel model, @Nullable AndroidVersion deviceVersion) {
     if (model == null) {
       return InstantRunGradleSupport.NO_GRADLE_MODEL;
     }
@@ -93,7 +93,7 @@ public class InstantRunGradleUtils {
     return false;
   }
 
-  public static boolean variantSupportsInstantRun(@NotNull AndroidGradleModel model) {
+  public static boolean variantSupportsInstantRun(@NotNull AndroidModuleModel model) {
     try {
       return model.getSelectedVariant().getMainArtifact().getInstantRun().isSupportedByArtifact();
     } catch (Throwable e) {
@@ -102,19 +102,19 @@ public class InstantRunGradleUtils {
   }
 
   /** Returns true if Instant Run is supported for this gradle model (whether or not it's enabled) */
-  public static boolean modelSupportsInstantRun(@NotNull AndroidGradleModel model) {
+  public static boolean modelSupportsInstantRun(@NotNull AndroidModuleModel model) {
     GradleVersion modelVersion = model.getModelVersion();
     return modelVersion == null || modelVersion.compareTo(InstantRunManager.MINIMUM_GRADLE_PLUGIN_VERSION) >= 0;
   }
 
   @Nullable
-  public static AndroidGradleModel getAppModel(@NotNull Module module) {
+  public static AndroidModuleModel getAppModel(@NotNull Module module) {
     AndroidFacet facet = findAppModule(module, module.getProject());
     if (facet == null) {
       return null;
     }
 
-    return AndroidGradleModel.get(facet);
+    return AndroidModuleModel.get(facet);
   }
 
   @Nullable
@@ -141,7 +141,7 @@ public class InstantRunGradleUtils {
   }
 
   @Nullable
-  public static InstantRunBuildInfo getBuildInfo(@NonNull AndroidGradleModel model) {
+  public static InstantRunBuildInfo getBuildInfo(@NonNull AndroidModuleModel model) {
     File buildInfo = getLocalBuildInfoFile(model);
     if (!buildInfo.exists()) {
       return null;
@@ -159,7 +159,7 @@ public class InstantRunGradleUtils {
   }
 
   @NotNull
-  private static File getLocalBuildInfoFile(@NotNull AndroidGradleModel model) {
+  private static File getLocalBuildInfoFile(@NotNull AndroidModuleModel model) {
     InstantRun instantRun = model.getSelectedVariant().getMainArtifact().getInstantRun();
     return instantRun.getInfoFile();
   }

@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.setup.module.android;
 import com.android.builder.model.JavaArtifact;
 import com.android.builder.model.Variant;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.CompilerSettingsSetup;
@@ -37,7 +37,7 @@ public class CompilerOutputModuleSetupStep extends AndroidModuleSetupStep {
   @Override
   protected void doSetUpModule(@NotNull Module module,
                                @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                               @NotNull AndroidGradleModel androidModel,
+                               @NotNull AndroidModuleModel androidModel,
                                @Nullable SyncAction.ModuleModels gradleModels,
                                @Nullable ProgressIndicator indicator) {
     GradleVersion modelVersion = androidModel.getModelVersion();

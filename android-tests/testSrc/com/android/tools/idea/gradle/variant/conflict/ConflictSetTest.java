@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.variant.conflict;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.stubs.android.*;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
@@ -42,8 +42,8 @@ import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
  */
 public class ConflictSetTest extends IdeaTestCase {
   private Module myLibModule;
-  private AndroidGradleModel myApp;
-  private AndroidGradleModel myLib;
+  private AndroidModuleModel myApp;
+  private AndroidModuleModel myLib;
   private String myLibGradlePath;
 
   @Override
@@ -69,7 +69,7 @@ public class ConflictSetTest extends IdeaTestCase {
     AndroidProjectStub project = new AndroidProjectStub("app");
     VariantStub variant = project.addVariant("debug");
 
-    myApp = new AndroidGradleModel(myModule.getName(), rootDirPath, project, variant.getName());
+    myApp = new AndroidModuleModel(myModule.getName(), rootDirPath, project, variant.getName());
   }
 
   private void setUpLib() {
@@ -79,7 +79,7 @@ public class ConflictSetTest extends IdeaTestCase {
     project.setProjectType(PROJECT_TYPE_LIBRARY);
     VariantStub variant = project.addVariant("debug");
 
-    myLib = new AndroidGradleModel(myModule.getName(), moduleFilePath.getParentFile(), project, variant.getName());
+    myLib = new AndroidModuleModel(myModule.getName(), moduleFilePath.getParentFile(), project, variant.getName());
   }
 
   private void setUpMainModuleAsApp() {
@@ -103,7 +103,7 @@ public class ConflictSetTest extends IdeaTestCase {
       androidFacet.setAndroidModel(myLib);
       facetModel.addFacet(androidFacet);
 
-      AndroidGradleFacet gradleFacet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.getFacetName(), null);
+      GradleFacet gradleFacet = facetManager.createFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null);
       gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = myLibGradlePath;
       facetModel.addFacet(gradleFacet);
     }

@@ -18,7 +18,7 @@ package com.android.tools.idea.sdk;
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.AndroidTestCaseHelper;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.collect.Lists;
 import com.intellij.facet.FacetManager;
@@ -60,7 +60,7 @@ public class IdeSdksTest extends IdeaTestCase {
       ModifiableFacetModel model = facetManager.createModifiableModel();
       try {
         model.addFacet(facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null));
-        model.addFacet(facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.getFacetName(), null));
+        model.addFacet(facetManager.createFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null));
       }
       finally {
         model.commit();

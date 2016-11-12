@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.importing;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.facet.FacetManager;
@@ -90,10 +90,10 @@ public abstract class NewProjectImportGradleSyncListener extends GradleSyncListe
       FacetManager facetManager = FacetManager.getInstance(module);
       ModifiableFacetModel facetModel = facetManager.createModifiableModel();
       try {
-        AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
+        GradleFacet gradleFacet = GradleFacet.getInstance(module);
         if (gradleFacet == null) {
           // Add "gradle" facet, to avoid balloons about unsupported compilation of modules.
-          gradleFacet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.getFacetName(), null);
+          gradleFacet = facetManager.createFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null);
           facetModel.addFacet(gradleFacet);
         }
         gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = GRADLE_PATH_SEPARATOR;

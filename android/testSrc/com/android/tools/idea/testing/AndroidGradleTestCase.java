@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.testing;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
@@ -491,8 +491,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   @NotNull
-  protected AndroidGradleModel getModel() {
-    AndroidGradleModel model = AndroidGradleModel.get(myAndroidFacet);
+  protected AndroidModuleModel getModel() {
+    AndroidModuleModel model = AndroidModuleModel.get(myAndroidFacet);
     assert model != null;
     return model;
   }

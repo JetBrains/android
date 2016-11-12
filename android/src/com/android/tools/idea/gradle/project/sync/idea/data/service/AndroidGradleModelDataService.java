@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.project.PostSyncProjectSetupStep;
@@ -44,7 +44,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 /**
  * Service that sets an Android SDK and facets to the modules of a project that has been imported from an Android-Gradle project.
  */
-public class AndroidGradleModelDataService extends AbstractProjectDataService<AndroidGradleModel, Void> {
+public class AndroidGradleModelDataService extends AbstractProjectDataService<AndroidModuleModel, Void> {
   @NotNull private final AndroidModuleSetup myModuleSetup;
   @NotNull private final AndroidModuleValidator.Factory myModuleValidatorFactory;
   @NotNull private final PostSyncProjectSetupStep[] myProjectSetupSteps;
@@ -66,7 +66,7 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
 
   @Override
   @NotNull
-  public Key<AndroidGradleModel> getTargetDataKey() {
+  public Key<AndroidModuleModel> getTargetDataKey() {
     return ANDROID_MODEL;
   }
 
@@ -77,7 +77,7 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
    * @param project  IDEA project to configure.
    */
   @Override
-  public void importData(@NotNull Collection<DataNode<AndroidGradleModel>> toImport,
+  public void importData(@NotNull Collection<DataNode<AndroidModuleModel>> toImport,
                          @Nullable ProjectData projectData,
                          @NotNull Project project,
                          @NotNull IdeModifiableModelsProvider modelsProvider) {
@@ -93,17 +93,17 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
     }
   }
 
-  private void doImport(@NotNull Collection<DataNode<AndroidGradleModel>> toImport,
+  private void doImport(@NotNull Collection<DataNode<AndroidModuleModel>> toImport,
                         @NotNull Project project,
                         @NotNull IdeModifiableModelsProvider modelsProvider) throws Throwable {
     RunResult result = new WriteCommandAction.Simple(project) {
       @Override
       protected void run() throws Throwable {
         AndroidModuleValidator moduleValidator = myModuleValidatorFactory.create(project);
-        Map<String, AndroidGradleModel> androidModelsByModuleName = indexByModuleName(toImport);
+        Map<String, AndroidModuleModel> androidModelsByModuleName = indexByModuleName(toImport);
 
         for (Module module : modelsProvider.getModules()) {
-          AndroidGradleModel androidModel = androidModelsByModuleName.get(module.getName());
+          AndroidModuleModel androidModel = androidModelsByModuleName.get(module.getName());
           setUpModule(module, moduleValidator, modelsProvider, androidModel);
         }
 
@@ -121,10 +121,10 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
   }
 
   @NotNull
-  private static Map<String, AndroidGradleModel> indexByModuleName(@NotNull Collection<DataNode<AndroidGradleModel>> dataNodes) {
-    Map<String, AndroidGradleModel> index = Maps.newHashMap();
-    for (DataNode<AndroidGradleModel> dataNode : dataNodes) {
-      AndroidGradleModel androidModel = dataNode.getData();
+  private static Map<String, AndroidModuleModel> indexByModuleName(@NotNull Collection<DataNode<AndroidModuleModel>> dataNodes) {
+    Map<String, AndroidModuleModel> index = Maps.newHashMap();
+    for (DataNode<AndroidModuleModel> dataNode : dataNodes) {
+      AndroidModuleModel androidModel = dataNode.getData();
       index.put(androidModel.getModuleName(), androidModel);
     }
     return index;
@@ -133,7 +133,7 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
   private void setUpModule(@NotNull Module module,
                            @NotNull AndroidModuleValidator moduleValidator,
                            @NotNull IdeModifiableModelsProvider modelsProvider,
-                           @Nullable AndroidGradleModel androidModel) {
+                           @Nullable AndroidModuleModel androidModel) {
     myModuleSetup.setUpModule(module, modelsProvider, androidModel, null, null);
     if (androidModel != null) {
       moduleValidator.validate(module, androidModel);

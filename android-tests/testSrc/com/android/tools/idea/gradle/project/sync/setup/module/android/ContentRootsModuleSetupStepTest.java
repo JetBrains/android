@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.NativeAndroidGradleModel;
-import com.android.tools.idea.gradle.project.facet.cpp.NativeAndroidGradleFacet;
-import com.android.tools.idea.gradle.project.facet.cpp.NativeAndroidGradleFacetType;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetType;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -51,7 +51,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class ContentRootsModuleSetupStepTest extends IdeaTestCase {
   @Mock private AndroidContentEntriesSetup.Factory myFactory;
   @Mock private AndroidContentEntriesSetup mySetup;
-  @Mock private AndroidGradleModel myAndroidModel;
+  @Mock private AndroidModuleModel myAndroidModel;
   @Mock private AndroidProject myAndroidProject;
 
   private IdeModifiableModelsProvider myModelsProvider;
@@ -138,11 +138,11 @@ public class ContentRootsModuleSetupStepTest extends IdeaTestCase {
 
   public void testSetUpNativeModule() {
     // Simulate this is a native module
-    NativeAndroidGradleModel nativeAndroidModel = mock(NativeAndroidGradleModel.class);
-    when(nativeAndroidModel.getSelectedVariant()).thenReturn(mock(NativeAndroidGradleModel.NativeVariant.class));
+    NdkModuleModel ndkModuleModel = mock(NdkModuleModel.class);
+    when(ndkModuleModel.getSelectedVariant()).thenReturn(mock(NdkModuleModel.NativeVariant.class));
 
-    NativeAndroidGradleFacet facet = addNativeAndroidFacet(myModelsProvider);
-    facet.setNativeAndroidGradleModel(nativeAndroidModel);
+    NdkFacet facet = addNativeAndroidFacet(myModelsProvider);
+    facet.setNdkModuleModel(ndkModuleModel);
 
     ModifiableRootModel moduleModel = myModelsProvider.getModifiableRootModel(getModule());
     when(myFactory.create(myAndroidModel, moduleModel, true)).thenReturn(mySetup);
@@ -165,13 +165,13 @@ public class ContentRootsModuleSetupStepTest extends IdeaTestCase {
   }
 
   @NotNull
-  NativeAndroidGradleFacet addNativeAndroidFacet(@NotNull IdeModifiableModelsProvider modelsProvider) {
+  private NdkFacet addNativeAndroidFacet(@NotNull IdeModifiableModelsProvider modelsProvider) {
     Module module = getModule();
 
     ModifiableFacetModel model = modelsProvider.getModifiableFacetModel(module);
-    NativeAndroidGradleFacetType facetType = NativeAndroidGradleFacet.getFacetType();
-    NativeAndroidGradleFacet facet =
-      facetType.createFacet(module, NativeAndroidGradleFacet.NAME, facetType.createDefaultConfiguration(), null);
+    NdkFacetType facetType = NdkFacet.getFacetType();
+    NdkFacet facet =
+      facetType.createFacet(module, NdkFacet.NAME, facetType.createDefaultConfiguration(), null);
 
     model.addFacet(facet);
 

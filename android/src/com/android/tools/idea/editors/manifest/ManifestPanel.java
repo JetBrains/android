@@ -24,7 +24,7 @@ import com.android.ide.common.blame.SourcePosition;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.MergingReport;
 import com.android.manifmerger.XmlNode;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.NamedObject;
@@ -91,7 +91,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_AAR;
+import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 
 // TODO for permission if not from main file
 // TODO then have option to tools:node="remove" tools:selector="com.example.lib1"
@@ -733,13 +733,13 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       assert sourceProvider != null;
       final String name = sourceProvider.getName();
 
-      AndroidGradleModel androidGradleModel = AndroidGradleModel.get(facet.getModule());
-      assert androidGradleModel != null;
+      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet.getModule());
+      assert androidModuleModel != null;
 
       final XmlFile manifestOverlayPsiFile = (XmlFile)PsiManager.getInstance(facet.getModule().getProject()).findFile(manifestOverlayVirtualFile);
       assert manifestOverlayPsiFile != null;
 
-      if (androidGradleModel.getBuildTypeNames().contains(name)) {
+      if (androidModuleModel.getBuildTypeNames().contains(name)) {
         final String packageName = MergedManifest.get(facet).getPackage();
         assert packageName != null;
         if (applicationId.startsWith(packageName)) {
@@ -770,7 +770,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
           }.execute();
         }
       }
-      else if (androidGradleModel.getProductFlavorNames().contains(name)) {
+      else if (androidModuleModel.getProductFlavorNames().contains(name)) {
         link = () -> new WriteCommandAction.Simple(facet.getModule().getProject(), "Apply manifest suggestion", buildFile.getPsiFile(), manifestOverlayPsiFile) {
           @Override
           protected void run() throws Throwable {
@@ -887,7 +887,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
           // AAR Library?
           if (file.getPath().contains(EXPLODED_AAR)) {
-            AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+            AndroidModuleModel androidModel = AndroidModuleModel.get(module);
             if (androidModel != null) {
               library = GradleUtil.findLibrary(file.getParentFile(), androidModel.getSelectedVariant(), androidModel.getModelVersion());
               if (library != null) {

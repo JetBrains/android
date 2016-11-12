@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.plugin;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.module.Module;
@@ -135,7 +135,7 @@ public enum AndroidPluginGeneration {
 
   @Nullable
   public static AndroidPluginGeneration find(@NotNull Module module) {
-    AndroidGradleModel gradleModel = AndroidGradleModel.get(module);
+    AndroidModuleModel gradleModel = AndroidModuleModel.get(module);
     if (gradleModel != null) {
       try {
         // only true for experimental plugin 0.6.0-betaX (or whenever the getPluginGeneration() was added) or later.

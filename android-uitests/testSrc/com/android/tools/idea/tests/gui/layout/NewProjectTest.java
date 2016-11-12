@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.layout;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -181,7 +181,7 @@ public class NewProjectTest {
   public void testLanguageLevelForApi21() {
     newProject("Test Application").withBriefNames().withMinSdk("21").create();
 
-    AndroidGradleModel appAndroidModel = guiTest.ideFrame().getAndroidProjectForModule("app");
+    AndroidModuleModel appAndroidModel = guiTest.ideFrame().getAndroidProjectForModule("app");
 
     assertThat(appAndroidModel.getAndroidProject().getDefaultConfig().getProductFlavor().getMinSdkVersion().getApiString())
       .named("minSdkVersion API").isEqualTo("21");
