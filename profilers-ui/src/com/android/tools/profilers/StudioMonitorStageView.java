@@ -15,48 +15,50 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.profilers.cpu.CpuMonitor;
+import com.android.tools.profilers.cpu.CpuMonitorView;
+import com.android.tools.profilers.memory.MemoryMonitor;
+import com.android.tools.profilers.memory.MemoryMonitorView;
+import com.android.tools.profilers.network.NetworkMonitor;
+import com.android.tools.profilers.network.NetworkMonitorView;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 public class StudioMonitorStageView extends StageView {
 
   private static final int CHOREOGRAPHER_FPS = 60;
-  private final Choreographer myChoreographer;
   private final JPanel myComponent;
+  private final ViewBinder<ProfilerMonitor, ProfilerMonitorView> myBinder;
 
-  public StudioMonitorStageView(StudioMonitorStage stage) {
+  public StudioMonitorStageView(@NotNull StudioMonitorStage stage) {
     super(stage);
+    myBinder = new ViewBinder<>();
+    myBinder.bind(NetworkMonitor.class, NetworkMonitorView::new);
+    myBinder.bind(CpuMonitor.class, CpuMonitorView::new);
+    myBinder.bind(MemoryMonitor.class, MemoryMonitorView::new);
     myComponent = new JPanel(new BorderLayout());
-    myChoreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
+
+    Choreographer choreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
     JPanel monitors = new JPanel(new GridBagLayout());
-    //TODO Have this in separate sections in the view
     int y = 0;
     for (ProfilerMonitor monitor : stage.getMonitors()) {
-      LineChart lineChart = new LineChart();
-      lineChart.addLine(monitor.getRangedSeries());
-      myChoreographer.register(lineChart);
-      lineChart.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mousePressed(MouseEvent e) {
-          stage.expand(monitor);
-        }
-      });
+      ProfilerMonitorView view = myBinder.build(monitor);
+      AnimatedComponent animatable = view.initialize();
       GridBagConstraints c = new GridBagConstraints();
       c.fill = GridBagConstraints.BOTH;
       c.gridx = 0;
       c.gridy = y++;
       c.weightx = 1.0;
       c.weighty = 1.0 / stage.getMonitors().size();
-      monitors.add(lineChart, c);
+      monitors.add(animatable, c);
+      choreographer.register(animatable);
     }
     myComponent.add(monitors, BorderLayout.CENTER);
   }
-
 
   @Override
   public JComponent getComponent() {
