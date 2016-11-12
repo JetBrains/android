@@ -21,7 +21,6 @@ import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profilers.ProfilerMonitor;
-import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -32,12 +31,18 @@ import java.util.List;
 public class NetworkMonitor extends ProfilerMonitor {
 
   private final int myProcessId;
-  private RangedContinuousSeries myRangedSeries;
-  private final NetworkServiceGrpc.NetworkServiceBlockingStub myClient;
 
-  public NetworkMonitor(@NotNull StudioProfilers profiler, int pid) {
+  @NotNull
+  private final StudioProfilers myProfilers;
+
+  public NetworkMonitor(@NotNull StudioProfilers profilers, int pid) {
     myProcessId = pid;
-    myClient = profiler.getClient().getNetworkClient();
+    myProfilers = profilers;
+  }
+
+  @NotNull
+  public RangedContinuousSeries getTrafficData() {
+    NetworkServiceGrpc.NetworkServiceBlockingStub client = myProfilers.getClient().getNetworkClient();
 
     // TODO: Switch to the network dataseries, when bugs are sorted out:
     // NetworkTrafficDataSeries series = new NetworkTrafficDataSeries(myClient, pid, NetworkTrafficDataSeries.Type.BYTES_RECIEVED);
@@ -48,16 +53,10 @@ public class NetworkMonitor extends ProfilerMonitor {
       return ContainerUtil.immutableList(seriesData);
     };
 
-    myRangedSeries = new RangedContinuousSeries("Network", profiler.getViewRange(), new Range(0, 100), series);
+    return new RangedContinuousSeries("Network", myProfilers.getViewRange(), new Range(0, 100), series);
   }
 
-  @Override
-  public RangedContinuousSeries getRangedSeries() {
-    return myRangedSeries;
-  }
-
-  @Override
-  public Stage getExpandedStage(@NotNull StudioProfilers profilers) {
-    return new NeworkProfilerStage(profilers);
+  public void expand() {
+    myProfilers.setStage(new NeworkProfilerStage(myProfilers));
   }
 }
