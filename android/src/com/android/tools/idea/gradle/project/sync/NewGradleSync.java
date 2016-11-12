@@ -60,7 +60,7 @@ public class NewGradleSync implements GradleSync {
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
 
   NewGradleSync() {
-    this(new CommandLineArgs(), new ProjectSetup.Factory());
+    this(new CommandLineArgs(true /* create classpath init script */), new ProjectSetup.Factory());
   }
 
   @VisibleForTesting
@@ -132,7 +132,7 @@ public class NewGradleSync implements GradleSync {
       ExternalSystemTaskNotificationListener listener = new ExternalSystemTaskNotificationListenerAdapter() {
         // TODO: implement
       };
-      List<String> commandLineArgs = myCommandLineArgs.get(project);
+      List<String> commandLineArgs = myCommandLineArgs.get(project  /* include classpath init script */);
 
       // We try to avoid passing JVM arguments, to share Gradle daemons between Gradle sync and Gradle build.
       // If JVM arguments from Gradle sync are different than the ones from Gradle build, Gradle won't reuse daemons. This is bad because
