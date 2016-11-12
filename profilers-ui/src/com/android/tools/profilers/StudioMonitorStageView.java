@@ -19,6 +19,8 @@ import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.profilers.cpu.CpuMonitor;
 import com.android.tools.profilers.cpu.CpuMonitorView;
+import com.android.tools.profilers.event.EventMonitor;
+import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.memory.MemoryMonitor;
 import com.android.tools.profilers.memory.MemoryMonitorView;
 import com.android.tools.profilers.network.NetworkMonitor;
@@ -40,6 +42,8 @@ public class StudioMonitorStageView extends StageView {
     myBinder.bind(NetworkMonitor.class, NetworkMonitorView::new);
     myBinder.bind(CpuMonitor.class, CpuMonitorView::new);
     myBinder.bind(MemoryMonitor.class, MemoryMonitorView::new);
+    myBinder.bind(EventMonitor.class, EventMonitorView::new);
+
     myComponent = new JPanel(new BorderLayout());
 
     Choreographer choreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
@@ -47,15 +51,14 @@ public class StudioMonitorStageView extends StageView {
     int y = 0;
     for (ProfilerMonitor monitor : stage.getMonitors()) {
       ProfilerMonitorView view = myBinder.build(monitor);
-      AnimatedComponent animatable = view.initialize();
+      JComponent component = view.initialize(choreographer);
       GridBagConstraints c = new GridBagConstraints();
       c.fill = GridBagConstraints.BOTH;
       c.gridx = 0;
       c.gridy = y++;
       c.weightx = 1.0;
       c.weighty = 1.0 / stage.getMonitors().size();
-      monitors.add(animatable, c);
-      choreographer.register(animatable);
+      monitors.add(component, c);
     }
     myComponent.add(monitors, BorderLayout.CENTER);
   }
