@@ -49,6 +49,7 @@ public class EventMonitorView extends ProfilerMonitorView {
   @Override
   public JComponent initialize(Choreographer choreographer) {
     JPanel panel = new JPanel(new GridBagLayout());
+    panel.setOpaque(false);
     GridBagConstraints c = new GridBagConstraints();
     c.fill = GridBagConstraints.BOTH;
     c.gridx = 0;

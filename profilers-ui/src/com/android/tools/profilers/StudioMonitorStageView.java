@@ -25,6 +25,7 @@ import com.android.tools.profilers.memory.MemoryMonitor;
 import com.android.tools.profilers.memory.MemoryMonitorView;
 import com.android.tools.profilers.network.NetworkMonitor;
 import com.android.tools.profilers.network.NetworkMonitorView;
+import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -48,6 +49,7 @@ public class StudioMonitorStageView extends StageView {
 
     Choreographer choreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
     JPanel monitors = new JPanel(new GridBagLayout());
+    monitors.setBackground(JBColor.background());
     int y = 0;
     for (ProfilerMonitor monitor : stage.getMonitors()) {
       ProfilerMonitorView view = myBinder.build(monitor);
