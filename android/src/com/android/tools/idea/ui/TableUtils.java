@@ -15,12 +15,62 @@
  */
 package com.android.tools.idea.ui;
 
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.IOException;
 
 public final class TableUtils {
   private TableUtils() {
+  }
+
+  public static void paste(@NotNull JTable table, @NotNull Transferable transferable) {
+    if (table.getSelectedRowCount() != 1 || table.getSelectedColumnCount() != 1) {
+      return;
+    }
+
+    if (!transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+      return;
+    }
+
+    int row = table.getSelectedRow();
+    int rowCount = table.getRowCount();
+
+    int selectedColumn = table.getSelectedColumn();
+    int columnCount = table.getColumnCount();
+
+    for (String values : getTransferDataAsString(transferable).split("\n")) {
+      if (row >= rowCount) {
+        break;
+      }
+
+      int column = selectedColumn;
+
+      for (Object value : values.split("\t")) {
+        if (column >= columnCount) {
+          break;
+        }
+
+        table.setValueAt(value, row, column++);
+      }
+
+      row++;
+    }
+  }
+
+  @NotNull
+  private static String getTransferDataAsString(@NotNull Transferable transferable) {
+    try {
+      return (String)transferable.getTransferData(DataFlavor.stringFlavor);
+    }
+    catch (UnsupportedFlavorException | IOException exception) {
+      Logger.getInstance(TableUtils.class).warn(exception);
+      return "";
+    }
   }
 
   public static void selectCellAt(@NotNull JTable table, int row, int column) {
