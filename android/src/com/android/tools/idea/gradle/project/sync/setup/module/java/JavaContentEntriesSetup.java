@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
-import com.android.tools.idea.gradle.JavaProject;
+import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.ContentEntriesSetup;
 import com.intellij.openapi.roots.ContentEntry;
@@ -36,21 +36,21 @@ import static org.jetbrains.jps.model.java.JavaSourceRootType.SOURCE;
 import static org.jetbrains.jps.model.java.JavaSourceRootType.TEST_SOURCE;
 
 class JavaContentEntriesSetup extends ContentEntriesSetup {
-  @NotNull private final JavaProject myJavaProject;
+  @NotNull private final JavaModuleModel myJavaModuleModel;
 
-  JavaContentEntriesSetup(@NotNull JavaProject javaProject, @NotNull ModifiableRootModel moduleModel) {
+  JavaContentEntriesSetup(@NotNull JavaModuleModel javaModuleModel, @NotNull ModifiableRootModel moduleModel) {
     super(moduleModel);
-    myJavaProject = javaProject;
+    myJavaModuleModel = javaModuleModel;
   }
 
   @Override
   public void execute(@NotNull List<ContentEntry> contentEntries) {
     boolean isTopLevelJavaModule = isGradleProjectModule(getModule());
 
-    File buildFolderPath = myJavaProject.getBuildFolderPath();
+    File buildFolderPath = myJavaModuleModel.getBuildFolderPath();
     boolean buildFolderExcluded = buildFolderPath != null;
 
-    for (JavaModuleContentRoot contentRoot : myJavaProject.getContentRoots()) {
+    for (JavaModuleContentRoot contentRoot : myJavaModuleModel.getContentRoots()) {
       if (contentRoot == null) {
         continue;
       }

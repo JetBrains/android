@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
-import com.android.tools.idea.gradle.JavaProject;
+import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.android.tools.idea.gradle.project.sync.ExpectedModuleDependency;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependenciesSetup;
@@ -41,7 +41,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class DependenciesModuleSetupStepTest extends IdeaTestCase {
   @Mock private DependenciesSetup myDependenciesSetup;
-  @Mock private JavaProject myJavaProject;
+  @Mock private JavaModuleModel myJavaModuleModel;
 
   private IdeModifiableModelsProvider myModelsProvider;
   private DependenciesModuleSetupStep mySetupStep;
@@ -65,11 +65,11 @@ public class DependenciesModuleSetupStepTest extends IdeaTestCase {
     Collection<JavaModuleDependency> moduleDependencies = new ArrayList<>();
     moduleDependencies.add(moduleDependency);
 
-    when(myJavaProject.getJavaModuleDependencies()).thenReturn(moduleDependencies); // We only want module dependencies
-    when(myJavaProject.getJarLibraryDependencies()).thenReturn(Collections.emptyList());
+    when(myJavaModuleModel.getJavaModuleDependencies()).thenReturn(moduleDependencies); // We only want module dependencies
+    when(myJavaModuleModel.getJarLibraryDependencies()).thenReturn(Collections.emptyList());
 
     Module mainModule = getModule();
-    mySetupStep.setUpModule(mainModule, myJavaProject, myModelsProvider, null, null);
+    mySetupStep.setUpModule(mainModule, myModelsProvider, myJavaModuleModel, null, null);
 
     // needed to check if the module dependency was added.
     ApplicationManager.getApplication().runWriteAction(() -> myModelsProvider.commit());
