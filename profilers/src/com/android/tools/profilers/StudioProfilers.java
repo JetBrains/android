@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.grpc.StatusRuntimeException;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -33,6 +34,7 @@ import java.util.concurrent.TimeUnit;
  * global across all the profilers, device management, process management, current state of the tool etc.
  */
 final public class StudioProfilers extends AspectModel<ProfilerAspect> {
+  public static final int INVALID_PROCESS_ID = -1;
 
   private final ProfilerClient myClient;
 
@@ -45,7 +47,10 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
 
   private Profiler.Device myDevice;
   private long myDeviceDeltaNs;
+
+  @Nullable
   private Profiler.Process myProcess;
+
   private boolean myConnected;
 
   private Stage myStage;
@@ -83,34 +88,36 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
     while (true) {
       try {
         Profiler.GetDevicesResponse response = myClient.getProfilerClient().getDevices(Profiler.GetDevicesRequest.getDefaultInstance());
-        long nowNs = System.nanoTime();
-        if (!myConnected) {
-          Profiler.TimesResponse times = myClient.getProfilerClient().getTimes(Profiler.TimesRequest.getDefaultInstance());
-          long deviceNowNs = times.getTimestampNs();
+        if (response.getDeviceCount() > 0) {
+          long nowNs = System.nanoTime();
+          if (!myConnected) {
+            Profiler.TimesResponse times = myClient.getProfilerClient().getTimes(Profiler.TimesRequest.getDefaultInstance());
+            long deviceNowNs = times.getTimestampNs();
+            long deviceNowUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
+            myDeviceDeltaNs = deviceNowNs - nowNs;
+            myDataRangUs.set(deviceNowUs, deviceNowUs);
+            this.changed(ProfilerAspect.CONNECTION);
+          }
+
+          long deviceNowNs = nowNs + myDeviceDeltaNs;
           long deviceNowUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
-          myDeviceDeltaNs = deviceNowNs - nowNs;
-          myDataRangUs.set(deviceNowUs, deviceNowUs);
-          this.changed(ProfilerAspect.CONNECTION);
-        }
+          myViewRangeUs.set(deviceNowUs - TimeUnit.SECONDS.toMicros(10), deviceNowUs);
+          myDataRangUs.setMax(deviceNowUs);
 
-        long deviceNowNs = nowNs + myDeviceDeltaNs;
-        long deviceNowUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
-        myViewRangeUs.set(deviceNowUs - TimeUnit.SECONDS.toMicros(10), deviceNowUs);
-        myDataRangUs.setMax(deviceNowUs);
-
-        myConnected = true;
-        Set<Profiler.Device> devices = new HashSet<>(response.getDeviceList());
-        Map<Profiler.Device, List<Profiler.Process>> newProcesses = new HashMap<>();
-        for (Profiler.Device device : devices) {
-          Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder().setSerial(device.getSerial()).build();
-          Profiler.GetProcessesResponse processes = myClient.getProfilerClient().getProcesses(request);
-          newProcesses.put(device, processes.getProcessList());
-        }
-        if (!newProcesses.equals(myProcesses)) {
-          myProcesses = newProcesses;
-          // Attempt to choose the currently profiled device and process
-          setDevice(myDevice);
-          setProcess(myProcess);
+          myConnected = true;
+          Set<Profiler.Device> devices = new HashSet<>(response.getDeviceList());
+          Map<Profiler.Device, List<Profiler.Process>> newProcesses = new HashMap<>();
+          for (Profiler.Device device : devices) {
+            Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder().setSerial(device.getSerial()).build();
+            Profiler.GetProcessesResponse processes = myClient.getProfilerClient().getProcesses(request);
+            newProcesses.put(device, processes.getProcessList());
+          }
+          if (!newProcesses.equals(myProcesses)) {
+            myProcesses = newProcesses;
+            // Attempt to choose the currently profiled device and process
+            setDevice(myDevice);
+            setProcess(myProcess);
+          }
         }
       }
       catch (StatusRuntimeException e) {
@@ -150,7 +157,7 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
   /**
    * Chooses the given process. If the process is not known or null, the first available one will be chosen instead.
    */
-  public void setProcess(Profiler.Process process) {
+  public void setProcess(@Nullable Profiler.Process process) {
     List<Profiler.Process> processes = myProcesses.get(myDevice);
     if (processes == null || !processes.contains(process)) {
       // The process doesn't belong to the current device. Choose a new process.
@@ -189,7 +196,7 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
   }
 
   public int getProcessId() {
-    return myProcess.getPid();
+    return myProcess != null ? myProcess.getPid() : INVALID_PROCESS_ID;
   }
 
   public void setStage(Stage stage) {

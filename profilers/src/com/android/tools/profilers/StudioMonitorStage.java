@@ -18,6 +18,8 @@ package com.android.tools.profilers;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.android.tools.profilers.StudioProfilers.INVALID_PROCESS_ID;
+
 public class StudioMonitorStage extends Stage {
   private List<ProfilerMonitor> myMonitors;
 
@@ -28,10 +30,12 @@ public class StudioMonitorStage extends Stage {
 
   @Override
   public void enter() {
-    int processId = getStudioProfilers().getProcessId();
     myMonitors.clear();
-    for (StudioProfiler profiler : getStudioProfilers().getProfilers()) {
-      myMonitors.add(profiler.newMonitor(processId));
+    int processId = getStudioProfilers().getProcessId();
+    if (processId != INVALID_PROCESS_ID) {
+      for (StudioProfiler profiler : getStudioProfilers().getProfilers()) {
+        myMonitors.add(profiler.newMonitor(processId));
+      }
     }
   }
 
