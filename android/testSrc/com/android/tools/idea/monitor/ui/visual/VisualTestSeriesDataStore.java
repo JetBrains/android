@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.monitor.ui.visual;
 
-import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.datastore.DataAdapter;
 import com.android.tools.datastore.SeriesDataList;
 import com.android.tools.datastore.SeriesDataStore;

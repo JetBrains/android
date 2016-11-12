@@ -17,13 +17,16 @@ package com.android.tools.idea.monitor.ui.network.view;
 
 import com.android.tools.adtui.AccordionLayout;
 import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.Range;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.datastore.Poller;
 import com.android.tools.datastore.SeriesDataStore;
+import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
-import com.android.tools.idea.monitor.tool.ProfilerEventListener;
-import com.android.tools.idea.monitor.ui.network.model.*;
+import com.android.tools.idea.monitor.ui.network.model.HttpDataCache;
+import com.android.tools.idea.monitor.ui.network.model.NetworkCaptureModel;
+import com.android.tools.idea.monitor.ui.network.model.NetworkDataPoller;
+import com.android.tools.idea.monitor.ui.network.model.RpcNetworkCaptureModel;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.EventDispatcher;
@@ -32,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.util.*;
+import java.util.Set;
 
 public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
   public static final int NETWORK_CONNECTIVITY_HEIGHT = 40;

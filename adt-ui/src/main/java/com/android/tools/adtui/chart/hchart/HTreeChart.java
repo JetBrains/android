@@ -17,8 +17,9 @@
 package com.android.tools.adtui.chart.hchart;
 
 import com.android.tools.adtui.AnimatedComponent;
-import com.android.tools.adtui.Range;
+import com.android.tools.adtui.AnimatedRange;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.model.Range;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -170,8 +171,7 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
       @Override
       public void actionPerformed(ActionEvent e) {
         double delta = mXRange.getLength() / ACTION_MOVEMENT_FACTOR;
-        mXRange.setTarget(mXRange.getMin() + delta,
-                          mXRange.getMax() - delta);
+        mXRange.set(mXRange.getMin() + delta, mXRange.getMax() - delta);
       }
     });
 
@@ -179,9 +179,7 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
       @Override
       public void actionPerformed(ActionEvent e) {
         double delta = mXRange.getLength() / ACTION_MOVEMENT_FACTOR;
-        mXRange.setTarget(
-          mXRange.getMin() - delta,
-          mXRange.getMax() + delta);
+        mXRange.set(mXRange.getMin() - delta, mXRange.getMax() + delta);
       }
     });
 
@@ -189,8 +187,7 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
       @Override
       public void actionPerformed(ActionEvent e) {
         double delta = mXRange.getLength() / ACTION_MOVEMENT_FACTOR;
-        mXRange.setTarget(mXRange.getMin() - delta,
-                          mXRange.getMax() - delta);
+        mXRange.set(mXRange.getMin() - delta, mXRange.getMax() - delta);
       }
     });
 
@@ -198,8 +195,7 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
       @Override
       public void actionPerformed(ActionEvent e) {
         double delta = mXRange.getLength() / ACTION_MOVEMENT_FACTOR;
-        mXRange.setTarget(mXRange.getMin() + delta,
-                          mXRange.getMax() + delta);
+        mXRange.set(mXRange.getMin() + delta, mXRange.getMax() + delta);
       }
     });
   }

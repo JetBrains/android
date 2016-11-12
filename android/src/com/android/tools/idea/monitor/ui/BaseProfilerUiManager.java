@@ -18,7 +18,7 @@ package com.android.tools.idea.monitor.ui;
 import com.android.tools.adtui.AccordionLayout;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.Range;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.datastore.Poller;
 import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.tool.ProfilerEventListener;

@@ -19,7 +19,7 @@ import com.android.ddmlib.AllocationInfo;
 import com.android.ddmlib.AllocationsParser;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.Range;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.memory.model.AllocationTrackingSample;
 import com.android.tools.idea.monitor.ui.memory.model.MemoryDataCache;

@@ -11,7 +11,7 @@
     <orderEntry type="module" module-name="annotations" />
     <orderEntry type="library" name="studio-profiler-grpc-1.0-jarjar" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
-    <orderEntry type="module" module-name="adt-ui" />
+    <orderEntry type="module" module-name="adt-ui-model" />
     <orderEntry type="module" module-name="util" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
   </component>

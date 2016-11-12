@@ -19,7 +19,10 @@ package com.android.tools.adtui.visualtests;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.LongDataSeries;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.SeriesData;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -79,19 +82,17 @@ public class AccordionVisualTest extends VisualTest {
     componentsList.add(mAccordionX);
     componentsList.add(mAccordionY);
     componentsList.add(mAnimatedTimeRange);
-    componentsList.add(timeGlobalRangeUs);
 
     mRangedData = new ArrayList<>();
     mData = new ArrayList<>();
 
-    Range mYRange = new Range(0.0, 100.0);
+    Range yRange = new Range(0.0, 100.0);
     for (int i = 0; i < 4; i++) {
       if (i % 2 == 0) {
-        mYRange = new Range(0.0, 100.0);
-        componentsList.add(mYRange);
+        yRange = new Range(0.0, 100.0);
       }
       LongDataSeries series = new LongDataSeries();
-      RangedContinuousSeries ranged = new RangedContinuousSeries("Widgets", timeGlobalRangeUs, mYRange, series);
+      RangedContinuousSeries ranged = new RangedContinuousSeries("Widgets", timeGlobalRangeUs, yRange, series);
       mRangedData.add(ranged);
       mData.add(series);
     }

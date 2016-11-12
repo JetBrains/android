@@ -179,7 +179,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
     protected StackedEventComponent myStackedEventComponent;
 
-    private DefaultDataSeries<EventAction<StackedEventComponent.Action, String>> myData;
+    private DefaultDataSeries<EventAction<EventAction.ActivityAction, String>> myData;
 
     ActivityEventImageDiffEntry(String baselineFilename) {
       super(baselineFilename);
@@ -205,12 +205,12 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
       String activityName = PACKAGE_PREFIX + MOCK_ACTIVITY_NAMES[0]; // arbitrary activity
 
       // Start event
-      EventAction<StackedEventComponent.Action, String> event =
-        new EventAction<>(startTime, 0, StackedEventComponent.Action.ACTIVITY_STARTED, activityName);
+      EventAction<EventAction.ActivityAction, String> event =
+        new EventAction<>(startTime, 0, EventAction.ActivityAction.ACTIVITY_STARTED, activityName);
       myData.add(startTime, event);
 
       // Completed event
-      event = new EventAction<>(startTime, endTime, StackedEventComponent.Action.ACTIVITY_COMPLETED, activityName);
+      event = new EventAction<>(startTime, endTime, EventAction.ActivityAction.ACTIVITY_COMPLETED, activityName);
       myData.add(endTime, event);
     }
 
@@ -218,18 +218,18 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
      * Create all the start events and then the completed events. This is what happens in reality when adding overlapping activities.
      */
     protected void addMultipleActivities(long[] startTimeList, long[] endTimeList) {
-      EventAction<StackedEventComponent.Action, String> event;
+      EventAction<EventAction.ActivityAction, String> event;
       for (int i = 0; i  < startTimeList.length; i++) {
         String activityName = PACKAGE_PREFIX + MOCK_ACTIVITY_NAMES[i % MOCK_ACTIVITY_NAMES.length];
         // Start event
-        event = new EventAction<>(startTimeList[i], 0, StackedEventComponent.Action.ACTIVITY_STARTED, activityName);
+        event = new EventAction<>(startTimeList[i], 0, EventAction.ActivityAction.ACTIVITY_STARTED, activityName);
         myData.add(startTimeList[i], event);
       }
 
       for (int i = 0; i  < endTimeList.length; i++) {
         String activityName = PACKAGE_PREFIX + MOCK_ACTIVITY_NAMES[i % MOCK_ACTIVITY_NAMES.length];
         // Completed event
-        event = new EventAction<>(startTimeList[i], endTimeList[i], StackedEventComponent.Action.ACTIVITY_COMPLETED, activityName);
+        event = new EventAction<>(startTimeList[i], endTimeList[i], EventAction.ActivityAction.ACTIVITY_COMPLETED, activityName);
         myData.add(endTimeList[i], event);
       }
     }
@@ -258,7 +258,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
     protected SimpleEventComponent mySimpleEventComponent;
 
-    private DefaultDataSeries<EventAction<SimpleEventComponent.Action, ActionType>> myData;
+    private DefaultDataSeries<EventAction<EventAction.Action, ActionType>> myData;
 
     SimpleTapEventImageDiffEntry(String baselineFilename) {
       super(baselineFilename);
@@ -281,10 +281,10 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     }
 
     protected void performTap(long eventTime) {
-      EventAction<SimpleEventComponent.Action, ActionType> event =
-        new EventAction<>(eventTime, 0, SimpleEventComponent.Action.DOWN, ActionType.HOLD);
+      EventAction<EventAction.Action, ActionType> event =
+        new EventAction<>(eventTime, 0, EventAction.Action.DOWN, ActionType.HOLD);
       myData.add(eventTime, event);
-      event = new EventAction<>(eventTime, eventTime, SimpleEventComponent.Action.UP, ActionType.TOUCH);
+      event = new EventAction<>(eventTime, eventTime, EventAction.Action.UP, ActionType.TOUCH);
       myData.add(eventTime, event);
     }
   }

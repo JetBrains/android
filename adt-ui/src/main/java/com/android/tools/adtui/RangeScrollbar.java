@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui;
 
+import com.android.tools.adtui.model.Range;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.util.ui.ButtonlessScrollBarUI;
 import org.jetbrains.annotations.NotNull;
@@ -131,10 +132,8 @@ public final class RangeScrollbar extends JBScrollBar implements Animatable {
   public void animate(float frameLength) {
     if (mScrollingMode == ScrollingMode.STREAMING) {
       double globalMax = mGlobalRange.getMax();
-      if (!mRange.set(globalMax - mCurrentViewLength, globalMax)) {
-        // If something else has finalized the range, quit streaming mode.
-        mScrollingMode = ScrollingMode.VIEWING;
-      }
+      // TODO reinvestigate how to quit streaming mode.
+      mRange.set(globalMax - mCurrentViewLength, globalMax);
     }
 
     // Keeps the scrollbar visuals in sync with the global and current data range.
@@ -186,9 +185,9 @@ public final class RangeScrollbar extends JBScrollBar implements Animatable {
           adjustedValue = 0f;
         }
         // Use the ratio of adjustValue relative to scrollbarRange to get new min
+        // TODO reinvestigate how to prevent other components from modifying range.
         double newMin = (globalLength * adjustedValue / scrollbarRange) + mGlobalRange.getMin();
         mRange.set(newMin, newMin + currentLength);
-        mRange.lockValues();
         break;
     }
   }

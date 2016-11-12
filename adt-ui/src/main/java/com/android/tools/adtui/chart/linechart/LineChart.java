@@ -17,13 +17,9 @@
 package com.android.tools.adtui.chart.linechart;
 
 import com.android.tools.adtui.AnimatedComponent;
-import com.android.tools.adtui.Range;
 import com.android.tools.adtui.common.datareducer.DataReducer;
 import com.android.tools.adtui.common.datareducer.LineChartReducer;
-import com.android.tools.adtui.model.DurationData;
-import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.*;
 import com.intellij.ui.ColorUtil;
 import com.intellij.util.containers.ImmutableList;
 import gnu.trove.TDoubleArrayList;
@@ -178,7 +174,8 @@ public class LineChart extends AnimatedComponent {
       // In each pass, the LineChart needs to reset the max target according to the data, so the AxisComponent can apply the clamping logic
       // using the current data max instead of the clamped max from the previous pass.
       if (range.getInitialMax() < entry.getValue()) {
-        range.setMaxTarget(entry.getValue());
+        // TODO revisit how to animate.
+        range.setMax(entry.getValue());
       }
     }
   }

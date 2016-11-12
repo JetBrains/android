@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.Range;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.Stage;

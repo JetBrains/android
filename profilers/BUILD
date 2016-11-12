@@ -11,7 +11,7 @@ iml_module(
         "//tools:idea.annotations[module]",
         "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
         "//tools/idea/.idea/libraries:Guava",
-        "//tools/adt/idea/adt-ui:adt-ui[module]",
+        "//tools/adt/idea/adt-ui-model:adt-ui-model[module]",
         "//tools:idea.util[module]",
         "//tools/idea/.idea/libraries:JUnit4[test]",
     ],

@@ -19,9 +19,9 @@ package com.android.tools.idea.monitor.ui.visual;
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedTimeRange;
-import com.android.tools.adtui.Range;
 import com.android.tools.adtui.RangeScrollbar;
 import com.android.tools.adtui.visualtests.VisualTest;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.memory.model.MemoryInfoTreeNode;
@@ -86,7 +86,6 @@ public class MemoryProfilerVisualTest extends VisualTest {
     mDetailSegment = new MemoryDetailSegment(timeCurrentRangeUs, mRoot, dummyDispatcher);
     List<Animatable> animatables = new ArrayList<>();
     animatables.add(animatedTimeRange);
-    animatables.add(timeCurrentRangeUs);
     mSegment.createComponentsList(animatables);
     mDetailSegment.createComponentsList(animatables);
 

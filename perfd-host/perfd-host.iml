@@ -17,7 +17,7 @@
     <orderEntry type="module" module-name="common" />
     <orderEntry type="library" name="truth" level="project" />
     <orderEntry type="module" module-name="testutils" scope="TEST" />
-    <orderEntry type="module" module-name="adt-ui" />
+    <orderEntry type="module" module-name="adt-ui-model" />
     <orderEntry type="module" module-name="ddmlib" />
     <orderEntry type="module" module-name="annotations-common" />
     <orderEntry type="module" module-name="rpclib" />
