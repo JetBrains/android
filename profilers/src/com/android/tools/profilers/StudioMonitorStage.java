@@ -42,10 +42,4 @@ public class StudioMonitorStage extends Stage {
   public List<ProfilerMonitor> getMonitors() {
     return myMonitors;
   }
-
-  public void expand(ProfilerMonitor monitor) {
-    StudioProfilers profilers = getStudioProfilers();
-    Stage stage = monitor.getExpandedStage(profilers);
-    profilers.setStage(stage);
-  }
 }
