@@ -26,6 +26,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.Assert.*;
 
 /**
@@ -83,6 +84,6 @@ public class ThemePreviewTest {
 
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
     // The API level shouldn't be modified by the theme preview. Regression test for http://b.android.com/201313
-    editor.getLayoutPreview(true).getConfigToolbar().requireApi(savedApiLevel);
+    assertThat(editor.getLayoutPreview(true).getConfigToolbar().getApiLevel()).isEqualTo(savedApiLevel);
   }
 }
