@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.facet;
+package com.android.tools.idea.gradle.project.facet.java;
 
 import com.intellij.facet.FacetConfiguration;
 import com.intellij.facet.ui.FacetEditorContext;
@@ -24,15 +24,13 @@ import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
 
-public class NativeAndroidGradleFacetConfiguration implements FacetConfiguration {
-  @NonNls public String SELECTED_BUILD_VARIANT = "";
+public class JavaGradleFacetConfiguration implements FacetConfiguration {
+  @NonNls public String BUILD_FOLDER_PATH;
+  public boolean BUILDABLE;
 
-  @NotNull
   @Override
-  public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext,
-                                           FacetValidatorsManager validatorsManager) {
+  public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext, FacetValidatorsManager validatorsManager) {
     return new FacetEditorTab[0];
   }
 

@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.importing;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.facet.FacetManager;

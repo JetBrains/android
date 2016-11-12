@@ -30,7 +30,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.*;
 
-import static com.android.tools.idea.gradle.facet.JavaGradleFacet.COMPILE_JAVA_TASK_NAME;
+import static com.android.tools.idea.gradle.project.facet.java.JavaGradleFacet.COMPILE_JAVA_TASK_NAME;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 
 public class JavaModuleModel implements Serializable {

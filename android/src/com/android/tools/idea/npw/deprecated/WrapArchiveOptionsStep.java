@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.deprecated;
 
 import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.npw.AsyncValidator;
 import com.android.tools.idea.wizard.dynamic.AndroidStudioWizardStep;
