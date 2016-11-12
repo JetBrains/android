@@ -60,6 +60,7 @@
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="rpclib" />
     <orderEntry type="module" module-name="adt-ui" />
+    <orderEntry type="module" module-name="adt-ui-model" />
     <orderEntry type="module" module-name="perfd-host" />
     <orderEntry type="module-library">
       <library>

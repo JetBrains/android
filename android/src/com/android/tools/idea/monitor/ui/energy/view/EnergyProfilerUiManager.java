@@ -16,7 +16,7 @@
 package com.android.tools.idea.monitor.ui.energy.view;
 
 import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.Range;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.datastore.Poller;
 import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.datastore.SeriesDataType;

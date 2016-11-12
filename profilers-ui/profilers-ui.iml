@@ -13,5 +13,6 @@
     <orderEntry type="module" module-name="core-api" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="module" module-name="adt-ui" />
+    <orderEntry type="module" module-name="adt-ui-model" />
   </component>
 </module>

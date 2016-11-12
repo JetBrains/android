@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.Range;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
@@ -37,7 +37,7 @@ public class MemoryMonitor extends ProfilerMonitor {
     myProcessId = pid;
     myClient = profilers.getClient().getMemoryClient();
     // TODO fix Range and expose it to Choreographer
-    myRangedSeries = new RangedContinuousSeries("Memory", profilers.getViewRange(), new Range(0, 1024*1024),
+    myRangedSeries = new RangedContinuousSeries("Memory", profilers.getViewRange(), new Range(0, 1024 * 1024),
                                                 new MemoryDataSeries(myClient, myProcessId) {
                                                   @Override
                                                   @NotNull

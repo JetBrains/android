@@ -15,10 +15,9 @@
  */
 package com.android.tools.profilers.event;
 
-import com.android.tools.adtui.Range;
-import com.android.tools.adtui.StackedEventComponent;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.EventAction;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
@@ -33,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class ActivityEventDataSeries implements DataSeries<EventAction<StackedEventComponent.Action, String>> {
+public class ActivityEventDataSeries implements DataSeries<EventAction<EventAction.ActivityAction, String>> {
 
   @NotNull
   private Map<Integer, Long> myActiveActivites = new HashMap<>();
@@ -48,8 +47,8 @@ public class ActivityEventDataSeries implements DataSeries<EventAction<StackedEv
   }
 
   @Override
-  public ImmutableList<SeriesData<EventAction<StackedEventComponent.Action, String>>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
-    List<SeriesData<EventAction<StackedEventComponent.Action, String>>> seriesData = new ArrayList<>();
+  public ImmutableList<SeriesData<EventAction<EventAction.ActivityAction, String>>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+    List<SeriesData<EventAction<EventAction.ActivityAction, String>>> seriesData = new ArrayList<>();
     EventServiceGrpc.EventServiceBlockingStub eventService = myClient.getEventClient();
     EventProfiler.EventDataRequest.Builder dataRequestBuilder = EventProfiler.EventDataRequest.newBuilder()
       .setAppId(myProcessId)
@@ -66,10 +65,10 @@ public class ActivityEventDataSeries implements DataSeries<EventAction<StackedEv
       }
 
       EventProfiler.ActivityEventData activity = data.getActivityData();
-      StackedEventComponent.Action action = StackedEventComponent.Action.NONE;
+      EventAction.ActivityAction action = EventAction.ActivityAction.NONE;
       switch (activity.getActivityState()) {
         case RESUMED:
-          action = StackedEventComponent.Action.ACTIVITY_STARTED;
+          action = EventAction.ActivityAction.ACTIVITY_STARTED;
           myActiveActivites.put(activity.getActivityHash(), actionStart);
           break;
         case PAUSED:
@@ -79,14 +78,14 @@ public class ActivityEventDataSeries implements DataSeries<EventAction<StackedEv
           // TODO: This is somewhat of a hack, and this should be removed by telling the StackedEventComponent how to handle
           // an activity completed without a started event. Note until I merge fragments, the same issue potentially exist there.
           if (myActiveActivites.containsKey(activity.getActivityHash())) {
-            action = StackedEventComponent.Action.ACTIVITY_COMPLETED;
+            action = EventAction.ActivityAction.ACTIVITY_COMPLETED;
             actionEnd = actionStart;
             actionStart = myActiveActivites.get(activity.getActivityHash());
           }
           break;
       }
 
-      if (action != StackedEventComponent.Action.NONE) {
+      if (action != EventAction.ActivityAction.NONE) {
         seriesData.add(new SeriesData<>(eventTimestamp, new EventAction(actionStart, actionEnd, action, activity.getName())));
       }
     }

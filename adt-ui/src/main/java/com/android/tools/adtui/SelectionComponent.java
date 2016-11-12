@@ -16,6 +16,7 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.ReportingSeries;
 import com.android.tools.adtui.model.ReportingSeriesRenderer;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +33,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
 
 /**
  * A component for performing/rendering selection and any overlay information (e.g. Tooltip).
@@ -287,8 +287,7 @@ public final class SelectionComponent extends AnimatedComponent {
     if (mZoomRequested) {
       // TODO clamp zooming if a min range is reached.
       if (mZoomMinTarget != mCurrentRange.getMin() || mZoomMaxTarget != mCurrentRange.getMax()) {
-        mCurrentRange.setTarget(mZoomMinTarget, mZoomMaxTarget);
-        mCurrentRange.lockValues();
+        mCurrentRange.set(mZoomMinTarget, mZoomMaxTarget);
       }
       mZoomRequested = false;
     }
@@ -321,14 +320,12 @@ public final class SelectionComponent extends AnimatedComponent {
     }
 
     // Extend view range if necessary
-    // If extended, lock range to force Scrollbar to quit STREAMING mode.
+    // TODO reinvestigate how this should interact with other components updating the current range.
     if (valueAtCursor > mCurrentRange.getMax()) {
       mCurrentRange.setMax(valueAtCursor);
-      mCurrentRange.lockValues();
     }
     else if (valueAtCursor < mCurrentRange.getMin()) {
       mCurrentRange.setMin(valueAtCursor);
-      mCurrentRange.lockValues();
     }
 
     // Check if selection was inverted (min > max or max < min)

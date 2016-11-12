@@ -15,8 +15,8 @@
  */
 package com.android.tools.datastore;
 
-import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.Range;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
