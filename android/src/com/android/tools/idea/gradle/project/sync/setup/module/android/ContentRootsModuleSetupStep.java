@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.builder.model.NativeAndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.cpp.NativeAndroidGradleFacet;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.util.Facets;

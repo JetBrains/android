@@ -18,7 +18,7 @@ package com.android.tools.idea.navigator.nodes;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.NativeArtifact;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
-import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.cpp.NativeAndroidGradleFacet;
 import com.google.common.collect.*;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;

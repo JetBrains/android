@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.facet.gradle;
+package com.android.tools.idea.gradle.project.facet.gradle;
 
 import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
 import com.intellij.facet.*;

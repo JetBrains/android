@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.GradleModuleSetup;
 import com.google.common.collect.Maps;

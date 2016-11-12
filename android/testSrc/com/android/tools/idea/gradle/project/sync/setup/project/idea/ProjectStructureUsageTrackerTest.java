@@ -18,12 +18,15 @@ package com.android.tools.idea.gradle.project.sync.setup.project.idea;
 import com.android.builder.model.InstantRun;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.testutils.VirtualTimeScheduler;
-import com.android.tools.analytics.*;
+import com.android.tools.analytics.AnalyticsSettings;
+import com.android.tools.analytics.LoggedUsage;
+import com.android.tools.analytics.TestUsageTracker;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.fd.InstantRunConfiguration;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
-import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
-import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacetType;
+import com.android.tools.idea.gradle.project.facet.cpp.NativeAndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.cpp.NativeAndroidGradleFacetType;
 import com.android.tools.idea.gradle.stubs.android.*;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleVersions;
@@ -466,10 +469,10 @@ public class ProjectStructureUsageTrackerTest {
     return project;
   }
 
-  private void configureVariant(final MockModuleSpec moduleSpec,
-                                AndroidProjectStub androidProject,
-                                String flavor,
-                                String buildType) {
+  private static void configureVariant(MockModuleSpec moduleSpec,
+                                       AndroidProjectStub androidProject,
+                                       String flavor,
+                                       String buildType) {
     VariantStub variant = androidProject.addVariant(flavor, buildType);
     AndroidArtifactStub mainArtifact = variant.getMainArtifact();
     mainArtifact.setInstantRun(new InstantRunStub(new File("dummy"), moduleSpec.getSupportsInstantRun(),

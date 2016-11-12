@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.compatibility.version;
 
-import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;

@@ -18,7 +18,7 @@ package com.android.tools.idea.sdk;
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.AndroidTestCaseHelper;
-import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.collect.Lists;
 import com.intellij.facet.FacetManager;
