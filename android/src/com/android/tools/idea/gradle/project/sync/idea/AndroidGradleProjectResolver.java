@@ -25,8 +25,10 @@ import com.android.tools.idea.gradle.*;
 import com.android.tools.idea.gradle.project.ProjectImportErrorHandler;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
-import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -201,15 +203,15 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       }
       else {
         String variantName = selectedVariant.getName();
-        AndroidGradleModel model = new AndroidGradleModel(moduleName, moduleRootDirPath, androidProject, variantName);
+        AndroidModuleModel model = new AndroidModuleModel(moduleName, moduleRootDirPath, androidProject, variantName);
         ideModule.createChild(ANDROID_MODEL, model);
       }
     }
 
     NativeAndroidProject nativeAndroidProject = resolverCtx.getExtraProject(gradleModule, NativeAndroidProject.class);
     if (nativeAndroidProject != null) {
-      NativeAndroidGradleModel model = new NativeAndroidGradleModel(GRADLE_SYSTEM_ID, moduleName, moduleRootDirPath, nativeAndroidProject);
-      ideModule.createChild(NATIVE_ANDROID_MODEL, model);
+      NdkModuleModel ndkModuleModel = new NdkModuleModel(moduleName, moduleRootDirPath, nativeAndroidProject);
+      ideModule.createChild(NATIVE_ANDROID_MODEL, ndkModuleModel);
     }
 
     File gradleSettingsFile = new File(moduleRootDirPath, FN_SETTINGS_GRADLE);

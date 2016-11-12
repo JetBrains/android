@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
-import com.android.tools.idea.gradle.NativeAndroidGradleModel;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.collect.Maps;
@@ -183,7 +183,7 @@ public class GradleProjectSyncData implements Serializable {
     File rootDirPath = getBaseDirPath(project);
     Module[] modules = ModuleManager.getInstance(project).getModules();
     for (Module module : modules) {
-      AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
+      GradleFacet gradleFacet = GradleFacet.getInstance(module);
       if (gradleFacet != null) {
         GradleModuleModel gradleModuleModel = gradleFacet.getGradleModuleModel();
         if (gradleModuleModel != null) {
@@ -203,9 +203,9 @@ public class GradleProjectSyncData implements Serializable {
         data.addFileChecksum(rootDirPath, getGradleUserSettingsFile());
       }
 
-      NativeAndroidGradleModel nativeAndroidModel = NativeAndroidGradleModel.get(module);
-      if (nativeAndroidModel != null) {
-        for (File externalBuildFile : nativeAndroidModel.getNativeAndroidProject().getBuildFiles()) {
+      NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
+      if (ndkModuleModel != null) {
+        for (File externalBuildFile : ndkModuleModel.getAndroidProject().getBuildFiles()) {
           data.addFileChecksum(rootDirPath, externalBuildFile);
         }
       }

@@ -19,7 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -258,9 +258,9 @@ public class LintIdeProject extends Project {
 
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      AndroidGradleModel androidGradleModel = AndroidGradleModel.get(facet);
-      if (androidGradleModel != null) {
-        addGradleLibraryProjects(client, files, libraryMap, projects, facet, androidGradleModel, project, projectMap, dependencies);
+      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
+      if (androidModuleModel != null) {
+        addGradleLibraryProjects(client, files, libraryMap, projects, facet, androidModuleModel, project, projectMap, dependencies);
       }
     }
 
@@ -307,8 +307,8 @@ public class LintIdeProject extends Project {
     }
     else if (facet.requiresAndroidModel()) {
       AndroidModel androidModel = facet.getAndroidModel();
-      if (androidModel instanceof AndroidGradleModel) {
-        project = new LintGradleProject(client, dir, dir, facet, (AndroidGradleModel)androidModel);
+      if (androidModel instanceof AndroidModuleModel) {
+        project = new LintGradleProject(client, dir, dir, facet, (AndroidModuleModel)androidModel);
       } else {
         project = new LintAndroidModelProject(client, dir, dir, facet, androidModel);
       }
@@ -367,11 +367,11 @@ public class LintIdeProject extends Project {
                                                @NonNull Map<AndroidLibrary, Project> libraryMap,
                                                @NonNull List<Project> projects,
                                                @NonNull AndroidFacet facet,
-                                               @NonNull AndroidGradleModel androidGradleModel,
+                                               @NonNull AndroidModuleModel androidModuleModel,
                                                @NonNull LintModuleProject project,
                                                @NonNull Map<Project,Module> projectMap,
                                                @NonNull List<Project> dependencies) {
-    Collection<AndroidLibrary> libraries = androidGradleModel.getSelectedMainCompileDependencies().getLibraries();
+    Collection<AndroidLibrary> libraries = androidModuleModel.getSelectedMainCompileDependencies().getLibraries();
     for (AndroidLibrary library : libraries) {
       Project p = libraryMap.get(library);
       if (p == null) {
@@ -714,7 +714,7 @@ public class LintIdeProject extends Project {
   }
 
   private static class LintGradleProject extends LintAndroidModelProject {
-    private final AndroidGradleModel myAndroidGradleModel;
+    private final AndroidModuleModel myAndroidModuleModel;
 
     /**
      * Creates a new Project. Use one of the factory methods to create.
@@ -724,11 +724,11 @@ public class LintIdeProject extends Project {
       @NonNull File dir,
       @NonNull File referenceDir,
       @NonNull AndroidFacet facet,
-      @NonNull AndroidGradleModel androidGradleModel) {
-      super(client, dir, referenceDir, facet, androidGradleModel);
+      @NonNull AndroidModuleModel androidModuleModel) {
+      super(client, dir, referenceDir, facet, androidModuleModel);
       gradleProject = true;
       mergeManifests = true;
-      myAndroidGradleModel = androidGradleModel;
+      myAndroidModuleModel = androidModuleModel;
     }
 
     @NonNull
@@ -741,7 +741,7 @@ public class LintIdeProject extends Project {
           manifestFiles.add(mainManifest);
         }
 
-        List<SourceProvider> flavorSourceProviders = myAndroidGradleModel.getFlavorSourceProviders();
+        List<SourceProvider> flavorSourceProviders = myAndroidModuleModel.getFlavorSourceProviders();
         if (flavorSourceProviders != null) {
           for (SourceProvider provider : flavorSourceProviders) {
             File manifestFile = provider.getManifestFile();
@@ -751,7 +751,7 @@ public class LintIdeProject extends Project {
           }
         }
 
-        SourceProvider multiProvider = myAndroidGradleModel.getMultiFlavorSourceProvider();
+        SourceProvider multiProvider = myAndroidModuleModel.getMultiFlavorSourceProvider();
         if (multiProvider != null) {
           File manifestFile = multiProvider.getManifestFile();
           if (manifestFile.exists()) {
@@ -759,7 +759,7 @@ public class LintIdeProject extends Project {
           }
         }
 
-        SourceProvider buildTypeSourceProvider = myAndroidGradleModel.getBuildTypeSourceProvider();
+        SourceProvider buildTypeSourceProvider = myAndroidModuleModel.getBuildTypeSourceProvider();
         if (buildTypeSourceProvider != null) {
           File manifestFile = buildTypeSourceProvider.getManifestFile();
           if (manifestFile.exists()) {
@@ -767,7 +767,7 @@ public class LintIdeProject extends Project {
           }
         }
 
-        SourceProvider variantProvider = myAndroidGradleModel.getVariantSourceProvider();
+        SourceProvider variantProvider = myAndroidModuleModel.getVariantSourceProvider();
         if (variantProvider != null) {
           File manifestFile = variantProvider.getManifestFile();
           if (manifestFile.exists()) {
@@ -803,7 +803,7 @@ public class LintIdeProject extends Project {
       if (proguardFiles == null) {
         if (myFacet.requiresAndroidModel()) {
           // TODO: b/22928250
-          AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
+          AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
           if (androidModel != null) {
             ProductFlavor flavor = androidModel.getAndroidProject().getDefaultConfig().getProductFlavor();
             proguardFiles = Lists.newArrayList();
@@ -842,7 +842,7 @@ public class LintIdeProject extends Project {
           // Overridden because we don't synchronize the gradle output directory to
           // the AndroidDexCompiler settings the way java source roots are mapped into
           // the module content root settings
-          File dir = myAndroidGradleModel.getMainArtifact().getClassesFolder();
+          File dir = myAndroidModuleModel.getMainArtifact().getClassesFolder();
           if (dir != null) {
             javaClassFolders = Collections.singletonList(dir);
           } else {
@@ -864,7 +864,7 @@ public class LintIdeProject extends Project {
       if (SUPPORT_CLASS_FILES) {
         if (javaLibraries == null) {
           if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() != null) {
-            Collection<JavaLibrary> libs = myAndroidGradleModel.getSelectedMainCompileDependencies().getJavaLibraries();
+            Collection<JavaLibrary> libs = myAndroidModuleModel.getSelectedMainCompileDependencies().getJavaLibraries();
             javaLibraries = Lists.newArrayListWithExpectedSize(libs.size());
             for (JavaLibrary lib : libs) {
               if (!includeProvided) {
@@ -901,7 +901,7 @@ public class LintIdeProject extends Project {
     @Override
     public int getBuildSdk() {
       // TODO: b/22928250
-      AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
+      AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
       if (androidModel != null) {
         String compileTarget = androidModel.getAndroidProject().getCompileTarget();
         AndroidVersion version = AndroidTargetHash.getPlatformVersion(compileTarget);
@@ -922,7 +922,7 @@ public class LintIdeProject extends Project {
     @Override
     public AndroidProject getGradleProjectModel() {
       // TODO: b/22928250
-      AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
+      AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
       if (androidModel != null) {
         return androidModel.getAndroidProject();
       }
@@ -934,7 +934,7 @@ public class LintIdeProject extends Project {
     @Override
     public Variant getCurrentVariant() {
       // TODO: b/22928250
-      AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
+      AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
       if (androidModel != null) {
         return androidModel.getSelectedVariant();
       }
@@ -952,7 +952,7 @@ public class LintIdeProject extends Project {
     @Override
     public Boolean dependsOn(@NonNull String artifact) {
       // TODO: b/22928250
-      AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
+      AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
 
       if (SUPPORT_LIB_ARTIFACT.equals(artifact)) {
         if (supportLib == null) {

@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.builder.model.NativeAndroidProject;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.facet.cpp.NativeAndroidGradleFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.util.Facets;
@@ -53,7 +53,7 @@ public class ContentRootsModuleSetupStep extends AndroidModuleSetupStep {
   @Override
   protected void doSetUpModule(@NotNull Module module,
                                @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                               @NotNull AndroidGradleModel androidModel,
+                               @NotNull AndroidModuleModel androidModel,
                                @Nullable SyncAction.ModuleModels gradleModels,
                                @Nullable ProgressIndicator indicator) {
     ModifiableRootModel moduleModel = ideModelsProvider.getModifiableRootModel(module);
@@ -65,7 +65,7 @@ public class ContentRootsModuleSetupStep extends AndroidModuleSetupStep {
 
   @NotNull
   private static List<ContentEntry> findContentEntries(@NotNull ModifiableRootModel moduleModel,
-                                                       @NotNull AndroidGradleModel androidModel,
+                                                       @NotNull AndroidModuleModel androidModel,
                                                        boolean hasNativeModel) {
     if (!hasNativeModel) {
       removeExistingContentEntries(moduleModel);
@@ -88,8 +88,8 @@ public class ContentRootsModuleSetupStep extends AndroidModuleSetupStep {
     if (gradleModels != null) {
       return gradleModels.findModel(NativeAndroidProject.class) != null;
     }
-    NativeAndroidGradleFacet facet = Facets.findFacet(module, ideModelsProvider, NativeAndroidGradleFacet.getFacetType().getId());
-    return facet != null && facet.getNativeAndroidGradleModel() != null;
+    NdkFacet facet = Facets.findFacet(module, ideModelsProvider, NdkFacet.getFacetType().getId());
+    return facet != null && facet.getNdkModuleModel() != null;
   }
 
   @Override

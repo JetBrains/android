@@ -23,11 +23,11 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.MavenRepositories;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.NativeAndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
@@ -73,7 +73,7 @@ import static com.android.SdkConstants.*;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER;
-import static com.android.tools.idea.gradle.AndroidGradleModel.getTestArtifacts;
+import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.getTestArtifacts;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findEmbeddedGradleDistributionPath;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
@@ -208,7 +208,7 @@ public final class GradleUtil {
 
   @NotNull
   public static Icon getModuleIcon(@NotNull Module module) {
-    AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel != null) {
       int projectType = androidModel.getProjectType();
       if (projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP) {
@@ -221,14 +221,14 @@ public final class GradleUtil {
 
   @Nullable
   public static AndroidProject getAndroidProject(@NotNull Module module) {
-    AndroidGradleModel gradleModel = AndroidGradleModel.get(module);
+    AndroidModuleModel gradleModel = AndroidModuleModel.get(module);
     return gradleModel != null ? gradleModel.getAndroidProject() : null;
   }
 
   @Nullable
   public static NativeAndroidProject getNativeAndroidProject(@NotNull Module module) {
-    NativeAndroidGradleModel gradleModel = NativeAndroidGradleModel.get(module);
-    return gradleModel != null ? gradleModel.getNativeAndroidProject() : null;
+    NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
+    return ndkModuleModel != null ? ndkModuleModel.getAndroidProject() : null;
   }
 
   /**
@@ -239,7 +239,7 @@ public final class GradleUtil {
    */
   @Nullable
   public static String getGradlePath(@NotNull Module module) {
-    AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
+    GradleFacet facet = GradleFacet.getInstance(module);
     return facet != null ? facet.getConfiguration().GRADLE_PROJECT_PATH : null;
   }
 
@@ -264,7 +264,7 @@ public final class GradleUtil {
    * in the UI) artifacts. The dependency lookup is not transitive (only direct dependencies are returned.)
    */
   @NotNull
-  public static List<AndroidLibrary> getDirectLibraryDependencies(@NotNull Variant variant, @NotNull AndroidGradleModel androidModel) {
+  public static List<AndroidLibrary> getDirectLibraryDependencies(@NotNull Variant variant, @NotNull AndroidModuleModel androidModel) {
     List<AndroidLibrary> libraries = Lists.newArrayList();
 
     GradleVersion modelVersion = androidModel.getModelVersion();
@@ -284,7 +284,7 @@ public final class GradleUtil {
   public static Module findModuleByGradlePath(@NotNull Project project, @NotNull String gradlePath) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
-      AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
+      GradleFacet gradleFacet = GradleFacet.getInstance(module);
       if (gradleFacet != null) {
         if (gradlePath.equals(gradleFacet.getConfiguration().GRADLE_PROJECT_PATH)) {
           return module;
@@ -308,7 +308,7 @@ public final class GradleUtil {
    */
   @Nullable
   public static VirtualFile getGradleBuildFile(@NotNull Module module) {
-    AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
+    GradleFacet gradleFacet = GradleFacet.getInstance(module);
     if (gradleFacet != null && gradleFacet.getGradleModuleModel() != null) {
       return gradleFacet.getGradleModuleModel().getBuildFile();
     }
@@ -502,7 +502,7 @@ public final class GradleUtil {
     Set<String> foundInApps = Sets.newHashSet();
     for (Module module : ModuleManager.getInstance(project).getModules()) {
 
-      AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
       if (androidModel != null) {
         AndroidProject androidProject = androidModel.getAndroidProject();
         String modelVersion = androidProject.getModelVersion();
@@ -595,13 +595,13 @@ public final class GradleUtil {
    * @param artifact     the artifact
    * @return {@code true} if the project depends on the given artifact (including transitively)
    */
-  public static boolean dependsOn(@NonNull AndroidGradleModel androidModel, @NonNull String artifact) {
+  public static boolean dependsOn(@NonNull AndroidModuleModel androidModel, @NonNull String artifact) {
     Dependencies dependencies = androidModel.getSelectedMainCompileDependencies();
     return dependsOn(dependencies, artifact);
   }
 
   @Nullable
-  public static GradleVersion getModuleDependencyVersion(@NonNull AndroidGradleModel androidModel, @NonNull String artifact) {
+  public static GradleVersion getModuleDependencyVersion(@NonNull AndroidModuleModel androidModel, @NonNull String artifact) {
     Dependencies dependencies = androidModel.getSelectedMainCompileDependencies();
     for (AndroidLibrary library : dependencies.getLibraries()) {
       String version = getDependencyVersion(library, artifact, true);
@@ -620,7 +620,7 @@ public final class GradleUtil {
    * @param artifact     the artifact
    * @return {@code true} if the project depends on the given artifact (including transitively)
    */
-  public static boolean dependsOnAndroidTest(@NonNull AndroidGradleModel androidModel, @NonNull String artifact) {
+  public static boolean dependsOnAndroidTest(@NonNull AndroidModuleModel androidModel, @NonNull String artifact) {
     Dependencies dependencies = androidModel.getSelectedAndroidTestCompileDependencies();
     if (dependencies == null) {
       return false;

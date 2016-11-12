@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer.dependency;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
@@ -31,10 +31,10 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Tests for {@link Dependency#extractFrom(AndroidGradleModel)}.
+ * Tests for {@link Dependency#extractFrom(AndroidModuleModel)}.
  */
 public class ExtractAndroidDependenciesTest extends IdeaTestCase {
-  private AndroidGradleModel myAndroidModel;
+  private AndroidModuleModel myAndroidModel;
   private AndroidProjectStub myAndroidProject;
   private VariantStub myVariant;
 
@@ -46,7 +46,7 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
     assertNotNull(myVariant);
 
     File rootDir = myAndroidProject.getRootDir();
-    myAndroidModel = new AndroidGradleModel(myAndroidProject.getName(), rootDir, myAndroidProject, myVariant.getName());
+    myAndroidModel = new AndroidModuleModel(myAndroidProject.getName(), rootDir, myAndroidProject, myVariant.getName());
   }
 
   @Override

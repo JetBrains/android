@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.plugin;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.util.BuildFileProcessor;
@@ -69,12 +69,12 @@ public class AndroidPluginInfo {
   @Nullable
   private static AndroidPluginInfo find(@NotNull Project project, boolean searchInBuildFilesOnly) {
     Module appModule = null;
-    AndroidGradleModel appGradleModel = null;
+    AndroidModuleModel appGradleModel = null;
     VirtualFile pluginBuildFile = null;
 
     if (!searchInBuildFilesOnly) {
       for (Module module : ModuleManager.getInstance(project).getModules()) {
-        AndroidGradleModel gradleModel = AndroidGradleModel.get(module);
+        AndroidModuleModel gradleModel = AndroidModuleModel.get(module);
         if (gradleModel != null && gradleModel.getProjectType() == PROJECT_TYPE_APP) {
           // This is the 'app' module in the project.
           appModule = module;

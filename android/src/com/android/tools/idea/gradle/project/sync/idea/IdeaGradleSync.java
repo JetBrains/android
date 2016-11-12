@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
-import com.android.tools.idea.gradle.NativeAndroidGradleModel;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
-import com.android.tools.idea.gradle.project.facet.java.JavaGradleFacet;
-import com.android.tools.idea.gradle.project.facet.cpp.NativeAndroidGradleFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.GradleProjectSyncData;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.setup.project.idea.PostSyncProjectSetup;
@@ -129,7 +129,7 @@ public class IdeaGradleSync implements GradleSync {
         DataNode<ModuleData> moduleDataNode = moduleDataNodesByName.get(module.getName());
         if (moduleDataNode == null) {
           // When a Gradle facet is present, there should be a cache node for the module.
-          AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
+          GradleFacet gradleFacet = GradleFacet.getInstance(module);
           if (gradleFacet != null) {
             return true;
           }
@@ -154,7 +154,7 @@ public class IdeaGradleSync implements GradleSync {
   }
 
   private static boolean isCacheMissingModels(@NotNull DataNode<ModuleData> cache, @NotNull Module module) {
-    AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
+    GradleFacet gradleFacet = GradleFacet.getInstance(module);
     if (gradleFacet != null) {
       DataNode<GradleModuleModel> gradleDataNode = find(cache, GRADLE_MODULE_MODEL);
       if (gradleDataNode == null) {
@@ -163,13 +163,13 @@ public class IdeaGradleSync implements GradleSync {
 
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet != null) {
-        DataNode<AndroidGradleModel> androidDataNode = find(cache, ANDROID_MODEL);
+        DataNode<AndroidModuleModel> androidDataNode = find(cache, ANDROID_MODEL);
         if (androidDataNode == null || !isValidProxyObject(androidDataNode.getData().getAndroidProject())) {
           return true;
         }
       }
       else {
-        JavaGradleFacet javaFacet = JavaGradleFacet.getInstance(module);
+        JavaFacet javaFacet = JavaFacet.getInstance(module);
         if (javaFacet != null) {
           DataNode<JavaModuleModel> javaProjectDataNode = find(cache, JAVA_MODULE_MODEL);
           if (javaProjectDataNode == null) {
@@ -178,10 +178,10 @@ public class IdeaGradleSync implements GradleSync {
         }
       }
     }
-    NativeAndroidGradleFacet nativeAndroidFacet = NativeAndroidGradleFacet.getInstance(module);
-    if (nativeAndroidFacet != null) {
-      DataNode<NativeAndroidGradleModel> nativeAndroidGradleDataNode = find(cache, NATIVE_ANDROID_MODEL);
-      if (nativeAndroidGradleDataNode == null || !isValidProxyObject(nativeAndroidGradleDataNode.getData().getNativeAndroidProject())) {
+    NdkFacet ndkFacet = NdkFacet.getInstance(module);
+    if (ndkFacet != null) {
+      DataNode<NdkModuleModel> ndkModuleModelDataNode = find(cache, NATIVE_ANDROID_MODEL);
+      if (ndkModuleModelDataNode == null || !isValidProxyObject(ndkModuleModelDataNode.getData().getAndroidProject())) {
         return true;
       }
     }

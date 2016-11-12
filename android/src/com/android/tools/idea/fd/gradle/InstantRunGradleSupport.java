@@ -17,7 +17,7 @@ package com.android.tools.idea.fd.gradle;
 
 import com.android.builder.model.InstantRun;
 import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -61,7 +61,7 @@ public enum InstantRunGradleSupport {
     return myUserNotification;
   }
 
-  public static InstantRunGradleSupport fromModel(@NotNull AndroidGradleModel model) throws UnsupportedOperationException {
+  public static InstantRunGradleSupport fromModel(@NotNull AndroidModuleModel model) throws UnsupportedOperationException {
     int modelStatus;
     try {
       modelStatus = model.getSelectedVariant().getMainArtifact().getInstantRun().getSupportStatus();

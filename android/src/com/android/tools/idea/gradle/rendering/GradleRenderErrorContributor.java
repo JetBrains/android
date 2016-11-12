@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.rendering;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.rendering.HtmlLinkManager;
@@ -57,7 +57,7 @@ public class GradleRenderErrorContributor extends RenderErrorContributor {
     if (brokenClasses == null || brokenClasses.isEmpty() || facet == null) {
       return;
     }
-    AndroidGradleModel model = AndroidGradleModel.get(facet);
+    AndroidModuleModel model = AndroidModuleModel.get(facet);
     if (model == null || !model.getFeatures().isLayoutRenderingIssuePresent()) {
       return;
     }

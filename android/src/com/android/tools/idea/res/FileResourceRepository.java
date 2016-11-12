@@ -19,7 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.res2.*;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.rendering.LogWrapper;
 import com.android.utils.ILogger;
 import com.google.common.collect.ArrayListMultimap;
@@ -97,7 +97,7 @@ public class FileResourceRepository extends LocalResourceRepository {
     catch (Exception e) {
       LOG.error("Failed to initialize resources", e);
     }
-    if (file.getPath().contains(AndroidGradleModel.EXPLODED_AAR)) {
+    if (file.getPath().contains(AndroidModuleModel.EXPLODED_AAR)) {
       File rDotTxt = new File(file.getParentFile(), FN_RESOURCE_TEXT);
       if (rDotTxt.exists()) {
         repository.myResourceTextFile = rDotTxt;

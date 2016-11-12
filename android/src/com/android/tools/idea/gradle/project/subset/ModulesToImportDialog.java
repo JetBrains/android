@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.subset;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
@@ -661,11 +661,11 @@ public class ModulesToImportDialog extends DialogWrapper {
 
     @NotNull
     private static Icon getModuleIcon(@NotNull DataNode<ModuleData> module) {
-      Collection<DataNode<AndroidGradleModel>> children = getChildren(module, ANDROID_MODEL);
+      Collection<DataNode<AndroidModuleModel>> children = getChildren(module, ANDROID_MODEL);
       if (!children.isEmpty()) {
-        DataNode<AndroidGradleModel> child = getFirstItem(children);
+        DataNode<AndroidModuleModel> child = getFirstItem(children);
         if (child != null) {
-          AndroidGradleModel androidModel = child.getData();
+          AndroidModuleModel androidModel = child.getData();
           return androidModel.getProjectType() == PROJECT_TYPE_APP ? AppModule : LibraryModule;
         }
       }

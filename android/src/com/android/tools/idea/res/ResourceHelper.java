@@ -31,7 +31,7 @@ import com.android.sdklib.devices.Device;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.databinding.DataBindingUtil;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.*;
@@ -1092,7 +1092,7 @@ public class ResourceHelper {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
         // TODO: b/23032391
-        AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+        AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
         if (androidModel != null) {
           String resourcePrefix = LintUtils.computeResourcePrefix(androidModel.getAndroidProject());
           if (resourcePrefix != null) {

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
@@ -52,7 +52,7 @@ public class JdkModuleSetupStepTest extends AndroidGradleTestCase {
     loadSimpleApplication();
 
     Module appModule = myModules.getAppModule();
-    AndroidGradleModel androidModel = AndroidGradleModel.get(appModule);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
     assertNotNull(androidModel);
 
     Sdk jdk = mock(Sdk.class);

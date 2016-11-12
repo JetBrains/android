@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.layout;
 
 import com.android.repository.Revision;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
@@ -164,7 +164,7 @@ public class NlPreviewTest {
 
     guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
 
-    AndroidGradleModel androidModel = guiTest.ideFrame().getAndroidModel("app");
+    AndroidModuleModel androidModel = guiTest.ideFrame().getAndroidModel("app");
     String modelVersion = androidModel.getAndroidProject().getModelVersion();
     Revision version = Revision.parseRevision(modelVersion);
     assumeTrue("This test tests behavior that starts working in 0.14.+", version.getMajor() != 0 || version.getMinor() >= 14);

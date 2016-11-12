@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -99,7 +99,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
   @Nullable
   private static Module getGradleModule(@NotNull DataContext dataContext) {
     Module module = LangDataKeys.MODULE_CONTEXT.getData(dataContext);
-    if (module != null && (AndroidGradleFacet.getInstance(module) != null || isGradleProjectModule(module))) {
+    if (module != null && (GradleFacet.getInstance(module) != null || isGradleProjectModule(module))) {
       return module;
     }
     return null;

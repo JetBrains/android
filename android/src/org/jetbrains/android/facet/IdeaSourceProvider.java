@@ -16,8 +16,8 @@
 package org.jetbrains.android.facet;
 
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.gradle.NativeAndroidGradleModel;
-import com.android.tools.idea.gradle.project.facet.cpp.NativeAndroidGradleFacet;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -68,7 +68,7 @@ public abstract class IdeaSourceProvider {
   }
 
   @NotNull
-  public static IdeaSourceProvider create(@NotNull NativeAndroidGradleFacet facet) {
+  public static IdeaSourceProvider create(@NotNull NdkFacet facet) {
     return new Native(facet);
   }
 
@@ -239,9 +239,9 @@ public abstract class IdeaSourceProvider {
 
   /** {@linkplain IdeaSourceProvider} for a Native Android Gradle project */
   private static class Native extends IdeaSourceProvider {
-    @NotNull private final NativeAndroidGradleFacet myFacet;
+    @NotNull private final NdkFacet myFacet;
 
-    private Native(@NotNull NativeAndroidGradleFacet facet) {
+    private Native(@NotNull NdkFacet facet) {
       myFacet = facet;
     }
 
@@ -284,12 +284,12 @@ public abstract class IdeaSourceProvider {
     @NotNull
     @Override
     public Collection<VirtualFile> getJniDirectories() {
-      NativeAndroidGradleModel nativeAndroidGradleModel = myFacet.getNativeAndroidGradleModel();
-      if (nativeAndroidGradleModel == null) {
+      NdkModuleModel ndkModuleModel = myFacet.getNdkModuleModel();
+      if (ndkModuleModel == null) {
         return Collections.emptyList();
       }
 
-      Collection<File> sourceFolders = nativeAndroidGradleModel.getSelectedVariant().getSourceFolders();
+      Collection<File> sourceFolders = ndkModuleModel.getSelectedVariant().getSourceFolders();
 
       Collection<VirtualFile> result = Sets.newLinkedHashSetWithExpectedSize(sourceFolders.size());
       LocalFileSystem fileSystem = LocalFileSystem.getInstance();

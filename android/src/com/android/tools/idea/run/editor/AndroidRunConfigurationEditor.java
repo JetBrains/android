@@ -18,7 +18,7 @@ package com.android.tools.idea.run.editor;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.fd.InstantRunConfigurable;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
@@ -292,7 +292,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
       return;
     }
 
-    AndroidGradleModel model = AndroidGradleModel.get(module);
+    AndroidModuleModel model = AndroidModuleModel.get(module);
     if (model == null || InstantRunGradleUtils.modelSupportsInstantRun(model)) {
       myOldVersionLabel.setVisible(false);
       return;

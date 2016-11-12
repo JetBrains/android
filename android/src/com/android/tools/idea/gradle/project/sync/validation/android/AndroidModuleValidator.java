@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AndroidModuleValidator {
-  public abstract void validate(@NotNull Module module, @NotNull AndroidGradleModel androidModel);
+  public abstract void validate(@NotNull Module module, @NotNull AndroidModuleModel androidModel);
 
   public abstract void fixAndReportFoundIssues();
 
@@ -51,7 +51,7 @@ public abstract class AndroidModuleValidator {
     }
 
     @Override
-    public void validate(@NotNull Module module, @NotNull AndroidGradleModel androidModel) {
+    public void validate(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
       for (AndroidProjectValidationStrategy strategy : myStrategies) {
         strategy.validate(module, androidModel);
       }

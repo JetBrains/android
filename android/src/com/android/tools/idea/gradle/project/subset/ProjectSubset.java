@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.project.subset;
 
 import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.AndroidGradleModel.SourceFileContainerInfo;
-import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel.SourceFileContainerInfo;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.google.common.collect.Lists;
@@ -193,9 +193,9 @@ public class ProjectSubset {
    */
   @Nullable
   private static ModuleSearchResult containsSourceFile(@NotNull DataNode<ModuleData> moduleInfos, @NotNull File file, boolean selected) {
-    DataNode<AndroidGradleModel> androidProjectNode = find(moduleInfos, ANDROID_MODEL);
+    DataNode<AndroidModuleModel> androidProjectNode = find(moduleInfos, ANDROID_MODEL);
     if (androidProjectNode != null) {
-      AndroidGradleModel androidModel = androidProjectNode.getData();
+      AndroidModuleModel androidModel = androidProjectNode.getData();
       SourceFileContainerInfo result = androidModel.containsSourceFile(file);
       if (result != null) {
         return new ModuleSearchResult(moduleInfos, result, selected);

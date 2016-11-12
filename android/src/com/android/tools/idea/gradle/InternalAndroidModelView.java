@@ -20,6 +20,8 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.util.ProxyUtil;
 import com.android.tools.idea.gradle.util.ui.ToolWindowAlikePanel;
 import com.intellij.icons.AllIcons;
@@ -32,7 +34,6 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,6 +49,7 @@ import static com.android.tools.idea.gradle.util.ProxyUtil.getAndroidModelProxyV
 import static com.android.tools.idea.gradle.util.ProxyUtil.isAndroidModelProxyObject;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.trimStart;
+import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
 /**
  * "Android Model (Internal)" tool window to visualize the Android-Gradle model data. This is an internal only view and visible only when
@@ -109,24 +111,24 @@ public class InternalAndroidModelView {
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       final DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(myProject.getName());
       for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-        AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+        AndroidModuleModel androidModel = AndroidModuleModel.get(module);
         if (androidModel != null) {
           DefaultMutableTreeNode moduleNode = new DefaultMutableTreeNode(module.getName());
           AndroidProject androidProject = androidModel.waitForAndGetProxyAndroidProject();
           addProxyObject(moduleNode, androidProject);
           rootNode.add(moduleNode);
         }
-        NativeAndroidGradleModel nativeAndroidModel = NativeAndroidGradleModel.get(module);
-        if (nativeAndroidModel != null) {
+        NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
+        if (ndkModuleModel != null) {
           String nodeName = androidModel == null ? module.getName() : module.getName() + " (native)";
           DefaultMutableTreeNode nativeModuleNode = new DefaultMutableTreeNode(nodeName);
-          NativeAndroidProject nativeAndroidProject = nativeAndroidModel.waitForAndGetProxyAndroidProject();
+          NativeAndroidProject nativeAndroidProject = ndkModuleModel.waitForAndGetProxyAndroidProject();
           addProxyObject(nativeModuleNode, nativeAndroidProject);
           rootNode.add(nativeModuleNode);
         }
       }
 
-      UIUtil.invokeLaterIfNeeded(() -> {
+      invokeLaterIfNeeded(() -> {
         DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
         renderer.setOpenIcon(AllIcons.Nodes.NewFolder);
         renderer.setClosedIcon(AllIcons.Nodes.NewFolder);

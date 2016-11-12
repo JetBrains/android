@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,35 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle;
+package com.android.tools.idea.gradle.project.model;
 
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.facet.cpp.NativeAndroidGradleFacet;
+import com.android.tools.idea.gradle.InternalAndroidModelView;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import static com.android.tools.idea.gradle.util.ProxyUtil.reproxy;
 import static java.util.Collections.sort;
 
-public class NativeAndroidGradleModel implements Serializable {
+public class NdkModuleModel implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private static final Logger LOG = Logger.getInstance(NativeAndroidGradleModel.class);
 
-  @NotNull private ProjectSystemId myProjectSystemId;
   @NotNull private String myModuleName;
   @NotNull private File myRootDirPath;
-  @NotNull private NativeAndroidProject myNativeAndroidProject;
+  @NotNull private NativeAndroidProject myAndroidProject;
 
   @Nullable private transient GradleVersion myModelVersion;
   @Nullable private transient CountDownLatch myProxyNativeAndroidProjectLatch;
@@ -55,28 +56,26 @@ public class NativeAndroidGradleModel implements Serializable {
   @NotNull private String mySelectedVariantName;
 
   @Nullable
-  public static NativeAndroidGradleModel get(@NotNull Module module) {
-    NativeAndroidGradleFacet facet = NativeAndroidGradleFacet.getInstance(module);
+  public static NdkModuleModel get(@NotNull Module module) {
+    NdkFacet facet = NdkFacet.getInstance(module);
     return facet != null ? get(facet) : null;
   }
 
   @Nullable
-  public static NativeAndroidGradleModel get(@NotNull NativeAndroidGradleFacet androidFacet) {
-    NativeAndroidGradleModel androidModel = androidFacet.getNativeAndroidGradleModel();
+  public static NdkModuleModel get(@NotNull NdkFacet ndkFacet) {
+    NdkModuleModel androidModel = ndkFacet.getNdkModuleModel();
     if (androidModel == null) {
       return null;
     }
     return androidModel;
   }
 
-  public NativeAndroidGradleModel(@NotNull ProjectSystemId projectSystemId,
-                                  @NotNull String moduleName,
-                                  @NotNull File rootDirPath,
-                                  @NotNull NativeAndroidProject nativeAndroidProject) {
-    myProjectSystemId = projectSystemId;
+  public NdkModuleModel(@NotNull String moduleName,
+                        @NotNull File rootDirPath,
+                        @NotNull NativeAndroidProject androidProject) {
     myModuleName = moduleName;
     myRootDirPath = rootDirPath;
-    myNativeAndroidProject = nativeAndroidProject;
+    myAndroidProject = androidProject;
 
     parseAndSetModelVersion();
 
@@ -84,7 +83,7 @@ public class NativeAndroidGradleModel implements Serializable {
     // asynchronously to avoid blocking the project sync operation for reproxying to complete.
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       myProxyNativeAndroidProjectLatch = new CountDownLatch(1);
-      myProxyNativeAndroidProject = reproxy(NativeAndroidProject.class, myNativeAndroidProject);
+      myProxyNativeAndroidProject = reproxy(NativeAndroidProject.class, myAndroidProject);
       myProxyNativeAndroidProjectLatch.countDown();
     });
 
@@ -96,7 +95,7 @@ public class NativeAndroidGradleModel implements Serializable {
   }
 
   private void populateVariantsByName() {
-    for (NativeArtifact artifact : myNativeAndroidProject.getArtifacts()) {
+    for (NativeArtifact artifact : myAndroidProject.getArtifacts()) {
       String variantName = modelVersionIsAtLeast("2.0.0") ? artifact.getGroupName() : artifact.getName();
       NativeVariant variant = myVariantsByName.get(variantName);
       if (variant == null) {
@@ -112,13 +111,13 @@ public class NativeAndroidGradleModel implements Serializable {
   }
 
   private void populateToolchainsByName() {
-    for (NativeToolchain toolchain : myNativeAndroidProject.getToolChains()) {
+    for (NativeToolchain toolchain : myAndroidProject.getToolChains()) {
       myToolchainsByName.put(toolchain.getName(), toolchain);
     }
   }
 
   private void populateSettingsByName() {
-    for (NativeSettings settings : myNativeAndroidProject.getSettings()) {
+    for (NativeSettings settings : myAndroidProject.getSettings()) {
       mySettingsByName.put(settings.getName(), settings);
     }
   }
@@ -146,16 +145,11 @@ public class NativeAndroidGradleModel implements Serializable {
   }
 
   private void parseAndSetModelVersion() {
-    myModelVersion = GradleVersion.tryParse(myNativeAndroidProject.getModelVersion());
+    myModelVersion = GradleVersion.tryParse(myAndroidProject.getModelVersion());
   }
 
   public boolean modelVersionIsAtLeast(@NotNull String revision) {
     return myModelVersion != null && myModelVersion.compareIgnoringQualifiers(revision) >= 0;
-  }
-
-  @NotNull
-  public ProjectSystemId getProjectSystemId() {
-    return myProjectSystemId;
   }
 
   @NotNull
@@ -169,8 +163,8 @@ public class NativeAndroidGradleModel implements Serializable {
   }
 
   @NotNull
-  public NativeAndroidProject getNativeAndroidProject() {
-    return myNativeAndroidProject;
+  public NativeAndroidProject getAndroidProject() {
+    return myAndroidProject;
   }
 
   @NotNull
@@ -237,7 +231,7 @@ public class NativeAndroidGradleModel implements Serializable {
         myProxyNativeAndroidProjectLatch.await();
       }
       catch (InterruptedException e) {
-        LOG.error(e);
+        Logger.getInstance(NdkModuleModel.class).error(e);
         Thread.currentThread().interrupt();
       }
     }
@@ -246,7 +240,6 @@ public class NativeAndroidGradleModel implements Serializable {
   private void writeObject(ObjectOutputStream out) throws IOException {
     waitForProxyAndroidProject();
 
-    out.writeObject(myProjectSystemId);
     out.writeObject(myModuleName);
     out.writeObject(myRootDirPath);
     out.writeObject(myProxyNativeAndroidProject);
@@ -254,15 +247,14 @@ public class NativeAndroidGradleModel implements Serializable {
   }
 
   private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-    myProjectSystemId = (ProjectSystemId)in.readObject();
     myModuleName = (String)in.readObject();
     myRootDirPath = (File)in.readObject();
-    myNativeAndroidProject = (NativeAndroidProject)in.readObject();
+    myAndroidProject = (NativeAndroidProject)in.readObject();
     mySelectedVariantName = (String)in.readObject();
 
     parseAndSetModelVersion();
 
-    myProxyNativeAndroidProject = myNativeAndroidProject;
+    myProxyNativeAndroidProject = myAndroidProject;
 
     myVariantsByName = Maps.newHashMap();
     myToolchainsByName = Maps.newHashMap();

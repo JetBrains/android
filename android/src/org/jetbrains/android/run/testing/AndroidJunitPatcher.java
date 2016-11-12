@@ -16,7 +16,7 @@
 package org.jetbrains.android.run.testing;
 
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.execution.JUnitPatcher;
 import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.openapi.module.Module;
@@ -43,7 +43,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       return;
     }
 
-    AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel == null) {
       return;
     }
