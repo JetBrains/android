@@ -40,7 +40,7 @@ public class CommandLineArgsTest extends IdeaTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myInitScripts = mock(GradleInitScripts.class);
-    myArgs = new CommandLineArgs(myInitScripts);
+    myArgs = new CommandLineArgs(myInitScripts, false);
   }
 
   public void testGet() throws Exception {

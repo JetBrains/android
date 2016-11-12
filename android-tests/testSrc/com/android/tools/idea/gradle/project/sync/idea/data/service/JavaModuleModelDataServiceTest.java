@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
-import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.sync.setup.module.GradleModuleSetup;
+import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetup;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -27,18 +27,20 @@ import org.mockito.Mock;
 import java.util.Collection;
 import java.util.Collections;
 
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * Tests for {@link GradleModuleModelDataService}.
+ * Tests for {@link JavaModuleModelDataService}.
  */
-public class GradleModuleModelDataServiceTest extends IdeaTestCase {
-  @Mock private GradleModuleSetup myModuleSetup;
+public class JavaModuleModelDataServiceTest extends IdeaTestCase {
+  @Mock private JavaModuleSetup myModuleSetup;
 
   private IdeModifiableModelsProvider myModelsProvider;
-  private GradleModuleModelDataService myDataService;
+  private JavaModuleModelDataService myDataService;
 
   @Override
   protected void setUp() throws Exception {
@@ -46,23 +48,25 @@ public class GradleModuleModelDataServiceTest extends IdeaTestCase {
     initMocks(this);
 
     myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
-    myDataService = new GradleModuleModelDataService(myModuleSetup);
+    myDataService = new JavaModuleModelDataService(myModuleSetup);
   }
 
   public void testGetTargetDataKey() {
-    assertSame(GRADLE_MODULE_MODEL, myDataService.getTargetDataKey());
+    assertSame(JAVA_MODULE_MODEL, myDataService.getTargetDataKey());
   }
 
   public void testImportData() {
     String appModuleName = "app";
     Module appModule = createModule(appModuleName);
-    GradleModuleModel model = new GradleModuleModel(appModuleName, Collections.emptyList(), ":app", null, null);
 
-    DataNode<GradleModuleModel> dataNode = new DataNode<>(GRADLE_MODULE_MODEL, model, null);
-    Collection<DataNode<GradleModuleModel>> dataNodes = Collections.singleton(dataNode);
+    JavaModuleModel model = mock(JavaModuleModel.class);
+    when(model.getModuleName()).thenReturn(appModuleName);
+
+    DataNode<JavaModuleModel> dataNode = new DataNode<>(JAVA_MODULE_MODEL, model, null);
+    Collection<DataNode<JavaModuleModel>> dataNodes = Collections.singleton(dataNode);
 
     myDataService.importData(dataNodes, null, getProject(), myModelsProvider);
 
-    verify(myModuleSetup).setUpModule(appModule, myModelsProvider, model);
+    verify(myModuleSetup).setUpModule(appModule, myModelsProvider, model, null, null);
   }
 }

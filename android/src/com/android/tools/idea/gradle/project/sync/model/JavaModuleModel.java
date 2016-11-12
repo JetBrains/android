@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle;
+package com.android.tools.idea.gradle.project.sync.model;
 
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.pom.java.LanguageLevel;
 import org.gradle.tooling.model.GradleTask;
 import org.gradle.tooling.model.idea.*;
@@ -35,14 +33,14 @@ import java.util.*;
 import static com.android.tools.idea.gradle.facet.JavaGradleFacet.COMPILE_JAVA_TASK_NAME;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 
-public class JavaProject implements Serializable {
+public class JavaModuleModel implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 3L;
+  private static final long serialVersionUID = 1L;
 
   @NotNull private String myModuleName;
-  @NotNull private Collection<JavaModuleContentRoot> myContentRoots = Lists.newArrayList();
-  @NotNull private Collection<JavaModuleDependency> myJavaModuleDependencies = Lists.newArrayList();
-  @NotNull private Collection<JarLibraryDependency> myJarLibraryDependencies = Lists.newArrayList();
+  @NotNull private Collection<JavaModuleContentRoot> myContentRoots = new ArrayList<>();
+  @NotNull private Collection<JavaModuleDependency> myJavaModuleDependencies = new ArrayList<>();
+  @NotNull private Collection<JarLibraryDependency> myJarLibraryDependencies = new ArrayList<>();
   @NotNull private Map<String, Set<File>> myArtifactsByConfiguration;
   @NotNull private List<String> myConfigurations;
 
@@ -51,35 +49,36 @@ public class JavaProject implements Serializable {
   @Nullable private String myLanguageLevel;
 
   private boolean myBuildable;
-  private boolean myAndroidProjectWithoutVariants;
+  private boolean myAndroidModuleWithoutVariants;
+
+  public JavaModuleModel(@NotNull IdeaModule ideaModule, @Nullable ModuleExtendedModel javaModel, boolean androidModuleWithoutVariants) {
+    this(ideaModule.getName(), getContentRoots(ideaModule, javaModel), getDependencies(ideaModule),
+         getArtifactsByConfiguration(javaModel), getCompilerOutput(javaModel), ideaModule.getGradleProject().getBuildDirectory(),
+         getLanguageLevel(javaModel), !androidModuleWithoutVariants && isBuildable(ideaModule), androidModuleWithoutVariants);
+  }
+
+  @Nullable
+  private static ExtIdeaCompilerOutput getCompilerOutput(@Nullable ModuleExtendedModel javaModel) {
+    return javaModel != null ? javaModel.getCompilerOutput() : null;
+  }
 
   @NotNull
-  public static JavaProject create(@NotNull IdeaModule ideaModule,
-                                   @SuppressWarnings("deprecation") @Nullable ModuleExtendedModel extendedModel,
-                                   boolean androidProjectWithoutVariants) {
-    Collection<? extends IdeaContentRoot> contentRoots = extendedModel != null ? extendedModel.getContentRoots() : null;
+  private static Collection<? extends IdeaContentRoot> getContentRoots(@NotNull IdeaModule ideaModule,
+                                                                       @Nullable ModuleExtendedModel javaModel) {
+    Collection<? extends IdeaContentRoot> contentRoots = javaModel != null ? javaModel.getContentRoots() : null;
     if (contentRoots == null) {
       contentRoots = ideaModule.getContentRoots();
     }
-    contentRoots = contentRoots != null ? contentRoots : Collections.emptyList();
+    return contentRoots != null ? contentRoots : Collections.emptyList();
+  }
 
-    Map<String, Set<File>> artifactsByConfiguration = Maps.newHashMap();
-    if (extendedModel != null) {
-      artifactsByConfiguration = extendedModel.getArtifactsByConfiguration();
+  @NotNull
+  private static Map<String, Set<File>> getArtifactsByConfiguration(@Nullable ModuleExtendedModel javaModel) {
+    Map<String, Set<File>> artifactsByConfiguration = Collections.emptyMap();
+    if (javaModel != null) {
+      artifactsByConfiguration = javaModel.getArtifactsByConfiguration();
     }
-    ExtIdeaCompilerOutput compilerOutput = extendedModel != null ? extendedModel.getCompilerOutput() : null;
-    File buildFolderPath = ideaModule.getGradleProject().getBuildDirectory();
-
-    // If this is an Android project without variants, we cannot build it.
-    boolean buildable = !androidProjectWithoutVariants && isBuildable(ideaModule);
-
-    String languageLevel = null;
-    if (extendedModel != null) {
-      languageLevel = extendedModel.getJavaSourceCompatibility();
-    }
-
-    return new JavaProject(ideaModule.getName(), contentRoots, getDependencies(ideaModule), artifactsByConfiguration, compilerOutput,
-                           buildFolderPath, languageLevel, buildable, androidProjectWithoutVariants);
+    return artifactsByConfiguration;
   }
 
   @NotNull
@@ -100,15 +99,20 @@ public class JavaProject implements Serializable {
     return false;
   }
 
-  public JavaProject(@NotNull String name,
-                     @NotNull Collection<? extends IdeaContentRoot> contentRoots,
-                     @NotNull List<? extends IdeaDependency> dependencies,
-                     @Nullable Map<String, Set<File>> artifactsByConfiguration,
-                     @Nullable ExtIdeaCompilerOutput compilerOutput,
-                     @Nullable File buildFolderPath,
-                     @Nullable String languageLevel,
-                     boolean buildable,
-                     boolean androidProjectWithoutVariants) {
+  @Nullable
+  private static String getLanguageLevel(@Nullable ModuleExtendedModel javaModel) {
+    return javaModel != null ? javaModel.getJavaSourceCompatibility() : null;
+  }
+
+  public JavaModuleModel(@NotNull String name,
+                         @NotNull Collection<? extends IdeaContentRoot> contentRoots,
+                         @NotNull List<? extends IdeaDependency> dependencies,
+                         @Nullable Map<String, Set<File>> artifactsByConfiguration,
+                         @Nullable ExtIdeaCompilerOutput compilerOutput,
+                         @Nullable File buildFolderPath,
+                         @Nullable String languageLevel,
+                         boolean buildable,
+                         boolean androidModuleWithoutVariants) {
     myModuleName = name;
     for (IdeaContentRoot contentRoot : contentRoots) {
       if (contentRoot != null) {
@@ -133,14 +137,14 @@ public class JavaProject implements Serializable {
 
     myArtifactsByConfiguration = artifactsByConfiguration != null ? artifactsByConfiguration : Collections.emptyMap();
 
-    myConfigurations = Lists.newArrayList(myArtifactsByConfiguration.keySet());
+    myConfigurations = new ArrayList<>(myArtifactsByConfiguration.keySet());
     Collections.sort(myConfigurations);
 
     myCompilerOutput = compilerOutput;
     myBuildFolderPath = buildFolderPath;
     myLanguageLevel = languageLevel;
     myBuildable = buildable;
-    myAndroidProjectWithoutVariants = androidProjectWithoutVariants;
+    myAndroidModuleWithoutVariants = androidModuleWithoutVariants;
   }
 
   @NotNull
@@ -176,12 +180,10 @@ public class JavaProject implements Serializable {
     return false;
   }
 
-  private static boolean containsFile(@Nullable Collection<File> folderPaths, @NotNull File file) {
-    if (folderPaths != null) {
-      for (File path : folderPaths) {
-        if (isAncestor(path, file, false)) {
-          return true;
-        }
+  private static boolean containsFile(@NotNull Collection<File> folderPaths, @NotNull File file) {
+    for (File path : folderPaths) {
+      if (isAncestor(path, file, false)) {
+        return true;
       }
     }
     return false;
@@ -216,8 +218,8 @@ public class JavaProject implements Serializable {
     return myBuildable;
   }
 
-  public boolean isAndroidProjectWithoutVariants() {
-    return myAndroidProjectWithoutVariants;
+  public boolean isAndroidModuleWithoutVariants() {
+    return myAndroidModuleWithoutVariants;
   }
 
   @Nullable

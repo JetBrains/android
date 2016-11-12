@@ -41,7 +41,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
@@ -79,7 +79,7 @@ public class ModulesToImportDialogTest {
     DataNode<ModuleData> module = new DataNode<>(MODULE, data, null);
     if (isGradleProject) {
       List<String> taskNames = Collections.emptyList();
-      module.createChild(GRADLE_MODEL, new GradleModuleModel("app", taskNames, ":" + name, null, null));
+      module.createChild(GRADLE_MODULE_MODEL, new GradleModuleModel("app", taskNames, ":" + name, null, null));
     }
     return module;
   }

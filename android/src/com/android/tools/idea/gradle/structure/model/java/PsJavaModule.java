@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.java;
 
-import com.android.tools.idea.gradle.JavaProject;
+import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModule;
@@ -30,14 +30,14 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class PsJavaModule extends PsModule {
-  @NotNull private final JavaProject myGradleModel;
+  @NotNull private final JavaModuleModel myGradleModel;
 
   private PsJavaDependencyCollection myDependencyCollection;
 
   public PsJavaModule(@NotNull PsProject parent,
                       @NotNull Module resolvedModel,
                       @NotNull String gradlePath,
-                      @NotNull JavaProject gradleModel) {
+                      @NotNull JavaModuleModel gradleModel) {
     super(parent, resolvedModel, gradlePath);
     myGradleModel = gradleModel;
   }
@@ -55,7 +55,7 @@ public class PsJavaModule extends PsModule {
   }
 
   @NotNull
-  public JavaProject getGradleModel() {
+  public JavaModuleModel getGradleModel() {
     return myGradleModel;
   }
 
