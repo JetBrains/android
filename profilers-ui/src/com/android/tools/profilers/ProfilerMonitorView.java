@@ -15,8 +15,10 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.AnimatedComponent;
+import com.android.tools.adtui.Choreographer;
+
+import javax.swing.*;
 
 public abstract class ProfilerMonitorView {
-  abstract public AnimatedComponent initialize();
+  abstract public JComponent initialize(Choreographer choreographer);
 }

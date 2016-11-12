@@ -15,11 +15,12 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.AnimatedComponent;
+import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.profilers.ProfilerMonitorView;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -31,7 +32,7 @@ public class MemoryMonitorView extends ProfilerMonitorView {
   }
 
   @Override
-  public AnimatedComponent initialize() {
+  public JComponent initialize(Choreographer choreographer) {
     LineChart lineChart = new LineChart();
     lineChart.addLine(myMonitor.getTotalMemory());
     lineChart.addMouseListener(new MouseAdapter() {
@@ -40,6 +41,7 @@ public class MemoryMonitorView extends ProfilerMonitorView {
         myMonitor.expand();
       }
     });
+    choreographer.register(lineChart);
     return lineChart;
   }
 }
