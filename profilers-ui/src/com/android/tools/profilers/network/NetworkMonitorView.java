@@ -15,11 +15,12 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.AnimatedComponent;
+import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.profilers.ProfilerMonitorView;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -33,7 +34,7 @@ public class NetworkMonitorView extends ProfilerMonitorView {
   }
 
   @Override
-  public AnimatedComponent initialize() {
+  public JComponent initialize(Choreographer choreographer) {
     LineChart lineChart = new LineChart();
     lineChart.addLine(myMonitor.getTrafficData());
     lineChart.addMouseListener(new MouseAdapter() {
@@ -42,6 +43,7 @@ public class NetworkMonitorView extends ProfilerMonitorView {
         myMonitor.expand();
       }
     });
+    choreographer.register(lineChart);
     return lineChart;
   }
 }
