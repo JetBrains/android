@@ -19,6 +19,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+/**
+ * A class which maintains a mapping between a a model class and a generator of its views.
+ * This allows for a reactive UI builder that given an object of an unknown class
+ * it can create its associated view.
+ *
+ * To use, register class associations using {@link bind} and then, later, call
+ * {@link build} to cause an instantiation.
+ *
+ * @param M Any type, usually one that represents some model data.
+ * @param V Any type, usually one that represents a view associated with a model.
+ */
 public class ViewBinder<M, V> {
 
   private final Map<Class<? extends M>, Function<? extends M, ? extends V>> myBuilders;
