@@ -18,13 +18,10 @@ package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.Log;
 import com.intellij.execution.process.ProcessOutputTypes;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 
 public final class AndroidLogcatUtils {
-  private static final Logger LOG = Logger.getInstance(AndroidLogcatUtils.class);
-
   private AndroidLogcatUtils() {
   }
 

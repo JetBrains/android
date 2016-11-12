@@ -27,7 +27,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.IconLoader;
@@ -58,7 +57,6 @@ import java.util.List;
  */
 public class AvdDisplayList extends JPanel implements ListSelectionListener, AvdActionPanel.AvdRefreshProvider,
                                                       AvdUiAction.AvdInfoProvider {
-  private static final Logger LOG = Logger.getInstance(AvdDisplayList.class);
   public static final String NONEMPTY = "nonempty";
   public static final String EMPTY = "empty";
 

@@ -18,20 +18,14 @@ package com.android.tools.idea.avdmanager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.actions.ShowFilePathAction;
-import com.intellij.openapi.diagnostic.Logger;
 
-import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.io.IOException;
 
 /**
  * Show the contents of the AVD on disk
  */
 public class ShowAvdOnDiskAction extends AvdUiAction {
-  private static final Logger LOG = Logger.getInstance(ShowAvdOnDiskAction.class);
-
   public ShowAvdOnDiskAction(AvdInfoProvider avdInfoProvider) {
     super(avdInfoProvider, "Show on Disk", "Open the location of this AVD's data files", AllIcons.Actions.Menu_open);
   }

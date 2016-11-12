@@ -22,7 +22,6 @@ import com.android.tools.idea.editors.gfxtrace.widgets.LoadablePanel;
 import com.android.tools.idea.editors.gfxtrace.widgets.Tree;
 import com.intellij.openapi.actionSystem.impl.ActionMenu;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
@@ -30,19 +29,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicTreeUI;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
 
 public abstract class TreeController extends Controller implements CopyEnabledTree.ColumnTextProvider {
   public static final int TREE_ROW_HEIGHT = JBUI.scale(19);
-  private static final @NotNull Logger LOG = Logger.getInstance(TreeController.class);
 
   /**
    * Renderer used for Nodes to allow them compose another component on the right.

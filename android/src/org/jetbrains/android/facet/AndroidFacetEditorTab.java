@@ -18,7 +18,6 @@ package org.jetbrains.android.facet;
 import com.android.SdkConstants;
 import com.intellij.facet.ui.FacetEditorContext;
 import com.intellij.facet.ui.FacetEditorTab;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
@@ -73,8 +72,6 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
  * @author yole
  */
 public class AndroidFacetEditorTab extends FacetEditorTab {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.facet.AndroidFacetEditorTab");
-
   private final AndroidFacetConfiguration myConfiguration;
   private final FacetEditorContext myContext;
   private JPanel myContentPanel;
