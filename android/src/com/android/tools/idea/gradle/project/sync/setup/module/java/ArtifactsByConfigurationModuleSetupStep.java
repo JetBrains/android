@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
-import com.android.tools.idea.gradle.JavaProject;
+import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -41,14 +41,14 @@ import static com.intellij.openapi.util.text.StringUtil.endsWithIgnoreCase;
 
 public class ArtifactsByConfigurationModuleSetupStep extends JavaModuleSetupStep {
   @Override
-  public void setUpModule(@NotNull Module module,
-                          @NotNull JavaProject javaProject,
-                          @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                          @Nullable SyncAction.ModuleModels gradleModels,
-                          @Nullable ProgressIndicator indicator) {
+  protected void doSetUpModule(@NotNull Module module,
+                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
+                               @NotNull JavaModuleModel javaModuleModel,
+                               @Nullable SyncAction.ModuleModels gradleModels,
+                               @Nullable ProgressIndicator indicator) {
     ModifiableRootModel moduleModel = ideModelsProvider.getModifiableRootModel(module);
 
-    for (Map.Entry<String, Set<File>> entry : javaProject.getArtifactsByConfiguration().entrySet()) {
+    for (Map.Entry<String, Set<File>> entry : javaModuleModel.getArtifactsByConfiguration().entrySet()) {
       Set<File> artifacts = entry.getValue();
       if (artifacts != null && !artifacts.isEmpty()) {
         for (File artifact : artifacts) {
@@ -56,7 +56,7 @@ public class ArtifactsByConfigurationModuleSetupStep extends JavaModuleSetupStep
             // We only expose artifacts that are jar files.
             continue;
           }
-          File buildFolderPath = javaProject.getBuildFolderPath();
+          File buildFolderPath = javaModuleModel.getBuildFolderPath();
           String artifactName = getNameWithoutExtension(artifact);
 
           if (buildFolderPath != null &&

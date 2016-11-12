@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
-import com.android.tools.idea.gradle.JavaProject;
+import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacetConfiguration;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
@@ -64,17 +64,17 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
   }
 
   @Override
-  public void setUpModule(@NotNull Module module,
-                          @NotNull JavaProject javaProject,
-                          @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                          @Nullable SyncAction.ModuleModels gradleModels,
-                          @Nullable ProgressIndicator indicator) {
+  protected void doSetUpModule(@NotNull Module module,
+                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
+                               @NotNull JavaModuleModel javaModuleModel,
+                               @Nullable SyncAction.ModuleModels gradleModels,
+                               @Nullable ProgressIndicator indicator) {
     List<String> unresolved = new ArrayList<>();
-    for (JavaModuleDependency dependency : javaProject.getJavaModuleDependencies()) {
+    for (JavaModuleDependency dependency : javaModuleModel.getJavaModuleDependencies()) {
       updateDependency(module, ideModelsProvider, dependency);
     }
 
-    for (JarLibraryDependency dependency : javaProject.getJarLibraryDependencies()) {
+    for (JarLibraryDependency dependency : javaModuleModel.getJarLibraryDependencies()) {
       if (dependency.isResolved()) {
         updateDependency(module, ideModelsProvider, dependency);
       }
@@ -86,17 +86,17 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
     UnresolvedDependenciesReporter.getInstance().report(unresolved, module);
 
     JavaGradleFacet facet = setAndGetJavaGradleFacet(module, ideModelsProvider);
-    File buildFolderPath = javaProject.getBuildFolderPath();
+    File buildFolderPath = javaModuleModel.getBuildFolderPath();
 
     AndroidGradleFacet gradleFacet = findFacet(module, ideModelsProvider, AndroidGradleFacet.getFacetTypeId());
     if (gradleFacet != null) {
       // This is an actual Gradle module, because it has the AndroidGradleFacet. Top-level modules in a multi-module project usually don't
       // have this facet.
-      facet.setJavaProject(javaProject);
+      facet.setJavaModuleModel(javaModuleModel);
     }
     JavaGradleFacetConfiguration facetProperties = facet.getConfiguration();
     facetProperties.BUILD_FOLDER_PATH = buildFolderPath != null ? toSystemIndependentName(buildFolderPath.getPath()) : "";
-    facetProperties.BUILDABLE = javaProject.isBuildable();
+    facetProperties.BUILDABLE = javaModuleModel.isBuildable();
   }
 
   private static void updateDependency(@NotNull Module module,

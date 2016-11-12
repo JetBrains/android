@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.ProjectImportErrorHandler;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -97,7 +98,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @SuppressWarnings("unused")
   // This constructor is used by the IDE. This class is an extension point implementation, registered in plugin.xml.
   public AndroidGradleProjectResolver() {
-    this(new CommandLineArgs(), new ProjectImportErrorHandler(), new ProjectFinder(), new VariantSelector());
+    this(new CommandLineArgs(false /* do not generate classpath init script */), new ProjectImportErrorHandler(), new ProjectFinder(),
+         new VariantSelector());
   }
 
   @VisibleForTesting
@@ -223,7 +225,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
     File buildFilePath = buildScript.getSourceFile();
     GradleModuleModel gradleModuleModel = new GradleModuleModel(moduleName, gradleProject, buildFilePath, gradleVersion);
-    ideModule.createChild(GRADLE_MODEL, gradleModuleModel);
+    ideModule.createChild(GRADLE_MODULE_MODEL, gradleModuleModel);
 
     if (nativeAndroidProject == null && (androidProject == null || androidProjectWithoutVariants)) {
       // This is a Java lib module.
@@ -236,8 +238,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
                                  boolean androidProjectWithoutVariants) {
     //noinspection deprecation
     ModuleExtendedModel model = resolverCtx.getExtraProject(gradleModule, ModuleExtendedModel.class);
-    JavaProject javaProject = JavaProject.create(gradleModule, model, androidProjectWithoutVariants);
-    ideModule.createChild(JAVA_PROJECT, javaProject);
+    JavaModuleModel javaModuleModel = new JavaModuleModel(gradleModule, model, androidProjectWithoutVariants);
+    ideModule.createChild(JAVA_MODULE_MODEL, javaModuleModel);
   }
 
   @Override
@@ -319,7 +321,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @NotNull
   public List<String> getExtraCommandLineArgs() {
     Project project = myProjectFinder.findProject(resolverCtx);
-    return myCommandLineArgs.get(project);
+    return myCommandLineArgs.get(project  /* do not include classpath init script. It is already done. */);
   }
 
   @NotNull
