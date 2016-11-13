@@ -460,8 +460,7 @@ public final class SelectionComponent extends AnimatedComponent {
   }
 
   @Override
-  protected void draw(Graphics2D g) {
-    Dimension dim = getSize();
+  protected void draw(Graphics2D g, Dimension dim) {
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     Point mousePosition = getMouseLocation();
 

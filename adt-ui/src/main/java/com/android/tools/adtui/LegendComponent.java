@@ -135,7 +135,7 @@ public class LegendComponent extends AnimatedComponent {
   }
 
   @Override
-  protected void draw(Graphics2D g2d) {
+  protected void draw(Graphics2D g2d, Dimension dim) {
     // TODO: revisit this method and try to simplify it using JBPanels and a LayoutManager.
     for (int i = 0; i < mLegendRenderData.size(); ++i) {
       LegendRenderData data = mLegendRenderData.get(i);
