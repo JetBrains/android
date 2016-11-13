@@ -96,8 +96,8 @@ public class NetworkDataPoller extends Poller {
       long timestampNs = data.getBasicInfo().getEndTimestamp();
       long timestampUs = TimeUnit.NANOSECONDS.toMicros(timestampNs);
 
-      if (data.getDataCase() == NetworkProfiler.NetworkProfilerData.DataCase.TRAFFIC_DATA) {
-        mySpeedData.add(data.getTrafficData().getBytesSent(), data.getTrafficData().getBytesReceived(), timestampUs);
+      if (data.getDataCase() == NetworkProfiler.NetworkProfilerData.DataCase.SPEED_DATA) {
+        mySpeedData.add(data.getSpeedData().getSent(), data.getSpeedData().getReceived(), timestampUs);
       }
       else if (data.getDataCase() == NetworkProfiler.NetworkProfilerData.DataCase.CONNECTION_DATA) {
         myConnectionsTimeData.add(timestampUs);
