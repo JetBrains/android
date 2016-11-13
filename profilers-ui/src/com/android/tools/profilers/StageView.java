@@ -26,10 +26,12 @@ public abstract class StageView {
     myStage = stage;
   }
 
+  @NotNull
   public Stage getStage() {
     return myStage;
   }
 
+  @NotNull
   abstract public JComponent getComponent();
 
   protected void returnToStudioStage() {

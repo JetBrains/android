@@ -24,6 +24,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 
 public class EventMonitorView extends ProfilerMonitorView {
 
@@ -47,9 +49,8 @@ public class EventMonitorView extends ProfilerMonitorView {
   }
 
   @Override
-  public JComponent initialize(Choreographer choreographer) {
-    JPanel panel = new JPanel(new GridBagLayout());
-    panel.setOpaque(false);
+  protected void populateUi(JLayeredPane container, Choreographer choreographer) {
+    final JPanel panel = new JPanel(new GridBagLayout());
     GridBagConstraints c = new GridBagConstraints();
     c.fill = GridBagConstraints.BOTH;
     c.gridx = 0;
@@ -66,6 +67,12 @@ public class EventMonitorView extends ProfilerMonitorView {
     panel.add(activities, c);
     choreographer.register(activities);
 
-    return panel;
+    container.addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent e) {
+        Dimension size = e.getComponent().getSize();
+        panel.setBounds(0, 0, size.width, size.height);
+      }
+    });
   }
 }
