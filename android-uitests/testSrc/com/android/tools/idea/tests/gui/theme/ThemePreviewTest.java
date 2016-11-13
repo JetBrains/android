@@ -59,6 +59,7 @@ public class ThemePreviewTest {
     assertFalse(ToolWindowManager.getInstance(project).getToolWindow("Theme Preview").isAvailable());
   }
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testToolbarState() throws Exception {
     guiTest.importSimpleApplication();
