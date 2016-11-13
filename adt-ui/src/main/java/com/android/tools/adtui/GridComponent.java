@@ -46,11 +46,10 @@ public final class GridComponent extends AnimatedComponent {
   }
 
   @Override
-  protected void draw(Graphics2D g) {
+  protected void draw(Graphics2D g, Dimension dim) {
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     g.setColor(AdtUiUtils.GRID_COLOR);
 
-    Dimension dim = getSize();
     Line2D.Float line = new Line2D.Float();
     for (final AxisComponent axis : mAxes) {
       TFloatArrayList markers = axis.getMajorMarkerPositions();

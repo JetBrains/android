@@ -140,8 +140,7 @@ public class StackedEventComponent extends AnimatedComponent {
   }
 
   @Override
-  protected void draw(Graphics2D g2d) {
-    Dimension dim = getSize();
+  protected void draw(Graphics2D g2d, Dimension dim) {
     int scaleFactor = dim.width;
     double min = mData.getXRange().getMin();
     double max = mData.getXRange().getMax();

@@ -28,9 +28,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
-
-import static com.android.tools.adtui.AxisComponent.AxisOrientation.LEFT;
-import static com.android.tools.adtui.AxisComponent.AxisOrientation.RIGHT;
+import java.util.*;
+import java.util.List;
 
 /**
  * A component that draws an axis based on data from a {@link Range} object.
@@ -44,20 +43,25 @@ public final class AxisComponent extends AnimatedComponent {
     TOP
   }
 
+  private static final BasicStroke DEFAULT_AXIS_STROKE = new BasicStroke(1);
   private static final int MARKER_LABEL_OFFSET_PX = 3;
   private static final int MAXIMUM_LABEL_WIDTH = 50;
 
   @NotNull private final Range myRange;
-  private Range myGlobalRange;
+  @Nullable private Range myGlobalRange;
   @NotNull private BaseAxisFormatter myFormatter;
   @NotNull private final AxisOrientation myOrientation;
 
   @Nullable private JLabel myLabel;
   @NotNull private final FontMetrics myMetrics;
 
+  private final int myStartMargin;
+  private final int myEndMargin;
   private final int myMajorMarkerLength;
   private final int myMinorMarkerLength;
-  private boolean myShowMinMax;
+  private final boolean myShowMin;
+  private final boolean myShowMax;
+  private final boolean myShowUnitAtMax;
   private boolean myShowAxisLine;
 
   private AxisComponent myParentAxis;
@@ -115,6 +119,21 @@ public final class AxisComponent extends AnimatedComponent {
   private final TFloatArrayList myMinorMarkerPositions;
 
   /**
+   * Cached marker labels
+   */
+  @NotNull private final java.util.List<String> myMarkerLabels;
+
+  /**
+   * Cached max marker lablels
+   */
+  private String myMaxLabel;
+
+  /**
+   * Cached min marker lablels
+   */
+  private String myMinLabel;
+
+  /**
    * There are cases when we display axis values relative to the Data.
    * For example, when we use axis to display time information by setting {@code myOffset}
    * it will display the time passed since {@code myOffset} instead of current time.
@@ -125,17 +144,23 @@ public final class AxisComponent extends AnimatedComponent {
     myRange = builder.myRange;
     myGlobalRange = builder.myGlobalRange;
     myOrientation = builder.myOrientation;
-    myShowMinMax = builder.myShowMinMax;
+    myShowMin = builder.myShowMin;
+    myShowMax = builder.myShowMax;
+    myShowUnitAtMax = builder.myShowUnitAtMax;
     myShowAxisLine = builder.myShowAxisLine;
     myFormatter = builder.myFormatter;
     myMajorMarkerPositions = new TFloatArrayList();
     myMinorMarkerPositions = new TFloatArrayList();
+    myMarkerLabels = new ArrayList<>();
     myClampToMajorTicks = builder.myClampToMajorTicks;
     myParentAxis = builder.myParentAxis;
     myOffset = builder.myOffset;
 
     myMajorMarkerLength = builder.myMajorMarkerLength;
     myMinorMarkerLength = builder.myMinorMarkerLength;
+
+    myStartMargin = builder.myStartMargin;
+    myEndMargin = builder.myEndMargin;
 
     myMetrics = getFontMetrics(AdtUiUtils.DEFAULT_FONT);
 
@@ -172,8 +197,12 @@ public final class AxisComponent extends AnimatedComponent {
     return myGlobalRange;
   }
 
-  public boolean getShowMinMax() {
-    return myShowMinMax;
+  public boolean getShowMin() {
+    return myShowMin;
+  }
+
+  public boolean getShowMax() {
+    return myShowMax;
   }
 
   public boolean getShowAxisLine() {
@@ -265,18 +294,6 @@ public final class AxisComponent extends AnimatedComponent {
     return myOffset + myCurrentMinValueRelative + myMinorInterval * normalizedOffset / myMinorScale;
   }
 
-  /**
-   * Returns the formatted value corresponding to a pixel position on the axis.
-   * The formatting depends on the {@link BaseAxisFormatter} object associated
-   * with this axis.
-   *
-   * e.g. For a value of 1500 in milliseconds, this will return "1.5s".
-   */
-  @NotNull
-  public String getFormattedValueAtPosition(int position) {
-    return myFormatter.getFormattedString(myGlobalRange.getLength(), getValueAtPosition(position));
-  }
-
   @Override
   protected void updateData() {
     double maxTarget = myRange.getMax() - myOffset;
@@ -305,11 +322,13 @@ public final class AxisComponent extends AnimatedComponent {
 
   @Override
   public void postAnimate() {
+    myMarkerLabels.clear();
     myMajorMarkerPositions.reset();
     myMinorMarkerPositions.reset();
     myCurrentMinValueRelative = myRange.getMin() - myOffset;
     myCurrentMaxValueRelative = myRange.getMax() - myOffset;
     double range = myRange.getLength();
+    double labelRange = myGlobalRange == null ? range : myGlobalRange.getLength();
 
     // During the postAnimate phase, use the interpolated min/max/range values to calculate the current major and minor intervals that
     // should be used. Based on the interval values, cache the normalized marker positions which will be used during the draw call.
@@ -326,53 +345,77 @@ public final class AxisComponent extends AnimatedComponent {
     int numMarkers = (int)Math.floor((myCurrentMaxValueRelative - myFirstMarkerValue) / myMinorInterval) + 1;
     int numMinorPerMajor = (int)(myMajorInterval / myMinorInterval);
     for (int i = 0; i < numMarkers; i++) {
+      // Discard negative values (TODO configurable?)
+      double markerValue = myFirstMarkerValue + i * myMinorInterval;
+      if (markerValue < 0f) {
+        continue;
+      }
+
+      // Discard out of bound values.
       float markerOffset = firstMarkerOffset + i * myMinorScale;
+      if (markerOffset < 0f || markerOffset > 1f) {
+        continue;
+      }
+
       if (i % numMinorPerMajor == 0) {    // Major Tick.
         myMajorMarkerPositions.add(markerOffset);
+        myMarkerLabels.add(myFormatter.getFormattedString(labelRange, markerValue, !myShowUnitAtMax));
       }
       else {
         myMinorMarkerPositions.add(markerOffset);
       }
     }
+
+    if (myShowMin) {
+      myMinLabel = myFormatter.getFormattedString(labelRange, myCurrentMinValueRelative, !myShowUnitAtMax);
+    }
+    if (myShowMax) {
+      myMaxLabel = myFormatter.getFormattedString(labelRange, myCurrentMaxValueRelative, true);
+    }
   }
 
   @Override
-  protected void draw(Graphics2D g) {
+  protected void draw(Graphics2D g, Dimension dim) {
     // Calculate drawing parameters.
     Point startPoint = new Point();
     Point endPoint = new Point();
     Point labelPoint = new Point();
-    Dimension dimension = getSize();
     switch (myOrientation) {
       case LEFT:
-        startPoint.x = endPoint.x = dimension.width - 1;
-        endPoint.y = 0;
-        myAxisLength = startPoint.y = dimension.height - 1;
+        startPoint.x = endPoint.x = dim.width - 1;
+        startPoint.y = dim.height - myStartMargin - 1;
+        endPoint.y = myEndMargin;
+        myAxisLength = startPoint.y - endPoint.y;
 
         //Affix label to top left.
         labelPoint.x = 0;
         labelPoint.y = endPoint.y;
         break;
       case BOTTOM:
-        startPoint.x = startPoint.y = endPoint.y = 0;
-        myAxisLength = endPoint.x = dimension.width - 1;
+        startPoint.x = myStartMargin;
+        endPoint.x = dim.width - myEndMargin - 1;
+        startPoint.y = endPoint.y = 0;
+        myAxisLength = endPoint.x - startPoint.x;
 
         //Affix label to bottom left
         labelPoint.x = startPoint.x;
         labelPoint.y = getHeight() - (myMetrics.getMaxAscent() + myMetrics.getMaxDescent());
         break;
       case RIGHT:
-        startPoint.x = endPoint.x = endPoint.y = 0;
-        myAxisLength = startPoint.y = dimension.height - 1;
+        startPoint.x = endPoint.x = 0;
+        startPoint.y = dim.height - myStartMargin - 1;
+        endPoint.y = myEndMargin;
+        myAxisLength = startPoint.y - endPoint.y;
 
         //Affix label to top right
         labelPoint.x = getWidth() - myMetrics.getMaxAdvance();
         labelPoint.y = endPoint.y;
         break;
       case TOP:
-        startPoint.x = 0;
-        startPoint.y = endPoint.y = dimension.height - 1;
-        myAxisLength = endPoint.x = dimension.width - 1;
+        startPoint.x = myStartMargin;
+        endPoint.x = dim.width - myEndMargin - 1;
+        startPoint.y = endPoint.y = dim.height - 1;
+        myAxisLength = endPoint.x - startPoint.x;
 
         //Affix label to top left
         labelPoint.x = 0;
@@ -383,6 +426,7 @@ public final class AxisComponent extends AnimatedComponent {
     if (myAxisLength > 0) {
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       g.setColor(AdtUiUtils.DEFAULT_BORDER_COLOR);
+      g.setStroke(DEFAULT_AXIS_STROKE);
 
       if (myShowAxisLine) {
         g.drawLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
@@ -403,44 +447,32 @@ public final class AxisComponent extends AnimatedComponent {
   private void drawMarkers(Graphics2D g2d, Point origin) {
     g2d.setFont(AdtUiUtils.DEFAULT_FONT);
 
-    if (myShowMinMax) {
-      drawMarkerLabel(g2d, 0, origin, myCurrentMinValueRelative, true);
-      drawMarkerLabel(g2d, myAxisLength, origin, myCurrentMaxValueRelative, true);
+    if (myShowMin) {
+      drawMarkerLabel(g2d, 0, origin, myMinLabel, true);
+    }
+    if (myShowMax) {
+      drawMarkerLabel(g2d, myAxisLength, origin, myMaxLabel, true);
     }
 
-    // TODO fade in/out markers.
     Line2D.Float line = new Line2D.Float();
 
     // Draw minor ticks.
     for (int i = 0; i < myMinorMarkerPositions.size(); i++) {
-      if (myMinorMarkerPositions.get(i) >= 0) {
-        double markerValue = myFirstMarkerValue + i * myMinorInterval;
-        // Discard negative ticks as needed.
-        if (markerValue >= 0) {
-          float scaledPosition = myMinorMarkerPositions.get(i) * myAxisLength;
-          drawMarkerLine(g2d, line, scaledPosition, origin, false);
-        }
-      }
+      float scaledPosition = myMinorMarkerPositions.get(i) * myAxisLength;
+      drawMarkerLine(g2d, line, scaledPosition, origin, myMinorMarkerLength);
     }
 
     // Draw major ticks.
     for (int i = 0; i < myMajorMarkerPositions.size(); i++) {
-      if (myMajorMarkerPositions.get(i) >= 0) {
-        double markerValue = myFirstMarkerValue + i * myMajorInterval;
-        // Discard negative ticks as needed.
-        if (markerValue >= 0) {
-          float scaledPosition = myMajorMarkerPositions.get(i) * myAxisLength;
-          drawMarkerLine(g2d, line, scaledPosition, origin, true);
-          drawMarkerLabel(g2d, scaledPosition, origin, markerValue, !myShowMinMax);
-        }
-      }
+      float scaledPosition = myMajorMarkerPositions.get(i) * myAxisLength;
+      drawMarkerLine(g2d, line, scaledPosition, origin, myMajorMarkerLength);
+      drawMarkerLabel(g2d, scaledPosition, origin, myMarkerLabels.get(i), false);
     }
   }
 
   private void drawMarkerLine(Graphics2D g2d, Line2D.Float line, float markerOffset,
-                              Point origin, boolean isMajor) {
+                              Point origin, int markerLength) {
     float markerStartX = 0, markerStartY = 0, markerEndX = 0, markerEndY = 0;
-    int markerLength = isMajor ? myMajorMarkerLength : myMinorMarkerLength;
     switch (myOrientation) {
       case LEFT:
         markerStartX = origin.x - markerLength;
@@ -465,32 +497,28 @@ public final class AxisComponent extends AnimatedComponent {
     }
 
     line.setLine(markerStartX, markerStartY, markerEndX, markerEndY);
-    g2d.setColor(AdtUiUtils.DEFAULT_BORDER_COLOR);
     g2d.draw(line);
   }
 
-  private void drawMarkerLabel(Graphics2D g2d, float markerOffset, Point origin,
-                               double markerValue, boolean alwaysRender) {
-    double rangeLength = myGlobalRange == null ? myRange.getLength() : myGlobalRange.getLength();
-    String formattedValue = myFormatter.getFormattedString(rangeLength, markerValue);
+  private void drawMarkerLabel(Graphics2D g2d, float markerOffset, Point origin, String value, boolean alwaysRender) {
     int stringAscent = myMetrics.getAscent();
-    int stringLength = myMetrics.stringWidth(formattedValue);
+    int stringLength = myMetrics.stringWidth(value);
 
     // Marker label placement positions are as follows:
     // 1. For horizontal axes, offset to the right relative to the marker position
-    // 2. For vertical axes, offset to the bottom relative to the marker position
+    // 2. For vertical axes, centered around the marker position
     // The offset amount is specified by MARKER_LABEL_OFFSET_PX in both cases.
     float labelX, labelY;
     float reserved; // reserved space for min/max labels.
     switch (myOrientation) {
       case LEFT:
-        labelX = origin.x - myMinorMarkerLength - stringLength;
-        labelY = origin.y - markerOffset + stringAscent + MARKER_LABEL_OFFSET_PX;
+        labelX = origin.x - (myMajorMarkerLength + stringLength + MARKER_LABEL_OFFSET_PX);
+        labelY = origin.y - markerOffset + stringAscent * 0.5f;
         reserved = stringAscent;
         break;
       case RIGHT:
-        labelX = myMinorMarkerLength;
-        labelY = origin.y - markerOffset + stringAscent + MARKER_LABEL_OFFSET_PX;
+        labelX = myMajorMarkerLength + MARKER_LABEL_OFFSET_PX;
+        labelY = origin.y - markerOffset + stringAscent * 0.5f;
         reserved = stringAscent;
         break;
       case TOP:
@@ -509,7 +537,7 @@ public final class AxisComponent extends AnimatedComponent {
 
     if (alwaysRender || (markerOffset - reserved > 0 && markerOffset + reserved < myAxisLength)) {
       g2d.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
-      g2d.drawString(formattedValue, labelX, labelY);
+      g2d.drawString(value, labelX, labelY);
     }
   }
 
@@ -517,7 +545,8 @@ public final class AxisComponent extends AnimatedComponent {
   public Dimension getPreferredSize() {
     int width = Math.max(myMajorMarkerLength, myMinorMarkerLength) + MARKER_LABEL_OFFSET_PX + MAXIMUM_LABEL_WIDTH;
     int height = 1;
-    return (myOrientation == LEFT || myOrientation == RIGHT) ? new Dimension(width, height) : new Dimension(height, width);
+    return (myOrientation == AxisOrientation.LEFT || myOrientation == AxisOrientation.RIGHT) ?
+           new Dimension(width, height) : new Dimension(height, width);
   }
 
   public static class Builder {
@@ -533,7 +562,11 @@ public final class AxisComponent extends AnimatedComponent {
     private Range myGlobalRange;
     private int myMajorMarkerLength = DEFAULT_MAJOR_MARKER_LENGTH;
     private int myMinorMarkerLength = DEFAULT_MINOR_MARKER_LENGTH;
-    private boolean myShowMinMax = false;
+    private int myStartMargin;
+    private int myEndMargin;
+    private boolean myShowMin;
+    private boolean myShowMax;
+    private boolean myShowUnitAtMax;
     private boolean myShowAxisLine = true;
     private boolean myClampToMajorTicks = false;
     private double myOffset = 0;
@@ -588,6 +621,15 @@ public final class AxisComponent extends AnimatedComponent {
     }
 
     /**
+     * Sets the start/end margin of the axis. These are required for the min/max label to not be clipped.
+     */
+    public Builder setMargins(int startMargin, int endMargin) {
+      myStartMargin = startMargin;
+      myEndMargin = endMargin;
+      return this;
+    }
+
+    /**
      * Sets the offset to be used, by default offset is zero.
      * {@link AxisComponent#myOffset}
      */
@@ -597,10 +639,27 @@ public final class AxisComponent extends AnimatedComponent {
     }
 
     /**
-     * @param showMinMax sets whether to render the min/max values.
+     * @param showMin sets whether to render the min values.
      */
-    public Builder showMinMax(boolean showMinMax) {
-      myShowMinMax = showMinMax;
+    public Builder showMin(boolean showMin) {
+      myShowMin = showMin;
+      return this;
+    }
+
+    /**
+     * @param showMax sets whether to render the max values.
+     */
+    public Builder showMax(boolean showMax) {
+      myShowMax = showMax;
+      return this;
+    }
+
+
+    /**
+     * @param showUnitAtMax if true, unit will only be shown at the max value.
+     */
+    public Builder showUnitAtMax(boolean showUnitAtMax) {
+      myShowUnitAtMax = showUnitAtMax;
       return this;
     }
 

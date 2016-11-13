@@ -139,14 +139,14 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   public void createComponentsList(@NotNull List<Animatable> animatables) {
     // left axis
     AxisComponent.Builder builder = new AxisComponent.Builder(mLeftAxisRange, mLeftAxisFormatterSimple, AxisComponent.AxisOrientation.LEFT)
-      .showMinMax(true)
+      .showMax(true)
       .clampToMajorTicks(true);
     mLeftAxis = builder.build();
 
     // right axis
     if (mRightAxisFormatter != null) {
       builder = new AxisComponent.Builder(mRightAxisRange, mRightAxisFormatter, AxisComponent.AxisOrientation.RIGHT)
-        .showMinMax(true)
+        .showMax(true)
         .setParentAxis(mLeftAxis);
       mRightAxis = builder.build();
       mRightAxis.setParentAxis(mLeftAxis);

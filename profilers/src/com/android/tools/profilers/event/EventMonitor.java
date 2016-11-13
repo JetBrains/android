@@ -33,6 +33,11 @@ public class EventMonitor extends ProfilerMonitor {
     myProfilers = profilers;
   }
 
+  @Override
+  public String getName() {
+    return "Events";
+  }
+
   @NotNull
   public RangedSeries<EventAction<EventAction.Action, EventActionType>> getSimpleEvents() {
     SimpleEventDataSeries series = new SimpleEventDataSeries(myProfilers.getClient(), myProcessId);
