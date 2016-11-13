@@ -58,4 +58,10 @@ public class MemoryProfilerStageView extends StageView {
   public JComponent getComponent() {
     return myComponent;
   }
+
+  @Override
+  public JComponent getToolbar() {
+    // TODO Add memory profiler toolbar elements.
+    return new JPanel();
+  }
 }

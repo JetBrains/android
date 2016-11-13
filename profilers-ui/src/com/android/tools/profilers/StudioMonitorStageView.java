@@ -16,7 +16,6 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.AccordionLayout;
-import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
@@ -28,7 +27,6 @@ import com.android.tools.profilers.memory.MemoryMonitor;
 import com.android.tools.profilers.memory.MemoryMonitorView;
 import com.android.tools.profilers.network.NetworkMonitor;
 import com.android.tools.profilers.network.NetworkMonitorView;
-import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,15 +45,15 @@ public class StudioMonitorStageView extends StageView {
   private static final int CHOREOGRAPHER_FPS = 60;
 
   private final JPanel myComponent;
-  private final ViewBinder<ProfilerMonitor, ProfilerMonitorView> myBinder;
 
   public StudioMonitorStageView(@NotNull StudioMonitorStage stage) {
     super(stage);
-    myBinder = new ViewBinder<>();
-    myBinder.bind(NetworkMonitor.class, NetworkMonitorView::new);
-    myBinder.bind(CpuMonitor.class, CpuMonitorView::new);
-    myBinder.bind(MemoryMonitor.class, MemoryMonitorView::new);
-    myBinder.bind(EventMonitor.class, EventMonitorView::new);
+
+    ViewBinder<ProfilerMonitor, ProfilerMonitorView> binder = new ViewBinder<>();
+    binder.bind(NetworkMonitor.class, NetworkMonitorView::new);
+    binder.bind(CpuMonitor.class, CpuMonitorView::new);
+    binder.bind(MemoryMonitor.class, MemoryMonitorView::new);
+    binder.bind(EventMonitor.class, EventMonitorView::new);
 
     myComponent = new JPanel(new BorderLayout());
 
@@ -67,7 +65,7 @@ public class StudioMonitorStageView extends StageView {
     choreographer.register(accordion);
 
     for (ProfilerMonitor monitor : stage.getMonitors()) {
-      ProfilerMonitorView view = myBinder.build(monitor);
+      ProfilerMonitorView view = binder.build(monitor);
       JComponent component = view.initialize(choreographer);
 
       // TODO event monitor should use a fix height
@@ -93,5 +91,15 @@ public class StudioMonitorStageView extends StageView {
   @Override
   public JComponent getComponent() {
     return myComponent;
+  }
+
+  @Override
+  public JComponent getToolbar() {
+    return new JPanel();
+  }
+
+  @Override
+  public boolean needsProcessSelection() {
+    return true;
   }
 }
