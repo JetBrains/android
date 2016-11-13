@@ -21,8 +21,8 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
+import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitorView;
-import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -35,7 +35,6 @@ import java.awt.event.MouseEvent;
 public class MemoryMonitorView extends ProfilerMonitorView {
 
   private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 2, 5);
-  private static final Color MEMORY_TOTAL_COLOR = new JBColor(new Color(123, 170, 214), new Color(123, 170, 214));
 
   @NotNull private final MemoryMonitor myMonitor;
 
@@ -60,7 +59,7 @@ public class MemoryMonitorView extends ProfilerMonitorView {
     final AxisComponent leftAxis = builder.build();
 
     final LineChart lineChart = new LineChart();
-    lineChart.addLine(myMonitor.getTotalMemory(), new LineConfig(MEMORY_TOTAL_COLOR).setFilled(true));
+    lineChart.addLine(myMonitor.getTotalMemory(), new LineConfig(ProfilerColors.TOTAL_MEMORY).setFilled(true));
     lineChart.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {

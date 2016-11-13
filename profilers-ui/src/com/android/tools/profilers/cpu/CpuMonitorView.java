@@ -19,10 +19,9 @@ import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
+import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitorView;
-import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -35,7 +34,6 @@ import java.awt.event.MouseEvent;
 public class CpuMonitorView extends ProfilerMonitorView {
 
   private static final SingleUnitAxisFormatter CPU_USAGE_AXIS = new SingleUnitAxisFormatter(1, 1, 10, "%");
-  private static final Color MY_PROCESS_LINE_COLOR = new JBColor(0x85c490, 0x85c490);
 
   @NotNull
   private final CpuMonitor myMonitor;
@@ -61,7 +59,7 @@ public class CpuMonitorView extends ProfilerMonitorView {
     final AxisComponent leftAxis = builder.build();
 
     final LineChart lineChart = new LineChart();
-    lineChart.addLine(myMonitor.getCpuUsage(), new LineConfig(MY_PROCESS_LINE_COLOR).setFilled(true));
+    lineChart.addLine(myMonitor.getCpuUsage(), new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true));
     lineChart.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
