@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.grpc.StatusRuntimeException;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -48,6 +49,7 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
 
   private Profiler.Device myDevice;
   private long myDeviceDeltaNs;
+  private long myDeviceStartUs;
 
   @Nullable
   private Profiler.Process myProcess;
@@ -95,9 +97,9 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
           if (!myConnected) {
             Profiler.TimesResponse times = myClient.getProfilerClient().getTimes(Profiler.TimesRequest.getDefaultInstance());
             long deviceNowNs = times.getTimestampNs();
-            long deviceNowUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
+            myDeviceStartUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
             myDeviceDeltaNs = deviceNowNs - nowNs;
-            myDataRangUs.set(deviceNowUs, deviceNowUs);
+            myDataRangUs.set(myDeviceStartUs, myDeviceStartUs);
             this.changed(ProfilerAspect.CONNECTION);
           }
 
@@ -210,8 +212,21 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
     this.changed(ProfilerAspect.STAGE);
   }
 
-  public Range getViewRange() {
+  @NotNull
+  public Range getSelectionRange() {
+    return mySelectionRangeUs;
+  }
+
+  @NotNull public Range getViewRange() {
     return myViewRangeUs;
+  }
+
+  @NotNull public Range getDataRange() {
+    return myDataRangUs;
+  }
+
+  public long getDeviceStartUs() {
+    return myDeviceStartUs;
   }
 
   public Profiler.Device getDevice() {
