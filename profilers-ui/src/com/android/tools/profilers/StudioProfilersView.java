@@ -33,6 +33,8 @@ public class StudioProfilersView {
   private StageView myStageView;
   private BorderLayout myLayout;
   private JPanel myComponent;
+  private JPanel myStageToolbar;
+  private JPanel myProcessSelection;
 
 
   public StudioProfilersView(StudioProfilers profiler) {
@@ -69,11 +71,17 @@ public class StudioProfilersView {
                                                   myProfiler::setProcess);
     processes.bind();
 
+
     JPanel toolbar = new JPanel(new BorderLayout());
-    JPanel panel = new JPanel();
-    panel.add(deviceCombo);
-    panel.add(processCombo);
-    toolbar.add(panel, BorderLayout.WEST);
+
+    myProcessSelection = new JPanel();
+    myProcessSelection.add(deviceCombo);
+    myProcessSelection.add(processCombo);
+    toolbar.add(myProcessSelection, BorderLayout.WEST);
+
+    myStageToolbar = new JPanel(new BorderLayout());
+    toolbar.add(myStageToolbar, BorderLayout.CENTER);
+
     myComponent.add(toolbar, BorderLayout.NORTH);
   }
 
@@ -87,6 +95,12 @@ public class StudioProfilersView {
       }
       myComponent.add(myStageView.getComponent(), BorderLayout.CENTER);
       myComponent.revalidate();
+
+      myStageToolbar.removeAll();
+      myStageToolbar.add(myStageView.getToolbar(), BorderLayout.CENTER);
+      myStageToolbar.revalidate();
+
+      myProcessSelection.setVisible(myStageView.needsProcessSelection());
     }
   }
 
