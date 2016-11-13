@@ -59,19 +59,19 @@ public class NetworkTrafficDataSeries implements DataSeries<Long> {
 
     NetworkProfiler.NetworkDataRequest.Builder dataRequestBuilder = NetworkProfiler.NetworkDataRequest.newBuilder()
       .setAppId(myProcessId)
-      .setType(NetworkProfiler.NetworkDataRequest.Type.TRAFFIC)
+      .setType(NetworkProfiler.NetworkDataRequest.Type.SPEED)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()));
     NetworkProfiler.NetworkDataResponse response = myClient.getData(dataRequestBuilder.build());
     for (NetworkProfiler.NetworkProfilerData data : response.getDataList()) {
       long xTimestamp = data.getBasicInfo().getEndTimestamp();
-      NetworkProfiler.TrafficData trafficData = data.getTrafficData();
+      NetworkProfiler.SpeedData speedData = data.getSpeedData();
       switch (myType) {
         case BYTES_RECIEVED:
-          seriesData.add(new SeriesData<>(xTimestamp, trafficData.getBytesReceived()));
+          seriesData.add(new SeriesData<>(xTimestamp, speedData.getReceived()));
           break;
         case BYTES_SENT:
-          seriesData.add(new SeriesData<>(xTimestamp, trafficData.getBytesSent()));
+          seriesData.add(new SeriesData<>(xTimestamp, speedData.getSent()));
           break;
         default:
           throw new IllegalStateException("Unexpected network traffic data series type: " + myType);
