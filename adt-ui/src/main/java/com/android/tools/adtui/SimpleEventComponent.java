@@ -119,8 +119,7 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
   }
 
   @Override
-  protected void draw(Graphics2D g2d) {
-    Dimension dim = getSize();
+  protected void draw(Graphics2D g2d, Dimension dim) {
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     double min = mData.getXRange().getMin();
     double max = mData.getXRange().getMax();

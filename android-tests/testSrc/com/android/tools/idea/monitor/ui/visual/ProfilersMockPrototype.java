@@ -28,9 +28,7 @@ public class ProfilersMockPrototype {
     SwingUtilities.invokeAndWait(() -> {
       VisualTestsDialog dialog = new VisualTestsDialog();
       dialog.setTitle(PROFILERS_DIALOG_TITLE);
-      // TODO: fix me, currently it's throwing IllegalArgumentException, the reason is:
-      // EventSegment is using {@code DeviceProfilerService} which doesn't exist in visual test concept.
-      // dialog.addTest(new ProfilerOverviewVisualTest());
+      dialog.addTest(new ProfilerOverviewVisualTest());
       dialog.addTest(new NetworkProfilerVisualTest());
       dialog.addTest(new CpuProfilerVisualTest());
       dialog.addTest(new MemoryProfilerVisualTest());

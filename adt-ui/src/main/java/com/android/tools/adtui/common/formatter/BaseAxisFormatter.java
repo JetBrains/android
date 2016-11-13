@@ -55,16 +55,17 @@ public abstract class BaseAxisFormatter {
   /**
    * @param globalRange The global range of the axis.
    * @param value       The value to display.
+   * @param includeUnit Whether to include unit in the display.
    * @return A nicely formatted string to display as the tick label.
    */
   @NotNull
-  public String getFormattedString(double globalRange, double value) {
+  public String getFormattedString(double globalRange, double value, boolean includeUnit) {
     int index = getMultiplierIndex(globalRange, 1);
     // If value is an integer number, don't include the floating point/decimal places in the formatted string.
     // Otherwise, add up to two decimal places of value.
     DecimalFormat decimalFormat = new DecimalFormat("#.##");
     String formattedValue = decimalFormat.format((float)(value) / mMultiplier);
-    return String.format("%s%s", formattedValue, getUnit(index));
+    return includeUnit ? String.format("%s%s", formattedValue, getUnit(index)) : formattedValue;
   }
 
   /**
