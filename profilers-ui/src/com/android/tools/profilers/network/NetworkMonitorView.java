@@ -15,16 +15,25 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
+import com.android.tools.adtui.common.formatter.NetworkTrafficFormatter;
 import com.android.tools.profilers.ProfilerMonitorView;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class NetworkMonitorView extends ProfilerMonitorView {
+
+  private static final BaseAxisFormatter BANDWIDTH_AXIS_FORMATTER_L1 = new NetworkTrafficFormatter(1, 2, 5);
 
   @NotNull
   private final NetworkMonitor myMonitor;
@@ -34,8 +43,22 @@ public class NetworkMonitorView extends ProfilerMonitorView {
   }
 
   @Override
-  public JComponent initialize(Choreographer choreographer) {
-    LineChart lineChart = new LineChart();
+  protected void populateUi(JLayeredPane container, Choreographer choreographer) {
+    final JLabel label = new JLabel(myMonitor.getName());
+    label.setBorder(LABEL_PADDING);
+    final Dimension labelSize = label.getPreferredSize();
+
+    AxisComponent.Builder builder = new AxisComponent.Builder(myMonitor.getTrafficData().getYRange(), BANDWIDTH_AXIS_FORMATTER_L1,
+                                                              AxisComponent.AxisOrientation.RIGHT)
+      .showAxisLine(false)
+      .showMax(true)
+      .showUnitAtMax(true)
+      .setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
+      .clampToMajorTicks(true).setMargins(0, labelSize.height);
+    final AxisComponent leftAxis = builder.build();
+
+    // TODO handle multiple series.
+    final LineChart lineChart = new LineChart();
     lineChart.addLine(myMonitor.getTrafficData());
     lineChart.addMouseListener(new MouseAdapter() {
       @Override
@@ -43,7 +66,21 @@ public class NetworkMonitorView extends ProfilerMonitorView {
         myMonitor.expand();
       }
     });
+
     choreographer.register(lineChart);
-    return lineChart;
+    choreographer.register(leftAxis);
+
+    container.add(label);
+    container.add(leftAxis);
+    container.add(lineChart);
+    container.addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent e) {
+        Dimension size = e.getComponent().getSize();
+        lineChart.setBounds(0, labelSize.height, size.width, size.height - labelSize.height);
+        leftAxis.setBounds(0, 0, MAX_AXIS_WIDTH, size.height);
+        label.setBounds(0, 0, labelSize.width, labelSize.height);
+      }
+    });
   }
 }
