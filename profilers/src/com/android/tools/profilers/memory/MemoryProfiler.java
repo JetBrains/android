@@ -29,8 +29,8 @@ public class MemoryProfiler extends StudioProfiler {
   }
 
   @Override
-  public ProfilerMonitor newMonitor(int processId) {
-    return new MemoryMonitor(myProfilers, processId);
+  public ProfilerMonitor newMonitor() {
+    return new MemoryMonitor(myProfilers);
   }
 
   @Override
