@@ -44,15 +44,8 @@ public class NetworkMonitor extends ProfilerMonitor {
   public RangedContinuousSeries getTrafficData() {
     NetworkServiceGrpc.NetworkServiceBlockingStub client = myProfilers.getClient().getNetworkClient();
 
-    // TODO: Switch to the network dataseries, when bugs are sorted out:
-    // NetworkTrafficDataSeries series = new NetworkTrafficDataSeries(myClient, pid, NetworkTrafficDataSeries.Type.BYTES_RECIEVED);
-    DataSeries<Long> series = xRange -> {
-      List<SeriesData<Long>> seriesData = new ArrayList<>();
-      seriesData.add(new SeriesData<>((long)xRange.getMin(), 50L));
-      seriesData.add(new SeriesData<>((long)xRange.getMax(), 50L));
-      return ContainerUtil.immutableList(seriesData);
-    };
-
+    // TODO: Fetch both sent and received speeds
+    NetworkTrafficDataSeries series = new NetworkTrafficDataSeries(client, myProcessId, NetworkTrafficDataSeries.Type.BYTES_RECIEVED);
     return new RangedContinuousSeries("Network", myProfilers.getViewRange(), new Range(0, 100), series);
   }
 
