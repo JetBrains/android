@@ -89,12 +89,15 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
    */
   private void run() {
     // TODO: Allow clean exit of this thread.
-    while (true) {
-      try {
-        Profiler.GetDevicesResponse response = myClient.getProfilerClient().getDevices(Profiler.GetDevicesRequest.getDefaultInstance());
-        if (response.getDeviceCount() > 0) {
+    try {
+      while (true) {
+        try {
+          Profiler.GetDevicesResponse response = myClient.getProfilerClient().getDevices(Profiler.GetDevicesRequest.getDefaultInstance());
           long nowNs = System.nanoTime();
           if (!myConnected) {
+            // We were not connected to a service, we don't know yet whether there are devices available.
+            // TODO: modify get times to be on the selected device and separate
+            // device polling, from streaming mode.
             Profiler.TimesResponse times = myClient.getProfilerClient().getTimes(Profiler.TimesRequest.getDefaultInstance());
             long deviceNowNs = times.getTimestampNs();
             myDeviceStartUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
@@ -102,7 +105,6 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
             myDataRangUs.set(myDeviceStartUs, myDeviceStartUs);
             this.changed(ProfilerAspect.CONNECTION);
           }
-
           long deviceNowNs = nowNs + myDeviceDeltaNs;
           long deviceNowUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
           myViewRangeUs.set(deviceNowUs - TimeUnit.SECONDS.toMicros(10), deviceNowUs);
@@ -121,20 +123,26 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
             // Attempt to choose the currently profiled device and process
             setDevice(myDevice);
             setProcess(myProcess);
+
+            changed(ProfilerAspect.DEVICES);
+            changed(ProfilerAspect.PROCESSES);
           }
         }
+        catch (StatusRuntimeException e) {
+          myConnected = false;
+          this.changed(ProfilerAspect.CONNECTION);
+          System.err.println("Cannot find profiler service, retrying...");
+        }
+        try {
+          Thread.sleep(1000);
+        }
+        catch (InterruptedException e) {
+          e.printStackTrace();
+        }
       }
-      catch (StatusRuntimeException e) {
-        myConnected = false;
-        this.changed(ProfilerAspect.CONNECTION);
-        System.err.println("Cannot find profiler service, retrying...");
-      }
-      try {
-        Thread.sleep(1000);
-      }
-      catch (InterruptedException e) {
-        e.printStackTrace();
-      }
+    }
+    catch (Throwable t) {
+      System.err.println("Run is ending....");
     }
   }
 
@@ -143,18 +151,18 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
    * Chooses the given device. If the device is not known or null, the first available one will be chosen instead.
    */
   public void setDevice(Profiler.Device device) {
-      Set<Profiler.Device> devices = myProcesses.keySet();
-      if (!devices.contains(device)) {
-        // Device no longer exists, or is unknown. Choose a device from the available ones if there is one.
-        device  = devices.isEmpty() ? null : devices.iterator().next();
-      }
-      if (!Objects.equals(device, myDevice)) {
-        myDevice = device;
-        changed(ProfilerAspect.DEVICES);
+    Set<Profiler.Device> devices = myProcesses.keySet();
+    if (!devices.contains(device)) {
+      // Device no longer exists, or is unknown. Choose a device from the available ones if there is one.
+      device = devices.isEmpty() ? null : devices.iterator().next();
+    }
+    if (!Objects.equals(device, myDevice)) {
+      myDevice = device;
+      changed(ProfilerAspect.DEVICES);
 
-        // The device has changed, reset the process
-        setProcess(null);
-      }
+      // The device has changed, reset the process
+      setProcess(null);
+    }
   }
 
 
@@ -168,7 +176,7 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
       process = (processes == null || processes.isEmpty()) ? null : processes.iterator().next();
     }
     if (!Objects.equals(process, myProcess)) {
-      if (myProcess != null) {
+      if (myDevice != null && myProcess != null) {
         myProfilers.forEach(profiler -> profiler.stopProfiling(myProcess));
       }
 
