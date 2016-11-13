@@ -34,7 +34,7 @@ public class StudioMonitorStage extends Stage {
     int processId = getStudioProfilers().getProcessId();
     if (processId != INVALID_PROCESS_ID) {
       for (StudioProfiler profiler : getStudioProfilers().getProfilers()) {
-        myMonitors.add(profiler.newMonitor(processId));
+        myMonitors.add(profiler.newMonitor());
       }
     }
   }

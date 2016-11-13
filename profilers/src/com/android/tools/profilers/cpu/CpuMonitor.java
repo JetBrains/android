@@ -23,20 +23,17 @@ import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
 public class CpuMonitor extends ProfilerMonitor {
-  private final int myProcessId;
-
   @NotNull
   private final StudioProfilers myProfilers;
 
-  public CpuMonitor(@NotNull StudioProfilers profilers, int pid) {
-    myProcessId = pid;
+  public CpuMonitor(StudioProfilers profilers) {
     myProfilers = profilers;
   }
 
   @NotNull
-  public RangedContinuousSeries getCpuUsage() {
+  public RangedContinuousSeries getCpuUsage(boolean other) {
     CpuServiceGrpc.CpuServiceBlockingStub client = myProfilers.getClient().getCpuClient();
-    CpuUsageDataSeries series = new CpuUsageDataSeries(client, false, myProcessId);
+    CpuUsageDataSeries series = new CpuUsageDataSeries(client, other, myProfilers.getProcessId());
     return new RangedContinuousSeries("CPU", myProfilers.getViewRange(), new Range(0, 100), series);
   }
 
@@ -46,6 +43,6 @@ public class CpuMonitor extends ProfilerMonitor {
   }
 
   public void expand() {
-    myProfilers.setStage(new CpuMonitorStage(myProfilers));
+    myProfilers.setStage(new CpuProfilerStage(myProfilers));
   }
 }

@@ -16,8 +16,8 @@
 package com.android.tools.profilers;
 
 import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profilers.cpu.CpuMonitorStage;
-import com.android.tools.profilers.cpu.CpuMonitorStageView;
+import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfilerStageView;
 import com.android.tools.profilers.network.NetworkProfilerStageView;
@@ -44,7 +44,7 @@ public class StudioProfilersView {
 
     myBinder = new ViewBinder<>();
     myBinder.bind(StudioMonitorStage.class, StudioMonitorStageView::new);
-    myBinder.bind(CpuMonitorStage.class, CpuMonitorStageView::new);
+    myBinder.bind(CpuProfilerStage.class, CpuProfilerStageView::new);
     myBinder.bind(MemoryProfilerStage.class, MemoryProfilerStageView::new);
     myBinder.bind(NetworkProfilerStage.class, NetworkProfilerStageView::new);
 
