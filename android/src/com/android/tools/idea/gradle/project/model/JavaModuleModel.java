@@ -27,13 +27,12 @@ import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.project.facet.java.JavaFacet.COMPILE_JAVA_TASK_NAME;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 
-public class JavaModuleModel implements Serializable {
+public class JavaModuleModel implements ModuleModel {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 
@@ -147,6 +146,7 @@ public class JavaModuleModel implements Serializable {
     myAndroidModuleWithoutVariants = androidModuleWithoutVariants;
   }
 
+  @Override
   @NotNull
   public String getModuleName() {
     return myModuleName;
