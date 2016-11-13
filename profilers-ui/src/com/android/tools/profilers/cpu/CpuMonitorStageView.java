@@ -19,6 +19,7 @@ import com.android.tools.profilers.StageView;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.*;
 
 public class CpuMonitorStageView extends StageView {
   public CpuMonitorStageView(@NotNull CpuMonitorStage stage) {
@@ -29,9 +30,23 @@ public class CpuMonitorStageView extends StageView {
   public JComponent getComponent() {
     JPanel panel = new JPanel();
     panel.add(new JLabel("TODO: CPU L2"));
-    JButton button = new JButton("Go back");
+    return panel;
+  }
+
+  @Override
+  public JComponent getToolbar() {
+    JPanel panel = new JPanel(new BorderLayout());
+
+    JPanel toolbar = new JPanel();
+
+    JButton button = new JButton("<-");
     button.addActionListener(action -> returnToStudioStage());
-    panel.add(button);
+    toolbar.add(button);
+
+    JButton capture = new JButton("Capture");
+    toolbar.add(capture);
+
+    panel.add(toolbar, BorderLayout.WEST);
     return panel;
   }
 }

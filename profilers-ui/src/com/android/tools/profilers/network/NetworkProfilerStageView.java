@@ -105,4 +105,10 @@ public class NetworkProfilerStageView extends StageView {
   public JComponent getComponent() {
     return myComponent;
   }
+
+  @Override
+  public JComponent getToolbar() {
+    // TODO Add network profiler toolbar elements.
+    return new JPanel();
+  }
 }
