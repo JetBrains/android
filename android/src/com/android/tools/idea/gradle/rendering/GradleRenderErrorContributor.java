@@ -99,7 +99,7 @@ public class GradleRenderErrorContributor extends RenderErrorContributor {
     }
 
     @Override
-    public RenderErrorContributor getFactory(@NotNull RenderResult result, @Nullable DataContext dataContext) {
+    public RenderErrorContributor getContributor(@NotNull RenderResult result, @Nullable DataContext dataContext) {
       return new GradleRenderErrorContributor(result, dataContext);
     }
   }
