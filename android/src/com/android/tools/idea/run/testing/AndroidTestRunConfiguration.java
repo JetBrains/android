@@ -20,7 +20,7 @@ import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.TestRunParameters;
@@ -98,7 +98,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     }
 
     // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
-    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
     if (androidModel == null) {
       return Pair.create(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
     }
@@ -205,7 +205,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @Override
   @NotNull
   protected ApkProvider getApkProvider(@NotNull AndroidFacet facet, @NotNull ApplicationIdProvider applicationIdProvider) {
-    if (facet.getAndroidModel() != null && facet.getAndroidModel() instanceof AndroidGradleModel) {
+    if (facet.getAndroidModel() != null && facet.getAndroidModel() instanceof AndroidModuleModel) {
       return new GradleApkProvider(facet, applicationIdProvider, true);
     }
     return new NonGradleApkProvider(facet, applicationIdProvider, null);
@@ -337,7 +337,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     String runner = getRunnerFromManifest(facet);
 
     // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
-    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
     if (runner == null && androidModel != null) {
       Variant selectedVariant = androidModel.getSelectedVariant();
       String testRunner = selectedVariant.getMergedFlavor().getTestInstrumentationRunner();
@@ -351,7 +351,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @NotNull
   public static Map<String, String> getRunnerArguments(@NotNull AndroidFacet facet) {
-    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
     if(androidModel != null) {
       return new HashMap<>(androidModel.getSelectedVariant().getMergedFlavor().getTestInstrumentationRunnerArguments());
     }

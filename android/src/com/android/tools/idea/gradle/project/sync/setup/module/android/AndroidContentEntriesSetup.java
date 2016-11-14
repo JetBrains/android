@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.ContentEntriesSetup;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -29,7 +29,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.FD_GENERATED;
-import static com.android.tools.idea.gradle.AndroidGradleModel.getTestArtifacts;
+import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.getTestArtifacts;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGeneratedSourceFolders;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
@@ -42,19 +42,19 @@ class AndroidContentEntriesSetup extends ContentEntriesSetup {
 
   static class Factory {
     @NotNull
-    AndroidContentEntriesSetup create(@NotNull AndroidGradleModel androidModel,
+    AndroidContentEntriesSetup create(@NotNull AndroidModuleModel androidModel,
                                       @NotNull ModifiableRootModel moduleModel,
                                       boolean hasNativeModel) {
       return new AndroidContentEntriesSetup(androidModel, moduleModel, hasNativeModel);
     }
   }
 
-  @NotNull private final AndroidGradleModel myAndroidModel;
+  @NotNull private final AndroidModuleModel myAndroidModel;
 
   // Native sources from AndroidGradleModel needs to be added only when NativeAndroidGradleModel is not present.
   private final boolean myHasNativeModel;
 
-  private AndroidContentEntriesSetup(@NotNull AndroidGradleModel androidModel,
+  private AndroidContentEntriesSetup(@NotNull AndroidModuleModel androidModel,
                                      @NotNull ModifiableRootModel moduleModel,
                                      boolean hasNativeModel) {
     super(moduleModel);

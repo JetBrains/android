@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.ProjectSetup.ProjectSetupImpl;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleSetup;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
@@ -112,7 +112,7 @@ public class ProjectSetupImplTest extends AndroidGradleTestCase {
     when(myModelsProvider.getModules()).thenReturn(modules);
 
     // Add AndroidFacet and AndroidGradleModel to "app" module, to ensure that the validator gets invoked.
-    AndroidGradleModel appAndroidModel = mock(AndroidGradleModel.class);
+    AndroidModuleModel appAndroidModel = mock(AndroidModuleModel.class);
     AndroidFacet appAndroidFacet = ApplicationManager.getApplication().runReadAction(new Computable<AndroidFacet>() {
       @Override
       public AndroidFacet compute() {

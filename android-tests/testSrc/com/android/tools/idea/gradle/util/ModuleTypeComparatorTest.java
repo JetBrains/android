@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.openapi.module.Module;
 import junit.framework.TestCase;
 import org.mockito.Mock;
@@ -32,8 +32,8 @@ public class ModuleTypeComparatorTest extends TestCase {
   @Mock private Module myModule1;
   @Mock private Module myModule2;
 
-  @Mock private AndroidGradleModel myGradleModel1;
-  @Mock private AndroidGradleModel myGradleModel2;
+  @Mock private AndroidModuleModel myGradleModel1;
+  @Mock private AndroidModuleModel myGradleModel2;
 
   @Override
   protected void setUp() throws Exception {

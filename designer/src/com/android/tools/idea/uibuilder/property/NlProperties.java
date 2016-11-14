@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ImageViewHandler;
@@ -195,7 +195,7 @@ public class NlProperties {
                                      @NotNull final List<NlComponent> components) {
     NlPropertyItem srcProperty = properties.get(ANDROID_URI, ATTR_SRC);
     if (srcProperty != null) {
-      AndroidGradleModel gradleModel = AndroidGradleModel.get(facet);
+      AndroidModuleModel gradleModel = AndroidModuleModel.get(facet);
       if (gradleModel != null && GradleUtil.dependsOn(gradleModel, APPCOMPAT_LIB_ARTIFACT) && allTagsSupportSrcCompat(facet, components)) {
         AttributeDefinition srcDefinition = srcProperty.getDefinition();
         assert srcDefinition != null;

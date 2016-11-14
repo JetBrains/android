@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
@@ -50,7 +50,7 @@ public class FacetsTest extends IdeaTestCase {
     ApplicationManager.getApplication().runWriteAction(() -> {
       ModifiableFacetModel model = facetManager.createModifiableModel();
       try {
-        AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.getFacetName(), null);
+        GradleFacet facet = facetManager.createFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null);
         model.addFacet(facet);
       }
       finally {
@@ -58,10 +58,10 @@ public class FacetsTest extends IdeaTestCase {
       }
     });
 
-    assertEquals(1, facetManager.getFacetsByType(AndroidGradleFacet.getFacetTypeId()).size());
+    assertEquals(1, facetManager.getFacetsByType(GradleFacet.getFacetTypeId()).size());
 
-    ApplicationManager.getApplication().runWriteAction(() -> Facets.removeAllFacetsOfType(myModule, AndroidGradleFacet.getFacetTypeId()));
+    ApplicationManager.getApplication().runWriteAction(() -> Facets.removeAllFacetsOfType(myModule, GradleFacet.getFacetTypeId()));
 
-    assertEquals(0, facetManager.getFacetsByType(AndroidGradleFacet.getFacetTypeId()).size());
+    assertEquals(0, facetManager.getFacetsByType(GradleFacet.getFacetTypeId()).size());
   }
 }

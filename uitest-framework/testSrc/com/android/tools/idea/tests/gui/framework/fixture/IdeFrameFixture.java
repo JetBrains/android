@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.build.GradleBuildContext;
@@ -166,12 +166,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public AndroidGradleModel getAndroidProjectForModule(@NotNull String name) {
+  public AndroidModuleModel getAndroidProjectForModule(@NotNull String name) {
     Module module = getModule(name);
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null && facet.requiresAndroidModel()) {
       // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
-      AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+      AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
       if (androidModel != null) {
         return androidModel;
       }
@@ -238,14 +238,14 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public AndroidGradleModel getAndroidModel(@NotNull String moduleName) {
+  public AndroidModuleModel getAndroidModel(@NotNull String moduleName) {
     Module module = getModule(moduleName);
     assertNotNull("Could not find module " + moduleName, module);
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assertNotNull("Module " + moduleName + " is not an Android module", facet);
     assertTrue("Module " + moduleName + " is not a Gradle project", facet.requiresAndroidModel());
     // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
-    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
     assertNotNull("Module " + moduleName + " does not have a Gradle project (not synced yet or sync failed?)", androidModel);
 
     return androidModel;

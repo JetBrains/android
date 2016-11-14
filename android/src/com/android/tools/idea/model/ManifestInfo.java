@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.builder.model.*;
 import com.android.manifmerger.*;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.utils.ILogger;
@@ -85,7 +85,7 @@ final class ManifestInfo {
     ManifestMerger2.MergeType mergeType = facet.isAppProject() ? ManifestMerger2.MergeType.APPLICATION : ManifestMerger2.MergeType.LIBRARY;
 
     AndroidModel androidModel = facet.getAndroidModel();
-    AndroidGradleModel gradleModel = AndroidGradleModel.get(facet);
+    AndroidModuleModel gradleModel = AndroidModuleModel.get(facet);
 
     ManifestMerger2.Invoker manifestMergerInvoker = ManifestMerger2.newMerger(mainManifestFile, logger, mergeType);
     manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.SKIP_BLAME, ManifestMerger2.Invoker.Feature.SKIP_XML_STRING);
@@ -395,9 +395,9 @@ final class ManifestInfo {
 
       List<AndroidFacet> dependencies = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
 
-      AndroidGradleModel androidGradleModel = AndroidGradleModel.get(facet);
-      if (androidGradleModel != null) {
-        Collection<AndroidLibrary> libraries = androidGradleModel.getSelectedMainCompileDependencies().getLibraries();
+      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
+      if (androidModuleModel != null) {
+        Collection<AndroidLibrary> libraries = androidModuleModel.getSelectedMainCompileDependencies().getLibraries();
         Set<File> set = new HashSet<>();
         for (AndroidLibrary dependency : libraries) {
           addAarManifests(dependency, set, dependencies);

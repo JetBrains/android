@@ -24,8 +24,8 @@ import com.android.tools.idea.fd.BuildSelection;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.res.AppResourceRepository;
@@ -55,13 +55,13 @@ import static com.google.common.base.Charsets.UTF_8;
 public class GradleInstantRunContext implements InstantRunContext {
   private final String myApplicationId;
   private final AndroidFacet myFacet;
-  private final AndroidGradleModel myModel;
+  private final AndroidModuleModel myModel;
   private BuildSelection myBuildChoice;
 
   public GradleInstantRunContext(@NotNull String applicationId, @NotNull AndroidFacet appFacet) {
     myApplicationId = applicationId;
     myFacet = appFacet;
-    myModel = AndroidGradleModel.get(appFacet);
+    myModel = AndroidModuleModel.get(appFacet);
   }
 
   @Nullable
@@ -199,7 +199,7 @@ public class GradleInstantRunContext implements InstantRunContext {
       return Collections.emptyList();
     }
 
-    AndroidGradleFacet facet = AndroidGradleFacet.getInstance(myFacet.getModule());
+    GradleFacet facet = GradleFacet.getInstance(myFacet.getModule());
     if (facet == null) {
       Logger.getInstance(GradleInstantRunContext.class).warn("Unable to obtain gradle facet for module " + myFacet.getModule().getName());
       return Collections.emptyList();

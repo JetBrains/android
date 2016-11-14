@@ -17,7 +17,7 @@ package org.jetbrains.android.exportSignedPackage;
 
 import com.android.builder.model.Variant;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.util.PropertiesComponent;
@@ -40,7 +40,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -73,7 +72,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
   private final DefaultListModel myFlavorsListModel = new DefaultListModel();
   private final DefaultComboBoxModel myBuildTypeComboModel = new DefaultComboBoxModel();
 
-  private AndroidGradleModel myAndroidModel;
+  private AndroidModuleModel myAndroidModel;
 
   public GradleSignStep(@NotNull ExportSignedPackageWizard exportSignedPackageWizard) {
     myWizard = exportSignedPackageWizard;
@@ -87,7 +86,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
 
   @Override
   public void _init() {
-    myAndroidModel = AndroidGradleModel.get(myWizard.getFacet());
+    myAndroidModel = AndroidModuleModel.get(myWizard.getFacet());
 
     PropertiesComponent properties = PropertiesComponent.getInstance(myWizard.getProject());
     String lastSelectedBuildType = properties.getValue(PROPERTY_BUILD_TYPE);

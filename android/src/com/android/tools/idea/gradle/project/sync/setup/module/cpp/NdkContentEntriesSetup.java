@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.cpp;
 
-import com.android.tools.idea.gradle.NativeAndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.ContentEntriesSetup;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -27,12 +27,12 @@ import java.util.List;
 
 import static org.jetbrains.jps.model.java.JavaSourceRootType.SOURCE;
 
-class CppContentEntriesSetup extends ContentEntriesSetup {
-  @NotNull private final NativeAndroidGradleModel myAndroidModel;
+class NdkContentEntriesSetup extends ContentEntriesSetup {
+  @NotNull private final NdkModuleModel myAndroidModel;
 
-  CppContentEntriesSetup(@NotNull NativeAndroidGradleModel androidModel, @NotNull ModifiableRootModel moduleModel) {
-    super(moduleModel);
-    myAndroidModel = androidModel;
+  NdkContentEntriesSetup(@NotNull NdkModuleModel ndkModuleModel, @NotNull ModifiableRootModel rootModel) {
+    super(rootModel);
+    myAndroidModel = ndkModuleModel;
   }
 
   @Override

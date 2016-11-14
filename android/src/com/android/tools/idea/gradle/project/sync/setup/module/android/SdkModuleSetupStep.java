@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
@@ -57,7 +57,7 @@ public class SdkModuleSetupStep extends AndroidModuleSetupStep {
   @Override
   protected void doSetUpModule(@NotNull Module module,
                                @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                               @NotNull AndroidGradleModel androidModel,
+                               @NotNull AndroidModuleModel androidModel,
                                @Nullable SyncAction.ModuleModels gradleModels,
                                @Nullable ProgressIndicator indicator) {
     File androidSdkHomePath = IdeSdks.getInstance().getAndroidSdkPath();

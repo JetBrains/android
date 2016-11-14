@@ -17,8 +17,8 @@ package com.android.tools.idea.navigator.nodes;
 
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.NativeArtifact;
-import com.android.tools.idea.gradle.NativeAndroidGradleModel;
-import com.android.tools.idea.gradle.project.facet.cpp.NativeAndroidGradleFacet;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.google.common.collect.*;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
@@ -36,19 +36,19 @@ import static com.android.tools.idea.navigator.nodes.NativeAndroidLibraryNode.ge
 import static com.intellij.openapi.util.text.StringUtil.trimEnd;
 import static com.intellij.openapi.util.text.StringUtil.trimStart;
 
-public class NativeAndroidModuleNode extends ProjectViewModuleNode {
-  public NativeAndroidModuleNode(@NotNull Project project, @NotNull Module value, ViewSettings viewSettings) {
+public class NdkModuleNode extends ProjectViewModuleNode {
+  public NdkModuleNode(@NotNull Project project, @NotNull Module value, ViewSettings viewSettings) {
     super(project, value, viewSettings);
   }
 
   @NotNull
   public static Collection<AbstractTreeNode> getNativeSourceNodes(@NotNull Project project,
-                                                                  @NotNull NativeAndroidGradleModel nativeAndroidModel,
+                                                                  @NotNull NdkModuleModel ndkModuleModel,
                                                                   @NotNull ViewSettings viewSettings) {
-    NativeAndroidProject nativeAndroidProject = nativeAndroidModel.getNativeAndroidProject();
+    NativeAndroidProject nativeAndroidProject = ndkModuleModel.getAndroidProject();
     Collection<String> sourceFileExtensions = nativeAndroidProject.getFileExtensions().keySet();
 
-    NativeAndroidGradleModel.NativeVariant variant = nativeAndroidModel.getSelectedVariant();
+    NdkModuleModel.NativeVariant variant = ndkModuleModel.getSelectedVariant();
     Multimap<String, NativeArtifact> nativeLibraries = HashMultimap.create();
     for (NativeArtifact artifact : variant.getArtifacts()) {
       String artifactOutputFileName = artifact.getOutputFile().getName();
@@ -91,12 +91,12 @@ public class NativeAndroidModuleNode extends ProjectViewModuleNode {
       return ImmutableList.of();
     }
 
-    NativeAndroidGradleFacet facet = NativeAndroidGradleFacet.getInstance(module);
-    if (facet == null || facet.getNativeAndroidGradleModel() == null) {
+    NdkFacet facet = NdkFacet.getInstance(module);
+    if (facet == null || facet.getNdkModuleModel() == null) {
       return ImmutableList.of();
     }
 
-    return getNativeSourceNodes(myProject, facet.getNativeAndroidGradleModel(), getSettings());
+    return getNativeSourceNodes(myProject, facet.getNdkModuleModel(), getSettings());
   }
 
   @Nullable

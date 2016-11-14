@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
@@ -92,7 +92,7 @@ public class JavaLanguageLevelModuleSetupStepTest extends IdeaTestCase {
   }
 
   private void createAndroidModule(@NotNull String name, @NotNull LanguageLevel languageLevel) {
-    AndroidGradleModel androidModel = mock(AndroidGradleModel.class);
+    AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
     when(androidModel.getJavaLanguageLevel()).thenReturn(languageLevel);
 
     ApplicationManager.getApplication().runWriteAction(() -> {

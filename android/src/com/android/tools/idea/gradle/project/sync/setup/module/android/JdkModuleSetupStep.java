@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.setup.module.android;
 import com.android.builder.model.AndroidProject;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
@@ -76,7 +76,7 @@ public class JdkModuleSetupStep extends AndroidModuleSetupStep {
   @Override
   protected void doSetUpModule(@NotNull Module module,
                                @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                               @NotNull AndroidGradleModel androidModel,
+                               @NotNull AndroidModuleModel androidModel,
                                @Nullable SyncAction.ModuleModels gradleModels,
                                @Nullable ProgressIndicator indicator) {
     if (isAndroidStudio()) {
@@ -85,7 +85,7 @@ public class JdkModuleSetupStep extends AndroidModuleSetupStep {
   }
 
   @VisibleForTesting
-  void setUpInAndroidStudio(@NotNull Module module, @NotNull AndroidGradleModel androidModel) {
+  void setUpInAndroidStudio(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
     AndroidProject androidProject = androidModel.getAndroidProject();
     String compileTarget = androidProject.getCompileTarget();
 

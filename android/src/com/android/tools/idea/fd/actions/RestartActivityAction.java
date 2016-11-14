@@ -24,7 +24,7 @@ import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.AndroidProcessHandler;
 import com.android.tools.idea.run.AndroidSessionInfo;
 import com.google.common.collect.ImmutableList;
@@ -71,7 +71,7 @@ public class RestartActivityAction extends AnAction {
       return;
     }
 
-    AndroidGradleModel model = InstantRunGradleUtils.getAppModel(module);
+    AndroidModuleModel model = InstantRunGradleUtils.getAppModel(module);
     if (model == null) {
       e.getPresentation().setEnabled(false);
       return;

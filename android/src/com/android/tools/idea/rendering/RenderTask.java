@@ -29,7 +29,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
@@ -442,7 +442,7 @@ public class RenderTask implements IImageFactory {
 
     if (modelParser instanceof LayoutPsiPullParser) {
       // For regular layouts, if we use appcompat, we have to emulat the app:srcCompat attribute behaviour
-      AndroidGradleModel androidModel = AndroidGradleModel.get(myRenderService.getFacet());
+      AndroidModuleModel androidModel = AndroidModuleModel.get(myRenderService.getFacet());
       boolean useSrcCompat = androidModel != null && GradleUtil.dependsOn(androidModel, APPCOMPAT_LIB_ARTIFACT);
       ((LayoutPsiPullParser)modelParser).setUseSrcCompat(useSrcCompat);
     }

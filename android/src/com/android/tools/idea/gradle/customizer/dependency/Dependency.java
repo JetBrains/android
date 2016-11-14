@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.customizer.dependency;
 
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
@@ -96,7 +96,7 @@ public abstract class Dependency {
   }
 
   @NotNull
-  public static DependencySet extractFrom(@NotNull AndroidGradleModel androidModel) {
+  public static DependencySet extractFrom(@NotNull AndroidModuleModel androidModel) {
     DependencySet dependencies = new DependencySet();
     GradleVersion modelVersion = androidModel.getModelVersion();
 

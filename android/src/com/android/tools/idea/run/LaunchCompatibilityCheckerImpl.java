@@ -18,7 +18,7 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.util.LaunchUtils;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -70,8 +70,8 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
       requiredHardwareFeatures = EnumSet.noneOf(IDevice.HardwareFeature.class);
     }
 
-    Set<String> supportedAbis = facet.getAndroidModel() instanceof AndroidGradleModel ?
-                                ((AndroidGradleModel)facet.getAndroidModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
+    Set<String> supportedAbis = facet.getAndroidModel() instanceof AndroidModuleModel ?
+                                ((AndroidModuleModel)facet.getAndroidModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
                                 null;
 
     return new LaunchCompatibilityCheckerImpl(minSdkVersion, platform.getTarget(), requiredHardwareFeatures, supportedAbis);

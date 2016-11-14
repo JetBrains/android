@@ -16,7 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.apk.AndroidApkFacet;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
@@ -120,7 +120,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   @Override
   @NotNull
   protected ApkProvider getApkProvider(@NotNull AndroidFacet facet, @NotNull ApplicationIdProvider applicationIdProvider) {
-    if (facet.getAndroidModel() != null && facet.getAndroidModel() instanceof AndroidGradleModel) {
+    if (facet.getAndroidModel() != null && facet.getAndroidModel() instanceof AndroidModuleModel) {
       return new GradleApkProvider(facet, applicationIdProvider, false);
     }
     AndroidApkFacet androidApkFacet = AndroidApkFacet.getInstance(facet.getModule());
