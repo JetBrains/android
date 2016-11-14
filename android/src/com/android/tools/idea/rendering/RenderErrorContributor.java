@@ -1452,7 +1452,7 @@ public class RenderErrorContributor {
       return true;
     }
 
-    public RenderErrorContributor getFactory(@NotNull RenderResult result, @Nullable DataContext dataContext) {
+    public RenderErrorContributor getContributor(@NotNull RenderResult result, @Nullable DataContext dataContext) {
       return new RenderErrorContributor(result, dataContext);
     }
   }
