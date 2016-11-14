@@ -64,7 +64,7 @@ public class NetworkTrafficDataSeries implements DataSeries<Long> {
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()));
     NetworkProfiler.NetworkDataResponse response = myClient.getData(dataRequestBuilder.build());
     for (NetworkProfiler.NetworkProfilerData data : response.getDataList()) {
-      long xTimestamp = data.getBasicInfo().getEndTimestamp();
+      long xTimestamp = TimeUnit.NANOSECONDS.toMicros(data.getBasicInfo().getEndTimestamp());
       NetworkProfiler.SpeedData speedData = data.getSpeedData();
       switch (myType) {
         case BYTES_RECIEVED:

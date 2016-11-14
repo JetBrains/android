@@ -15,14 +15,12 @@
  */
 package com.android.tools.datastore.poller;
 
-import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -31,10 +29,13 @@ import java.util.concurrent.RunnableFuture;
 
 public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase implements ServicePassThrough, PollRunner.PollingCallback {
 
+  // Intentionally accessing this field out of sync block because it's OK for it to be o
+  // off by a frame; we'll pick up all data eventually
+  @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
   private long myDataRequestStartTimestampNs = Long.MIN_VALUE;
   private NetworkServiceGrpc.NetworkServiceBlockingStub myPollingService;
   //TODO Pull this into a storage container that can read/write this to disk
-  protected List<NetworkProfiler.NetworkProfilerData> myData = new ArrayList<>();
+  private final List<NetworkProfiler.NetworkProfilerData> myData = new ArrayList<>();
   private int myProcessId = -1;
 
   public NetworkDataPoller() {
@@ -57,28 +58,35 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
   @Override
   public void getData(NetworkProfiler.NetworkDataRequest request, StreamObserver<NetworkProfiler.NetworkDataResponse> responseObserver) {
     NetworkProfiler.NetworkDataResponse.Builder response = NetworkProfiler.NetworkDataResponse.newBuilder();
-    if (myData.size() == 0) {
-      responseObserver.onNext(response.build());
-      responseObserver.onCompleted();
-      return;
-    }
-
-    long startTime = request.getStartTimestamp();
-    long endTime = request.getEndTimestamp();
 
     //TODO: Optimize so we do not need to loop all the data every request, ideally binary search to start time and loop till end.
     synchronized (myData) {
-      Iterator<NetworkProfiler.NetworkProfilerData> itr = myData.iterator();
-      while (itr.hasNext()) {
-        NetworkProfiler.NetworkProfilerData obj = itr.next();
-        long current = obj.getBasicInfo().getEndTimestamp();
+      if (myData.size() == 0) {
+        responseObserver.onNext(response.build());
+        responseObserver.onCompleted();
+        return;
+      }
+
+      long startTime = request.getStartTimestamp();
+      long endTime = request.getEndTimestamp();
+
+      for (NetworkProfiler.NetworkProfilerData data : myData) {
+        long current = data.getBasicInfo().getEndTimestamp();
         if (current > startTime && current <= endTime) {
-          response.addData(obj);
+          if ((request.getType() == NetworkProfiler.NetworkDataRequest.Type.ALL) ||
+              (request.getType() == NetworkProfiler.NetworkDataRequest.Type.SPEED &&
+               data.getDataCase() == NetworkProfiler.NetworkProfilerData.DataCase.SPEED_DATA) ||
+              (request.getType() == NetworkProfiler.NetworkDataRequest.Type.CONNECTIONS &&
+               data.getDataCase() == NetworkProfiler.NetworkProfilerData.DataCase.CONNECTION_DATA) ||
+              (request.getType() == NetworkProfiler.NetworkDataRequest.Type.CONNECTIVITY &&
+               data.getDataCase() == NetworkProfiler.NetworkProfilerData.DataCase.CONNECTIVITY_DATA)) {
+            response.addData(data);
+          }
         }
       }
+      responseObserver.onNext(response.build());
+      responseObserver.onCompleted();
     }
-    responseObserver.onNext(response.build());
-    responseObserver.onCompleted();
   }
 
   @Override
