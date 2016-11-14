@@ -16,6 +16,7 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.Choreographer;
+import com.android.tools.profilers.AnimatedTimeline;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioMonitorStage;
 import com.android.tools.profilers.StudioProfilers;
@@ -29,15 +30,15 @@ import java.awt.*;
 public class NetworkProfilerStageView extends StageView {
   private final NetworkProfilerStage myStage;
   private final JPanel myConnectionDetails;
-  private NetworkRequestsView myRequestsView;
-  private Splitter myComponent;
-  private Choreographer myChoreographer;
+  private final NetworkRequestsView myRequestsView;
+  private final Splitter mySplitter;
 
   public NetworkProfilerStageView(NetworkProfilerStage stage) {
     super(stage);
     myStage = stage;
     myConnectionDetails = new JPanel(new BorderLayout());
-    myRequestsView = new NetworkRequestsView(stage.getStudioProfilers().getViewRange(), stage.getRequestsModel(), data -> {
+
+    myRequestsView = new NetworkRequestsView(getTimeline().getViewRange(), stage.getRequestsModel(), data -> {
       System.out.println(data.getId());
     });
     stage.aspect.addDependency()
@@ -51,12 +52,12 @@ public class NetworkProfilerStageView extends StageView {
     l2l3splitter.setFirstComponent(l2Panel);
     l2l3splitter.setSecondComponent(myRequestsView);
 
-    myComponent = new Splitter(false);
-    myComponent.setFirstComponent(l2l3splitter);
-    myComponent.setSecondComponent(myConnectionDetails);
+    mySplitter = new Splitter(false);
+    getComponent().add(mySplitter, BorderLayout.CENTER);
+    mySplitter.setFirstComponent(l2l3splitter);
+    mySplitter.setSecondComponent(myConnectionDetails);
 
-    myChoreographer = new Choreographer(myComponent);
-    myChoreographer.register(myRequestsView);
+    getChoreographer().register(myRequestsView);
 
     updateRequestsView();
     updateRequestDetailsView();
@@ -72,11 +73,6 @@ public class NetworkProfilerStageView extends StageView {
   }
 
   private void updateRequestsView() {
-  }
-
-  @Override
-  public JComponent getComponent() {
-    return myComponent;
   }
 
   @Override
