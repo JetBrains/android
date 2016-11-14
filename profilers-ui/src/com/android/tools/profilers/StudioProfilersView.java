@@ -21,7 +21,7 @@ import com.android.tools.profilers.cpu.CpuMonitorStageView;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfilerStageView;
 import com.android.tools.profilers.network.NetworkProfilerStageView;
-import com.android.tools.profilers.network.NeworkProfilerStage;
+import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.intellij.openapi.application.ApplicationManager;
 
 import javax.swing.*;
@@ -46,7 +46,7 @@ public class StudioProfilersView {
     myBinder.bind(StudioMonitorStage.class, StudioMonitorStageView::new);
     myBinder.bind(CpuMonitorStage.class, CpuMonitorStageView::new);
     myBinder.bind(MemoryProfilerStage.class, MemoryProfilerStageView::new);
-    myBinder.bind(NeworkProfilerStage.class, NetworkProfilerStageView::new);
+    myBinder.bind(NetworkProfilerStage.class, NetworkProfilerStageView::new);
 
     myProfiler.addDependency()
       .setExecutor(ApplicationManager.getApplication()::invokeLater)
