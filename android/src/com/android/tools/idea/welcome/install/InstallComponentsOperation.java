@@ -20,7 +20,6 @@ import com.android.tools.idea.npw.importing.ImportUIUtil;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,7 +32,6 @@ import java.util.List;
  * Install or updates SDK components if needed.
  */
 public class InstallComponentsOperation extends InstallOperation<File, File> {
-  @NotNull private final Logger LOG = Logger.getInstance(getClass());
   @NotNull private final ComponentInstaller myComponentInstaller;
   @NotNull private Collection<? extends InstallableComponent> myComponents;
 

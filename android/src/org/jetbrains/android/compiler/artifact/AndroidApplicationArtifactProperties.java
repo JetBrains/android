@@ -2,7 +2,6 @@ package org.jetbrains.android.compiler.artifact;
 
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.CharsetToolkit;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -32,8 +31,6 @@ import java.util.Map;
  */
 @SuppressWarnings("UnusedDeclaration")
 public class AndroidApplicationArtifactProperties extends ArtifactProperties<AndroidApplicationArtifactProperties> {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactProperties");
-
   private AndroidArtifactSigningMode mySigningMode = AndroidArtifactSigningMode.RELEASE_UNSIGNED;
   private String myKeyStoreUrl = "";
   private String myKeyStorePassword = "";
