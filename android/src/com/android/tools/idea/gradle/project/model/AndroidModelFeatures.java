@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle;
+package com.android.tools.idea.gradle.project.model;
 
 import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GradleModelFeatures {
+public class AndroidModelFeatures {
   @Nullable private final GradleVersion myModelVersion;
 
   private final boolean myIssueReportingSupported;
@@ -30,7 +30,7 @@ public class GradleModelFeatures {
   private final boolean myConstraintLayoutSdkLocationSupported;
   private final boolean myLayoutRenderingIssuePresent;
 
-  GradleModelFeatures(@Nullable GradleVersion modelVersion) {
+  AndroidModelFeatures(@Nullable GradleVersion modelVersion) {
     myModelVersion = modelVersion;
     myIssueReportingSupported = modelVersionIsAtLeast("1.1.0");
     myShadersSupported = modelVersionIsAtLeast("2.1.0");

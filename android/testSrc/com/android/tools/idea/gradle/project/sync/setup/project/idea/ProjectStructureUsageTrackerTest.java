@@ -23,10 +23,10 @@ import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.fd.InstantRunConfiguration;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.NativeAndroidGradleModel;
-import com.android.tools.idea.gradle.project.facet.cpp.NativeAndroidGradleFacet;
-import com.android.tools.idea.gradle.project.facet.cpp.NativeAndroidGradleFacetType;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetType;
 import com.android.tools.idea.gradle.stubs.android.*;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleVersions;
@@ -41,7 +41,6 @@ import com.intellij.mock.MockProject;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.Extensions;
-import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -391,7 +390,7 @@ public class ProjectStructureUsageTrackerTest {
     FacetTypeRegistryImpl facetTypeRegistry = new FacetTypeRegistryImpl();
     application.getPicoContainer().registerComponentInstance(FacetTypeRegistry.class.getName(), facetTypeRegistry);
     facetTypeRegistry.registerFacetType(new AndroidFacetType());
-    facetTypeRegistry.registerFacetType(new NativeAndroidGradleFacetType());
+    facetTypeRegistry.registerFacetType(new NdkFacetType());
 
     // set the project's gradle version.
     application.getPicoContainer()
@@ -423,7 +422,7 @@ public class ProjectStructureUsageTrackerTest {
       FacetManagerImpl facetManager = new FacetManagerImpl(module, project.getMessageBus());
       facetManager.addFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
       if (!moduleSpec.getNativeLibraries().isEmpty()) {
-        facetManager.addFacet(NativeAndroidGradleFacet.getFacetType(), NativeAndroidGradleFacet.NAME, null);
+        facetManager.addFacet(NdkFacet.getFacetType(), NdkFacet.NAME, null);
       }
       AndroidProjectStub androidProject = new AndroidProjectStub(moduleSpec.getName());
       androidProject.getFlavorDimensions().addAll(moduleSpec.getDimensions());
@@ -451,16 +450,16 @@ public class ProjectStructureUsageTrackerTest {
         }
       }
 
-      AndroidGradleModel androidGradleModel =
-        new AndroidGradleModel(moduleSpec.getName(), new File(moduleSpec.getLocation()), androidProject, moduleSpec.getDefaultVariant());
-      facetManager.getFacetByType(AndroidFacet.ID).setAndroidModel(androidGradleModel);
+      AndroidModuleModel androidModuleModel =
+        new AndroidModuleModel(moduleSpec.getName(), new File(moduleSpec.getLocation()), androidProject, moduleSpec.getDefaultVariant());
+      facetManager.getFacetByType(AndroidFacet.ID).setAndroidModel(androidModuleModel);
 
       if (!moduleSpec.getNativeLibraries().isEmpty() && moduleSpec.getNativeModelVersion() != null) {
         NativeAndroidProjectStub nap = new NativeAndroidProjectStub(moduleSpec.getName());
         nap.setModelVersion(moduleSpec.getNativeModelVersion());
         nap.getBuildSystems().add(moduleSpec.getCppBuildSystem());
-        facetManager.getFacetByType(NativeAndroidGradleFacet.TYPE_ID).setNativeAndroidGradleModel(
-          new NativeAndroidGradleModel(new ProjectSystemId(moduleSpec.getCppBuildSystem()), moduleSpec.getName(), new File("dummy"), nap));
+        facetManager.getFacetByType(NdkFacet.TYPE_ID).setNdkModuleModel(
+          new NdkModuleModel(moduleSpec.getName(), new File("dummy"), nap));
       }
       module.addComponent(FacetManager.class, facetManager);
       modules[i] = module;

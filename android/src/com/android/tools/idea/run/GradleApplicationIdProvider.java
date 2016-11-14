@@ -16,7 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,7 +43,7 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
 
   @Override
   public String getTestPackageName() throws ApkProvisionException {
-    AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
     assert androidModel != null; // This is a Gradle project, there must be an AndroidGradleModel.
     // In the case of Gradle projects, either the merged flavor provides a test package name,
     // or we just append ".test" to the source package name

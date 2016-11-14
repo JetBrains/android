@@ -17,10 +17,10 @@ package com.android.tools.idea.gradle.util;
 
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
@@ -417,7 +417,7 @@ public final class Projects {
    */
   // TODO move this method out of Projects.
   public static boolean isBuildWithGradle(@NotNull Module module) {
-    return AndroidGradleFacet.getInstance(module) != null;
+    return GradleFacet.getInstance(module) != null;
   }
 
   /**
@@ -484,7 +484,7 @@ public final class Projects {
 
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+      AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
       if (androidModel != null) {
         return androidModel.getAndroidProject();
       }
@@ -528,9 +528,9 @@ public final class Projects {
   public static void storePluginVersionsPerModule(@NotNull Project project) {
     Map<String, GradleVersion> pluginVersionsPerModule = Maps.newHashMap();
     for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidGradleModel model = AndroidGradleModel.get(module);
+      AndroidModuleModel model = AndroidModuleModel.get(module);
       if (model != null) {
-        AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
+        GradleFacet facet = GradleFacet.getInstance(module);
         if (facet != null) {
           GradleVersion modelVersion = model.getModelVersion();
           if (modelVersion != null) {

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.testing.IdeComponents;
@@ -65,7 +65,7 @@ public class GradleProjectInfoTest extends IdeaTestCase {
   public void testIsBuildWithGradleUsingGradleProject() {
     // Simulate this is a module built with Gradle
     ApplicationManager.getApplication().runWriteAction(() -> {
-      FacetManager.getInstance(getModule()).addFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.getFacetName(), null);
+      FacetManager.getInstance(getModule()).addFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null);
     });
 
     assertTrue(myProjectInfo.isBuildWithGradle());
@@ -101,7 +101,7 @@ public class GradleProjectInfoTest extends IdeaTestCase {
   public void testGetAndroidModulesUsingGradleProject() {
     // Simulate this is a module built with Gradle
     ApplicationManager.getApplication().runWriteAction(() -> {
-      FacetManager.getInstance(getModule()).addFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.getFacetName(), null);
+      FacetManager.getInstance(getModule()).addFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null);
     });
 
     assertThat(myProjectInfo.getAndroidModules()).hasSize(1);
@@ -126,7 +126,7 @@ public class GradleProjectInfoTest extends IdeaTestCase {
 
   private void removeAndroidGradleFacetFromModule() {
     FacetManager facetManager = FacetManager.getInstance(getModule());
-    AndroidGradleFacet facet = facetManager.findFacet(AndroidGradleFacet.getFacetTypeId(), AndroidGradleFacet.getFacetName());
+    GradleFacet facet = facetManager.findFacet(GradleFacet.getFacetTypeId(), GradleFacet.getFacetName());
     if (facet != null) {
       ApplicationManager.getApplication().runWriteAction(() -> {
         ModifiableFacetModel facetModel = facetManager.createModifiableModel();

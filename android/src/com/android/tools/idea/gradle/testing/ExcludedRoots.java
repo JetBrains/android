@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.testing;
 
 import com.android.builder.model.*;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySet;
 import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.customizer.dependency.ModuleDependency;
@@ -92,9 +92,9 @@ class ExcludedRoots {
         }
       }
 
-      AndroidGradleModel androidGradleModel = AndroidGradleModel.get(module);
-      if (androidGradleModel != null) {
-        myExcludedRoots.add(androidGradleModel.getMainArtifact().getJavaResourcesFolder());
+      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
+      if (androidModuleModel != null) {
+        myExcludedRoots.add(androidModuleModel.getMainArtifact().getJavaResourcesFolder());
       }
     }
   }
@@ -120,7 +120,7 @@ class ExcludedRoots {
   }
 
   private void addModuleIfNecessary(@NotNull Module module) {
-    AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel != null) {
       BaseArtifact unitTestArtifact = androidModel.getUnitTestArtifactInSelectedVariant();
       BaseArtifact androidTestArtifact = androidModel.getAndroidTestArtifactInSelectedVariant();
@@ -139,7 +139,7 @@ class ExcludedRoots {
   }
 
   private static void processFolders(@NotNull BaseArtifact artifact,
-                                     @NotNull AndroidGradleModel androidModel,
+                                     @NotNull AndroidModuleModel androidModel,
                                      @NotNull Consumer<File> action) {
     action.accept(artifact.getClassesFolder());
     for (File file : getGeneratedSourceFolders(artifact)) {
@@ -183,7 +183,7 @@ class ExcludedRoots {
   }
 
   private void addLibraryPaths(@NotNull Module module) {
-    AndroidGradleModel model = AndroidGradleModel.get(module);
+    AndroidModuleModel model = AndroidModuleModel.get(module);
     if (model != null) {
       BaseArtifact exclude = myAndroidTest ? model.getUnitTestArtifactInSelectedVariant() : model.getAndroidTestArtifactInSelectedVariant();
       BaseArtifact include = myAndroidTest ? model.getAndroidTestArtifactInSelectedVariant() : model.getUnitTestArtifactInSelectedVariant();
@@ -196,7 +196,7 @@ class ExcludedRoots {
     }
   }
 
-  private void addLibraryPaths(@NotNull BaseArtifact artifact, @NotNull AndroidGradleModel model) {
+  private void addLibraryPaths(@NotNull BaseArtifact artifact, @NotNull AndroidModuleModel model) {
     Dependencies dependencies = getDependencies(artifact, model.getModelVersion());
     for (AndroidLibrary library : dependencies.getLibraries()) {
       if (isEmpty(library.getProject())) {
@@ -224,7 +224,7 @@ class ExcludedRoots {
     return myIncludedRootNames.contains(file.getName());
   }
 
-  private void removeLibraryPaths(@NotNull BaseArtifact artifact, @NotNull AndroidGradleModel model) {
+  private void removeLibraryPaths(@NotNull BaseArtifact artifact, @NotNull AndroidModuleModel model) {
     Dependencies dependencies = getDependencies(artifact, model.getModelVersion());
     for (AndroidLibrary library : dependencies.getLibraries()) {
       if (isEmpty(library.getProject())) {

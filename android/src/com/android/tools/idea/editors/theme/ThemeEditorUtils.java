@@ -35,7 +35,7 @@ import com.android.tools.idea.configurations.ResourceResolverCache;
 import com.android.tools.idea.configurations.ThemeSelectionPanel;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.res.*;
@@ -587,7 +587,7 @@ public class ThemeEditorUtils {
 
     // The order of iteration here is important since the resources from the mainFacet will override those in the dependencies.
     for (AndroidFacet dependency : Iterables.concat(dependencies, ImmutableList.of(mainFacet))) {
-      AndroidGradleModel androidModel = AndroidGradleModel.get(dependency);
+      AndroidModuleModel androidModel = AndroidModuleModel.get(dependency);
       if (androidModel == null) {
         // For non gradle module, get the main source provider
         SourceProvider provider = dependency.getMainSourceProvider();

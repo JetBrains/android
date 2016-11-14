@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.GradleModelFeatures;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -42,7 +42,7 @@ public class LayoutRenderingIssueValidationStrategyTest extends AndroidGradleTes
 
   public void testValidate() {
     GradleVersion modelVersion = GradleVersion.parse("1.2.0");
-    AndroidGradleModel androidModel = mockAndroidModel(modelVersion, true);
+    AndroidModuleModel androidModel = mockAndroidModel(modelVersion, true);
 
     myStrategy.validate(mock(Module.class), androidModel);
 
@@ -51,7 +51,7 @@ public class LayoutRenderingIssueValidationStrategyTest extends AndroidGradleTes
 
   public void testValidateWithoutLayoutRenderingIssue() {
     GradleVersion modelVersion = GradleVersion.parse("2.2.0");
-    AndroidGradleModel androidModel = mockAndroidModel(modelVersion, false);
+    AndroidModuleModel androidModel = mockAndroidModel(modelVersion, false);
 
     myStrategy.validate(mock(Module.class), androidModel);
 
@@ -59,11 +59,11 @@ public class LayoutRenderingIssueValidationStrategyTest extends AndroidGradleTes
   }
 
   @NotNull
-  private static AndroidGradleModel mockAndroidModel(@NotNull GradleVersion version, boolean hasLayoutRenderingIssue) {
-    GradleModelFeatures features = mock(GradleModelFeatures.class);
+  private static AndroidModuleModel mockAndroidModel(@NotNull GradleVersion version, boolean hasLayoutRenderingIssue) {
+    AndroidModelFeatures features = mock(AndroidModelFeatures.class);
     when(features.isLayoutRenderingIssuePresent()).thenReturn(hasLayoutRenderingIssue);
 
-    AndroidGradleModel androidModel = mock(AndroidGradleModel.class);
+    AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
     when(androidModel.getFeatures()).thenReturn(features);
     when(androidModel.getModelVersion()).thenReturn(version);
 

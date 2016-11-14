@@ -25,12 +25,12 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.customizer.dependency.Dependency;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySet;
 import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.customizer.dependency.ModuleDependency;
-import com.android.tools.idea.gradle.project.facet.java.JavaGradleFacet;
+import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
@@ -479,16 +479,16 @@ public class PostSyncProjectSetup {
       return;
     }
 
-    JavaGradleFacet javaGradleFacet = JavaGradleFacet.getInstance(dependency);
-    if (javaGradleFacet != null
+    JavaFacet javaFacet = JavaFacet.getInstance(dependency);
+    if (javaFacet != null
         // BUILDABLE == false -> means this is an AAR-based module, not a regular Java lib module
-        && javaGradleFacet.getConfiguration().BUILDABLE) {
+        && javaFacet.getConfiguration().BUILDABLE) {
       // Ignore Java lib modules. They are already set up properly.
       return;
     }
     AndroidProject dependencyAndroidProject = getAndroidProject(dependency);
     if (dependencyAndroidProject != null) {
-      AndroidGradleModel androidModel = AndroidGradleModel.get(dependency);
+      AndroidModuleModel androidModel = AndroidModuleModel.get(dependency);
       if (androidModel != null) {
         DependencySet dependencies = Dependency.extractFrom(androidModel);
 

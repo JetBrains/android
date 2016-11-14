@@ -302,7 +302,7 @@
     <buildProcess.parametersProvider implementation="com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildProcessParametersProvider"/>
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.GradleModuleModelDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidGradleModelDataService" />
-    <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.NativeAndroidGradleModelDataService" />
+    <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.NdkModuleModelDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.JavaModuleModelDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.ProjectCleanupDataService" />
     <lang.foldingBuilder language="JAVA" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
@@ -448,9 +448,9 @@
     <configurationType implementation="com.android.tools.idea.run.testing.AndroidTestRunConfigurationType"/>
     <programRunner implementation="com.android.tools.idea.run.AndroidProgramRunner" order="first"/>
     <facetType implementation="org.jetbrains.android.facet.AndroidFacetType"/>
-    <facetType implementation="com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacetType"/>
-    <facetType implementation="com.android.tools.idea.gradle.project.facet.cpp.NativeAndroidGradleFacetType"/>
-    <facetType implementation="com.android.tools.idea.gradle.project.facet.java.JavaGradleFacetType"/>
+    <facetType implementation="com.android.tools.idea.gradle.project.facet.gradle.GradleFacetType"/>
+    <facetType implementation="com.android.tools.idea.gradle.project.facet.ndk.NdkFacetType"/>
+    <facetType implementation="com.android.tools.idea.gradle.project.facet.java.JavaFacetType"/>
     <facetType implementation="com.android.tools.idea.apk.AndroidApkFacetType"/>
     <framework.detector implementation="org.jetbrains.android.facet.AndroidFrameworkDetector"/>
     <fileTemplateGroup implementation="org.jetbrains.android.AndroidFileTemplateProvider"/>
@@ -1078,8 +1078,8 @@
 
     <extensionPoint qualifiedName="com.android.gradle.sync.androidModuleSetupStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep"/>
-    <extensionPoint qualifiedName="com.android.gradle.sync.cppModuleSetupStep"
-                    interface="com.android.tools.idea.gradle.project.sync.setup.module.CppModuleSetupStep"/>
+    <extensionPoint qualifiedName="com.android.gradle.sync.ndkModuleSetupStep"
+                    interface="com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.javaModuleSetupStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.postSyncProjectSetupStep"
@@ -1167,8 +1167,8 @@
     <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.java.CompilerOutputModuleSetupStep"/>
     <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.java.JavaLanguageLevelModuleSetupStep"/>
 
-    <cppModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.cpp.ContentRootModuleSetupStep"/>
-    <cppModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.cpp.CppAndroidFacetModuleSetupStep"/>
+    <ndkModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.cpp.ContentRootModuleSetupStep"/>
+    <ndkModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.cpp.NdkFacetModuleSetupStep"/>
 
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.project.JdkPostSyncProjectSetupStep"/>
 

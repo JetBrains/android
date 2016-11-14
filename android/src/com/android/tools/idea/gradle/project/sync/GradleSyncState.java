@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.gradle.NativeAndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
@@ -344,9 +344,9 @@ public class GradleSyncState {
         }
       }
 
-      NativeAndroidGradleModel nativeAndroidModel = NativeAndroidGradleModel.get(module);
-      if (nativeAndroidModel != null) {
-        for (File externalBuildFile : nativeAndroidModel.getNativeAndroidProject().getBuildFiles()) {
+      NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
+      if (ndkModuleModel != null) {
+        for (File externalBuildFile : ndkModuleModel.getAndroidProject().getBuildFiles()) {
           VirtualFile virtualFile = findFileByIoFile(externalBuildFile, true);
           if ((virtualFile != null && fileDocumentManager.isFileModified(virtualFile)) ||
               externalBuildFile.lastModified() > referenceTimeInMillis) {

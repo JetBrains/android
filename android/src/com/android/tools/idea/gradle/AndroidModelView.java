@@ -19,6 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.ProxyUtil;
 import com.android.tools.idea.gradle.util.ui.ToolWindowAlikePanel;
 import com.google.common.collect.*;
@@ -119,7 +120,7 @@ public class AndroidModelView {
       final DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(myProject.getName());
       String projectPath = myProject.getBasePath();
       for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-        AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+        AndroidModuleModel androidModel = AndroidModuleModel.get(module);
         if (androidModel != null) {
           DefaultMutableTreeNode moduleNode = new ModuleNodeBuilder(module.getName(), androidModel, projectPath).getNode();
           rootNode.add(moduleNode);
@@ -143,12 +144,12 @@ public class AndroidModelView {
 
   static class ModuleNodeBuilder {
     @NotNull private final String myModuleName;
-    @NotNull private final AndroidGradleModel myAndroidModel;
+    @NotNull private final AndroidModuleModel myAndroidModel;
     @Nullable private final String myProjectPath;
 
     private List<DefaultMutableTreeNode> artifactNodes = Lists.newArrayList();
 
-    public ModuleNodeBuilder(@NotNull String moduleName, @NotNull AndroidGradleModel androidModel, @Nullable String projectPath) {
+    public ModuleNodeBuilder(@NotNull String moduleName, @NotNull AndroidModuleModel androidModel, @Nullable String projectPath) {
       myModuleName = moduleName;
       myAndroidModel = androidModel;
 

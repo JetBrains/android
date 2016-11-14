@@ -13,51 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.facet.gradle;
+package com.android.tools.idea.gradle.project.facet.java;
 
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetType;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
-import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-
-/**
- * {@link AndroidGradleFacet}'s type.
- */
-public class AndroidGradleFacetType extends FacetType<AndroidGradleFacet, AndroidGradleFacetConfiguration> {
-  public AndroidGradleFacetType() {
-    super(AndroidGradleFacet.getFacetTypeId(), AndroidGradleFacet.getFacetId(), AndroidGradleFacet.getFacetName());
+public class JavaFacetType extends FacetType<JavaFacet, JavaFacetConfiguration> {
+  public JavaFacetType() {
+    super(JavaFacet.TYPE_ID, JavaFacet.ID, JavaFacet.NAME);
   }
 
-  @NotNull
   @Override
-  public AndroidGradleFacetConfiguration createDefaultConfiguration() {
-    return new AndroidGradleFacetConfiguration();
+  @NotNull
+  public JavaFacetConfiguration createDefaultConfiguration() {
+    return new JavaFacetConfiguration();
   }
 
-  @NotNull
   @Override
-  public AndroidGradleFacet createFacet(@NotNull Module module,
-                                        @NotNull String name,
-                                        @NotNull AndroidGradleFacetConfiguration configuration,
-                                        @Nullable Facet underlyingFacet) {
-    return new AndroidGradleFacet(module, name, configuration);
+  public JavaFacet createFacet(@NotNull Module module,
+                               String name,
+                               @NotNull JavaFacetConfiguration configuration,
+                               @Nullable Facet underlyingFacet) {
+    return new JavaFacet(module, name, configuration);
   }
 
   @Override
   public boolean isSuitableModuleType(ModuleType moduleType) {
     return moduleType instanceof JavaModuleType;
   }
-
-  @NotNull
-  @Override
-  public Icon getIcon() {
-    return AndroidIcons.Android;
-  }
 }
-

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.quickfix;
 
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.intellij.codeInsight.daemon.QuickFixActionRegistrar;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.quickfix.UnresolvedReferenceQuickFixProvider;
@@ -37,7 +37,7 @@ public class AndroidUnresolvedReferenceQuickFixProvider extends UnresolvedRefere
     if (contextModule == null) {
       return;
     }
-    AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(contextModule);
+    GradleFacet gradleFacet = GradleFacet.getInstance(contextModule);
     if (gradleFacet == null) {
       return;
     }

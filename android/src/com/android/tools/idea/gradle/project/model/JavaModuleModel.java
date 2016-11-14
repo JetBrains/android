@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.model;
+package com.android.tools.idea.gradle.project.model;
 
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
@@ -30,7 +30,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.*;
 
-import static com.android.tools.idea.gradle.project.facet.java.JavaGradleFacet.COMPILE_JAVA_TASK_NAME;
+import static com.android.tools.idea.gradle.project.facet.java.JavaFacet.COMPILE_JAVA_TASK_NAME;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 
 public class JavaModuleModel implements Serializable {

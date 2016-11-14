@@ -28,6 +28,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.databinding.LightBrClass;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.Projects;
@@ -293,7 +294,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   /**
    * This returns the primary resource directory; the default location to place newly created resources etc.  This method is marked
    * deprecated since we should be gradually adding in UI to allow users to choose specific resource folders among the available flavors
-   * (see {@link com.android.tools.idea.gradle.AndroidGradleModel#getFlavorSourceProviders()} etc).
+   * (see {@link AndroidModuleModel#getFlavorSourceProviders()} etc).
    *
    * @return the primary resource dir, if any.
    */

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes;
 
-import com.android.tools.idea.gradle.NativeAndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
@@ -69,11 +69,11 @@ public class ExternalBuildFilesGroupNode extends ProjectViewNode<Project> {
     Map<VirtualFile, String> buildFiles = Maps.newHashMap();
 
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      NativeAndroidGradleModel nativeAndroidModel = NativeAndroidGradleModel.get(module);
-      if (nativeAndroidModel == null) {
+      NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
+      if (ndkModuleModel == null) {
         continue;
       }
-      for (File file : nativeAndroidModel.getNativeAndroidProject().getBuildFiles()) {
+      for (File file : ndkModuleModel.getAndroidProject().getBuildFiles()) {
         VirtualFile virtualFile = findFileByIoFile(file, false);
         if (virtualFile != null) {
           buildFiles.put(virtualFile, module.getName());

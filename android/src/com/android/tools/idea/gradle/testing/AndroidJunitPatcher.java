@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.testing;
 
 import com.android.builder.model.JavaArtifact;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.execution.JUnitPatcher;
 import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.openapi.compiler.CompileScope;
@@ -51,7 +51,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       return;
     }
 
-    AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel == null) {
       return;
     }
@@ -162,7 +162,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
    * @see <a href="http://b.android.com/172409">Bug 172409</a>
    */
   private static void handleJavaResources(@NotNull Module module,
-                                          @NotNull AndroidGradleModel androidModel,
+                                          @NotNull AndroidModuleModel androidModel,
                                           @NotNull PathsList classPath) {
     CompilerManager compilerManager = CompilerManager.getInstance(module.getProject());
     CompileScope scope = compilerManager.createModulesCompileScope(new Module[]{module}, true, true);
@@ -187,7 +187,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     for (Module affectedModule : scope.getAffectedModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(affectedModule);
       if (facet != null) {
-        AndroidGradleModel affectedAndroidModel = AndroidGradleModel.get(facet);
+        AndroidModuleModel affectedAndroidModel = AndroidModuleModel.get(facet);
         if (affectedAndroidModel != null) {
           try {
             File resourceFolder = affectedAndroidModel.getMainArtifact().getJavaResourcesFolder();

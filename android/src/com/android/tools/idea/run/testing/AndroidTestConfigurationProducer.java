@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.run.testing;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.testing.TestArtifactSearchScopes;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
@@ -165,7 +165,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
     }
 
     // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
-    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
 
     if (androidModel != null) {
       // Only suggest the android test run configuration if it makes sense for the selected test artifact.

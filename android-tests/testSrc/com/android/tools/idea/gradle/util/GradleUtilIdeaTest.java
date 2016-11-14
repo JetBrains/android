@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
@@ -77,7 +77,7 @@ public class GradleUtilIdeaTest extends IdeaTestCase {
     ApplicationManager.getApplication().runWriteAction(() -> {
       ModifiableFacetModel model = facetManager.createModifiableModel();
       try {
-        AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.getFacetName(), null);
+        GradleFacet facet = facetManager.createFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null);
         model.addFacet(facet);
         facet.setGradleModuleModel(gradleModuleModel);
       }

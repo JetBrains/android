@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -49,22 +49,22 @@ public class ExtraGeneratedFolderValidationStrategyTest extends AndroidGradleTes
   public void testValidate() {
     List<File> extraFolders = Lists.newArrayList(new File("a"), new File("b"));
 
-    AndroidGradleModel androidModel = mockAndroidModel(extraFolders.toArray(new File[extraFolders.size()]));
+    AndroidModuleModel androidModel = mockAndroidModel(extraFolders.toArray(new File[extraFolders.size()]));
 
     myStrategy.validate(mock(Module.class), androidModel);
     assertThat(myStrategy.getExtraGeneratedSourceFolderPaths()).containsAllIn(extraFolders);
   }
 
   public void testValidateWithoutExtraFolders() {
-    AndroidGradleModel androidModel = mockAndroidModel(new File[0]);
+    AndroidModuleModel androidModel = mockAndroidModel(new File[0]);
 
     myStrategy.validate(mock(Module.class), androidModel);
     assertThat(myStrategy.getExtraGeneratedSourceFolderPaths()).isEmpty();
   }
 
   @NotNull
-  private static AndroidGradleModel mockAndroidModel(@NotNull File[] extraFolderPaths) {
-    AndroidGradleModel androidModel = mock(AndroidGradleModel.class);
+  private static AndroidModuleModel mockAndroidModel(@NotNull File[] extraFolderPaths) {
+    AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
     when(androidModel.getExtraGeneratedSourceFolderPaths()).thenReturn(extraFolderPaths);
     return androidModel;
   }

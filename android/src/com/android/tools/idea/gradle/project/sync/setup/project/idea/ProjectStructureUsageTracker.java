@@ -21,8 +21,8 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.NativeAndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
@@ -76,8 +76,8 @@ public class ProjectStructureUsageTracker {
 
   @VisibleForTesting
   void trackProjectStructure(@NotNull Module[] modules) {
-    AndroidGradleModel appModel = null;
-    AndroidGradleModel libModel = null;
+    AndroidModuleModel appModel = null;
+    AndroidModuleModel libModel = null;
 
     int appCount = 0;
     int libCount = 0;
@@ -85,7 +85,7 @@ public class ProjectStructureUsageTracker {
     List<GradleLibrary> gradleLibraries = new ArrayList<>();
 
     for (Module module : modules) {
-      AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
       if (androidModel != null) {
         if (androidModel.getProjectType() == PROJECT_TYPE_LIBRARY) {
           libModel = androidModel;
@@ -103,7 +103,7 @@ public class ProjectStructureUsageTracker {
 
     // Ideally we would like to get data from an "app" module, but if the project does not have one (which would be unusual, we can use
     // an Android library one.)
-    AndroidGradleModel model = appModel != null ? appModel : libModel;
+    AndroidModuleModel model = appModel != null ? appModel : libModel;
     if (model != null) {
       List<GradleAndroidModule> gradleAndroidModules = new ArrayList<>();
       List<GradleNativeAndroidModule> gradleNativeAndroidModules = new ArrayList<>();
@@ -122,7 +122,7 @@ public class ProjectStructureUsageTracker {
         .build();
 
       for (Module module : modules) {
-        AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+        AndroidModuleModel androidModel = AndroidModuleModel.get(module);
         if (androidModel != null) {
           gradleAndroidModules.add(GradleAndroidModule.newBuilder()
                                   .setModuleName(AndroidStudioUsageTracker.anonymizeUtf8(module.getName()))
@@ -135,21 +135,21 @@ public class ProjectStructureUsageTracker {
         }
 
         boolean shouldReportNative = false;
-        NativeAndroidGradleModel nativeAndroidModel = NativeAndroidGradleModel.get(module);
+        NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
         NativeBuildSystemType buildSystemType = NativeBuildSystemType.UNKNOWN_NATIVE_BUILD_SYSTEM_TYPE;
         String moduleName = "";
 
-        if (nativeAndroidModel != null) {
+        if (ndkModuleModel != null) {
           shouldReportNative = true;
-          if (nativeAndroidModel.modelVersionIsAtLeast("2.2.0")) {
-            for (String buildSystem : nativeAndroidModel.getNativeAndroidProject().getBuildSystems()) {
+          if (ndkModuleModel.modelVersionIsAtLeast("2.2.0")) {
+            for (String buildSystem : ndkModuleModel.getAndroidProject().getBuildSystems()) {
               buildSystemType = stringToBuildSystemType(buildSystem);
             }
           }
           else {
             buildSystemType = NativeBuildSystemType.GRADLE_EXPERIMENTAL;
           }
-          moduleName = AndroidStudioUsageTracker.anonymizeUtf8(nativeAndroidModel.getModuleName());
+          moduleName = AndroidStudioUsageTracker.anonymizeUtf8(ndkModuleModel.getModuleName());
         }
         else if (androidModel != null && areNativeLibrariesPresent(androidModel.getAndroidProject())) {
           shouldReportNative = true;
@@ -208,7 +208,8 @@ public class ProjectStructureUsageTracker {
       return false;
     }
     for (Variant variant : androidProject.getVariants()) {
-      if (!variant.getMainArtifact().getNativeLibraries().isEmpty()) {
+      Collection<NativeLibrary> nativeLibraries = variant.getMainArtifact().getNativeLibraries();
+      if (nativeLibraries != null && !nativeLibraries.isEmpty()) {
         return true;
       }
     }
@@ -216,7 +217,7 @@ public class ProjectStructureUsageTracker {
   }
 
   @NotNull
-  private static Collection<String> getFlavorDimensions(@NotNull AndroidGradleModel androidModel) {
+  private static Collection<String> getFlavorDimensions(@NotNull AndroidModuleModel androidModel) {
     AndroidProject androidProject = androidModel.getAndroidProject();
     try {
       return androidProject.getFlavorDimensions();
@@ -227,7 +228,7 @@ public class ProjectStructureUsageTracker {
     return Collections.emptyList();
   }
 
-  private static GradleLibrary trackExternalDependenciesInAndroidApp(@NotNull AndroidGradleModel model) {
+  private static GradleLibrary trackExternalDependenciesInAndroidApp(@NotNull AndroidModuleModel model) {
     Collection<Variant> variants = model.getAndroidProject().getVariants();
     if (variants.isEmpty()) {
       return null;
@@ -253,7 +254,7 @@ public class ProjectStructureUsageTracker {
     return null;
   }
 
-  private static GradleLibrary trackLibraryCount(@NotNull Variant variant, @NotNull AndroidGradleModel model) {
+  private static GradleLibrary trackLibraryCount(@NotNull Variant variant, @NotNull AndroidModuleModel model) {
     DependencyFiles files = new DependencyFiles();
 
     AndroidArtifact artifact = variant.getMainArtifact();
@@ -310,7 +311,7 @@ public class ProjectStructureUsageTracker {
   public static String getApplicationId(@NotNull Project project) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
-      AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
       if (androidModel != null) {
         if (androidModel.getProjectType() == PROJECT_TYPE_APP) {
           return androidModel.getApplicationId();

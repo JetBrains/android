@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
-import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.GradleModuleSetup;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.RunResult;
@@ -97,7 +97,7 @@ public class GradleModuleModelDataService extends AbstractProjectDataService<Gra
               // This happens when there is an orphan IDEA module that does not map to a Gradle project. One way for this to happen is when
               // opening a project created in another machine, and Gradle import assigns a different name to a module. Then, user decides
               // not to delete the orphan module when Studio prompts to do so.
-              removeAllFacetsOfType(AndroidGradleFacet.getFacetTypeId(), modelsProvider.getModifiableFacetModel(module));
+              removeAllFacetsOfType(GradleFacet.getFacetTypeId(), modelsProvider.getModifiableFacetModel(module));
             }
             else {
               myModuleSetup.setUpModule(module, modelsProvider, gradleModuleModel);

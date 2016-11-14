@@ -20,9 +20,9 @@ import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
 import com.android.sdklib.BuildToolInfo;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.actions.GoToApkLocationTask;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.google.common.base.Joiner;
@@ -158,7 +158,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Generating Signed APKs", false, null) {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
-        AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(myFacet.getModule());
+        GradleFacet gradleFacet = GradleFacet.getInstance(myFacet.getModule());
         if (gradleFacet == null) {
           LOG.error("Unable to get gradle project information for module: " + myFacet.getModule().getName());
           return;
@@ -166,7 +166,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         String gradleProjectPath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
 
         // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
-        AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
+        AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
         if (androidModel == null) {
           LOG.error("Unable to obtain Android project model. Did the last Gradle sync complete successfully?");
           return;
