@@ -67,6 +67,7 @@ public class EventMonitorView extends ProfilerMonitorView {
     panel.add(activities, c);
     choreographer.register(activities);
 
+    container.add(panel);
     container.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {
