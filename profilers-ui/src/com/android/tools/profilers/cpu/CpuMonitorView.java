@@ -20,6 +20,7 @@ import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
+import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitorView;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +49,8 @@ public class CpuMonitorView extends ProfilerMonitorView {
     label.setBorder(LABEL_PADDING);
     final Dimension labelSize = label.getPreferredSize();
 
-    AxisComponent.Builder builder = new AxisComponent.Builder(myMonitor.getCpuUsage().getYRange(), CPU_USAGE_AXIS,
+    RangedContinuousSeries usage = myMonitor.getCpuUsage();
+    AxisComponent.Builder builder = new AxisComponent.Builder(usage.getYRange(), CPU_USAGE_AXIS,
                                                               AxisComponent.AxisOrientation.RIGHT)
       .showAxisLine(false)
       .showMax(true)
@@ -59,7 +61,7 @@ public class CpuMonitorView extends ProfilerMonitorView {
     final AxisComponent leftAxis = builder.build();
 
     final LineChart lineChart = new LineChart();
-    lineChart.addLine(myMonitor.getCpuUsage(), new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true));
+    lineChart.addLine(usage, new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true));
     lineChart.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {

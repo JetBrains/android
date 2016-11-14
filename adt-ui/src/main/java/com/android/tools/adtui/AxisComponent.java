@@ -28,8 +28,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
-import java.util.*;
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * A component that draws an axis based on data from a {@link Range} object.
@@ -313,11 +312,14 @@ public final class AxisComponent extends AnimatedComponent {
       clampedMaxTarget = myMajorNumTicksTarget * majorInterval;
     }
     else {
+      // TODO fix this. Currently this continually increases clampedMaxTarget based on its previous value.
       long majorInterval = myFormatter.getInterval(rangeTarget, (int)Math.floor(myParentAxis.myMajorNumTicksTarget));
       clampedMaxTarget = myParentAxis.myMajorNumTicksTarget * majorInterval;
     }
 
-    myRange.setMax(clampedMaxTarget + myOffset);
+    clampedMaxTarget += myOffset;
+    myRange.setMax(Choreographer.lerp(myRange.getMax(), clampedMaxTarget, DEFAULT_LERP_FRACTION, mFrameLength,
+                                      (float)(clampedMaxTarget * DEFAULT_LERP_THRESHOLD_PERCENTAGE)));
   }
 
   @Override

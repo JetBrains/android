@@ -38,7 +38,7 @@ public class MemoryMonitor extends ProfilerMonitor {
   public RangedContinuousSeries getTotalMemory() {
     MemoryServiceGrpc.MemoryServiceBlockingStub client = myProfilers.getClient().getMemoryClient();
     // TODO fix Range and expose it to Choreographer
-    return new RangedContinuousSeries("Memory", myProfilers.getViewRange(), new Range(0, 1024 * 1024),
+    return new RangedContinuousSeries("Memory", myProfilers.getViewRange(), new Range(),
                                       new MemoryDataSeries(client, myProcessId) {
                                         @Override
                                         @NotNull
