@@ -44,6 +44,6 @@ public class GradleFeatureEnableServiceTest extends IdeaTestCase {
   }
 
   public void testIsLayoutEditorEnabled() {
-    assertThat(myService.isLayoutEditorEnabled()).isTrue();
+    assertThat(myService.isLayoutEditorEnabled(myProject)).isTrue();
   }
 }

@@ -26,7 +26,7 @@ public class GradleFeatureEnableService extends FeatureEnableService {
   }
 
   @Override
-  public boolean isLayoutEditorEnabled() {
+  public boolean isLayoutEditorEnabled(@NotNull Project project) {
     return true;
   }
 }
