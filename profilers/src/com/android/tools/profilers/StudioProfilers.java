@@ -267,6 +267,10 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
     return myDeviceStartUs;
   }
 
+  public long getCurrentDeviceTime() {
+    return myDeviceDeltaNs + System.nanoTime();
+  }
+
   public Profiler.Device getDevice() {
     return myDevice;
   }
@@ -274,7 +278,6 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
   public Profiler.Process getProcess() {
     return myProcess;
   }
-
 
   public List<StudioProfiler> getProfilers() {
     return myProfilers;

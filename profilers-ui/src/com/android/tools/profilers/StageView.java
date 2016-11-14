@@ -27,8 +27,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 
-public abstract class StageView {
-  private final Stage myStage;
+public abstract class StageView<T extends Stage> {
+  private final T myStage;
   private final Choreographer myChoreographer;
   private final JPanel myComponent;
 
@@ -37,7 +37,7 @@ public abstract class StageView {
    */
   private static final float VIEW_PERCENTAGE_PER_MOUSEHWEEL_FACTOR = 0.005f;
 
-  public StageView(@NotNull Stage stage) {
+  public StageView(@NotNull T stage) {
     myStage = stage;
     myComponent = new JBPanel(new BorderLayout());
     myComponent.setBackground(ProfilerColors.MONITOR_BACKGROUND);
@@ -46,7 +46,7 @@ public abstract class StageView {
   }
 
   @NotNull
-  public final Stage getStage() {
+  public T getStage() {
     return myStage;
   }
 

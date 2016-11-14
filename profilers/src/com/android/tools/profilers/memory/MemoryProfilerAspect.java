@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.datastore;
+package com.android.tools.profilers.memory;
 
-import io.grpc.ManagedChannel;
-import io.grpc.ServerServiceDefinition;
+public enum MemoryProfilerAspect {
+  HEAP_DUMPS_CHANGED, // Heap dumps have changed, but perhaps the dump bytes have not.
 
-import java.util.concurrent.RunnableFuture;
+  CURRENT_HEAP_DUMP,
+  CURRENT_DIFF_HEAP_DUMP,
 
-public interface ServicePassThrough {
-  RunnableFuture<Void> getRunner();
-
-  ServerServiceDefinition getService();
-
-  void connectService(ManagedChannel channel);
+  CURRENT_DETAILED_CLASS,
+  CURRENT_DETAILED_INSTANCE
 }

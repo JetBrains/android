@@ -30,7 +30,7 @@ import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.memory.model.AllocationTrackingSample;
 import com.android.tools.idea.monitor.ui.memory.model.MemoryDataCache;
 import com.android.tools.idea.monitor.ui.memory.model.MemoryPoller;
-import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.project.Project;
@@ -205,8 +205,8 @@ public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
   }
 
   public interface MemoryEventListener extends EventListener {
-    void newHeapDumpSamplesRetrieved(MemoryProfiler.MemoryData.HeapDumpSample newSample);
+    void newHeapDumpInfosRetrieved(HeapDumpInfo newInfo);
 
-    void newAllocationTrackingSampleRetrieved(AllocationTrackingSample newSample);
+    void newAllocationTrackingInfosRetrieved(AllocationTrackingSample newInfo);
   }
 }

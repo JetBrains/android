@@ -25,15 +25,16 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import static com.android.tools.profiler.proto.MemoryProfiler.*;
+import static com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
+import static com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 
 public class MemoryDataCache {
   static final int UNFINISHED_TIMESTAMP = -1;
 
   private List<MemoryData.MemorySample> myMemorySamples = Collections.synchronizedList(new ArrayList<>());
   private List<MemoryData.VmStatsSample> myVmStatsSamples = Collections.synchronizedList(new ArrayList<>());
-  private List<MemoryData.HeapDumpSample> myHeapDumpSamples = Collections.synchronizedList(new ArrayList<>());
-  private Map<MemoryData.HeapDumpSample, ByteString> myHeapDumps = new HashMap<>();
+  private List<HeapDumpInfo> myHeapDumpInfos = Collections.synchronizedList(new ArrayList<>());
+  private Map<HeapDumpInfo, ByteString> myHeapDumps = new HashMap<>();
   private List<AllocationTrackingSample> myAllocationTrackingSamples = Collections.synchronizedList(new ArrayList<>());
 
   private EventDispatcher<MemoryProfilerUiManager.MemoryEventListener> myMemoryEventDispatcher;
@@ -50,22 +51,22 @@ public class MemoryDataCache {
     myVmStatsSamples.addAll(vmStatsSamples);
   }
 
-  public void appendHeapDumpSample(@NotNull MemoryData.HeapDumpSample heapDumpSample) {
-    myHeapDumpSamples.add(heapDumpSample);
+  public void appendHeapDumpInfo(@NotNull HeapDumpInfo heapDumpInfo) {
+    myHeapDumpInfos.add(heapDumpInfo);
   }
 
-  public void addPulledHeapDumpData(@NotNull MemoryData.HeapDumpSample heapDumpSample, @NotNull ByteString heapDumpFile) {
-    myHeapDumps.put(heapDumpSample, heapDumpFile);
-    myMemoryEventDispatcher.getMulticaster().newHeapDumpSamplesRetrieved(heapDumpSample);
+  public void addPulledHeapDumpData(@NotNull HeapDumpInfo heapDumpInfo, @NotNull ByteString heapDumpFile) {
+    myHeapDumps.put(heapDumpInfo, heapDumpFile);
+    myMemoryEventDispatcher.getMulticaster().newHeapDumpInfosRetrieved(heapDumpInfo);
   }
 
-  public void executeOnHeapDumpData(@NotNull BiConsumer<MemoryData.HeapDumpSample, ByteString> biConsumer) {
+  public void executeOnHeapDumpData(@NotNull BiConsumer<HeapDumpInfo, ByteString> biConsumer) {
     myHeapDumps.forEach(biConsumer);
   }
 
   public void addAllocationTrackingData(@NotNull AllocationTrackingSample allocationTrackingSample) {
     myAllocationTrackingSamples.add(allocationTrackingSample);
-    myMemoryEventDispatcher.getMulticaster().newAllocationTrackingSampleRetrieved(allocationTrackingSample);
+    myMemoryEventDispatcher.getMulticaster().newAllocationTrackingInfosRetrieved(allocationTrackingSample);
   }
 
   public void executeOnAllocationTrackingSamples(@NotNull Consumer<AllocationTrackingSample> consumer) {
@@ -83,8 +84,8 @@ public class MemoryDataCache {
   }
 
   @NotNull
-  public MemoryData.HeapDumpSample getHeapDumpSample(int index) {
-    return myHeapDumpSamples.get(index);
+  public HeapDumpInfo getHeapDumpInfo(int index) {
+    return myHeapDumpInfos.get(index);
   }
 
   @NotNull
@@ -93,20 +94,20 @@ public class MemoryDataCache {
   }
 
   @NotNull
-  public ByteString getHeapDumpData(@NotNull MemoryData.HeapDumpSample sample) {
-    assert myHeapDumps.containsKey(sample);
-    return myHeapDumps.get(sample);
+  public ByteString getHeapDumpData(@NotNull HeapDumpInfo info) {
+    assert myHeapDumps.containsKey(info);
+    return myHeapDumps.get(info);
   }
 
-  public MemoryData.HeapDumpSample swapLastHeapDumpSample(@NotNull MemoryData.HeapDumpSample sample) {
+  public HeapDumpInfo swapLastHeapDumpInfo(@NotNull HeapDumpInfo info) {
     int lastIndex = getLastHeapDumpIndex();
-    MemoryData.HeapDumpSample result = myHeapDumpSamples.get(lastIndex);
-    myHeapDumpSamples.set(lastIndex, sample);
+    HeapDumpInfo result = myHeapDumpInfos.get(lastIndex);
+    myHeapDumpInfos.set(lastIndex, info);
     return result;
   }
 
   public int getLastHeapDumpIndex() {
-    return myHeapDumpSamples.size() - 1;
+    return myHeapDumpInfos.size() - 1;
   }
 
   public int getLatestPriorMemorySampleIndex(long time, boolean leftClosest) {
@@ -129,28 +130,29 @@ public class MemoryDataCache {
     return DataAdapter.convertBinarySearchIndex(index, myVmStatsSamples.size(), leftClosest);
   }
 
-  public int getLatestPriorHeapDumpSampleIndex(long time, boolean leftClosest) {
+  public int getLatestPriorHeapDumpInfoIndex(long time, boolean leftClosest) {
     int index = Collections
-      .binarySearch(myHeapDumpSamples, MemoryData.HeapDumpSample.newBuilder().setStartTime(time).build(),
+      .binarySearch(myHeapDumpInfos, HeapDumpInfo.newBuilder().setStartTime(time).build(),
                     (left, right) -> {
                       long diff = left.getStartTime() - right.getStartTime();
                       return (diff == 0) ? 0 : ((diff < 0) ? -1 : 1);
                     });
-    return DataAdapter.convertBinarySearchIndex(index, myHeapDumpSamples.size(), leftClosest);
+    return DataAdapter.convertBinarySearchIndex(index, myHeapDumpInfos.size(), leftClosest);
   }
 
   public int getLatestPriorAllocationTrackingSampleIndex(long time, boolean leftClosest) {
-    int index = Collections.binarySearch(myAllocationTrackingSamples, new AllocationTrackingSample(time, time, new byte[]{}), (left, right) -> {
-      long diff = left.getStartTime() - right.getStartTime();
-      return (diff == 0) ? 0 : ((diff < 0) ? -1 : 1);
-    });
+    int index =
+      Collections.binarySearch(myAllocationTrackingSamples, new AllocationTrackingSample(time, time, new byte[]{}), (left, right) -> {
+        long diff = left.getStartTime() - right.getStartTime();
+        return (diff == 0) ? 0 : ((diff < 0) ? -1 : 1);
+      });
     return DataAdapter.convertBinarySearchIndex(index, myAllocationTrackingSamples.size(), leftClosest);
   }
 
   public void reset() {
     myMemorySamples.clear();
     myVmStatsSamples.clear();
-    myHeapDumpSamples.clear();
+    myHeapDumpInfos.clear();
     myHeapDumps.clear();
     myAllocationTrackingSamples.clear();
   }

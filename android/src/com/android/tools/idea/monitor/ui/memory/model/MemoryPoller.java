@@ -128,38 +128,38 @@ public class MemoryPoller extends Poller {
     myDataCache.appendMemorySamples(result.getMemSamplesList());
     myDataCache.appendVmStatsSamples(result.getVmStatsSamplesList());
 
-    List<MemoryData.HeapDumpSample> pendingFetch = new ArrayList<>();
-    for (int i = 0; i < result.getHeapDumpSamplesCount(); i++) {
-      MemoryData.HeapDumpSample sample = result.getHeapDumpSamples(i);
+    List<HeapDumpInfo> pendingFetch = new ArrayList<>();
+    for (int i = 0; i < result.getHeapDumpInfosCount(); i++) {
+      HeapDumpInfo info = result.getHeapDumpInfos(i);
       if (myHasPendingHeapDumpSample) {
-        // Note - if there is an existing pending heap dump, the first sample from the response should represent the same sample
-        assert i == 0 && sample.getEndTime() != UNFINISHED_TIMESTAMP;
+        // Note - if there is an existing pending heap dump, the first info from the response should represent the same info
+        assert i == 0 && info.getEndTime() != UNFINISHED_TIMESTAMP;
 
-        MemoryData.HeapDumpSample previousLastSample = myDataCache.swapLastHeapDumpSample(sample);
-        assert previousLastSample.getFilePath().equals(sample.getFilePath());
+        HeapDumpInfo previousLastInfo = myDataCache.swapLastHeapDumpInfo(info);
+        assert previousLastInfo.getFilePath().equals(info.getFilePath());
         myHasPendingHeapDumpSample = false;
-        pendingFetch.add(sample);
+        pendingFetch.add(info);
       }
       else {
-        myDataCache.appendHeapDumpSample(sample);
+        myDataCache.appendHeapDumpInfo(info);
 
-        if (sample.getEndTime() == UNFINISHED_TIMESTAMP) {
-          // Note - there should be at most one unfinished heap dump request at a time. e.g. the final sample from the response.
-          assert i == result.getHeapDumpSamplesCount() - 1;
+        if (info.getEndTime() == UNFINISHED_TIMESTAMP) {
+          // Note - there should be at most one unfinished heap dump request at a time. e.g. the final info from the response.
+          assert i == result.getHeapDumpInfosCount() - 1;
           myHasPendingHeapDumpSample = true;
         }
         else {
-          pendingFetch.add(sample);
+          pendingFetch.add(info);
         }
       }
     }
 
     if (!pendingFetch.isEmpty()) {
       ApplicationManager.getApplication().executeOnPooledThread(() -> {
-        for (MemoryData.HeapDumpSample sample : pendingFetch) {
-          ByteString heapDumpData = pullHeapDumpData(sample);
+        for (HeapDumpInfo info : pendingFetch) {
+          ByteString heapDumpData = pullHeapDumpData(info);
           if (heapDumpData != null) {
-            myDataCache.addPulledHeapDumpData(sample, heapDumpData);
+            myDataCache.addPulledHeapDumpData(info, heapDumpData);
           }
         }
       });
@@ -174,7 +174,7 @@ public class MemoryPoller extends Poller {
    * Triggers a heap dump grpc request
    */
   public boolean requestHeapDump() {
-    HeapDumpRequest.Builder builder = HeapDumpRequest.newBuilder();
+    TriggerHeapDumpRequest.Builder builder = TriggerHeapDumpRequest.newBuilder();
     builder.setAppId(myAppId);
     builder.setRequestTime(myStartTimestampNs);   // Currently not used on perfd.
     switch (myService.getMemoryService().triggerHeapDump(builder.build()).getStatus()) {
@@ -186,14 +186,14 @@ public class MemoryPoller extends Poller {
   }
 
   @Nullable
-  private ByteString pullHeapDumpData(@NotNull MemoryData.HeapDumpSample sample) {
-    if (!sample.getSuccess()) {
+  private ByteString pullHeapDumpData(@NotNull HeapDumpInfo info) {
+    if (!info.getSuccess()) {
       return null;
     }
 
-    HeapDumpDataRequest dataRequest = HeapDumpDataRequest.newBuilder().setAppId(myAppId).setDumpId(sample.getDumpId()).build();
-    HeapDumpDataResponse response = myService.getMemoryService().getHeapDump(dataRequest);
-    if (response.getStatus() == HeapDumpDataResponse.Status.SUCCESS) {
+    HeapDumpDataRequest dataRequest = HeapDumpDataRequest.newBuilder().setAppId(myAppId).setDumpId(info.getDumpId()).build();
+    DumpDataResponse response = myService.getMemoryService().getHeapDump(dataRequest);
+    if (response.getStatus() == DumpDataResponse.Status.SUCCESS) {
       return response.getData();
     }
     return null;
@@ -252,7 +252,7 @@ public class MemoryPoller extends Poller {
   private class HeapDumpSampleAdapter implements DataAdapter<DurationData> {
     @Override
     public int getClosestTimeIndex(long timeUs, boolean leftClosest) {
-      return myDataCache.getLatestPriorHeapDumpSampleIndex(TimeUnit.MICROSECONDS.toNanos(timeUs), leftClosest);
+      return myDataCache.getLatestPriorHeapDumpInfoIndex(TimeUnit.MICROSECONDS.toNanos(timeUs), leftClosest);
     }
 
     @Override
@@ -267,10 +267,10 @@ public class MemoryPoller extends Poller {
 
     @Override
     public SeriesData<DurationData> get(int index) {
-      MemoryData.HeapDumpSample sample = myDataCache.getHeapDumpSample(index);
-      long startTimeUs = TimeUnit.NANOSECONDS.toMicros(sample.getStartTime());
-      long durationUs = sample.getEndTime() == UNFINISHED_TIMESTAMP ? UNSPECIFIED_DURATION :
-                        TimeUnit.NANOSECONDS.toMicros(sample.getEndTime() - sample.getStartTime());
+      HeapDumpInfo info = myDataCache.getHeapDumpInfo(index);
+      long startTimeUs = TimeUnit.NANOSECONDS.toMicros(info.getStartTime());
+      long durationUs = info.getEndTime() == UNFINISHED_TIMESTAMP ? UNSPECIFIED_DURATION :
+                        TimeUnit.NANOSECONDS.toMicros(info.getEndTime() - info.getStartTime());
       return new SeriesData<>(startTimeUs, new DurationData(durationUs));
     }
   }

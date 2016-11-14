@@ -15,7 +15,9 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.profiler.proto.*;
+import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.MemorySample;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
@@ -35,37 +37,37 @@ public class MemoryMonitor extends ProfilerMonitor {
 
   @NotNull
   public MemoryDataSeries getTotalMemory() {
-    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getTotalMem());
+    return new MemoryDataSeries(myClient, myProcessId, MemorySample::getTotalMem);
   }
 
   @NotNull
   public MemoryDataSeries getJavaMemory() {
-    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getJavaMem());
+    return new MemoryDataSeries(myClient, myProcessId, MemorySample::getJavaMem);
   }
 
   @NotNull
   public MemoryDataSeries getNativeMemory() {
-    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getNativeMem());
+    return new MemoryDataSeries(myClient, myProcessId, MemorySample::getNativeMem);
   }
 
   @NotNull
   public MemoryDataSeries getGraphicsMemory() {
-    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getGraphicsMem());
+    return new MemoryDataSeries(myClient, myProcessId, MemorySample::getGraphicsMem);
   }
 
   @NotNull
   public MemoryDataSeries getStackMemory() {
-    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getStackMem());
+    return new MemoryDataSeries(myClient, myProcessId, MemorySample::getStackMem);
   }
 
   @NotNull
   public MemoryDataSeries getCodeMemory() {
-    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getCodeMem());
+    return new MemoryDataSeries(myClient, myProcessId, MemorySample::getCodeMem);
   }
 
   @NotNull
   public MemoryDataSeries getOthersMemory() {
-    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getOthersMem());
+    return new MemoryDataSeries(myClient, myProcessId, MemorySample::getOthersMem);
   }
 
   @Override
