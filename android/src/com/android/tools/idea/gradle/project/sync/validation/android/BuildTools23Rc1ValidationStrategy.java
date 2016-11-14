@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.validation.android;
 
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -63,7 +63,7 @@ class BuildTools23Rc1ValidationStrategy extends AndroidProjectValidationStrategy
   // Build Tools 23 only works with Android plugin 1.3 or newer. Verify that the project is using compatible Build Tools/Android plugin
   // versions.
   @Override
-  void validate(@NotNull Module module, @NotNull AndroidGradleModel androidModel) {
+  void validate(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
     if (!isOneDotThreeOrNewer(androidModel.getAndroidProject())) {
       String version = myBuildToolsVersionReader.getBuildToolsVersion(module);
       if (version != null) {

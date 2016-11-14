@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
@@ -31,8 +31,8 @@ import static org.easymock.classextension.EasyMock.*;
  * Tests for {@link PostProjectBuildTasksExecutor}.
  */
 public class PostProjectBuildTasksExecutorTest extends IdeaTestCase {
-  private AndroidGradleModel myAndroidModel1;
-  private AndroidGradleModel myAndroidModel2;
+  private AndroidModuleModel myAndroidModel1;
+  private AndroidModuleModel myAndroidModel2;
 
   private PostProjectBuildTasksExecutor myExecutor;
   private Module myModule2;
@@ -47,8 +47,8 @@ public class PostProjectBuildTasksExecutorTest extends IdeaTestCase {
       addAndroidFacet(myModule2);
     });
 
-    myAndroidModel1 = createMock(AndroidGradleModel.class); // addMockAndroidProject(myModule);
-    myAndroidModel2 = createMock(AndroidGradleModel.class); // addMockAndroidProject(module);
+    myAndroidModel1 = createMock(AndroidModuleModel.class); // addMockAndroidProject(myModule);
+    myAndroidModel2 = createMock(AndroidModuleModel.class); // addMockAndroidProject(module);
 
     myExecutor = new PostProjectBuildTasksExecutor(myProject);
   }
@@ -136,7 +136,7 @@ public class PostProjectBuildTasksExecutorTest extends IdeaTestCase {
     }
   }
 
-  private static void addAndroidModelToFacet(@NotNull Module module, @NotNull AndroidGradleModel androidModel) {
+  private static void addAndroidModelToFacet(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assert facet != null;
     facet.setAndroidModel(androidModel);

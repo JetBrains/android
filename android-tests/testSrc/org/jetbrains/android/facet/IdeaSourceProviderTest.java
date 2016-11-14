@@ -18,8 +18,8 @@ package org.jetbrains.android.facet;
 
 import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.AndroidGradleModelTest;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModelTest;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
@@ -55,7 +55,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
 
     loadProject(PROJECT_WITH_APPAND_LIB);
     assertNotNull(myAndroidFacet);
-    AndroidGradleModel androidModel = AndroidGradleModel.get(myAndroidFacet);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(myAndroidFacet);
     assertNotNull(androidModel);
 
     // Set up modules
@@ -82,7 +82,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     assertNotNull(AndroidPlatform.getInstance(myLibModule));
   }
 
-  /** TODO: Move this test to {@link AndroidGradleModelTest}. */
+  /** TODO: Move this test to {@link AndroidModuleModelTest}. */
   public void testGetCurrentSourceProviders() throws Exception {
     StringBuilder sb = new StringBuilder();
     VirtualFile baseDir = getProject().getBaseDir();
@@ -144,7 +144,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "Resources Directories: []\n", sb.toString());
   }
 
-  /** TODO: Move this test to {@link AndroidGradleModelTest}. */
+  /** TODO: Move this test to {@link AndroidModuleModelTest}. */
   public void testGetAllSourceProviders() throws Exception {
     StringBuilder sb = new StringBuilder();
     File baseDir = new File(getProject().getBaseDir().getPath());
@@ -285,7 +285,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  actualProvider.getManifestFile());
 
     // Try finding paid flavor
-    ProductFlavorContainer paidFlavor = AndroidGradleModel.get(myAppFacet).findProductFlavor("paid");
+    ProductFlavorContainer paidFlavor = AndroidModuleModel.get(myAppFacet).findProductFlavor("paid");
     assertNotNull(paidFlavor);
     IdeaSourceProvider paidFlavorSourceProvider = IdeaSourceProvider.create(paidFlavor.getSourceProvider());
     assertNotNull(paidFlavorSourceProvider);
@@ -424,7 +424,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
 
   public void testSourceProviderContainsFile() throws Exception {
     assertNotNull(myAppFacet.getAndroidModel());
-    ProductFlavorContainer paidFlavor = AndroidGradleModel.get(myAppFacet).findProductFlavor("paid");
+    ProductFlavorContainer paidFlavor = AndroidModuleModel.get(myAppFacet).findProductFlavor("paid");
     assertNotNull(paidFlavor);
     IdeaSourceProvider paidFlavorSourceProvider = IdeaSourceProvider.create(paidFlavor.getSourceProvider());
     assertNotNull(paidFlavorSourceProvider);
@@ -445,7 +445,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
 
   public void testSourceProviderIsContainedByFolder() throws Exception {
     assertNotNull(myAppFacet.getAndroidModel());
-    ProductFlavorContainer paidFlavor = AndroidGradleModel.get(myAppFacet).findProductFlavor("paid");
+    ProductFlavorContainer paidFlavor = AndroidModuleModel.get(myAppFacet).findProductFlavor("paid");
     assertNotNull(paidFlavor);
     IdeaSourceProvider paidFlavorSourceProvider = IdeaSourceProvider.create(paidFlavor.getSourceProvider());
     assertNotNull(paidFlavorSourceProvider);

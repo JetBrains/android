@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.variant.view;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.variant.ui.VariantCheckboxTreeCellRenderer;
@@ -54,7 +54,7 @@ import static com.android.tools.idea.gradle.util.ui.ToolWindowAlikePanel.createT
 class ModuleVariantsInfoDialog extends DialogWrapper {
   @NotNull private final JPanel myPanel;
 
-  ModuleVariantsInfoDialog(@NotNull Module module, @NotNull AndroidGradleModel androidModel) {
+  ModuleVariantsInfoDialog(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
     super(module.getProject());
     setTitle(String.format("Dependency Details for Module '%1$s'", module.getName()));
     myPanel = new JPanel(new BorderLayout());
@@ -71,7 +71,7 @@ class ModuleVariantsInfoDialog extends DialogWrapper {
 
   @NotNull
   private static JTree createDependenciesTree(@NotNull Module module,
-                                              @NotNull AndroidGradleModel androidModel) {
+                                              @NotNull AndroidModuleModel androidModel) {
     VariantCheckboxTreeCellRenderer renderer = new VariantCheckboxTreeCellRenderer() {
       @Override
       public void customizeRenderer(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
@@ -165,7 +165,7 @@ class ModuleVariantsInfoDialog extends DialogWrapper {
 
   @NotNull
   private static JTree createDependentsTree(@NotNull Module module,
-                                            @NotNull AndroidGradleModel androidModel) {
+                                            @NotNull AndroidModuleModel androidModel) {
     VariantCheckboxTreeCellRenderer renderer = new VariantCheckboxTreeCellRenderer() {
       @Override
       public void customizeRenderer(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {

@@ -16,7 +16,7 @@
 package com.android.tools.idea.navigator.nodes;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.facet.cpp.NativeAndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.PresentationData;
@@ -76,12 +76,12 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
       }
 
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      NativeAndroidGradleFacet nativeAndroidFacet = NativeAndroidGradleFacet.getInstance(module);
+      NdkFacet ndkFacet = NdkFacet.getInstance(module);
       if (androidFacet != null && androidFacet.getAndroidModel() != null) {
         children.add(new AndroidModuleNode(project, module, settings, myProjectViewPane));
       }
-      else if (nativeAndroidFacet != null && nativeAndroidFacet.getNativeAndroidGradleModel() != null ) {
-        children.add(new NativeAndroidModuleNode(project, module, settings));
+      else if (ndkFacet != null && ndkFacet.getNdkModuleModel() != null ) {
+        children.add(new NdkModuleNode(project, module, settings));
       }
       else {
         children.add(new NonAndroidModuleNode(project, module, settings));

@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.parser;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -334,11 +334,11 @@ public class GradleSettingsFile extends GradleGroovyFile {
    */
   @Nullable
   public static String getModuleGradlePath(@NotNull Module module) {
-    AndroidGradleFacet androidGradleFacet = AndroidGradleFacet.getInstance(module);
-    if (androidGradleFacet == null) {
+    GradleFacet gradleFacet = GradleFacet.getInstance(module);
+    if (gradleFacet == null) {
       return null;
     }
-    return androidGradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
+    return gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
   }
 
   /**

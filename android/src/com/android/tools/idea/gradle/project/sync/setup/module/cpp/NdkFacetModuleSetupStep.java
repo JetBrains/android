@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.cpp;
 
-import com.android.tools.idea.gradle.NativeAndroidGradleModel;
-import com.android.tools.idea.gradle.project.facet.cpp.NativeAndroidGradleFacet;
-import com.android.tools.idea.gradle.project.facet.cpp.NativeAndroidGradleFacetType;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetType;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
-import com.android.tools.idea.gradle.project.sync.setup.module.CppModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetupStep;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -31,39 +31,39 @@ import static com.android.tools.idea.gradle.util.Facets.findFacet;
 import static com.android.tools.idea.gradle.util.Facets.removeAllFacetsOfType;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class CppAndroidFacetModuleSetupStep extends CppModuleSetupStep {
+public class NdkFacetModuleSetupStep extends NdkModuleSetupStep {
   @Override
   protected void doSetUpModule(@NotNull Module module,
                                @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                               @NotNull NativeAndroidGradleModel androidModel,
+                               @NotNull NdkModuleModel ndkModuleModel,
                                @Nullable SyncAction.ModuleModels gradleModels,
                                @Nullable ProgressIndicator indicator) {
-    NativeAndroidGradleFacet facet = findFacet(module, ideModelsProvider, NativeAndroidGradleFacet.TYPE_ID);
+    NdkFacet facet = findFacet(module, ideModelsProvider, NdkFacet.TYPE_ID);
     if (facet != null) {
-      configureFacet(facet, androidModel);
+      configureFacet(facet, ndkModuleModel);
     }
     else {
       // Module does not have Native Android facet. Create one and add it.
       ModifiableFacetModel model = ideModelsProvider.getModifiableFacetModel(module);
-      NativeAndroidGradleFacetType facetType = NativeAndroidGradleFacet.getFacetType();
-      facet = facetType.createFacet(module, NativeAndroidGradleFacet.NAME, facetType.createDefaultConfiguration(), null);
+      NdkFacetType facetType = NdkFacet.getFacetType();
+      facet = facetType.createFacet(module, NdkFacet.NAME, facetType.createDefaultConfiguration(), null);
       model.addFacet(facet);
-      configureFacet(facet, androidModel);
+      configureFacet(facet, ndkModuleModel);
     }
   }
 
-  private static void configureFacet(@NotNull NativeAndroidGradleFacet facet, @NotNull NativeAndroidGradleModel androidModel) {
+  private static void configureFacet(@NotNull NdkFacet facet, @NotNull NdkModuleModel model) {
     String selectedVariant = facet.getConfiguration().SELECTED_BUILD_VARIANT;
     if (isNotEmpty(selectedVariant)) {
-      androidModel.setSelectedVariantName(selectedVariant);
+      model.setSelectedVariantName(selectedVariant);
     }
-    facet.setNativeAndroidGradleModel(androidModel);
+    facet.setNdkModuleModel(model);
   }
 
   @Override
   protected void gradleModelNotFound(@NotNull Module module, @NotNull IdeModifiableModelsProvider ideModelsProvider) {
     ModifiableFacetModel facetModel = ideModelsProvider.getModifiableFacetModel(module);
-    removeAllFacetsOfType(NativeAndroidGradleFacet.TYPE_ID, facetModel);
+    removeAllFacetsOfType(NdkFacet.TYPE_ID, facetModel);
   }
 
   @Override

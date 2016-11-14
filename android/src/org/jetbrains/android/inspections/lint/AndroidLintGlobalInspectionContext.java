@@ -3,7 +3,7 @@ package org.jetbrains.android.inspections.lint;
 import com.android.builder.model.LintOptions;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.editors.strings.StringsVirtualFile;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.lint.*;
 import com.android.tools.lint.client.api.LintBaseline;
 import com.android.tools.lint.client.api.LintDriver;
@@ -234,7 +234,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
     // Baseline analysis?
     myBaseline = null;
     for (Module module : modules) {
-      AndroidGradleModel model = AndroidGradleModel.get(module);
+      AndroidModuleModel model = AndroidModuleModel.get(module);
       if (model != null) {
         GradleVersion version = model.getModelVersion();
         if (version != null && version.isAtLeast(2, 3, 0, null, 0, true)) {

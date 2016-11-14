@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.variant.conflict;
 
 import com.android.builder.model.AndroidLibrary;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.MessageType;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
@@ -65,7 +65,7 @@ public class ConflictSet {
 
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
-      AndroidGradleModel currentAndroidModel = AndroidGradleModel.get(module);
+      AndroidModuleModel currentAndroidModel = AndroidModuleModel.get(module);
       if (currentAndroidModel == null || currentAndroidModel.getProjectType() == PROJECT_TYPE_APP ) {
         continue;
       }
@@ -77,7 +77,7 @@ public class ConflictSet {
       String selectedVariant = currentAndroidModel.getSelectedVariant().getName();
 
       for (Module dependent : ModuleUtilCore.getAllDependentModules(module)) {
-        AndroidGradleModel dependentAndroidModel = AndroidGradleModel.get(dependent);
+        AndroidModuleModel dependentAndroidModel = AndroidModuleModel.get(dependent);
         if (dependentAndroidModel == null) {
           continue;
         }
@@ -118,7 +118,7 @@ public class ConflictSet {
   }
 
   @Nullable
-  private static String getExpectedVariant(@NotNull AndroidGradleModel dependentAndroidModel, @NotNull String dependencyGradlePath) {
+  private static String getExpectedVariant(@NotNull AndroidModuleModel dependentAndroidModel, @NotNull String dependencyGradlePath) {
     List<AndroidLibrary> dependencies = getDirectLibraryDependencies(dependentAndroidModel.getSelectedVariant(), dependentAndroidModel);
     for (AndroidLibrary dependency : dependencies) {
       if (!dependencyGradlePath.equals(dependency.getProject())) {

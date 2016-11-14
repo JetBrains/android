@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.facet.gradle;
 
-import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.intellij.facet.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -36,31 +36,31 @@ import static org.jetbrains.android.model.AndroidModelSerializationConstants.AND
 /**
  * Identifies a module as a "Gradle project".
  */
-public class AndroidGradleFacet extends Facet<AndroidGradleFacetConfiguration> {
-  @NotNull private static final FacetTypeId<AndroidGradleFacet> TYPE_ID = new FacetTypeId<>("android-gradle");
+public class GradleFacet extends Facet<GradleFacetConfiguration> {
+  @NotNull private static final FacetTypeId<GradleFacet> TYPE_ID = new FacetTypeId<>("android-gradle");
 
   @Nullable private GradleModuleModel myGradleModuleModel;
 
   @Nullable
-  public static AndroidGradleFacet getInstance(@NotNull Module module) {
+  public static GradleFacet getInstance(@NotNull Module module) {
     return FacetManager.getInstance(module).getFacetByType(getFacetTypeId());
   }
 
-  public AndroidGradleFacet(@NotNull Module module,
-                            @NotNull String name,
-                            @NotNull AndroidGradleFacetConfiguration configuration) {
+  public GradleFacet(@NotNull Module module,
+                     @NotNull String name,
+                     @NotNull GradleFacetConfiguration configuration) {
     super(getFacetType(), module, name, configuration, null);
   }
 
   @NotNull
-  public static AndroidGradleFacetType getFacetType() {
+  public static GradleFacetType getFacetType() {
     FacetType facetType = FacetTypeRegistry.getInstance().findFacetType(getFacetId());
-    assert facetType instanceof AndroidGradleFacetType;
-    return (AndroidGradleFacetType)facetType;
+    assert facetType instanceof GradleFacetType;
+    return (GradleFacetType)facetType;
   }
 
   @NotNull
-  public static FacetTypeId<AndroidGradleFacet> getFacetTypeId() {
+  public static FacetTypeId<GradleFacet> getFacetTypeId() {
     return TYPE_ID;
   }
 
@@ -92,12 +92,12 @@ public class AndroidGradleFacet extends Facet<AndroidGradleFacetConfiguration> {
   }
 
   private void updateConfiguration() {
-    AndroidGradleFacetConfiguration config = getConfiguration();
+    GradleFacetConfiguration config = getConfiguration();
     try {
       saveFacetConfiguration(config);
     }
     catch (WriteExternalException e) {
-      Logger.getInstance(AndroidGradleFacet.class).error("Unable to save contents of 'Android-Gradle' facet", e);
+      Logger.getInstance(GradleFacet.class).error("Unable to save contents of 'Android-Gradle' facet", e);
     }
   }
 

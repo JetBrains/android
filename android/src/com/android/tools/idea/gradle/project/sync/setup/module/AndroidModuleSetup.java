@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -38,7 +38,7 @@ public class AndroidModuleSetup {
 
   public void setUpModule(@NotNull Module module,
                           @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                          @Nullable AndroidGradleModel androidModel,
+                          @Nullable AndroidModuleModel androidModel,
                           @Nullable SyncAction.ModuleModels models,
                           @Nullable ProgressIndicator indicator) {
     for (AndroidModuleSetupStep step : mySetupSteps) {

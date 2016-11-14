@@ -30,10 +30,10 @@ import javax.swing.*;
  *
  * @author Eugene.Kudelevsky
  */
-public class AndroidGradleFacetEditorTab extends FacetEditorTab {
+public class GradleFacetEditorTab extends FacetEditorTab {
   private final AndroidModuleEditor myModuleEditor;
 
-  public AndroidGradleFacetEditorTab(@NotNull Project project, @NotNull String gradleProjectPath) {
+  public GradleFacetEditorTab(@NotNull Project project, @NotNull String gradleProjectPath) {
     myModuleEditor = new AndroidModuleEditor(project, gradleProjectPath);
   }
 

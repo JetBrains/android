@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.dependencies;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
@@ -62,7 +62,7 @@ public class GradleDependencyManager {
    */
   @NotNull
   public List<GradleCoordinate> findMissingDependencies(@NotNull Module module, @NotNull Iterable<GradleCoordinate> dependencies) {
-    AndroidGradleModel gradleModel = AndroidGradleModel.get(module);
+    AndroidModuleModel gradleModel = AndroidModuleModel.get(module);
     GradleBuildModel buildModel = GradleBuildModel.get(module);
 
     if (gradleModel == null && buildModel == null) {

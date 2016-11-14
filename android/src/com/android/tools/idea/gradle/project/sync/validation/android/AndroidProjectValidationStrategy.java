@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +27,7 @@ abstract class AndroidProjectValidationStrategy {
     myProject = project;
   }
 
-  abstract void validate(@NotNull Module module, @NotNull AndroidGradleModel androidModel);
+  abstract void validate(@NotNull Module module, @NotNull AndroidModuleModel androidModel);
 
   abstract void fixAndReportFoundIssues();
 

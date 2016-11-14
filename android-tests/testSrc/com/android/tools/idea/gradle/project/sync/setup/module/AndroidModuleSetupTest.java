@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -35,7 +35,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class AndroidModuleSetupTest {
   @Mock private Module myModule;
   @Mock private IdeModifiableModelsProvider myModelsProvider;
-  @Mock private AndroidGradleModel myAndroidModel;
+  @Mock private AndroidModuleModel myAndroidModel;
   @Mock private SyncAction.ModuleModels myModuleModels;
   @Mock private ProgressIndicator myProgressIndicator;
   @Mock private AndroidModuleSetupStep mySetupStep1;

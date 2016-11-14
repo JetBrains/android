@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Configuration options for the Android-Gradle facet. In Android Studio, these options <em>cannot</em> be directly changed by users.
  */
-public class AndroidGradleFacetConfiguration implements FacetConfiguration {
+public class GradleFacetConfiguration implements FacetConfiguration {
   @NonNls public String GRADLE_PROJECT_PATH;
 
   @NotNull
@@ -40,7 +40,7 @@ public class AndroidGradleFacetConfiguration implements FacetConfiguration {
                                            FacetValidatorsManager validatorsManager) {
     if (!AndroidUtils.isAndroidStudio() && StringUtil.isNotEmpty(GRADLE_PROJECT_PATH)) {
       // IntelliJ only
-      return new FacetEditorTab[]{new AndroidGradleFacetEditorTab(editorContext.getProject(), GRADLE_PROJECT_PATH)};
+      return new FacetEditorTab[]{new GradleFacetEditorTab(editorContext.getProject(), GRADLE_PROJECT_PATH)};
     }
     return new FacetEditorTab[0];
   }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.compatibility.version;
 
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
@@ -49,7 +49,7 @@ public class BuildFileComponentVersionReader implements ComponentVersionReader {
 
   @Override
   public boolean appliesTo(@NotNull Module module) {
-    return AndroidGradleFacet.getInstance(module) != null && GradleBuildFile.get(module) != null;
+    return GradleFacet.getInstance(module) != null && GradleBuildFile.get(module) != null;
   }
 
   @Override

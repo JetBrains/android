@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.model;
+package com.android.tools.idea.gradle.project.model;
 
 import com.android.annotations.VisibleForTesting;
 import com.intellij.openapi.vfs.VirtualFile;

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.NativeAndroidGradleModel;
-import com.android.tools.idea.gradle.project.facet.cpp.NativeAndroidGradleFacet;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
@@ -151,9 +151,9 @@ public class BuildVariantView {
 
     for (Module module : getGradleModulesWithAndroidProjects()) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      NativeAndroidGradleFacet nativeAndroidFacet = NativeAndroidGradleFacet.getInstance(module);
+      NdkFacet ndkFacet = NdkFacet.getInstance(module);
 
-      assert androidFacet != null || nativeAndroidFacet != null; // getGradleModules() returns only relevant modules.
+      assert androidFacet != null || ndkFacet != null; // getGradleModules() returns only relevant modules.
 
       String variantName = null;
 
@@ -165,7 +165,7 @@ public class BuildVariantView {
       BuildVariantItem[] variantNames = getVariantItems(module);
       if (variantNames != null) {
         if (androidFacet != null) {
-          AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+          AndroidModuleModel androidModel = AndroidModuleModel.get(module);
           // AndroidModel may be null when applying a quick fix (e.g. "Fix Gradle version")
           if (androidModel != null) {
             variantName = androidModel.getSelectedVariant().getName();
@@ -174,9 +174,9 @@ public class BuildVariantView {
         else {
           // As only the modules backed by either AndroidGradleModel or NativeAndroidGradleModel are shown in the Build Variants View,
           // when a module is not backed by AndroidGradleModel, it surely contains a valid NativeAndroidGradleModel.
-          NativeAndroidGradleModel nativeAndroidModel = NativeAndroidGradleModel.get(module);
-          if (nativeAndroidModel != null) {
-            variantName = nativeAndroidModel.getSelectedVariant().getName();
+          NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
+          if (ndkModuleModel != null) {
+            variantName = ndkModuleModel.getSelectedVariant().getName();
           }
         }
 
@@ -207,8 +207,8 @@ public class BuildVariantView {
         gradleModules.add(module);
         continue;
       }
-      NativeAndroidGradleFacet nativeAndroidFacet = NativeAndroidGradleFacet.getInstance(module);
-      if (nativeAndroidFacet != null && nativeAndroidFacet.getNativeAndroidGradleModel() != null) {
+      NdkFacet ndkFacet = NdkFacet.getInstance(module);
+      if (ndkFacet != null && ndkFacet.getNdkModuleModel() != null) {
         gradleModules.add(module);
       }
     }
@@ -243,14 +243,14 @@ public class BuildVariantView {
 
   @Nullable
   private static Collection<String> getVariantNames(@NotNull Module module) {
-    AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel != null) {
       return androidModel.getVariantNames();
     }
 
-    NativeAndroidGradleModel nativeAndroidModel = NativeAndroidGradleModel.get(module);
-    if (nativeAndroidModel != null) {
-      return nativeAndroidModel.getVariantNames();
+    NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
+    if (ndkModuleModel != null) {
+      return ndkModuleModel.getVariantNames();
     }
 
     return null;
@@ -681,7 +681,7 @@ public class BuildVariantView {
         if (!module.isDisposed()) {
           moduleName = module.getName();
           moduleIcon = GradleUtil.getModuleIcon(module);
-          isAndriodGradleModule = AndroidGradleModel.get(module) != null;
+          isAndriodGradleModule = AndroidModuleModel.get(module) != null;
         }
       }
 

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleSetup;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.google.common.annotations.VisibleForTesting;
@@ -101,7 +101,7 @@ abstract class ProjectSetup {
           continue;
         }
         myModuleSetup.setUpModule(module, moduleModels, indicator);
-        AndroidGradleModel androidModel = findAndroidModel(module);
+        AndroidModuleModel androidModel = findAndroidModel(module);
         if (androidModel != null) {
           moduleValidator.validate(module, androidModel);
         }
@@ -111,9 +111,9 @@ abstract class ProjectSetup {
     }
 
     @Nullable
-    private AndroidGradleModel findAndroidModel(@NotNull Module module) {
+    private AndroidModuleModel findAndroidModel(@NotNull Module module) {
       AndroidFacet facet = findFacet(module, myModelsProvider, AndroidFacet.ID);
-      return facet != null ? AndroidGradleModel.get(facet) : null;
+      return facet != null ? AndroidModuleModel.get(facet) : null;
     }
 
     @Override

@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.compatibility;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
 import com.android.tools.idea.gradle.util.GradleWrapper;
@@ -60,7 +60,7 @@ public class VersionCompatibilityCheckerTest extends AndroidGradleTestCase {
     assertNotNull(gradleVersion);
 
     Module appModule = myModules.getAppModule();
-    AndroidGradleModel androidModel = AndroidGradleModel.get(appModule);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
     assertNotNull(androidModel);
     GradleVersion currentModelVersion = androidModel.getModelVersion();
     assertNotNull(currentModelVersion);

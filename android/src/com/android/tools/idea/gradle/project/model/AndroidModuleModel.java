@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle;
+package com.android.tools.idea.gradle.project.model;
 
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
+import com.android.tools.idea.gradle.InternalAndroidModelView;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
@@ -61,12 +63,11 @@ import static com.intellij.util.ArrayUtil.contains;
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
-public class AndroidGradleModel implements AndroidModel, Serializable {
+public class AndroidModuleModel implements AndroidModel, Serializable {
   public static final String EXPLODED_AAR = "exploded-aar";
 
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 2L;
-  private static final Logger LOG = Logger.getInstance(AndroidGradleModel.class);
+  private static final long serialVersionUID = 1L;
 
   private static final String[] TEST_ARTIFACT_NAMES = {ARTIFACT_UNIT_TEST, ARTIFACT_ANDROID_TEST};
 
@@ -75,7 +76,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   @NotNull private File myRootDirPath;
   @NotNull private AndroidProject myAndroidProject;
 
-  @NotNull private transient GradleModelFeatures myFeatures;
+  @NotNull private transient AndroidModelFeatures myFeatures;
   @Nullable private transient GradleVersion myModelVersion;
   @Nullable private transient CountDownLatch myProxyAndroidProjectLatch;
   @Nullable private AndroidProject myProxyAndroidProject;
@@ -94,25 +95,25 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   @NotNull private Set<File> myExtraGeneratedSourceFolders = Sets.newHashSet();
 
   @Nullable
-  public static AndroidGradleModel get(@NotNull Module module) {
+  public static AndroidModuleModel get(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     return facet != null ? get(facet) : null;
   }
 
   @Nullable
-  public static AndroidGradleModel get(@NotNull AndroidFacet androidFacet) {
+  public static AndroidModuleModel get(@NotNull AndroidFacet androidFacet) {
     AndroidModel androidModel = androidFacet.getAndroidModel();
-    return androidModel instanceof AndroidGradleModel ? (AndroidGradleModel)androidModel : null;
+    return androidModel instanceof AndroidModuleModel ? (AndroidModuleModel)androidModel : null;
   }
 
   /**
-   * Creates a new {@link AndroidGradleModel}.
+   * Creates a new {@link AndroidModuleModel}.
    *
    * @param moduleName     the name of the IDEA module, created from {@code delegate}.
    * @param rootDirPath    the root directory of the imported Android-Gradle project.
    * @param androidProject imported Android-Gradle project.
    */
-  public AndroidGradleModel(@NotNull String moduleName,
+  public AndroidModuleModel(@NotNull String moduleName,
                             @NotNull File rootDirPath,
                             @NotNull AndroidProject androidProject,
                             @NotNull String selectedVariantName) {
@@ -122,7 +123,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     myAndroidProject = androidProject;
 
     parseAndSetModelVersion();
-    myFeatures = new GradleModelFeatures(myModelVersion);
+    myFeatures = new AndroidModelFeatures(myModelVersion);
 
     // Compute the proxy object to avoid re-proxying the model during every serialization operation and also schedule it to run
     // asynchronously to avoid blocking the project sync operation for re-proxying to complete.
@@ -176,7 +177,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   }
 
   @NotNull
-  public GradleModelFeatures getFeatures() {
+  public AndroidModelFeatures getFeatures() {
     return myFeatures;
   }
 
@@ -206,7 +207,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   public List<SourceProvider> getMainSourceProviders(@NotNull String variantName) {
     Variant variant = myVariantsByName.get(variantName);
     if (variant == null) {
-      LOG.error("Unknown variant name '" + variantName + "' found in the module '" + myModuleName + "'");
+      getLogger().error("Unknown variant name '" + variantName + "' found in the module '" + myModuleName + "'");
       return ImmutableList.of();
     }
 
@@ -588,10 +589,15 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
         myProxyAndroidProjectLatch.await();
       }
       catch (InterruptedException e) {
-        LOG.error(e);
+        getLogger().error(e);
         Thread.currentThread().interrupt();
       }
     }
+  }
+
+  @NotNull
+  private static Logger getLogger() {
+    return Logger.getInstance(AndroidModuleModel.class);
   }
 
   /**
@@ -880,7 +886,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
 
     public void updateSelectedVariantIn(@NotNull DataNode<ModuleData> moduleNode) {
       if (variant != null) {
-        DataNode<AndroidGradleModel> androidProjectNode = find(moduleNode, ANDROID_MODEL);
+        DataNode<AndroidModuleModel> androidProjectNode = find(moduleNode, ANDROID_MODEL);
         if (androidProjectNode != null) {
           androidProjectNode.getData().setSelectedVariantName(variant.getName());
         }
@@ -905,7 +911,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     myAndroidProject = (AndroidProject)in.readObject();
 
     parseAndSetModelVersion();
-    myFeatures = new GradleModelFeatures(myModelVersion);
+    myFeatures = new AndroidModelFeatures(myModelVersion);
 
     myProxyAndroidProject = myAndroidProject;
 

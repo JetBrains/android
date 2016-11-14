@@ -18,10 +18,10 @@ package com.android.tools.idea.gradle.project.sync.setup.module;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
-import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -75,7 +75,7 @@ public class ModuleSetup {
 
     AndroidProject androidProject = models.findModel(AndroidProject.class);
     if (androidProject != null) {
-      AndroidGradleModel androidModel = createAndroidModel(module, androidProject);
+      AndroidModuleModel androidModel = createAndroidModel(module, androidProject);
       if (androidModel != null) {
         // This is an Android module without variants.
         myAndroidModuleSetup.setUpModule(module, myIdeModelsProvider, androidModel, models, indicator);
@@ -96,10 +96,10 @@ public class ModuleSetup {
   }
 
   @Nullable
-  private AndroidGradleModel createAndroidModel(@NotNull Module module, @NotNull AndroidProject androidProject) {
+  private AndroidModuleModel createAndroidModel(@NotNull Module module, @NotNull AndroidProject androidProject) {
     Variant variantToSelect = myVariantSelector.findVariantToSelect(androidProject);
     if (variantToSelect != null) {
-      return new AndroidGradleModel(module.getName(), getModulePath(module), androidProject, variantToSelect.getName());
+      return new AndroidModuleModel(module.getName(), getModulePath(module), androidProject, variantToSelect.getName());
     }
     // If an Android project does not have variants, it would be impossible to build. This is a possible but invalid use case.
     // For now we are going to treat this case as a Java library module, because everywhere in the IDE (e.g. run configurations,

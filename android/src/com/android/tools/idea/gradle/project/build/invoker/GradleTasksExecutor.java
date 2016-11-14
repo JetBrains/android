@@ -31,8 +31,8 @@ import com.android.tools.idea.gradle.project.build.console.view.GradleConsoleVie
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.AfterGradleInvocationTask;
 import com.android.tools.idea.gradle.project.build.invoker.messages.GradleBuildTreeViewPanel;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
-import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
@@ -824,7 +824,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
         String gradlePath = source.getDescription();
         Module module = findModuleByGradlePath(myRequest.getProject(), gradlePath);
         if (module != null) {
-          AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
+          GradleFacet facet = GradleFacet.getInstance(module);
           // if we got here facet is not null;
           assert facet != null;
           GradleModuleModel gradleModuleModel = facet.getGradleModuleModel();

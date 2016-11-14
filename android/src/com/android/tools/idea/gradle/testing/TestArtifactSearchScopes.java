@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.testing;
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.customizer.dependency.Dependency;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySet;
@@ -81,7 +81,7 @@ public final class TestArtifactSearchScopes implements Disposable {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
       TestArtifactSearchScopes scopes;
-      AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
       scopes = androidModel != null ? new TestArtifactSearchScopes(module) : null;
       module.putUserData(SEARCH_SCOPES_KEY, scopes);
     }
@@ -134,7 +134,7 @@ public final class TestArtifactSearchScopes implements Disposable {
   @NotNull
   private FileRootSearchScope getSourceScope(@NotNull String artifactName) {
     Set<File> roots = Collections.emptySet();
-    AndroidGradleModel androidModel = getAndroidModel();
+    AndroidModuleModel androidModel = getAndroidModel();
     if (androidModel != null) {
       roots = new HashSet<>();
       // TODO consider generated source
@@ -192,7 +192,7 @@ public final class TestArtifactSearchScopes implements Disposable {
 
   @NotNull
   private FileRootSearchScope getExcludedDependenciesScope(@NotNull String artifactName) {
-    AndroidGradleModel androidModel = getAndroidModel();
+    AndroidModuleModel androidModel = getAndroidModel();
 
     if (androidModel == null) {
       return new FileRootSearchScope(myModule.getProject(), Collections.emptyList());
@@ -218,13 +218,13 @@ public final class TestArtifactSearchScopes implements Disposable {
   }
 
   @NotNull
-  private static DependencySet extractUnitTestDependencies(@NotNull AndroidGradleModel androidModel) {
+  private static DependencySet extractUnitTestDependencies(@NotNull AndroidModuleModel androidModel) {
     BaseArtifact artifact = androidModel.getUnitTestArtifactInSelectedVariant();
     return extractTestDependencies(artifact, androidModel.getModelVersion());
   }
 
   @NotNull
-  private static DependencySet extractAndroidTestDependencies(@NotNull AndroidGradleModel androidModel) {
+  private static DependencySet extractAndroidTestDependencies(@NotNull AndroidModuleModel androidModel) {
     BaseArtifact artifact = androidModel.getAndroidTestArtifactInSelectedVariant();
     return extractTestDependencies(artifact, androidModel.getModelVersion());
   }
@@ -236,7 +236,7 @@ public final class TestArtifactSearchScopes implements Disposable {
   }
 
   @NotNull
-  private static DependencySet extractMainDependencies(AndroidGradleModel androidModel) {
+  private static DependencySet extractMainDependencies(AndroidModuleModel androidModel) {
     return extractDependencies(COMPILE, androidModel.getMainArtifact(), androidModel.getModelVersion());
   }
 
@@ -248,8 +248,8 @@ public final class TestArtifactSearchScopes implements Disposable {
   }
 
   @Nullable
-  private AndroidGradleModel getAndroidModel() {
-    return myModule.isDisposed() ? null : AndroidGradleModel.get(myModule);
+  private AndroidModuleModel getAndroidModel() {
+    return myModule.isDisposed() ? null : AndroidModuleModel.get(myModule);
   }
 
   @Override

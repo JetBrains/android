@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
@@ -64,7 +64,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
     if (resolvedArtifact == null) {
       return;
     }
-    AndroidGradleModel gradleModel = artifact.getGradleModel();
+    AndroidModuleModel gradleModel = artifact.getGradleModel();
     Dependencies dependencies = GradleUtil.getDependencies(resolvedArtifact, gradleModel.getModelVersion());
 
     for (AndroidLibrary androidLibrary : dependencies.getLibraries()) {

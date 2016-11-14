@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.facet.cpp;
+package com.android.tools.idea.gradle.project.facet.ndk;
 
-import com.android.tools.idea.gradle.NativeAndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.intellij.ProjectTopics;
 import com.intellij.facet.*;
 import com.intellij.facet.impl.FacetUtil;
@@ -31,34 +31,30 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class NativeAndroidGradleFacet extends Facet<NativeAndroidGradleFacetConfiguration> {
-  private static final Logger LOG = Logger.getInstance(NativeAndroidGradleFacet.class);
-
-  @NotNull public static final FacetTypeId<NativeAndroidGradleFacet> TYPE_ID =
-    new FacetTypeId<>("native-android-gradle");
+public class NdkFacet extends Facet<NdkFacetConfiguration> {
+  @NotNull public static final FacetTypeId<NdkFacet> TYPE_ID = new FacetTypeId<>("native-android-gradle");
 
   @NonNls public static final String ID = "native-android-gradle";
   @NonNls public static final String NAME = "Native-Android-Gradle";
 
-  private NativeAndroidGradleModel myNativeAndroidGradleModel;
+  private NdkModuleModel myNdkModuleModel;
 
   @Nullable
-  public static NativeAndroidGradleFacet getInstance(@NotNull Module module) {
+  public static NdkFacet getInstance(@NotNull Module module) {
     return FacetManager.getInstance(module).getFacetByType(TYPE_ID);
   }
 
-  @SuppressWarnings("ConstantConditions")
-  public NativeAndroidGradleFacet(@NotNull Module module,
-                                  @NotNull String name,
-                                  @NotNull NativeAndroidGradleFacetConfiguration configuration) {
+  public NdkFacet(@NotNull Module module,
+                  @NotNull String name,
+                  @NotNull NdkFacetConfiguration configuration) {
     super(getFacetType(), module, name, configuration, null);
   }
 
   @NotNull
-  public static NativeAndroidGradleFacetType getFacetType() {
+  public static NdkFacetType getFacetType() {
     FacetType facetType = FacetTypeRegistry.getInstance().findFacetType(ID);
-    assert facetType instanceof NativeAndroidGradleFacetType;
-    return (NativeAndroidGradleFacetType)facetType;
+    assert facetType instanceof NdkFacetType;
+    return (NdkFacetType)facetType;
   }
 
   @Override
@@ -79,23 +75,23 @@ public class NativeAndroidGradleFacet extends Facet<NativeAndroidGradleFacetConf
   }
 
   private void updateConfiguration() {
-    NativeAndroidGradleFacetConfiguration config = getConfiguration();
+    NdkFacetConfiguration config = getConfiguration();
     try {
       FacetUtil.saveFacetConfiguration(config);
     }
     catch (WriteExternalException e) {
-      LOG.error("Unable to save contents of 'Native-Android-Gradle' facet", e);
+      Logger.getInstance(NdkFacet.class).error("Unable to save contents of 'Native-Android-Gradle' facet", e);
     }
   }
 
   @Nullable
-  public NativeAndroidGradleModel getNativeAndroidGradleModel() {
-    return myNativeAndroidGradleModel;
+  public NdkModuleModel getNdkModuleModel() {
+    return myNdkModuleModel;
   }
 
-  public void setNativeAndroidGradleModel(@NotNull NativeAndroidGradleModel nativeAndroidGradleModel) {
-    myNativeAndroidGradleModel = nativeAndroidGradleModel;
+  public void setNdkModuleModel(@NotNull NdkModuleModel ndkModuleModel) {
+    myNdkModuleModel = ndkModuleModel;
 
-    getConfiguration().SELECTED_BUILD_VARIANT = myNativeAndroidGradleModel.getSelectedVariant().getName();
+    getConfiguration().SELECTED_BUILD_VARIANT = myNdkModuleModel.getSelectedVariant().getName();
   }
 }

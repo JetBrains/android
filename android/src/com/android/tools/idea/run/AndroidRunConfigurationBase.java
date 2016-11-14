@@ -24,7 +24,7 @@ import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.fd.*;
 import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.InstantRunNotificationTask;
@@ -473,7 +473,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return null;
     }
 
-    AndroidGradleModel model = AndroidGradleModel.get(facet);
+    AndroidModuleModel model = AndroidModuleModel.get(facet);
     AndroidVersion version = devices.get(0).getVersion();
     InstantRunGradleSupport status = InstantRunGradleUtils.getIrSupportStatus(model, version);
     if (status != SUPPORTED) {
@@ -562,7 +562,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @NotNull
   protected ApplicationIdProvider getApplicationIdProvider(@NotNull AndroidFacet facet) {
-    if (facet.getAndroidModel() != null && facet.getAndroidModel() instanceof AndroidGradleModel) {
+    if (facet.getAndroidModel() != null && facet.getAndroidModel() instanceof AndroidModuleModel) {
       return new GradleApplicationIdProvider(facet);
     }
     return new NonGradleApplicationIdProvider(facet);

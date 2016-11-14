@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.compatibility.version;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
@@ -38,7 +38,7 @@ import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 class GradleVersionReader implements ComponentVersionReader {
   @Override
   public boolean appliesTo(@NotNull Module module) {
-    return AndroidGradleFacet.getInstance(module) != null;
+    return GradleFacet.getInstance(module) != null;
   }
 
   @Override

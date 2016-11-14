@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
 import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
 import com.android.tools.idea.gradle.project.sync.validation.android.BuildTools23Rc1ValidationStrategy.BuildToolsVersionReader;
@@ -46,7 +46,7 @@ public class BuildTools23Rc1ValidationStrategyTest extends AndroidGradleTestCase
   }
 
   public void testValidate() {
-    AndroidGradleModel androidModel = mockAndroidModel("1.1", 2);
+    AndroidModuleModel androidModel = mockAndroidModel("1.1", 2);
     Module module = mock(Module.class);
     when(module.getName()).thenReturn("app");
     when(myBuildToolsVersionReader.getBuildToolsVersion(module)).thenReturn("23.0.0 rc1");
@@ -57,7 +57,7 @@ public class BuildTools23Rc1ValidationStrategyTest extends AndroidGradleTestCase
   }
 
   public void testValidateWithPlugin1Dot3() {
-    AndroidGradleModel androidModel = mockAndroidModel("1.3", 3);
+    AndroidModuleModel androidModel = mockAndroidModel("1.3", 3);
     Module module = mock(Module.class);
 
     myStrategy.validate(module, androidModel);
@@ -67,7 +67,7 @@ public class BuildTools23Rc1ValidationStrategyTest extends AndroidGradleTestCase
   }
 
   public void testValidateWithBuildTools24() {
-    AndroidGradleModel androidModel = mockAndroidModel("1.1", 2);
+    AndroidModuleModel androidModel = mockAndroidModel("1.1", 2);
     Module module = mock(Module.class);
     when(module.getName()).thenReturn("app");
     when(myBuildToolsVersionReader.getBuildToolsVersion(module)).thenReturn("24.0.0");
@@ -78,12 +78,12 @@ public class BuildTools23Rc1ValidationStrategyTest extends AndroidGradleTestCase
   }
 
   @NotNull
-  private static AndroidGradleModel mockAndroidModel(@Nullable String modelVersion, int apiVersion) {
+  private static AndroidModuleModel mockAndroidModel(@Nullable String modelVersion, int apiVersion) {
     AndroidProject androidProject = mock(AndroidProject.class);
     when(androidProject.getModelVersion()).thenReturn(modelVersion);
     when(androidProject.getApiVersion()).thenReturn(apiVersion);
 
-    AndroidGradleModel androidModel = mock(AndroidGradleModel.class);
+    AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
     when(androidModel.getAndroidProject()).thenReturn(androidProject);
     return androidModel;
   }
