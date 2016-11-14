@@ -30,4 +30,12 @@ public class ProfilerColors {
   public static final Color MONITOR_BACKGROUND = JBColor.background();
 
   public static final Color MONITOR_BORDER = new JBColor(0xC9C9C9, 0xC9C9C9);
+
+  public static final Color NETWORK_CONNECTIONS_COLOR = new JBColor(0x5A8725, 0x5A8725);
+
+  public static final Color NETWORK_RECEIVING_COLOR = new JBColor(0x2865BD, 0x2865BD) ;
+
+  public static final Color NETWORK_SENDING_COLOR = new JBColor(0xFF7B00, 0xFF7B00);
+
+  public static final Color NETWORK_WAITING_COLOR = new JBColor(0xAAAAAA, 0xAAAAAA);
 }
