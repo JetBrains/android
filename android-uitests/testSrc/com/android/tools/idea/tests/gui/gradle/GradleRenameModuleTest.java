@@ -46,6 +46,7 @@ public class GradleRenameModuleTest {
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
   }
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testRenameModule() throws IOException {
     guiTest.importSimpleApplication();
