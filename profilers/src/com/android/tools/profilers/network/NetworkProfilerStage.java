@@ -22,7 +22,7 @@ import com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsResponse.Requ
 import com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsResponse.Response;
 import com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsResponse.Body;
 
-public class NeworkProfilerStage extends Stage {
+public class NetworkProfilerStage extends Stage {
 
   // Whether the connection data screen is active.
   private boolean myConnectionDataEnabled;
@@ -32,7 +32,7 @@ public class NeworkProfilerStage extends Stage {
 
   public AspectModel<NetworkProfilerAspect> aspect = new AspectModel<>();
 
-  public NeworkProfilerStage(StudioProfilers profiler) {
+  public NetworkProfilerStage(StudioProfilers profiler) {
     super(profiler);
   }
 
