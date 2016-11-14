@@ -15,18 +15,12 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class NetworkMonitor extends ProfilerMonitor {
 
@@ -35,18 +29,24 @@ public class NetworkMonitor extends ProfilerMonitor {
   @NotNull
   private final StudioProfilers myProfilers;
 
+  private final Range myYRange = new Range();
+
   public NetworkMonitor(@NotNull StudioProfilers profilers, int pid) {
     myProcessId = pid;
     myProfilers = profilers;
   }
 
   @NotNull
-  public RangedContinuousSeries getTrafficData() {
+  public Range getYRange() {
+    return myYRange;
+  }
+
+  @NotNull
+  public RangedContinuousSeries getSpeedSeries(NetworkTrafficDataSeries.Type trafficType) {
     NetworkServiceGrpc.NetworkServiceBlockingStub client = myProfilers.getClient().getNetworkClient();
 
-    // TODO: Fetch both sent and received speeds
-    NetworkTrafficDataSeries series = new NetworkTrafficDataSeries(client, myProcessId, NetworkTrafficDataSeries.Type.BYTES_RECIEVED);
-    return new RangedContinuousSeries("Network", myProfilers.getViewRange(), new Range(0, 100), series);
+    NetworkTrafficDataSeries series = new NetworkTrafficDataSeries(client, myProcessId, trafficType);
+    return new RangedContinuousSeries(trafficType.getLabel(), myProfilers.getViewRange(), myYRange, series);
   }
 
   @NotNull

@@ -18,7 +18,6 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.chart.linechart.LineChart;
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.NetworkTrafficFormatter;
 import com.android.tools.profilers.ProfilerMonitorView;
@@ -48,7 +47,7 @@ public class NetworkMonitorView extends ProfilerMonitorView {
     label.setBorder(LABEL_PADDING);
     final Dimension labelSize = label.getPreferredSize();
 
-    AxisComponent.Builder builder = new AxisComponent.Builder(myMonitor.getTrafficData().getYRange(), BANDWIDTH_AXIS_FORMATTER_L1,
+    AxisComponent.Builder builder = new AxisComponent.Builder(myMonitor.getYRange(), BANDWIDTH_AXIS_FORMATTER_L1,
                                                               AxisComponent.AxisOrientation.RIGHT)
       .showAxisLine(false)
       .showMax(true)
@@ -59,7 +58,8 @@ public class NetworkMonitorView extends ProfilerMonitorView {
 
     // TODO handle multiple series.
     final LineChart lineChart = new LineChart();
-    lineChart.addLine(myMonitor.getTrafficData());
+    lineChart.addLine(myMonitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_RECIEVED));
+    lineChart.addLine(myMonitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_SENT));
     lineChart.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
