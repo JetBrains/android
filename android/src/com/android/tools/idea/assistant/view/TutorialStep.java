@@ -23,8 +23,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.CaretState;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.VisualPosition;
+import com.intellij.openapi.editor.event.EditorMouseAdapter;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
-import com.intellij.openapi.editor.event.EditorMouseListener;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
@@ -189,7 +189,7 @@ public class TutorialStep extends JPanel {
    * Achieved through tracking whether text is selected when the mouse is depressed. If nothing was selected then and nothing
    * is selected after the mouse is released then select all of the text.
    */
-  private static class AutoTextSelectionListener implements EditorMouseListener {
+  private static class AutoTextSelectionListener extends EditorMouseAdapter {
     private final EditorEx myEditor;
     private boolean myIsTextSelectedOnMousePressed = false;
 
@@ -239,18 +239,6 @@ public class TutorialStep extends JPanel {
       LogicalPosition docEnd = myEditor.visualToLogicalPosition(new VisualPosition(lineCount, lastLineEndOffset));
       myEditor.getCaretModel().setCaretsAndSelections(Lists.newArrayList(new CaretState(docStart, docStart, docEnd)));
     }
-
-    @Override
-    public void mouseEntered(EditorMouseEvent e) {
-    }
-
-    @Override
-    public void mouseExited(EditorMouseEvent e) {
-    }
-
-    @Override
-    public void mouseReleased(EditorMouseEvent e) {
-    }
   }
 
   /**
@@ -290,8 +278,6 @@ public class TutorialStep extends JPanel {
    * A read-only code editor designed to display code samples, this should live inside a
    * {@code NaturalHeightScrollPane} to render properly.
    *
-   * TODO: Add a listener to select all code when clicked. Potentially do a hover listener instead that surfaces a button that copies all
-   * content to your clipboard.
    * TODO(b/28357327): Try to reduce the number of hacks and fragile code paths.
    * TODO: Determine why the background does not update on theme change.
    */
