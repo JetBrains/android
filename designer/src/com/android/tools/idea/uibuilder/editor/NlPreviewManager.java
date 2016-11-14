@@ -305,7 +305,7 @@ public class NlPreviewManager implements ProjectComponent {
           if (!myToolWindow.isVisible()) {
             RenderResult renderResult = myToolWindowForm.getRenderResult();
             if (renderResult != null && renderResult.getFile() != psiFile) {
-              myToolWindowForm.setRenderResult(RenderResult.createBlank(psiFile, null));
+              myToolWindowForm.setRenderResult(RenderResult.createBlank(psiFile));
             }
           }
           myToolWindow.show(null);
