@@ -63,6 +63,6 @@ public class NetworkMonitor extends ProfilerMonitor {
   }
 
   public void expand() {
-    myProfilers.setStage(new NeworkProfilerStage(myProfilers));
+    myProfilers.setStage(new NetworkProfilerStage(myProfilers));
   }
 }

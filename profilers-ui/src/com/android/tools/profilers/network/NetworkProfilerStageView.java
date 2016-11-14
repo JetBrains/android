@@ -26,12 +26,12 @@ import javax.swing.*;
 import java.awt.*;
 
 public class NetworkProfilerStageView extends StageView {
-  private final NeworkProfilerStage myStage;
+  private final NetworkProfilerStage myStage;
   private final JPanel myConnectionDetails;
   private JPanel myConnectionData;
   private Splitter myComponent;
 
-  public NetworkProfilerStageView(NeworkProfilerStage stage) {
+  public NetworkProfilerStageView(NetworkProfilerStage stage) {
     super(stage);
     myStage = stage;
     myConnectionDetails = new JPanel(new BorderLayout());
