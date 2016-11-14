@@ -1167,8 +1167,8 @@
     <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.java.CompilerOutputModuleSetupStep"/>
     <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.java.JavaLanguageLevelModuleSetupStep"/>
 
-    <ndkModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.cpp.ContentRootModuleSetupStep"/>
-    <ndkModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.cpp.NdkFacetModuleSetupStep"/>
+    <ndkModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.ndk.ContentRootModuleSetupStep"/>
+    <ndkModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkFacetModuleSetupStep"/>
 
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.project.JdkPostSyncProjectSetupStep"/>
 
