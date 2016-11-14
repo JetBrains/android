@@ -35,8 +35,6 @@ import java.awt.event.ActionListener;
  * of tutorials. Content is rendered via XML configured content and couples to
  * {@code TutorialChooser} where each card appears as a line item below their
  * related service.
- *
- * TODO: Attempt to migrate render logic to a form.
  */
 public class TutorialCard extends CardViewPanel {
 
