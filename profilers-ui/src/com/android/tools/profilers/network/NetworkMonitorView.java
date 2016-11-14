@@ -58,7 +58,7 @@ public class NetworkMonitorView extends ProfilerMonitorView {
 
     // TODO handle multiple series.
     final LineChart lineChart = new LineChart();
-    lineChart.addLine(myMonitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_RECIEVED));
+    lineChart.addLine(myMonitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED));
     lineChart.addLine(myMonitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_SENT));
     lineChart.addMouseListener(new MouseAdapter() {
       @Override
