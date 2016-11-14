@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class NetworkTrafficDataSeries implements DataSeries<Long> {
   public enum Type {
-    BYTES_RECIEVED("Received"),
+    BYTES_RECEIVED("Received"),
     BYTES_SENT("Sent");
 
     private final String myLabel;
@@ -78,7 +78,7 @@ public class NetworkTrafficDataSeries implements DataSeries<Long> {
       long xTimestamp = TimeUnit.NANOSECONDS.toMicros(data.getBasicInfo().getEndTimestamp());
       NetworkProfiler.SpeedData speedData = data.getSpeedData();
       switch (myType) {
-        case BYTES_RECIEVED:
+        case BYTES_RECEIVED:
           seriesData.add(new SeriesData<>(xTimestamp, speedData.getReceived()));
           break;
         case BYTES_SENT:
