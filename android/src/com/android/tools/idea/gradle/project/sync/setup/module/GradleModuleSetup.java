@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacetType;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetType;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
@@ -64,11 +64,11 @@ public class GradleModuleSetup {
   }
 
   public void setUpModule(@NotNull Module module, @NotNull IdeModifiableModelsProvider ideModelsProvider, @NotNull GradleModuleModel model) {
-    AndroidGradleFacet facet = findFacet(module, ideModelsProvider, AndroidGradleFacet.getFacetTypeId());
+    GradleFacet facet = findFacet(module, ideModelsProvider, GradleFacet.getFacetTypeId());
     if (facet == null) {
       ModifiableFacetModel facetModel = ideModelsProvider.getModifiableFacetModel(module);
-      AndroidGradleFacetType facetType = AndroidGradleFacet.getFacetType();
-      facet = facetType.createFacet(module, AndroidGradleFacet.getFacetName(), facetType.createDefaultConfiguration(), null);
+      GradleFacetType facetType = GradleFacet.getFacetType();
+      facet = facetType.createFacet(module, GradleFacet.getFacetName(), facetType.createDefaultConfiguration(), null);
       facetModel.addFacet(facet);
     }
     facet.setGradleModuleModel(model);

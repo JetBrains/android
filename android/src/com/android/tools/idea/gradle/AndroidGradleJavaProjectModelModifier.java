@@ -23,9 +23,10 @@ import com.android.tools.idea.gradle.dsl.model.android.CompileOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.model.java.JavaModel;
-import com.android.tools.idea.gradle.project.facet.java.JavaGradleFacet;
+import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.testing.TestArtifactSearchScopes;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -188,8 +189,8 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
       compileOptions.setTargetCompatibility(level);
     }
     else {
-      JavaGradleFacet javaGradleFacet = JavaGradleFacet.getInstance(module);
-      if (javaGradleFacet == null || javaGradleFacet.getJavaModuleModel() == null) {
+      JavaFacet javaFacet = JavaFacet.getInstance(module);
+      if (javaFacet == null || javaFacet.getJavaModuleModel() == null) {
         return null;
       }
       JavaModel javaModel = buildModel.java();
@@ -269,9 +270,9 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     }
     ArtifactDependencySpec result = null;
     for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidGradleModel androidGradleModel = AndroidGradleModel.get(module);
-      if (androidGradleModel != null && findLibrary(module, library.getName()) != null) {
-        result = findNewExternalDependency(library, androidGradleModel);
+      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
+      if (androidModuleModel != null && findLibrary(module, library.getName()) != null) {
+        result = findNewExternalDependency(library, androidModuleModel);
         break;
       }
     }
@@ -284,7 +285,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
 
   @Nullable
   private static ArtifactDependencySpec findNewExternalDependency(@NotNull Library library,
-                                                                  @NotNull AndroidGradleModel androidModel) {
+                                                                  @NotNull AndroidModuleModel androidModel) {
     GradleVersion modelVersion = androidModel.getModelVersion();
 
     JavaLibrary matchedLibrary = null;

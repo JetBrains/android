@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.testing;
 
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.JavaArtifactStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
@@ -70,7 +70,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
       FacetManager facetManager = FacetManager.getInstance(myModule);
       ModifiableFacetModel model = facetManager.createModifiableModel();
       try {
-        AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.getFacetName(), null);
+        GradleFacet facet = facetManager.createFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null);
         model.addFacet(facet);
       }
       finally {
@@ -116,8 +116,8 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     myAndroidProject = TestProjects.createBasicProject();
     VariantStub variant = myAndroidProject.getFirstVariant();
     assertNotNull(variant);
-    AndroidGradleModel androidModel =
-      new AndroidGradleModel(myAndroidProject.getName(), myAndroidProject.getRootDir(), myAndroidProject, variant.getName());
+    AndroidModuleModel androidModel =
+      new AndroidModuleModel(myAndroidProject.getName(), myAndroidProject.getRootDir(), myAndroidProject, variant.getName());
     myFacet.setAndroidModel(androidModel);
     TestArtifactSearchScopes.initializeScopes(getProject());
   }
@@ -171,7 +171,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
   public void testMultipleMockableJars_newModel() throws Exception {
     myJavaParameters.getClassPath().remove(myMockableAndroidJar);
 
-    JavaArtifactStub artifact = (JavaArtifactStub)AndroidGradleModel.get(myFacet).getUnitTestArtifactInSelectedVariant();
+    JavaArtifactStub artifact = (JavaArtifactStub)AndroidModuleModel.get(myFacet).getUnitTestArtifactInSelectedVariant();
     artifact.setMockablePlatformJar(new File(myMockableAndroidJar));
     myPatcher.patchJavaParameters(myModule, myJavaParameters);
 

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
-import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.android.tools.idea.gradle.project.sync.ExpectedModuleDependency;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependenciesSetup;

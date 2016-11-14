@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.builder.model.ApiVersion;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.templates.SupportLibrary;
 import com.google.common.collect.ImmutableList;
@@ -226,7 +226,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+        AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
         if (androidModel != null) {
           ApiVersion minSdkVersion = androidModel.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
           if (minSdkVersion != null) {

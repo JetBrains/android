@@ -16,7 +16,7 @@
 package org.jetbrains.android.dom;
 
 import com.android.tools.idea.AndroidTextUtils;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.CompletionUtil;
@@ -623,7 +623,7 @@ public class AttributeProcessingUtil {
       // android:showAsAction was introduced in API Level 11. Use the app: one if the project depends on appcompat. See com.android.tools
       // .lint.checks.AppCompatResourceDetector.
       if (name.equals(ATTR_SHOW_AS_ACTION)) {
-        AndroidGradleModel model = AndroidGradleModel.get(facet);
+        AndroidModuleModel model = AndroidModuleModel.get(facet);
 
         if (model != null && GradleUtil.dependsOn(model, APPCOMPAT_LIB_ARTIFACT)) {
           if (skippedAttributes.add(new XmlName(name, AUTO_URI))) {

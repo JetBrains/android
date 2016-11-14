@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.project.PostSyncProjectSetupStep;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -68,10 +68,10 @@ public class AndroidGradleModelDataServiceTest extends AndroidGradleTestCase {
     loadSimpleApplication();
     Module appModule = myModules.getAppModule();
 
-    AndroidGradleModel androidModel = AndroidGradleModel.get(appModule);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
     assertNotNull(androidModel);
 
-    DataNode<AndroidGradleModel> dataNode = new DataNode<>(ANDROID_MODEL, androidModel, null);
+    DataNode<AndroidModuleModel> dataNode = new DataNode<>(ANDROID_MODEL, androidModel, null);
     Project project = getProject();
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(project);
 
@@ -91,7 +91,7 @@ public class AndroidGradleModelDataServiceTest extends AndroidGradleTestCase {
     myService.importData(Collections.emptyList(), mock(ProjectData.class), project, modelsProvider);
 
     Module module = mock(Module.class);
-    AndroidGradleModel androidModel = mock(AndroidGradleModel.class);
+    AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
     verify(myModuleSetup, never()).setUpModule(module, modelsProvider, androidModel, null, null);
     verify(myValidator, never()).validate(module, androidModel);
     verify(myValidator, never()).fixAndReportFoundIssues();

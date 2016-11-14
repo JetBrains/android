@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.facet.cpp;
+package com.android.tools.idea.gradle.project.facet.ndk;
 
 import com.intellij.facet.FacetConfiguration;
 import com.intellij.facet.ui.FacetEditorContext;
@@ -26,7 +26,7 @@ import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public class NativeAndroidGradleFacetConfiguration implements FacetConfiguration {
+public class NdkFacetConfiguration implements FacetConfiguration {
   @NonNls public String SELECTED_BUILD_VARIANT = "";
 
   @NotNull

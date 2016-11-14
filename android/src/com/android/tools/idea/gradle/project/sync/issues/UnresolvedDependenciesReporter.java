@@ -22,7 +22,7 @@ import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.service.notification.hyperlink.*;
@@ -173,7 +173,7 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
   }
 
   private static boolean canGetConstraintLayoutFromSdkManager(@NotNull Module module) {
-    AndroidGradleModel gradleModel = AndroidGradleModel.get(module);
+    AndroidModuleModel gradleModel = AndroidModuleModel.get(module);
     return gradleModel != null && gradleModel.getFeatures().isConstraintLayoutSdkLocationSupported();
   }
 

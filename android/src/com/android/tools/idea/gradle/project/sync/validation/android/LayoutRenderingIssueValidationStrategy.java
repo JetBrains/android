@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
@@ -40,7 +40,7 @@ public class LayoutRenderingIssueValidationStrategy extends AndroidProjectValida
   }
 
   @Override
-  void validate(@NotNull Module module, @NotNull AndroidGradleModel androidModel) {
+  void validate(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
     if (androidModel.getFeatures().isLayoutRenderingIssuePresent()) {
       myModelVersion = androidModel.getModelVersion();
     }

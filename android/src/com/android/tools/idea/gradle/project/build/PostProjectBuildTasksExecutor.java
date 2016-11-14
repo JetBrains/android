@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.build;
 
 import com.android.ide.common.blame.Message;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.BuildSettings;
@@ -246,7 +246,7 @@ public class PostProjectBuildTasksExecutor {
   }
 
   private static void excludeOutputFolders(@NotNull AndroidFacet facet) {
-    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
     if (androidModel == null) {
       return;
     }
@@ -360,7 +360,7 @@ public class PostProjectBuildTasksExecutor {
       if (facet == null) {
         continue;
       }
-      AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+      AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
       if (androidModel != null) {
         LanguageLevel langLevel = androidModel.getJavaLanguageLevel();
         if (langLevel != null && (maxLangLevel == null || maxLangLevel.compareTo(langLevel) < 0)) {

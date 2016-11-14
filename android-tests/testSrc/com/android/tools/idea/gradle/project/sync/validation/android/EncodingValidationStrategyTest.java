@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
@@ -51,7 +51,7 @@ public class EncodingValidationStrategyTest extends AndroidGradleTestCase {
   public void testValidate() {
     String modelEncoding = "UTF-8";
 
-    AndroidGradleModel androidModel = mock(AndroidGradleModel.class);
+    AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
     when(androidModel.getModelVersion()).thenReturn(GradleVersion.parse("1.2.0"));
 
     AndroidProjectStub androidProject = new AndroidProjectStub("app");

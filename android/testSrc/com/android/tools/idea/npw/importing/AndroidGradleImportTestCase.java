@@ -16,9 +16,9 @@
 package com.android.tools.idea.npw.importing;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.eclipse.GradleImport;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -213,7 +213,7 @@ public abstract class AndroidGradleImportTestCase extends AndroidGradleTestCase 
           assertThat(module).isNotNull();
           FacetManager facetManager = FacetManager.getInstance(module);
           ModifiableFacetModel modifiableModel = facetManager.createModifiableModel();
-          AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.getFacetName(), null);
+          GradleFacet facet = facetManager.createFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null);
           GradleProject gradleProject = new GradleProjectStub(myProject.getName(),
                                                                     gradlePath,
                                                                     virtualToIoFile(topBuildGradle),

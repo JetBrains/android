@@ -16,9 +16,11 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.*;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
-import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.intellij.openapi.externalSystem.model.Key;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,22 +30,22 @@ import static com.intellij.openapi.externalSystem.model.ProjectKeys.LIBRARY_DEPE
  * These keys determine the order in which the {@code ProjectDataService}s are invoked. The order is:
  * <ol>
  * <li>{@link GradleModuleModelDataService}</li>
- * <li>{@link NativeAndroidGradleModelDataService}</li>
+ * <li>{@link NdkModuleModelDataService}</li>
  * <li>{@link AndroidGradleModelDataService}</li>
  * <li>{@link JavaModuleModelDataService}</li>
  * <li>{@link ProjectCleanupDataService}</li>
  * </ol>
  * <br/>
  * The reason for having {@link GradleModuleModelDataService} before all other services is that we need to
- * add the {@link AndroidGradleFacet} to each of the modules. This facet contains the "Gradle path" of
+ * add the {@link GradleFacet} to each of the modules. This facet contains the "Gradle path" of
  * each project module. This path is necessary when setting up inter-module dependencies.
  * <br/>
- * The reason for having {@link NativeAndroidGradleModelDataService} before
+ * The reason for having {@link NdkModuleModelDataService} before
  * {@link AndroidGradleModelDataService} is to give more precedence to the jni sources reported in
- * {@link NativeAndroidGradleModel} than the ones reported in {@link AndroidGradleModel}. This is required because for a hybrid module,
- * both the models can contain jni sources information when using the latest Gradle plugin, but only {@link AndroidGradleModel} is provided
- * with the older plugin versions. Due to that we always use the information in {@link NativeAndroidGradleModel} when available and
- * fall back to {@link AndroidGradleModel} when required.
+ * {@link NdkModuleModel} than the ones reported in {@link AndroidModuleModel}. This is required because for a hybrid module,
+ * both the models can contain jni sources information when using the latest Gradle plugin, but only {@link AndroidModuleModel} is provided
+ * with the older plugin versions. Due to that we always use the information in {@link NdkModuleModel} when available and
+ * fall back to {@link AndroidModuleModel} when required.
  */
 public final class AndroidProjectKeys {
   // some of android ModuleCustomizer's should be run after core external system services
@@ -55,11 +57,11 @@ public final class AndroidProjectKeys {
   public static final Key<GradleModuleModel> GRADLE_MODULE_MODEL = Key.create(GradleModuleModel.class, PROCESSING_AFTER_BUILTIN_SERVICES);
 
   @NotNull
-  public static final Key<NativeAndroidGradleModel> NATIVE_ANDROID_MODEL = Key.create(NativeAndroidGradleModel.class,
+  public static final Key<NdkModuleModel> NATIVE_ANDROID_MODEL = Key.create(NdkModuleModel.class,
                                                                                       GRADLE_MODULE_MODEL.getProcessingWeight() + 10);
 
   @NotNull
-  public static final Key<AndroidGradleModel> ANDROID_MODEL = Key.create(AndroidGradleModel.class,
+  public static final Key<AndroidModuleModel> ANDROID_MODEL = Key.create(AndroidModuleModel.class,
                                                                          NATIVE_ANDROID_MODEL.getProcessingWeight() + 10);
 
   @NotNull

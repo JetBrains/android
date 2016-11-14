@@ -85,7 +85,7 @@ import java.util.*;
 import static com.android.SdkConstants.*;
 import static com.android.resources.ResourceType.DECLARE_STYLEABLE;
 import static com.android.resources.ResourceType.STYLEABLE;
-import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_AAR;
+import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**

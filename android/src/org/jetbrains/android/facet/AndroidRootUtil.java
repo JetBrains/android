@@ -20,7 +20,7 @@ import com.android.SdkConstants;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.intellij.ide.highlighter.ArchiveFileType;
 import com.intellij.lang.properties.psi.PropertiesFile;
@@ -515,10 +515,10 @@ public class AndroidRootUtil {
   @Nullable
   public static String getApkPath(@NotNull AndroidFacet facet) {
     if (facet.requiresAndroidModel()) {
-      AndroidGradleModel androidGradleModel = AndroidGradleModel.get(facet);
-      if (androidGradleModel != null) {
+      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
+      if (androidModuleModel != null) {
         // For Android-Gradle projects, AndroidModel is not null.
-        AndroidArtifact mainArtifact = androidGradleModel.getMainArtifact();
+        AndroidArtifact mainArtifact = androidModuleModel.getMainArtifact();
         AndroidArtifactOutput output = getOutput(mainArtifact);
         File outputFile = output.getMainOutputFile().getOutputFile();
         return outputFile.getAbsolutePath();

@@ -43,7 +43,7 @@ import java.net.URL;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_AAR;
+import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 
 /**
  * Render class loader responsible for loading classes in custom views

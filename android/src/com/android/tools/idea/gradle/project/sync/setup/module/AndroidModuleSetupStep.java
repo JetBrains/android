@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class AndroidModuleSetupStep extends ModuleSetupStep<AndroidGradleModel> {
+public abstract class AndroidModuleSetupStep extends ModuleSetupStep<AndroidModuleModel> {
   private static final ExtensionPointName<AndroidModuleSetupStep>
     EXTENSION_POINT_NAME = ExtensionPointName.create("com.android.gradle.sync.androidModuleSetupStep");
 

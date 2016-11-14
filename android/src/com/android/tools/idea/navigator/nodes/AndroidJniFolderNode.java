@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes;
 
-import com.android.tools.idea.gradle.NativeAndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.PresentationData;
@@ -37,21 +37,21 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.tools.idea.navigator.nodes.NativeAndroidModuleNode.getNativeSourceNodes;
+import static com.android.tools.idea.navigator.nodes.NdkModuleNode.getNativeSourceNodes;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static org.jetbrains.android.facet.AndroidSourceType.CPP;
 
-public class AndroidJniFolderNode extends ProjectViewNode<NativeAndroidGradleModel> implements DirectoryGroupNode {
-
+public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implements DirectoryGroupNode {
   protected AndroidJniFolderNode(@NotNull Project project,
-                                 @NotNull NativeAndroidGradleModel nativeAndroidModel,
+                                 @NotNull NdkModuleModel ndkModuleModel,
                                  @NotNull ViewSettings viewSettings) {
-    super(project, nativeAndroidModel, viewSettings);
+    super(project, ndkModuleModel, viewSettings);
   }
 
   @NotNull
   @Override
   public Collection<? extends AbstractTreeNode> getChildren() {
+    assert myProject != null;
     Collection<AbstractTreeNode> nativeSourceNodes = getNativeSourceNodes(myProject, getModel(), getSettings());
     if (nativeSourceNodes.size() == 1) {
       AbstractTreeNode sourceNode = Iterables.getOnlyElement(nativeSourceNodes);
@@ -69,6 +69,7 @@ public class AndroidJniFolderNode extends ProjectViewNode<NativeAndroidGradleMod
     List<PsiDirectory> psiDirectories = Lists.newArrayListWithExpectedSize(sourceFolders.size());
 
     LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+    assert myProject != null;
     PsiManager psiManager = PsiManager.getInstance(myProject);
 
     for (File folder : sourceFolders) {
@@ -141,13 +142,13 @@ public class AndroidJniFolderNode extends ProjectViewNode<NativeAndroidGradleMod
   @Override
   public int hashCode() {
     int result = super.hashCode();
-    NativeAndroidGradleModel model = getModel();
+    NdkModuleModel model = getModel();
     return 31 * result + model.hashCode();
   }
 
   @NotNull
-  private NativeAndroidGradleModel getModel() {
-    NativeAndroidGradleModel value = getValue();
+  private NdkModuleModel getModel() {
+    NdkModuleModel value = getValue();
     assert value != null;
     return value;
   }

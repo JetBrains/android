@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.structure;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -442,7 +442,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
   @Nullable
   private static String getGradlePath(@NotNull Module module) {
-    AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
+    GradleFacet gradleFacet = GradleFacet.getInstance(module);
     return gradleFacet != null ? gradleFacet.getConfiguration().GRADLE_PROJECT_PATH : null;
   }
 
@@ -804,7 +804,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
     @NotNull
     private String getGradlePath(@NotNull Module module) {
-      AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
+      GradleFacet facet = GradleFacet.getInstance(module);
       if (facet == null) {
         String msg = String.format("The module '%1$s' is not a Gradle module", module.getName());
         throw new IllegalStateException(msg);

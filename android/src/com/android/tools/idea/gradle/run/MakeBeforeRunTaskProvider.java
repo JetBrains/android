@@ -22,9 +22,9 @@ import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.fd.InstantRunBuilder;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.RunAsValidityService;
-import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -182,7 +182,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     List<String> gradleTasks = Lists.newArrayList();
     for (Module module : moduleManager.getModules()) {
-      AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
+      GradleFacet facet = GradleFacet.getInstance(module);
       if (facet == null) {
         continue;
       }

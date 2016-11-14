@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.subset.ModulesToImportDialog;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;

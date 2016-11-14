@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.intellij.facet.ModifiableFacetModel;
@@ -51,7 +51,7 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
   @Override
   protected void doSetUpModule(@NotNull Module module,
                                @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                               @NotNull AndroidGradleModel androidModel,
+                               @NotNull AndroidModuleModel androidModel,
                                @Nullable SyncAction.ModuleModels gradleModels,
                                @Nullable ProgressIndicator indicator) {
     AndroidFacet facet = AndroidFacet.getInstance(module, ideModelsProvider);
@@ -76,7 +76,7 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
     return facet;
   }
 
-  private static void configureFacet(@NotNull AndroidFacet facet, @NotNull AndroidGradleModel androidModel) {
+  private static void configureFacet(@NotNull AndroidFacet facet, @NotNull AndroidModuleModel androidModel) {
     JpsAndroidModuleProperties facetProperties = facet.getProperties();
     facetProperties.ALLOW_USER_CONFIGURATION = false;
 
@@ -94,7 +94,7 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
   }
 
   private static void syncSelectedVariant(@NotNull JpsAndroidModuleProperties facetProperties,
-                                          @NotNull AndroidGradleModel androidModel) {
+                                          @NotNull AndroidModuleModel androidModel) {
     String variantStoredInFacet = facetProperties.SELECTED_BUILD_VARIANT;
     if (isNotEmpty(variantStoredInFacet) && androidModel.getVariantNames().contains(variantStoredInFacet)) {
       androidModel.setSelectedVariantName(variantStoredInFacet);

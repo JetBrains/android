@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.facet.java;
 
-import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.intellij.facet.*;
@@ -44,10 +44,10 @@ import static com.intellij.facet.impl.FacetUtil.saveFacetConfiguration;
  * </ul>
  * </p>
  */
-public class JavaGradleFacet extends Facet<JavaGradleFacetConfiguration> {
-  private static final Logger LOG = Logger.getInstance(JavaGradleFacet.class);
+public class JavaFacet extends Facet<JavaFacetConfiguration> {
+  private static final Logger LOG = Logger.getInstance(JavaFacet.class);
 
-  @NotNull public static FacetTypeId<JavaGradleFacet> TYPE_ID = new FacetTypeId<>("java-gradle");
+  @NotNull public static FacetTypeId<JavaFacet> TYPE_ID = new FacetTypeId<>("java-gradle");
 
   @NonNls public static final String TEST_CLASSES_TASK_NAME = "testClasses";
   @NonNls public static final String COMPILE_JAVA_TASK_NAME = "compileJava";
@@ -58,22 +58,22 @@ public class JavaGradleFacet extends Facet<JavaGradleFacetConfiguration> {
   private JavaModuleModel myJavaModuleModel;
 
   @Nullable
-  public static JavaGradleFacet getInstance(@NotNull Module module) {
+  public static JavaFacet getInstance(@NotNull Module module) {
     return FacetManager.getInstance(module).getFacetByType(TYPE_ID);
   }
 
-  public JavaGradleFacet(@NotNull Module module,
-                         @NotNull String name,
-                         @NotNull JavaGradleFacetConfiguration configuration) {
+  public JavaFacet(@NotNull Module module,
+                   @NotNull String name,
+                   @NotNull JavaFacetConfiguration configuration) {
     //noinspection ConstantConditions
     super(getFacetType(), module, name, configuration, null);
   }
 
   @NotNull
-  public static JavaGradleFacetType getFacetType() {
+  public static JavaFacetType getFacetType() {
     FacetType facetType = FacetTypeRegistry.getInstance().findFacetType(ID);
-    assert facetType instanceof JavaGradleFacetType;
-    return (JavaGradleFacetType)facetType;
+    assert facetType instanceof JavaFacetType;
+    return (JavaFacetType)facetType;
   }
 
   @Override
@@ -94,7 +94,7 @@ public class JavaGradleFacet extends Facet<JavaGradleFacetConfiguration> {
   }
 
   private void updateConfiguration() {
-    JavaGradleFacetConfiguration config = getConfiguration();
+    JavaFacetConfiguration config = getConfiguration();
     try {
       saveFacetConfiguration(config);
     }

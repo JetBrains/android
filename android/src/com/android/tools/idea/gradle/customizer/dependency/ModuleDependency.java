@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer.dependency;
 
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -52,7 +52,7 @@ public class ModuleDependency extends Dependency {
   @Nullable
   public Module getModule(@NotNull IdeModifiableModelsProvider modelsProvider) {
     for (Module module : modelsProvider.getModules()) {
-      AndroidGradleFacet gradleFacet = findFacet(module, modelsProvider, AndroidGradleFacet.getFacetTypeId());
+      GradleFacet gradleFacet = findFacet(module, modelsProvider, GradleFacet.getFacetTypeId());
       if (gradleFacet != null && hasEqualPath(gradleFacet)) {
         return module;
       }
@@ -63,7 +63,7 @@ public class ModuleDependency extends Dependency {
   @Nullable
   public Module getModule(@NotNull Project project) {
     for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
+      GradleFacet gradleFacet = GradleFacet.getInstance(module);
       if (gradleFacet != null && hasEqualPath(gradleFacet)) {
         return module;
       }
@@ -71,7 +71,7 @@ public class ModuleDependency extends Dependency {
     return null;
   }
 
-  private boolean hasEqualPath(@NotNull AndroidGradleFacet facet) {
+  private boolean hasEqualPath(@NotNull GradleFacet facet) {
     String gradlePath = facet.getConfiguration().GRADLE_PROJECT_PATH;
     return isNotEmpty(gradlePath) && gradlePath.equals(getGradlePath());
   }

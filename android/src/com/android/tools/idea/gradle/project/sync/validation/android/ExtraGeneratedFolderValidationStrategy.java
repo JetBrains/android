@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.google.common.annotations.VisibleForTesting;
@@ -40,7 +40,7 @@ class ExtraGeneratedFolderValidationStrategy extends AndroidProjectValidationStr
   }
 
   @Override
-  void validate(@NotNull Module module, @NotNull AndroidGradleModel androidModel) {
+  void validate(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
     File[] sourceFolderPaths = androidModel.getExtraGeneratedSourceFolderPaths();
     Collections.addAll(myExtraGeneratedSourceFolderPaths, sourceFolderPaths);
   }

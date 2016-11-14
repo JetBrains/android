@@ -17,7 +17,7 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.google.common.collect.ImmutableMap;
@@ -321,7 +321,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     }
 
     // Lock and hide subset of UI when attached to an instantApp
-    AndroidGradleModel model = AndroidGradleModel.get(currentModule);
+    AndroidModuleModel model = AndroidModuleModel.get(currentModule);
     boolean isInstantApp = false;
     if (model != null && model.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
       myLaunchOptionCombo.setSelectedItem(LAUNCH_DEEP_LINK);

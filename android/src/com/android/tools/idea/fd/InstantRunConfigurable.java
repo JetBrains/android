@@ -20,7 +20,7 @@ import com.android.repository.Revision;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.UpdateResult;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
@@ -230,7 +230,7 @@ public class InstantRunConfigurable
         continue;
       }
       for (Module module : ModuleManager.getInstance(project).getModules()) {
-        AndroidGradleModel model = AndroidGradleModel.get(module);
+        AndroidModuleModel model = AndroidModuleModel.get(module);
         if (model != null) {
           isGradle = true;
           if (InstantRunGradleUtils.modelSupportsInstantRun(model)) {

@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
-import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.facet.java.JavaGradleFacet;
-import com.android.tools.idea.gradle.project.facet.java.JavaGradleFacetConfiguration;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
+import com.android.tools.idea.gradle.project.facet.java.JavaFacetConfiguration;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
-import com.android.tools.idea.gradle.project.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
 import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependenciesSetup;
@@ -85,16 +85,16 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
 
     UnresolvedDependenciesReporter.getInstance().report(unresolved, module);
 
-    JavaGradleFacet facet = setAndGetJavaGradleFacet(module, ideModelsProvider);
+    JavaFacet facet = setAndGetJavaGradleFacet(module, ideModelsProvider);
     File buildFolderPath = javaModuleModel.getBuildFolderPath();
 
-    AndroidGradleFacet gradleFacet = findFacet(module, ideModelsProvider, AndroidGradleFacet.getFacetTypeId());
+    GradleFacet gradleFacet = findFacet(module, ideModelsProvider, GradleFacet.getFacetTypeId());
     if (gradleFacet != null) {
       // This is an actual Gradle module, because it has the AndroidGradleFacet. Top-level modules in a multi-module project usually don't
       // have this facet.
       facet.setJavaModuleModel(javaModuleModel);
     }
-    JavaGradleFacetConfiguration facetProperties = facet.getConfiguration();
+    JavaFacetConfiguration facetProperties = facet.getConfiguration();
     facetProperties.BUILD_FOLDER_PATH = buildFolderPath != null ? toSystemIndependentName(buildFolderPath.getPath()) : "";
     facetProperties.BUILDABLE = javaModuleModel.isBuildable();
   }
@@ -167,15 +167,15 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
   }
 
   @NotNull
-  private static JavaGradleFacet setAndGetJavaGradleFacet(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
-    JavaGradleFacet facet = findFacet(module, modelsProvider, JavaGradleFacet.TYPE_ID);
+  private static JavaFacet setAndGetJavaGradleFacet(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
+    JavaFacet facet = findFacet(module, modelsProvider, JavaFacet.TYPE_ID);
     if (facet != null) {
       return facet;
     }
 
     FacetManager facetManager = FacetManager.getInstance(module);
     ModifiableFacetModel model = modelsProvider.getModifiableFacetModel(module);
-    facet = facetManager.createFacet(JavaGradleFacet.getFacetType(), JavaGradleFacet.NAME, null);
+    facet = facetManager.createFacet(JavaFacet.getFacetType(), JavaFacet.NAME, null);
     model.addFacet(facet);
     return facet;
   }

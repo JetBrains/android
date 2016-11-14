@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.navigator.nodes;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.NativeAndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
@@ -81,13 +81,13 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
     Project project = facet.getModule().getProject();
     List<AbstractTreeNode> result = Lists.newArrayList();
 
-    AndroidGradleModel androidGradleModel = AndroidGradleModel.get(facet);
-    HashMultimap<AndroidSourceType,VirtualFile> sourcesByType = getSourcesBySourceType(providers, androidGradleModel);
+    AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
+    HashMultimap<AndroidSourceType,VirtualFile> sourcesByType = getSourcesBySourceType(providers, androidModuleModel);
 
-    NativeAndroidGradleModel nativeAndroidGradleModel = NativeAndroidGradleModel.get(facet.getModule());
+    NdkModuleModel ndkModuleModel = NdkModuleModel.get(facet.getModule());
 
     for (AndroidSourceType sourceType : sourcesByType.keySet()) {
-      if (sourceType == AndroidSourceType.CPP && nativeAndroidGradleModel != null) {
+      if (sourceType == AndroidSourceType.CPP && ndkModuleModel != null) {
         // Native sources will be added separately from NativeAndroidGradleModel.
         continue;
       }
@@ -100,15 +100,15 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
         continue;
       }
       if (sourceType == AndroidSourceType.SHADERS) {
-        if (androidGradleModel == null || !androidGradleModel.getFeatures().isShadersSupported()) {
+        if (androidModuleModel == null || !androidModuleModel.getFeatures().isShadersSupported()) {
           continue;
         }
       }
       result.add(new AndroidSourceTypeNode(project, facet, settings, sourceType, sourcesByType.get(sourceType), pane));
     }
 
-    if(nativeAndroidGradleModel != null) {
-      result.add(new AndroidJniFolderNode(project, nativeAndroidGradleModel, settings));
+    if(ndkModuleModel != null) {
+      result.add(new AndroidJniFolderNode(project, ndkModuleModel, settings));
     }
 
     return result;
@@ -116,7 +116,7 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
 
   @NotNull
   private static HashMultimap<AndroidSourceType,VirtualFile> getSourcesBySourceType(@NotNull List<IdeaSourceProvider> providers,
-                                                                                    @Nullable AndroidGradleModel androidGradleModel) {
+                                                                                    @Nullable AndroidModuleModel androidModuleModel) {
     HashMultimap<AndroidSourceType,VirtualFile> sourcesByType = HashMultimap.create();
 
     // Multiple source types can sometimes be present in the same source folder, e.g.:
@@ -128,7 +128,7 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
     Set<VirtualFile> allSources = Sets.newHashSet();
 
     for (AndroidSourceType sourceType : AndroidSourceType.values()) {
-      if (sourceType == AndroidSourceType.SHADERS && (androidGradleModel == null || !androidGradleModel.getFeatures().isShadersSupported())) {
+      if (sourceType == AndroidSourceType.SHADERS && (androidModuleModel == null || !androidModuleModel.getFeatures().isShadersSupported())) {
         continue;
       }
       Set<VirtualFile> sources = getSources(sourceType, providers);

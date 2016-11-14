@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.project.facet.java.JavaGradleFacet;
+import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -67,7 +67,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
   protected void tearDown() throws Exception {
     //noinspection SuperTearDownInFinally
     super.tearDown();
-    LeakHunter.checkLeak(LeakHunter.allRoots(), AndroidGradleModel.class, null);
+    LeakHunter.checkLeak(LeakHunter.allRoots(), AndroidModuleModel.class, null);
   }
 
   public void testWithNonExistingInterModuleDependencies() throws Exception {
@@ -143,7 +143,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
     Module localJarModule = myModules.getModule("localJarAsModule");
     // Module should be a Java module, not buildable (since it doesn't have source code).
-    JavaGradleFacet javaFacet = JavaGradleFacet.getInstance(localJarModule);
+    JavaFacet javaFacet = JavaFacet.getInstance(localJarModule);
     assertNotNull(javaFacet);
     assertFalse(javaFacet.getConfiguration().BUILDABLE);
 

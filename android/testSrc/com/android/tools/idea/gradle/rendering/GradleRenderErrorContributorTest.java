@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.rendering;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
@@ -111,9 +111,9 @@ public class GradleRenderErrorContributorTest extends IdeaTestCase {
     // https://code.google.com/p/android/issues/detail?id=170841
     androidProject.setModelVersion("1.2.2");
 
-    AndroidGradleModel model = new AndroidGradleModel(androidProject.getName(), root, androidProject, "debug");
+    AndroidModuleModel model = new AndroidModuleModel(androidProject.getName(), root, androidProject, "debug");
     facet.setAndroidModel(model);
-    model = AndroidGradleModel.get(myModule);
+    model = AndroidModuleModel.get(myModule);
 
     assertThat(model).isNotNull();
     assertThat(model.getFeatures().isLayoutRenderingIssuePresent()).isTrue();
