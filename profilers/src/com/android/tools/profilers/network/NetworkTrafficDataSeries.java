@@ -38,8 +38,19 @@ import java.util.concurrent.TimeUnit;
  */
 public class NetworkTrafficDataSeries implements DataSeries<Long> {
   public enum Type {
-    BYTES_RECIEVED,
-    BYTES_SENT,
+    BYTES_RECIEVED("Received"),
+    BYTES_SENT("Sent");
+
+    private final String myLabel;
+
+    Type(String label) {
+      myLabel = label;
+    }
+
+    @NotNull
+    public String getLabel() {
+      return myLabel;
+    }
   }
 
   @NotNull
