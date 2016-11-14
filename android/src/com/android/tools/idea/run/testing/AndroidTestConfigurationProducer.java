@@ -211,7 +211,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
   @Override
   public boolean isConfigurationFromContext(AndroidTestRunConfiguration configuration, ConfigurationContext context) {
     Location location = context.getLocation();
-    final Module contextModule = AndroidUtils.getAndroidModule(context);
+    Module contextModule = AndroidUtils.getAndroidModule(context);
 
     if (contextModule == null || location == null) {
       return false;
@@ -221,16 +221,24 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
     if (location == null) {
       return false;
     }
-    final PsiElement element = location.getPsiElement();
-    final PsiPackage psiPackage = JavaRuntimeConfigurationProducerBase.checkPackage(element);
-    final String packageName = psiPackage == null ? null : psiPackage.getQualifiedName();
 
-    final PsiClass elementClass = getParentOfType(element, PsiClass.class, false);
-    final String className = elementClass == null ? null : elementClass.getQualifiedName();
+    PsiElement element = location.getPsiElement();
+    VirtualFile directoryOrFile = element instanceof PsiDirectory ? ((PsiDirectory)element).getVirtualFile()
+                                                       : element.getContainingFile().getVirtualFile();
+    TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(contextModule);
+    if (directoryOrFile != null && testScopes != null && !testScopes.isAndroidTestSource(directoryOrFile)) {
+      return false;
+    }
 
-    final PsiMethod elementMethod = getParentOfType(element, PsiMethod.class, false);
-    final String methodName = elementMethod == null ? null : elementMethod.getName();
-    final Module moduleInConfig = configuration.getConfigurationModule().getModule();
+    PsiPackage psiPackage = JavaRuntimeConfigurationProducerBase.checkPackage(element);
+    String packageName = psiPackage == null ? null : psiPackage.getQualifiedName();
+
+    PsiClass elementClass = getParentOfType(element, PsiClass.class, false);
+    String className = elementClass == null ? null : elementClass.getQualifiedName();
+
+    PsiMethod elementMethod = getParentOfType(element, PsiMethod.class, false);
+    String methodName = elementMethod == null ? null : elementMethod.getName();
+    Module moduleInConfig = configuration.getConfigurationModule().getModule();
 
     if (!Comparing.equal(contextModule, moduleInConfig)) {
       return false;
