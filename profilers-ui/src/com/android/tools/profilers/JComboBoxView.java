@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-class JComboBoxView<T, A extends Enum<A>> implements ItemListener {
+public class JComboBoxView<T, A extends Enum<A>> implements ItemListener {
 
   private final Supplier<List<T>> myList;
   private final Supplier<T> myGet;

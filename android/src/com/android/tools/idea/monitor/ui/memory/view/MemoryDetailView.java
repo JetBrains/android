@@ -22,7 +22,7 @@ import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.memory.model.AllocationTrackingSample;
 import com.android.tools.idea.monitor.ui.memory.model.MemoryDataCache;
-import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.components.JBPanel;
@@ -49,7 +49,7 @@ class MemoryDetailView implements Disposable {
   @NotNull private final Range myRange;
   @NotNull private final Choreographer myChoreographer;
   @NotNull private final EventDispatcher<ProfilerEventListener> myProfilerEventDispatcher;
-  @NotNull private final List<HeapDumpSampleEntryFormatter> myHeapDumpEntries = new ArrayList<>();
+  @NotNull private final List<HeapDumpInfoEntryFormatter> myHeapDumpEntries = new ArrayList<>();
 
   @Nullable
   private ClassHistogramView myClassHistogramView = null;
@@ -57,15 +57,15 @@ class MemoryDetailView implements Disposable {
   @Nullable
   private MemoryDataCache myDataCache = null;
 
-  @NotNull private ComboBox<AbstractSampleEntryFormatter> myMainSampleSelector;
-  @NotNull private ComboBox<AbstractSampleEntryFormatter> myDiffSampleSelector;
+  @NotNull private ComboBox<AbstractInfoEntryFormatter> myMainSampleSelector;
+  @NotNull private ComboBox<AbstractInfoEntryFormatter> myDiffSampleSelector;
 
-  @NotNull private AbstractSampleEntryFormatter myCurrentMainEntry;
-  @NotNull private AbstractSampleEntryFormatter myCurrentDiffEntry;
+  @NotNull private AbstractInfoEntryFormatter myCurrentMainEntry;
+  @NotNull private AbstractInfoEntryFormatter myCurrentDiffEntry;
 
   // Default label for myMainSampleSelector.
-  private final AbstractSampleEntryFormatter DEFAULT_MAIN_ENTRY =
-    new AbstractSampleEntryFormatter() {
+  private final AbstractInfoEntryFormatter DEFAULT_MAIN_ENTRY =
+    new AbstractInfoEntryFormatter() {
       @Override
       public String toString() {
         return myMainSampleSelector.getModel().getSize() == 1 && myMainSampleSelector.getSelectedItem() == this
@@ -75,8 +75,8 @@ class MemoryDetailView implements Disposable {
     };
 
   // Default label for myDiffSampleSelector.
-  private final AbstractSampleEntryFormatter DEFAULT_DIFF_ENTRY =
-    new AbstractSampleEntryFormatter() {
+  private final AbstractInfoEntryFormatter DEFAULT_DIFF_ENTRY =
+    new AbstractInfoEntryFormatter() {
       @Override
       public String toString() {
         if (myDiffSampleSelector.getSelectedItem() == null) {
@@ -90,7 +90,7 @@ class MemoryDetailView implements Disposable {
             return "No sample to display";
           }
         }
-        else if (myMainSampleSelector.getSelectedItem() instanceof HeapDumpSampleEntryFormatter) {
+        else if (myMainSampleSelector.getSelectedItem() instanceof HeapDumpInfoEntryFormatter) {
           if (myDiffSampleSelector.getModel().getSize() == 1) {
             return "No sample to diff against";
           }
@@ -120,10 +120,10 @@ class MemoryDetailView implements Disposable {
 
     memoryEventDispatcher.addListener(new MemoryProfilerUiManager.MemoryEventListener() {
       @Override
-      public void newHeapDumpSamplesRetrieved(MemoryProfiler.MemoryData.HeapDumpSample newSample) {
+      public void newHeapDumpInfosRetrieved(HeapDumpInfo newInfo) {
         // Update the UI from the EDT thread.
         UIUtil.invokeLaterIfNeeded(() -> {
-          HeapDumpSampleEntryFormatter entry = addHeapDumpSample(newSample);
+          HeapDumpInfoEntryFormatter entry = addHeapDumpInfo(newInfo);
           if (myMainSampleSelector.getSelectedItem() == DEFAULT_MAIN_ENTRY) {
             myMainSampleSelector.setSelectedItem(entry);
           }
@@ -131,9 +131,9 @@ class MemoryDetailView implements Disposable {
       }
 
       @Override
-      public void newAllocationTrackingSampleRetrieved(AllocationTrackingSample newSample) {
+      public void newAllocationTrackingInfosRetrieved(AllocationTrackingSample newInfo) {
         UIUtil.invokeLaterIfNeeded(() -> {
-          AllocationTrackingSampleEntryFormatter entry = addAllocationTrackingSample(newSample);
+          AllocationTrackingInfoEntryFormatter entry = addAllocationTrackingSample(newInfo);
           if (myMainSampleSelector.getSelectedItem() == DEFAULT_MAIN_ENTRY) {
             myMainSampleSelector.setSelectedItem(entry);
           }
@@ -171,8 +171,8 @@ class MemoryDetailView implements Disposable {
         return; // Swing deselection event before new selection
       }
 
-      assert myMainSampleSelector.getSelectedItem() instanceof AbstractSampleEntryFormatter;
-      AbstractSampleEntryFormatter selectedEntry = (AbstractSampleEntryFormatter)myMainSampleSelector.getSelectedItem();
+      assert myMainSampleSelector.getSelectedItem() instanceof AbstractInfoEntryFormatter;
+      AbstractInfoEntryFormatter selectedEntry = (AbstractInfoEntryFormatter)myMainSampleSelector.getSelectedItem();
       updateOnMainEntrySelection(dataCache, selectedEntry);
     });
 
@@ -181,19 +181,19 @@ class MemoryDetailView implements Disposable {
         return; // Swing deselection event before new selection
       }
 
-      assert myDiffSampleSelector.getSelectedItem() instanceof AbstractSampleEntryFormatter;
-      AbstractSampleEntryFormatter selectedEntry = (AbstractSampleEntryFormatter)myDiffSampleSelector.getSelectedItem();
+      assert myDiffSampleSelector.getSelectedItem() instanceof AbstractInfoEntryFormatter;
+      AbstractInfoEntryFormatter selectedEntry = (AbstractInfoEntryFormatter)myDiffSampleSelector.getSelectedItem();
       updateOnDiffSelection(dataCache, selectedEntry);
     });
 
-    dataCache.executeOnHeapDumpData((sample, file) -> addHeapDumpSample(sample));
+    dataCache.executeOnHeapDumpData((info, file) -> addHeapDumpInfo(info));
     dataCache.executeOnAllocationTrackingSamples(this::addAllocationTrackingSample);
 
     myDataCache = dataCache;
   }
 
   private void updateOnMainEntrySelection(@NotNull MemoryDataCache dataCache,
-                                          @NotNull AbstractSampleEntryFormatter selectedMainEntry) {
+                                          @NotNull AbstractInfoEntryFormatter selectedMainEntry) {
     if (myCurrentMainEntry == selectedMainEntry) {
       return;
     }
@@ -208,14 +208,14 @@ class MemoryDetailView implements Disposable {
       myClassHistogramView = new ClassHistogramView(this, myParent, myRange, myChoreographer, myProfilerEventDispatcher);
     }
 
-    if (myCurrentMainEntry instanceof AllocationTrackingSampleEntryFormatter) {
+    if (myCurrentMainEntry instanceof AllocationTrackingInfoEntryFormatter) {
       // Clear the diff combo box and change it to the default.
       myDiffSampleSelector.removeAllItems();
       myDiffSampleSelector.addItem(DEFAULT_DIFF_ENTRY);
       myDiffSampleSelector.setSelectedItem(DEFAULT_DIFF_ENTRY);
       myCurrentDiffEntry = DEFAULT_DIFF_ENTRY;
 
-      AllocationTrackingSampleEntryFormatter selectedSample = (AllocationTrackingSampleEntryFormatter)myCurrentMainEntry;
+      AllocationTrackingInfoEntryFormatter selectedSample = (AllocationTrackingInfoEntryFormatter)myCurrentMainEntry;
       if (!myClassHistogramView.generateClassHistogramFromAllocationTracking(selectedSample.getSample())) {
         myMainSampleSelector.removeItem(myCurrentMainEntry);
         myMainSampleSelector.insertItemAt(DEFAULT_MAIN_ENTRY, 0);
@@ -223,8 +223,8 @@ class MemoryDetailView implements Disposable {
         myCurrentMainEntry = DEFAULT_MAIN_ENTRY;
       }
     }
-    else if (myCurrentMainEntry instanceof HeapDumpSampleEntryFormatter) {
-      HeapDumpSampleEntryFormatter selectedHeapDumpEntry = (HeapDumpSampleEntryFormatter)myCurrentMainEntry;
+    else if (myCurrentMainEntry instanceof HeapDumpInfoEntryFormatter) {
+      HeapDumpInfoEntryFormatter selectedHeapDumpEntry = (HeapDumpInfoEntryFormatter)myCurrentMainEntry;
       // Repopulate the diff combo box.
       myDiffSampleSelector.removeAllItems();
       myDiffSampleSelector.addItem(DEFAULT_DIFF_ENTRY);
@@ -235,22 +235,22 @@ class MemoryDetailView implements Disposable {
         }
       });
 
-      HeapDumpSampleEntryFormatter selectedDiffHeapDump =
-        myCurrentDiffEntry instanceof HeapDumpSampleEntryFormatter && myCurrentDiffEntry != selectedHeapDumpEntry
-        ? (HeapDumpSampleEntryFormatter)myCurrentDiffEntry
+      HeapDumpInfoEntryFormatter selectedDiffHeapDump =
+        myCurrentDiffEntry instanceof HeapDumpInfoEntryFormatter && myCurrentDiffEntry != selectedHeapDumpEntry
+        ? (HeapDumpInfoEntryFormatter)myCurrentDiffEntry
         : null;
       myCurrentDiffEntry = selectedDiffHeapDump == null ? DEFAULT_DIFF_ENTRY : selectedDiffHeapDump;
       myDiffSampleSelector.setSelectedItem(myCurrentDiffEntry);
 
-      myClassHistogramView.generateClassHistogramFromHeapDumpSamples(dataCache, selectedHeapDumpEntry.getSample(),
+      myClassHistogramView.generateClassHistogramFromHeapDumpInfos(dataCache, selectedHeapDumpEntry.getInfo(),
                                                                      selectedDiffHeapDump == null
                                                                      ? null
-                                                                     : selectedDiffHeapDump.getSample());
+                                                                     : selectedDiffHeapDump.getInfo());
     }
   }
 
   private void updateOnDiffSelection(@NotNull MemoryDataCache dataCache,
-                                     @NotNull AbstractSampleEntryFormatter selectedDiffEntry) {
+                                     @NotNull AbstractInfoEntryFormatter selectedDiffEntry) {
     if (myCurrentDiffEntry == selectedDiffEntry) {
       return;
     }
@@ -262,39 +262,39 @@ class MemoryDetailView implements Disposable {
     }
 
     if (myCurrentDiffEntry == DEFAULT_DIFF_ENTRY) {
-      if (myCurrentMainEntry instanceof HeapDumpSampleEntryFormatter) {
+      if (myCurrentMainEntry instanceof HeapDumpInfoEntryFormatter) {
         myClassHistogramView
-          .generateClassHistogramFromHeapDumpSamples(dataCache, ((HeapDumpSampleEntryFormatter)myCurrentMainEntry).getSample(), null);
+          .generateClassHistogramFromHeapDumpInfos(dataCache, ((HeapDumpInfoEntryFormatter)myCurrentMainEntry).getInfo(), null);
       }
     }
     else {
-      assert myCurrentMainEntry instanceof HeapDumpSampleEntryFormatter;
-      assert myCurrentDiffEntry instanceof HeapDumpSampleEntryFormatter;
+      assert myCurrentMainEntry instanceof HeapDumpInfoEntryFormatter;
+      assert myCurrentDiffEntry instanceof HeapDumpInfoEntryFormatter;
       myClassHistogramView
-        .generateClassHistogramFromHeapDumpSamples(dataCache, ((HeapDumpSampleEntryFormatter)myCurrentMainEntry).getSample(),
-                                                   ((HeapDumpSampleEntryFormatter)myCurrentDiffEntry).getSample());
+        .generateClassHistogramFromHeapDumpInfos(dataCache, ((HeapDumpInfoEntryFormatter)myCurrentMainEntry).getInfo(),
+                                                 ((HeapDumpInfoEntryFormatter)myCurrentDiffEntry).getInfo());
     }
   }
 
   @NotNull
-  private HeapDumpSampleEntryFormatter addHeapDumpSample(@NotNull MemoryProfiler.MemoryData.HeapDumpSample sample) {
-    HeapDumpSampleEntryFormatter sampleFormatter = new HeapDumpSampleEntryFormatter(sample);
-    myHeapDumpEntries.add(sampleFormatter);
+  private HeapDumpInfoEntryFormatter addHeapDumpInfo(@NotNull HeapDumpInfo info) {
+    HeapDumpInfoEntryFormatter infoFormatter = new HeapDumpInfoEntryFormatter(info);
+    myHeapDumpEntries.add(infoFormatter);
 
-    myMainSampleSelector.addItem(sampleFormatter);
-    if (myCurrentMainEntry instanceof HeapDumpSampleEntryFormatter) {
-      myDiffSampleSelector.addItem(sampleFormatter);
+    myMainSampleSelector.addItem(infoFormatter);
+    if (myCurrentMainEntry instanceof HeapDumpInfoEntryFormatter) {
+      myDiffSampleSelector.addItem(infoFormatter);
       if (myCurrentDiffEntry == DEFAULT_DIFF_ENTRY) {
-        myDiffSampleSelector.setSelectedItem(sampleFormatter);
+        myDiffSampleSelector.setSelectedItem(infoFormatter);
       }
     }
 
-    return sampleFormatter;
+    return infoFormatter;
   }
 
   @NotNull
-  private AllocationTrackingSampleEntryFormatter addAllocationTrackingSample(@NotNull AllocationTrackingSample sample) {
-    AllocationTrackingSampleEntryFormatter formatter = new AllocationTrackingSampleEntryFormatter(sample);
+  private AllocationTrackingInfoEntryFormatter addAllocationTrackingSample(@NotNull AllocationTrackingSample sample) {
+    AllocationTrackingInfoEntryFormatter formatter = new AllocationTrackingInfoEntryFormatter(sample);
     myMainSampleSelector.addItem(formatter);
 
     return formatter;
@@ -308,36 +308,36 @@ class MemoryDetailView implements Disposable {
     myParent.removeAll();
   }
 
-  private static class AbstractSampleEntryFormatter {
+  private static class AbstractInfoEntryFormatter {
     @Override
     public String toString() {
       return null;
     }
   }
 
-  private class HeapDumpSampleEntryFormatter extends AbstractSampleEntryFormatter {
-    private final MemoryProfiler.MemoryData.HeapDumpSample mySample;
+  private class HeapDumpInfoEntryFormatter extends AbstractInfoEntryFormatter {
+    private final HeapDumpInfo myInfo;
 
-    public HeapDumpSampleEntryFormatter(@NotNull MemoryProfiler.MemoryData.HeapDumpSample sample) {
-      mySample = sample;
+    public HeapDumpInfoEntryFormatter(@NotNull HeapDumpInfo info) {
+      myInfo = info;
     }
 
     @NotNull
-    public MemoryProfiler.MemoryData.HeapDumpSample getSample() {
-      return mySample;
+    public HeapDumpInfo getInfo() {
+      return myInfo;
     }
 
     @Override
     public String toString() {
-      long startTimeUs = TimeUnit.NANOSECONDS.toMicros(myDataStore.mapAbsoluteDeviceToRelativeTime(mySample.getStartTime()));
+      long startTimeUs = TimeUnit.NANOSECONDS.toMicros(myDataStore.mapAbsoluteDeviceToRelativeTime(myInfo.getStartTime()));
       return String.format("Heap at %s", TimeAxisFormatter.DEFAULT.getFormattedString((double)startTimeUs, (double)startTimeUs, true));
     }
   }
 
-  private static class AllocationTrackingSampleEntryFormatter extends AbstractSampleEntryFormatter {
+  private static class AllocationTrackingInfoEntryFormatter extends AbstractInfoEntryFormatter {
     private final AllocationTrackingSample mySample;
 
-    public AllocationTrackingSampleEntryFormatter(@NotNull AllocationTrackingSample sample) {
+    public AllocationTrackingInfoEntryFormatter(@NotNull AllocationTrackingSample sample) {
       mySample = sample;
     }
 

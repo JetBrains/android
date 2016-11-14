@@ -15,15 +15,14 @@
  */
 package com.android.tools.datastore;
 
-import io.grpc.ManagedChannel;
-import io.grpc.ServerServiceDefinition;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.concurrent.RunnableFuture;
+/**
+ * An interface to perform allocation tracking using JDWP.
+ */
+public interface LegacyAllocationTracker {
+  boolean setAllocationTrackingEnabled(int processId, boolean enabled);
 
-public interface ServicePassThrough {
-  RunnableFuture<Void> getRunner();
-
-  ServerServiceDefinition getService();
-
-  void connectService(ManagedChannel channel);
+  @Nullable
+  byte[] getAllocationTrackingDump(int processId);
 }

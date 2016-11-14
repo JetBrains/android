@@ -22,6 +22,9 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.ServerBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
+import io.grpc.netty.NettyChannelBuilder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,11 +35,12 @@ import java.util.concurrent.RunnableFuture;
  * Primary class that initializes the Datastore. This class currently manages connections to perfd and sets up the DataStore service.
  */
 public class DataStoreService {
-
   private static final Logger LOG = Logger.getInstance(DataStoreService.class.getCanonicalName());
+  private static final int MAX_MESSAGE_SIZE = 512 * 1024 * 1024 - 1;
   private ManagedChannel myChannel;
   private ServerBuilder myServerBuilder;
   private List<ServicePassThrough> myServices = new ArrayList<>();
+  private LegacyAllocationTracker myLegacyAllocationTracker;
 
   public DataStoreService(String name) {
     try {
@@ -57,7 +61,7 @@ public class DataStoreService {
     registerService(new ProfilerService(this));
     registerService(new EventDataPoller());
     registerService(new CpuDataPoller());
-    registerService(new MemoryDataPoller());
+    registerService(new MemoryDataPoller(this));
     registerService(new NetworkDataPoller());
   }
 
@@ -95,7 +99,11 @@ public class DataStoreService {
     disconnect();
     ClassLoader stashedContextClassLoader = Thread.currentThread().getContextClassLoader();
     Thread.currentThread().setContextClassLoader(ManagedChannelBuilder.class.getClassLoader());
-    myChannel = ManagedChannelBuilder.forAddress("localhost", devicePort).usePlaintext(true).build();
+    myChannel = NettyChannelBuilder
+      .forAddress("localhost", devicePort)
+      .usePlaintext(true)
+      .maxMessageSize(MAX_MESSAGE_SIZE)
+      .build();
     Thread.currentThread().setContextClassLoader(stashedContextClassLoader);
     connectServices();
   }
@@ -109,5 +117,18 @@ public class DataStoreService {
       myChannel.shutdown();
     }
     myChannel = null;
+  }
+
+  /**
+   * Since older releases of Android and uninstrumented apps will not have JVMTI allocation tracking, we therefore need to support the older
+   * JDWP allocation tracking functionality.
+   */
+  public void setLegacyAllocationTracker(@NotNull LegacyAllocationTracker legacyAllocationTracker) {
+    myLegacyAllocationTracker = legacyAllocationTracker;
+  }
+
+  @Nullable
+  public LegacyAllocationTracker getLegacyAllocationTracker() {
+    return myLegacyAllocationTracker;
   }
 }

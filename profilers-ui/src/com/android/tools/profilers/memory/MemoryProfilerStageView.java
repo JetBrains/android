@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.LegendComponent;
+import com.android.tools.adtui.chart.linechart.EventConfig;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
@@ -28,6 +29,11 @@ import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.intellij.ui.components.JBPanel;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.profilers.ProfilerScrollbar;
+import com.android.tools.profilers.StageView;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.ui.Splitter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -35,8 +41,7 @@ import java.awt.*;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
-public class MemoryProfilerStageView extends StageView {
-
+public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 5, 5);
   private static final BaseAxisFormatter OBJECT_COUNT_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 5, "");
 
@@ -48,16 +53,52 @@ public class MemoryProfilerStageView extends StageView {
 
   @Override
   public JComponent getToolbar() {
-    // TODO Add memory profiler toolbar elements.
     JToolBar toolBar = new JToolBar();
+    toolBar.setFloatable(false);
+
     JButton backButton = new JButton("Go back");
     toolBar.add(backButton);
-    toolBar.setFloatable(false);
     backButton.addActionListener(action -> returnToStudioStage());
+
+    JToggleButton recordAllocationButton = new JToggleButton("Record");
+    recordAllocationButton.addActionListener(e -> getStage().setAllocationTracking(recordAllocationButton.isSelected()));
+    toolBar.add(recordAllocationButton);
+
+    JButton triggerHeapDumpButton = new JButton("Heap Dump");
+    triggerHeapDumpButton.addActionListener(e -> getStage().requestHeapDump());
+    toolBar.add(triggerHeapDumpButton);
+
     return toolBar;
   }
 
+
   private JComponent buildMonitorUi() {
+
+    Splitter mainSplitter = new Splitter(false);
+    Splitter chartClassesSplitter = new Splitter(true);
+
+    JPanel classesPane = new JPanel();
+    classesPane.setVisible(false);
+    chartClassesSplitter.setFirstComponent(createLineChart());
+    chartClassesSplitter.setSecondComponent(classesPane);
+
+    Splitter instancesDetailsSplitter = new Splitter(true);
+    JPanel instancesPane = new JPanel();
+    JPanel detailsPane = new JPanel();
+    instancesDetailsSplitter.setFirstComponent(instancesPane);
+    instancesDetailsSplitter.setSecondComponent(detailsPane);
+    instancesDetailsSplitter.setVisible(false);
+
+    mainSplitter.setFirstComponent(chartClassesSplitter);
+    mainSplitter.setSecondComponent(instancesDetailsSplitter);
+
+    getComponent().add(mainSplitter, BorderLayout.CENTER);
+
+    return mainSplitter;
+  }
+
+  @NotNull
+  private JPanel createLineChart() {
     StudioProfilers profilers = getStage().getStudioProfilers();
     ProfilerTimeline timeline = profilers.getTimeline();
     Range viewRange = getTimeline().getViewRange();
@@ -92,7 +133,7 @@ public class MemoryProfilerStageView extends StageView {
     JPanel monitorPanel = new JBPanel(new GridBagLayout());
     final JLabel label = new JLabel(monitor.getName());
     label.setBorder(MONITOR_LABEL_PADDING);
-    label.setVerticalAlignment(JLabel.TOP);
+    label.setVerticalAlignment(SwingConstants.TOP);
     final Dimension labelSize = label.getPreferredSize();
 
     Range leftYRange = new Range();
@@ -141,7 +182,16 @@ public class MemoryProfilerStageView extends StageView {
                       new LineConfig(ProfilerColors.MEMORY_OTHERS).setFilled(true).setStacked(true));
     lineChart.addLine(new RangedContinuousSeries("Total", viewRange, leftYRange, monitor.getTotalMemory()),
                       new LineConfig(ProfilerColors.MEMORY_TOTAL).setFilled(true));
+
     // TODO add object allocation data.
+    // TODO set proper colors.
+    getStage().getAspect().addDependency()
+      .setExecutor(ApplicationManager.getApplication()::invokeLater)
+      .onChange(MemoryProfilerAspect.CURRENT_HEAP_DUMP, this::heapDumpSelected)
+      .onChange(MemoryProfilerAspect.CURRENT_DIFF_HEAP_DUMP, this::heapDiffSelected);
+    lineChart.addEvent(new RangedSeries<>(viewRange, getStage().getHeapDumpSampleDurations()), new EventConfig(Color.BLACK).setText("Heap Dump"));
+    lineChart.addEvent(new RangedSeries<>(viewRange, getStage().getAllocationDumpSampleDurations()), new EventConfig(Color.BLUE).setText("Alloocation Tracking"));
+
     getChoreographer().register(lineChart);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
@@ -163,5 +213,17 @@ public class MemoryProfilerStageView extends StageView {
     panel.add(monitorPanel, gbc);
 
     return panel;
+  }
+
+  private void heapDumpSelected() {
+
+  }
+
+  private void heapDiffSelected() {
+
+  }
+
+  private void rangeSelected() {
+
   }
 }
