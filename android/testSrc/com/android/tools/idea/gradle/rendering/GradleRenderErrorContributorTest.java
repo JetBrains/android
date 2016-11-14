@@ -92,7 +92,7 @@ public class GradleRenderErrorContributorTest extends IdeaTestCase {
     PsiFile file = new MockPsiFile(new MockPsiManager(myProject));
     RenderLogger logger = new RenderLogger(null, myModule);
     logger.addBrokenClass("com.google.Class", new Exception());
-    return RenderResult.createBlank(file, logger);
+    return RenderResult.createBlank(file);
   }
 
   private void setUpAndroidFacetWithGradleModelWithIssue() {

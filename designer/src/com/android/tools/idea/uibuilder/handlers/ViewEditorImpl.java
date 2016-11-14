@@ -114,13 +114,7 @@ public class ViewEditorImpl extends ViewEditor {
       return Collections.emptyList();
     }
 
-    Collection<ViewInfo> views = result.getRootViews();
-
-    if (views == null) {
-      return Collections.emptyList();
-    }
-
-    return views;
+    return result.getRootViews();
   }
 
   @Override

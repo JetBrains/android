@@ -577,7 +577,7 @@ public class RenderTask implements IImageFactory {
               session.setSystemTimeNanos(now);
               session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
             }
-            RenderResult result = new RenderResult(RenderTask.this, session, myPsiFile, myLogger);
+            RenderResult result = RenderResult.create(RenderTask.this, session, myPsiFile, myLogger);
             myRenderSession = session;
             return result;
           }
@@ -589,7 +589,6 @@ public class RenderTask implements IImageFactory {
         }
       });
       addDiagnostics(result.getRenderResult());
-      result.setIncludedWithin(myIncludedWithin);
       return result;
     }
     catch (RuntimeException t) {
@@ -683,7 +682,7 @@ public class RenderTask implements IImageFactory {
         message = e.toString();
       }
       myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myRenderService.getProject(), myLogger.getLinkManager(), e));
-      return new RenderResult(this, null, myPsiFile, myLogger);
+      return RenderResult.createSessionInitializationError(this, myPsiFile, myLogger);
     }
   }
 
@@ -709,7 +708,7 @@ public class RenderTask implements IImageFactory {
     try {
       return RenderService.runRenderAction(() -> {
         myRenderSession.render();
-        return new RenderResult(this, myRenderSession, myPsiFile, myLogger);
+        return RenderResult.create(this, myRenderSession, myPsiFile, myLogger);
       });
     }
     catch (final Exception e) {
@@ -718,7 +717,7 @@ public class RenderTask implements IImageFactory {
         message = e.toString();
       }
       myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myRenderService.getProject(), myLogger.getLinkManager(), e));
-      return new RenderResult(this, null, myPsiFile, myLogger);
+      return RenderResult.createSessionInitializationError(this, myPsiFile, myLogger);
     }
   }
 

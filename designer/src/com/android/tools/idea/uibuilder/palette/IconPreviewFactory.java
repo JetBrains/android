@@ -153,7 +153,7 @@ public class IconPreviewFactory {
       return null;
     }
     List<ViewInfo> infos = result.getRootViews();
-    if (infos == null || infos.isEmpty()) {
+    if (infos.isEmpty()) {
       return null;
     }
     infos = infos.get(0).getChildren();
@@ -341,7 +341,7 @@ public class IconPreviewFactory {
   }
 
   private static void addResultToCache(@Nullable RenderResult result, @Nullable List<String> ids, @NotNull Configuration configuration) {
-    if (result == null || result.getRenderedImage() == null || result.getRootViews() == null || result.getRootViews().isEmpty()) {
+    if (result == null || result.getRenderedImage() == null || result.getRootViews().isEmpty()) {
       return;
     }
     ImageAccumulator accumulator = new ImageAccumulator(result.getRenderedImage(), ids, configuration);
