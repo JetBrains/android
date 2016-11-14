@@ -17,8 +17,6 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 
 import java.awt.event.ActionEvent;
@@ -27,8 +25,6 @@ import java.awt.event.ActionEvent;
  * Delete an AVD with confirmation.
  */
 public class DeleteAvdAction extends AvdUiAction {
-  private static final Logger LOG = Logger.getInstance(DeleteAvdAction.class);
-
   public DeleteAvdAction(AvdInfoProvider avdInfoProvider) {
     super(avdInfoProvider, "Delete", "Delete this AVD", AllIcons.Actions.Delete);
   }

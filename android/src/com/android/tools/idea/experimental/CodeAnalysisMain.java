@@ -27,12 +27,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.logging.Logger;
 
 public class CodeAnalysisMain {
 
   private static Map<Project, CodeAnalysisMain> instanceMap = Maps.newHashMap();
-  private static final Logger LOG = Logger.getLogger(CodeAnalysisMain.class.getName());
 
   private Project mProject;
 

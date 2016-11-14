@@ -35,7 +35,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Multimap;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleColoredComponent;
@@ -59,7 +58,6 @@ public final class Render {
   public static final int TAG_ITEM_TAG = 101;
   private static final int TAG_STR_LENGTH = 40;
 
-  @NotNull private static final Logger LOG = Logger.getInstance(Render.class);
   // object rendering functions
 
   private static void render(@Nullable Object value, @NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes, int tag) {
