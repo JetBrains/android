@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 package com.android.tools.datastore;
+
 import com.android.tools.datastore.poller.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import io.grpc.*;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.ServerBuilder;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,20 +35,22 @@ public class DataStoreService {
   private static final Logger LOG = Logger.getInstance(DataStoreService.class.getCanonicalName());
   private ManagedChannel myChannel;
   private ServerBuilder myServerBuilder;
-  private List<ServicePassThrough> myServices = new ArrayList();
+  private List<ServicePassThrough> myServices = new ArrayList<>();
 
   public DataStoreService(int port) {
     try {
       myServerBuilder = ServerBuilder.forPort(port);
       createPollers();
       myServerBuilder.build().start();
-    } catch(IOException ex) {
+    }
+    catch (IOException ex) {
       LOG.error(ex.getMessage());
     }
   }
 
   /**
-   * Entry point for the datastore pollers and passthrough services are created, and registered as the set of features the datastore supports.
+   * Entry point for the datastore pollers and passthrough services are created,
+   * and registered as the set of features the datastore supports.
    */
   public void createPollers() {
     registerService(new ProfilerService(this));
@@ -57,11 +62,12 @@ public class DataStoreService {
 
   /**
    * Register's the service with the DataStore and manages the list of pass through to initialize a connection to the appropriate device.
+   *
    * @param service The service to register with the datastore. This service will be setup as a listener for studio to talk to.
    */
   private void registerService(ServicePassThrough service) {
     myServices.add(service);
-    //Build server and start listening for RPC calls for the registered service
+    // Build server and start listening for RPC calls for the registered service
     myServerBuilder.addService(service.getService());
   }
 
@@ -70,10 +76,10 @@ public class DataStoreService {
    */
   private void connectServices() {
     for (ServicePassThrough service : myServices) {
-      //Tell service how to connect to device RPC to start polling.
+      // Tell service how to connect to device RPC to start polling.
       service.connectService(myChannel);
       RunnableFuture<Void> runner = service.getRunner();
-      if(runner != null) {
+      if (runner != null) {
         ApplicationManager.getApplication().executeOnPooledThread(runner);
       }
     }
@@ -81,6 +87,7 @@ public class DataStoreService {
 
   /**
    * When a new device is connected this function tells the DataStore how to connect to that device and creates a channel for the device.
+   *
    * @param devicePort forwarded port for the datastore to connect to perfd on.
    */
   public void connect(int devicePort) {
@@ -96,8 +103,8 @@ public class DataStoreService {
    * Disconnect the datastore from the connected device.
    */
   public void disconnect() {
-    //TODO: Shutdown service connections.
-    if(myChannel != null) {
+    // TODO: Shutdown service connections.
+    if (myChannel != null) {
       myChannel.shutdown();
     }
     myChannel = null;
