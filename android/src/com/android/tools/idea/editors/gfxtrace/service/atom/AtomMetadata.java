@@ -19,14 +19,12 @@ package com.android.tools.idea.editors.gfxtrace.service.atom;
 
 import com.android.tools.idea.editors.gfxtrace.service.ApiID;
 import com.android.tools.rpclib.schema.*;
-import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
-
 import com.android.tools.rpclib.binary.BinaryClass;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.binary.Decoder;
 import com.android.tools.rpclib.binary.Encoder;
 import com.android.tools.rpclib.binary.Namespace;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
@@ -47,7 +45,6 @@ public final class AtomMetadata implements BinaryObject {
   boolean myIsPrepared = false;
   int myResultIndex = -1;
   int myExtrasIndex = -1;
-  @NotNull private static final Logger LOG = Logger.getInstance(AtomMetadata.class);
 
   private void prepare(Entity c) {
     if (myIsPrepared) return;
