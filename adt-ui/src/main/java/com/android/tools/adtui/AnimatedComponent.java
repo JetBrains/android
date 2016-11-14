@@ -33,6 +33,9 @@ import java.util.List;
  */
 public abstract class AnimatedComponent extends JComponent implements Animatable {
 
+  protected static final float DEFAULT_LERP_FRACTION = 0.99f;
+  protected static final float DEFAULT_LERP_THRESHOLD_PERCENTAGE = 0.001f;
+
   /**
    * The cached length of the last frame in seconds.
    */
