@@ -43,18 +43,15 @@ import static com.android.ddmlib.IDevice.CHANGE_STATE;
 /**
  * Manages the interactions between DDMLIB provided devices, and what is needed to spawn ProfilerClient's.
  * On device connection it will spawn the performance daemon on device, and will notify the profiler system that
- * a new device has been conected. *ALL* interaction with IDevice is encapsulated in this class.
+ * a new device has been connected. *ALL* interaction with IDevice is encapsulated in this class.
  */
 class StudioProfilerDeviceManager implements AndroidDebugBridge.IDeviceChangeListener,
                                              AndroidDebugBridge.IDebugBridgeChangeListener {
 
-  private static Logger getLogger() { return Logger.getInstance(StudioProfilerDeviceManager.class); }
-
   private static final int DEVICE_PORT = 12389;
   private static final int DATASTORE_PORT = 12390;
-
-  private AndroidDebugBridge myBridge;
   private final ProfilerClient myClient;
+  private AndroidDebugBridge myBridge;
 
   public StudioProfilerDeviceManager(@NotNull Project project) throws IOException {
     final File adb = AndroidSdkUtils.getAdb(project);
@@ -75,14 +72,18 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDeviceChangeLis
       public void onSuccess(@Nullable AndroidDebugBridge bridge) {
         myBridge = bridge;
       }
+
       @Override
       public void onFailure(@NotNull Throwable t) {
       }
     }, EdtExecutor.INSTANCE);
 
-
     AndroidDebugBridge.addDeviceChangeListener(this);
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
+  }
+
+  private static Logger getLogger() {
+    return Logger.getInstance(StudioProfilerDeviceManager.class);
   }
 
   public void updateDevices() {
@@ -107,24 +108,6 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDeviceChangeLis
         }
       }
       myClient.getProfilerClient().setProcesses(builder.build());
-    }
-  }
-
-  private static class NullReceiver implements IShellOutputReceiver {
-
-    @Override
-    public void addOutput(byte[] data, int offset, int length) {
-
-    }
-
-    @Override
-    public void flush() {
-
-    }
-
-    @Override
-    public boolean isCancelled() {
-      return false;
     }
   }
 
@@ -163,6 +146,22 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDeviceChangeLis
     thread.start();
   }
 
+  private static class NullReceiver implements IShellOutputReceiver {
+
+    @Override
+    public void addOutput(byte[] data, int offset, int length) {
+    }
+
+    @Override
+    public void flush() {
+    }
+
+    @Override
+    public boolean isCancelled() {
+      return false;
+    }
+  }
+
   private static class PerfdThread extends Thread {
     private final IDevice myDevice;
     private final ProfilerClient myClient;
@@ -188,6 +187,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDeviceChangeLis
           }
         }
         // TODO: Handle the case where we don't have perfd for this platform.
+        assert perfd != null;
         // TODO: Add debug support for development
         String devicePath = "/data/local/tmp/perfd/";
         myDevice.executeShellCommand("mkdir -p " + devicePath, new NullReceiver());
@@ -218,7 +218,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDeviceChangeLis
           public boolean isCancelled() {
             return false;
           }
-        }, 0);
+        }, 0, null);
         if (myLocalPort > 0) {
           myClient.getProfilerClient().disconnect(Profiler.DisconnectRequest.newBuilder().setPort(myLocalPort).build());
           getLogger().info("Terminating perfd thread");
