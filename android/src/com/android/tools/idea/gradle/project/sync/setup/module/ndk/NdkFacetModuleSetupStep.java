@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.module.cpp;
+package com.android.tools.idea.gradle.project.sync.setup.module.ndk;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
@@ -38,7 +38,7 @@ public class NdkFacetModuleSetupStep extends NdkModuleSetupStep {
                                @NotNull NdkModuleModel ndkModuleModel,
                                @Nullable SyncAction.ModuleModels gradleModels,
                                @Nullable ProgressIndicator indicator) {
-    NdkFacet facet = findFacet(module, ideModelsProvider, NdkFacet.TYPE_ID);
+    NdkFacet facet = findFacet(module, ideModelsProvider, NdkFacet.getFacetTypeId());
     if (facet != null) {
       configureFacet(facet, ndkModuleModel);
     }
@@ -46,7 +46,7 @@ public class NdkFacetModuleSetupStep extends NdkModuleSetupStep {
       // Module does not have Native Android facet. Create one and add it.
       ModifiableFacetModel model = ideModelsProvider.getModifiableFacetModel(module);
       NdkFacetType facetType = NdkFacet.getFacetType();
-      facet = facetType.createFacet(module, NdkFacet.NAME, facetType.createDefaultConfiguration(), null);
+      facet = facetType.createFacet(module, NdkFacet.getFacetName(), facetType.createDefaultConfiguration(), null);
       model.addFacet(facet);
       configureFacet(facet, ndkModuleModel);
     }
@@ -63,7 +63,7 @@ public class NdkFacetModuleSetupStep extends NdkModuleSetupStep {
   @Override
   protected void gradleModelNotFound(@NotNull Module module, @NotNull IdeModifiableModelsProvider ideModelsProvider) {
     ModifiableFacetModel facetModel = ideModelsProvider.getModifiableFacetModel(module);
-    removeAllFacetsOfType(NdkFacet.TYPE_ID, facetModel);
+    removeAllFacetsOfType(NdkFacet.getFacetTypeId(), facetModel);
   }
 
   @Override

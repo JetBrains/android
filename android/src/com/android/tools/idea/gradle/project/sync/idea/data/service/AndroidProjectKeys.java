@@ -57,16 +57,13 @@ public final class AndroidProjectKeys {
   public static final Key<GradleModuleModel> GRADLE_MODULE_MODEL = Key.create(GradleModuleModel.class, PROCESSING_AFTER_BUILTIN_SERVICES);
 
   @NotNull
-  public static final Key<NdkModuleModel> NATIVE_ANDROID_MODEL = Key.create(NdkModuleModel.class,
-                                                                                      GRADLE_MODULE_MODEL.getProcessingWeight() + 10);
+  public static final Key<NdkModuleModel> NDK_MODEL = Key.create(NdkModuleModel.class, GRADLE_MODULE_MODEL.getProcessingWeight() + 10);
 
   @NotNull
-  public static final Key<AndroidModuleModel> ANDROID_MODEL = Key.create(AndroidModuleModel.class,
-                                                                         NATIVE_ANDROID_MODEL.getProcessingWeight() + 10);
+  public static final Key<AndroidModuleModel> ANDROID_MODEL = Key.create(AndroidModuleModel.class, NDK_MODEL.getProcessingWeight() + 10);
 
   @NotNull
-  public static final Key<JavaModuleModel>
-    JAVA_MODULE_MODEL = Key.create(JavaModuleModel.class, NATIVE_ANDROID_MODEL.getProcessingWeight() + 10);
+  public static final Key<JavaModuleModel> JAVA_MODULE_MODEL = Key.create(JavaModuleModel.class, NDK_MODEL.getProcessingWeight() + 10);
 
   @NotNull
   public static final Key<ImportedModule> IMPORTED_MODULE = Key.create(ImportedModule.class, JAVA_MODULE_MODEL.getProcessingWeight() + 10);
