@@ -98,6 +98,7 @@ iml_module(
     ],
     tags = ["managed"],
     test_srcs = ["android/testSrc"],
+    test_tags = ["manual"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     exports = [
