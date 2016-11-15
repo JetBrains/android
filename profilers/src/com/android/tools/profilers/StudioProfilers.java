@@ -249,4 +249,13 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
   public List<StudioProfiler> getProfilers() {
     return myProfilers;
   }
+
+  public <T extends StudioProfiler> T getProfiler(Class<T> clazz) {
+    for (StudioProfiler profiler : myProfilers) {
+      if (clazz.isInstance(profiler)) {
+        return clazz.cast(profiler);
+      }
+    }
+    return null;
+  }
 }
