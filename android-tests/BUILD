@@ -15,7 +15,7 @@ iml_module(
         "//prebuilts/tools/common/m2:guava-18",
         "//prebuilts/tools/common/offline-m2:android-gradle-2.2.0",
         "//tools/base/templates",
-        "//tools/external/gradle:gradle-2.14.1",
+        "//tools/base/build-system:gradle-distrib",
         "//tools:idea/java/jdkAnnotations",
         "//tools/adt/idea:testFiles",
     ],
