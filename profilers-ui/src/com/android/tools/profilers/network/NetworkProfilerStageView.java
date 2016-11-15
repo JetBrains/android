@@ -39,8 +39,8 @@ public class NetworkProfilerStageView extends StageView {
 
     stage.aspect.addDependency()
       .setExecutor(ApplicationManager.getApplication()::invokeLater)
-      .onChange(NetworkProfilerAspect.CONNECTION_DATA, this::updateConnectionData)
-      .onChange(NetworkProfilerAspect.CONNECTION, this::updateConnection);
+      .onChange(NetworkProfilerAspect.REQUESTS, this::updateConnectionData)
+      .onChange(NetworkProfilerAspect.REQUEST_DETAILS, this::updateConnection);
 
     JPanel top = new JPanel();
     top.add(new JLabel("TODO: Network profiler"));

@@ -16,6 +16,6 @@
 package com.android.tools.profilers.network;
 
 public enum NetworkProfilerAspect {
-  CONNECTION_DATA,
-  CONNECTION
+  REQUESTS,
+  REQUEST_DETAILS
 }
