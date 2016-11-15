@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.rendering;
 
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
@@ -41,8 +41,8 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 
 public class GradleRenderErrorContributorTest extends IdeaTestCase {
-  private GradleRenderErrorContributor.GradleProvider provider;
-  private RenderErrorModel renderErrorModel;
+  private GradleRenderErrorContributor.GradleProvider myProvider;
+  private RenderErrorModel myRenderErrorModel;
 
   @Override
   public void setUp() throws Exception {
@@ -53,23 +53,23 @@ public class GradleRenderErrorContributorTest extends IdeaTestCase {
     setUpAndroidFacetWithGradleModelWithIssue();
 
     RenderResult result = createResultWithBrokenClass();
-    renderErrorModel = RenderErrorModelFactory.createErrorModel(result, null);
+    myRenderErrorModel = RenderErrorModelFactory.createErrorModel(result, null);
 
     // For the isApplicable tests.
-    provider = new GradleRenderErrorContributor.GradleProvider();
+    myProvider = new GradleRenderErrorContributor.GradleProvider();
   }
 
   public void testProviderIsApplicable() {
-    assertThat(provider.isApplicable(myProject)).isTrue();
+    assertThat(myProvider.isApplicable(myProject)).isTrue();
   }
 
   public void testProviderNotApplicableIfNotBuildWithGradle() {
     when(GradleProjectInfo.getInstance(myProject).isBuildWithGradle()).thenReturn(false);
-    assertThat(provider.isApplicable(myProject)).isFalse();
+    assertThat(myProvider.isApplicable(myProject)).isFalse();
   }
 
   public void testReportIssue170841() {
-    ImmutableList<RenderErrorModel.Issue> issues = renderErrorModel.getIssues();
+    ImmutableList<RenderErrorModel.Issue> issues = myRenderErrorModel.getIssues();
     assertThat(issues).isNotEmpty();
     RenderErrorModel.Issue issue170841 = null;
     for (RenderErrorModel.Issue issue : issues) {
