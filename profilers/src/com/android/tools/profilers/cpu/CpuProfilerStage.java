@@ -15,38 +15,24 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.profilers.StageView;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.Stage;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import java.awt.*;
+public class CpuProfilerStage extends Stage {
 
-public class CpuMonitorStageView extends StageView {
-  public CpuMonitorStageView(@NotNull CpuMonitorStage stage) {
-    super(stage);
+  public CpuProfilerStage(@NotNull StudioProfilers profiler) {
+    super(profiler);
   }
 
   @Override
-  public JComponent getComponent() {
-    JPanel panel = new JPanel();
-    panel.add(new JLabel("TODO: CPU L2"));
-    return panel;
+  public void enter() {
+
   }
 
   @Override
-  public JComponent getToolbar() {
-    JPanel panel = new JPanel(new BorderLayout());
+  public void exit() {
 
-    JPanel toolbar = new JPanel();
-
-    JButton button = new JButton("<-");
-    button.addActionListener(action -> returnToStudioStage());
-    toolbar.add(button);
-
-    JButton capture = new JButton("Capture");
-    toolbar.add(capture);
-
-    panel.add(toolbar, BorderLayout.WEST);
-    return panel;
   }
+
 }

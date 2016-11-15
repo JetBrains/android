@@ -23,13 +23,11 @@ import com.android.tools.profilers.memory.MemoryProfilerStage;
 import org.jetbrains.annotations.NotNull;
 
 public class EventMonitor extends ProfilerMonitor {
-  private final int myProcessId;
 
   @NotNull
   private final StudioProfilers myProfilers;
 
-  public EventMonitor(@NotNull StudioProfilers profilers, int pid) {
-    myProcessId = pid;
+  public EventMonitor(@NotNull StudioProfilers profilers) {
     myProfilers = profilers;
   }
 
@@ -40,13 +38,13 @@ public class EventMonitor extends ProfilerMonitor {
 
   @NotNull
   public RangedSeries<EventAction<EventAction.Action, EventActionType>> getSimpleEvents() {
-    SimpleEventDataSeries series = new SimpleEventDataSeries(myProfilers.getClient(), myProcessId);
+    SimpleEventDataSeries series = new SimpleEventDataSeries(myProfilers.getClient(), myProfilers.getProcessId());
     return new RangedSeries<>(myProfilers.getViewRange(), series);
   }
 
   @NotNull
   public RangedSeries<EventAction<EventAction.ActivityAction, String>> getActivityEvents() {
-    ActivityEventDataSeries series = new ActivityEventDataSeries(myProfilers.getClient(), myProcessId);
+    ActivityEventDataSeries series = new ActivityEventDataSeries(myProfilers.getClient(), myProfilers.getProcessId());
     return new RangedSeries<>(myProfilers.getViewRange(), series);
   }
 

@@ -35,12 +35,12 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
   @NotNull
   private CpuServiceGrpc.CpuServiceBlockingStub myClient;
 
-  private boolean myCollectOtherCpuUsage;
+  private boolean myOtherProcesses;
   private final int myProcessId;
 
-  public CpuUsageDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, boolean collectOtherCpuUsage, int id) {
+  public CpuUsageDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, boolean otherProcesses, int id) {
     myClient = client;
-    myCollectOtherCpuUsage = collectOtherCpuUsage;
+    myOtherProcesses = otherProcesses;
     myProcessId = id;
   }
 
@@ -66,7 +66,7 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
         continue;
       }
       CpuUsageDataSeries.CpuUsageData usageData = getCpuUsageData(data, lastCpuData);
-      if (myCollectOtherCpuUsage) {
+      if (myOtherProcesses) {
         seriesData.add(new SeriesData<>(dataTimestamp, (long)usageData.getOtherProcessesUsage()));
       }
       else {

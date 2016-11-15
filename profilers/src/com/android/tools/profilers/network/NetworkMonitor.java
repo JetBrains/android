@@ -24,15 +24,12 @@ import org.jetbrains.annotations.NotNull;
 
 public class NetworkMonitor extends ProfilerMonitor {
 
-  private final int myProcessId;
-
   @NotNull
   private final StudioProfilers myProfilers;
 
   private final Range myYRange = new Range();
 
-  public NetworkMonitor(@NotNull StudioProfilers profilers, int pid) {
-    myProcessId = pid;
+  public NetworkMonitor(@NotNull StudioProfilers profilers) {
     myProfilers = profilers;
   }
 
@@ -45,7 +42,7 @@ public class NetworkMonitor extends ProfilerMonitor {
   public RangedContinuousSeries getSpeedSeries(NetworkTrafficDataSeries.Type trafficType) {
     NetworkServiceGrpc.NetworkServiceBlockingStub client = myProfilers.getClient().getNetworkClient();
 
-    NetworkTrafficDataSeries series = new NetworkTrafficDataSeries(client, myProcessId, trafficType);
+    NetworkTrafficDataSeries series = new NetworkTrafficDataSeries(client, myProfilers.getProcessId(), trafficType);
     return new RangedContinuousSeries(trafficType.getLabel(), myProfilers.getViewRange(), myYRange, series);
   }
 
