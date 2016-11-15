@@ -82,8 +82,6 @@ filegroup(
         "android/annotations/**",
         "android/device-art-resources/**",
         "android/testData/**",
-        "android/lib/androidWidgets/**",
-        "android/lib/libwebp/**",
     ]),
     visibility = ["//visibility:public"],
 )
@@ -142,7 +140,7 @@ iml_module(
         "//tools/adt/idea/adt-ui:adt-ui[module]",
         "//tools/adt/idea/adt-ui-model:adt-ui-model[module]",
         "//tools/adt/idea/perfd-host:perfd-host[module]",
-        "//tools/adt/idea:android/lib/spantable",
+        "//tools/adt/idea/android/lib:spantable",
         "//tools/idea/.idea/libraries:jsr305",
         "//tools/idea/.idea/libraries:jgraphx-3.4.0.1",
         "//tools/base/repository:studio.repository[module]",
@@ -152,7 +150,7 @@ iml_module(
         "//tools/data-binding:studio.compiler[module]",
         "//tools/idea/.idea/libraries:jogl-all",
         "//tools/idea/.idea/libraries:gluegen-rt",
-        "//tools/adt/idea:android/lib/libwebp",
+        "//tools/adt/idea/android/lib:libwebp",
         "//tools:idea.lang-api[module]",
         "//tools/idea/.idea/libraries:Gradle",
         "//tools:idea.gradle[module]",
@@ -172,179 +170,4 @@ iml_module(
         "//tools/adt/idea/profilers-ui:profilers-ui[module]",
         "//tools:idea.gradle-tooling-extension-impl[module]",
     ],
-)
-
-java_import(
-    name = "android/lib/commons-io-2.4",
-    jars = ["android/lib/commons-io-2.4.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/juniversalchardet-1.0.3",
-    jars = ["android/lib/juniversalchardet-1.0.3.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/antlr4-runtime-4.5.3",
-    jars = ["android/lib/antlr4-runtime-4.5.3.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/asm-5.0.3",
-    jars = ["android/lib/asm-5.0.3.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/asm-analysis-5.0.3",
-    jars = ["android/lib/asm-analysis-5.0.3.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/asm-tree-5.0.3",
-    jars = ["android/lib/asm-tree-5.0.3.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/jarutils",
-    jars = ["android/lib/jarutils.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/spantable",
-    jars = ["android/lib/spantable.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/jsr305-1.3.9",
-    jars = ["android/lib/jsr305-1.3.9.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/jgraphx-3.4.0.1",
-    jars = ["android/lib/jgraphx-3.4.0.1.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/jogl-all",
-    jars = ["android/lib/jogl-all.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/jogl-all-natives-linux-amd64",
-    jars = ["android/lib/jogl-all-natives-linux-amd64.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/jogl-all-natives-linux-i586",
-    jars = ["android/lib/jogl-all-natives-linux-i586.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/jogl-all-natives-macosx-universal",
-    jars = ["android/lib/jogl-all-natives-macosx-universal.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/jogl-all-natives-windows-amd64",
-    jars = ["android/lib/jogl-all-natives-windows-amd64.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/jogl-all-natives-windows-i586",
-    jars = ["android/lib/jogl-all-natives-windows-i586.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/gluegen-rt",
-    jars = ["android/lib/gluegen-rt.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/gluegen-rt-natives-linux-amd64",
-    jars = ["android/lib/gluegen-rt-natives-linux-amd64.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/gluegen-rt-natives-linux-i586",
-    jars = ["android/lib/gluegen-rt-natives-linux-i586.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/gluegen-rt-natives-macosx-universal",
-    jars = ["android/lib/gluegen-rt-natives-macosx-universal.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/gluegen-rt-natives-windows-amd64",
-    jars = ["android/lib/gluegen-rt-natives-windows-amd64.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/gluegen-rt-natives-windows-i586",
-    jars = ["android/lib/gluegen-rt-natives-windows-i586.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/libwebp",
-    jars = ["android/lib/libwebp.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/dexlib2-2.0.8-dev",
-    jars = ["android/lib/dexlib2-2.0.8-dev.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/dexlib2-util-2.0.8-dev",
-    jars = ["android/lib/dexlib2-util-2.0.8-dev.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
 )
