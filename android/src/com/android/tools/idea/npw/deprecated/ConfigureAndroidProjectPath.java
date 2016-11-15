@@ -25,6 +25,7 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.npw.ConfigureFormFactorStep;
+import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
 import com.android.tools.idea.npw.project.NewProjectModel;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.StudioSdkUtil;
@@ -42,7 +43,6 @@ import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -153,7 +153,7 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
       assert project != null;
 
       File projectRoot = VfsUtilCore.virtualToIoFile(project.getBaseDir());
-      setGradleWrapperExecutable(projectRoot);
+      AndroidGradleModuleUtils.setGradleWrapperExecutable(projectRoot);
       return true;
     }
     catch (IOException e) {
@@ -184,24 +184,5 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
    */
   protected static WizardStepHeaderSettings buildConfigurationHeader() {
     return WizardStepHeaderSettings.createProductHeader("New Project");
-  }
-
-  /**
-   * Set the executable bit on the 'gradlew' wrapper script on Mac/Linux
-   * On Windows, we use a separate gradlew.bat file which does not need an
-   * executable bit.
-   *
-   * @throws IOException
-   */
-  public static void setGradleWrapperExecutable(File projectRoot) throws IOException {
-    if (SystemInfo.isUnix) {
-      File gradlewFile = new File(projectRoot, "gradlew");
-      if (!gradlewFile.isFile()) {
-        LOG.error("Could not find gradle wrapper. Command line builds may not work properly.");
-      }
-      else {
-        FileUtil.setExecutableAttribute(gradlewFile.getPath(), true);
-      }
-    }
   }
 }
