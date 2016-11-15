@@ -55,38 +55,16 @@ public class SimpleEventDataSeries implements DataSeries<EventAction<EventAction
       .setAppId(myProcessId)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()));
-    EventProfiler.EventDataResponse response = eventService.getData(dataRequestBuilder.build());
-    for (EventProfiler.EventProfilerData data : response.getDataList()) {
-      if (data.getDataCase() != EventProfiler.EventProfilerData.DataCase.SYSTEM_DATA) {
-        continue;
-      }
-
-      EventProfiler.SystemEventData systemData = data.getSystemData();
+    EventProfiler.SystemDataResponse response = eventService.getSystemData(dataRequestBuilder.build());
+    for (EventProfiler.SystemData data : response.getDataList()) {
       EventAction.Action action = EventAction.Action.NONE;
-      long actionStart = TimeUnit.NANOSECONDS.toMicros(data.getBasicInfo().getEndTimestamp());
-      long eventTimestamp = actionStart;
-      long actionEnd = 0;
-      if (systemData.getType() == EventProfiler.SystemEventData.SystemEventType.ROTATION) {
-        seriesData.add(new SeriesData<>(eventTimestamp, new EventAction<>(actionStart, actionEnd, action, EventActionType.ROTATION)));
+      long actionStart = TimeUnit.NANOSECONDS.toMicros(data.getStartTimestamp());
+      long actionEnd = TimeUnit.NANOSECONDS.toMicros(data.getEndTimestamp());
+      if (data.getType() == EventProfiler.SystemData.SystemEventType.ROTATION) {
+        seriesData.add(new SeriesData<>(actionStart, new EventAction<>(actionStart, actionEnd, action, EventActionType.ROTATION)));
       }
       else {
-        // If we are not a rotation action type, then we fall through. The current actions that fallthrough are
-        // Key and Touch events. For the purpose of the demo we treat them the same, so we can register when the back button
-        // is pressed.
-        // TODO: Seperate KeyEvents to use their own icon.
-        switch (systemData.getActionId()) {
-          case ACTION_DOWN:
-            action = EventAction.Action.DOWN;
-            break;
-          case ACTION_UP:
-            action = EventAction.Action.UP;
-            actionEnd = actionStart;
-            actionStart = TimeUnit.MILLISECONDS.toMicros(systemData.getActionDowntime());
-            break;
-        }
-        if (action != EventAction.Action.NONE) {
-          seriesData.add(new SeriesData<>(eventTimestamp, new EventAction<>(actionStart, actionEnd, action, EventActionType.TOUCH)));
-        }
+        seriesData.add(new SeriesData<>(actionStart, new EventAction<>(actionStart, actionEnd, action, EventActionType.TOUCH)));
       }
     }
     return ContainerUtil.immutableList(seriesData);
