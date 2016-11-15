@@ -27,16 +27,22 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
-public abstract class MemoryDataSeries implements DataSeries<Long> {
+public final class MemoryDataSeries implements DataSeries<Long> {
   @NotNull
   private MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
 
   private final int myProcessId;
 
-  public MemoryDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, int id) {
+  @NotNull
+  private Function<MemoryProfiler.MemoryData.MemorySample, Long> myFilter;
+
+  public MemoryDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, int id,
+                          @NotNull Function<MemoryProfiler.MemoryData.MemorySample, Long> filter) {
     myClient = client;
     myProcessId = id;
+    myFilter = filter;
   }
 
   @Override
@@ -51,11 +57,8 @@ public abstract class MemoryDataSeries implements DataSeries<Long> {
 
     for (MemoryProfiler.MemoryData.MemorySample sample : response.getMemSamplesList()) {
       long dataTimestamp = TimeUnit.NANOSECONDS.toMicros(sample.getTimestamp());
-      seriesData.add(new SeriesData<>(dataTimestamp, filterData(sample)));
+      seriesData.add(new SeriesData<>(dataTimestamp, myFilter.apply(sample)));
     }
     return ContainerUtil.immutableList(seriesData);
   }
-
-  @NotNull
-  public abstract Long filterData(@NotNull MemoryProfiler.MemoryData.MemorySample sample);
 }

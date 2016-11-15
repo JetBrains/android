@@ -15,26 +15,16 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Arrays;
-import java.util.List;
-
-import static com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 
 public class MemoryProfilerStage extends Stage {
   private final int myProcessId;
 
   @NotNull
   private final MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
-
-  @NotNull
-  private List<RangedContinuousSeries> myRangedSeries;
 
   public MemoryProfilerStage(@NotNull StudioProfilers profilers) {
     super(profilers);
@@ -44,65 +34,39 @@ public class MemoryProfilerStage extends Stage {
 
   @Override
   public void enter() {
-    Range xRange = getStudioProfilers().getViewRange();
-    myRangedSeries = Arrays.asList(new RangedContinuousSeries("Java", xRange, new Range(),
-                                                              new MemoryDataSeries(myClient, myProcessId) {
-                                                                @Override
-                                                                @NotNull
-                                                                public Long filterData(@NotNull MemoryData.MemorySample sample) {
-                                                                  return sample.getJavaMem();
-                                                                }
-                                                              }),
-                                   new RangedContinuousSeries("Native", xRange, new Range(),
-                                                              new MemoryDataSeries(myClient, myProcessId) {
-                                                                @NotNull
-                                                                @Override
-                                                                public Long filterData(@NotNull MemoryData.MemorySample sample) {
-                                                                  return sample.getNativeMem();
-                                                                }
-                                                              }),
-                                   new RangedContinuousSeries("Graphics", xRange, new Range(),
-                                                              new MemoryDataSeries(myClient, myProcessId) {
-                                                                @NotNull
-                                                                @Override
-                                                                public Long filterData(@NotNull MemoryData.MemorySample sample) {
-                                                                  return sample.getGraphicsMem();
-                                                                }
-                                                              }),
-                                   new RangedContinuousSeries("Stack", xRange, new Range(),
-                                                              new MemoryDataSeries(myClient, myProcessId) {
-                                                                @NotNull
-                                                                @Override
-                                                                public Long filterData(@NotNull MemoryData.MemorySample sample) {
-                                                                  return sample.getStackMem();
-                                                                }
-                                                              }),
-                                   new RangedContinuousSeries("Code", xRange, new Range(),
-                                                              new MemoryDataSeries(myClient, myProcessId) {
-                                                                @NotNull
-                                                                @Override
-                                                                public Long filterData(@NotNull MemoryData.MemorySample sample) {
-                                                                  return sample.getCodeMem();
-                                                                }
-                                                              }),
-                                   new RangedContinuousSeries("Other", xRange, new Range(),
-                                                              new MemoryDataSeries(myClient, myProcessId) {
-                                                                @NotNull
-                                                                @Override
-                                                                public Long filterData(@NotNull MemoryData.MemorySample sample) {
-                                                                  return sample.getOthersMem();
-                                                                }
-                                                              })
-                                   );
   }
 
   @Override
   public void exit() {
-
   }
 
   @NotNull
-  public List<RangedContinuousSeries> getRangedSeries() {
-    return myRangedSeries;
+  public MemoryDataSeries getJavaMemory() {
+    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getJavaMem());
+  }
+
+  @NotNull
+  public MemoryDataSeries getNativeMemory() {
+    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getNativeMem());
+  }
+
+  @NotNull
+  public MemoryDataSeries getGraphicsMemory() {
+    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getGraphicsMem());
+  }
+
+  @NotNull
+  public MemoryDataSeries getStackMemory() {
+    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getStackMem());
+  }
+
+  @NotNull
+  public MemoryDataSeries getCodeMemory() {
+    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getCodeMem());
+  }
+
+  @NotNull
+  public MemoryDataSeries getOthersMemory() {
+    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getOthersMem());
   }
 }
