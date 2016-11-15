@@ -15,43 +15,41 @@
  */
 package com.android.tools.idea.monitor.ui.network.view;
 
+import com.android.annotations.VisibleForTesting;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorProvider;
+import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
 
-public class NetworkDetailedView extends JComponent {
-  private static final int PADDING = 100;
+public class NetworkDetailedView extends JPanel {
 
-  private static BufferedImage NO_IMAGE_FOUND = UIUtil.createImage(180, 150, BufferedImage.TYPE_BYTE_GRAY);
+  private final Project myProject;
+  private FileEditor myEditor;
 
-  @NotNull
-  private BufferedImage myImage;
-
+  // TODO: Fix visual test and remove this constructor.
+  @VisibleForTesting
   public NetworkDetailedView() {
+    myProject = null;
+  }
+
+  public NetworkDetailedView(@NotNull Project project) {
+    myProject = project;
     setPreferredSize(new Dimension(350, 0));
     setBorder(BorderFactory.createLineBorder(JBColor.black));
-    myImage = NO_IMAGE_FOUND;
   }
 
-  @Override
-  protected void paintComponent(Graphics g) {
-    super.paintComponent(g);
-    g.drawImage(myImage, (getWidth() - myImage.getWidth()) / 2, PADDING, null);
-  }
-
-  public void showConnectionDetails(@NotNull File imageFile) {
-    try {
-      myImage = ImageIO.read(imageFile);
+  public void showConnectionDetails(@NotNull VirtualFile payloadFile) {
+    if (myEditor != null) {
+      remove(myEditor.getComponent());
     }
-    catch (Exception e) {
-      myImage = NO_IMAGE_FOUND;
-    }
-    repaint();
+    FileEditorProvider editorProvider = FileEditorProviderManager.getInstance().getProviders(myProject, payloadFile)[0];
+    myEditor = editorProvider.createEditor(myProject, payloadFile);
+    add(myEditor.getComponent());
   }
 }
