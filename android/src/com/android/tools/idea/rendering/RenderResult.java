@@ -31,8 +31,6 @@ import java.util.List;
 import java.util.Map;
 
 public class RenderResult {
-  private static final RenderLogger EMPTY_LOGGER = new RenderLogger(null, null);
-
   @NotNull private final PsiFile myFile;
   @NotNull private final RenderLogger myLogger;
   @NotNull private final List<ViewInfo> myRootViews;
@@ -118,7 +116,7 @@ public class RenderResult {
     return new RenderResult(
       file,
       module,
-      EMPTY_LOGGER,
+      new RenderLogger(null, module),
       null,
       Result.Status.ERROR_UNKNOWN.createResult(""),
       Collections.emptyList(),
