@@ -15,12 +15,12 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.adtui.Choreographer;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioMonitorStage;
 import com.android.tools.profilers.StudioProfilers;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
-import com.intellij.ui.JBColor;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,19 +28,21 @@ import java.awt.*;
 public class NetworkProfilerStageView extends StageView {
   private final NetworkProfilerStage myStage;
   private final JPanel myConnectionDetails;
-  private JPanel myConnectionData;
+  private NetworkRequestsView myRequestsView;
   private Splitter myComponent;
+  private Choreographer myChoreographer;
 
   public NetworkProfilerStageView(NetworkProfilerStage stage) {
     super(stage);
     myStage = stage;
     myConnectionDetails = new JPanel(new BorderLayout());
-    myConnectionData = new JPanel(new BorderLayout());
-
+    myRequestsView = new NetworkRequestsView(stage.getStudioProfilers().getViewRange(), stage.getRequestsModel(), data -> {
+      System.out.println(data.getId());
+    });
     stage.aspect.addDependency()
       .setExecutor(ApplicationManager.getApplication()::invokeLater)
-      .onChange(NetworkProfilerAspect.REQUESTS, this::updateConnectionData)
-      .onChange(NetworkProfilerAspect.REQUEST_DETAILS, this::updateConnection);
+      .onChange(NetworkProfilerAspect.REQUEST_DETAILS, this::updateRequestsView)
+      .onChange(NetworkProfilerAspect.REQUESTS, this::updateRequestDetailsView);
 
     JPanel top = new JPanel();
     top.add(new JLabel("TODO: Network profiler"));
@@ -59,46 +61,31 @@ public class NetworkProfilerStageView extends StageView {
 
     Splitter splitter = new Splitter(true);
     splitter.setFirstComponent(top);
-    splitter.setSecondComponent(myConnectionData);
+    splitter.setSecondComponent(myRequestsView);
 
     myComponent.setFirstComponent(splitter);
     myComponent.setSecondComponent(myConnectionDetails);
 
-    updateConnectionData();
-    updateConnection();
+    myChoreographer = new Choreographer(myComponent);
+    myChoreographer.register(myRequestsView);
+
+    updateRequestsView();
+    updateRequestDetailsView();
   }
 
-  private void updateConnection() {
+  private void updateRequestDetailsView() {
     // TODO: Get the data from the model and fill it/update it.
+    myConnectionDetails.setVisible(myStage.isConnectionDataEnabled() && myStage.getConnectionId() != 0);
+    /*
     myConnectionDetails.removeAll();
     myConnectionDetails.setBackground(JBColor.background());
     myConnectionDetails.add(new JLabel("Connection ID: " + myStage.getConnectionId()), BorderLayout.CENTER);
     myConnectionDetails.setVisible(myStage.isConnectionDataEnabled() && myStage.getConnectionId() != 0);
     myConnectionDetails.revalidate();
+    */
   }
 
-  private void updateConnectionData() {
-    // TODO: Get the data from the model and fill it/update it.
-    myConnectionData.removeAll();
-    JPanel panel = new JPanel();
-    panel.setBackground(JBColor.background());
-    panel.add(new JLabel("TODO: Connections"));
-
-    JButton button = new JButton("Unselect");
-    button.addActionListener(action -> myStage.setConnectionId(0));
-    panel.add(button);
-
-    button = new JButton("Select 1");
-    button.addActionListener(action -> myStage.setConnectionId(1));
-    panel.add(button);
-
-    button = new JButton("Select 2");
-    button.addActionListener(action -> myStage.setConnectionId(2));
-    panel.add(button);
-
-    myConnectionData.add(panel, BorderLayout.CENTER);
-    myConnectionData.setVisible(myStage.isConnectionDataEnabled());
-    myConnectionData.revalidate();
+  private void updateRequestsView() {
   }
 
   @Override

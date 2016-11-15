@@ -46,9 +46,14 @@ public class NetworkProfilerStage extends Stage {
 
   }
 
+  public NetworkRequestsModel getRequestsModel() {
+    //return new FakeNetworkRequestsModel();
+    return new RpcNetworkRequestsModel(getStudioProfilers().getClient().getNetworkClient(), getStudioProfilers().getProcessId());
+  }
+
   public void setEnableConnectionData(boolean enable) {
     myConnectionDataEnabled = enable;
-    aspect.changed(NetworkProfilerAspect.REQUESTS);
+    aspect.changed(NetworkProfilerAspect.REQUEST_DETAILS);
   }
 
   public void setConnectionId(int id) {
