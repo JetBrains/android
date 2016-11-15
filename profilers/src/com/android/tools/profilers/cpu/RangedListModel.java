@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.monitor.ui.cpu.model;
+package com.android.tools.profilers.cpu;
 
-import com.android.tools.profilers.cpu.ThreadStateDataSeries;
+import com.android.tools.adtui.model.Range;
 
-/**
- * Notifies when a new thread model was added because a new thread was polled from the device.
- */
-public interface ThreadAddedNotifier {
-  void threadAdded(ThreadStateDataSeries threadStateDataSeries);
+import javax.swing.*;
 
-  default void threadsAdded(ThreadStateDataSeries[] threadStateDataSeriesList) {
-    for(ThreadStateDataSeries model : threadStateDataSeriesList) {
-      threadAdded(model);
-    }
-  }
+public interface RangedListModel<T> extends ListModel<T> {
+
+  /**
+   * Updates the model to the given range.
+   */
+  void update(Range range);
 }

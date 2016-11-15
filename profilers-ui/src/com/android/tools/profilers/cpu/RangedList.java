@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.monitor.ui.cpu.model;
+package com.android.tools.profilers.cpu;
 
-import com.android.tools.profilers.cpu.ThreadStateDataSeries;
+import com.android.tools.adtui.Animatable;
+import com.android.tools.adtui.model.Range;
 
-/**
- * Notifies when a new thread model was added because a new thread was polled from the device.
- */
-public interface ThreadAddedNotifier {
-  void threadAdded(ThreadStateDataSeries threadStateDataSeries);
+public class RangedList implements Animatable {
 
-  default void threadsAdded(ThreadStateDataSeries[] threadStateDataSeriesList) {
-    for(ThreadStateDataSeries model : threadStateDataSeriesList) {
-      threadAdded(model);
-    }
+  private final RangedListModel myModel;
+  private final Range myRange;
+
+  public RangedList(Range range, RangedListModel model) {
+    myModel = model;
+    myRange = range;
+  }
+
+  @Override
+  public void animate(float frameLength) {
+    myModel.update(myRange);
   }
 }
