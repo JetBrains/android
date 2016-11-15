@@ -21,6 +21,7 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
+import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitorView;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +49,8 @@ public class MemoryMonitorView extends ProfilerMonitorView {
     label.setBorder(LABEL_PADDING);
     final Dimension labelSize = label.getPreferredSize();
 
-    AxisComponent.Builder builder = new AxisComponent.Builder(myMonitor.getTotalMemory().getYRange(), MEMORY_AXIS_FORMATTER,
+    RangedContinuousSeries memory = myMonitor.getTotalMemory();
+    AxisComponent.Builder builder = new AxisComponent.Builder(memory.getYRange(), MEMORY_AXIS_FORMATTER,
                                                               AxisComponent.AxisOrientation.RIGHT)
       .showAxisLine(false)
       .showMax(true)
@@ -59,7 +61,7 @@ public class MemoryMonitorView extends ProfilerMonitorView {
     final AxisComponent leftAxis = builder.build();
 
     final LineChart lineChart = new LineChart();
-    lineChart.addLine(myMonitor.getTotalMemory(), new LineConfig(ProfilerColors.TOTAL_MEMORY).setFilled(true));
+    lineChart.addLine(memory, new LineConfig(ProfilerColors.TOTAL_MEMORY).setFilled(true));
     lineChart.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
