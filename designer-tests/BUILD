@@ -6,6 +6,7 @@ iml_module(
     test_class = "com.android.tools.idea.DesignerTestSuite",
     test_data = [
         "//tools/adt/idea:testFiles",
+        "//tools/adt/idea/android/lib/androidWidgets",
         "//tools:idea/java/jdkAnnotations",
         "//tools/base/templates",
         "//prebuilts/studio/jdk",
