@@ -113,6 +113,25 @@ public final class TranslationsEditorTest {
     assertEquals(-1, translationTextField.font().target().canDisplayUpTo("יישום פשוט"));
   }
 
+  @Test
+  public void paste() {
+    JTableFixture table = myTranslationsEditor.getTable();
+    table.selectCell(TableCell.row(1).column(2));
+
+    String data = "app_name\tapp_name_en\n" +
+                  "cancel\tcancel_en\n";
+
+    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(data), EmptyClipboardOwner.INSTANCE);
+
+    KeyStroke keyStroke = getKeyStroke(table.target().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT), "paste");
+    table.pressAndReleaseKey(KeyPressInfo.keyCode(keyStroke.getKeyCode()).modifiers(keyStroke.getModifiers()));
+
+    assertEquals("app_name", table.valueAt(TableCell.row(1).column(2)));
+    assertEquals("app_name_en", table.valueAt(TableCell.row(1).column(3)));
+    assertEquals("cancel", table.valueAt(TableCell.row(2).column(2)));
+    assertEquals("cancel_en", table.valueAt(TableCell.row(2).column(3)));
+  }
+
   @NotNull
   private static KeyStroke getKeyStroke(@NotNull InputMap inputMap, @NotNull Object actionMapKey) {
     Optional<KeyStroke> optionalKeyStroke = Arrays.stream(inputMap.allKeys())
