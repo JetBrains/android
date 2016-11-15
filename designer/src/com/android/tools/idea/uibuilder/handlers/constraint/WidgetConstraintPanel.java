@@ -33,6 +33,8 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
 
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+
 /**
  * UI component for Constraint Inspector
  */
@@ -226,6 +228,14 @@ public class WidgetConstraintPanel extends JPanel {
       mWidget = widget;
       configureUI();
     }
+  }
+
+  public boolean isApplicable() {
+    if (mComponent == null) {
+      return false;
+    }
+    NlComponent parent = mComponent.getParent();
+    return parent != null && parent.isOrHasSuperclass(CONSTRAINT_LAYOUT);
   }
 
   /**
