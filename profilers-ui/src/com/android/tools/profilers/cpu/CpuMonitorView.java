@@ -49,7 +49,7 @@ public class CpuMonitorView extends ProfilerMonitorView {
     label.setBorder(LABEL_PADDING);
     final Dimension labelSize = label.getPreferredSize();
 
-    RangedContinuousSeries usage = myMonitor.getCpuUsage();
+    RangedContinuousSeries usage = myMonitor.getCpuUsage(false);
     AxisComponent.Builder builder = new AxisComponent.Builder(usage.getYRange(), CPU_USAGE_AXIS,
                                                               AxisComponent.AxisOrientation.RIGHT)
       .showAxisLine(false)

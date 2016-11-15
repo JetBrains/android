@@ -23,5 +23,11 @@ public class ProfilerColors {
 
   public static final Color CPU_USAGE = new JBColor(0x62C88E, 0x62C88E);
 
-  public static final Color TOTAL_MEMORY = new JBColor(0x62b7df, 0x62b7df);
+  public static final Color TOTAL_MEMORY = new JBColor(0x62B7DF, 0x62B7DF);
+
+  public static final Color CPU_OTHER_USAGE = new JBColor(0xDFE6EE, 0xDFE6EE);
+
+  public static final Color MONITOR_BACKGROUND = JBColor.background();
+
+  public static final Color MONITOR_BORDER = new JBColor(0xC9C9C9, 0xC9C9C9);
 }

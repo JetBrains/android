@@ -29,8 +29,8 @@ public class NetworkProfiler extends StudioProfiler {
   }
 
   @Override
-  public ProfilerMonitor newMonitor(int processId) {
-    return new NetworkMonitor(myProfilers, processId);
+  public ProfilerMonitor newMonitor() {
+    return new NetworkMonitor(myProfilers);
   }
 
   @Override

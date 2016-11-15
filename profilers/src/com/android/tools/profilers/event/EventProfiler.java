@@ -23,14 +23,14 @@ import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
-public class EventProfiler extends StudioProfiler{
+public class EventProfiler extends StudioProfiler {
   public EventProfiler(@NotNull StudioProfilers profilers) {
     super(profilers);
   }
 
   @Override
-  public ProfilerMonitor newMonitor(int processId) {
-    return new EventMonitor(myProfilers, processId);
+  public ProfilerMonitor newMonitor() {
+    return new EventMonitor(myProfilers);
   }
 
   @Override
