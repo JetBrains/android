@@ -19,6 +19,7 @@ import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.SimpleEventComponent;
 import com.android.tools.adtui.StackedEventComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.profilers.ProfilerMonitorView;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,13 +58,15 @@ public class EventMonitorView extends ProfilerMonitorView {
     c.gridy = 0;
     c.weightx = 1.0;
     c.weighty = 0.5;
-    SimpleEventComponent<EventActionType> events = new SimpleEventComponent<>(myMonitor.getSimpleEvents(), ICONS);
+    SimpleEventComponent<EventActionType> events =
+      new SimpleEventComponent<>(new RangedSeries<>(myMonitor.getViewRange(), myMonitor.getSimpleEvents()), ICONS);
     panel.add(events, c);
     choreographer.register(events);
 
     c.gridy = 1;
     c.weighty = 0.5;
-    StackedEventComponent activities = new StackedEventComponent(myMonitor.getActivityEvents(), ACTIVITY_GRAPH_HEIGHT);
+    StackedEventComponent activities =
+      new StackedEventComponent(new RangedSeries<>(myMonitor.getViewRange(), myMonitor.getActivityEvents()), ACTIVITY_GRAPH_HEIGHT);
     panel.add(activities, c);
     choreographer.register(activities);
     container.add(panel, BorderLayout.CENTER);

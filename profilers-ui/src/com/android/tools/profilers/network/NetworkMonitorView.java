@@ -20,6 +20,7 @@ import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.NetworkTrafficFormatter;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profilers.ProfilerMonitorView;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +49,8 @@ public class NetworkMonitorView extends ProfilerMonitorView {
     label.setBorder(LABEL_PADDING);
     final Dimension labelSize = label.getPreferredSize();
 
-    AxisComponent.Builder builder = new AxisComponent.Builder(myMonitor.getYRange(), BANDWIDTH_AXIS_FORMATTER_L1,
+    Range leftYRange = new Range();
+    AxisComponent.Builder builder = new AxisComponent.Builder(leftYRange, BANDWIDTH_AXIS_FORMATTER_L1,
                                                               AxisComponent.AxisOrientation.RIGHT)
       .showAxisLine(false)
       .showMax(true)
@@ -58,8 +60,14 @@ public class NetworkMonitorView extends ProfilerMonitorView {
     final AxisComponent leftAxis = builder.build();
 
     final LineChart lineChart = new LineChart();
-    lineChart.addLine(myMonitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED));
-    lineChart.addLine(myMonitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_SENT));
+    lineChart.addLine(new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getLabel(),
+                                                 myMonitor.getViewRange(),
+                                                 leftYRange,
+                                                 myMonitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED)));
+    lineChart.addLine(new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_SENT.getLabel(),
+                                                 myMonitor.getViewRange(),
+                                                 leftYRange,
+                                                 myMonitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_SENT)));
     lineChart.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {

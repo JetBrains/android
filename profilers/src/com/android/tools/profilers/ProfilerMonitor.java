@@ -15,10 +15,25 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.model.Range;
+import org.jetbrains.annotations.NotNull;
+
 /**
  * A component of the StudioMonitor stage. This represents the part of each profiler that is shown
  * when monitoring an app (aka L1).
  */
 public abstract class ProfilerMonitor {
+  @NotNull
+  protected final StudioProfilers myProfilers;
+
+  public ProfilerMonitor(@NotNull StudioProfilers profilers) {
+    myProfilers = profilers;
+  }
+
+  @NotNull
+  public final Range getViewRange() {
+    return myProfilers.getViewRange();
+  }
+
   abstract public String getName();
 }
