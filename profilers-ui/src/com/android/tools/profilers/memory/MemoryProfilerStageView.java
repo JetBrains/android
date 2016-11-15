@@ -17,6 +17,8 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profilers.StageView;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,7 +48,15 @@ public class MemoryProfilerStageView extends StageView {
     myComponent.add(toolBar, BorderLayout.PAGE_START);
 
     LineChart lineChart = new LineChart();
-    lineChart.addLines(stage.getRangedSeries());
+    Range leftYRange = new Range();
+    Range viewRange = stage.getStudioProfilers().getViewRange();
+    // TODO set proper colors.
+    lineChart.addLine(new RangedContinuousSeries("Java", viewRange, leftYRange, stage.getJavaMemory()));
+    lineChart.addLine(new RangedContinuousSeries("Native", viewRange, leftYRange, stage.getNativeMemory()));
+    lineChart.addLine(new RangedContinuousSeries("Graphics", viewRange, leftYRange, stage.getGraphicsMemory()));
+    lineChart.addLine(new RangedContinuousSeries("Stack", viewRange, leftYRange, stage.getStackMemory()));
+    lineChart.addLine(new RangedContinuousSeries("Code", viewRange, leftYRange, stage.getCodeMemory()));
+    lineChart.addLine(new RangedContinuousSeries("Others", viewRange, leftYRange, stage.getOthersMemory()));
     myChoreographer.register(lineChart);
 
     myComponent.add(lineChart, BorderLayout.CENTER);

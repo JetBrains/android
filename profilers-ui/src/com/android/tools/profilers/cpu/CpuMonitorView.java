@@ -20,6 +20,7 @@ import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitorView;
@@ -49,8 +50,9 @@ public class CpuMonitorView extends ProfilerMonitorView {
     label.setBorder(LABEL_PADDING);
     final Dimension labelSize = label.getPreferredSize();
 
-    RangedContinuousSeries usage = myMonitor.getCpuUsage(false);
-    AxisComponent.Builder builder = new AxisComponent.Builder(usage.getYRange(), CPU_USAGE_AXIS,
+    // Cpu usage is shown as percentages (e.g. 0 - 100) and no range animation is needed.
+    Range leftYRange = new Range(0, 100);
+    AxisComponent.Builder builder = new AxisComponent.Builder(leftYRange, CPU_USAGE_AXIS,
                                                               AxisComponent.AxisOrientation.RIGHT)
       .showAxisLine(false)
       .showMax(true)
@@ -61,7 +63,8 @@ public class CpuMonitorView extends ProfilerMonitorView {
     final AxisComponent leftAxis = builder.build();
 
     final LineChart lineChart = new LineChart();
-    lineChart.addLine(usage, new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true));
+    lineChart.addLine(new RangedContinuousSeries("CPU", myMonitor.getViewRange(), leftYRange, myMonitor.getCpuUsage(false)),
+                      new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true));
     lineChart.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
