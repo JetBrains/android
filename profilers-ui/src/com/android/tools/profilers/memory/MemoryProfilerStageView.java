@@ -24,7 +24,6 @@ import javax.swing.*;
 import java.awt.*;
 
 public class MemoryProfilerStageView extends StageView {
-  private static final int CHOREOGRAPHER_FPS = 60;
 
   @NotNull
   private final Choreographer myChoreographer;
@@ -37,7 +36,7 @@ public class MemoryProfilerStageView extends StageView {
 
     myComponent = new JPanel(new BorderLayout());
 
-    myChoreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
+    myChoreographer = new Choreographer(myComponent);
 
     JToolBar toolBar = new JToolBar();
     JButton backButton = new JButton("Go back");

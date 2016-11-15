@@ -28,8 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 
-import static com.android.tools.profilers.StudioMonitorStageView.CHOREOGRAPHER_FPS;
-
 public class CpuProfilerStageView extends StageView {
 
   private final JPanel myComponent;
@@ -45,7 +43,7 @@ public class CpuProfilerStageView extends StageView {
 
     myComponent = new JPanel(new GridBagLayout());
     myComponent.setBackground(ProfilerColors.MONITOR_BACKGROUND);
-    Choreographer choreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
+    Choreographer choreographer = new Choreographer(myComponent);
 
     JComponent eventsComponent = eventsView.initialize(choreographer);
 
