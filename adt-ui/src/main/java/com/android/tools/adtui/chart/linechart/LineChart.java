@@ -17,6 +17,7 @@
 package com.android.tools.adtui.chart.linechart;
 
 import com.android.tools.adtui.AnimatedComponent;
+import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.common.datareducer.DataReducer;
 import com.android.tools.adtui.common.datareducer.LineChartReducer;
 import com.android.tools.adtui.model.*;
@@ -154,8 +155,6 @@ public class LineChart extends AnimatedComponent {
       double yMax = Double.MIN_VALUE;
 
       ImmutableList<SeriesData<Long>> seriesList = ranged.getSeries();
-      // TODO Think about if SeriesDataStore should store a Max/min value for each datatype.
-      // Leaving this here for now to keep the DataStore API set to a minimum.
       for(int i = 0; i < seriesList.size(); i++) {
         double value = seriesList.get(i).value;
         if (yMax < value) {
@@ -169,13 +168,10 @@ public class LineChart extends AnimatedComponent {
 
     for (Map.Entry<Range, Double> entry : max.entrySet()) {
       Range range = entry.getKey();
-      // Prevent the LineChart to update the range below its initial max. We are only check against the initial max here as the
-      // AxisComponent can interact with the range and clamp to a higher max value (See AxisComponent.setClampToMajorTicks(boolean)).
-      // In each pass, the LineChart needs to reset the max target according to the data, so the AxisComponent can apply the clamping logic
-      // using the current data max instead of the clamped max from the previous pass.
-      if (range.getInitialMax() < entry.getValue()) {
-        // TODO revisit how to animate.
-        range.setMax(entry.getValue());
+      // Prevent the LineChart to update the range below its current max.
+      if (range.getMax() < entry.getValue()) {
+        range.setMax(Choreographer.lerp(range.getMax(), entry.getValue(), DEFAULT_LERP_FRACTION, mFrameLength,
+                                        (float)(entry.getValue() * DEFAULT_LERP_THRESHOLD_PERCENTAGE)));
       }
     }
   }
