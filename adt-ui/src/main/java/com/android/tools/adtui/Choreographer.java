@@ -32,8 +32,9 @@ import java.util.List;
  */
 public class Choreographer implements ActionListener {
 
+  private static final int DEFAULT_FPS = 60;
   private static final float NANOSECONDS_IN_SECOND = 1000000000.0f;
-  private static final float DEFAULT_FRAME_LENGTH = 1.0f / 60.0f;
+  private static final float DEFAULT_FRAME_LENGTH = 1.0f / DEFAULT_FPS;
 
   private final List<Animatable> mComponents;
   private final Timer mTimer;
@@ -61,6 +62,10 @@ public class Choreographer implements ActionListener {
     mUpdate = true;
     mTimer = new Timer(1000 / fps, this);
     mTimer.start();
+  }
+
+  public Choreographer(@NotNull JComponent parent) {
+    this(DEFAULT_FPS, parent);
   }
 
   public void register(Animatable animatable) {
