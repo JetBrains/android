@@ -15,8 +15,6 @@
  */
 package com.android.tools.profilers.event;
 
-import com.android.tools.adtui.model.EventAction;
-import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
@@ -24,11 +22,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class EventMonitor extends ProfilerMonitor {
 
-  @NotNull
-  private final StudioProfilers myProfilers;
-
   public EventMonitor(@NotNull StudioProfilers profilers) {
-    myProfilers = profilers;
+    super(profilers);
   }
 
   @Override
@@ -37,15 +32,13 @@ public class EventMonitor extends ProfilerMonitor {
   }
 
   @NotNull
-  public RangedSeries<EventAction<EventAction.Action, EventActionType>> getSimpleEvents() {
-    SimpleEventDataSeries series = new SimpleEventDataSeries(myProfilers.getClient(), myProfilers.getProcessId());
-    return new RangedSeries<>(myProfilers.getViewRange(), series);
+  public SimpleEventDataSeries getSimpleEvents() {
+    return new SimpleEventDataSeries(myProfilers.getClient(), myProfilers.getProcessId());
   }
 
   @NotNull
-  public RangedSeries<EventAction<EventAction.ActivityAction, String>> getActivityEvents() {
-    ActivityEventDataSeries series = new ActivityEventDataSeries(myProfilers.getClient(), myProfilers.getProcessId());
-    return new RangedSeries<>(myProfilers.getViewRange(), series);
+  public ActivityEventDataSeries getActivityEvents() {
+    return new ActivityEventDataSeries(myProfilers.getClient(), myProfilers.getProcessId());
   }
 
   public void expand() {
