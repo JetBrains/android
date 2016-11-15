@@ -270,12 +270,17 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   }
 
   @NotNull
+  protected static Table<String, String, NlPropertyItem> getPropertyTable(@NotNull List<NlComponent> components) {
+    NlProperties propertiesProvider = NlProperties.getInstance();
+    return propertiesProvider.getProperties(components);
+  }
+
+  @NotNull
   protected static Map<String, NlProperty> getPropertyMap(@NotNull List<NlComponent> components) {
     if (components.isEmpty()) {
       return Collections.emptyMap();
     }
-    NlProperties propertiesProvider = NlProperties.getInstance();
-    Table<String, String, NlPropertyItem> properties = propertiesProvider.getProperties(components);
+    Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
     Map<String, NlProperty> propertiesByName = new HashMap<>();
     for (NlProperty property : properties.row(ANDROID_URI).values()) {
       propertiesByName.put(property.getName(), property);
