@@ -76,7 +76,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   @NotNull
   public NlPropertyInspectorFixture getPropertyInspector() {
     if (myPropertyFixture == null) {
-      myPropertyFixture = new NlPropertyInspectorFixture(robot(), myFrame, NlPropertyInspectorFixture.create(robot()));
+      myPropertyFixture = new NlPropertyInspectorFixture(robot(), NlPropertyInspectorFixture.create(robot()));
     }
     return myPropertyFixture;
   }
