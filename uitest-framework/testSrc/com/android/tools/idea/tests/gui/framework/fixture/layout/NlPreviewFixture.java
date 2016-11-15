@@ -25,9 +25,9 @@ import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.impl.AnchoredButton;
 import org.fest.swing.core.ComponentDragAndDrop;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.ComponentLookupException;
+import org.fest.swing.fixture.JToggleButtonFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -62,12 +62,7 @@ public class NlPreviewFixture extends ToolWindowFixture {
     try {
       myRobot.finder().findByName("Palette Tree", JTree.class, true);
     } catch (ComponentLookupException e) {
-      myRobot.click(myRobot.finder().find(new GenericTypeMatcher<AnchoredButton>(AnchoredButton.class) {
-        @Override
-        protected boolean isMatching(@NotNull AnchoredButton component) {
-          return component.isShowing() && "Palette".equals(component.getText());
-        }
-      }));
+      new JToggleButtonFixture(myRobot, GuiTests.waitUntilShowing(myRobot, Matchers.byText(AnchoredButton.class, "Palette"))).click();
     }
 
     return this;
