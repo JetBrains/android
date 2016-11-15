@@ -70,5 +70,10 @@ iml_module(
         "//tools/adt/idea/perfd-host:perfd-host[module, test]",
         "//tools:idea.junit[module, test]",
         "//tools/adt/idea/profilers:profilers[module, test]",
+        "//tools/adt/idea/android-test-framework:android-test-framework[module, test]",
+        "//tools/adt/idea:android/lib/jsr305-1.3.9",
+        "//tools/analytics-library:analytics-shared[module, test]",
+        "//tools/analytics-library:analytics-testing[module, test]",
+        "//tools/analytics-library:analytics-tracker[module, test]",
     ],
 )
