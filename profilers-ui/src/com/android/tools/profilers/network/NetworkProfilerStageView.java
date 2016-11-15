@@ -43,17 +43,6 @@ public class NetworkProfilerStageView extends StageView {
       .onChange(NetworkProfilerAspect.CONNECTION, this::updateConnection);
 
     JPanel top = new JPanel();
-    top.add(new JLabel("TODO: Network profiler"));
-    JButton button = new JButton("Go back");
-    button.addActionListener(action -> {
-      StudioProfilers profilers = getStage().getStudioProfilers();
-      StudioMonitorStage monitor = new StudioMonitorStage(profilers);
-      profilers.setStage(monitor);
-    });
-    top.add(button);
-    button = new JButton("Open details pane");
-    button.addActionListener(action -> myStage.setEnableConnectionData(!myStage.isConnectionDataEnabled()));
-    top.add(button);
 
     myComponent = new Splitter(false);
 
@@ -108,7 +97,19 @@ public class NetworkProfilerStageView extends StageView {
 
   @Override
   public JComponent getToolbar() {
-    // TODO Add network profiler toolbar elements.
-    return new JPanel();
+    // TODO Replace with real network profiler toolbar elements. The following buttons are debug only.
+    JPanel toolbar = new JPanel();
+    JButton button = new JButton("<-");
+    button.addActionListener(action -> {
+      StudioProfilers profilers = getStage().getStudioProfilers();
+      StudioMonitorStage monitor = new StudioMonitorStage(profilers);
+      profilers.setStage(monitor);
+    });
+    toolbar.add(button);
+    button = new JButton("Open details pane");
+    button.addActionListener(action -> myStage.setEnableConnectionData(!myStage.isConnectionDataEnabled()));
+    toolbar.add(button);
+
+    return toolbar;
   }
 }
