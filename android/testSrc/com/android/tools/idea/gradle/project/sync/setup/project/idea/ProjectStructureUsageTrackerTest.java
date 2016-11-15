@@ -50,6 +50,7 @@ import org.jetbrains.android.facet.AndroidFacetType;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -64,6 +65,7 @@ import static org.junit.Assert.assertNull;
 /**
  * Tests for {@link ProjectStructureUsageTracker}.
  */
+@Ignore    // Seems to be putting things into a persistent bad state. http://b.android.com/227704
 public class ProjectStructureUsageTrackerTest {
 
   // Used to test the scheduling of usage tracking.
