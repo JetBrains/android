@@ -5,28 +5,6 @@ iml_module(
     srcs = ["src"],
     resources = ["resources"],
     tags = ["managed"],
-    test_class = "com.android.tools.idea.DesignerTestSuite",
-    test_data = [
-        "//tools/adt/idea:testFiles",
-        "//tools:idea/java/jdkAnnotations",
-        "//tools/base/templates",
-        "//prebuilts/studio/jdk",
-        "//prebuilts/studio/sdk:build-tools/25.0.0",  # TODO: remove after build-tools update in tools/base/bazel/sdk/prebuilts.studio.sdk.BUILD
-        "//prebuilts/studio/sdk:build-tools/latest",
-        "//prebuilts/studio/sdk:licenses",
-        "//prebuilts/studio/sdk:platforms/latest",
-        "//prebuilts/studio/layoutlib:buildprop",
-        "//prebuilts/studio/layoutlib:data/fonts",
-        "//prebuilts/studio/layoutlib:data/res",
-    ] + glob([
-        "testData/**",
-    ]),
-    test_resources = ["testData"],
-    test_runtime_deps = [
-        "//tools/adt/idea/adt-branding",
-    ],
-    test_srcs = ["testSrc"],
-    test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -47,9 +25,5 @@ iml_module(
         "//tools:idea.java-indexing-api[module]",
         "//tools/base/asset-studio:studio.assetstudio[module]",
         "//tools/adt/idea/adt-ui:adt-ui[module]",
-        "//tools/idea/.idea/libraries:truth",
-        "//tools/idea/.idea/libraries:mockito",
-        "//tools:idea.compiler-impl_and_others[module]",
-        "//tools/base/testutils:studio.testutils[module, test]",
     ],
 )
