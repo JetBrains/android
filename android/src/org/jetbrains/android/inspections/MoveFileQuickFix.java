@@ -56,6 +56,11 @@ public class MoveFileQuickFix implements LocalQuickFix {
   }
 
   @Override
+  public boolean startInWriteAction() {
+    return false;
+  }
+
+  @Override
   public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
     final XmlFile xmlFile = myFile.getElement();
     if (xmlFile == null) {

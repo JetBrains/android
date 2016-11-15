@@ -65,6 +65,11 @@ public class CreateMissingClassQuickFix implements LocalQuickFix {
     myBaseClassFqcn = baseClassFqcn;
   }
 
+  @Override
+  public boolean startInWriteAction() {
+    return false;
+  }
+
   @Nls
   @NotNull
   @Override
