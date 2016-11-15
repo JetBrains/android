@@ -31,7 +31,7 @@ import static com.intellij.openapi.externalSystem.model.ProjectKeys.LIBRARY_DEPE
  * <ol>
  * <li>{@link GradleModuleModelDataService}</li>
  * <li>{@link NdkModuleModelDataService}</li>
- * <li>{@link AndroidGradleModelDataService}</li>
+ * <li>{@link AndroidModuleModelDataService}</li>
  * <li>{@link JavaModuleModelDataService}</li>
  * <li>{@link ProjectCleanupDataService}</li>
  * </ol>
@@ -41,7 +41,7 @@ import static com.intellij.openapi.externalSystem.model.ProjectKeys.LIBRARY_DEPE
  * each project module. This path is necessary when setting up inter-module dependencies.
  * <br/>
  * The reason for having {@link NdkModuleModelDataService} before
- * {@link AndroidGradleModelDataService} is to give more precedence to the jni sources reported in
+ * {@link AndroidModuleModelDataService} is to give more precedence to the jni sources reported in
  * {@link NdkModuleModel} than the ones reported in {@link AndroidModuleModel}. This is required because for a hybrid module,
  * both the models can contain jni sources information when using the latest Gradle plugin, but only {@link AndroidModuleModel} is provided
  * with the older plugin versions. Due to that we always use the information in {@link NdkModuleModel} when available and

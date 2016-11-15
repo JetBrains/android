@@ -48,7 +48,7 @@ public class NdkModuleNode extends ProjectViewModuleNode {
     NativeAndroidProject nativeAndroidProject = ndkModuleModel.getAndroidProject();
     Collection<String> sourceFileExtensions = nativeAndroidProject.getFileExtensions().keySet();
 
-    NdkModuleModel.NativeVariant variant = ndkModuleModel.getSelectedVariant();
+    NdkModuleModel.NdkVariant variant = ndkModuleModel.getSelectedVariant();
     Multimap<String, NativeArtifact> nativeLibraries = HashMultimap.create();
     for (NativeArtifact artifact : variant.getArtifacts()) {
       String artifactOutputFileName = artifact.getOutputFile().getName();

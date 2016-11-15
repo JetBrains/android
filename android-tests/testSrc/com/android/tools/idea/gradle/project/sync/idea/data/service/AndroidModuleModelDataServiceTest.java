@@ -36,15 +36,15 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * Tests for {@link AndroidGradleModelDataService}.
+ * Tests for {@link AndroidModuleModelDataService}.
  */
-public class AndroidGradleModelDataServiceTest extends AndroidGradleTestCase {
+public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
   @Mock private AndroidModuleSetup myModuleSetup;
   @Mock private AndroidModuleValidator myValidator;
   @Mock private PostSyncProjectSetupStep myProjectSetupStep1;
   @Mock private PostSyncProjectSetupStep myProjectSetupStep2;
 
-  private AndroidGradleModelDataService myService;
+  private AndroidModuleModelDataService myService;
 
   @Override
   public void setUp() throws Exception {
@@ -57,7 +57,7 @@ public class AndroidGradleModelDataServiceTest extends AndroidGradleTestCase {
 
     PostSyncProjectSetupStep[] projectSetupSteps = {myProjectSetupStep1, myProjectSetupStep2};
 
-    myService = new AndroidGradleModelDataService(myModuleSetup, validatorFactory, projectSetupSteps);
+    myService = new AndroidModuleModelDataService(myModuleSetup, validatorFactory, projectSetupSteps);
   }
 
   public void testGetTargetDataKey() {
