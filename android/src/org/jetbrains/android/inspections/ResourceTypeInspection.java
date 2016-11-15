@@ -17,8 +17,11 @@
 package org.jetbrains.android.inspections;
 
 import com.android.annotations.NonNull;
+import com.android.builder.model.Dependencies;
+import com.android.builder.model.Variant;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.lint.AddTargetApiQuickFix;
 import com.android.tools.idea.lint.AddTargetVersionCheckQuickFix;
 import com.android.tools.idea.lint.LintIdeJavaParser;
@@ -26,6 +29,7 @@ import com.android.tools.idea.lint.LintIdeUtils;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.lint.checks.*;
+import com.android.tools.lint.checks.SupportAnnotationDetector;
 import com.android.tools.lint.client.api.JavaEvaluator;
 import com.android.tools.lint.detector.api.Issue;
 import com.google.common.base.Joiner;
@@ -3043,7 +3047,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
    * full lint infrastructure. This lets for example the {@linkplain ResourceTypeInspection},
    * an IDE inspection, reuse logic from some of the lint checks.
    */
-  private static class MyLintInspectionBridge implements LintInspectionBridge {
+  private static class MyLintInspectionBridge extends LintInspectionBridge {
     private final PsiElement myElement;
     private final ProblemsHolder myHolder;
     private final JavaEvaluator myEvaluator;
@@ -3076,6 +3080,21 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       return false;
     }
 
+    @Nullable
+    @Override
+    public Dependencies getDependencies() {
+      AndroidFacet facet = AndroidFacet.getInstance(myElement);
+      if (facet != null) {
+        AndroidModuleModel model = AndroidModuleModel.get(facet);
+        if (model != null) {
+          Variant variant = model.getSelectedVariant();
+          return variant.getMainArtifact().getDependencies();
+        }
+      }
+      return null;
+    }
+
+    @NotNull
     @Override
     public JavaEvaluator getEvaluator() {
       return myEvaluator;
