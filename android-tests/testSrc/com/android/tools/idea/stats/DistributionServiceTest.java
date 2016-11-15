@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.stats;
 
-import com.android.testutils.TestResources;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.Pair;
@@ -43,7 +42,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 
 public class DistributionServiceTest extends AndroidTestCase {
-  private static final String DISTRIBUTION_FILE_NAME = "testDistributions.json";
+  private static final String DISTRIBUTION_PATH = "stats";
+  private static final String DISTRIBUTION_FILE = new File(DISTRIBUTION_PATH, "testDistributions.json").getPath();
   private static final File CACHE_PATH = new File(PathManager.getTempPath(), "distributionServiceTest");
 
   private URL myDistributionFileUrl;
@@ -54,9 +54,9 @@ public class DistributionServiceTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myDistributionFile = TestResources.getFile(getClass(), DISTRIBUTION_FILE_NAME);
+    myDistributionFile = new File(myFixture.getTestDataPath(), DISTRIBUTION_FILE);
     myDistributionFileUrl = myDistributionFile.toURI().toURL();
-    myDescription = new DownloadableFileDescriptionImpl(myDistributionFileUrl.toString(), DISTRIBUTION_FILE_NAME, "json");
+    myDescription = new DownloadableFileDescriptionImpl(myDistributionFileUrl.toString(), DISTRIBUTION_FILE, "json");
 
     File[] files = CACHE_PATH.listFiles();
     if (files != null) {
@@ -109,18 +109,15 @@ public class DistributionServiceTest extends AndroidTestCase {
       }
     });
     final DistributionService service = new DistributionService(downloader, CACHE_PATH, myDistributionFileUrl);
-    service.refresh(new Runnable() {
-      @Override
-      public void run() {
-        service.getSupportedDistributionForApiLevel(19);
-        service.getDistributionForApiLevel(21);
+    service.refresh(() -> {
+      service.getSupportedDistributionForApiLevel(19);
+      service.getDistributionForApiLevel(21);
 
-        try {
-          Mockito.verify(downloader).download(Matchers.any(File.class));
-        }
-        catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+      try {
+        Mockito.verify(downloader).download(Matchers.any(File.class));
+      }
+      catch (IOException e) {
+        throw new RuntimeException(e);
       }
     }, null);
     s.up();
@@ -144,18 +141,10 @@ public class DistributionServiceTest extends AndroidTestCase {
     });
     DistributionService service = new DistributionService(downloader, CACHE_PATH, myDistributionFileUrl);
     final AtomicBoolean check = new AtomicBoolean(false);
-    service.refresh(new Runnable() {
-      @Override
-      public void run() {
-        check.set(true);
-      }
-    }, null);
-    service.refresh(new Runnable() {
-      @Override
-      public void run() {
-        assertTrue(check.get());
-        s2.up();
-      }
+    service.refresh(() -> check.set(true), null);
+    service.refresh(() -> {
+      assertTrue(check.get());
+      s2.up();
     }, null);
 
     s.up();
@@ -181,17 +170,9 @@ public class DistributionServiceTest extends AndroidTestCase {
 
     DistributionService service = new DistributionService(downloader, CACHE_PATH, myDistributionFileUrl);
     final FutureResult<Boolean> result = new FutureResult<>();
-    service.refresh(new Runnable() {
-      @Override
-      public void run() {
-        assert false;
-      }
-    }, new Runnable() {
-      @Override
-      public void run() {
-        result.set(true);
-      }
-    });
+    service.refresh(() -> {
+      assert false;
+    }, () -> result.set(true));
     assertTrue(result.get(5, TimeUnit.SECONDS));
     assertEquals(0.4, service.getSupportedDistributionForApiLevel(17), 0.001);
   }
@@ -201,14 +182,14 @@ public class DistributionServiceTest extends AndroidTestCase {
    */
   public void testFallbackToPrevious() throws Exception {
     File newFile = new File(CACHE_PATH, "distributions_2.json");
-    FileUtil.copy(TestResources.getFile(getClass(), "testPreviousDistributions.json"), newFile);
+    FileUtil.copy(new File(new File(myFixture.getTestDataPath(), DISTRIBUTION_PATH), "testPreviousDistributions.json"), newFile);
 
     if (!newFile.setLastModified(20000)) {
       fail();
     }
 
     File oldFile = new File(CACHE_PATH, "distributions.json");
-    FileUtil.copy(TestResources.getFile(getClass(), "testPreviousDistributions2.json"), oldFile);
+    FileUtil.copy(new File(new File(myFixture.getTestDataPath(), DISTRIBUTION_PATH), "testPreviousDistributions2.json"), oldFile);
 
     if (!oldFile.setLastModified(10000)) {
       fail();
@@ -218,16 +199,8 @@ public class DistributionServiceTest extends AndroidTestCase {
     Mockito.when(downloader.download(Matchers.any(File.class))).thenThrow(new RuntimeException("expected exception"));
     DistributionService service = new DistributionService(downloader, CACHE_PATH, myDistributionFileUrl);
     final FutureResult<Boolean> result = new FutureResult<>();
-    service.refresh(new Runnable() {
-      @Override
-      public void run() {
-        result.set(true);
-      }
-    }, new Runnable() {
-      @Override
-      public void run() {
-        assert false;
-      }
+    service.refresh(() -> result.set(true), () -> {
+      assert false;
     });
     assertTrue(result.get(5, TimeUnit.SECONDS));
     assertEquals(.3, service.getSupportedDistributionForApiLevel(16), 0.0001);
