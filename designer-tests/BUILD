@@ -18,6 +18,7 @@ iml_module(
     ] + glob([
         "testData/**",
     ]),
+    test_resources = ["testData"],
     test_runtime_deps = [
         "//tools/adt/idea/adt-branding",
     ],
@@ -25,12 +26,12 @@ iml_module(
     test_timeout = "long",
     # do not sort: must match IML order
     deps = [
-        "//tools:idea.platform-impl_and_others[module, test]",
+        "//tools:idea.platform-impl_and_others[module]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/designer:designer[module, test]",
         "//tools/adt/idea:android[module, test]",
         "//tools:idea.xml-psi-api[module, test]",
-        "//tools:idea.compiler-impl_and_others[module, test]",
+        "//tools:idea.compiler-impl_and_others[module]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools:idea.lang-api[module, test]",
         "//tools/idea/.idea/libraries:layoutlib[test]",
