@@ -18,6 +18,8 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilers;
@@ -47,11 +49,12 @@ public class CpuProfilerStageView extends StageView {
 
     JComponent eventsComponent = eventsView.initialize(choreographer);
 
+    Range leftYRange = new Range(0, 100);
     LineChart lineChart = new LineChart();
-    LineConfig config = new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true).setStacked(true);
-    lineChart.addLine(cpu.getCpuUsage(false), config);
-    config = new LineConfig(ProfilerColors.CPU_OTHER_USAGE).setFilled(true).setStacked(true);
-    lineChart.addLine(cpu.getCpuUsage(true), config);
+    lineChart.addLine(new RangedContinuousSeries("App", stage.getStudioProfilers().getViewRange(), leftYRange, cpu.getCpuUsage(false)),
+                      new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true).setStacked(true));
+    lineChart.addLine(new RangedContinuousSeries("Others", stage.getStudioProfilers().getViewRange(), leftYRange, cpu.getCpuUsage(true)),
+                      new LineConfig(ProfilerColors.CPU_OTHER_USAGE).setFilled(true).setStacked(true));
 
     // TODO: Event monitor should be fixed size.
     GridBagConstraints c = new GridBagConstraints();

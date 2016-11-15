@@ -15,9 +15,6 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
@@ -25,25 +22,14 @@ import org.jetbrains.annotations.NotNull;
 
 public class MemoryMonitor extends ProfilerMonitor {
 
-  @NotNull
-  private final StudioProfilers myProfilers;
-
   public MemoryMonitor(@NotNull StudioProfilers profilers) {
-    myProfilers = profilers;
+    super(profilers);
   }
 
   @NotNull
-  public RangedContinuousSeries getTotalMemory() {
+  public MemoryDataSeries getTotalMemory() {
     MemoryServiceGrpc.MemoryServiceBlockingStub client = myProfilers.getClient().getMemoryClient();
-    // TODO fix Range and expose it to Choreographer
-    return new RangedContinuousSeries("Memory", myProfilers.getViewRange(), new Range(),
-                                      new MemoryDataSeries(client, myProfilers.getProcessId()) {
-                                        @Override
-                                        @NotNull
-                                        public Long filterData(@NotNull MemoryProfiler.MemoryData.MemorySample sample) {
-                                          return sample.getTotalMem();
-                                        }
-                                      });
+    return new MemoryDataSeries(client, myProfilers.getProcessId(), sample -> sample.getTotalMem());
   }
 
   @Override

@@ -15,26 +15,21 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
 public class CpuMonitor extends ProfilerMonitor {
-  @NotNull
-  private final StudioProfilers myProfilers;
 
-  public CpuMonitor(StudioProfilers profilers) {
-    myProfilers = profilers;
+  public CpuMonitor(@NotNull StudioProfilers profilers) {
+    super(profilers);
   }
 
   @NotNull
-  public RangedContinuousSeries getCpuUsage(boolean other) {
+  public CpuUsageDataSeries getCpuUsage(boolean other) {
     CpuServiceGrpc.CpuServiceBlockingStub client = myProfilers.getClient().getCpuClient();
-    CpuUsageDataSeries series = new CpuUsageDataSeries(client, other, myProfilers.getProcessId());
-    return new RangedContinuousSeries("CPU", myProfilers.getViewRange(), new Range(0, 100), series);
+    return new CpuUsageDataSeries(client, other, myProfilers.getProcessId());
   }
 
   @Override

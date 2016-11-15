@@ -15,8 +15,6 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
@@ -24,26 +22,14 @@ import org.jetbrains.annotations.NotNull;
 
 public class NetworkMonitor extends ProfilerMonitor {
 
-  @NotNull
-  private final StudioProfilers myProfilers;
-
-  private final Range myYRange = new Range();
-
   public NetworkMonitor(@NotNull StudioProfilers profilers) {
-    myProfilers = profilers;
+    super(profilers);
   }
 
   @NotNull
-  public Range getYRange() {
-    return myYRange;
-  }
-
-  @NotNull
-  public RangedContinuousSeries getSpeedSeries(NetworkTrafficDataSeries.Type trafficType) {
+  public NetworkTrafficDataSeries getSpeedSeries(NetworkTrafficDataSeries.Type trafficType) {
     NetworkServiceGrpc.NetworkServiceBlockingStub client = myProfilers.getClient().getNetworkClient();
-
-    NetworkTrafficDataSeries series = new NetworkTrafficDataSeries(client, myProfilers.getProcessId(), trafficType);
-    return new RangedContinuousSeries(trafficType.getLabel(), myProfilers.getViewRange(), myYRange, series);
+    return new NetworkTrafficDataSeries(client, myProfilers.getProcessId(), trafficType);
   }
 
   @NotNull
