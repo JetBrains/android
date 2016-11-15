@@ -29,8 +29,8 @@ public class CpuProfiler extends StudioProfiler {
   }
 
   @Override
-  public ProfilerMonitor newMonitor(int processId) {
-    return new CpuMonitor(myProfilers, processId);
+  public ProfilerMonitor newMonitor() {
+    return new CpuMonitor(myProfilers);
   }
 
   @Override

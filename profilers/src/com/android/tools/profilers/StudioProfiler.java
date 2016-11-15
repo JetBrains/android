@@ -26,7 +26,7 @@ public abstract class StudioProfiler {
     myProfilers = profilers;
   }
 
-  abstract public ProfilerMonitor newMonitor(int processId);
+  abstract public ProfilerMonitor newMonitor();
 
   public abstract void startProfiling(Profiler.Process process);
 
