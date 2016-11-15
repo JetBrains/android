@@ -381,7 +381,6 @@ iml_module(
         "//tools:idea.bootstrap[module, test]",
         "//tools/adt/idea:android/lib/spantable[test]",
         "//tools/adt/idea/adt-ui:adt-ui[module, test]",
-        "//tools/adt/idea/adt-ui-model:adt-ui-model[module]",
         "//tools/base/rpclib:studio.rpclib[module, test]",
         "//tools/adt/idea/designer:designer[module, test]",
         "//tools/base/testutils:studio.testutils[module, test]",
