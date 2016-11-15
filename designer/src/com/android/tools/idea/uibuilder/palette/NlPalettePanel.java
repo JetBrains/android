@@ -118,6 +118,15 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider, 
   }
 
   @Override
+  public boolean supportsFiltering() {
+    return false;
+  }
+
+  @Override
+  public void setFilter(@NotNull String filter) {
+  }
+
+  @Override
   public void setToolContext(@Nullable DesignSurface designSurface) {
     myPreviewPane.setDesignSurface(designSurface);
     Module module = getModule(designSurface);

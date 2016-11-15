@@ -63,4 +63,14 @@ public interface ToolContent<T> extends Disposable {
    * The tool window system will register a callback for closing a tool window in auto hide mode.
    */
   void registerCloseAutoHideWindow(@NotNull Runnable runnable);
+
+  /**
+   * Returns true if filtering is supported.
+   */
+  boolean supportsFiltering();
+
+  /**
+   * Set a new filter for the content being shown.
+   */
+  void setFilter(@NotNull String filter);
 }
