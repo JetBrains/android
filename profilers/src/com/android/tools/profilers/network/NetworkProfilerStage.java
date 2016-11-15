@@ -48,12 +48,12 @@ public class NetworkProfilerStage extends Stage {
 
   public void setEnableConnectionData(boolean enable) {
     myConnectionDataEnabled = enable;
-    aspect.changed(NetworkProfilerAspect.CONNECTION_DATA);
+    aspect.changed(NetworkProfilerAspect.REQUESTS);
   }
 
   public void setConnectionId(int id) {
     myConnectionId = id;
-    aspect.changed(NetworkProfilerAspect.CONNECTION);
+    aspect.changed(NetworkProfilerAspect.REQUEST_DETAILS);
   }
 
   /**
