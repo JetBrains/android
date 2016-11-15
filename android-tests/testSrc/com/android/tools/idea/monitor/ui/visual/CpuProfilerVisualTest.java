@@ -29,7 +29,7 @@ import com.android.tools.idea.monitor.ui.cpu.view.CpuUsageSegment;
 import com.android.tools.idea.monitor.ui.cpu.view.ThreadsSegment;
 import com.android.tools.idea.monitor.ui.visual.data.TestDataGenerator;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profilers.cpu.ThreadStatesDataModel;
+import com.android.tools.profilers.cpu.ThreadStateDataSeries;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 
@@ -114,11 +114,12 @@ public class CpuProfilerVisualTest extends VisualTest {
   }
 
   private void addThread(String name) {
-    ThreadStatesDataModel threadStatesDataModel = new ThreadStatesDataModel(name, 0);
-    mDataStore.registerAdapter(
-      SeriesDataType.CPU_THREAD_STATE,
-      new ThreadStateTestDataGenerator(),
-      threadStatesDataModel);
+    // TODO: Convert to list model of threads
+    //ThreadStateDataSeries threadStateDataSeries = new ThreadStateDataSeries(name, 0);
+    //mDataStore.registerAdapter(
+    //  SeriesDataType.CPU_THREAD_STATE,
+    //  new ThreadStateTestDataGenerator(),
+    //  threadStateDataSeries);
   }
 
   private static final class ThreadStateTestDataGenerator extends TestDataGenerator<CpuProfiler.ThreadActivity.State> {
