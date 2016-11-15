@@ -90,7 +90,6 @@ public class NlEditorTest {
     assertThat(layoutFileContents).contains("<Button");
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testCopyAndPaste() throws Exception {
     guiTest.importSimpleApplication();
