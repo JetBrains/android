@@ -28,7 +28,7 @@ import com.android.tools.idea.lint.LintIdeRequest;
 import com.android.tools.idea.npw.AssetStudioAssetGenerator;
 import com.android.tools.idea.npw.NewModuleWizardState;
 import com.android.tools.idea.npw.NewProjectWizardState;
-import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
+import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
@@ -1082,7 +1082,7 @@ public class TemplateTest extends AndroidGradleTestCase {
             .withParams(wizardState.myParameters)
             .build();
           projectTemplate.render(projectContext);
-          ConfigureAndroidProjectPath.setGradleWrapperExecutable(projectRoot);
+          AndroidGradleModuleUtils.setGradleWrapperExecutable(projectRoot);
         }
 
         final RenderingContext context = RenderingContext.Builder.newContext(wizardState.myTemplate, project)
