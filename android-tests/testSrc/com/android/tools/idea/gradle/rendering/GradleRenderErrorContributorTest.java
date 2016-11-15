@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
-import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.testing.IdeComponents;
@@ -31,6 +30,7 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.mock.MockPsiFile;
 import com.intellij.mock.MockPsiManager;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -90,9 +90,10 @@ public class GradleRenderErrorContributorTest extends IdeaTestCase {
 
   private RenderResult createResultWithBrokenClass() {
     PsiFile file = new MockPsiFile(new MockPsiManager(myProject));
-    RenderLogger logger = new RenderLogger(null, myModule);
-    logger.addBrokenClass("com.google.Class", new Exception());
-    return RenderResult.createBlank(file);
+    file.putUserData(ModuleUtilCore.KEY_MODULE, myModule);
+    RenderResult result = RenderResult.createBlank(file);
+    result.getLogger().addBrokenClass("com.google.Class", new Exception());
+    return result;
   }
 
   private void setUpAndroidFacetWithGradleModelWithIssue() {
