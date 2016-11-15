@@ -91,7 +91,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     mTimeAxis = builder.build();
 
     // left memory data + axis
-    AnimatedRange yRange1Animatable = new AnimatedRange(0, 100);
+    Range yRange1Animatable = new Range(0, 100);
     builder = new AxisComponent.Builder(yRange1Animatable, MemoryAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.LEFT)
       .setLabel(SERIES1_LABEL)
       .showMax(true)
@@ -105,7 +105,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     mData.add(series1);
 
     // right memory data + axis
-    AnimatedRange yRange2Animatable = new AnimatedRange(0, 100);
+    Range yRange2Animatable = new Range(0, 100);
     builder = new AxisComponent.Builder(yRange2Animatable, MemoryAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.RIGHT)
       .setLabel(SERIES2_LABEL)
       .showMax(true)
@@ -146,8 +146,6 @@ public class AxisLineChartVisualTest extends VisualTest {
                          mMemoryAxis1, // Clamp/interpolate ranges to major ticks if enabled.
                          mMemoryAxis2, // Sync with mMemoryAxis1 if enabled.
                          mTimeAxis, // Read ranges.
-                         yRange1Animatable, // Interpolate y1.
-                         yRange2Animatable, // Interpolate y2.
                          mGrid, // No-op.
                          timeSelectionRangeUs,
                          mLegendComponent); // Reset flags.
