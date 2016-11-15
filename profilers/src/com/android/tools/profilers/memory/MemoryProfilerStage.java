@@ -45,7 +45,7 @@ public class MemoryProfilerStage extends Stage {
   @Override
   public void enter() {
     Range xRange = getStudioProfilers().getViewRange();
-    myRangedSeries = Arrays.asList(new RangedContinuousSeries("Java", xRange, new Range(0, 1024*1024),
+    myRangedSeries = Arrays.asList(new RangedContinuousSeries("Java", xRange, new Range(),
                                                               new MemoryDataSeries(myClient, myProcessId) {
                                                                 @Override
                                                                 @NotNull
@@ -53,7 +53,7 @@ public class MemoryProfilerStage extends Stage {
                                                                   return sample.getJavaMem();
                                                                 }
                                                               }),
-                                   new RangedContinuousSeries("Native", xRange, new Range(0, 1024*1024),
+                                   new RangedContinuousSeries("Native", xRange, new Range(),
                                                               new MemoryDataSeries(myClient, myProcessId) {
                                                                 @NotNull
                                                                 @Override
@@ -61,7 +61,7 @@ public class MemoryProfilerStage extends Stage {
                                                                   return sample.getNativeMem();
                                                                 }
                                                               }),
-                                   new RangedContinuousSeries("Graphics", xRange, new Range(0, 1024*1024),
+                                   new RangedContinuousSeries("Graphics", xRange, new Range(),
                                                               new MemoryDataSeries(myClient, myProcessId) {
                                                                 @NotNull
                                                                 @Override
@@ -69,7 +69,7 @@ public class MemoryProfilerStage extends Stage {
                                                                   return sample.getGraphicsMem();
                                                                 }
                                                               }),
-                                   new RangedContinuousSeries("Stack", xRange, new Range(0, 1024*1024),
+                                   new RangedContinuousSeries("Stack", xRange, new Range(),
                                                               new MemoryDataSeries(myClient, myProcessId) {
                                                                 @NotNull
                                                                 @Override
@@ -77,7 +77,7 @@ public class MemoryProfilerStage extends Stage {
                                                                   return sample.getStackMem();
                                                                 }
                                                               }),
-                                   new RangedContinuousSeries("Code", xRange, new Range(0, 1024*1024),
+                                   new RangedContinuousSeries("Code", xRange, new Range(),
                                                               new MemoryDataSeries(myClient, myProcessId) {
                                                                 @NotNull
                                                                 @Override
@@ -85,7 +85,7 @@ public class MemoryProfilerStage extends Stage {
                                                                   return sample.getCodeMem();
                                                                 }
                                                               }),
-                                   new RangedContinuousSeries("Other", xRange, new Range(0, 1024*1024),
+                                   new RangedContinuousSeries("Other", xRange, new Range(),
                                                               new MemoryDataSeries(myClient, myProcessId) {
                                                                 @NotNull
                                                                 @Override

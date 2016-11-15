@@ -72,11 +72,10 @@ public class LineChartVisualTest extends VisualTest {
     componentsList.add(mAnimatedTimeRange);
     componentsList.add(mLineChart);
 
-    AnimatedRange yRange = new AnimatedRange(0.0, 100.0);
+    Range yRange = new Range(0.0, 100.0);
     for (int i = 0; i < 4; i++) {
       if (i % 2 == 0) {
-        yRange = new AnimatedRange(0.0, 100.0);
-        componentsList.add(yRange);
+        yRange = new Range(0.0, 100.0);
       }
       DefaultDataSeries<Long> series = new DefaultDataSeries<>();
       RangedContinuousSeries ranged =

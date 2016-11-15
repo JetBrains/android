@@ -20,6 +20,7 @@ import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.NetworkTrafficFormatter;
+import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profilers.ProfilerMonitorView;
 import org.jetbrains.annotations.NotNull;
 
@@ -56,7 +57,6 @@ public class NetworkMonitorView extends ProfilerMonitorView {
       .clampToMajorTicks(true).setMargins(0, labelSize.height);
     final AxisComponent leftAxis = builder.build();
 
-    // TODO handle multiple series.
     final LineChart lineChart = new LineChart();
     lineChart.addLine(myMonitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED));
     lineChart.addLine(myMonitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_SENT));

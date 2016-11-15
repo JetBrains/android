@@ -18,15 +18,13 @@ package com.android.tools.adtui.model;
 
 public class Range  {
 
-  private double myInitMax;
-
   protected double myCurrentMin;
 
   protected double myCurrentMax;
 
   public Range(double min, double max) {
     myCurrentMin = min;
-    myInitMax = myCurrentMax = max;
+    myCurrentMax = max;
   }
 
   public Range() {
@@ -44,10 +42,6 @@ public class Range  {
   public void set(double min, double max) {
     setMin(min);
     setMax(max);
-  }
-
-  public double getInitialMax() {
-    return myInitMax;
   }
 
   public double getMin() {
