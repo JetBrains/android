@@ -120,7 +120,7 @@ public class RenderResult {
       module,
       EMPTY_LOGGER,
       null,
-      Result.Status.ERROR_UNKNOWN.createResult(),
+      Result.Status.ERROR_UNKNOWN.createResult(""),
       Collections.emptyList(),
       Collections.emptyList(),
       null,
