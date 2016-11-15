@@ -15,6 +15,7 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/tools/common/m2:guava-18",
         "//prebuilts/tools/common/offline-m2:android-gradle-2.2.0",
+        "//tools/base/bazel:offline_repo_repo.zip",
         "//tools/base/templates",
         "//tools/base/build-system:gradle-distrib",
         "//tools:idea/java/jdkAnnotations",
