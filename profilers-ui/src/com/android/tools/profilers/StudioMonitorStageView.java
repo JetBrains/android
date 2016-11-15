@@ -42,7 +42,6 @@ public class StudioMonitorStageView extends StageView {
   private static final int MONITOR_MAX_HEIGHT = JBUI.scale(Short.MAX_VALUE);
   private static final int MONITOR_PREFERRED_HEIGHT = JBUI.scale(200);
   private static final int TIME_AXIS_HEIGHT = JBUI.scale(20);
-  public static final int CHOREOGRAPHER_FPS = 60;
 
   private final JPanel myComponent;
 
@@ -57,7 +56,7 @@ public class StudioMonitorStageView extends StageView {
 
     myComponent = new JPanel(new BorderLayout());
 
-    Choreographer choreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
+    Choreographer choreographer = new Choreographer(myComponent);
     JPanel monitors = new JPanel();
     AccordionLayout accordion = new AccordionLayout(monitors, AccordionLayout.Orientation.VERTICAL);
     monitors.setLayout(accordion);

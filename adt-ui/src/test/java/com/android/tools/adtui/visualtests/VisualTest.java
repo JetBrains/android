@@ -37,8 +37,6 @@ import java.util.List;
  */
 public abstract class VisualTest {
 
-  private static final int CHOREOGRAPHER_FPS = 60;
-
   /**
    * Main panel of the VisualTest, which contains all the other elements.
    */
@@ -90,7 +88,7 @@ public abstract class VisualTest {
 
   protected void initialize() {
     mPanel = new JBPanel();
-    mChoreographer = new Choreographer(CHOREOGRAPHER_FPS, mPanel);
+    mChoreographer = new Choreographer(mPanel);
     mChoreographer.register(createComponentsList());
     populateUi(mPanel);
   }
