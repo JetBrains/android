@@ -4,8 +4,6 @@ iml_module(
     name = "android-plugin",
     srcs = ["src"],
     tags = ["managed"],
-    test_srcs = ["testSrc"],
-    test_tags = ["manual"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
