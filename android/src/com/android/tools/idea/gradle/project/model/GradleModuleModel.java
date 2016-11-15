@@ -24,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,7 +34,7 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 /**
  * Module-level Gradle information.
  */
-public class GradleModuleModel implements Serializable {
+public class GradleModuleModel implements ModuleModel {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 
@@ -89,6 +88,7 @@ public class GradleModuleModel implements Serializable {
     myGradleVersion = gradleVersion;
   }
 
+  @Override
   @NotNull
   public String getModuleName() {
     return myModuleName;

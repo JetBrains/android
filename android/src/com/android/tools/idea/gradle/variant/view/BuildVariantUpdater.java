@@ -16,10 +16,9 @@
 package com.android.tools.idea.gradle.variant.view;
 
 import com.android.builder.model.AndroidLibrary;
-import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel.NativeVariant;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel.NdkVariant;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
@@ -128,7 +127,7 @@ class BuildVariantUpdater {
                                         @NotNull AndroidModuleModel androidModel,
                                         @NotNull String variantToSelect,
                                         @NotNull List<AndroidFacet> affectedFacets) {
-    Variant selectedVariant = androidModel.getSelectedVariant();
+    com.android.builder.model.Variant selectedVariant = androidModel.getSelectedVariant();
     if (variantToSelect.equals(selectedVariant.getName())) {
       return false;
     }
@@ -152,7 +151,7 @@ class BuildVariantUpdater {
   private static boolean updateSelectedVariant(@NotNull NdkFacet ndkFacet,
                                                @NotNull NdkModuleModel ndkModuleModel,
                                                @NotNull String variantToSelect) {
-    NativeVariant selectedVariant = ndkModuleModel.getSelectedVariant();
+    NdkVariant selectedVariant = ndkModuleModel.getSelectedVariant();
     if (variantToSelect.equals(selectedVariant.getName())) {
       return false;
     }

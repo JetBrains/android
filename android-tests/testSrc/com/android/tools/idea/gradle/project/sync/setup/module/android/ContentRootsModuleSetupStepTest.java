@@ -139,7 +139,7 @@ public class ContentRootsModuleSetupStepTest extends IdeaTestCase {
   public void testSetUpNativeModule() {
     // Simulate this is a native module
     NdkModuleModel ndkModuleModel = mock(NdkModuleModel.class);
-    when(ndkModuleModel.getSelectedVariant()).thenReturn(mock(NdkModuleModel.NativeVariant.class));
+    when(ndkModuleModel.getSelectedVariant()).thenReturn(mock(NdkModuleModel.NdkVariant.class));
 
     NdkFacet facet = addNativeAndroidFacet(myModelsProvider);
     facet.setNdkModuleModel(ndkModuleModel);

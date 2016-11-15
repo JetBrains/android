@@ -44,7 +44,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
@@ -63,7 +66,7 @@ import static com.intellij.util.ArrayUtil.contains;
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
-public class AndroidModuleModel implements AndroidModel, Serializable {
+public class AndroidModuleModel implements AndroidModel, ModuleModel {
   public static final String EXPLODED_AAR = "exploded-aar";
 
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
@@ -514,6 +517,7 @@ public class AndroidModuleModel implements AndroidModel, Serializable {
     return myProductFlavorsByName.get(name);
   }
 
+  @Override
   @NotNull
   public String getModuleName() {
     return myModuleName;

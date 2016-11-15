@@ -19,7 +19,8 @@ import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.InternalAndroidModelView;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -27,16 +28,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 import static com.android.tools.idea.gradle.util.ProxyUtil.reproxy;
 import static java.util.Collections.sort;
 
-public class NdkModuleModel implements Serializable {
+public class NdkModuleModel implements ModuleModel {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 
@@ -48,9 +46,9 @@ public class NdkModuleModel implements Serializable {
   @Nullable private transient CountDownLatch myProxyNativeAndroidProjectLatch;
   @Nullable private NativeAndroidProject myProxyNativeAndroidProject;
 
-  @NotNull private Map<String, NativeVariant> myVariantsByName = Maps.newHashMap();
-  @NotNull private Map<String, NativeToolchain> myToolchainsByName = Maps.newHashMap();
-  @NotNull private Map<String, NativeSettings> mySettingsByName = Maps.newHashMap();
+  @NotNull private Map<String, NdkVariant> myVariantsByName = new HashMap<>();
+  @NotNull private Map<String, NativeToolchain> myToolchainsByName = new HashMap<>();
+  @NotNull private Map<String, NativeSettings> mySettingsByName = new HashMap<>();
 
   @SuppressWarnings("NullableProblems") // Set in the constructor.
   @NotNull private String mySelectedVariantName;
@@ -97,16 +95,16 @@ public class NdkModuleModel implements Serializable {
   private void populateVariantsByName() {
     for (NativeArtifact artifact : myAndroidProject.getArtifacts()) {
       String variantName = modelVersionIsAtLeast("2.0.0") ? artifact.getGroupName() : artifact.getName();
-      NativeVariant variant = myVariantsByName.get(variantName);
+      NdkVariant variant = myVariantsByName.get(variantName);
       if (variant == null) {
-        variant = new NativeVariant(variantName);
+        variant = new NdkVariant(variantName);
         myVariantsByName.put(variant.getName(), variant);
       }
       variant.addArtifact(artifact);
     }
     if (myVariantsByName.isEmpty()) {
       // There will mostly be at least one variant, but create a dummy variant when there are none.
-      myVariantsByName.put("-----", new NativeVariant("-----"));
+      myVariantsByName.put("-----", new NdkVariant("-----"));
     }
   }
 
@@ -138,7 +136,7 @@ public class NdkModuleModel implements Serializable {
       }
     }
 
-    List<String> sortedVariantNames = Lists.newArrayList(variantNames);
+    List<String> sortedVariantNames = new ArrayList<>(variantNames);
     sort(sortedVariantNames);
     assert !sortedVariantNames.isEmpty();
     mySelectedVariantName = sortedVariantNames.get(0);
@@ -152,6 +150,7 @@ public class NdkModuleModel implements Serializable {
     return myModelVersion != null && myModelVersion.compareIgnoringQualifiers(revision) >= 0;
   }
 
+  @Override
   @NotNull
   public String getModuleName() {
     return myModuleName;
@@ -173,13 +172,13 @@ public class NdkModuleModel implements Serializable {
   }
 
   @NotNull
-  public Collection<NativeVariant> getVariants() {
+  public Collection<NdkVariant> getVariants() {
     return myVariantsByName.values();
   }
 
   @NotNull
-  public NativeVariant getSelectedVariant() {
-    NativeVariant selected = myVariantsByName.get(mySelectedVariantName);
+  public NdkVariant getSelectedVariant() {
+    NdkVariant selected = myVariantsByName.get(mySelectedVariantName);
     assert selected != null;
     return selected;
   }
@@ -256,20 +255,20 @@ public class NdkModuleModel implements Serializable {
 
     myProxyNativeAndroidProject = myAndroidProject;
 
-    myVariantsByName = Maps.newHashMap();
-    myToolchainsByName = Maps.newHashMap();
-    mySettingsByName = Maps.newHashMap();
+    myVariantsByName = new HashMap<>();
+    myToolchainsByName = new HashMap<>();
+    mySettingsByName = new HashMap<>();
 
     populateVariantsByName();
     populateToolchainsByName();
     populateSettingsByName();
   }
 
-  public class NativeVariant {
+  public class NdkVariant {
     @NotNull private final String myVariantName;
-    @NotNull private final Map<String, NativeArtifact> myArtifactsByName = Maps.newHashMap();
+    @NotNull private final Map<String, NativeArtifact> myArtifactsByName = new HashMap<>();
 
-    private NativeVariant(@NotNull String variantName) {
+    private NdkVariant(@NotNull String variantName) {
       myVariantName = variantName;
     }
 
@@ -289,7 +288,7 @@ public class NdkModuleModel implements Serializable {
 
     @NotNull
     public Collection<File> getSourceFolders() {
-      Set<File> sourceFolders = Sets.newLinkedHashSet();
+      Set<File> sourceFolders = new LinkedHashSet<>();
       for (NativeArtifact artifact : getArtifacts()) {
         if (modelVersionIsAtLeast("2.0.0")) {
           for (File headerRoot : artifact.getExportedHeaders()) {
