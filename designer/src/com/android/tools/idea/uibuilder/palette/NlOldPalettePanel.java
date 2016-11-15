@@ -158,6 +158,15 @@ public class NlOldPalettePanel extends JPanel
     myCloseCallback = runnable;
   }
 
+  @Override
+  public boolean supportsFiltering() {
+    return false;
+  }
+
+  @Override
+  public void setFilter(@NotNull String filter) {
+  }
+
   public enum Mode {
     ICON_AND_TEXT("Show Icon and Text"),
     PREVIEW("Show Preview");

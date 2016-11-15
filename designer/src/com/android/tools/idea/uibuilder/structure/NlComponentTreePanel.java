@@ -82,4 +82,13 @@ public class NlComponentTreePanel extends JPanel implements ToolContent<DesignSu
   @Override
   public void registerCloseAutoHideWindow(@NotNull Runnable runnable) {
   }
+
+  @Override
+  public boolean supportsFiltering() {
+    return false;
+  }
+
+  @Override
+  public void setFilter(@NotNull String filter) {
+  }
 }
