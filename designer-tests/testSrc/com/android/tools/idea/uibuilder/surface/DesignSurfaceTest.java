@@ -21,12 +21,33 @@ import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.intellij.designer.DesignerEditorPanelFacade;
+import com.intellij.ide.IdeEventQueue;
 import com.intellij.openapi.util.Disposer;
+
+import java.awt.*;
 
 import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
 import static org.mockito.Mockito.mock;
 
 public class DesignSurfaceTest extends LayoutTestCase {
+  private DesignSurface mySurface;
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+
+    mySurface = new DesignSurface(getProject(), mock(DesignerEditorPanelFacade.class));
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      Disposer.dispose(mySurface);
+    } finally {
+      super.tearDown();
+    }
+  }
+
   public void testEmptyRenderSuccess() {
     NlModel model = model("absolute.xml",
                           component(ABSOLUTE_LAYOUT)
@@ -34,16 +55,14 @@ public class DesignSurfaceTest extends LayoutTestCase {
                             .matchParentWidth()
                             .matchParentHeight())
       .build();
-    DesignSurface surface = new DesignSurface(getProject(), mock(DesignerEditorPanelFacade.class));
     // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
     model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
-    surface.setModel(model);
+    mySurface.setModel(model);
     assertNull(model.getRenderResult());
 
-    surface.requestRender();
+    mySurface.requestRender();
     assertTrue(model.getRenderResult().getRenderResult().isSuccess());
-    assertTrue(surface.getErrorModel().getIssues().isEmpty());
-    Disposer.dispose(surface);
+    assertTrue(mySurface.getErrorModel().getIssues().isEmpty());
   }
 
   public void testRenderWhileBuilding() {
@@ -62,30 +81,70 @@ public class DesignSurfaceTest extends LayoutTestCase {
     NlModel model = modelBuilder.build();
     // Simulate that we are in the middle of a build
     BuildSettings.getInstance(getProject()).setBuildMode(BuildMode.SOURCE_GEN);
-    DesignSurface surface = new DesignSurface(getProject(), mock(DesignerEditorPanelFacade.class));
     // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
     model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
-    surface.setModel(model);
+    mySurface.setModel(model);
     assertNull(model.getRenderResult());
 
-    surface.requestRender();
-    assertEquals(1, surface.getErrorModel().getIssues().size());
-    assertEquals("The project is still building", surface.getErrorModel().getIssues().get(0).getSummary());
+    mySurface.requestRender();
+    assertEquals(1, mySurface.getErrorModel().getIssues().size());
+    assertEquals("The project is still building", mySurface.getErrorModel().getIssues().get(0).getSummary());
 
     // Now finish the build, and try to build again. The "project is still building" should be gone.
     BuildSettings.getInstance(getProject()).setBuildMode(null);
     model = modelBuilder.build();
     model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
-    surface.setModel(model);
+    mySurface.setModel(model);
 
-    surface.requestRender();
+    mySurface.requestRender();
     // Because there is a missing view, some other extra errors will be generated about missing styles. This is caused by
     // MockView (which is based on TextView) that depends on some Material styles.
     // We only care about the missing class error.
-    assertTrue(surface.getErrorModel().getIssues().stream()
+    assertTrue(mySurface.getErrorModel().getIssues().stream()
                    .anyMatch(issue -> issue.getSummary().startsWith("Missing classes")));
-    assertFalse(surface.getErrorModel().getIssues().stream()
+    assertFalse(mySurface.getErrorModel().getIssues().stream()
                  .anyMatch(issue -> issue.getSummary().startsWith("The project is still building")));
-    Disposer.dispose(surface);
+  }
+
+  public void testScreenPositioning() {
+    mySurface.addNotify();
+    mySurface.setBounds(0, 0, 400, 4000);
+    mySurface.validate();
+    // Process the resize events
+    IdeEventQueue.getInstance().flushQueue();
+
+    NlModel model = model("absolute.xml",
+                          component(ABSOLUTE_LAYOUT)
+                            .withBounds(0, 0, 1000, 1000)
+                            .matchParentWidth()
+                            .matchParentHeight())
+      .build();
+    // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
+    model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
+    mySurface.setModel(model);
+    assertNull(model.getRenderResult());
+
+    mySurface.setScreenMode(DesignSurface.ScreenMode.SCREEN_ONLY, false);
+    mySurface.requestRender();
+    assertTrue(model.getRenderResult().getRenderResult().isSuccess());
+    assertNotNull(mySurface.getCurrentScreenView());
+    assertNull(mySurface.getBlueprintView());
+
+    mySurface.setScreenMode(DesignSurface.ScreenMode.BOTH, false);
+    mySurface.requestRender();
+    assertTrue(model.getRenderResult().getRenderResult().isSuccess());
+
+    ScreenView screenView = mySurface.getCurrentScreenView();
+    ScreenView blueprintView = mySurface.getBlueprintView();
+    assertNotNull(screenView);
+    assertNotNull(blueprintView);
+
+    assertTrue(screenView.getY() < blueprintView.getY());
+    mySurface.setBounds(0, 0, 4000, 400);
+    mySurface.validate();
+    IdeEventQueue.getInstance().flushQueue();
+    // Horizontal stack
+    assertTrue(screenView.getY() == blueprintView.getY());
+    mySurface.removeNotify();
   }
 }
