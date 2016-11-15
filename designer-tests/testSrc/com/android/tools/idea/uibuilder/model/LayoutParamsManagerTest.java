@@ -19,16 +19,13 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import com.android.resources.Density;
 import com.android.tools.idea.configurations.Configuration;
-import com.intellij.openapi.module.Module;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
-import org.junit.Test;
 
 import java.util.Map;
 import java.util.NoSuchElementException;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
