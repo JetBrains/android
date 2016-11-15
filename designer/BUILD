@@ -25,7 +25,6 @@ iml_module(
     test_runtime_deps = [
         "//tools/adt/idea/adt-branding",
     ],
-    test_shard_count = 2,
     test_srcs = ["testSrc"],
     test_timeout = "long",
     visibility = ["//visibility:public"],
