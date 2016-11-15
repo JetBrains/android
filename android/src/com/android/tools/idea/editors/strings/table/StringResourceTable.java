@@ -16,6 +16,12 @@
 package com.android.tools.idea.editors.strings.table;
 
 import com.android.tools.idea.editors.strings.StringResourceData;
+import com.android.tools.idea.ui.TableUtils;
+import com.intellij.ide.PasteProvider;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
@@ -28,10 +34,11 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.MouseAdapter;
 import java.util.Arrays;
 
-public final class StringResourceTable extends JBTable {
+public final class StringResourceTable extends JBTable implements DataProvider, PasteProvider {
   public StringResourceTable() {
     super(new StringResourceTableModel());
 
@@ -121,6 +128,37 @@ public final class StringResourceTable extends JBTable {
       }
 
       return false;
+    }
+  }
+
+  @Nullable
+  @Override
+  public Object getData(@NotNull String dataId) {
+    return dataId.equals(PlatformDataKeys.PASTE_PROVIDER.getName()) ? this : null;
+  }
+
+  @Override
+  public boolean isPastePossible(@NotNull DataContext dataContext) {
+    if (getSelectedRowCount() != 1 || getSelectedColumnCount() != 1) {
+      return false;
+    }
+    else {
+      int column = getSelectedColumn();
+      return column != StringResourceTableModel.KEY_COLUMN && column != StringResourceTableModel.UNTRANSLATABLE_COLUMN;
+    }
+  }
+
+  @Override
+  public boolean isPasteEnabled(@NotNull DataContext dataContext) {
+    return isPastePossible(dataContext);
+  }
+
+  @Override
+  public void performPaste(@NotNull DataContext dataContext) {
+    Transferable transferable = CopyPasteManager.getInstance().getContents();
+
+    if (transferable != null) {
+      TableUtils.paste(this, transferable);
     }
   }
 }
