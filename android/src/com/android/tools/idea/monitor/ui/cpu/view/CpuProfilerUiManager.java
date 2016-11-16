@@ -30,7 +30,7 @@ import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.cpu.model.AppTrace;
 import com.android.tools.idea.monitor.ui.cpu.model.TraceDataStore;
-import com.android.tools.profilers.cpu.ThreadStatesDataModel;
+import com.android.tools.profilers.cpu.ThreadStateDataSeries;
 import com.android.utils.SparseArray;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.project.Project;
@@ -184,7 +184,7 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
   }
 
   @Override
-  public void onSelected(@NotNull List<ThreadStatesDataModel> selectedThreads) {
+  public void onSelected(@NotNull List<ThreadStateDataSeries> selectedThreads) {
     // TODO: Only support mono-selection for now:
     if (selectedThreads.size() != 1) {
       return;
@@ -194,8 +194,8 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
 
     resetDetailedComponents();
 
-    ThreadStatesDataModel selectedThread = selectedThreads.get(0);
-    int threadId = selectedThread.getPid();
+    ThreadStateDataSeries selectedThread = selectedThreads.get(0);
+    int threadId = selectedThread.getProcessId();
     AppTrace trace = TraceDataStore.getInstance().getLastThreadsActivity(myProject.getName());
     if (trace == null) { // No trace have been generated.
       return;

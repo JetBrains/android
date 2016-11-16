@@ -15,7 +15,6 @@
  */
 package com.android.tools.datastore.poller;
 
-import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
@@ -23,14 +22,9 @@ import io.grpc.ManagedChannel;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RunnableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This class gathers sets up a CPUProfilerService and forward all commands to the connected channel with the exception of getData.
@@ -42,6 +36,7 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
   private CpuServiceGrpc.CpuServiceBlockingStub myPollingService;
   //TODO Pull this into a storage container that can read/write this to disk
   protected List<CpuProfiler.CpuProfilerData> myData = new ArrayList<>();
+
   private int myProcessId = -1;
 
   public CpuDataPoller() {

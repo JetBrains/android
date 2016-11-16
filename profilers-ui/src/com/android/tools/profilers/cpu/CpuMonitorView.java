@@ -63,7 +63,7 @@ public class CpuMonitorView extends ProfilerMonitorView {
     final AxisComponent leftAxis = builder.build();
 
     final LineChart lineChart = new LineChart();
-    lineChart.addLine(new RangedContinuousSeries("CPU", myMonitor.getViewRange(), leftYRange, myMonitor.getCpuUsage(false)),
+    lineChart.addLine(new RangedContinuousSeries("CPU", myMonitor.getViewRange(), leftYRange, myMonitor.getThisProcessCpuUsage()),
                       new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true));
     lineChart.addMouseListener(new MouseAdapter() {
       @Override

@@ -27,9 +27,24 @@ public class CpuMonitor extends ProfilerMonitor {
   }
 
   @NotNull
-  public CpuUsageDataSeries getCpuUsage(boolean other) {
+  private CpuUsageDataSeries getCpuUsage(boolean other) {
     CpuServiceGrpc.CpuServiceBlockingStub client = myProfilers.getClient().getCpuClient();
     return new CpuUsageDataSeries(client, other, myProfilers.getProcessId());
+  }
+
+  @NotNull
+  public CpuUsageDataSeries getThisProcessCpuUsage() {
+    return getCpuUsage(false);
+  }
+
+  @NotNull
+  public CpuUsageDataSeries getOtherProcessesCpuUsage() {
+    return getCpuUsage(true);
+  }
+
+  @NotNull
+  public RangedListModel<CpuThreadsModel.RangedCpuThread> getThreadStates() {
+    return new CpuThreadsModel(myProfilers.getClient().getCpuClient(), myProfilers.getProcessId());
   }
 
   @Override
