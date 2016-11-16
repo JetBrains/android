@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -69,6 +70,10 @@ public class JdkPostSyncProjectSetupStep extends PostSyncProjectSetupStep {
     }
     else if (projectJdk == null || !myJdks.isApplicableJdk(projectJdk, javaLangVersion)) {
       ideJdk = myJdks.chooseOrCreateJavaSdk(javaLangVersion);
+    }
+    else if (ApplicationManager.getApplication().isUnitTestMode()) {
+      // Let tests have a JDK when being executed inside the IDE, or when tests are executed as IDEA.
+      ideJdk = projectJdk;
     }
 
     if (ideJdk == null) {
