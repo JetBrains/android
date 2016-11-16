@@ -13,6 +13,7 @@ iml_module(
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:licenses",
         "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:support_latest",
         "//prebuilts/tools/common/m2:guava-18",
         "//prebuilts/tools/common/offline-m2:android-gradle-2.2.0",
         "//tools/base/templates",
