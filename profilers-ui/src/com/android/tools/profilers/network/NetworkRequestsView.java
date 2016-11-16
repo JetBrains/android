@@ -15,17 +15,20 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -40,14 +43,14 @@ import static com.android.tools.profilers.ProfilerColors.NETWORK_WAITING_COLOR;
 /**
  * This class responsible for displaying table of requests information (e.g url, duration, timeline) for network profiling.
  */
-public class NetworkRequestsView extends JComponent implements Animatable {
+public class NetworkRequestsView {
   private static final int ROW_HEIGHT_PADDING = 5;
 
   public interface DetailedViewListener {
     void showDetailedConnection(HttpData data);
   }
 
-  public enum NetworkState {
+  private enum NetworkState {
     SENDING, RECEIVING, WAITING, NONE
   }
 
@@ -67,63 +70,53 @@ public class NetworkRequestsView extends JComponent implements Animatable {
     INDEX, URL, SIZE, DURATION, TIMELINE
   }
 
-  private final Range myTimeCurrentRangeUs;
-
-  @NotNull
-  private final List<StateChart<NetworkState>> myCharts;
-
-  @NotNull
-  private List<HttpData> myDataList;
-
   @NotNull
   private final DetailedViewListener myDetailedViewListener;
 
   @NotNull
   private final NetworkRequestsModel myModel;
 
-  private JTable myRequestsTable;
+  @NotNull
+  private final NetworkProfilerStageView myStageView;
 
-  private final int myRowHeight;
+  @NotNull
+  private final NetworkRequestsTableModel myTableModel;
 
-  public NetworkRequestsView(@NotNull Range timeCurrentRangeUs,
+  @NotNull
+  private final JTable myRequestsTable;
+
+  public NetworkRequestsView(@NotNull NetworkProfilerStageView stageView,
                              @NotNull NetworkRequestsModel model,
                              @NotNull DetailedViewListener detailedViewListener) {
-    myTimeCurrentRangeUs = timeCurrentRangeUs;
-    myDetailedViewListener = detailedViewListener;
-    myCharts = new ArrayList<>();
-    myDataList = new ArrayList<>();
+    myStageView = stageView;
     myModel = model;
-    int defaultFontHeight = getFontMetrics(AdtUiUtils.DEFAULT_FONT).getHeight();
-    myRowHeight = defaultFontHeight + ROW_HEIGHT_PADDING;
-
-    populateUI();
+    myDetailedViewListener = detailedViewListener;
+    myTableModel = new NetworkRequestsTableModel();
+    myRequestsTable = createRequestsTable();
+    RangedTable rangedTable = new RangedTable(stageView.getTimeline().getViewRange(), myTableModel);
+    stageView.getChoreographer().register(rangedTable);
   }
 
-  void populateUI() {
-    myRequestsTable = createRequestsTable();
-    JScrollPane scrollPane = new JScrollPane(myRequestsTable);
-
-    this.addComponentListener(new ComponentAdapter() {
-      @Override
-      public void componentResized(ComponentEvent e) {
-        scrollPane.setSize(NetworkRequestsView.this.getSize());
-      }
-     });
-    add(scrollPane);
+  @NotNull
+  public JComponent getComponent() {
+    return myRequestsTable;
   }
 
   @NotNull
   private JTable createRequestsTable() {
-    JTable table = new JTable(new NetworkRequestsTableModel());
-    table.setDefaultRenderer(StateChart.class, (t, value, isSelected, hasFocus, row, column) -> myCharts.get(row));
+    JTable table = new JBTable(myTableModel);
+    table.setDefaultRenderer(StateChart.class, new NetworkTimelineRenderer(myTableModel));
     table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     table.getSelectionModel().addListSelectionListener(e -> {
-      if (table.getSelectedRow() >= 0 && table.getSelectedRow() < myDataList.size()) {
-        myDetailedViewListener.showDetailedConnection(myDataList.get(table.getSelectedRow()));
+      int selectedRow = table.getSelectedRow();
+      if (0 <= selectedRow && selectedRow < myTableModel.getRowCount()) {
+        myDetailedViewListener.showDetailedConnection(myTableModel.getHttpData(selectedRow));
       }
     });
     table.setFont(AdtUiUtils.DEFAULT_FONT);
-    table.setRowHeight(myRowHeight);
+
+    int defaultFontHeight = table.getFontMetrics(AdtUiUtils.DEFAULT_FONT).getHeight();
+    table.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
 
     table.addComponentListener(new ComponentAdapter() {
       @Override
@@ -131,38 +124,13 @@ public class NetworkRequestsView extends JComponent implements Animatable {
         table.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setPreferredWidth(myRequestsTable.getWidth() / 2);
       }
     });
+
     return table;
   }
 
-  @Override
-  public void animate(float frameLength) {
-    if (!isShowing()) {
-      return;
-    }
+  private final class NetworkRequestsTableModel extends AbstractTableModel implements RangedTableModel {
+    @NotNull private List<HttpData> myDataList = new ArrayList<>();
 
-    myDataList = myModel.getData(myTimeCurrentRangeUs);
-    // TODO: currently we recreate charts from scratch, instead consider reusing charts
-    myCharts.clear();
-    for (HttpData data: myDataList) {
-      DefaultDataSeries<NetworkState> series = new DefaultDataSeries<>();
-      series.add(0, NetworkState.NONE);
-      series.add(data.getStartTimeUs(), NetworkState.SENDING);
-      if (data.getDownloadingTimeUs() > 0) {
-        series.add(data.getDownloadingTimeUs(), NetworkState.RECEIVING);
-      }
-      if (data.getEndTimeUs() > 0) {
-        series.add(data.getEndTimeUs(), NetworkState.NONE);
-      }
-
-      StateChart<NetworkState> chart = new StateChart<>(NETWORK_STATE_COLORS);
-      chart.addSeries(new RangedSeries<>(myTimeCurrentRangeUs, series));
-      chart.animate(frameLength);
-      myCharts.add(chart);
-    }
-    ((NetworkRequestsTableModel)myRequestsTable.getModel()).fireTableDataChanged();
-  }
-
-  private final class NetworkRequestsTableModel extends AbstractTableModel {
     @Override
     public int getRowCount() {
       return myDataList.size();
@@ -175,7 +143,7 @@ public class NetworkRequestsView extends JComponent implements Animatable {
 
     @Override
     public String getColumnName(int column) {
-      return StringUtil.capitalize(Column.values()[column].toString().toLowerCase());
+      return StringUtil.capitalize(Column.values()[column].toString().toLowerCase(Locale.getDefault()));
     }
 
     @Override
@@ -217,6 +185,55 @@ public class NetworkRequestsView extends JComponent implements Animatable {
           throw new UnsupportedOperationException("Unexpected getValueAt called with: " + Column.values()[columnIndex]);
       }
       return "";
+    }
+
+    @NotNull
+    public HttpData getHttpData(int rowIndex) {
+      return myDataList.get(rowIndex);
+    }
+
+    @Override
+    public void update(@NotNull Range range) {
+      myDataList = myModel.getData(range);
+      fireTableDataChanged();
+    }
+  }
+
+  private final class NetworkTimelineRenderer implements TableCellRenderer, TableModelListener {
+    @NotNull private final List<StateChart<NetworkState>> myCharts;
+    @NotNull private final NetworkRequestsTableModel myTableModel;
+
+    NetworkTimelineRenderer(@NotNull NetworkRequestsTableModel tableModel) {
+      myCharts = new ArrayList<>();
+      myTableModel = tableModel;
+      myTableModel.addTableModelListener(this);
+    }
+
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+      return myCharts.get(row);
+    }
+
+    @Override
+    public void tableChanged(TableModelEvent e) {
+      myCharts.clear();
+      for (int i = 0; i < myTableModel.getRowCount(); ++i) {
+        HttpData data = myTableModel.getHttpData(i);
+        DefaultDataSeries<NetworkState> series = new DefaultDataSeries<>();
+        series.add(0, NetworkState.NONE);
+        series.add(data.getStartTimeUs(), NetworkState.SENDING);
+        if (data.getDownloadingTimeUs() > 0) {
+          series.add(data.getDownloadingTimeUs(), NetworkState.RECEIVING);
+        }
+        if (data.getEndTimeUs() > 0) {
+          series.add(data.getEndTimeUs(), NetworkState.NONE);
+        }
+
+        StateChart<NetworkState> chart = new StateChart<>(NETWORK_STATE_COLORS);
+        chart.addSeries(new RangedSeries<>(myStageView.getTimeline().getViewRange(), series));
+        chart.animate(1);
+        myCharts.add(chart);
+      }
     }
   }
 }
