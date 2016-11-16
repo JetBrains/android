@@ -49,6 +49,7 @@ public class StatefulButtonMessage extends JPanel {
         messageDisplay.setIcon(AllIcons.RunConfigurations.TestFailed);
         messageDisplay.setForeground(UIUtils.getFailureColor());
         break;
+      case NOT_APPLICABLE:
       default:
         messageDisplay.setIcon(null);
         messageDisplay.setForeground(new JBLabel("").getForeground());
