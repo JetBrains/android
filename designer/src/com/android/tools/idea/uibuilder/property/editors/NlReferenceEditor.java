@@ -21,6 +21,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.uibuilder.property.editors.support.Quantity;
 import com.android.tools.idea.uibuilder.property.renderer.NlDefaultRenderer;
 import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.completion.PrefixMatcher;
