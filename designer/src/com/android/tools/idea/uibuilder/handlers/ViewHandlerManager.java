@@ -367,9 +367,9 @@ public class ViewHandlerManager implements ProjectComponent {
     }
 
     return ApplicationManager.getApplication().runReadAction((Computable<ViewHandler>)() -> {
-      String qualifiedClassName = getFullyQualifiedClassName(viewTag);
-      if (qualifiedClassName != null) {
-        try {
+      try {
+        String qualifiedClassName = getFullyQualifiedClassName(viewTag);
+        if (qualifiedClassName != null) {
           String handlerName = viewTag + HANDLER_CLASS_SUFFIX;
           JavaPsiFacade facade = JavaPsiFacade.getInstance(myProject);
           PsiClass[] classes = facade.findClasses(handlerName, GlobalSearchScope.allScope(myProject));
@@ -399,10 +399,10 @@ public class ViewHandlerManager implements ProjectComponent {
             }
           }
         }
-        catch (IndexNotReadyException ignore) {
-          // TODO: Fix the bug: b.android.com/210064
-          return NONE;
-        }
+      }
+      catch (IndexNotReadyException ignore) {
+        // TODO: Fix the bug: b.android.com/210064
+        return NONE;
       }
       return NONE;
     });
