@@ -8,7 +8,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools:idea.platform-impl_and_others[module]",
-        "//tools/adt/idea:android[module]",
+        "//tools/adt/idea/android[module]",
         "//tools:idea.lang-api[module]",
         "//tools/analytics-library:analytics-tracker[module]",
         "//tools/analytics-library:analytics-protos[module]",

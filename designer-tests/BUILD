@@ -22,7 +22,7 @@ iml_module(
         "//tools:idea.platform-impl_and_others[module]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/designer[module, test]",
-        "//tools/adt/idea:android[module, test]",
+        "//tools/adt/idea/android[module, test]",
         "//tools:idea.xml-psi-api[module, test]",
         "//tools:idea.compiler-impl_and_others[module]",
         "//tools/idea/.idea/libraries:truth[test]",

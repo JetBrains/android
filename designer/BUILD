@@ -11,7 +11,7 @@ iml_module(
         "//tools:idea.editor-ui-api[module]",
         "//tools:idea.core-api[module]",
         "//tools:idea.platform-api[module]",
-        "//tools/adt/idea:android[module]",
+        "//tools/adt/idea/android[module]",
         "//tools/sherpa:sherpa-solver[module]",
         "//tools/adt/idea:sherpa-ui[module]",
         "//tools:idea.xml-psi-api[module]",
