@@ -25,5 +25,6 @@ iml_module(
         "//tools/base/rpclib:studio.rpclib[module, test]",
         "//tools/adt/idea/designer:designer[module, test]",
         "//tools/base/testutils:studio.testutils[module, test]",
+        "//tools/adt/idea/android-test-framework:android-test-framework[module, test]",
     ],
 )
