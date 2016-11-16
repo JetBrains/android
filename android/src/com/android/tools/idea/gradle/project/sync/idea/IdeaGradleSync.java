@@ -180,7 +180,7 @@ public class IdeaGradleSync implements GradleSync {
     }
     NdkFacet ndkFacet = NdkFacet.getInstance(module);
     if (ndkFacet != null) {
-      DataNode<NdkModuleModel> ndkModuleModelDataNode = find(cache, NATIVE_ANDROID_MODEL);
+      DataNode<NdkModuleModel> ndkModuleModelDataNode = find(cache, NDK_MODEL);
       if (ndkModuleModelDataNode == null || !isValidProxyObject(ndkModuleModelDataNode.getData().getAndroidProject())) {
         return true;
       }

@@ -211,7 +211,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     NativeAndroidProject nativeAndroidProject = resolverCtx.getExtraProject(gradleModule, NativeAndroidProject.class);
     if (nativeAndroidProject != null) {
       NdkModuleModel ndkModuleModel = new NdkModuleModel(moduleName, moduleRootDirPath, nativeAndroidProject);
-      ideModule.createChild(NATIVE_ANDROID_MODEL, ndkModuleModel);
+      ideModule.createChild(NDK_MODEL, ndkModuleModel);
     }
 
     File gradleSettingsFile = new File(moduleRootDirPath, FN_SETTINGS_GRADLE);
