@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.AccordionLayout;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
@@ -38,9 +37,6 @@ import java.awt.*;
  */
 public class StudioMonitorStageView extends StageView {
 
-  private static final int MONITOR_MIN_HEIGHT = JBUI.scale(0);
-  private static final int MONITOR_MAX_HEIGHT = JBUI.scale(Short.MAX_VALUE);
-  private static final int MONITOR_PREFERRED_HEIGHT = JBUI.scale(200);
   private static final int TIME_AXIS_HEIGHT = JBUI.scale(20);
 
   private final JPanel myComponent;
@@ -57,32 +53,31 @@ public class StudioMonitorStageView extends StageView {
     myComponent = new JPanel(new BorderLayout());
 
     Choreographer choreographer = new Choreographer(myComponent);
-    JPanel monitors = new JPanel();
-    AccordionLayout accordion = new AccordionLayout(monitors, AccordionLayout.Orientation.VERTICAL);
-    monitors.setLayout(accordion);
-    accordion.setLerpFraction(1f);
-    choreographer.register(accordion);
+    JPanel monitors = new JPanel(new GridBagLayout());
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.gridx = 0;
+    gbc.weightx = 1;
+    gbc.fill = GridBagConstraints.BOTH;
 
+    int y = 0;
     for (ProfilerMonitor monitor : stage.getMonitors()) {
       ProfilerMonitorView view = binder.build(monitor);
       JComponent component = view.initialize(choreographer);
-
-      // TODO event monitor should use a fix height
-      component.setMinimumSize(new Dimension(0, MONITOR_MIN_HEIGHT));
-      component.setPreferredSize(new Dimension(0, MONITOR_PREFERRED_HEIGHT));
-      component.setMaximumSize(new Dimension(0, MONITOR_MAX_HEIGHT));
-      monitors.add(component);
+      gbc.weighty = view.getVerticalWeight();
+      gbc.gridy = y++;
+      monitors.add(component, gbc);
     }
 
     AxisComponent.Builder builder = new AxisComponent.Builder(stage.getStudioProfilers().getViewRange(), TimeAxisFormatter.DEFAULT,
                                                               AxisComponent.AxisOrientation.BOTTOM);
-    builder.setGlobalRange(stage.getStudioProfilers().getDataRange()).showAxisLine(false).setOffset(stage.getStudioProfilers().getDeviceStartUs());
+    builder.setGlobalRange(stage.getStudioProfilers().getDataRange()).showAxisLine(false)
+      .setOffset(stage.getStudioProfilers().getDeviceStartUs());
     AxisComponent timeAxis = builder.build();
-    timeAxis.setMinimumSize(new Dimension(0, TIME_AXIS_HEIGHT));
-    timeAxis.setPreferredSize(new Dimension(0, TIME_AXIS_HEIGHT));
-    timeAxis.setMaximumSize(new Dimension(0, TIME_AXIS_HEIGHT));
-    monitors.add(timeAxis);
     choreographer.register(timeAxis);
+    timeAxis.setMinimumSize(new Dimension(Integer.MAX_VALUE, TIME_AXIS_HEIGHT));
+    gbc.weighty = 0;
+    gbc.gridy = y;
+    monitors.add(timeAxis, gbc);
 
     myComponent.add(monitors, BorderLayout.CENTER);
   }
