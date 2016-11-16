@@ -17,7 +17,7 @@ package com.android.tools.idea;
 
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.uibuilder.property.editors.StyleFilterTest;
+import com.android.tools.idea.uibuilder.property.editors.support.StyleFilterTest;
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeTest;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceTest;
 import com.android.tools.idea.uibuilder.surface.InteractionManagerTest;
