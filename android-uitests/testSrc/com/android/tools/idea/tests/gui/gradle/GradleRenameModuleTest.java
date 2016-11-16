@@ -63,6 +63,7 @@ public class GradleRenameModuleTest {
     renameModuleDialog.enterTextAndClickOk("app2");
     renameModuleDialog.waitUntilNotShowing();
 
+    guiTest.ideFrame().waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish();
     assertThat(guiTest.ideFrame().hasModule("app2")).named("app2 module exists").isTrue();
     assertThat(guiTest.ideFrame().hasModule("app")).named("app module exists").isFalse();
   }
