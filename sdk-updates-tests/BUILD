@@ -10,6 +10,6 @@ iml_module(
         "//tools:idea.platform-impl_and_others[module]",
         "//tools/base/repository:studio.repository[module, test]",
         "//tools/base/sdklib:studio.sdklib[module, test]",
-        "//tools/adt/idea:android[module, test]",
+        "//tools/adt/idea/android[module, test]",
     ],
 )
