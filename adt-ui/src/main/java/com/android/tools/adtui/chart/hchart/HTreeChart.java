@@ -17,8 +17,8 @@
 package com.android.tools.adtui.chart.hchart;
 
 import com.android.tools.adtui.AnimatedComponent;
-import com.android.tools.adtui.AnimatedRange;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

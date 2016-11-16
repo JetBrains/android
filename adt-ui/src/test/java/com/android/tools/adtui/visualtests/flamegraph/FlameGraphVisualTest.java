@@ -17,7 +17,7 @@
 package com.android.tools.adtui.visualtests.flamegraph;
 
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.chart.hchart.HNode;
+import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
