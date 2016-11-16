@@ -9,16 +9,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="android" />
-    <orderEntry type="module" module-name="platform-main" />
-    <orderEntry type="module" module-name="resources" />
-    <orderEntry type="module" module-name="structuralsearch-java" />
-    <orderEntry type="module" module-name="colorSchemes" />
-    <orderEntry type="module" module-name="platform-api" />
-    <orderEntry type="module" module-name="lang-impl" />
-    <orderEntry type="module" module-name="xml-psi-api" />
-    <orderEntry type="module" module-name="jetgroovy" />
-    <orderEntry type="module" module-name="gradle" />
-    <orderEntry type="library" name="JUnit3" level="project" />
     <orderEntry type="module" module-name="sdk-updates" />
     <orderEntry type="module" module-name="designer" />
   </component>
