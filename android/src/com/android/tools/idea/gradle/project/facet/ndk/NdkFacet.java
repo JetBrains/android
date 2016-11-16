@@ -27,15 +27,11 @@ import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.util.messages.MessageBusConnection;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class NdkFacet extends Facet<NdkFacetConfiguration> {
-  @NotNull public static final FacetTypeId<NdkFacet> TYPE_ID = new FacetTypeId<>("native-android-gradle");
-
-  @NonNls public static final String ID = "native-android-gradle";
-  @NonNls public static final String NAME = "Native-Android-Gradle";
+  @NotNull private static final FacetTypeId<NdkFacet> TYPE_ID = new FacetTypeId<>("native-android-gradle");
 
   private NdkModuleModel myNdkModuleModel;
 
@@ -52,9 +48,24 @@ public class NdkFacet extends Facet<NdkFacetConfiguration> {
 
   @NotNull
   public static NdkFacetType getFacetType() {
-    FacetType facetType = FacetTypeRegistry.getInstance().findFacetType(ID);
+    FacetType facetType = FacetTypeRegistry.getInstance().findFacetType(getFacetId());
     assert facetType instanceof NdkFacetType;
     return (NdkFacetType)facetType;
+  }
+
+  @NotNull
+  public static FacetTypeId<NdkFacet> getFacetTypeId() {
+    return TYPE_ID;
+  }
+
+  @NotNull
+  public static String getFacetId() {
+    return "native-android-gradle";
+  }
+
+  @NotNull
+  public static String getFacetName() {
+    return "Native-Android-Gradle";
   }
 
   @Override

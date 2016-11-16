@@ -31,7 +31,7 @@ import javax.swing.*;
  */
 public class NdkFacetType extends FacetType<NdkFacet, NdkFacetConfiguration> {
   public NdkFacetType() {
-    super(NdkFacet.TYPE_ID, NdkFacet.ID, NdkFacet.NAME);
+    super(NdkFacet.getFacetTypeId(), NdkFacet.getFacetId(), NdkFacet.getFacetName());
   }
 
   @NotNull

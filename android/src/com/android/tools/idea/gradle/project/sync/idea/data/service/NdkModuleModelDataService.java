@@ -16,31 +16,37 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetupStep;
-import com.android.tools.idea.gradle.project.sync.setup.module.cpp.ContentRootModuleSetupStep;
-import com.android.tools.idea.gradle.project.sync.setup.module.cpp.NdkFacetModuleSetupStep;
-import com.google.common.collect.ImmutableList;
+import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Map;
 
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NATIVE_ANDROID_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
 
 public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleModel> {
-  private final ImmutableList<NdkModuleSetupStep> mySetupSteps =
-    ImmutableList.of(new NdkFacetModuleSetupStep(), new ContentRootModuleSetupStep());
+  @NotNull private final NdkModuleSetup myModuleSetup;
+
+  @SuppressWarnings("unused") // Instantiated by IDEA
+  public NdkModuleModelDataService() {
+    this(new NdkModuleSetup());
+  }
+
+  @VisibleForTesting
+  NdkModuleModelDataService(@NotNull NdkModuleSetup moduleSetup) {
+    myModuleSetup = moduleSetup;
+  }
 
   @Override
   @NotNull
   public Key<NdkModuleModel> getTargetDataKey() {
-    return NATIVE_ANDROID_MODEL;
+    return NDK_MODEL;
   }
 
   @Override
@@ -50,15 +56,15 @@ public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleM
                             @NotNull Map<String, NdkModuleModel> modelsByName) {
     for (Module module : modelsProvider.getModules()) {
       NdkModuleModel ndkModuleModel = modelsByName.get(module.getName());
-      customizeModule(module, modelsProvider, ndkModuleModel);
+      if (ndkModuleModel != null) {
+        customizeModule(module, modelsProvider, ndkModuleModel);
+      }
     }
   }
 
   private void customizeModule(@NotNull Module module,
                                @NotNull IdeModifiableModelsProvider modelsProvider,
-                               @Nullable NdkModuleModel ndkModuleModel) {
-    for (NdkModuleSetupStep setupStep : mySetupSteps) {
-      setupStep.setUpModule(module, modelsProvider, ndkModuleModel, null, null);
-    }
+                               @NotNull NdkModuleModel ndkModuleModel) {
+    myModuleSetup.setUpModule(module, modelsProvider, ndkModuleModel, null, null);
   }
 }

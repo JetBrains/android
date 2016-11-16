@@ -171,7 +171,7 @@ public class ContentRootsModuleSetupStepTest extends IdeaTestCase {
     ModifiableFacetModel model = modelsProvider.getModifiableFacetModel(module);
     NdkFacetType facetType = NdkFacet.getFacetType();
     NdkFacet facet =
-      facetType.createFacet(module, NdkFacet.NAME, facetType.createDefaultConfiguration(), null);
+      facetType.createFacet(module, NdkFacet.getFacetName(), facetType.createDefaultConfiguration(), null);
 
     model.addFacet(facet);
 

@@ -18,7 +18,9 @@ package com.android.tools.idea.gradle.project.sync.setup.module;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.Variant;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
@@ -42,10 +44,11 @@ public class ModuleSetup {
   @NotNull private final VariantSelector myVariantSelector;
   @NotNull private final GradleModuleSetup myGradleModuleSetup;
   @NotNull private final AndroidModuleSetup myAndroidModuleSetup;
+  @NotNull private final NdkModuleSetup myNdkModuleSetup;
   @NotNull private final JavaModuleSetup myJavaModuleSetup;
 
   public ModuleSetup(@NotNull IdeModifiableModelsProvider ideModelsProvider) {
-    this(ideModelsProvider, new VariantSelector(), new GradleModuleSetup(), new AndroidModuleSetup(), new JavaModuleSetup());
+    this(ideModelsProvider, new VariantSelector(), new GradleModuleSetup(), new AndroidModuleSetup(), new NdkModuleSetup(), new JavaModuleSetup());
   }
 
   @VisibleForTesting
@@ -53,11 +56,13 @@ public class ModuleSetup {
               @NotNull VariantSelector variantSelector,
               @NotNull GradleModuleSetup gradleModuleSetup,
               @NotNull AndroidModuleSetup androidModuleSetup,
+              @NotNull NdkModuleSetup ndkModuleSetup,
               @NotNull JavaModuleSetup javaModuleSetup) {
     myIdeModelsProvider = ideModelsProvider;
     myVariantSelector = variantSelector;
     myGradleModuleSetup = gradleModuleSetup;
     myAndroidModuleSetup = androidModuleSetup;
+    myNdkModuleSetup = ndkModuleSetup;
     myJavaModuleSetup = javaModuleSetup;
   }
 
@@ -86,9 +91,17 @@ public class ModuleSetup {
       }
       return;
     }
-
     // This is not an Android module. Remove any AndroidFacet set in a previous sync operation.
     removeAllFacetsOfType(AndroidFacet.ID, myIdeModelsProvider.getModifiableFacetModel(module));
+
+    NativeAndroidProject nativeAndroidProject = models.findModel(NativeAndroidProject.class);
+    if (nativeAndroidProject != null) {
+      NdkModuleModel ndkModuleModel = new NdkModuleModel(module.getName(), getModulePath(module), nativeAndroidProject);
+      myNdkModuleSetup.setUpModule(module, myIdeModelsProvider, ndkModuleModel, models, indicator);
+      return;
+    }
+    // This is not an Android module. Remove any AndroidFacet set in a previous sync operation.
+    removeAllFacetsOfType(NdkFacet.getFacetTypeId(), myIdeModelsProvider.getModifiableFacetModel(module));
 
     if (!isProjectRootFolder) {
       setUpJavaModule(module, models, indicator, false /* Regular Java module */);
