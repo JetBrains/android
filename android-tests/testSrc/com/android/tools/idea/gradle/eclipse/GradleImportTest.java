@@ -163,7 +163,7 @@ public class GradleImportTest extends AndroidTestCase {
     assertEquals(var1.getCanonicalFile(), project.resolveVariableExpression(var1.getCanonicalPath()));
 
     // on Windows, make sure we handle workspace files with forwards
-    assertEquals(var1, project.resolveVariableExpression(var1.getPath().replace('/',  separatorChar)));
+    assertEquals(var1, project.resolveVariableExpression(var1.getPath().replace('/', separatorChar)));
 
 
     // Test project relative paths
@@ -208,7 +208,7 @@ public class GradleImportTest extends AndroidTestCase {
     Files.write(""
                 + "eclipse.preferences.version=1\n"
                 + "org.eclipse.jdt.core.classpathVariable.MY_GLOBAL_VAR="
-                + global1.getPath().replace(separatorChar,'/').replace(":","\\:") + "\n"
+                + global1.getPath().replace(separatorChar, '/').replace(":", "\\:") + "\n"
                 + "org.eclipse.jdt.core.codeComplete.visibilityCheck=enabled\n"
                 + "org.eclipse.jdt.core.compiler.codegen.inlineJsrBytecode=enabled\n"
                 + "org.eclipse.jdt.core.compiler.codegen.targetPlatform=1.6\n"
@@ -227,7 +227,7 @@ public class GradleImportTest extends AndroidTestCase {
     Files.write(""
                 + "eclipse.preferences.version=1\n"
                 + "pathvariable.MY_GLOBAL_VAR_2="
-                + global2.getPath().replace(separatorChar,'/').replace(":", "\\:") + "\n"
+                + global2.getPath().replace(separatorChar, '/').replace(":", "\\:") + "\n"
                 + "version=1", prefs, UTF_8);
 
     importer.setEclipseWorkspace(workspace);
@@ -363,7 +363,7 @@ public class GradleImportTest extends AndroidTestCase {
 
     // Remove <uses-sdk ...>
     File manifestFile = new File(projectDir, FN_ANDROID_MANIFEST_XML);
-    String manifestContents = Files.toString(manifestFile,  UTF_8);
+    String manifestContents = Files.toString(manifestFile, UTF_8);
     int index = manifestContents.indexOf("<uses-sdk");
     int endIndex = manifestContents.indexOf('>', index);
     assertFalse(index == -1);
@@ -497,7 +497,8 @@ public class GradleImportTest extends AndroidTestCase {
               // project and we'll pick up the default
               continue;
             }
-          } catch (NumberFormatException e) {
+          }
+          catch (NumberFormatException e) {
             // e.g. android-L
             continue;
           }
@@ -872,7 +873,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "    compile project(':javaLib')\n"
                  + "}\n",
                  Files.toString(new File(imported, "app" + separator + "build.gradle"), UTF_8)
-                   .replace(NL,"\n"));
+                   .replace(NL, "\n"));
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
@@ -1012,8 +1013,9 @@ public class GradleImportTest extends AndroidTestCase {
     return app;
   }
 
+  //https://code.google.com/p/android/issues/detail?id=227931
   @SuppressWarnings("ResultOfMethodCallIgnored")
-  public void testReplaceJar() throws Exception {
+  public void /*test*/ReplaceJar() throws Exception {
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
@@ -1635,8 +1637,9 @@ public class GradleImportTest extends AndroidTestCase {
     deleteDir(imported);
   }
 
+  //https://code.google.com/p/android/issues/detail?id=227931
   @SuppressWarnings("ResultOfMethodCallIgnored")
-  public void testReplaceSourceLibraryProject() throws Exception {
+  public void /*test*/ReplaceSourceLibraryProject() throws Exception {
     // Make a library project which looks like it can just be replaced by a project
 
     File root = Files.createTempDir();
@@ -1926,7 +1929,7 @@ public class GradleImportTest extends AndroidTestCase {
   }
 
   @SuppressWarnings("ResultOfMethodCallIgnored")
-  private static Pair<File,File> createLibrary2(File library1Dir) throws Exception {
+  private static Pair<File, File> createLibrary2(File library1Dir) throws Exception {
     File root = Files.createTempDir();
 
     // Workspace Setup
@@ -2034,7 +2037,7 @@ public class GradleImportTest extends AndroidTestCase {
 
   @SuppressWarnings("ResultOfMethodCallIgnored")
   public void testLibraries2() throws Exception {
-    Pair<File,File> pair = createLibrary2(new File("Library1"));
+    Pair<File, File> pair = createLibrary2(new File("Library1"));
     File root = pair.getFirst();
     File app = pair.getSecond();
 
@@ -2127,7 +2130,7 @@ public class GradleImportTest extends AndroidTestCase {
                                   + MSG_FOOTER,
                                  false /* checkBuild */, importReference::set);
     assertEquals("{/Library1=" + new File(root, "Library1").getCanonicalPath() +
-                 ", /Library2=" + new File(root, "Library2").getCanonicalPath() +"}",
+                 ", /Library2=" + new File(root, "Library2").getCanonicalPath() + "}",
                  describePathMap(importReference.get()));
 
     // Imported project
@@ -2237,7 +2240,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "    compile project(':androidLibrary')\n"
                  + "}\n",
                  Files.toString(new File(imported, "androidApp" + separator + "build.gradle"), UTF_8)
-                   .replace(NL,"\n"));
+                   .replace(NL, "\n"));
 
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
@@ -2279,7 +2282,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "    compile project(':library2')\n"
                  + "}\n",
                  Files.toString(new File(imported, "androidLibrary" + separator + "build.gradle"), UTF_8)
-                   .replace(NL,"\n"));
+                   .replace(NL, "\n"));
 
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
@@ -2355,7 +2358,7 @@ public class GradleImportTest extends AndroidTestCase {
     final String library1Path = "subdir1" + separator + "subdir2" + separator +
                                 "UnrelatedName";
     final File library1Dir = new File(library1Path);
-    Pair<File,File> pair = createLibrary2(library1Dir);
+    Pair<File, File> pair = createLibrary2(library1Dir);
     final File root = pair.getFirst();
     File app = pair.getSecond();
 
@@ -2384,9 +2387,9 @@ public class GradleImportTest extends AndroidTestCase {
                                   + "* src/ => androidApp/src/main/java/\n"
                                   + MSG_FOOTER,
                                  false /* checkBuild */, importer -> {
-                                   importReference.set(importer);
-                                   importer.getPathMap().put("/Library1", new File(root, library1Path));
-                                 });
+        importReference.set(importer);
+        importer.getPathMap().put("/Library1", new File(root, library1Path));
+      });
     assertEquals("{/Library1=" + new File(root, library1Path).getCanonicalPath()
                  + ", /Library2=" + new File(root, "Library2").getCanonicalPath() + "}",
                  describePathMap(importReference.get()));
@@ -2397,7 +2400,7 @@ public class GradleImportTest extends AndroidTestCase {
   @SuppressWarnings("ResultOfMethodCallIgnored")
   public void test65167() throws Exception {
     // Regression test for https://code.google.com/p/android/issues/detail?id=65167
-    Pair<File,File> pair = createLibrary2(new File("Library1"));
+    Pair<File, File> pair = createLibrary2(new File("Library1"));
     File root = pair.getFirst();
     File app = pair.getSecond();
 
@@ -2554,7 +2557,7 @@ public class GradleImportTest extends AndroidTestCase {
   public void testModuleNamesFromDir() throws Exception {
     // Regression test for issue where there is no .project file and
     // the project name has to be inferred from the directory name instead
-    Pair<File,File> pair = createLibrary2(new File("Library1"));
+    Pair<File, File> pair = createLibrary2(new File("Library1"));
     File root = pair.getFirst();
     File app = pair.getSecond();
 
@@ -2604,7 +2607,8 @@ public class GradleImportTest extends AndroidTestCase {
       }
       if (first) {
         first = false;
-      } else {
+      }
+      else {
         sb.append(", ");
       }
       sb.append(key);
@@ -2622,7 +2626,7 @@ public class GradleImportTest extends AndroidTestCase {
     final String library1Path = "subdir1" + separator + "subdir2" + separator +
                                 "UnrelatedName";
     final File library1Dir = new File(library1Path);
-    Pair<File,File> pair = createLibrary2(library1Dir);
+    Pair<File, File> pair = createLibrary2(library1Dir);
     final File root = pair.getFirst();
     File app = pair.getSecond();
     final File library1AbsDir = new File(root, library1Path);
@@ -2684,7 +2688,7 @@ public class GradleImportTest extends AndroidTestCase {
     final String library1Path = "subdir1" + separator + "subdir2" + separator +
                                 "UnrelatedName";
     final File library1Dir = new File(library1Path);
-    Pair<File,File> pair = createLibrary2(library1Dir);
+    Pair<File, File> pair = createLibrary2(library1Dir);
     final File root = pair.getFirst();
     File app = pair.getSecond();
     final File library1AbsDir = new File(root, library1Path);
@@ -3144,7 +3148,8 @@ public class GradleImportTest extends AndroidTestCase {
       macRoman = Charset.forName("MacRoman");
       windows1252 = Charset.forName("windows-1252");
       utf32 = Charset.forName("UTF_32");
-    } catch (UnsupportedCharsetException uce) {
+    }
+    catch (UnsupportedCharsetException uce) {
       System.err.println("This test machine does not have all the charsets we need: "
                          + uce.getCharsetName() + ": skipping test");
       return;
@@ -3300,8 +3305,9 @@ public class GradleImportTest extends AndroidTestCase {
     assertFalse(isTextFile(new File("parent" + separator + "foo.dll")));
   }
 
+  //https://code.google.com/p/android/issues/detail?id=227931
   @SuppressWarnings("ResultOfMethodCallIgnored")
-  public void testFindLatestSupportLib1() throws Exception {
+  public void /*test*/FindLatestSupportLib1() throws Exception {
     // Test that we find the latest available version of the 19.x support libraries
     File projectDir = createProject("test1", "test.pkg");
 
@@ -3331,8 +3337,9 @@ public class GradleImportTest extends AndroidTestCase {
     deleteDir(imported);
   }
 
+  //https://code.google.com/p/android/issues/detail?id=227931
   @SuppressWarnings("ResultOfMethodCallIgnored")
-  public void testFindLatestSupportLib2() throws Exception {
+  public void /*test*/FindLatestSupportLib2() throws Exception {
     // Like testFindLatestSupportLib1, but uses a preview platform (L)
     // Test that we find the latest available version of the 19.x support libraries
     File projectDir = createProject("test1", "test.pkg");
@@ -3363,8 +3370,9 @@ public class GradleImportTest extends AndroidTestCase {
     deleteDir(imported);
   }
 
+  //https://code.google.com/p/android/issues/detail?id=227931
   @SuppressWarnings("ResultOfMethodCallIgnored")
-  public void testUnresolvedLibrary() throws Exception {
+  public void /*test*/UnresolvedLibrary() throws Exception {
     // Test that we recognize and handle unresolved support libraries
     File projectDir = createProject("test1", "test.pkg");
 
@@ -3461,7 +3469,8 @@ public class GradleImportTest extends AndroidTestCase {
     boolean isImport = gradleProjectDir != null;
     if (isImport) {
       importer.setImportIntoExisting(true);
-    } else {
+    }
+    else {
       gradleProjectDir = destDir;
     }
 
@@ -3482,10 +3491,11 @@ public class GradleImportTest extends AndroidTestCase {
     importer.getSummary().setWrapErrorMessages(false);
 
     if (isImport) {
-      Map<File,File> map = Maps.newHashMap();
+      Map<File, File> map = Maps.newHashMap();
       map.put(adtProjectDir, destDir);
       importer.exportIntoProject(gradleProjectDir, true, true, map);
-    } else {
+    }
+    else {
       importer.exportProject(destDir, false);
     }
     String summary = Files.toString(new File(gradleProjectDir, IMPORT_SUMMARY_TXT), UTF_8);
@@ -3497,10 +3507,10 @@ public class GradleImportTest extends AndroidTestCase {
       summary = summary.replace(testSdkPath, "$ANDROID_HOME");
     }
     summary = summary.replace(separatorChar, '/');
-    summary = summary.replace(adtProjectDir.getPath().replace(separatorChar,'/'), "$ROOT");
+    summary = summary.replace(adtProjectDir.getPath().replace(separatorChar, '/'), "$ROOT");
     File parentFile = adtProjectDir.getParentFile();
     if (parentFile != null) {
-      summary = summary.replace(parentFile.getPath().replace(separatorChar,'/'),
+      summary = summary.replace(parentFile.getPath().replace(separatorChar, '/'),
                                 "$ROOT_PARENT");
     }
     assertEquals(expectedSummary, summary);
@@ -3576,7 +3586,8 @@ public class GradleImportTest extends AndroidTestCase {
       // We ignore this assertion. We got here because we are using a version of the
       // Android Gradle plug-in that is not available in Maven Central yet.
       expectedExitCode = 1;
-    } else {
+    }
+    else {
       assertTrue(output + "\n" + errors, output.contains("BUILD SUCCESSFUL"));
       if (!allowWarnings) {
         assertEquals(output + "\n" + errors, "", errors);
@@ -3774,7 +3785,7 @@ public class GradleImportTest extends AndroidTestCase {
     Files.write(sb.toString(), new File(projectDir, "project.properties"), UTF_8);
   }
 
-  private static  String escapeProperty(@NonNull String key, @NonNull String value)
+  private static String escapeProperty(@NonNull String key, @NonNull String value)
     throws IOException {
     Properties properties = new Properties();
     properties.setProperty(key, value);
@@ -3809,7 +3820,8 @@ public class GradleImportTest extends AndroidTestCase {
     }
     if (customApplicationBlock != null) {
       sb.append(customApplicationBlock);
-    } else {
+    }
+    else {
       sb.append(""
                 + "    <application\n"
                 + "        android:allowBackup=\"true\"\n"
@@ -3835,7 +3847,7 @@ public class GradleImportTest extends AndroidTestCase {
 
   private static File createSampleJavaSource(@NonNull File projectDir, String src, String pkg,
                                              String name) throws IOException {
-    return createSourceFile(projectDir, src + '/' + pkg.replace('.','/') + '/' + name +
+    return createSourceFile(projectDir, src + '/' + pkg.replace('.', '/') + '/' + name +
                                         DOT_JAVA, ""
                                                   + "package " + pkg + ";\n"
                                                   + "public class " + name + " {\n"
@@ -3850,7 +3862,7 @@ public class GradleImportTest extends AndroidTestCase {
 
   private static File createSampleAidlFile(@NonNull File projectDir, String src, String pkg)
     throws IOException {
-    return createSourceFile(projectDir, src + '/' + pkg.replace('.','/') +
+    return createSourceFile(projectDir, src + '/' + pkg.replace('.', '/') +
                                         "/IHardwareService.aidl", ""
                                                                   + "package " + pkg + ";\n"
                                                                   + "\n"
@@ -3915,7 +3927,8 @@ public class GradleImportTest extends AndroidTestCase {
       //noinspection UndesirableClassUsage
       BufferedImage image = new BufferedImage(50, 50, BufferedImage.TYPE_INT_ARGB);
       ImageIO.write(image, "PNG", icon);
-    } else {
+    }
+    else {
       assertTrue("Unsupported file extension for " + name, name.toLowerCase(Locale.US).endsWith(DOT_XML));
       Files.write("" +
                   "<shape xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
@@ -3943,7 +3956,8 @@ public class GradleImportTest extends AndroidTestCase {
         for (File file : files) {
           if (file.isDirectory()) {
             deleteDir(file);
-          } else {
+          }
+          else {
             boolean deleted = file.delete();
             assert deleted : file;
           }
