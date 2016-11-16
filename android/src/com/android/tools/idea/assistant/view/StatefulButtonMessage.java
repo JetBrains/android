@@ -25,8 +25,6 @@ import java.awt.*;
 /**
  * Displays a message in lieu of a button when an action may not be completed. Note, this is not an extension of JBLabel as it will display
  * other elements such as an edit link and potentially support progress indication.
- *
- * TODO: Add support for an edit action (not yet spec'd out).
  */
 public class StatefulButtonMessage extends JPanel {
   public ActionState myState;
