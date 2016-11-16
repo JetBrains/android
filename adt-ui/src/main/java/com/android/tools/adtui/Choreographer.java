@@ -37,6 +37,8 @@ public class Choreographer implements ActionListener {
   private static final float DEFAULT_FRAME_LENGTH = 1.0f / DEFAULT_FPS;
 
   private final List<Animatable> mComponents;
+  private List<Animatable> mToRegister;
+  private List<Animatable> mToUnregister;
   private final Timer mTimer;
   private boolean mUpdate;
   private long mFrameTime;
@@ -50,6 +52,7 @@ public class Choreographer implements ActionListener {
    */
   @NotNull
   private final JComponent mParentContainer;
+  private boolean mUpdating;
 
   /**
    * @param fps    The frame rate that this Choreographer should run at.
@@ -59,7 +62,10 @@ public class Choreographer implements ActionListener {
   public Choreographer(int fps, @NotNull JComponent parent) {
     mParentContainer = parent;
     mComponents = new LinkedList<>();
+    mToRegister = new LinkedList<>();
+    mToUnregister = new LinkedList<>();
     mUpdate = true;
+    mUpdating = false;
     mTimer = new Timer(1000 / fps, this);
     mTimer.start();
   }
@@ -69,15 +75,25 @@ public class Choreographer implements ActionListener {
   }
 
   public void register(Animatable animatable) {
-    mComponents.add(animatable);
+    if (mUpdating) {
+      mToRegister.add(animatable);
+    } else {
+      mComponents.add(animatable);
+    }
   }
 
   public void register(@NotNull List<Animatable> animatables) {
-    mComponents.addAll(animatables);
+    for (Animatable animatable : animatables) {
+      register(animatable);
+    }
   }
 
   public void unregister(@NotNull Animatable animatable) {
-    mComponents.remove(animatable);
+    if (mUpdating) {
+      mToUnregister.add(animatable);
+    } else {
+      mComponents.remove(animatable);
+    }
   }
 
   @Override
@@ -126,20 +142,22 @@ public class Choreographer implements ActionListener {
   }
 
   private void step(float frameLength) {
+    mUpdating = true;
     if (mReset) {
-      for (Animatable component : mComponents) {
-        component.reset();
-      }
+      mComponents.forEach(Animatable::reset);
       mReset = false;
     }
 
-    for (Animatable component : mComponents) {
-      component.animate(frameLength);
-    }
+    mComponents.forEach(component -> component.animate(frameLength));
+    mComponents.forEach(Animatable::postAnimate);
+    mUpdating = false;
 
-    for (Animatable component : mComponents) {
-      component.postAnimate();
-    }
+
+    mToUnregister.forEach(this::unregister);
+    mToRegister.forEach(this::register);
+
+    mToUnregister.clear();
+    mToRegister.clear();
 
     mParentContainer.repaint();
   }

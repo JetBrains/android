@@ -30,7 +30,7 @@ import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.cpu.model.ThreadAddedNotifier;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profilers.cpu.ThreadStatesDataModel;
+import com.android.tools.profilers.cpu.ThreadStateDataSeries;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLayeredPane;
@@ -79,10 +79,10 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
    */
   private final int mThreadsChartY = (mCellHeight - mFontHeight) / 2;
 
-  private final Map<ThreadStatesDataModel, StateChart<CpuProfiler.ThreadActivity.State>> mThreadsStateCharts = new HashMap<>();
+  private final Map<ThreadStateDataSeries, StateChart<CpuProfiler.ThreadActivity.State>> mThreadsStateCharts = new HashMap<>();
 
 
-  private final DefaultListModel<ThreadStatesDataModel> mThreadsListModel = new DefaultListModel<>();
+  private final DefaultListModel<ThreadStateDataSeries> mThreadsListModel = new DefaultListModel<>();
 
   private final JBList mThreadsList = new JBList(mThreadsListModel);
 
@@ -174,7 +174,7 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
     if (mThreadSelectedListener != null) {
       mThreadsList.addListSelectionListener((event) -> {
         int[] selectedThreadsIndices = mThreadsList.getSelectedIndices();
-        List<ThreadStatesDataModel> selectedThreads = new ArrayList<>();
+        List<ThreadStateDataSeries> selectedThreads = new ArrayList<>();
         for (int i = 0; i < selectedThreadsIndices.length; i++) {
           selectedThreads.add(mThreadsListModel.get(selectedThreadsIndices[i]));
         }
@@ -224,15 +224,15 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
     return myThreadAddedNotifier;
   }
 
-  private void createThreadStateChart(ThreadStatesDataModel threadStatesDataModel) {
+  private void createThreadStateChart(ThreadStateDataSeries threadStateDataSeries) {
     StateChart<CpuProfiler.ThreadActivity.State> stateChart = new StateChart<>(getThreadStateColor());
-    mThreadsStateCharts.put(threadStatesDataModel, stateChart);
+    mThreadsStateCharts.put(threadStateDataSeries, stateChart);
 
     DataStoreSeries<CpuProfiler.ThreadActivity.State> defaultData =
-      new DataStoreSeries<>(mSeriesDataStore, SeriesDataType.CPU_THREAD_STATE, threadStatesDataModel);
+      new DataStoreSeries<>(mSeriesDataStore, SeriesDataType.CPU_THREAD_STATE, threadStateDataSeries);
     RangedSeries<CpuProfiler.ThreadActivity.State> threadSeries = new RangedSeries<>(myTimeCurrentRangeUs, defaultData);
-    mThreadsStateCharts.get(threadStatesDataModel).addSeries(threadSeries);
-    mThreadsListModel.addElement(threadStatesDataModel);
+    mThreadsStateCharts.get(threadStateDataSeries).addSeries(threadSeries);
+    mThreadsListModel.addElement(threadStateDataSeries);
   }
 
   @Override
@@ -254,13 +254,13 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
   }
 
   public interface ThreadSelectedListener {
-    void onSelected(@NotNull List<ThreadStatesDataModel> selectedThreads);
+    void onSelected(@NotNull List<ThreadStateDataSeries> selectedThreads);
   }
 
-  private class ThreadsStateCellRenderer implements ListCellRenderer<ThreadStatesDataModel> {
+  private class ThreadsStateCellRenderer implements ListCellRenderer<ThreadStateDataSeries> {
     @Override
-    public Component getListCellRendererComponent(JList<? extends ThreadStatesDataModel> list,
-                                                  ThreadStatesDataModel threadStatesDataModel,
+    public Component getListCellRendererComponent(JList<? extends ThreadStateDataSeries> list,
+                                                  ThreadStateDataSeries threadStateDataSeries,
                                                   int index,
                                                   boolean isSelected,
                                                   boolean cellHasFocus) {
@@ -279,17 +279,17 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
       cellPane.setBackground(cellBackground);
 
       // Cell label (thread name)
-      JLabel threadName = new JLabel(threadStatesDataModel.getName());
-      threadName.setFont(AdtUiUtils.DEFAULT_FONT);
-      threadName.setBounds(THREADS_NAME_LEFT_MARGIN, 0, list.getWidth(), mCellHeight);
-
-      // Cell content (state chart containing the thread states)
-      StateChart<CpuProfiler.ThreadActivity.State> threadStateChart = mThreadsStateCharts.get(threadStatesDataModel);
-      // State chart should be aligned with CPU Usage line charts and, therefore, with center content
-      threadStateChart.setBounds(getSpacerWidth(), mThreadsChartY, list.getWidth() - getSpacerWidth(), mFontHeight);
-
-      cellPane.add(threadName);
-      cellPane.add(threadStateChart);
+   //   JLabel threadName = new JLabel(threadStateDataSeries.getName());
+   //   threadName.setFont(AdtUiUtils.DEFAULT_FONT);
+   //   threadName.setBounds(THREADS_NAME_LEFT_MARGIN, 0, list.getWidth(), mCellHeight);
+   //
+   //   // Cell content (state chart containing the thread states)
+   //   StateChart<CpuProfiler.ThreadActivity.State> threadStateChart = mThreadsStateCharts.get(threadStateDataSeries);
+   //   // State chart should be aligned with CPU Usage line charts and, therefore, with center content
+   //   threadStateChart.setBounds(getSpacerWidth(), mThreadsChartY, list.getWidth() - getSpacerWidth(), mFontHeight);
+   //
+   //   cellPane.add(threadName);
+   //   cellPane.add(threadStateChart);
 
       return cellPane;
     }

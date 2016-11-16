@@ -56,28 +56,15 @@ public class CpuThreadCountDataSeries implements DataSeries<Long> {
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()));
     CpuProfiler.CpuDataResponse response = service.getData(dataRequestBuilder.build());
-    Map<Integer, ThreadStatesDataModel> threadsStateData = new HashMap<>();
+    Map<Integer, ThreadStateDataSeries> threadsStateData = new HashMap<>();
     for (CpuProfiler.CpuProfilerData data : response.getDataList()) {
       if (data.getDataCase() != CpuProfiler.CpuProfilerData.DataCase.THREAD_ACTIVITIES) {
         // No data to be handled.
         continue;
       }
       long dataTimestamp = TimeUnit.NANOSECONDS.toMicros(data.getBasicInfo().getEndTimestamp());
-
       CpuProfiler.ThreadActivities threadActivities = data.getThreadActivities();
-      for (CpuProfiler.ThreadActivity threadActivity : threadActivities.getActivitiesList()) {
-        int tid = threadActivity.getTid();
-        ThreadStatesDataModel threadData;
-        if (!threadsStateData.containsKey(tid)) {
-          threadData = new ThreadStatesDataModel(threadActivity.getName(), threadActivity.getTid());
-          threadsStateData.put(tid, threadData);
-        }
-        if (threadActivity.getNewState() == CpuProfiler.ThreadActivity.State.DEAD) {
-          // TODO: maybe it's better not to remove it and keep track of the threads alive using an integer field.
-          threadsStateData.remove(tid);
-        }
-      }
-      seriesData.add(new SeriesData<>(dataTimestamp, (long)threadsStateData.size()));
+      seriesData.add(new SeriesData<>(dataTimestamp, (long)threadActivities.getActivitiesCount()));
     }
     return ContainerUtil.immutableList(seriesData);
   }
