@@ -30,6 +30,7 @@ import com.android.tools.profilers.StudioProfilers;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -49,7 +50,7 @@ public class NetworkProfilerStageView extends StageView {
     myStage = stage;
     myConnectionDetails = new JPanel(new BorderLayout());
 
-    myRequestsView = new NetworkRequestsView(getTimeline().getViewRange(), stage.getRequestsModel(), data -> {
+    myRequestsView = new NetworkRequestsView(this, stage.getRequestsModel(), data -> {
       System.out.println(data.getId());
     });
 
@@ -101,7 +102,7 @@ public class NetworkProfilerStageView extends StageView {
 
     Splitter l2l3splitter = new Splitter(true);
     l2l3splitter.setFirstComponent(lineChartAndAxis);
-    l2l3splitter.setSecondComponent(myRequestsView);
+    l2l3splitter.setSecondComponent(new JBScrollPane(myRequestsView.getComponent()));
 
     mySplitter = new Splitter(false);
     mySplitter.setFirstComponent(l2l3splitter);
@@ -110,7 +111,6 @@ public class NetworkProfilerStageView extends StageView {
     getComponent().add(mySplitter, BorderLayout.CENTER);
 
     Choreographer choreographer = getChoreographer();
-    choreographer.register(myRequestsView);
     choreographer.register(lineChart);
     choreographer.register(leftAxis);
     choreographer.register(rightAxis);
