@@ -21,8 +21,8 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -52,7 +52,7 @@ public class TextAppearanceEnumSupport extends StyleEnumSupport {
 
   @Override
   @NotNull
-  protected ValueWithDisplayString createFromResolvedValue(@NotNull String resolvedValue, @Nullable String value) {
+  protected ValueWithDisplayString createFromResolvedValue(@NotNull String resolvedValue, @Nullable String value, @Nullable String hint) {
     if (value != null &&
         !value.startsWith(STYLE_RESOURCE_PREFIX) &&
         !value.startsWith(ANDROID_STYLE_RESOURCE_PREFIX) &&
@@ -87,6 +87,6 @@ public class TextAppearanceEnumSupport extends StyleEnumSupport {
       display = StringUtil.trimStart(display, ANDROID_STYLE_RESOURCE_PREFIX);
       display = StringUtil.trimStart(display, STYLE_RESOURCE_PREFIX);
     }
-    return new ValueWithDisplayString(display, value);
+    return new ValueWithDisplayString(display, value, generateHint(display, value));
   }
 }

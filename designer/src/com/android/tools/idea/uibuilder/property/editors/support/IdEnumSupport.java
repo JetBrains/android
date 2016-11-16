@@ -51,13 +51,13 @@ public class IdEnumSupport extends EnumSupport {
 
   @Override
   @NotNull
-  protected ValueWithDisplayString createFromResolvedValue(@NotNull String resolvedValue, @Nullable String value) {
+  protected ValueWithDisplayString createFromResolvedValue(@NotNull String resolvedValue, @Nullable String value, @Nullable String hint) {
     if (value != null && !value.startsWith(NEW_ID_PREFIX) && !value.startsWith(ID_PREFIX)) {
       value = NEW_ID_PREFIX + value;
     }
     String display = resolvedValue;
     display = StringUtil.trimStart(display, ID_PREFIX);
     display = StringUtil.trimStart(display, NEW_ID_PREFIX);
-    return new ValueWithDisplayString(display, value);
+    return new ValueWithDisplayString(display, value, hint);
   }
 }

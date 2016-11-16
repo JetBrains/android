@@ -53,7 +53,7 @@ public class StyleEnumSupport extends EnumSupport {
 
   @Override
   @NotNull
-  protected ValueWithDisplayString createFromResolvedValue(@NotNull String resolvedValue, @Nullable String value) {
+  protected ValueWithDisplayString createFromResolvedValue(@NotNull String resolvedValue, @Nullable String value, @Nullable String hint) {
     if (value != null &&
         !value.startsWith(STYLE_RESOURCE_PREFIX) &&
         !value.startsWith(ANDROID_STYLE_RESOURCE_PREFIX) &&
@@ -66,7 +66,18 @@ public class StyleEnumSupport extends EnumSupport {
     String display = resolvedValue;
     display = StringUtil.trimStart(display, ANDROID_STYLE_RESOURCE_PREFIX);
     display = StringUtil.trimStart(display, STYLE_RESOURCE_PREFIX);
-    return new ValueWithDisplayString(display, value);
+    return new ValueWithDisplayString(display, value, generateHint(display, value));
+  }
+
+  @Nullable
+  protected String generateHint(@NotNull String display, @Nullable String value) {
+    if (value == null) {
+      return "default";
+    }
+    if (value.endsWith(display)) {
+      return null;
+    }
+    return value;
   }
 
   @NotNull
@@ -80,7 +91,7 @@ public class StyleEnumSupport extends EnumSupport {
       }
       previousStyle = style;
       String prefix = style.isFramework() ? ANDROID_STYLE_RESOURCE_PREFIX : STYLE_RESOURCE_PREFIX;
-      values.add(createFromResolvedValue(style.getName(), prefix + style.getName()));
+      values.add(createFromResolvedValue(style.getName(), prefix + style.getName(), null));
     }
     return values;
   }

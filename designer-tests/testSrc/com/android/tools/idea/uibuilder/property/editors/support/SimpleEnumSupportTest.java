@@ -69,6 +69,6 @@ public class SimpleEnumSupportTest {
   @Test
   public void testCreateFromResourceString() {
     assertThat(mySupport.createValue("@string/font_family_body_1_material"))
-      .isEqualTo(new ValueWithDisplayString("sans-serif", "@string/font_family_body_1_material"));
+      .isEqualTo(new ValueWithDisplayString("sans-serif", "@string/font_family_body_1_material", "@string/font_family_body_1_material"));
   }
 }

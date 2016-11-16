@@ -29,11 +29,11 @@ public class SimpleQuantityEnumSupport extends SimpleEnumSupport {
 
   @Override
   @NotNull
-  protected ValueWithDisplayString createFromResolvedValue(@NotNull String resolvedValue, @Nullable String value) {
+  protected ValueWithDisplayString createFromResolvedValue(@NotNull String resolvedValue, @Nullable String value, @Nullable String hint) {
     if (value != null) {
       value = Quantity.addUnit(myProperty, value);
     }
     resolvedValue = Quantity.addUnit(myProperty, resolvedValue);
-    return new ValueWithDisplayString(resolvedValue, value);
+    return new ValueWithDisplayString(resolvedValue, value, hint);
   }
 }
