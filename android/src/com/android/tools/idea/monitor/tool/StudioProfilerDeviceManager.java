@@ -38,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 
+import static com.android.ddmlib.Client.CHANGE_INFO;
 import static com.android.ddmlib.IDevice.CHANGE_STATE;
 
 /**
@@ -45,7 +46,8 @@ import static com.android.ddmlib.IDevice.CHANGE_STATE;
  * On device connection it will spawn the performance daemon on device, and will notify the profiler system that
  * a new device has been connected. *ALL* interaction with IDevice is encapsulated in this class.
  */
-class StudioProfilerDeviceManager implements AndroidDebugBridge.IDeviceChangeListener,
+class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeListener,
+                                             AndroidDebugBridge.IDeviceChangeListener,
                                              AndroidDebugBridge.IDebugBridgeChangeListener {
 
   private static final int DEVICE_PORT = 12389;
@@ -78,6 +80,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDeviceChangeLis
       }
     }, EdtExecutor.INSTANCE);
 
+    AndroidDebugBridge.addClientChangeListener(this);
     AndroidDebugBridge.addDeviceChangeListener(this);
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
   }
@@ -108,6 +111,13 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDeviceChangeLis
         }
       }
       myClient.getProfilerClient().setProcesses(builder.build());
+    }
+  }
+
+  @Override
+  public void clientChanged(@NonNull Client client, int changeMask) {
+    if ((changeMask & CHANGE_INFO) != 0) {
+      updateDevices();
     }
   }
 
