@@ -11,6 +11,7 @@
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="android" scope="TEST" />
+    <orderEntry type="module" module-name="android-test-framework" scope="TEST" />
     <orderEntry type="module" module-name="community-main" scope="TEST" />
     <orderEntry type="module" module-name="testutils" scope="TEST" />
     <orderEntry type="module" module-name="fest-swing" scope="TEST" />
