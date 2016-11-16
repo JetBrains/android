@@ -97,15 +97,17 @@ public class LintIdeUtils {
    */
   @Nullable
   public static PsiFile getPsiFile(@NonNull Context context) {
-    VirtualFile file = VfsUtil.findFileByIoFile(context.file, false);
-    if (file == null) {
-      return null;
-    }
     LintRequest request = context.getDriver().getRequest();
     Project project = ((LintIdeRequest)request).getProject();
     if (project.isDisposed()) {
       return null;
     }
+
+    VirtualFile file = VfsUtil.findFileByIoFile(context.file, false);
+    if (file == null) {
+      return null;
+    }
+
     return AndroidPsiUtils.getPsiFileSafely(project, file);
   }
 
