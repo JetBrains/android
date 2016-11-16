@@ -41,12 +41,13 @@ import java.awt.event.ActionListener;
 public class StatefulButton extends JPanel {
 
   private ActionButton myButton;
-  private String mySuccessMessage;
+  private final String mySuccessMessage;
   private StatefulButtonMessage myMessage;
   private AssistActionStateManager myStateManager;
-  private ActionData myAction;
-  private Project myProject;
+  private final ActionData myAction;
+  private final Project myProject;
 
+  @SuppressWarnings("deprecation")
   public StatefulButton(@NotNull ActionData action, @NotNull ActionListener listener, @NotNull Project project) {
     super(new VerticalLayout(5, SwingConstants.LEFT));
     setBorder(BorderFactory.createEmptyBorder());
@@ -104,7 +105,7 @@ public class StatefulButton extends JPanel {
       // Listen for notifications that the state has been updated.
       for (Module module : GradleProjectInfo.getInstance(project).getAndroidModules()) {
         MessageBusConnection connection = module.getMessageBus().connect(module);
-        connection.subscribe(StatefulButtonNotifier.BUTTON_STATE_TOPIC, () -> updateButtonState());
+        connection.subscribe(StatefulButtonNotifier.BUTTON_STATE_TOPIC, this::updateButtonState);
       }
     }
 
@@ -126,7 +127,7 @@ public class StatefulButton extends JPanel {
   public void updateButtonState() {
     // Ensure we're on the AWT event dispatch thread
     if (!SwingUtilities.isEventDispatchThread()) {
-      SwingUtilities.invokeLater(() -> updateButtonState());
+      SwingUtilities.invokeLater(this::updateButtonState);
       return;
     }
     // There may be cases where the action is not stateful such as triggering a debug event which can occur any number of times.
@@ -180,8 +181,8 @@ public class StatefulButton extends JPanel {
    * inline where used or by subclassing this class.
    */
   public static class ActionButton extends JButton {
-    private String myKey;
-    private StatefulButton myButtonWrapper;
+    private final String myKey;
+    private final StatefulButton myButtonWrapper;
 
     /**
      * @param action   POJO containing the action configuration.

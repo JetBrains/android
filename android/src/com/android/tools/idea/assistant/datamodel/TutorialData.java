@@ -16,6 +16,7 @@
 package com.android.tools.idea.assistant.datamodel;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -37,6 +38,7 @@ public interface TutorialData {
    * markup should be restricted to adding links and extremely basic formatting
    * such as bolding.
    */
+  @Nullable
   String getDescription();
 
   /**
