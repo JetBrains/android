@@ -27,12 +27,9 @@ public class CpuProfilerStage extends Stage {
 
   @Override
   public void enter() {
-
   }
 
   @Override
   public void exit() {
-
   }
-
 }
