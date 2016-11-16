@@ -61,7 +61,9 @@ public class TestProjectPathsGenerator {
     File testProjectsFolderPath = new File(testDataFolderPath, "projects");
     assertAbout(file()).that(testProjectsFolderPath).isDirectory();
 
-    File testSrcFolderPath = new File(AndroidTestBase.getAndroidPluginHome(), "testSrc").getCanonicalFile();
+    File testFrameworkFolderPath = new File(new File(AndroidTestBase.getAndroidPluginHome()).getParentFile(), "android-test-framework");
+
+    File testSrcFolderPath = new File(testFrameworkFolderPath, "testSrc").getCanonicalFile();
     assertAbout(file()).that(testSrcFolderPath).isDirectory();
 
     String packageName = TestProjectPathsGenerator.class.getPackage().getName();
