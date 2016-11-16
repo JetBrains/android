@@ -20,7 +20,7 @@ iml_module(
         "//tools:idea.openapi[module, test]",
         "//tools:idea.testRunner[module, test]",
         "//tools:idea.bootstrap[module, test]",
-        "//tools/adt/idea:android/lib/spantable[test]",
+        "//tools/adt/idea/android/lib:spantable[test]",
         "//tools/adt/idea/adt-ui:adt-ui[module, test]",
         "//tools/base/rpclib:studio.rpclib[module, test]",
         "//tools/adt/idea/designer:designer[module, test]",
