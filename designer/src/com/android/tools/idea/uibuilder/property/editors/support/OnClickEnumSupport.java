@@ -77,7 +77,7 @@ public class OnClickEnumSupport extends EnumSupport {
         if (OnClickConverter.CONVERTER_FOR_LAYOUT.checkSignature(method) &&
             found.add(method.getName()) &&
             method instanceof PsiMethodImpl) {
-          values.add(new ValueWithDisplayString(method.getName() + " (" + psiClass.getName() + ")", method.getName()));
+          values.add(new ValueWithDisplayString(method.getName(), method.getName(), psiClass.getName()));
         }
       }
     }

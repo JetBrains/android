@@ -30,11 +30,17 @@ public class ValueWithDisplayString {
 
   private final String myDisplayString;
   private final String myValue;
+  private final String myHint;
   private boolean myUseValueForToString;
 
   public ValueWithDisplayString(@Nullable String displayString, @Nullable String value) {
+    this(displayString, value, null);
+  }
+
+  public ValueWithDisplayString(@Nullable String displayString, @Nullable String value, @Nullable String hint) {
     myDisplayString = StringUtil.notNullize(displayString);
     myValue = value;
+    myHint = hint;
   }
 
   @Override
@@ -53,6 +59,11 @@ public class ValueWithDisplayString {
     return myValue;
   }
 
+  @Nullable
+  public String getHint() {
+    return myHint;
+  }
+
   /**
    * This value is a hack to get around a problem where swing will call {@link javax.swing.DefaultComboBoxModel#setSelectedItem}
    * with the toString() value of this class.
@@ -64,7 +75,7 @@ public class ValueWithDisplayString {
 
   @Override
   public int hashCode() {
-    return Objects.hash(myValue, myDisplayString);
+    return Objects.hash(myValue, myDisplayString, myHint);
   }
 
   @Override
@@ -72,7 +83,9 @@ public class ValueWithDisplayString {
     if (!(other instanceof ValueWithDisplayString)) {
       return false;
     }
-    return Objects.equals(myValue, ((ValueWithDisplayString)other).myValue) &&
-           Objects.equals(myDisplayString, ((ValueWithDisplayString)other).myDisplayString);
+    ValueWithDisplayString value = (ValueWithDisplayString)other;
+    return Objects.equals(myValue, value.myValue) &&
+           Objects.equals(myDisplayString, value.myDisplayString) &&
+           Objects.equals(myHint, value.myHint);
   }
 }
