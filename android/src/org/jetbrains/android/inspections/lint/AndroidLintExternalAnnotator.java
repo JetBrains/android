@@ -34,6 +34,7 @@ import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.*;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -212,6 +213,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
       return;
     }
     final Project project = file.getProject();
+    if (DumbService.isDumb(project)) return;
 
     for (ProblemData problemData : state.getProblems()) {
       final Issue issue = problemData.getIssue();
