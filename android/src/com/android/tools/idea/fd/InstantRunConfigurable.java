@@ -63,6 +63,8 @@ import static com.android.tools.idea.fd.InstantRunManager.MINIMUM_GRADLE_PLUGIN_
 
 public class InstantRunConfigurable
     implements SearchableConfigurable, Configurable.NoScroll, HyperlinkListener, GradleSyncListener, Disposable {
+  public static boolean SHOW_IR_UI_OPTIONS = Boolean.getBoolean("show.ir.options");
+
   private final InstantRunConfiguration myBuildConfiguration;
   private JPanel myContentPanel;
   private JBCheckBox myInstantRunCheckBox;
@@ -80,8 +82,11 @@ public class InstantRunConfigurable
   private JPanel myHelpGooglePanel;
   private JBLabel myHavingTroubleLabel;
   private JComboBox<IrUiExperiment> myInstantRunUiCombo;
+  private JPanel myInstantRunUiPanel;
 
   public InstantRunConfigurable() {
+    myInstantRunUiPanel.setVisible(SHOW_IR_UI_OPTIONS);
+
     myInstantRunUiCombo.setModel(new CollectionComboBoxModel<>(Arrays.asList(
       IrUiExperiment.DEFAULT,
       IrUiExperiment.HOTSWAP,
