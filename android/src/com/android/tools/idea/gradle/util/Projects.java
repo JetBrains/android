@@ -83,7 +83,6 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.vis
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.wm.impl.IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN;
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static java.lang.Boolean.TRUE;
 
 /**
@@ -187,7 +186,7 @@ public final class Projects {
                               @NotNull DataNode<ProjectData> projectInfo,
                               @NotNull Collection<DataNode<ModuleData>> modulesToImport,
                               boolean runPostProjectSetupTasks) {
-    invokeAndWaitIfNeeded((Runnable)() -> {
+    ApplicationManager.getApplication().invokeAndWait(() -> {
       ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
       messages.removeMessages(PROJECT_STRUCTURE_ISSUES, MISSING_DEPENDENCIES_BETWEEN_MODULES, FAILED_TO_SET_UP_DEPENDENCIES,
                               VARIANT_SELECTION_CONFLICTS, EXTRA_GENERATED_SOURCES);
