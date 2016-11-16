@@ -248,6 +248,9 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
           // to something else than fit
           zoomToFit();
         }
+        else {
+          positionScreens();
+        }
       }
 
       @Override
