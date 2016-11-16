@@ -116,7 +116,7 @@ public class DefaultTutorialBundle implements TutorialBundleData {
   }
 
   @Override
-  public void setResourceClass(Class clazz) {
+  public void setResourceClass(@NotNull Class clazz) {
     myResourceClass = clazz;
   }
 
@@ -225,7 +225,7 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     private Class myResourceClass;
 
     @Override
-    public void setResourceClass(Class clazz) {
+    public void setResourceClass(@NotNull Class clazz) {
       myResourceClass = clazz;
     }
 
@@ -302,31 +302,37 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     private List<Step> mySteps = Lists.newArrayList();
 
     @Override
+    @NotNull
     public String getLabel() {
       return myLabel;
     }
 
     @Override
+    @Nullable
     public String getDescription() {
       return myDescription;
     }
 
     @Override
+    @NotNull
     public String getRemoteLink() {
       return myRemoteLink;
     }
 
     @Override
+    @NotNull
     public String getRemoteLinkLabel() {
       return myRemoteLinkLabel;
     }
 
     @Override
+    @NotNull
     public String getKey() {
       return myKey;
     }
 
     @Override
+    @NotNull
     public List<Step> getSteps() {
       return ImmutableList.copyOf(mySteps);
     }
@@ -354,11 +360,13 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     private String myLabel;
 
     @Override
+    @NotNull
     public List<StepElement> getStepElements() {
       return ImmutableList.copyOf(myStepElements);
     }
 
     @Override
+    @NotNull
     public String getLabel() {
       return myLabel;
     }
@@ -393,6 +401,7 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     private Action myAction;
 
     @Override
+    @NotNull
     public StepElementType getType() {
       if (myType != null) {
         return myType;
