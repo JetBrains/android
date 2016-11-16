@@ -48,7 +48,7 @@ public class StatefulButtonUI extends BasicButtonUI {
   private static final JBColor SELECTED_BUTTON_FOREGROUND = new JBColor(0xf0f0f0, 0xbbbbbb);
   private static final JBColor DISABLED_TEXT_SHADOW = new JBColor(0xffffff, 0x00000000);
 
-  @SuppressWarnings("MethodOverridesStaticMethodOfSuperclass")
+  @SuppressWarnings({"MethodOverridesStaticMethodOfSuperclass", "UnusedParameters"})
   public static ComponentUI createUI(JComponent c) {
     return new StatefulButtonUI();
   }

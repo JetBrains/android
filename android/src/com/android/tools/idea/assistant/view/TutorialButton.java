@@ -27,7 +27,6 @@ import java.awt.event.ActionListener;
  * example, arbitrary objects with click listeners don't handle tabbing, focus,
  * properly support screen readers, etc.
  *
- * TODO: Investigate migrating display properties to a form.
  * TODO: If we have further button-as-link treatments, extract that portion out
  * into a new class, just leaving the insets here.
  */
