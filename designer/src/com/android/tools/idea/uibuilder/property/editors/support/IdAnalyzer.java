@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property.editors;
+package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlProperty;
@@ -36,23 +36,20 @@ public class IdAnalyzer {
   private final PropertyGroup myPropertyGroup;
   private final Set<String> myResult;
 
-  @NotNull
-  public static List<String> findIdsForProperty(@NotNull NlProperty property) {
-    return new IdAnalyzer(property).findIds();
-  }
-
-  private IdAnalyzer(@NotNull NlProperty property) {
+  public IdAnalyzer(@NotNull NlProperty property) {
     myProperty = property;
     myPropertyGroup = findPropertyGroup(property.getName());
     myReservedIds = new HashSet<>();
     myResult = new HashSet<>();
   }
 
-  private List<String> findIds() {
+  @NotNull
+  public List<String> findIds() {
     myPropertyGroup.findIds(this);
     return myResult.stream().sorted().collect(Collectors.toList());
   }
 
+  @NotNull
   private static PropertyGroup findPropertyGroup(@NotNull String attributeName) {
     for (PropertyGroup group : PROPERTY_GROUPS) {
       if (group.myAttributes.contains(attributeName)) {
