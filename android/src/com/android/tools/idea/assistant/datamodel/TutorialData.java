@@ -18,6 +18,7 @@ package com.android.tools.idea.assistant.datamodel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.List;
 
 /**
@@ -43,20 +44,14 @@ public interface TutorialData {
 
   /**
    * Returns a url for more information on the tutorial.
-   *
-   * NOTE: Currently required due to formatting edge cases but likely to become
-   * optional in the future.
    */
-  @NotNull
+  @Nullable
   String getRemoteLink();
 
   /**
    * Returns the text to linkify with the result of {@code #getRemoteLink}.
-   *
-   * NOTE: Currently required due to formatting edge cases but likely to become
-   * optional in the future.
    */
-  @NotNull
+  @Nullable
   String getRemoteLinkLabel();
 
   /**
@@ -65,6 +60,12 @@ public interface TutorialData {
    */
   @NotNull
   String getKey();
+
+  /**
+   * Returns an icon for use in the tutorial. Displayed next to the label if non-null.
+   */
+  @Nullable
+  Icon getIcon();
 
   /**
    * Returns the set of steps in the tutorial.
