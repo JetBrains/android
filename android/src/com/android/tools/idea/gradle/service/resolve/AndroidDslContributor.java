@@ -74,10 +74,10 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
     "com.android.builder.model.SigningConfig", "com.android.build.gradle.internal.dsl.SigningConfigDsl");
 
   @Override
-  public void process(@NotNull List<String> callStack,
-                      @NotNull PsiScopeProcessor processor,
-                      @NotNull ResolveState state,
-                      @NotNull PsiElement place) {
+  public boolean process(@NotNull List<String> callStack,
+                         @NotNull PsiScopeProcessor processor,
+                         @NotNull ResolveState state,
+                         @NotNull PsiElement place) {
     // The Android DSL within a Gradle build script looks something like this:
     //     android {
     //         compileSdkVersion 18
@@ -118,7 +118,7 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
     // we only care about symbols within the android closure
     String topLevel = ContainerUtil.getLastItem(callStack, null);
     if (!DSL_ANDROID.equals(topLevel)) {
-      return;
+      return true;
     }
 
     logClassPathOnce(place.getProject());
@@ -139,13 +139,13 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
         resolveToMethodWithClosure(place, contributorClass, qualifiedName, processor, state, psiManager);
         cacheContributorInfo(place, contributorClass);
       }
-      return;
+      return true;
     }
 
     // For all blocks within android, we first figure out who contributed the parent block.
     PsiElement parentContributor = getParentContributor(place);
     if (parentContributor == null) {
-      return;
+      return true;
     }
 
     // if the parent object is a class, then process the current identifier as a method of the parent class
@@ -153,7 +153,7 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
       PsiMethod method =
         findAndProcessContributingMethod(callStack.get(0), processor, state, place, (PsiClass)parentContributor, psiManager);
       cacheContributorInfo(place, method);
-      return;
+      return true;
     }
 
     // if the parent object is a method, then the type of the current object depends on the arguments of the parent:
@@ -170,14 +170,14 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
     //        }
     //        This is similar to case 2, we just need to make sure that debug is resolved as a variable of type AndroidSourceSet
     if (!(parentContributor instanceof PsiMethod)) {
-      return;
+      return true;
     }
 
     // determine the type variable present in the parent method
     ParametrizedTypeExtractor typeExtractor = getTypeExtractor((PsiMethod)parentContributor);
     if (typeExtractor == null) {
       LOG.info("inside the closure of a method, but unable to extract the closure parameter's type.");
-      return;
+      return true;
     }
 
     if (typeExtractor.hasNamedDomainObjectContainer()) {
@@ -195,7 +195,7 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
         resolveToMethodWithClosure(place, contributorClass, qualifiedName, processor, state, psiManager);
         cacheContributorInfo(place, contributorClass);
       }
-      return;
+      return true;
     }
 
     if (typeExtractor.isClosure()) {
@@ -205,12 +205,13 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
 
       PsiClass contributorClass = findClassByName(psiManager, place.getResolveScope(), clz);
       if (contributorClass == null) {
-        return;
+        return true;
       }
 
       PsiMethod method = findAndProcessContributingMethod(callStack.get(0), processor, state, place, contributorClass, psiManager);
       cacheContributorInfo(place, method);
     }
+    return true;
   }
 
   private static void resolveToMethodWithClosure(PsiElement place,
