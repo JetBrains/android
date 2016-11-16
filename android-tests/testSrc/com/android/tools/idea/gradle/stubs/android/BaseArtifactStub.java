@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.Dependencies;
 import com.android.builder.model.SourceProvider;
+import com.android.builder.model.level2.LibraryGraph;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
@@ -84,18 +85,18 @@ public class BaseArtifactStub implements BaseArtifact {
   @Override
   @NotNull
   public DependenciesStub getDependencies() {
-    return getCompileDependencies();
-  }
-
-  @Override
-  @NotNull
-  public DependenciesStub getCompileDependencies() {
     return myDependencies;
   }
 
+  @NonNull
   @Override
-  @NotNull
-  public Dependencies getPackageDependencies() {
+  public LibraryGraph getCompileGraph() {
+    throw new UnsupportedOperationException();
+  }
+
+  @NonNull
+  @Override
+  public LibraryGraph getPackageGraph() {
     throw new UnsupportedOperationException();
   }
 
