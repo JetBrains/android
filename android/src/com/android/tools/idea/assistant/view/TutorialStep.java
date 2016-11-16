@@ -19,6 +19,7 @@ import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.StepElementData;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.CaretState;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.VisualPosition;
@@ -42,8 +43,6 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Renders a single step inside of a tutorial.
@@ -51,7 +50,6 @@ import java.util.logging.Logger;
  * TODO: Move render properties to a form.
  */
 public class TutorialStep extends JPanel {
-  private static final Logger logger = Logger.getLogger(TutorialStep.class.getName());
 
   // TODO: Refactor number related code to be an inner class + revisit colors.
   public final JBColor NUMBER_COLOR = new JBColor(0x52639B, 0x589df6);
@@ -60,6 +58,10 @@ public class TutorialStep extends JPanel {
   private final StepData myStep;
   private final JPanel myContents;
   private final Project myProject;
+
+  private static Logger getLog() {
+    return Logger.getInstance(TutorialStep.class);
+  }
 
   TutorialStep(@NotNull StepData step, int index, @NotNull ActionListener listener, @NotNull Project project) {
     super(new GridBagLayout());
@@ -89,13 +91,18 @@ public class TutorialStep extends JPanel {
           myContents.add(section);
           break;
         case ACTION:
-          myContents.add(new StatefulButton(element.getAction(), listener, project));
+          if (element.getAction() != null) {
+            myContents.add(new StatefulButton(element.getAction(), listener, project));
+          }
+          else {
+            getLog().warn("Found action element with no action definition: " + element.toString());
+          }
           break;
         case CODE:
           myContents.add(new CodePane(element));
           break;
         default:
-          logger.log(Level.SEVERE, "Found a StepElement of unknown type. " + element.toString());
+          getLog().error("Found a StepElement of unknown type. " + element.toString());
       }
       // Add 10px spacing between elements.
       myContents.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -244,7 +251,6 @@ public class TutorialStep extends JPanel {
     @Override
     public void mouseReleased(EditorMouseEvent e) {
     }
-
   }
 
   /**
@@ -301,7 +307,8 @@ public class TutorialStep extends JPanel {
 
     public CodePane(StepElementData element) {
       // Default to JAVA rather than PLAIN_TEXT display for better support for quoted strings and properties.
-      super(element.getCode(), myProject, element.getCodeType() != null ? element.getCodeType() : StdFileTypes.JAVA);
+      super(element.getCode() != null ? element.getCode() : "", myProject,
+            element.getCodeType() != null ? element.getCodeType() : StdFileTypes.JAVA);
       // Tell the editor that it's a multiline editor, defaults to false and can't be overridden in ctor unless passing in a document
       // instead of text as first argument.
       setOneLineMode(false);
@@ -356,10 +363,6 @@ public class TutorialStep extends JPanel {
 
       JScrollPane scroll = editor.getScrollPane();
 
-      // Escape early, should not occur when we're doing the final render.
-      if (scroll == null) {
-        return editor;
-      }
       // Set the background manually as it appears to persist as an old color on theme change.
       scroll.getViewport().setBackground(UIUtils.getBackgroundColor());
       if (scroll.getViewport().getView() != null) {
