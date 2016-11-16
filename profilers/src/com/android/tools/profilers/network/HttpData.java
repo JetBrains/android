@@ -15,6 +15,12 @@
  */
 package com.android.tools.profilers.network;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Data of http url connection. Each {@code HttpData} object matches a http connection with a unique id, and it includes both request data
  * and response data. Request data is filled immediately when the connection starts. Response data may be empty, it will filled when
@@ -27,6 +33,7 @@ public class HttpData {
   private long myStartTimeUs;
   private long myDownloadingTimeUs;
   private long myEndTimeUs;
+  private Map<String, String> myResponseFields;
   private String myResponsePayloadId;
   // Holds the non-negative response body size in bytes if present, otherwise it is -1 by default.
   private long myHttpResponseBodySize = -1;
@@ -93,5 +100,36 @@ public class HttpData {
 
   public long getHttpResponseBodySize() {
     return myHttpResponseBodySize;
+  }
+
+  public void setHttpResponseFields(@NotNull String fields) {
+    myResponseFields = new ResponseFieldsParser().getFieldsMap(fields);
+  }
+
+  public void setHttpResponseFields(@NotNull Map<String, String> fields) {
+    myResponseFields = fields;
+  }
+
+  @Nullable
+  public Map<String, String> getHttpResponseFields() {
+    return myResponseFields;
+  }
+
+  /**
+   * Parser to get formatted http response fields from concatenated string.
+   */
+  public static class ResponseFieldsParser {
+
+    @NotNull
+    public Map<String, String> getFieldsMap(@NotNull String fields) {
+      String[] lines = fields.split("\\n");
+      Map<String, String> fieldsMap = new HashMap<>();
+      for (String line : lines) {
+        String[] keyAndValue = line.split("=");
+        assert keyAndValue.length == 2 : String.format("Unexpected http response field %s", line);
+        fieldsMap.put(keyAndValue[0].trim(), keyAndValue[1].trim());
+      }
+      return fieldsMap;
+    }
   }
 }
