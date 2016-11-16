@@ -90,12 +90,14 @@ public class CpuProfilerStageView extends StageView {
   static class ThreadCellRenderer implements ListCellRenderer<CpuThreadsModel.RangedCpuThread> {
 
     final JLabel myLabel;
-    AnimatedListRenderer<CpuThreadsModel.RangedCpuThread, StateChart<CpuProfiler.ThreadActivity.State>> myStateCharts;
+    AnimatedListRenderer<CpuThreadsModel.RangedCpuThread, StateChart<CpuProfiler.GetThreadsResponse.State>> myStateCharts;
 
     public ThreadCellRenderer(Choreographer choreographer, JList<CpuThreadsModel.RangedCpuThread> list) {
       myLabel = new JLabel();
+      myLabel.setFont(myLabel.getFont().deriveFont(12.0f));
       myStateCharts = new AnimatedListRenderer<>(choreographer, list, thread -> {
-        StateChart<CpuProfiler.ThreadActivity.State> chart = new StateChart<>(getThreadStateColor());
+        StateChart<CpuProfiler.GetThreadsResponse.State> chart = new StateChart<>(ProfilerColors.THREAD_STATES);
+        chart.setHeightGap(0.35f);
         chart.addSeries(thread.getDataSeries());
         return chart;
       });
@@ -107,23 +109,23 @@ public class CpuProfilerStageView extends StageView {
                                                   int index,
                                                   boolean isSelected,
                                                   boolean cellHasFocus) {
-      // TODO: Place holder rendering
-      JPanel panel = new JPanel(new BorderLayout());
+      // TODO: Improve selection rendering
+      JLayeredPane panel = new JLayeredPane();
+      panel.setLayout(new GridBagLayout());
       myLabel.setText(value.getName());
-      panel.setBackground(isSelected ? Color.BLUE : Color.WHITE);
-      panel.add(myLabel, BorderLayout.WEST);
-      panel.add(myStateCharts.get(index), BorderLayout.CENTER);
+
+      GridBagConstraints c = new GridBagConstraints();
+      c.fill = GridBagConstraints.BOTH;
+      c.gridx = 0;
+      c.gridy = 0;
+      c.weightx = 1.0;
+      c.weighty = 1.0;
+
+      panel.add(myLabel, c);
+      myLabel.setOpaque(false);
+      panel.add(myStateCharts.get(index), c);
       return panel;
     }
-  }
-
-  @NotNull
-  private static EnumMap<CpuProfiler.ThreadActivity.State, Color> getThreadStateColor() {
-    EnumMap<CpuProfiler.ThreadActivity.State, Color> map = new EnumMap<>(CpuProfiler.ThreadActivity.State.class);
-    map.put(CpuProfiler.ThreadActivity.State.RUNNING, new JBColor(new Color(134, 199, 144), new Color(134, 199, 144)));
-    map.put(CpuProfiler.ThreadActivity.State.SLEEPING, new JBColor(Gray._189, Gray._189));
-    map.put(CpuProfiler.ThreadActivity.State.DEAD, Gray.TRANSPARENT);
-    return map;
   }
 
   @Override
