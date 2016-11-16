@@ -424,7 +424,7 @@ public class ProjectStructureUsageTrackerTest {
       FacetManagerImpl facetManager = new FacetManagerImpl(module, project.getMessageBus());
       facetManager.addFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
       if (!moduleSpec.getNativeLibraries().isEmpty()) {
-        facetManager.addFacet(NdkFacet.getFacetType(), NdkFacet.NAME, null);
+        facetManager.addFacet(NdkFacet.getFacetType(), NdkFacet.getFacetName(), null);
       }
       AndroidProjectStub androidProject = new AndroidProjectStub(moduleSpec.getName());
       androidProject.getFlavorDimensions().addAll(moduleSpec.getDimensions());
@@ -460,7 +460,7 @@ public class ProjectStructureUsageTrackerTest {
         NativeAndroidProjectStub nap = new NativeAndroidProjectStub(moduleSpec.getName());
         nap.setModelVersion(moduleSpec.getNativeModelVersion());
         nap.getBuildSystems().add(moduleSpec.getCppBuildSystem());
-        facetManager.getFacetByType(NdkFacet.TYPE_ID).setNdkModuleModel(
+        facetManager.getFacetByType(NdkFacet.getFacetTypeId()).setNdkModuleModel(
           new NdkModuleModel(moduleSpec.getName(), new File("dummy"), nap));
       }
       module.addComponent(FacetManager.class, facetManager);
