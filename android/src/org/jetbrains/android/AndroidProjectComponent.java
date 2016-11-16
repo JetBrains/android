@@ -26,6 +26,7 @@ import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.Alarm;
@@ -92,42 +93,48 @@ public class AndroidProjectComponent extends AbstractProjectComponent {
   }
 
   private void createAlarmForAutogeneration() {
+    DumbService service = DumbService.getInstance(myProject);
     final Alarm alarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, myDisposable);
     alarm.addRequest(new Runnable() {
       @Override
       public void run() {
-          final Map<AndroidFacet, Collection<AndroidAutogeneratorMode>> facetsToProcess =
-            new HashMap<AndroidFacet, Collection<AndroidAutogeneratorMode>>();
-
-        final Module[] modules = ModuleManager.getInstance(myProject).getModules();
-        final Module[] modulesCopy = Arrays.copyOf(modules, modules.length);
-
-        for (Module module : modulesCopy) {
-            final AndroidFacet facet = AndroidFacet.getInstance(module);
-
-            if (facet != null && facet.isAutogenerationEnabled()) {
-              final Set<AndroidAutogeneratorMode> modes = EnumSet.noneOf(AndroidAutogeneratorMode.class);
-
-              for (AndroidAutogeneratorMode mode : AndroidAutogeneratorMode.values()) {
-                if (facet.cleanRegeneratingState(mode) || facet.isGeneratedFileRemoved(mode)) {
-                  modes.add(mode);
-                }
-              }
-
-              if (modes.size() > 0) {
-                facetsToProcess.put(facet, modes);
-              }
-            }
-          }
-
-          if (facetsToProcess.size() > 0) {
-            generate(facetsToProcess);
-        }
+        service.runReadActionInSmartMode(() -> checkGenerate());
         if (!alarm.isDisposed()) {
           alarm.addRequest(this, 2000);
         }
       }
     }, 2000);
+  }
+
+  private void checkGenerate() {
+    if (myProject.isDisposed()) return;
+
+    final Map<AndroidFacet, Collection<AndroidAutogeneratorMode>> facetsToProcess = new HashMap<>();
+
+    final Module[] modules = ModuleManager.getInstance(myProject).getModules();
+    final Module[] modulesCopy = Arrays.copyOf(modules, modules.length);
+
+    for (Module module : modulesCopy) {
+        final AndroidFacet facet = AndroidFacet.getInstance(module);
+
+        if (facet != null && facet.isAutogenerationEnabled()) {
+          final Set<AndroidAutogeneratorMode> modes = EnumSet.noneOf(AndroidAutogeneratorMode.class);
+
+          for (AndroidAutogeneratorMode mode : AndroidAutogeneratorMode.values()) {
+            if (facet.cleanRegeneratingState(mode) || facet.isGeneratedFileRemoved(mode)) {
+              modes.add(mode);
+            }
+          }
+
+          if (modes.size() > 0) {
+            facetsToProcess.put(facet, modes);
+          }
+        }
+      }
+
+    if (facetsToProcess.size() > 0) {
+      generate(facetsToProcess);
+  }
   }
 
   private void generate(final Map<AndroidFacet, Collection<AndroidAutogeneratorMode>> facetsToProcess) {
