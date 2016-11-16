@@ -104,6 +104,7 @@ iml_module(
         "//prebuilts/studio/sdk:build-tools/25.0.0",  # TODO: remove after build-tools update in tools/base/bazel/sdk/prebuilts.studio.sdk.BUILD
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:constraint-layout_latest",
+        "//prebuilts/studio/sdk:docs",
         "//prebuilts/studio/sdk:espresso_latest",
         "//prebuilts/studio/sdk:licenses",
         "//prebuilts/studio/sdk:platforms/latest",
