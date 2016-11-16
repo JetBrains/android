@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property.editors;
+package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
@@ -29,6 +29,7 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -78,7 +79,7 @@ public class StyleFilter {
    * @param tagName
    * @return a sorted stream of styles grouped as mentioned above
    */
-  public Stream<StyleResourceValue> getWidgetStyles(@NotNull String tagName) {
+  public List<StyleResourceValue> getWidgetStyles(@NotNull String tagName) {
     myDerivedStyles.clear();
     myOtherStyles.clear();
     myDerivedStyles.addAll(getWidgetStyleNames(myProject, myResolver, tagName));
@@ -100,7 +101,7 @@ public class StyleFilter {
    * @return a sorted stream of styles grouped as mentioned above
    */
   @NotNull
-  public Stream<StyleResourceValue> getStylesDerivedFrom(@NotNull String baseStyle, boolean isFrameworkStyle) {
+  public List<StyleResourceValue> getStylesDerivedFrom(@NotNull String baseStyle, boolean isFrameworkStyle) {
     myDerivedStyles.clear();
     myOtherStyles.clear();
     if (isFrameworkStyle) {
@@ -112,7 +113,7 @@ public class StyleFilter {
     return findDerivedStyles();
   }
 
-  private Stream<StyleResourceValue> findDerivedStyles() {
+  private List<StyleResourceValue> findDerivedStyles() {
     List<StyleResourceValue> styles = new ArrayList<>(myFrameworkStyles.size() + myProjectStyles.size());
     myProjectStyles.values().forEach(style -> styles.add((StyleResourceValue)style));
     myFrameworkStyles.values().forEach(style -> styles.add((StyleResourceValue)style));
@@ -122,7 +123,8 @@ public class StyleFilter {
                 .comparing(ResourceValue::isUserDefined)
                 .reversed()
                 .thenComparing(ResourceReference::isFramework)
-                .thenComparing(ResourceReference::getName));
+                .thenComparing(ResourceReference::getName))
+      .collect(Collectors.toList());
   }
 
   @VisibleForTesting

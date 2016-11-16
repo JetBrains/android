@@ -16,10 +16,8 @@
 package com.android.tools.idea.uibuilder.property.fixtures;
 
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
-import com.android.tools.idea.uibuilder.property.editors.NlEditingListener;
-import com.android.tools.idea.uibuilder.property.editors.NlEnumEditor;
-import com.android.tools.idea.uibuilder.property.editors.ValueWithDisplayString;
+import com.android.tools.idea.uibuilder.property.editors.*;
+import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString;
 import com.google.common.base.Objects;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI;
 import com.intellij.openapi.ui.ComboBox;
