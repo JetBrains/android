@@ -28,6 +28,9 @@ public class NlPaletteDefinition extends ToolWindowDefinition<DesignSurface> {
   }
 
   private static ToolContent<DesignSurface> createPalettePanel(@NotNull Project project) {
+    if (project.isDisposed()) {
+      return null;
+    }
     if (Boolean.getBoolean("use.new.palette")) {
       return new NlPalettePanel(project, null);
     }
