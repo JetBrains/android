@@ -59,7 +59,7 @@ public class TreeGridTest {
 
   @Before
   public void setUp() {
-    myDisposable = mock(Disposable.class);
+    myDisposable = Disposer.newDisposable();
     Application application = mock(Application.class);
     DataManager dataManager = mock(DataManager.class);
     DataContext dataContext = mock(DataContext.class);
