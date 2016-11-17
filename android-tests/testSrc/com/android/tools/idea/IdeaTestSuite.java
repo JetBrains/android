@@ -58,7 +58,6 @@ import java.nio.file.Paths;
   TestArtifactsResolveTest.class,
   com.android.tools.idea.lint.LintIdeApiDetectorTest.class,
   com.android.tools.idea.lint.LintIdeGradleDetectorTest.class,
-  com.android.tools.idea.npw.NewModuleWizardStateTest.class,
   com.android.tools.idea.npw.importing.ArchiveToGradleModuleModelTest.class,
   com.android.tools.idea.npw.importing.ArchiveToGradleModuleStepTest.class,
   com.android.tools.idea.npw.importing.SourceToGradleModuleStepTest.class,
