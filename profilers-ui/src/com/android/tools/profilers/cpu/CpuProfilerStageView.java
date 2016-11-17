@@ -27,14 +27,13 @@ import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.event.EventMonitorView;
-import com.intellij.ui.Gray;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.EnumMap;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class CpuProfilerStageView extends StageView {
 
@@ -66,7 +65,8 @@ public class CpuProfilerStageView extends StageView {
     RangedListModel<CpuThreadsModel.RangedCpuThread> model = cpu.getThreadStates();
     myThreadsList = new JBList(model);
     myThreadsList.setCellRenderer(new ThreadCellRenderer(choreographer, myThreadsList));
-    RangedList rangledList = new RangedList(profilers.getViewRange(), model);
+
+    RangedList rangedList = new RangedList(profilers.getViewRange(), model);
 
     // TODO: Event monitor should be fixed size.
     GridBagConstraints c = new GridBagConstraints();
@@ -83,14 +83,20 @@ public class CpuProfilerStageView extends StageView {
     c.gridy = 2;
     c.weighty = 0.4;
     myComponent.add(myThreadsList, c);
-    choreographer.register(rangledList);
+    choreographer.register(rangedList);
   }
 
 
-  static class ThreadCellRenderer implements ListCellRenderer<CpuThreadsModel.RangedCpuThread> {
+  private static class ThreadCellRenderer implements ListCellRenderer<CpuThreadsModel.RangedCpuThread> {
 
-    final JLabel myLabel;
-    AnimatedListRenderer<CpuThreadsModel.RangedCpuThread, StateChart<CpuProfiler.GetThreadsResponse.State>> myStateCharts;
+    private final JLabel myLabel;
+
+    private AnimatedListRenderer<CpuThreadsModel.RangedCpuThread, StateChart<CpuProfiler.GetThreadsResponse.State>> myStateCharts;
+
+    /**
+     * Keep the index of the item currently hovered.
+     */
+    private int myHoveredIndex = -1;
 
     public ThreadCellRenderer(Choreographer choreographer, JList<CpuThreadsModel.RangedCpuThread> list) {
       myLabel = new JLabel();
@@ -101,6 +107,13 @@ public class CpuProfilerStageView extends StageView {
         chart.addSeries(thread.getDataSeries());
         return chart;
       });
+      list.addMouseMotionListener(new MouseAdapter() {
+        @Override
+        public void mouseMoved(MouseEvent e) {
+          Point p = new Point(e.getX(), e.getY());
+          myHoveredIndex = list.locationToIndex(p);
+        }
+      });
     }
 
     @Override
@@ -109,10 +122,18 @@ public class CpuProfilerStageView extends StageView {
                                                   int index,
                                                   boolean isSelected,
                                                   boolean cellHasFocus) {
-      // TODO: Improve selection rendering
       JLayeredPane panel = new JLayeredPane();
       panel.setLayout(new GridBagLayout());
+      panel.setOpaque(true);
       myLabel.setText(value.getName());
+
+      Color cellBackground = ProfilerColors.MONITOR_BACKGROUND;
+      if (isSelected) {
+        cellBackground = ProfilerColors.THREAD_SELECTED_BACKGROUND;
+      } else if (myHoveredIndex == index) {
+        cellBackground = ProfilerColors.THREAD_HOVER_BACKGROUND;
+      }
+      panel.setBackground(cellBackground);
 
       GridBagConstraints c = new GridBagConstraints();
       c.fill = GridBagConstraints.BOTH;
