@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw;
 
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -43,9 +44,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Collection;
 
-import static com.android.tools.idea.wizard.WizardConstants.ALSO_CREATE_IAPK_KEY;
-import static com.android.tools.idea.wizard.WizardConstants.APPLICATION_NAME_KEY;
-import static com.android.tools.idea.wizard.WizardConstants.SELECTED_MODULE_TYPE_KEY;
+import static com.android.tools.idea.wizard.WizardConstants.*;
 
 /**
  * {@linkplain NewModuleWizardDynamic} guides the user through adding a new module to an existing project. It has a template-based flow and as the
@@ -117,7 +116,7 @@ public class NewModuleWizardDynamic extends DynamicWizard {
         }
       }
     }
-    return GradleUtil.getLatestKnownPluginVersion(GradleUtil.PluginType.STANDARD);
+    return AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion();
   }
 
   @NotNull

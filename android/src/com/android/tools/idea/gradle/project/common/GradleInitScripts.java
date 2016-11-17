@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.common;
 
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -26,7 +27,6 @@ import java.util.List;
 
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.escapeGroovyStringLiteral;
-import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPaths;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static org.jetbrains.plugins.gradle.util.GradleConstants.INIT_SCRIPT_CMD_OPTION;
@@ -58,7 +58,7 @@ public class GradleInitScripts {
   @VisibleForTesting
   @Nullable
   File createLocalMavenRepoInitScriptFile() {
-    List<File> repoPaths = findAndroidStudioLocalMavenRepoPaths();
+    List<File> repoPaths = EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths();
     String content = myContentCreator.createLocalMavenRepoInitScriptContent(repoPaths);
     if (content != null) {
       return createInitScriptFile("asLocalRepo", content);

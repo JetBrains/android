@@ -19,6 +19,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.collect.Lists;
 import com.intellij.facet.FacetManager;
@@ -36,16 +37,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.getEmbeddedJdkPath;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 /**
  * Tests for {@link IdeSdks}.
  */
 public class IdeSdksTest extends IdeaTestCase {
   private File myAndroidSdkPath;
-
+  private EmbeddedDistributionPaths myEmbeddedDistributionPaths;
   private IdeSdks myIdeSdks;
 
   @Override
@@ -71,7 +71,8 @@ public class IdeSdksTest extends IdeaTestCase {
     facet.getProperties().ALLOW_USER_CONFIGURATION = false;
 
     Jdks jdks = new Jdks();
-    myIdeSdks = new IdeSdks(new AndroidSdks(jdks), jdks);
+    myEmbeddedDistributionPaths = EmbeddedDistributionPaths.getInstance();
+    myIdeSdks = new IdeSdks(new AndroidSdks(jdks), jdks, myEmbeddedDistributionPaths);
   }
 
   public void testCreateAndroidSdkPerAndroidTarget() {
@@ -145,7 +146,7 @@ public class IdeSdksTest extends IdeaTestCase {
     File jdkPath = myIdeSdks.getJdkPath();
     assertNotNull(jdkPath);
 
-    File embeddedJdkPath = getEmbeddedJdkPath();
+    File embeddedJdkPath = myEmbeddedDistributionPaths.getEmbeddedJdkPath();
     assertTrue(String.format("'%1$s' should be the embedded one ('%2$s')", jdkPath.getPath(), embeddedJdkPath.getPath()),
                filesEqual(jdkPath, embeddedJdkPath));
   }

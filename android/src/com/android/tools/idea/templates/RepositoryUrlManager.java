@@ -148,7 +148,7 @@ public class RepositoryUrlManager {
     SdkMavenRepository repository = SdkMavenRepository.find(sdkLocation, groupId, artifactId, fileOp);
     if (repository == null) {
       // Try the repo embedded in AS. We distribute for example the constraint layout there for now.
-      List<File> paths = EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPaths();
+      List<File> paths = EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths();
       for (File path : paths) {
         if (path != null && path.isDirectory()) {
           GradleCoordinate versionInEmbedded = MavenRepositories.getHighestInstalledVersion(groupId,

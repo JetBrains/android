@@ -297,6 +297,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.sdk.IdeSdks"/>
     <applicationService serviceImplementation="com.android.tools.idea.sdk.AndroidSdks"/>
     <applicationService serviceImplementation="com.android.tools.idea.sdk.Jdks"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.util.EmbeddedDistributionPaths"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.common.GradleInitScripts"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.importing.GradleProjectImporter"/>
