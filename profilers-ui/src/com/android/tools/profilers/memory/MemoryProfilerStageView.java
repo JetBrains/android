@@ -15,10 +15,10 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.profilers.ProfilerScrollbar;
 import com.android.tools.profilers.StageView;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,29 +27,23 @@ import java.awt.*;
 
 public class MemoryProfilerStageView extends StageView {
 
-  @NotNull
-  private final Choreographer myChoreographer;
-
-  @NotNull
-  private final JComponent myComponent;
-
   public MemoryProfilerStageView(@NotNull MemoryProfilerStage stage) {
     super(stage);
 
-    myComponent = new JPanel(new BorderLayout());
-
-    myChoreographer = new Choreographer(myComponent);
+    ProfilerScrollbar sb = new ProfilerScrollbar(getTimeline());
+    getChoreographer().register(sb);
+    getComponent().add(sb, BorderLayout.SOUTH);
 
     JToolBar toolBar = new JToolBar();
     JButton backButton = new JButton("Go back");
     toolBar.add(backButton);
     toolBar.setFloatable(false);
     backButton.addActionListener(action -> returnToStudioStage());
-    myComponent.add(toolBar, BorderLayout.PAGE_START);
+    getComponent().add(toolBar, BorderLayout.NORTH);
 
     LineChart lineChart = new LineChart();
     Range leftYRange = new Range();
-    Range viewRange = stage.getStudioProfilers().getViewRange();
+    Range viewRange = getTimeline().getViewRange();
     // TODO set proper colors.
     lineChart.addLine(new RangedContinuousSeries("Java", viewRange, leftYRange, stage.getJavaMemory()));
     lineChart.addLine(new RangedContinuousSeries("Native", viewRange, leftYRange, stage.getNativeMemory()));
@@ -57,15 +51,9 @@ public class MemoryProfilerStageView extends StageView {
     lineChart.addLine(new RangedContinuousSeries("Stack", viewRange, leftYRange, stage.getStackMemory()));
     lineChart.addLine(new RangedContinuousSeries("Code", viewRange, leftYRange, stage.getCodeMemory()));
     lineChart.addLine(new RangedContinuousSeries("Others", viewRange, leftYRange, stage.getOthersMemory()));
-    myChoreographer.register(lineChart);
+    getChoreographer().register(lineChart);
 
-    myComponent.add(lineChart, BorderLayout.CENTER);
-  }
-
-  @NotNull
-  @Override
-  public JComponent getComponent() {
-    return myComponent;
+    getComponent().add(lineChart, BorderLayout.CENTER);
   }
 
   @Override
