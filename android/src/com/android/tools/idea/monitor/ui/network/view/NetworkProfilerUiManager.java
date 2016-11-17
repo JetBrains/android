@@ -95,7 +95,7 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
     overviewPanel.add(myRadioSegment);
     NetworkCaptureModel captureModel = new RpcNetworkCaptureModel(myDataStore.getDeviceProfilerService(), myDataCache);
     myCaptureSegment = new NetworkCaptureSegment(myTimeCurrentRangeUs, captureModel, httpData -> {
-      String responseFilePath = httpData.getHttpResponseBodyPath();
+      String responseFilePath = httpData.getHttpResponsePayloadId();
       // TODO: Refactor to get virtual file directly from data cache.
       File file = !StringUtil.isEmptyOrSpaces(responseFilePath) ? myDataCache.getFile(responseFilePath) : null;
       VirtualFile virtualFile = file != null ? LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file) : null;

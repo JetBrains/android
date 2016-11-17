@@ -27,7 +27,7 @@ public class HttpData {
   private long myStartTimeUs;
   private long myDownloadingTimeUs;
   private long myEndTimeUs;
-  private String myHttpResponseBodyPath;
+  private String myHttpResponsePayloadId;
   // Holds the non-negative response body size in bytes if present, otherwise it is -1 by default.
   private long myHttpResponseBodySize = -1;
 
@@ -79,12 +79,12 @@ public class HttpData {
     myEndTimeUs = endTimeUs;
   }
 
-  public String getHttpResponseBodyPath() {
-    return myHttpResponseBodyPath;
+  public String getHttpResponsePayloadId() {
+    return myHttpResponsePayloadId;
   }
 
-  public void setHttpResponseBodyPath(String httpResponseBodyPath) {
-    myHttpResponseBodyPath = httpResponseBodyPath;
+  public void setHttpResponsePayloadId(String payloadId) {
+    myHttpResponsePayloadId = payloadId;
   }
 
   public void setHttpResponseBodySize(long size) {
