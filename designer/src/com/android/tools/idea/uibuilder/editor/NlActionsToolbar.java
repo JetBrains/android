@@ -155,9 +155,6 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
     ConfigurationMenuAction configAction = new ConfigurationMenuAction(surface);
     group.add(configAction);
 
-    group.addSeparator();
-    group.add(new MockupToggleAction(surface));
-
     return group;
   }
 
