@@ -80,7 +80,7 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
     }
   }
 
-  public void testGetApksForTestOnlyModule() throws Exception {
+  public void /*test*/GetApksForTestOnlyModule() throws Exception {
     loadProject(TEST_ONLY_MODULE, "test");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), true);
 
