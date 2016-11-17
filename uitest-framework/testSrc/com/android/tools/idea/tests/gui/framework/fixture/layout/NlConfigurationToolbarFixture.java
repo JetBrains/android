@@ -68,14 +68,6 @@ public class NlConfigurationToolbarFixture {
   /** Returns the current API level of the toolbar's configuration */
   public int getApiLevel() {
     // For a UI test, this appears pretty far removed from testing through the UI.
-    Wait.seconds(1).expecting("some references to be non-null").until(() -> {
-      try {
-        mySurface.getConfiguration().getTarget().getVersion().getApiLevel();
-        return true;
-      } catch (NullPointerException e) {
-        return false;
-      }
-    });
     return mySurface.getConfiguration().getTarget().getVersion().getApiLevel();
   }
 
