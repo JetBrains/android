@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import com.android.tools.adtui.workbench.AutoHide;
+import com.android.tools.adtui.workbench.Side;
+import com.android.tools.adtui.workbench.Split;
+import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.intellij.designer.DesignerEditorPanelFacade;
-import com.intellij.designer.LightFillLayout;
-import com.intellij.designer.LightToolWindow;
-import com.intellij.designer.LightToolWindowManager;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.CaretModel;
@@ -33,15 +33,11 @@ import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.fileEditor.TextEditor;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.registry.Registry;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.Alarm;
-import com.intellij.util.IJSwingUtilities;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -49,13 +45,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 
-public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorPanelFacade {
+public class NlPreviewForm implements Disposable, CaretListener {
   private final NlPreviewManager myManager;
   private final DesignSurface mySurface;
-  private final ThreeComponentsSplitter myContentSplitter;
+  private final WorkBench<DesignSurface> myWorkBench;
   private final MergingUpdateQueue myRenderingQueue =
     new MergingUpdateQueue("android.layout.preview.caret", 250/*ms*/, true, null, this, null, Alarm.ThreadToUse.SWING_THREAD);
   private boolean myUseInteractiveSelector = true;
@@ -80,7 +77,8 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
 
   public NlPreviewForm(NlPreviewManager manager) {
     myManager = manager;
-    mySurface = new DesignSurface(manager.getProject(), this);
+    Project project = myManager.getProject();
+    mySurface = new DesignSurface(project, true);
     Disposer.register(this, mySurface);
     mySurface.setCentered(true);
     mySurface.setScreenMode(DesignSurface.ScreenMode.SCREEN_ONLY, false);
@@ -109,29 +107,15 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
 
     myRenderingQueue.setRestartTimerOnAdd(true);
 
-    myContentSplitter = new ThreeComponentsSplitter();
-
-    // The {@link LightFillLayout} provides the UI for the minimized forms of the {@link LightToolWindow}
-    // used for the palette and the structure/properties panes.
-    JPanel contentPanel = new JPanel(new LightFillLayout());
 
     myActionsToolbar = new NlActionsToolbar(mySurface);
-    contentPanel.add(myActionsToolbar.getToolbarComponent());
-    contentPanel.add(mySurface);
+    JPanel contentPanel = new JPanel(new BorderLayout());
+    contentPanel.add(myActionsToolbar.getToolbarComponent(), BorderLayout.NORTH);
+    contentPanel.add(mySurface, BorderLayout.CENTER);
 
-    myContentSplitter.setDividerWidth(0);
-    myContentSplitter.setDividerMouseZoneSize(Registry.intValue("ide.splitter.mouseZone"));
-    myContentSplitter.setInnerComponent(contentPanel);
-
-    Project project = myManager.getProject();
-    NlPaletteManager paletteManager = NlPaletteManager.get(project);
-    PropertiesComponent properties = PropertiesComponent.getInstance(project);
-    // Keep in sync with LightToolWindow#myShowStateKey's logic
-    String key = LightToolWindowManager.EDITOR_MODE + paletteManager.getVisibilityKeyName(this) + ".SHOW";
-    boolean showing = properties.getBoolean(key, true);
-    if (showing) {
-      properties.setValue(key, Boolean.toString(false));
-    }
+    myWorkBench = new WorkBench<>(project, "Preview", null);
+    myWorkBench.init(contentPanel, mySurface, Collections.singletonList(
+      new NlPaletteDefinition(project, Side.LEFT, Split.TOP, AutoHide.AUTO_HIDE)));
   }
 
   private void setEditor(@Nullable TextEditor editor) {
@@ -214,15 +198,14 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
   }
 
   @NotNull
-  public JPanel getContentPanel() {
-    return myContentSplitter;
+  public JComponent getComponent() {
+    return myWorkBench;
   }
 
   @Override
   public void dispose() {
     deactivate();
     myInactiveFile = null;
-    NlPaletteManager.get(myManager.getProject()).dispose(this);
   }
 
   public void setUseInteractiveSelector(boolean useInteractiveSelector) {
@@ -314,7 +297,7 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
 
     if (model == null) {
       setEditor(null);
-      myManager.setDesignSurface(null);
+      myWorkBench.setToolContext(null);
     }
     else {
       myFile = model.getFile();
@@ -326,26 +309,10 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
       }
       setEditor(myManager.getActiveLayoutXmlEditor());
       model.activate();
-      myManager.setDesignSurface(mySurface);
+      myWorkBench.setToolContext(mySurface);
+      myWorkBench.setFileEditor(myEditor);
       myActionsToolbar.setModel(model);
-
-      attachPalette();
     }
-  }
-
-  private void attachPalette() {
-    Project project = myManager.getProject();
-    DumbService.getInstance(project).runWhenSmart(() -> {
-      if (myFile != null && NlLayoutType.typeOf(myFile).isSupportedByDesigner()) {
-        // While we wait for the index to be ready, the preview might become inactive so we need to check first
-        if (isActive) {
-          NlPaletteManager.get(project).bind(this);
-        }
-      }
-      else {
-        NlPaletteManager.get(project).dispose(this);
-      }
-    });
   }
 
   @Nullable
@@ -384,19 +351,6 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
   }
 
   /**
-   * Minimize the palette tool window, if possible
-   */
-  public void minimizePalette() {
-    if (myToolWindow != null) {
-      myToolWindow.minimize();
-    }
-  }
-
-  public boolean toolWindowHasFocus() {
-    return myToolWindow != null && IJSwingUtilities.hasFocus(myToolWindow);
-  }
-
-  /**
    * Re-enables updates for this preview form. See {@link #deactivate()}
    */
   public void activate() {
@@ -429,30 +383,5 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     }
     setFile(null);
     isActive = false;
-  }
-
-  // ---- Implements DesignerEditorPanelFacade ----
-
-  @Override
-  public Object getClientProperty(Object key) {
-    return myContentSplitter.getClientProperty(key);
-  }
-
-  private LightToolWindow myToolWindow;
-
-  @Override
-  public void putClientProperty(Object key, Object value) {
-    Project project = myManager.getProject();
-    NlPaletteManager paletteManager = NlPaletteManager.get(project);
-    String paletteKey = paletteManager.getComponentName();
-    myContentSplitter.putClientProperty(key, value);
-    if (key.equals(paletteKey)) {
-      myToolWindow = (LightToolWindow)value;
-    }
-  }
-
-  @Override
-  public ThreeComponentsSplitter getContentSplitter() {
-    return myContentSplitter;
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor;
 
+import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.actions.MockupEditAction;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.tools.CropTool;
@@ -26,6 +27,7 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
@@ -53,7 +55,7 @@ import java.util.List;
  * The behavior of the the editor can be changed by implementing {@link Tool}.
  * </p>
  */
-public class MockupEditor extends JPanel {
+public class MockupEditor extends JPanel implements ToolContent<DesignSurface> {
 
   private static final String TITLE = "Mockup Editor";
   private static final String NO_MOCKUP_TEXT = "<html>No mockup available for this View.<br/>Click to add mockup</html>";
@@ -68,10 +70,11 @@ public class MockupEditor extends JPanel {
   private final Set<Tool> myActiveTools = new HashSet<>();
   private final ExtractWidgetTool myExtractWidgetTool;
   private final Mockup.MockupModelListener myMockupListener;
+  private final DesignSurfaceListener myDesignSurfaceListener;
   private final JPanel myCenterPanel;
   private final CardLayout myCenterCardLayout;
-  private final DesignSurface mySurface;
 
+  @Nullable private DesignSurface mySurface;
   @Nullable private NlModel myModel;
   @Nullable private Mockup myMockup;
   // UI
@@ -83,19 +86,15 @@ public class MockupEditor extends JPanel {
    * Create a new mockup editor associated with the provided DesignSurface.
    * If a model is available at creation time, it can be provided as a parameter, otherwise
    * the design surface will notify the {@link MockupEditor} when the model is changed. ({@link DesignSurfaceListener}).
-   *
-   * @param surface The surface where the {@link MockupEditor} will be displayed.
-   * @param model   The optional model to provide if it is already created.
    */
-  public MockupEditor(@NotNull DesignSurface surface, @Nullable NlModel model) {
+  public MockupEditor() {
     super(new BorderLayout());
-    mySurface = surface;
     JLabel addMockupIcon = createNoMockupIcon(createAddMockupMouseAdapter());
     myMockupListener = (mockup, changedFlags) -> notifyListeners(mockup);
     myBottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     myModelListener = new MyModelListener(this);
     myMockupViewPanel = new MockupViewPanel(this);
-    myExtractWidgetTool = new ExtractWidgetTool(surface, this);
+    myExtractWidgetTool = new ExtractWidgetTool(this);
     mySelectionEditors = new SelectionEditors(myMockupViewPanel);
     myTopBar = new MyTopBar(new CropTool(this), mySelectionEditors);
 
@@ -108,8 +107,7 @@ public class MockupEditor extends JPanel {
 
     add(myBottomPanel, BorderLayout.SOUTH);
 
-    setModel(model);
-    surface.addListener(new MyDesignSurfaceListener(this));
+    myDesignSurfaceListener = new MyDesignSurfaceListener(this);
 
     myExtractWidgetTool.enable(this);
     setMinimumSize(MINIMUM_SIZE);
@@ -241,7 +239,7 @@ public class MockupEditor extends JPanel {
     return new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
-        if (myModel != null) {
+        if (myModel != null && mySurface != null) {
           List<NlComponent> selection = myModel.getSelectionModel().getSelection();
           if (selection.isEmpty()) {
             myModel.getSelectionModel().setSelection(myModel.getComponents());
@@ -361,6 +359,54 @@ public class MockupEditor extends JPanel {
   public void addBottomControls(JComponent component) {
     myBottomPanel.add(component);
     validate();
+  }
+
+  @Override
+  public void dispose() {
+  }
+
+  @Override
+  public void setToolContext(@Nullable DesignSurface newDesignSurface) {
+    if (mySurface != null) {
+      mySurface.removeListener(myDesignSurfaceListener);
+      mySurface = null;
+      myExtractWidgetTool.setDesignSurface(null);
+    }
+    ScreenView screenView = newDesignSurface != null ? newDesignSurface.getCurrentScreenView() : null;
+    if (screenView != null) {
+      mySurface = newDesignSurface;
+      mySurface.addListener(myDesignSurfaceListener);
+      setModel(screenView.getModel());
+      myExtractWidgetTool.setDesignSurface(mySurface);
+    }
+  }
+
+  @NotNull
+  @Override
+  public JComponent getComponent() {
+    return this;
+  }
+
+  @NotNull
+  @Override
+  public JComponent getFocusedComponent() {
+    return this;
+  }
+
+  @NotNull
+  @Override
+  public List<AnAction> getGearActions() {
+    return Collections.emptyList();
+  }
+
+  @NotNull
+  @Override
+  public List<AnAction> getAdditionalActions() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public void registerCloseAutoHideWindow(@NotNull Runnable runnable) {
   }
 
   /**

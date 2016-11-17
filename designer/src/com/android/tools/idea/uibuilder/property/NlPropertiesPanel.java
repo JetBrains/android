@@ -99,6 +99,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     JScrollPane tableScrollPane = ScrollPaneFactory.createScrollPane(myTablePanel);
     tableScrollPane.getVerticalScrollBar().setUnitIncrement(VERTICAL_SCROLLING_UNIT_INCREMENT);
     tableScrollPane.getVerticalScrollBar().setBlockIncrement(VERTICAL_SCROLLING_BLOCK_INCREMENT);
+    tableScrollPane.setBorder(BorderFactory.createEmptyBorder());
     myCardPanel.add(CARD_ADVANCED, tableScrollPane);
     myCardPanel.setFocusCycleRoot(true);
     myCardPanel.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());

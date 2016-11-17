@@ -20,7 +20,6 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.intellij.designer.LightToolWindow;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.editor.Document;
@@ -96,10 +95,6 @@ public class NlPreviewManager implements ProjectComponent {
     return myToolWindow != null && myToolWindow.isVisible();
   }
 
-  public boolean toolWindowHasFocus() {
-    return myToolWindow != null && myToolWindowForm.toolWindowHasFocus();
-  }
-
   protected boolean isUseInteractiveSelector() {
     return true;
   }
@@ -139,7 +134,7 @@ public class NlPreviewManager implements ProjectComponent {
       }
     });
 
-    final JPanel contentPanel = myToolWindowForm.getContentPanel();
+    final JComponent contentPanel = myToolWindowForm.getComponent();
     final ContentManager contentManager = myToolWindow.getContentManager();
     @SuppressWarnings("ConstantConditions") final Content content = contentManager.getFactory().createContent(contentPanel, null, false);
     content.setDisposer(myToolWindowForm);
@@ -155,27 +150,9 @@ public class NlPreviewManager implements ProjectComponent {
   public void projectClosed() {
     if (myToolWindowForm != null) {
       Disposer.dispose(myToolWindowForm);
-      NlPaletteManager paletteManager = NlPaletteManager.get(myProject);
-      String paletteKey = paletteManager.getComponentName();
-      LightToolWindow toolWindow = (LightToolWindow)myToolWindowForm.getClientProperty(paletteKey);
-      if (toolWindow != null) {
-        myToolWindowForm.putClientProperty(paletteKey, null);
-        toolWindow.dispose();
-      }
       myToolWindowForm = null;
       myToolWindow = null;
       myToolWindowDisposed = true;
-    }
-  }
-
-  // The preview image was updated. Notify the attached palette if any.
-  public void setDesignSurface(@Nullable DesignSurface designSurface) {
-    if (myToolWindow != null) {
-      NlPaletteManager paletteManager = NlPaletteManager.get(myProject);
-      LightToolWindow toolWindow = (LightToolWindow)myToolWindowForm.getClientProperty(paletteManager.getComponentName());
-      if (toolWindow != null && toolWindow.isVisible()) {
-        paletteManager.setDesignSurface(toolWindow, designSurface);
-      }
     }
   }
 
@@ -404,12 +381,8 @@ public class NlPreviewManager implements ProjectComponent {
 
     @Override
     public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          processFileEditorChange(getActiveLayoutXmlEditor());
-        }
-      }, myProject.getDisposed());
+      ApplicationManager.getApplication().invokeLater(
+        () -> processFileEditorChange(getActiveLayoutXmlEditor()), myProject.getDisposed());
     }
 
     @Override
