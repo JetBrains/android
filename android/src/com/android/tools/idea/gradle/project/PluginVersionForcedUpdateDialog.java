@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.HyperlinkAdapter;
@@ -25,8 +25,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 
-import static com.android.SdkConstants.GRADLE_EXPERIMENTAL_PLUGIN_LATEST_VERSION;
-import static com.android.SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
+import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
+import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.ORIGINAL;
 import static com.intellij.ide.BrowserUtil.browse;
 import static javax.swing.Action.NAME;
 import static org.jetbrains.android.util.AndroidUiUtil.setUpAsHtmlLabel;
@@ -41,12 +41,12 @@ public class PluginVersionForcedUpdateDialog extends DialogWrapper {
     init();
 
     setUpAsHtmlLabel(myMessagePane);
-    GradleUtil.PluginType pluginType = usingExperimentalPlugin ? GradleUtil.PluginType.EXPERIMENTAL : GradleUtil.PluginType.STANDARD;
+    AndroidPluginGeneration pluginType = usingExperimentalPlugin ? COMPONENT : ORIGINAL;
     String msg = "<b>The project is using an incompatible version of the Android Gradle " +
                  (usingExperimentalPlugin ? "Experimental " : "") + "plugin.</b><br/<br/>" +
                  "To continue opening the project, the IDE will update the Android Gradle " +
                  (usingExperimentalPlugin ? "Experimental " : "") + "plugin to version " +
-                 GradleUtil.getLatestKnownPluginVersion(pluginType) + ".<br/><br/>" +
+                 pluginType.getLatestKnownVersion() + ".<br/><br/>" +
                  "You can learn more about this version of the plugin from the " +
                  "<a href='http://tools.android.com/tech-docs/new-build-system" + (usingExperimentalPlugin ? "/gradle-experimental" : "") +
                  "'>release notes</a>.<br/><br/>";
