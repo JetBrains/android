@@ -99,7 +99,8 @@ public class LineChart extends AnimatedComponent {
   /**
    * Add a line to the line chart.
    * Note: The order of adding lines is important for stacked lines,
-   *       i.e a stacked line is stacked on top of previous added stacked line.
+   * i.e a stacked line is stacked on top of previous added stacked line.
+   *
    * @param series data of the line to be inserted
    * @param config configuration of the line to be inserted
    */
@@ -155,7 +156,7 @@ public class LineChart extends AnimatedComponent {
       double yMax = Double.MIN_VALUE;
 
       ImmutableList<SeriesData<Long>> seriesList = ranged.getSeries();
-      for(int i = 0; i < seriesList.size(); i++) {
+      for (int i = 0; i < seriesList.size(); i++) {
         double value = seriesList.get(i).value;
         if (yMax < value) {
           yMax = value;
@@ -163,7 +164,7 @@ public class LineChart extends AnimatedComponent {
       }
 
       Double m = max.get(range);
-      max.put(range, m == null ? yMax: Math.max(yMax, m));
+      max.put(range, m == null ? yMax : Math.max(yMax, m));
     }
 
     for (Map.Entry<Range, Double> entry : max.entrySet()) {
@@ -174,6 +175,24 @@ public class LineChart extends AnimatedComponent {
                                         (float)(entry.getValue() * DEFAULT_LERP_THRESHOLD_PERCENTAGE)));
       }
     }
+  }
+
+  /**
+   * Returns a list of {@link LegendRenderData} based on the data series from this {@link LineChart} instance.
+   */
+  public List<LegendRenderData> getLegendDataFromLineChart() {
+    List<LegendRenderData> legendRenderDataList = new ArrayList<>();
+    for (RangedContinuousSeries series : getRangedContinuousSeries()) {
+      LineConfig lineConfig = getLineConfig(series);
+      LegendRenderData.IconType iconType = lineConfig.getLegendIconType();
+      // Use a default icon type for the line in case there is no icon set in line config.
+      // TODO: use LegendRenderData.IconType.DOTTED_LINE for dashed lines
+      if (iconType == null) {
+        iconType = lineConfig.isFilled() ? LegendRenderData.IconType.BOX : LegendRenderData.IconType.LINE;
+      }
+      legendRenderDataList.add(new LegendRenderData(iconType, lineConfig.getColor(), series));
+    }
+    return legendRenderDataList;
   }
 
   @Override
@@ -224,12 +243,13 @@ public class LineChart extends AnimatedComponent {
         }
         currentSeriesY.add(yd);
         // Swing's (0, 0) coordinate is in top-left. As we use bottom-left (0, 0), we need to adjust the y coordinate.
-        float adjustedYd = 1 - (float) yd;
+        float adjustedYd = 1 - (float)yd;
 
         if (i == 0) {
           path.moveTo(xd, adjustedYd);
           firstXd = xd;
-        } else {
+        }
+        else {
           // If the chart is stepped, a horizontal line should be drawn from the current
           // point (e.g. (x0, y0)) to the destination's X value (e.g. (x1, y0)) before
           // drawing a line to the destination point itself (e.g. (x1, y1)).
@@ -257,7 +277,8 @@ public class LineChart extends AnimatedComponent {
         // Also, to draw stacked and filled lines correctly, they need to be drawn in reverse order to their adding order.
         orderedPaths.addFirst(path);
         orderedConfigs.addFirst(config);
-      } else {
+      }
+      else {
         orderedPaths.addLast(path);
         orderedConfigs.addLast(config);
       }
@@ -420,14 +441,16 @@ public class LineChart extends AnimatedComponent {
       if (grayScale) {
         int gray = (lineColor.getBlue() + lineColor.getRed() + lineColor.getGreen()) / 3;
         g2d.setColor(new Color(gray, gray, gray));
-      } else {
+      }
+      else {
         g2d.setColor(lineColor);
       }
       g2d.setStroke(config.getStroke());
 
       if (config.isFilled()) {
         g2d.fill(path);
-      } else {
+      }
+      else {
         g2d.draw(path);
       }
     }
