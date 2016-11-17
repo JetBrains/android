@@ -20,7 +20,6 @@ import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.testframework.FakeDependency;
-import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeRepoManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -31,6 +30,8 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.android.repository.testframework.FakePackage.FakeLocalPackage;
+import static com.android.repository.testframework.FakePackage.FakeRemotePackage;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.TestCase.assertEquals;
@@ -44,10 +45,10 @@ public class PatchInstallerUtilTest {
 
   @Test
   public void getDependantPatcher() throws Exception {
-    FakePackage target = new FakePackage("patcher;v2");
-    List<LocalPackage> local = ImmutableList.of(new FakePackage("patcher;v1"), target, new FakePackage("patcher;v3"));
-    FakePackage update = new FakePackage("p");
-    List<RemotePackage> remote = ImmutableList.of(update, new FakePackage("patcher;v4"));
+    LocalPackage target = new FakeLocalPackage("patcher;v2");
+    List<LocalPackage> local = ImmutableList.of(new FakeLocalPackage("patcher;v1"), target, new FakeLocalPackage("patcher;v3"));
+    FakeRemotePackage update = new FakeRemotePackage("p");
+    List<RemotePackage> remote = ImmutableList.of(update, new FakeRemotePackage("patcher;v4"));
     update.setDependencies(ImmutableList.of(new FakeDependency(target.getPath())));
     RepositoryPackages packages = new RepositoryPackages(
       local.stream().collect(Collectors.toMap(RepoPackage::getPath, Function.identity())),
@@ -59,10 +60,10 @@ public class PatchInstallerUtilTest {
 
   @Test
   public void dependantPatcherNotInstalled() throws Exception {
-    FakePackage target = new FakePackage("patcher;v2");
-    List<LocalPackage> local = ImmutableList.of(new FakePackage("patcher;v1"), new FakePackage("patcher;v3"));
-    FakePackage update = new FakePackage("p");
-    List<RemotePackage> remote = ImmutableList.of(update, new FakePackage("patcher;v4"));
+    FakeLocalPackage target = new FakeLocalPackage("patcher;v2");
+    List<LocalPackage> local = ImmutableList.of(new FakeLocalPackage("patcher;v1"), new FakeLocalPackage("patcher;v3"));
+    FakeRemotePackage update = new FakeRemotePackage("p");
+    List<RemotePackage> remote = ImmutableList.of(update, new FakeRemotePackage("patcher;v4"));
     update.setDependencies(ImmutableList.of(new FakeDependency(target.getPath())));
     RepositoryPackages packages = new RepositoryPackages(
       local.stream().collect(Collectors.toMap(RepoPackage::getPath, Function.identity())),
@@ -74,8 +75,8 @@ public class PatchInstallerUtilTest {
 
   @Test
   public void getLatestPatcher() throws Exception {
-    FakePackage target = new FakePackage("patcher;v3");
-    List<LocalPackage> local = ImmutableList.of(new FakePackage("patcher;v1"), target, new FakePackage("patcher;v2"));
+    LocalPackage target = new FakeLocalPackage("patcher;v3");
+    List<LocalPackage> local = ImmutableList.of(new FakeLocalPackage("patcher;v1"), target, new FakeLocalPackage("patcher;v2"));
     RepositoryPackages packages = new RepositoryPackages(
       local.stream().collect(Collectors.toMap(RepoPackage::getPath, Function.identity())),
       ImmutableMap.of());
@@ -86,7 +87,7 @@ public class PatchInstallerUtilTest {
 
   @Test
   public void noLatestPatcher() throws Exception {
-    List<LocalPackage> local = ImmutableList.of(new FakePackage("foo"));
+    List<LocalPackage> local = ImmutableList.of(new FakeLocalPackage("foo"));
     RepositoryPackages packages = new RepositoryPackages(
       local.stream().collect(Collectors.toMap(RepoPackage::getPath, Function.identity())),
       ImmutableMap.of());
