@@ -18,6 +18,8 @@ package com.android.tools.profilers;
 import com.android.tools.profiler.proto.*;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.inprocess.InProcessChannelBuilder;
+import io.grpc.inprocess.InProcessServerBuilder;
 import org.jetbrains.annotations.NotNull;
 
 public class GrpcProfilerClient implements ProfilerClient {
@@ -29,11 +31,11 @@ public class GrpcProfilerClient implements ProfilerClient {
   @NotNull private final EventServiceGrpc.EventServiceBlockingStub myEventClient;
   @NotNull private final EnergyServiceGrpc.EnergyServiceBlockingStub myEnergyClient;
 
-  public GrpcProfilerClient(int port) {
+  public GrpcProfilerClient(String name) {
     // Stash the currently set context class loader so ManagedChannelProvider can find an appropriate implementation.
     ClassLoader stashedContextClassLoader = Thread.currentThread().getContextClassLoader();
     Thread.currentThread().setContextClassLoader(ManagedChannelBuilder.class.getClassLoader());
-    ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", port).usePlaintext(true).build();
+    ManagedChannel channel = InProcessChannelBuilder.forName(name).usePlaintext(true).build();
     Thread.currentThread().setContextClassLoader(stashedContextClassLoader);
 
     myProfilerClient = ProfilerServiceGrpc.newBlockingStub(channel);
