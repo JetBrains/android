@@ -22,6 +22,7 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
@@ -48,17 +49,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.getEmbeddedJdkPath;
 import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 import static com.android.tools.idea.sdk.AndroidSdks.SDK_NAME_PREFIX;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.google.common.base.Preconditions.checkState;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.projectRoots.JavaSdk.checkForJdk;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 public class IdeSdks {
   @NonNls public static final String MAC_JDK_CONTENT_PATH = "/Contents/Home";
@@ -66,15 +66,17 @@ public class IdeSdks {
 
   @NotNull private final AndroidSdks myAndroidSdks;
   @NotNull private final Jdks myJdks;
+  @NotNull private final EmbeddedDistributionPaths myEmbeddedDistributionPaths;
 
   @NotNull
   public static IdeSdks getInstance() {
     return ServiceManager.getService(IdeSdks.class);
   }
 
-  public IdeSdks(@NotNull AndroidSdks androidSdks, @NotNull Jdks jdks) {
+  public IdeSdks(@NotNull AndroidSdks androidSdks, @NotNull Jdks jdks, @NotNull EmbeddedDistributionPaths embeddedDistributionPaths) {
     myAndroidSdks = androidSdks;
     myJdks = jdks;
+    myEmbeddedDistributionPaths = embeddedDistributionPaths;
   }
 
   /**
@@ -398,7 +400,7 @@ public class IdeSdks {
    */
   public boolean isUsingEmbeddedJdk() {
     File jdkPath = doGetJdkPath(false);
-    return jdkPath != null && filesEqual(jdkPath, getEmbeddedJdkPath());
+    return jdkPath != null && filesEqual(jdkPath, myEmbeddedDistributionPaths.getEmbeddedJdkPath());
   }
 
   /**
@@ -406,7 +408,7 @@ public class IdeSdks {
    */
   public void setUseEmbeddedJdk() {
     checkState(isAndroidStudio(), "This method is for use in Android Studio only.");
-    setJdkPath(getEmbeddedJdkPath());
+    setJdkPath(myEmbeddedDistributionPaths.getEmbeddedJdkPath());
   }
 
   /**
