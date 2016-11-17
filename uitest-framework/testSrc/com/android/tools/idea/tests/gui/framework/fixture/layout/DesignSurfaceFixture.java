@@ -71,14 +71,16 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
     return myRenderErrorPanel.isShowing();
   }
 
-  public boolean errorPanelContains(@NotNull String errorText) {
-    Document doc = myRenderErrorPanel.getHtmlDetailPane().getDocument();
-    try {
-      return doc.getText(0, doc.getLength()).contains(errorText);
-    }
-    catch (BadLocationException e) {
-      return false;
-    }
+  public void waitForErrorPanelToContain(@NotNull String errorText) {
+    Wait.seconds(1).expecting("the error panel to contain: " + errorText).until(() -> {
+      Document doc = myRenderErrorPanel.getHtmlDetailPane().getDocument();
+      try {
+        return doc.getText(0, doc.getLength()).contains(errorText);
+      }
+      catch (BadLocationException e) {
+        return false;
+      }
+    });
   }
 
   /**
