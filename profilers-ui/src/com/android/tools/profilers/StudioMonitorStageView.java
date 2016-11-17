@@ -16,9 +16,6 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
-import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.cpu.CpuMonitor;
 import com.android.tools.profilers.cpu.CpuMonitorView;
 import com.android.tools.profilers.event.EventMonitor;
@@ -27,7 +24,6 @@ import com.android.tools.profilers.memory.MemoryMonitor;
 import com.android.tools.profilers.memory.MemoryMonitorView;
 import com.android.tools.profilers.network.NetworkMonitor;
 import com.android.tools.profilers.network.NetworkMonitorView;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -37,8 +33,6 @@ import java.awt.*;
  * Bird eye view displaying high-level information across all profilers.
  */
 public class StudioMonitorStageView extends StageView {
-
-  private static final int TIME_AXIS_HEIGHT = JBUI.scale(20);
 
   public StudioMonitorStageView(@NotNull StudioMonitorStage stage) {
     super(stage);
@@ -68,17 +62,13 @@ public class StudioMonitorStageView extends StageView {
       monitors.add(component, gbc);
     }
 
-    AxisComponent.Builder builder = new AxisComponent.Builder(getTimeline().getViewRange(), TimeAxisFormatter.DEFAULT,
-                                                              AxisComponent.AxisOrientation.BOTTOM);
-    builder.setGlobalRange(stage.getStudioProfilers().getDataRange()).showAxisLine(false)
-      .setOffset(stage.getStudioProfilers().getDeviceStartUs());
-    AxisComponent timeAxis = builder.build();
+    StudioProfilers profilers = stage.getStudioProfilers();
+    AxisComponent timeAxis = buildTimeAxis(profilers);
+
     getChoreographer().register(timeAxis);
-    timeAxis.setMinimumSize(new Dimension(Integer.MAX_VALUE, TIME_AXIS_HEIGHT));
     gbc.weighty = 0;
     gbc.gridy = y;
     monitors.add(timeAxis, gbc);
-
     getComponent().add(monitors, BorderLayout.CENTER);
   }
 
