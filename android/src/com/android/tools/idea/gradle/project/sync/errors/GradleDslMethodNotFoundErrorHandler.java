@@ -168,7 +168,7 @@ public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
       GradleVersion pluginVersion = androidPluginInfo.getPluginVersion();
       if (pluginVersion != null) {
         AndroidPluginGeneration pluginGeneration = androidPluginInfo.getPluginGeneration();
-        return pluginVersion.compareTo(pluginGeneration.getRecommendedVersion()) > 0;
+        return pluginVersion.compareTo(pluginGeneration.getLatestKnownVersion()) > 0;
       }
     }
     return false;

@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.DownloadJdk8
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.SelectJdkFromFileSystemHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.UseEmbeddedJdkHyperlink;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.components.ServiceManager;
@@ -40,8 +41,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.getEmbeddedJdkPath;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createAndAddSDK;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
@@ -49,6 +48,7 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static java.util.Collections.emptyList;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 /**
  * Utility methods related to IDEA JDKs.
@@ -75,7 +75,7 @@ public class Jdks {
       langLevel = DEFAULT_LANG_LEVEL;
     }
     if (isAndroidStudio() && !IdeSdks.getInstance().isUsingEmbeddedJdk()) {
-      Sdk jdk = createJdk(getEmbeddedJdkPath().getPath());
+      Sdk jdk = createJdk(EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getPath());
       assert jdk != null && isApplicableJdk(jdk, langLevel);
       return jdk;
     }
@@ -233,7 +233,7 @@ public class Jdks {
   @Nullable
   public Sdk createEmbeddedJdk() {
     if (isAndroidStudio()) {
-      Sdk jdk = createJdk(getEmbeddedJdkPath().getPath());
+      Sdk jdk = createJdk(EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getPath());
       assert jdk != null;
       return jdk;
     }

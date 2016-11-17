@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure;
 
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoManager;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
@@ -71,7 +72,6 @@ import java.util.List;
 
 import static com.android.SdkConstants.FD_NDK;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
-import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.getEmbeddedJdkPath;
 import static com.android.tools.idea.npw.WizardUtils.validateLocation;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
@@ -183,7 +183,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
       boolean useEmbeddedJdk = useEmbeddedJdk();
       updateJdkTextField(useEmbeddedJdk);
 
-      String path = getEmbeddedJdkPath().getPath();
+      String path = EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getPath();
       if (!useEmbeddedJdk) {
         // If the user-selected path is the same as the "embedded JDK" path, ignore it because there is no user-selected path yet.
         if (path.equals(myUserSelectedJdkHomePath)) {
@@ -218,7 +218,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
     mySdkLocationTextField.setText(myOriginalSdkHomePath);
     myNdkLocationTextField.setText(myOriginalNdkHomePath);
 
-    String jdkPath = myOriginalUseEmbeddedJdk ? getEmbeddedJdkPath().getPath() : myOriginalJdkHomePath;
+    String jdkPath = myOriginalUseEmbeddedJdk ? EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getPath() : myOriginalJdkHomePath;
     myJdkLocationTextField.setText(jdkPath);
     myUserSelectedJdkHomePath = myOriginalJdkHomePath;
     updateJdkTextField(myOriginalUseEmbeddedJdk);
@@ -245,7 +245,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
       saveAndroidNdkPath();
 
       IdeSdks ideSdks = IdeSdks.getInstance();
-      ideSdks.setJdkPath(useEmbeddedJdk() ? getEmbeddedJdkPath() : getUserSelectedJdkLocation());
+      ideSdks.setJdkPath(useEmbeddedJdk() ? EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath() : getUserSelectedJdkLocation());
       ideSdks.setAndroidSdkPath(getSdkLocation(), myProject);
 
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
