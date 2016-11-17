@@ -43,38 +43,33 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
 
   @Override
   public void update(Range range) {
-    CpuProfiler.CpuDataRequest.Builder dataRequestBuilder = CpuProfiler.CpuDataRequest.newBuilder()
+    CpuProfiler.GetThreadsRequest.Builder request = CpuProfiler.GetThreadsRequest.newBuilder()
       .setAppId(myProcessId)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)range.getMin()))
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)range.getMax()));
-    CpuProfiler.CpuDataResponse response = myService.getData(dataRequestBuilder.build());
-    // Keep the threads in order of creation
-    Map<Integer, String> threads = new TreeMap<>();
-    for (CpuProfiler.CpuProfilerData data : response.getDataList()) {
-      if (data.getDataCase() != CpuProfiler.CpuProfilerData.DataCase.THREAD_ACTIVITIES) {
-        // No data to be handled.
-        continue;
+    CpuProfiler.GetThreadsResponse response = myService.getThreads(request.build());
+
+    // Merge the two lists.
+    int i = 0;
+    int j = 0;
+    while (i < getSize() && j < response.getThreadsCount()) {
+      RangedCpuThread oldThread = getElementAt(i);
+      CpuProfiler.GetThreadsResponse.Thread newThread = response.getThreads(j);
+      if (oldThread.getThreadId() == newThread.getTid()) {
+        i++;
+        j++;
+      } else {
+        removeElementAt(i);
       }
-      CpuProfiler.ThreadActivities threadActivities = data.getThreadActivities();
-      if (threadActivities != null) {
-        for (CpuProfiler.ThreadActivity threadActivity : threadActivities.getActivitiesList()) {
-          threads.put(threadActivity.getTid(), threadActivity.getName());
-        }
-      }
-      // Add the new threads (at the end and in order) and removes the ones that don't exist anymore.
-      for (int i = 0; i < getSize(); i++) {
-        RangedCpuThread thread = getElementAt(i);
-        String prev = threads.remove(thread.getThreadId());
-        if (prev == null) {
-          // The thread doesn't exist anymore
-          removeElementAt(i);
-          i--;
-        }
-      }
-      // Add the ones that were not updated
-      for (Map.Entry<Integer, String> entry : threads.entrySet()) {
-        addElement(new RangedCpuThread(range, entry.getKey(), entry.getValue()));
-      }
+    }
+    while (i < getSize()) {
+      removeElementAt(i);
+      i++;
+    }
+    while (j < response.getThreadsCount()) {
+      CpuProfiler.GetThreadsResponse.Thread newThread = response.getThreads(j);
+      addElement(new RangedCpuThread(range, newThread.getTid(), newThread.getName()));
+      j++;
     }
   }
 
@@ -90,7 +85,7 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
       myName = name;
     }
 
-    public RangedSeries<CpuProfiler.ThreadActivity.State> getDataSeries() {
+    public RangedSeries<CpuProfiler.GetThreadsResponse.State> getDataSeries() {
       ThreadStateDataSeries series = new ThreadStateDataSeries(myService, myProcessId, myThreadId);
       return new RangedSeries<>(myRange, series);
     }
