@@ -71,7 +71,6 @@ iml_module(
         "//tools/base/profiler:studio-profiler-grpc-1.0-jarjar[test]",
         "//tools/adt/idea/android/lib:dexlib2-2.0.8-dev[test]",
         "//tools/adt/idea/android/lib:dexlib2-util-2.0.8-dev[test]",
-        "//tools/base/rpclib:studio.rpclib[module, test]",
         "//tools:idea.properties-psi-impl[module, test]",
         "//tools/adt/idea/perfd-host[module, test]",
         "//tools:idea.junit[module, test]",
