@@ -235,7 +235,11 @@ public class AppResourceRepository extends MultiResourceRepository {
         else {
           File folder = library.getFolder();
           String name = folder.getName();
-          if (name.endsWith(DOT_AAR)) {
+          if (modelVersion.getMajor() > 2 || modelVersion.getMajor() == 2 && modelVersion.getMinor() >= 2) {
+            // Library.getName() was added in 2.2
+            libraryName = library.getName();
+          }
+          else if (name.endsWith(DOT_AAR)) {
             libraryName = name.substring(0, name.length() - DOT_AAR.length());
           }
           else if (folder.getPath().contains(AndroidGradleModel.EXPLODED_AAR)) {
@@ -245,12 +249,7 @@ public class AppResourceRepository extends MultiResourceRepository {
         if (libraryName != null && !moduleNames.contains(libraryName)) {
           File resFolder = library.getResFolder();
           if (resFolder.exists()) {
-            String name = libraryName;
-            if (modelVersion.getMajor() > 2 || modelVersion.getMajor() == 2 && modelVersion.getMinor() >= 2) {
-              // Library.getName() was added in 2.2
-              name = library.getName();
-            }
-            files.put(resFolder, name);
+            files.put(resFolder, libraryName);
 
             // Don't add it again!
             moduleNames.add(libraryName);
