@@ -38,7 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 
-import static com.android.ddmlib.Client.CHANGE_INFO;
+import static com.android.ddmlib.Client.CHANGE_NAME;
 import static com.android.ddmlib.IDevice.CHANGE_STATE;
 
 /**
@@ -116,7 +116,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
 
   @Override
   public void clientChanged(@NonNull Client client, int changeMask) {
-    if ((changeMask & CHANGE_INFO) != 0) {
+    if ((changeMask & CHANGE_NAME) != 0) {
       updateDevices();
     }
   }

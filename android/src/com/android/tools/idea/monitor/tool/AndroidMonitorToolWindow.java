@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.monitor.tool;
 
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -34,6 +38,7 @@ public class AndroidMonitorToolWindow implements Disposable {
     try {
       StudioProfilerDeviceManager manager = new StudioProfilerDeviceManager(project);
       StudioProfilers profiler = new StudioProfilers(manager.getClient());
+      profiler.setPreferredProcessName(getPreferredProcessName(project));
       StudioProfilersView view = new StudioProfilersView(profiler);
       myComponent = view.getComponent();
     }
@@ -48,5 +53,19 @@ public class AndroidMonitorToolWindow implements Disposable {
 
   public JComponent getComponent() {
     return myComponent;
+  }
+
+  @Nullable
+  private String getPreferredProcessName(Project project) {
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(module);
+      if (moduleInfo != null) {
+        String pkg = moduleInfo.getPackage();
+        if (pkg != null) {
+          return pkg;
+        }
+      }
+    }
+    return null;
   }
 }
