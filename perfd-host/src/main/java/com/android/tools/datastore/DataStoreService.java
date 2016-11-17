@@ -21,6 +21,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.ServerBuilder;
+import io.grpc.inprocess.InProcessServerBuilder;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,9 +38,9 @@ public class DataStoreService {
   private ServerBuilder myServerBuilder;
   private List<ServicePassThrough> myServices = new ArrayList<>();
 
-  public DataStoreService(int port) {
+  public DataStoreService(String name) {
     try {
-      myServerBuilder = ServerBuilder.forPort(port);
+      myServerBuilder = InProcessServerBuilder.forName(name);
       createPollers();
       myServerBuilder.build().start();
     }
