@@ -24,10 +24,13 @@ import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.awt.geom.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A chart component that renders series of state change events as rectangles.
@@ -45,7 +48,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
   private final List<RangedSeries<E>> mSeriesList;
 
   @NotNull
-  private final EnumMap<E, Color> mColors;
+  private final Map<E, Color> mColors;
 
   private float mArcWidth;
 
@@ -65,7 +68,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
   /**
    * @param colors map of a state to corresponding color
    */
-  public StateChart(@NotNull EnumMap<E, Color> colors) {
+  public StateChart(@NotNull Map<E, Color> colors) {
     mColors = colors;
     mRectangles = new ArrayList<>();
     mValues = new ArrayList<>();

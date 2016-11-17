@@ -34,8 +34,12 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
 
   private long myDataRequestStartTimestampNs = Long.MIN_VALUE;
   private CpuServiceGrpc.CpuServiceBlockingStub myPollingService;
+
   //TODO Pull this into a storage container that can read/write this to disk
-  protected List<CpuProfiler.CpuProfilerData> myData = new ArrayList<>();
+  protected final List<CpuProfiler.CpuProfilerData> myData = new ArrayList<>();
+  protected final Map<Integer, CpuProfiler.GetThreadsResponse.Thread.Builder> myThreads = new TreeMap<>();
+
+  private final Object myLock = new Object();
 
   private int myProcessId = -1;
 
@@ -65,10 +69,28 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
       .setEndTimestamp(Long.MAX_VALUE);
     CpuProfiler.CpuDataResponse response = myPollingService.getData(dataRequestBuilder.build());
 
-    synchronized (myData) {
+    synchronized (myLock) {
       for (CpuProfiler.CpuProfilerData data : response.getDataList()) {
         myDataRequestStartTimestampNs = data.getBasicInfo().getEndTimestamp();
         myData.add(data);
+        if (data.getDataCase() == CpuProfiler.CpuProfilerData.DataCase.THREAD_ACTIVITIES) {
+          CpuProfiler.ThreadActivities activities = data.getThreadActivities();
+          if (activities != null) {
+            for (CpuProfiler.ThreadActivity activity : activities.getActivitiesList()) {
+              int tid = activity.getTid();
+              CpuProfiler.GetThreadsResponse.Thread.Builder builder = myThreads.get(tid);
+              if (builder == null) {
+                builder = CpuProfiler.GetThreadsResponse.Thread.newBuilder().setName(activity.getName()).setTid(tid);
+                myThreads.put(tid, builder);
+              }
+              CpuProfiler.ThreadActivity.State state = activity.getNewState();
+              CpuProfiler.GetThreadsResponse.State converted = CpuProfiler.GetThreadsResponse.State.valueOf(state.toString());
+              builder.addActivities(CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
+                                      .setTimestamp(activity.getTimestamp())
+                                      .setNewState(converted));
+            }
+          }
+        }
       }
     }
   }
@@ -86,7 +108,7 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
     long endTime = request.getEndTimestamp();
 
     //TODO: Optimize so we do not need to loop all the data every request, ideally binary search to start time and loop till end.
-    synchronized (myData) {
+    synchronized (myLock) {
       Iterator<CpuProfiler.CpuProfilerData> itr = myData.iterator();
       while (itr.hasNext()) {
         CpuProfiler.CpuProfilerData obj = itr.next();
@@ -101,8 +123,36 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
   }
 
   @Override
+  public void getThreads(CpuProfiler.GetThreadsRequest request, StreamObserver<CpuProfiler.GetThreadsResponse> observer) {
+    CpuProfiler.GetThreadsResponse.Builder response = CpuProfiler.GetThreadsResponse.newBuilder();
+
+    long from = request.getStartTimestamp();
+    long to = request.getEndTimestamp();
+
+    for (CpuProfiler.GetThreadsResponse.Thread.Builder builder : myThreads.values()) {
+      int count = builder.getActivitiesCount();
+      if (count > 0) {
+        // If they overlap
+        CpuProfiler.GetThreadsResponse.ThreadActivity first = builder.getActivities(0);
+        CpuProfiler.GetThreadsResponse.ThreadActivity last = builder.getActivities(count - 1);
+        boolean include = first.getTimestamp() <= to && from <= last.getTimestamp();
+        // If still alive.
+        include = include || (last.getTimestamp() < from && last.getNewState() != CpuProfiler.GetThreadsResponse.State.DEAD);
+        if (include) {
+          response.addThreads(builder);
+        }
+      }
+    }
+    observer.onNext(response.build());
+    observer.onCompleted();
+  }
+
+  @Override
   public void startMonitoringApp(CpuProfiler.CpuStartRequest request, StreamObserver<CpuProfiler.CpuStartResponse> observer) {
     myProcessId = request.getAppId();
+    synchronized (myLock) {
+      myThreads.clear();
+    }
     observer.onNext(myPollingService.startMonitoringApp(request));
     observer.onCompleted();
   }

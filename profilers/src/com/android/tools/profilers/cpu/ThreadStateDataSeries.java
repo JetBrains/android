@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-public final class ThreadStateDataSeries implements DataSeries<CpuProfiler.ThreadActivity.State> {
+public final class ThreadStateDataSeries implements DataSeries<CpuProfiler.GetThreadsResponse.State> {
 
   private final int myProcessId;
   private final int myThreadId;
@@ -44,40 +44,25 @@ public final class ThreadStateDataSeries implements DataSeries<CpuProfiler.Threa
   }
 
   @Override
-  public ImmutableList<SeriesData<CpuProfiler.ThreadActivity.State>> getDataForXRange(Range xRange) {
+  public ImmutableList<SeriesData<CpuProfiler.GetThreadsResponse.State>> getDataForXRange(Range xRange) {
     // TODO Investigate if this is too slow. We can then have them share a common "series", and return a view to that series.
-    ArrayList<SeriesData<CpuProfiler.ThreadActivity.State>> data = new ArrayList<>();
-    //CpuProfiler.CpuDataRequest.Builder dataRequestBuilder = CpuProfiler.CpuDataRequest.newBuilder()
-    //  .setAppId(myProcessId)
-    //  .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin()))
-    //  .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax()));
-    //CpuProfiler.CpuDataResponse response = myService.getData(dataRequestBuilder.build());
-    //for (CpuProfiler.CpuProfilerData cpuData : response.getDataList()) {
-    //  if (cpuData.getDataCase() != CpuProfiler.CpuProfilerData.DataCase.THREAD_ACTIVITIES) {
-    //    // No data to be handled.
-    //    continue;
-    //  }
-    //  CpuProfiler.ThreadActivities threadActivities = cpuData.getThreadActivities();
-    //  if (threadActivities == null) {
-    //    continue; // nothing to do
-    //  }
-    //
-    //  for (CpuProfiler.ThreadActivity threadActivity : threadActivities.getActivitiesList()) {
-    //    if (threadActivity.getTid() == myThreadId) {
-    //      long dataTimestamp = TimeUnit.NANOSECONDS.toMicros(cpuData.getBasicInfo().getEndTimestamp());
-    //      data.add(new SeriesData<>(dataTimestamp, threadActivity.getNewState()));
-    //    }
-    //  }
-    //}
-    // TODO: Fake the data until the CPU rpc is fixed.
-    long t = (long)(xRange.getMin() / 1000000);
-    while (t * 1000000 < xRange.getMax()) {
-      if (((t + myThreadId) % 2) == 0) {
-        data.add(new SeriesData<>(t * 1000000, CpuProfiler.ThreadActivity.State.RUNNING));
-      } else {
-        data.add(new SeriesData<>(t * 1000000, CpuProfiler.ThreadActivity.State.SLEEPING));
+    ArrayList<SeriesData<CpuProfiler.GetThreadsResponse.State>> data = new ArrayList<>();
+
+    CpuProfiler.GetThreadsRequest.Builder request = CpuProfiler.GetThreadsRequest.newBuilder()
+      .setAppId(myProcessId)
+      .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin()))
+      .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax()));
+    CpuProfiler.GetThreadsResponse response = myService.getThreads(request.build());
+
+
+    for (CpuProfiler.GetThreadsResponse.Thread thread : response.getThreadsList()) {
+      if (thread.getTid() == myThreadId) {
+        for (CpuProfiler.GetThreadsResponse.ThreadActivity activity : thread.getActivitiesList()) {
+          CpuProfiler.GetThreadsResponse.State state = activity.getNewState();
+          long timestamp = TimeUnit.NANOSECONDS.toMicros(activity.getTimestamp());
+          data.add(new SeriesData<>(timestamp, state));
+        }
       }
-      t += 1;
     }
     return ContainerUtil.immutableList(data);
   }
