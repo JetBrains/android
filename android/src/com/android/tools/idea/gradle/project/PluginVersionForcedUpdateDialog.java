@@ -16,17 +16,16 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.HyperlinkAdapter;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 
 import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
-import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.ORIGINAL;
 import static com.intellij.ide.BrowserUtil.browse;
 import static javax.swing.Action.NAME;
 import static org.jetbrains.android.util.AndroidUiUtil.setUpAsHtmlLabel;
@@ -35,28 +34,36 @@ public class PluginVersionForcedUpdateDialog extends DialogWrapper {
   private JPanel myCenterPanel;
   private JEditorPane myMessagePane;
 
-  public PluginVersionForcedUpdateDialog(@Nullable Project project, boolean usingExperimentalPlugin) {
+  @NotNull private final String myMessage;
+
+  public PluginVersionForcedUpdateDialog(@NotNull Project project, @NotNull AndroidPluginGeneration pluginGeneration) {
     super(project);
-    setTitle("Android Gradle " + (usingExperimentalPlugin ? "Experimental " : "") + "Plugin Update Required");
+
+    boolean experimental = pluginGeneration == COMPONENT;
+    String pluginType = experimental ? "Experimental " : "";
+    setTitle("Android Gradle " + pluginType + "Plugin Update Required");
     init();
 
     setUpAsHtmlLabel(myMessagePane);
-    AndroidPluginGeneration pluginType = usingExperimentalPlugin ? COMPONENT : ORIGINAL;
-    String msg = "<b>The project is using an incompatible version of the Android Gradle " +
-                 (usingExperimentalPlugin ? "Experimental " : "") + "plugin.</b><br/<br/>" +
-                 "To continue opening the project, the IDE will update the Android Gradle " +
-                 (usingExperimentalPlugin ? "Experimental " : "") + "plugin to version " +
-                 pluginType.getLatestKnownVersion() + ".<br/><br/>" +
+    String pluginVersion = pluginGeneration.getLatestKnownVersion();
+    myMessage = "<b>The project is using an incompatible version of the Android Gradle " + pluginType + "plugin.</b><br/<br/>" +
+                 "To continue opening the project, the IDE will update the plugin to version " + pluginVersion + ".<br/><br/>" +
                  "You can learn more about this version of the plugin from the " +
-                 "<a href='http://tools.android.com/tech-docs/new-build-system" + (usingExperimentalPlugin ? "/gradle-experimental" : "") +
+                 "<a href='http://tools.android.com/tech-docs/new-build-system" + (experimental ? "/gradle-experimental" : "") +
                  "'>release notes</a>.<br/><br/>";
-    myMessagePane.setText(msg);
+    myMessagePane.setText(myMessage);
     myMessagePane.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       protected void hyperlinkActivated(HyperlinkEvent e) {
         browse(e.getURL());
       }
     });
+  }
+
+  @VisibleForTesting
+  @NotNull
+  String getDisplayedMessage() {
+    return myMessage;
   }
 
   @Override
