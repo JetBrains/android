@@ -360,6 +360,7 @@
     <applicationService serviceInterface="com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings"
                         serviceImplementation="com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings"/>
 
+    <applicationService serviceImplementation="com.android.tools.adtui.workbench.WorkBenchManager" />
     <applicationService serviceInterface="com.intellij.openapi.help.HelpManager"
                         serviceImplementation="com.android.tools.idea.help.StudioHelpManagerImpl"
                         overrides="true"/>
@@ -1269,6 +1270,10 @@
     <component>
       <implementation-class>com.android.tools.idea.databinding.DataBindingProjectComponent</implementation-class>
       <loadForDefaultProject/>
+    </component>
+    <component>
+      <implementation-class>com.android.tools.adtui.workbench.FloatingToolWindowManager</implementation-class>
+      <skipForDefaultProject/>
     </component>
   </project-components>
 

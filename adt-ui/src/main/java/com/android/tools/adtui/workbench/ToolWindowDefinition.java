@@ -20,21 +20,27 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
+import java.awt.*;
+
+import static com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE;
+
 /**
- * A definition of a tool window that can optionally be attached on the side
+ * A definition of an {@link AttachedToolWindow} that can be attached on the side
  * of a {@link WorkBench}.
  *
  * @param <T> Specifies the type of data controlled by a {@link WorkBench}.
  */
 public class ToolWindowDefinition<T> {
-  static final int DEFAULT_SIDE_WIDTH = 300;
+  public static final int DEFAULT_SIDE_WIDTH = 200;
 
   private final String myTitle;
   private final Icon myIcon;
   private final String myName;
   private final Side mySide;
   private final Split mySplit;
+  private final AutoHide myAutoHide;
   private final int myMinimumSize;
+  private final Dimension myButtonSize;
   private final Factory<ToolContent<T>> myFactory;
 
   public ToolWindowDefinition(@NotNull String title,
@@ -42,8 +48,9 @@ public class ToolWindowDefinition<T> {
                               @NotNull String name,
                               @NotNull Side side,
                               @NotNull Split split,
+                              @NotNull AutoHide autoHide,
                               @NotNull Factory<ToolContent<T>> factory) {
-    this(title, icon, name, side, split, DEFAULT_SIDE_WIDTH, factory);
+    this(title, icon, name, side, split, autoHide, DEFAULT_SIDE_WIDTH, DEFAULT_MINIMUM_BUTTON_SIZE, factory);
   }
 
   public ToolWindowDefinition(@NotNull String title,
@@ -51,14 +58,18 @@ public class ToolWindowDefinition<T> {
                               @NotNull String name,
                               @NotNull Side side,
                               @NotNull Split split,
+                              @NotNull AutoHide autoHide,
                               int minimumSize,
+                              @NotNull Dimension buttonSize,
                               @NotNull Factory<ToolContent<T>> factory) {
     myTitle = title;
     myIcon = icon;
     myName = name;
     mySide = side;
     mySplit = split;
+    myAutoHide = autoHide;
     myMinimumSize = minimumSize;
+    myButtonSize = buttonSize;
     myFactory = factory;
   }
 
@@ -99,7 +110,7 @@ public class ToolWindowDefinition<T> {
   }
 
   /**
-   * Specifies the initial minimum width of an {@link ToolWindowDefinition}.
+   * Specifies the initial minimum width of this tool window.
    * The system will save the last width used and restore that next time the window is shown.
    * This value is only used for the initial value when no prior width is known.
    *
@@ -110,22 +121,42 @@ public class ToolWindowDefinition<T> {
   }
 
   /**
-   * Specifies on which side of the {@link WorkBench} this {@link ToolWindowDefinition} should be shown initially.
+   * Specifies the button size for actions in the header of this tool window.
+   *
+   * @return the button size
+   */
+  @NotNull
+  public Dimension getButtonSize() {
+    return myButtonSize;
+  }
+
+  /**
+   * Specifies on which side of the {@link WorkBench} this tool window should be shown initially.
    * The system will save the last location and restore that next time the window is shown.
    *
-   * @return the {@link Side} of {@link WorkBench} this window should be placed at.
+   * @return the {@link Side} of {@link WorkBench} an {@link AttachedToolWindow} window should be placed at.
    */
   public Side getSide() {
     return mySide;
   }
 
   /**
-   * Specifies which part (top or bottom) this {@link ToolWindowDefinition} should be shown initially.
+   * Specifies which part (top or bottom) this tool window should be shown initially.
    * The system will save the last location and restore that next time the window is shown.
    *
-   * @return the {@link Split} of the window area this {@link ToolWindowDefinition} should be placed at.
+   * @return the {@link Split} of the window area an {@link AttachedToolWindow} should be placed at.
    */
   public Split getSplit() {
     return mySplit;
+  }
+
+  /**
+   * Specifies if a tool window should initially be docked or overlay the {@link WorkBench}.
+   * The system will save the last saved value and restore that next time the window is shown.
+   *
+   * @return the initial {@link AutoHide} mode of an {@link AttachedToolWindow}.
+   */
+  public AutoHide getAutoHide() {
+    return myAutoHide;
   }
 }
