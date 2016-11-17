@@ -19,8 +19,6 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.configurations.LocaleMenuAction;
-import com.android.tools.idea.editors.strings.table.ColumnUtil;
-import com.android.tools.idea.editors.strings.table.ResizeListener;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -361,7 +359,6 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     ListSelectionListener listener = new CellSelectionListener();
 
     myTable.getColumnModel().getSelectionModel().addListSelectionListener(listener);
-    myTable.getParent().addComponentListener(new ResizeListener(myTable));
     myTable.getSelectionModel().addListSelectionListener(listener);
   }
 
@@ -470,8 +467,6 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     myModificationCount = resourceRepository.getModificationCount();
 
     myTable.setModel(new StringResourceTableModel(data));
-    ColumnUtil.setColumns(myTable);
-
     myLoadingPanel.stopLoading();
   }
 
