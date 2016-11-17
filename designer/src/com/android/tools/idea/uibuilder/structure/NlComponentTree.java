@@ -27,6 +27,7 @@ import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.PasteProvider;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
@@ -69,8 +70,8 @@ import static com.android.tools.idea.uibuilder.property.NlPropertiesManager.UPDA
 import static com.android.tools.idea.uibuilder.structure.NlComponentTree.InsertionPoint.INSERT_INTO;
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
-public class NlComponentTree extends Tree implements DesignSurfaceListener, ModelListener, SelectionListener, DataProvider,
-                                                     DeleteProvider, CutProvider, CopyProvider, PasteProvider {
+public class NlComponentTree extends Tree implements DesignSurfaceListener, ModelListener, SelectionListener, Disposable,
+                                                     DataProvider, DeleteProvider, CutProvider, CopyProvider, PasteProvider {
   private static final Insets INSETS = new JBInsets(0, 6, 0, 6);
 
   private final AtomicBoolean mySelectionIsUpdating;
@@ -150,6 +151,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     return myModel;
   }
 
+  @Override
   public void dispose() {
     if (myModel != null) {
       myModel.removeListener(this);
