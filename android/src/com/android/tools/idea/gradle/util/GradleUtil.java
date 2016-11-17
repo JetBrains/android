@@ -18,17 +18,13 @@ package com.android.tools.idea.gradle.util;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.builder.model.*;
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.ide.common.repository.MavenRepositories;
-import com.android.repository.io.FileOp;
-import com.android.repository.io.FileOpUtils;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
@@ -54,7 +50,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.gradle.tooling.model.UnsupportedMethodException;
-import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -72,14 +67,11 @@ import java.util.*;
 import static com.android.SdkConstants.*;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
-import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER;
 import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.getTestArtifacts;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
-import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findEmbeddedGradleDistributionPath;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.android.tools.idea.startup.GradleSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
@@ -98,6 +90,7 @@ import static com.intellij.util.SystemProperties.getUserHome;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 /**
@@ -128,6 +121,7 @@ public final class GradleUtil {
       Collection<File> folders = artifact.getGeneratedSourceFolders();
       // JavaArtifactImpl#getGeneratedSourceFolders returns null even though BaseArtifact#getGeneratedSourceFolders is marked as @NonNull.
       // See https://code.google.com/p/android/issues/detail?id=216236
+      //noinspection ConstantConditions
       return folders != null ? folders : Collections.emptyList();
     }
     catch (UnsupportedMethodException e) {
@@ -369,7 +363,7 @@ public final class GradleUtil {
     GradleExecutionSettings executionSettings = getGradleExecutionSettings(project);
     if (isAndroidStudio() && useEmbeddedGradle) {
       if (executionSettings == null) {
-        File gradlePath = findEmbeddedGradleDistributionPath();
+        File gradlePath = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionPath();
         assert gradlePath != null && gradlePath.isDirectory();
         executionSettings = new GradleExecutionSettings(gradlePath.getPath(), null, LOCAL, null, false);
         File jdkPath = IdeSdks.getInstance().getJdkPath();
@@ -544,7 +538,7 @@ public final class GradleUtil {
         if (gradleVersion != null &&
             isCompatibleWithEmbeddedGradleVersion(gradleVersion) &&
             !GradleLocalCache.getInstance().containsGradleWrapperVersion(gradleVersion, project)) {
-          File embeddedGradlePath = findEmbeddedGradleDistributionPath();
+          File embeddedGradlePath = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionPath();
           if (embeddedGradlePath != null) {
             GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
             if (gradleSettings != null) {
@@ -827,43 +821,5 @@ public final class GradleUtil {
     }
 
     return null;
-  }
-
-  public enum PluginType {
-    STANDARD("gradle", GRADLE_PLUGIN_RECOMMENDED_VERSION),
-    EXPERIMENTAL("gradle-experimental", GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION);
-
-    @NotNull private final String pluginName;
-    @NotNull private final String defaultVersion;
-
-    PluginType(@NotNull String pluginName, @NotNull String defaultVersion) {
-      this.pluginName = pluginName;
-      this.defaultVersion = defaultVersion;
-    }
-  }
-
-  @NotNull
-  public static String getLatestKnownPluginVersion(PluginType pluginType) {
-    FileOp fop = FileOpUtils.create();
-    Optional<GradleCoordinate> highestValueCoordinate = EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPaths().stream()
-      .map(path -> MavenRepositories.getHighestInstalledVersion("com.android.tools.build", pluginType.pluginName, path, null, true, fop))
-      .filter(coordinate -> coordinate != null)
-      .max(COMPARE_PLUS_HIGHER);
-
-    if (!highestValueCoordinate.isPresent()) {
-      if (isAndroidStudio() && !AndroidPlugin.isGuiTestingMode() &&
-          !ApplicationManager.getApplication().isInternal() &&
-          !ApplicationManager.getApplication().isUnitTestMode()) {
-        // In a release build, Android Studio must find the latest version in its offline repo(s).
-        throw new IllegalStateException("Gradle plugin missing from the offline Maven repo");
-      } else {
-        // In all other scenarios we will not throw an exception, but use the last known version from SdkConstants.
-        // TODO: revisit this when tests are running with the latest (source) build.
-        LOG.info(pluginType.pluginName + " plugin missing the offline Maven repo, will use default " + pluginType.defaultVersion);
-        return pluginType.defaultVersion;
-      }
-    }
-
-    return highestValueCoordinate.get().getRevision();
   }
 }

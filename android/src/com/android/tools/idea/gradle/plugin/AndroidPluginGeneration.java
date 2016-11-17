@@ -16,19 +16,31 @@
 package com.android.tools.idea.gradle.plugin;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.ide.common.repository.GradleCoordinate;
+import com.android.repository.io.FileOp;
+import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import org.gradle.tooling.model.UnsupportedMethodException;
+import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import static com.android.SdkConstants.GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION;
+import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.builder.model.AndroidProject.GENERATION_COMPONENT;
+import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER;
+import static com.android.ide.common.repository.MavenRepositories.getHighestInstalledVersion;
 import static com.android.tools.idea.gradle.dsl.model.values.GradleValue.getValues;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 public enum AndroidPluginGeneration {
   ORIGINAL {
@@ -52,8 +64,14 @@ public enum AndroidPluginGeneration {
 
     @Override
     @NotNull
-    public String getRecommendedVersion() {
-      return GradleUtil.getLatestKnownPluginVersion(GradleUtil.PluginType.STANDARD);
+    public String getLatestKnownVersion() {
+      return getLatestKnownVersion(this);
+    }
+
+    @Override
+    @NotNull
+    protected String getRecommendedVersion() {
+      return GRADLE_PLUGIN_RECOMMENDED_VERSION;
     }
 
     @Override
@@ -85,7 +103,13 @@ public enum AndroidPluginGeneration {
 
     @Override
     @NotNull
-    public String getRecommendedVersion() {
+    public String getLatestKnownVersion() {
+      return getLatestKnownVersion(this);
+    }
+
+    @Override
+    @NotNull
+    protected String getRecommendedVersion() {
       return GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION;
     }
 
@@ -161,7 +185,45 @@ public enum AndroidPluginGeneration {
   }
 
   @NotNull
-  public abstract String getRecommendedVersion();
+  public abstract String getLatestKnownVersion();
+
+  @NotNull
+  protected String getLatestKnownVersion(@NotNull AndroidPluginGeneration generation) {
+    String artifactId = generation.getArtifactId();
+    FileOp fileOp = FileOpUtils.create();
+
+    List<File> repoPaths = EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths();
+    Optional<GradleCoordinate> highestValueCoordinate = repoPaths.stream()
+      .map(repoPath -> getHighestInstalledVersion(getGroupId(), artifactId, repoPath, null /* filter */, true /* allow preview */, fileOp))
+      .filter(coordinate -> coordinate != null)
+      .max(COMPARE_PLUS_HIGHER);
+
+    if (!highestValueCoordinate.isPresent()) {
+      if (isAndroidStudio() && !AndroidPlugin.isGuiTestingMode() &&
+          !ApplicationManager.getApplication().isInternal() &&
+          !ApplicationManager.getApplication().isUnitTestMode()) {
+        // In a release build, Android Studio must find the latest version in its offline repo(s).
+        throw new IllegalStateException("Gradle plugin missing from the offline Maven repo");
+      }
+      else {
+        // In all other scenarios we will not throw an exception, but use the last known version from SdkConstants.
+        // TODO: revisit this when tests are running with the latest (source) build.
+        String version = generation.getRecommendedVersion();
+        getLog().info("'" + artifactId + "' plugin missing from the offline Maven repo, will use default " + version);
+        return version;
+      }
+    }
+
+    return highestValueCoordinate.get().getRevision();
+  }
+
+  @NotNull
+  protected abstract String getRecommendedVersion();
+
+  @NotNull
+  private Logger getLog() {
+    return Logger.getInstance(getClass());
+  }
 
   @NotNull
   public abstract String getDescription();
