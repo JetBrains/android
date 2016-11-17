@@ -33,15 +33,18 @@ import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.UIBundle;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,30 +69,35 @@ class AttachedToolWindow<T> implements Disposable {
   private final JPanel myPanel;
   private final List<UpdatableActionButton> myActionButtons;
   private final AbstractButton myMinimizedButton;
+  private final ButtonDragListener<T> myDragListener;
 
   @Nullable
   private ToolContent<T> myContent;
   private boolean myAutoHideOpen;
+  private int myToolOrder;
 
   public AttachedToolWindow(@NotNull ToolWindowDefinition<T> definition,
+                            @NotNull ButtonDragListener<T> dragListener,
                             @NotNull String workBenchName,
                             @NotNull SideModel<T> model) {
-    this(definition, workBenchName, model, PropertiesComponent.getInstance(), DumbService.getInstance(model.getProject()));
+    this(definition, dragListener, workBenchName, model, PropertiesComponent.getInstance(), DumbService.getInstance(model.getProject()));
   }
 
   @VisibleForTesting
   public AttachedToolWindow(@NotNull ToolWindowDefinition<T> definition,
+                            @NotNull ButtonDragListener<T> dragListener,
                             @NotNull String workBenchName,
                             @NotNull SideModel<T> model,
                             @NotNull PropertiesComponent propertiesComponent,
                             @NotNull DumbService dumbService) {
     myWorkBenchName = workBenchName;
     myDefinition = definition;
+    myDragListener = dragListener;
     myPropertiesComponent = propertiesComponent;
     myModel = model;
     myPanel = new JPanel(new BorderLayout());
     myActionButtons = new ArrayList<>(4);
-    myMinimizedButton = new MyMinimizedButton(definition.getTitle(), definition.getIcon());
+    myMinimizedButton = new MinimizedButton(definition.getTitle(), definition.getIcon(), this);
     setDefaultProperty(PropertyType.LEFT, definition.getSide().isLeft());
     setDefaultProperty(PropertyType.SPLIT, definition.getSplit().isBottom());
     setDefaultProperty(PropertyType.AUTO_HIDE, definition.getAutoHide().isAutoHide());
@@ -108,6 +116,14 @@ class AttachedToolWindow<T> implements Disposable {
   @NotNull
   public String getToolName() {
     return myDefinition.getName();
+  }
+
+  public int getToolOrder() {
+    return myToolOrder;
+  }
+
+  public void setToolOrder(int order) {
+    myToolOrder = order;
   }
 
   @NotNull
@@ -308,19 +324,78 @@ class AttachedToolWindow<T> implements Disposable {
     group.add(new TogglePropertyTypeAction(PropertyType.SPLIT, manager.getAction(InternalDecorator.TOGGLE_SIDE_MODE_ACTION_ID)));
   }
 
-  private class MyMinimizedButton extends AnchoredButton {
+  static class DragEvent {
+    private final MouseEvent myMouseEvent;
+    private final Component myDragImage;
+    private final Point myDragPoint;
 
-    private MyMinimizedButton(@NotNull String title, @NotNull Icon icon) {
+    public DragEvent(@NotNull MouseEvent mouseEvent, @NotNull Component dragImage, @NotNull Point dragPoint) {
+      myMouseEvent = mouseEvent;
+      myDragImage = dragImage;
+      myDragPoint = dragPoint;
+    }
+
+    @NotNull
+    public Point getMousePoint() {
+      return myMouseEvent.getPoint();
+    }
+
+    @NotNull
+    public Component getDragImage() {
+      return myDragImage;
+    }
+
+    @NotNull
+    public Point getDragPoint() {
+      return myDragPoint;
+    }
+  }
+
+  interface ButtonDragListener<T> {
+    void buttonDragged(@NotNull AttachedToolWindow<T> toolWindow, @NotNull DragEvent event);
+    void buttonDropped(@NotNull AttachedToolWindow<T> toolWindow, @NotNull DragEvent event);
+  }
+
+  private void fireButtonDragged(@NotNull DragEvent event) {
+    myDragListener.buttonDragged(this, event);
+  }
+
+  private void fireButtonDropped(@NotNull DragEvent event) {
+    myDragListener.buttonDropped(this, event);
+  }
+
+  private static class MinimizedButton extends AnchoredButton {
+    private final AttachedToolWindow myToolWindow;
+    private JLabel myDragImage;
+    private Point myStartDragPosition;
+
+    public MinimizedButton(@NotNull String title, @NotNull Icon icon, @NotNull AttachedToolWindow toolWindow) {
       super(title, icon);
-      addActionListener(event -> {
-        setSelected(false);
-        setPropertyAndUpdate(PropertyType.MINIMIZED, !isMinimized());
-      });
+      myToolWindow = toolWindow;
       setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
       setFocusable(false);
       setRolloverEnabled(true);
       setOpaque(true);
-      setSelected(!isMinimized());
+      setSelected(!toolWindow.isMinimized());
+      MouseInputAdapter listener = new MouseInputAdapter() {
+        @Override
+        public void mouseDragged(@NotNull MouseEvent event) {
+          handleDragging(event);
+        }
+
+        @Override
+        public void mouseReleased(@NotNull MouseEvent event) {
+          stopDragging(event);
+        }
+
+        @Override
+        public void mouseClicked(@NotNull MouseEvent event) {
+          setSelected(false);
+          myToolWindow.setPropertyAndUpdate(AttachedToolWindow.PropertyType.MINIMIZED, !myToolWindow.isMinimized());
+        }
+      };
+      addMouseListener(listener);
+      addMouseMotionListener(listener);
     }
 
     @Override
@@ -334,8 +409,11 @@ class AttachedToolWindow<T> implements Disposable {
      * the left side. Counteract this by translating the graphics 1 pixel to the right.
      */
     @Override
-    public void paint(Graphics graphics) {
-      if (!isLeft()) {
+    public void paint(@NotNull Graphics graphics) {
+      if (isDragging()) {
+        return;
+      }
+      if (!myToolWindow.isLeft()) {
         super.paint(graphics);
         return;
       }
@@ -356,7 +434,36 @@ class AttachedToolWindow<T> implements Disposable {
 
     @Override
     public ToolWindowAnchor getAnchor() {
-      return isLeft() ? ToolWindowAnchor.LEFT : ToolWindowAnchor.RIGHT;
+      return myToolWindow.isLeft() ? ToolWindowAnchor.LEFT : ToolWindowAnchor.RIGHT;
+    }
+
+    private boolean isDragging() {
+      return myDragImage != null;
+    }
+
+    private void handleDragging(@NotNull MouseEvent event) {
+      if (!isDragging()) {
+        startDragging(event);
+      }
+      myToolWindow.fireButtonDragged(new DragEvent(event, myDragImage, myStartDragPosition));
+    }
+
+    private void stopDragging(@NotNull MouseEvent event) {
+      if (isDragging()) {
+        myToolWindow.fireButtonDropped(new DragEvent(event, myDragImage, myStartDragPosition));
+        myDragImage = null;
+        myStartDragPosition = null;
+      }
+    }
+
+    private void startDragging(@NotNull MouseEvent event) {
+      BufferedImage image = UIUtil.createImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
+      Graphics graphics = image.getGraphics();
+      paint(graphics);
+      graphics.dispose();
+
+      myDragImage = new JBLabel(new JBImageIcon(image));
+      myStartDragPosition = event.getPoint();
     }
   }
 
