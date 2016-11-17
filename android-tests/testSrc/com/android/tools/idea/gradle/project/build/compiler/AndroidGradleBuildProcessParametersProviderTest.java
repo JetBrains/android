@@ -102,7 +102,7 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     assertEquals("~." + File.separatorChar + "gradle", jvmArgs.get("-Dcom.android.studio.gradle.service.dir.path"));
 
     if (isAndroidStudio()) {
-      String javaPath = FileUtilRt.toSystemDependentName(EmbeddedDistributionPaths.getEmbeddedJdkPath().getAbsolutePath());
+      String javaPath = FileUtilRt.toSystemDependentName(EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getAbsolutePath());
       assertEquals(javaPath, jvmArgs.get("-Dcom.android.studio.gradle.java.home.path"));
     }
     else {

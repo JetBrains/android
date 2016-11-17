@@ -240,7 +240,7 @@ public class PostSyncProjectSetup {
       GradleVersion current = pluginInfo.getPluginVersion();
       assert current != null;
       AndroidPluginGeneration pluginGeneration = pluginInfo.getPluginGeneration();
-      GradleVersion recommended = GradleVersion.parse(pluginGeneration.getRecommendedVersion());
+      GradleVersion recommended = GradleVersion.parse(pluginGeneration.getLatestKnownVersion());
       PluginVersionRecommendedUpdateDialog updateDialog = new PluginVersionRecommendedUpdateDialog(myProject, current, recommended);
       boolean userAcceptsUpgrade = updateDialog.showAndGet();
 
@@ -336,7 +336,7 @@ public class PostSyncProjectSetup {
 
   private boolean previewVersionForcedToUpgrade(@NotNull AndroidPluginInfo pluginInfo) {
     AndroidPluginGeneration pluginGeneration = pluginInfo.getPluginGeneration();
-    GradleVersion recommended = GradleVersion.parse(pluginGeneration.getRecommendedVersion());
+    GradleVersion recommended = GradleVersion.parse(pluginGeneration.getLatestKnownVersion());
 
     if (!shouldPreviewBeForcedToUpgradePluginVersion(recommended.toString(), pluginInfo.getPluginVersion())) {
       return false;
@@ -383,7 +383,7 @@ public class PostSyncProjectSetup {
 
   private static boolean shouldRecommendUpgradeBasedOnPluginVersion(@NotNull AndroidPluginInfo androidPluginInfo) {
     GradleVersion current = androidPluginInfo.getPluginVersion();
-    String recommended = androidPluginInfo.getPluginGeneration().getRecommendedVersion();
+    String recommended = androidPluginInfo.getPluginGeneration().getLatestKnownVersion();
     return current != null && current.compareTo(recommended) < 0;
   }
 
@@ -628,7 +628,7 @@ public class PostSyncProjectSetup {
 
   private static void log(@NotNull AndroidPluginInfo pluginInfo) {
     GradleVersion current = pluginInfo.getPluginVersion();
-    String recommended = pluginInfo.getPluginGeneration().getRecommendedVersion();
+    String recommended = pluginInfo.getPluginGeneration().getLatestKnownVersion();
     String message = String.format("Gradle model version: %1$s, recommended version for IDE: %2$s", current, recommended);
     Logger.getInstance(PostSyncProjectSetup.class).info(message);
   }

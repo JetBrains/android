@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.testing;
 
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_BUILD_TOOLS_VERSION;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_COMPILE_VERSION;
-import static com.android.tools.idea.gradle.util.GradleUtil.getLatestKnownPluginVersion;
 
 public class BuildEnvironment {
 
@@ -48,8 +47,8 @@ public class BuildEnvironment {
   public synchronized static BuildEnvironment getInstance() {
     if (ourInstance == null) {
       ourInstance = new BuildEnvironment(
-        getLatestKnownPluginVersion(GradleUtil.PluginType.STANDARD),
-        getLatestKnownPluginVersion(GradleUtil.PluginType.EXPERIMENTAL),
+        AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion(),
+        AndroidPluginGeneration.COMPONENT.getLatestKnownVersion(),
         CURRENT_BUILD_TOOLS_VERSION,
         CURRENT_COMPILE_VERSION,
         CURRENT_COMPILE_VERSION

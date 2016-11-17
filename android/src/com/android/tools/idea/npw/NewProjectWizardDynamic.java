@@ -17,9 +17,9 @@ package com.android.tools.idea.npw;
 
 import com.android.SdkConstants;
 import com.android.repository.io.FileOpUtils;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.npw.cpp.ConfigureCppSupportPath;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
@@ -113,7 +113,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
    * Populate our state store with some common configuration items, such as the SDK location and the Gradle configuration.
    */
   private void initState() {
-    initState(getState(), GradleUtil.getLatestKnownPluginVersion(GradleUtil.PluginType.STANDARD));
+    initState(getState(), AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion());
   }
 
   static void initState(@NotNull ScopedStateStore state, @NotNull String gradlePluginVersion) {
