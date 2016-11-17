@@ -194,7 +194,6 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     }
     Object newValue = event.getNewValue();
     if (newValue instanceof JComponent) {
-      myFileEditor.getPreferredFocusedComponent();
       JComponent newComponent = (JComponent)newValue;
       // Note: We sometimes get a focusOwner notification for a parent of the current tool editor.
       // This has been seen when the Component tree has focus and the palette is opened with AutoHide on.
