@@ -118,7 +118,7 @@ public class NetworkRequestsView extends JComponent implements Animatable {
     table.setDefaultRenderer(StateChart.class, (t, value, isSelected, hasFocus, row, column) -> myCharts.get(row));
     table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     table.getSelectionModel().addListSelectionListener(e -> {
-      if (table.getSelectedRow() < myDataList.size()) {
+      if (table.getSelectedRow() >= 0 && table.getSelectedRow() < myDataList.size()) {
         myDetailedViewListener.showDetailedConnection(myDataList.get(table.getSelectedRow()));
       }
     });
