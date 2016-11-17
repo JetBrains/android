@@ -115,12 +115,22 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     return Logger.getInstance(TutorialBundleData.class);
   }
 
+  /**
+   * As this is only called after the bundle has been instantiated, all tutorial instances
+   * should already be created and may be manipulated safely.
+   */
   @Override
   public void setResourceClass(@NotNull Class clazz) {
     myResourceClass = clazz;
+    myFeatures.forEach((feature) -> feature.getTutorials().forEach((tutorial) -> {
+      tutorial.setResourceClass(clazz);
+    }));
   }
 
-  @Nullable("resource not found")
+  /**
+   * Gets an icon for the given path, null when resource not found.
+   */
+  @Nullable
   private Icon getIconResource(@NotNull String path) {
     return IconLoader.findIcon(path, myResourceClass);
   }
@@ -131,26 +141,26 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     return myName;
   }
 
-  @Nullable("icons are not required")
+  @Nullable
   @Override
   public Icon getIcon() {
     if (myIcon != null) {
       return myIcon;
     }
-    if (myIconName == null) {
+    if (myIconName == null || myResourceRoot == null) {
       return null;
     }
     myIcon = getIconResource(myResourceRoot + "/" + myIconName);
     return myIcon;
   }
 
-  @Nullable("logos are not required")
+  @Nullable
   @Override
   public Icon getLogo() {
     if (myLogo != null) {
       return myLogo;
     }
-    if (myLogoName == null) {
+    if (myLogoName == null || myResourceRoot == null) {
       return null;
     }
     myLogo = getIconResource(myResourceRoot + "/" + myLogoName);
@@ -167,6 +177,13 @@ public class DefaultTutorialBundle implements TutorialBundleData {
   @Override
   public String getWelcome() {
     return myWelcome;
+  }
+
+  @SuppressWarnings("unused")
+  private void afterUnmarshal(Unmarshaller u, Object parent) {
+    myFeatures.forEach((feature) -> feature.getTutorials().forEach((tutorial) -> {
+      tutorial.myResourceRoot = myResourceRoot;
+    }));
   }
 
   @Override
@@ -235,7 +252,7 @@ public class DefaultTutorialBundle implements TutorialBundleData {
       return myName;
     }
 
-    @Nullable("resource not found")
+    @Nullable
     private Icon getIconResource(@NotNull String path) {
       return IconLoader.findIcon(path, myResourceClass);
     }
@@ -275,7 +292,7 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     }
   }
 
-  public static final class Tutorial implements TutorialData {
+  public static class Tutorial implements TutorialData {
 
     // NOTE: Intended both as a title of the tutorial view as well as the label
     // to navigate to the view.
@@ -296,10 +313,24 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     @XmlAttribute(name = "key")
     private String myKey;
 
+    @XmlAttribute(name = "icon")
+    @Nullable
+    private String myIconName;
+
+    protected String myResourceRoot;
+
     @XmlElements({
       @XmlElement(name = "step", type = Step.class)
     })
     private List<Step> mySteps = Lists.newArrayList();
+
+    private Icon myIcon;
+
+    private Class myResourceClass;
+
+    public void setResourceClass(@NotNull Class clazz) {
+      myResourceClass = clazz;
+    }
 
     @Override
     @NotNull
@@ -329,6 +360,20 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     @NotNull
     public String getKey() {
       return myKey;
+    }
+
+    @Nullable
+    @Override
+    public Icon getIcon() {
+      if (myIcon != null) {
+        return myIcon;
+      }
+      if (myIconName == null || myResourceRoot == null) {
+        return null;
+      }
+
+      myIcon =  IconLoader.findIcon(myResourceRoot + "/" + myIconName, myResourceClass);
+      return myIcon;
     }
 
     @Override
