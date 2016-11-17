@@ -18,6 +18,7 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.cpu.CpuMonitor;
 import com.android.tools.profilers.cpu.CpuMonitorView;
 import com.android.tools.profilers.event.EventMonitor;
@@ -39,8 +40,6 @@ public class StudioMonitorStageView extends StageView {
 
   private static final int TIME_AXIS_HEIGHT = JBUI.scale(20);
 
-  private final JPanel myComponent;
-
   public StudioMonitorStageView(@NotNull StudioMonitorStage stage) {
     super(stage);
 
@@ -50,9 +49,10 @@ public class StudioMonitorStageView extends StageView {
     binder.bind(MemoryMonitor.class, MemoryMonitorView::new);
     binder.bind(EventMonitor.class, EventMonitorView::new);
 
-    myComponent = new JPanel(new BorderLayout());
+    ProfilerScrollbar sb = new ProfilerScrollbar(getTimeline());
+    getChoreographer().register(sb);
+    getComponent().add(sb, BorderLayout.SOUTH);
 
-    Choreographer choreographer = new Choreographer(myComponent);
     JPanel monitors = new JPanel(new GridBagLayout());
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridx = 0;
@@ -62,29 +62,24 @@ public class StudioMonitorStageView extends StageView {
     int y = 0;
     for (ProfilerMonitor monitor : stage.getMonitors()) {
       ProfilerMonitorView view = binder.build(monitor);
-      JComponent component = view.initialize(choreographer);
+      JComponent component = view.initialize(getChoreographer());
       gbc.weighty = view.getVerticalWeight();
       gbc.gridy = y++;
       monitors.add(component, gbc);
     }
 
-    AxisComponent.Builder builder = new AxisComponent.Builder(stage.getStudioProfilers().getViewRange(), TimeAxisFormatter.DEFAULT,
+    AxisComponent.Builder builder = new AxisComponent.Builder(getTimeline().getViewRange(), TimeAxisFormatter.DEFAULT,
                                                               AxisComponent.AxisOrientation.BOTTOM);
     builder.setGlobalRange(stage.getStudioProfilers().getDataRange()).showAxisLine(false)
       .setOffset(stage.getStudioProfilers().getDeviceStartUs());
     AxisComponent timeAxis = builder.build();
-    choreographer.register(timeAxis);
+    getChoreographer().register(timeAxis);
     timeAxis.setMinimumSize(new Dimension(Integer.MAX_VALUE, TIME_AXIS_HEIGHT));
     gbc.weighty = 0;
     gbc.gridy = y;
     monitors.add(timeAxis, gbc);
 
-    myComponent.add(monitors, BorderLayout.CENTER);
-  }
-
-  @Override
-  public JComponent getComponent() {
-    return myComponent;
+    getComponent().add(monitors, BorderLayout.CENTER);
   }
 
   @Override

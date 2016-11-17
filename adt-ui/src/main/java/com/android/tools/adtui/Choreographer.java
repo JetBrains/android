@@ -96,6 +96,12 @@ public class Choreographer implements ActionListener {
     }
   }
 
+  public void stop() {
+    if (mTimer.isRunning()) {
+      mTimer.stop();
+    }
+  }
+
   @Override
   public void actionPerformed(ActionEvent actionEvent) {
     long now = System.nanoTime();
