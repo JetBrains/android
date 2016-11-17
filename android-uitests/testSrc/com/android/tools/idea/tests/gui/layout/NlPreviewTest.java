@@ -109,9 +109,9 @@ public class NlPreviewTest {
     preview.waitForRenderToFinish();
 
     assertTrue(preview.hasRenderErrors());
-    assertTrue(preview.errorPanelContains("The following classes could not be found"));
-    assertTrue(preview.errorPanelContains("com.android.tools.tests.layout.MyButton"));
-    assertTrue(preview.errorPanelContains("Change to android.widget.Button"));
+    preview.waitForErrorPanelToContain("The following classes could not be found");
+    preview.waitForErrorPanelToContain("com.android.tools.tests.layout.MyButton");
+    preview.waitForErrorPanelToContain("Change to android.widget.Button");
 
     GradleInvocationResult result = guiTest.ideFrame().invokeProjectMake();
     assertTrue(result.isBuildSuccessful());
@@ -127,7 +127,7 @@ public class NlPreviewTest {
       .open("app/src/main/res/layout/layout1.xml", EditorFixture.Tab.EDITOR); // Switch back; should trigger render
 
     preview.waitForRenderToFinish();
-    assertTrue(preview.errorPanelContains("The MyButton custom view has been edited more recently than the last build"));
+    preview.waitForErrorPanelToContain("The MyButton custom view has been edited more recently than the last build");
     result = guiTest.ideFrame().invokeProjectMake();
     assertTrue(result.isBuildSuccessful());
     preview.waitForRenderToFinish();
@@ -147,7 +147,7 @@ public class NlPreviewTest {
     waitForBackgroundTasks(guiTest.robot());
     editor.open("app/src/main/res/layout/layout1.xml", EditorFixture.Tab.EDITOR);
     preview.waitForRenderToFinish();
-    assertTrue(preview.errorPanelContains("The MyButton custom view has been edited more recently than the last build"));
+    preview.waitForErrorPanelToContain("The MyButton custom view has been edited more recently than the last build");
     result = guiTest.ideFrame().invokeProjectMake(); // this build won't do anything this time, since Gradle notices checksum has not changed
     assertTrue(result.isBuildSuccessful());
     preview.waitForRenderToFinish();
