@@ -16,7 +16,9 @@
 package com.android.tools.adtui.workbench;
 
 import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.SideBorder;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -28,6 +30,7 @@ import java.awt.*;
  * @param <T> Specifies the type of data controlled by the {@link WorkBench}.
  */
 class MinimizedPanel<T> extends JPanel implements SideModel.Listener<T> {
+  private final SideModel<T> myModel;
   private final Side mySide;
   private final Component myFiller;
   private boolean myHasVisibleButtons;
@@ -35,6 +38,10 @@ class MinimizedPanel<T> extends JPanel implements SideModel.Listener<T> {
   public MinimizedPanel(@NotNull Side side, @NotNull SideModel<T> model) {
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     setBorder(IdeBorderFactory.createBorder(side.isLeft() ? SideBorder.RIGHT : SideBorder.LEFT));
+    setPreferredSize(new Dimension(JBUI.scale(20), 0));
+    setBackground(JBColor.white);
+    setOpaque(false);
+    myModel = model;
     mySide = side;
     myFiller = Box.createVerticalGlue();
     model.addListener(this);
@@ -54,9 +61,84 @@ class MinimizedPanel<T> extends JPanel implements SideModel.Listener<T> {
 
   private void addButton(@NotNull AttachedToolWindow tool) {
     AbstractButton button = tool.getMinimizedButton();
-    boolean visible = tool.isMinimized() || tool.isAutoHide();
-    button.setVisible(visible);
-    myHasVisibleButtons |= visible;
+    button.setVisible(true);
+    myHasVisibleButtons |= tool.isMinimized() || tool.isAutoHide();
     add(button);
+  }
+
+  public int drag(@NotNull AttachedToolWindow<T> tool, int position) {
+    AbstractButton button = tool.getMinimizedButton();
+    if (!isOpaque()) {
+      enableMinimizeButtonDragAndDrop(true);
+      button.setVisible(true);
+    }
+    int insertIndex = findInsertIndex(position, button);
+    int index = getComponentIndex(button);
+    if (index == insertIndex) {
+      return insertIndex;
+    }
+    if (index >= 0) {
+      remove(index);
+    }
+    add(button, insertIndex);
+    revalidate();
+    repaint();
+    return insertIndex;
+  }
+
+  public void dragExit(@NotNull AttachedToolWindow<T> tool) {
+    tool.getMinimizedButton().setVisible(false);
+    enableMinimizeButtonDragAndDrop(false);
+    revalidate();
+    repaint();
+  }
+
+  public void dragDrop(@NotNull AttachedToolWindow<T> tool, int position) {
+    int index = drag(tool, position);
+    tool.getMinimizedButton().setVisible(false);
+    int fillerIndex = getComponentIndex(myFiller);
+    Split newSplit = index > fillerIndex ? Split.BOTTOM : Split.TOP;
+    int toolIndex = newSplit.isBottom() ? index - fillerIndex - 1 : index;
+    myModel.changeToolSettingsAfterDragAndDrop(tool, mySide, newSplit, toolIndex);
+    enableMinimizeButtonDragAndDrop(false);
+  }
+
+  private void enableMinimizeButtonDragAndDrop(boolean enable) {
+    setOpaque(enable);
+    setVisible(enable || myHasVisibleButtons);
+    revalidate();
+    repaint();
+  }
+
+  private int findInsertIndex(int position, @NotNull Component draggedButton) {
+    int index = 0;
+    int y = 0;
+    int extraFillerHeight = draggedButton.getParent() == this ? draggedButton.getHeight() : 0;
+    for (Component component : getComponents()) {
+      if (component != draggedButton) {
+        if (component instanceof Box.Filler) {
+          if (position < y + (component.getHeight() + extraFillerHeight) / 2) {
+            return index;
+          }
+          index++;
+          y += extraFillerHeight;
+        }
+        y += component.getHeight();
+        if (position < y) {
+          return index;
+        }
+        index++;
+      }
+    }
+    return index - 1;
+  }
+
+  private int getComponentIndex(@NotNull Component component) {
+    for (int index = 0; index < getComponentCount(); index++) {
+      if (getComponent(index) == component) {
+        return index;
+      }
+    }
+    return -1;
   }
 }

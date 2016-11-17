@@ -134,7 +134,7 @@ public class NlPreviewManager implements ProjectComponent {
       }
     });
 
-    final JPanel contentPanel = myToolWindowForm.getContentPanel();
+    final JComponent contentPanel = myToolWindowForm.getComponent();
     final ContentManager contentManager = myToolWindow.getContentManager();
     @SuppressWarnings("ConstantConditions") final Content content = contentManager.getFactory().createContent(contentPanel, null, false);
     content.setDisposer(myToolWindowForm);
