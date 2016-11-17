@@ -390,8 +390,13 @@ class AttachedToolWindow<T> implements Disposable {
 
         @Override
         public void mouseClicked(@NotNull MouseEvent event) {
-          setSelected(false);
-          myToolWindow.setPropertyAndUpdate(AttachedToolWindow.PropertyType.MINIMIZED, !myToolWindow.isMinimized());
+          if (event.getButton() <= MouseEvent.BUTTON1) {
+            setSelected(false);
+            myToolWindow.setPropertyAndUpdate(AttachedToolWindow.PropertyType.MINIMIZED, !myToolWindow.isMinimized());
+          }
+          else {
+            myToolWindow.showGearPopup(MinimizedButton.this, event.getX(), event.getY());
+          }
         }
       };
       addMouseListener(listener);
