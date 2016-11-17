@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.Choreographer;
+import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
@@ -33,6 +34,8 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import static com.android.tools.profilers.ProfilerLayout.*;
+
 public class MemoryMonitorView extends ProfilerMonitorView {
 
   private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 2, 5);
@@ -47,21 +50,10 @@ public class MemoryMonitorView extends ProfilerMonitorView {
   protected void populateUi(JPanel container, Choreographer choreographer) {
     container.setLayout(new GridBagLayout());
 
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.fill = GridBagConstraints.BOTH;
-    gbc.weightx = 1;
-    gbc.weighty = 1;
-    gbc.gridx = 0;
-    gbc.gridy = 0;
-
     final JLabel label = new JLabel(myMonitor.getName());
-    label.setBorder(LABEL_PADDING);
+    label.setBorder(MONITOR_LABEL_PADDING);
+    label.setVerticalAlignment(JLabel.TOP);
     final Dimension labelSize = label.getPreferredSize();
-
-    final JPanel legendPanel = new JBPanel(new BorderLayout());
-    legendPanel.setOpaque(false);
-    legendPanel.add(label, BorderLayout.NORTH);
-    container.add(legendPanel, gbc);
 
     Range leftYRange = new Range();
     final JPanel axisPanel = new JBPanel(new BorderLayout());
@@ -77,7 +69,6 @@ public class MemoryMonitorView extends ProfilerMonitorView {
     final AxisComponent leftAxis = builder.build();
     choreographer.register(leftAxis);
     axisPanel.add(leftAxis, BorderLayout.WEST);
-    container.add(leftAxis, gbc);
 
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
@@ -87,8 +78,19 @@ public class MemoryMonitorView extends ProfilerMonitorView {
                       new LineConfig(ProfilerColors.TOTAL_MEMORY).setFilled(true));
     choreographer.register(lineChart);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
-    container.add(lineChartPanel, gbc);
 
+    final LegendComponent legend = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, LEGEND_UPDATE_FREQUENCY_MS);
+    legend.setLegendData(lineChart.getLegendDataFromLineChart());
+    choreographer.register(legend);
+
+    final JPanel legendPanel = new JBPanel(new BorderLayout());
+    legendPanel.setOpaque(false);
+    legendPanel.add(label, BorderLayout.WEST);
+    legendPanel.add(legend, BorderLayout.EAST);
+
+    container.add(legendPanel, GBC_FULL);
+    container.add(leftAxis, GBC_FULL);
+    container.add(lineChartPanel, GBC_FULL);
     container.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseReleased(MouseEvent e) {
