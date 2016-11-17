@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.Notification
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.BuildEnvironment;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -28,7 +29,6 @@ import com.intellij.openapi.project.Project;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verify;
@@ -106,7 +106,7 @@ public class GradleVersionReaderTest extends AndroidGradleTestCase {
     assertThat(quickFix).isInstanceOf(FixAndroidGradlePluginVersionHyperlink.class);
 
     FixAndroidGradlePluginVersionHyperlink fixAndroidGradlePluginQuickFix = (FixAndroidGradlePluginVersionHyperlink)quickFix;
-    assertEquals(GRADLE_PLUGIN_RECOMMENDED_VERSION, fixAndroidGradlePluginQuickFix.getPluginVersion().toString());
+    assertEquals(BuildEnvironment.getInstance().getGradlePluginVersion(), fixAndroidGradlePluginQuickFix.getPluginVersion().toString());
 
     GradleVersion gradleVersion = fixAndroidGradlePluginQuickFix.getGradleVersion();
     assertNotNull(gradleVersion);

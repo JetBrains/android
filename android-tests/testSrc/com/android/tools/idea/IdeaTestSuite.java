@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea;
 
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.io.FileOpUtils;
+import com.android.repository.testframework.FakeProgressIndicator;
+import com.android.repository.util.InstallerUtil;
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.OsType;
 import com.android.testutils.TestUtils;
@@ -87,8 +91,9 @@ public class IdeaTestSuite {
   // Initialize Idea specific environment
   static {
     setProperties();
-    // Adds embedded Maven repo directory for tests, see EmbeddedDistributionPaths for details.
-    createTmpDir("prebuilts/tools/common/offline-m2");
+
+    setUpOfflineMavenRepos();
+
     // Bazel tests are sandboxed so we disable VfsRoot checks.
     VfsRootAccess.allowRootAccess("/");
 
@@ -148,6 +153,26 @@ public class IdeaTestSuite {
       throw new RuntimeException(e);
     }
     return path;
+  }
+
+  private static void setUpOfflineMavenRepos() {
+    // Adds embedded Maven repo directory for tests, see EmbeddedDistributionPaths for details.
+    createTmpDir("prebuilts/tools/common/offline-m2");
+
+    // If present, also adds the offline repo we built from the source tree.
+    File offlineRepoZip = TestUtils.getWorkspaceFile("tools/base/bazel/offline_repo_repo.zip");
+    if (offlineRepoZip.exists()) {
+      try {
+        InstallerUtil.unzip(
+          offlineRepoZip,
+          createTmpDir("out/studio/repo").toFile(),
+          FileOpUtils.create(),
+          offlineRepoZip.length(),
+          new FakeProgressIndicator());
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 
   @AfterClass

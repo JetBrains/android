@@ -24,7 +24,6 @@ import com.intellij.openapi.module.Module;
 
 import java.util.List;
 
-import static com.android.SdkConstants.GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
 import static com.android.tools.idea.testing.TestProjectPaths.EXPERIMENTAL_PLUGIN;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
@@ -91,7 +90,7 @@ public class AndroidGradleExperimentalPluginVersionReaderTest extends AndroidGra
     NotificationHyperlink quickFix = quickFixes.get(0);
     assertThat(quickFix).isInstanceOf(FixAndroidGradlePluginVersionHyperlink.class);
     FixAndroidGradlePluginVersionHyperlink fixAndroidGradlePluginQuickFix = (FixAndroidGradlePluginVersionHyperlink)quickFix;
-    assertEquals(GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION, fixAndroidGradlePluginQuickFix.getPluginVersion().toString());
+    assertEquals(BuildEnvironment.getInstance().getExperimentalPluginVersion(), fixAndroidGradlePluginQuickFix.getPluginVersion().toString());
 
     quickFix = quickFixes.get(1);
     assertThat(quickFix).isInstanceOf(OpenUrlHyperlink.class);
