@@ -18,6 +18,8 @@ package com.android.tools.idea;
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.OsType;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducerTest;
+import com.android.tools.idea.testartifacts.scopes.*;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import org.junit.AfterClass;
 import org.junit.runner.RunWith;
@@ -45,11 +47,11 @@ import java.nio.file.Paths;
   com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdaterIntegrationTest.class,
   com.android.tools.idea.gradle.project.NonAndroidGradleProjectImportingTestSuite.class,
   com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleTest.class,
-  com.android.tools.idea.gradle.testing.AndroidJunitPatcherWithTestArtifactTest.class,
-  com.android.tools.idea.gradle.testing.TestArtifactSearchScopesTest.class,
-  com.android.tools.idea.gradle.testing.TestArtifactsFindUsageTest.class,
-  com.android.tools.idea.gradle.testing.TestArtifactsRenameTest.class,
-  com.android.tools.idea.gradle.testing.TestArtifactsResolveTest.class,
+  AndroidJunitPatcherWithTestArtifactTest.class,
+  TestArtifactSearchScopesTest.class,
+  TestArtifactsFindUsageTest.class,
+  TestArtifactsRenameTest.class,
+  TestArtifactsResolveTest.class,
   com.android.tools.idea.lint.LintIdeApiDetectorTest.class,
   com.android.tools.idea.lint.LintIdeGradleDetectorTest.class,
   com.android.tools.idea.npw.NewModuleWizardStateTest.class,
@@ -60,7 +62,7 @@ import java.nio.file.Paths;
   com.android.tools.idea.rendering.LayoutPullParserFactoryTest.class, // flaky in bazel
   com.android.tools.idea.rendering.MenuPreviewRendererTest.class,     // flaky in bazel
   com.android.tools.idea.rendering.RenderErrorContributorTest.class, // flaky in bazel
-  com.android.tools.idea.run.AndroidTestConfigurationProducerTest.class,
+  AndroidTestConfigurationProducerTest.class,
   com.android.tools.idea.templates.RepositoryUrlManagerTest.class,
   com.android.tools.swing.layoutlib.GraphicsLayoutRendererTest.class,
   org.jetbrains.android.AndroidLintTest.class,

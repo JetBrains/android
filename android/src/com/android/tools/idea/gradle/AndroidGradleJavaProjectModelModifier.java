@@ -27,7 +27,7 @@ import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.testing.TestArtifactSearchScopes;
+import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
