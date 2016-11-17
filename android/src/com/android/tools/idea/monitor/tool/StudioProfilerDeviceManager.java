@@ -51,7 +51,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
                                              AndroidDebugBridge.IDebugBridgeChangeListener {
 
   private static final int DEVICE_PORT = 12389;
-  private static final int DATASTORE_PORT = 12390;
+  private static final String DATASTORE_NAME = "DataStoreService";
   private final ProfilerClient myClient;
   private AndroidDebugBridge myBridge;
 
@@ -62,11 +62,11 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
     }
 
     //TODO: Spawn the datastore in the right place (service)?
-    DataStoreService datastore = new DataStoreService(DATASTORE_PORT);
+    DataStoreService datastore = new DataStoreService(DATASTORE_NAME);
 
     // The client is referenced in the update devices callback. As such the client needs to be set before we register
     // ourself as a listener for this callback. Otherwise we may get the callback before we are fully constructed
-    myClient = new GrpcProfilerClient(DATASTORE_PORT);
+    myClient = new GrpcProfilerClient(DATASTORE_NAME);
 
     ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb);
     Futures.addCallback(future, new FutureCallback<AndroidDebugBridge>() {
