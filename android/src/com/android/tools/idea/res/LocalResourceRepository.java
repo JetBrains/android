@@ -309,6 +309,10 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   /** Returns the {@link PsiFile} corresponding to the source of the given resource item, if possible */
   @Nullable
   public static PsiFile getItemPsiFile(@NonNull Project project, @NonNull ResourceItem item) {
+    if (project.isDisposed()) {
+      return null;
+    }
+
     if (item instanceof PsiResourceItem) {
       PsiResourceItem psiResourceItem = (PsiResourceItem)item;
       return psiResourceItem.getPsiFile();
