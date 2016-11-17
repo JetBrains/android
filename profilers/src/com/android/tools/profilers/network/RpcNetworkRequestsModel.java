@@ -99,8 +99,8 @@ public final class RpcNetworkRequestsModel implements NetworkRequestsModel {
     catch (StatusRuntimeException e) {
       return;
     }
-    String responseFilePath = response.getResponseBody().getFilePath();
-    data.setHttpResponseBodyPath(responseFilePath);
+    String payloadId = response.getResponseBody().getPayloadId();
+    data.setHttpResponsePayloadId(payloadId);
     // TODO: too slow
     /*
     File file = !StringUtil.isEmptyOrSpaces(responseFilePath) ? myDataCache.getFile(responseFilePath) : null;
