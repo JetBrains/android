@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.HyperlinkAdapter;
@@ -40,11 +41,12 @@ public class PluginVersionForcedUpdateDialog extends DialogWrapper {
     init();
 
     setUpAsHtmlLabel(myMessagePane);
+    GradleUtil.PluginType pluginType = usingExperimentalPlugin ? GradleUtil.PluginType.EXPERIMENTAL : GradleUtil.PluginType.STANDARD;
     String msg = "<b>The project is using an incompatible version of the Android Gradle " +
                  (usingExperimentalPlugin ? "Experimental " : "") + "plugin.</b><br/<br/>" +
                  "To continue opening the project, the IDE will update the Android Gradle " +
                  (usingExperimentalPlugin ? "Experimental " : "") + "plugin to version " +
-                 (usingExperimentalPlugin ? GRADLE_EXPERIMENTAL_PLUGIN_LATEST_VERSION : GRADLE_PLUGIN_LATEST_VERSION) + ".<br/><br/>" +
+                 GradleUtil.getLatestKnownPluginVersion(pluginType) + ".<br/><br/>" +
                  "You can learn more about this version of the plugin from the " +
                  "<a href='http://tools.android.com/tech-docs/new-build-system" + (usingExperimentalPlugin ? "/gradle-experimental" : "") +
                  "'>release notes</a>.<br/><br/>";
