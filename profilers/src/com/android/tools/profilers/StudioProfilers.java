@@ -36,13 +36,13 @@ import java.util.concurrent.TimeUnit;
  * global across all the profilers, device management, process management, current state of the tool etc.
  */
 final public class StudioProfilers extends AspectModel<ProfilerAspect> {
+
   public static final int INVALID_PROCESS_ID = -1;
 
   private final ProfilerClient myClient;
 
-  private Range mySelectionRangeUs;
-  private final Range myViewRangeUs;
   private final Range myDataRangUs;
+  private final ProfilerTimeline myTimeline;
   private final List<StudioProfiler> myProfilers;
 
   private Map<Profiler.Device, List<Profiler.Process>> myProcesses;
@@ -67,9 +67,8 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
       new MemoryProfiler(this),
       new NetworkProfiler(this));
 
-    myViewRangeUs = new Range();
     myDataRangUs = new Range();
-    mySelectionRangeUs = null;
+    myTimeline = new ProfilerTimeline(myDataRangUs);
 
     myProcesses = Maps.newHashMap();
     myConnected = false;
@@ -103,11 +102,12 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
             myDeviceStartUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
             myDeviceDeltaNs = deviceNowNs - nowNs;
             myDataRangUs.set(myDeviceStartUs, myDeviceStartUs);
+            myTimeline.resetZoom();
+            myTimeline.setStreaming(true);
             this.changed(ProfilerAspect.CONNECTION);
           }
           long deviceNowNs = nowNs + myDeviceDeltaNs;
           long deviceNowUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
-          myViewRangeUs.set(deviceNowUs - TimeUnit.SECONDS.toMicros(10), deviceNowUs);
           myDataRangUs.setMax(deviceNowUs);
 
           myConnected = true;
@@ -220,13 +220,8 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
     this.changed(ProfilerAspect.STAGE);
   }
 
-  @NotNull
-  public Range getSelectionRange() {
-    return mySelectionRangeUs;
-  }
-
-  @NotNull public Range getViewRange() {
-    return myViewRangeUs;
+  @NotNull public ProfilerTimeline getTimeline() {
+    return myTimeline;
   }
 
   @NotNull public Range getDataRange() {

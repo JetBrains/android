@@ -87,21 +87,27 @@ public class StudioProfilersView {
 
   private void updateStageView() {
     Stage stage = myProfiler.getStage();
-    if (myStageView == null || myStageView.getStage() != stage) {
-      myStageView = myBinder.build(stage);
-      Component prev = myLayout.getLayoutComponent(BorderLayout.CENTER);
-      if (prev != null) {
-        myComponent.remove(prev);
-      }
-      myComponent.add(myStageView.getComponent(), BorderLayout.CENTER);
-      myComponent.revalidate();
-
-      myStageToolbar.removeAll();
-      myStageToolbar.add(myStageView.getToolbar(), BorderLayout.CENTER);
-      myStageToolbar.revalidate();
-
-      myProcessSelection.setVisible(myStageView.needsProcessSelection());
+    if (myStageView != null && myStageView.getStage() == stage) {
+      return;
     }
+
+    if (myStageView != null) {
+      myStageView.exit();
+    }
+
+    myStageView = myBinder.build(stage);
+    Component prev = myLayout.getLayoutComponent(BorderLayout.CENTER);
+    if (prev != null) {
+      myComponent.remove(prev);
+    }
+    myComponent.add(myStageView.getComponent(), BorderLayout.CENTER);
+    myComponent.revalidate();
+
+    myStageToolbar.removeAll();
+    myStageToolbar.add(myStageView.getToolbar(), BorderLayout.CENTER);
+    myStageToolbar.revalidate();
+
+    myProcessSelection.setVisible(myStageView.needsProcessSelection());
   }
 
   public JPanel getComponent() {

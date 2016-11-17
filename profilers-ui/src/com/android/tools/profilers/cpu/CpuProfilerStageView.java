@@ -37,7 +37,6 @@ import java.awt.event.MouseEvent;
 
 public class CpuProfilerStageView extends StageView {
 
-  private final JPanel myComponent;
   private final JBList myThreadsList;
 
   public CpuProfilerStageView(@NotNull CpuProfilerStage stage) {
@@ -49,24 +48,21 @@ public class CpuProfilerStageView extends StageView {
 
     CpuMonitor cpu = new CpuMonitor(profilers);
 
-    myComponent = new JPanel(new GridBagLayout());
-    myComponent.setBackground(ProfilerColors.MONITOR_BACKGROUND);
-    Choreographer choreographer = new Choreographer(myComponent);
-
-    JComponent eventsComponent = eventsView.initialize(choreographer);
+    getComponent().setLayout(new GridBagLayout());
+    JComponent eventsComponent = eventsView.initialize(getChoreographer());
 
     Range leftYRange = new Range(0, 100);
     LineChart lineChart = new LineChart();
-    lineChart.addLine(new RangedContinuousSeries("App", stage.getStudioProfilers().getViewRange(), leftYRange, cpu.getThisProcessCpuUsage()),
+    lineChart.addLine(new RangedContinuousSeries("App", getTimeline().getViewRange(), leftYRange, cpu.getThisProcessCpuUsage()),
                       new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true).setStacked(true));
-    lineChart.addLine(new RangedContinuousSeries("Others", stage.getStudioProfilers().getViewRange(), leftYRange, cpu.getOtherProcessesCpuUsage()),
+    lineChart.addLine(new RangedContinuousSeries("Others", getTimeline().getViewRange(), leftYRange, cpu.getOtherProcessesCpuUsage()),
                       new LineConfig(ProfilerColors.CPU_OTHER_USAGE).setFilled(true).setStacked(true));
 
     RangedListModel<CpuThreadsModel.RangedCpuThread> model = cpu.getThreadStates();
     myThreadsList = new JBList(model);
-    myThreadsList.setCellRenderer(new ThreadCellRenderer(choreographer, myThreadsList));
+    myThreadsList.setCellRenderer(new ThreadCellRenderer(getChoreographer(), myThreadsList));
 
-    RangedList rangedList = new RangedList(profilers.getViewRange(), model);
+    RangedList rangedList = new RangedList(getTimeline().getViewRange(), model);
 
     // TODO: Event monitor should be fixed size.
     GridBagConstraints c = new GridBagConstraints();
@@ -75,15 +71,16 @@ public class CpuProfilerStageView extends StageView {
     c.gridy = 0;
     c.weightx = 1.0;
     c.weighty = 0.2;
-    myComponent.add(eventsComponent, c);
+    getComponent().add(eventsComponent, c);
     c.gridy = 1;
     c.weighty = 0.4;
-    myComponent.add(lineChart, c);
-    choreographer.register(lineChart);
+    getComponent().add(lineChart, c);
+    getChoreographer().register(lineChart);
     c.gridy = 2;
     c.weighty = 0.4;
-    myComponent.add(myThreadsList, c);
-    choreographer.register(rangedList);
+
+    getComponent().add(myThreadsList, c);
+    getChoreographer().register(rangedList);
   }
 
 
@@ -130,7 +127,8 @@ public class CpuProfilerStageView extends StageView {
       Color cellBackground = ProfilerColors.MONITOR_BACKGROUND;
       if (isSelected) {
         cellBackground = ProfilerColors.THREAD_SELECTED_BACKGROUND;
-      } else if (myHoveredIndex == index) {
+      }
+      else if (myHoveredIndex == index) {
         cellBackground = ProfilerColors.THREAD_HOVER_BACKGROUND;
       }
       panel.setBackground(cellBackground);
@@ -147,11 +145,6 @@ public class CpuProfilerStageView extends StageView {
       panel.add(myStateCharts.get(index), c);
       return panel;
     }
-  }
-
-  @Override
-  public JComponent getComponent() {
-    return myComponent;
   }
 
   @Override

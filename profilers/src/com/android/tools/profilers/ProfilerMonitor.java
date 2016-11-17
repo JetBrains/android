@@ -32,7 +32,7 @@ public abstract class ProfilerMonitor {
 
   @NotNull
   public final Range getViewRange() {
-    return myProfilers.getViewRange();
+    return myProfilers.getTimeline().getViewRange();
   }
 
   abstract public String getName();

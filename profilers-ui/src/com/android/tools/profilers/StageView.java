@@ -15,24 +15,49 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.Choreographer;
+import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.*;
 
 public abstract class StageView {
-  final private Stage myStage;
+  private final Stage myStage;
+  private final Choreographer myChoreographer;
+  private final JPanel myComponent;
 
   public StageView(@NotNull Stage stage) {
     myStage = stage;
+    myComponent = new JBPanel(new BorderLayout());
+    myComponent.setBackground(ProfilerColors.MONITOR_BACKGROUND);
+    myChoreographer = new Choreographer(myComponent);
+    myChoreographer.register(new AnimatedTimeline(getTimeline()));
   }
 
   @NotNull
-  public Stage getStage() {
+  public final Stage getStage() {
     return myStage;
   }
 
   @NotNull
-  abstract public JComponent getComponent();
+  public final JComponent getComponent() {
+    return myComponent;
+  }
+
+  @NotNull
+  public final Choreographer getChoreographer() {
+    return myChoreographer;
+  }
+
+  @NotNull
+  public final ProfilerTimeline getTimeline() {
+    return myStage.getStudioProfilers().getTimeline();
+  }
+
+  public void exit() {
+    myChoreographer.stop();
+  }
 
   abstract public JComponent getToolbar();
 
