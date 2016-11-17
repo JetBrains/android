@@ -16,6 +16,7 @@
 package org.jetbrains.android.facet;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
 import com.android.prefs.AndroidLocation;
@@ -950,6 +951,11 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       myRenderService = new RenderService(this);
     }
     return myRenderService;
+  }
+
+  @VisibleForTesting
+  public void setRenderService(@Nullable RenderService renderService) {
+    myRenderService = renderService;
   }
 
   /**
