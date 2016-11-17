@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.repository.IdDisplay;
@@ -106,18 +107,25 @@ public class ChooseSystemImagePanel extends JPanel
 
   @NotNull
   private static SystemImageClassification getClassification(@NotNull SystemImageDescription image) {
-    Abi abi = Abi.getEnum(image.getAbiType());
+
+    return getClassificationFromParts(Abi.getEnum(image.getAbiType()),
+                                      image.getVersion().getApiLevel(),
+                                      image.getTag());
+  }
+
+  @NotNull
+  @VisibleForTesting
+  static SystemImageClassification getClassificationFromParts(Abi abi, int apiLevel, IdDisplay tag) {
     boolean isAvdIntel = abi == Abi.X86 || abi == Abi.X86_64;
     if (!isAvdIntel) {
       return SystemImageClassification.OTHER;
     }
-    int apiLevel = image.getVersion().getApiLevel();
     if (apiLevel <= 21) {
       // The emulator does not yet work very well on older system images.
       // Remove this when they are fully supported.
       return SystemImageClassification.X86;
     }
-    if (AvdWizardUtils.TAGS_WITH_GOOGLE_API.contains(image.getTag())) {
+    if (abi == Abi.X86 && AvdWizardUtils.TAGS_WITH_GOOGLE_API.contains(tag)) {
       return SystemImageClassification.RECOMMENDED;
     }
     return SystemImageClassification.X86;
@@ -254,7 +262,8 @@ public class ChooseSystemImagePanel extends JPanel
     return mySystemImage;
   }
 
-  private enum SystemImageClassification {
+  @VisibleForTesting
+  enum SystemImageClassification {
     RECOMMENDED,
     X86,
     OTHER
