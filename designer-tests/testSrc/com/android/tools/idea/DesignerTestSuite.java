@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.structure.NlComponentTreeTest;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceTest;
 import com.android.tools.idea.uibuilder.surface.InteractionManagerTest;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
+import org.junit.AfterClass;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
@@ -74,5 +75,11 @@ public class DesignerTestSuite {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @AfterClass
+  public static void leakChecker() throws Exception {
+    Class<?> leakTestClass = Class.forName("_LastInSuiteTest");
+    leakTestClass.getMethod("testProjectLeak").invoke(leakTestClass.newInstance());
   }
 }
