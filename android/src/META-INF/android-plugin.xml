@@ -424,9 +424,9 @@
     <fileEditorProvider implementation="com.android.tools.idea.apk.viewer.ApkEditorProvider"/>
 
     <runConfigurationProducer implementation="com.android.tools.idea.run.AndroidConfigurationProducer"/>
-    <runConfigurationProducer implementation="com.android.tools.idea.run.testing.AndroidTestConfigurationProducer" order="first"/>
+    <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducer" order="first"/>
     <configurationType implementation="com.android.tools.idea.run.AndroidRunConfigurationType"/>
-    <configurationType implementation="com.android.tools.idea.run.testing.AndroidTestRunConfigurationType"/>
+    <configurationType implementation="com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType"/>
     <programRunner implementation="com.android.tools.idea.run.AndroidProgramRunner" order="first"/>
     <facetType implementation="org.jetbrains.android.facet.AndroidFacetType"/>
     <facetType implementation="com.android.tools.idea.gradle.project.facet.gradle.GradleFacetType"/>
@@ -1006,7 +1006,7 @@
     <spellchecker.support language="Properties" implementationClass="org.jetbrains.android.spellchecker.AndroidTextSpellcheckingStrategy" order="first"/>
     <spellchecker.support language="Groovy" implementationClass="org.jetbrains.android.spellchecker.AndroidGradleSpellcheckingStrategy" order="first"/>
     <deadCode implementation="org.jetbrains.android.inspections.AndroidComponentEntryPoint"/>
-    <junitPatcher implementation="com.android.tools.idea.gradle.testing.AndroidJunitPatcher" />
+    <junitPatcher implementation="com.android.tools.idea.testartifacts.scopes.AndroidJunitPatcher" />
 
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.BitmapRenderer" />
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.BitmapDrawableRenderer" />
@@ -1021,9 +1021,9 @@
     <codeInsight.unresolvedReferenceQuickFixProvider
         implementation="com.android.tools.idea.gradle.quickfix.AndroidUnresolvedReferenceQuickFixProvider"/>
     <projectModelModifier implementation="com.android.tools.idea.gradle.AndroidGradleJavaProjectModelModifier"/>
-    <resolveScopeProvider implementation="com.android.tools.idea.gradle.testing.TestArtifactResolveScopeProvider" order="first"/>
-    <useScopeOptimizer implementation="com.android.tools.idea.gradle.testing.TestArtifactUseScopeOptimizer"/>
-    <customScopesProvider implementation="com.android.tools.idea.gradle.testing.TestArtifactCustomScopeProvider"/>
+    <resolveScopeProvider implementation="com.android.tools.idea.testartifacts.scopes.TestArtifactResolveScopeProvider" order="first"/>
+    <useScopeOptimizer implementation="com.android.tools.idea.testartifacts.scopes.TestArtifactUseScopeOptimizer"/>
+    <customScopesProvider implementation="com.android.tools.idea.testartifacts.scopes.TestArtifactCustomScopeProvider"/>
     <xmlStructureViewBuilderProvider implementation="org.jetbrains.android.dom.structure.resources.ResourceStructureViewBuilderProvider"/>
     <xmlStructureViewBuilderProvider implementation="org.jetbrains.android.dom.structure.layout.LayoutStructureViewBuilderProvider"/>
 

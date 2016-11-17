@@ -16,7 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.fd.InstantRunUtils;
-import com.android.tools.idea.run.testing.AndroidTestRunConfiguration;
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfigurationBase;

@@ -19,7 +19,7 @@ package com.android.tools.idea.run.editor;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
-import com.android.tools.idea.run.testing.*;
+import com.android.tools.idea.testartifacts.instrumented.*;
 import com.intellij.execution.ExecutionBundle;
 import com.intellij.execution.MethodListDlg;
 import com.intellij.execution.configuration.BrowseModuleValueActionListener;
@@ -43,7 +43,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import javax.swing.*;
 import java.awt.*;
 
-import static com.android.tools.idea.run.testing.AndroidTestRunConfiguration.*;
+import static com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration.*;
 
 public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTestRunConfiguration> {
   private JRadioButton myAllInPackageButton;
@@ -79,9 +79,9 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
 
     myRunnerComponent.setComponent(new EditorTextFieldWithBrowseButton(project, true,
                                                                        new AndroidInheritingClassVisibilityChecker(myProject, moduleSelector,
-                                                                                                         AndroidUtils.INSTRUMENTATION_RUNNER_BASE_CLASS)));
+                                                                                                                   AndroidUtils.INSTRUMENTATION_RUNNER_BASE_CLASS)));
     bind(myRunnerComponent, new AndroidInheritingClassBrowser(project, moduleSelector, AndroidUtils.INSTRUMENTATION_RUNNER_BASE_CLASS,
-                                                    AndroidBundle.message("android.browse.instrumentation.class.dialog.title"), true
+                                                              AndroidBundle.message("android.browse.instrumentation.class.dialog.title"), true
     ));
     bind(myMethodComponent, new MyMethodBrowser());
 
