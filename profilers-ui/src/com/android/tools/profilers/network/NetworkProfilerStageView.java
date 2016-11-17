@@ -21,6 +21,7 @@ import com.android.tools.profilers.StudioMonitorStage;
 import com.android.tools.profilers.StudioProfilers;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.ui.JBColor;
 
 import javax.swing.*;
 import java.awt.*;
@@ -41,18 +42,17 @@ public class NetworkProfilerStageView extends StageView {
     });
     stage.aspect.addDependency()
       .setExecutor(ApplicationManager.getApplication()::invokeLater)
-      .onChange(NetworkProfilerAspect.REQUEST_DETAILS, this::updateRequestsView)
-      .onChange(NetworkProfilerAspect.REQUESTS, this::updateRequestDetailsView);
+      .onChange(NetworkProfilerAspect.REQUEST_DETAILS, this::updateRequestDetailsView)
+      .onChange(NetworkProfilerAspect.REQUESTS, this::updateRequestsView);
 
-    JPanel top = new JPanel();
+    JPanel l2Panel = new JPanel(); // TODO: L2 view should populate here
+
+    Splitter l2l3splitter = new Splitter(true);
+    l2l3splitter.setFirstComponent(l2Panel);
+    l2l3splitter.setSecondComponent(myRequestsView);
 
     myComponent = new Splitter(false);
-
-    Splitter splitter = new Splitter(true);
-    splitter.setFirstComponent(top);
-    splitter.setSecondComponent(myRequestsView);
-
-    myComponent.setFirstComponent(splitter);
+    myComponent.setFirstComponent(l2l3splitter);
     myComponent.setSecondComponent(myConnectionDetails);
 
     myChoreographer = new Choreographer(myComponent);
@@ -64,14 +64,11 @@ public class NetworkProfilerStageView extends StageView {
 
   private void updateRequestDetailsView() {
     // TODO: Get the data from the model and fill it/update it.
-    myConnectionDetails.setVisible(myStage.isConnectionDataEnabled() && myStage.getConnectionId() != 0);
-    /*
     myConnectionDetails.removeAll();
     myConnectionDetails.setBackground(JBColor.background());
     myConnectionDetails.add(new JLabel("Connection ID: " + myStage.getConnectionId()), BorderLayout.CENTER);
-    myConnectionDetails.setVisible(myStage.isConnectionDataEnabled() && myStage.getConnectionId() != 0);
+    myConnectionDetails.setVisible(myStage.isConnectionDataEnabled());
     myConnectionDetails.revalidate();
-    */
   }
 
   private void updateRequestsView() {
