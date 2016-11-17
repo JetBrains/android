@@ -1,0 +1,157 @@
+/*
+ * Copyright (C) 2016 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.adtui.workbench;
+
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.ui.ThreeComponentsSplitter;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.SideBorder;
+import com.intellij.ui.components.JBLayeredPane;
+import com.intellij.util.ui.JBUI;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+
+import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
+
+/**
+ * The {@link LayeredPanel} implements {@link AutoHide} tool windows.
+ * The main part of a {@link WorkBench} is placed lowest in the z-order of this {@link JBLayeredPane}.
+ * Any {@link AutoHide} tool windows is placed on top whenever they are visible.
+ *
+ * @param <T> Specifies the type of data controlled by the {@link WorkBench}.
+ */
+class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Disposable {
+  private final String myBenchName;
+  private final PropertiesComponent myPropertiesComponent;
+  private final JComponent myDefaultLayer;
+  private final ThreeComponentsSplitter mySplitter;
+  private final JPanel myContainer;
+  private String myToolName;
+  private Side mySide;
+
+  public LayeredPanel(@NotNull String benchName, @NotNull JComponent defaultLayer, @NotNull SideModel<T> model) {
+    this(benchName, defaultLayer, model, PropertiesComponent.getInstance());
+  }
+
+  public LayeredPanel(@NotNull String benchName,
+                      @NotNull JComponent defaultLayer,
+                      @NotNull SideModel<T> model,
+                      @NotNull PropertiesComponent propertiesComponent) {
+    myBenchName = benchName;
+    myPropertiesComponent = propertiesComponent;
+    myDefaultLayer = defaultLayer;
+    myContainer = new JPanel();
+    myContainer.setOpaque(false);
+    myContainer.addComponentListener(createWidthUpdater());
+    mySplitter = new ThreeComponentsSplitter();
+    mySplitter.setOpaque(false);
+    mySplitter.setInnerComponent(myContainer);
+    mySplitter.setDividerWidth(JBUI.scale(0));
+    mySide = Side.LEFT;
+    Disposer.register(this, mySplitter);
+
+    add(defaultLayer, DEFAULT_LAYER);
+    add(mySplitter, PALETTE_LAYER);
+    model.addListener(this);
+  }
+
+  @Override
+  public void modelChanged(@NotNull SideModel<T> model, @NotNull SideModel.EventType unused) {
+    model.getHiddenSliders().forEach(this::addHiddenTool);
+    addVisibleTool(model.getVisibleAutoHideTool());
+    revalidate();
+    repaint();
+  }
+
+  private void addVisibleTool(@Nullable AttachedToolWindow<T> tool) {
+    if (tool == null) {
+      mySplitter.setVisible(false);
+      mySplitter.setFirstComponent(null);
+      mySplitter.setLastComponent(null);
+      myToolName = null;
+    }
+    else {
+      JComponent component = tool.getComponent();
+      component.setVisible(true);
+      mySplitter.setVisible(true);
+      myToolName = tool.getToolName();
+      if (tool.isLeft()) {
+        mySide = Side.LEFT;
+        mySplitter.setFirstComponent(component);
+        mySplitter.setFirstSize(getToolWidth(tool));
+        mySplitter.setLastComponent(null);
+        myContainer.setBorder(IdeBorderFactory.createBorder(SideBorder.LEFT));
+      }
+      else {
+        mySide = Side.RIGHT;
+        mySplitter.setFirstComponent(null);
+        mySplitter.setLastComponent(component);
+        mySplitter.setLastSize(getToolWidth(tool));
+        myContainer.setBorder(IdeBorderFactory.createBorder(SideBorder.RIGHT));
+      }
+    }
+  }
+
+  private void addHiddenTool(@NotNull AttachedToolWindow<T> tool) {
+    JComponent component = tool.getComponent();
+    component.setVisible(false);
+    myContainer.add(component, PALETTE_LAYER);
+  }
+
+  @Override
+  public void doLayout() {
+    myDefaultLayer.setBounds(0, 0, getWidth(), getHeight());
+    mySplitter.setBounds(0, 0, getWidth(), getHeight());
+  }
+
+  @Override
+  public void dispose() {
+  }
+
+  @NotNull
+  private ComponentListener createWidthUpdater() {
+    return new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent event) {
+        int width = mySide.isLeft() ? mySplitter.getFirstSize() : mySplitter.getLastSize();
+        if (myToolName != null && width > 0) {
+          setToolWidth(width);
+        }
+      }
+    };
+  }
+
+  @NotNull
+  private String getWidthPropertyName() {
+    return TOOL_WINDOW_PROPERTY_PREFIX + myBenchName + "." + myToolName + ".WIDTH";
+  }
+
+  private int getToolWidth(@NotNull AttachedToolWindow<T> tool) {
+    return myPropertiesComponent.getInt(getWidthPropertyName(), tool.getDefinition().getInitialMinimumWidth());
+  }
+
+  private void setToolWidth(int width) {
+    myPropertiesComponent.setValue(getWidthPropertyName(), width, -1);
+  }
+}
