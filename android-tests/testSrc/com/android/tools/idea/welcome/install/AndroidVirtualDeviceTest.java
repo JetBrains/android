@@ -107,7 +107,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), new File("/android-home"), fop);
 
     final AvdManagerConnection connection = new AvdManagerConnection(sdkHandler);
-    FakePackage remotePlatform = new FakePackage("platforms;android-23");
+    FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-23");
     RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
 
     DetailsTypes.PlatformDetailsType platformDetailsType = factory.createPlatformDetailsType();
