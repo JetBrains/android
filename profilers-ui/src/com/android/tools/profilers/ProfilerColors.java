@@ -47,4 +47,8 @@ public class ProfilerColors {
     CpuProfiler.GetThreadsResponse.State.RUNNING, CPU_USAGE,
     CpuProfiler.GetThreadsResponse.State.SLEEPING, new JBColor(0xEDEFF1, 0xEDEFF1),
     CpuProfiler.GetThreadsResponse.State.DEAD, Gray.TRANSPARENT);
+
+  public static final Color THREAD_HOVER_BACKGROUND = new JBColor(0xEAEFFA, 0xEAEFFA);
+
+  public static final Color THREAD_SELECTED_BACKGROUND = new JBColor(0x3476DC, 0x3476DC);
 }
