@@ -24,18 +24,17 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitorView;
+import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class CpuMonitorView extends ProfilerMonitorView {
 
-  private static final SingleUnitAxisFormatter CPU_USAGE_AXIS = new SingleUnitAxisFormatter(1, 1, 10, "%");
+  private static final SingleUnitAxisFormatter CPU_USAGE_AXIS = new SingleUnitAxisFormatter(1, 2, 10, "%");
 
   @NotNull
   private final CpuMonitor myMonitor;
@@ -45,13 +44,29 @@ public class CpuMonitorView extends ProfilerMonitorView {
   }
 
   @Override
-  protected void populateUi(JLayeredPane container, Choreographer choreographer) {
+  protected void populateUi(JPanel container, Choreographer choreographer) {
+    container.setLayout(new GridBagLayout());
+
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.fill = GridBagConstraints.BOTH;
+    gbc.weightx = 1;
+    gbc.weighty = 1;
+    gbc.gridx = 0;
+    gbc.gridy = 0;
+
     final JLabel label = new JLabel(myMonitor.getName());
     label.setBorder(LABEL_PADDING);
     final Dimension labelSize = label.getPreferredSize();
 
+    final JPanel legendPanel = new JBPanel(new BorderLayout());
+    legendPanel.setOpaque(false);
+    legendPanel.add(label, BorderLayout.NORTH);
+    container.add(legendPanel, gbc);
+
     // Cpu usage is shown as percentages (e.g. 0 - 100) and no range animation is needed.
     Range leftYRange = new Range(0, 100);
+    final JPanel axisPanel = new JBPanel(new BorderLayout());
+    axisPanel.setOpaque(false);
     AxisComponent.Builder builder = new AxisComponent.Builder(leftYRange, CPU_USAGE_AXIS,
                                                               AxisComponent.AxisOrientation.RIGHT)
       .showAxisLine(false)
@@ -61,30 +76,24 @@ public class CpuMonitorView extends ProfilerMonitorView {
       .clampToMajorTicks(true)
       .setMargins(0, labelSize.height);
     final AxisComponent leftAxis = builder.build();
+    choreographer.register(leftAxis);
+    axisPanel.add(leftAxis, BorderLayout.WEST);
+    container.add(leftAxis, gbc);
 
+    final JPanel lineChartPanel = new JBPanel(new BorderLayout());
+    lineChartPanel.setOpaque(false);
+    lineChartPanel.setBorder(BorderFactory.createEmptyBorder(labelSize.height, 0, 0, 0));
     final LineChart lineChart = new LineChart();
     lineChart.addLine(new RangedContinuousSeries("CPU", myMonitor.getViewRange(), leftYRange, myMonitor.getThisProcessCpuUsage()),
                       new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true));
-    lineChart.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mousePressed(MouseEvent e) {
-        myMonitor.expand();
-      }
-    });
-
     choreographer.register(lineChart);
-    choreographer.register(leftAxis);
+    lineChartPanel.add(lineChart, BorderLayout.CENTER);
+    container.add(lineChartPanel, gbc);
 
-    container.add(label);
-    container.add(leftAxis);
-    container.add(lineChart);
-    container.addComponentListener(new ComponentAdapter() {
+    container.addMouseListener(new MouseAdapter() {
       @Override
-      public void componentResized(ComponentEvent e) {
-        Dimension size = e.getComponent().getSize();
-        lineChart.setBounds(0, labelSize.height, size.width, size.height - labelSize.height);
-        leftAxis.setBounds(0, 0, MAX_AXIS_WIDTH, size.height);
-        label.setBounds(0, 0, labelSize.width, labelSize.height);
+      public void mouseReleased(MouseEvent e) {
+        myMonitor.expand();
       }
     });
   }

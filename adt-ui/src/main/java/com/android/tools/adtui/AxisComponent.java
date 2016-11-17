@@ -449,10 +449,10 @@ public final class AxisComponent extends AnimatedComponent {
   private void drawMarkers(Graphics2D g2d, Point origin) {
     g2d.setFont(AdtUiUtils.DEFAULT_FONT);
 
-    if (myShowMin) {
+    if (myShowMin && myMinLabel != null) {
       drawMarkerLabel(g2d, 0, origin, myMinLabel, true);
     }
-    if (myShowMax) {
+    if (myShowMax && myMaxLabel != null) {
       drawMarkerLabel(g2d, myAxisLength, origin, myMaxLabel, true);
     }
 
