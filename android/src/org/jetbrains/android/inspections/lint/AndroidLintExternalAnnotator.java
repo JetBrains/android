@@ -376,6 +376,11 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
     }
 
     @Override
+    public boolean shouldMakeCurrentFileWritable() {
+      return myDisableInspectionToolAction.shouldMakeCurrentFileWritable();
+    }
+
+    @Override
     public Icon getIcon(@IconFlags int flags) {
       return myDisableInspectionToolAction.getIcon(flags);
     }
