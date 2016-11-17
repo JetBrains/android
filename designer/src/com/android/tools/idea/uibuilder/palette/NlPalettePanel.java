@@ -16,13 +16,16 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
+import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.ide.CopyProvider;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
@@ -37,15 +40,19 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-public class NlPalettePanel extends JPanel implements Disposable, DataProvider {
+public class NlPalettePanel extends JPanel implements Disposable, DataProvider, ToolContent<DesignSurface> {
   private final Project myProject;
   private final NlPreviewPanel myPreviewPane;
   private final CopyProvider myCopyProvider;
   private final NlPaletteTreeGrid myPalettePanel;
   private final DependencyManager myDependencyManager;
   private final CopyPasteManager myCopyPasteManager;
-  private DesignSurface myDesignSurface;
+  private NlLayoutType myLayoutType;
+  private Runnable myCloseAutoHideCallback;
 
   public NlPalettePanel(@NotNull Project project, @Nullable DesignSurface designSurface) {
     this(project, designSurface, CopyPasteManager.getInstance());
@@ -56,10 +63,11 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider {
     myProject = project;
     myCopyPasteManager = copyPasteManager;
     myDependencyManager = new DependencyManager(project, this, this);
-    myPalettePanel = new NlPaletteTreeGrid(project, myDependencyManager);
-    myPreviewPane = new NlPreviewPanel(new NlPreviewImagePanel(myDependencyManager));
+    myPalettePanel = new NlPaletteTreeGrid(project, myDependencyManager, this::closeAutoHideToolWindow);
+    myPreviewPane = new NlPreviewPanel(new NlPreviewImagePanel(myDependencyManager, this::closeAutoHideToolWindow));
     myCopyProvider = new CopyProviderImpl();
     myPalettePanel.setSelectionListener(myPreviewPane);
+    myLayoutType = NlLayoutType.UNKNOWN;
 
     Splitter splitter = new Splitter(true, 0.8f);
     splitter.setFirstComponent(myPalettePanel);
@@ -68,7 +76,19 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider {
     setLayout(new BorderLayout());
     add(splitter, BorderLayout.CENTER);
 
-    setDesignSurface(designSurface);
+    setToolContext(designSurface);
+  }
+
+  @NotNull
+  @Override
+  public JComponent getComponent() {
+    return this;
+  }
+
+  @NotNull
+  @Override
+  public JComponent getFocusedComponent() {
+    return myPalettePanel;
   }
 
   @Override
@@ -76,18 +96,44 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider {
     myPalettePanel.requestFocus();
   }
 
-  public void setDesignSurface(@Nullable DesignSurface designSurface) {
+  @NotNull
+  @Override
+  public List<AnAction> getGearActions() {
+    List<AnAction> actions = new ArrayList<>(3);
+    actions.add(new TogglePaletteModeAction(this, PaletteMode.ICON_AND_NAME));
+    actions.add(new TogglePaletteModeAction(this, PaletteMode.LARGE_ICONS));
+    actions.add(new TogglePaletteModeAction(this, PaletteMode.SMALL_ICONS));
+    return actions;
+  }
+
+  @NotNull
+  @Override
+  public List<AnAction> getAdditionalActions() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public void registerCloseAutoHideWindow(@NotNull Runnable runnable) {
+    myCloseAutoHideCallback = runnable;
+  }
+
+  @Override
+  public void setToolContext(@Nullable DesignSurface designSurface) {
     myPreviewPane.setDesignSurface(designSurface);
-    DesignSurface oldDesignSurface = myDesignSurface;
-    myDesignSurface = designSurface;
     Module module = getModule(designSurface);
-    if (designSurface != null && module != null &&
-        (oldDesignSurface == null || designSurface.getLayoutType() != oldDesignSurface.getLayoutType())) {
+    if (designSurface != null && module != null && myLayoutType != designSurface.getLayoutType()) {
+      myLayoutType = designSurface.getLayoutType();
       NlPaletteModel model = NlPaletteModel.get(myProject);
-      Palette palette = model.getPalette(myDesignSurface.getLayoutType());
+      Palette palette = model.getPalette(myLayoutType);
       myPalettePanel.populateUiModel(palette, designSurface);
       myDependencyManager.setPalette(palette, module);
       repaint();
+    }
+  }
+
+  private void closeAutoHideToolWindow() {
+    if (myCloseAutoHideCallback != null) {
+      myCloseAutoHideCallback.run();
     }
   }
 

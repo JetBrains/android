@@ -51,7 +51,8 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
     super.setUp();
     myDependencyManager = mock(DependencyManager.class);
     mySurface = mock(DesignSurface.class);
-    myPanel = new NlPaletteTreeGrid(getProject(), myDependencyManager);
+    Runnable closeToolWindowCallback = mock(Runnable.class);
+    myPanel = new NlPaletteTreeGrid(getProject(), myDependencyManager, closeToolWindowCallback);
     PsiFile file = myFixture.configureByText("res/layout/mine.xml", "<LinearLayout/>");
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(file.getVirtualFile());
     when(mySurface.getConfiguration()).thenReturn(configuration);

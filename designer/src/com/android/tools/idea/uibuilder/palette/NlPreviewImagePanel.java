@@ -44,6 +44,7 @@ import java.awt.image.BufferedImage;
 public class NlPreviewImagePanel extends JComponent implements Disposable {
   private final IconPreviewFactory myIconPreviewFactory;
   private final DependencyManager myDependencyManager;
+  private final Runnable myCloseAutoHideCallback;
   private final ConfigurationListener myConfigurationListener;
   private final ResourceChangeListener myResourceChangeListener;
   private final PanZoomListener myZoomListener;
@@ -53,14 +54,17 @@ public class NlPreviewImagePanel extends JComponent implements Disposable {
   private boolean myKeepImageScaledToMatchPanelWidth;
   private int myLastWidth;
 
-  public NlPreviewImagePanel(@NotNull DependencyManager dependencyManager) {
-    this(IconPreviewFactory.get(), dependencyManager);
+  public NlPreviewImagePanel(@NotNull DependencyManager dependencyManager, @NotNull Runnable closeAutoHideCallback) {
+    this(IconPreviewFactory.get(), dependencyManager, closeAutoHideCallback);
   }
 
   @VisibleForTesting
-  NlPreviewImagePanel(@NotNull IconPreviewFactory iconFactory, @NotNull DependencyManager dependencyManager) {
+  NlPreviewImagePanel(@NotNull IconPreviewFactory iconFactory,
+                      @NotNull DependencyManager dependencyManager,
+                      @NotNull Runnable closeAutoHideCallback) {
     myIconPreviewFactory = iconFactory;
     myDependencyManager = dependencyManager;
+    myCloseAutoHideCallback = closeAutoHideCallback;
     myResourceChangeListener = reason -> invalidateUI();
     myConfigurationListener = flags -> {
       invalidateUI();
@@ -84,6 +88,7 @@ public class NlPreviewImagePanel extends JComponent implements Disposable {
         if (!myDependencyManager.needsLibraryLoad(myItem)) {
           TransferHandler handler = getTransferHandler();
           if (handler != null) {
+            myCloseAutoHideCallback.run();
             handler.exportAsDrag(NlPreviewImagePanel.this, event, TransferHandler.COPY);
           }
         }

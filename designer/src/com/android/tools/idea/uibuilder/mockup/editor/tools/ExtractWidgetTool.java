@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor.tools;
 
+import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupViewPanel;
@@ -68,18 +69,16 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
 
   private final MockupViewPanel myMockupViewPanel;
   private final MockupEditor myMockupEditor;
-  private final DesignSurface mySurface;
+  private DesignSurface mySurface;
   private Rectangle mySelection;
   private MySelectionListener mySelectionListener;
   private float myAlpha = 0;
 
   /**
-   * @param surface      Current designSurface holding the mockupEditor
    * @param mockupEditor
    */
-  public ExtractWidgetTool(@NotNull DesignSurface surface, @NotNull MockupEditor mockupEditor) {
+  public ExtractWidgetTool(@NotNull MockupEditor mockupEditor) {
     super();
-    mySurface = surface;
     myMockupViewPanel = mockupEditor.getMockupViewPanel();
     mySelectionListener = new MySelectionListener();
     myMockupEditor = mockupEditor;
@@ -87,6 +86,10 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
     mockupEditor.addListener(mockupEditorListener);
     add(createActionToolbar());
     setOpaque(false);
+  }
+
+  public void setDesignSurface(@Nullable DesignSurface surface) {
+    mySurface = surface;
   }
 
   @Override
