@@ -212,7 +212,7 @@ public class NewProjectTest {
 
     // We could be showing an error message, but if we do, it should *not* say missing styles
     // (should only be showing project render errors)
-    assertFalse(layoutEditor.errorPanelContains("Missing styles"));
+    layoutEditor.waitForErrorPanelToContain("Missing styles");
   }
 
   @NotNull

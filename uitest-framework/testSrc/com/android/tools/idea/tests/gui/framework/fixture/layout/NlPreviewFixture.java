@@ -87,8 +87,8 @@ public class NlPreviewFixture extends ToolWindowFixture {
     return myDesignSurfaceFixture.hasRenderErrors();
   }
 
-  public boolean errorPanelContains(@NotNull String errorText) {
-    return myDesignSurfaceFixture.errorPanelContains(errorText);
+  public void waitForErrorPanelToContain(@NotNull String errorText) {
+    myDesignSurfaceFixture.waitForErrorPanelToContain(errorText);
   }
 
   @NotNull
