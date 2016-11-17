@@ -104,8 +104,8 @@ public final class RpcNetworkCaptureModel implements NetworkCaptureModel {
     catch (StatusRuntimeException e) {
       return;
     }
-    String responseFilePath = response.getResponseBody().getFilePath();
-    data.setHttpResponseBodyPath(responseFilePath);
+    String responseFilePath = response.getResponseBody().getPayloadId();
+    data.setHttpResponsePayloadId(responseFilePath);
     // TODO: too slow
     /*
     File file = !StringUtil.isEmptyOrSpaces(responseFilePath) ? myDataCache.getFile(responseFilePath) : null;
