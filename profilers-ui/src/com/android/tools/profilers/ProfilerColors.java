@@ -15,9 +15,13 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.profiler.proto.CpuProfiler;
+import com.google.common.collect.ImmutableMap;
+import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 
 import java.awt.*;
+import java.util.Map;
 
 public class ProfilerColors {
 
@@ -33,9 +37,14 @@ public class ProfilerColors {
 
   public static final Color NETWORK_CONNECTIONS_COLOR = new JBColor(0x5A8725, 0x5A8725);
 
-  public static final Color NETWORK_RECEIVING_COLOR = new JBColor(0x2865BD, 0x2865BD) ;
+  public static final Color NETWORK_RECEIVING_COLOR = new JBColor(0x2865BD, 0x2865BD);
 
   public static final Color NETWORK_SENDING_COLOR = new JBColor(0xFF7B00, 0xFF7B00);
 
   public static final Color NETWORK_WAITING_COLOR = new JBColor(0xAAAAAA, 0xAAAAAA);
+
+  public static final Map<CpuProfiler.GetThreadsResponse.State, Color> THREAD_STATES = ImmutableMap.of(
+    CpuProfiler.GetThreadsResponse.State.RUNNING, CPU_USAGE,
+    CpuProfiler.GetThreadsResponse.State.SLEEPING, new JBColor(0xEDEFF1, 0xEDEFF1),
+    CpuProfiler.GetThreadsResponse.State.DEAD, Gray.TRANSPARENT);
 }
