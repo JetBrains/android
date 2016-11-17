@@ -48,10 +48,17 @@ public class EventMonitorView extends ProfilerMonitorView {
   }
 
   @Override
-  protected void populateUi(JLayeredPane container, Choreographer choreographer) {
-    container.setLayout(new BorderLayout());
-    final JPanel panel = new JPanel(new GridBagLayout());
-    panel.setOpaque(false);
+  public float getVerticalWeight() {
+    /**
+     * This forces the monitor to use its specified minimum size
+     * Also see {@link ProfilerMonitorView#initialize(Choreographer)}.
+     */
+    return 0;
+  }
+
+  @Override
+  protected void populateUi(JPanel container, Choreographer choreographer) {
+    container.setLayout(new GridBagLayout());
     GridBagConstraints c = new GridBagConstraints();
     c.fill = GridBagConstraints.BOTH;
     c.gridx = 0;
@@ -60,15 +67,14 @@ public class EventMonitorView extends ProfilerMonitorView {
     c.weighty = 0.5;
     SimpleEventComponent<EventActionType> events =
       new SimpleEventComponent<>(new RangedSeries<>(myMonitor.getViewRange(), myMonitor.getSimpleEvents()), ICONS);
-    panel.add(events, c);
+    container.add(events, c);
     choreographer.register(events);
 
     c.gridy = 1;
     c.weighty = 0.5;
     StackedEventComponent activities =
       new StackedEventComponent(new RangedSeries<>(myMonitor.getViewRange(), myMonitor.getActivityEvents()), ACTIVITY_GRAPH_HEIGHT);
-    panel.add(activities, c);
+    container.add(activities, c);
     choreographer.register(activities);
-    container.add(panel, BorderLayout.CENTER);
   }
 }
