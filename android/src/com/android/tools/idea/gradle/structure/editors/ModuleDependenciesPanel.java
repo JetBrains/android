@@ -21,10 +21,9 @@ import com.android.tools.idea.gradle.parser.*;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.structure.EditorPanel;
-import com.android.tools.idea.templates.SupportLibrary;
 import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.android.tools.idea.templates.SupportLibrary;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -62,8 +61,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
@@ -107,7 +104,7 @@ public class ModuleDependenciesPanel extends EditorPanel {
     myModel.resetModified();
 
     myEntryTable = new JBTable(myModel);
-    TableRowSorter<ModuleDependenciesTableModel> sorter = new TableRowSorter<ModuleDependenciesTableModel>(myModel);
+    TableRowSorter<ModuleDependenciesTableModel> sorter = new TableRowSorter<>(myModel);
     sorter.setRowFilter(myModel.getFilter());
     myEntryTable.setRowSorter(sorter);
     myEntryTable.setShowGrid(false);
@@ -121,14 +118,9 @@ public class ModuleDependenciesPanel extends EditorPanel {
     }
     final boolean isAndroid = myGradleBuildFile.hasAndroidPlugin();
     List<Dependency.Scope> scopes = Lists.newArrayList(
-      Sets.filter(EnumSet.allOf(Dependency.Scope.class), new Predicate<Dependency.Scope>() {
-        @Override
-        public boolean apply(Dependency.Scope input) {
-          return isAndroid ? input.isAndroidScope() : input.isJavaScope();
-        }
-      }));
-    ComboBoxModel boxModel = new CollectionComboBoxModel(scopes, null);
-    JComboBox scopeEditor = new ComboBox(boxModel);
+      Sets.filter(EnumSet.allOf(Dependency.Scope.class), input -> isAndroid ? input.isAndroidScope() : input.isJavaScope()));
+    ComboBoxModel<Dependency.Scope> boxModel = new CollectionComboBoxModel<>(scopes, null);
+    JComboBox<Dependency.Scope> scopeEditor = new ComboBox<>(boxModel);
     myEntryTable.setDefaultEditor(Dependency.Scope.class, new DefaultCellEditor(scopeEditor));
     myEntryTable.setDefaultRenderer(Dependency.Scope.class, new ComboBoxTableRenderer<Dependency.Scope>(Dependency.Scope.values()) {
         @Override
@@ -194,91 +186,65 @@ public class ModuleDependenciesPanel extends EditorPanel {
 
   @NotNull
   private JComponent createTableWithButtons() {
-    myEntryTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-      @Override
-      public void valueChanged(ListSelectionEvent e) {
-        if (e.getValueIsAdjusting()) {
-          return;
-        }
-        updateButtons();
+    myEntryTable.getSelectionModel().addListSelectionListener(e -> {
+      if (e.getValueIsAdjusting()) {
+        return;
       }
+      updateButtons();
     });
 
     final ToolbarDecorator decorator = ToolbarDecorator.createDecorator(myEntryTable);
-    decorator.setAddAction(new AnActionButtonRunnable() {
-      @Override
-      public void run(AnActionButton button) {
-        ImmutableList<PopupAction> popupActions = ImmutableList.of(
-          new PopupAction(AndroidIcons.MavenLogo, 1, "Library dependency") {
-            @Override
-            public void run() {
-              addExternalDependency();
-            }
-          }, new PopupAction(PlatformIcons.LIBRARY_ICON, 2, "File dependency") {
-            @Override
-            public void run() {
-              addFileDependency();
-            }
-          }, new PopupAction(AllIcons.Nodes.Module, 3, "Module dependency") {
-            @Override
-            public void run() {
-              addModuleDependency();
-            }
-          }
-        );
-        final JBPopup popup = JBPopupFactory.getInstance().createListPopup(new BaseListPopupStep<PopupAction>(null, popupActions) {
+    decorator.setAddAction(button -> {
+      ImmutableList<PopupAction> popupActions = ImmutableList.of(
+        new PopupAction(AndroidIcons.MavenLogo, 1, "Library dependency") {
           @Override
-          public Icon getIconFor(PopupAction value) {
-            return value.myIcon;
+          public void run() {
+            addExternalDependency();
           }
-
+        }, new PopupAction(PlatformIcons.LIBRARY_ICON, 2, "File dependency") {
           @Override
-          public boolean hasSubstep(PopupAction value) {
-            return false;
+          public void run() {
+            addFileDependency();
           }
-
+        }, new PopupAction(AllIcons.Nodes.Module, 3, "Module dependency") {
           @Override
-          public boolean isMnemonicsNavigationEnabled() {
-            return true;
+          public void run() {
+            addModuleDependency();
           }
-
-          @Override
-          public PopupStep onChosen(final PopupAction value, final boolean finalChoice) {
-            return doFinalStep(new Runnable() {
-              @Override
-              public void run() {
-                value.run();
-              }
-            });
-          }
-
-          @Override
-          @NotNull
-          public String getTextFor(PopupAction value) {
-            return "&" + value.myIndex + "  " + value.myTitle;
-          }
-        });
-        popup.show(button.getPreferredPopupPoint());
-      }
-    });
-    decorator.setRemoveAction(new AnActionButtonRunnable() {
+        }
+      );
+      final JBPopup popup = JBPopupFactory.getInstance().createListPopup(new BaseListPopupStep<PopupAction>(null, popupActions) {
         @Override
-        public void run(AnActionButton button) {
-          removeSelectedItems();
+        public Icon getIconFor(PopupAction value) {
+          return value.myIcon;
+        }
+
+        @Override
+        public boolean hasSubstep(PopupAction value) {
+          return false;
+        }
+
+        @Override
+        public boolean isMnemonicsNavigationEnabled() {
+          return true;
+        }
+
+        @Override
+        public PopupStep onChosen(final PopupAction value, final boolean finalChoice) {
+          return doFinalStep(value);
+        }
+
+        @Override
+        @NotNull
+        public String getTextFor(PopupAction value) {
+          return "&" + value.myIndex + "  " + value.myTitle;
         }
       });
-    decorator.setMoveUpAction(new AnActionButtonRunnable() {
-      @Override
-      public void run(AnActionButton button) {
-        moveSelectedRows(-1);
-      }
+      popup.show(button.getPreferredPopupPoint());
     });
-    decorator.setMoveDownAction(new AnActionButtonRunnable() {
-        @Override
-        public void run(AnActionButton button) {
-          moveSelectedRows(+1);
-        }
-      });
+    decorator.setRemoveAction(button -> removeSelectedItems());
+    decorator.setMoveUpAction(button -> moveSelectedRows(-1));
+    decorator.setMoveDownAction(button -> moveSelectedRows(+1));
 
     final JPanel panel = decorator.createPanel();
     myRemoveButton = ToolbarDecorator.findRemoveButton(panel);
@@ -497,12 +463,7 @@ public class ModuleDependenciesPanel extends EditorPanel {
     }
     DumbService.getInstance(myProject).setAlternativeResolveEnabled(true);
     try {
-      ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
-        @Override
-        public void run() throws Exception {
-          myGradleBuildFile.setValue(BuildFileKey.DEPENDENCIES, dependencies);
-        }
-      });
+      ActionRunner.runInsideWriteAction(() -> myGradleBuildFile.setValue(BuildFileKey.DEPENDENCIES, dependencies));
     }
     catch (Exception e) {
       LOG.error("Unable to commit dependency changes", e);
@@ -543,14 +504,20 @@ public class ModuleDependenciesPanel extends EditorPanel {
   }
 
   private abstract static class PopupAction implements Runnable {
-    private Icon myIcon;
-    private Object myIndex;
-    private Object myTitle;
+    private final Icon myIcon;
+    private final int myIndex;
+    private final String myTitle;
 
-    protected PopupAction(Icon icon, Object index, Object title) {
+    protected PopupAction(Icon icon, int index, String title) {
       myIcon = icon;
       myIndex = index;
       myTitle = title;
+    }
+
+    // For debug and UI tests (as a private class, it is difficult to access as a List render item)
+    @Override
+    public String toString() {
+      return myTitle;
     }
   }
 }
