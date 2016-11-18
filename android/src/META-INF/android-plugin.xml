@@ -246,6 +246,8 @@
             text="URL" description="Generate a new intent filter for URLs">
       <add-to-group group-id="GenerateGroup" anchor="first"/>
     </action>
+    <action id="StoreDefaultLayout" class="com.android.tools.idea.uibuilder.actions.StoreDefaultWindowLayoutAction" overrides="true"/>
+    <action id="RestoreDefaultLayout" class="com.android.tools.idea.uibuilder.actions.RestoreDefaultWindowLayoutAction" overrides="true"/>
     <action id="GotoGfxCommand" class="com.android.tools.idea.editors.gfxtrace.actions.GoToAction">
       <add-to-group group-id="GoToMenu" anchor="before" relative-to-action="GotoLine"/>
       <keyboard-shortcut first-keystroke="control G" keymap="$default"/>
