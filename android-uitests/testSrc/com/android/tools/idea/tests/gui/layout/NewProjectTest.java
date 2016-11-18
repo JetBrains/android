@@ -197,9 +197,9 @@ public class NewProjectTest {
 
   @Test
   public void testStillBuildingMessage() throws Exception {
-    // Creates a new project with minSdk 15, which should use appcompat.
-    // Check that if there are render-error messages on first render,
-    // they don't include "Missing Styles" (should now talk about project building instead)
+    // Create a new project and open a layout file.
+    // If the first build is still going on when the rendering happens, simply show a message that a build is going on,
+    // and check that the message disappears at the end of the build.
     newProject("Test Application").withBriefNames().withMinSdk("15").withoutSync().create();
     final EditorFixture editor = guiTest.ideFrame().getEditor();
 
@@ -210,9 +210,13 @@ public class NewProjectTest {
     NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
     layoutEditor.waitForRenderToFinish();
 
-    // We could be showing an error message, but if we do, it should *not* say missing styles
-    // (should only be showing project render errors)
-    layoutEditor.waitForErrorPanelToContain("Missing styles");
+    if (layoutEditor.hasRenderErrors()) {
+      layoutEditor.waitForErrorPanelToContain("still building");
+      assertThat(layoutEditor.getErrorText()).doesNotContain("Missing styles");
+      guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+      layoutEditor.waitForRenderToFinish();
+      assertThat(layoutEditor.hasRenderErrors()).isFalse();
+    }
   }
 
   @NotNull

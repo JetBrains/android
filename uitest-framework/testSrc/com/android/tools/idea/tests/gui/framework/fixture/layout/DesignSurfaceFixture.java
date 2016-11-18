@@ -27,6 +27,7 @@ import com.google.common.collect.Lists;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -81,6 +82,17 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
         return false;
       }
     });
+  }
+
+  @Nullable
+  public String getErrorText() {
+    Document doc = myRenderErrorPanel.getHtmlDetailPane().getDocument();
+    try {
+      return doc.getText(0, doc.getLength());
+    }
+    catch (BadLocationException e) {
+      return null;
+    }
   }
 
   /**
