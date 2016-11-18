@@ -166,6 +166,10 @@ public class FloatingToolWindowManager implements ProjectComponent {
     ids.forEach(id -> myToolWindowMap.get(id).hide());
   }
 
+  public void restoreDefaultLayout() {
+    myApplication.invokeLater(() -> updateToolWindowsForWorkBench(getActiveWorkBench()));
+  }
+
   private class MyFileEditorManagerListener implements FileEditorManagerListener {
 
     @Override

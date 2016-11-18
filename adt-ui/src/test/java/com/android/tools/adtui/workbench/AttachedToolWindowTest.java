@@ -206,6 +206,43 @@ public class AttachedToolWindowTest {
   }
 
   @Test
+  public void testRestoreDefaultLayout() {
+    myToolWindow.setMinimized(true);
+    myToolWindow.setLeft(false);
+    myToolWindow.setSplit(true);
+    myToolWindow.setAutoHide(true);
+
+    myToolWindow.restoreDefaultLayout();
+
+    assertThat(myToolWindow.isMinimized()).isFalse();
+    assertThat(myToolWindow.isLeft()).isTrue();
+    assertThat(myToolWindow.isSplit()).isFalse();
+    assertThat(myToolWindow.isAutoHide()).isFalse();
+  }
+
+  @Test
+  public void testStoreAndRestoreDefaultLayout() {
+    myToolWindow.setMinimized(true);
+    myToolWindow.setLeft(false);
+    myToolWindow.setSplit(true);
+    myToolWindow.setAutoHide(true);
+
+    myToolWindow.storeDefaultLayout();
+
+    myToolWindow.setFloating(true);
+    myToolWindow.setLeft(true);
+    myToolWindow.setSplit(false);
+    myToolWindow.setAutoHide(false);
+
+    myToolWindow.restoreDefaultLayout();
+
+    assertThat(myToolWindow.isMinimized()).isTrue();
+    assertThat(myToolWindow.isLeft()).isFalse();
+    assertThat(myToolWindow.isSplit()).isTrue();
+    assertThat(myToolWindow.isAutoHide()).isTrue();
+  }
+
+  @Test
   public void testDraggedEvent() {
     AbstractButton button = myToolWindow.getMinimizedButton();
     button.setSize(20, 50);

@@ -22,6 +22,7 @@ import com.intellij.openapi.components.ServiceManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.Optional;
 
 /**
  * All the settings of an {@link AttachedToolWindow} are shared globally for all instances
@@ -46,6 +47,26 @@ public class WorkBenchManager {
 
   public void unregister(@NotNull WorkBench workBench) {
     myWorkBenches.remove(workBench.getName(),workBench);
+  }
+
+  public void storeDefaultLayout() {
+    for (String name : myWorkBenches.keySet()) {
+      Optional<WorkBench> workbench = myWorkBenches.get(name).stream().findFirst();
+      if (workbench.isPresent()) {
+        workbench.get().storeDefaultLayout();
+        updateOtherWorkBenches(workbench.get());
+      }
+    }
+  }
+
+  public void restoreDefaultLayout() {
+    for (String name : myWorkBenches.keySet()) {
+      Optional<WorkBench> workbench = myWorkBenches.get(name).stream().findFirst();
+      if (workbench.isPresent()) {
+        workbench.get().restoreDefaultLayout();
+        updateOtherWorkBenches(workbench.get());
+      }
+    }
   }
 
   public void updateOtherWorkBenches(@NotNull WorkBench workBench) {
