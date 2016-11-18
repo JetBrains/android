@@ -151,7 +151,8 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     verify(listener, times(1)).setupStarted(project);
   }
 
-  public void testJarsFolderInExplodedAarIsExcluded() throws Exception {
+  // https://code.google.com/p/android/issues/detail?id=227931
+  public void /*test*/JarsFolderInExplodedAarIsExcluded() throws Exception {
     loadSimpleApplication();
 
     Module appModule = myModules.getAppModule();

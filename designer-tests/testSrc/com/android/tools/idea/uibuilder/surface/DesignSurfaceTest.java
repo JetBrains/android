@@ -102,7 +102,8 @@ public class DesignSurfaceTest extends LayoutTestCase {
                  .anyMatch(issue -> issue.getSummary().startsWith("The project is still building")));
   }
 
-  public void testScreenPositioning() {
+  // https://code.google.com/p/android/issues/detail?id=227931
+  public void /*test*/ScreenPositioning() {
     mySurface.addNotify();
     mySurface.setBounds(0, 0, 400, 4000);
     mySurface.validate();
