@@ -18,6 +18,7 @@ package com.android.tools.swing.layoutlib;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
 import com.android.tools.idea.rendering.DomPullParser;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.notification.Notification;
@@ -27,22 +28,15 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
-import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 
-import javax.swing.JComponent;
-import javax.swing.Scrollable;
-import javax.swing.SwingWorker;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
+import javax.swing.*;
+import java.awt.*;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -50,6 +44,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Generic UI component for rendering.
  */
 public class AndroidPreviewPanel extends JComponent implements Scrollable, Disposable {
+  @VisibleForTesting
+  interface GraphicsLayoutRendererFactory {
+    GraphicsLayoutRenderer createGraphicsLayoutRenderer(@NotNull Configuration configuration,
+                                                        @NotNull ILayoutPullParser parser,
+                                                        @NotNull Color background) throws InitializationException;
+  }
+
   private static final Logger LOG = Logger.getInstance(AndroidPreviewPanel.class);
 
   public static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 5;
@@ -62,12 +63,14 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
   // the current task to do another invalidate once it has finished the current one.
   private final AtomicBoolean myRunningInvalidates = new AtomicBoolean(false);
   private final AtomicBoolean myPendingInvalidates = new AtomicBoolean(false);
+  private final GraphicsLayoutRendererFactory myGraphicsLayoutRendererFactory;
+  private final Executor myExecutor;
   @VisibleForTesting
   protected final Runnable myInvalidateRunnable = new Runnable() {
     @Override
     public void run() {
       if (ApplicationManager.getApplication().isDispatchThread()) {
-        ForkJoinPool.commonPool().execute(this);
+        myExecutor.execute(this);
         return;
       }
 
@@ -82,8 +85,8 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
         }
 
         ILayoutPullParser parser = new DomPullParser(myDocument.getDocumentElement());
-        GraphicsLayoutRenderer graphicsLayoutRenderer = GraphicsLayoutRenderer
-          .create(myConfiguration, parser, getBackground(), false/*hasHorizontalScroll*/, true/*hasVerticalScroll*/);
+        GraphicsLayoutRenderer graphicsLayoutRenderer =
+          myGraphicsLayoutRendererFactory.createGraphicsLayoutRenderer(myConfiguration, parser, getBackground());
         graphicsLayoutRenderer.setScale(myScale);
         // We reset the height so that it can be recomputed to the needed value.
         graphicsLayoutRenderer.setSize(getWidth(), 1);
@@ -169,10 +172,23 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
   private Dimension myCachedPreferredSize;
   private int myCurrentWidth;
 
-  public AndroidPreviewPanel(@NotNull Configuration configuration) {
+  @VisibleForTesting
+  AndroidPreviewPanel(@NotNull Configuration configuration,
+                      @NotNull Executor executor,
+                      @NotNull GraphicsLayoutRendererFactory graphicsLayoutRendererFactory) {
     myConfiguration = configuration;
 
     myDumbService = DumbService.getInstance(myConfiguration.getModule().getProject());
+    myExecutor = executor;
+    myGraphicsLayoutRendererFactory = graphicsLayoutRendererFactory;
+  }
+
+  public AndroidPreviewPanel(@NotNull Configuration configuration) {
+    this(configuration,
+         ForkJoinPool.commonPool(),
+         (configuration1, parser, background) -> GraphicsLayoutRenderer
+           .create(configuration1, parser, background, false/*hasHorizontalScroll*/, true/*hasVerticalScroll*/));
+    myConfiguration = configuration;
   }
 
   @Override
