@@ -21,14 +21,17 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsResponse.Request;
 import com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsResponse.Response;
 import com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsResponse.Body;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class NetworkProfilerStage extends Stage {
 
   // Whether the connection data screen is active.
   private boolean myConnectionDataEnabled;
 
-  // If zero, means no connection to show in the details pane.
-  private int myConnectionId;
+  // If null, means no connection to show in the details pane.
+  @Nullable
+  private HttpData myConnection;
 
   public AspectModel<NetworkProfilerAspect> aspect = new AspectModel<>();
 
@@ -56,8 +59,11 @@ public class NetworkProfilerStage extends Stage {
     aspect.changed(NetworkProfilerAspect.REQUEST_DETAILS);
   }
 
-  public void setConnectionId(int id) {
-    myConnectionId = id;
+  /**
+   * Sets the active connection, or clears the previously selected active connection if given data is null.
+   */
+  public void setConnection(@Nullable HttpData connection) {
+    myConnection = connection;
     aspect.changed(NetworkProfilerAspect.REQUEST_DETAILS);
   }
 
@@ -65,7 +71,7 @@ public class NetworkProfilerStage extends Stage {
    * Gets the details of the current connection, or null if none.
    */
   public ConnectionDetails getConnectionDetails() {
-    if (myConnectionId == 0) {
+    if (myConnection == null) {
       return null;
     }
     // TODO: Fetch the data via RPC
@@ -79,10 +85,13 @@ public class NetworkProfilerStage extends Stage {
     return myConnectionDataEnabled;
   }
 
-  public int getConnectionId() {
-    return myConnectionId;
+  /**
+   * Returns the active connection, or {@code null} if no request is currently selected.
+   */
+  @Nullable
+  public HttpData getConnection() {
+    return myConnection;
   }
-
 
   private static class ConnectionDetails {
     public final Request request;
