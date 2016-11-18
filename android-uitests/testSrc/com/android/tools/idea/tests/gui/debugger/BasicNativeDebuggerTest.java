@@ -246,7 +246,9 @@ public class BasicNativeDebuggerTest {
     avdEditWizard.clickNext();
 
     avdEditWizard.getConfigureAvdOptionsStep()
-      .setAvdName(AVD_NAME);
+      .setAvdName(AVD_NAME)
+      .showAdvancedSettings()
+      .selectGraphicsSoftware();
     avdEditWizard.clickFinish();
     avdManagerDialog.close();
   }
