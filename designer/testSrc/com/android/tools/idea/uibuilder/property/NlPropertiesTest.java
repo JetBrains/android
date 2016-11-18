@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.tools.idea.uibuilder.property.ptable.StarState;
 import com.google.common.base.Joiner;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
 import com.intellij.psi.xml.XmlFile;
@@ -30,9 +32,11 @@ import java.util.stream.Collectors;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.property.NlProperties.STARRED_PROP;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class NlPropertiesTest extends PropertyTestCase {
-  private static final String CUSTOM_NAMESPACE = "http://schemas.android.com/apk/res/p1.p2";
+  private static final String CUSTOM_NAMESPACE = "http://schemas.android.com/apk/res/com.example";
   private static final String[] NO_NAMESPACE_VIEW_ATTRS = {"style"};
   private static final String[] ANDROID_VIEW_ATTRS = {"id", "padding", "visibility", "textAlignment", "translationZ", "elevation"};
   private static final String[] TEXT_VIEW_ATTRS = {"text", "hint", "textColor", "textSize"};
@@ -42,10 +46,24 @@ public class NlPropertiesTest extends PropertyTestCase {
   private static final String[] LINEAR_LAYOUT_ATTRS = {"layout_weight"};
   private static final String[] RELATIVE_LAYOUT_ATTRS = {"layout_toLeftOf", "layout_above", "layout_alignTop"};
 
+  private GradleDependencyManager myDependencyManager;
+
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    myDependencyManager = mock(GradleDependencyManager.class);
+    myFixture.addFileToProject("AndroidManifest.xml", MANIFEST_SOURCE);
+  }
+
+  @Override
+  public boolean providesCustomManifest() {
+    return true;
+  }
+
   public void testViewAttributes() {
     @Language("XML")
     String source = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                    "<View xmlns:android=\"http://schemas.android.com/apk/res/android\" />";
+                    "<View/>";
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", source);
     String tag = "View";
 
@@ -72,7 +90,7 @@ public class NlPropertiesTest extends PropertyTestCase {
   public void testViewInRelativeLayout() {
     @Language("XML")
     String source = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                    "<RelativeLayout xmlns:android=\"http://schemas.android.com/apk/res/android\" >" +
+                    "<RelativeLayout>" +
                     "  <TextView />" +
                     "</RelativeLayout>";
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", source);
@@ -102,7 +120,7 @@ public class NlPropertiesTest extends PropertyTestCase {
   public void testCustomViewAttributes() {
     XmlFile xmlFile = setupCustomViewProject();
 
-    String tag = "p1.p2.PieChart";
+    String tag = "com.example.PieChart";
 
     XmlTag rootTag = xmlFile.getRootTag();
     assert rootTag != null;
@@ -159,8 +177,8 @@ public class NlPropertiesTest extends PropertyTestCase {
   private XmlFile setupCustomViewProject() {
     @Language("XML")
     String layoutSrc = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                       "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\" >" +
-                       "  <p1.p2.PieChart />" +
+                       "<LinearLayout>" +
+                       "  <com.example.PieChart />" +
                        "</LinearLayout>";
 
     @Language("XML")
@@ -176,7 +194,7 @@ public class NlPropertiesTest extends PropertyTestCase {
                       "</resources>";
 
     @Language("JAVA")
-    String javaSrc = "package p1.p2;\n" +
+    String javaSrc = "package com.example;\n" +
                      "\n" +
                      "import android.content.Context;\n" +
                      "import android.view.View;\n" +
@@ -189,14 +207,14 @@ public class NlPropertiesTest extends PropertyTestCase {
 
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", layoutSrc);
     myFixture.addFileToProject("res/values/attrs.xml", attrsSrc);
-    myFixture.addFileToProject("src/p1/p2/PieChart.java", javaSrc);
+    myFixture.addFileToProject("src/com/example/PieChart.java", javaSrc);
     return xmlFile;
   }
 
   public void testAppCompatIssues() {
     @Language("XML")
     String source = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                    "<RelativeLayout xmlns:android=\"http://schemas.android.com/apk/res/android\" >" +
+                    "<RelativeLayout>" +
                     "  <TextView />" +
                     "</RelativeLayout>";
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", source);
@@ -279,6 +297,114 @@ public class NlPropertiesTest extends PropertyTestCase {
     return Joiner.on(";").join(propertyNames) + ";";
   }
 
+  public void testSrcCompatIncluded() {
+    when(myDependencyManager.dependsOn(myModule, APPCOMPAT_LIB_ARTIFACT)).thenReturn(true);
+    addAppCompatActivity();
+    addMyActivityAsAppCompatActivity();
+
+    Table<String, String, NlPropertyItem> properties =
+      NlProperties.getInstance().getProperties(myFacet, ImmutableList.of(myImageView), myDependencyManager);
+
+    assertPresent("ImageView", properties, ANDROID_URI, ATTR_SRC);
+    assertPresent("ImageView", properties, AUTO_URI, ATTR_SRC_COMPAT);
+  }
+
+  public void testSrcCompatIncludedWithRelativeContextName() {
+    Configuration configuration = myModel.getConfiguration();
+    configuration.setActivity(".MyActivity");
+    when(myDependencyManager.dependsOn(myModule, APPCOMPAT_LIB_ARTIFACT)).thenReturn(true);
+    addAppCompatActivity();
+    addMyActivityAsAppCompatActivity();
+
+    Table<String, String, NlPropertyItem> properties =
+      NlProperties.getInstance().getProperties(myFacet, ImmutableList.of(myImageView), myDependencyManager);
+
+    assertPresent("ImageView", properties, ANDROID_URI, ATTR_SRC);
+    assertPresent("ImageView", properties, AUTO_URI, ATTR_SRC_COMPAT);
+  }
+
+  public void testSrcCompatNotIncludedIfActivityIsNotAppCompatActivity() {
+    when(myDependencyManager.dependsOn(myModule, APPCOMPAT_LIB_ARTIFACT)).thenReturn(true);
+    addMyActivityAsSystemActivity();
+
+    Table<String, String, NlPropertyItem> properties =
+      NlProperties.getInstance().getProperties(myFacet, ImmutableList.of(myImageView), myDependencyManager);
+
+    assertPresent("ImageView", properties, ANDROID_URI, ATTR_SRC);
+    assertAbsent("ImageView", properties, AUTO_URI, ATTR_SRC_COMPAT);
+  }
+
+  public void testSrcCompatNotIncludedIfAppCompatArtifactIsNotIncludedInModule() {
+    when(myDependencyManager.dependsOn(myModule, APPCOMPAT_LIB_ARTIFACT)).thenReturn(false);
+    addAppCompatActivity();
+    addMyActivityAsAppCompatActivity();
+
+    Table<String, String, NlPropertyItem> properties =
+      NlProperties.getInstance().getProperties(myFacet, ImmutableList.of(myImageView), myDependencyManager);
+
+    assertPresent("ImageView", properties, ATTR_SRC);
+    assertAbsent("ImageView", properties, ATTR_SRC_COMPAT);
+  }
+
+  public void testSrcCompatNotIncludedIfNotAllComponentsAreImageViews() {
+    when(myDependencyManager.dependsOn(myModule, APPCOMPAT_LIB_ARTIFACT)).thenReturn(true);
+    addAppCompatActivity();
+    addMyActivityAsAppCompatActivity();
+
+    Table<String, String, NlPropertyItem> properties =
+      NlProperties.getInstance().getProperties(myFacet, ImmutableList.of(myImageView), myDependencyManager);
+
+    assertPresent("ImageView", properties, ATTR_SRC);
+    assertAbsent("ImageView", properties, ATTR_SRC_COMPAT);
+  }
+
+  private void addMyActivityAsAppCompatActivity() {
+    @Language("JAVA")
+    String javaFile = "package com.example;\n" +
+                      "\n" +
+                      "import android.support.v7.app.AppCompatActivity;\n" +
+                      "import android.os.Bundle;\n" +
+                      "\n" +
+                      "public class MyActivity extends AppCompatActivity {\n" +
+                      "    @Override\n" +
+                      "    protected void onCreate(Bundle savedInstanceState) {\n" +
+                      "        super.onCreate(savedInstanceState);\n" +
+                      "        setContentView(R.layout.activity_main);\n" +
+                      "    }\n" +
+                      "\n" +
+                      "}\n";
+    myFixture.addFileToProject("src/com/example/MyActivity.java", javaFile);
+  }
+
+  private void addAppCompatActivity() {
+    @Language("JAVA")
+    String javaFile = "package android.support.v7.app;\n" +
+                      "\n" +
+                      "import android.app.Activity;\n" +
+                      "\n" +
+                      "public class AppCompatActivity extends Activity {\n" +
+                      "}\n";
+    myFixture.addFileToProject("src/android/support/v7/app/AppCompatActivity.java", javaFile);
+  }
+
+  private void addMyActivityAsSystemActivity() {
+    @Language("JAVA")
+    String javaFile = "package com.example;\n" +
+                      "\n" +
+                      "import android.app.Activity;\n" +
+                      "import android.os.Bundle;\n" +
+                      "\n" +
+                      "public class MyActivity extends Activity {\n" +
+                      "\n" +
+                      "    @Override\n" +
+                      "    protected void onCreate(Bundle savedInstanceState) {\n" +
+                      "        super.onCreate(savedInstanceState);\n" +
+                      "        setContentView(R.layout.merge);\n" +
+                      "    }\n" +
+                      "}\n";
+    myFixture.addFileToProject("src/com/example/MyActivity.java", javaFile);
+  }
+
   private static void assertPresent(String tag, Table<String, String, NlPropertyItem> properties, String namespace, String... names) {
     for (String n : names) {
       assertNotNull("Missing attribute " + n + " for " + tag, properties.get(namespace, n));
@@ -290,4 +416,11 @@ public class NlPropertiesTest extends PropertyTestCase {
       assertNull("Attribute " + n + " not applicable for a " + tag, properties.get(namespace, n));
     }
   }
+
+  @Language("XML")
+  private static final String MANIFEST_SOURCE =
+    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+    "<manifest  \n" +
+    "    package='com.example'>\n" +
+    "</manifest>\n";
 }
