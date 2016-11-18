@@ -78,14 +78,21 @@ public final class ProfilerScrollbar extends JBScrollBar implements Animatable {
     addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
+        if (!isScrollable()) {
+          return;
+        }
+
         myTimeline.setStreaming(false);
         myScrolling = true;
       }
 
       @Override
       public void mouseReleased(MouseEvent e) {
-        myScrolling = false;
+        if (!isScrollable()) {
+          return;
+        }
 
+        myScrolling = false;
         BoundedRangeModel model = getModel();
         if ((model.getValue() + model.getExtent()) / (float)model.getMaximum() >= STREAMING_POSITION_THRESHOLD) {
           myTimeline.setStreaming(true);
@@ -111,5 +118,10 @@ public final class ProfilerScrollbar extends JBScrollBar implements Animatable {
     else {
       setValues(viewRelativeMinMs, viewExtentMs, 0, dataExtentMs);
     }
+  }
+
+  private boolean isScrollable() {
+    BoundedRangeModel model = getModel();
+    return model.getMaximum() > model.getExtent();
   }
 }

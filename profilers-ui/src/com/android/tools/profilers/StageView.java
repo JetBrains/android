@@ -18,6 +18,7 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
+import com.android.tools.profilers.timeline.AnimatedTimeline;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
