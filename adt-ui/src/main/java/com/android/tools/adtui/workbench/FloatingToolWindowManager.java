@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.workbench;
 
+import com.android.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -49,6 +50,7 @@ public class FloatingToolWindowManager implements ProjectComponent {
   private final MyFileEditorManagerListener myEditorManagerListener;
   private final Map<FileEditor, WorkBench> myWorkBenchMap;
   private final HashMap<String, FloatingToolWindow> myToolWindowMap;
+  private FloatingToolWindowFactory myFloatingToolWindowFactory;
   private MessageBusConnection myConnection;
 
   public static FloatingToolWindowManager getInstance(@NotNull Project project) {
@@ -56,16 +58,23 @@ public class FloatingToolWindowManager implements ProjectComponent {
   }
 
   public FloatingToolWindowManager(@NotNull Application application,
-                                   @NotNull Project project,
+                                   @NotNull Project currentProject,
                                    @NotNull StartupManager startupManager,
                                    @NotNull FileEditorManager fileEditorManager) {
     myApplication = application;
-    myProject = project;
+    myProject = currentProject;
     myStartupManager = startupManager;
     myEditorManager = fileEditorManager;
     myEditorManagerListener = new MyFileEditorManagerListener();
     myWorkBenchMap = new IdentityHashMap<>(13);
     myToolWindowMap = new HashMap<>(8);
+    //noinspection unchecked
+    myFloatingToolWindowFactory = FloatingToolWindow::new;
+  }
+
+  @VisibleForTesting
+  void setFloatingToolWindowFactory(@NotNull FloatingToolWindowFactory factory) {
+    myFloatingToolWindowFactory = factory;
   }
 
   public void register(@Nullable FileEditor fileEditor, @NotNull WorkBench workBench) {
@@ -143,13 +152,13 @@ public class FloatingToolWindowManager implements ProjectComponent {
       for (AttachedToolWindow<T> tool : floatingToolWindows) {
         ToolWindowDefinition<T> definition = tool.getDefinition();
         String id = definition.getName();
-        //noinspection unchecked
-        FloatingToolWindow<T> floatingToolWindow = myToolWindowMap.get(id);
+        FloatingToolWindow floatingToolWindow = myToolWindowMap.get(id);
         if (floatingToolWindow == null) {
-          floatingToolWindow = new FloatingToolWindow<>(myProject, definition);
+          floatingToolWindow = myFloatingToolWindowFactory.create(myProject, definition);
           Disposer.register(myProject, floatingToolWindow);
           myToolWindowMap.put(id, floatingToolWindow);
         }
+        //noinspection unchecked
         floatingToolWindow.show(tool);
         ids.remove(id);
       }
@@ -173,5 +182,9 @@ public class FloatingToolWindowManager implements ProjectComponent {
     public void selectionChanged(@NotNull FileEditorManagerEvent event) {
       updateToolWindowsForWorkBench(myWorkBenchMap.get(event.getNewEditor()));
     }
+  }
+
+  interface FloatingToolWindowFactory {
+    FloatingToolWindow create(@NotNull Project project, @NotNull ToolWindowDefinition definition);
   }
 }
