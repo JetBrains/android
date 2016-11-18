@@ -16,11 +16,8 @@
 package com.android.tools.idea.tests.gui.framework.fixture.projectstructure;
 
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.intellij.openapi.actionSystem.impl.ActionButton;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
@@ -31,14 +28,7 @@ public class FlavorsTabFixture extends ProjectStructureDialogFixture {
   }
 
   public FlavorsTabFixture clickAddButton() {
-    ActionButton addButton = robot().finder().find(target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
-      @Override
-      protected boolean isMatching(@NotNull ActionButton button) {
-        String toolTipText = button.getToolTipText();
-        return button.isShowing() && toolTipText != null && toolTipText.startsWith("Add");
-      }
-    });
-    robot().click(addButton);
+    clickAddButtonImpl();
     return this;
   }
 
