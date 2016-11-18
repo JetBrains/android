@@ -132,8 +132,11 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     // asynchronously to avoid blocking the project sync operation for re-proxying to complete.
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       myProxyAndroidProjectLatch = new CountDownLatch(1);
-      myProxyAndroidProject = reproxy(AndroidProject.class, myAndroidProject);
-      myProxyAndroidProjectLatch.countDown();
+      try {
+        myProxyAndroidProject = reproxy(AndroidProject.class, myAndroidProject);
+      } finally {
+        myProxyAndroidProjectLatch.countDown();
+      }
     });
 
     populateBuildTypesByName();
