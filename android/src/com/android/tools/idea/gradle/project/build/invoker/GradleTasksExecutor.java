@@ -509,6 +509,10 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           application.invokeLater(this::showMessages);
         }
 
+        if (getProject().isDisposed()) {
+          return;
+        }
+
         boolean buildSuccessful = buildError == null;
         GradleInvocationResult result = new GradleInvocationResult(myRequest.getGradleTasks(), buildMessages, buildSuccessful);
         for (AfterGradleInvocationTask task : GradleBuildInvoker.getInstance(getProject()).getAfterInvocationTasks()) {
