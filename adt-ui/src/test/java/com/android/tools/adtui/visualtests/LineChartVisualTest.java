@@ -18,10 +18,10 @@ package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
-import com.android.tools.adtui.AnimatedRange;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.chart.linechart.EventConfig;
 import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
 import com.intellij.util.containers.ImmutableList;
@@ -186,11 +186,12 @@ public class LineChartVisualTest extends VisualTest {
       }
     }));
     controls.add(VisualTest.createCheckbox("Dashed lines", itemEvent -> {
-      boolean isDashed = itemEvent.getStateChange() == ItemEvent.SELECTED;
+      Stroke stroke = itemEvent.getStateChange() == ItemEvent.SELECTED ? LineConfig.DEFAULT_DASH_STROKE : LineConfig.DEFAULT_LINE_STROKE;
       // Dash only some lines
       for (int i = 0; i < mRangedData.size(); i += 2) {
         RangedContinuousSeries series = mRangedData.get(i);
-        mLineChart.getLineConfig(series).setDashed(isDashed);
+        mLineChart.getLineConfig(series).setStroke(stroke);
+
       }
     }));
     controls.add(VisualTest.createCheckbox("Filled lines", itemEvent -> {
