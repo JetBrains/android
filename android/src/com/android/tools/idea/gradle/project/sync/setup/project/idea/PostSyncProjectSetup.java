@@ -344,7 +344,7 @@ public class PostSyncProjectSetup {
     notifySyncEnded(false); // Update the sync state before starting a new one.
 
     boolean experimentalPlugin = pluginInfo.isExperimental();
-    boolean userAcceptsForcedUpgrade = new PluginVersionForcedUpdateDialog(myProject, experimentalPlugin).showAndGet();
+    boolean userAcceptsForcedUpgrade = new PluginVersionForcedUpdateDialog(myProject, pluginGeneration).showAndGet();
     if (userAcceptsForcedUpgrade) {
       AndroidPluginVersionUpdater versionUpdater = AndroidPluginVersionUpdater.getInstance(myProject);
       versionUpdater.updatePluginVersionAndSync(recommended, GradleVersion.parse(GRADLE_LATEST_VERSION), true);

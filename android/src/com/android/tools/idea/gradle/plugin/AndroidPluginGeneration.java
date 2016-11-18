@@ -42,8 +42,8 @@ import static com.android.ide.common.repository.MavenRepositories.getHighestInst
 import static com.android.tools.idea.gradle.dsl.model.values.GradleValue.getValues;
 import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
-public enum AndroidPluginGeneration {
-  ORIGINAL {
+public abstract class AndroidPluginGeneration {
+  public static final AndroidPluginGeneration ORIGINAL = new AndroidPluginGeneration() {
     @Override
     @NotNull
     protected String getArtifactId() {
@@ -79,10 +79,10 @@ public enum AndroidPluginGeneration {
     public String getDescription() {
       return "Android Gradle plugin";
     }
-  },
+  };
 
   // This is the "experimental" plugin.
-  COMPONENT {
+  public static final AndroidPluginGeneration COMPONENT = new AndroidPluginGeneration() {
     @Override
     @NotNull
     protected String getArtifactId() {
@@ -120,6 +120,8 @@ public enum AndroidPluginGeneration {
     }
   };
 
+  private static AndroidPluginGeneration[] ourValues = { ORIGINAL, COMPONENT };
+
   /**
    * Indicates whether the given collection of plugin IDs contains the Android "app" plugin ID.
    *
@@ -144,7 +146,7 @@ public enum AndroidPluginGeneration {
 
   @Nullable
   public static AndroidPluginGeneration find(@NotNull String artifactId, @Nullable String groupId) {
-    for (AndroidPluginGeneration generation : values()) {
+    for (AndroidPluginGeneration generation : ourValues) {
       if (generation.isAndroidPlugin(artifactId, groupId)) {
         return generation;
       }
@@ -155,6 +157,11 @@ public enum AndroidPluginGeneration {
   @NotNull
   public static String getGroupId() {
     return "com.android.tools.build";
+  }
+
+  @NotNull
+  public static AndroidPluginGeneration[] values() {
+    return ourValues;
   }
 
   @Nullable
@@ -174,7 +181,7 @@ public enum AndroidPluginGeneration {
     GradleBuildModel buildModel = GradleBuildModel.get(module);
     if (buildModel != null) {
       List<String> appliedPlugins = getValues(buildModel.appliedPlugins());
-      for (AndroidPluginGeneration generation : values()) {
+      for (AndroidPluginGeneration generation : ourValues) {
         if (appliedPlugins.contains(generation.getApplicationPluginId()) || appliedPlugins.contains(generation.getLibraryPluginId())) {
           return generation;
         }
