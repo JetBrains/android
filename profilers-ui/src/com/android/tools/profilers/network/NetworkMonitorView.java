@@ -19,10 +19,12 @@ import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.NetworkTrafficFormatter;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitorView;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
@@ -69,14 +71,18 @@ public class NetworkMonitorView extends ProfilerMonitorView<NetworkMonitor> {
     lineChartPanel.setOpaque(false);
     lineChartPanel.setBorder(BorderFactory.createEmptyBorder(labelSize.height, 0, 0, 0));
     final LineChart lineChart = new LineChart();
+    LineConfig receivedConfig = new LineConfig(ProfilerColors.NETWORK_RECEIVING_COLOR);
     lineChart.addLine(new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getLabel(),
                                                  getMonitor().getTimeline().getViewRange(),
                                                  leftYRange,
-                                                 getMonitor().getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED)));
+                                                 getMonitor().getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED)),
+                      receivedConfig);
+    LineConfig sentConfig = new LineConfig(ProfilerColors.NETWORK_SENDING_COLOR);
     lineChart.addLine(new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_SENT.getLabel(),
                                                  getMonitor().getTimeline().getViewRange(),
                                                  leftYRange,
-                                                 getMonitor().getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_SENT)));
+                                                 getMonitor().getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_SENT)),
+                      sentConfig);
     choreographer.register(lineChart);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
