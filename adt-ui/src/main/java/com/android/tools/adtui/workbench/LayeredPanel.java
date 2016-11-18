@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.workbench;
 
+import com.android.annotations.VisibleForTesting;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
@@ -74,6 +75,11 @@ class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Di
     add(defaultLayer, DEFAULT_LAYER);
     add(mySplitter, PALETTE_LAYER);
     model.addListener(this);
+  }
+
+  @VisibleForTesting
+  ThreeComponentsSplitter getSplitter() {
+    return mySplitter;
   }
 
   @Override

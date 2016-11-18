@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 public class NlPaletteDefinition extends ToolWindowDefinition<DesignSurface> {
 
   public NlPaletteDefinition(@NotNull Project project, @NotNull Side side, @NotNull Split split, @NotNull AutoHide autoHide) {
-    super("Component Palette", AllIcons.Toolwindows.ToolWindowPalette, "PALETTE", side, split, autoHide, () -> createPalettePanel(project));
+    super("Palette ", AllIcons.Toolwindows.ToolWindowPalette, "PALETTE", side, split, autoHide, () -> createPalettePanel(project));
   }
 
   private static ToolContent<DesignSurface> createPalettePanel(@NotNull Project project) {
