@@ -152,6 +152,7 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
     myProcessId = request.getAppId();
     synchronized (myLock) {
       myThreads.clear();
+      myData.clear();
     }
     observer.onNext(myPollingService.startMonitoringApp(request));
     observer.onCompleted();
