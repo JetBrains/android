@@ -34,22 +34,19 @@ import java.awt.event.MouseEvent;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
-public class NetworkMonitorView extends ProfilerMonitorView {
+public class NetworkMonitorView extends ProfilerMonitorView<NetworkMonitor> {
 
   private static final BaseAxisFormatter BANDWIDTH_AXIS_FORMATTER_L1 = new NetworkTrafficFormatter(1, 2, 5);
 
-  @NotNull
-  private final NetworkMonitor myMonitor;
-
   public NetworkMonitorView(@NotNull NetworkMonitor monitor) {
-    myMonitor = monitor;
+    super(monitor);
   }
 
   @Override
   protected void populateUi(JPanel container, Choreographer choreographer) {
     container.setLayout(new GridBagLayout());
 
-    final JLabel label = new JLabel(myMonitor.getName());
+    final JLabel label = new JLabel(getMonitor().getName());
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(JLabel.TOP);
     final Dimension labelSize = label.getPreferredSize();
@@ -73,13 +70,13 @@ public class NetworkMonitorView extends ProfilerMonitorView {
     lineChartPanel.setBorder(BorderFactory.createEmptyBorder(labelSize.height, 0, 0, 0));
     final LineChart lineChart = new LineChart();
     lineChart.addLine(new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getLabel(),
-                                                 myMonitor.getViewRange(),
+                                                 getMonitor().getTimeline().getViewRange(),
                                                  leftYRange,
-                                                 myMonitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED)));
+                                                 getMonitor().getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED)));
     lineChart.addLine(new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_SENT.getLabel(),
-                                                 myMonitor.getViewRange(),
+                                                 getMonitor().getTimeline().getViewRange(),
                                                  leftYRange,
-                                                 myMonitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_SENT)));
+                                                 getMonitor().getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_SENT)));
     choreographer.register(lineChart);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
@@ -98,7 +95,7 @@ public class NetworkMonitorView extends ProfilerMonitorView {
     container.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseReleased(MouseEvent e) {
-        myMonitor.expand();
+        getMonitor().expand();
       }
     });
   }
