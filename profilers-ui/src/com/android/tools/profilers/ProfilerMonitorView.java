@@ -16,8 +16,6 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.Choreographer;
-import com.android.tools.profilers.timeline.AnimatedPan;
-import com.android.tools.profilers.timeline.AnimatedZoom;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -29,11 +27,6 @@ import javax.swing.border.MatteBorder;
 import java.awt.*;
 
 public abstract class ProfilerMonitorView<T extends ProfilerMonitor> {
-
-  /**
-   * The percentage of the current view range's length to zoom/pan per mouse wheel click.
-   */
-  private static final float VIEW_PERCENTAGE_PER_MOUSEHWEEL_FACTOR = 0.005f;
 
   private static final Border MONITOR_BORDER = BorderFactory.createCompoundBorder(
     new MatteBorder(0, 0, 1, 0, ProfilerColors.MONITOR_BORDER),
@@ -59,20 +52,6 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> {
     container.setMinimumSize(new Dimension(Integer.MAX_VALUE, MINIMUM_MONITOR_HEIGHT));
     container.setPreferredSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     populateUi(container, choreographer);
-
-    container.addMouseWheelListener(e -> {
-      int count = e.getWheelRotation();
-      double deltaUs = getMonitor().getTimeline().getViewRange().getLength() * VIEW_PERCENTAGE_PER_MOUSEHWEEL_FACTOR * count;
-      ProfilerTimeline timeline = getMonitor().getTimeline();
-      if (e.isAltDown()) {
-        double anchor = ((float)e.getX() / e.getComponent().getWidth());
-        choreographer.register(new AnimatedZoom(choreographer, timeline, deltaUs, anchor));
-      }
-      else {
-        choreographer.register(new AnimatedPan(choreographer, timeline, deltaUs));
-      }
-    });
-
     return container;
   }
 
