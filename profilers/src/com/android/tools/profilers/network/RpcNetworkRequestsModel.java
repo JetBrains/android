@@ -18,12 +18,13 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.model.Range;
  import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
+import com.google.protobuf3jarjar.ByteString;
+import com.intellij.openapi.util.text.StringUtil;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -64,6 +65,7 @@ public final class RpcNetworkRequestsModel implements NetworkRequestsModel {
       if (connection.getEndTimestamp() != 0) {
         httpData.setEndTimeUs(TimeUnit.NANOSECONDS.toMicros(connection.getEndTimestamp()));
         httpData.setDownloadingTimeUs(TimeUnit.NANOSECONDS.toMicros(connection.getDownloadingTimestamp()));
+        requestHttpResponse(httpData);
         requestHttpResponseBody(httpData);
       }
       httpDataList.add(httpData);
@@ -101,11 +103,39 @@ public final class RpcNetworkRequestsModel implements NetworkRequestsModel {
     }
     String payloadId = response.getResponseBody().getPayloadId();
     data.setHttpResponsePayloadId(payloadId);
-    // TODO: too slow
-    /*
-    File file = !StringUtil.isEmptyOrSpaces(responseFilePath) ? myDataCache.getFile(responseFilePath) : null;
-    if (file != null) {
-      data.setHttpResponseBodySize(file.length());
-    }*/
+  }
+
+  @NotNull
+  @Override
+  public ByteString requestResponsePayload(@NotNull HttpData data) {
+    if (StringUtil.isEmpty(data.getHttpResponsePayloadId())) {
+      return ByteString.EMPTY;
+    }
+
+    NetworkProfiler.NetworkPayloadRequest payloadRequest = NetworkProfiler.NetworkPayloadRequest.newBuilder()
+      .setPayloadId(data.getHttpResponsePayloadId())
+      .build();
+    NetworkProfiler.NetworkPayloadResponse payloadResponse;
+    try {
+      payloadResponse = myNetworkService.getPayload(payloadRequest);
+    } catch (StatusRuntimeException e) {
+      return ByteString.EMPTY;
+    }
+    return payloadResponse.getContents();
+  }
+
+  private void requestHttpResponse(@NotNull HttpData data) {
+    NetworkProfiler.HttpDetailsRequest request = NetworkProfiler.HttpDetailsRequest.newBuilder()
+      .setConnId(data.getId())
+      .setType(NetworkProfiler.HttpDetailsRequest.Type.RESPONSE)
+      .build();
+    NetworkProfiler.HttpDetailsResponse response;
+    try {
+      response = myNetworkService.getHttpDetails(request);
+    }
+    catch (StatusRuntimeException e) {
+      return;
+    }
+    data.setHttpResponseFields(response.getResponse().getFields());
   }
 }
