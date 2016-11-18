@@ -16,6 +16,10 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.Choreographer;
+import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.model.LegendRenderData;
+import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -25,10 +29,9 @@ import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
+import java.util.ArrayList;
 
 public abstract class ProfilerMonitorView {
-  protected static final int MARKER_LENGTH = JBUI.scale(5);
-  protected static final Border LABEL_PADDING = BorderFactory.createEmptyBorder(5, 10, 5, 10);
   private static final Border MONITOR_BORDER = BorderFactory.createCompoundBorder(
     new MatteBorder(0, 0, 1, 0, ProfilerColors.MONITOR_BORDER),
     new EmptyBorder(0, 0, 0, 0));
