@@ -50,7 +50,7 @@ public class AndroidPreviewPanelTest extends AndroidTestCase {
     Executor executor = (r) -> {
       // Run in a separate thread and wait for the result
       try {
-        threadPool.submit(r).get(5, TimeUnit.SECONDS);
+        threadPool.submit(r).get(60, TimeUnit.SECONDS);
         executorCalled.set(true);
       }
       catch (InterruptedException | ExecutionException | TimeoutException e) {
