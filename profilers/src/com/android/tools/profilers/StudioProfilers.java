@@ -40,6 +40,8 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
   public static final int INVALID_PROCESS_ID = -1;
 
   private final ProfilerClient myClient;
+  @Nullable
+  private String myPreferredProcessName;
 
   private final Range myDataRangUs;
   private final ProfilerTimeline myTimeline;
@@ -60,6 +62,7 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
 
   public StudioProfilers(ProfilerClient service) {
     myClient = service;
+    myPreferredProcessName = null;
     myStage = null;
     myProfilers = ImmutableList.of(
       new EventProfiler(this),
@@ -80,6 +83,10 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
 
   public List<Profiler.Device> getDevices() {
     return Lists.newArrayList(myProcesses.keySet());
+  }
+
+  public void setPreferredProcessName(@Nullable String name) {
+    myPreferredProcessName = name;
   }
 
   /**
@@ -122,7 +129,7 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
             myProcesses = newProcesses;
             // Attempt to choose the currently profiled device and process
             setDevice(myDevice);
-            setProcess(myProcess);
+            setProcess(null);
 
             changed(ProfilerAspect.DEVICES);
             changed(ProfilerAspect.PROCESSES);
@@ -165,15 +172,17 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
     }
   }
 
-
   /**
-   * Chooses the given process. If the process is not known or null, the first available one will be chosen instead.
+   * Chooses a process, and starts profiling it if not already (and stops profiling the previous
+   * one).
+   *
+   * @param process the process that will be selected. If it is null, a process will be determined
+   *                automatically by heuristics.
    */
   public void setProcess(@Nullable Profiler.Process process) {
     List<Profiler.Process> processes = myProcesses.get(myDevice);
-    if (processes == null || !processes.contains(process)) {
-      // The process doesn't belong to the current device. Choose a new process.
-      process = (processes == null || processes.isEmpty()) ? null : processes.iterator().next();
+    if (process == null || processes == null || !processes.contains(process)) {
+      process = getPreferredProcess(processes);
     }
     if (!Objects.equals(process, myProcess)) {
       if (myDevice != null && myProcess != null) {
@@ -188,6 +197,32 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
       }
       setStage(new StudioMonitorStage(this));
     }
+  }
+
+  /**
+   * Chooses a process among all potential candidates starting from the project's app process,
+   * and then the one previously used. If no candidate is available, return the first available
+   * process.
+   */
+  @Nullable
+  private Profiler.Process getPreferredProcess(List<Profiler.Process> processes) {
+    if (processes == null || processes.isEmpty()) {
+      return null;
+    }
+    // Prefer the project's app if available.
+    if (myPreferredProcessName != null) {
+      for (Profiler.Process process : processes) {
+        if (process.getName().equals(myPreferredProcessName)) {
+          return process;
+        }
+      }
+    }
+    // Next, prefer the one previously used, either selected by user or automatically.
+    if (myProcess != null && processes.contains(myProcess)) {
+      return myProcess;
+    }
+    // No preferred candidate. Choose a new process.
+    return processes.get(0);
   }
 
   public boolean isConnected() {
