@@ -216,20 +216,20 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   }
 
   @NotNull
-  private String getWidthPropertyName(@NotNull Side side) {
-    return TOOL_WINDOW_PROPERTY_PREFIX + myName + "." + side.name() + ".WIDTH";
+  private String getWidthPropertyName(@NotNull Layout layout, @NotNull Side side) {
+    return TOOL_WINDOW_PROPERTY_PREFIX + layout.getPrefix() + myName + "." + side.name() + ".WIDTH";
   }
 
-  private int getSideWidth(@NotNull Side side) {
-    return myPropertiesComponent.getInt(getWidthPropertyName(side), -1);
+  private int getSideWidth(@NotNull Layout layout, @NotNull Side side) {
+    return myPropertiesComponent.getInt(getWidthPropertyName(layout, side), -1);
   }
 
-  private void setSideWidth(@NotNull Side side, int value) {
-    myPropertiesComponent.setValue(getWidthPropertyName(side), value, ToolWindowDefinition.DEFAULT_SIDE_WIDTH);
+  private void setSideWidth(@NotNull Layout layout, @NotNull Side side, int value) {
+    myPropertiesComponent.setValue(getWidthPropertyName(layout, side), value, ToolWindowDefinition.DEFAULT_SIDE_WIDTH);
   }
 
   private int getInitialSideWidth(@NotNull Side side) {
-    int width = getSideWidth(side);
+    int width = getSideWidth(Layout.CURRENT, side);
     if (width != -1) {
       return width;
     }
@@ -237,7 +237,10 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
       .filter(tool -> tool.getSide() == side)
       .map(ToolWindowDefinition::getInitialMinimumWidth)
       .max(Comparator.comparing(size -> size));
-    return minimumWidth.orElse(ToolWindowDefinition.DEFAULT_SIDE_WIDTH);
+    width = minimumWidth.orElse(ToolWindowDefinition.DEFAULT_SIDE_WIDTH);
+    setSideWidth(Layout.DEFAULT, side, width);
+    setSideWidth(Layout.CURRENT, side, width);
+    return width;
   }
 
   @NotNull
@@ -255,20 +258,25 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     updateWidth(Side.RIGHT);
   }
 
+  private void restoreBothWidths() {
+    mySplitter.setFirstSize(getInitialSideWidth(Side.LEFT));
+    mySplitter.setLastSize(getInitialSideWidth(Side.RIGHT));
+  }
+
   private void updateWidth(@NotNull Side side) {
     int width = side.isLeft() ? mySplitter.getFirstSize() : mySplitter.getLastSize();
-    if (width != 0 && width != getSideWidth(side)) {
-      setSideWidth(side, width);
+    if (width != 0 && width != getSideWidth(Layout.CURRENT, side)) {
+      setSideWidth(Layout.CURRENT, side, width);
     }
   }
 
   @NotNull
-  private String getToolOrderPropertyName() {
-    return TOOL_WINDOW_PROPERTY_PREFIX + myName + ".TOOL_ORDER";
+  private String getToolOrderPropertyName(@NotNull Layout layout) {
+    return TOOL_WINDOW_PROPERTY_PREFIX + layout.getPrefix() + myName + ".TOOL_ORDER";
   }
 
   private void restoreToolOrder(@NotNull List<AttachedToolWindow<T>> tools) {
-    String orderAsString = myPropertiesComponent.getValue(getToolOrderPropertyName());
+    String orderAsString = myPropertiesComponent.getValue(getToolOrderPropertyName(Layout.CURRENT));
     if (orderAsString == null) {
       return;
     }
@@ -287,7 +295,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     tools.sort((t1, t2) -> Integer.compare(t1.getToolOrder(), t2.getToolOrder()));
   }
 
-  private void storeToolOrder(@NotNull List<AttachedToolWindow<T>> tools) {
+  private void storeToolOrder(@NotNull Layout layout, @NotNull List<AttachedToolWindow<T>> tools) {
     StringBuilder builder = new StringBuilder();
     for (AttachedToolWindow tool : tools) {
       if (builder.length() > 0) {
@@ -295,14 +303,21 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
       }
       builder.append(tool.getToolName());
     }
-    myPropertiesComponent.setValue(getToolOrderPropertyName(), builder.toString());
+    myPropertiesComponent.setValue(getToolOrderPropertyName(layout), builder.toString());
+  }
+
+  private void setDefaultOrderIfMissing(@NotNull List<AttachedToolWindow<T>> tools) {
+    if (!myPropertiesComponent.isValueSet(getToolOrderPropertyName(Layout.CURRENT))) {
+      storeToolOrder(Layout.DEFAULT, tools);
+      storeToolOrder(Layout.CURRENT, tools);
+    }
   }
 
   private void modelChanged(@NotNull SideModel model, @NotNull SideModel.EventType type) {
     switch (type) {
       case SWAP:
-        mySplitter.setFirstSize(getSideWidth(Side.RIGHT));
-        mySplitter.setLastSize(getSideWidth(Side.LEFT));
+        mySplitter.setFirstSize(getSideWidth(Layout.CURRENT, Side.RIGHT));
+        mySplitter.setLastSize(getSideWidth(Layout.CURRENT, Side.LEFT));
         updateBothWidths();
         myWorkBenchManager.updateOtherWorkBenches(this);
         break;
@@ -316,7 +331,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
         break;
 
       case UPDATE_TOOL_ORDER:
-        storeToolOrder(myModel.getAllTools());
+        storeToolOrder(Layout.CURRENT, myModel.getAllTools());
         myWorkBenchManager.updateOtherWorkBenches(this);
         break;
 
@@ -333,6 +348,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
       Disposer.register(this, toolWindow);
       tools.add(toolWindow);
     }
+    setDefaultOrderIfMissing(tools);
     restoreToolOrder(tools);
     myModel.setTools(tools);
   }
@@ -341,7 +357,29 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     return myModel.getFloatingTools();
   }
 
+  public void storeDefaultLayout() {
+    String orderAsString = myPropertiesComponent.getValue(getToolOrderPropertyName(Layout.CURRENT));
+    myPropertiesComponent.setValue(getToolOrderPropertyName(Layout.DEFAULT), orderAsString);
+    setSideWidth(Layout.DEFAULT, Side.LEFT, getSideWidth(Layout.CURRENT, Side.LEFT));
+    setSideWidth(Layout.DEFAULT, Side.RIGHT, getSideWidth(Layout.CURRENT, Side.RIGHT));
+    for (AttachedToolWindow<T> tool : myModel.getAllTools()) {
+      tool.storeDefaultLayout();
+    }
+  }
+
+  public void restoreDefaultLayout() {
+    String orderAsString = myPropertiesComponent.getValue(getToolOrderPropertyName(Layout.DEFAULT));
+    myPropertiesComponent.setValue(getToolOrderPropertyName(Layout.CURRENT), orderAsString);
+    setSideWidth(Layout.CURRENT, Side.LEFT, getSideWidth(Layout.DEFAULT, Side.LEFT));
+    setSideWidth(Layout.CURRENT, Side.RIGHT, getSideWidth(Layout.DEFAULT, Side.RIGHT));
+    for (AttachedToolWindow<T> tool : myModel.getAllTools()) {
+      tool.restoreDefaultLayout();
+    }
+    updateModel();
+  }
+
   public void updateModel() {
+    restoreBothWidths();
     restoreToolOrder(myModel.getAllTools());
     myModel.updateLocally();
   }
