@@ -44,6 +44,7 @@ public class DesignerTestSuite {
 
   static {
     System.setProperty("idea.home", createTmpDir("tools/idea").toString());
+    System.setProperty("layoutlib.thread.timeout", "60000");
     symbolicLinkInTmpDir("tools/adt/idea/android/annotations");
     VfsRootAccess.allowRootAccess("/");
     symbolicLinkInTmpDir("tools/idea/java/jdkAnnotations");
