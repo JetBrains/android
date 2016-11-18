@@ -36,21 +36,19 @@ import java.awt.event.MouseEvent;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
-public class MemoryMonitorView extends ProfilerMonitorView {
+public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
 
   private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 2, 5);
 
-  @NotNull private final MemoryMonitor myMonitor;
-
   public MemoryMonitorView(@NotNull MemoryMonitor monitor) {
-    myMonitor = monitor;
+    super(monitor);
   }
 
   @Override
   protected void populateUi(JPanel container, Choreographer choreographer) {
     container.setLayout(new GridBagLayout());
 
-    final JLabel label = new JLabel(myMonitor.getName());
+    final JLabel label = new JLabel(getMonitor().getName());
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(JLabel.TOP);
     final Dimension labelSize = label.getPreferredSize();
@@ -74,8 +72,9 @@ public class MemoryMonitorView extends ProfilerMonitorView {
     lineChartPanel.setOpaque(false);
     lineChartPanel.setBorder(BorderFactory.createEmptyBorder(labelSize.height, 0, 0, 0));
     final LineChart lineChart = new LineChart();
-    lineChart.addLine(new RangedContinuousSeries("Memory", myMonitor.getViewRange(), leftYRange, myMonitor.getTotalMemory()),
-                      new LineConfig(ProfilerColors.TOTAL_MEMORY).setFilled(true));
+    lineChart
+      .addLine(new RangedContinuousSeries("Memory", getMonitor().getTimeline().getViewRange(), leftYRange, getMonitor().getTotalMemory()),
+               new LineConfig(ProfilerColors.TOTAL_MEMORY).setFilled(true));
     choreographer.register(lineChart);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
@@ -94,7 +93,7 @@ public class MemoryMonitorView extends ProfilerMonitorView {
     container.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseReleased(MouseEvent e) {
-        myMonitor.expand();
+        getMonitor().expand();
       }
     });
   }
