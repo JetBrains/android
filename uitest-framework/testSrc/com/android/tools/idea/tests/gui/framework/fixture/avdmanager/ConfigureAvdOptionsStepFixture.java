@@ -70,4 +70,10 @@ public class ConfigureAvdOptionsStepFixture extends AbstractWizardStepFixture<Co
     findComboBoxWithLabel("Graphics:").selectItem("Hardware - GLES 2.0");
     return this;
   }
+
+  @NotNull
+  public ConfigureAvdOptionsStepFixture selectGraphicsSoftware() {
+    findComboBoxWithLabel("Graphics:").selectItem("Software - GLES 2.0");
+    return this;
+  }
 }
