@@ -19,9 +19,11 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.ui.components.JBList;
 import org.fest.swing.cell.JListCellReader;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
@@ -49,10 +51,20 @@ public class ProjectStructureDialogFixture implements ContainerFixture<JDialog> 
     return new ProjectStructureDialogFixture(dialog, ideFrameFixture);
   }
 
+  public IdeFrameFixture getIdeFrameFixture() {
+    return myIdeFrameFixture;
+  }
+
   @NotNull
   public FlavorsTabFixture selectFlavorsTab() {
     selectTab("Flavors");
     return new FlavorsTabFixture(myDialog, myIdeFrameFixture);
+  }
+
+  @NotNull
+  public DependencyTabFixture selectDependenciesTab() {
+    selectTab("Dependencies");
+    return new DependencyTabFixture(myDialog, myIdeFrameFixture);
   }
 
   private static final JListCellReader CONFIGURATION_CELL_READER = (jList, index) ->
@@ -112,6 +124,17 @@ public class ProjectStructureDialogFixture implements ContainerFixture<JDialog> 
   public BuildTypesTabFixture selectBuildTypesTab() {
     selectTab("Build Types");
     return new BuildTypesTabFixture(myDialog, myIdeFrameFixture);
+  }
+
+  protected void clickAddButtonImpl() {
+    ActionButton addButton = robot().finder().find(target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull ActionButton button) {
+        String toolTipText = button.getToolTipText();
+        return button.isShowing() && toolTipText != null && toolTipText.startsWith("Add");
+      }
+    });
+    robot().click(addButton);
   }
 
   private void selectTab(@NotNull String tabName) {
