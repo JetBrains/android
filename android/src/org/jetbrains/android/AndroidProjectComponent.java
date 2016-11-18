@@ -98,7 +98,10 @@ public class AndroidProjectComponent extends AbstractProjectComponent {
     alarm.addRequest(new Runnable() {
       @Override
       public void run() {
-        service.runReadActionInSmartMode(() -> checkGenerate());
+        Map<AndroidFacet, Collection<AndroidAutogeneratorMode>> facetsToProcess = service.runReadActionInSmartMode(() -> checkGenerate());
+        if (facetsToProcess.size() > 0) {
+          generate(facetsToProcess);
+        }
         if (!alarm.isDisposed()) {
           alarm.addRequest(this, 2000);
         }
@@ -106,15 +109,12 @@ public class AndroidProjectComponent extends AbstractProjectComponent {
     }, 2000);
   }
 
-  private void checkGenerate() {
-    if (myProject.isDisposed()) return;
+  private Map<AndroidFacet, Collection<AndroidAutogeneratorMode>> checkGenerate() {
+    if (myProject.isDisposed()) return Collections.emptyMap();
 
     final Map<AndroidFacet, Collection<AndroidAutogeneratorMode>> facetsToProcess = new HashMap<>();
 
-    final Module[] modules = ModuleManager.getInstance(myProject).getModules();
-    final Module[] modulesCopy = Arrays.copyOf(modules, modules.length);
-
-    for (Module module : modulesCopy) {
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
         final AndroidFacet facet = AndroidFacet.getInstance(module);
 
         if (facet != null && facet.isAutogenerationEnabled()) {
@@ -131,10 +131,7 @@ public class AndroidProjectComponent extends AbstractProjectComponent {
           }
         }
       }
-
-    if (facetsToProcess.size() > 0) {
-      generate(facetsToProcess);
-  }
+    return facetsToProcess;
   }
 
   private void generate(final Map<AndroidFacet, Collection<AndroidAutogeneratorMode>> facetsToProcess) {
