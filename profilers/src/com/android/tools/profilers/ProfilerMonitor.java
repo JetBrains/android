@@ -31,8 +31,8 @@ public abstract class ProfilerMonitor {
   }
 
   @NotNull
-  public final Range getViewRange() {
-    return myProfilers.getTimeline().getViewRange();
+  public final ProfilerTimeline getTimeline() {
+    return myProfilers.getTimeline();
   }
 
   abstract public String getName();

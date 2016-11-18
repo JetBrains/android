@@ -77,15 +77,15 @@ public class NetworkProfilerStageView extends StageView {
 
     LineChart lineChart = new LineChart();
     lineChart.addLine(new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getLabel(),
-                                                 monitor.getViewRange(),
+                                                 monitor.getTimeline().getViewRange(),
                                                  leftAxis.getRange(),
                                                  monitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED)));
     lineChart.addLine(new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_SENT.getLabel(),
-                                                 monitor.getViewRange(),
+                                                 monitor.getTimeline().getViewRange(),
                                                  leftAxis.getRange(),
                                                  monitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_SENT)));
     lineChart.addLine(new RangedContinuousSeries("Connections",
-                                                 monitor.getViewRange(),
+                                                 monitor.getTimeline().getViewRange(),
                                                  rightAxis.getRange(),
                                                  monitor.getOpenConnectionsSeries()));
     JPanel lineChartWrapper = new JPanel(new BorderLayout());

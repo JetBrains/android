@@ -35,22 +35,19 @@ import java.awt.event.MouseEvent;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
-public class CpuMonitorView extends ProfilerMonitorView {
+public class CpuMonitorView extends ProfilerMonitorView<CpuMonitor> {
 
   private static final SingleUnitAxisFormatter CPU_USAGE_AXIS = new SingleUnitAxisFormatter(1, 2, 10, "%");
 
-  @NotNull
-  private final CpuMonitor myMonitor;
-
   public CpuMonitorView(@NotNull CpuMonitor monitor) {
-    myMonitor = monitor;
+    super(monitor);
   }
 
   @Override
   protected void populateUi(JPanel container, Choreographer choreographer) {
     container.setLayout(new GridBagLayout());
 
-    final JLabel label = new JLabel(myMonitor.getName());
+    final JLabel label = new JLabel(getMonitor().getName());
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(JLabel.TOP);
     final Dimension labelSize = label.getPreferredSize();
@@ -75,8 +72,10 @@ public class CpuMonitorView extends ProfilerMonitorView {
     lineChartPanel.setOpaque(false);
     lineChartPanel.setBorder(BorderFactory.createEmptyBorder(labelSize.height, 0, 0, 0));
     final LineChart lineChart = new LineChart();
-    lineChart.addLine(new RangedContinuousSeries("CPU", myMonitor.getViewRange(), leftYRange, myMonitor.getThisProcessCpuUsage()),
-                      new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true));
+    lineChart
+      .addLine(
+        new RangedContinuousSeries("CPU", getMonitor().getTimeline().getViewRange(), leftYRange, getMonitor().getThisProcessCpuUsage()),
+        new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true));
     choreographer.register(lineChart);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
@@ -95,7 +94,7 @@ public class CpuMonitorView extends ProfilerMonitorView {
     container.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseReleased(MouseEvent e) {
-        myMonitor.expand();
+        getMonitor().expand();
       }
     });
   }

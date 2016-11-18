@@ -72,4 +72,14 @@ public final class ProfilerTimeline {
   public Range getViewRange() {
     return myViewRangeUs;
   }
+
+  /**
+   * Clamps and return the input time to be within the data range, accounting for the head buffer and the edge case where the view range
+   * is before data range's min at the default zoom level when the timeline first started.
+   */
+  public double clampToDataRange(double timeUs) {
+    double globalMin = Math.min(myViewRangeUs.getMin(), myDataRangeUs.getMin());
+    double globalMax = Math.max(globalMin, myDataRangeUs.getMax() - myBufferUs);
+    return Math.min(globalMax, Math.max(globalMin, timeUs));
+  }
 }
