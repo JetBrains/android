@@ -29,7 +29,6 @@ import com.android.tools.profilers.StudioMonitorStage;
 import com.android.tools.profilers.StudioProfilers;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,18 +40,16 @@ public class NetworkProfilerStageView extends StageView {
   private static final BaseAxisFormatter CONNECTIONS_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 1, "");
 
   private final NetworkProfilerStage myStage;
-  private final JPanel myConnectionDetails;
+  private final ConnectionDetailsView myConnectionDetails;
   private final NetworkRequestsView myRequestsView;
   private final Splitter mySplitter;
 
   public NetworkProfilerStageView(NetworkProfilerStage stage) {
     super(stage);
     myStage = stage;
-    myConnectionDetails = new JPanel(new BorderLayout());
 
-    myRequestsView = new NetworkRequestsView(this, stage.getRequestsModel(), data -> {
-      System.out.println(data.getId());
-    });
+    myConnectionDetails = new ConnectionDetailsView();
+    myRequestsView = new NetworkRequestsView(this, stage.getRequestsModel(), stage::setConnection);
 
     NetworkMonitor monitor = new NetworkMonitor(stage.getStudioProfilers());
     stage.aspect.addDependency()
@@ -120,10 +117,7 @@ public class NetworkProfilerStageView extends StageView {
   }
 
   private void updateRequestDetailsView() {
-    // TODO: Get the data from the model and fill it/update it.
-    myConnectionDetails.removeAll();
-    myConnectionDetails.setBackground(JBColor.background());
-    myConnectionDetails.add(new JLabel("Connection ID: " + myStage.getConnectionId()), BorderLayout.CENTER);
+    myConnectionDetails.update(myStage.getConnection());
     myConnectionDetails.setVisible(myStage.isConnectionDataEnabled());
     myConnectionDetails.revalidate();
   }

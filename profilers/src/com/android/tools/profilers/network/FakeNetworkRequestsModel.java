@@ -19,14 +19,16 @@ import com.android.tools.adtui.model.Range;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 // TODO: This is not used and will be deleted, but temporarily useful for local testing.
 public class FakeNetworkRequestsModel implements NetworkRequestsModel {
   @NotNull
   @Override
   public List<HttpData> getData(@NotNull Range timeCurrentRangeUs) {
-    int size = (int)random(1, 20);
+    int size = 9;
     List<HttpData> result = new ArrayList<>();
     long startTimeUs = (long)timeCurrentRangeUs.getMin();
     long endTimeUs = (long)timeCurrentRangeUs.getMax();
@@ -35,10 +37,16 @@ public class FakeNetworkRequestsModel implements NetworkRequestsModel {
       long download = random(start, endTimeUs);
       long end = random(download, endTimeUs);
       HttpData data = new HttpData();
+      data.setId(i + 1);
       data.setStartTimeUs(start);
       data.setDownloadingTimeUs(download);
       data.setEndTimeUs(end);
       data.setUrl("www.fake.url/" + i);
+      Map<String, String> httpResponseFields = new HashMap<>();
+      httpResponseFields.put("content-type", "image/jpeg");
+      httpResponseFields.put("content-length", Integer.toString(76000 + i));
+      data.setHttpResponseFields(httpResponseFields);
+      data.setHttpResponseBodySize(76000 + i);
       result.add(data);
     }
     return result;
