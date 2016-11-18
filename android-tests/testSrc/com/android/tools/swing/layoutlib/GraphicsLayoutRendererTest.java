@@ -15,10 +15,13 @@
  */
 package com.android.tools.swing.layoutlib;
 
+import com.android.ide.common.rendering.api.SessionParams;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.DomPullParser;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -40,8 +43,14 @@ public class GraphicsLayoutRendererTest extends AndroidTestCase {
     DomPullParser parser = new DomPullParser(
       DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(layout.getInputStream()).getDocumentElement());
 
+    AndroidFacet facet = AndroidFacet.getInstance(configuration.getModule());
+    assertNotNull(facet);
+    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
+    assertNotNull(platform);
+    //noinspection UndesirableClassUsage
     BufferedImage image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
-    GraphicsLayoutRenderer renderer = GraphicsLayoutRenderer.create(configuration, parser, Color.BLACK, false, false);
+    GraphicsLayoutRenderer renderer = GraphicsLayoutRenderer.create(
+      facet, platform, myModule.getProject(), configuration, parser, Color.BLACK, SessionParams.RenderingMode.V_SCROLL, false);
 
     // The first render triggers a render (to a NOP Graphics object) so we expect sizes to have been initialized.
     Dimension initialSize = renderer.getPreferredSize();
