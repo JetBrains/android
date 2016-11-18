@@ -15,5 +15,6 @@ iml_module(
         "//tools/adt/idea/adt-ui:adt-ui[module]",
         "//tools/adt/idea/adt-ui-model:adt-ui-model[module]",
         "//tools:idea.platform-api[module]",
+        "//tools:idea.platform-impl_and_others[module]",
     ],
 )
