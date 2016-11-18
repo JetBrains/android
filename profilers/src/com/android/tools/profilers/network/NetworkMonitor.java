@@ -20,6 +20,7 @@ import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
+// TODO: This class needs to be covered by tests
 public class NetworkMonitor extends ProfilerMonitor {
 
   public NetworkMonitor(@NotNull StudioProfilers profilers) {
@@ -30,6 +31,12 @@ public class NetworkMonitor extends ProfilerMonitor {
   public NetworkTrafficDataSeries getSpeedSeries(NetworkTrafficDataSeries.Type trafficType) {
     NetworkServiceGrpc.NetworkServiceBlockingStub client = myProfilers.getClient().getNetworkClient();
     return new NetworkTrafficDataSeries(client, myProfilers.getProcessId(), trafficType);
+  }
+
+  @NotNull
+  public NetworkOpenConnectionsDataSeries getOpenConnectionsSeries() {
+    NetworkServiceGrpc.NetworkServiceBlockingStub client = myProfilers.getClient().getNetworkClient();
+    return new NetworkOpenConnectionsDataSeries(client, myProfilers.getProcessId());
   }
 
   @NotNull
