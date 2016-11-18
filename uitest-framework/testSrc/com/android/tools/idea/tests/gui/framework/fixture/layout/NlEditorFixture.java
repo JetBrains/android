@@ -30,6 +30,7 @@ import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JTreeFixture;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -71,6 +72,11 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
 
   public void waitForErrorPanelToContain(@NotNull String errorText) {
     myDesignSurfaceFixture.waitForErrorPanelToContain(errorText);
+  }
+
+  @Nullable
+  public String getErrorText() {
+    return myDesignSurfaceFixture.getErrorText();
   }
 
   @NotNull
