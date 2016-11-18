@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.chart.linechart.LineChart;
@@ -23,11 +24,13 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerScrollbar;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.intellij.ui.components.JBList;
+import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -36,8 +39,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class CpuProfilerStageView extends StageView {
-
-  private final JBList myThreadsList;
 
   public CpuProfilerStageView(@NotNull CpuProfilerStage stage) {
     super(stage);
@@ -59,27 +60,44 @@ public class CpuProfilerStageView extends StageView {
                       new LineConfig(ProfilerColors.CPU_OTHER_USAGE).setFilled(true).setStacked(true));
 
     RangedListModel<CpuThreadsModel.RangedCpuThread> model = cpu.getThreadStates();
-    myThreadsList = new JBList(model);
-    myThreadsList.setCellRenderer(new ThreadCellRenderer(getChoreographer(), myThreadsList));
 
+
+    JBList threads = new JBList(model);
+    JScrollPane scrollingThreads = new JBScrollPane();
+    scrollingThreads.setViewportView(threads);
+
+
+    ProfilerScrollbar scrollbar = new ProfilerScrollbar(profilers.getTimeline());
+    getChoreographer().register(scrollbar);
+
+    threads.setCellRenderer(new ThreadCellRenderer(getChoreographer(), threads));
     RangedList rangedList = new RangedList(getTimeline().getViewRange(), model);
 
-    // TODO: Event monitor should be fixed size.
     GridBagConstraints c = new GridBagConstraints();
     c.fill = GridBagConstraints.BOTH;
     c.gridx = 0;
     c.gridy = 0;
     c.weightx = 1.0;
-    c.weighty = 0.2;
+    c.weighty = 0.0;
     getComponent().add(eventsComponent, c);
     c.gridy = 1;
     c.weighty = 0.4;
     getComponent().add(lineChart, c);
     getChoreographer().register(lineChart);
     c.gridy = 2;
-    c.weighty = 0.4;
+    c.weighty = 0.6;
+    getComponent().add(scrollingThreads, c);
+    c.gridy = 3;
+    c.weighty = 0;
+    getComponent().add(scrollbar, c);
+    AxisComponent timeAxis = buildTimeAxis(profilers);
 
-    getComponent().add(myThreadsList, c);
+    getChoreographer().register(timeAxis);
+    c.weighty = 0;
+    c.gridy = 4;
+    getComponent().add(timeAxis, c);
+
+
     getChoreographer().register(rangedList);
   }
 
@@ -97,7 +115,7 @@ public class CpuProfilerStageView extends StageView {
 
     public ThreadCellRenderer(Choreographer choreographer, JList<CpuThreadsModel.RangedCpuThread> list) {
       myLabel = new JLabel();
-      myLabel.setFont(myLabel.getFont().deriveFont(12.0f));
+      myLabel.setFont(myLabel.getFont().deriveFont(10.0f));
       myStateCharts = new AnimatedListRenderer<>(choreographer, list, thread -> {
         StateChart<CpuProfiler.GetThreadsResponse.State> chart = new StateChart<>(ProfilerColors.THREAD_STATES);
         chart.setHeightGap(0.35f);

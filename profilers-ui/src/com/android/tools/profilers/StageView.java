@@ -15,8 +15,11 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.Choreographer;
+import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -26,6 +29,8 @@ public abstract class StageView {
   private final Stage myStage;
   private final Choreographer myChoreographer;
   private final JPanel myComponent;
+
+  private static final int TIME_AXIS_HEIGHT = JBUI.scale(20);
 
   public StageView(@NotNull Stage stage) {
     myStage = stage;
@@ -57,6 +62,17 @@ public abstract class StageView {
 
   public void exit() {
     myChoreographer.stop();
+  }
+
+  @NotNull
+  protected AxisComponent buildTimeAxis(StudioProfilers profilers) {
+    AxisComponent.Builder builder = new AxisComponent.Builder(profilers.getTimeline().getViewRange(), TimeAxisFormatter.DEFAULT,
+                                                              AxisComponent.AxisOrientation.BOTTOM);
+    builder.setGlobalRange(profilers.getDataRange()).showAxisLine(false)
+      .setOffset(profilers.getDeviceStartUs());
+    AxisComponent timeAxis = builder.build();
+    timeAxis.setMinimumSize(new Dimension(Integer.MAX_VALUE, TIME_AXIS_HEIGHT));
+    return timeAxis;
   }
 
   abstract public JComponent getToolbar();
