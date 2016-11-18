@@ -53,6 +53,7 @@ public class FlightRecorderTest {
     List<LocalDateTime> instants = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
       LocalDateTime instant = now.minus(random.nextInt(500), ChronoUnit.SECONDS);
+      if (instants.contains(instant)) continue;
       instants.add(instant);
 
       // create a log folder and add some logs within it
