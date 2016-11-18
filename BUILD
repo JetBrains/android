@@ -77,12 +77,17 @@ iml_module(
 )
 
 filegroup(
+    name = "android-annotations",
+    srcs = glob(["android/annotations/**"]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
     name = "testFiles",
     srcs = glob([
-        "android/annotations/**",
         "android/device-art-resources/**",
         "android/testData/**",
-    ]),
+    ]) + [":android-annotations"],
     visibility = ["//visibility:public"],
 )
 
