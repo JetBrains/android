@@ -28,9 +28,17 @@ import java.awt.*;
  */
 public class LineConfig {
 
-  private static final BasicStroke DEFAULT_LINE_STROKE = new BasicStroke(2);
+  /**
+   * Stroke which can be used with {@link #setStroke(Stroke)} which results in a solid line with
+   * default thickness.
+   */
+  public static final BasicStroke DEFAULT_LINE_STROKE = new BasicStroke(2);
 
-  private static final BasicStroke DEFAULT_DASH_STROKE =
+  /**
+   * Stroke which can be used with {@link #setStroke(Stroke)} which results in a dashed line with
+   * default thickness.
+   */
+  public static final BasicStroke DEFAULT_DASH_STROKE =
     new BasicStroke(2.0f,
                     BasicStroke.CAP_BUTT,
                     BasicStroke.JOIN_BEVEL,
@@ -51,11 +59,6 @@ public class LineConfig {
     new JBColor(0x969696, 0x969696),
     new JBColor(0xd9d9d9, 0xd9d9d9),
   };
-
-  /**
-   * Whether the series should be represented by dashed lines.
-   */
-  private boolean myIsDashed = false;
 
   /**
    * Whether the series should be represented by a stepped chart.
@@ -90,17 +93,6 @@ public class LineConfig {
   public LineConfig(@NotNull Color color) {
     mColor = color;
     myStroke = DEFAULT_LINE_STROKE;
-  }
-
-  @NotNull
-  public LineConfig setDashed(boolean isDashed) {
-    myIsDashed = isDashed;
-    myStroke = myIsDashed ? DEFAULT_DASH_STROKE : DEFAULT_LINE_STROKE;
-    return this;
-  }
-
-  public boolean isDashed() {
-    return myIsDashed;
   }
 
   @NotNull
