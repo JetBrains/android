@@ -62,6 +62,9 @@ import java.nio.file.Paths;
   com.android.tools.idea.npw.importing.ArchiveToGradleModuleStepTest.class,
   com.android.tools.idea.npw.importing.SourceToGradleModuleStepTest.class,
   com.android.tools.idea.npw.project.AndroidGradleModuleUtilsTest.class,
+  com.android.tools.idea.rendering.LayoutPullParserFactoryTest.class, // flaky in bazel
+  com.android.tools.idea.rendering.MenuPreviewRendererTest.class,     // flaky in bazel
+  com.android.tools.idea.rendering.RenderErrorContributorTest.class, // flaky in bazel
   AndroidTestConfigurationProducerTest.class,
   com.android.tools.idea.templates.RepositoryUrlManagerTest.class,
   com.android.tools.swing.layoutlib.GraphicsLayoutRendererTest.class,
