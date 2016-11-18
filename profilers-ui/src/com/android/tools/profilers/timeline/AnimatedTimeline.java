@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
+package com.android.tools.profilers.timeline;
 
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profilers.ProfilerTimeline;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
@@ -40,13 +41,9 @@ public final class AnimatedTimeline implements Animatable {
 
     // Advances time by frameLength (up to current data max - buffer)
     float frameLengthUs = frameLength * TimeUnit.SECONDS.toMicros(1);
-    Range dataRange = myTimeline.getDataRange();
     Range viewRange = myTimeline.getViewRange();
-    double dataMax = dataRange.getMax() - myTimeline.getViewBuffer();
-    double viewMax = viewRange.getMax();
-    if (dataMax > viewMax) {
-      double deltaUs = Math.min(dataMax - viewMax, frameLengthUs);
-      viewRange.shift(deltaUs);
-    }
+    double viewMaxUs = viewRange.getMax();
+    double deltaUs = myTimeline.clampToDataRange(viewMaxUs + frameLengthUs) - viewMaxUs;
+    viewRange.shift(deltaUs);
   }
 }

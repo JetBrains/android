@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 
-public class EventMonitorView extends ProfilerMonitorView {
+public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
 
   private static final int ACTIVITY_GRAPH_HEIGHT = 31;
 
@@ -40,11 +40,8 @@ public class EventMonitorView extends ProfilerMonitorView {
     AdtUiUtils.buildStaticImage(Color.blue, ICON_WIDTH, ICON_HEIGHT)
   };
 
-  @NotNull
-  private final EventMonitor myMonitor;
-
   public EventMonitorView(@NotNull EventMonitor monitor) {
-    myMonitor = monitor;
+    super(monitor);
   }
 
   @Override
@@ -66,14 +63,15 @@ public class EventMonitorView extends ProfilerMonitorView {
     c.weightx = 1.0;
     c.weighty = 0.5;
     SimpleEventComponent<EventActionType> events =
-      new SimpleEventComponent<>(new RangedSeries<>(myMonitor.getViewRange(), myMonitor.getSimpleEvents()), ICONS);
+      new SimpleEventComponent<>(new RangedSeries<>(getMonitor().getTimeline().getViewRange(), getMonitor().getSimpleEvents()), ICONS);
     container.add(events, c);
     choreographer.register(events);
 
     c.gridy = 1;
     c.weighty = 0.5;
     StackedEventComponent activities =
-      new StackedEventComponent(new RangedSeries<>(myMonitor.getViewRange(), myMonitor.getActivityEvents()), ACTIVITY_GRAPH_HEIGHT);
+      new StackedEventComponent(new RangedSeries<>(getMonitor().getTimeline().getViewRange(), getMonitor().getActivityEvents()),
+                                ACTIVITY_GRAPH_HEIGHT);
     container.add(activities, c);
     choreographer.register(activities);
   }
