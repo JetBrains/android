@@ -88,10 +88,9 @@ public class NetworkRequestsView {
   private final JTable myRequestsTable;
 
   public NetworkRequestsView(@NotNull NetworkProfilerStageView stageView,
-                             @NotNull NetworkRequestsModel model,
                              @NotNull DetailedViewListener detailedViewListener) {
     myStageView = stageView;
-    myModel = model;
+    myModel = stageView.getStage().getRequestsModel();
     myDetailedViewListener = detailedViewListener;
     myTableModel = new NetworkRequestsTableModel();
     myRequestsTable = createRequestsTable();

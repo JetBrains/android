@@ -48,8 +48,13 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
   public NetworkProfilerStageView(NetworkProfilerStage stage) {
     super(stage);
+    getStage().aspect.addDependency()
+      .setExecutor(ApplicationManager.getApplication()::invokeLater)
+      .onChange(NetworkProfilerAspect.REQUEST_DETAILS, this::updateRequestDetailsView)
+      .onChange(NetworkProfilerAspect.REQUESTS, this::updateRequestsView);
+
     myConnectionDetails = new ConnectionDetailsView();
-    myRequestsView = new NetworkRequestsView(this, stage.getRequestsModel(), stage::setConnection);
+    myRequestsView = new NetworkRequestsView(this, stage::setConnection);
 
     Splitter l2l3splitter = new Splitter(true);
     l2l3splitter.setFirstComponent(buildMonitorUi());
@@ -73,10 +78,6 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
     EventMonitor events = new EventMonitor(profilers);
     NetworkMonitor monitor = new NetworkMonitor(getStage().getStudioProfilers());
-    getStage().aspect.addDependency()
-      .setExecutor(ApplicationManager.getApplication()::invokeLater)
-      .onChange(NetworkProfilerAspect.REQUEST_DETAILS, this::updateRequestDetailsView)
-      .onChange(NetworkProfilerAspect.REQUESTS, this::updateRequestsView);
 
     JPanel panel = new JBPanel(new GridBagLayout());
     setupPanAndZoomListeners(panel);
@@ -103,7 +104,8 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     gbc.gridy = 0;
     panel.add(eventsComponent, gbc);
 
-    // TODO radio state panel.
+    gbc.gridy = 2;
+    panel.add(new NetworkRadioView(this).getComponent(), gbc);
 
     JPanel monitorPanel = new JBPanel(new GridBagLayout());
     final JLabel label = new JLabel(monitor.getName());
