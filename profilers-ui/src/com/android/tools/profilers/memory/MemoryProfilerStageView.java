@@ -25,15 +25,13 @@ import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.event.EventMonitorView;
-import com.intellij.ui.components.JBPanel;
-import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.profilers.ProfilerScrollbar;
-import com.android.tools.profilers.StageView;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -71,9 +69,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     return toolBar;
   }
 
-
   private JComponent buildMonitorUi() {
-
     Splitter mainSplitter = new Splitter(false);
     Splitter chartClassesSplitter = new Splitter(true);
 
@@ -134,7 +130,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     final JLabel label = new JLabel(monitor.getName());
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(SwingConstants.TOP);
-    final Dimension labelSize = label.getPreferredSize();
 
     Range leftYRange = new Range();
     Range rightYRange = new Range();
@@ -147,7 +142,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       .showUnitAtMax(true)
       .clampToMajorTicks(true)
       .setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
-      .setMargins(0, labelSize.height);
+      .setMargins(0, Y_AXIS_TOP_MARGIN);
     final AxisComponent leftAxis = leftBuilder.build();
     getChoreographer().register(leftAxis);
     axisPanel.add(leftAxis, BorderLayout.WEST);
@@ -159,14 +154,14 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       .showUnitAtMax(true)
       .clampToMajorTicks(true)
       .setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
-      .setMargins(0, labelSize.height);
+      .setMargins(0, Y_AXIS_TOP_MARGIN);
     final AxisComponent rightAxis = rightBuilder.build();
     getChoreographer().register(rightAxis);
     axisPanel.add(rightAxis, BorderLayout.EAST);
 
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
-    lineChartPanel.setBorder(BorderFactory.createEmptyBorder(labelSize.height, 0, 0, 0));
+    lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
     final LineChart lineChart = new LineChart();
     lineChart.addLine(new RangedContinuousSeries("Java", viewRange, leftYRange, monitor.getJavaMemory()),
                       new LineConfig(ProfilerColors.MEMORY_JAVA).setFilled(true).setStacked(true));
@@ -189,8 +184,10 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       .setExecutor(ApplicationManager.getApplication()::invokeLater)
       .onChange(MemoryProfilerAspect.CURRENT_HEAP_DUMP, this::heapDumpSelected)
       .onChange(MemoryProfilerAspect.CURRENT_DIFF_HEAP_DUMP, this::heapDiffSelected);
-    lineChart.addEvent(new RangedSeries<>(viewRange, getStage().getHeapDumpSampleDurations()), new EventConfig(Color.BLACK).setText("Heap Dump"));
-    lineChart.addEvent(new RangedSeries<>(viewRange, getStage().getAllocationDumpSampleDurations()), new EventConfig(Color.BLUE).setText("Alloocation Tracking"));
+    lineChart
+      .addEvent(new RangedSeries<>(viewRange, getStage().getHeapDumpSampleDurations()), new EventConfig(Color.BLACK).setText("Heap Dump"));
+    lineChart.addEvent(new RangedSeries<>(viewRange, getStage().getAllocationDumpSampleDurations()),
+                       new EventConfig(Color.BLUE).setText("Alloocation Tracking"));
 
     getChoreographer().register(lineChart);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
