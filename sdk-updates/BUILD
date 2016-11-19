@@ -12,7 +12,7 @@ iml_module(
         "//tools:idea.lang-api[module]",
         "//tools/analytics-library:analytics-tracker[module]",
         "//tools/analytics-library:analytics-protos[module]",
-        "//tools/adt/idea/observable:observable[module]",
-        "//tools/adt/idea/adt-ui:adt-ui[module]",
+        "//tools/adt/idea/observable[module]",
+        "//tools/adt/idea/adt-ui[module]",
     ],
 )

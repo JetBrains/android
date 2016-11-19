@@ -7,13 +7,13 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//tools/adt/idea/profilers:profilers[module]",
+        "//tools/adt/idea/profilers[module]",
         "//tools:idea.annotations[module]",
         "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
         "//tools:idea.core-api[module]",
         "//tools/idea/.idea/libraries:Guava",
-        "//tools/adt/idea/adt-ui:adt-ui[module]",
-        "//tools/adt/idea/adt-ui-model:adt-ui-model[module]",
+        "//tools/adt/idea/adt-ui[module]",
+        "//tools/adt/idea/adt-ui-model[module]",
         "//tools:idea.platform-api[module]",
         "//tools:idea.platform-impl_and_others[module]",
     ],
