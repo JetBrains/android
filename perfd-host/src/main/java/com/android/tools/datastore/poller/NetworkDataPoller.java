@@ -23,7 +23,6 @@ import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.StreamObserver;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.RunnableFuture;
 
@@ -92,6 +91,10 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
   @Override
   public void startMonitoringApp(NetworkProfiler.NetworkStartRequest request,
                                  StreamObserver<NetworkProfiler.NetworkStartResponse> responseObserver) {
+    synchronized (myData) {
+      myData.clear();
+    }
+
     myProcessId = request.getAppId();
     responseObserver.onNext(myPollingService.startMonitoringApp(request));
     responseObserver.onCompleted();

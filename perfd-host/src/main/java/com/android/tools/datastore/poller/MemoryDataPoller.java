@@ -23,7 +23,6 @@ import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.StreamObserver;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.RunnableFuture;
 
@@ -62,6 +61,11 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
 
   @Override
   public void startMonitoringApp(MemoryProfiler.MemoryStartRequest request, StreamObserver<MemoryProfiler.MemoryStartResponse> observer) {
+    synchronized (myUpdatingDataLock) {
+      myMemoryData.clear();
+      myStatsData.clear();
+      myHeapData.clear();
+    }
     myProcessId = request.getAppId();
     observer.onNext(myPollingService.startMonitoringApp(request));
     observer.onCompleted();
