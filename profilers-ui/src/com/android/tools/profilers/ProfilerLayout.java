@@ -36,6 +36,8 @@ public class ProfilerLayout {
    */
   public static final int MARKER_LENGTH = JBUI.scale(5);
 
+  public static final int TIME_AXIS_HEIGHT = JBUI.scale(20);
+
   /**
    * Common space left on top of a vertical axis to make sure label text can fit there
    */

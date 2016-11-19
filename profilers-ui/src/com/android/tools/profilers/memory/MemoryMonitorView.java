@@ -74,7 +74,7 @@ public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
     final LineChart lineChart = new LineChart();
     lineChart
       .addLine(new RangedContinuousSeries("Memory", getMonitor().getTimeline().getViewRange(), leftYRange, getMonitor().getTotalMemory()),
-               new LineConfig(ProfilerColors.TOTAL_MEMORY).setFilled(true));
+               new LineConfig(ProfilerColors.MEMORY_TOTAL).setFilled(true));
     choreographer.register(lineChart);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
