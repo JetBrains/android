@@ -34,6 +34,7 @@ import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.idea.IdeaTestApplication;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -154,7 +155,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     // We seem to have two different locations where the SDK needs to be specified.
     // One is whatever is already defined in the JDK Table, and the other is the global one as defined by IdeSdks.
     // Gradle import will fail if the global one isn't set.
-    File androidSdkPath = getSdk();
+    File androidSdkPath = findSdkPath();
 
     IdeSdks ideSdks = IdeSdks.getInstance();
     runWriteCommandAction(getProject(), () -> {
@@ -170,6 +171,11 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     Sdk currentJdk = ideSdks.getJdk();
     assertNotNull(currentJdk);
     assertTrue("JDK 8 is required. Found: " + currentJdk.getHomePath(), Jdks.getInstance().isApplicableJdk(currentJdk, JDK_1_8));
+  }
+
+  @NotNull
+  protected File findSdkPath() {
+    return getSdk();
   }
 
   @Override
@@ -297,6 +303,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   protected void prepareProjectForImport(@NotNull String relativePath) throws IOException {
     File root = new File(getTestDataPath(), toSystemDependentName(relativePath));
+    if (!root.exists()) {
+      root = new File(PathManager.getHomePath() + "/../../external", toSystemDependentName(relativePath));
+    }
     assertTrue(root.getPath(), root.exists());
 
     File build = new File(root, FN_BUILD_GRADLE);
@@ -315,6 +324,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     updateLocalProperties();
 
     // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
+    updateVersionAndDependencies(projectRoot);
+  }
+
+  protected void updateVersionAndDependencies(@NotNull File projectRoot) throws IOException {
     updateGradleVersions(projectRoot);
   }
 
@@ -424,7 +437,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
    * {@code regex} match was found).
    */
   @NotNull
-  private static String replaceRegexGroup(String contents, @RegEx String regex, String value) {
+  protected static String replaceRegexGroup(String contents, @RegEx String regex, String value) {
     Pattern pattern = Pattern.compile(regex);
     Matcher matcher = pattern.matcher(contents);
     if (matcher.find()) {
@@ -435,7 +448,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   private void updateLocalProperties() throws IOException {
     LocalProperties localProperties = new LocalProperties(getProject());
-    File sdkPath = getSdk();
+    File sdkPath = findSdkPath();
     assertAbout(file()).that(sdkPath).named("Android SDK path").isDirectory();
     localProperties.setAndroidSdkPath(sdkPath.getPath());
     localProperties.save();
