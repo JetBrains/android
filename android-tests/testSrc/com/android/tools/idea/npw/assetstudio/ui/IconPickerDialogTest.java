@@ -29,7 +29,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 public class IconPickerDialogTest {
 
-  @Ignore
   @Test
   public void testFiltering() throws InvocationTargetException, InterruptedException {
     SwingUtilities.invokeAndWait(() -> {
