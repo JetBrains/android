@@ -25,6 +25,7 @@ import com.intellij.ui.ColorUtil;
 import com.intellij.util.containers.ImmutableList;
 import gnu.trove.TDoubleArrayList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 import java.awt.*;
@@ -73,13 +74,13 @@ public class LineChart extends AnimatedComponent {
    */
   private int mNextLineColorIndex;
 
-  @NotNull
+  @Nullable
   private DataReducer myReducer;
 
   public LineChart() {
     myLinePaths = new ArrayList<>();
     myLinePathConfigs = new ArrayList<>();
-    myReducer = new LineChartReducer();
+    myReducer = null;
   }
 
   @TestOnly
@@ -351,7 +352,9 @@ public class LineChart extends AnimatedComponent {
     List<Path2D> transformedPaths = new ArrayList<>(myLinePaths.size());
     for (int i = 0; i < myLinePaths.size(); ++i) {
       Path2D scaledPath = new Path2D.Float(myLinePaths.get(i), scale);
-      scaledPath = myReducer.reduce(scaledPath, myLinePathConfigs.get(i));
+      if (myReducer != null) {
+        scaledPath = myReducer.reduce(scaledPath, myLinePathConfigs.get(i));
+      }
       transformedPaths.add(scaledPath);
 
       if (isDrawDebugInfo()) {
