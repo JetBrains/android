@@ -122,6 +122,13 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
   }
 
   @Override
+  public void getPayload(NetworkProfiler.NetworkPayloadRequest request,
+                         StreamObserver<NetworkProfiler.NetworkPayloadResponse> responseObserver) {
+    responseObserver.onNext(myPollingService.getPayload(request));
+    responseObserver.onCompleted();
+  }
+
+  @Override
   public ServerServiceDefinition bindService() {
     return super.bindService();
   }
