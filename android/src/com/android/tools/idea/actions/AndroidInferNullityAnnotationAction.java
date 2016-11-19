@@ -19,8 +19,9 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.templates.RepositoryUrlManager;
@@ -307,9 +308,10 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
   /* Android nullable annotations do not support annotations on local variables. */
   @Override
   protected JComponent getAdditionalActionSettings(Project project, BaseAnalysisActionDialog dialog) {
-    if (!Projects.isBuildWithGradle(project)) {
-      return super.getAdditionalActionSettings(project, dialog);
+    JComponent panel = super.getAdditionalActionSettings(project, dialog);
+    if (panel != null && GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
+      panel.setVisible(false);
     }
-    return null;
+    return panel;
   }
 }
