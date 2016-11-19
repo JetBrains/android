@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project;
+package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.project.PropertyBasedDoNotAskOption;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
@@ -44,7 +45,7 @@ import static javax.swing.Action.MNEMONIC_KEY;
 import static javax.swing.Action.NAME;
 import static org.jetbrains.android.util.AndroidUiUtil.setUpAsHtmlLabel;
 
-public class PluginVersionRecommendedUpdateDialog extends DialogWrapper {
+public class RecommendedPluginVersionUpdateDialog extends DialogWrapper {
   private static final String SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME = "show.do.not.ask.upgrade.gradle.plugin";
 
   @NotNull private final Project myProject;
@@ -55,7 +56,9 @@ public class PluginVersionRecommendedUpdateDialog extends DialogWrapper {
   private JEditorPane myMessagePane;
   private JButton[] myButtons;
 
-  public PluginVersionRecommendedUpdateDialog(@NotNull Project project, @NotNull GradleVersion current, @NotNull GradleVersion recommended) {
+  public RecommendedPluginVersionUpdateDialog(@NotNull Project project,
+                                              @NotNull GradleVersion current,
+                                              @NotNull GradleVersion recommended) {
     super(project);
     myProject = project;
     myCurrentPluginVersion = current;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.project.idea;
+package com.android.tools.idea.gradle.project.sync.setup.post;
 
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibi
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.PluginVersionUpgrade;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -36,11 +37,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
 
-import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.SDK_SETUP_ISSUES;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.project.sync.setup.project.idea.PostSyncProjectSetup.Request.DEFAULT_REQUEST;
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.SDK_SETUP_ISSUES;
+import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.Request.DEFAULT_REQUEST;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -53,6 +54,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   @Mock private GradleSyncState mySyncState;
   @Mock private DependencySetupErrors myDependencySetupErrors;
   @Mock private GradleSyncSummary mySyncSummary;
+  @Mock private PluginVersionUpgrade myVersionUpgrade;
   @Mock private SyncMessages mySyncMessages;
   @Mock private DependenciesModuleSetupStep myModuleSetupStep;
   @Mock private VersionCompatibilityChecker myVersionCompatibilityChecker;
@@ -73,9 +75,11 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     when(mySyncState.getSummary()).thenReturn(mySyncSummary);
     when(myModuleValidatorFactory.create(project)).thenReturn(myModuleValidator);
 
-    mySetup = new PostSyncProjectSetup(project, myAndroidSdks, mySyncInvoker, mySyncState, myDependencySetupErrors, mySyncMessages,
-                                       myModuleSetupStep, myVersionCompatibilityChecker, myProjectBuilder, myModuleValidatorFactory,
-                                       myRunManager);
+    PluginVersionUpgrade[] versionUpgrades = {myVersionUpgrade};
+
+    mySetup =
+      new PostSyncProjectSetup(project, myAndroidSdks, mySyncInvoker, mySyncState, myDependencySetupErrors, versionUpgrades, mySyncMessages,
+                               myModuleSetupStep, myVersionCompatibilityChecker, myProjectBuilder, myModuleValidatorFactory, myRunManager);
   }
 
   public void testJUnitRunConfigurationSetup() {
