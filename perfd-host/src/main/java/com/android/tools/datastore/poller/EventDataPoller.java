@@ -15,22 +15,18 @@
  */
 package com.android.tools.datastore.poller;
 
-import com.android.tools.datastore.DataStoreService;
-import com.android.tools.datastore.Poller;
-import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.datastore.ServicePassThrough;
-import com.android.tools.datastore.profilerclient.DeviceProfilerService;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.PriorityQueue;
 import java.util.concurrent.RunnableFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This class host an EventService that will provide callers access to all cached EventData. The data is populated from polling the service
@@ -95,6 +91,7 @@ public class EventDataPoller extends EventServiceGrpc.EventServiceImplBase imple
 
   @Override
   public void startMonitoringApp(EventProfiler.EventStartRequest request, StreamObserver<EventProfiler.EventStartResponse> observer) {
+    myData.clear();
     myProcessId = request.getAppId();
     observer.onNext(myEventPollingService.startMonitoringApp(request));
     observer.onCompleted();
