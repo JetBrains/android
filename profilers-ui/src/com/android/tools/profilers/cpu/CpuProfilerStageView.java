@@ -17,16 +17,14 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.Choreographer;
+import com.android.tools.adtui.SelectionComponent;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerScrollbar;
-import com.android.tools.profilers.StageView;
-import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.intellij.ui.components.JBList;
@@ -53,11 +51,18 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     JComponent eventsComponent = eventsView.initialize(getChoreographer());
 
     Range leftYRange = new Range(0, 100);
+    JLayeredPane layered = new JLayeredPane();
+    layered.setLayout(new GridBagLayout());
+
     LineChart lineChart = new LineChart();
     lineChart.addLine(new RangedContinuousSeries("App", getTimeline().getViewRange(), leftYRange, cpu.getThisProcessCpuUsage()),
                       new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true).setStacked(true));
     lineChart.addLine(new RangedContinuousSeries("Others", getTimeline().getViewRange(), leftYRange, cpu.getOtherProcessesCpuUsage()),
                       new LineConfig(ProfilerColors.CPU_OTHER_USAGE).setFilled(true).setStacked(true));
+    layered.add(lineChart, ProfilerLayout.GBC_FULL);
+    ProfilerTimeline timeline = profilers.getTimeline();
+    SelectionComponent selection = new SelectionComponent(timeline.getSelectionRange(), timeline.getViewRange());
+    layered.add(selection, ProfilerLayout.GBC_FULL);
 
     RangedListModel<CpuThreadsModel.RangedCpuThread> model = cpu.getThreadStates();
 
@@ -67,7 +72,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     scrollingThreads.setViewportView(threads);
 
 
-    ProfilerScrollbar scrollbar = new ProfilerScrollbar(profilers.getTimeline());
+    ProfilerScrollbar scrollbar = new ProfilerScrollbar(timeline);
     getChoreographer().register(scrollbar);
 
     threads.setCellRenderer(new ThreadCellRenderer(getChoreographer(), threads));
@@ -82,8 +87,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     getComponent().add(eventsComponent, c);
     c.gridy = 1;
     c.weighty = 0.4;
-    getComponent().add(lineChart, c);
+    getComponent().add(layered, c);
     getChoreographer().register(lineChart);
+    getChoreographer().register(selection);
     c.gridy = 2;
     c.weighty = 0.6;
     getComponent().add(scrollingThreads, c);

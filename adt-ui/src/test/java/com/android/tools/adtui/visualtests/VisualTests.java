@@ -38,6 +38,7 @@ public class VisualTests {
         dialog.addTest(new AxisLineChartVisualTest());
         dialog.addTest(new StateChartVisualTest());
         dialog.addTest(new LineChartVisualTest());
+        dialog.addTest(new SelectionVisualTest());
         dialog.addTest(new SunburstVisualTest());
         dialog.addTest(new TimelineVisualTest());
         dialog.addTest(new EventVisualTest());

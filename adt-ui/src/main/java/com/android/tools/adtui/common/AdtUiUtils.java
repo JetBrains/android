@@ -51,12 +51,6 @@ public final class AdtUiUtils {
 
   public static final Color SELECTION_HANDLE = JBColor.GRAY;
 
-  // TODO need Darcula color.
-  public static final Color SELECTION_FOREGROUND = new JBColor(new Color(0x88aae2), new Color(0x88aae2));
-
-  // TODO need Darcula color.
-  public static final Color SELECTION_BACKGROUND = new JBColor(new Color(0x5588aae2, true), new Color(0x5588aae2, true));
-
   public static final Color OVERLAY_INFO_BACKGROUND = JBColor.WHITE;
 
   private AdtUiUtils() {}
