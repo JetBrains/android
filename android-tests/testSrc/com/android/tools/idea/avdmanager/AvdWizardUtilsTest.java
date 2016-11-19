@@ -15,12 +15,22 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.repository.Revision;
+import com.android.repository.api.RepoManager;
+import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
+import com.android.repository.testframework.FakePackage.FakeLocalPackage;
+import com.android.repository.testframework.FakeRepoManager;
+import com.android.repository.testframework.MockFileOp;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
 import com.android.tools.idea.rendering.webp.WebpMetadata;
 import com.android.tools.idea.rendering.webp.WebpNativeLibHelper;
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableMap;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -29,6 +39,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import static com.android.SdkConstants.FD_EMULATOR;
+import static com.android.SdkConstants.FD_TOOLS;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.emulatorSupportsWebp;
 import static com.google.common.truth.Truth.assertThat;
 
 public class AvdWizardUtilsTest {
@@ -104,5 +117,33 @@ public class AvdWizardUtilsTest {
     assertThat(fileOp.exists(new File(dest, "layout"))).isTrue();
     assertThat(fileOp.toString(new File(dest, "layout"), Charsets.UTF_8)).contains(".png");
     assertThat(fileOp.toString(new File(dest, "layout"), Charsets.UTF_8)).doesNotContain(".webp");
+  }
+
+  @Test
+  public void testEmulatorSupportsWebp() {
+    assertThat(emulatorSupportsWebp(createMockSdk("24.0.0", FD_EMULATOR))).isFalse();
+    assertThat(emulatorSupportsWebp(createMockSdk("25.0.0", FD_EMULATOR))).isFalse();
+    assertThat(emulatorSupportsWebp(createMockSdk("25.1.0", FD_EMULATOR))).isFalse();
+    assertThat(emulatorSupportsWebp(createMockSdk("25.1.9", FD_EMULATOR))).isFalse();
+    assertThat(emulatorSupportsWebp(createMockSdk("25.2.0", FD_EMULATOR))).isFalse();
+    assertThat(emulatorSupportsWebp(createMockSdk("25.2.2", FD_EMULATOR))).isFalse();
+    assertThat(emulatorSupportsWebp(createMockSdk("25.2.3", FD_EMULATOR))).isTrue();
+    assertThat(emulatorSupportsWebp(createMockSdk("25.3.0", FD_EMULATOR))).isTrue();
+    assertThat(emulatorSupportsWebp(createMockSdk("26.0.0", FD_EMULATOR))).isTrue();
+
+    assertThat(emulatorSupportsWebp(createMockSdk("25.2.0", FD_TOOLS))).isFalse();
+    assertThat(emulatorSupportsWebp(createMockSdk("25.2.3", FD_TOOLS))).isTrue();
+
+    assertThat(emulatorSupportsWebp(createMockSdk("25.2.3", "irrelevant"))).isFalse();
+  }
+
+  @NotNull
+  private static AndroidSdkHandler createMockSdk(String versionString, String path) {
+    FakeLocalPackage p = new FakeLocalPackage(path);
+    p.setRevision(Revision.parseRevision(versionString));
+    RepositoryPackages packages = new RepositoryPackages();
+    packages.setLocalPkgInfos(ImmutableMap.of(p.getPath(), p));
+    RepoManager mgr = new FakeRepoManager(null, packages);
+    return new AndroidSdkHandler(null, null, new MockFileOp(), mgr);
   }
 }
