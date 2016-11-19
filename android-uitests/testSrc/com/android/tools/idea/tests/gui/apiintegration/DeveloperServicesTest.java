@@ -28,6 +28,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.net.NetUtils;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,6 +39,7 @@ import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigu
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.regex.Pattern.DOTALL;
 
+@Ignore("https://code.google.com/p/android/issues/detail?id=228111")
 @RunWith(GuiTestRunner.class)
 public class DeveloperServicesTest {
 
