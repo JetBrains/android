@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project;
+package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
@@ -28,17 +29,19 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * Tests for {@link PluginVersionForcedUpdateDialog}
+ * Tests for {@link ForcedPluginPreviewVersionUpgradeDialog}
  */
-public class PluginVersionForcedUpdateDialogTest extends IdeaTestCase {
+public class ForcedPluginPreviewVersionUpgradeDialogTest extends IdeaTestCase {
+  @Mock private AndroidPluginInfo myPluginInfo;
   @Mock private AndroidPluginGeneration myPluginGeneration;
 
-  private PluginVersionForcedUpdateDialog myDialog;
+  private ForcedPluginPreviewVersionUpgradeDialog myDialog;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
+    when(myPluginInfo.getPluginGeneration()).thenReturn(myPluginGeneration);
   }
 
   @Override
@@ -57,7 +60,7 @@ public class PluginVersionForcedUpdateDialogTest extends IdeaTestCase {
     String randomVersion = UUID.randomUUID().toString();
     when(myPluginGeneration.getLatestKnownVersion()).thenReturn(randomVersion);
 
-    myDialog = new PluginVersionForcedUpdateDialog(getProject(), myPluginGeneration);
+    myDialog = new ForcedPluginPreviewVersionUpgradeDialog(getProject(), myPluginInfo);
     String message = myDialog.getDisplayedMessage();
 
     assertThat(message).contains("the IDE will update the plugin to version " + randomVersion + ".");
