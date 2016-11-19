@@ -258,6 +258,8 @@ public class ProxyUtilTest extends TestCase {
     Map<String, Collection<MyInterface>> getMapToProxy();
 
     boolean doesNotExist() throws UnsupportedMethodException;
+
+    void throwRuntimeException();
   }
 
   static class MyInterfaceImpl implements MyInterface {
@@ -319,6 +321,11 @@ public class ProxyUtilTest extends TestCase {
     @Override
     public boolean doesNotExist() throws UnsupportedMethodException {
       throw new UnsupportedMethodException("This method doesn't exist");
+    }
+
+    @Override
+    public void throwRuntimeException() {
+      throw new RuntimeException();
     }
   }
 }
