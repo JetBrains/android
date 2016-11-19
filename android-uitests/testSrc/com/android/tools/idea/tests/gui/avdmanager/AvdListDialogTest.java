@@ -45,12 +45,12 @@ public class AvdListDialogTest {
 
     ChooseSystemImageStepFixture chooseSystemImageStep = avdEditWizard.getChooseSystemImageStep();
     chooseSystemImageStep.selectTab("x86 Images");
-    chooseSystemImageStep.selectSystemImage("KitKat", "19", "x86", "Android 4.4");
+    chooseSystemImageStep.selectSystemImage("Nougat", "24", "x86", "Android 7.0");
     avdEditWizard.clickNext();
 
     ConfigureAvdOptionsStepFixture configureAvdOptionsStep = avdEditWizard.getConfigureAvdOptionsStep();
     configureAvdOptionsStep.showAdvancedSettings();
-    configureAvdOptionsStep.requireAvdName("Nexus 7 API 19"); // check default
+    configureAvdOptionsStep.requireAvdName("Nexus 7 API 24"); // check default
     configureAvdOptionsStep.setAvdName("Testsuite AVD");
     configureAvdOptionsStep.setFrontCamera("Emulated");
     avdEditWizard.clickFinish();
@@ -72,7 +72,7 @@ public class AvdListDialogTest {
     makeNexus5();
 
     AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
-    AvdEditWizardFixture avdEditWizardFixture = avdManagerDialog.editAvdWithName("Nexus 5 API 19");
+    AvdEditWizardFixture avdEditWizardFixture = avdManagerDialog.editAvdWithName("Nexus 5 API 24");
     ConfigureAvdOptionsStepFixture configureAvdOptionsStep = avdEditWizardFixture.getConfigureAvdOptionsStep();
 
     configureAvdOptionsStep.showAdvancedSettings();
@@ -93,7 +93,7 @@ public class AvdListDialogTest {
 
     ChooseSystemImageStepFixture chooseSystemImageStep = avdEditWizard.getChooseSystemImageStep();
     chooseSystemImageStep.selectTab("x86 Images");
-    chooseSystemImageStep.selectSystemImage("KitKat", "19", "x86", "Android 4.4");
+    chooseSystemImageStep.selectSystemImage("Nougat", "24", "x86", "Android 7.0");
     avdEditWizard.clickNext();
     avdEditWizard.clickFinish();
     avdManagerDialog.close();
@@ -101,6 +101,6 @@ public class AvdListDialogTest {
 
   private void removeNexus5() {
     AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
-    avdManagerDialog.deleteAvd("Nexus 5 API 19");
+    avdManagerDialog.deleteAvd("Nexus 5 API 24");
   }
 }
