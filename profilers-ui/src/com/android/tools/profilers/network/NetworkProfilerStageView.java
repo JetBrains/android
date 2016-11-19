@@ -18,15 +18,13 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.NetworkTrafficFormatter;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.profilers.ProfilerLayout;
-import com.android.tools.profilers.StageView;
-import com.android.tools.profilers.StudioMonitorStage;
-import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.components.JBScrollPane;
@@ -76,18 +74,25 @@ public class NetworkProfilerStageView extends StageView {
     AxisComponent rightAxis = rightAxisBuilder.build();
 
     LineChart lineChart = new LineChart();
+    LineConfig receivedConfig = new LineConfig(ProfilerColors.NETWORK_RECEIVING_COLOR);
     lineChart.addLine(new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getLabel(),
                                                  monitor.getTimeline().getViewRange(),
                                                  leftAxis.getRange(),
-                                                 monitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED)));
+                                                 monitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED)),
+                      receivedConfig);
+    LineConfig sentConfig = new LineConfig(ProfilerColors.NETWORK_SENDING_COLOR);
     lineChart.addLine(new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_SENT.getLabel(),
                                                  monitor.getTimeline().getViewRange(),
                                                  leftAxis.getRange(),
-                                                 monitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_SENT)));
+                                                 monitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_SENT)),
+                      sentConfig);
+    LineConfig connectionConfig = new LineConfig(ProfilerColors.NETWORK_CONNECTIONS_COLOR).setStroke(LineConfig.DEFAULT_DASH_STROKE);
     lineChart.addLine(new RangedContinuousSeries("Connections",
                                                  monitor.getTimeline().getViewRange(),
                                                  rightAxis.getRange(),
-                                                 monitor.getOpenConnectionsSeries()));
+                                                 monitor.getOpenConnectionsSeries()),
+                      connectionConfig);
+
     JPanel lineChartWrapper = new JPanel(new BorderLayout());
     lineChartWrapper.setBorder(BorderFactory.createEmptyBorder(ProfilerLayout.Y_AXIS_TOP_MARGIN, 0, 0, 0));
     lineChartWrapper.add(lineChart);
