@@ -42,10 +42,7 @@ public class FakeNetworkRequestsModel implements NetworkRequestsModel {
       data.setDownloadingTimeUs(download);
       data.setEndTimeUs(end);
       data.setUrl("www.fake.url/" + i);
-      Map<String, String> httpResponseFields = new HashMap<>();
-      httpResponseFields.put("content-type", "image/jpeg");
-      httpResponseFields.put("content-length", Integer.toString(76000 + i));
-      data.setHttpResponseFields(httpResponseFields);
+      data.setHttpResponseFields("content-type = image/jpeg; \ncontent-length = " + Integer.toString(76000 + i));
       data.setHttpResponseBodySize(76000 + i);
       result.add(data);
     }
