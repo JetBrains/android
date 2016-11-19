@@ -25,6 +25,7 @@ import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingS
 import com.android.tools.profilers.AspectModel;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -54,6 +55,9 @@ public class MemoryProfilerStage extends Stage {
 
   @Nullable
   private HeapDumpInfo myFocusedDiffHeapDumpInfo;
+
+  @Nullable
+  private MemoryObjects myMemoryObjects = null;
 
   public MemoryProfilerStage(@NotNull StudioProfilers profilers) {
     super(profilers);
@@ -87,14 +91,14 @@ public class MemoryProfilerStage extends Stage {
   public void setFocusedHeapDump(@NotNull HeapDumpInfo sample) {
     if (myFocusedHeapDumpInfo != sample) {
       myFocusedHeapDumpInfo = sample;
-      myAspect.changed(MemoryProfilerAspect.CURRENT_HEAP_DUMP);
+      setMemoryObjects(new HeapDumpObjects(myClient, myProcessId, myFocusedHeapDumpInfo, null));
     }
   }
 
   public void setFocusedDiffHeapDump(@NotNull HeapDumpInfo diffSample) {
     if (myFocusedDiffHeapDumpInfo != diffSample) {
       myFocusedDiffHeapDumpInfo = diffSample;
-      myAspect.changed(MemoryProfilerAspect.CURRENT_DIFF_HEAP_DUMP);
+      myAspect.changed(MemoryProfilerAspect.MEMORY_DETAILS);
     }
   }
 
@@ -102,6 +106,23 @@ public class MemoryProfilerStage extends Stage {
     if (getAllocationDumpSampleDurations().getDataForXRange(timeRange).size() > 0) {
       // TODO pull data based on new time range and signal aspect changed
     }
+  }
+
+  private void setMemoryObjects(@Nullable MemoryObjects memoryObjects) {
+    if (myMemoryObjects == memoryObjects) {
+      return;
+    }
+
+    if (myMemoryObjects != null) {
+      Disposer.dispose(myMemoryObjects);
+    }
+    myMemoryObjects = memoryObjects;
+    myAspect.changed(MemoryProfilerAspect.MEMORY_DETAILS);
+  }
+
+  @Nullable
+  public MemoryObjects getMemoryObjects() {
+    return myMemoryObjects;
   }
 
   public void setAllocationTracking(boolean enabled) {
@@ -120,14 +141,23 @@ public class MemoryProfilerStage extends Stage {
       long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
       long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
       ListHeapDumpInfosResponse response =
-        myClient.listHeapDumpInfos(ListDumpInfosRequest.newBuilder().setAppId(myProcessId).setStartTime(rangeMin).setEndTime(rangeMax).build());
+        myClient
+          .listHeapDumpInfos(ListDumpInfosRequest.newBuilder().setAppId(myProcessId).setStartTime(rangeMin).setEndTime(rangeMax).build());
 
+      HeapDumpInfo lastCompleted = null;
       List<SeriesData<DurationData>> seriesData = new ArrayList<>();
       for (HeapDumpInfo info : response.getInfosList()) {
         long startTime = TimeUnit.NANOSECONDS.toMicros(info.getStartTime());
         long endTime = TimeUnit.NANOSECONDS.toMicros(info.getEndTime());
         seriesData.add(new SeriesData<>(startTime, new DurationData(
           info.getEndTime() == DurationData.UNSPECIFIED_DURATION ? DurationData.UNSPECIFIED_DURATION : endTime - startTime)));
+        if (info.getEndTime() != DurationData.UNSPECIFIED_DURATION) {
+          lastCompleted = info;
+        }
+      }
+
+      if (lastCompleted != null) {
+        setFocusedHeapDump(lastCompleted);
       }
 
       return ContainerUtil.immutableList(seriesData);
@@ -140,7 +170,8 @@ public class MemoryProfilerStage extends Stage {
       long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
       long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
       ListAllocationDumpInfosResponse response = myClient
-        .listAllocationDumpInfos(ListDumpInfosRequest.newBuilder().setAppId(myProcessId).setStartTime(rangeMin).setEndTime(rangeMax).build());
+        .listAllocationDumpInfos(
+          ListDumpInfosRequest.newBuilder().setAppId(myProcessId).setStartTime(rangeMin).setEndTime(rangeMax).build());
 
       List<SeriesData<DurationData>> seriesData = new ArrayList<>();
       for (AllocationDumpInfo info : response.getInfosList()) {
