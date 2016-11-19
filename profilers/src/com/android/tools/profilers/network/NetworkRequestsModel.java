@@ -16,6 +16,7 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.Range;
+import com.google.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -33,4 +34,12 @@ public interface NetworkRequestsModel {
    */
   @NotNull
   List<HttpData> getData(@NotNull Range timeCurrentRangeUs);
+
+  /**
+   * Returns the network response payload contents corresponding to the given {@code httpData} on demand. If there
+   * is no such content associated with the data, or if it can't be fetched for any reason,
+   * {@link ByteString#EMPTY} will be returned.
+   */
+  @NotNull
+  ByteString requestResponsePayload(@NotNull HttpData httpData);
 }

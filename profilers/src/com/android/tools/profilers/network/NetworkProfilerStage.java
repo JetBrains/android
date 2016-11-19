@@ -15,16 +15,35 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsResponse.Body;
+import com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsResponse.Request;
+import com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsResponse.Response;
 import com.android.tools.profilers.AspectModel;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsResponse.Request;
-import com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsResponse.Response;
-import com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsResponse.Body;
+import com.google.common.collect.ImmutableMap;
+import com.google.protobuf3jarjar.ByteString;
+import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Map;
+
 public class NetworkProfilerStage extends Stage {
+
+
+  // TODO: Way more robust handling of different types. See also:
+  // http://www.iana.org/assignments/media-types/media-types.xhtml
+  // @formatter:off
+  private static final Map<String, String> CONTENT_SUFFIX_MAP = new ImmutableMap.Builder<String, String>().
+    put("/jpeg", ".jpg").
+    put("/json", ".json").
+    put("/xml", ".xml").
+    build();
+  // @formatter:on
 
   // Whether the connection data screen is active.
   private boolean myConnectionDataEnabled;
@@ -34,6 +53,10 @@ public class NetworkProfilerStage extends Stage {
   private HttpData myConnection;
 
   public AspectModel<NetworkProfilerAspect> aspect = new AspectModel<>();
+
+  private final NetworkRequestsModel myRequestsModel =
+    new RpcNetworkRequestsModel(getStudioProfilers().getClient().getNetworkClient(), getStudioProfilers().getProcessId());
+
 
   public NetworkProfilerStage(StudioProfilers profiler) {
     super(profiler);
@@ -50,8 +73,7 @@ public class NetworkProfilerStage extends Stage {
   }
 
   public NetworkRequestsModel getRequestsModel() {
-    //return new FakeNetworkRequestsModel();
-    return new RpcNetworkRequestsModel(getStudioProfilers().getClient().getNetworkClient(), getStudioProfilers().getProcessId());
+    return myRequestsModel;
   }
 
   public void setEnableConnectionData(boolean enable) {
@@ -62,9 +84,44 @@ public class NetworkProfilerStage extends Stage {
   /**
    * Sets the active connection, or clears the previously selected active connection if given data is null.
    */
-  public void setConnection(@Nullable HttpData connection) {
-    myConnection = connection;
+  public void setConnection(@Nullable HttpData data) {
+    if (data != null && data.getHttpResponsePayloadId() != null && data.getHttpResponsePayloadFile() == null) {
+      ByteString payload = myRequestsModel.requestResponsePayload(data);
+      File file = null;
+      try {
+        file = FileUtil.createTempFile(data.getHttpResponsePayloadId(), getFileSuffixFromContentType(data));
+        FileOutputStream outputStream = new FileOutputStream(file);
+        payload.writeTo(outputStream);
+      } catch (IOException e) {
+        return;
+      } finally {
+        if (file != null) {
+          file.deleteOnExit();
+        }
+      }
+      data.setHttpResponsePayloadFile(file);
+    }
+
+    myConnection = data;
     aspect.changed(NetworkProfilerAspect.REQUEST_DETAILS);
+  }
+
+  /**
+   * Returns suffix for creating payload temp file based on the response MIME type.
+   * If type is absent or not supported, returns null.
+   */
+  @Nullable
+  private static String getFileSuffixFromContentType(@NotNull HttpData httpData) {
+    Map<String, String> responseFields = httpData.getHttpResponseFields();
+    if (responseFields != null && responseFields.containsKey(HttpData.FIELD_CONTENT_TYPE)) {
+      String contentType = responseFields.get(HttpData.FIELD_CONTENT_TYPE);
+      for (Map.Entry<String, String> entry : CONTENT_SUFFIX_MAP.entrySet()) {
+        if (contentType.contains(entry.getKey())) {
+          return entry.getValue();
+        }
+      }
+    }
+    return null;
   }
 
   /**
