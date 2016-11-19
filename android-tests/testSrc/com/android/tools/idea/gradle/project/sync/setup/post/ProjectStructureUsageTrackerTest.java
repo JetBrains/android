@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.project.idea;
+package com.android.tools.idea.gradle.project.sync.setup.post;
 
 import com.android.builder.model.InstantRun;
 import com.android.ide.common.repository.GradleVersion;
@@ -23,10 +23,10 @@ import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.fd.InstantRunConfiguration;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetType;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.stubs.android.*;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleVersions;

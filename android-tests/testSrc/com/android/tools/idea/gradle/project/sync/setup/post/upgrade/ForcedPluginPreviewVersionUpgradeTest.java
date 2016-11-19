@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.project.idea;
+package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
 import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.annotations.NotNull;
@@ -27,10 +27,10 @@ import java.util.Collection;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests for {@link PostSyncProjectSetup#shouldPreviewBeForcedToUpgradePluginVersion(String, GradleVersion)}.
+ * Tests for {@link ForcedPluginPreviewVersionUpgrade}.
  */
 @RunWith(Parameterized.class)
-public class IsForcedPluginVersionUpgradeNecessaryTest {
+public class ForcedPluginPreviewVersionUpgradeTest {
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
@@ -50,14 +50,14 @@ public class IsForcedPluginVersionUpgradeNecessaryTest {
 
   private final boolean myForceUpgrade;
 
-  public IsForcedPluginVersionUpgradeNecessaryTest(@NotNull String current, @NotNull String recommended, boolean forceUpgrade) {
+  public ForcedPluginPreviewVersionUpgradeTest(@NotNull String current, @NotNull String recommended, boolean forceUpgrade) {
     myCurrent = GradleVersion.parse(current);
     myRecommended = recommended;
     myForceUpgrade = forceUpgrade;
   }
 
   @Test
-  public void testIsPluginVersionUpgradeNecessary() {
-    assertEquals(myForceUpgrade, PostSyncProjectSetup.shouldPreviewBeForcedToUpgradePluginVersion(myRecommended, myCurrent));
+  public void shouldPreviewBeForcedToUpgradePluginVersion() {
+    assertEquals(myForceUpgrade, ForcedPluginPreviewVersionUpgrade.shouldPreviewBeForcedToUpgradePluginVersion(myRecommended, myCurrent));
   }
 }
