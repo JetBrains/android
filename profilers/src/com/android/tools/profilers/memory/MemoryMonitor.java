@@ -15,9 +15,8 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.profiler.proto.*;
-import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.MemorySample;
+import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
@@ -68,6 +67,11 @@ public class MemoryMonitor extends ProfilerMonitor {
   @NotNull
   public MemoryDataSeries getOthersMemory() {
     return new MemoryDataSeries(myClient, myProcessId, MemorySample::getOthersMem);
+  }
+
+  @NotNull
+  public VmStatsDataSeries getObjectCount() {
+    return new VmStatsDataSeries(myClient, myProcessId, sample -> (long)(sample.getJavaAllocationCount() - sample.getJavaFreeCount()));
   }
 
   @Override
