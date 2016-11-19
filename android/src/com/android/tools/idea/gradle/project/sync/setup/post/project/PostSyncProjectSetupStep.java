@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.project;
+package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
