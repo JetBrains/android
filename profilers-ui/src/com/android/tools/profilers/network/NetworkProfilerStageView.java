@@ -33,19 +33,16 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 
-public class NetworkProfilerStageView extends StageView {
+public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   private static final BaseAxisFormatter TRAFFIC_AXIS_FORMATTER = new NetworkTrafficFormatter(1, 2, 5);
   private static final BaseAxisFormatter CONNECTIONS_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 1, "");
 
-  private final NetworkProfilerStage myStage;
   private final ConnectionDetailsView myConnectionDetails;
   private final NetworkRequestsView myRequestsView;
   private final Splitter mySplitter;
 
   public NetworkProfilerStageView(NetworkProfilerStage stage) {
     super(stage);
-    myStage = stage;
-
     myConnectionDetails = new ConnectionDetailsView();
     myRequestsView = new NetworkRequestsView(this, stage.getRequestsModel(), stage::setConnection);
 
@@ -122,8 +119,8 @@ public class NetworkProfilerStageView extends StageView {
   }
 
   private void updateRequestDetailsView() {
-    myConnectionDetails.update(myStage.getConnection());
-    myConnectionDetails.setVisible(myStage.isConnectionDataEnabled());
+    myConnectionDetails.update(getStage().getConnection());
+    myConnectionDetails.setVisible(getStage().isConnectionDataEnabled());
     myConnectionDetails.revalidate();
   }
 
@@ -143,7 +140,7 @@ public class NetworkProfilerStageView extends StageView {
     });
     toolbar.add(button);
     button = new JButton("Open details pane");
-    button.addActionListener(action -> myStage.setEnableConnectionData(!myStage.isConnectionDataEnabled()));
+    button.addActionListener(action -> getStage().setEnableConnectionData(!getStage().isConnectionDataEnabled()));
     toolbar.add(button);
 
     return toolbar;

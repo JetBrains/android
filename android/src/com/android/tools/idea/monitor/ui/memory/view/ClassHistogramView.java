@@ -28,7 +28,7 @@ import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Snapshot;
 import com.android.tools.perflib.heap.io.InMemoryBuffer;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.HeapDumpSample;
+import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
@@ -85,20 +85,20 @@ class ClassHistogramView implements Disposable {
     return Logger.getInstance(ClassHistogramView.class);
   }
 
-  void generateClassHistogramFromHeapDumpSamples(@NotNull MemoryDataCache dataCache,
-                                                 @Nullable HeapDumpSample mainHeapDumpSample,
-                                                 @Nullable HeapDumpSample diffHeapDumpSample) {
+  void generateClassHistogramFromHeapDumpInfos(@NotNull MemoryDataCache dataCache,
+                                               @Nullable HeapDumpInfo mainHeapDumpInfo,
+                                               @Nullable HeapDumpInfo diffHeapDumpInfo) {
     // TODO make this method asynchronous
 
-    if (myMainHeapDump == null || myMainHeapDump.getSample() != mainHeapDumpSample) {
+    if (myMainHeapDump == null || myMainHeapDump.getInfo() != mainHeapDumpInfo) {
       if (myMainHeapDump != null) {
         myMainHeapDump.dispose();
         myMainHeapDump = null;
       }
 
-      if (mainHeapDumpSample != null) {
+      if (mainHeapDumpInfo != null) {
         try {
-          myMainHeapDump = new HeapDump(dataCache, mainHeapDumpSample);
+          myMainHeapDump = new HeapDump(dataCache, mainHeapDumpInfo);
         }
         catch (IOException exception) {
           getLog().info("Error generating Snapshot from heap dump file.", exception);
@@ -107,15 +107,15 @@ class ClassHistogramView implements Disposable {
       }
     }
 
-    if (myDiffHeapDump == null || myDiffHeapDump.getSample() != diffHeapDumpSample) {
+    if (myDiffHeapDump == null || myDiffHeapDump.getInfo() != diffHeapDumpInfo) {
       if (myDiffHeapDump != null) {
         myDiffHeapDump.dispose();
         myDiffHeapDump = null;
       }
 
-      if (diffHeapDumpSample != null) {
+      if (diffHeapDumpInfo != null) {
         try {
-          myDiffHeapDump = new HeapDump(dataCache, diffHeapDumpSample);
+          myDiffHeapDump = new HeapDump(dataCache, diffHeapDumpInfo);
         }
         catch (IOException exception) {
           getLog().info("Error generating Snapshot from heap dump file.", exception);
@@ -221,17 +221,17 @@ class ClassHistogramView implements Disposable {
   }
 
   private static class HeapDump {
-    @NotNull private final HeapDumpSample mySample;
+    @NotNull private final HeapDumpInfo myInfo;
     @NotNull private final Snapshot mySnapshot;
 
-    public HeapDump(@NotNull MemoryDataCache dataCache, @NotNull HeapDumpSample sample) throws IOException {
-      mySample = sample;
-      mySnapshot = Snapshot.createSnapshot(new InMemoryBuffer(dataCache.getHeapDumpData(sample).asReadOnlyByteBuffer()));
+    public HeapDump(@NotNull MemoryDataCache dataCache, @NotNull HeapDumpInfo info) throws IOException {
+      myInfo = info;
+      mySnapshot = Snapshot.createSnapshot(new InMemoryBuffer(dataCache.getHeapDumpData(info).asReadOnlyByteBuffer()));
     }
 
     @NotNull
-    public HeapDumpSample getSample() {
-      return mySample;
+    public HeapDumpInfo getInfo() {
+      return myInfo;
     }
 
     public void dispose() {

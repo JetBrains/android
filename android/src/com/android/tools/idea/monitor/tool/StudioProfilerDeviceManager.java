@@ -18,6 +18,7 @@ package com.android.tools.idea.monitor.tool;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ddmlib.*;
+import com.android.tools.datastore.LegacyAllocationTracker;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.profilers.GrpcProfilerClient;
 import com.android.tools.profilers.ProfilerClient;
@@ -53,6 +54,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
   private static final int DEVICE_PORT = 12389;
   private static final String DATASTORE_NAME = "DataStoreService";
   private final ProfilerClient myClient;
+  private final DataStoreService myDataStoreService;
   private AndroidDebugBridge myBridge;
 
   public StudioProfilerDeviceManager(@NotNull Project project) throws IOException {
@@ -62,7 +64,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
     }
 
     //TODO: Spawn the datastore in the right place (service)?
-    DataStoreService datastore = new DataStoreService(DATASTORE_NAME);
+    myDataStoreService = new DataStoreService(DATASTORE_NAME);
 
     // The client is referenced in the update devices callback. As such the client needs to be set before we register
     // ourself as a listener for this callback. Otherwise we may get the callback before we are fully constructed
@@ -108,6 +110,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
                                          .build());
           }
           builder.addDeviceProcesses(deviceProcesses.build());
+          myDataStoreService.setLegacyAllocationTracker(new StudioLegacyAllocationTracker(device));
         }
       }
       myClient.getProfilerClient().setProcesses(builder.build());
@@ -237,6 +240,43 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
       catch (TimeoutException | AdbCommandRejectedException | SyncException | ShellCommandUnresponsiveException | IOException e) {
         throw new RuntimeException(e);
       }
+    }
+  }
+
+  private class StudioLegacyAllocationTracker implements LegacyAllocationTracker {
+    private final IDevice myDevice;
+
+    public StudioLegacyAllocationTracker(@NotNull IDevice device) {
+      myDevice = device;
+    }
+
+    @Override
+    public boolean setAllocationTrackingEnabled(int processId, boolean enabled) {
+      Client client = getClient(myDevice, processId);
+      if (client == null) {
+        return false;
+      }
+      client.enableAllocationTracker(enabled);
+      return true;
+    }
+
+    @Override
+    @Nullable
+    public byte[] getAllocationTrackingDump(int processId) {
+      Client client = getClient(myDevice, processId);
+      if (client == null) {
+        return null;
+      }
+      return client.getClientData().getAllocationsData();
+    }
+
+    @Nullable
+    private Client getClient(@NotNull IDevice device, int processId) {
+      if (myBridge == null) {
+        return null;
+      }
+
+      return device.getClient(device.getClientName(processId));
     }
   }
 }
