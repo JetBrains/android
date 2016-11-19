@@ -68,6 +68,7 @@ public class BasicNativeDebuggerTest {
     return (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
   }
 
+  @Ignore("https://android-jenkins.corp.google.com/builders/studio-sanity_master-dev/builds/1823")
   @Test
   public void testMultiBreakAndResume() throws IOException, ClassNotFoundException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("BasicJniApp");
