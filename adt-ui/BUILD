@@ -18,7 +18,7 @@ iml_module(
         "//tools/idea/.idea/libraries:truth",
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools/idea/.idea/libraries:mockito",
-        "//tools/adt/idea/adt-ui-model:adt-ui-model[module]",
+        "//tools/adt/idea/adt-ui-model[module]",
     ],
 )
 
