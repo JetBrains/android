@@ -39,6 +39,7 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
 
   public NetworkDataPoller() {
   }
+
   @Override
   public RunnableFuture<Void> getRunner() {
     return new PollRunner(this, PollRunner.POLLING_DELAY_NS);

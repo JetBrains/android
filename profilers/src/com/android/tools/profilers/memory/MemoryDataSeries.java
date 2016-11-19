@@ -47,10 +47,13 @@ public final class MemoryDataSeries implements DataSeries<Long> {
 
   @Override
   public ImmutableList<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+
+    // TODO: Change the Memory API to allow specifying padding in the request as number of samples.
+    long buffer = TimeUnit.SECONDS.toNanos(1);
     MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()
       .setAppId(myProcessId)
-      .setStartTime(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
-      .setEndTime(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()));
+      .setStartTime(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin() - buffer))
+      .setEndTime(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax() + buffer));
     MemoryProfiler.MemoryData response = myClient.getData(dataRequestBuilder.build());
 
     List<SeriesData<Long>> seriesData = new ArrayList<>();
