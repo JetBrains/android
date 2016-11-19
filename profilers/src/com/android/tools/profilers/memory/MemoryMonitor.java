@@ -22,14 +22,50 @@ import org.jetbrains.annotations.NotNull;
 
 public class MemoryMonitor extends ProfilerMonitor {
 
+  private final int myProcessId;
+
+  @NotNull
+  private final MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
+
   public MemoryMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
+    myProcessId = profilers.getProcessId();
+    myClient = profilers.getClient().getMemoryClient();
   }
 
   @NotNull
   public MemoryDataSeries getTotalMemory() {
-    MemoryServiceGrpc.MemoryServiceBlockingStub client = myProfilers.getClient().getMemoryClient();
-    return new MemoryDataSeries(client, myProfilers.getProcessId(), sample -> sample.getTotalMem());
+    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getTotalMem());
+  }
+
+  @NotNull
+  public MemoryDataSeries getJavaMemory() {
+    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getJavaMem());
+  }
+
+  @NotNull
+  public MemoryDataSeries getNativeMemory() {
+    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getNativeMem());
+  }
+
+  @NotNull
+  public MemoryDataSeries getGraphicsMemory() {
+    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getGraphicsMem());
+  }
+
+  @NotNull
+  public MemoryDataSeries getStackMemory() {
+    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getStackMem());
+  }
+
+  @NotNull
+  public MemoryDataSeries getCodeMemory() {
+    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getCodeMem());
+  }
+
+  @NotNull
+  public MemoryDataSeries getOthersMemory() {
+    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getOthersMem());
   }
 
   @Override

@@ -27,8 +27,6 @@ public class ProfilerColors {
 
   public static final Color CPU_USAGE = new JBColor(0x62C88E, 0x62C88E);
 
-  public static final Color TOTAL_MEMORY = new JBColor(0x62B7DF, 0x62B7DF);
-
   public static final Color CPU_OTHER_USAGE = new JBColor(0xDFE6EE, 0xDFE6EE);
 
   public static final Color MONITOR_BACKGROUND = JBColor.background();
@@ -42,6 +40,22 @@ public class ProfilerColors {
   public static final Color NETWORK_SENDING_COLOR = new JBColor(0xFF7B00, 0xFF7B00);
 
   public static final Color NETWORK_WAITING_COLOR = new JBColor(0xAAAAAA, 0xAAAAAA);
+
+  public static final Color MEMORY_TOTAL = new JBColor(new Color(98, 180, 223), new Color(83, 172, 209));
+
+  public static final Color MEMORY_JAVA = new JBColor(new Color(98, 180, 223), new Color(83, 172, 209));
+
+  public static final Color MEMORY_NATIVE = new JBColor(new Color(73, 170, 208), new Color(47, 140, 177));
+
+  public static final Color MEMORY_CODE = new JBColor(new Color(127, 212, 144), new Color(97, 191, 114));
+
+  public static final Color MEMORY_STACK = MEMORY_CODE; // TODO awaiting final color choice
+
+  public static final Color MEMORY_GRAPHCIS = new JBColor(new Color(251, 207, 140), new Color(232, 187, 105));
+
+  public static final Color MEMORY_OTHERS = new JBColor(new Color(103, 144, 178), new Color(59, 85, 97));
+
+  public static final Color MEMORY_OBJECTS = new JBColor(new Color(89, 121, 138), new Color(65, 85, 93));
 
   public static final Map<CpuProfiler.GetThreadsResponse.State, Color> THREAD_STATES = ImmutableMap.of(
     CpuProfiler.GetThreadsResponse.State.RUNNING, CPU_USAGE,
