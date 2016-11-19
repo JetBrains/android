@@ -15,21 +15,14 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
 public class MemoryProfilerStage extends Stage {
-  private final int myProcessId;
-
-  @NotNull
-  private final MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
 
   public MemoryProfilerStage(@NotNull StudioProfilers profilers) {
     super(profilers);
-    myProcessId = profilers.getProcessId();
-    myClient = profilers.getClient().getMemoryClient();
   }
 
   @Override
@@ -38,35 +31,5 @@ public class MemoryProfilerStage extends Stage {
 
   @Override
   public void exit() {
-  }
-
-  @NotNull
-  public MemoryDataSeries getJavaMemory() {
-    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getJavaMem());
-  }
-
-  @NotNull
-  public MemoryDataSeries getNativeMemory() {
-    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getNativeMem());
-  }
-
-  @NotNull
-  public MemoryDataSeries getGraphicsMemory() {
-    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getGraphicsMem());
-  }
-
-  @NotNull
-  public MemoryDataSeries getStackMemory() {
-    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getStackMem());
-  }
-
-  @NotNull
-  public MemoryDataSeries getCodeMemory() {
-    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getCodeMem());
-  }
-
-  @NotNull
-  public MemoryDataSeries getOthersMemory() {
-    return new MemoryDataSeries(myClient, myProcessId, sample -> sample.getOthersMem());
   }
 }
