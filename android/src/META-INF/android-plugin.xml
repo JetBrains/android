@@ -881,7 +881,7 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.GradleProjectBuilder"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.BuildSettings"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.project.idea.PostSyncProjectSetup"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncState"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleNotification"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors"/>
@@ -1067,7 +1067,9 @@
     <extensionPoint qualifiedName="com.android.gradle.sync.javaModuleSetupStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.postSyncProjectSetupStep"
-                    interface="com.android.tools.idea.gradle.project.sync.setup.project.PostSyncProjectSetupStep"/>
+                    interface="com.android.tools.idea.gradle.project.sync.setup.post.project.PostSyncProjectSetupStep"/>
+    <extensionPoint qualifiedName="com.android.gradle.sync.pluginVersionUpgrade"
+                    interface="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.PluginVersionUpgrade"/>
 
     <extensionPoint qualifiedName="com.android.captureType" interface="com.android.tools.idea.profiling.capture.CaptureType"/>
     <extensionPoint qualifiedName="com.android.gradle.syncErrorHandler"
@@ -1154,7 +1156,10 @@
     <ndkModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.ndk.ContentRootModuleSetupStep"/>
     <ndkModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkFacetModuleSetupStep"/>
 
-    <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.project.JdkPostSyncProjectSetupStep"/>
+    <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.JdkPostSyncProjectSetupStep"/>
+
+    <pluginVersionUpgrade implementation="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.ForcedPluginPreviewVersionUpgrade"/>
+    <pluginVersionUpgrade implementation="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgrade"/>
 
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.GradleBrokenPipeErrorHandler"/>
