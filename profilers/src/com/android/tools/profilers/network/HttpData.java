@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,8 @@ import java.util.Map;
  * connection completes.
  */
 public class HttpData {
+  public static final String FIELD_CONTENT_TYPE = "Content-Type";
+
   private long myId;
   private String myUrl;
   private String myMethod;
@@ -37,6 +40,9 @@ public class HttpData {
   private long myEndTimeUs;
   private Map<String, String> myResponseFields;
   private String myResponsePayloadId;
+  // TODO: Move it to datastore, for now virtual file creation cannot select file type.
+  private File myResponsePayloadFile;
+  // TODO: Use content-length value from response fields.
   // Holds the non-negative response body size in bytes if present, otherwise it is -1 by default.
   private long myHttpResponseBodySize = -1;
 
@@ -96,6 +102,15 @@ public class HttpData {
     myResponsePayloadId = payloadId;
   }
 
+  @Nullable
+  public File getHttpResponsePayloadFile() {
+    return myResponsePayloadFile;
+  }
+
+  public void setHttpResponsePayloadFile(@NotNull File payloadFile) {
+    myResponsePayloadFile = payloadFile;
+  }
+
   public void setHttpResponseBodySize(long size) {
     myHttpResponseBodySize = size;
   }
@@ -123,4 +138,6 @@ public class HttpData {
     }
     return fieldsMap;
   }
+
+
 }

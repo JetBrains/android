@@ -21,6 +21,7 @@ import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.Nullable;
@@ -65,20 +66,20 @@ public class ConnectionDetailsView extends JPanel {
       return;
     }
 
-    // TODO: Get payload file from id.
-    VirtualFile testPayloadFile = null;
-    if (testPayloadFile != null) {
+    VirtualFile payloadVirtualFile = httpData.getHttpResponsePayloadFile() != null
+                                     ? LocalFileSystem.getInstance().findFileByIoFile(httpData.getHttpResponsePayloadFile()) : null;
+    if (payloadVirtualFile != null) {
       // TODO: Find proper project to refactor this.
       Project project = ProjectManager.getInstance().getDefaultProject();
-      FileEditorProvider editorProvider = FileEditorProviderManager.getInstance().getProviders(project, testPayloadFile)[0];
-      myEditor = editorProvider.createEditor(project, testPayloadFile);
+      FileEditorProvider editorProvider = FileEditorProviderManager.getInstance().getProviders(project, payloadVirtualFile)[0];
+      myEditor = editorProvider.createEditor(project, payloadVirtualFile);
       myResponsePanel.add(myEditor.getComponent());
     }
 
     myFieldsPanel.add(new JLabel(httpData.getUrl()));
     Map<String, String> responseFields = httpData.getHttpResponseFields();
-    if (responseFields != null && responseFields.containsKey("content-type")) {
-      myFieldsPanel.add(new JLabel(responseFields.get("content-type")));
+    if (responseFields != null && responseFields.containsKey(HttpData.FIELD_CONTENT_TYPE)) {
+      myFieldsPanel.add(new JLabel(responseFields.get(HttpData.FIELD_CONTENT_TYPE)));
     }
 
     myResponseSplitter.repaint();
