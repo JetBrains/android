@@ -89,7 +89,7 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.project.sync.setup.project.idea.ProjectStructureUsageTracker.getApplicationId;
+import static com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTracker.getApplicationId;
 
 /**
  * Contents of the "Project Structure" dialog, for Gradle-based Android projects, in Android Studio.

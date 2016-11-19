@@ -46,7 +46,7 @@ public abstract class AndroidPluginGeneration {
   public static final AndroidPluginGeneration ORIGINAL = new AndroidPluginGeneration() {
     @Override
     @NotNull
-    protected String getArtifactId() {
+    public String getArtifactId() {
       return "gradle";
     }
 
@@ -85,7 +85,7 @@ public abstract class AndroidPluginGeneration {
   public static final AndroidPluginGeneration COMPONENT = new AndroidPluginGeneration() {
     @Override
     @NotNull
-    protected String getArtifactId() {
+    public String getArtifactId() {
       return "gradle-experimental";
     }
 
@@ -142,7 +142,7 @@ public abstract class AndroidPluginGeneration {
   }
 
   @NotNull
-  protected abstract String getArtifactId();
+  public abstract String getArtifactId();
 
   @Nullable
   public static AndroidPluginGeneration find(@NotNull String artifactId, @Nullable String groupId) {
