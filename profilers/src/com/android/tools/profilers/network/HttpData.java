@@ -18,7 +18,9 @@ package com.android.tools.profilers.network;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -103,11 +105,7 @@ public class HttpData {
   }
 
   public void setHttpResponseFields(@NotNull String fields) {
-    myResponseFields = new ResponseFieldsParser().getFieldsMap(fields);
-  }
-
-  public void setHttpResponseFields(@NotNull Map<String, String> fields) {
-    myResponseFields = fields;
+    myResponseFields = getFieldsMap(fields);
   }
 
   @Nullable
@@ -115,21 +113,14 @@ public class HttpData {
     return myResponseFields;
   }
 
-  /**
-   * Parser to get formatted http response fields from concatenated string.
-   */
-  public static class ResponseFieldsParser {
-
-    @NotNull
-    public Map<String, String> getFieldsMap(@NotNull String fields) {
-      String[] lines = fields.split("\\n");
-      Map<String, String> fieldsMap = new HashMap<>();
-      for (String line : lines) {
-        String[] keyAndValue = line.split("=");
-        assert keyAndValue.length == 2 : String.format("Unexpected http response field %s", line);
-        fieldsMap.put(keyAndValue[0].trim(), keyAndValue[1].trim());
-      }
-      return fieldsMap;
+  private static Map<String, String> getFieldsMap(@NotNull String fields) {
+    List<String> lines = Arrays.asList(fields.split("\\n"));
+    Map<String, String> fieldsMap = new HashMap<>();
+    for (String line : lines) {
+      String[] keyAndValue = line.split("=", 2);
+      assert keyAndValue.length == 2 : String.format("Unexpected http response field %s", line);
+      fieldsMap.put(keyAndValue[0].trim(), keyAndValue[1].trim());
     }
+    return fieldsMap;
   }
 }
