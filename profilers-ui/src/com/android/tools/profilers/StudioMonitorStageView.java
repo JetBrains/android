@@ -43,11 +43,14 @@ public class StudioMonitorStageView extends StageView {
     binder.bind(MemoryMonitor.class, MemoryMonitorView::new);
     binder.bind(EventMonitor.class, EventMonitorView::new);
 
+    setupPanAndZoomListeners(getComponent());
+
     ProfilerScrollbar sb = new ProfilerScrollbar(getTimeline());
     getChoreographer().register(sb);
     getComponent().add(sb, BorderLayout.SOUTH);
 
     JPanel monitors = new JPanel(new GridBagLayout());
+    monitors.setBackground(ProfilerColors.MONITOR_BACKGROUND);
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.weightx = 1;
@@ -69,6 +72,7 @@ public class StudioMonitorStageView extends StageView {
     gbc.weighty = 0;
     gbc.gridy = y;
     monitors.add(timeAxis, gbc);
+
     getComponent().add(monitors, BorderLayout.CENTER);
   }
 
