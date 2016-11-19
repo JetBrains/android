@@ -73,7 +73,6 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
 
   @Override
   public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> observer) {
-
     List<Profiler.Process> processes = myProcesses.get(request.getSerial());
     Profiler.GetProcessesResponse response = Profiler.GetProcessesResponse.newBuilder().addAllProcess(processes).build();
     observer.onNext(response);
@@ -97,10 +96,10 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
 
   @Override
   public void setProcesses(Profiler.SetProcessesRequest request, StreamObserver<Profiler.SetProcessesResponse> observer) {
-    List<Profiler.DeviceProcesses> map = request.getDeviceProcessesList();
+    List<Profiler.DeviceProcesses> list = request.getDeviceProcessesList();
     myProcesses.clear();
     myDevices.clear();
-    for (Profiler.DeviceProcesses processes : map) {
+    for (Profiler.DeviceProcesses processes : list) {
       myDevices.add(processes.getDevice());
       myProcesses.put(processes.getDevice().getSerial(), processes.getProcessList());
     }
