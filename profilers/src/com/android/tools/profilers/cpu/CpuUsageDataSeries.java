@@ -47,10 +47,13 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
   @Override
   public ImmutableList<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
     List<SeriesData<Long>> seriesData = new ArrayList<>();
+    // Get an extra padding on each side, to have a smooth rendering at the edges.
+    // TODO: Change the CPU API to allow specifying this padding in the request as number of samples.
+    long buffer = TimeUnit.SECONDS.toNanos(1);
     CpuProfiler.CpuDataRequest.Builder dataRequestBuilder = CpuProfiler.CpuDataRequest.newBuilder()
       .setAppId(myProcessId)
-      .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
-      .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()));
+      .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin() - buffer))
+      .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax() + buffer));
     CpuProfiler.CpuDataResponse response = myClient.getData(dataRequestBuilder.build());
     CpuProfiler.CpuProfilerData lastCpuData = null;
     for (CpuProfiler.CpuProfilerData data : response.getDataList()) {
