@@ -20,10 +20,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
@@ -148,6 +145,34 @@ public class NewProjectTest {
       "        Missing support for Firebase App Indexing",
       "            AndroidManifest.xml",
       "                App is not indexable by Google Search; consider adding at least one Activity with an ACTION-VIEW intent filter. See issue explanation for more details."));
+  }
+
+  @Test
+  public void testInferNullity() throws IOException {
+    // Creates a new default project, adds a nullable API and then invokes Infer Nullity and
+    // confirms that it adds nullability annotations.
+    newProject("Test Infer Nullity Application").withPackageName("my.pkg").create();
+
+    // Insert resValue statements which should not add warnings (since they are generated files; see
+    // https://code.google.com/p/android/issues/detail?id=76715
+    IdeFrameFixture frame = guiTest.ideFrame();
+    EditorFixture editor = frame.getEditor();
+
+    editor
+      .open("app/src/main/java/my/pkg/MainActivity.java", EditorFixture.Tab.EDITOR)
+      .moveBetween(" ", "}")
+      .enterText("if (savedInstanceState != null) ;");
+
+    frame
+      .openFromMenu(InferNullityDialogFixture::find, "Analyze", "Infer Nullity...")
+      .clickOk();
+
+    // Text will be updated when analysis is done
+    Wait.seconds(30).expecting("matching nullness")
+      .until(() -> {
+        String file = editor.getCurrentFileContents();
+        return file.contains("@Nullable Bundle savedInstanceState");
+      });
   }
 
   private static String lines(String... strings) {
