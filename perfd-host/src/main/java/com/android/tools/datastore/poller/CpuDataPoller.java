@@ -109,12 +109,10 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
 
     //TODO: Optimize so we do not need to loop all the data every request, ideally binary search to start time and loop till end.
     synchronized (myLock) {
-      Iterator<CpuProfiler.CpuProfilerData> itr = myData.iterator();
-      while (itr.hasNext()) {
-        CpuProfiler.CpuProfilerData obj = itr.next();
-        long current = obj.getBasicInfo().getEndTimestamp();
+      for (CpuProfiler.CpuProfilerData data : myData) {
+        long current = data.getBasicInfo().getEndTimestamp();
         if (current > startTime && current <= endTime) {
-          response.addData(obj);
+          response.addData(data);
         }
       }
     }
