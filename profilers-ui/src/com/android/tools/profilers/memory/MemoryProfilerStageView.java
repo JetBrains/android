@@ -133,31 +133,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     Range leftYRange = new Range();
     Range rightYRange = new Range();
-    final JPanel axisPanel = new JBPanel(new BorderLayout());
-    axisPanel.setOpaque(false);
-    AxisComponent.Builder leftBuilder = new AxisComponent.Builder(leftYRange, MEMORY_AXIS_FORMATTER,
-                                                                  AxisComponent.AxisOrientation.RIGHT)
-      .showAxisLine(false)
-      .showMax(true)
-      .showUnitAtMax(true)
-      .clampToMajorTicks(true)
-      .setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
-      .setMargins(0, Y_AXIS_TOP_MARGIN);
-    final AxisComponent leftAxis = leftBuilder.build();
-    getChoreographer().register(leftAxis);
-    axisPanel.add(leftAxis, BorderLayout.WEST);
-
-    AxisComponent.Builder rightBuilder = new AxisComponent.Builder(rightYRange, OBJECT_COUNT_AXIS_FORMATTER,
-                                                                   AxisComponent.AxisOrientation.LEFT)
-      .showAxisLine(false)
-      .showMax(true)
-      .showUnitAtMax(true)
-      .clampToMajorTicks(true)
-      .setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
-      .setMargins(0, Y_AXIS_TOP_MARGIN);
-    final AxisComponent rightAxis = rightBuilder.build();
-    getChoreographer().register(rightAxis);
-    axisPanel.add(rightAxis, BorderLayout.EAST);
 
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
@@ -188,9 +163,34 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       .addEvent(new RangedSeries<>(viewRange, getStage().getHeapDumpSampleDurations()), new EventConfig(Color.BLACK).setText("Heap Dump"));
     lineChart.addEvent(new RangedSeries<>(viewRange, getStage().getAllocationDumpSampleDurations()),
                        new EventConfig(Color.BLUE).setText("Alloocation Tracking"));
-
     getChoreographer().register(lineChart);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
+
+    final JPanel axisPanel = new JBPanel(new BorderLayout());
+    axisPanel.setOpaque(false);
+    AxisComponent.Builder leftBuilder = new AxisComponent.Builder(leftYRange, MEMORY_AXIS_FORMATTER,
+                                                                  AxisComponent.AxisOrientation.RIGHT)
+      .showAxisLine(false)
+      .showMax(true)
+      .showUnitAtMax(true)
+      .clampToMajorTicks(true)
+      .setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
+      .setMargins(0, Y_AXIS_TOP_MARGIN);
+    final AxisComponent leftAxis = leftBuilder.build();
+    getChoreographer().register(leftAxis);
+    axisPanel.add(leftAxis, BorderLayout.WEST);
+
+    AxisComponent.Builder rightBuilder = new AxisComponent.Builder(rightYRange, OBJECT_COUNT_AXIS_FORMATTER,
+                                                                   AxisComponent.AxisOrientation.LEFT)
+      .showAxisLine(false)
+      .showMax(true)
+      .showUnitAtMax(true)
+      .clampToMajorTicks(true)
+      .setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
+      .setMargins(0, Y_AXIS_TOP_MARGIN);
+    final AxisComponent rightAxis = rightBuilder.build();
+    getChoreographer().register(rightAxis);
+    axisPanel.add(rightAxis, BorderLayout.EAST);
 
     final LegendComponent legend = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, LEGEND_UPDATE_FREQUENCY_MS);
     legend.setLegendData(lineChart.getLegendDataFromLineChart());

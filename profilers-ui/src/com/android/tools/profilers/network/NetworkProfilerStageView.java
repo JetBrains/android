@@ -110,6 +110,35 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(SwingConstants.TOP);
 
+    Range leftYRange = new Range();
+    Range rightYRange = new Range();
+
+    final JPanel lineChartPanel = new JBPanel(new BorderLayout());
+    lineChartPanel.setOpaque(false);
+    lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
+    final LineChart lineChart = new LineChart();
+    LineConfig receivedConfig = new LineConfig(ProfilerColors.NETWORK_RECEIVING_COLOR);
+    lineChart.addLine(new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getLabel(),
+                                                 viewRange,
+                                                 leftYRange,
+                                                 monitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED)),
+                      receivedConfig);
+    LineConfig sentConfig = new LineConfig(ProfilerColors.NETWORK_SENDING_COLOR);
+    lineChart.addLine(new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_SENT.getLabel(),
+                                                 viewRange,
+                                                 leftYRange,
+                                                 monitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_SENT)),
+                      sentConfig);
+    LineConfig connectionConfig = new LineConfig(ProfilerColors.NETWORK_CONNECTIONS_COLOR).setStroke(LineConfig.DEFAULT_DASH_STROKE);
+    lineChart.addLine(new RangedContinuousSeries("Connections",
+                                                 viewRange,
+                                                 rightYRange,
+                                                 monitor.getOpenConnectionsSeries()),
+                      connectionConfig);
+
+    getChoreographer().register(lineChart);
+    lineChartPanel.add(lineChart, BorderLayout.CENTER);
+
     final JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
     AxisComponent.Builder leftAxisBuilder =
@@ -133,32 +162,6 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     final AxisComponent rightAxis = rightAxisBuilder.build();
     getChoreographer().register(rightAxis);
     axisPanel.add(rightAxis, BorderLayout.EAST);
-
-    final JPanel lineChartPanel = new JBPanel(new BorderLayout());
-    lineChartPanel.setOpaque(false);
-    lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
-    final LineChart lineChart = new LineChart();
-    LineConfig receivedConfig = new LineConfig(ProfilerColors.NETWORK_RECEIVING_COLOR);
-    lineChart.addLine(new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getLabel(),
-                                                 viewRange,
-                                                 leftAxis.getRange(),
-                                                 monitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED)),
-                      receivedConfig);
-    LineConfig sentConfig = new LineConfig(ProfilerColors.NETWORK_SENDING_COLOR);
-    lineChart.addLine(new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_SENT.getLabel(),
-                                                 viewRange,
-                                                 leftAxis.getRange(),
-                                                 monitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_SENT)),
-                      sentConfig);
-    LineConfig connectionConfig = new LineConfig(ProfilerColors.NETWORK_CONNECTIONS_COLOR).setStroke(LineConfig.DEFAULT_DASH_STROKE);
-    lineChart.addLine(new RangedContinuousSeries("Connections",
-                                                 viewRange,
-                                                 rightAxis.getRange(),
-                                                 monitor.getOpenConnectionsSeries()),
-                      connectionConfig);
-
-    getChoreographer().register(lineChart);
-    lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
     final LegendComponent legend = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, LEGEND_UPDATE_FREQUENCY_MS);
     legend.setLegendData(lineChart.getLegendDataFromLineChart());
