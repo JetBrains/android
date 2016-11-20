@@ -7,7 +7,7 @@ iml_module(
     test_data = [
         "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/studio/sdk:platforms/latest",
-        "//tools/adt/idea:android-annotations",
+        "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/lib/androidWidgets",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer-tests/testData",
