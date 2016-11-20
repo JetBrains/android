@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.Choreographer;
+import com.android.tools.adtui.RangedList;
 import com.android.tools.adtui.SelectionComponent;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
@@ -24,6 +25,7 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.RangedListModel;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
