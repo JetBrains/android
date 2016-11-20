@@ -44,7 +44,7 @@ public class SyncMessagesStub extends SyncMessages {
     return syncMessages;
   }
 
-  private SyncMessagesStub(@NotNull Project project) {
+  public SyncMessagesStub(@NotNull Project project) {
     super(project, mock(ExternalSystemNotificationManager.class));
   }
 

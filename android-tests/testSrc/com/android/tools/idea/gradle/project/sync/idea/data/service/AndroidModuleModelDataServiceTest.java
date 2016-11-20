@@ -17,9 +17,8 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
-import com.android.tools.idea.gradle.project.sync.setup.post.project.PostSyncProjectSetupStep;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
@@ -41,8 +40,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
   @Mock private AndroidModuleSetup myModuleSetup;
   @Mock private AndroidModuleValidator myValidator;
-  @Mock private PostSyncProjectSetupStep myProjectSetupStep1;
-  @Mock private PostSyncProjectSetupStep myProjectSetupStep2;
 
   private AndroidModuleModelDataService myService;
 
@@ -55,9 +52,7 @@ public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
     AndroidModuleValidator.Factory validatorFactory = mock(AndroidModuleValidator.Factory.class);
     when(validatorFactory.create(getProject())).thenReturn(myValidator);
 
-    PostSyncProjectSetupStep[] projectSetupSteps = {myProjectSetupStep1, myProjectSetupStep2};
-
-    myService = new AndroidModuleModelDataService(myModuleSetup, validatorFactory, projectSetupSteps);
+    myService = new AndroidModuleModelDataService(myModuleSetup, validatorFactory);
   }
 
   public void testGetTargetDataKey() {
@@ -80,8 +75,6 @@ public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
     verify(myModuleSetup).setUpModule(appModule, modelsProvider, androidModel, null, null);
     verify(myValidator).validate(appModule, androidModel);
     verify(myValidator).fixAndReportFoundIssues();
-    verify(myProjectSetupStep1).setUpProject(project, modelsProvider, null);
-    verify(myProjectSetupStep2).setUpProject(project, modelsProvider, null);
   }
 
   public void testImportDataWithEmptyDataNodes() throws Exception {
@@ -95,7 +88,5 @@ public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
     verify(myModuleSetup, never()).setUpModule(module, modelsProvider, androidModel, null, null);
     verify(myValidator, never()).validate(module, androidModel);
     verify(myValidator, never()).fixAndReportFoundIssues();
-    verify(myProjectSetupStep1, never()).setUpProject(project, modelsProvider, null);
-    verify(myProjectSetupStep2, never()).setUpProject(project, modelsProvider, null);
   }
 }
