@@ -134,7 +134,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     mGrid.addAxis(mMemoryAxis1);
 
     final AnimatedRange timeSelectionRangeUs = new AnimatedRange();
-    mSelection = new SelectionComponent(mLineChart, mTimeAxis, timeSelectionRangeUs, mTimeGlobalRangeUs, timeCurrentRangeUs);
+    mSelection = new SelectionComponent(timeSelectionRangeUs, timeCurrentRangeUs);
 
     // Note: the order below is important as some components depend on
     // others to be updated first. e.g. the ranges need to be updated before the axes.
@@ -224,10 +224,6 @@ public class AxisLineChartVisualTest extends VisualTest {
                   itemEvent -> mMemoryAxis1.setClampToMajorTicks(itemEvent.getStateChange() == ItemEvent.SELECTED)));
     controls.add(VisualTest.createCheckbox("Sync Vertical Axes",
                   itemEvent -> mMemoryAxis2.setParentAxis(itemEvent.getStateChange() == ItemEvent.SELECTED ? mMemoryAxis1 : null)));
-    controls.add(VisualTest.createButton("Zoom In", e -> mSelection.zoom(-SelectionComponent.ZOOM_FACTOR)));
-    controls.add(VisualTest.createButton("Zoom Out", e -> mSelection.zoom(SelectionComponent.ZOOM_FACTOR)));
-    controls.add(VisualTest.createButton("Reset Zoom", e -> mSelection.resetZoom()));
-    controls.add(VisualTest.createButton("Clear Selection", e -> mSelection.clear()));
 
     controls.add(
       new Box.Filler(new Dimension(0, 0), new Dimension(300, Integer.MAX_VALUE),

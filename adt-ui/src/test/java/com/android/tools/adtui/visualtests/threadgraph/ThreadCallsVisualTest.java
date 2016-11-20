@@ -82,7 +82,7 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
 
     mLineChart = new LineChart();
 
-    this.mSelector = new SelectionComponent(mLineChart, mAxis, mTimeSelectionRangeUs, mTimeGlobalRangeUs, mTimeGlobalRangeUs);
+    this.mSelector = new SelectionComponent(mTimeSelectionRangeUs, mTimeGlobalRangeUs);
   }
 
   @Override

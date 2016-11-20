@@ -118,10 +118,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     mLayout.setLerpFraction(1f);
     mSegmentsContainer.setLayout(mLayout);
 
-    mSelection = new SelectionComponent(mSegmentsContainer,
-                                        mTimeAxis,
-                                        mTimeSelectionRange,
-                                        mTimeGlobalRange,
+    mSelection = new SelectionComponent(mTimeSelectionRange,
                                         mTimeCurrentRange);
 
     List<Animatable> componentsList = new ArrayList<>();
