@@ -73,7 +73,6 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
     //TODO Pull logic of combining events out of component and into EventHandler
     double min = mData.getXRange().getMin();
     double max = mData.getXRange().getMax();
-    EventAction<EventAction.Action, ? extends Enum> downEvent = null;
     mIconsToDraw.clear();
     mPaths.clear();
     ImmutableList<SeriesData<EventAction<EventAction.Action, E>>> series = mData.getSeries();
@@ -82,39 +81,17 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
     for (int i = 0; i < size; i++) {
       SeriesData<EventAction<EventAction.Action, E>> seriesData = series.get(i);
       EventAction<EventAction.Action, ? extends Enum> data = seriesData.value;
-
-      if (data.getValue() == EventAction.Action.DOWN) {
-        downEvent = data;
-      } else if (data.getValue() == EventAction.Action.UP) {
-        downEvent = null;
-        Integer toDraw = data.getValueData().ordinal();
-        if (data.getEndUs() - data.getStartUs() >= HOLD_DELAY_US) {
-          toDraw = data.getValueData().ordinal();
-          Path2D.Float path = new Path2D.Float();
-          double start = (data.getStartUs() - min) / (max - min);
-          double end = (data.getEndUs() - min) / (max - min);
-          path.moveTo(start, LINE_OFFSET);
-          path.lineTo(end, LINE_OFFSET);
-          mPaths.add(path);
-        }
-        mIconsToDraw.add(new EventRenderData(toDraw, data.getStartUs()));
-      } else if (data.getValue() == EventAction.Action.NONE) {
-        // If no action is set then we do not need to associate a down, and up event together. Instead we render the icon
-        // associated with the event triggered.
-        mIconsToDraw.add(new EventRenderData(data.getValueData().ordinal(), data.getStartUs()));
-      }
-    }
-    if (downEvent != null) {
-      double start = (downEvent.getStartUs() - min) / (max - min);
-      Integer toDraw = downEvent.getValueData().ordinal();
-      if (max - downEvent.getStartUs() >= HOLD_DELAY_US) {
+      Integer toDraw = data.getValueData().ordinal();
+      mIconsToDraw.add(new EventRenderData(toDraw, data.getStartUs()));
+      double endTimeUs = data.getEndUs() == 0L ? max : data.getEndUs();
+      if (endTimeUs - data.getStartUs() >= HOLD_DELAY_US) {
         Path2D.Float path = new Path2D.Float();
-        double end = 1;
+        double start = (data.getStartUs() - min) / (max - min);
+        double end = (endTimeUs - min) / (max - min);
         path.moveTo(start, LINE_OFFSET);
         path.lineTo(end, LINE_OFFSET);
         mPaths.add(path);
       }
-      mIconsToDraw.add(new EventRenderData(toDraw, downEvent.getStartUs()));
     }
   }
 
