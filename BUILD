@@ -76,12 +76,6 @@ iml_module(
     deps = ["//tools/sherpa:sherpa-solver[module]"],
 )
 
-filegroup(
-    name = "android-annotations",
-    srcs = glob(["android/annotations/**"]),
-    visibility = ["//visibility:public"],
-)
-
 iml_module(
     name = "android",
     # do not sort: must match IML order
