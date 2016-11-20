@@ -39,7 +39,7 @@ public final class ProfilerTimeline {
     myDataRangeUs = dataRangeUs;
     myViewRangeUs = new Range(myDataRangeUs.getMin(), myDataRangeUs.getMax());
     myViewRangeUs.shift(-myBufferUs);
-    mySelectionRangeUs = null;
+    mySelectionRangeUs = new Range(0, 0);
   }
 
   public void resetZoom() {
@@ -81,5 +81,9 @@ public final class ProfilerTimeline {
     double globalMin = Math.min(myViewRangeUs.getMin(), myDataRangeUs.getMin());
     double globalMax = Math.max(globalMin, myDataRangeUs.getMax() - myBufferUs);
     return Math.min(globalMax, Math.max(globalMin, timeUs));
+  }
+
+  public Range getSelectionRange() {
+    return mySelectionRangeUs;
   }
 }
