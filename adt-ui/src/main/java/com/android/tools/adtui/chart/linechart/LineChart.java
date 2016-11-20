@@ -19,13 +19,11 @@ package com.android.tools.adtui.chart.linechart;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.common.datareducer.DataReducer;
-import com.android.tools.adtui.common.datareducer.LineChartReducer;
 import com.android.tools.adtui.model.*;
 import com.intellij.ui.ColorUtil;
 import com.intellij.util.containers.ImmutableList;
 import gnu.trove.TDoubleArrayList;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 import java.awt.*;
@@ -74,13 +72,18 @@ public class LineChart extends AnimatedComponent {
    */
   private int mNextLineColorIndex;
 
-  @Nullable
+  @NotNull
   private DataReducer myReducer;
 
   public LineChart() {
     myLinePaths = new ArrayList<>();
     myLinePathConfigs = new ArrayList<>();
-    myReducer = null;
+    // TODO: Replace with myReducer = new LineChartReducer
+    // Having a real reducer will be important for the final release, but we don't want to risk
+    // unintentional side effects to distract us as we prepare to meet an initial milestone.
+    // (For example, reducing points may make it harder to handle dealing with flickering when
+    // endpoints go off screen). Therefore, we just create a passthru reducer for now.
+    myReducer = (path, config) -> path;
   }
 
   @TestOnly
@@ -352,9 +355,7 @@ public class LineChart extends AnimatedComponent {
     List<Path2D> transformedPaths = new ArrayList<>(myLinePaths.size());
     for (int i = 0; i < myLinePaths.size(); ++i) {
       Path2D scaledPath = new Path2D.Float(myLinePaths.get(i), scale);
-      if (myReducer != null) {
-        scaledPath = myReducer.reduce(scaledPath, myLinePathConfigs.get(i));
-      }
+      scaledPath = myReducer.reduce(scaledPath, myLinePathConfigs.get(i));
       transformedPaths.add(scaledPath);
 
       if (isDrawDebugInfo()) {
