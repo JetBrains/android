@@ -24,6 +24,6 @@ iml_module(
         "//tools:idea.java-psi-impl[module]",
         "//tools:idea.java-indexing-api[module]",
         "//tools/base/asset-studio:studio.assetstudio[module]",
-        "//tools/adt/idea/adt-ui:adt-ui[module]",
+        "//tools/adt/idea/adt-ui[module]",
     ],
 )

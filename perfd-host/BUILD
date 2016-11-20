@@ -16,7 +16,7 @@ iml_module(
         "//tools/base/common:studio.common[module]",
         "//tools/idea/.idea/libraries:truth",
         "//tools/base/testutils:studio.testutils[module, test]",
-        "//tools/adt/idea/adt-ui-model:adt-ui-model[module]",
+        "//tools/adt/idea/adt-ui-model[module]",
         "//tools/base/ddmlib:studio.ddmlib[module]",
         "//tools:idea.annotations-common[module]",
         "//tools/base/rpclib:studio.rpclib[module]",

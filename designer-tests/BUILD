@@ -29,7 +29,7 @@ iml_module(
     deps = [
         "//tools:idea.platform-impl_and_others[module]",
         "//tools/idea/.idea/libraries:mockito[test]",
-        "//tools/adt/idea/designer:designer[module, test]",
+        "//tools/adt/idea/designer[module, test]",
         "//tools/adt/idea:android[module, test]",
         "//tools:idea.xml-psi-api[module, test]",
         "//tools:idea.compiler-impl_and_others[module]",
@@ -37,9 +37,9 @@ iml_module(
         "//tools:idea.lang-api[module, test]",
         "//tools/idea/.idea/libraries:layoutlib[test]",
         "//tools/base/testutils:studio.testutils[module, test]",
-        "//tools/adt/idea/adt-ui:adt-ui[module, test]",
+        "//tools/adt/idea/adt-ui[module, test]",
         "//tools/base/pixelprobe:studio.pixelprobe[module, test]",
         "//tools/adt/idea:sherpa-ui[module, test]",
-        "//tools/adt/idea/android-test-framework:android-test-framework[module, test]",
+        "//tools/adt/idea/android-test-framework[module, test]",
     ],
 )
