@@ -28,9 +28,9 @@ public final class ProfilerTimeline {
   private static final long DEFAULT_VIEW_LENGTH_US = TimeUnit.SECONDS.toMicros(30);
   private static final long DEFAULT_BUFFER_US = TimeUnit.SECONDS.toMicros(1);
 
-  @NotNull final Range myDataRangeUs;
-  @NotNull final Range myViewRangeUs;
-  @NotNull final Range mySelectionRangeUs;
+  @NotNull private final Range myDataRangeUs;
+  @NotNull private final Range myViewRangeUs;
+  @NotNull private final Range mySelectionRangeUs;
   private long myBufferUs;
   private boolean myStreaming;
 
@@ -85,5 +85,9 @@ public final class ProfilerTimeline {
 
   public Range getSelectionRange() {
     return mySelectionRangeUs;
+  }
+
+  public void selectAll() {
+    mySelectionRangeUs.set(myViewRangeUs);
   }
 }

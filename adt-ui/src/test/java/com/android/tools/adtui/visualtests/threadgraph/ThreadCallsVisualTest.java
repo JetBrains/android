@@ -17,7 +17,7 @@
 package com.android.tools.adtui.visualtests.threadgraph;
 
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.chart.hchart.HNode;
+import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.hchart.JavaMethodHRenderer;
 import com.android.tools.adtui.chart.hchart.Method;
