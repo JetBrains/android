@@ -75,6 +75,11 @@ public class LineChart extends AnimatedComponent {
   @NotNull
   private DataReducer myReducer;
 
+  /**
+   * During the first update, skip the y range interpolation and snap to the initial max value.
+   */
+  private boolean myFirstUpdate = true;
+
   public LineChart() {
     myLinePaths = new ArrayList<>();
     myLinePathConfigs = new ArrayList<>();
@@ -175,10 +180,13 @@ public class LineChart extends AnimatedComponent {
       Range range = entry.getKey();
       // Prevent the LineChart to update the range below its current max.
       if (range.getMax() < entry.getValue()) {
-        range.setMax(Choreographer.lerp(range.getMax(), entry.getValue(), DEFAULT_LERP_FRACTION, mFrameLength,
+        float fraction = myFirstUpdate ? 1f : DEFAULT_LERP_FRACTION;
+        range.setMax(Choreographer.lerp(range.getMax(), entry.getValue(), fraction, mFrameLength,
                                         (float)(entry.getValue() * DEFAULT_LERP_THRESHOLD_PERCENTAGE)));
       }
     }
+
+    myFirstUpdate = false;
   }
 
   /**

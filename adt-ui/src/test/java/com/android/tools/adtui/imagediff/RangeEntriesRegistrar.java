@@ -36,7 +36,7 @@ class RangeEntriesRegistrar extends ImageDiffEntriesRegistrar {
     registerSimpleHorizontalRange();
     registerMultipleSeriesHorizontalRange();
     registerSimpleVerticalRange();
-    //registerMultipleSeriesVerticalRange(); TODO this test involves animation. Fix this after the system is fully functional again.
+    registerMultipleSeriesVerticalRange();
     registerAnimatedTimeRange();
     registerAnimatedTimeNoAnimationRange();
   }
