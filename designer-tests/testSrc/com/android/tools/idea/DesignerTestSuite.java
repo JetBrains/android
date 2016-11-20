@@ -45,16 +45,13 @@ public class DesignerTestSuite {
   static {
     System.setProperty("idea.home", createTmpDir("tools/idea").toString());
     System.setProperty("layoutlib.thread.timeout", "60000");
-    symbolicLinkInTmpDir("tools/adt/idea/android/annotations");
     VfsRootAccess.allowRootAccess("/");
-    symbolicLinkInTmpDir("tools/idea/java/jdkAnnotations");
-    symbolicLinkInTmpDir("tools/base/templates");
-    symbolicLinkInTmpDir("tools/adt/idea/android/device-art-resources");
+    symbolicLinkInTmpDir("prebuilts/studio/layoutlib");
+    symbolicLinkInTmpDir("tools/adt/idea/android/annotations");
+    symbolicLinkInTmpDir("tools/adt/idea/android/lib/androidWidgets");
     symbolicLinkInTmpDir("tools/adt/idea/android/testData");
     symbolicLinkInTmpDir("tools/adt/idea/designer-tests/testData");
-    symbolicLinkInTmpDir("tools/adt/idea/android/lib");
-    symbolicLinkInTmpDir("prebuilts/studio/jdk");
-    symbolicLinkInTmpDir("prebuilts/studio/layoutlib");
+    symbolicLinkInTmpDir("tools/base/templates");
   }
 
   private static Path createTmpDir(String p) {
