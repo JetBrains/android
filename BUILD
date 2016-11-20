@@ -50,20 +50,3 @@ iml_module(
         "//tools/base/testutils:studio.testutils[module, test]",
     ],
 )
-
-iml_module(
-    name = "layoutlib",
-    srcs = ["layoutlib/src"],
-    resources = ["layoutlib/resources"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-    exports = ["//tools/idea/.idea/libraries:layoutlib"],
-    # do not sort: must match IML order
-    deps = [
-        "//tools/idea/.idea/libraries:layoutlib",
-        "//tools/base/sdk-common:studio.sdk-common[module]",
-        "//tools:idea.annotations[module]",
-        "//tools/adt/idea:android-common[module]",
-        "//tools:idea.platform-api[module]",
-    ],
-)

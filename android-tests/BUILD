@@ -64,7 +64,7 @@ iml_module(
         "//tools:idea.gradle[module, test]",
         "//tools:idea.gradle-tests[module, test]",
         "//tools:idea.groovy-psi[module, test]",
-        "//tools/adt/idea:layoutlib[module, test]",
+        "//tools/adt/idea/layoutlib[module, test]",
         "//tools:idea.properties-psi-api[module, test]",
         "//tools/base/asset-studio:studio.assetstudio[module, test]",
         "//tools/base/instant-run:studio.instant-run-client[module, test]",
