@@ -82,15 +82,6 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-filegroup(
-    name = "testFiles",
-    srcs = glob([
-        "android/device-art-resources/**",
-        "android/testData/**",
-    ]) + [":android-annotations"],
-    visibility = ["//visibility:public"],
-)
-
 iml_module(
     name = "android",
     # do not sort: must match IML order
