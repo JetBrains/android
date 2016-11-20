@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package com.android.tools.adtui.chart.hchart;
+package com.android.tools.adtui.model;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,22 +26,24 @@ public class HNode<T> {
 
   private long mStart;
   private long mEnd;
-  private T mData;
-  private List<HNode<T>> mNodes;
+  @Nullable private T mData;
+  @NotNull private List<HNode<T>> mNodes;
   private int mDepth;
 
   public HNode() {
-    mNodes = new ArrayList<HNode<T>>();
+    mNodes = new ArrayList<>();
   }
 
+  @NotNull
   public List<HNode<T>> getChildren() {
-    return this.mNodes;
+    return mNodes;
   }
 
-  public void addHNode(HNode node) {
-    this.mNodes.add(node);
+  public void addHNode(HNode<T> node) {
+    mNodes.add(node);
   }
 
+  @Nullable
   public HNode<T> getLastChild() {
     if (mNodes.isEmpty()) {
       return null;
@@ -46,6 +51,7 @@ public class HNode<T> {
     return mNodes.get(mNodes.size() - 1);
   }
 
+  @Nullable
   public HNode<T> getFirstChild() {
     if (mNodes.isEmpty()) {
       return null;
@@ -53,13 +59,12 @@ public class HNode<T> {
     return mNodes.get(0);
   }
 
-
   public long getEnd() {
     return mEnd;
   }
 
   public void setEnd(long end) {
-    this.mEnd = end;
+    mEnd = end;
   }
 
   public long getStart() {
@@ -67,7 +72,7 @@ public class HNode<T> {
   }
 
   public void setStart(long start) {
-    this.mStart = start;
+    mStart = start;
   }
 
   public T getData() {
@@ -75,15 +80,15 @@ public class HNode<T> {
   }
 
   public void setData(T data) {
-    this.mData = data;
+    mData = data;
+  }
+
+  public int getDepth() {
+    return mDepth;
   }
 
   public void setDepth(int depth) {
     mDepth = depth;
-  }
-
-  public int getDepth() {
-    return this.mDepth;
   }
 
   public long duration() {

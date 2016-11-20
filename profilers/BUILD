@@ -12,6 +12,7 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/adt/idea/adt-ui-model[module]",
+        "//tools/base/perflib:studio.perflib[module]",
         "//tools:idea.util[module]",
         "//tools/idea/.idea/libraries:JUnit4[test]",
     ],

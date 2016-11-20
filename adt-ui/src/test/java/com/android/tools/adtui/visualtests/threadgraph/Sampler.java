@@ -16,7 +16,7 @@
 
 package com.android.tools.adtui.visualtests.threadgraph;
 
-import com.android.tools.adtui.chart.hchart.HNode;
+import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.chart.hchart.Method;
 
 import java.util.HashMap;

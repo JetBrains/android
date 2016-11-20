@@ -19,6 +19,7 @@ import com.android.tools.adtui.AccordionLayout;
 import com.android.tools.adtui.AnimatedRange;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.chart.hchart.*;
+import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.datastore.Poller;
 import com.android.tools.datastore.SeriesDataStore;
