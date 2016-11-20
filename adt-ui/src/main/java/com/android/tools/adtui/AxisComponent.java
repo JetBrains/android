@@ -139,6 +139,11 @@ public final class AxisComponent extends AnimatedComponent {
    */
   private final double myOffset;
 
+  /**
+   * During the first update, skip the y range interpolation and snap to the initial max value.
+   */
+  private boolean myFirstUpdate = true;
+
   private AxisComponent(@NotNull Builder builder) {
     myRange = builder.myRange;
     myGlobalRange = builder.myGlobalRange;
@@ -318,8 +323,10 @@ public final class AxisComponent extends AnimatedComponent {
     }
 
     clampedMaxTarget += myOffset;
-    myRange.setMax(Choreographer.lerp(myRange.getMax(), clampedMaxTarget, DEFAULT_LERP_FRACTION, mFrameLength,
+    float fraction = myFirstUpdate ? 1f : DEFAULT_LERP_FRACTION;
+    myRange.setMax(Choreographer.lerp(myRange.getMax(), clampedMaxTarget, fraction, mFrameLength,
                                       (float)(clampedMaxTarget * DEFAULT_LERP_THRESHOLD_PERCENTAGE)));
+    myFirstUpdate = false;
   }
 
   @Override
