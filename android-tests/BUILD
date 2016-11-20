@@ -17,7 +17,7 @@ iml_module(
         "//prebuilts/tools/common/m2:guava-18",
         "//prebuilts/tools/common/offline-m2:android-gradle-2.2.0",
         "//tools:idea/java/jdkAnnotations",
-        "//tools/adt/idea:android-annotations",
+        "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/device-art-resources",
         "//tools/adt/idea/android/lib/androidWidgets",
         "//tools/adt/idea/android/lib/libwebp",
