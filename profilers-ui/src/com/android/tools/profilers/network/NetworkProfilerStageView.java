@@ -16,7 +16,7 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.Choreographer;
+import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
@@ -25,16 +25,21 @@ import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.event.EventMonitor;
+import com.android.tools.profilers.event.EventMonitorView;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 
+import static com.android.tools.profilers.ProfilerLayout.*;
+
 public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
-  private static final BaseAxisFormatter TRAFFIC_AXIS_FORMATTER = new NetworkTrafficFormatter(1, 2, 5);
+  private static final BaseAxisFormatter TRAFFIC_AXIS_FORMATTER = new NetworkTrafficFormatter(1, 5, 5);
   private static final BaseAxisFormatter CONNECTIONS_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 1, "");
 
   private final ConnectionDetailsView myConnectionDetails;
@@ -46,61 +51,8 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     myConnectionDetails = new ConnectionDetailsView();
     myRequestsView = new NetworkRequestsView(this, stage.getRequestsModel(), stage::setConnection);
 
-    NetworkMonitor monitor = new NetworkMonitor(stage.getStudioProfilers());
-    stage.aspect.addDependency()
-      .setExecutor(ApplicationManager.getApplication()::invokeLater)
-      .onChange(NetworkProfilerAspect.REQUEST_DETAILS, this::updateRequestDetailsView)
-      .onChange(NetworkProfilerAspect.REQUESTS, this::updateRequestsView);
-
-    AxisComponent.Builder leftAxisBuilder =
-      new AxisComponent.Builder(new Range(0, 4), TRAFFIC_AXIS_FORMATTER, AxisComponent.AxisOrientation.LEFT)
-        .showAxisLine(false)
-        .showMax(true)
-        .showUnitAtMax(true)
-        .setMarkerLengths(ProfilerLayout.MARKER_LENGTH, ProfilerLayout.MARKER_LENGTH)
-        .clampToMajorTicks(true).setMargins(0, ProfilerLayout.Y_AXIS_TOP_MARGIN);
-    AxisComponent leftAxis = leftAxisBuilder.build();
-
-    AxisComponent.Builder rightAxisBuilder =
-      new AxisComponent.Builder(new Range(0, 5), CONNECTIONS_AXIS_FORMATTER, AxisComponent.AxisOrientation.RIGHT)
-        .showAxisLine(false)
-        .showMax(true)
-        .showUnitAtMax(true)
-        .setMarkerLengths(ProfilerLayout.MARKER_LENGTH, ProfilerLayout.MARKER_LENGTH)
-        .clampToMajorTicks(true).setMargins(0, ProfilerLayout.Y_AXIS_TOP_MARGIN);
-    AxisComponent rightAxis = rightAxisBuilder.build();
-
-    LineChart lineChart = new LineChart();
-    LineConfig receivedConfig = new LineConfig(ProfilerColors.NETWORK_RECEIVING_COLOR);
-    lineChart.addLine(new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getLabel(),
-                                                 monitor.getTimeline().getViewRange(),
-                                                 leftAxis.getRange(),
-                                                 monitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED)),
-                      receivedConfig);
-    LineConfig sentConfig = new LineConfig(ProfilerColors.NETWORK_SENDING_COLOR);
-    lineChart.addLine(new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_SENT.getLabel(),
-                                                 monitor.getTimeline().getViewRange(),
-                                                 leftAxis.getRange(),
-                                                 monitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_SENT)),
-                      sentConfig);
-    LineConfig connectionConfig = new LineConfig(ProfilerColors.NETWORK_CONNECTIONS_COLOR).setStroke(LineConfig.DEFAULT_DASH_STROKE);
-    lineChart.addLine(new RangedContinuousSeries("Connections",
-                                                 monitor.getTimeline().getViewRange(),
-                                                 rightAxis.getRange(),
-                                                 monitor.getOpenConnectionsSeries()),
-                      connectionConfig);
-
-    JPanel lineChartWrapper = new JPanel(new BorderLayout());
-    lineChartWrapper.setBorder(BorderFactory.createEmptyBorder(ProfilerLayout.Y_AXIS_TOP_MARGIN, 0, 0, 0));
-    lineChartWrapper.add(lineChart);
-
-    JPanel lineChartAndAxis = new JPanel(new BorderLayout());
-    lineChartAndAxis.add(leftAxis, BorderLayout.WEST);
-    lineChartAndAxis.add(rightAxis, BorderLayout.EAST);
-    lineChartAndAxis.add(lineChartWrapper, BorderLayout.CENTER);
-
     Splitter l2l3splitter = new Splitter(true);
-    l2l3splitter.setFirstComponent(lineChartAndAxis);
+    l2l3splitter.setFirstComponent(buildMonitorUi());
     l2l3splitter.setSecondComponent(new JBScrollPane(myRequestsView.getComponent()));
 
     mySplitter = new Splitter(false);
@@ -109,13 +61,123 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
     getComponent().add(mySplitter, BorderLayout.CENTER);
 
-    Choreographer choreographer = getChoreographer();
-    choreographer.register(lineChart);
-    choreographer.register(leftAxis);
-    choreographer.register(rightAxis);
-
     updateRequestsView();
     updateRequestDetailsView();
+  }
+
+  @NotNull
+  private JPanel buildMonitorUi() {
+    StudioProfilers profilers = getStage().getStudioProfilers();
+    ProfilerTimeline timeline = profilers.getTimeline();
+    Range viewRange = getTimeline().getViewRange();
+
+    EventMonitor events = new EventMonitor(profilers);
+    NetworkMonitor monitor = new NetworkMonitor(getStage().getStudioProfilers());
+    getStage().aspect.addDependency()
+      .setExecutor(ApplicationManager.getApplication()::invokeLater)
+      .onChange(NetworkProfilerAspect.REQUEST_DETAILS, this::updateRequestDetailsView)
+      .onChange(NetworkProfilerAspect.REQUESTS, this::updateRequestsView);
+
+    JPanel panel = new JBPanel(new GridBagLayout());
+    setupPanAndZoomListeners(panel);
+
+    panel.setBackground(ProfilerColors.MONITOR_BACKGROUND);
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.fill = GridBagConstraints.BOTH;
+    gbc.weightx = 1;
+    gbc.gridx = 0;
+    gbc.weighty = 0;
+
+    ProfilerScrollbar sb = new ProfilerScrollbar(timeline);
+    getChoreographer().register(sb);
+    gbc.gridy = 4;
+    panel.add(sb, gbc);
+
+    AxisComponent timeAxis = buildTimeAxis(profilers);
+    getChoreographer().register(timeAxis);
+    gbc.gridy = 3;
+    panel.add(timeAxis, gbc);
+
+    EventMonitorView eventsView = new EventMonitorView(events);
+    JComponent eventsComponent = eventsView.initialize(getChoreographer());
+    gbc.gridy = 0;
+    panel.add(eventsComponent, gbc);
+
+    // TODO radio state panel.
+
+    JPanel monitorPanel = new JBPanel(new GridBagLayout());
+    final JLabel label = new JLabel(monitor.getName());
+    label.setBorder(MONITOR_LABEL_PADDING);
+    label.setVerticalAlignment(SwingConstants.TOP);
+
+    final JPanel axisPanel = new JBPanel(new BorderLayout());
+    axisPanel.setOpaque(false);
+    AxisComponent.Builder leftAxisBuilder =
+      new AxisComponent.Builder(new Range(0, 4), TRAFFIC_AXIS_FORMATTER, AxisComponent.AxisOrientation.RIGHT)
+        .showAxisLine(false)
+        .showMax(true)
+        .showUnitAtMax(true)
+        .setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
+        .clampToMajorTicks(true).setMargins(0, Y_AXIS_TOP_MARGIN);
+    final AxisComponent leftAxis = leftAxisBuilder.build();
+    getChoreographer().register(leftAxis);
+    axisPanel.add(leftAxis, BorderLayout.WEST);
+
+    AxisComponent.Builder rightAxisBuilder =
+      new AxisComponent.Builder(new Range(0, 5), CONNECTIONS_AXIS_FORMATTER, AxisComponent.AxisOrientation.LEFT)
+        .showAxisLine(false)
+        .showMax(true)
+        .showUnitAtMax(true)
+        .setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
+        .clampToMajorTicks(true).setMargins(0, Y_AXIS_TOP_MARGIN);
+    final AxisComponent rightAxis = rightAxisBuilder.build();
+    getChoreographer().register(rightAxis);
+    axisPanel.add(rightAxis, BorderLayout.EAST);
+
+    final JPanel lineChartPanel = new JBPanel(new BorderLayout());
+    lineChartPanel.setOpaque(false);
+    lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
+    final LineChart lineChart = new LineChart();
+    LineConfig receivedConfig = new LineConfig(ProfilerColors.NETWORK_RECEIVING_COLOR);
+    lineChart.addLine(new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getLabel(),
+                                                 viewRange,
+                                                 leftAxis.getRange(),
+                                                 monitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED)),
+                      receivedConfig);
+    LineConfig sentConfig = new LineConfig(ProfilerColors.NETWORK_SENDING_COLOR);
+    lineChart.addLine(new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_SENT.getLabel(),
+                                                 viewRange,
+                                                 leftAxis.getRange(),
+                                                 monitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_SENT)),
+                      sentConfig);
+    LineConfig connectionConfig = new LineConfig(ProfilerColors.NETWORK_CONNECTIONS_COLOR).setStroke(LineConfig.DEFAULT_DASH_STROKE);
+    lineChart.addLine(new RangedContinuousSeries("Connections",
+                                                 viewRange,
+                                                 rightAxis.getRange(),
+                                                 monitor.getOpenConnectionsSeries()),
+                      connectionConfig);
+
+    getChoreographer().register(lineChart);
+    lineChartPanel.add(lineChart, BorderLayout.CENTER);
+
+    final LegendComponent legend = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, LEGEND_UPDATE_FREQUENCY_MS);
+    legend.setLegendData(lineChart.getLegendDataFromLineChart());
+    getChoreographer().register(legend);
+
+    final JPanel legendPanel = new JBPanel(new BorderLayout());
+    legendPanel.setOpaque(false);
+    legendPanel.add(label, BorderLayout.WEST);
+    legendPanel.add(legend, BorderLayout.EAST);
+
+    monitorPanel.add(legendPanel, GBC_FULL);
+    monitorPanel.add(axisPanel, GBC_FULL);
+    monitorPanel.add(lineChartPanel, GBC_FULL);
+
+    gbc.gridy = 1;
+    gbc.weighty = 1;
+    panel.add(monitorPanel, gbc);
+
+    return panel;
   }
 
   private void updateRequestDetailsView() {
