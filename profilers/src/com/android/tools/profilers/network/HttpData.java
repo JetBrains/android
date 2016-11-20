@@ -133,8 +133,12 @@ public class HttpData {
     Map<String, String> fieldsMap = new HashMap<>();
     for (String line : lines) {
       String[] keyAndValue = line.split("=", 2);
-      assert keyAndValue.length == 2 : String.format("Unexpected http response field %s", line);
-      fieldsMap.put(keyAndValue[0].trim(), keyAndValue[1].trim());
+
+      // TODO: investigate, as this sometimes throws an exception
+      // assert keyAndValue.length == 2 : String.format("Unexpected http response field %s", line);
+      if (keyAndValue.length == 2) {
+        fieldsMap.put(keyAndValue[0].trim(), keyAndValue[1].trim());
+      }
     }
     return fieldsMap;
   }
