@@ -2,7 +2,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 iml_module(
     name = "android-rt",
-    srcs = ["rt/src"],
+    srcs = ["src"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
