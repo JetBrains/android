@@ -13,23 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.network;
+package com.android.tools.adtui.model;
 
-import com.android.tools.adtui.Animatable;
-import com.android.tools.adtui.model.Range;
 import org.jetbrains.annotations.NotNull;
 
-public class RangedTable implements Animatable {
-  private final RangedTableModel myModel;
-  private final Range myRange;
+import javax.swing.table.TableModel;
 
-  public RangedTable(@NotNull Range range, @NotNull RangedTableModel model) {
-    myModel = model;
-    myRange = range;
-  }
-
-  @Override
-  public void animate(float frameLength) {
-    myModel.update(myRange);
-  }
+public interface RangedTableModel extends TableModel {
+  /**
+   * Updates the model to the given range.
+   */
+  void update(@NotNull Range range);
 }

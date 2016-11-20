@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu;
+package com.android.tools.adtui;
 
-import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedTableModel;
+import org.jetbrains.annotations.NotNull;
 
-public class RangedList implements Animatable {
-
-  private final RangedListModel myModel;
+public class RangedTable implements Animatable {
+  private final RangedTableModel myModel;
   private final Range myRange;
 
-  public RangedList(Range range, RangedListModel model) {
+  public RangedTable(@NotNull Range range, @NotNull RangedTableModel model) {
     myModel = model;
     myRange = range;
   }
