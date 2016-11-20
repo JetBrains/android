@@ -13,7 +13,7 @@ iml_module(
         "//tools:idea.platform-api[module]",
         "//tools/adt/idea/android[module]",
         "//tools/sherpa:sherpa-solver[module]",
-        "//tools/adt/idea:sherpa-ui[module]",
+        "//tools/adt/idea/sherpa-ui[module]",
         "//tools:idea.xml-psi-api[module]",
         "//tools:idea.platform-impl_and_others[module]",
         "//tools/base/pixelprobe:studio.pixelprobe[module]",
