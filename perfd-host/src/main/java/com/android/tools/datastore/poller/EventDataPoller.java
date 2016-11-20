@@ -24,6 +24,8 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Iterator;
 import java.util.PriorityQueue;
 import java.util.concurrent.RunnableFuture;
@@ -156,7 +158,6 @@ public class EventDataPoller extends EventServiceGrpc.EventServiceImplBase imple
 
   @Override
   public void startMonitoringApp(EventProfiler.EventStartRequest request, StreamObserver<EventProfiler.EventStartResponse> observer) {
-    myData.clear();
     myProcessId = request.getAppId();
     observer.onNext(myEventPollingService.startMonitoringApp(request));
     observer.onCompleted();
