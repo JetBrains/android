@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.monitor.ui.cpu.model;
 
-import com.android.tools.adtui.chart.hchart.HNode;
+import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.chart.hchart.Method;
 import com.android.tools.adtui.chart.hchart.MethodUsage;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
