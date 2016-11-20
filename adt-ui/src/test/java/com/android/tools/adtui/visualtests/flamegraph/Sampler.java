@@ -16,7 +16,7 @@
 
 package com.android.tools.adtui.visualtests.flamegraph;
 
-import com.android.tools.adtui.chart.hchart.HNode;
+import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.flamegraph.SampledMethodUsage;
 
 import java.util.HashMap;

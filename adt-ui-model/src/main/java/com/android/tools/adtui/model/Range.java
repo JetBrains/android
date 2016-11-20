@@ -44,6 +44,10 @@ public class Range  {
     setMax(max);
   }
 
+  public void set(Range other) {
+    set(other.getMin(), other.getMax());
+  }
+
   public double getMin() {
     return myCurrentMin;
   }
