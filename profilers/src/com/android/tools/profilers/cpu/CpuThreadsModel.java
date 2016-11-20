@@ -16,14 +16,13 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedListModel;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 /**

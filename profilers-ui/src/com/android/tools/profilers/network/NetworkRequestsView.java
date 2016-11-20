@@ -15,11 +15,13 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.adtui.RangedTable;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.RangedTableModel;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
