@@ -41,7 +41,7 @@ public class ProfilerLayout {
   /**
    * Common space left on top of a vertical axis to make sure label text can fit there
    */
-  public static final int Y_AXIS_TOP_MARGIN = JBUI.scale(10);
+  public static final int Y_AXIS_TOP_MARGIN = JBUI.scale(30);
 
   public static final Border MONITOR_LABEL_PADDING = BorderFactory.createEmptyBorder(5, 10, 5, 10);
 
