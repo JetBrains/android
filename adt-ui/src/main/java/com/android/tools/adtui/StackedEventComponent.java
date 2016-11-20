@@ -76,16 +76,11 @@ public class StackedEventComponent extends AnimatedComponent {
     // A map of EventAction started events to their start time, so we can correlate these to
     // EventAction competed events with the EventAction start events. This is done this way as
     // a event started and completed events may come in in any order at any time.
-    // TODO: Combine start/stop events, that means pulling this logic out into the supportlib.
-    HashMap<Long, EventAction<EventAction.ActivityAction, String>> downEvents = new HashMap<>();
 
     // A queue of open index values, this allows us to pack our events without leaving gaps.
 
     myActivities.clear();
     myActionToDrawLocationMap.clear();
-    int lastIndex = 0;
-    EventAction<EventAction.ActivityAction, String> lastStart = null;
-    int lastStartIndex = 0;
     ImmutableList<SeriesData<EventAction<EventAction.ActivityAction, String>>> series = mData.getSeries();
     int size = series.size();
 
@@ -96,35 +91,18 @@ public class StackedEventComponent extends AnimatedComponent {
     for (int i = 0; i < size; i++) {
       SeriesData<EventAction<EventAction.ActivityAction, String>> seriesData = series.get(i);
       EventAction<EventAction.ActivityAction, String> data = seriesData.value;
-      if (data.getValue() == EventAction.ActivityAction.ACTIVITY_STARTED) {
-        //TODO: This should be managed by perfa not the profilers.
-        downEvents.put(data.getStartUs(), data);
-      }
-      else if (data.getValue() == EventAction.ActivityAction.ACTIVITY_COMPLETED) {
-        // TODO: check/assert that ACTIVITY_COMPLETED event time is greater than or equal to ACTIVITY_STARTED time
-        Path2D.Float path = new Path2D.Float();
-        // Here we normalize the position to a value between 0 and 1. This allows us to scale the width of the line based on the
-        // width of our chart.
-        double normalizedEndPosition = ((data.getEndUs() - min) / (max - min));
-        double normalizedstartPosition = ((data.getStartUs() - min) / (max - min));
-        double baseHeight = myMaxHeight - (SEGMENT_SPACING);
-        path.moveTo(normalizedEndPosition, baseHeight);
-        path.lineTo(normalizedstartPosition, baseHeight);
-        myActivities.add(new EventRenderData(data, path));
-        downEvents.remove(data.getStartUs());
-      }
-    }
-
-    for (Long key : downEvents.keySet()) {
-      EventAction<EventAction.ActivityAction, String> event = downEvents.get(key);
       Path2D.Float path = new Path2D.Float();
-      double normalizedEndPosition = NORMALIZED_END;
-      double normalizedstartPosition = ((event.getStartUs() - min) / (max - min));
+      // Here we normalize the position to a value between 0 and 1. This allows us to scale the width of the line based on the
+      // width of our chart.
+      double endTime = data.getEndUs() == 0 ? max : data.getEndUs();
+      double normalizedEndPosition = ((endTime - min) / (max - min));
+      double normalizedstartPosition = ((data.getStartUs() - min) / (max - min));
       double baseHeight = myMaxHeight - (SEGMENT_SPACING);
       path.moveTo(normalizedEndPosition, baseHeight);
       path.lineTo(normalizedstartPosition, baseHeight);
-      myActivities.add(new EventRenderData(event, path));
+      myActivities.add(new EventRenderData(data, path));
     }
+
     myActivities.sort((erd1, erd2) -> {
       if (erd1.getAction().getEndUs() == 0 && erd2.getAction().getEndUs() != 0) {
         return -1;
@@ -133,9 +111,9 @@ public class StackedEventComponent extends AnimatedComponent {
         return 1;
       }
       else if (erd1.getAction().getEndUs() != 0 && erd2.getAction().getEndUs() != 0) {
-        return Ints.checkedCast(erd1.getAction().getEndUs() - erd2.getAction().getEndUs());
+        return erd1.getAction().getEndUs() - erd2.getAction().getEndUs() >= 0 ? 1 : -1;
       }
-      return Ints.checkedCast(erd1.getAction().getStartUs() - erd2.getAction().getStartUs());
+      return erd1.getAction().getStartUs() - erd2.getAction().getStartUs() >= 0 ? 1 : -1;
     });
   }
 

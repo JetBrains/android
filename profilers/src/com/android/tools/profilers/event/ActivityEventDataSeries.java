@@ -32,10 +32,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class ActivityEventDataSeries implements DataSeries<EventAction<EventAction.ActivityAction, String>> {
+import static com.android.tools.profiler.proto.EventProfiler.ActivityStateData.ActivityState.*;
 
-  @NotNull
-  private Map<Integer, Long> myActiveActivites = new HashMap<>();
+public class ActivityEventDataSeries implements DataSeries<EventAction<EventAction.ActivityAction, String>> {
 
   @NotNull
   private ProfilerClient myClient;
@@ -54,39 +53,34 @@ public class ActivityEventDataSeries implements DataSeries<EventAction<EventActi
       .setAppId(myProcessId)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()));
-    EventProfiler.EventDataResponse response = eventService.getData(dataRequestBuilder.build());
+    EventProfiler.ActivityDataResponse response = eventService.getActivityData(dataRequestBuilder.build());
 
-    for (EventProfiler.EventProfilerData data : response.getDataList()) {
-      long actionStart = TimeUnit.NANOSECONDS.toMicros(data.getBasicInfo().getEndTimestamp());
-      long eventTimestamp = actionStart;
+    for (EventProfiler.ActivityData data : response.getDataList()) {
+      long actionStart = 0;
       long actionEnd = 0;
-      if (data.getDataCase() != EventProfiler.EventProfilerData.DataCase.ACTIVITY_DATA) {
-        continue;
-      }
+      for (int i = 0; i < data.getStateChangesCount(); i++) {
+        EventProfiler.ActivityStateData state = data.getStateChanges(i);
+        EventAction.ActivityAction action = EventAction.ActivityAction.NONE;
 
-      EventProfiler.ActivityEventData activity = data.getActivityData();
-      EventAction.ActivityAction action = EventAction.ActivityAction.NONE;
-      switch (activity.getActivityState()) {
-        case RESUMED:
-          action = EventAction.ActivityAction.ACTIVITY_STARTED;
-          myActiveActivites.put(activity.getActivityHash(), actionStart);
-          break;
-        case PAUSED:
-          // Depending on when we attach the perfd process we sometimes get an activity completed
-          // without having the associated activity started action. This can cause us to attempt
-          // and close an activity without actuaully knowing when the activity started.
-          // TODO: This is somewhat of a hack, and this should be removed by telling the StackedEventComponent how to handle
-          // an activity completed without a started event. Note until I merge fragments, the same issue potentially exist there.
-          if (myActiveActivites.containsKey(activity.getActivityHash())) {
+        // Match start states with end states.
+        switch (state.getState()) {
+          case RESUMED:
+            action = EventAction.ActivityAction.ACTIVITY_STARTED;
+            actionStart = TimeUnit.NANOSECONDS.toMicros(state.getTimestamp());
+            break;
+          case PAUSED:
             action = EventAction.ActivityAction.ACTIVITY_COMPLETED;
-            actionEnd = actionStart;
-            actionStart = myActiveActivites.get(activity.getActivityHash());
-          }
-          break;
-      }
+            actionEnd = TimeUnit.NANOSECONDS.toMicros(state.getTimestamp());
+          default:
+            break;
+        }
 
-      if (action != EventAction.ActivityAction.NONE) {
-        seriesData.add(new SeriesData<>(eventTimestamp, new EventAction(actionStart, actionEnd, action, activity.getName())));
+        // Create a UI event if we have an end time, or if we got to the end of our list.
+        if (actionEnd != 0 || (i == data.getStateChangesCount()-1 && actionStart != 0)) {
+          seriesData.add(new SeriesData<>(actionStart, new EventAction(actionStart, actionEnd, action, data.getName())));
+          actionEnd = 0;
+          actionStart = 0;
+        }
       }
     }
 
