@@ -33,7 +33,7 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
   public LineChartEntriesRegistrar() {
     registerStackedLineChart();
     registerSimpleLineChart();
-    //registerSteppedLineChart(); TODO this test involves animation. Fix this after the system is fully functional again.
+    registerSteppedLineChart();
     registerSimpleEventLineChart();
     registerBlockingEventLineChart();
     registerFilledEventLineChart();

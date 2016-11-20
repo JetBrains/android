@@ -64,7 +64,6 @@ public class NetworkMonitorView extends ProfilerMonitorView<NetworkMonitor> {
       .setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
       .clampToMajorTicks(true).setMargins(0, labelSize.height);
     final AxisComponent leftAxis = builder.build();
-    choreographer.register(leftAxis);
     axisPanel.add(leftAxis, BorderLayout.WEST);
 
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
@@ -83,17 +82,19 @@ public class NetworkMonitorView extends ProfilerMonitorView<NetworkMonitor> {
                                                  leftYRange,
                                                  getMonitor().getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_SENT)),
                       sentConfig);
-    choreographer.register(lineChart);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
     final LegendComponent legend = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, LEGEND_UPDATE_FREQUENCY_MS);
     legend.setLegendData(lineChart.getLegendDataFromLineChart());
-    choreographer.register(legend);
 
     final JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);
     legendPanel.add(label, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
+
+    choreographer.register(lineChart);
+    choreographer.register(leftAxis);
+    choreographer.register(legend);
 
     container.add(legendPanel, GBC_FULL);
     container.add(leftAxis, GBC_FULL);

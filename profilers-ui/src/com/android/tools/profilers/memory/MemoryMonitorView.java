@@ -65,7 +65,6 @@ public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
       .setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
       .setMargins(0, labelSize.height);
     final AxisComponent leftAxis = builder.build();
-    choreographer.register(leftAxis);
     axisPanel.add(leftAxis, BorderLayout.WEST);
 
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
@@ -75,17 +74,19 @@ public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
     lineChart
       .addLine(new RangedContinuousSeries("Memory", getMonitor().getTimeline().getViewRange(), leftYRange, getMonitor().getTotalMemory()),
                new LineConfig(ProfilerColors.MEMORY_TOTAL).setFilled(true));
-    choreographer.register(lineChart);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
     final LegendComponent legend = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, LEGEND_UPDATE_FREQUENCY_MS);
     legend.setLegendData(lineChart.getLegendDataFromLineChart());
-    choreographer.register(legend);
 
     final JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);
     legendPanel.add(label, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
+
+    choreographer.register(lineChart);
+    choreographer.register(leftAxis);
+    choreographer.register(legend);
 
     container.add(legendPanel, GBC_FULL);
     container.add(leftAxis, GBC_FULL);
