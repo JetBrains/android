@@ -17,7 +17,6 @@ package com.android.tools.profilers.event;
 
 public enum EventActionType {
   TOUCH,
-  HOLD,
-  DOUBLE_TAP,
-  ROTATION
+  ROTATION,
+  KEYBOARD
 }
