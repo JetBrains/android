@@ -76,9 +76,6 @@ public class NetworkRequestsView {
   private final DetailedViewListener myDetailedViewListener;
 
   @NotNull
-  private final NetworkRequestsModel myModel;
-
-  @NotNull
   private final NetworkProfilerStageView myStageView;
 
   @NotNull
@@ -90,11 +87,10 @@ public class NetworkRequestsView {
   public NetworkRequestsView(@NotNull NetworkProfilerStageView stageView,
                              @NotNull DetailedViewListener detailedViewListener) {
     myStageView = stageView;
-    myModel = stageView.getStage().getRequestsModel();
     myDetailedViewListener = detailedViewListener;
     myTableModel = new NetworkRequestsTableModel();
     myRequestsTable = createRequestsTable();
-    RangedTable rangedTable = new RangedTable(stageView.getTimeline().getViewRange(), myTableModel);
+    RangedTable rangedTable = new RangedTable(stageView.getTimeline().getSelectionRange(), myTableModel);
     stageView.getChoreographer().register(rangedTable);
   }
 
@@ -195,7 +191,7 @@ public class NetworkRequestsView {
 
     @Override
     public void update(@NotNull Range range) {
-      myDataList = myModel.getData(range);
+      myDataList = myStageView.getStage().getRequestsModel().getData(range);
       fireTableDataChanged();
     }
   }
