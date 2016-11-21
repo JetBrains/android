@@ -31,7 +31,6 @@ import java.awt.geom.Rectangle2D;
  */
 public final class SelectionComponent extends AnimatedComponent {
 
-
   public static final Color DEFAULT_SELECTION_COLOR = new JBColor(new Color(0x80CDE4F8, true), new Color(0x80CDE4F8, true));
 
   public static final Color DEFAULT_SELECTION_BORDER = new JBColor(0x91C4EF, 0x91C4EF);
@@ -137,6 +136,9 @@ public final class SelectionComponent extends AnimatedComponent {
             double b = xToRange(e.getX());
             mySelectionRange.setMin(a < b ? a : b);
             mySelectionRange.setMax(a < b ? b : a);
+            break;
+          case NONE:
+            break;
         }
       }
     });

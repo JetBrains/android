@@ -57,6 +57,9 @@ public class NetworkProfilerStage extends Stage {
   private final NetworkRequestsModel myRequestsModel =
     new RpcNetworkRequestsModel(getStudioProfilers().getClient().getNetworkClient(), getStudioProfilers().getProcessId());
 
+  private final NetworkRadioDataSeries myRadioDataSeries =
+    new NetworkRadioDataSeries(getStudioProfilers().getClient().getNetworkClient(), getStudioProfilers().getProcessId());
+
   public NetworkProfilerStage(StudioProfilers profiler) {
     super(profiler);
   }
@@ -78,7 +81,7 @@ public class NetworkProfilerStage extends Stage {
 
   @NotNull
   public NetworkRadioDataSeries getRadioDataSeries() {
-    return new NetworkRadioDataSeries(getStudioProfilers().getClient().getNetworkClient(), getStudioProfilers().getProcessId());
+    return myRadioDataSeries;
   }
 
   public void setEnableConnectionData(boolean enable) {
