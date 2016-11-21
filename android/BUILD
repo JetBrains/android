@@ -32,7 +32,7 @@ iml_module(
         "//tools:idea.testng[module]",
         "//tools/idea/.idea/libraries:asm",
         "//tools/adt/idea/common:android-common[module]",
-        "//tools/adt/idea:android-rt[module]",
+        "//tools/adt/idea/rt:android-rt[module]",
         "//tools:idea.java-indexing-api[module]",
         "//tools:idea.jps-builders[module]",
         "//tools/base/draw9patch:studio.draw9patch[module]",
