@@ -70,7 +70,7 @@ iml_module(
         "//tools:idea.gradle[module]",
         "//tools/adt/idea:layoutlib[module]",
         "//tools/sherpa:sherpa-solver[module]",
-        "//tools/adt/idea:sherpa-ui[module]",
+        "//tools/adt/idea/sherpa-ui[module]",
         "//tools/idea/.idea/libraries:dexlib2",
         "//tools/base/apkparser:studio.binary-resources[module]",
         "//tools/base/pixelprobe:studio.pixelprobe[module]",

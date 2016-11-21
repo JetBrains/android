@@ -31,7 +31,7 @@ iml_module(
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools/adt/idea/adt-ui[module, test]",
         "//tools/base/pixelprobe:studio.pixelprobe[module, test]",
-        "//tools/adt/idea:sherpa-ui[module, test]",
+        "//tools/adt/idea/sherpa-ui[module, test]",
         "//tools/adt/idea/android-test-framework[module, test]",
     ],
 )
