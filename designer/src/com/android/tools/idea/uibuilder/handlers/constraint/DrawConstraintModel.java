@@ -37,7 +37,7 @@ import java.awt.event.InputEvent;
 /**
  * Utility class holding the necessary objects to draw a ConstraintModel
  */
-class DrawConstraintModel {
+class DrawConstraintModel implements MouseInteraction.NeedsLayoutCallback {
   private final ConstraintModel myConstraintModel;
 
   private final ViewTransform myViewTransform = new ViewTransform();
@@ -46,6 +46,11 @@ class DrawConstraintModel {
   private final MouseInteraction myMouseInteraction;
 
   private boolean mShowFakeUI = true;
+
+  @Override
+  public void needsLayout(boolean animate) {
+    myConstraintModel.requestLayout(animate);
+  }
 
   /**
    * Simple helper class to avoid reallocation
@@ -87,7 +92,7 @@ class DrawConstraintModel {
                                               widgetsScene, selection,
                                               widgetMotion, widgetResize,
                                               mySceneDraw, null);
-
+    myMouseInteraction.setNeedsLayoutCallback(this);
     if (screenView.getScreenViewType() == ScreenView.ScreenViewType.NORMAL) {
       mySceneDraw.setColorSet(new AndroidColorSet());
     }
@@ -207,6 +212,7 @@ class DrawConstraintModel {
                        boolean showAllConstraints) {
     Graphics2D g = (Graphics2D)gc.create();
     WidgetDecorator.setShowFakeUI(mShowFakeUI);
+
     if (mySceneDraw.getCurrentStyle() == WidgetDecorator.BLUEPRINT_STYLE) {
        mySceneDraw.drawBackground(myConstraintModel.getScene().getWidget(component),
                                   myViewTransform, g, width, height);

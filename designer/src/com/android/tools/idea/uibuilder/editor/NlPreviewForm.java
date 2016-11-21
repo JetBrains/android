@@ -231,6 +231,11 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
 
     @Override
+    public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
+      // do nothing
+    }
+
+    @Override
     public void modelRendered(@NotNull NlModel model) {
       model.removeListener(this);
       if (valid) {

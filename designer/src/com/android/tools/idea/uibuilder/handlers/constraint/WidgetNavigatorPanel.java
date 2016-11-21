@@ -188,6 +188,11 @@ public class WidgetNavigatorPanel extends JPanel
   }
 
   @Override
+  public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
+    // Do nothing
+  }
+
+  @Override
   public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
     return false;
   }

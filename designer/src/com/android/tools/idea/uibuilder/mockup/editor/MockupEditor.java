@@ -541,6 +541,11 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface> {
       processModelChange(model);
     }
 
+    @Override
+    public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
+      // Do nothing
+    }
+
     private void processModelChange(@NotNull NlModel model) {
       UIUtil.invokeLaterIfNeeded(
         () -> myMockupEditor.selectionUpdated(model, model.getSelectionModel().getSelection()));
