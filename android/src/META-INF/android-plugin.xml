@@ -1063,8 +1063,8 @@
                     interface="com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.postSyncProjectSetupStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.post.project.PostSyncProjectSetupStep"/>
-    <extensionPoint qualifiedName="com.android.gradle.sync.pluginVersionUpgrade"
-                    interface="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.PluginVersionUpgrade"/>
+    <extensionPoint qualifiedName="com.android.gradle.sync.pluginVersionUpgradeStep"
+                    interface="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.PluginVersionUpgradeStep"/>
 
     <extensionPoint qualifiedName="com.android.captureType" interface="com.android.tools.idea.profiling.capture.CaptureType"/>
     <extensionPoint qualifiedName="com.android.gradle.syncErrorHandler"
@@ -1155,8 +1155,8 @@
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.SdkToolsVersionSetupStep"/>
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.ExpiredPreviewBuildSetupStep"/>
 
-    <pluginVersionUpgrade implementation="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.ForcedPluginPreviewVersionUpgrade"/>
-    <pluginVersionUpgrade implementation="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgrade"/>
+    <pluginVersionUpgradeStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.ForcedPluginPreviewVersionUpgradeStep"/>
+    <pluginVersionUpgradeStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeStep"/>
 
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.GradleBrokenPipeErrorHandler"/>
