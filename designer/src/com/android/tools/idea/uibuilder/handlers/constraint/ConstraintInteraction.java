@@ -84,8 +84,6 @@ public class ConstraintInteraction extends Interaction {
     int androidX = Coordinates.getAndroidX(myScreenView, x);
     int androidY = Coordinates.getAndroidY(myScreenView, y);
     drawModel.mouseDragged(androidX, androidY);
-    ConstraintModel model = ConstraintModel.getConstraintModel(myScreenView.getModel());
-    model.requestLayout();
   }
 
   /**
@@ -114,7 +112,7 @@ public class ConstraintInteraction extends Interaction {
 
     model.updateMemoryXML(); // first do a memory update
     model.saveToXML(false);
-    model.requestRender();
+    model.requestLayout(true);
 
     myScreenView.getSurface().repaint();
   }

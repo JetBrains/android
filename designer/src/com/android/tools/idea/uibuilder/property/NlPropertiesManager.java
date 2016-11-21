@@ -298,6 +298,11 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   }
 
   @Override
+  public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
+    // Do nothing
+  }
+
+  @Override
   public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
     ViewHandler handler = component.getViewHandler();
     String propertyName = handler != null ? handler.getPreferredProperty() : null;

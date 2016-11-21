@@ -26,4 +26,7 @@ public interface ModelListener {
 
   /** The model finished rendering after updates */
   void modelRendered(@NotNull NlModel model);
+
+  /** The model changed due to a layout pass */
+  void modelChangedOnLayout(@NotNull NlModel model, boolean animate);
 }

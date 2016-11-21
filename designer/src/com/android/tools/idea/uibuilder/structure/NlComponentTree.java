@@ -383,6 +383,11 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   public void modelRendered(@NotNull NlModel model) {
   }
 
+  @Override
+  public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
+    // Do nothing
+  }
+
   // ---- Implemented DesignSurfaceListener ----
 
   @Override
