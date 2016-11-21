@@ -21,16 +21,10 @@ import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
 import java.awt.*;
 
 public abstract class ProfilerMonitorView<T extends ProfilerMonitor> {
 
-  private static final Border MONITOR_BORDER = BorderFactory.createCompoundBorder(
-    new MatteBorder(0, 0, 1, 0, ProfilerColors.MONITOR_BORDER),
-    new EmptyBorder(0, 0, 0, 0));
   private static final int MINIMUM_MONITOR_HEIGHT = JBUI.scale(50);
 
   @NotNull private final T myMonitor;
@@ -48,7 +42,7 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> {
     JPanel container = new JBPanel();
     container.setOpaque(true);
     container.setBackground(ProfilerColors.MONITOR_BACKGROUND);
-    container.setBorder(MONITOR_BORDER);
+    container.setBorder(ProfilerLayout.MONITOR_BORDER);
     container.setMinimumSize(new Dimension(0, MINIMUM_MONITOR_HEIGHT));
     container.setPreferredSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     populateUi(container, choreographer);

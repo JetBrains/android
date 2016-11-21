@@ -50,7 +50,6 @@ public class CpuMonitorView extends ProfilerMonitorView<CpuMonitor> {
     final JLabel label = new JLabel(getMonitor().getName());
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(JLabel.TOP);
-    final Dimension labelSize = label.getPreferredSize();
 
     // Cpu usage is shown as percentages (e.g. 0 - 100) and no range animation is needed.
     Range leftYRange = new Range(0, 100);
@@ -63,13 +62,13 @@ public class CpuMonitorView extends ProfilerMonitorView<CpuMonitor> {
       .showUnitAtMax(true)
       .setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
       .clampToMajorTicks(true)
-      .setMargins(0, labelSize.height);
+      .setMargins(0, Y_AXIS_TOP_MARGIN);
     final AxisComponent leftAxis = builder.build();
     axisPanel.add(leftAxis, BorderLayout.WEST);
 
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
-    lineChartPanel.setBorder(BorderFactory.createEmptyBorder(labelSize.height, 0, 0, 0));
+    lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
     final LineChart lineChart = new LineChart();
     lineChart
       .addLine(
