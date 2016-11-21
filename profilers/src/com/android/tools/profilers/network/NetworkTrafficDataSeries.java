@@ -69,12 +69,12 @@ public class NetworkTrafficDataSeries implements DataSeries<Long> {
     List<SeriesData<Long>> seriesData = new ArrayList<>();
 
     // TODO: Change the Network API to allow specifying padding in the request as number of samples.
-    long buffer = TimeUnit.SECONDS.toNanos(1);
+    long bufferNs = TimeUnit.SECONDS.toNanos(1);
     NetworkProfiler.NetworkDataRequest.Builder dataRequestBuilder = NetworkProfiler.NetworkDataRequest.newBuilder()
       .setAppId(myProcessId)
       .setType(NetworkProfiler.NetworkDataRequest.Type.SPEED)
-      .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin() - buffer))
-      .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax() + buffer));
+      .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
+      .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
     NetworkProfiler.NetworkDataResponse response = myClient.getData(dataRequestBuilder.build());
     for (NetworkProfiler.NetworkProfilerData data : response.getDataList()) {
       long xTimestamp = TimeUnit.NANOSECONDS.toMicros(data.getBasicInfo().getEndTimestamp());
