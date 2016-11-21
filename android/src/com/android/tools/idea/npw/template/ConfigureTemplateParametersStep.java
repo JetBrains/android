@@ -25,7 +25,7 @@ import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.npw.template.components.*;
 import com.android.tools.idea.templates.*;
-import com.android.tools.idea.ui.ProportionalLayout;
+import com.android.tools.adtui.ProportionalLayout;
 import com.android.tools.idea.ui.TooltipLabel;
 import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.BindingsManager;
