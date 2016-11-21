@@ -317,7 +317,7 @@ public class NlPreviewManager implements ProjectComponent {
     final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
 
     FeatureEnableService featureEnableService = FeatureEnableService.getInstance(myProject);
-    if (featureEnableService == null || !featureEnableService.isLayoutEditorEnabled()) {
+    if (featureEnableService == null || !featureEnableService.isLayoutEditorEnabled(myProject)) {
       return false;
     }
 
