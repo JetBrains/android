@@ -22,6 +22,7 @@ import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.RangedTableModel;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
@@ -122,11 +123,28 @@ public class NetworkRequestsView {
       }
     });
 
+    // Keep the previously selected row selected if it's still there
+    myTableModel.addTableModelListener(e ->
+      ApplicationManager.getApplication().invokeLater(() -> {
+        // Invoke later, because table itself listener of table model.
+        HttpData selectedData = myStageView.getStage().getConnection();
+        if (selectedData != null) {
+          for (int i = 0; i < myTableModel.getRowCount(); ++i) {
+            if (myTableModel.getHttpData(i).getId() == selectedData.getId()) {
+              myRequestsTable.setRowSelectionInterval(i, i);
+              break;
+            }
+          }
+        }
+      })
+    );
+
     return table;
   }
 
   private final class NetworkRequestsTableModel extends AbstractTableModel implements RangedTableModel {
     @NotNull private List<HttpData> myDataList = new ArrayList<>();
+    @NotNull private final Range myLastRange = new Range(0, 0);
 
     @Override
     public int getRowCount() {
@@ -191,8 +209,11 @@ public class NetworkRequestsView {
 
     @Override
     public void update(@NotNull Range range) {
-      myDataList = myStageView.getStage().getRequestsModel().getData(range);
-      fireTableDataChanged();
+      if (myLastRange.getMin() != range.getMin() || myLastRange.getMax() != range.getMax()) {
+        myDataList = myStageView.getStage().getRequestsModel().getData(range);
+        fireTableDataChanged();
+        myLastRange.set(range);
+      }
     }
   }
 
@@ -227,7 +248,7 @@ public class NetworkRequestsView {
         }
 
         StateChart<NetworkState> chart = new StateChart<>(NETWORK_STATE_COLORS);
-        chart.addSeries(new RangedSeries<>(myStageView.getTimeline().getViewRange(), series));
+        chart.addSeries(new RangedSeries<>(myStageView.getTimeline().getSelectionRange(), series));
         chart.animate(1);
         myCharts.add(chart);
       }
