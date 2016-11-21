@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.structure.services;
 
-import com.android.tools.idea.ui.ProportionalLayout;
+import com.android.tools.adtui.ProportionalLayout;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ObservableValue;
