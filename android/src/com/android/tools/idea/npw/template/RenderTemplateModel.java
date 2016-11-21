@@ -56,10 +56,11 @@ public final class RenderTemplateModel extends WizardModel {
 
   public RenderTemplateModel(@NotNull Project project,
                              @NotNull TemplateHandle templateHandle,
+                             @NotNull String initialPackageSuggestion,
                              @NotNull AndroidSourceSet sourceSet,
                              @NotNull String commandName) {
     myProject = new OptionalValueProperty<>(project);
-    myPackageName = new StringValueProperty();
+    myPackageName = new StringValueProperty(initialPackageSuggestion);
     mySourceSet = new ObjectValueProperty<>(sourceSet);
     myTemplateHandle = templateHandle;
     myCommandName = commandName;
