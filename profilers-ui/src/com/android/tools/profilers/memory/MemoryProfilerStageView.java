@@ -152,8 +152,9 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
                       new LineConfig(ProfilerColors.MEMORY_OTHERS).setFilled(true).setStacked(true));
     lineChart.addLine(new RangedContinuousSeries("Total", viewRange, leftYRange, monitor.getTotalMemory()),
                       new LineConfig(ProfilerColors.MEMORY_TOTAL).setFilled(true));
+    lineChart.addLine(new RangedContinuousSeries("Objects", viewRange, rightYRange, monitor.getObjectCount()),
+                      new LineConfig(ProfilerColors.MEMORY_OBJECTS).setStroke(LineConfig.DEFAULT_DASH_STROKE));
 
-    // TODO add object allocation data.
     // TODO set proper colors.
     getStage().getAspect().addDependency()
       .setExecutor(ApplicationManager.getApplication()::invokeLater)
