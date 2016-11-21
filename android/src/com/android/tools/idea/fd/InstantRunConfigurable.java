@@ -184,7 +184,8 @@ public class InstantRunConfigurable
     myShowToastCheckBox.setSelected(myBuildConfiguration.SHOW_TOAST);
     myShowIrStatusNotifications.setSelected(myBuildConfiguration.SHOW_IR_STATUS_NOTIFICATIONS);
     myEnableRecorder.setSelected(myBuildConfiguration.ENABLE_RECORDER);
-    myInstantRunUiCombo.setSelectedItem(myBuildConfiguration.IR_UI_EXPERIMENT);
+    myInstantRunUiCombo.setSelectedItem(
+      myBuildConfiguration.IR_UI_EXPERIMENT == null ? IrUiExperiment.DEFAULT : myBuildConfiguration.IR_UI_EXPERIMENT);
   }
 
   @Override
