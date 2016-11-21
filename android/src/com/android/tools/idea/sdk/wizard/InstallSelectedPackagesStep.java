@@ -48,8 +48,6 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -92,6 +90,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
   private static final Object LOGGER_LOCK = new Object();
   private final BackgroundAction myBackgroundAction = new BackgroundAction();
   private final boolean myBackgroundable;
+  private final InstallerFactory myInstallerFactory;
 
   public InstallSelectedPackagesStep(@NotNull List<UpdatablePackage> installRequests,
                                      @NotNull Collection<LocalPackage> uninstallRequests,
@@ -105,6 +104,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
     myValidatorPanel = new ValidatorPanel(this, myContentPanel);
     myStudioPanel = new StudioWizardStepPanel(myValidatorPanel, "Installing Requested Components");
     myBackgroundable = backgroundable;
+    myInstallerFactory = StudioSdkInstallerUtil.createInstallerFactory(sdkHandler);
   }
 
   @Override
@@ -298,8 +298,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
       // If there's already an installer in progress for this package, reuse it.
       PackageOperation op = myRepoManager.getInProgressInstallOperation(p);
       if (op == null || !(op instanceof Installer)) {
-        InstallerFactory installerFactory = StudioSdkInstallerUtil.createInstallerFactory(p, mySdkHandler);
-        op = installerFactory.createInstaller((RemotePackage)p, myRepoManager, new StudioDownloader(indicator), mySdkHandler.getFileOp());
+        op = myInstallerFactory.createInstaller((RemotePackage)p, myRepoManager, new StudioDownloader(indicator), mySdkHandler.getFileOp());
       }
       return op;
     }
@@ -309,8 +308,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
       // If there's already an uninstaller in progress for this package, reuse it.
       PackageOperation op = myRepoManager.getInProgressInstallOperation(p);
       if (op == null || !(op instanceof Uninstaller) || op.getInstallStatus() == PackageOperation.InstallStatus.FAILED) {
-        InstallerFactory installerFactory = StudioSdkInstallerUtil.createInstallerFactory(p, mySdkHandler);
-        op = installerFactory.createUninstaller((LocalPackage)p, myRepoManager, mySdkHandler.getFileOp());
+        op = myInstallerFactory.createUninstaller((LocalPackage)p, myRepoManager, mySdkHandler.getFileOp());
       }
       return op;
     }
