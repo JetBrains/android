@@ -119,6 +119,7 @@ public class FrameworkRule implements TestRule {
       when(myActionManager.getAction(InternalDecorator.TOGGLE_DOCK_MODE_ACTION_ID)).thenReturn(new SomeAction("Docked"));
       when(myActionManager.getAction(InternalDecorator.TOGGLE_FLOATING_MODE_ACTION_ID)).thenReturn(new SomeAction("Floating"));
       when(myActionManager.getAction(InternalDecorator.TOGGLE_SIDE_MODE_ACTION_ID)).thenReturn(new SomeAction("Split"));
+      when(myActionManager.getAction(IdeActions.ACTION_CLEAR_TEXT)).thenReturn(new SomeAction("ClearText"));
       when(myActionManager.createActionPopupMenu(anyString(), any(ActionGroup.class))).thenReturn(myActionPopupMenu);
       when(myActionPopupMenu.getComponent()).thenReturn(myPopupMenu);
 
