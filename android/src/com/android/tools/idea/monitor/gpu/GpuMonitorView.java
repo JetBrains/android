@@ -21,7 +21,6 @@ import com.android.tools.adtui.TimelineComponent;
 import com.android.tools.adtui.TimelineData;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.ddms.DeviceContext;
-import com.android.tools.idea.editors.gfxtrace.actions.GfxTraceCaptureAction;
 import com.android.tools.idea.monitor.BaseMonitorView;
 import com.android.tools.idea.monitor.actions.RecordingAction;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.JHandler;
@@ -86,8 +85,6 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
   public ActionGroup getToolbarActions() {
     DefaultActionGroup group = new DefaultActionGroup();
     group.add(new RecordingAction(this));
-    group.add(new Separator());
-    group.add(new GfxTraceCaptureAction(this));
     group.add(new Separator());
     group.add(new BrowserHelpAction("GPU monitor", PROFILING_URL));
     return group;

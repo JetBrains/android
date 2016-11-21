@@ -16,13 +16,10 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.manifest.ManifestPanel;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.fixture.gfxtrace.GfxTraceFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlPreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
@@ -578,18 +575,6 @@ public class EditorFixture {
         checkState(manifestPanel instanceof ManifestPanel, "not a %s: %s", ManifestPanel.class.getSimpleName(), manifestPanel);
         return new MergedManifestFixture(robot, (ManifestPanel)manifestPanel);
       });
-  }
-
-  @NotNull
-  public GfxTraceFixture getGfxTraceEditor() {
-    GfxTraceFixture gfxTraceFixture = GuiQuery.getNonNull(() -> {
-      FileEditor[] editors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();
-      checkState(editors.length > 0, "no selected editors");
-      FileEditor editor = editors[0];
-      checkState(editor instanceof GfxTraceEditor, "not a %s: %s", GfxTraceEditor.class.getSimpleName(), editor);
-      return new GfxTraceFixture(robot, (GfxTraceEditor)editor);
-    });
-    return gfxTraceFixture.waitForLoadingToFinish();
   }
 
   /**
