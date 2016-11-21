@@ -34,7 +34,7 @@ public class NewProjectModel extends WizardModel {
   private static final Pattern DISALLOWED_IN_DOMAIN = Pattern.compile("[^a-zA-Z0-9_]");
 
   private final StringProperty myApplicationName = new StringValueProperty("My Application");
-  private final StringProperty myCompanyDomain = new StringValueProperty(getInitialDomain());
+  private final StringProperty myCompanyDomain = new StringValueProperty(getInitialDomain(true));
   private final StringProperty myPackageName = new StringValueProperty();
   private final StringProperty myProjectLocation = new StringValueProperty();
   private final BoolProperty myEnableCppSupport = new BoolValueProperty(false);
@@ -71,15 +71,18 @@ public class NewProjectModel extends WizardModel {
 
   /**
    * Loads saved company domain, or generates a dummy one if no domain has been saved
+   * @param includeUserName This is used to implement legacy behaviour. When creating a new project the package name includes the user name
+   *                        (if available), but when creating a new Module, the user name is not used.
    */
   @NotNull
-  public static String getInitialDomain() {
+  public static String getInitialDomain(boolean includeUserName) {
     String domain = PropertiesComponent.getInstance().getValue(PROPERTIES_DOMAIN_KEY);
     if (domain != null) {
       return domain;
     }
 
-    String userName = System.getProperty("user.name");
+    // TODO: Figure out if this legacy behaviour, of including User Name, can be removed.
+    String userName = includeUserName ? System.getProperty("user.name") : null;
     return userName == null ? EXAMPLE_DOMAIN : toPackagePart(userName) + '.' + EXAMPLE_DOMAIN;
   }
 

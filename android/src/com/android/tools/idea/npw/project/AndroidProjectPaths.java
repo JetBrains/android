@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 
@@ -72,7 +73,7 @@ public final class AndroidProjectPaths {
     File baseFlavourDir = new File(baseSrcDir, FD_MAIN);
 
     mySrcDirectory = new File(baseFlavourDir, FD_JAVA);
-    myTestDirectory = new File(baseSrcDir, FD_TEST);
+    myTestDirectory = Paths.get(baseSrcDir.getPath(), FD_TEST, FD_JAVA).toFile();
     myResDirectory = new File(baseFlavourDir, FD_RESOURCES);
     myAidlDirectory = new File(baseFlavourDir, FD_AIDL);
     myManifestDirectory = baseFlavourDir;
