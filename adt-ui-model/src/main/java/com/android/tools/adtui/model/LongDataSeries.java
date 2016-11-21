@@ -18,7 +18,6 @@ package com.android.tools.adtui.model;
 import gnu.trove.TLongArrayList;
 import org.jetbrains.annotations.NotNull;
 
-
 public class LongDataSeries extends BaseDataSeries<Long> {
 
   @NotNull
@@ -33,5 +32,16 @@ public class LongDataSeries extends BaseDataSeries<Long> {
   @Override
   public Long getY(int index) {
     return mY.get(index);
+  }
+
+  @Override
+  public SeriesData<Long> getClosestData(long x) {
+    if (mX.size() == 0) {
+      return null;
+    }
+
+    int index = mX.binarySearch(x);
+    index = DataSeries.convertBinarySearchIndex(index, mX.size());
+    return new SeriesData<>(mX.get(index), mY.get(index));
   }
 }

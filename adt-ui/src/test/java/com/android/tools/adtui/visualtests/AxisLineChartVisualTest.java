@@ -21,7 +21,10 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.LongDataSeries;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.SeriesData;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.containers.ImmutableList;
@@ -122,9 +125,9 @@ public class AxisLineChartVisualTest extends VisualTest {
     List<LegendRenderData> legendRenderInfo = new ArrayList<>();
 
     //Test the populated series case
-    legendRenderInfo.add(new LegendRenderData(LegendRenderData.IconType.BOX, LineConfig.COLORS[0], mRangedData.get(0)));
+    legendRenderInfo.add(mLineChart.createLegendRenderData(mRangedData.get(0), MemoryAxisFormatter.DEFAULT, mTimeGlobalRangeUs));
     //Test the null series case
-    legendRenderInfo.add(new LegendRenderData(LegendRenderData.IconType.LINE, LineConfig.COLORS[1], SERIES2_LABEL));
+    legendRenderInfo.add(new LegendRenderData(LegendRenderData.IconType.LINE, LineConfig.getColor(1), SERIES2_LABEL));
 
     mLegendComponent = new LegendComponent(LegendComponent.Orientation.VERTICAL, LABEL_UPDATE_MILLIS);
     mLegendComponent.setLegendData(legendRenderInfo);

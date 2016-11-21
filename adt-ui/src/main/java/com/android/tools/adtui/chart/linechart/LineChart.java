@@ -18,7 +18,10 @@ package com.android.tools.adtui.chart.linechart;
 
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Choreographer;
+import com.android.tools.adtui.LegendRenderData;
+import com.android.tools.adtui.LineChartLegendRenderData;
 import com.android.tools.adtui.common.datareducer.DataReducer;
+import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.*;
 import com.intellij.ui.ColorUtil;
 import com.intellij.util.containers.ImmutableList;
@@ -123,8 +126,7 @@ public class LineChart extends AnimatedComponent {
    * @param series series data of the line to be inserted
    */
   public void addLine(@NotNull RangedContinuousSeries series) {
-    addLine(series, new LineConfig(LineConfig.COLORS[mNextLineColorIndex++]));
-    mNextLineColorIndex %= LineConfig.COLORS.length;
+    addLine(series, new LineConfig(LineConfig.getColor(mNextLineColorIndex++)));
   }
 
   /**
@@ -190,21 +192,37 @@ public class LineChart extends AnimatedComponent {
   }
 
   /**
-   * Returns a list of {@link LegendRenderData} based on the data series from this {@link LineChart} instance.
+   * Creates a {@link LegendRenderData} instance. The configruation will be derived based on the {@link LineConfig} associated
+   * with the input series used in this {@link LineChart} instance. If the series is not part of the LineChart, defaults will be chosen.
+   *
+   * @param series    the RangedContinuousSeries which the legend will query data from.
+   * @param formatter the BaseAxisFormatter which will be used to format the data coming from the series.
+ *                    TODO revisit - this can be potentially moved inside RangedContinuousSeries.
+   * @range range     the range object which the legend will use to gather data. Note that this does not have to be the same as the
+   *                  the range inside RangedContinuousSeries (e.g. if the legend needs to show the most recent data, or some data at
+   *                  a particular point in time)
    */
-  public List<LegendRenderData> getLegendDataFromLineChart() {
-    List<LegendRenderData> legendRenderDataList = new ArrayList<>();
-    for (RangedContinuousSeries series : getRangedContinuousSeries()) {
-      LineConfig lineConfig = getLineConfig(series);
-      LegendRenderData.IconType iconType = lineConfig.getLegendIconType();
+  public LegendRenderData createLegendRenderData(@NotNull RangedContinuousSeries series,
+                                                 @NotNull BaseAxisFormatter formatter,
+                                                 @NotNull Range range) {
+    Color color;
+    LegendRenderData.IconType icon;
+    LineConfig config = myLinesConfig.get(series);
+    if (config != null) {
+      color = config.getColor();
+      icon = config.getLegendIconType();
       // Use a default icon type for the line in case there is no icon set in line config.
       // TODO: use LegendRenderData.IconType.DOTTED_LINE for dashed lines
-      if (iconType == null) {
-        iconType = lineConfig.isFilled() ? LegendRenderData.IconType.BOX : LegendRenderData.IconType.LINE;
+      if (icon == null) {
+        icon = config.isFilled() ? LegendRenderData.IconType.BOX : LegendRenderData.IconType.LINE;
       }
-      legendRenderDataList.add(new LegendRenderData(iconType, lineConfig.getColor(), series));
     }
-    return legendRenderDataList;
+    else {
+      color = LineConfig.getColor(mNextLineColorIndex++);
+      icon = LegendRenderData.IconType.BOX;
+    }
+
+    return new LineChartLegendRenderData(icon, color, range, series, formatter);
   }
 
   @Override

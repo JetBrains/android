@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.intellij.util.containers.ContainerUtil;
@@ -25,6 +26,7 @@ import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -78,6 +80,40 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
       lastCpuData = data;
     }
     return ContainerUtil.immutableList(seriesData);
+  }
+
+  @Override
+  public SeriesData<Long> getClosestData(long x) {
+    // TODO: Change the CPU API to allow specifying padding in the request as number of samples.
+    long xNs = TimeUnit.MICROSECONDS.toNanos(x);
+    long bufferNs = TimeUnit.SECONDS.toNanos(1);
+    CpuProfiler.CpuDataRequest.Builder dataRequestBuilder = CpuProfiler.CpuDataRequest.newBuilder()
+      .setAppId(myProcessId)
+      .setStartTimestamp(xNs - bufferNs)
+      .setEndTimestamp(xNs + bufferNs);
+    CpuProfiler.CpuDataResponse response = myClient.getData(dataRequestBuilder.build());
+
+    List<CpuProfiler.CpuProfilerData> list = response.getDataList();
+    if (list.size() == 0) {
+      return null;
+    }
+
+    CpuProfiler.CpuProfilerData sample = CpuProfiler.CpuProfilerData.newBuilder().setBasicInfo(
+      Common.CommonData.newBuilder().setEndTimestamp(xNs)).build();
+    int index = Collections.binarySearch(list, sample, (left, right) -> {
+      long diff = left.getBasicInfo().getEndTimestamp() - right.getBasicInfo().getEndTimestamp();
+      return (diff == 0) ? 0 : (diff < 0) ? -1 : 1;
+    });
+
+    index = DataSeries.convertBinarySearchIndex(index, list.size());
+    long timestamp = TimeUnit.NANOSECONDS.toMicros(list.get(index).getBasicInfo().getEndTimestamp());
+
+    if (index == 0 || list.size() <= 1) {
+      return null; // TODO handle case where we don't have two samples to compute delta usage.
+    }
+
+    CpuUsageDataSeries.CpuUsageData usageData = getCpuUsageData(list.get(index), list.get(index - 1));
+    return new SeriesData<>(timestamp, (long)(myOtherProcesses ? usageData.getOtherProcessesUsage() : usageData.getAppUsage()));
   }
 
   private static CpuUsageDataSeries.CpuUsageData getCpuUsageData(CpuProfiler.CpuProfilerData data, CpuProfiler.CpuProfilerData lastData) {

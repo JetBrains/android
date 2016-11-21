@@ -57,10 +57,8 @@ public class RangedSeries<E> {
     return mXRange;
   }
 
-  /**
-   * Update the {@link DataSeries} that backs this object.
-   */
-  public void setDataSeries(DataSeries<E> series) {
-    mSeries = series;
+  @NotNull
+  public DataSeries<E> getDataSeries() {
+    return mSeries;
   }
 }

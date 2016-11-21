@@ -16,9 +16,9 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.LegendComponent;
+import com.android.tools.adtui.LegendRenderData;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.profilers.ProfilerColors;
 import com.intellij.openapi.ui.VerticalFlowLayout;

@@ -21,5 +21,24 @@ import com.intellij.util.containers.ImmutableList;
  * An interface that provides data to all RangedSeries used by the UI.
  */
 public interface DataSeries<E> {
+
   ImmutableList<SeriesData<E>> getDataForXRange(Range xRange);
+
+  /**
+   * @return the SeriesData at x. If no exact match is available, this returns the data to the immediate right of x.
+   *         If there is no data to the right, the data to the immediate left is returned.
+   */
+  default SeriesData<E> getClosestData(long x) {
+    return null;
+  }
+
+  /**
+   * In binary search, a negative index indicates the desire data point is not present, and the negative result
+   * is computed by -(insertion_point + 1). This helper function converts the negative result back to our desired
+   * index value and clamps it to the size of the data set.
+   */
+  static int convertBinarySearchIndex(int index, int size) {
+    index = index >= 0 ? index : -(index + 1); // This returns the data to the right given no exact match.
+    return Math.max(0, Math.min(size - 1, index));
+  }
 }
