@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.adtui.ProportionalLayout;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager;
@@ -23,7 +24,9 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.labels.BoldLabel;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -46,8 +49,7 @@ public class ConnectionDetailsView extends JPanel {
     myResponseSplitter = new Splitter(true);
     myResponsePanel = new JPanel();
     myResponseSplitter.setFirstComponent(myResponsePanel);
-    myFieldsPanel = new JPanel();
-    myFieldsPanel.setLayout(new BoxLayout(myFieldsPanel, BoxLayout.Y_AXIS));
+    myFieldsPanel = new JPanel(ProportionalLayout.fromString("Fit,20px,*"));
     myResponseSplitter.setSecondComponent(myFieldsPanel);
 
     setLayout(new BorderLayout());
@@ -76,10 +78,20 @@ public class ConnectionDetailsView extends JPanel {
       myResponsePanel.add(myEditor.getComponent());
     }
 
-    myFieldsPanel.add(new JLabel(httpData.getUrl()));
+    int row = 0;
+    myFieldsPanel.add(new BoldLabel("Request"), new ProportionalLayout.Constraint(row, 0));
+    HyperlinkLabel urlLabel = new HyperlinkLabel(httpData.getUrl());
+    urlLabel.setHyperlinkTarget(httpData.getUrl());
+    myFieldsPanel.add(urlLabel, new ProportionalLayout.Constraint(row, 2));
     Map<String, String> responseFields = httpData.getHttpResponseFields();
     if (responseFields != null && responseFields.containsKey(HttpData.FIELD_CONTENT_TYPE)) {
-      myFieldsPanel.add(new JLabel(responseFields.get(HttpData.FIELD_CONTENT_TYPE)));
+      row++;
+      myFieldsPanel.add(new BoldLabel("Content type"), new ProportionalLayout.Constraint(row, 0));
+      String contentType = responseFields.get(HttpData.FIELD_CONTENT_TYPE);
+      // Content type looks like "type/subtype;" or "type/subtype; parameters".
+      // Always convert to "type"
+      contentType = contentType.split(";")[0];
+      myFieldsPanel.add(new JLabel(contentType), new ProportionalLayout.Constraint(row, 2));
     }
 
     myResponseSplitter.repaint();
