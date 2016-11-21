@@ -27,7 +27,6 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.npw.ActivityGalleryStep;
 import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep;
 import com.android.tools.idea.npw.module.NewModuleModel;
-import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -84,7 +83,6 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
   private static final String WH_SDK_ENV_VAR = "WH_SDK";
 
   private final RenderTemplateModel myRenderModel;
-  private @NotNull String myInitialPackageSuggestion;
   private @NotNull TemplateHandle[] myTemplateList;
   private @NotNull List<AndroidSourceSet> mySourceSets;
 
@@ -98,7 +96,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
                                 @NotNull List<TemplateHandle> templateList,
                                 @NotNull List<AndroidSourceSet> sourceSets) {
     this(moduleModel, renderModel);
-    init("dummy.package.name", templateList, sourceSets, null);
+    init(templateList, sourceSets, null);
   }
 
   public ChooseActivityTypeStep(@NotNull NewModuleModel moduleModel,
@@ -108,8 +106,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
                                 @NotNull VirtualFile targetDirectory) {
     this(moduleModel, renderModel);
     List<AndroidSourceSet> sourceSets = AndroidSourceSet.getSourceSets(facet, targetDirectory);
-    String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, sourceSets, targetDirectory);
-    init(initialPackageSuggestion, templateList, sourceSets, facet);
+    init(templateList, sourceSets, facet);
   }
 
   private ChooseActivityTypeStep(@NotNull NewModuleModel moduleModel, @NotNull RenderTemplateModel renderModel) {
@@ -117,11 +114,9 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
     this.myRenderModel = renderModel;
   }
 
-  private void init(@NotNull String initialPackageSuggestion,
-                    @NotNull List<TemplateHandle> templateList,
+  private void init(@NotNull List<TemplateHandle> templateList,
                     @NotNull List<AndroidSourceSet> sourceSets,
                     @Nullable AndroidFacet facet) {
-    myInitialPackageSuggestion = initialPackageSuggestion;
     myTemplateList = templateList.toArray(new TemplateHandle[templateList.size()]);
     mySourceSets = sourceSets;
 
@@ -147,7 +142,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
   @Override
   public Collection<? extends ModelWizardStep> createDependentSteps() {
     String title = AndroidBundle.message("android.wizard.config.activity.title");
-    return Lists.newArrayList(new ConfigureTemplateParametersStep(myRenderModel, title, myInitialPackageSuggestion, mySourceSets, myFacet));
+    return Lists.newArrayList(new ConfigureTemplateParametersStep(myRenderModel, title, mySourceSets, myFacet));
   }
 
   private static ASGallery<TemplateHandle> createGallery(String title) {
