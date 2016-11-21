@@ -20,7 +20,6 @@
     <orderEntry type="module" module-name="adt-ui-model" />
     <orderEntry type="module" module-name="ddmlib" />
     <orderEntry type="module" module-name="annotations-common" />
-    <orderEntry type="module" module-name="rpclib" />
     <orderEntry type="library" name="studio-profiler-grpc-1.0-jarjar" level="project" />
   </component>
 </module>

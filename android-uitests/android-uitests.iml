@@ -24,7 +24,6 @@
     <orderEntry type="module" module-name="compiler-openapi" scope="TEST" />
     <orderEntry type="module" module-name="java-impl" scope="TEST" />
     <orderEntry type="module" module-name="dom-openapi" scope="TEST" />
-    <orderEntry type="module" module-name="rpclib" scope="TEST" />
     <orderEntry type="module" module-name="xdebugger-impl" scope="TEST" />
   </component>
 </module>
