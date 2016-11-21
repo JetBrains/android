@@ -36,5 +36,5 @@ public abstract class FeatureEnableService {
 
   protected abstract boolean isApplicable(@NotNull Project project);
 
-  public abstract boolean isLayoutEditorEnabled();
+  public abstract boolean isLayoutEditorEnabled(@NotNull Project project);
 }
