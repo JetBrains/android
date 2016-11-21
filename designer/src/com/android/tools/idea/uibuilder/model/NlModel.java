@@ -29,11 +29,13 @@ import com.android.tools.idea.configurations.ConfigurationMatcher;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion;
 import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.uibuilder.editor.NlEditorProvider;
@@ -47,6 +49,7 @@ import com.android.util.PropertiesMap;
 import com.android.utils.XmlUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.*;
+import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
@@ -121,6 +124,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       if ((flags & (CFG_DEVICE | CFG_DEVICE_STATE)) != 0 && !mySurface.isCanvasResizing()) {
         mySurface.zoom(ZoomType.FIT_INTO);
       }
+
       return true;
     }
   };
@@ -140,6 +144,14 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private RenderTask myRenderTask;
   private final NlLayoutType myType;
   private long myConfigurationModificationCount;
+
+  // Variables to track previous values of the configuration bar for tracking purposes
+  private String myPreviousDeviceName;
+  private Locale myPreviousLocale;
+  private String myPreviousVersion;
+  private String myPreviousTheme;
+  // Variable to track what triggered the latest render (if known)
+  private ChangeType myModificationTrigger;
 
   @NotNull
   public static NlModel create(@NotNull DesignSurface surface,
@@ -163,6 +175,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
     myType = NlLayoutType.typeOf(file);
     myProjectResourceRepository = ProjectResourceRepository.getProjectResources(myFacet, true);
+
+    updateTrackingConfiguration();
   }
 
   /**
@@ -513,6 +527,30 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * <b>Do not call this method from the dispatch thread!</b>
    */
   public void render() {
+    if (myConfigurationModificationCount != myConfiguration.getModificationCount()) {
+      // usage tracking (we only pay attention to individual changes where only one item is affected since those are likely to be triggered
+      // by the user
+      if (!StringUtil.equals(myConfiguration.getTheme(), myPreviousTheme)) {
+        myPreviousTheme = myConfiguration.getTheme();
+        NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.THEME_CHANGE);
+      }
+      else if (myConfiguration.getTarget() != null && !StringUtil.equals(myConfiguration.getTarget().getVersionName(), myPreviousVersion)) {
+        myPreviousVersion = myConfiguration.getTarget().getVersionName();
+        NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.API_LEVEL_CHANGE);
+      }
+      else if (!myConfiguration.getLocale().equals(myPreviousLocale)) {
+        myPreviousLocale = myConfiguration.getLocale();
+        NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.LANGUAGE_CHANGE);
+      }
+      else if (myConfiguration.getDevice() != null && !StringUtil.equals(myConfiguration.getDevice().getDisplayName(), myPreviousDeviceName)) {
+        myPreviousDeviceName = myConfiguration.getDevice().getDisplayName();
+        NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEVICE_CHANGE);
+      }
+    }
+
+    ChangeType changeType = myModificationTrigger;
+    myModificationTrigger = null;
+    long renderStartTimeMs = System.currentTimeMillis();
     boolean inflated = inflate(false);
 
     synchronized (RENDERING_LOCK) {
@@ -525,6 +563,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           if (!inflated) {
             updateHierarchy(myRenderResult);
           }
+
+          NlUsageTrackerManager.getInstance(mySurface).logRenderResult(changeType,
+                                                                       myRenderResult,
+                                                                       System.currentTimeMillis() - renderStartTimeMs);
         }
         finally {
           myRenderResultLock.writeLock().unlock();
@@ -1812,8 +1854,15 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         case IMAGE_RESOURCE_CHANGED:
           RefreshRenderAction.clearCache(mySurface);
           break;
-        default:
-          notifyModified(ChangeType.RESOURCE_CHANGED);
+        case GRADLE_SYNC:
+        case PROJECT_BUILD:
+        case VARIANT_CHANGED:
+        case SDK_CHANGED:
+          notifyModified(ChangeType.BUILD);
+          break;
+        case CONFIGURATION_CHANGED:
+          notifyModified(ChangeType.CONFIGURATION_CHANGE);
+          break;
       }
     }
   }
@@ -1831,7 +1880,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     DROP,
     RESIZE_END, RESIZE_COMMIT,
     REQUEST_RENDER,
-    UPDATE_HIERARCHY
+    UPDATE_HIERARCHY,
+    BUILD,
+    CONFIGURATION_CHANGE
   }
 
   /**
@@ -1886,7 +1937,18 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       myConfiguration.setTheme(myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration));
     }
     myModelVersion.increase(reason);
+    myModificationTrigger = reason;
     requestModelUpdate();
+  }
+
+  /**
+   * Updates the saved values that are used to log user changes to the configuration toolbar.
+   */
+  private void updateTrackingConfiguration() {
+    myPreviousDeviceName = myConfiguration.getDevice() != null ? myConfiguration.getDevice().getDisplayName() : null;
+    myPreviousVersion = myConfiguration.getTarget() != null ? myConfiguration.getTarget().getVersionName() : null;
+    myPreviousLocale = myConfiguration.getLocale();
+    myPreviousTheme = myConfiguration.getTheme();
   }
 
   public void setConfiguration(@NotNull Configuration configuration) {
@@ -1898,6 +1960,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       myModelVersion.myResourceVersion.incrementAndGet();
     }
     myConfigurationModificationCount = myConfiguration.getModificationCount();
+
+    updateTrackingConfiguration();
   }
 
   private class AndroidPreviewProgressIndicator extends ProgressIndicatorBase {

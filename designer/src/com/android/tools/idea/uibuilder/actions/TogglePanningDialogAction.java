@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
+import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.handlers.constraint.WidgetNavigatorPanel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.ui.popup.JBPopup;
@@ -53,6 +55,7 @@ public class TogglePanningDialogAction extends ToggleAction {
   @Override
   public void setSelected(AnActionEvent e, boolean state) {
     if (state) {
+      NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.SHOW_PAN_AND_ZOOM);
       myPopupReference = new WeakReference<>(WidgetNavigatorPanel.createPopup(mySurface));
     }
     else {

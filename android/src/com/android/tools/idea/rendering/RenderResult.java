@@ -173,4 +173,6 @@ public class RenderResult {
   public Map<Object, PropertiesMap> getDefaultProperties() {
     return myDefaultProperties;
   }
+
+
 }

@@ -19,6 +19,8 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 import android.support.constraint.solver.widgets.ConstraintAnchor;
 import android.support.constraint.solver.widgets.ConstraintWidget;
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
@@ -35,6 +37,7 @@ import com.android.tools.sherpa.scout.Scout;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.google.common.collect.Lists;
+import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
@@ -471,6 +474,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                             @NotNull NlComponent parent,
                             @NotNull List<NlComponent> selectedChildren,
                             boolean selected) {
+      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
+        .logAction(selected
+                   ? LayoutEditorEvent.LayoutEditorEventType.TURN_ON_AUTOCONNECT
+                   : LayoutEditorEvent.LayoutEditorEventType.TURN_OFF_AUTOCONNECT);
       ConstraintModel.setAutoConnect(selected);
     }
 
@@ -491,6 +498,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       if (model == null) {
         return;
       }
+      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
+        .logAction(LayoutEditorEvent.LayoutEditorEventType.CLEAR_ALL_CONSTRAINTS);
       WidgetsScene scene = model.getScene();
       scene.clearAllConstraints();
       model.saveToXML(true);
@@ -548,6 +557,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       if (model == null) {
         return;
       }
+      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
+        .logAction(LayoutEditorEvent.LayoutEditorEventType.INFER_CONSTRAINS);
       WidgetsScene scene = model.getScene();
       try {
         Scout.inferConstraints(scene);
@@ -593,6 +604,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                             @NotNull List<NlComponent> selectedChildren,
                             boolean selected) {
       myShowAllConstraints = selected;
+      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
+        .logAction(
+          selected ? LayoutEditorEvent.LayoutEditorEventType.SHOW_CONSTRAINTS : LayoutEditorEvent.LayoutEditorEventType.HIDE_CONSTRAINTS);
       PropertiesComponent.getInstance().setValue(SHOW_CONSTRAINTS_PREF_KEY, myShowAllConstraints);
     }
   }
@@ -647,7 +661,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
-
       NlComponent parent = component;
       while (parent != null && !parent.isOrHasSuperclass(SdkConstants.CONSTRAINT_LAYOUT)) {
         parent = parent.getParent();
@@ -656,11 +669,14 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
         NlComponent guideline = parent.createChild(editor, SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
         guideline.ensureId();
         guideline.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
+        NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface());
         if (myType == HORIZONTAL_GUIDELINE) {
+          tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_GUIDELINE);
           guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION,
                                  SdkConstants.ATTR_GUIDELINE_ORIENTATION_HORIZONTAL);
         }
         else {
+          tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_VERTICAL_GUIDELINE);
           guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION,
                                  SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL);
         }
@@ -735,6 +751,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       if (model == null) {
         return;
       }
+      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
+        .logAction(LayoutEditorEvent.LayoutEditorEventType.ALIGN);
       modifiers &= InputEvent.CTRL_MASK;
       Scout.arrangeWidgets(myActionType, model.getSelection().getWidgets(), modifiers == 0 || ConstraintModel.isAutoConnect());
       model.saveToXML(true);
@@ -814,6 +832,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
         return;
       }
       DesignSurface surface = ((ViewEditorImpl)editor).getScreenView().getSurface();
+      NlUsageTrackerManager.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEFAULT_MARGINS);
       RelativePoint relativePoint = new RelativePoint(surface, new Point(0, 0));
       JBPopupFactory.getInstance().createComponentPopupBuilder(myMarginPopup, myMarginPopup.getTextField())
         .setRequestFocus(true)
