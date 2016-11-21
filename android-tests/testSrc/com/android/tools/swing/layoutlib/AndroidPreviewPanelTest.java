@@ -54,7 +54,7 @@ public class AndroidPreviewPanelTest extends AndroidTestCase {
         executorCalled.set(true);
       }
       catch (InterruptedException | ExecutionException | TimeoutException e) {
-        fail("Unexpected exception: " + e.getLocalizedMessage());
+        throw new AssertionError("Unexpected exception", e);
       }
     };
 
