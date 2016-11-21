@@ -76,7 +76,8 @@ public abstract class StageView<T extends Stage> {
     builder.setGlobalRange(profilers.getDataRange()).showAxisLine(false)
       .setOffset(profilers.getDeviceStartUs());
     AxisComponent timeAxis = builder.build();
-    timeAxis.setMinimumSize(new Dimension(Integer.MAX_VALUE, ProfilerLayout.TIME_AXIS_HEIGHT));
+    timeAxis.setMinimumSize(new Dimension(0, ProfilerLayout.TIME_AXIS_HEIGHT));
+    timeAxis.setPreferredSize(new Dimension(Integer.MAX_VALUE, ProfilerLayout.TIME_AXIS_HEIGHT));
     return timeAxis;
   }
 
