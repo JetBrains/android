@@ -9,7 +9,7 @@ iml_module(
     deps = [
         "//tools:idea.platform-impl_and_others[module]",
         "//tools/adt/idea/android[module]",
-        "//tools:idea.lang-api[module]",
+        "//tools/idea/platform/lang-api[module]",
         "//tools/analytics-library:analytics-tracker[module]",
         "//tools/analytics-library:analytics-protos[module]",
         "//tools/adt/idea/observable[module]",

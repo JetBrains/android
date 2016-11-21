@@ -8,11 +8,11 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//tools:idea.annotations[module]",
+        "//tools/idea/platform/annotations[module]",
         "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/adt/idea/adt-ui-model[module]",
-        "//tools:idea.util[module]",
+        "//tools/idea/platform/util[module]",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/base/perflib:studio.perflib[module]",
     ],

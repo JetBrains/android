@@ -9,9 +9,9 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//tools:idea.annotations[module]",
+        "//tools/idea/platform/annotations[module]",
         "//tools/idea/.idea/libraries:Trove4j",
-        "//tools:idea.platform-api[module]",
+        "//tools/idea/platform/platform-api[module]",
         "//tools:idea.platform-impl_and_others[module]",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/base/common:studio.common[module]",

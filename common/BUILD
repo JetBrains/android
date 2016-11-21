@@ -23,7 +23,7 @@ iml_module(
     ],
     # do not sort: must match IML order
     deps = [
-        "//tools:idea.util[module]",
+        "//tools/idea/platform/util[module]",
         "//tools/idea/.idea/libraries:android-sdk-tools-jps",
         "//tools/idea/.idea/libraries:NanoXML",
         "//tools/base/common:studio.common[module]",
