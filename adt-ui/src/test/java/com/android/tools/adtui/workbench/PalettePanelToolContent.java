@@ -129,4 +129,13 @@ class PalettePanelToolContent implements ToolContent<String> {
   public boolean isAdditionalActionPerformed() {
     return myAdditionalActionPerformed;
   }
+
+  @Override
+  public boolean supportsFiltering() {
+    return true;
+  }
+
+  @Override
+  public void setFilter(@NotNull String filter) {
+  }
 }

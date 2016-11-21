@@ -16,10 +16,12 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.property.ptable.PTable;
+import com.android.tools.idea.uibuilder.property.ptable.PTableGroupItem;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.ptable.PTableModel;
 import com.android.util.PropertiesMap;
@@ -35,6 +37,7 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.SpeedSearchComparator;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NonNls;
@@ -43,6 +46,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
@@ -59,6 +63,8 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 50;
   private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 25;
 
+  private final TableRowSorter<PTableModel> myRowSorter;
+  private final MyFilter myFilter;
   private final PTable myTable;
   private final JPanel myTablePanel;
   private final PTableModel myModel;
@@ -75,6 +81,8 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     setOpaque(true);
     setBackground(UIUtil.TRANSPARENT_COLOR);
 
+    myRowSorter = new TableRowSorter<>();
+    myFilter = new MyFilter();
     myModel = new PTableModel();
     myTable = new PTable(myModel);
     myTable.setEditorProvider(NlPropertyEditors.getInstance(propertiesManager.getProject()));
@@ -119,6 +127,20 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener(this::scrollIntoView);
   }
 
+  public void setFilter(@NotNull String filter) {
+    if (filter.isEmpty()) {
+      myTable.setRowSorter(null);
+    }
+    else {
+      myFilter.setPattern(filter);
+      myRowSorter.setModel(myModel);
+      myRowSorter.setRowFilter(myFilter);
+      myRowSorter.setSortKeys(null);
+      myTable.setRowSorter(myRowSorter);
+    }
+    myInspectorPanel.setFilter(filter);
+  }
+
   public void activatePropertySheet() {
     setAllPropertiesPanelVisible(true);
   }
@@ -145,7 +167,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
       myTable.removeEditor();
     }
     myModel.setItems(groupedProperties);
-    if (myModel.getRowCount() > 0) {
+    if (myTable.getRowCount() > 0) {
       myTable.addRowSelectionInterval(0, 0);
     }
 
@@ -340,5 +362,41 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
 
   @Override
   public void performPaste(@NotNull DataContext dataContext) {
+  }
+
+  @VisibleForTesting
+  static class MyFilter extends RowFilter<PTableModel, Integer> {
+    private final SpeedSearchComparator myComparator = new SpeedSearchComparator(false);
+    private String myPattern;
+
+    @VisibleForTesting
+    void setPattern(@NotNull String pattern) {
+      myPattern = pattern;
+    }
+
+    @Override
+    public boolean include(Entry<? extends PTableModel, ? extends Integer> entry) {
+      PTableItem item = (PTableItem)entry.getValue(0);
+      if (isMatch(item.getName())) {
+        return true;
+      }
+      if (item.getParent() != null && isMatch(item.getParent().getName())) {
+        return true;
+      }
+      if (!(item instanceof PTableGroupItem)) {
+        return false;
+      }
+      PTableGroupItem group = (PTableGroupItem)item;
+      for (PTableItem child : group.getChildren()) {
+        if (isMatch(child.getName())) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    private boolean isMatch(@NotNull String text) {
+      return myComparator.matchingFragments(myPattern, text) != null;
+    }
   }
 }
