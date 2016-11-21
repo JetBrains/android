@@ -229,6 +229,11 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
   public void modelRendered(@NotNull NlModel model) {
   }
 
+  @Override
+  public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
+    // Do nothing
+  }
+
   private static class ConstraintLayoutConverter extends WriteCommandAction {
     private final ScreenView myScreenView;
     private final boolean myFlatten;
