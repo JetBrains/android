@@ -114,19 +114,11 @@ public class MemoryDetailSegment extends BaseSegment {
                    .setHeaderAlignment(SwingConstants.LEFT)
                    .setRenderer(new MemoryInfoColumnRenderer(1, mRoot))
                    .setInitialOrder(SortOrder.DESCENDING)
-                   .setComparator(new Comparator<MemoryInfoTreeNode>() {
-                     @Override
-                     public int compare(MemoryInfoTreeNode a, MemoryInfoTreeNode b) {
-                       return a.getCount() - b.getCount();
-                     }
-                   }));
+                   .setComparator((MemoryInfoTreeNode a, MemoryInfoTreeNode b) -> a.getCount() - b.getCount()));
 
-    builder.setTreeSorter(new ColumnTreeBuilder.TreeSorter<MemoryInfoTreeNode>() {
-      @Override
-      public void sort(Comparator<MemoryInfoTreeNode> comparator, SortOrder sortOrder) {
-        mRoot.sort(comparator);
-        mTreeModel.nodeStructureChanged(mRoot);
-      }
+    builder.setTreeSorter((Comparator<MemoryInfoTreeNode> comparator, SortOrder sortOrder) -> {
+      mRoot.sort(comparator);
+      mTreeModel.nodeStructureChanged(mRoot);
     });
 
     mColumnTree = builder.build();
@@ -174,9 +166,7 @@ public class MemoryDetailSegment extends BaseSegment {
             break;
         }
 
-        if (mHealthBar != null) {
-          mHealthBar.setDelta((float)node.getCount() / mRoot.getCount());
-        }
+        mHealthBar.setDelta((float)node.getCount() / mRoot.getCount());
       }
     }
   }
