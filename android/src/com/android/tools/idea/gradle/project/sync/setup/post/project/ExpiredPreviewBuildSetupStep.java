@@ -29,7 +29,7 @@ import java.util.Calendar;
 import static com.intellij.notification.NotificationType.INFORMATION;
 import static java.util.Calendar.MONTH;
 
-public class ExpiredPreviewBuildSetupStep extends PostSyncProjectSetupStep {
+public class ExpiredPreviewBuildSetupStep extends ProjectSetupStep {
   @NotNull private final ApplicationInfo myApplicationInfo;
 
   private volatile boolean myExpirationChecked;

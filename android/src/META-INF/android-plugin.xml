@@ -1062,7 +1062,7 @@
     <extensionPoint qualifiedName="com.android.gradle.sync.javaModuleSetupStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.postSyncProjectSetupStep"
-                    interface="com.android.tools.idea.gradle.project.sync.setup.post.project.PostSyncProjectSetupStep"/>
+                    interface="com.android.tools.idea.gradle.project.sync.setup.post.project.ProjectSetupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.pluginVersionUpgradeStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.PluginVersionUpgradeStep"/>
 
@@ -1150,7 +1150,7 @@
     <ndkModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.ndk.ContentRootModuleSetupStep"/>
     <ndkModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkFacetModuleSetupStep"/>
 
-    <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.JdkPostSyncProjectSetupStep"/>
+    <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.ProjectJdkSetupStep"/>
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.MissingPlatformsSetupStep"/>
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.SdkToolsVersionSetupStep"/>
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.ExpiredPreviewBuildSetupStep"/>

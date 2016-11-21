@@ -21,12 +21,12 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class PostSyncProjectSetupStep {
-  private static final ExtensionPointName<PostSyncProjectSetupStep>
+public abstract class ProjectSetupStep {
+  private static final ExtensionPointName<ProjectSetupStep>
     EXTENSION_POINT_NAME = ExtensionPointName.create("com.android.gradle.sync.postSyncProjectSetupStep");
 
   @NotNull
-  public static PostSyncProjectSetupStep[] getExtensions() {
+  public static ProjectSetupStep[] getExtensions() {
     return EXTENSION_POINT_NAME.getExtensions();
   }
 
