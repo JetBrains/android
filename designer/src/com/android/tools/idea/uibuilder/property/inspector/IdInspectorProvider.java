@@ -102,7 +102,6 @@ public class IdInspectorProvider implements InspectorProvider {
       myLayoutWidth = properties.get(ATTR_LAYOUT_WIDTH);
       myLayoutHeight = properties.get(ATTR_LAYOUT_HEIGHT);
       myConstraintWidget.updateComponents(components);
-      myConstraintWidget.setVisible(hasParentConstraintLayout(components));
     }
 
     @Override
@@ -113,7 +112,9 @@ public class IdInspectorProvider implements InspectorProvider {
     @Override
     public void attachToInspector(@NotNull InspectorPanel inspector) {
       myIdEditor.setLabel(inspector.addComponent("ID", null, myIdEditor.getComponent()));
-      inspector.addPanel(myConstraintWidget);
+      if (myConstraintWidget.isApplicable()) {
+        inspector.addPanel(myConstraintWidget);
+      }
       myWidthEditor.setLabel(inspector.addComponent(ATTR_LAYOUT_WIDTH, null, myWidthEditor.getComponent()));
       myHeightEditor.setLabel(inspector.addComponent(ATTR_LAYOUT_HEIGHT, null, myHeightEditor.getComponent()));
       refresh();
@@ -157,14 +158,6 @@ public class IdInspectorProvider implements InspectorProvider {
       if (label != null) {
         label.setToolTipText(property.getTooltipText());
       }
-    }
-
-    private static boolean hasParentConstraintLayout(@NotNull List<NlComponent> components) {
-      if (components.isEmpty()) {
-        return false;
-      }
-      NlComponent parent = components.get(0).getParent();
-      return parent != null && parent.isOrHasSuperclass(CONSTRAINT_LAYOUT);
     }
   }
 }
