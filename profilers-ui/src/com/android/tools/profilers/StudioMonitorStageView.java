@@ -45,6 +45,8 @@ public class StudioMonitorStageView extends StageView {
 
     setupPanAndZoomListeners(getComponent());
 
+    // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
+    // that attempts to read the same range instance.
     ProfilerScrollbar sb = new ProfilerScrollbar(getTimeline());
     getChoreographer().register(sb);
     getComponent().add(sb, BorderLayout.SOUTH);

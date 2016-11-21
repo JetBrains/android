@@ -90,6 +90,8 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     gbc.gridx = 0;
     gbc.weighty = 0;
 
+    // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
+    // that attempts to read the same range instance.
     ProfilerScrollbar sb = new ProfilerScrollbar(timeline);
     getChoreographer().register(sb);
     gbc.gridy = 4;
@@ -109,12 +111,14 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     panel.add(new NetworkRadioView(this).getComponent(), gbc);
 
     JPanel monitorPanel = new JBPanel(new GridBagLayout());
+    monitorPanel.setOpaque(false);
+    monitorPanel.setBorder(MONITOR_BORDER);
     final JLabel label = new JLabel(monitor.getName());
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(SwingConstants.TOP);
 
-    Range leftYRange = new Range();
-    Range rightYRange = new Range();
+    Range leftYRange = new Range(0, 4);
+    Range rightYRange = new Range(0, 5);
 
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
@@ -145,7 +149,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     final JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
     AxisComponent.Builder leftAxisBuilder =
-      new AxisComponent.Builder(new Range(0, 4), TRAFFIC_AXIS_FORMATTER, AxisComponent.AxisOrientation.RIGHT)
+      new AxisComponent.Builder(leftYRange, TRAFFIC_AXIS_FORMATTER, AxisComponent.AxisOrientation.RIGHT)
         .showAxisLine(false)
         .showMax(true)
         .showUnitAtMax(true)
@@ -156,7 +160,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     axisPanel.add(leftAxis, BorderLayout.WEST);
 
     AxisComponent.Builder rightAxisBuilder =
-      new AxisComponent.Builder(new Range(0, 5), CONNECTIONS_AXIS_FORMATTER, AxisComponent.AxisOrientation.LEFT)
+      new AxisComponent.Builder(rightYRange, CONNECTIONS_AXIS_FORMATTER, AxisComponent.AxisOrientation.LEFT)
         .showAxisLine(false)
         .showMax(true)
         .showUnitAtMax(true)

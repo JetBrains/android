@@ -109,6 +109,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     gbc.gridx = 0;
     gbc.weighty = 0;
 
+    // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
+    // that attempts to read the same range instance.
     ProfilerScrollbar sb = new ProfilerScrollbar(timeline);
     getChoreographer().register(sb);
     gbc.gridy = 3;
@@ -127,6 +129,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     MemoryMonitor monitor = new MemoryMonitor(profilers);
     JPanel monitorPanel = new JBPanel(new GridBagLayout());
+    monitorPanel.setOpaque(false);
+    monitorPanel.setBorder(MONITOR_BORDER);
     final JLabel label = new JLabel(monitor.getName());
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(SwingConstants.TOP);
