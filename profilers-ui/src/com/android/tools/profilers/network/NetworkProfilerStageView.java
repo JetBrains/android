@@ -17,6 +17,7 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.LegendComponent;
+import com.android.tools.adtui.LegendRenderData;
 import com.android.tools.adtui.SelectionComponent;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
@@ -36,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
@@ -73,6 +75,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     StudioProfilers profilers = getStage().getStudioProfilers();
     ProfilerTimeline timeline = profilers.getTimeline();
     Range viewRange = getTimeline().getViewRange();
+    Range dataRange = getTimeline().getDataRange();
 
     EventMonitor events = new EventMonitor(profilers);
     NetworkMonitor monitor = new NetworkMonitor(getStage().getStudioProfilers());
@@ -117,28 +120,29 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     Range leftYRange = new Range(0, 4);
     Range rightYRange = new Range(0, 5);
 
+    RangedContinuousSeries receivedSeries = new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getLabel(),
+                                                                 viewRange,
+                                                                 leftYRange,
+                                                                 monitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED));
+    RangedContinuousSeries sentSeries = new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_SENT.getLabel(),
+                                                                 viewRange,
+                                                                 leftYRange,
+                                                                 monitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_SENT));
+    RangedContinuousSeries connectionSeries = new RangedContinuousSeries("Connections",
+                                                                  viewRange,
+                                                                  rightYRange,
+                                                                  monitor.getOpenConnectionsSeries());
+
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
     lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
     final LineChart lineChart = new LineChart();
     LineConfig receivedConfig = new LineConfig(ProfilerColors.NETWORK_RECEIVING_COLOR);
-    lineChart.addLine(new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getLabel(),
-                                                 viewRange,
-                                                 leftYRange,
-                                                 monitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED)),
-                      receivedConfig);
+    lineChart.addLine(receivedSeries, receivedConfig);
     LineConfig sentConfig = new LineConfig(ProfilerColors.NETWORK_SENDING_COLOR);
-    lineChart.addLine(new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_SENT.getLabel(),
-                                                 viewRange,
-                                                 leftYRange,
-                                                 monitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_SENT)),
-                      sentConfig);
+    lineChart.addLine(sentSeries, sentConfig);
     LineConfig connectionConfig = new LineConfig(ProfilerColors.NETWORK_CONNECTIONS_COLOR).setStroke(LineConfig.DEFAULT_DASH_STROKE);
-    lineChart.addLine(new RangedContinuousSeries("Connections",
-                                                 viewRange,
-                                                 rightYRange,
-                                                 monitor.getOpenConnectionsSeries()),
-                      connectionConfig);
+    lineChart.addLine(connectionSeries, connectionConfig);
 
     getChoreographer().register(lineChart);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
@@ -168,7 +172,11 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     axisPanel.add(rightAxis, BorderLayout.EAST);
 
     final LegendComponent legend = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, LEGEND_UPDATE_FREQUENCY_MS);
-    legend.setLegendData(lineChart.getLegendDataFromLineChart());
+    ArrayList<LegendRenderData> legendData = new ArrayList<>();
+    legendData.add(lineChart.createLegendRenderData(receivedSeries, TRAFFIC_AXIS_FORMATTER, dataRange));
+    legendData.add(lineChart.createLegendRenderData(sentSeries, TRAFFIC_AXIS_FORMATTER, dataRange));
+    legendData.add(lineChart.createLegendRenderData(connectionSeries, CONNECTIONS_AXIS_FORMATTER, dataRange));
+    legend.setLegendData(legendData);
     getChoreographer().register(legend);
 
     final JPanel legendPanel = new JBPanel(new BorderLayout());

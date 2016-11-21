@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.model;
+package com.android.tools.adtui;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.awt.Color;
+import java.awt.*;
 
 /**
  * Class to store all the render data needed to render a legend.
@@ -40,35 +39,19 @@ public class LegendRenderData {
 
   @NotNull
   private final String mLabel;
-
-  @Nullable
-  private final ReportingSeries mSeries;
   
   /**
-   * Render data to be used when rendering the legend. The only optional parameter is the series. If the series is null the legend renders
-   * the icon, and the label without any additional processing. If the series is populated it is used to as a postfix to the label passed
-   * in.
+   * Render data to be used when rendering the legend.
    *
    * @param icon   The icon type to be displayed
    * @param color  The color of the icon to be associated with the elements in the chart.
    * @param label  The label to be drawn.
-   * @param series Series data to be used for gathering the latest value.
    */
-  public LegendRenderData(@NotNull IconType icon, @NotNull Color color, @NotNull String label, ReportingSeries series) {
+  public LegendRenderData(@NotNull IconType icon, @NotNull Color color, @NotNull String label) {
     mColor = color;
     mIcon = icon;
     mLabel = label;
-    mSeries = series;
   }
-
-  public LegendRenderData(@NotNull IconType icon, @NotNull Color color, @NotNull ReportingSeries series) {
-    this(icon, color, series.getLabel(), series);
-  }
-
-  public LegendRenderData(@NotNull IconType icon, @NotNull Color color, @NotNull String label) {
-    this(icon, color, label, null);
-  }
-
 
   public String getLabel() {
     return mLabel;
@@ -82,7 +65,14 @@ public class LegendRenderData {
     return mIcon;
   }
 
-  public ReportingSeries getSeries() {
-    return mSeries;
+  /**
+   * Whether the legend has data to display with the legend.
+   */
+  public boolean hasData() {
+    return false;
+  }
+
+  public String getFormattedData() {
+    return "";
   }
 }

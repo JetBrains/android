@@ -18,6 +18,7 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.intellij.util.containers.ContainerUtil;
@@ -25,6 +26,7 @@ import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -49,11 +51,13 @@ public class NetworkOpenConnectionsDataSeries implements DataSeries<Long> {
   public ImmutableList<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
     List<SeriesData<Long>> seriesData = new ArrayList<>();
 
+    // TODO: Change the Network API to allow specifying padding in the request as number of samples.
+    long bufferNs = TimeUnit.SECONDS.toNanos(1);
     NetworkProfiler.NetworkDataRequest.Builder dataRequestBuilder = NetworkProfiler.NetworkDataRequest.newBuilder()
       .setAppId(myProcessId)
       .setType(NetworkProfiler.NetworkDataRequest.Type.CONNECTIONS)
-      .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
-      .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()));
+      .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
+      .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
     NetworkProfiler.NetworkDataResponse response = myClient.getData(dataRequestBuilder.build());
     for (NetworkProfiler.NetworkProfilerData data : response.getDataList()) {
       long xTimestamp = TimeUnit.NANOSECONDS.toMicros(data.getBasicInfo().getEndTimestamp());
@@ -61,5 +65,34 @@ public class NetworkOpenConnectionsDataSeries implements DataSeries<Long> {
       seriesData.add(new SeriesData<>(xTimestamp, (long)connectionData.getConnectionNumber()));
     }
     return ContainerUtil.immutableList(seriesData);
+  }
+
+  @Override
+  public SeriesData<Long> getClosestData(long x) {
+    // TODO: Change the Network API to allow specifying padding in the request as number of samples.
+    long xNs = TimeUnit.MICROSECONDS.toNanos(x);
+    long bufferNs = TimeUnit.SECONDS.toNanos(1);
+    NetworkProfiler.NetworkDataRequest.Builder dataRequestBuilder = NetworkProfiler.NetworkDataRequest.newBuilder()
+      .setAppId(myProcessId)
+      .setType(NetworkProfiler.NetworkDataRequest.Type.CONNECTIONS)
+      .setStartTimestamp(xNs - bufferNs)
+      .setEndTimestamp(xNs + bufferNs);
+    NetworkProfiler.NetworkDataResponse response = myClient.getData(dataRequestBuilder.build());
+
+    List<NetworkProfiler.NetworkProfilerData> list = response.getDataList();
+    if (list.size() == 0) {
+      return null;
+    }
+
+    NetworkProfiler.NetworkProfilerData sample = NetworkProfiler.NetworkProfilerData.newBuilder().setBasicInfo(
+      Common.CommonData.newBuilder().setEndTimestamp(xNs)).build();
+    int index = Collections.binarySearch(list, sample, (left, right) -> {
+      long diff = left.getBasicInfo().getEndTimestamp() - right.getBasicInfo().getEndTimestamp();
+      return (diff == 0) ? 0 : (diff < 0) ? -1 : 1;
+    });
+
+    index = DataSeries.convertBinarySearchIndex(index, list.size());
+    long timestamp = TimeUnit.NANOSECONDS.toMicros(list.get(index).getBasicInfo().getEndTimestamp());
+    return new SeriesData<>(timestamp, (long)list.get(index).getConnectionData().getConnectionNumber());
   }
 }

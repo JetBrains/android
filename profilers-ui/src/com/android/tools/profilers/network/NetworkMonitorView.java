@@ -18,6 +18,7 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.LegendComponent;
+import com.android.tools.adtui.LegendRenderData;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
@@ -33,6 +34,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
@@ -47,6 +49,9 @@ public class NetworkMonitorView extends ProfilerMonitorView<NetworkMonitor> {
   @Override
   protected void populateUi(JPanel container, Choreographer choreographer) {
     container.setLayout(new GridBagLayout());
+
+    Range viewRange = getMonitor().getTimeline().getViewRange();
+    Range dataRange = getMonitor().getTimeline().getDataRange();
 
     final JLabel label = new JLabel(getMonitor().getName());
     label.setBorder(MONITOR_LABEL_PADDING);
@@ -69,22 +74,25 @@ public class NetworkMonitorView extends ProfilerMonitorView<NetworkMonitor> {
     lineChartPanel.setOpaque(false);
     lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
     final LineChart lineChart = new LineChart();
+    RangedContinuousSeries rxSeries = new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getLabel(),
+                                                                 viewRange,
+                                                                 leftYRange,
+                                                                 getMonitor().getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED));
+    RangedContinuousSeries txSeries = new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_SENT.getLabel(),
+                                                                 viewRange,
+                                                                 leftYRange,
+                                                                 getMonitor().getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_SENT));
     LineConfig receivedConfig = new LineConfig(ProfilerColors.NETWORK_RECEIVING_COLOR);
-    lineChart.addLine(new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getLabel(),
-                                                 getMonitor().getTimeline().getViewRange(),
-                                                 leftYRange,
-                                                 getMonitor().getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED)),
-                      receivedConfig);
+    lineChart.addLine(rxSeries, receivedConfig);
     LineConfig sentConfig = new LineConfig(ProfilerColors.NETWORK_SENDING_COLOR);
-    lineChart.addLine(new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_SENT.getLabel(),
-                                                 getMonitor().getTimeline().getViewRange(),
-                                                 leftYRange,
-                                                 getMonitor().getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_SENT)),
-                      sentConfig);
+    lineChart.addLine(txSeries, sentConfig);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
     final LegendComponent legend = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, LEGEND_UPDATE_FREQUENCY_MS);
-    legend.setLegendData(lineChart.getLegendDataFromLineChart());
+    ArrayList<LegendRenderData> legendData = new ArrayList<>();
+    legendData.add(lineChart.createLegendRenderData(rxSeries, BANDWIDTH_AXIS_FORMATTER_L1, dataRange));
+    legendData.add(lineChart.createLegendRenderData(txSeries, BANDWIDTH_AXIS_FORMATTER_L1, dataRange));
+    legend.setLegendData(legendData);
 
     final JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);

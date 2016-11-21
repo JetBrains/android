@@ -20,7 +20,7 @@ import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.LegendRenderData;
+import com.android.tools.adtui.LegendRenderData;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.datastore.DataStoreSeries;
