@@ -332,7 +332,7 @@ public class EditorFixture {
 
     selectEditorTab(tab);
 
-    Wait.seconds(1).expecting("file " + quote(file.getPath()) + " to be opened and loaded").until(() -> {
+    Wait.seconds(5).expecting("file " + quote(file.getPath()) + " to be opened and loaded").until(() -> {
       if (!file.equals(getCurrentFile())) {
         return false;
       }
