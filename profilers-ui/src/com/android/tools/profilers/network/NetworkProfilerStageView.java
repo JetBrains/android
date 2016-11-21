@@ -17,6 +17,7 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.LegendComponent;
+import com.android.tools.adtui.SelectionComponent;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
@@ -174,6 +175,9 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     legendPanel.add(label, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
 
+    SelectionComponent selection = new SelectionComponent(timeline.getSelectionRange(), timeline.getViewRange());
+    getChoreographer().register(selection);
+    monitorPanel.add(selection, GBC_FULL);
     monitorPanel.add(legendPanel, GBC_FULL);
     monitorPanel.add(axisPanel, GBC_FULL);
     monitorPanel.add(lineChartPanel, GBC_FULL);
