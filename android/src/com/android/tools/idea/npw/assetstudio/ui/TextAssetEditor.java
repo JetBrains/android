@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.assetstudio.ui;
 
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
-import com.android.tools.idea.ui.ProportionalLayout;
+import com.android.tools.adtui.ProportionalLayout;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ObservableValue;
