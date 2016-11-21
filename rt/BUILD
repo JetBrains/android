@@ -7,7 +7,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//tools:idea.annotations[module]",
-        "//tools:idea.util-rt[module]",
+        "//tools/idea/platform/annotations[module]",
+        "//tools/idea/platform/util-rt[module]",
     ],
 )

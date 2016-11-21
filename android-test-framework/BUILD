@@ -8,7 +8,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools:idea.platform-impl_and_others[module]",
-        "//tools:idea.xml-psi-api[module, test]",
+        "//tools/idea/xml/xml-psi-api[module, test]",
         "//tools:idea.compiler-impl_and_others[module]",
         "//tools/adt/idea/android[module, test]",
         "//tools/base/testutils:studio.testutils[module, test]",
