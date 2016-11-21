@@ -16,7 +16,9 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import com.android.tools.adtui.treegrid.TreeGrid;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
@@ -46,15 +48,18 @@ public class NlPaletteTreeGrid extends JPanel {
   private final Runnable myCloseAutoHideCallback;
   private final JList<Palette.Group> myCategoryList;
   private final TreeGrid<Palette.Item> myTree;
+  private final DesignSurface mySurface;
   private PaletteMode myMode;
   private SelectionListener myListener;
 
   public NlPaletteTreeGrid(@NotNull Project project,
                            @NotNull DependencyManager dependencyManager,
-                           @NotNull Runnable closeAutoHideCallback) {
+                           @NotNull Runnable closeAutoHideCallback,
+                           @Nullable DesignSurface designSurface) {
     myProject = project;
     myDependencyManager = dependencyManager;
     myCloseAutoHideCallback = closeAutoHideCallback;
+    mySurface = designSurface;
     myMode = PaletteMode.ICON_AND_NAME;
     myTree = new TreeGrid<>();
     //noinspection unchecked
@@ -81,6 +86,7 @@ public class NlPaletteTreeGrid extends JPanel {
 
   @Override
   public void requestFocus() {
+    NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.SHOW_PALETTE);
     myTree.requestFocus();
   }
 

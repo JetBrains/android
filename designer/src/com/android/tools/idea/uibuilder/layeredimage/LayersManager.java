@@ -50,6 +50,8 @@ public class LayersManager extends NlAbstractWindowManager {
 
   @Override
   protected void updateToolWindow(@Nullable DesignerEditorPanelFacade designer) {
+    super.updateToolWindow(designer);
+
     if (designer == null) {
       myToolWindow.setAvailable(false, null);
       if (myLayersPanel != null) {
