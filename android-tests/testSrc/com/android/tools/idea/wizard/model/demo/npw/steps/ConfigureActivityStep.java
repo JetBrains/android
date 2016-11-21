@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.wizard.model.demo.npw.steps;
 
-import com.android.tools.idea.ui.ProportionalLayout;
+import com.android.tools.adtui.ProportionalLayout;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.demo.npw.models.ActivityModel;
 import com.intellij.ui.components.JBLabel;

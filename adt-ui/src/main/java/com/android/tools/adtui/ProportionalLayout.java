@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui;
+package com.android.tools.adtui;
 
-import com.android.tools.idea.ui.ProportionalLayout.ColumnDefinition.Type;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -177,18 +176,18 @@ public final class ProportionalLayout implements LayoutManager2 {
       for (int i = 0; i < splits.size(); i++) {
         String s = splits.get(i);
         if (s.equals("Fit")) {
-          definitions[i] = new ColumnDefinition(Type.Fit);
+          definitions[i] = new ColumnDefinition(ColumnDefinition.Type.Fit);
         }
         else if (s.endsWith("px")) {
           int value = Integer.parseInt(s.substring(0, s.length() - 2)); // e.g. "30px" -> "30"
-          definitions[i] = new ColumnDefinition(Type.Fixed, value);
+          definitions[i] = new ColumnDefinition(ColumnDefinition.Type.Fixed, value);
         }
         else if (s.equals("*")) {
-          definitions[i] = new ColumnDefinition(Type.Proportional, 1);
+          definitions[i] = new ColumnDefinition(ColumnDefinition.Type.Proportional, 1);
         }
         else if (s.endsWith("*")) {
           int value = Integer.parseInt(s.substring(0, s.length() - 1)); // e.g. "3*" -> "3"
-          definitions[i] = new ColumnDefinition(Type.Proportional, value);
+          definitions[i] = new ColumnDefinition(ColumnDefinition.Type.Proportional, value);
         }
         else {
           throw new IllegalArgumentException(String.format("Bad column definition: \"%1$s\" in \"%2$s\"", s, columnDefinitions));
@@ -215,14 +214,14 @@ public final class ProportionalLayout implements LayoutManager2 {
 
     float totalProportionalWidth = 0;
     for (ColumnDefinition column : myDefinitions) {
-      if (column.getType() == Type.Proportional) {
+      if (column.getType() == ColumnDefinition.Type.Proportional) {
         totalProportionalWidth += column.getValue();
       }
     }
     if (totalProportionalWidth > 0) {
       for (int i = 0; i < myDefinitions.length; i++) {
         ColumnDefinition column = definitions[i];
-        if (column.getType() == Type.Proportional) {
+        if (column.getType() == ColumnDefinition.Type.Proportional) {
           myPercentages[i] = column.getValue() / totalProportionalWidth;
         }
       }
@@ -285,7 +284,7 @@ public final class ProportionalLayout implements LayoutManager2 {
 
     for (int i = 0; i < myDefinitions.length; i++) {
       ColumnDefinition column = myDefinitions[i];
-      if (column.getType() == Type.Fixed) {
+      if (column.getType() == ColumnDefinition.Type.Fixed) {
         widths[i] = column.getValue();
       }
     }
@@ -317,10 +316,10 @@ public final class ProportionalLayout implements LayoutManager2 {
         int col = myConstraints.get(comp).getCol();
         int colspan = myConstraints.get(comp).getColSpan();
         ColumnDefinition column = myDefinitions[col];
-        if (column.getType() == Type.Fit && colspan == 1) {
+        if (column.getType() == ColumnDefinition.Type.Fit && colspan == 1) {
           widths[col] = Math.max(widths[col], d.width);
         }
-        else if (column.getType() == Type.Proportional) {
+        else if (column.getType() == ColumnDefinition.Type.Proportional) {
           // Calculate how much total leftover space would be needed to fit this cell
           // after it takes its percentage cut
           int desiredSpace = Math.round(d.width / myPercentages[col]);
@@ -347,7 +346,7 @@ public final class ProportionalLayout implements LayoutManager2 {
     int[] heights;
     for (int i = 0; i < myDefinitions.length; i++) {
       ColumnDefinition column = myDefinitions[i];
-      if (column.getType() == Type.Fixed) {
+      if (column.getType() == ColumnDefinition.Type.Fixed) {
         widths[i] = column.getValue();
       }
     }
@@ -375,7 +374,7 @@ public final class ProportionalLayout implements LayoutManager2 {
         int col = myConstraints.get(comp).getCol();
         int colspan = myConstraints.get(comp).getColSpan();
         ColumnDefinition column = myDefinitions[col];
-        if (column.getType() == Type.Fit && colspan == 1) {
+        if (column.getType() == ColumnDefinition.Type.Fit && colspan == 1) {
           widths[col] = Math.max(widths[col], d.width);
         }
       }
@@ -404,7 +403,7 @@ public final class ProportionalLayout implements LayoutManager2 {
 
     for (int i = 0; i < myDefinitions.length; i++) {
       ColumnDefinition column = myDefinitions[i];
-      if (column.getType() == Type.Fixed) {
+      if (column.getType() == ColumnDefinition.Type.Fixed) {
         colWs[i] = column.getValue();
       }
     }
@@ -433,7 +432,7 @@ public final class ProportionalLayout implements LayoutManager2 {
         int col = myConstraints.get(comp).getCol();
         int colspan = myConstraints.get(comp).getColSpan();
         ColumnDefinition column = myDefinitions[col];
-        if (column.getType() == Type.Fit && colspan == 1) {
+        if (column.getType() == ColumnDefinition.Type.Fit && colspan == 1) {
           colWs[col] = Math.max(colWs[col], d.width);
         }
       }
