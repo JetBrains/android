@@ -29,6 +29,7 @@ import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.swing.util.FormScalingUtil;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
@@ -40,6 +41,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
+import java.util.Collection;
 
 /**
  * First page in the New Project wizard that sets project/module name, location, and other project-global
@@ -58,7 +60,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModel
   private LabelWithEditLink myPackageName;
   private JCheckBox myCppSupportCheck;
 
-  public ConfigureAndroidProjectStep(NewProjectModel model) {
+  public ConfigureAndroidProjectStep(@NotNull NewProjectModel model) {
     super(model, "Create Android Project");
 
     TextProperty packageNameText = new TextProperty(myPackageName);
@@ -101,12 +103,17 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModel
     Expression<File> locationFile = model.projectLocation().transform(File::new);
     myValidatorPanel.registerValidator(locationFile, PathValidator.createDefault("project location"));
 
-    myValidatorPanel.registerValidator(model.packageName(), value -> {
-      return Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value));
-    });
+    myValidatorPanel.registerValidator(model.packageName(),
+                                       value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
 
     myRootPanel = new StudioWizardStepPanel(myValidatorPanel, "Configure your new project");
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
+  }
+
+  @NotNull
+  @Override
+  protected Collection<? extends ModelWizardStep> createDependentSteps() {
+    return Lists.newArrayList(new ConfigureFormFactorStep(getModel()));
   }
 
   @Override
