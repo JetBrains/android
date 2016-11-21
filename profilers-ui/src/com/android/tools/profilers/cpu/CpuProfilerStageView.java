@@ -15,14 +15,12 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.RangedList;
-import com.android.tools.adtui.SelectionComponent;
+import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.RangedListModel;
@@ -33,6 +31,7 @@ import com.android.tools.profilers.event.EventMonitorView;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.components.JBList;
+import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,7 +41,12 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import static com.android.tools.profilers.ProfilerLayout.*;
+
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
+
+  private static final SingleUnitAxisFormatter CPU_USAGE_AXIS = new SingleUnitAxisFormatter(1, 5, 10, "%");
+  private static final SingleUnitAxisFormatter NUM_THREADS_AXIS = new SingleUnitAxisFormatter(1, 5, 1, "");
 
   private final CpuProfilerStage myStage;
 
@@ -67,6 +71,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection);
 
     StudioProfilers profilers = stage.getStudioProfilers();
+    ProfilerTimeline timeline = profilers.getTimeline();
+
+    // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
+    // that attempts to read the same range instance.
+    ProfilerScrollbar scrollbar = new ProfilerScrollbar(timeline);
+    getChoreographer().register(scrollbar);
+
     EventMonitor events = new EventMonitor(profilers);
     EventMonitorView eventsView = new EventMonitorView(events);
 
@@ -77,19 +88,61 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     JComponent eventsComponent = eventsView.initialize(getChoreographer());
 
     Range leftYRange = new Range(0, 100);
-    JLayeredPane layered = new JLayeredPane();
-    layered.setLayout(new GridBagLayout());
+    Range rightYRange = new Range();
+    JPanel monitorPanel = new JBPanel(new GridBagLayout());
+    monitorPanel.setOpaque(false);
+    monitorPanel.setBorder(MONITOR_BORDER);
 
-    ProfilerTimeline timeline = profilers.getTimeline();
     SelectionComponent selection = new SelectionComponent(timeline.getSelectionRange(), timeline.getViewRange());
-    layered.add(selection, ProfilerLayout.GBC_FULL);
+    monitorPanel.add(selection, GBC_FULL);
 
+    final JPanel lineChartPanel = new JBPanel(new BorderLayout());
+    lineChartPanel.setOpaque(false);
+    lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
     LineChart lineChart = new LineChart();
     lineChart.addLine(new RangedContinuousSeries("App", getTimeline().getViewRange(), leftYRange, cpu.getThisProcessCpuUsage()),
                       new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true).setStacked(true));
     lineChart.addLine(new RangedContinuousSeries("Others", getTimeline().getViewRange(), leftYRange, cpu.getOtherProcessesCpuUsage()),
                       new LineConfig(ProfilerColors.CPU_OTHER_USAGE).setFilled(true).setStacked(true));
-    layered.add(lineChart, ProfilerLayout.GBC_FULL);
+    // TODO add num threads series.
+    lineChartPanel.add(lineChart, BorderLayout.CENTER);
+    monitorPanel.add(lineChartPanel, GBC_FULL);
+
+    final JPanel axisPanel = new JBPanel(new BorderLayout());
+    axisPanel.setOpaque(false);
+    AxisComponent.Builder leftAxisBuilder =
+      new AxisComponent.Builder(leftYRange, CPU_USAGE_AXIS, AxisComponent.AxisOrientation.RIGHT)
+        .showAxisLine(false)
+        .showMax(true)
+        .showUnitAtMax(true)
+        .setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
+        .clampToMajorTicks(true).setMargins(0, Y_AXIS_TOP_MARGIN);
+    final AxisComponent leftAxis = leftAxisBuilder.build();
+    axisPanel.add(leftAxis, BorderLayout.WEST);
+
+    AxisComponent.Builder rightAxisBuilder =
+      new AxisComponent.Builder(rightYRange, NUM_THREADS_AXIS, AxisComponent.AxisOrientation.LEFT)
+        .showAxisLine(false)
+        .showMax(true)
+        .showUnitAtMax(true)
+        .setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
+        .clampToMajorTicks(true).setMargins(0, Y_AXIS_TOP_MARGIN);
+    final AxisComponent rightAxis = rightAxisBuilder.build();
+    axisPanel.add(rightAxis, BorderLayout.EAST);
+    monitorPanel.add(axisPanel, GBC_FULL);
+
+    final LegendComponent legend = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, LEGEND_UPDATE_FREQUENCY_MS);
+    legend.setLegendData(lineChart.getLegendDataFromLineChart());
+
+    final JLabel label = new JLabel(cpu.getName());
+    label.setBorder(MONITOR_LABEL_PADDING);
+    label.setVerticalAlignment(SwingConstants.TOP);
+
+    final JPanel legendPanel = new JBPanel(new BorderLayout());
+    legendPanel.setOpaque(false);
+    legendPanel.add(label, BorderLayout.WEST);
+    legendPanel.add(legend, BorderLayout.EAST);
+    monitorPanel.add(legendPanel, GBC_FULL);
 
     RangedListModel<CpuThreadsModel.RangedCpuThread> model = cpu.getThreadStates();
     myThreads = new JBList(model);
@@ -108,9 +161,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myCaptureTreeChart.setHRenderer(new SampledMethodUsageHRenderer());
     myCaptureTreeChart.setXRange(profilers.getTimeline().getSelectionRange());
 
-    ProfilerScrollbar scrollbar = new ProfilerScrollbar(timeline);
-    getChoreographer().register(scrollbar);
-
     myThreads.setCellRenderer(new ThreadCellRenderer(getChoreographer(), myThreads));
     RangedList rangedList = new RangedList(getTimeline().getViewRange(), model);
 
@@ -123,9 +173,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     details.add(eventsComponent, c);
     c.gridy = 1;
     c.weighty = 0.4;
-    details.add(layered, c);
+    details.add(monitorPanel, c);
     getChoreographer().register(lineChart);
+    getChoreographer().register(leftAxis);
+    getChoreographer().register(rightAxis);
     getChoreographer().register(selection);
+    getChoreographer().register(legend);
     c.gridy = 2;
     c.weighty = 0.6;
     details.add(scrollingThreads, c);
@@ -152,6 +205,52 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     updateCallTree();
   }
 
+  @Override
+  public JComponent getToolbar() {
+    JPanel panel = new JPanel(new BorderLayout());
+
+    JPanel toolbar = new JPanel();
+
+    JButton button = new JButton("<-");
+    button.addActionListener(action -> returnToStudioStage());
+    toolbar.add(button);
+    toolbar.add(myCaptureButton);
+
+    panel.add(toolbar, BorderLayout.WEST);
+    return panel;
+  }
+
+  // TODO: better naming + javadoc + implement proper behavior
+  private void updateCallTree() {
+    // Remove the current action listener
+    myCaptureButton.removeActionListener(myCaptureActionListener);
+    switch (myStage.getCaptureState()) {
+      case NONE:
+        myCaptureActionListener = action -> myStage.startCapturing();
+        break;
+      case CAPTURING:
+        // TODO: clean panel
+        myCaptureActionListener = action -> myStage.stopCapturing();
+        break;
+      case CAPTURED:
+        myCaptureActionListener = action -> myStage.startCapturing();
+    }
+    myCaptureButton.setText(myStage.getCaptureState() == CpuCaptureState.CAPTURING ? "Stop" : "Record");
+    myCapturePanel.setVisible(myStage.getCaptureState() == CpuCaptureState.CAPTURED);
+    myCaptureButton.addActionListener(myCaptureActionListener);
+  }
+
+  private void updateThreadSelection() {
+    // Updates the tree displayed in capture panel
+    myCaptureTreeChart.setHTree(myStage.getCaptureTree());
+    // Select the thread which has its tree displayed in capture panel in the threads list
+    for (int i = 0; i < myThreads.getModel().getSize(); i++) {
+      CpuThreadsModel.RangedCpuThread thread = (CpuThreadsModel.RangedCpuThread)myThreads.getModel().getElementAt(i);
+      if (myStage.getSelectedThread() == thread.getThreadId()) {
+        myThreads.setSelectedIndex(i);
+      }
+    }
+  }
 
   private static class ThreadCellRenderer implements ListCellRenderer<CpuThreadsModel.RangedCpuThread> {
 
@@ -206,53 +305,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       myLabel.setOpaque(false);
       panel.add(myStateCharts.get(index), ProfilerLayout.GBC_FULL);
       return panel;
-    }
-  }
-
-  @Override
-  public JComponent getToolbar() {
-    JPanel panel = new JPanel(new BorderLayout());
-
-    JPanel toolbar = new JPanel();
-
-    JButton button = new JButton("<-");
-    button.addActionListener(action -> returnToStudioStage());
-    toolbar.add(button);
-    toolbar.add(myCaptureButton);
-
-    panel.add(toolbar, BorderLayout.WEST);
-    return panel;
-  }
-
-  // TODO: better naming + javadoc + implement proper behavior
-  private void updateCallTree() {
-    // Remove the current action listener
-    myCaptureButton.removeActionListener(myCaptureActionListener);
-    switch (myStage.getCaptureState()) {
-      case NONE:
-        myCaptureActionListener = action -> myStage.startCapturing();
-        break;
-      case CAPTURING:
-        // TODO: clean panel
-        myCaptureActionListener = action -> myStage.stopCapturing();
-        break;
-      case CAPTURED:
-        myCaptureActionListener = action -> myStage.startCapturing();
-    }
-    myCaptureButton.setText(myStage.getCaptureState() == CpuCaptureState.CAPTURING ? "Stop" : "Record");
-    myCapturePanel.setVisible(myStage.getCaptureState() == CpuCaptureState.CAPTURED);
-    myCaptureButton.addActionListener(myCaptureActionListener);
-  }
-
-  private void updateThreadSelection() {
-    // Updates the tree displayed in capture panel
-    myCaptureTreeChart.setHTree(myStage.getCaptureTree());
-    // Select the thread which has its tree displayed in capture panel in the threads list
-    for (int i = 0; i < myThreads.getModel().getSize(); i++) {
-      CpuThreadsModel.RangedCpuThread thread = (CpuThreadsModel.RangedCpuThread) myThreads.getModel().getElementAt(i);
-      if (myStage.getSelectedThread() == thread.getThreadId()) {
-        myThreads.setSelectedIndex(i);
-      }
     }
   }
 }
