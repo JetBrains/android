@@ -42,6 +42,8 @@ public abstract class StageView<T extends Stage> {
     myComponent = new JBPanel(new BorderLayout());
     myComponent.setBackground(ProfilerColors.MONITOR_BACKGROUND);
     myChoreographer = new Choreographer(myComponent);
+    // Modifications to the view range should happen at the very beginning of each animation loop to ensure all animatables have access
+    // to the same start/end time.
     myChoreographer.register(new AnimatedTimeline(getTimeline()));
   }
 
