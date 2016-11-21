@@ -577,8 +577,10 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
     templateValues.put(ATTR_PACKAGE_NAME, myPackageName.get());
     templateValues.put(ATTR_SOURCE_PROVIDER_NAME, sourceSet.getName());
-    templateValues.put(ATTR_IS_NEW_PROJECT, isNewModule());
-    templateValues.put(ATTR_IS_LAUNCHER, isNewModule());
+    templateValues.put(ATTR_IS_NEW_PROJECT, isNewModule()); // Android Modules are called Gradle Projects
+    if (isNewModule()) {
+      templateValues.put(ATTR_IS_LAUNCHER, true);
+    }
 
     try {
       File sha1File = myFacet == null ? getOrCreateDefaultDebugKeystore() : getDebugKeystore(myFacet);
