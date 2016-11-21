@@ -27,10 +27,10 @@ import java.util.Collection;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests for {@link ForcedPluginPreviewVersionUpgrade}.
+ * Tests for {@link ForcedPluginPreviewVersionUpgradeStep}.
  */
 @RunWith(Parameterized.class)
-public class ForcedPluginPreviewVersionUpgradeTest {
+public class ForcedPluginPreviewVersionUpgradeStepTest {
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
@@ -50,7 +50,7 @@ public class ForcedPluginPreviewVersionUpgradeTest {
 
   private final boolean myForceUpgrade;
 
-  public ForcedPluginPreviewVersionUpgradeTest(@NotNull String current, @NotNull String recommended, boolean forceUpgrade) {
+  public ForcedPluginPreviewVersionUpgradeStepTest(@NotNull String current, @NotNull String recommended, boolean forceUpgrade) {
     myCurrent = GradleVersion.parse(current);
     myRecommended = recommended;
     myForceUpgrade = forceUpgrade;
@@ -58,6 +58,6 @@ public class ForcedPluginPreviewVersionUpgradeTest {
 
   @Test
   public void shouldPreviewBeForcedToUpgradePluginVersion() {
-    assertEquals(myForceUpgrade, ForcedPluginPreviewVersionUpgrade.shouldPreviewBeForcedToUpgradePluginVersion(myRecommended, myCurrent));
+    assertEquals(myForceUpgrade, ForcedPluginPreviewVersionUpgradeStep.shouldPreviewBeForcedToUpgradePluginVersion(myRecommended, myCurrent));
   }
 }
