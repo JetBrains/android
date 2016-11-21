@@ -86,8 +86,7 @@ public class IdInspectorProviderTest extends PropertyTestCase {
       }
       verify(panel).addComponent(eq(propertyName), eq(null), eq(editor.getComponent()));
     }
-    verify(panel).addPanel(inspector.getConstraintPanel());
-    assertThat(inspector.getConstraintPanel().isVisible()).isFalse();
+    verify(panel, never()).addPanel(inspector.getConstraintPanel());
   }
 
   public void testUpdateProperties() {
@@ -97,12 +96,10 @@ public class IdInspectorProviderTest extends PropertyTestCase {
     IdInspectorComponent inspector = myProvider.createCustomInspector(components, properties, myPropertiesManager);
 
     inspector.updateProperties(ImmutableList.of(), properties, myPropertiesManager);
-    assertThat(inspector.getConstraintPanel().isVisible()).isFalse();
 
     components = ImmutableList.of(myButtonInConstraintLayout);
     properties = getPropertyMap(components);
     inspector.updateProperties(components, properties, myPropertiesManager);
-    assertThat(inspector.getConstraintPanel().isVisible()).isTrue();
   }
 
   private static NlComponent mockComponentWithTag(@NotNull String tagName) {

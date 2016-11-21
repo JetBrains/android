@@ -20,12 +20,15 @@ import com.android.tools.idea.uibuilder.property.NlDesignProperties;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Table;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.SpeedSearchComparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
@@ -54,13 +57,18 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
   private final NlDesignProperties myDesignProperties;
   private final Font myBoldLabelFont = UIUtil.getLabelFont().deriveFont(Font.BOLD);
   private final JPanel myInspector;
+  private final SpeedSearchComparator myComparator;
+  private final Map<Component, ExpandableGroup> mySource2GroupMap = new IdentityHashMap<>(4);
+  private final Map<JLabel, ExpandableGroup> myLabel2GroupMap = new IdentityHashMap<>(4);
+  private final Multimap<JLabel, Component> myLabel2ComponentMap = HashMultimap.create();
+  private final JLabel myDefaultLabel = new JLabel();
   private List<InspectorComponent> myInspectors = Collections.emptyList();
   private ExpandableGroup myGroup;
-  private Map<Component, ExpandableGroup> mySource2GroupMap = new HashMap<>(4);
   private GridConstraints myConstraints = new GridConstraints();
   private int myRow;
   private boolean myActivateEditorAfterLoad;
   private String myPropertyNameForActivation;
+  private String myFilter;
 
   public InspectorPanel(@NotNull NlPropertiesManager propertiesManager,
                         @NotNull Disposable parentDisposable,
@@ -72,6 +80,8 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     myDesignProperties = new NlDesignProperties();
     myInspector = new GridInspectorPanel();
     myInspector.setBorder(BorderFactory.createEmptyBorder(0, HORIZONTAL_SPACING, 0, HORIZONTAL_SPACING));
+    myComparator = new SpeedSearchComparator(false);
+    myFilter = "";
     add(myInspector, BorderLayout.CENTER);
   }
 
@@ -109,12 +119,59 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
       Component source = (Component)event.getSource();
       ExpandableGroup group = mySource2GroupMap.get(source);
       if (group != null && !group.isExpanded()) {
-        group.setExpanded(true);
+        group.setExpanded(true, true);
         ApplicationManager.getApplication().invokeLater(source::transferFocus);
         return true;
       }
     }
     return false;
+  }
+
+  public void setFilter(@NotNull String filter) {
+    myFilter = filter;
+    ApplicationManager.getApplication().invokeLater(this::updateAfterFilterChange);
+  }
+
+  private void updateAfterFilterChange() {
+    if (myFilter.isEmpty()) {
+      restoreGroups();
+    }
+    else {
+      applyFilter();
+    }
+    myInspector.invalidate();
+    myInspector.repaint();
+  }
+
+  private void applyFilter() {
+    for (JLabel label : myLabel2ComponentMap.keySet()) {
+      boolean display = isMatch(label);
+      label.setVisible(display);
+      myLabel2ComponentMap.get(label).forEach(component -> component.setVisible(display));
+      ExpandableGroup group = myLabel2GroupMap.get(label);
+      if (group != null) {
+        label.setIcon(null);
+      }
+    }
+  }
+
+  private void restoreGroups() {
+    Set<Component> toShow = new HashSet<>(Arrays.asList(myInspector.getComponents()));
+    for (ExpandableGroup group : myLabel2GroupMap.values()) {
+      toShow.removeAll(group.myComponents);
+      group.setExpanded(group.isExpanded(), false);
+    }
+    toShow.forEach(component -> component.setVisible(true));
+  }
+
+  private boolean isMatch(@NotNull JLabel label) {
+    if (myFilter.isEmpty()) {
+      return true;
+    }
+    if (StringUtil.isEmpty(label.getText()) || label.getFont() == myBoldLabelFont) {
+      return false;
+    }
+    return myComparator.matchingFragments(myFilter, label.getText()) != null;
   }
 
   private static GridLayoutManager createLayoutManager(int rows, int columns) {
@@ -129,6 +186,8 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     myInspector.setLayout(null);
     myInspector.removeAll();
     mySource2GroupMap.clear();
+    myLabel2GroupMap.clear();
+    myLabel2ComponentMap.clear();
     myRow = 0;
 
     if (!components.isEmpty()) {
@@ -219,6 +278,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     JLabel label = createLabel(title, null, null);
     label.setFont(myBoldLabelFont);
     addLineComponent(label, myRow++);
+    myLabel2ComponentMap.put(myDefaultLabel, label);
     return label;
   }
 
@@ -226,7 +286,9 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     endGroup();
     if (myRow > 0) {
       // Never add a separator as the first element.
-      addLineComponent(new JSeparator(), myRow++);
+      JComponent component = new JSeparator();
+      addLineComponent(component, myRow++);
+      myLabel2ComponentMap.put(myDefaultLabel, component);
     }
   }
 
@@ -246,6 +308,8 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     addLabelComponent(label, myRow);
     addValueComponent(component, myRow++);
     startGroup(label, keySource);
+    myLabel2GroupMap.put(label, myGroup);
+    myLabel2ComponentMap.put(label, component);
     return label;
   }
 
@@ -255,6 +319,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     JLabel label = createLabel(labelText, tooltip, component);
     addLabelComponent(label, myRow);
     addValueComponent(component, myRow++);
+    myLabel2ComponentMap.put(label, component);
     return label;
   }
 
@@ -263,6 +328,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
    */
   public void addPanel(@NotNull JComponent panel) {
     addLineComponent(panel, myRow++);
+    myLabel2ComponentMap.put(myDefaultLabel, panel);
   }
 
   private static JLabel createLabel(@NotNull String labelText, @Nullable String tooltip, @Nullable Component component) {
@@ -317,34 +383,39 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     private static final Icon COLLAPSED_ICON = (Icon)UIManager.get("Tree.collapsedIcon");
     private final JLabel myLabel;
     private final List<Component> myComponents;
-    private final boolean myInitiallyExpanded;
+    private boolean myExpanded;
 
     public ExpandableGroup(@NotNull JLabel label) {
       myLabel = label;
-      myComponents = new ArrayList<>(10);
-      myInitiallyExpanded = PropertiesComponent.getInstance().getBoolean(KEY_PREFIX + label.getText());
-      label.setIcon(myInitiallyExpanded ? EXPANDED_ICON : COLLAPSED_ICON);
+      myComponents = new ArrayList<>(4);
+      myExpanded = PropertiesComponent.getInstance().getBoolean(KEY_PREFIX + label.getText());
+      label.setIcon(myExpanded ? EXPANDED_ICON : COLLAPSED_ICON);
       label.addMouseListener(new MouseAdapter() {
         @Override
         public void mouseClicked(MouseEvent event) {
-          setExpanded(!isExpanded());
+          if (label.getIcon() != null) {
+            setExpanded(!isExpanded(), true);
+          }
         }
       });
     }
 
     public void addComponent(@NotNull Component component) {
       myComponents.add(component);
-      component.setVisible(myInitiallyExpanded);
+      component.setVisible(myExpanded);
     }
 
     public boolean isExpanded() {
-      return myLabel.getIcon() == EXPANDED_ICON;
+      return myExpanded;
     }
 
-    public void setExpanded(boolean expanded) {
+    public void setExpanded(boolean expanded, boolean updateProperties) {
+      myExpanded = expanded;
       myLabel.setIcon(expanded ? EXPANDED_ICON : COLLAPSED_ICON);
       myComponents.forEach(component -> component.setVisible(expanded));
-      PropertiesComponent.getInstance().setValue(KEY_PREFIX + myLabel.getText(), expanded);
+      if (updateProperties) {
+        PropertiesComponent.getInstance().setValue(KEY_PREFIX + myLabel.getText(), expanded);
+      }
     }
   }
 

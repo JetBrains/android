@@ -138,6 +138,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
       myRowSorter.setSortKeys(null);
       myTable.setRowSorter(myRowSorter);
     }
+    myInspectorPanel.setFilter(filter);
   }
 
   public void activatePropertySheet() {
