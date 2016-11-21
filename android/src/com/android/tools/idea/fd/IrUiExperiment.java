@@ -20,7 +20,12 @@ import org.jetbrains.annotations.NotNull;
 public enum IrUiExperiment {
   DEFAULT("Option 1"), // Default UI shipped from 2.0 to 2.2
   HOTSWAP("Option 2"), // Run = install apk, new hotswap action
-  STOP_AND_RUN("Option 3"); // Run = Instant Run, new stop and run action
+  STOP_AND_RUN("Option 3"); // Run = Instant Run, new re-install and run action
+
+  // TODO: Option 4
+  //  No change to the current Rerun button (icon nor location)
+  //  Instant Run button will  revert back to a regular run button after click and before any changes are made.
+  //  While IR button is a regular run button, if clicked, it will reinstall APK and restart app.
 
   @NotNull public final String displayText;
 

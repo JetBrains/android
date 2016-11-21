@@ -45,7 +45,7 @@
       <!-- <add-to-group group-id="RunnerActions" anchor="after" relative-to-action="Run" /> registered in code in AndroidPlugin -->
     </action>
 
-    <action id="Android.StopAndInstallChanges" class="com.android.tools.idea.fd.actions.StopAndUpdateAction">
+    <action id="Android.StopAndInstallChanges" class="com.android.tools.idea.fd.actions.ReinstallAndRunAction">
       <add-to-group group-id="RunMenu" anchor="before" relative-to-action="Stop" />
       <add-to-group group-id="ToolbarRunGroup" anchor="before" relative-to-action="RunnerActions" />
       <!-- <keyboard-shortcut first-keystroke="shift ctrl R" keymap="$default" /> -->
