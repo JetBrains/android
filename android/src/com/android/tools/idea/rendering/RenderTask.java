@@ -687,6 +687,26 @@ public class RenderTask implements IImageFactory {
   }
 
   /**
+   * Only do a measure pass using the current render session
+   */
+  @Nullable
+  public RenderResult layout() {
+    if (myRenderSession == null) {
+      return null;
+    }
+    try {
+      return RenderService.runRenderAction(() -> {
+        myRenderSession.measure();
+        return RenderResult.create(this, myRenderSession, myPsiFile, myLogger);
+      });
+    }
+    catch (final Exception e) {
+      // nothing
+    }
+    return null;
+  }
+
+  /**
    * Renders the layout to the current {@link IImageFactory} set in {@link #myImageFactoryDelegate}
    */
   private RenderResult renderInner() {

@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.editor;
 import com.android.tools.idea.actions.BlueprintModeAction;
 import com.android.tools.idea.actions.BothModeAction;
 import com.android.tools.idea.actions.DesignModeAction;
-import com.android.tools.idea.actions.MockupToggleAction;
 import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.uibuilder.actions.LintNotificationAction;
 import com.android.tools.idea.uibuilder.actions.SetZoomAction;
@@ -259,5 +258,10 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
     // Ensure that the toolbar is populated initially
     updateViewActions();
     model.removeListener(this);
+  }
+
+  @Override
+  public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
+    // Do nothing
   }
 }

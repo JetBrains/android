@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintModel;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.lint.LintNotificationPanel;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
@@ -446,6 +447,9 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
       myLayers.add(new ConstraintsLayer(this, myScreenView, true));
     }
 
+    if (!ConstraintModel.USE_SOLVER) {
+      myLayers.add(new SceneLayer(myScreenView));
+    }
     myLayers.add(new WarningLayer(myScreenView));
     myLayers.add(new CanvasResizeLayer(this, myScreenView));
   }
@@ -455,6 +459,9 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
     myLayers.add(new SelectionLayer(view));
     myLayers.add(new MockupLayer(view));
     myLayers.add(new CanvasResizeLayer(this, view));
+    if (!ConstraintModel.USE_SOLVER) {
+      myLayers.add(new SceneLayer(view));
+    }
   }
 
   @Override
@@ -1014,6 +1021,11 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
         repaint();
         positionScreens();
       }
+    }
+
+    @Override
+    public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
+      // Do nothing
     }
   };
 
