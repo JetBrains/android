@@ -67,11 +67,3 @@ iml_module(
         "//tools:idea.platform-api[module]",
     ],
 )
-
-iml_module(
-    name = "sherpa-ui",
-    srcs = ["sherpa-ui/src"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-    deps = ["//tools/sherpa:sherpa-solver[module]"],
-)
