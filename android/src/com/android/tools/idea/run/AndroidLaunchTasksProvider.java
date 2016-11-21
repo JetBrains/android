@@ -101,10 +101,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       launchTasks.add(new ShowLogcatTask(myProject, packageName));
     }
 
-    if (myRunConfig.getProfilerState().GAPID_ENABLED && GapidTraceTask.checkIfOkToTrace(myProject, myLaunchOptions)) {
-      launchTasks.add(new GapidTraceTask(myRunConfig, packageName));
-    }
-
     if (myInstantRunBuildAnalyzer != null) {
       launchTasks.add(myInstantRunBuildAnalyzer.getNotificationTask());
     }

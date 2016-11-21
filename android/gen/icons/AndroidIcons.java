@@ -456,37 +456,6 @@ public class AndroidIcons {
     public static final Icon Warning = IconLoader.getIcon("/icons/toolwindows/toolWindowWarning.png"); // 13x13
   }
 
-  public static class GfxTrace {
-    public static final Icon TraceFile = load("/icons/gfxtrace/trace_file.png"); // 16x16
-    public static final Icon ListenForTrace = load("/icons/gfxtrace/listen_for_trace.png"); // 16x16
-    public static final Icon InjectSpy = load("/icons/gfxtrace/inject_spy.png"); // 16x16
-    public static final Icon DepthBuffer = load("/icons/gfxtrace/depth_buffer.png"); // 16x16
-    public static final Icon ColorBuffer = load("/icons/gfxtrace/color_buffer.png"); // 16x16
-    public static final Icon ColorBuffer0 = load("/icons/gfxtrace/color_buffer0.png"); // 16x16
-    public static final Icon ColorBuffer1 = load("/icons/gfxtrace/color_buffer1.png"); // 16x16
-    public static final Icon ColorBuffer2 = load("/icons/gfxtrace/color_buffer2.png"); // 16x16
-    public static final Icon ColorBuffer3 = load("/icons/gfxtrace/color_buffer3.png"); // 16x16
-    public static final Icon WireframeNone = load("/icons/gfxtrace/wireframe_none.png"); // 16x16
-    public static final Icon WireframeOverlay = load("/icons/gfxtrace/wireframe_overlay.png"); // 16x16
-    public static final Icon WireframeAll = load("/icons/gfxtrace/wireframe_all.png"); // 16x16
-    public static final Icon PointCloud = load("/icons/gfxtrace/point_cloud.png"); // 16x16
-    public static final Icon FlipVertically = load("/icons/gfxtrace/flip_vertically.png"); // 16x16
-    public static final Icon Opacity = load("/icons/gfxtrace/opacity.png"); // 16x16
-    public static final Icon YUp = load("/icons/gfxtrace/yup.png"); // 16x16
-    public static final Icon ZUp = load("/icons/gfxtrace/zup.png"); // 16x16
-    public static final Icon WindingCCW = load("/icons/gfxtrace/winding_ccw.png"); // 16x16
-    public static final Icon WindingCW = load("/icons/gfxtrace/winding_cw.png"); // 16x16
-    public static final Icon Smooth = load("/icons/gfxtrace/smooth.png"); // 16x16
-    public static final Icon Faceted = load("/icons/gfxtrace/faceted.png"); // 16x16
-    public static final Icon CullingEnabled = load("/icons/gfxtrace/culling_enabled.png"); // 16x16
-    public static final Icon CullingDisabled = load("/icons/gfxtrace/culling_disabled.png"); // 16x16
-    public static final Icon Lit = load("/icons/gfxtrace/lit.png"); // 16x16
-    public static final Icon Flat = load("/icons/gfxtrace/flat.png"); // 16x16
-    public static final Icon Normals = load("/icons/gfxtrace/normals.png"); // 16x16
-    public static final Icon Jump = load("/icons/gfxtrace/jump.png"); // 16x16
-    public static final Icon ColorChannels = load("/icons/gfxtrace/color_channels.png"); // 16x16
-  }
-
   public static class Assistant {
     public static final Icon Assist = load("/icons/assistant/assist.png"); // 13x13
     public static final Icon TutorialIndicator = load("/icons/assistant/tutorialIndicator.png"); // 16x16

@@ -33,12 +33,6 @@ public class ProfilerState {
   public boolean ENABLE_ADVANCED_PROFILING = true;
   public static final String ENABLE_ADVANCED_PROFILING_NAME = "android.profiler.enabled";
 
-  /** Enable GAPID (GPU) tracing. */
-  public boolean GAPID_ENABLED = false;
-
-  /** GAPID disable pre-compiled shader support. */
-  public boolean GAPID_DISABLE_PCS = false;
-
   public boolean SUPPORT_LIB_ENABLED = true;
   private static final String SUPPORT_LIB_ENABLED_NAME = "android.profiler.supportLib.enabled";
 
