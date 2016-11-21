@@ -15,7 +15,7 @@ iml_module(
     # do not sort: must match IML order
     exports = [
         "//tools/idea/.idea/libraries:asm",
-        "//tools/adt/idea:android-common",
+        "//tools/adt/idea/common:android-common",
     ],
     # do not sort: must match IML order
     deps = [
@@ -31,7 +31,7 @@ iml_module(
         "//tools/idea/.idea/libraries:xpp3-1.1.4-min",
         "//tools:idea.testng[module]",
         "//tools/idea/.idea/libraries:asm",
-        "//tools/adt/idea:android-common[module]",
+        "//tools/adt/idea/common:android-common[module]",
         "//tools/adt/idea:android-rt[module]",
         "//tools:idea.java-indexing-api[module]",
         "//tools:idea.jps-builders[module]",
