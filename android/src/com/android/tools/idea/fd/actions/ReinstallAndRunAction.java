@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.fd.actions;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.fd.IrUiExperiment;
-import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.actions.AndroidStudioGradleAction;
 import com.android.tools.idea.run.AndroidSessionInfo;
 import com.android.tools.idea.run.ReRunAction;
@@ -28,101 +26,68 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.ProgramRunnerUtil;
 import com.intellij.execution.RunManagerEx;
 import com.intellij.execution.RunnerAndConfigurationSettings;
-import com.intellij.execution.configurations.ModuleBasedConfiguration;
-import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-
-import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.SUPPORTED;
-
-public abstract class UpdateActionBase extends AndroidStudioGradleAction implements AnAction.TransparentUpdate {
-  public UpdateActionBase(@NotNull String text, @NotNull String description, @NotNull Icon icon) {
-    super(text, description, icon);
+public class ReinstallAndRunAction extends AndroidStudioGradleAction implements AnAction.TransparentUpdate {
+  public ReinstallAndRunAction() {
+    super("Re-install APK and Rerun", "Re-install APK and Rerun", AndroidIcons.RunIcons.ReInstallAndRun);
   }
 
   @Override
   protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
     Presentation presentation = e.getPresentation();
     presentation.setEnabled(false);
-    if (!isVisible()) {
+    if (InstantRunSettings.getUiExperimentStatus() != IrUiExperiment.STOP_AND_RUN) {
       presentation.setVisible(false);
       return;
     }
 
     RunnerAndConfigurationSettings settings = RunManagerEx.getInstanceEx(project).getSelectedConfiguration();
     if (settings == null) {
+      InstantRunManager.LOG.warn("Re-install and run Action could not locate current run config settings");
       return;
     }
 
-    AndroidSessionInfo session = ReRunAction.getAndroidSessionInfo(project, settings);
-    if (session == null) {
-      return;
-    }
-
-    ProcessHandler processHandler = ReRunAction.getActiveProcessHandler(project, settings);
-    if (processHandler == null) {
-      return;
-    }
-
-    RunConfiguration configuration = settings.getConfiguration();
-    if (!(configuration instanceof ModuleBasedConfiguration)) {
-      return;
-    }
-
-    Module module = ((ModuleBasedConfiguration)configuration).getConfigurationModule().getModule();
-    if (module == null) {
-      return;
-    }
-
-    // Make sure instant run is supported on the relevant device, if found.
-    AndroidVersion androidVersion = InstantRunManager.getMinDeviceApiLevel(processHandler);
-    if (InstantRunManager.isInstantRunCapableDeviceVersion(androidVersion) &&
-        (InstantRunGradleUtils.getIrSupportStatus(InstantRunGradleUtils.getAppModel(module), androidVersion) == SUPPORTED)) {
-      presentation.setEnabled(true);
-    }
+    presentation.setEnabled(true);
   }
 
-  protected abstract boolean isVisible();
-
+  // Hotswap action requires an existing session. This action doesn't. If there is an existing session, then
+  // we make use of the executor from that session, otherwise we'll just default to Run.
   @Override
   protected void doPerform(@NotNull AnActionEvent e, @NotNull Project project) {
     RunnerAndConfigurationSettings settings = RunManagerEx.getInstanceEx(project).getSelectedConfiguration();
     if (settings == null) {
-      InstantRunManager.LOG.warn("Update Changes could not locate current run config settings");
+      InstantRunManager.LOG.warn("Re-install and run Action could not locate current run config settings");
       return;
     }
 
+    Executor executor = null;
     AndroidSessionInfo session = ReRunAction.getAndroidSessionInfo(project, settings);
-    if (session == null) {
-      InstantRunManager.LOG.warn("Update Changes could not locate an existing session for selected run config.");
-      return;
+    if (session != null) {
+      executor = ReRunAction.getExecutor(session.getExecutorId());
     }
 
-    Executor executor = ReRunAction.getExecutor(session.getExecutorId());
     if (executor == null) {
-      InstantRunManager.LOG.warn("Update Changes could not identify executor");
-      return;
+      executor = DefaultRunExecutor.getRunExecutorInstance();
     }
 
     ExecutionEnvironmentBuilder builder = ExecutionEnvironmentBuilder.createOrNull(executor, settings);
     if (builder == null) {
-      InstantRunManager.LOG.warn("Rerun could not construct an env");
+      InstantRunManager.LOG.warn("Re-install and run Action could not construct an env");
       return;
     }
     ExecutionEnvironment env = builder.activeTarget().dataContext(e.getDataContext()).build();
 
     InstantRunUtils.setInvokedViaAction(env, true);
-    InstantRunManager.LOG.info("Invoking hotswap launch");
+    InstantRunManager.LOG.info("Invoking re-install and run launch");
     ProgramRunnerUtil.executeConfiguration(env, false, true);
   }
 }

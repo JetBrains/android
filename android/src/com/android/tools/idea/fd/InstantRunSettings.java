@@ -68,6 +68,11 @@ public class InstantRunSettings {
 
   public static IrUiExperiment getUiExperimentStatus() {
     InstantRunConfiguration configuration = InstantRunConfiguration.getInstance();
-    return InstantRunConfigurable.SHOW_IR_UI_OPTIONS ? configuration.IR_UI_EXPERIMENT : IrUiExperiment.DEFAULT;
+    IrUiExperiment v = null;
+    if (InstantRunConfigurable.SHOW_IR_UI_OPTIONS) {
+      v = configuration.IR_UI_EXPERIMENT;
+    }
+
+    return v == null ? IrUiExperiment.DEFAULT : v;
   }
 }
