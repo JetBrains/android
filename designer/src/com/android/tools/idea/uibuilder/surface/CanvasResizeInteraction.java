@@ -376,6 +376,11 @@ public class CanvasResizeInteraction extends Interaction {
       public void modelRendered(@NotNull NlModel model) {
         model.removeListener(this);
       }
+
+      @Override
+      public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
+        // Do nothing
+      }
     });
 
     int androidX = Coordinates.getAndroidX(screenView, x);
