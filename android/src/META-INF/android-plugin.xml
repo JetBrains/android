@@ -248,10 +248,6 @@
     </action>
     <action id="StoreDefaultLayout" class="com.android.tools.idea.uibuilder.actions.StoreDefaultWindowLayoutAction" overrides="true"/>
     <action id="RestoreDefaultLayout" class="com.android.tools.idea.uibuilder.actions.RestoreDefaultWindowLayoutAction" overrides="true"/>
-    <action id="GotoGfxCommand" class="com.android.tools.idea.editors.gfxtrace.actions.GoToAction">
-      <add-to-group group-id="GoToMenu" anchor="before" relative-to-action="GotoLine"/>
-      <keyboard-shortcut first-keystroke="control G" keymap="$default"/>
-    </action>
     <action class="com.android.tools.idea.rendering.webp.ConvertToWebpAction" id="ConvertToWebp" text="Convert to WebP...">
       <add-to-group group-id="ProjectViewPopupMenu"/>
       <add-to-group group-id="Images.EditorPopupMenu" relative-to-action="RefactoringMenu" anchor="after"/>
@@ -404,7 +400,6 @@
     <fileTypeFactory implementation="com.android.tools.idea.lang.databinding.DbFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.hprof.HprofFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.allocations.AllocationsFileTypeFactory" />
-    <fileTypeFactory implementation="com.android.tools.idea.editors.gfxtrace.GfxTraceFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.vmtrace.VmTraceFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.hierarchyview.LayoutInspectorFileTypeFactory" />
     <lang.parserDefinition language="Renderscript"
@@ -1122,7 +1117,6 @@
     <captureType implementation="com.android.tools.idea.editors.hierarchyview.HierarchyViewCaptureType"/>
     <captureType implementation="com.android.tools.idea.editors.hprof.HprofCaptureType"/>
     <captureType implementation="com.android.tools.idea.editors.allocations.AllocationCaptureType"/>
-    <captureType implementation="com.android.tools.idea.editors.gfxtrace.GfxTraceCaptureType"/>
     <captureType implementation="com.android.tools.idea.editors.systeminfo.SystemInfoCaptureType"/>
     <captureType implementation="com.android.tools.idea.editors.vmtrace.VmTraceCaptureType"/>
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.importing.ImportModuleGalleryEntryProvider"/>

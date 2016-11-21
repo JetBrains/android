@@ -19,7 +19,6 @@ iml_module(
         "//tools/adt/idea/adt-ui-model[module]",
         "//tools/base/ddmlib:studio.ddmlib[module]",
         "//tools:idea.annotations-common[module]",
-        "//tools/base/rpclib:studio.rpclib[module]",
         "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
     ],
 )

@@ -50,7 +50,6 @@ iml_module(
         "//tools:idea.properties-psi-api[module]",
         "//tools:idea.bootstrap[module]",
         "//tools/idea/.idea/libraries:jcip",
-        "//tools/base/rpclib:studio.rpclib[module]",
         "//tools/adt/idea/adt-ui[module]",
         "//tools/adt/idea/adt-ui-model[module]",
         "//tools/adt/idea/perfd-host[module]",
