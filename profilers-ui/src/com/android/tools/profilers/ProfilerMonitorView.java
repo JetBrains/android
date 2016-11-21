@@ -49,7 +49,7 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> {
     container.setOpaque(true);
     container.setBackground(ProfilerColors.MONITOR_BACKGROUND);
     container.setBorder(MONITOR_BORDER);
-    container.setMinimumSize(new Dimension(Integer.MAX_VALUE, MINIMUM_MONITOR_HEIGHT));
+    container.setMinimumSize(new Dimension(0, MINIMUM_MONITOR_HEIGHT));
     container.setPreferredSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     populateUi(container, choreographer);
     return container;
