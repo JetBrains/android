@@ -31,13 +31,15 @@ public final class StudioSdkInstallerUtil {
    * Find the best {@link InstallerFactory} for the given {@link RepoPackage}.
    */
   @NotNull
-  public static InstallerFactory createInstallerFactory(@NotNull RepoPackage p, @NotNull AndroidSdkHandler sdkHandler) {
-    InstallerFactory factory = null;
-    if (!Boolean.getBoolean("sdk.patches.disable") && PatchInstallerFactory.canHandlePackage(p, sdkHandler)) {
-      factory = new PatchInstallerFactory();
+  public static InstallerFactory createInstallerFactory(@NotNull AndroidSdkHandler sdkHandler) {
+    InstallerFactory factory;
+    InstallerFactory basicFactory = new BasicInstallerFactory();
+    if (Boolean.getBoolean("sdk.patches.disable")) {
+      factory = basicFactory;
     }
-    if (factory == null) {
-      factory = new BasicInstallerFactory();
+    else {
+      factory = new PatchInstallerFactory();
+      factory.setFallbackFactory(basicFactory);
     }
     factory.setListenerFactory(new StudioSdkInstallListenerFactory(sdkHandler));
     return factory;
