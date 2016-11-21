@@ -19,6 +19,7 @@ import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
+import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
@@ -72,6 +73,7 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
+import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
@@ -87,7 +89,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   private static final String PROJECT_LOCATION_ID = "projectLocation";
 
   private final List<AndroidSourceSet> mySourceSets;
-  private final StringProperty myPackageName = new StringValueProperty();
+  private final StringProperty myPackageName;
 
   private final BindingsManager myBindings = new BindingsManager();
   private final LoadingCache<File, Optional<Icon>> myThumbnailsCache = IconLoader.createLoadingCache();
@@ -137,6 +139,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     myFacet = facet;
 
     mySourceSets = sourceSets;
+
+    myPackageName = model.packageName();
     myPackageName.set(initialPackageName);
 
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
@@ -168,11 +172,9 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
    */
   @Nullable
   private static String getRelativePath(@NotNull File base, @NotNull File file) {
-    String finalPath = FileUtil.getRelativePath(base, file);
-    if (finalPath != null) {
-      finalPath = FileUtil.toSystemIndependentName(finalPath);
-    }
-    return finalPath;
+    // Note: FileUtil.getRelativePath(File, File) doesn't work, because 'file' may contain directories that are not yet created
+    return FileUtil.getRelativePath(FileUtil.toSystemIndependentName(base.getPath()),
+                                    FileUtil.toSystemIndependentName(file.getPath()), '/');
   }
 
   @NotNull
@@ -228,9 +230,10 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       }
     });
 
+    Module module = myFacet == null ? null : myFacet.getModule();
     final Collection<Parameter> parameters = templateHandle.getMetadata().getParameters();
     for (final Parameter parameter : parameters) {
-      RowEntry row = createRowForParameter(myFacet.getModule(), parameter);
+      RowEntry row = createRowForParameter(module, parameter);
       final ObservableValue<?> property = row.getProperty();
       if (property != null) {
         property.addListener(sender -> {
@@ -374,6 +377,19 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     ApplicationManager.getApplication().invokeLater(this::evaluateParameters, ModalityState.any());
   }
 
+  private boolean isNewModule() {
+    return myFacet == null;
+  }
+
+  /**
+   * If we are creating a new module, there are some fields that we need to hide.
+   */
+  private boolean isParameterVisible(Parameter parameter) {
+    return !isNewModule() ||
+           (!ATTR_PACKAGE_NAME.equals(parameter.id) &&
+            !ATTR_IS_LAUNCHER.equals(parameter.id));
+  }
+
   /**
    * Run through all parameters for our current template and update their values, including
    * visibility, enabled state, and actual values.
@@ -409,6 +425,11 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
         if (!enabledStr.isEmpty()) {
           boolean enabled = myEvaluator.evaluateBooleanExpression(enabledStr, allValues, true);
           myParameterRows.get(parameter).setEnabled(enabled);
+        }
+
+        if (!isParameterVisible(parameter)) {
+          myParameterRows.get(parameter).setVisible(false);
+          continue;
         }
 
         String visibilityStr = Strings.nullToEmpty(parameter.visibility);
@@ -457,7 +478,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     String message = null;
 
     Collection<Parameter> parameters = getModel().getTemplateHandle().getMetadata().getParameters();
-    Module module = myFacet.getModule();
+    Module module = myFacet == null ? null : myFacet.getModule();
+    Project project = getModel().getProject().getValueOrNull();
     SourceProvider sourceProvider = getModel().getSourceSet().get().toSourceProvider();
 
     for (Parameter parameter : parameters) {
@@ -467,7 +489,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       }
 
       Set<Object> relatedValues = getRelatedValues(parameter);
-      message = parameter.validate(module.getProject(), module, sourceProvider, myPackageName.get(), property.get(), relatedValues);
+      message = parameter.validate(project, module, sourceProvider, myPackageName.get(), property.get(), relatedValues);
 
       if (message != null) {
         break;
@@ -526,9 +548,6 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
    */
   @Override
   protected void onProceeding() {
-
-    Module module = myFacet != null ? myFacet.getModule() : null;
-
     // canGoForward guarantees this optional value is present
     AndroidSourceSet sourceSet = getModel().getSourceSet().get();
     AndroidProjectPaths paths = sourceSet.getPaths();
@@ -549,12 +568,6 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     Map<String, Object> templateValues = getModel().getTemplateValues();
     templateValues.clear();
 
-    // TODO: Add support for new projects as the wizard migration grows to encompass them
-    templateValues.put(ATTR_IS_NEW_PROJECT, false);
-
-    templateValues.put(ATTR_PACKAGE_NAME, myPackageName.get());
-    templateValues.put(ATTR_SOURCE_PROVIDER_NAME, sourceSet.getName());
-
     for (Parameter parameter : myParameterRows.keySet()) {
       ObservableValue<?> property = myParameterRows.get(parameter).getProperty();
       if (property != null) {
@@ -562,65 +575,36 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       }
     }
 
-    // TODO: Handle adding these paths for when we don't have a facet yet (e.g project creation
-    // time)
-    if (myFacet != null) {
-      try {
-        templateValues.put(ATTR_DEBUG_KEYSTORE_SHA1, KeystoreUtils.sha1(getDebugKeystore(myFacet)));
-      }
-      catch (Exception e) {
-        getLog().info("Could not compute SHA1 hash of debug keystore.", e);
-        templateValues.put(ATTR_DEBUG_KEYSTORE_SHA1, "");
-      }
+    templateValues.put(ATTR_PACKAGE_NAME, myPackageName.get());
+    templateValues.put(ATTR_SOURCE_PROVIDER_NAME, sourceSet.getName());
+    templateValues.put(ATTR_IS_NEW_PROJECT, isNewModule());
+    templateValues.put(ATTR_IS_LAUNCHER, isNewModule());
 
+    try {
+      File sha1File = myFacet == null ? getOrCreateDefaultDebugKeystore() : getDebugKeystore(myFacet);
+      templateValues.put(ATTR_DEBUG_KEYSTORE_SHA1, KeystoreUtils.sha1(sha1File));
+    }
+    catch (Exception e) {
+      getLog().info("Could not compute SHA1 hash of debug keystore.", e);
+      templateValues.put(ATTR_DEBUG_KEYSTORE_SHA1, "");
+    }
+
+    if (myFacet == null) {
+      // If we don't have an AndroidFacet, we must have the Android Sdk info
+      AndroidVersionsInfo.VersionItem buildVersion = getModel().androidSdkInfo().getValue();
+
+      templateValues.put(ATTR_MIN_API_LEVEL, buildVersion.getApiLevel());
+      templateValues.put(ATTR_MIN_API, buildVersion.getApiLevelStr());
+      templateValues.put(ATTR_BUILD_API, buildVersion.getBuildApiLevel());
+      templateValues.put(ATTR_BUILD_API_STRING, buildVersion.getBuildApiLevelStr());
+      templateValues.put(ATTR_TARGET_API, buildVersion.getTargetApiLevel());
+      templateValues.put(ATTR_TARGET_API_STRING, buildVersion.getTargetApiLevelStr());
+    }
+    else {
       AndroidPlatform platform = AndroidPlatform.getInstance(myFacet.getModule());
       if (platform != null) {
         templateValues.put(ATTR_BUILD_API, platform.getTarget().getVersion().getFeatureLevel());
         templateValues.put(ATTR_BUILD_API_STRING, getBuildApiString(platform.getTarget().getVersion()));
-      }
-
-      // Register the resource directories associated with the active source provider
-      templateValues.put(ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getAbsolutePath()));
-
-      String packageAsDir = myPackageName.get().replace('.', File.separatorChar);
-      File srcDir = paths.getSrcDirectory();
-      if (srcDir != null) {
-        srcDir = new File(srcDir, packageAsDir);
-
-        templateValues.put(ATTR_SRC_DIR, getRelativePath(moduleRoot, srcDir));
-        templateValues.put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(srcDir.getAbsolutePath()));
-      }
-
-      File testDir = paths.getTestDirectory();
-      if (testDir != null) {
-        testDir = new File(testDir, packageAsDir);
-
-        templateValues.put(ATTR_TEST_DIR, getRelativePath(moduleRoot, testDir));
-        templateValues.put(ATTR_TEST_OUT, FileUtil.toSystemIndependentName(testDir.getAbsolutePath()));
-      }
-
-      File resDir = paths.getResDirectory();
-      if (resDir != null) {
-        templateValues.put(ATTR_RES_DIR, getRelativePath(moduleRoot, resDir));
-        templateValues.put(ATTR_RES_OUT, FileUtil.toSystemIndependentName(resDir.getPath()));
-      }
-
-      File manifestDir = paths.getManifestDirectory();
-      if (manifestDir != null) {
-        templateValues.put(ATTR_MANIFEST_DIR, getRelativePath(moduleRoot, manifestDir));
-        templateValues.put(ATTR_MANIFEST_OUT, FileUtil.toSystemIndependentName(manifestDir.getPath()));
-      }
-
-      File aidlDir = paths.getAidlDirectory();
-      if (aidlDir != null) {
-        templateValues.put(ATTR_AIDL_DIR, getRelativePath(moduleRoot, aidlDir));
-        templateValues.put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlDir.getPath()));
-      }
-
-      // Register application-wide settings
-      String applicationPackage = AndroidPackageUtils.getPackageForApplication(myFacet);
-      if (!myPackageName.get().equals(applicationPackage)) {
-        templateValues.put(ATTR_APPLICATION_PACKAGE, AndroidPackageUtils.getPackageForApplication(myFacet));
       }
 
       AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(myFacet);
@@ -633,13 +617,57 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
       templateValues.put(ATTR_IS_LIBRARY_MODULE, myFacet.isLibraryProject());
 
-      templateValues.put(PROJECT_LOCATION_ID, module.getProject().getBasePath());
-
-      // We're really interested in the directory name on disk, not the module name. These will be different if you give a module the same
-      // name as its containing project.
-      String moduleName = new File(module.getModuleFilePath()).getParentFile().getName();
-      templateValues.put(ATTR_MODULE_NAME, moduleName);
+      // Register application-wide settings
+      String applicationPackage = AndroidPackageUtils.getPackageForApplication(myFacet);
+      if (!myPackageName.get().equals(applicationPackage)) {
+        templateValues.put(ATTR_APPLICATION_PACKAGE, AndroidPackageUtils.getPackageForApplication(myFacet));
+      }
     }
+
+    // Register the resource directories associated with the active source provider
+    templateValues.put(ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getAbsolutePath()));
+
+    String packageAsDir = myPackageName.get().replace('.', File.separatorChar);
+    File srcDir = paths.getSrcDirectory();
+    if (srcDir != null) {
+      srcDir = new File(srcDir, packageAsDir);
+
+      templateValues.put(ATTR_SRC_DIR, getRelativePath(moduleRoot, srcDir));
+      templateValues.put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(srcDir.getAbsolutePath()));
+    }
+
+    File testDir = paths.getTestDirectory();
+    if (testDir != null) {
+      testDir = new File(testDir, packageAsDir);
+
+      templateValues.put(ATTR_TEST_DIR, getRelativePath(moduleRoot, testDir));
+      templateValues.put(ATTR_TEST_OUT, FileUtil.toSystemIndependentName(testDir.getAbsolutePath()));
+    }
+
+    File resDir = paths.getResDirectory();
+    if (resDir != null) {
+      templateValues.put(ATTR_RES_DIR, getRelativePath(moduleRoot, resDir));
+      templateValues.put(ATTR_RES_OUT, FileUtil.toSystemIndependentName(resDir.getPath()));
+    }
+
+    File manifestDir = paths.getManifestDirectory();
+    if (manifestDir != null) {
+      templateValues.put(ATTR_MANIFEST_DIR, getRelativePath(moduleRoot, manifestDir));
+      templateValues.put(ATTR_MANIFEST_OUT, FileUtil.toSystemIndependentName(manifestDir.getPath()));
+    }
+
+    File aidlDir = paths.getAidlDirectory();
+    if (aidlDir != null) {
+      templateValues.put(ATTR_AIDL_DIR, getRelativePath(moduleRoot, aidlDir));
+      templateValues.put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlDir.getPath()));
+    }
+
+    templateValues.put(PROJECT_LOCATION_ID, moduleRoot.getParent());
+
+    // We're really interested in the directory name on disk, not the module name. These will be different if you give a module the same
+    // name as its containing project.
+    String moduleName = moduleRoot.getName();
+    templateValues.put(ATTR_MODULE_NAME, moduleName);
   }
 
   /**
@@ -780,8 +808,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       Joiner filenameJoiner = Joiner.on('.').skipNulls();
 
       int suffix = 2;
-      Module module = myFacet.getModule();
-      Project project = module.getProject();
+      Module module = myFacet != null ? myFacet.getModule() : null;
+      Project project = getModel().getProject().getValueOrNull();;
       Set<Object> relatedValues = getRelatedValues(parameter);
       SourceProvider sourceProvider = getModel().getSourceSet().get().toSourceProvider();
       while (!parameter.uniquenessSatisfied(project, module, sourceProvider, myPackageName.get(), suggested, relatedValues)) {

@@ -38,6 +38,7 @@ import java.awt.event.ActionEvent;
 import java.util.*;
 import java.util.List;
 
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR;
 import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -124,19 +125,27 @@ public class ChooseModuleTypeStep extends ModelWizardStep<NewModuleModel> {
 
   @Override
   protected void onProceeding() {
+    Map<String, Object> templateValues = getModel().getTemplateValues();
+    templateValues.clear();
+
     // This wizard includes a step for each module, but we only visit the selected one. First, we hide all steps (in case we visited a
     // different module before and hit back), and then we activate the step we care about.
-    for (SkippableWizardStep step : myModuleDescriptionToStepMap.values()) {
-      step.setShouldShow(false);
-    }
+    ModuleGalleryEntry selectedEntry = myFormFactorGallery.getSelectedElement();
+    myModuleDescriptionToStepMap.forEach((galleryEntry, step) -> {
+      boolean shouldShow = (galleryEntry == selectedEntry);
+      step.setShouldShow(shouldShow);
 
-    ModuleGalleryEntry moduleGalleryEntry = myFormFactorGallery.getSelectedElement();
-    if (moduleGalleryEntry != null) {
-      myModuleDescriptionToStepMap.get(moduleGalleryEntry).setShouldShow(true);
-    }
+      if (galleryEntry instanceof ModuleTemplateGalleryEntry) {
+        FormFactor formFactor = ((ModuleTemplateGalleryEntry) galleryEntry).getFormFactor();
+        templateValues.put(formFactor.id + ATTR_INCLUDE_FORM_FACTOR, shouldShow);
+      }
+    });
 
-    getModel().isLibrary().set(moduleGalleryEntry instanceof ModuleTemplateGalleryEntry
-                               && ((ModuleTemplateGalleryEntry) moduleGalleryEntry).isLibrary());
+    ModuleTemplateGalleryEntry templateEntry
+      = (selectedEntry instanceof ModuleTemplateGalleryEntry) ? (ModuleTemplateGalleryEntry) selectedEntry : null;
+
+    getModel().isLibrary().set(templateEntry == null ? false : templateEntry.isLibrary());
+    getModel().templateFile().setNullableValue(templateEntry == null ? null : templateEntry.getTemplateFile());
   }
 
   @Nullable
