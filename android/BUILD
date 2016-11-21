@@ -61,8 +61,6 @@ iml_module(
         "//tools/base/instant-run:studio.instant-run-common[module]",
         "//tools/idea/.idea/libraries:jna",
         "//tools/data-binding:studio.compiler[module]",
-        "//tools/idea/.idea/libraries:jogl-all",
-        "//tools/idea/.idea/libraries:gluegen-rt",
         "//tools/adt/idea/android/lib:libwebp",
         "//tools:idea.lang-api[module]",
         "//tools/idea/.idea/libraries:Gradle",

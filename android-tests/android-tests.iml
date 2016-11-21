@@ -98,7 +98,6 @@
         </SOURCES>
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="rpclib" scope="TEST" />
     <orderEntry type="module" module-name="properties-psi-impl" scope="TEST" />
     <orderEntry type="module" module-name="compiler-impl" scope="TEST" />
     <orderEntry type="module" module-name="perfd-host" scope="TEST" />
