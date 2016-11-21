@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.ide.projectView.actions.MarkLibraryRootAction;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -76,7 +76,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
     final Project project = getEventProject(e);
     if (project == null) return;
 
-    if (!Projects.requiresAndroidModel(project)) {
+    if (!AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
       myDelegate.actionPerformed(e);
       return;
     }
@@ -117,7 +117,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
       return Collections.emptyList();
     }
 
-    List<VirtualFile> roots = new ArrayList<VirtualFile>();
+    List<VirtualFile> roots = new ArrayList<>();
     for (VirtualFile file : files) {
       VirtualFile root = JarFileSystem.getInstance().getJarRootForLocalFile(file);
       if (root != null) {

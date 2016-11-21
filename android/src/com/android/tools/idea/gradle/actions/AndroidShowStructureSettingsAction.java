@@ -16,8 +16,10 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable.ProjectStructureChangeListener;
 import com.intellij.ide.actions.ShowStructureSettingsAction;
@@ -29,7 +31,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
-import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 /**
@@ -39,8 +40,8 @@ public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAct
   @Override
   public void update(AnActionEvent e) {
     Project project = e.getProject();
-    if (project != null && requiresAndroidModel(project)) {
-      e.getPresentation().setEnabledAndVisible(isBuildWithGradle(project));
+    if (project != null && AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
+      e.getPresentation().setEnabledAndVisible(GradleProjectInfo.getInstance(project).isBuildWithGradle());
     }
     super.update(e);
   }
@@ -54,7 +55,7 @@ public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAct
       return;
     }
 
-    if (project != null && isBuildWithGradle(project)) {
+    if (project != null && GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
       showAndroidProjectStructure(project);
       return;
     }

@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.base.Strings;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,7 +56,7 @@ public class AndroidActionGroupRemover extends ActionGroup {
   public void update(AnActionEvent e) {
     Presentation presentation = e.getPresentation();
     Project project = e.getProject();
-    if (project != null && Projects.requiresAndroidModel(project)) {
+    if (project != null && AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
       presentation.setEnabledAndVisible(false);
       return;
     }

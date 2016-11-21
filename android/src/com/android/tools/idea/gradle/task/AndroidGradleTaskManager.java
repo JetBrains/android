@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.task;
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
@@ -28,7 +29,6 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.Projects.isDirectGradleInvocationEnabled;
-import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 
 /**
  * Executes Gradle tasks.
@@ -74,7 +74,7 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
   @Nullable
   private static GradleBuildInvoker findGradleInvoker(ExternalSystemTaskId id) {
     Project project = id.findProject();
-    if (project != null && requiresAndroidModel(project) && isDirectGradleInvocationEnabled(project)) {
+    if (project != null && AndroidProjectInfo.getInstance(project).requiresAndroidModel() && isDirectGradleInvocationEnabled(project)) {
       return GradleBuildInvoker.getInstance(project);
     }
     return null;
