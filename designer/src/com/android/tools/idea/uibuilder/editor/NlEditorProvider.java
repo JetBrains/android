@@ -44,7 +44,7 @@ public class NlEditorProvider implements FileEditorProvider, DumbAware {
     }
 
     FeatureEnableService featureEnableService = FeatureEnableService.getInstance(project);
-    if (featureEnableService == null || !featureEnableService.isLayoutEditorEnabled()) {
+    if (featureEnableService == null || !featureEnableService.isLayoutEditorEnabled(project)) {
       return false;
     }
 
