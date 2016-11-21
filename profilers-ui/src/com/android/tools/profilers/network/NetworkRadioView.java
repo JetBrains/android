@@ -27,16 +27,19 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
 
-import static com.android.tools.profilers.network.NetworkRadioDataSeries.*;
+import static com.android.tools.profilers.ProfilerLayout.MONITOR_BORDER;
+import static com.android.tools.profilers.network.NetworkRadioDataSeries.RadioState;
 
 public class NetworkRadioView {
   private static final String LABEL = "Radio";
   private static final int MINIMUM_HEIGHT = JBUI.scale(45);
 
   private static final EnumMap<RadioState, Color> RADIO_STATE_COLOR = new EnumMap<>(RadioState.class);
+
   static {
     RADIO_STATE_COLOR.put(RadioState.NONE, AdtUiUtils.DEFAULT_BACKGROUND_COLOR);
     RADIO_STATE_COLOR.put(RadioState.WIFI, ProfilerColors.NETWORK_RADIO_WIFI);
@@ -58,6 +61,7 @@ public class NetworkRadioView {
     myComponent.setBackground(ProfilerColors.MONITOR_BACKGROUND);
     myComponent.setMinimumSize(new Dimension(0, MINIMUM_HEIGHT));
     myComponent.setPreferredSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+    myComponent.setBorder(MONITOR_BORDER);
 
     populateUI(myComponent);
 

@@ -51,7 +51,6 @@ public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
     final JLabel label = new JLabel(getMonitor().getName());
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(JLabel.TOP);
-    final Dimension labelSize = label.getPreferredSize();
 
     Range leftYRange = new Range();
     final JPanel axisPanel = new JBPanel(new BorderLayout());
@@ -63,13 +62,13 @@ public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
       .showUnitAtMax(true)
       .clampToMajorTicks(true)
       .setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
-      .setMargins(0, labelSize.height);
+      .setMargins(0, Y_AXIS_TOP_MARGIN);
     final AxisComponent leftAxis = builder.build();
     axisPanel.add(leftAxis, BorderLayout.WEST);
 
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
-    lineChartPanel.setBorder(BorderFactory.createEmptyBorder(labelSize.height, 0, 0, 0));
+    lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
     final LineChart lineChart = new LineChart();
     lineChart
       .addLine(new RangedContinuousSeries("Memory", getMonitor().getTimeline().getViewRange(), leftYRange, getMonitor().getTotalMemory()),
