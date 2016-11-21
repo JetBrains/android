@@ -265,6 +265,7 @@ public class AndroidIcons {
     public static final Icon Replay = load("/icons/run/play2.png");
     public static final Icon Restart = load("/icons/run/restart.png");
     public static final Icon CleanRerun = load("/icons/run/clean_rerun.png");
+    public static final Icon ReInstallAndRun = load("/icons/run/installrun.png");
   }
 
   public static class SherpaIcons {
