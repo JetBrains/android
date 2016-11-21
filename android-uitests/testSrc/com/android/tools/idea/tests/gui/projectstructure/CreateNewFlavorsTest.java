@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.gradle;
+package com.android.tools.idea.tests.gui.projectstructure;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.BuildTypesTabFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.ProjectStructureDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,45 +28,48 @@ import static com.google.common.truth.Truth.assertThat;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)
-public class BuildTypesTest {
+public class CreateNewFlavorsTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   /**
-   * Verifies addition of new build types
+   * Verifies addition of new flavors from project structure dialog.
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>TR ID: C14581580
+   * <p>TR ID: C14578810
    * <pre>
    *   Test Steps:
    *   1. Open the project structure dialog
    *   2. Select a module
-   *   3. Click the Build Types tab
-   *   4. Create new Build Type and name it newBuildType
-   *   5. Set properties debuggable and version Name Suffix to valid values
+   *   3. Click the flavors tab
+   *   4. Create two new Flavors named "flavor1" and "flavor2"
+   *   5. Set some properties of the flavors
    *   Verification:
    *   1. Open the build.gradle file for that module and verify
-   *   entries for build types to contain new build type added.
+   *   entries in productFlavors for "flavor1" and "flavor2"
    *   2. Verify the properties in the file match the values
    *   set in the project structure flavor dialog
    * </pre>
    */
   @RunIn(TestGroup.QA)
   @Test
-  public void addNewBuildType() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
-    ProjectStructureDialogFixture projectStructureDialog =
-      ideFrame.openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...");
-
-    BuildTypesTabFixture buildTypesTab = projectStructureDialog.selectConfigurable("app").selectBuildTypesTab();
-    buildTypesTab.setName("newBuildType")
-      .setDebuggable("true")
-      .setVersionNameSuffix("suffix");
-
-    projectStructureDialog.clickOk();
-    ideFrame.waitForGradleProjectSyncToFinish();
-
-    EditorFixture editor = ideFrame.getEditor().open("/app/build.gradle");
-    String gradleFileContents = editor.getCurrentFileContents();
-    assertThat(gradleFileContents).containsMatch("newBuildType \\{\\n[\\s]*debuggable true\\n[\\s]*versionNameSuffix 'suffix'\\n[\\s]*\\}");
+  public void createNewFlavors() throws Exception {
+    String gradleFileContents = guiTest.importSimpleApplication()
+      .openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...")
+      .selectConfigurable("app")
+      .selectFlavorsTab()
+      .clickAddButton()
+      .setFlavorName("flavor1")
+      .setMinSdkVersion("API 24: Android 7.0 (Nougat)")
+      .setTargetSdkVersion("API 24: Android 7.0 (Nougat)")
+      .clickAddButton()
+      .setFlavorName("flavor2")
+      .setVersionCode("2")
+      .setVersionName("2.3")
+      .clickOk()
+      .getEditor()
+      .open("/app/build.gradle")
+      .getCurrentFileContents();
+    assertThat(gradleFileContents).contains("flavor1 {\n            minSdkVersion 24\n            targetSdkVersion 24\n        }");
+    assertThat(gradleFileContents).contains("flavor2 {\n            versionCode 2\n            versionName '2.3'\n        }");
   }
 }
