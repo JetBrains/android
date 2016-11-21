@@ -68,7 +68,7 @@ iml_module(
         "//tools:idea.lang-api[module]",
         "//tools/idea/.idea/libraries:Gradle",
         "//tools:idea.gradle[module]",
-        "//tools/adt/idea:layoutlib[module]",
+        "//tools/adt/idea/layoutlib[module]",
         "//tools/sherpa:sherpa-solver[module]",
         "//tools/adt/idea/sherpa-ui[module]",
         "//tools/idea/.idea/libraries:dexlib2",
