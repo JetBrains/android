@@ -29,10 +29,10 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.CrashReporter;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
@@ -129,11 +129,8 @@ public class RenderService {
       try {
         return platform.getSdkData().getTargetData(target).getLayoutLibrary(project);
       }
-      catch (RenderingException e) {
+      catch (RenderingException | IOException e) {
         // Ignore.
-      }
-      catch (IOException e) {
-        // Ditto
       }
     }
     return null;
@@ -150,11 +147,8 @@ public class RenderService {
           return library.supports(capability);
         }
       }
-      catch (RenderingException e) {
+      catch (RenderingException | IOException e) {
         // Ignore: if service can't be found, that capability isn't available
-      }
-      catch (IOException e) {
-        // Ditto
       }
     }
     return false;
@@ -276,17 +270,14 @@ public class RenderService {
         RenderProblem.Html message = RenderProblem.create(ERROR);
         logger.addMessage(message);
         message.getHtmlBuilder().addLink("No Android SDK found. Please ", "configure", " an Android SDK.",
-           logger.getLinkManager().createRunnableLink(new Runnable() {
-             @Override
-             public void run() {
-               Project project = module.getProject();
-               ProjectSettingsService service = ProjectSettingsService.getInstance(project);
-               if (Projects.requiresAndroidModel(project) && service instanceof AndroidProjectSettingsService) {
-                 ((AndroidProjectSettingsService)service).openSdkSettings();
-                 return;
-               }
-               AndroidSdkUtils.openModuleDependenciesConfigurable(module);
+           logger.getLinkManager().createRunnableLink(() -> {
+             Project project = module.getProject();
+             ProjectSettingsService service = ProjectSettingsService.getInstance(project);
+             if (AndroidProjectInfo.getInstance(project).requiresAndroidModel() && service instanceof AndroidProjectSettingsService) {
+               ((AndroidProjectSettingsService)service).openSdkSettings();
+               return;
              }
+             AndroidSdkUtils.openModuleDependenciesConfigurable(module);
            }));
       }
       else {
@@ -343,44 +334,38 @@ public class RenderService {
       problem.tag("obsoleteLayoutlib");
       HtmlBuilder builder = problem.getHtmlBuilder();
       builder.add("Using an obsolete version of the " + target.getVersionName() + " layout library which contains many known bugs: ");
-      builder.addLink("Install Update", logger.getLinkManager().createRunnableLink(new Runnable() {
-        @Override
-        public void run() {
-          // Don't warn again
-          //noinspection AssignmentToStaticFieldFromInstanceMethod
-          ourWarnAboutObsoleteLayoutLibVersions = false;
+      builder.addLink("Install Update", logger.getLinkManager().createRunnableLink(() -> {
+        // Don't warn again
+        //noinspection AssignmentToStaticFieldFromInstanceMethod
+        ourWarnAboutObsoleteLayoutLibVersions = false;
 
-          List<String> requested = Lists.newArrayList();
-          // The revision to install. Note that this will install a higher version than this if available;
-          // e.g. even if we ask for version 4, if revision 7 is available it will be installed, not revision 4.
-          requested.add(DetailsTypes.getPlatformPath(version));
-          ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(module.getProject(), requested);
+        List<String> requested = Lists.newArrayList();
+        // The revision to install. Note that this will install a higher version than this if available;
+        // e.g. even if we ask for version 4, if revision 7 is available it will be installed, not revision 4.
+        requested.add(DetailsTypes.getPlatformPath(version));
+        ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(module.getProject(), requested);
 
-          if (dialog != null && dialog.showAndGet()) {
-            if (surface != null) {
-              // Force the target to be recomputed; this will pick up the new revision object from the local sdk.
-              Configuration configuration = surface.getConfiguration();
-              if (configuration != null) {
-                configuration.getConfigurationManager().setTarget(null);
-              }
-              surface.requestRender();
-              // However, due to issue https://code.google.com/p/android/issues/detail?id=76096 it may not yet
-              // take effect.
-              Messages.showInfoMessage(module.getProject(),
-                                       "Note: Due to a bug you may need to restart the IDE for the new layout library to fully take effect",
-                                       "Restart Recommended");
+        if (dialog != null && dialog.showAndGet()) {
+          if (surface != null) {
+            // Force the target to be recomputed; this will pick up the new revision object from the local sdk.
+            Configuration configuration = surface.getConfiguration();
+            if (configuration != null) {
+              configuration.getConfigurationManager().setTarget(null);
             }
+            surface.requestRender();
+            // However, due to issue https://code.google.com/p/android/issues/detail?id=76096 it may not yet
+            // take effect.
+            Messages.showInfoMessage(module.getProject(),
+                                     "Note: Due to a bug you may need to restart the IDE for the new layout library to fully take effect",
+                                     "Restart Recommended");
           }
         }
       }));
-      builder.addLink(", ", "Ignore For Now", null, logger.getLinkManager().createRunnableLink(new Runnable() {
-        @Override
-        public void run() {
-          //noinspection AssignmentToStaticFieldFromInstanceMethod
-          ourWarnAboutObsoleteLayoutLibVersions = false;
-          if (surface != null) {
-            surface.requestRender();
-          }
+      builder.addLink(", ", "Ignore For Now", null, logger.getLinkManager().createRunnableLink(() -> {
+        //noinspection AssignmentToStaticFieldFromInstanceMethod
+        ourWarnAboutObsoleteLayoutLibVersions = false;
+        if (surface != null) {
+          surface.requestRender();
         }
       }));
 

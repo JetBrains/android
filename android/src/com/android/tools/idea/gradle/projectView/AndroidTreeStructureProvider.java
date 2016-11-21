@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.projectView;
 
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.TreeStructureProvider;
@@ -56,7 +56,7 @@ public class AndroidTreeStructureProvider implements TreeStructureProvider {
                                              @NotNull Collection<AbstractTreeNode> children,
                                              ViewSettings settings) {
     Project project = parent.getProject();
-    if (project != null && Projects.requiresAndroidModel(project)) {
+    if (project != null && AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
       if (parent instanceof NamedLibraryElementNode) {
         NamedLibraryElement value = ((NamedLibraryElementNode)parent).getValue();
         LibraryOrSdkOrderEntry orderEntry = value.getOrderEntry();
