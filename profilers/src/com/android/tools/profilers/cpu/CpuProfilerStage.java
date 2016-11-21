@@ -15,7 +15,9 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.HNode;
+
+import com.android.tools.adtui.model.*;
+import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.AspectModel;
@@ -23,32 +25,58 @@ import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.containers.HashMap;
+import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+
 public class CpuProfilerStage extends Stage {
 
+  /**
+   * The thread states combined with the capture states.
+   */
+  public enum ThreadState {
+    RUNNING,
+    RUNNING_CAPTURED,
+    SLEEPING,
+    SLEEPING_CAPTURED,
+    DEAD,
+    DEAD_CAPTURED,
+    UNKNOWN
+  }
+
   private static final Logger LOG = Logger.getInstance(CpuProfilerStage.class);
-
+  @NotNull
+  private final CpuServiceGrpc.CpuServiceBlockingStub myCpuService;
+  @NotNull
+  private final CpuTraceDataSeries myCpuTraceDataSeries;
   private AspectModel<CpuProfilerAspect> myAspect = new AspectModel<>();
-
   @Nullable
   private CpuCapture myCapture;
-
   /**
    * Whether there is a capture in progress.
    * TODO: Timeouts
    */
   private boolean myCapturing;
-
   /**
    * Id of the current selected thread.
    * If this variable has a valid thread id, {@link #myCaptureNode} should store the value of the {@link HNode} correspondent to the thread.
    */
   private int mySelectedThread;
 
+  /**
+   * Maps trace ids to their correspondent captures.
+   */
+  private Map<Integer, CpuCapture> myTraceCaptures = new HashMap<>();
+
   public CpuProfilerStage(@NotNull StudioProfilers profiler) {
     super(profiler);
+    myCpuService = getStudioProfilers().getClient().getCpuClient();
+    myCpuTraceDataSeries = new CpuTraceDataSeries();
   }
 
   @Override
@@ -64,15 +92,13 @@ public class CpuProfilerStage extends Stage {
   }
 
   public void startCapturing() {
-    CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
-
     CpuProfiler.CpuProfilingAppStartRequest request = CpuProfiler.CpuProfilingAppStartRequest.newBuilder()
       .setAppPkgName(getStudioProfilers().getProcess().getName()) // TODO: Investigate if this is the right way of choosing the app
       .setProfiler(CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART) // TODO: support simpleperf
       .setMode(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED) // TODO: support instrumented mode
       .build();
 
-    CpuProfiler.CpuProfilingAppStartResponse response = cpuService.startProfilingApp(request);
+    CpuProfiler.CpuProfilingAppStartResponse response = myCpuService.startProfilingApp(request);
 
     if (!response.getStatus().equals(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS)) {
       LOG.error("Unable to start tracing:" + response.getStatus());
@@ -86,14 +112,13 @@ public class CpuProfilerStage extends Stage {
   }
 
   public void stopCapturing() {
-    CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
-
     CpuProfiler.CpuProfilingAppStopRequest request = CpuProfiler.CpuProfilingAppStopRequest.newBuilder()
       .setAppPkgName(getStudioProfilers().getProcess().getName()) // TODO: Investigate if this is the right way of choosing the app
       .setProfiler(CpuProfiler.CpuProfilingAppStopRequest.Profiler.ART) // TODO: support simpleperf
       .build();
 
-    CpuProfiler.CpuProfilingAppStopResponse response = cpuService.stopProfilingApp(request);
+    CpuProfiler.CpuProfilingAppStopResponse response = myCpuService.stopProfilingApp(request);
+
     if (!response.getStatus().equals(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS)) {
       LOG.error("Unable to stop tracing:" + response.getStatus());
       LOG.error(response.getErrorMessage());
@@ -101,11 +126,12 @@ public class CpuProfilerStage extends Stage {
     }
     else {
       myCapture = new CpuCapture(response);
+      // Add the capture to the map using the trace from response as key
+      myTraceCaptures.put(response.getTraceId(), myCapture);
     }
     myAspect.changed(CpuProfilerAspect.CAPTURE);
 
     if (myCapture != null) {
-
       mySelectedThread = myCapture.getMainThreadId();
       myAspect.changed(CpuProfilerAspect.SELECTED_THREADS);
 
@@ -116,16 +142,16 @@ public class CpuProfilerStage extends Stage {
     myCapturing = false;
   }
 
+  public int getSelectedThread() {
+    return mySelectedThread;
+  }
+
   public void setSelectedThread(int id) {
     if (myCapture != null) {
       myCapture.setSelectedThread(id);
     }
     mySelectedThread = id;
     myAspect.changed(CpuProfilerAspect.SELECTED_THREADS);
-  }
-
-  public int getSelectedThread() {
-    return mySelectedThread;
   }
 
   /**
@@ -139,5 +165,42 @@ public class CpuProfilerStage extends Stage {
 
   public boolean isCapturing() {
     return myCapturing;
+  }
+
+  public DataSeries<DurationData> getCpuTraceDataSeries() {
+    return myCpuTraceDataSeries;
+  }
+
+
+  @NotNull
+  public RangedListModel<CpuThreadsModel.RangedCpuThread> getThreadStates() {
+    return new CpuThreadsModel(this, getStudioProfilers().getProcessId());
+  }
+
+  public CpuCapture getCapture(int id) {
+    return myTraceCaptures.get(id);
+  }
+
+  private class CpuTraceDataSeries implements DataSeries<DurationData> {
+    @Override
+    public ImmutableList<SeriesData<DurationData>> getDataForXRange(Range xRange) {
+      long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
+      long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
+
+      CpuProfiler.GetTraceInfoResponse response = myCpuService.getTraceInfo(
+        CpuProfiler.GetTraceInfoRequest.newBuilder().
+        setAppId(getStudioProfilers().getProcessId()).
+        setFromTimestamp(rangeMin).setToTimestamp(rangeMax).build());
+
+      List<SeriesData<DurationData>> seriesData = new ArrayList<>();
+      for (CpuProfiler.TraceInfo traceInfo : response.getTraceInfoList()) {
+        Range range = myTraceCaptures.get(traceInfo.getTraceId()).getRange();
+
+        long from = (long)range.getMin();
+        long duration = (long)range.getLength();
+        seriesData.add(new SeriesData<>(from, new DurationData(duration)));
+      }
+      return ContainerUtil.immutableList(seriesData);
+    }
   }
 }
