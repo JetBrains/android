@@ -409,6 +409,15 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface> {
   public void registerCloseAutoHideWindow(@NotNull Runnable runnable) {
   }
 
+  @Override
+  public boolean supportsFiltering() {
+    return false;
+  }
+
+  @Override
+  public void setFilter(@NotNull String filter) {
+  }
+
   /**
    * A tool is an extension to the {@link MockupEditor}. Each tool is responsible to set
    * the desired state of the MockupEditor when enabled and reset it when disabled.

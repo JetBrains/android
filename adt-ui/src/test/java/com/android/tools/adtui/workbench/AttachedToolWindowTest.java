@@ -25,6 +25,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
+import com.intellij.ui.SearchTextField;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -37,10 +38,7 @@ import org.mockito.Mock;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.InputEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.*;
 
 import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
 import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_TOOLBAR_PLACE;
@@ -503,6 +501,26 @@ public class AttachedToolWindowTest {
   }
 
   @Test
+  public void testSearchButtonInHeader() {
+    JLabel header = findHeaderLabel(myToolWindow.getComponent());
+    assertThat(header.isVisible()).isTrue();
+    SearchTextField searchField = findHeaderSearchField(myToolWindow.getComponent());
+    assertThat(searchField.isVisible()).isFalse();
+
+    ActionButton button = findButtonByName(myToolWindow.getComponent(), "Search");
+    assertThat(button).isNotNull();
+    button.click();
+
+    assertThat(header.isVisible()).isFalse();
+    assertThat(searchField.isVisible()).isTrue();
+
+    fireFocusLost(searchField.getTextEditor());
+
+    assertThat(header.isVisible()).isTrue();
+    assertThat(searchField.isVisible()).isFalse();
+  }
+
+  @Test
   public void testContentIsDisposed() {
     PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
     assert panel != null;
@@ -556,6 +574,30 @@ public class AttachedToolWindowTest {
     return null;
   }
 
+  private static JLabel findHeaderLabel(@NotNull Container container) {
+    return findFirstComponentOfClass(container, JLabel.class);
+  }
+
+  private static SearchTextField findHeaderSearchField(@NotNull Container container) {
+    return findFirstComponentOfClass(container, SearchTextField.class);
+  }
+
+  private static <T> T findFirstComponentOfClass(@NotNull Container container, @NotNull Class<T> klass) {
+    for (Component component : container.getComponents()) {
+      if (klass.isInstance(component)) {
+        //noinspection unchecked
+        return (T)component;
+      }
+      if (component instanceof Container) {
+        T t = findFirstComponentOfClass((Container)component, klass);
+        if (t != null) {
+          return t;
+        }
+      }
+    }
+    return null;
+  }
+
   private DefaultActionGroup getPopupMenuFromGearButtonInHeader() {
     ActionButton button = findButtonByName(myToolWindow.getComponent(), "Gear");
     assertThat(button).isNotNull();
@@ -589,5 +631,12 @@ public class AttachedToolWindowTest {
     DataContext dataContext = mock(DataContext.class);
     return new AnActionEvent(null, dataContext, TOOL_WINDOW_TOOLBAR_PLACE, action.getTemplatePresentation().clone(),
                              ActionManager.getInstance(), 0);
+  }
+
+  private static void fireFocusLost(@NotNull Component component) {
+    FocusEvent event = mock(FocusEvent.class);
+    for (FocusListener listener : component.getFocusListeners()) {
+      listener.focusLost(event);
+    }
   }
 }

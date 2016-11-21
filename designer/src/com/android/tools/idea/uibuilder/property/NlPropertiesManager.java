@@ -131,6 +131,16 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   public void registerCloseAutoHideWindow(@NotNull Runnable runnable) {
   }
 
+  @Override
+  public boolean supportsFiltering() {
+    return true;
+  }
+
+  @Override
+  public void setFilter(@NotNull String filter) {
+    myPropertiesPanel.setFilter(filter);
+  }
+
   @Nullable
   public DesignSurface getDesignSurface() {
     return mySurface;

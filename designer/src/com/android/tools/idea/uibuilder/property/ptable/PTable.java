@@ -194,12 +194,13 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
   }
 
   private void toggleTreeNode(int row) {
-    PTableItem item = (PTableItem)myModel.getValueAt(row, 0);
+    PTableItem item = (PTableItem)getValueAt(row, 0);
+    int index = convertRowIndexToModel(row);
     if (item.isExpanded()) {
-      myModel.collapse(row);
+      myModel.collapse(index);
     }
     else {
-      myModel.expand(row);
+      myModel.expand(index);
     }
   }
 
@@ -256,7 +257,7 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
     if (isEditing() || selectedRow == -1) {
       return null;
     }
-    return (PTableItem)myModel.getValueAt(selectedRow, 0);
+    return (PTableItem)getValueAt(selectedRow, 0);
   }
 
   @Nullable
@@ -412,7 +413,7 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
         return;
       }
 
-      PTableItem item = (PTableItem)myModel.getValueAt(selectedRow, 0);
+      PTableItem item = (PTableItem)getValueAt(selectedRow, 0);
       if (item.hasChildren()) {
         toggleTreeNode(selectedRow);
         selectRow(selectedRow);
@@ -441,20 +442,21 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
         return;
       }
 
-      PTableItem item = (PTableItem)myModel.getValueAt(selectedRow, 0);
+      PTableItem item = (PTableItem)getValueAt(selectedRow, 0);
+      int index = convertRowIndexToModel(selectedRow);
       if (myExpand) {
         if (item.hasChildren() && !item.isExpanded()) {
-          myModel.expand(selectedRow);
+          myModel.expand(index);
           selectRow(selectedRow);
         }
       }
       else {
         if (item.isExpanded()) { // if it is a compound node, collapse it
-          myModel.collapse(selectedRow);
+          myModel.collapse(index);
           selectRow(selectedRow);
         }
         else if (item.getParent() != null) { // if it is a child node, move selection to the parent
-          selectRow(myModel.getParent(selectedRow));
+          selectRow(myModel.getParent(index));
         }
       }
     }
@@ -469,7 +471,7 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
         return;
       }
 
-      PTableItem item = (PTableItem)myModel.getValueAt(row, 0);
+      PTableItem item = (PTableItem)getValueAt(row, 0);
       if (!item.hasChildren()) {
         return;
       }

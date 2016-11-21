@@ -355,8 +355,12 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
   @NotNull
   protected <T> T registerApplicationComponent(@NotNull Class<T> key, @NotNull T instance) throws Exception {
-    ComponentManagerImpl componentManager = (ComponentManagerImpl)ApplicationManager.getApplication();
-    return componentManager.registerComponentInstance(key, instance);
+    MutablePicoContainer picoContainer = (MutablePicoContainer)ApplicationManager.getApplication().getPicoContainer();
+    @SuppressWarnings("unchecked")
+    T old = (T)picoContainer.getComponentInstance(key.getName());
+    picoContainer.unregisterComponent(key.getName());
+    picoContainer.registerComponentInstance(key.getName(), instance);
+    return old;
   }
 
   @NotNull
