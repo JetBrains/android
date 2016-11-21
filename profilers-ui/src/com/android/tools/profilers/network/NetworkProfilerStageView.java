@@ -44,22 +44,22 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   private static final BaseAxisFormatter CONNECTIONS_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 1, "");
 
   private final ConnectionDetailsView myConnectionDetails;
-  private final NetworkRequestsView myRequestsView;
+  private final ConnectionsView myConnections;
   private final Splitter mySplitter;
 
   public NetworkProfilerStageView(NetworkProfilerStage stage) {
     super(stage);
     getStage().aspect.addDependency()
       .setExecutor(ApplicationManager.getApplication()::invokeLater)
-      .onChange(NetworkProfilerAspect.REQUEST_DETAILS, this::updateRequestDetailsView)
-      .onChange(NetworkProfilerAspect.REQUESTS, this::updateRequestsView);
+      .onChange(NetworkProfilerAspect.CONNECTIONS, this::updateConnectionsView)
+      .onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, this::updateConnectionDetailsView);
 
     myConnectionDetails = new ConnectionDetailsView();
-    myRequestsView = new NetworkRequestsView(this, stage::setConnection);
+    myConnections = new ConnectionsView(this, stage::setConnection);
 
     Splitter l2l3splitter = new Splitter(true);
     l2l3splitter.setFirstComponent(buildMonitorUi());
-    l2l3splitter.setSecondComponent(new JBScrollPane(myRequestsView.getComponent()));
+    l2l3splitter.setSecondComponent(new JBScrollPane(myConnections.getComponent()));
 
     mySplitter = new Splitter(false);
     mySplitter.setFirstComponent(l2l3splitter);
@@ -67,8 +67,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
     getComponent().add(mySplitter, BorderLayout.CENTER);
 
-    updateRequestsView();
-    updateRequestDetailsView();
+    updateConnectionDetailsView();
   }
 
   @NotNull
@@ -189,13 +188,13 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     return panel;
   }
 
-  private void updateRequestDetailsView() {
+  private void updateConnectionsView() {
+  }
+
+  private void updateConnectionDetailsView() {
     myConnectionDetails.update(getStage().getConnection());
     myConnectionDetails.setVisible(getStage().isConnectionDataEnabled());
     myConnectionDetails.revalidate();
-  }
-
-  private void updateRequestsView() {
   }
 
   @NotNull
