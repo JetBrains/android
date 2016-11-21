@@ -62,8 +62,7 @@ public class DefaultStartActivityFlagsProvider implements StartActivityFlagsProv
   @NotNull
   public String getFlags(@NotNull IDevice device) {
     List<String> flags = Lists.newLinkedList();
-    // The GAPID tracer requires the app to be started in debug mode.
-    if (myWaitForDebugger || myProfilerState.GAPID_ENABLED) {
+    if (myWaitForDebugger) {
       flags.add("-D");
     }
     if (!myExtraFlags.isEmpty()) {

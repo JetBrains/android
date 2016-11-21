@@ -20,8 +20,6 @@ import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.editors.gfxtrace.viewer.gl.Buffer;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -32,13 +30,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 import static java.io.File.separator;
 import static java.io.File.separatorChar;
 
