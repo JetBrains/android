@@ -533,6 +533,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
   private void resetPanel() {
     myParametersPanel.removeAll();
+    myParameterRows.clear();
     dispose();
   }
 
