@@ -560,6 +560,23 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   /**
+   * Request a layout pass
+   *
+   * @param animate if true, the resuting layout should be animated
+   */
+  public void requestLayout(boolean animate) {
+    if (myRenderTask != null) {
+      synchronized (RENDERING_LOCK) {
+        RenderResult result = myRenderTask.layout();
+        if (result != null) {
+          updateHierarchy(result);
+          notifyListenersModelLayoutComplete(animate);
+        }
+      }
+    }
+  }
+
+  /**
    * Method that paints the current layout to the given {@link Graphics2D} object.
    */
   @SuppressWarnings("unused")
@@ -610,6 +627,20 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
 
     listeners.forEach(listener -> listener.modelRendered(this));
+  }
+
+  /**
+   * Calls all the listeners {@link ModelListener#modelChangedOnLayout(NlModel, boolean)} method.
+   *
+   * @param animate if true, warns the listeners to animate the layout update
+   */
+  private void notifyListenersModelLayoutComplete(boolean animate) {
+    List<ModelListener> listeners;
+    synchronized (myListeners) {
+      listeners = ImmutableList.copyOf(myListeners);
+    }
+
+    listeners.forEach(listener -> listener.modelChangedOnLayout(this, animate));
   }
 
   @Nullable

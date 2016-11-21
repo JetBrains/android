@@ -91,6 +91,13 @@ public class MouseInteraction {
         INACTIVE, SELECT, RESIZE, MOVE, CONNECT
     }
 
+    // Simple callback interface to ask for a layout
+    public interface NeedsLayoutCallback {
+        void needsLayout(boolean animate);
+    }
+
+    private NeedsLayoutCallback mNeedsLayoutCallback;
+
     private MouseMode mMouseMode = MouseMode.SELECT;
 
     /**
@@ -125,6 +132,13 @@ public class MouseInteraction {
     /*-----------------------------------------------------------------------*/
     // Accessors
     /*-----------------------------------------------------------------------*/
+
+    /**
+     * Set the needs layout callback
+     *
+     * @param callback
+     */
+    public void setNeedsLayoutCallback(NeedsLayoutCallback callback) { mNeedsLayoutCallback = callback; }
 
     /**
      * Set the current interaction component
@@ -984,7 +998,9 @@ public class MouseInteraction {
                         mSelection.addModifiedWidget(selection.widget);
                     }
                     mSelection.fireContinuousChange();
-
+                    if (mNeedsLayoutCallback != null) {
+                        mNeedsLayoutCallback.needsLayout(false);
+                    }
                 }
             }
             break;
@@ -1027,6 +1043,9 @@ public class MouseInteraction {
                                 if (getSnapshot() != null) {
                                     getSnapshot().applyTo(selectedWidget);
                                     mSelection.addModifiedWidget(selectedWidget);
+                                    if (mNeedsLayoutCallback != null) {
+                                        mNeedsLayoutCallback.needsLayout(true);
+                                    }
                                 }
                             }
                             mSelection.setConnectionCandidateAnchor(anchor);
@@ -1075,6 +1094,9 @@ public class MouseInteraction {
                                     ConstraintAnchor.USER_CREATOR);
                             mSelection.addModifiedWidget(widget);
                             mSelection.setLastConnectedAnchor(mSelection.getSelectedAnchor());
+                            if (mNeedsLayoutCallback != null) {
+                                mNeedsLayoutCallback.needsLayout(true);
+                            }
                         }
                     } else {
                         if (mSelection.getConnectionCandidateAnchor() != null) {
@@ -1082,6 +1104,9 @@ public class MouseInteraction {
                             if (getSnapshot() != null) {
                                 getSnapshot().applyTo(selectedWidget);
                                 mSelection.addModifiedWidget(selectedWidget);
+                                if (mNeedsLayoutCallback != null) {
+                                    mNeedsLayoutCallback.needsLayout(true);
+                                }
                             }
                         }
                     }

@@ -152,6 +152,11 @@ public class IncludeTagCreator extends SimpleViewCreator {
         addMockupAttributes(transaction, getSelectionBounds());
         WriteCommandAction.runWriteCommandAction(model.getProject(), (Computable)transaction::commit);
       }
+
+      @Override
+      public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
+        // Do nothing
+      }
     };
     nlModel.addListener(listener);
     nlModel.requestRender();

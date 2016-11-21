@@ -540,6 +540,11 @@ public class Mockup implements ModelListener {
   public void modelRendered(@NotNull NlModel model) {
   }
 
+  @Override
+  public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
+    // Do nothing
+  }
+
   public void addMockupListener(MockupModelListener listener) {
     if (listener != null) {
       myListeners.remove(listener);

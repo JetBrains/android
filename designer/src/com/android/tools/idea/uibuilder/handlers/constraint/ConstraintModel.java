@@ -64,7 +64,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   public static final int DEFAULT_DENSITY = 160;
   private static final boolean DEBUG = false;
   private static final boolean USE_GUIDELINES_DURING_DND = true;
-  static final boolean USE_SOLVER = true;
+  public static final boolean USE_SOLVER = true;
 
   private WidgetsScene myWidgetsScene = new WidgetsScene();
   private Selection mySelection = new Selection(null);
@@ -225,6 +225,12 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
 
   @Override
   public void modelRendered(@NotNull NlModel model) {
+    // Do nothing
+  }
+
+  @Override
+  public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
+    // Do nothing
   }
 
   public void updateMemoryXML() {
@@ -440,41 +446,12 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
 
   /**
    * Schedule a layout pass
+   * @param animate animate the result or not
    */
-  public void requestLayout() {
+  public void requestLayout(boolean animate) {
     if (!USE_SOLVER) {
       updateMemoryXML(); // Send changes to the XML without committing them
-      requestRender();
-      int dpi = myNlModel.getConfiguration().getDensity().getDpiValue();
-      setDpiValue(dpi);
-      WidgetContainer root = myWidgetsScene.getRoot();
-      if (root != null) {
-        root = root.getRootWidgetContainer();
-        if (root != null) {
-          updateFromView(root, 0, 0);
-        }
-      }
-    }
-  }
-
-  /**
-   * Utility function to update the ConstraintWidgets from the ViewInfos
-   * @param widget
-   * @param parentX
-   * @param parentY
-   */
-  private void updateFromView(ConstraintWidget widget, int parentX, int parentY) {
-    WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
-    NlComponent component = (NlComponent)companion.getWidgetModel();
-    ViewInfo info = component.viewInfo;
-    int left = pxToDp(info.getLeft());
-    int top = pxToDp(info.getTop());
-    widget.setDrawOrigin(left + parentX, top + parentY);
-    if (widget instanceof WidgetContainer) {
-      WidgetContainer container = (WidgetContainer) widget;
-      for (ConstraintWidget w : container.getChildren()) {
-        updateFromView(w, left + parentX, top + parentY);
-      }
+      getNlModel().requestLayout(animate);
     }
   }
 
