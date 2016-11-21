@@ -34,20 +34,20 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * Tests for {@link JdkPostSyncProjectSetupStep}.
+ * Tests for {@link ProjectJdkSetupStep}.
  */
-public class JdkPostSyncProjectSetupStepTest extends AndroidGradleTestCase {
+public class ProjectJdkSetupStepTest extends AndroidGradleTestCase {
   @Mock private IdeSdks myIdeSdks;
   @Mock private Jdks myJdks;
   private SyncMessagesStub mySyncMessages;
 
-  private JdkPostSyncProjectSetupStep mySetupStep;
+  private ProjectJdkSetupStep mySetupStep;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    mySetupStep = new JdkPostSyncProjectSetupStep(myIdeSdks, myJdks);
+    mySetupStep = new ProjectJdkSetupStep(myIdeSdks, myJdks);
 
     mySyncMessages = SyncMessagesStub.replaceSyncMessagesService(getProject());
   }

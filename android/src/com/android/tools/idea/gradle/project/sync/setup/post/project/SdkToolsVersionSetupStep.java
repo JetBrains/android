@@ -38,7 +38,7 @@ import static com.android.SdkConstants.FD_TOOLS;
 import static com.android.tools.idea.sdk.VersionCheck.MIN_TOOLS_REV;
 import static com.intellij.notification.NotificationType.INFORMATION;
 
-public class SdkToolsVersionSetupStep extends PostSyncProjectSetupStep {
+public class SdkToolsVersionSetupStep extends ProjectSetupStep {
   @NotNull private final IdeSdks myIdeSdks;
   private volatile boolean myNewSdkVersionToolsInfoAlreadyShown;
 

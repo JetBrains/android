@@ -39,7 +39,7 @@ import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
-import com.android.tools.idea.gradle.project.sync.setup.post.project.PostSyncProjectSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.post.project.ProjectSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.PluginVersionUpgrade;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
@@ -119,7 +119,7 @@ public class PostSyncProjectSetup {
   @NotNull private final GradleSyncInvoker mySyncInvoker;
   @NotNull private final GradleSyncState mySyncState;
   @NotNull private final DependencySetupErrors myDependencySetupErrors;
-  @NotNull private final PostSyncProjectSetupStep[] myProjectSetupSteps;
+  @NotNull private final ProjectSetup myProjectSetup;
   @NotNull private final PluginVersionUpgrade myPluginVersionUpgrade;
   @NotNull private final SyncMessages mySyncMessages;
   @NotNull private final DependenciesModuleSetupStep myDependenciesModuleSetupStep;
@@ -142,9 +142,9 @@ public class PostSyncProjectSetup {
                               @NotNull DependencySetupErrors dependencySetupErrors,
                               @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                               @NotNull GradleProjectBuilder projectBuilder) {
-    this(project, androidSdks, syncInvoker, syncState, dependencySetupErrors, PostSyncProjectSetupStep.getExtensions(),
-         new PluginVersionUpgrade(project), syncMessages, DependenciesModuleSetupStep.getInstance(), versionCompatibilityChecker,
-         projectBuilder, new CommonModuleValidator.Factory(), RunManagerImpl.getInstanceImpl(project));
+    this(project, androidSdks, syncInvoker, syncState, dependencySetupErrors, new ProjectSetup(project), new PluginVersionUpgrade(project),
+         syncMessages, DependenciesModuleSetupStep.getInstance(), versionCompatibilityChecker, projectBuilder,
+         new CommonModuleValidator.Factory(), RunManagerImpl.getInstanceImpl(project));
   }
 
   @VisibleForTesting
@@ -153,7 +153,7 @@ public class PostSyncProjectSetup {
                        @NotNull GradleSyncInvoker syncInvoker,
                        @NotNull GradleSyncState syncState,
                        @NotNull DependencySetupErrors dependencySetupErrors,
-                       @NotNull PostSyncProjectSetupStep[] projectSetupSteps,
+                       @NotNull ProjectSetup projectSetup,
                        @NotNull PluginVersionUpgrade pluginVersionUpgrade,
                        @NotNull SyncMessages syncMessages,
                        @NotNull DependenciesModuleSetupStep dependenciesModuleSetupStep,
@@ -166,7 +166,7 @@ public class PostSyncProjectSetup {
     mySyncInvoker = syncInvoker;
     mySyncState = syncState;
     myDependencySetupErrors = dependencySetupErrors;
-    myProjectSetupSteps = projectSetupSteps;
+    myProjectSetup = projectSetup;
     myPluginVersionUpgrade = pluginVersionUpgrade;
     mySyncMessages = syncMessages;
     myDependenciesModuleSetupStep = dependenciesModuleSetupStep;
@@ -204,7 +204,7 @@ public class PostSyncProjectSetup {
     moduleValidator.fixAndReportFoundIssues();
 
     if (syncFailed) {
-      invokeProjectSetupSteps(progressIndicator, true /* sync failed */);
+      myProjectSetup.setUpProject(progressIndicator, true /* sync failed */);
       // Notify "sync end" event first, to register the timestamp. Otherwise the cache (GradleProjectSyncData) will store the date of the
       // previous sync, and not the one from the sync that just ended.
       mySyncState.syncEnded();
@@ -235,7 +235,7 @@ public class PostSyncProjectSetup {
     AndroidGradleProjectComponent.getInstance(myProject).checkForSupportedModules();
 
     findAndShowVariantConflicts();
-    invokeProjectSetupSteps(progressIndicator, false /* sync successful */);
+    myProjectSetup.setUpProject(progressIndicator, false /* sync successful */);
 
     TestArtifactSearchScopes.initializeScopes(myProject);
 
@@ -296,24 +296,6 @@ public class PostSyncProjectSetup {
     }
     mySyncState.syncSkipped(syncTimestamp);
     mySyncInvoker.requestProjectSyncAndSourceGeneration(myProject, null);
-  }
-
-
-  private void invokeProjectSetupSteps(@Nullable ProgressIndicator progressIndicator, boolean syncFailed) {
-    Runnable invokeProjectSetupStepsTask = () -> {
-      for (PostSyncProjectSetupStep step : myProjectSetupSteps) {
-        if (syncFailed && step.invokeOnFailedSync()) {
-          step.setUpProject(myProject, progressIndicator);
-        }
-      }
-    };
-
-    if (ApplicationManager.getApplication().isWriteAccessAllowed()) {
-      invokeProjectSetupStepsTask.run();
-      return;
-    }
-
-    ApplicationManager.getApplication().runWriteAction(invokeProjectSetupStepsTask);
   }
 
   private void disposeModulesMarkedForRemoval() {
