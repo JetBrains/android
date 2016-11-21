@@ -10,7 +10,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/common:android-common[module]",
-        "//tools/adt/idea:android-rt[module]",
+        "//tools/adt/idea/rt:android-rt[module]",
         "//tools:idea.jps-builders[module]",
         "//tools:idea.util[module]",
         "//tools/idea/.idea/libraries:NanoXML",
