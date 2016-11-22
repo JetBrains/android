@@ -40,10 +40,12 @@ import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNKNOWN_GRADLE_FAILURE;
 
 public abstract class SyncErrorHandler {
-  private static final ExtensionPointName<SyncErrorHandler>
-    EXTENSION_POINT_NAME = ExtensionPointName.create("com.android.gradle.sync.syncErrorHandler");
+  private static final ExtensionPointName<SyncErrorHandler> EXTENSION_POINT_NAME =
+    ExtensionPointName.create("com.android.gradle.sync.syncErrorHandler");
+
   protected static final String EMPTY_LINE = "\n\n";
   protected static final NotificationType DEFAULT_NOTIFICATION_TYPE = NotificationType.ERROR;
+
   private static final Pattern ERROR_LOCATION_IN_FILE_PATTERN = Pattern.compile("Build file '(.*)' line: ([\\d]+)");
   private static final Pattern ERROR_IN_FILE_PATTERN = Pattern.compile("Build file '(.*)'");
 
