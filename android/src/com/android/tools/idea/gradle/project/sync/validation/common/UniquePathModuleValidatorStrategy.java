@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.validation.common;
 
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
+import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
@@ -38,7 +39,6 @@ import java.util.Set;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.PROJECT_STRUCTURE_ISSUES;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
-import static com.android.tools.idea.gradle.util.GradleUtil.getCachedProjectData;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
@@ -94,7 +94,7 @@ class UniquePathModuleValidatorStrategy extends CommonProjectValidationStrategy 
       List<DataNode<ModuleData>> modulesToDisplayInDialog = Lists.newArrayList();
       Project project = getProject();
       if (ProjectSubset.getInstance(project).isFeatureEnabled()) {
-        DataNode<ProjectData> projectInfo = getCachedProjectData(project);
+        DataNode<ProjectData> projectInfo = DataNodeCaches.getInstance(project).getCachedProjectData();
         if (projectInfo != null) {
           Collection<DataNode<ModuleData>> cachedModules = findAll(projectInfo, MODULE);
           for (DataNode<ModuleData> moduleNode : cachedModules) {

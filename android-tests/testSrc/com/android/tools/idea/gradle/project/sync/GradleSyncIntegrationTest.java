@@ -16,10 +16,14 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.android.builder.model.SyncIssue;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.ProjectLibraries;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
@@ -60,6 +64,20 @@ import static org.mockito.Mockito.*;
  * Integration tests for 'Gradle Sync'.
  */
 public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
+  private DataNodeCaches myOriginalDataNodeCaches;
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      if (myOriginalDataNodeCaches != null) {
+        IdeComponents.replaceService(getProject(), DataNodeCaches.class, myOriginalDataNodeCaches);
+      }
+    }
+    finally {
+      super.tearDown();
+    }
+  }
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
@@ -68,6 +86,33 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setDistributionType(DEFAULT_WRAPPED);
     GradleSettings.getInstance(project).setLinkedProjectsSettings(Collections.singletonList(projectSettings));
+  }
+
+  // Verifies that if syncing using cached model, and if the cached model is missing data, we fall back to a full Gradle sync.
+  // See: https://code.google.com/p/android/issues/detail?id=160899
+  public void testWithCacheMissingModules() throws Exception {
+    Project project = getProject();
+    myOriginalDataNodeCaches = DataNodeCaches.getInstance(project);
+
+    loadSimpleApplication();
+
+    // Simulate data node cache is missing modules.
+    //noinspection unchecked
+    DataNode<ProjectData> cache = mock(DataNode.class);
+    DataNodeCaches dataNodeCaches = IdeComponents.replaceServiceWithMock(project, DataNodeCaches.class);
+    when(dataNodeCaches.getCachedProjectData()).thenReturn(cache);
+    when(dataNodeCaches.isCacheMissingModels(cache)).thenReturn(true);
+
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
+    // @formatter:off
+    request.setGenerateSourcesOnSuccess(false)
+           .setUseCachedGradleModels(true);
+    // @formatter:on
+
+    // Sync again, and a full sync should occur, since the cache is missing modules.
+    // 'waitForGradleProjectSyncToFinish' will never finish and test will time out and fail if the IDE never gets notified that the sync
+    // finished.
+    requestSyncAndWait(request);
   }
 
   // See https://code.google.com/p/android/issues/detail?id=224985

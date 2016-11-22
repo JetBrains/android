@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -43,7 +44,6 @@ import java.util.*;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
 import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.Request.DEFAULT_REQUEST;
-import static com.android.tools.idea.gradle.util.GradleUtil.getCachedProjectData;
 import static com.android.tools.idea.gradle.util.Projects.populate;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.notification.NotificationType.INFORMATION;
@@ -80,7 +80,7 @@ public class ProjectSubset {
   }
 
   public boolean hasCachedModules() {
-    DataNode<ProjectData> projectInfo = getCachedProjectData(myProject);
+    DataNode<ProjectData> projectInfo = DataNodeCaches.getInstance(myProject).getCachedProjectData();
     if (projectInfo != null) {
       return !findAll(projectInfo, MODULE).isEmpty();
     }
@@ -88,7 +88,7 @@ public class ProjectSubset {
   }
 
   public void addOrRemoveModules() {
-    DataNode<ProjectData> projectInfo = getCachedProjectData(myProject);
+    DataNode<ProjectData> projectInfo = DataNodeCaches.getInstance(myProject).getCachedProjectData();
     if (projectInfo == null) {
       return;
     }
@@ -122,7 +122,7 @@ public class ProjectSubset {
    * @param virtualFile the given file.
    */
   public void findAndIncludeModuleContainingSourceFile(@NotNull VirtualFile virtualFile) {
-    DataNode<ProjectData> projectInfo = getCachedProjectData(myProject);
+    DataNode<ProjectData> projectInfo = DataNodeCaches.getInstance(myProject).getCachedProjectData();
     if (projectInfo == null) {
       return;
     }
@@ -314,7 +314,7 @@ public class ProjectSubset {
   }
 
   public void findAndIncludeModules(@NotNull Collection<String> moduleGradlePaths) {
-    DataNode<ProjectData> projectInfo = getCachedProjectData(myProject);
+    DataNode<ProjectData> projectInfo = DataNodeCaches.getInstance(myProject).getCachedProjectData();
     if (projectInfo == null) {
       return;
     }

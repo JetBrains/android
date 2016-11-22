@@ -44,6 +44,7 @@ import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyn
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_7;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
+// See https://code.google.com/p/android/issues/detail?id=73872
 public class ClassLoadingErrorHandler extends SyncErrorHandler {
   private static final Pattern CLASS_NOT_FOUND_PATTERN = Pattern.compile("(.+) not found.");
 

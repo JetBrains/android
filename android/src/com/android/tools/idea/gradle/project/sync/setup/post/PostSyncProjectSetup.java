@@ -190,7 +190,7 @@ public class PostSyncProjectSetup {
     boolean syncFailed = lastSyncFailed || hasSyncErrors;
 
     if (syncFailed && request.isUsingCachedGradleModels()) {
-      requestProjectAfterLoadingModelsFromCacheFailed(request);
+      onCachedModelsSetupFailure(request);
       return;
     }
 
@@ -244,10 +244,7 @@ public class PostSyncProjectSetup {
     String taskName = isAndroidStudio() ? MakeBeforeRunTaskProvider.TASK_NAME : ExecutionBundle.message("before.launch.compile.step");
     setMakeStepInJunitRunConfigurations(taskName);
 
-    // Notify "sync end" event first, to register the timestamp. Otherwise the cache (GradleProjectSyncData) will store the date of the
-    // previous sync, and not the one from the sync that just ended.
-    mySyncState.syncEnded();
-    GradleProjectSyncData.save(myProject);
+    notifySyncFinished(request);
 
     if (request.isGenerateSourcesAfterSync()) {
       boolean cleanProjectAfterSync = request.isCleanProjectAfterSync();
@@ -287,7 +284,7 @@ public class PostSyncProjectSetup {
     }
   }
 
-  private void requestProjectAfterLoadingModelsFromCacheFailed(@NotNull Request request) {
+  private void onCachedModelsSetupFailure(@NotNull Request request) {
     // Sync with cached model failed (e.g. when Studio has a newer embedded builder-model interfaces and the cache is using an older
     // version of such interfaces.
     long syncTimestamp = request.getLastSyncTimestamp();
@@ -296,6 +293,18 @@ public class PostSyncProjectSetup {
     }
     mySyncState.syncSkipped(syncTimestamp);
     mySyncInvoker.requestProjectSyncAndSourceGeneration(myProject, null);
+  }
+
+  private void notifySyncFinished(@NotNull Request request) {
+    // Notify "sync end" event first, to register the timestamp. Otherwise the cache (GradleProjectSyncData) will store the date of the
+    // previous sync, and not the one from the sync that just ended.
+    if (request.isUsingCachedGradleModels()) {
+      mySyncState.syncSkipped(System.currentTimeMillis());
+    }
+    else {
+      mySyncState.syncEnded();
+      GradleProjectSyncData.save(myProject);
+    }
   }
 
   private void disposeModulesMarkedForRemoval() {
