@@ -22,8 +22,6 @@ import com.android.repository.util.InstallerUtil;
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.OsType;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducerTest;
-import com.android.tools.idea.testartifacts.scopes.*;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import org.junit.AfterClass;
 import org.junit.runner.RunWith;
@@ -51,19 +49,19 @@ import java.nio.file.Paths;
   com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdaterIntegrationTest.class,
   com.android.tools.idea.gradle.project.NonAndroidGradleProjectImportingTestSuite.class,
   com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleTest.class,
-  AndroidJunitPatcherWithTestArtifactTest.class,
-  TestArtifactSearchScopesTest.class,
-  TestArtifactsFindUsageTest.class,
-  TestArtifactsRenameTest.class,
-  TestArtifactsResolveTest.class,
   com.android.tools.idea.lint.LintIdeApiDetectorTest.class,
   com.android.tools.idea.lint.LintIdeGradleDetectorTest.class,
   com.android.tools.idea.npw.importing.ArchiveToGradleModuleModelTest.class,
   com.android.tools.idea.npw.importing.ArchiveToGradleModuleStepTest.class,
   com.android.tools.idea.npw.importing.SourceToGradleModuleStepTest.class,
   com.android.tools.idea.npw.project.AndroidGradleModuleUtilsTest.class,
-  AndroidTestConfigurationProducerTest.class,
   com.android.tools.idea.templates.RepositoryUrlManagerTest.class,
+  com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducerTest.class,
+  com.android.tools.idea.testartifacts.scopes.AndroidJunitPatcherWithTestArtifactTest.class,
+  com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopesTest.class,
+  com.android.tools.idea.testartifacts.scopes.TestArtifactsFindUsageTest.class,
+  com.android.tools.idea.testartifacts.scopes.TestArtifactsRenameTest.class,
+  com.android.tools.idea.testartifacts.scopes.TestArtifactsResolveTest.class,
   org.jetbrains.android.AndroidLintTest.class,
   org.jetbrains.android.databinding.GeneratedCodeMatchTest.class,
   org.jetbrains.android.dom.AndroidManifestDomTest.class,
