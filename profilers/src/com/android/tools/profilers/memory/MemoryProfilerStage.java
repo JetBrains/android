@@ -37,6 +37,47 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class MemoryProfilerStage extends Stage {
+
+  public static class MemoryProfilerSelection {
+    // TODO this should persist across stages
+    @Nullable private MemoryObjects mySelectedHeap;
+    @Nullable private MemoryObjects mySelectedClass;
+    @Nullable private MemoryObjects mySelectedInstance;
+
+    @Nullable
+    public MemoryObjects getSelectedHeap() {
+      return mySelectedHeap;
+    }
+
+    @Nullable
+    public MemoryObjects getSelectedClass() {
+      return mySelectedClass;
+    }
+
+    @Nullable
+    public MemoryObjects getSelectedInstance() {
+      return mySelectedInstance;
+    }
+
+    public void setSelectedHeap(@Nullable MemoryObjects heap) {
+      mySelectedHeap = heap;
+    }
+
+    public void setSelectedClass(@Nullable MemoryObjects klass) {
+      mySelectedClass = klass;
+    }
+
+    public void setSelectedInstance(@Nullable MemoryObjects instance) {
+      mySelectedInstance = instance;
+    }
+
+    public void set(@Nullable MemoryObjects heap, @Nullable MemoryObjects klass, @Nullable MemoryObjects instance) {
+      mySelectedHeap = heap;
+      mySelectedClass = klass;
+      mySelectedInstance = instance;
+    }
+  }
+
   private final int myProcessId;
 
   @NotNull
@@ -57,8 +98,8 @@ public class MemoryProfilerStage extends Stage {
   @Nullable
   private HeapDumpInfo myFocusedDiffHeapDumpInfo;
 
-  @Nullable
-  private MemoryObjects myMemoryObjects = null;
+  @NotNull
+  private MemoryProfilerSelection mySelection;
 
   public MemoryProfilerStage(@NotNull StudioProfilers profilers) {
     super(profilers);
@@ -66,6 +107,7 @@ public class MemoryProfilerStage extends Stage {
     myClient = profilers.getClient().getMemoryClient();
     myHeapDumpSampleDataSeries = new HeapDumpSampleDataSeries();
     myAllocationTrackingStatusDataSeries = new AllocationTrackingStatusDataSeries();
+    mySelection = new MemoryProfilerSelection();
   }
 
   @Override
@@ -92,7 +134,7 @@ public class MemoryProfilerStage extends Stage {
   public void setFocusedHeapDump(@NotNull HeapDumpInfo sample) {
     if (myFocusedHeapDumpInfo != sample) {
       myFocusedHeapDumpInfo = sample;
-      setMemoryObjects(new HeapDumpObjects(myClient, myProcessId, myFocusedHeapDumpInfo, null));
+      selectHeap(new HeapDumpObjects(myClient, myProcessId, myFocusedHeapDumpInfo, null));
     }
 
     if (myFocusedHeapDumpInfo != null) {
@@ -105,7 +147,7 @@ public class MemoryProfilerStage extends Stage {
   public void setFocusedDiffHeapDump(@NotNull HeapDumpInfo diffSample) {
     if (myFocusedDiffHeapDumpInfo != diffSample) {
       myFocusedDiffHeapDumpInfo = diffSample;
-      myAspect.changed(MemoryProfilerAspect.MEMORY_DETAILS);
+      myAspect.changed(MemoryProfilerAspect.MEMORY_OBJECTS);
     }
   }
 
@@ -115,21 +157,52 @@ public class MemoryProfilerStage extends Stage {
     }
   }
 
-  private void setMemoryObjects(@Nullable MemoryObjects memoryObjects) {
-    if (myMemoryObjects == memoryObjects) {
+
+  public void selectInstance(@Nullable MemoryObjects instance) {
+    MemoryObjects previousInstance = mySelection.getSelectedInstance();
+    if (previousInstance == instance) {
       return;
     }
 
-    if (myMemoryObjects != null) {
-      Disposer.dispose(myMemoryObjects);
+    if (previousInstance != null) {
+      Disposer.dispose(previousInstance);
     }
-    myMemoryObjects = memoryObjects;
-    myAspect.changed(MemoryProfilerAspect.MEMORY_DETAILS);
+
+    mySelection.setSelectedInstance(instance);
+    myAspect.changed(MemoryProfilerAspect.MEMORY_OBJECTS);
   }
 
-  @Nullable
-  public MemoryObjects getMemoryObjects() {
-    return myMemoryObjects;
+  public void selectClass(@Nullable MemoryObjects klass) {
+    MemoryObjects previousClass = mySelection.getSelectedClass();
+    if (previousClass == klass) {
+      return;
+    }
+
+    if (previousClass != null) {
+      Disposer.dispose(previousClass);
+    }
+
+    mySelection.setSelectedClass(klass);
+    myAspect.changed(MemoryProfilerAspect.MEMORY_OBJECTS);
+  }
+
+  public void selectHeap(@Nullable MemoryObjects heap) {
+    MemoryObjects previousHeap = mySelection.getSelectedHeap();
+    if (previousHeap == heap) {
+      return;
+    }
+
+    if (previousHeap != null) {
+      Disposer.dispose(previousHeap);
+    }
+
+    mySelection.setSelectedHeap(heap);
+    myAspect.changed(MemoryProfilerAspect.MEMORY_OBJECTS);
+  }
+
+  @NotNull
+  public MemoryProfilerSelection getSelection() {
+    return mySelection;
   }
 
   public void setAllocationTracking(boolean enabled) {
