@@ -16,8 +16,8 @@
 
 package com.android.tools.idea.editors;
 
-import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.ide.GeneratedSourceFileChangeTracker;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
@@ -51,11 +51,11 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
   @Nullable
   @Override
   public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
-    AndroidProject androidProject = Projects.getAndroidModel(file, myProject);
-    if (androidProject == null) {
+    AndroidModuleModel androidModel = GradleProjectInfo.getInstance(myProject).findAndroidModelInModule(file);
+    if (androidModel == null) {
       return null;
     }
-    VirtualFile buildFolder = VfsUtil.findFileByIoFile(androidProject.getBuildFolder(), false);
+    VirtualFile buildFolder = VfsUtil.findFileByIoFile(androidModel.getAndroidProject().getBuildFolder(), false);
     if (buildFolder == null || !buildFolder.isDirectory()) {
       return null;
     }

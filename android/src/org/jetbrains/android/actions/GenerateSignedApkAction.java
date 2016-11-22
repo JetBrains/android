@@ -1,5 +1,7 @@
 package org.jetbrains.android.actions;
 
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -14,8 +16,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
-import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 import static org.jetbrains.android.util.AndroidUtils.getApplicationFacets;
 
 /**
@@ -79,7 +79,9 @@ public class GenerateSignedApkAction extends AnAction {
   public void update(AnActionEvent e) {
     Project project = e.getProject();
     boolean enabled = project != null && !getApplicationFacets(project).isEmpty() &&
-                      (isBuildWithGradle(project) || !requiresAndroidModel(project) /* Available for Gradle projects and legacy IDEA Android projects */);
+                      /* Available for Gradle projects and legacy IDEA Android projects */
+                      (GradleProjectInfo.getInstance(project).isBuildWithGradle() ||
+                       !AndroidProjectInfo.getInstance(project).requiresAndroidModel());
     e.getPresentation().setEnabledAndVisible(enabled);
   }
 }

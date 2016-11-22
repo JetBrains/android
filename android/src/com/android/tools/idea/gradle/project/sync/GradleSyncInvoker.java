@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
 import com.android.tools.idea.gradle.project.sync.idea.IdeaGradleSync;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.intellij.openapi.components.ServiceManager;
@@ -137,7 +138,7 @@ public class GradleSyncInvoker {
 
   private boolean prepareProject(@NotNull Project project, @NotNull Request request, @Nullable GradleSyncListener listener)
     throws ConfigurationException {
-    if (requiresAndroidModel(project) || hasTopLevelGradleBuildFile(project)) {
+    if (AndroidProjectInfo.getInstance(project).requiresAndroidModel() || hasTopLevelGradleBuildFile(project)) {
       if (!request.isNewProject()) {
         myFileDocumentManager.saveAllDocuments();
       }
