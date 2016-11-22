@@ -48,6 +48,7 @@ import java.nio.file.Paths;
   com.android.tools.idea.gradle.eclipse.GradleImportTest.class,
   com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdaterIntegrationTest.class,
   com.android.tools.idea.gradle.project.NonAndroidGradleProjectImportingTestSuite.class,
+  com.android.tools.idea.gradle.project.sync.errors.MissingCMakeErrorHandlerTest.class,  // fails in bazel sandbox
   com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleTest.class,
   com.android.tools.idea.lint.LintIdeApiDetectorTest.class,
   com.android.tools.idea.lint.LintIdeGradleDetectorTest.class,
