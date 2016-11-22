@@ -36,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
@@ -43,10 +44,18 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 5, 5);
   private static final BaseAxisFormatter OBJECT_COUNT_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 5, "");
 
+  @NotNull private MemoryClassDetailView myDetailView = new MemoryClassDetailView(getStage());
+
+  @NotNull private Splitter myChartClassesSplitter = new Splitter(true);
+
   public MemoryProfilerStageView(@NotNull MemoryProfilerStage stage) {
     super(stage);
     JComponent monitorUi = buildMonitorUi();
     getComponent().add(monitorUi, BorderLayout.CENTER);
+
+    getStage().getAspect().addDependency()
+      .setExecutor(ApplicationManager.getApplication()::invokeLater)
+      .onChange(MemoryProfilerAspect.MEMORY_DETAILS, this::detailsChanged);
   }
 
   @Override
@@ -71,12 +80,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   private JComponent buildMonitorUi() {
     Splitter mainSplitter = new Splitter(false);
-    Splitter chartClassesSplitter = new Splitter(true);
 
-    JPanel classesPane = new JPanel();
-    classesPane.setVisible(false);
-    chartClassesSplitter.setFirstComponent(createLineChart());
-    chartClassesSplitter.setSecondComponent(classesPane);
+    myChartClassesSplitter.setFirstComponent(createLineChart());
 
     Splitter instancesDetailsSplitter = new Splitter(true);
     JPanel instancesPane = new JPanel();
@@ -85,7 +90,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     instancesDetailsSplitter.setSecondComponent(detailsPane);
     instancesDetailsSplitter.setVisible(false);
 
-    mainSplitter.setFirstComponent(chartClassesSplitter);
+    mainSplitter.setFirstComponent(myChartClassesSplitter);
     mainSplitter.setSecondComponent(instancesDetailsSplitter);
 
     getComponent().add(mainSplitter, BorderLayout.CENTER);
@@ -160,14 +165,11 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
                       new LineConfig(ProfilerColors.MEMORY_OBJECTS).setStroke(LineConfig.DEFAULT_DASH_STROKE));
 
     // TODO set proper colors.
-    getStage().getAspect().addDependency()
-      .setExecutor(ApplicationManager.getApplication()::invokeLater)
-      .onChange(MemoryProfilerAspect.CURRENT_HEAP_DUMP, this::heapDumpSelected)
-      .onChange(MemoryProfilerAspect.CURRENT_DIFF_HEAP_DUMP, this::heapDiffSelected);
     lineChart
       .addEvent(new RangedSeries<>(viewRange, getStage().getHeapDumpSampleDurations()), new EventConfig(Color.BLACK).setText("Heap Dump"));
     lineChart.addEvent(new RangedSeries<>(viewRange, getStage().getAllocationDumpSampleDurations()),
                        new EventConfig(Color.BLUE).setText("Alloocation Tracking"));
+
     getChoreographer().register(lineChart);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
@@ -217,12 +219,14 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     return panel;
   }
 
-  private void heapDumpSelected() {
+  private void detailsChanged() {
+    myChartClassesSplitter.setSecondComponent(null);
+    myDetailView.reset();
 
-  }
-
-  private void heapDiffSelected() {
-
+    Range viewRange = getTimeline().getViewRange();
+    long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)viewRange.getMin());
+    long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)viewRange.getMax());
+    myChartClassesSplitter.setSecondComponent(myDetailView.buildComponent(rangeMin, rangeMax));
   }
 
   private void rangeSelected() {
