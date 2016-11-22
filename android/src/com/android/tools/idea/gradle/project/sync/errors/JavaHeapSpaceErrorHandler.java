@@ -27,11 +27,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.OUT_OF_MEMORY;
-import static com.intellij.openapi.util.text.StringUtil.decapitalize;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.util.text.StringUtil.*;
 
-public class JavaHeapSpaceErrorHandler extends SyncErrorHandler {
-
+public class JavaHeapSpaceErrorHandler extends BaseSyncErrorHandler {
   @Override
   @Nullable
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
@@ -57,9 +55,7 @@ public class JavaHeapSpaceErrorHandler extends SyncErrorHandler {
         }
       }
       if (cause != null && cause.startsWith("Could not reserve enough space for object heap")) {
-        if (firstLine.endsWith(".")) {
-          firstLine = firstLine.substring(0, firstLine.length() - 1);
-        }
+        firstLine = trimEnd(firstLine, ".");
         if (!cause.endsWith(".")) {
           cause += ".";
         }

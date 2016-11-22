@@ -29,16 +29,14 @@ import java.util.List;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CONNECTION_DENIED;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class ConnectionPermissionDeniedErrorHandler extends SyncErrorHandler {
-  private static final String CONNECTION_PERMISSION_DENIED_PREFIX = "Connection to the Internet denied.";
-
+public class ConnectionPermissionDeniedErrorHandler extends BaseSyncErrorHandler {
   @Override
   @Nullable
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
     String text = rootCause.getMessage();
     if (rootCause instanceof SocketException && isNotEmpty(text) && text.contains("Permission denied: connect")) {
       updateUsageTracker(CONNECTION_DENIED);
-      return CONNECTION_PERMISSION_DENIED_PREFIX;
+      return "Connection to the Internet denied.";
     }
     return null;
   }

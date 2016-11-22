@@ -49,47 +49,11 @@ public class ClassLoadingErrorHandler extends SyncErrorHandler {
 
   @Override
   public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
-    String text = findErrorMessage(getRootCause(error), notification, project);
-    if (text != null) {
-      List<NotificationHyperlink> hyperlinks = getQuickFixHyperlinks(notification, project, text);
-      SyncMessages.getInstance(project).addNotificationListener(notification, hyperlinks);
-      return true;
-    }
-    return false;
-  }
-
-  @Override
-  @Nullable
-  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
-    String text = rootCause.getMessage();
-    if (rootCause instanceof ClassNotFoundException) {
-      String className = nullToEmpty(text);
-      Matcher matcher = CLASS_NOT_FOUND_PATTERN.matcher(className);
-      if (matcher.matches()) {
-        className = matcher.group(1);
-      }
-      updateUsageTracker(CLASS_NOT_FOUND, className);
-      return String.format("Unable to load class '%1$s'.", className);
+    String text = findErrorMessage(getRootCause(error));
+    if (text == null) {
+      return false;
     }
 
-    if (rootCause instanceof NoSuchMethodError) {
-      String methodName = nullToEmpty(text);
-      updateUsageTracker(METHOD_NOT_FOUND, methodName);
-      return String.format("Unable to find method '%1$s'.", methodName);
-    }
-
-    if (isNotEmpty(text) && text.contains("cannot be cast to")) {
-      updateUsageTracker();
-      return text;
-    }
-    return null;
-  }
-
-  @Override
-  @NotNull
-  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
-                                                              @NotNull Project project,
-                                                              @NotNull String text) {
     String firstLine = getFirstLineMessage(text);
     boolean classNotFound = firstLine.startsWith("Unable to load class");
     NotificationHyperlink openJdkSettingsHyperlink = null;
@@ -155,6 +119,34 @@ public class ClassLoadingErrorHandler extends SyncErrorHandler {
     }
     hyperlinks.add(syncProjectHyperlink);
     hyperlinks.add(stopDaemonsHyperlink);
-    return hyperlinks;
+
+    SyncMessages.getInstance(project).addNotificationListener(notification, hyperlinks);
+    return true;
+  }
+
+  @Nullable
+  private static String findErrorMessage(@NotNull Throwable rootCause) {
+    String text = rootCause.getMessage();
+    if (rootCause instanceof ClassNotFoundException) {
+      String className = nullToEmpty(text);
+      Matcher matcher = CLASS_NOT_FOUND_PATTERN.matcher(className);
+      if (matcher.matches()) {
+        className = matcher.group(1);
+      }
+      updateUsageTracker(CLASS_NOT_FOUND, className);
+      return String.format("Unable to load class '%1$s'.", className);
+    }
+
+    if (rootCause instanceof NoSuchMethodError) {
+      String methodName = nullToEmpty(text);
+      updateUsageTracker(METHOD_NOT_FOUND, methodName);
+      return String.format("Unable to find method '%1$s'.", methodName);
+    }
+
+    if (isNotEmpty(text) && text.contains("cannot be cast to")) {
+      updateUsageTracker();
+      return text;
+    }
+    return null;
   }
 }

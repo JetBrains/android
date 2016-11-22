@@ -32,7 +32,7 @@ import java.util.List;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.searchInBuildFilesOnly;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class OldAndroidPluginErrorHandler extends SyncErrorHandler {
+public class OldAndroidPluginErrorHandler extends BaseSyncErrorHandler {
   @Override
   @Nullable
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {

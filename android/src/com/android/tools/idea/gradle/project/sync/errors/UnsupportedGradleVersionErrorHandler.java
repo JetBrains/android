@@ -41,10 +41,8 @@ import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyn
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler.FIX_GRADLE_VERSION;
 
-public class UnsupportedGradleVersionErrorHandler extends SyncErrorHandler {
+public class UnsupportedGradleVersionErrorHandler extends BaseSyncErrorHandler {
   private static final Pattern UNSUPPORTED_GRADLE_VERSION_PATTERN = Pattern.compile("Gradle version (.*) is required.*?");
-  public static final String OPEN_GRADLE_SETTINGS = "Please fix the project's Gradle settings.";
-  private static final String UNSUPPORTED_GRADLE_VERSION_ERROR = "Gradle version " + GRADLE_MINIMUM_VERSION + " is required";
 
   @Override
   @Nullable
@@ -58,7 +56,7 @@ public class UnsupportedGradleVersionErrorHandler extends SyncErrorHandler {
       if (!text.endsWith(".")) {
         text += ".";
       }
-      newMsg = text + EMPTY_LINE + OPEN_GRADLE_SETTINGS;
+      newMsg = text + EMPTY_LINE + "Please fix the project's Gradle settings.";
     }
     if (isNotEmpty(newMsg)) {
       updateUsageTracker(UNSUPPORTED_GRADLE_VERSION);
@@ -67,7 +65,7 @@ public class UnsupportedGradleVersionErrorHandler extends SyncErrorHandler {
     return null;
   }
 
-  private boolean isOldGradleVersion(@NotNull Throwable error) {
+  private static boolean isOldGradleVersion(@NotNull Throwable error) {
     String msg = error.getMessage();
 
     if (error instanceof UnsupportedVersionException) {
@@ -84,7 +82,7 @@ public class UnsupportedGradleVersionErrorHandler extends SyncErrorHandler {
       }
     }
     if (error instanceof RuntimeException) {
-      if (msg != null && msg.startsWith(UNSUPPORTED_GRADLE_VERSION_ERROR)) {
+      if (msg != null && msg.startsWith("Gradle version " + GRADLE_MINIMUM_VERSION + " is required")) {
         return true;
       }
     }
@@ -117,7 +115,7 @@ public class UnsupportedGradleVersionErrorHandler extends SyncErrorHandler {
   }
 
   @Nullable
-  private String getSupportedGradleVersion(@NotNull String message) {
+  private static String getSupportedGradleVersion(@NotNull String message) {
     Matcher matcher = UNSUPPORTED_GRADLE_VERSION_PATTERN.matcher(message);
     if (matcher.matches()) {
       String version = matcher.group(1);

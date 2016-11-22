@@ -30,11 +30,7 @@ import java.util.List;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNKNOWN_HOST;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class UnknownHostErrorHandler extends SyncErrorHandler {
-
-  private static final String GRADLE_PROXY_ACCESS_DOCS_URL =
-    "https://docs.gradle.org/current/userguide/userguide_single.html#sec:accessing_the_web_via_a_proxy";
-
+public class UnknownHostErrorHandler extends BaseSyncErrorHandler {
   @Override
   @Nullable
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
@@ -56,7 +52,8 @@ public class UnknownHostErrorHandler extends SyncErrorHandler {
     if (enableOfflineMode != null) {
       hyperlinks.add(enableOfflineMode);
     }
-    hyperlinks.add(new OpenUrlHyperlink(GRADLE_PROXY_ACCESS_DOCS_URL, "Learn about configuring HTTP proxies in Gradle"));
+    hyperlinks.add(new OpenUrlHyperlink("https://docs.gradle.org/current/userguide/userguide_single.html#sec:accessing_the_web_via_a_proxy",
+                                        "Learn about configuring HTTP proxies in Gradle"));
     return hyperlinks;
   }
 }
