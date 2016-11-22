@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers.scene;
+package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
@@ -23,9 +23,11 @@ import java.util.ArrayList;
 /**
  * A SceneComponent represents the bounds of a widget (backed by NlComponent).
  * SceneComponent gave us a a couple of extra compared to NlComponent:
- * - expressed in Dp, not pixels
- * - animate layout changes
- * - can mix NlComponent from different NlModel in the same tree
+ * <ul>
+ *   <li>expressed in Dp, not pixels</li>
+ *   <li>animate layout changes</li>
+ *   <li>can mix NlComponent from different NlModel in the same tree</li>
+ * </ul>
  */
 public class SceneComponent {
   private final Scene myScene;
@@ -33,10 +35,10 @@ public class SceneComponent {
   private ArrayList<SceneComponent> myChildren = new ArrayList<>();
   private SceneComponent myParent = null;
 
-  private AnimatedValue animatedDrawX = new AnimatedValue();
-  private AnimatedValue animatedDrawY = new AnimatedValue();
-  private AnimatedValue animatedDrawWidth = new AnimatedValue();
-  private AnimatedValue animatedDrawHeight = new AnimatedValue();
+  private AnimatedValue myAnimatedDrawX = new AnimatedValue();
+  private AnimatedValue myAnimatedDrawY = new AnimatedValue();
+  private AnimatedValue myAnimatedDrawWidth = new AnimatedValue();
+  private AnimatedValue myAnimatedDrawHeight = new AnimatedValue();
 
   public boolean used = true;
 
@@ -47,7 +49,7 @@ public class SceneComponent {
   /**
    * Utility class to encapsulate animatable values
    */
-  class AnimatedValue {
+  static class AnimatedValue {
     int value;
     int target;
     long startTime;
@@ -98,7 +100,7 @@ public class SceneComponent {
       else if (progress <= 0) {
         return value;
       }
-      return (int)(0.5f + EaseInOutinterpolator(progress, value, target));
+      return (int)(0.5f + EaseInOutInterpolator(progress, value, target));
     }
 
     /**
@@ -109,7 +111,7 @@ public class SceneComponent {
      * @param end      the final value
      * @return the interpolated value corresponding to the given progress
      */
-    double EaseInOutinterpolator(double progress, double begin, double end) {
+    double EaseInOutInterpolator(double progress, double begin, double end) {
       double change = (end - begin) / 2f;
       progress *= 2f;
       if (progress < 1f) {
@@ -124,11 +126,11 @@ public class SceneComponent {
   // Constructor
   /////////////////////////////////////////////////////////////////////////////
 
-  public SceneComponent(Scene scene, NlComponent component) {
+  public SceneComponent(@NotNull Scene scene, @NotNull NlComponent component) {
     myScene = scene;
     myNlComponent = component;
     updateFrom(component);
-    scene.addComponent(this);
+    myScene.addComponent(this);
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -139,40 +141,40 @@ public class SceneComponent {
     return myParent;
   }
 
-  public void setParent(SceneComponent parent) {
+  public void setParent(@NotNull SceneComponent parent) {
     myParent = parent;
   }
 
   public int getDrawX() {
-    return animatedDrawX.getValue(0);
+    return myAnimatedDrawX.getValue(0);
   }
 
   public int getDrawY() {
-    return animatedDrawY.getValue(0);
+    return myAnimatedDrawY.getValue(0);
   }
 
   public int getDrawWidth() {
-    return animatedDrawWidth.getValue(0);
+    return myAnimatedDrawWidth.getValue(0);
   }
 
   public int getDrawHeight() {
-    return animatedDrawHeight.getValue(0);
+    return myAnimatedDrawHeight.getValue(0);
   }
 
   public int getDrawX(long time) {
-    return animatedDrawX.getValue(time);
+    return myAnimatedDrawX.getValue(time);
   }
 
   public int getDrawY(long time) {
-    return animatedDrawY.getValue(time);
+    return myAnimatedDrawY.getValue(time);
   }
 
   public int getDrawWidth(long time) {
-    return animatedDrawWidth.getValue(time);
+    return myAnimatedDrawWidth.getValue(time);
   }
 
   public int getDrawHeight(long time) {
-    return animatedDrawHeight.getValue(time);
+    return myAnimatedDrawHeight.getValue(time);
   }
 
   @NotNull
@@ -189,11 +191,19 @@ public class SceneComponent {
     return myChildren;
   }
 
+  public int getChildCount() {
+    return myChildren.size();
+  }
+
+  public SceneComponent getChild(int i) {
+    return myChildren.get(i);
+  }
+
   /////////////////////////////////////////////////////////////////////////////
   // Maintenance
   /////////////////////////////////////////////////////////////////////////////
 
-  public void addChild(SceneComponent child) {
+  public void addChild(@NotNull SceneComponent child) {
     child.setParent(this);
     myChildren.add(child);
   }
@@ -204,7 +214,7 @@ public class SceneComponent {
     }
   }
 
-  private void remove(SceneComponent component) {
+  private void remove(@NotNull SceneComponent component) {
     myChildren.remove(component);
   }
 
@@ -214,19 +224,19 @@ public class SceneComponent {
    *
    * @param component the NlComponent to update from
    */
-  public void updateFrom(NlComponent component) {
-    long time = System.currentTimeMillis();
+  public void updateFrom(@NotNull NlComponent component) {
     if (myScene.getAnimate()) {
-      animatedDrawX.setTarget(myScene.pxToDp(component.x), time);
-      animatedDrawY.setTarget(myScene.pxToDp(component.y), time);
-      animatedDrawWidth.setTarget(myScene.pxToDp(component.w), time);
-      animatedDrawHeight.setTarget(myScene.pxToDp(component.h), time);
+      long time = System.currentTimeMillis();
+      myAnimatedDrawX.setTarget(myScene.pxToDp(component.x), time);
+      myAnimatedDrawY.setTarget(myScene.pxToDp(component.y), time);
+      myAnimatedDrawWidth.setTarget(myScene.pxToDp(component.w), time);
+      myAnimatedDrawHeight.setTarget(myScene.pxToDp(component.h), time);
     }
     else {
-      animatedDrawX.setValue(myScene.pxToDp(component.x));
-      animatedDrawY.setValue(myScene.pxToDp(component.y));
-      animatedDrawWidth.setValue(myScene.pxToDp(component.w));
-      animatedDrawHeight.setValue(myScene.pxToDp(component.h));
+      myAnimatedDrawX.setValue(myScene.pxToDp(component.x));
+      myAnimatedDrawY.setValue(myScene.pxToDp(component.y));
+      myAnimatedDrawWidth.setValue(myScene.pxToDp(component.w));
+      myAnimatedDrawHeight.setValue(myScene.pxToDp(component.h));
     }
   }
 }
