@@ -16,6 +16,13 @@
 package com.android.tools.profilers.network;
 
 public enum NetworkProfilerAspect {
-  REQUESTS,
-  REQUEST_DETAILS
+  /**
+   * Aspect associated with a range of connections.
+   */
+  CONNECTIONS,
+  /**
+   * Aspect associated with a single, focused connection. The connection may be {@code null}, which
+   * means that currently no connection is active (perhaps recently deselected).
+   */
+  ACTIVE_CONNECTION
 }
