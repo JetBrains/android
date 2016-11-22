@@ -27,6 +27,7 @@ import java.util.List;
 import static com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.syncProjectRefreshingDependencies;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
+// See https://code.google.com/p/android/issues/detail?id=74842
 public class CorruptGradleDependencyErrorHandler extends BaseSyncErrorHandler {
   @Override
   @Nullable
