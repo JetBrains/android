@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -24,6 +25,7 @@ import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Table;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor;
 import com.intellij.xml.XmlAttributeDescriptor;
@@ -39,8 +41,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.SdkConstants.BUTTON;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.google.common.truth.Truth.assertThat;
 
 public abstract class PropertyTestCase extends LayoutTestCase {
@@ -64,6 +64,8 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   protected NlPropertiesManager myPropertiesManager;
   protected AndroidDomElementDescriptorProvider myDescriptorProvider;
   protected Map<String, NlComponent> myComponentMap;
+  protected PropertiesComponent myPropertiesComponent;
+  protected PropertiesComponent myOldPropertiesComponent;
 
   @Override
   public void setUp() throws Exception {
@@ -86,11 +88,14 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     myButtonInConstraintLayout = myComponentMap.get("button2");
     myPropertiesManager = new NlPropertiesManager(getProject(), null);
     myDescriptorProvider = new AndroidDomElementDescriptorProvider();
+    myPropertiesComponent = new PropertiesComponentMock();
+    myOldPropertiesComponent = registerApplicationComponent(PropertiesComponent.class, myPropertiesComponent);
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
+      registerApplicationComponent(PropertiesComponent.class, myOldPropertiesComponent);
       Disposer.dispose(myModel);
       Disposer.dispose(myPropertiesManager);
     }

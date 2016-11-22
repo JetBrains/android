@@ -15,15 +15,23 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.property.ptable.StarState;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
 
-public class NlPropertiesTest extends LayoutTestCase {
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.property.NlProperties.STARRED_PROP;
+import static com.google.common.truth.Truth.assertThat;
+
+public class NlPropertiesTest extends PropertyTestCase {
   private static final String CUSTOM_NAMESPACE = "http://schemas.android.com/apk/res/p1.p2";
   private static final String[] NO_NAMESPACE_VIEW_ATTRS = {"style"};
   private static final String[] ANDROID_VIEW_ATTRS = {"id", "padding", "visibility", "textAlignment", "translationZ", "elevation"};
@@ -49,16 +57,16 @@ public class NlPropertiesTest extends LayoutTestCase {
     assertTrue(properties.size() > 120); // at least 124 attributes (view + layouts) are available as of API 22
 
     // check that some of the View's attributes are there..
-    assertPresent(tag, properties, SdkConstants.ANDROID_URI, ANDROID_VIEW_ATTRS);
+    assertPresent(tag, properties, ANDROID_URI, ANDROID_VIEW_ATTRS);
     assertPresent(tag, properties, "", NO_NAMESPACE_VIEW_ATTRS);
 
     // check that non-existent properties haven't been added
-    assertAbsent(tag, properties, SdkConstants.ANDROID_URI, TEXT_VIEW_ATTRS);
+    assertAbsent(tag, properties, ANDROID_URI, TEXT_VIEW_ATTRS);
 
     // Views that don't have a parent layout have all the layout attributes available to them..
-    assertPresent(tag, properties, SdkConstants.ANDROID_URI, RELATIVE_LAYOUT_ATTRS);
-    assertPresent(tag, properties, SdkConstants.ANDROID_URI, GRID_LAYOUT_ATTRS);
-    assertPresent(tag, properties, SdkConstants.ANDROID_URI, FRAME_LAYOUT_ATTRS);
+    assertPresent(tag, properties, ANDROID_URI, RELATIVE_LAYOUT_ATTRS);
+    assertPresent(tag, properties, ANDROID_URI, GRID_LAYOUT_ATTRS);
+    assertPresent(tag, properties, ANDROID_URI, FRAME_LAYOUT_ATTRS);
   }
 
   public void testViewInRelativeLayout() {
@@ -81,14 +89,14 @@ public class NlPropertiesTest extends LayoutTestCase {
     assertTrue(properties.size() > 180); // at least 190 attributes are available as of API 22
 
     // A text view should have all of its attributes and the parent class's (View) attributes
-    assertPresent(tag, properties, SdkConstants.ANDROID_URI, TEXT_VIEW_ATTRS);
-    assertPresent(tag, properties, SdkConstants.ANDROID_URI, ANDROID_VIEW_ATTRS);
+    assertPresent(tag, properties, ANDROID_URI, TEXT_VIEW_ATTRS);
+    assertPresent(tag, properties, ANDROID_URI, ANDROID_VIEW_ATTRS);
     assertPresent(tag, properties, "", NO_NAMESPACE_VIEW_ATTRS);
 
     // Since it is embedded inside a relative layout, it should only have relative layout's layout attributes
-    assertPresent(tag, properties, SdkConstants.ANDROID_URI, RELATIVE_LAYOUT_ATTRS);
-    assertAbsent(tag, properties, SdkConstants.ANDROID_URI, GRID_LAYOUT_ATTRS);
-    assertAbsent(tag, properties, SdkConstants.ANDROID_URI, FRAME_LAYOUT_ATTRS);
+    assertPresent(tag, properties, ANDROID_URI, RELATIVE_LAYOUT_ATTRS);
+    assertAbsent(tag, properties, ANDROID_URI, GRID_LAYOUT_ATTRS);
+    assertAbsent(tag, properties, ANDROID_URI, FRAME_LAYOUT_ATTRS);
   }
 
   public void testCustomViewAttributes() {
@@ -106,10 +114,10 @@ public class NlPropertiesTest extends LayoutTestCase {
       NlProperties.getInstance().getProperties(ImmutableList.of(MockNlComponent.create(subTags[0])));
     assertTrue("# of properties lesser than expected: " + properties.size(), properties.size() > 90);
 
-    assertPresent(tag, properties, SdkConstants.ANDROID_URI, ANDROID_VIEW_ATTRS);
+    assertPresent(tag, properties, ANDROID_URI, ANDROID_VIEW_ATTRS);
     assertPresent(tag, properties, "", NO_NAMESPACE_VIEW_ATTRS);
-    assertPresent(tag, properties, SdkConstants.ANDROID_URI, LINEAR_LAYOUT_ATTRS);
-    assertAbsent(tag, properties, SdkConstants.ANDROID_URI, TEXT_VIEW_ATTRS);
+    assertPresent(tag, properties, ANDROID_URI, LINEAR_LAYOUT_ATTRS);
+    assertAbsent(tag, properties, ANDROID_URI, TEXT_VIEW_ATTRS);
   }
 
   public void testPropertyNames() {
@@ -124,7 +132,7 @@ public class NlPropertiesTest extends LayoutTestCase {
     Table<String, String, NlPropertyItem> properties =
       NlProperties.getInstance().getProperties(ImmutableList.of(MockNlComponent.create(subTags[0])));
 
-    NlPropertyItem p = properties.get(SdkConstants.ANDROID_URI, "id");
+    NlPropertyItem p = properties.get(ANDROID_URI, "id");
     assertNotNull(p);
 
     assertEquals("id", p.getName());
@@ -217,9 +225,58 @@ public class NlPropertiesTest extends LayoutTestCase {
 
     // The attrs.xml in appcompat-22.0.0 includes android:focusable, theme and android:theme.
     // The android:focusable refers to the platform attribute, and hence should not be duplicated..
-    assertPresent("TextView", properties, SdkConstants.ANDROID_URI, "focusable", "theme");
+    assertPresent("TextView", properties, ANDROID_URI, "focusable", "theme");
     assertPresent("TextView", properties, CUSTOM_NAMESPACE, "custom");
-    assertAbsent("TextView", properties, SdkConstants.ANDROID_URI, "android:focusable", "android:theme");
+    assertAbsent("TextView", properties, ANDROID_URI, "android:focusable", "android:theme");
+  }
+
+  public void testVisibleIsStarredPropertyByDefault() {
+    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(ImmutableList.of(myTextView));
+    List<NlPropertyItem> starred = properties.values().stream()
+      .filter(property -> property.getStarState() == StarState.STARRED)
+      .collect(Collectors.toList());
+    assertThat(starred.size()).isEqualTo(1);
+    assertThat(starred.get(0).getName()).isEqualTo(ATTR_VISIBILITY);
+    assertThat(NlProperties.getStarredPropertiesAsString()).isEqualTo(ATTR_VISIBILITY);
+    assertThat(NlProperties.getStarredProperties()).containsExactly(ATTR_VISIBILITY);
+  }
+
+  public void testStarredPropertiesAreReadFromComponentProperties() {
+    myPropertiesComponent.setValue(STARRED_PROP, propertyList(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK, ATTR_CARD_ELEVATION));
+    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(ImmutableList.of(myTextView));
+    List<String> starred = properties.values().stream()
+      .filter(property -> property.getStarState() == StarState.STARRED)
+      .map(NlPropertyItem::getName)
+      .collect(Collectors.toList());
+    assertThat(starred).containsExactly(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK);
+    assertThat(NlProperties.getStarredProperties())
+      .containsExactly(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK, ATTR_CARD_ELEVATION);
+  }
+
+  public void testAddStarredProperty() {
+    myPropertiesComponent.setValue(STARRED_PROP, propertyList(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK, ATTR_CARD_ELEVATION));
+    NlProperties.saveStarState(null, ATTR_NAME, true);
+    assertThat(myPropertiesComponent.getValue(STARRED_PROP))
+      .isEqualTo(propertyList(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK, ATTR_CARD_ELEVATION, ATTR_NAME));
+  }
+
+  public void testAddStarredToolsProperty() {
+    myPropertiesComponent.setValue(STARRED_PROP, propertyList(ATTR_PADDING_BOTTOM, ATTR_ELEVATION));
+    NlProperties.saveStarState(TOOLS_URI, ATTR_TEXT, true);
+    assertThat(myPropertiesComponent.getValue(STARRED_PROP))
+      .isEqualTo(propertyList(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, TOOLS_NS_NAME_PREFIX + ATTR_TEXT));
+  }
+
+  public void testRemoveStarredProperty() {
+    myPropertiesComponent.setValue(STARRED_PROP, propertyList(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK, ATTR_CARD_ELEVATION));
+    NlProperties.saveStarState(ANDROID_URI, ATTR_CARD_ELEVATION, false);
+    assertThat(myPropertiesComponent.getValue(STARRED_PROP))
+      .isEqualTo(propertyList(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK));
+  }
+
+  @NotNull
+  private static String propertyList(@NotNull String... propertyNames) {
+    return Joiner.on(";").join(propertyNames) + ";";
   }
 
   private static void assertPresent(String tag, Table<String, String, NlPropertyItem> properties, String namespace, String... names) {

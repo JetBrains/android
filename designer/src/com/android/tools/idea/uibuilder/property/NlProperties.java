@@ -21,9 +21,12 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ImageViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.utils.Pair;
+import com.google.common.base.Splitter;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Computable;
@@ -48,6 +51,8 @@ import java.util.Map;
 import static com.android.SdkConstants.*;
 
 public class NlProperties {
+  public static final String STARRED_PROP = "ANDROID.STARRED_PROPERTIES";
+
   private static NlProperties ourInstance = null;
   private final AndroidDomElementDescriptorProvider myDescriptorProvider = new AndroidDomElementDescriptorProvider();
 
@@ -137,8 +142,75 @@ public class NlProperties {
     setUpDesignProperties(combinedProperties);
     setUpSrcCompat(combinedProperties, facet, components);
 
+    initStarState(combinedProperties);
+
     //noinspection ConstantConditions
     return combinedProperties;
+  }
+
+  private static void initStarState(@NotNull Table<String, String, NlPropertyItem> properties) {
+    for (String starredProperty : getStarredProperties()) {
+      Pair<String, String> property = split(starredProperty);
+      NlPropertyItem item = properties.get(property.getFirst(), property.getSecond());
+      if (item != null) {
+        item.setInitialStarred();
+      }
+    }
+  }
+
+  public static void saveStarState(@Nullable String propertyNamespace, @NotNull String propertyName, boolean starred) {
+    String propertyNameWithPrefix = getPropertyNameWithPrefix(propertyNamespace, propertyName);
+    StringBuilder builder = new StringBuilder();
+    for (String starredProperty : getStarredProperties()) {
+      if (!starredProperty.equals(propertyNameWithPrefix)) {
+        builder.append(starredProperty);
+        builder.append(";");
+      }
+    }
+    if (starred) {
+      builder.append(propertyNameWithPrefix);
+      builder.append(";");
+    }
+    PropertiesComponent properties = PropertiesComponent.getInstance();
+    properties.setValue(STARRED_PROP, builder.toString());
+  }
+
+  public static String getStarredPropertiesAsString() {
+    String starredProperties = PropertiesComponent.getInstance().getValue(STARRED_PROP);
+    if (starredProperties == null) {
+      starredProperties = ATTR_VISIBILITY;
+    }
+    return starredProperties;
+  }
+
+  public static Iterable<String> getStarredProperties() {
+    return Splitter.on(';').trimResults().omitEmptyStrings().split(getStarredPropertiesAsString());
+  }
+
+  @NotNull
+  private static String getPropertyNameWithPrefix(@Nullable String namespace, @NotNull String propertyName) {
+    if (namespace == null) {
+      return propertyName;
+    }
+    switch (namespace) {
+      case TOOLS_URI:
+        return TOOLS_NS_NAME_PREFIX + propertyName;
+      case ANDROID_URI:
+        return propertyName;
+      default:
+        return PREFIX_APP + propertyName;
+    }
+  }
+
+  @NotNull
+  private static Pair<String, String> split(@NotNull String propertyNameWithPrefix) {
+    if (propertyNameWithPrefix.startsWith(TOOLS_NS_NAME_PREFIX)) {
+      return Pair.of(TOOLS_URI, propertyNameWithPrefix.substring(TOOLS_NS_NAME_PREFIX.length()));
+    }
+    if (propertyNameWithPrefix.startsWith(PREFIX_APP)) {
+      return Pair.of(AUTO_URI, propertyNameWithPrefix.substring(PREFIX_APP.length()));
+    }
+    return Pair.of(ANDROID_URI, propertyNameWithPrefix);
   }
 
   @Nullable
