@@ -25,6 +25,7 @@ public interface MemoryNode {
     LABEL,
     CHILDREN_COUNT,
     ELEMENT_SIZE,
+    DEPTH,
     SHALLOW_SIZE,
     RETAINED_SIZE
   }
@@ -41,6 +42,8 @@ public interface MemoryNode {
   default int getElementSize() {
     return 0;
   }
+
+  default int getDepth() { return 0; }
 
   default int getShallowSize() {
     return 0;
