@@ -29,7 +29,7 @@ import java.util.List;
 
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class DaemonContextMismatchErrorHandler extends SyncErrorHandler {
+public class DaemonContextMismatchErrorHandler extends BaseSyncErrorHandler {
   private static final String JAVA_HOME = "javaHome=";
 
   @Override

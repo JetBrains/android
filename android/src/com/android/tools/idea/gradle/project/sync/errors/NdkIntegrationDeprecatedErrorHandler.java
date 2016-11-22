@@ -31,7 +31,7 @@ import java.util.List;
 
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class NdkIntegrationDeprecatedErrorHandler extends SyncErrorHandler {
+public class NdkIntegrationDeprecatedErrorHandler extends BaseSyncErrorHandler {
   private static final String NDK_INTEGRATION_DEPRECATED = "NDK integration is deprecated in the current plugin.";
 
   @Override

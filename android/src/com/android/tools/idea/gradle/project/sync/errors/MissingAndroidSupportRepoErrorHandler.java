@@ -30,7 +30,7 @@ import java.util.List;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.MISSING_ANDROID_SUPPORT_REPO;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class MissingAndroidSupportRepoErrorHandler extends SyncErrorHandler {
+public class MissingAndroidSupportRepoErrorHandler extends BaseSyncErrorHandler {
   private static final String INSTALL_ANDROID_SUPPORT_REPO = "Please install the Android Support Repository from the Android SDK Manager.";
 
   @Override

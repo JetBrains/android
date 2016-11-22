@@ -42,19 +42,20 @@ import static com.android.repository.api.RepoManager.DEFAULT_EXPIRATION_PERIOD_M
 import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class MissingCMakeErrorHandler extends SyncErrorHandler {
-  @Nullable private final AndroidSdkHandler mySdkHandler;
+public class MissingCMakeErrorHandler extends BaseSyncErrorHandler {
   @NotNull private final Downloader myDownloader;
-  @NotNull private final SettingsController mySettingsController;
+  @Nullable private final AndroidSdkHandler mySdkHandler;
+  @Nullable private final SettingsController mySettingsController;
   @Nullable private final RemotePackage myCmakePackage;
 
+  @SuppressWarnings("unused") // Instantiated by IDEA
   public MissingCMakeErrorHandler() {
-    this(null, new StudioDownloader(), StudioSettingsController.getInstance());
+    this(new StudioDownloader(), null, StudioSettingsController.getInstance());
   }
 
   @VisibleForTesting
-  MissingCMakeErrorHandler(@Nullable AndroidSdkHandler sdkHandler,
-                           @NotNull Downloader downloader,
+  MissingCMakeErrorHandler(@NotNull Downloader downloader,
+                           @Nullable AndroidSdkHandler sdkHandler,
                            @Nullable SettingsController settingsController) {
     mySdkHandler = sdkHandler;
     myDownloader = downloader;
@@ -74,8 +75,7 @@ public class MissingCMakeErrorHandler extends SyncErrorHandler {
     ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
     sdkHandler.getSdkManager(progress).loadSynchronously(DEFAULT_EXPIRATION_PERIOD_MS, progress, myDownloader,
                                                          mySettingsController);
-    RemotePackage cmakePackage = sdkHandler.getLatestRemotePackageForPrefix(SdkConstants.FD_CMAKE, false, progress);
-    return cmakePackage;
+    return sdkHandler.getLatestRemotePackageForPrefix(SdkConstants.FD_CMAKE, false, progress);
   }
 
   @Override
@@ -94,6 +94,9 @@ public class MissingCMakeErrorHandler extends SyncErrorHandler {
   protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
                                                               @NotNull Project project,
                                                               @NotNull String text) {
+    if (myCmakePackage == null) {
+      return super.getQuickFixHyperlinks(notification, project, text);
+    }
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     NotificationHyperlink installCMakeLink = getInstallCMakeNotificationHyperlink(myCmakePackage.getPath());
     hyperlinks.add(installCMakeLink);
@@ -101,7 +104,7 @@ public class MissingCMakeErrorHandler extends SyncErrorHandler {
   }
 
   @NotNull
-  private NotificationHyperlink getInstallCMakeNotificationHyperlink(@NotNull String cmakePackagePath) {
+  private static NotificationHyperlink getInstallCMakeNotificationHyperlink(@NotNull String cmakePackagePath) {
     return new NotificationHyperlink("install.cmake", "Install CMake and sync project") {
       @Override
       protected void execute(@NotNull Project project) {

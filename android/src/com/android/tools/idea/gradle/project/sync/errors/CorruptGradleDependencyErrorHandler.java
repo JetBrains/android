@@ -27,8 +27,7 @@ import java.util.List;
 import static com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.syncProjectRefreshingDependencies;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class CorruptGradleDependencyErrorHandler extends SyncErrorHandler {
-
+public class CorruptGradleDependencyErrorHandler extends BaseSyncErrorHandler {
   @Override
   @Nullable
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
