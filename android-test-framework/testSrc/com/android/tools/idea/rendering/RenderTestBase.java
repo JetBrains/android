@@ -76,20 +76,24 @@ public abstract class RenderTestBase extends AndroidTestCase {
     return configuration;
   }
 
-  protected RenderTask createRenderTask(VirtualFile file, Configuration configuration) throws IOException {
+  protected RenderTask createRenderTask(VirtualFile file, Configuration configuration, RenderLogger logger) throws IOException {
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
     assertNotNull(psiFile);
     assertNotNull(facet);
     RenderService renderService = RenderService.get(facet);
-    RenderLogger logger = renderService.createLogger();
     final RenderTask task = renderService.createTask(psiFile, configuration, logger, null);
     assertNotNull(task);
     task.disableSecurityManager();
     return task;
   }
 
-  protected void checkRendering(RenderTask task, String thumbnailPath) throws IOException {
+  protected RenderTask createRenderTask(VirtualFile file, Configuration configuration) throws IOException {
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    return createRenderTask(file, configuration, RenderService.get(facet).createLogger());
+  }
+
+    protected void checkRendering(RenderTask task, String thumbnailPath) throws IOException {
     // Next try a render
     RenderResult result = task.render();
     RenderResult render = renderOnSeparateThread(task);

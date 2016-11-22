@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.MergeCookie;
@@ -26,6 +27,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.diagnostics.crash.CrashReporter;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
@@ -239,7 +241,7 @@ public class RenderService {
       return null;
     }
 
-    RenderTask task = new RenderTask(this, configuration, logger, layoutLib, device, myCredential);
+    RenderTask task = new RenderTask(this, configuration, logger, layoutLib, device, myCredential, CrashReporter.getInstance());
     if (psiFile != null) {
       task.setPsiFile(psiFile);
     }
