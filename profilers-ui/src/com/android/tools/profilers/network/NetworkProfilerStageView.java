@@ -44,8 +44,6 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   private static final BaseAxisFormatter CONNECTIONS_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 1, "");
 
   private final ConnectionDetailsView myConnectionDetails;
-  private final ConnectionsView myConnections;
-  private final Splitter mySplitter;
 
   public NetworkProfilerStageView(NetworkProfilerStage stage) {
     super(stage);
@@ -55,17 +53,17 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
       .onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, this::updateConnectionDetailsView);
 
     myConnectionDetails = new ConnectionDetailsView();
-    myConnections = new ConnectionsView(this, stage::setConnection);
+    ConnectionsView connectionsView = new ConnectionsView(this, stage::setConnection);
 
-    Splitter l2l3splitter = new Splitter(true);
-    l2l3splitter.setFirstComponent(buildMonitorUi());
-    l2l3splitter.setSecondComponent(new JBScrollPane(myConnections.getComponent()));
+    Splitter leftSplitter = new Splitter(true);
+    leftSplitter.setFirstComponent(buildMonitorUi());
+    leftSplitter.setSecondComponent(new JBScrollPane(connectionsView.getComponent()));
 
-    mySplitter = new Splitter(false);
-    mySplitter.setFirstComponent(l2l3splitter);
-    mySplitter.setSecondComponent(myConnectionDetails);
+    Splitter splitter = new Splitter(false);
+    splitter.setFirstComponent(leftSplitter);
+    splitter.setSecondComponent(myConnectionDetails);
 
-    getComponent().add(mySplitter, BorderLayout.CENTER);
+    getComponent().add(splitter, BorderLayout.CENTER);
 
     updateConnectionDetailsView();
   }
