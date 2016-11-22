@@ -16,8 +16,8 @@
 package com.android.tools.profilers.cpu;
 
 public enum CpuProfilerAspect {
-  // The captured traces tree has changed.
-  CAPTURED_TREE,
+  // The current capture has changed.
+  CAPTURE,
   // The threads selection has changed.
   SELECTED_THREADS,
 }

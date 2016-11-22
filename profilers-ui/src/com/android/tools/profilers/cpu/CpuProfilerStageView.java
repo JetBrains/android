@@ -17,7 +17,6 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.StateChart;
-import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
@@ -34,10 +33,10 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -51,14 +50,15 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private final CpuProfilerStage myStage;
 
   private final JButton myCaptureButton;
-  private final HTreeChart<MethodModel> myCaptureTreeChart;
   private final JBList myThreads;
   /**
    * The action listener of the capture button changes depending on the state of the profiler.
    * It can be either "start capturing" or "stop capturing".
    */
-  private ActionListener myCaptureActionListener;
-  private final JPanel myCapturePanel;
+  private final Splitter mySplitter;
+
+  @Nullable
+  private CpuCaptureView myCaptureView;
 
   public CpuProfilerStageView(@NotNull CpuProfilerStage stage) {
     // TODO: decide if the constructor should be split into multiple methods in order to organize the code and improve readability
@@ -67,7 +67,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     stage.getAspect().addDependency()
       .setExecutor(ApplicationManager.getApplication()::invokeLater)
-      .onChange(CpuProfilerAspect.CAPTURED_TREE, this::updateCallTree)
+      .onChange(CpuProfilerAspect.CAPTURE, this::updateCapture)
       .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection);
 
     StudioProfilers profilers = stage.getStudioProfilers();
@@ -157,10 +157,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     JScrollPane scrollingThreads = new JBScrollPane();
     scrollingThreads.setViewportView(myThreads);
 
-    myCaptureTreeChart = new HTreeChart<>();
-    myCaptureTreeChart.setHRenderer(new SampledMethodUsageHRenderer());
-    myCaptureTreeChart.setXRange(profilers.getTimeline().getSelectionRange());
-
     myThreads.setCellRenderer(new ThreadCellRenderer(getChoreographer(), myThreads));
     RangedList rangedList = new RangedList(getTimeline().getViewRange(), model);
 
@@ -192,17 +188,15 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     details.add(timeAxis, c);
     getChoreographer().register(rangedList);
 
-    myCapturePanel = new JPanel(new BorderLayout());
-    myCapturePanel.add(myCaptureTreeChart, BorderLayout.CENTER);
-    getChoreographer().register(myCaptureTreeChart);
-
-    Splitter splitter = new Splitter(true);
-    splitter.setFirstComponent(details);
-    splitter.setSecondComponent(myCapturePanel);
-    getComponent().add(splitter, BorderLayout.CENTER);
+    mySplitter = new Splitter(true);
+    mySplitter.setFirstComponent(details);
+    mySplitter.setSecondComponent(null);
+    getComponent().add(mySplitter, BorderLayout.CENTER);
 
     myCaptureButton = new JButton();
-    updateCallTree();
+    myCaptureButton.addActionListener(event -> capture());
+
+    updateCapture();
   }
 
   @Override
@@ -220,29 +214,37 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     return panel;
   }
 
-  // TODO: better naming + javadoc + implement proper behavior
-  private void updateCallTree() {
-    // Remove the current action listener
-    myCaptureButton.removeActionListener(myCaptureActionListener);
-    switch (myStage.getCaptureState()) {
-      case NONE:
-        myCaptureActionListener = action -> myStage.startCapturing();
-        break;
-      case CAPTURING:
-        // TODO: clean panel
-        myCaptureActionListener = action -> myStage.stopCapturing();
-        break;
-      case CAPTURED:
-        myCaptureActionListener = action -> myStage.startCapturing();
+
+  private void updateCapture() {
+    CpuCapture capture = myStage.getCapture();
+
+    if (myCaptureView != null && myCaptureView.getCapture() != capture) {
+      myCaptureView.unregister(getChoreographer());
     }
-    myCaptureButton.setText(myStage.getCaptureState() == CpuCaptureState.CAPTURING ? "Stop" : "Record");
-    myCapturePanel.setVisible(myStage.getCaptureState() == CpuCaptureState.CAPTURED);
-    myCaptureButton.addActionListener(myCaptureActionListener);
+
+    if (capture == null) {
+      mySplitter.setSecondComponent(null);
+      myCaptureView = null;
+    }
+    else {
+      myCaptureView = new CpuCaptureView(capture, getStage().getStudioProfilers());
+      myCaptureView.register(getChoreographer());
+      mySplitter.setSecondComponent(myCaptureView.getComponent());
+    }
+
+    myCaptureButton.setText(myStage.isCapturing() ? "Stop" : "Record");
+  }
+
+  private void capture() {
+    if (myStage.isCapturing()) {
+      myStage.stopCapturing();
+    }
+    else {
+      myStage.startCapturing();
+    }
   }
 
   private void updateThreadSelection() {
-    // Updates the tree displayed in capture panel
-    myCaptureTreeChart.setHTree(myStage.getCaptureTree());
     // Select the thread which has its tree displayed in capture panel in the threads list
     for (int i = 0; i < myThreads.getModel().getSize(); i++) {
       CpuThreadsModel.RangedCpuThread thread = (CpuThreadsModel.RangedCpuThread)myThreads.getModel().getElementAt(i);
