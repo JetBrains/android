@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.variant.view;
 
 import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel.NdkVariant;
@@ -74,7 +75,7 @@ class BuildVariantUpdater {
 
       PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
       setupRequest.setGenerateSourcesAfterSync(false).setCleanProjectAfterSync(false);
-      PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest);
+      PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest, null);
 
       generateSourcesIfNeeded(affectedAndroidFacets);
     });
@@ -127,7 +128,7 @@ class BuildVariantUpdater {
                                         @NotNull AndroidModuleModel androidModel,
                                         @NotNull String variantToSelect,
                                         @NotNull List<AndroidFacet> affectedFacets) {
-    com.android.builder.model.Variant selectedVariant = androidModel.getSelectedVariant();
+    Variant selectedVariant = androidModel.getSelectedVariant();
     if (variantToSelect.equals(selectedVariant.getName())) {
       return false;
     }
