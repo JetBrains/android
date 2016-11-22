@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.tools.idea.uibuilder.handlers.scene.Display;
-import com.android.tools.idea.uibuilder.handlers.scene.Scene;
+import com.android.tools.idea.uibuilder.scene.Display;
+import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,9 +28,9 @@ import java.awt.geom.Rectangle2D;
  */
 public class SceneLayer extends Layer {
   private final ScreenView myScreenView;
-  private Dimension myScreenViewSize = new Dimension();
-  private Rectangle mySizeRectangle = new Rectangle();
-  private Display myDisplay = new Display();
+  private final Dimension myScreenViewSize = new Dimension();
+  private final Rectangle mySizeRectangle = new Rectangle();
+  private final Display myDisplay = new Display();
   private Scene myScene = null;
 
   /**
@@ -38,7 +38,7 @@ public class SceneLayer extends Layer {
    *
    * @param view the current ScreenView
    */
-  public SceneLayer(ScreenView view) {
+  public SceneLayer(@NotNull ScreenView view) {
     myScreenView = view;
   }
 
@@ -48,28 +48,32 @@ public class SceneLayer extends Layer {
    * @param g the graphics context
    */
   @Override
-  public void paint(@NotNull Graphics2D g) {
-    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    myScreenView.getSize(myScreenViewSize);
+  public void paint(@NotNull Graphics2D g2) {
+    Graphics2D g = (Graphics2D)g2.create();
+    try {
+      g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      myScreenView.getSize(myScreenViewSize);
 
-    mySizeRectangle.setBounds(myScreenView.getX(), myScreenView.getY(), myScreenViewSize.width, myScreenViewSize.height);
-    Rectangle2D.intersect(mySizeRectangle, g.getClipBounds(), mySizeRectangle);
-    if (mySizeRectangle.isEmpty()) {
-      return;
-    }
+      mySizeRectangle.setBounds(myScreenView.getX(), myScreenView.getY(), myScreenViewSize.width, myScreenViewSize.height);
+      Rectangle2D.intersect(mySizeRectangle, g.getClipBounds(), mySizeRectangle);
+      if (mySizeRectangle.isEmpty()) {
+        return;
+      }
 
-    // Draw the components
-    NlModel model = myScreenView.getModel();
-    if (model.getComponents().size() == 0) {
-      return;
+      // Draw the components
+      NlModel model = myScreenView.getModel();
+      if (model.getComponents().size() == 0) {
+        return;
+      }
+      if (myScene == null) {
+        myScene = Scene.createScene(model);
+      }
+      else {
+        myScene.updateFrom(model);
+      }
+      myDisplay.draw(myScreenView, g, myScene);
+    } finally {
+      g.dispose();
     }
-    if (myScene == null) {
-      Scene scene = Scene.createScene(model);
-      myScene = scene;
-    }
-    else {
-      myScene.updateFrom(model);
-    }
-    myDisplay.draw(myScreenView, g, myScene);
   }
 }

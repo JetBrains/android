@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers.scene;
+package com.android.tools.idea.uibuilder.scene;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.model.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -41,7 +42,7 @@ public class Scene implements ModelListener {
    * @param model the NlModel instance used to populate the Scene
    * @return a newly initialized Scene instance populated using the given NlModel
    */
-  public static Scene createScene(NlModel model) {
+  public static Scene createScene(@NotNull NlModel model) {
     int dpiFactor = model.getConfiguration().getDensity().getDpiValue();
     Scene scene = new Scene(dpiFactor / 160f);
     scene.add(model);
@@ -53,7 +54,8 @@ public class Scene implements ModelListener {
    *
    * @param dpiFactor
    */
-  public Scene(float dpiFactor) {
+  @VisibleForTesting
+  Scene(float dpiFactor) {
     myDpiFactor = dpiFactor;
   }
 
@@ -169,15 +171,13 @@ public class Scene implements ModelListener {
     }
     NlComponent rootComponent = components.get(0).getRoot();
     myRoot = updateFromComponent(rootComponent);
-    ArrayList<SceneComponent> toRemove = new ArrayList();
-    for (SceneComponent component : mySceneComponents.values()) {
+    Iterator<SceneComponent> it = mySceneComponents.values().iterator();
+    while (it.hasNext()) {
+      SceneComponent component = it.next();
       if (!component.used) {
-        toRemove.add(component);
+        component.removeFromParent();
+        it.remove();
       }
-    }
-    for (SceneComponent component : toRemove) {
-      component.removeFromParent();
-      mySceneComponents.remove(component.getNlComponent());
     }
   }
 
@@ -187,7 +187,7 @@ public class Scene implements ModelListener {
    * @param component a given NlComponent
    * @return the SceneComponent paired with the given NlComponent
    */
-  private SceneComponent updateFromComponent(NlComponent component) {
+  private SceneComponent updateFromComponent(@NotNull NlComponent component) {
     SceneComponent sceneComponent = mySceneComponents.get(component);
     if (sceneComponent != null) {
       sceneComponent.used = true;

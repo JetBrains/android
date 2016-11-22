@@ -18,8 +18,6 @@ package com.android.tools.idea.uibuilder.scene;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.handlers.scene.Scene;
-import com.android.tools.idea.uibuilder.handlers.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import org.jetbrains.annotations.NotNull;
 
