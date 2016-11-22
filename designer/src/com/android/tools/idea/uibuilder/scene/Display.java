@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers.scene;
+package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +44,9 @@ public class Display {
     int w = getSwingDimension(screenView, dpToPx(screenView, component.getDrawWidth(mTime)));
     int h = getSwingDimension(screenView, dpToPx(screenView, component.getDrawHeight(mTime)));
     g.drawRect(x, y, w, h);
-    for (SceneComponent child : component.getChildren()) {
+    int count = component.getChildCount();
+    for (int i = 0; i < count; i++) {
+      SceneComponent child = component.getChild(i);
       draw(screenView, g, child);
     }
   }
