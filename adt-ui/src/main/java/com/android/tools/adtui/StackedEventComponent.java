@@ -43,12 +43,9 @@ public class StackedEventComponent extends AnimatedComponent {
   private static final Color ENABLED_ACTION = new Color(106, 189, 180);
   private static final int CHARACTERS_TO_SHRINK_BY = 1;
   private static final int SEGMENT_SPACING = 5;
-  private static final int NORMALIZED_END = 1;
 
   @NotNull
   private final RangedSeries<EventAction<EventAction.ActivityAction, String>> mData;
-
-  private final int myMaxHeight;
 
   private float myLineThickness = 6.0f;
 
@@ -62,9 +59,8 @@ public class StackedEventComponent extends AnimatedComponent {
   /**
    * @param data The state chart data.
    */
-  public StackedEventComponent(@NotNull RangedSeries<EventAction<EventAction.ActivityAction, String>> data, int maxHeight) {
+  public StackedEventComponent(@NotNull RangedSeries<EventAction<EventAction.ActivityAction, String>> data) {
     mData = data;
-    myMaxHeight = maxHeight;
     setFont(AdtUiUtils.DEFAULT_FONT);
   }
 
@@ -97,9 +93,8 @@ public class StackedEventComponent extends AnimatedComponent {
       double endTime = data.getEndUs() == 0 ? max : data.getEndUs();
       double normalizedEndPosition = ((endTime - min) / (max - min));
       double normalizedstartPosition = ((data.getStartUs() - min) / (max - min));
-      double baseHeight = myMaxHeight - (SEGMENT_SPACING);
-      path.moveTo(normalizedEndPosition, baseHeight);
-      path.lineTo(normalizedstartPosition, baseHeight);
+      path.moveTo(normalizedEndPosition, 1);
+      path.lineTo(normalizedstartPosition, 1);
       myActivities.add(new EventRenderData(data, path));
     }
 
@@ -125,7 +120,7 @@ public class StackedEventComponent extends AnimatedComponent {
     FontMetrics metrics = g2d.getFontMetrics();
     Stroke current = g2d.getStroke();
     BasicStroke str = new BasicStroke(myLineThickness);
-    AffineTransform scale = AffineTransform.getScaleInstance(scaleFactor, 1);
+    AffineTransform scale = AffineTransform.getScaleInstance(scaleFactor, dim.height - SEGMENT_SPACING);
     Iterator<EventRenderData> itor = myActivities.iterator();
     g2d.setFont(getFont());
 
@@ -145,6 +140,7 @@ public class StackedEventComponent extends AnimatedComponent {
       g2d.setStroke(current);
       String text = event.getValueData();
       int width = metrics.stringWidth(text);
+      int height = metrics.getHeight();
       double normalizedStartPosition = (event.getStartUs() - min) / (max - min);
       double lifetime = event.getEndUs() - event.getStartUs();
       if (event.getEndUs() == 0) {
@@ -174,7 +170,7 @@ public class StackedEventComponent extends AnimatedComponent {
       else {
         g2d.setColor(ENABLED_ACTION);
       }
-      g2d.drawString(text, startPosition, myMaxHeight - (myLineThickness + SEGMENT_SPACING));
+      g2d.drawString(text, startPosition, (myLineThickness + SEGMENT_SPACING));
     }
   }
 

@@ -104,6 +104,9 @@ public class EventDataPoller extends EventServiceGrpc.EventServiceImplBase imple
     EventProfiler.ActivityDataResponse.Builder response = EventProfiler.ActivityDataResponse.newBuilder();
     synchronized (myActivityLock) {
       for (EventProfiler.ActivityData data : myActivityDataMap.values()) {
+        if (data.getAppId() != request.getAppId()) {
+          continue;
+        }
         // We always return information about an activity to the caller. This is so the caller can choose to act on this
         // information or drop it.
         EventProfiler.ActivityData.Builder builder = EventProfiler.ActivityData.newBuilder();

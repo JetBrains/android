@@ -17,7 +17,6 @@
 package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.EventAction;
@@ -27,8 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -46,15 +44,15 @@ public class EventVisualTest extends VisualTest {
     "MultiplayerActivity"
   };
 
-  private static final Icon[] MOCK_ICONS = {
-    AdtUiUtils.buildStaticImage(Color.red, IMAGE_WIDTH, IMAGE_HEIGHT),
-    AdtUiUtils.buildStaticImage(Color.green, IMAGE_WIDTH, IMAGE_HEIGHT),
-    AdtUiUtils.buildStaticImage(Color.blue, IMAGE_WIDTH, IMAGE_HEIGHT)
-  };
+  private static final Map<ActionType, SimpleEventRenderer> MOCK_RENDERERS;
+  static {
+    MOCK_RENDERERS = new HashMap();
+    MOCK_RENDERERS.put(ActionType.TOUCH, new TouchEventRenderer());
+    MOCK_RENDERERS.put(ActionType.ROTATE, new EventIconRenderer("/icons/events/rotate-event.png", "/icons/events/rotate-event_dark.png"));
+    MOCK_RENDERERS.put(ActionType.KEYBOARD, new EventIconRenderer("/icons/events/keyboard-event.png", "/icons/events/keyboard-event_dark.png"));
+  }
 
   private static final int AXIS_SIZE = 100;
-
-  private static final int ACTIVITY_GRAPH_SIZE = 31;
 
   private ArrayList<MockActivity> myOpenActivities;
 
@@ -81,8 +79,8 @@ public class EventVisualTest extends VisualTest {
 
     myData = new DefaultDataSeries<>();
     myActivityData = new DefaultDataSeries<>();
-    mySimpleEventComponent = new SimpleEventComponent<>(new RangedSeries<>(xRange, myData), MOCK_ICONS);
-    myStackedEventComponent = new StackedEventComponent(new RangedSeries<>(xRange, myActivityData), ACTIVITY_GRAPH_SIZE);
+    mySimpleEventComponent = new SimpleEventComponent<>(new RangedSeries<>(xRange, myData), MOCK_RENDERERS);
+    myStackedEventComponent = new StackedEventComponent(new RangedSeries<>(xRange, myActivityData));
     myAnimatedRange = new AnimatedTimeRange(xRange, 0);
     myTimelineRange = new AnimatedTimeRange(xTimelineRange, nowUs);
     myOpenActivities = new ArrayList<>();
@@ -114,10 +112,7 @@ public class EventVisualTest extends VisualTest {
 
   private void performTapAction() {
     long now = System.currentTimeMillis();
-    EventAction<EventAction.Action, ActionType> event =
-      new EventAction<>(now, 0, EventAction.Action.DOWN, ActionType.HOLD);
-    myData.add(now, event);
-    event = new EventAction<>(now, now, EventAction.Action.UP, ActionType.TOUCH);
+    EventAction<EventAction.Action, ActionType> event = new EventAction<>(now, now, EventAction.Action.UP, ActionType.TOUCH);
     myData.add(now, event);
   }
 
@@ -162,9 +157,6 @@ public class EventVisualTest extends VisualTest {
       public void mousePressed(MouseEvent e) {
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
         mDownTime = nowUs;
-        EventAction<EventAction.Action, ActionType> event =
-          new EventAction<>(nowUs, 0, EventAction.Action.DOWN, ActionType.HOLD);
-        myData.add(nowUs, event);
       }
 
       @Override
@@ -234,8 +226,8 @@ public class EventVisualTest extends VisualTest {
    */
   public enum ActionType {
     TOUCH,
-    HOLD,
-    DOUBLE_TAP
+    ROTATE,
+    KEYBOARD
   }
 
   class MockActivity {
