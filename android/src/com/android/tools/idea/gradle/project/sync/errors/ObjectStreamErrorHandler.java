@@ -33,20 +33,18 @@ import static com.android.tools.idea.gradle.service.notification.errors.Abstract
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class ObjectStreamErrorHandler extends SyncErrorHandler {
-
   @Override
   public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
-    String text = findErrorMessage(error, notification, project);
+    String text = findErrorMessage(error);
     if (text != null) {
-      getQuickFixHyperlinks(notification, project, text);
+      findAndAddQuickFixes(notification, project, text);
       return true;
     }
     return false;
   }
 
-  @Override
   @Nullable
-  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
+  private static String findErrorMessage(@NotNull Throwable rootCause) {
     String text = rootCause.getMessage();
     if (isNotEmpty(text) && getFirstLineMessage(text).endsWith("unexpected end of block data")) {
       updateUsageTracker();
@@ -58,11 +56,7 @@ public class ObjectStreamErrorHandler extends SyncErrorHandler {
     return null;
   }
 
-  @Override
-  @NotNull
-  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
-                                                              @NotNull Project project,
-                                                              @NotNull String text) {
+  private static void findAndAddQuickFixes(@NotNull NotificationData notification, @NotNull Project project, @NotNull String text) {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     NotificationHyperlink buildProjectHyperlink = new BuildProjectHyperlink();
     NotificationHyperlink openAndroidSdkManagerHyperlink = new OpenAndroidSdkManagerHyperlink();
@@ -77,6 +71,5 @@ public class ObjectStreamErrorHandler extends SyncErrorHandler {
     notification.setMessage(text);
     notification.setNotificationCategory(NotificationCategory.convert(DEFAULT_NOTIFICATION_TYPE));
     SyncMessages.getInstance(project).addNotificationListener(notification, hyperlinks);
-    return hyperlinks;
   }
 }

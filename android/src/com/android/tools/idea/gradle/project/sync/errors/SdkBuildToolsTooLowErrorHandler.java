@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.annotations.Nullable;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.impl.meta.RepositoryPackages;
@@ -52,8 +51,9 @@ public class SdkBuildToolsTooLowErrorHandler extends SyncErrorHandler {
 
   @Override
   public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
-    String text = findErrorMessage(getRootCause(error), notification, project);
-    List<NotificationHyperlink> hyperlinks = getQuickFixHyperlinks(notification, project, text);
+    //noinspection ThrowableResultOfMethodCallIgnored
+    String text = getRootCause(error).getMessage();
+    List<NotificationHyperlink> hyperlinks = getQuickFixHyperlinks(project, text);
     if (!hyperlinks.isEmpty()) {
       updateUsageTracker();
       SyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
@@ -62,17 +62,8 @@ public class SdkBuildToolsTooLowErrorHandler extends SyncErrorHandler {
     return false;
   }
 
-  @Override
-  @Nullable
-  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
-    return rootCause.getMessage();
-  }
-
-  @Override
   @NotNull
-  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
-                                                              @NotNull Project project,
-                                                              @NotNull String text) {
+  private List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull Project project, @NotNull String text) {
     Matcher matcher = SDK_BUILD_TOOLS_TOO_LOW_PATTERN.matcher(getFirstLineMessage(text));
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     if (matcher.matches()) {

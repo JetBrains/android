@@ -27,7 +27,7 @@ import java.util.List;
 
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class InternetConnectionErrorHandler extends SyncErrorHandler {
+public class InternetConnectionErrorHandler extends BaseSyncErrorHandler {
   @Override
   @Nullable
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {

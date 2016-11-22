@@ -28,7 +28,7 @@ import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyn
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.SystemProperties.getUserName;
 
-public class FailedToParseSdkErrorHandler extends SyncErrorHandler {
+public class FailedToParseSdkErrorHandler extends BaseSyncErrorHandler {
   @Override
   @Nullable
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {

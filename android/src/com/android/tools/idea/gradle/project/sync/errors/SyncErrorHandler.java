@@ -16,8 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.google.common.base.Splitter;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
@@ -30,8 +28,6 @@ import com.intellij.openapi.util.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,8 +36,9 @@ import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNKNOWN_GRADLE_FAILURE;
 
 public abstract class SyncErrorHandler {
-  private static final ExtensionPointName<SyncErrorHandler>
-    EXTENSION_POINT_NAME = ExtensionPointName.create("com.android.gradle.sync.syncErrorHandler");
+  private static final ExtensionPointName<SyncErrorHandler> EXTENSION_POINT_NAME =
+    ExtensionPointName.create("com.android.gradle.sync.syncErrorHandler");
+
   protected static final String EMPTY_LINE = "\n\n";
   protected static final NotificationType DEFAULT_NOTIFICATION_TYPE = NotificationType.ERROR;
   private static final Pattern ERROR_LOCATION_IN_FILE_PATTERN = Pattern.compile("Build file '(.*)' line: ([\\d]+)");
@@ -52,27 +49,9 @@ public abstract class SyncErrorHandler {
     return EXTENSION_POINT_NAME.getExtensions();
   }
 
-  public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
-    String text = findErrorMessage(getRootCause(error), notification, project);
-    if (text != null) {
-      List<NotificationHyperlink> hyperlinks = getQuickFixHyperlinks(notification, project, text);
-      SyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
-      return true;
-    }
-    return false;
-  }
-
-  @Nullable
-  protected abstract String findErrorMessage(@NotNull Throwable rootCause,
-                                             @NotNull NotificationData notification,
-                                             @NotNull Project project);
-
-  @NotNull
-  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
-                                                              @NotNull Project project,
-                                                              @NotNull String text) {
-    return Collections.emptyList();
-  }
+  public abstract boolean handleError(@NotNull ExternalSystemException error,
+                                      @NotNull NotificationData notification,
+                                      @NotNull Project project);
 
   @NotNull
   protected Throwable getRootCause(@NotNull Throwable error) {
@@ -86,15 +65,15 @@ public abstract class SyncErrorHandler {
     return rootCause;
   }
 
-  protected final void updateUsageTracker() {
+  protected static void updateUsageTracker() {
     updateUsageTracker(null, null);
   }
 
-  protected final void updateUsageTracker(@NotNull GradleSyncFailure syncFailure) {
+  protected static void updateUsageTracker(@NotNull GradleSyncFailure syncFailure) {
     updateUsageTracker(syncFailure, null);
   }
 
-  protected final void updateUsageTracker(@Nullable GradleSyncFailure gradleSyncFailure, @Nullable String gradleMissingSignature) {
+  protected static void updateUsageTracker(@Nullable GradleSyncFailure gradleSyncFailure, @Nullable String gradleMissingSignature) {
     AndroidStudioEvent.Builder builder =
       AndroidStudioEvent.newBuilder();
     if (gradleSyncFailure == null) {
@@ -112,7 +91,7 @@ public abstract class SyncErrorHandler {
   }
 
   @NotNull
-  protected final String getFirstLineMessage(@NotNull String text) {
+  protected static String getFirstLineMessage(@NotNull String text) {
     return Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(text).get(0);
   }
 

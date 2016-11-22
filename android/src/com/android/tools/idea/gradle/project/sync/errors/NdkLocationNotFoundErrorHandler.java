@@ -33,7 +33,7 @@ import java.util.List;
 
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class NdkLocationNotFoundErrorHandler extends SyncErrorHandler {
+public class NdkLocationNotFoundErrorHandler extends BaseSyncErrorHandler {
   private static final Logger LOG = Logger.getInstance(NdkLocationNotFoundErrorHandler.class);
   private static final String ERROR_TITLE = "Gradle Sync Error";
 
