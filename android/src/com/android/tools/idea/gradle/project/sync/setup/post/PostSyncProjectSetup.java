@@ -52,6 +52,7 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -66,7 +67,6 @@ import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
-import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.Extensions;
@@ -611,7 +611,7 @@ public class PostSyncProjectSetup {
   }
 
   private void setMakeStepInJunitRunConfigurations(@NotNull String makeTaskName) {
-    ConfigurationType junitConfigurationType = JUnitConfigurationType.getInstance();
+    ConfigurationType junitConfigurationType = AndroidJUnitConfigurationType.getInstance();
     BeforeRunTaskProvider<BeforeRunTask>[] taskProviders = Extensions.getExtensions(BeforeRunTaskProvider.EXTENSION_POINT_NAME, myProject);
 
     BeforeRunTaskProvider targetProvider = null;

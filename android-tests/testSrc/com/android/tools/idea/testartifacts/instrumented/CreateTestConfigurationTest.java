@@ -20,6 +20,9 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.util.SystemInfo;
 
+import static com.android.tools.idea.testartifacts.instrumented.TestConfigurationTesting.createAndroidTestConfiguration;
+import static com.android.tools.idea.testartifacts.instrumented.TestConfigurationTesting.createJUnitConfiguration;
+
 /**
  * Tests for creation of test run configurations in Android Gradle projects
  */
@@ -33,9 +36,8 @@ public class CreateTestConfigurationTest extends AndroidGradleTestCase {
       return;
     }
 
-    RunConfiguration androidTestRunConfiguration = TestConfigurationTestUtil
-      .createAndroidConfigurationFromDirectory(getProject(), "app/src/androidTest/java");
-    RunConfiguration jUnitConfiguration = TestConfigurationTestUtil.createJUnitConfigurationFromDirectory(getProject(), "app/src/test/java");
+    RunConfiguration androidTestRunConfiguration = createAndroidTestConfiguration(getProject(), "app/src/androidTest/java");
+    RunConfiguration jUnitConfiguration = createJUnitConfiguration(getProject(), "app/src/test/java");
 
     assertNotNull(jUnitConfiguration);
     assertNotNull(androidTestRunConfiguration);

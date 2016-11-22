@@ -20,9 +20,14 @@ import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.monitor.tool.AndroidMonitorToolWindowFactory;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
+import com.android.tools.idea.testartifacts.junit.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.concurrency.JobScheduler;
+import com.intellij.execution.actions.RunConfigurationProducer;
+import com.intellij.execution.configurations.ConfigurationType;
+import com.intellij.execution.junit.JUnitConfigurationProducer;
+import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.lang.injection.MultiHostInjector;
@@ -91,6 +96,7 @@ public class AndroidStudioInitializer implements Runnable {
     setUpExperimentalFeatures();
     setupAnalytics();
     disableGradleOrderEnumeratorHandler();
+    disableIdeaJUnitConfigurations();
 
     // Modify built-in "Default" color scheme to remove background from XML tags.
     // "Darcula" and user schemes will not be touched.
@@ -275,5 +281,32 @@ public class AndroidStudioInitializer implements Runnable {
         return;
       }
     }
+  }
+
+  // JUnit original Extension JUnitConfigurationType is disabled so it can be replaced by its child class AndroidJUnitConfigurationType
+  private static void disableIdeaJUnitConfigurations() {
+    // First we unregister the ConfigurationProducers, and after the ConfigurationType
+    ExtensionPoint<RunConfigurationProducer> configurationProducerExtensionPoint =
+      Extensions.getRootArea().getExtensionPoint(RunConfigurationProducer.EP_NAME);
+    for (RunConfigurationProducer runConfigurationProducer : configurationProducerExtensionPoint.getExtensions()) {
+      if (runConfigurationProducer instanceof JUnitConfigurationProducer
+          && !(runConfigurationProducer instanceof AndroidJUnitConfigurationProducer)) {
+        // In AndroidStudio these ConfigurationProducer s are replaced
+        configurationProducerExtensionPoint.unregisterExtension(runConfigurationProducer);
+      }
+    }
+
+    ExtensionPoint<ConfigurationType> configurationTypeExtensionPoint =
+      Extensions.getRootArea().getExtensionPoint(ConfigurationType.CONFIGURATION_TYPE_EP);
+    for (ConfigurationType configurationType : configurationTypeExtensionPoint.getExtensions()) {
+      if (configurationType instanceof JUnitConfigurationType) {
+        // In Android Studio the user is forced to use AndroidJUnitConfigurationType instead of JUnitConfigurationType
+        configurationTypeExtensionPoint.unregisterExtension(configurationType);
+      }
+    }
+
+    // We hide actions registered by the JUnit plugin and instead we use those registered in android-junit.xml
+    hideAction("excludeFromSuite");
+    hideAction("AddToISuite");
   }
 }
