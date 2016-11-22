@@ -44,10 +44,10 @@ import static com.android.tools.profilers.ProfilerColors.NETWORK_SENDING_COLOR;
 import static com.android.tools.profilers.ProfilerColors.NETWORK_WAITING_COLOR;
 
 /**
- * This class responsible for displaying table of requests information (e.g url, duration, timeline)
- * for network profiling. Each row in the table represents a single request.
+ * This class responsible for displaying table of connections information (e.g url, duration, timeline)
+ * for network profiling. Each row in the table represents a single connection.
  */
-public class ConnectionsView {
+class ConnectionsView {
   private static final int ROW_HEIGHT_PADDING = 5;
 
   public interface DetailedViewListener {
@@ -81,24 +81,24 @@ public class ConnectionsView {
   private final NetworkProfilerStageView myStageView;
 
   @NotNull
-  private final NetworkRequestsTableModel myTableModel;
+  private final ConnectionsTableModel myTableModel;
 
   @NotNull
-  private final JTable myRequestsTable;
+  private final JTable myConnectionsTable;
 
   public ConnectionsView(@NotNull NetworkProfilerStageView stageView,
                          @NotNull DetailedViewListener detailedViewListener) {
     myStageView = stageView;
     myDetailedViewListener = detailedViewListener;
-    myTableModel = new NetworkRequestsTableModel();
-    myRequestsTable = createRequestsTable();
+    myTableModel = new ConnectionsTableModel();
+    myConnectionsTable = createRequestsTable();
     RangedTable rangedTable = new RangedTable(stageView.getTimeline().getSelectionRange(), myTableModel);
     stageView.getChoreographer().register(rangedTable);
   }
 
   @NotNull
   public JComponent getComponent() {
-    return myRequestsTable;
+    return myConnectionsTable;
   }
 
   @NotNull
@@ -120,7 +120,7 @@ public class ConnectionsView {
     table.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {
-        table.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setPreferredWidth(myRequestsTable.getWidth() / 2);
+        table.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setPreferredWidth(myConnectionsTable.getWidth() / 2);
       }
     });
 
@@ -132,7 +132,7 @@ public class ConnectionsView {
         if (selectedData != null) {
           for (int i = 0; i < myTableModel.getRowCount(); ++i) {
             if (myTableModel.getHttpData(i).getId() == selectedData.getId()) {
-              myRequestsTable.setRowSelectionInterval(i, i);
+              myConnectionsTable.setRowSelectionInterval(i, i);
               break;
             }
           }
@@ -143,7 +143,7 @@ public class ConnectionsView {
     return table;
   }
 
-  private final class NetworkRequestsTableModel extends AbstractTableModel implements RangedTableModel {
+  private final class ConnectionsTableModel extends AbstractTableModel implements RangedTableModel {
     @NotNull private List<HttpData> myDataList = new ArrayList<>();
     @NotNull private final Range myLastRange = new Range(0, 0);
 
@@ -220,9 +220,9 @@ public class ConnectionsView {
 
   private final class NetworkTimelineRenderer implements TableCellRenderer, TableModelListener {
     @NotNull private final List<StateChart<NetworkState>> myCharts;
-    @NotNull private final NetworkRequestsTableModel myTableModel;
+    @NotNull private final ConnectionsTableModel myTableModel;
 
-    NetworkTimelineRenderer(@NotNull NetworkRequestsTableModel tableModel) {
+    NetworkTimelineRenderer(@NotNull ConnectionsTableModel tableModel) {
       myCharts = new ArrayList<>();
       myTableModel = tableModel;
       myTableModel.addTableModelListener(this);
