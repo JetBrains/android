@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
+import com.android.tools.idea.npw.TemplateEntry;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.idea.ui.ASGallery;
 import com.intellij.openapi.progress.ProgressManager;
 import org.fest.swing.core.Robot;
+import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.Optional;
 
 public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWizardFixture> {
   @NotNull
@@ -45,6 +49,16 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
   public ConfigureFormFactorStepFixture getConfigureFormFactorStep() {
     JRootPane rootPane = findStepWithTitle("Select the form factors your app will run on");
     return new ConfigureFormFactorStepFixture(robot(), rootPane);
+  }
+
+  public NewProjectWizardFixture chooseActivity(@NotNull String activity) {
+    JListFixture listFixture = new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class));
+    listFixture.replaceCellReader((jList, index) -> {
+      TemplateEntry templateEntry = ((Optional<TemplateEntry>) jList.getModel().getElementAt(index)).orElse(null);
+      return templateEntry == null ? "none" : templateEntry.getTitle();
+    });
+    listFixture.clickItem(activity);
+    return this;
   }
 
   @NotNull
