@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.monitor.ui.memory.view;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.AllocationInfo;
 import com.android.ddmlib.AllocationsParser;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.Choreographer;
+import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.idea.monitor.tool.ProfilerEventListener;
+import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.memory.model.AllocationTrackingSample;
 import com.android.tools.idea.monitor.ui.memory.model.MemoryDataCache;
 import com.android.tools.idea.monitor.ui.memory.model.MemoryInfoTreeNode;
@@ -32,52 +35,62 @@ import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 /**
  * This represents the histogram view of the memory monitor detail view.
  */
-class ClassHistogramView implements Disposable {
+public class ClassHistogramView extends BaseSegment implements Disposable {
+  private static final String NAME = "Memory Details";
+  private static final Color NEGATIVE_COLOR = new JBColor(new Color(0x33FF0000, true), new Color(0x33FF6464, true));
+  private static final Color POSITIVE_COLOR = new JBColor(new Color(0x330000FF, true), new Color(0x33589df6, true));
   @NotNull
   private final JPanel myParent;
   @NotNull
   private MemoryInfoTreeNode myRoot;
-  @NotNull
-  private MemoryDetailSegment myMemoryDetailSegment;
   @Nullable
   private HeapDump myMainHeapDump;
   @Nullable
   private HeapDump myDiffHeapDump;
+
+  private JComponent myColumnTree;
+
+  private JTree myTree;
+
+  private DefaultTreeModel myTreeModel;
 
   ClassHistogramView(@NotNull Disposable parentDisposable,
                      @NotNull JPanel parentPanel,
                      @NotNull Range timeCurrentRangeUs,
                      @NotNull Choreographer choreographer,
                      @NotNull EventDispatcher<ProfilerEventListener> profilerEventDispatcher) {
+    super(NAME, timeCurrentRangeUs, profilerEventDispatcher);
     Disposer.register(parentDisposable, this);
 
     myParent = parentPanel;
     myRoot = new MemoryInfoTreeNode("Root");
 
-    myMemoryDetailSegment = new MemoryDetailSegment(timeCurrentRangeUs, myRoot, profilerEventDispatcher);
     List<Animatable> animatables = new ArrayList<>();
-    myMemoryDetailSegment.createComponentsList(animatables);
+    createComponentsList(animatables);
     choreographer.register(animatables);
-    myMemoryDetailSegment.initializeComponents();
+    initializeComponents();
 
-    myParent.add(myMemoryDetailSegment, BorderLayout.CENTER);
+    myParent.add(this, BorderLayout.CENTER);
   }
 
   @NotNull
@@ -89,7 +102,6 @@ class ClassHistogramView implements Disposable {
                                                @Nullable HeapDumpInfo mainHeapDumpInfo,
                                                @Nullable HeapDumpInfo diffHeapDumpInfo) {
     // TODO make this method asynchronous
-
     if (myMainHeapDump == null || myMainHeapDump.getInfo() != mainHeapDumpInfo) {
       if (myMainHeapDump != null) {
         myMainHeapDump.dispose();
@@ -198,13 +210,13 @@ class ClassHistogramView implements Disposable {
       if (instanceCount != 0) {
         MemoryInfoTreeNode child = new MemoryInfoTreeNode(entry.getKey());
         child.setCount(instanceCount);
-        myMemoryDetailSegment.insertNode(myRoot, child);
+        insertNode(myRoot, child);
         maxInstanceCount = Math.max(maxInstanceCount, Math.abs(instanceCount));
       }
     }
 
     myRoot.setCount(maxInstanceCount);
-    myMemoryDetailSegment.refreshNode(myRoot);
+    refreshNode(myRoot);
   }
 
   @Override
@@ -217,7 +229,146 @@ class ClassHistogramView implements Disposable {
       myDiffHeapDump.dispose();
       myDiffHeapDump = null;
     }
-    myParent.remove(myMemoryDetailSegment);
+    myParent.remove(this);
+  }
+
+  /**
+   * Requests the tree model to perform a reload on the input node.
+   */
+  @VisibleForTesting
+  public void refreshNode(@NotNull MemoryInfoTreeNode node) {
+    myTreeModel.reload(node);
+  }
+
+  @VisibleForTesting
+  public boolean getExpandState(@NotNull MemoryInfoTreeNode node) {
+    return myTree.isExpanded(new TreePath(myTreeModel.getPathToRoot(node)));
+  }
+
+  @VisibleForTesting
+  public void setExpandState(@NotNull MemoryInfoTreeNode node, boolean expand) {
+    if (expand) {
+      myTree.expandPath(new TreePath(myTreeModel.getPathToRoot(node)));
+    }
+    else {
+      myTree.collapsePath(new TreePath(myTreeModel.getPathToRoot(node)));
+    }
+  }
+
+  public void insertNode(@NotNull MemoryInfoTreeNode parent, @NotNull MemoryInfoTreeNode child) {
+    myTreeModel.insertNodeInto(child, parent, parent.getChildCount());
+  }
+
+  @Override
+  protected boolean hasLeftContent() {
+    return false;
+  }
+
+  @Override
+  protected boolean hasRightContent() {
+    return false;
+  }
+
+  @Override
+  protected void setCenterContent(@NotNull JPanel panel) {
+    panel.add(myColumnTree, BorderLayout.CENTER);
+  }
+
+  @Override
+  public void createComponentsList(@NotNull List<Animatable> animatables) {
+    myTreeModel = new DefaultTreeModel(myRoot);
+    myTree = new Tree(myTreeModel);
+    myTree.setRootVisible(false);
+    myTree.setShowsRootHandles(true);
+
+    ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree)
+      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                   .setName("Class")
+                   .setHeaderAlignment(SwingConstants.LEFT)
+                   .setRenderer(new MemoryInfoColumnRenderer(0, myRoot)))
+      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                   .setName("Count")
+                   .setHeaderAlignment(SwingConstants.LEFT)
+                   .setRenderer(new MemoryInfoColumnRenderer(1, myRoot))
+                   .setInitialOrder(SortOrder.DESCENDING)
+                   .setComparator((MemoryInfoTreeNode a, MemoryInfoTreeNode b) -> a.getCount() - b.getCount()));
+
+    builder.setTreeSorter((Comparator<MemoryInfoTreeNode> comparator, SortOrder sortOrder) -> {
+      myRoot.sort(comparator);
+      myTreeModel.nodeStructureChanged(myRoot);
+    });
+
+    myColumnTree = builder.build();
+  }
+
+  /**
+   * A simple cell renderer for columns that renders a bar indicating the deltas along with the node's content.
+   */
+  private static class MemoryInfoColumnRenderer extends ColoredTreeCellRenderer {
+    @NotNull
+    private final MemoryInfoHealthBar mHealthBar;
+
+    @NotNull
+    private final MemoryInfoTreeNode mRoot;
+
+    private final int mColumnIndex;
+
+    private MemoryInfoColumnRenderer(int index, @NotNull MemoryInfoTreeNode root) {
+      mHealthBar = new MemoryInfoHealthBar();
+      mColumnIndex = index;
+      mRoot = root;
+
+      if (mColumnIndex > 0) {
+        setLayout(new BorderLayout());
+        add(mHealthBar, BorderLayout.CENTER);
+      }
+    }
+
+    @Override
+    public void customizeCellRenderer(@NotNull JTree tree,
+                                      Object value,
+                                      boolean selected,
+                                      boolean expanded,
+                                      boolean leaf,
+                                      int row,
+                                      boolean hasFocus) {
+      if (value instanceof MemoryInfoTreeNode) {
+        MemoryInfoTreeNode node = (MemoryInfoTreeNode)value;
+        switch (mColumnIndex) {
+          case 0:
+            append(node.getName());
+            break;
+          case 1:
+            append(String.valueOf(node.getCount()));
+            break;
+        }
+
+        mHealthBar.setDelta((float)node.getCount() / mRoot.getCount());
+      }
+    }
+  }
+
+  private static class MemoryInfoHealthBar extends JComponent {
+    private float mDelta;
+
+    private void setDelta(float delta) {
+      mDelta = delta;
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+      super.paintComponent(g);
+
+      Dimension dim = getSize();
+      if (mDelta > 0) {
+        g.setColor(NEGATIVE_COLOR);
+      }
+      else {
+        g.setColor(POSITIVE_COLOR);
+      }
+
+      g.fillRect(0, 0, (int)(dim.width * Math.abs(mDelta)), dim.height);
+    }
   }
 
   private static class HeapDump {
