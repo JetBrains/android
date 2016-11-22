@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.annotations.Nullable;
+import com.android.tools.idea.gradle.project.sync.idea.notification.GradleNotificationExtension;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
@@ -29,7 +30,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class UnsupportedModelVersionErrorHandler extends BaseSyncErrorHandler {
   /**
-   * These String constants are being used in {@link com.android.tools.idea.gradle.service.notification.GradleNotificationExtension} to add
+   * These String constants are being used in {@link GradleNotificationExtension} to add
    * "quick-fix"/"help" hyperlinks to error messages. Given that the contract between the consumer and producer of error messages is pretty
    * loose, please do not use these constants, to prevent any unexpected side effects during project sync.
    */
