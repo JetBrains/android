@@ -1510,6 +1510,39 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "}\n");
   }
 
+  public void testRequiresApi2() throws Exception {
+    // Regression test for b/32952309: Ensure we don't inherit RequiresApi beyond direct containing class
+    doCheck("" +
+            "package android.support.v7.app;\n" +
+            "\n" +
+            "import android.support.annotation.RequiresApi;\n" +
+            "\n" +
+            "@SuppressWarnings({\"WeakerAccess\", \"unused\"})\n" +
+            "public class X {\n" +
+            "    public void test() {\n" +
+            "        /*Call requires API level 18 (current min is 17): android.support.v7.app.X.ParentClass#foo1*/new ParentClass().foo1()/**/; // ERROR\n" +
+            "        new ChildClass().foo1(); // OK\n" +
+            "        new ChildClass().foo2(); // OK\n" +
+            "    }\n" +
+            "\n" +
+            "    @RequiresApi(16)\n" +
+            "    public class ParentClass {\n" +
+            "        @RequiresApi(18)\n" +
+            "        void foo1() {\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    public class ChildClass extends ParentClass {\n" +
+            "        @Override\n" +
+            "        void foo1() {\n" +
+            "        }\n" +
+            "\n" +
+            "        void foo2() {\n" +
+            "        }\n" +
+            "    }\n" +
+            "}\n");
+  }
+
   public void testSuppressNames() throws Exception {
     doCheck("package test.pkg;\n" +
             "\n" +
