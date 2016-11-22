@@ -15,9 +15,13 @@
  */
 package com.android.tools.profilers.memory;
 
-public enum MemoryProfilerAspect {
-  MEMORY_DETAILS,
+import com.intellij.openapi.Disposable;
+import org.jetbrains.annotations.NotNull;
 
-  CURRENT_DETAILED_CLASS,
-  CURRENT_DETAILED_INSTANCE
+/**
+ * Base model interface for memory detail view.
+ */
+public interface MemoryObjects extends Disposable {
+  @NotNull
+  MemoryNode getRootAdapter();
 }
