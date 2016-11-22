@@ -27,7 +27,7 @@ import java.util.List;
 
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class UnsupportedModelVersionErrorHandler extends SyncErrorHandler {
+public class UnsupportedModelVersionErrorHandler extends BaseSyncErrorHandler {
   /**
    * These String constants are being used in {@link com.android.tools.idea.gradle.service.notification.GradleNotificationExtension} to add
    * "quick-fix"/"help" hyperlinks to error messages. Given that the contract between the consumer and producer of error messages is pretty

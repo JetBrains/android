@@ -15,18 +15,20 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.SearchInBuildFilesHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.ToggleOfflineModeHyperlink;
 import com.google.common.base.Splitter;
+import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,65 +39,69 @@ public class MissingDependencyErrorHandler extends SyncErrorHandler {
   private static final Pattern MISSING_MATCHING_DEPENDENCY_PATTERN = Pattern.compile("Could not find any version that matches (.*)\\.");
   private static final Pattern MISSING_DEPENDENCY_PATTERN = Pattern.compile("Could not find (.*)\\.");
 
-  private static String dependency;
-  private static String openFileLine;
-
   @Override
-  @Nullable
-  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
+  public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
+    //noinspection ThrowableResultOfMethodCallIgnored
+    Throwable rootCause = getRootCause(error);
     String text = rootCause.getMessage();
     List<String> message = Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(text);
-    String newMsg = null;
+    String firstLine = message.get(0);
+
+    Matcher matcher = MISSING_MATCHING_DEPENDENCY_PATTERN.matcher(firstLine);
+    if (matcher.matches()) {
+      String dependency = matcher.group(1);
+      handleMissingDependency(notification, project, firstLine, dependency, Collections.emptyList());
+      return true;
+    }
+
+    String lastLine = message.get(message.size() - 1);
+
+    matcher = MISSING_DEPENDENCY_PATTERN.matcher(firstLine);
+    if (matcher.matches() && message.size() > 1 && message.get(1).startsWith("Required by:")) {
+      String dependency = matcher.group(1);
+      List<NotificationHyperlink> hyperlinks = new ArrayList<>();
+      if (isNotEmpty(dependency)) {
+        if (lastLine != null) {
+          Pair<String, Integer> errorLocation = getErrorLocation(lastLine);
+          if (errorLocation != null) {
+            // We have a location in file, show the "Open File" hyperlink.
+            String filePath = errorLocation.getFirst();
+            int line = errorLocation.getSecond();
+            hyperlinks.add(new OpenFileHyperlink(filePath, line - 1));
+          }
+        }
+        handleMissingDependency(notification, project, error.getMessage(), dependency, hyperlinks);
+        return true;
+      }
+    }
+
     for (String line : message) {
       // This happens when Gradle cannot find the Android Gradle plug-in in Maven Central or jcenter.
       if (line == null) {
         continue;
       }
-      Matcher matcher = MISSING_MATCHING_DEPENDENCY_PATTERN.matcher(line);
+      matcher = MISSING_MATCHING_DEPENDENCY_PATTERN.matcher(line);
       if (matcher.matches()) {
-        dependency = matcher.group(1);
-        newMsg = line;
+        String dependency = matcher.group(1);
+        handleMissingDependency(notification, project, line, dependency, Collections.emptyList());
+        return true;
       }
     }
 
-    String firstLine = message.get(0);
-    Matcher matcher = MISSING_DEPENDENCY_PATTERN.matcher(firstLine);
-    if (matcher.matches() && message.size() > 1 && message.get(1).startsWith("Required by:")) {
-      dependency = matcher.group(1);
-      if (isNotEmpty(dependency)) {
-        newMsg = text;
-        openFileLine = message.get(message.size() - 1);
-      }
-    }
-    if (isNotEmpty(newMsg)) {
-      updateUsageTracker();
-      return newMsg;
-    }
-    return null;
+    return false;
   }
 
-  @Override
-  @NotNull
-  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
-                                                              @NotNull Project project,
-                                                              @NotNull String text) {
-    List<NotificationHyperlink> hyperlinks = new ArrayList<>();
-
-    if (isNotEmpty(openFileLine)) {
-      Pair<String, Integer> errorLocation = getErrorLocation(openFileLine);
-      if (errorLocation != null) {
-        // We have a location in file, show the "Open File" hyperlink.
-        String filePath = errorLocation.getFirst();
-        int line = errorLocation.getSecond();
-        hyperlinks.add(new OpenFileHyperlink(filePath, line - 1));
-      }
-    }
-
+  private static void handleMissingDependency(@NotNull NotificationData notification,
+                                              @NotNull Project project,
+                                              @NotNull String msg,
+                                              @NotNull String dependency,
+                                              @NotNull List<NotificationHyperlink> additionalHyperlinks) {
+    List<NotificationHyperlink> hyperlinks = new ArrayList<>(additionalHyperlinks);
     ToggleOfflineModeHyperlink disableOfflineMode = ToggleOfflineModeHyperlink.disableOfflineMode(project);
     if (disableOfflineMode != null) {
       hyperlinks.add(0, disableOfflineMode);
     }
     hyperlinks.add(new SearchInBuildFilesHyperlink(dependency));
-    return hyperlinks;
+    SyncMessages.getInstance(project).updateNotification(notification, msg, hyperlinks);
   }
 }

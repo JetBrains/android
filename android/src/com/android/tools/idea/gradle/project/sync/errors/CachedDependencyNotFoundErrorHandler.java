@@ -27,10 +27,7 @@ import java.util.List;
 
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-/**
- * Tests for {@link CachedDependencyNotFoundErrorHandler}.
- */
-public class CachedDependencyNotFoundErrorHandler extends SyncErrorHandler {
+public class CachedDependencyNotFoundErrorHandler extends BaseSyncErrorHandler {
   @Override
   @Nullable
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
