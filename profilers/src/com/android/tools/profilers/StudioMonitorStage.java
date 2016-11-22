@@ -30,6 +30,9 @@ public class StudioMonitorStage extends Stage {
 
   @Override
   public void enter() {
+    // Clear the selection
+    getStudioProfilers().getTimeline().getSelectionRange().set(0, 0);
+
     myMonitors.clear();
     int processId = getStudioProfilers().getProcessId();
     if (processId != INVALID_PROCESS_ID) {
