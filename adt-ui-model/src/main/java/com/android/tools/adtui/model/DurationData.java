@@ -26,6 +26,7 @@ public class DurationData {
 
   /**
    * Represents data that have an infinite/unspecified duration (e.g. unfinished events).
+   * TODO replace unspecified duration with Long.MAX_VALUE on perfd side so we don't have to deal with this.
    */
   public static final int UNSPECIFIED_DURATION = -1;
 

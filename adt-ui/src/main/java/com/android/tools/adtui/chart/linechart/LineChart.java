@@ -22,30 +22,23 @@ import com.android.tools.adtui.LegendRenderData;
 import com.android.tools.adtui.LineChartLegendRenderData;
 import com.android.tools.adtui.common.datareducer.DataReducer;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
-import com.android.tools.adtui.model.*;
-import com.intellij.ui.ColorUtil;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.SeriesData;
 import com.intellij.util.containers.ImmutableList;
 import gnu.trove.TDoubleArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
 import java.awt.*;
-import java.awt.geom.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Path2D;
+import java.awt.geom.PathIterator;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.adtui.model.DurationData.UNSPECIFIED_DURATION;
-
 public class LineChart extends AnimatedComponent {
-
-  /**
-   * Transparency value to be applied to overlaying events.
-   * TODO investigate whether events should be rendered as a separate component.
-   */
-  private static final float ALPHA_VALUE = 0.5f;
-
-  private static final int EVENT_LABEL_PADDING_PX = 5;
 
   /**
    * Maps the series to their correspondent visual line configuration.
@@ -55,19 +48,13 @@ public class LineChart extends AnimatedComponent {
   private final Map<RangedContinuousSeries, LineConfig> myLinesConfig = new LinkedHashMap<>();
 
   @NotNull
-  private final Map<RangedSeries<DurationData>, EventConfig> myEventsConfig = new HashMap<>();
-
-  @NotNull
   private final ArrayList<Path2D> myLinePaths;
 
   @NotNull
   private final ArrayList<LineConfig> myLinePathConfigs;
 
-  /**
-   * Stores the regions that each event series need to render.
-   */
   @NotNull
-  private final Map<RangedSeries<DurationData>, List<Rectangle2D.Float>> myEventsPathCache = new HashMap<>();
+  private final List<LineChartCustomRenderer> myCustomRenderers = new ArrayList<>();
 
   /**
    * The color of the next line to be inserted, if not specified, is picked from {@code COLORS}
@@ -136,8 +123,8 @@ public class LineChart extends AnimatedComponent {
     data.forEach(this::addLine);
   }
 
-  public void addEvent(@NotNull RangedSeries<DurationData> series, @NotNull EventConfig config) {
-    myEventsConfig.put(series, config);
+  public void addCustomRenderer(@NotNull LineChartCustomRenderer renderer) {
+    myCustomRenderers.add(renderer);
   }
 
   @NotNull
@@ -150,7 +137,7 @@ public class LineChart extends AnimatedComponent {
    */
   public void clearConfigs() {
     myLinesConfig.clear();
-    myEventsConfig.clear();
+    myCustomRenderers.clear();
   }
 
   @NotNull
@@ -197,10 +184,10 @@ public class LineChart extends AnimatedComponent {
    *
    * @param series    the RangedContinuousSeries which the legend will query data from.
    * @param formatter the BaseAxisFormatter which will be used to format the data coming from the series.
- *                    TODO revisit - this can be potentially moved inside RangedContinuousSeries.
+   *                  TODO revisit - this can be potentially moved inside RangedContinuousSeries.
    * @range range     the range object which the legend will use to gather data. Note that this does not have to be the same as the
-   *                  the range inside RangedContinuousSeries (e.g. if the legend needs to show the most recent data, or some data at
-   *                  a particular point in time)
+   * the range inside RangedContinuousSeries (e.g. if the legend needs to show the most recent data, or some data at
+   * a particular point in time)
    */
   public LegendRenderData createLegendRenderData(@NotNull RangedContinuousSeries series,
                                                  @NotNull BaseAxisFormatter formatter,
@@ -323,52 +310,12 @@ public class LineChart extends AnimatedComponent {
     myLinePathConfigs.clear();
     myLinePathConfigs.addAll(orderedConfigs);
 
-    // First remove any path caches that do not have the corresponding RangedSeries anymore.
-    myEventsPathCache.keySet().removeIf(e -> !myEventsConfig.containsKey(e));
-
-    // Generate the rectangle regions for the events.
-    // Note that we try to reuse any rectangles already created inside the myEventsPathCache as much as possible
-    // So we only create new one when we run out and remove any unused ones at the end.
-    for (RangedSeries<DurationData> ranged : myEventsConfig.keySet()) {
-      List<Rectangle2D.Float> rectangleCache = myEventsPathCache.get(ranged);
-      if (rectangleCache == null) {
-        // Generate a new cache for the RangedSeries if one does not exist already. (e.g. newly added series)
-        rectangleCache = new ArrayList<>();
-        myEventsPathCache.put(ranged, rectangleCache);
-      }
-
-      double xMin = ranged.getXRange().getMin();
-      double xMax = ranged.getXRange().getMax();
-      ImmutableList<SeriesData<DurationData>> seriesList = ranged.getSeries();
-      int i = 0;
-      Rectangle2D.Float rect;
-      for (; i < seriesList.size(); i++) {
-        if (i == rectangleCache.size()) {
-          rect = new Rectangle2D.Float();
-          rectangleCache.add(rect);
-        }
-        else {
-          rect = rectangleCache.get(i);
-        }
-
-        SeriesData<DurationData> seriesData = seriesList.get(i);
-        double xStart = (seriesData.x - xMin) / (xMax - xMin);
-        double xDuration = seriesData.value.getDuration() == UNSPECIFIED_DURATION ?
-                           (xMax - seriesData.x) / (xMax - xMin) : seriesData.value.getDuration() / (xMax - xMin);
-
-        rect.setRect(xStart, 0, xDuration, 1);
-      }
-      // Clear any outstanding rectangles in the list.
-      // At the end, size of the rectangleCache should equal the number of samples from the seriesList above.
-      rectangleCache.subList(i, rectangleCache.size()).clear();
-    }
-
     addDebugInfo("postAnimate time: %d ms", TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - duration));
   }
 
   @Override
   protected void draw(Graphics2D g2d, Dimension dim) {
-    if (myLinePaths.size() != myLinesConfig.size() || myEventsConfig.size() != myEventsPathCache.size()) {
+    if (myLinePaths.size() != myLinesConfig.size()) {
       // Early return if the cached paths have not been sync'd with the configs.
       // e.g. updateData/postAnimate has not been invoked before this draw call.
       return;
@@ -398,69 +345,11 @@ public class LineChart extends AnimatedComponent {
     // 1st pass - draw all the lines in the background.
     drawLines(g2d, transformedPaths, myLinePathConfigs, false);
 
-    // 2nd pass - if there are any blocking events, clear the regions where those events take place
-    //            and render the lines in those regions in grayscale.
-    //            TODO support multiple blocking events by intersection their regions.
-    Rectangle2D clipRect = new Rectangle2D.Float();
-    for (RangedSeries<DurationData> eventSeries : myEventsPathCache.keySet()) {
-      EventConfig config = myEventsConfig.get(eventSeries);
-      if (config.isBlocking()) {
-        for (Rectangle2D.Float rect : myEventsPathCache.get(eventSeries)) {
-          double scaledXStart = rect.x * dim.width;
-          double scaledXDuration = rect.width * dim.width;
-          clipRect.setRect(scaledXStart, 0, scaledXDuration, dim.height);
-
-          // Clear the region by repainting the background
-          g2d.setColor(getBackground());
-          g2d.fill(clipRect);
-
-          // Set clip region and redraw the lines in grayscale.
-          g2d.setClip(clipRect);
-          drawLines(g2d, transformedPaths, myLinePathConfigs, true);
-          g2d.setClip(null);
-        }
-      }
-    }
-
-    // 3rd pass - draw the event start/end lines and their labels
-    //            TODO handle overlapping events
-    Line2D eventLine = new Line2D.Float();
-    for (Map.Entry<RangedSeries<DurationData>, List<Rectangle2D.Float>> entry : myEventsPathCache.entrySet()) {
-      RangedSeries<DurationData> eventSeries = entry.getKey();
-      List<Rectangle2D.Float> rectList = entry.getValue();
-
-      EventConfig config = myEventsConfig.get(eventSeries);
-
-      for (Rectangle2D.Float rect : rectList) {
-        double scaledXStart = rect.x * dim.width;
-        double scaledXDuration = rect.width * dim.width;
-
-        g2d.setStroke(config.getStroke());
-        // Draw the start/end lines, represented by the rectangles created during postAnimate.
-        Shape scaledRect = scale.createTransformedShape(rect);
-        if (config.isFilled()) {
-          g2d.setColor(ColorUtil.withAlpha(config.getColor(), ALPHA_VALUE));
-          g2d.fill(scaledRect);
-        }
-        else {
-          g2d.setColor(config.getColor());
-          eventLine.setLine(scaledXStart, 0, scaledXStart, dim.height);
-          g2d.draw(eventLine);
-          eventLine.setLine(scaledXStart + scaledXDuration, 0, scaledXStart + scaledXDuration, dim.height);
-          g2d.draw(eventLine);
-        }
-
-        // Draw the label.
-        g2d.translate(scaledXStart + EVENT_LABEL_PADDING_PX, EVENT_LABEL_PADDING_PX);
-        g2d.clipRect(0, 0, (int)scaledXDuration - EVENT_LABEL_PADDING_PX, dim.height);
-        config.getLabel().paint(g2d);
-        g2d.setClip(null);
-        g2d.translate(-(scaledXStart + EVENT_LABEL_PADDING_PX), -EVENT_LABEL_PADDING_PX);
-      }
-    }
+    // 2nd pass - call each custom renderer instances to redraw any regions/lines as needed.
+    myCustomRenderers.forEach(renderer -> renderer.renderLines(this, g2d, transformedPaths, myLinePathConfigs));
   }
 
-  private void drawLines(Graphics2D g2d, List<Path2D> transformedPaths, List<LineConfig> configs, boolean grayScale) {
+  public static void drawLines(Graphics2D g2d, List<Path2D> transformedPaths, List<LineConfig> configs, boolean grayScale) {
     assert transformedPaths.size() == configs.size();
 
     for (int i = 0; i < transformedPaths.size(); ++i) {
