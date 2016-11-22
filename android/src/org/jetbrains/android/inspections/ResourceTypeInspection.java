@@ -527,7 +527,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       } else if (qualifiedName.endsWith(THREAD_SUFFIX) && qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX)) {
         checkThreadAnnotation(methodCall, holder, method, annotation, qualifiedName, methodAnnotations, classAnnotations);
       } else if (REQUIRES_API_ANNOTATION.equals(qualifiedName)) {
-        checkApiLevel(methodCall, method, holder, annotation);
+        checkApiLevel(methodCall, method, holder, annotation, methodAnnotations, classAnnotations);
       } else if (RESTRICT_TO_ANNOTATION.equals(qualifiedName)) {
         checkRestrictionAnnotation(methodCall, holder, method, annotation, methodAnnotations, classAnnotations, evaluator);
       } else if (VISIBLE_FOR_TESTING_ANNOTATION.equals(qualifiedName)) {
@@ -545,7 +545,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         if (qualifiedName.endsWith(THREAD_SUFFIX) && qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX)) {
           checkThreadAnnotation(methodCall, holder, method, annotation, qualifiedName, methodAnnotations, classAnnotations);
         } else if (REQUIRES_API_ANNOTATION.equals(qualifiedName)) {
-          checkApiLevel(methodCall, method, holder, annotation);
+          checkApiLevel(methodCall, method, holder, annotation, methodAnnotations, classAnnotations);
         } else if (RESTRICT_TO_ANNOTATION.equals(qualifiedName)) {
           checkRestrictionAnnotation(methodCall, holder, method, annotation, methodAnnotations, classAnnotations, evaluator);
         } else if (VISIBLE_FOR_TESTING_ANNOTATION.equals(qualifiedName)) {
@@ -586,7 +586,22 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
   private static void checkApiLevel(@NotNull PsiCall methodCall,
                                     @NotNull PsiMethod method,
                                     @NotNull ProblemsHolder holder,
-                                    @NotNull PsiAnnotation annotation) {
+                                    @NotNull PsiAnnotation annotation,
+                                    @NotNull PsiAnnotation[] allMethodAnnotations,
+                                    @NonNull PsiAnnotation[] allClassAnnotations) {
+    // Don't inherit these annotations; see for example b/32952309
+    PsiAnnotationOwner owner = annotation.getOwner();
+    if (owner == null || !(method.getModifierList().equals(owner) ||
+        method.getContainingClass() != null && owner.equals(method.getContainingClass().getModifierList()))) {
+      return;
+    }
+
+    // If the annotation is specified on the class, ignore this requirement
+    // if there is another annotation specified on the method.
+    if (containsAnnotation(allClassAnnotations, annotation) && containsAnnotation(allMethodAnnotations, REQUIRES_API_ANNOTATION)) {
+      return;
+    }
+
     AndroidFacet facet = AndroidFacet.getInstance(methodCall);
     assert facet != null; // already checked early on in the inspection visitor
     AndroidVersion minSdkVersion = AndroidModuleInfo.get(facet).getMinSdkVersion();
