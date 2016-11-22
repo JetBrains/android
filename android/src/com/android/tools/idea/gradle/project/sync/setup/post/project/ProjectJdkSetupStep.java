@@ -36,17 +36,17 @@ import static com.android.tools.idea.gradle.project.sync.messages.SyncMessage.DE
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
-public class JdkPostSyncProjectSetupStep extends PostSyncProjectSetupStep {
+public class ProjectJdkSetupStep extends ProjectSetupStep {
   @NotNull private final IdeSdks myIdeSdks;
   @NotNull private final Jdks myJdks;
 
   @SuppressWarnings("unused") // Invoked by IDEA.
-  public JdkPostSyncProjectSetupStep() {
+  public ProjectJdkSetupStep() {
     this(IdeSdks.getInstance(), Jdks.getInstance());
   }
 
   @VisibleForTesting
-  JdkPostSyncProjectSetupStep(@NotNull IdeSdks ideSdks, @NotNull Jdks jdks) {
+  ProjectJdkSetupStep(@NotNull IdeSdks ideSdks, @NotNull Jdks jdks) {
     myIdeSdks = ideSdks;
     myJdks = jdks;
   }

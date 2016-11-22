@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.SDK_SETUP_ISSUES;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.INFO;
 
-public class MissingPlatformsSetupStep extends PostSyncProjectSetupStep {
+public class MissingPlatformsSetupStep extends ProjectSetupStep {
   @Override
   public void setUpProject(@NotNull Project project, @Nullable ProgressIndicator indicator) {
     SyncMessages syncMessages = SyncMessages.getInstance(project);
