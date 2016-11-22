@@ -195,8 +195,6 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
   private void updateConnectionDetailsView() {
     myConnectionDetails.update(getStage().getConnection());
-    myConnectionDetails.setVisible(getStage().isConnectionDataEnabled());
-    myConnectionDetails.revalidate();
   }
 
   @NotNull
@@ -211,10 +209,6 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
       profilers.setStage(monitor);
     });
     toolbar.add(button);
-    button = new JButton("Open details pane");
-    button.addActionListener(action -> getStage().setEnableConnectionData(!getStage().isConnectionDataEnabled()));
-    toolbar.add(button);
-
     return toolbar;
   }
 }
