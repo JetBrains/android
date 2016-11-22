@@ -41,7 +41,8 @@ public class NlInspectorProviders implements LafManagerListener, Disposable {
                                    new ViewInspectorProvider(myPropertiesManager.getProject()),
                                    new ProgressBarInspectorProvider(),
                                    new TextInspectorProvider(),
-                                   new MockupInspectorProvider());
+                                   new MockupInspectorProvider(),
+                                   new FavoritesInspectorProvider());
     Disposer.register(parentDisposable, this);
     LafManager.getInstance().addLafManagerListener(this);
   }

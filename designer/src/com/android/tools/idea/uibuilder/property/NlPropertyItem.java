@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.ptable.PTableGroupItem;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.android.tools.idea.uibuilder.property.ptable.StarState;
 import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
 import com.android.util.PropertiesMap;
 import com.google.common.base.MoreObjects;
@@ -53,11 +54,18 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     SdkConstants.ATTR_LAYOUT // <include layout="..." />
   );
 
-  @NotNull protected final List<NlComponent> myComponents;
-  @Nullable protected final AttributeDefinition myDefinition;
-  @NotNull private final String myName;
-  @Nullable private final String myNamespace;
-  @Nullable private PropertiesMap.Property myDefaultValue;
+  @NotNull
+  protected final List<NlComponent> myComponents;
+  @Nullable
+  protected final AttributeDefinition myDefinition;
+  @NotNull
+  private final String myName;
+  @Nullable
+  private final String myNamespace;
+  @Nullable
+  private PropertiesMap.Property myDefaultValue;
+  @NotNull
+  private StarState myStarState;
 
   public static NlPropertyItem create(@NotNull List<NlComponent> components,
                                       @NotNull XmlAttributeDescriptor descriptor,
@@ -96,6 +104,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     myName = descriptor.getName();
     myNamespace = namespace;
     myDefinition = attributeDefinition;
+    myStarState = StarState.STAR_ABLE;
   }
 
   public NlPropertyItem(@NotNull List<NlComponent> components,
@@ -107,6 +116,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     myName = attributeDefinition.getName();
     myNamespace = namespace;
     myDefinition = attributeDefinition;
+    myStarState = StarState.STAR_ABLE;
   }
 
   protected NlPropertyItem(@NotNull NlPropertyItem property, @NotNull String namespace) {
@@ -115,6 +125,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     myName = property.myName;
     myNamespace = namespace;
     myDefinition = property.myDefinition;
+    myStarState = StarState.STAR_ABLE;
     if (property.getParent() != null) {
       PTableGroupItem group = (PTableGroupItem)property.getParent();
       group.addChild(this, property);
@@ -132,6 +143,27 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @NotNull
   public List<NlComponent> getComponents() {
     return myComponents;
+  }
+
+  @Override
+  @NotNull
+  public StarState getStarState() {
+    return myStarState;
+  }
+
+  public void setInitialStarred() {
+    myStarState = StarState.STARRED;
+  }
+
+  @Override
+  public void setStarState(@NotNull StarState starState) {
+    myStarState = starState;
+    NlProperties.saveStarState(myNamespace, myName, starState == StarState.STARRED);
+    updateAllProperties();
+  }
+
+  private void updateAllProperties() {
+    getModel().getSelectionModel().updateListeners();
   }
 
   @Override
@@ -337,7 +369,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
       // Special case: When the tools:parentTag is updated on a <merge> tag, the set of attributes for
       // the <merge> tag may change e.g. if the value is set to "LinearLayout" the <merge> tag will
       // then have all attributes from a <LinearLayout>. Force an update of all properties:
-      getModel().getSelectionModel().updateListeners();
+      updateAllProperties();
     }
   }
 

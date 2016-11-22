@@ -87,6 +87,17 @@ public abstract class PTableGroupItem extends PTableItem {
     myExpanded = expanded;
   }
 
+  @Override
+  @NotNull
+  public StarState getStarState() {
+    return StarState.NOT_STAR_ABLE;
+  }
+
+  @Override
+  public void setStarState(@NotNull StarState starState) {
+    throw new IllegalStateException();
+  }
+
   @Nullable
   @Override
   public String getValue() {
