@@ -16,7 +16,6 @@
 package com.android.tools.idea.monitor.ui;
 
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.chart.linechart.EventConfig;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
@@ -376,14 +375,14 @@ public abstract class BaseLineChartSegment extends BaseSegment {
     mRightAxis.setVisible(true);
   }
 
-  /**
-   * Adds an event series to {@link #mLineChart}.
-   */
-  protected void addEvent(SeriesDataType type, @NotNull EventConfig eventConfig) {
-    addEvent(type, eventConfig, new DataStoreSeries<>(mSeriesDataStore, type));
-  }
-
-  protected void addEvent(SeriesDataType type, @NotNull EventConfig eventConfig, DataSeries series) {
-    mLineChart.addEvent(new RangedSeries<>(myTimeCurrentRangeUs, series), eventConfig);
-  }
+  ///**
+  // * Adds an event series to {@link #mLineChart}.
+  // */
+  //protected void addEvent(SeriesDataType type, @NotNull DurationDataConfig eventConfig) {
+  //  addEvent(type, eventConfig, new DataStoreSeries<>(mSeriesDataStore, type));
+  //}
+  //
+  //protected void addEvent(SeriesDataType type, @NotNull DurationDataConfig eventConfig, DataSeries series) {
+  //  mLineChart.addDurationRenderer(new SimpleDurationOverlayRenderer(new RangedSeries<>(myTimeCurrentRangeUs, series), eventConfig));
+  //}
 }

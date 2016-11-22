@@ -16,7 +16,7 @@
 package com.android.tools.adtui.imagediff;
 
 import com.android.tools.adtui.AnimatedRange;
-import com.android.tools.adtui.chart.linechart.EventConfig;
+import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.AdtUiUtils;
@@ -34,9 +34,10 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
     registerStackedLineChart();
     registerSimpleLineChart();
     registerSteppedLineChart();
-    registerSimpleEventLineChart();
-    registerBlockingEventLineChart();
-    registerFilledEventLineChart();
+    // WIP DurationDataRenderer revamp - will re-enable after pixels are finalized.
+    //registerSimpleEventLineChart();
+    //registerBlockingEventLineChart();
+    //registerFilledEventLineChart();
   }
 
   private void registerStackedLineChart() {
@@ -182,9 +183,11 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
     protected void addEvent(Color eventColor, boolean isFilledEvent, boolean isBlockingEvent) {
       DefaultDataSeries<DurationData> eventData = new DefaultDataSeries<>();
       RangedSeries<DurationData> eventSeries = new RangedSeries<>(myXRange, eventData);
-      EventConfig eventConfig = new EventConfig(eventColor).setText("Test Event").setIcon(UIManager.getIcon("Tree.leafIcon"));
-      eventConfig.setFilled(isFilledEvent).setBlocking(isBlockingEvent);
-      myLineChart.addEvent(eventSeries, eventConfig);
+      DurationDataRenderer<DurationData> durationRenderer = new DurationDataRenderer.Builder<>(eventSeries, eventColor)
+        .setlabelProvider(durationData -> "Test Event")
+        .setIcon(UIManager.getIcon("Tree.leafIcon")).build();
+      myLineChart.addCustomRenderer(durationRenderer);
+      myComponents.add(durationRenderer);
 
       // Set event duration and start time. Add it to eventData afterwards.
       long eventDuration = EVENT_DURATION_MULTIPLIER * TIME_DELTA_US;
