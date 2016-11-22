@@ -18,19 +18,15 @@ package com.android.tools.idea.gradle.project.sync.setup.post;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.repository.Revision;
-import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.gradle.customizer.dependency.Dependency;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySet;
 import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.customizer.dependency.ModuleDependency;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectSyncData;
 import com.android.tools.idea.gradle.project.LibraryAttachments;
@@ -44,24 +40,19 @@ import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
+import com.android.tools.idea.gradle.project.sync.setup.post.project.PostSyncProjectSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.PluginVersionUpgrade;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.service.notification.hyperlink.InstallPlatformHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.OpenAndroidSdkManagerHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
-import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -76,7 +67,6 @@ import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.execution.junit.JUnitConfigurationType;
-import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -86,6 +76,7 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
@@ -94,7 +85,6 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.pom.NonNavigatable;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -105,11 +95,10 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.FN_ANNOTATIONS_JAR;
+import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
 import static com.android.tools.idea.gradle.project.LibraryAttachments.getStoredLibraryAttachments;
-import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.SDK_SETUP_ISSUES;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.INFO;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
 import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToUrl;
@@ -119,7 +108,6 @@ import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 import static com.android.tools.idea.project.NewProjects.createRunConfigurations;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
-import static com.intellij.notification.NotificationType.INFORMATION;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.delete;
@@ -128,22 +116,12 @@ import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
 import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 public class PostSyncProjectSetup {
-  /**
-   * Whether a message indicating that "a new SDK Tools version is available" is already shown.
-   */
-  @VisibleForTesting
-  static boolean ourNewSdkVersionToolsInfoAlreadyShown;
-
-  /**
-   * Whether we've checked for build expiration
-   */
-  private static boolean ourCheckedExpiration;
-
   @NotNull private final Project myProject;
   @NotNull private final AndroidSdks myAndroidSdks;
   @NotNull private final GradleSyncInvoker mySyncInvoker;
   @NotNull private final GradleSyncState mySyncState;
   @NotNull private final DependencySetupErrors myDependencySetupErrors;
+  @NotNull private final PostSyncProjectSetupStep[] myProjectSetupSteps;
   @NotNull private final PluginVersionUpgrade[] myVersionUpgrades;
   @NotNull private final SyncMessages mySyncMessages;
   @NotNull private final DependenciesModuleSetupStep myDependenciesModuleSetupStep;
@@ -166,9 +144,9 @@ public class PostSyncProjectSetup {
                               @NotNull DependencySetupErrors dependencySetupErrors,
                               @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                               @NotNull GradleProjectBuilder projectBuilder) {
-    this(project, androidSdks, syncInvoker, syncState, dependencySetupErrors, PluginVersionUpgrade.getExtensions(), syncMessages,
-         DependenciesModuleSetupStep.getInstance(), versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(),
-         RunManagerImpl.getInstanceImpl(project));
+    this(project, androidSdks, syncInvoker, syncState, dependencySetupErrors, PostSyncProjectSetupStep.getExtensions(),
+         PluginVersionUpgrade.getExtensions(), syncMessages, DependenciesModuleSetupStep.getInstance(), versionCompatibilityChecker,
+         projectBuilder, new CommonModuleValidator.Factory(), RunManagerImpl.getInstanceImpl(project));
   }
 
   @VisibleForTesting
@@ -177,6 +155,7 @@ public class PostSyncProjectSetup {
                        @NotNull GradleSyncInvoker syncInvoker,
                        @NotNull GradleSyncState syncState,
                        @NotNull DependencySetupErrors dependencySetupErrors,
+                       @NotNull PostSyncProjectSetupStep[] projectSetupSteps,
                        @NotNull PluginVersionUpgrade[] versionUpgrades,
                        @NotNull SyncMessages syncMessages,
                        @NotNull DependenciesModuleSetupStep dependenciesModuleSetupStep,
@@ -189,6 +168,7 @@ public class PostSyncProjectSetup {
     mySyncInvoker = syncInvoker;
     mySyncState = syncState;
     myDependencySetupErrors = dependencySetupErrors;
+    myProjectSetupSteps = projectSetupSteps;
     myVersionUpgrades = versionUpgrades;
     mySyncMessages = syncMessages;
     myDependenciesModuleSetupStep = dependenciesModuleSetupStep;
@@ -201,7 +181,7 @@ public class PostSyncProjectSetup {
   /**
    * Invoked after a project has been synced with Gradle.
    */
-  public void setUpProject(@NotNull Request request) {
+  public void setUpProject(@NotNull Request request, @Nullable ProgressIndicator progressIndicator) {
     // This will be true if sync failed because of an exception thrown by Gradle. GradleSyncState will know that sync stopped.
     boolean lastSyncFailed = mySyncState.lastSyncFailed();
 
@@ -226,9 +206,10 @@ public class PostSyncProjectSetup {
     moduleValidator.fixAndReportFoundIssues();
 
     if (syncFailed) {
-      addSdkLinkIfNecessary();
-      checkSdkToolsVersion(myProject);
-      notifySyncEnded(false);
+      invokeProjectSetupSteps(progressIndicator, true /* sync failed */);
+      // Notify "sync end" event first, to register the timestamp. Otherwise the cache (GradleProjectSyncData) will store the date of the
+      // previous sync, and not the one from the sync that just ended.
+      mySyncState.syncEnded();
       return;
     }
 
@@ -268,8 +249,7 @@ public class PostSyncProjectSetup {
     AndroidGradleProjectComponent.getInstance(myProject).checkForSupportedModules();
 
     findAndShowVariantConflicts();
-    checkSdkToolsVersion(myProject);
-    addSdkLinkIfNecessary();
+    invokeProjectSetupSteps(progressIndicator, false /* sync successful */);
 
     TestArtifactSearchScopes.initializeScopes(myProject);
 
@@ -277,7 +257,11 @@ public class PostSyncProjectSetup {
     // For IDEA, use regular "Make".
     String taskName = isAndroidStudio() ? MakeBeforeRunTaskProvider.TASK_NAME : ExecutionBundle.message("before.launch.compile.step");
     setMakeStepInJunitRunConfigurations(taskName);
-    notifySyncEnded(true);
+
+    // Notify "sync end" event first, to register the timestamp. Otherwise the cache (GradleProjectSyncData) will store the date of the
+    // previous sync, and not the one from the sync that just ended.
+    mySyncState.syncEnded();
+    GradleProjectSyncData.save(myProject);
 
     if (request.isGenerateSourcesAfterSync()) {
       boolean cleanProjectAfterSync = request.isCleanProjectAfterSync();
@@ -326,6 +310,23 @@ public class PostSyncProjectSetup {
     }
     mySyncState.syncSkipped(syncTimestamp);
     mySyncInvoker.requestProjectSyncAndSourceGeneration(myProject, null);
+  }
+
+  private void invokeProjectSetupSteps(@Nullable ProgressIndicator progressIndicator, boolean syncFailed) {
+    Runnable invokeProjectSetupStepsTask = () -> {
+      for (PostSyncProjectSetupStep step : myProjectSetupSteps) {
+        if (syncFailed && step.invokeOnFailedSync()) {
+          step.setUpProject(myProject, progressIndicator);
+        }
+      }
+    };
+
+    if (ApplicationManager.getApplication().isWriteAccessAllowed()) {
+      invokeProjectSetupStepsTask.run();
+      return;
+    }
+
+    ApplicationManager.getApplication().runWriteAction(invokeProjectSetupStepsTask);
   }
 
   private void disposeModulesMarkedForRemoval() {
@@ -513,60 +514,6 @@ public class PostSyncProjectSetup {
     conflicts.showSelectionConflicts();
   }
 
-  private void addSdkLinkIfNecessary() {
-    int sdkErrorCount = mySyncMessages.getMessageCount(SDK_SETUP_ISSUES);
-    if (sdkErrorCount > 0) {
-      // If we have errors due to platforms not being installed, we add an extra message that prompts user to open Android SDK manager and
-      // install any missing platforms.
-      String text = "Open Android SDK Manager and install all missing platforms.";
-      SyncMessage hint = new SyncMessage(SDK_SETUP_ISSUES, INFO, NonNavigatable.INSTANCE, text);
-      hint.add(new OpenAndroidSdkManagerHyperlink());
-      mySyncMessages.report(hint);
-    }
-  }
-
-  private static void checkSdkToolsVersion(@NotNull Project project) {
-    if (project.isDisposed() || ourNewSdkVersionToolsInfoAlreadyShown) {
-      return;
-    }
-
-    // Piggy-back off of the SDK update check (which is called from a handful of places) to also see if this is an expired preview build
-    checkExpiredPreviewBuild(project);
-
-    File androidHome = IdeSdks.getInstance().getAndroidSdkPath();
-    if (androidHome != null && !VersionCheck.isCompatibleVersion(androidHome)) {
-      InstallSdkToolsHyperlink hyperlink = new InstallSdkToolsHyperlink(VersionCheck.MIN_TOOLS_REV);
-      String message = "Version " + VersionCheck.MIN_TOOLS_REV + " or later is required.";
-      AndroidGradleNotification.getInstance(project).showBalloon("Android SDK Tools", message, INFORMATION, hyperlink);
-      ourNewSdkVersionToolsInfoAlreadyShown = true;
-    }
-  }
-
-  private static void checkExpiredPreviewBuild(@NotNull Project project) {
-    if (project.isDisposed() || ourCheckedExpiration) {
-      return;
-    }
-
-    String ideVersion = ApplicationInfo.getInstance().getFullVersion();
-    if (ideVersion.contains("Preview") || ideVersion.contains("Beta") || ideVersion.contains("RC")) {
-      // Expire preview builds two months after their build date (which is going to be roughly six weeks after release; by
-      // then will definitely have updated the build
-      Calendar expirationDate = (Calendar)ApplicationInfo.getInstance().getBuildDate().clone();
-      expirationDate.add(Calendar.MONTH, 2);
-
-      Calendar now = Calendar.getInstance();
-      if (now.after(expirationDate)) {
-        OpenUrlHyperlink hyperlink = new OpenUrlHyperlink("http://tools.android.com/download/studio/", "Show Available Versions");
-        String message =
-          String.format("This preview build (%1$s) is old; please update to a newer preview or a stable version.", ideVersion);
-        AndroidGradleNotification.getInstance(project).showBalloon("Old Preview Build", message, INFORMATION, hyperlink);
-        // If we show an expiration message, don't also show a second balloon regarding available SDKs
-        ourNewSdkVersionToolsInfoAlreadyShown = true;
-      }
-    }
-    ourCheckedExpiration = true;
-  }
-
   private static void log(@NotNull AndroidPluginInfo pluginInfo) {
     GradleVersion current = pluginInfo.getPluginVersion();
     String recommended = pluginInfo.getPluginGeneration().getLatestKnownVersion();
@@ -590,7 +537,7 @@ public class PostSyncProjectSetup {
             IAndroidTarget target = additionalData.getBuildTarget(sdkData);
             if (target == null) {
               AndroidSdkHandler sdkHandler = sdkData.getSdkHandler();
-              ProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
+              StudioLoggerProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
               sdkHandler.getSdkManager(logger).loadSynchronously(0, logger, null, null);
               target =
                 sdkHandler.getAndroidTargetManager(logger).getTargetFromHashString(additionalData.getBuildTargetHashString(), logger);
@@ -737,38 +684,6 @@ public class PostSyncProjectSetup {
       }
     }
     myRunManager.setBeforeRunTasks(runConfiguration, newBeforeRunTasks, false);
-  }
-
-  private void notifySyncEnded(boolean saveModelsToDisk) {
-    // Notify "sync end" event first, to register the timestamp. Otherwise the cache (GradleProjectSyncData) will store the date of the
-    // previous sync, and not the one from the sync that just ended.
-    mySyncState.syncEnded();
-    if (saveModelsToDisk) {
-      GradleProjectSyncData.save(myProject);
-    }
-  }
-
-  private static class InstallSdkToolsHyperlink extends NotificationHyperlink {
-    @NotNull private final Revision myVersion;
-
-    InstallSdkToolsHyperlink(@NotNull Revision version) {
-      super("install.sdk.tools", "Install latest SDK Tools");
-      myVersion = version;
-    }
-
-    @Override
-    protected void execute(@NotNull Project project) {
-      List<String> requested = Lists.newArrayList();
-      if (myVersion.getMajor() == 23) {
-        Revision minBuildToolsRev = new Revision(20, 0, 0);
-        requested.add(DetailsTypes.getBuildToolsPath(minBuildToolsRev));
-      }
-      requested.add(FD_TOOLS);
-      ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, requested);
-      if (dialog != null && dialog.showAndGet()) {
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
-      }
-    }
   }
 
   public static class Request {

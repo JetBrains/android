@@ -23,7 +23,6 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -34,8 +33,8 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessage.DEFAULT_GROUP;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 public class JdkPostSyncProjectSetupStep extends PostSyncProjectSetupStep {
   @NotNull private final IdeSdks myIdeSdks;
@@ -53,9 +52,7 @@ public class JdkPostSyncProjectSetupStep extends PostSyncProjectSetupStep {
   }
 
   @Override
-  public void setUpProject(@NotNull Project project,
-                           @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                           @Nullable ProgressIndicator indicator) {
+  public void setUpProject(@NotNull Project project, @Nullable ProgressIndicator indicator) {
     doSetUpProject(project, isAndroidStudio());
   }
 
@@ -92,5 +89,10 @@ public class JdkPostSyncProjectSetupStep extends PostSyncProjectSetupStep {
       myJdks.setJdk(project, ideJdk);
       PostProjectBuildTasksExecutor.getInstance(project).updateJavaLangLevelAfterBuild();
     }
+  }
+
+  @Override
+  public boolean invokeOnFailedSync() {
+    return true;
   }
 }
