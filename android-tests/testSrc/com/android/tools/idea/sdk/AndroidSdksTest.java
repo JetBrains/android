@@ -25,6 +25,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -255,7 +256,12 @@ public class AndroidSdksTest extends IdeaTestCase {
     assertNotNull(sdkData);
     IAndroidTarget[] targets = sdkData.getTargets(false /* do not include add-ons */);
     assertThat(targets).isNotEmpty();
-    return targets[0];
+
+    // Use the latest platform, which is checked-in as a full SDK. Older platforms may not be checked in full, to save space.
+    IAndroidTarget result = ContainerUtil.find(targets,
+                                               target -> target.hashString().equals(TestUtils.getLatestAndroidPlatform()));
+    assertThat(result).isNotNull();
+    return result;
   }
 
   public void testNeedsAnnotationsJarInClasspathWithApiLevel15() {
