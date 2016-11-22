@@ -65,7 +65,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     JButton backButton = new JButton("Go back");
     toolBar.add(backButton);
-    backButton.addActionListener(action -> returnToStudioStage());
+    backButton.addActionListener(action -> getStage().getStudioProfilers().setMonitoringStage());
 
     JToggleButton recordAllocationButton = new JToggleButton("Record");
     recordAllocationButton.addActionListener(e -> getStage().setAllocationTracking(recordAllocationButton.isSelected()));

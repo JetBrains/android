@@ -99,12 +99,6 @@ public abstract class StageView<T extends Stage> {
 
   abstract public JComponent getToolbar();
 
-  protected void returnToStudioStage() {
-    StudioProfilers profilers = getStage().getStudioProfilers();
-    StudioMonitorStage monitor = new StudioMonitorStage(profilers);
-    profilers.setStage(monitor);
-  }
-
   /**
    * A purely visual concept as to whether this stage wants the "process and devices" selection being shown to the user.
    * It is not possible to assume processes won't change while a stage is running. For example: a process dying.

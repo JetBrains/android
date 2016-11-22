@@ -20,7 +20,6 @@ import com.android.annotations.Nullable;
 import com.android.ddmlib.*;
 import com.android.tools.datastore.LegacyAllocationTracker;
 import com.android.tools.datastore.DataStoreService;
-import com.android.tools.profilers.GrpcProfilerClient;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.ddms.adb.AdbService;
@@ -68,7 +67,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
 
     // The client is referenced in the update devices callback. As such the client needs to be set before we register
     // ourself as a listener for this callback. Otherwise we may get the callback before we are fully constructed
-    myClient = new GrpcProfilerClient(DATASTORE_NAME);
+    myClient = new ProfilerClient(DATASTORE_NAME);
 
     ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb);
     Futures.addCallback(future, new FutureCallback<AndroidDebugBridge>() {
