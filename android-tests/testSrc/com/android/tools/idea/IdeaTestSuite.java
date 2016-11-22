@@ -64,6 +64,7 @@ import java.nio.file.Paths;
   com.android.tools.idea.testartifacts.scopes.TestArtifactsResolveTest.class,
   org.jetbrains.android.AndroidLintTest.class,
   org.jetbrains.android.databinding.GeneratedCodeMatchTest.class,
+  org.jetbrains.android.dom.AndroidLayoutDomTest.class,
   org.jetbrains.android.dom.AndroidManifestDomTest.class,
   org.jetbrains.android.dom.AndroidXmlResourcesDomTest.class,
 
@@ -72,9 +73,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.actions.annotations.InferSupportAnnotationsTest.class,
   org.jetbrains.android.dom.AndroidValueResourcesTest.class,
   org.jetbrains.android.dom.CreateMissingClassFixTest.class,
-
-  // Disable as it is breaking build, for linux only.
-  org.jetbrains.android.dom.AndroidLayoutDomTest.class,
 })
 public class IdeaTestSuite {
 
