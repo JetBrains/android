@@ -15,11 +15,6 @@
  */
 package com.android.tools.profilers.cpu;
 
-public enum CpuCaptureState {
-  // Capture has not happened or is in progress
-  NONE,
-  // Capture is in progress
-  CAPTURING,
-  // Capture has happened
-  CAPTURED,
+public enum CpuCaptureAspect {
+  CAPTURE_THREAD
 }
