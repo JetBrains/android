@@ -11,8 +11,8 @@ iml_module(
     deps = [
         "//tools/idea/.idea/libraries:layoutlib",
         "//tools/base/sdk-common:studio.sdk-common[module]",
-        "//tools:idea.annotations[module]",
+        "//tools/idea/platform/annotations[module]",
         "//tools/adt/idea/common:android-common[module]",
-        "//tools:idea.platform-api[module]",
+        "//tools/idea/platform/platform-api[module]",
     ],
 )
