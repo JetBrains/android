@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea;
 
-import com.android.repository.api.ProgressIndicator;
 import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
@@ -40,7 +39,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.testing.TestProjectPathsGeneratorTest.class, // This is for a standalone, test-only application
   // The following classes had failures when run in Bazel.
   com.android.tools.idea.ddms.adb.AdbServiceTest.class,
-  com.android.tools.idea.editors.AndroidGeneratedSourcesFilterTest.class,
   com.android.tools.idea.editors.theme.ConfiguredThemeEditorStyleTest.class,
   com.android.tools.idea.editors.theme.ResolutionUtilsTest.class,
   com.android.tools.idea.exportSignedPackage.ExportSignedPackageTest.class,
