@@ -16,10 +16,14 @@
 package com.android.tools.idea.uibuilder.scene;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.*;
+import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -31,10 +35,19 @@ import java.util.List;
  */
 public class Scene implements ModelListener {
 
-  private final float myDpiFactor;
+  private NlModel myModel;
+  private float myDpiFactor;
   private HashMap<NlComponent, SceneComponent> mySceneComponents = new HashMap<>();
   private SceneComponent myRoot;
   private boolean myAnimate = true; // animate layout changes
+
+  private int myLastMouseX;
+  private int myLastMouseY;
+  private boolean myDidPreviousRepaint = true;
+
+  private HitListener myHoverListener = new HitListener();
+  private HitListener myHitListener = new HitListener();
+  private Target mHitTarget = null;
 
   /**
    * Helper static function to create a Scene instance given a NlModel
@@ -60,7 +73,7 @@ public class Scene implements ModelListener {
   }
 
   /////////////////////////////////////////////////////////////////////////////
-  // Dp / Pixels conversion utilities
+  //region Dp / Pixels conversion utilities
   /////////////////////////////////////////////////////////////////////////////
 
   /**
@@ -83,9 +96,16 @@ public class Scene implements ModelListener {
     return (int)(0.5f + dp * myDpiFactor);
   }
 
+  //endregion
   /////////////////////////////////////////////////////////////////////////////
-  // Accessors
+  //region Accessors
   /////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Set the current dpi factor
+   * @param dpiFactor
+   */
+  public void setDpiFactor(float dpiFactor) { myDpiFactor = dpiFactor; }
 
   /**
    * Return the current animation status
@@ -117,6 +137,20 @@ public class Scene implements ModelListener {
   }
 
   /**
+   * Return the SceneComponent corresponding to the given component id, if found
+   *
+   * @param componentId the component id to look for
+   * @return the SceneComponent paired to the given component id, if found
+   */
+  @Nullable
+  public SceneComponent getSceneComponent(@NotNull String componentId) {
+    if (myRoot == null) {
+      return null;
+    }
+    return myRoot.getSceneComponent(componentId);
+  }
+
+  /**
    * Return the current SceneComponent root in the Scene
    *
    * @return the root SceneComponent
@@ -126,8 +160,9 @@ public class Scene implements ModelListener {
     return myRoot;
   }
 
+  //endregion
   /////////////////////////////////////////////////////////////////////////////
-  // Update / Maintenance of the tree
+  //region Update / Maintenance of the tree
   /////////////////////////////////////////////////////////////////////////////
 
   /**
@@ -142,7 +177,9 @@ public class Scene implements ModelListener {
     }
     NlComponent rootComponent = components.get(0).getRoot();
     myRoot = updateFromComponent(rootComponent);
+    addTargets(myRoot);
     model.addListener(this);
+    myModel = model;
   }
 
   /**
@@ -179,6 +216,9 @@ public class Scene implements ModelListener {
         it.remove();
       }
     }
+    if (myRoot != null) {
+      addTargets(myRoot);
+    }
   }
 
   /**
@@ -206,18 +246,46 @@ public class Scene implements ModelListener {
     return sceneComponent;
   }
 
+  /**
+   * Add targets to the given component (by asking the associated
+   * {@linkplain ViewGroupHandler} to do it)
+   *
+   * @param component
+   */
+  private void addTargets(@NotNull SceneComponent component) {
+    ViewHandler handler = component.getNlComponent().getViewHandler();
+    if (handler instanceof ViewGroupHandler) {
+      ViewGroupHandler viewGroupHandler = (ViewGroupHandler) handler;
+      if (component.getViewGroupHandler() != viewGroupHandler) {
+        component.setViewGroupHandler(viewGroupHandler);
+      }
+      int childCount = component.getChildCount();
+      for (int i = 0; i < childCount; i++) {
+        SceneComponent child = component.getChild(i);
+        if (child.getViewGroupHandler() != viewGroupHandler) {
+          child.setViewGroupHandler(viewGroupHandler);
+        }
+      }
+    }
+  }
+
+  //endregion
   /////////////////////////////////////////////////////////////////////////////
-  // NlModel listeners callbacks
+  //region NlModel listeners callbacks
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
   public void modelChanged(@NotNull NlModel model) {
-    // Do nothing
+    ApplicationManager.getApplication().runReadAction(() -> {
+      updateFrom(model);
+    });
   }
 
   @Override
   public void modelRendered(@NotNull NlModel model) {
-    updateFrom(model);
+    ApplicationManager.getApplication().runReadAction(() -> {
+      updateFrom(model);
+    });
   }
 
   @Override
@@ -227,4 +295,135 @@ public class Scene implements ModelListener {
     updateFrom(model);
     myAnimate = previous;
   }
+
+  //endregion
+  /////////////////////////////////////////////////////////////////////////////
+  //region Painting
+  /////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Paint the current scene into the given display list
+   *
+   * @param displayList
+   * @param time
+   * @return true if we need to repaint the screen
+   */
+  public boolean paint(@NotNull DisplayList displayList, long time) {
+    boolean needsRepaint = false;
+    if (myRoot != null) {
+      needsRepaint = myRoot.layout(time);
+      myRoot.render(displayList);
+    }
+    displayList.addRect(myLastMouseX - 4, myLastMouseY - 4, myLastMouseX + 4, myLastMouseY + 4, Color.blue);
+    if (myDidPreviousRepaint) {
+      myDidPreviousRepaint = needsRepaint;
+      needsRepaint = true;
+    }
+    return needsRepaint;
+  }
+
+  //endregion
+  /////////////////////////////////////////////////////////////////////////////
+  //region Mouse Handling
+  /////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Hit listener implementation (used for hover / click detection)
+   */
+  class HitListener implements ScenePicker.HitElementListener {
+    private ScenePicker myPicker = new ScenePicker();
+    SceneComponent myClosestComponent;
+    double myClosestComponentDistance = Double.MAX_VALUE;
+    Target myClosestTarget;
+    double myClosestTargetDistance = Double.MAX_VALUE;
+
+    public HitListener() {
+      myPicker.setSelectListener(this);
+    }
+
+    public void find(@NotNull SceneComponent root, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+      myClosestComponent = null;
+      myClosestTarget = null;
+      myClosestComponentDistance = Double.MAX_VALUE;
+      myClosestTargetDistance = Double.MAX_VALUE;
+      myPicker.reset();
+      root.addHit(myPicker);
+      myPicker.find(x, y);
+    }
+
+    @Override
+    public void over(Object over, double dist) {
+      if (over instanceof Target) {
+        Target target = (Target) over;
+        if (dist < myClosestTargetDistance) {
+          myClosestTargetDistance = dist;
+          myClosestTarget = target;
+        }
+      } else if (over instanceof SceneComponent) {
+        SceneComponent component = (SceneComponent) over;
+        if (dist < myClosestComponentDistance) {
+          myClosestComponentDistance = dist;
+          myClosestComponent = component;
+        }
+      }
+    }
+  }
+
+  /**
+   * Supports hover
+   *
+   * @param x
+   * @param y
+   */
+  public void mouseHover(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+    myLastMouseX = x;
+    myLastMouseY = y;
+    myHoverListener.find(myRoot, x, y);
+    if (myHoverListener.myClosestTarget != null) {
+      myHoverListener.myClosestTarget.setOver(true);
+    }
+    if (myHoverListener.myClosestComponent != null) {
+      myHoverListener.myClosestComponent.setDrawState(SceneComponent.DrawState.HOVER);
+    }
+  }
+
+  public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+    myLastMouseX = x;
+    myLastMouseY = y;
+    myHitListener.find(myRoot, x, y);
+    mHitTarget = myHitListener.myClosestTarget;
+    if (mHitTarget != null) {
+      mHitTarget.mouseDown(x, y);
+    }
+  }
+
+  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+    myLastMouseX = x;
+    myLastMouseY = y;
+    boolean needsLayout = false;
+    if (mHitTarget != null) {
+      myHitListener.find(myRoot, x, y);
+      needsLayout = mHitTarget.mouseDrag(x, y, myHitListener.myClosestTarget);
+    }
+    mouseHover(x, y);
+    if (needsLayout) {
+      myModel.requestLayout(true);
+    }
+  }
+
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+    myLastMouseX = x;
+    myLastMouseY = y;
+    boolean needsLayout = false;
+    if (mHitTarget!= null) {
+      myHitListener.find(myRoot, x, y);
+      needsLayout = mHitTarget.mouseRelease(x, y, myHitListener.myClosestTarget);
+    }
+    if (needsLayout) {
+      myModel.requestLayout(true);
+    }
+  }
+
+  //endregion
+  /////////////////////////////////////////////////////////////////////////////
 }

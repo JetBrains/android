@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SegmentType;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.intellij.lang.annotations.Language;
@@ -213,4 +214,12 @@ public class ViewGroupHandler extends ViewHandler {
     return false;
   }
 
+  /**
+   * Give a chance to the ViewGroup to add targets to the {@linkplain SceneComponent}
+   *
+   * @param component the component we'll add targets on
+   */
+  public void addTargets(@NotNull SceneComponent component) {
+    // do nothing
+  }
 }
