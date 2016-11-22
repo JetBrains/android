@@ -26,11 +26,11 @@ import com.intellij.openapi.ui.popup.IconButton;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.InplaceButton;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.components.labels.BoldLabel;
-import com.intellij.ui.InplaceButton;
-import com.intellij.ui.components.panels.NonOpaquePanel;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -42,30 +42,42 @@ import java.awt.*;
 public class ConnectionDetailsView extends JPanel {
 
   private final JPanel myResponsePanel;
+  private final JPanel myEditorPanel;
   private final JPanel myFieldsPanel;
+  private final JTextArea myCallstackView;
 
   public ConnectionDetailsView() {
-    setLayout(new BorderLayout());
+    super(new BorderLayout());
+
+    JBTabbedPane tabPanel = new JBTabbedPane();
 
     myResponsePanel = new JPanel(new BorderLayout());
-    add(myResponsePanel, BorderLayout.CENTER);
+    myEditorPanel = new JPanel(new BorderLayout());
+    myResponsePanel.add(myEditorPanel, BorderLayout.CENTER);
 
     myFieldsPanel = new JPanel(ProportionalLayout.fromString("Fit,20px,*"));
     JBScrollPane scrollPane = new JBScrollPane(myFieldsPanel);
     scrollPane.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0));
-    add(scrollPane, BorderLayout.SOUTH);
+    myResponsePanel.add(scrollPane, BorderLayout.SOUTH);
 
-    NonOpaquePanel headPanel = new NonOpaquePanel(new BorderLayout());
-    add(headPanel, BorderLayout.NORTH);
+    myCallstackView = new JTextArea();
+    myCallstackView.setEditable(false);
 
-    NonOpaquePanel titleLabelPanel = new NonOpaquePanel();
-    titleLabelPanel.setLayout(new BoxLayout(titleLabelPanel, BoxLayout.X_AXIS));
-    titleLabelPanel.add(new JLabel("Response"));
-    headPanel.add(titleLabelPanel, BorderLayout.WEST);
+    tabPanel.addTab("Response", myResponsePanel);
+    tabPanel.addTab("Call Stack", myCallstackView);
 
-    IconButton close = new IconButton("Close", AllIcons.Actions.Close, AllIcons.Actions.CloseHovered);
-    InplaceButton closeButton = new InplaceButton(close, e -> this.update((HttpData) null));
-    headPanel.add(closeButton, BorderLayout.EAST);
+    IconButton closeIcon = new IconButton("Close", AllIcons.Actions.Close, AllIcons.Actions.CloseHovered);
+    InplaceButton closeButton = new InplaceButton(closeIcon, e -> this.update((HttpData) null));
+
+    // TODO: In a followup CL, update the logic so that the close button overlaps the tab panel.
+    // So far I've tried using OverlapLayout as well as JLayeredPade+GridBadLayout, but both
+    // approaches ended up being sensitive. Some changes to one of our own custom layout managers
+    // may make this trivial, however.
+    JPanel closePanel = new JPanel(new BorderLayout());
+    closePanel.add(closeButton, BorderLayout.EAST);
+
+    add(closePanel, BorderLayout.NORTH);
+    add(tabPanel);
   }
 
   /**
@@ -74,8 +86,9 @@ public class ConnectionDetailsView extends JPanel {
    */
   public void update(@Nullable HttpData httpData) {
     setBackground(JBColor.background());
-    myResponsePanel.removeAll();
+    myEditorPanel.removeAll();
     myFieldsPanel.removeAll();
+    myCallstackView.setText("");
 
     if (httpData != null) {
       VirtualFile payloadVirtualFile = httpData.getResponsePayloadFile() != null
@@ -85,7 +98,7 @@ public class ConnectionDetailsView extends JPanel {
         Project project = ProjectManager.getInstance().getDefaultProject();
         FileEditorProvider editorProvider = FileEditorProviderManager.getInstance().getProviders(project, payloadVirtualFile)[0];
         FileEditor editor = editorProvider.createEditor(project, payloadVirtualFile);
-        myResponsePanel.add(editor.getComponent(), BorderLayout.CENTER);
+        myEditorPanel.add(editor.getComponent(), BorderLayout.CENTER);
       }
 
       int row = 0;
@@ -115,6 +128,11 @@ public class ConnectionDetailsView extends JPanel {
         myFieldsPanel.add(new NoWrapBoldLabel("Content length"), new ProportionalLayout.Constraint(row, 0));
         myFieldsPanel.add(new JLabel(contentLength), new ProportionalLayout.Constraint(row, 2));
       }
+
+      // TODO: We are showing the callstack but we can't currently click on any of the links to
+      // navigate to the code.
+      myCallstackView.setText(httpData.getTrace());
+
       repaint();
     }
     setVisible(httpData != null);

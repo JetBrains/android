@@ -43,6 +43,7 @@ public class HttpData {
   @Nullable private String myResponsePayloadId;
   private int myStatusCode = -1;
   private final Map<String, String> myResponseFields = new HashMap<>();
+  private String myTrace;
   // TODO: Move it to datastore, for now virtual file creation cannot select file type.
   private File myResponsePayloadFile;
 
@@ -53,6 +54,7 @@ public class HttpData {
     myDownloadingTimeUs = builder.myDownloadingTimeUs;
     myUrl = builder.myUrl;
     myMethod = builder.myMethod;
+    myTrace = builder.myTrace;
 
     myResponsePayloadId = builder.myResponsePayloadId;
     if (builder.myResponseFields != null) {
@@ -94,6 +96,11 @@ public class HttpData {
   public int getStatusCode() {
     return myStatusCode;
   }
+
+  @Nullable
+  public String getTrace() { return myTrace; }
+
+  public void setTrace(@NotNull String trace) { myTrace = trace; }
 
   @Nullable
   public File getResponsePayloadFile() {
@@ -159,6 +166,7 @@ public class HttpData {
 
     private String myResponseFields;
     private String myResponsePayloadId;
+    private String myTrace;
 
     public Builder(long id, long startTimeUs, long endTimeUs, long downloadingTimeUS) {
       myId = id;
@@ -176,6 +184,12 @@ public class HttpData {
     @NotNull
     public Builder setMethod(@NotNull String method) {
       myMethod = method;
+      return this;
+    }
+
+    @NotNull
+    public Builder setTrace(String trace) {
+      myTrace = trace;
       return this;
     }
 

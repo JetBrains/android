@@ -86,6 +86,7 @@ public final class RpcNetworkRequestsModel implements NetworkRequestsModel {
     }
     httpBuilder.setUrl(result.getUrl());
     httpBuilder.setMethod(result.getMethod());
+    httpBuilder.setTrace(result.getTrace());
   }
 
   private void requestHttpResponseBody(long connectionId, @NotNull HttpData.Builder httpBuilder) {
