@@ -56,7 +56,7 @@ public class SimpleEventTestDataGenerator
       }
       mData.add(new EventAction<>(currentTimeUs, endTimeUs,
                                   downAction ? EventAction.Action.DOWN : EventAction.Action.UP,
-                                  EventActionType.HOLD));
+                                  EventActionType.KEYBOARD));
 
     }
   }
