@@ -44,9 +44,10 @@ import static com.android.tools.profilers.ProfilerColors.NETWORK_SENDING_COLOR;
 import static com.android.tools.profilers.ProfilerColors.NETWORK_WAITING_COLOR;
 
 /**
- * This class responsible for displaying table of requests information (e.g url, duration, timeline) for network profiling.
+ * This class responsible for displaying table of requests information (e.g url, duration, timeline)
+ * for network profiling. Each row in the table represents a single request.
  */
-public class NetworkRequestsView {
+public class ConnectionsView {
   private static final int ROW_HEIGHT_PADDING = 5;
 
   public interface DetailedViewListener {
@@ -85,8 +86,8 @@ public class NetworkRequestsView {
   @NotNull
   private final JTable myRequestsTable;
 
-  public NetworkRequestsView(@NotNull NetworkProfilerStageView stageView,
-                             @NotNull DetailedViewListener detailedViewListener) {
+  public ConnectionsView(@NotNull NetworkProfilerStageView stageView,
+                         @NotNull DetailedViewListener detailedViewListener) {
     myStageView = stageView;
     myDetailedViewListener = detailedViewListener;
     myTableModel = new NetworkRequestsTableModel();
