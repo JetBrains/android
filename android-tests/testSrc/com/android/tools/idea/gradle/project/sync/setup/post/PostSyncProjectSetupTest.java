@@ -81,10 +81,9 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     when(myModuleValidatorFactory.create(project)).thenReturn(myModuleValidator);
 
     PostSyncProjectSetupStep[] setupSteps = {mySetupStep1, mySetupStep2};
-    PluginVersionUpgrade[] versionUpgrades = {myVersionUpgrade};
 
     mySetup =
-      new PostSyncProjectSetup(project, myAndroidSdks, mySyncInvoker, mySyncState, myDependencySetupErrors, setupSteps, versionUpgrades,
+      new PostSyncProjectSetup(project, myAndroidSdks, mySyncInvoker, mySyncState, myDependencySetupErrors, setupSteps, myVersionUpgrade,
                                mySyncMessages, myModuleSetupStep, myVersionCompatibilityChecker, myProjectBuilder, myModuleValidatorFactory,
                                myRunManager);
   }

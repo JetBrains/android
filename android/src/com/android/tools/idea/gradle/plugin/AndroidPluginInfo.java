@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.util.BuildFileProcessor;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -28,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.CLASSPATH;
@@ -164,10 +166,11 @@ public class AndroidPluginInfo {
     return result;
   }
 
-  private AndroidPluginInfo(@NotNull Module module,
-                            @NotNull AndroidPluginGeneration pluginGeneration,
-                            @Nullable GradleVersion pluginVersion,
-                            @Nullable VirtualFile pluginBuildFile) {
+  @VisibleForTesting
+  public AndroidPluginInfo(@NotNull Module module,
+                           @NotNull AndroidPluginGeneration pluginGeneration,
+                           @Nullable GradleVersion pluginVersion,
+                           @Nullable VirtualFile pluginBuildFile) {
     myModule = module;
     myPluginGeneration = pluginGeneration;
     myPluginVersion = pluginVersion;
@@ -196,6 +199,26 @@ public class AndroidPluginInfo {
 
   public boolean isExperimental() {
     return getPluginGeneration() == COMPONENT;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    AndroidPluginInfo that = (AndroidPluginInfo)o;
+    return Objects.equals(myModule, that.myModule) &&
+           Objects.equals(myPluginGeneration, that.myPluginGeneration) &&
+           Objects.equals(myPluginVersion, that.myPluginVersion) &&
+           Objects.equals(myPluginBuildFile, that.myPluginBuildFile);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myModule, myPluginGeneration, myPluginVersion, myPluginBuildFile);
   }
 
   private static class BuildFileSearchResult {

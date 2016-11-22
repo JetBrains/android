@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.customizer.dependency.Dependency;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySet;
 import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.customizer.dependency.ModuleDependency;
-import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectSyncData;
 import com.android.tools.idea.gradle.project.LibraryAttachments;
@@ -69,7 +68,6 @@ import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -122,7 +120,7 @@ public class PostSyncProjectSetup {
   @NotNull private final GradleSyncState mySyncState;
   @NotNull private final DependencySetupErrors myDependencySetupErrors;
   @NotNull private final PostSyncProjectSetupStep[] myProjectSetupSteps;
-  @NotNull private final PluginVersionUpgrade[] myVersionUpgrades;
+  @NotNull private final PluginVersionUpgrade myPluginVersionUpgrade;
   @NotNull private final SyncMessages mySyncMessages;
   @NotNull private final DependenciesModuleSetupStep myDependenciesModuleSetupStep;
   @NotNull private final VersionCompatibilityChecker myVersionCompatibilityChecker;
@@ -145,7 +143,7 @@ public class PostSyncProjectSetup {
                               @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                               @NotNull GradleProjectBuilder projectBuilder) {
     this(project, androidSdks, syncInvoker, syncState, dependencySetupErrors, PostSyncProjectSetupStep.getExtensions(),
-         PluginVersionUpgrade.getExtensions(), syncMessages, DependenciesModuleSetupStep.getInstance(), versionCompatibilityChecker,
+         new PluginVersionUpgrade(project), syncMessages, DependenciesModuleSetupStep.getInstance(), versionCompatibilityChecker,
          projectBuilder, new CommonModuleValidator.Factory(), RunManagerImpl.getInstanceImpl(project));
   }
 
@@ -156,7 +154,7 @@ public class PostSyncProjectSetup {
                        @NotNull GradleSyncState syncState,
                        @NotNull DependencySetupErrors dependencySetupErrors,
                        @NotNull PostSyncProjectSetupStep[] projectSetupSteps,
-                       @NotNull PluginVersionUpgrade[] versionUpgrades,
+                       @NotNull PluginVersionUpgrade pluginVersionUpgrade,
                        @NotNull SyncMessages syncMessages,
                        @NotNull DependenciesModuleSetupStep dependenciesModuleSetupStep,
                        @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
@@ -169,7 +167,7 @@ public class PostSyncProjectSetup {
     mySyncState = syncState;
     myDependencySetupErrors = dependencySetupErrors;
     myProjectSetupSteps = projectSetupSteps;
-    myVersionUpgrades = versionUpgrades;
+    myPluginVersionUpgrade = pluginVersionUpgrade;
     mySyncMessages = syncMessages;
     myDependenciesModuleSetupStep = dependenciesModuleSetupStep;
     myVersionCompatibilityChecker = versionCompatibilityChecker;
@@ -213,21 +211,9 @@ public class PostSyncProjectSetup {
       return;
     }
 
-    AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(myProject);
-    if (pluginInfo == null) {
-      Logger.getInstance(PostSyncProjectSetup.class).warn("Unable to obtain application's Android Project");
-    }
-    else {
-      log(pluginInfo);
-    }
-
-    if (pluginInfo != null) {
-      for (PluginVersionUpgrade versionUpgrade : myVersionUpgrades) {
-        if (versionUpgrade.checkAndPerformUpgrade(myProject, pluginInfo)) {
-          // plugin was updated and sync requested. No need to continue.
-          return;
-        }
-      }
+    if (myPluginVersionUpgrade.checkAndPerformUpgrade()) {
+      // Plugin version was upgraded and a sync was triggered.
+      return;
     }
 
     new ProjectStructureUsageTracker(myProject).trackProjectStructure();
@@ -311,6 +297,7 @@ public class PostSyncProjectSetup {
     mySyncState.syncSkipped(syncTimestamp);
     mySyncInvoker.requestProjectSyncAndSourceGeneration(myProject, null);
   }
+
 
   private void invokeProjectSetupSteps(@Nullable ProgressIndicator progressIndicator, boolean syncFailed) {
     Runnable invokeProjectSetupStepsTask = () -> {
@@ -512,13 +499,6 @@ public class PostSyncProjectSetup {
       }
     }
     conflicts.showSelectionConflicts();
-  }
-
-  private static void log(@NotNull AndroidPluginInfo pluginInfo) {
-    GradleVersion current = pluginInfo.getPluginVersion();
-    String recommended = pluginInfo.getPluginGeneration().getLatestKnownVersion();
-    String message = String.format("Gradle model version: %1$s, recommended version for IDE: %2$s", current, recommended);
-    Logger.getInstance(PostSyncProjectSetup.class).info(message);
   }
 
   private void ensureValidSdks() {
