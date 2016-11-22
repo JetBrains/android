@@ -22,12 +22,12 @@ import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.ui.popup.IconButton;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.labels.BoldLabel;
 import com.intellij.ui.InplaceButton;
 import com.intellij.ui.components.panels.NonOpaquePanel;
@@ -41,19 +41,19 @@ import java.awt.*;
  */
 public class ConnectionDetailsView extends JPanel {
 
-  private final Splitter myResponseSplitter;
   private final JPanel myResponsePanel;
   private final JPanel myFieldsPanel;
 
   public ConnectionDetailsView() {
-    myResponseSplitter = new Splitter(true, 0.8f);
-    myResponsePanel = new JPanel(new BorderLayout());
-    myResponseSplitter.setFirstComponent(myResponsePanel);
-    myFieldsPanel = new JPanel(ProportionalLayout.fromString("Fit,20px,*"));
-    myResponseSplitter.setSecondComponent(myFieldsPanel);
-
     setLayout(new BorderLayout());
-    add(myResponseSplitter, BorderLayout.CENTER);
+
+    myResponsePanel = new JPanel(new BorderLayout());
+    add(myResponsePanel, BorderLayout.CENTER);
+
+    myFieldsPanel = new JPanel(ProportionalLayout.fromString("Fit,20px,*"));
+    JBScrollPane scrollPane = new JBScrollPane(myFieldsPanel);
+    scrollPane.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0));
+    add(scrollPane, BorderLayout.SOUTH);
 
     NonOpaquePanel headPanel = new NonOpaquePanel(new BorderLayout());
     add(headPanel, BorderLayout.NORTH);
@@ -89,24 +89,41 @@ public class ConnectionDetailsView extends JPanel {
       }
 
       int row = 0;
-      myFieldsPanel.add(new BoldLabel("Request"), new ProportionalLayout.Constraint(row, 0));
-      HyperlinkLabel urlLabel = new HyperlinkLabel(httpData.getUrl());
-      urlLabel.setHyperlinkTarget(httpData.getUrl());
-      myFieldsPanel.add(urlLabel, new ProportionalLayout.Constraint(row, 2));
+      myFieldsPanel.add(new NoWrapBoldLabel("Request"), new ProportionalLayout.Constraint(row, 0));
+      myFieldsPanel.add(new JLabel(HttpData.getUrlName(httpData.getUrl())), new ProportionalLayout.Constraint(row, 2));
 
       String contentType = httpData.getHttpResponseField(HttpData.FIELD_CONTENT_TYPE);
       if (contentType != null) {
         row++;
-        myFieldsPanel.add(new BoldLabel("Content type"), new ProportionalLayout.Constraint(row, 0));
+        myFieldsPanel.add(new NoWrapBoldLabel("Content type"), new ProportionalLayout.Constraint(row, 0));
         // Content type looks like "type/subtype;" or "type/subtype; parameters".
         // Always convert to "type"
         contentType = contentType.split(";")[0];
         myFieldsPanel.add(new JLabel(contentType), new ProportionalLayout.Constraint(row, 2));
       }
 
-      myResponseSplitter.repaint();
+      HyperlinkLabel urlLabel = new HyperlinkLabel(httpData.getUrl());
+      urlLabel.setHyperlinkTarget(httpData.getUrl());
+      row++;
+      myFieldsPanel.add(new NoWrapBoldLabel("URL"), new ProportionalLayout.Constraint(row, 0));
+      myFieldsPanel.add(urlLabel, new ProportionalLayout.Constraint(row, 2));
+
+      String contentLength = httpData.getHttpResponseField(HttpData.FIELD_CONTENT_LENGTH);
+      if (contentLength != null) {
+        contentLength = contentLength.split(";")[0];
+        row++;
+        myFieldsPanel.add(new NoWrapBoldLabel("Content length"), new ProportionalLayout.Constraint(row, 0));
+        myFieldsPanel.add(new JLabel(contentLength), new ProportionalLayout.Constraint(row, 2));
+      }
+      repaint();
     }
     setVisible(httpData != null);
     revalidate();
+  }
+
+  private static final class NoWrapBoldLabel extends BoldLabel {
+    public NoWrapBoldLabel(String text) {
+      super("<nobr>" + text + "</nobr>");
+    }
   }
 }
