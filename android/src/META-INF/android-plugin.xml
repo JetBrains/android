@@ -244,10 +244,6 @@
         overrides="true"
         text="Submit _Feedback"
         description="Submit feedback to the Android Studio team"/>
-    <action id="AndroidDeepLinkCodeGeneratorAction" class="com.android.tools.idea.actions.DeepLinkCodeGeneratorAction"
-            text="URL" description="Generate a new intent filter for URLs">
-      <add-to-group group-id="GenerateGroup" anchor="first"/>
-    </action>
     <action id="StoreDefaultLayout" class="com.android.tools.idea.uibuilder.actions.StoreDefaultWindowLayoutAction" overrides="true"/>
     <action id="RestoreDefaultLayout" class="com.android.tools.idea.uibuilder.actions.RestoreDefaultWindowLayoutAction" overrides="true"/>
     <action class="com.android.tools.idea.rendering.webp.ConvertToWebpAction" id="ConvertToWebp" text="Convert to WebP...">
@@ -502,11 +498,6 @@
 
     <intentionAction>
       <className>com.android.tools.idea.actions.OverrideResourceAction</className>
-      <category>Android</category>
-    </intentionAction>
-
-    <intentionAction>
-      <className>com.android.tools.idea.actions.CreateDeepLinkIntentionAction</className>
       <category>Android</category>
     </intentionAction>
 
