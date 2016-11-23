@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.service.notification;
+package com.android.tools.idea.gradle.service.notification.hyperlink;
 
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.project.Project;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +24,7 @@ import javax.swing.event.HyperlinkEvent;
 import static org.easymock.classextension.EasyMock.*;
 
 /**
- * Tests for {@link com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink}.
+ * Tests for {@link NotificationHyperlink}.
  */
 public class NotificationHyperlinkTest extends TestCase {
   private boolean myExecuted;

@@ -41,6 +41,7 @@ public abstract class SyncErrorHandler {
 
   protected static final String EMPTY_LINE = "\n\n";
   protected static final NotificationType DEFAULT_NOTIFICATION_TYPE = NotificationType.ERROR;
+
   private static final Pattern ERROR_LOCATION_IN_FILE_PATTERN = Pattern.compile("Build file '(.*)' line: ([\\d]+)");
   private static final Pattern ERROR_IN_FILE_PATTERN = Pattern.compile("Build file '(.*)'");
 
