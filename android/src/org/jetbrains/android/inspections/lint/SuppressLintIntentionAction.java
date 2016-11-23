@@ -18,7 +18,6 @@ package org.jetbrains.android.inspections.lint;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.intellij.codeInsight.AnnotationUtil;
-import com.intellij.codeInsight.FileModificationService;
 import com.intellij.codeInsight.intention.AddAnnotationFix;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.SuppressionUtilCore;
@@ -101,9 +100,6 @@ public class SuppressLintIntentionAction implements IntentionAction, Iconable {
         return;
       }
 
-      if (!FileModificationService.getInstance().preparePsiElementForWrite(element)) {
-        return;
-      }
       String lintId = getLintId(myId);
       addSuppressAttribute(project, (XmlFile) file, element, lintId);
     } else if (file instanceof PsiJavaFile) {
@@ -113,9 +109,6 @@ public class SuppressLintIntentionAction implements IntentionAction, Iconable {
         return;
       }
 
-      if (!FileModificationService.getInstance().preparePsiElementForWrite(container)) {
-        return;
-      }
       final PsiModifierList modifierList = container.getModifierList();
       if (modifierList != null) {
 

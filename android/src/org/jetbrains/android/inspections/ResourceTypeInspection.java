@@ -31,7 +31,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.AnnotationUtil;
-import com.intellij.codeInsight.FileModificationService;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl;
@@ -87,7 +86,6 @@ import static com.android.tools.lint.checks.ApiDetector.UNSUPPORTED;
 import static com.android.tools.lint.checks.PermissionFinder.Operation.*;
 import static com.android.tools.lint.checks.SupportAnnotationDetector.*;
 import static com.android.tools.lint.detector.api.ResourceEvaluator.*;
-import static com.android.tools.lint.detector.api.ResourceEvaluator.RES_SUFFIX;
 import static com.intellij.psi.CommonClassNames.DEFAULT_PACKAGE;
 import static com.intellij.psi.CommonClassNames.JAVA_LANG_STRING;
 import static com.intellij.psi.util.PsiFormatUtilBase.SHOW_CONTAINING_CLASS;
@@ -1283,7 +1281,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       }
       String name = getMethodName();
       final PsiFile file = methodCall.getContainingFile();
-      if (file == null || !FileModificationService.getInstance().prepareFileForWrite(file)) {
+      if (file == null) {
         return;
       }
 
