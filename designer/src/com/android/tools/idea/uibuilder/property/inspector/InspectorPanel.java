@@ -233,8 +233,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
 
     // These are both important to render the controls correctly the first time:
     ApplicationManager.getApplication().invokeLater(() -> {
-      revalidate();
-      repaint();
+      updateAfterFilterChange();
       if (myActivateEditorAfterLoad) {
         activatePreferredEditor(myPropertyNameForActivation);
       }

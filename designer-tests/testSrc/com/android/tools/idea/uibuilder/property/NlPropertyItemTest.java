@@ -19,20 +19,21 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionListener;
 import com.android.tools.idea.uibuilder.property.ptable.PTableGroupItem;
+import com.android.tools.idea.uibuilder.property.ptable.StarState;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.xml.XmlAttributeDescriptor;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.property.NlProperties.STARRED_PROP;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class NlPropertyItemTest extends PropertyTestCase {
 
@@ -250,6 +251,26 @@ public class NlPropertyItemTest extends PropertyTestCase {
     assertThat(text.toString()).isEqualTo("NlPropertyItem{name=text, namespace=@android:}");
     assertThat(text.getTooltipText()).startsWith("@android:text:  Text to display.");
     assertThat(text.isEditable(0)).isTrue();
+  }
+
+  public void testSetInitialStarred() {
+    NlPropertyItem elevation = createFrom(myTextView, ATTR_ELEVATION);
+    assertThat(elevation.getStarState()).isEqualTo(StarState.STAR_ABLE);
+
+    elevation.setInitialStarred();
+    assertThat(elevation.getStarState()).isEqualTo(StarState.STARRED);
+  }
+
+  public void testSetStarred() {
+    boolean[] selectionUpdated = new boolean[1];
+    myModel.getSelectionModel().addListener((model, selection) -> selectionUpdated[0] = true);
+    NlPropertyItem text = createFrom(myTextView, ATTR_ELEVATION);
+    assertThat(text.getStarState()).isEqualTo(StarState.STAR_ABLE);
+
+    text.setStarState(StarState.STARRED);
+    assertThat(text.getStarState()).isEqualTo(StarState.STARRED);
+    assertThat(myPropertiesComponent.getValue(STARRED_PROP)).isEqualTo(ATTR_VISIBILITY + ";" + ATTR_ELEVATION + ";");
+    assertThat(selectionUpdated[0]).isTrue();
   }
 
   private static class SimpleGroupItem extends PTableGroupItem {

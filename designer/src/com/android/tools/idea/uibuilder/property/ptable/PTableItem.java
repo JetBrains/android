@@ -62,6 +62,11 @@ public abstract class PTableItem {
   }
 
   @NotNull
+  public abstract StarState getStarState();
+
+  public abstract void setStarState(@NotNull StarState starState);
+
+  @NotNull
   public abstract String getName();
 
   @Nullable
