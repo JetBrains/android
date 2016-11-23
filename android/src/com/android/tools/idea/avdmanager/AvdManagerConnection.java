@@ -37,7 +37,6 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.run.EmulatorConnectionListener;
-import com.android.tools.idea.run.ExternalToolRunner;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.utils.ILogger;
@@ -382,8 +381,8 @@ public class AvdManagerConnection {
 
     addParameters(info, commandLine);
 
-    EmulatorRunner runner = new EmulatorRunner(project, "AVD: " + avdName, commandLine, info);
-    ExternalToolRunner.ProcessOutputCollector collector = new ExternalToolRunner.ProcessOutputCollector();
+    EmulatorRunner runner = new EmulatorRunner(commandLine, info);
+    EmulatorRunner.ProcessOutputCollector collector = new EmulatorRunner.ProcessOutputCollector();
     runner.addProcessListener(collector);
 
     final ProcessHandler processHandler;
