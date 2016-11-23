@@ -203,11 +203,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     // TODO Replace with real network profiler toolbar elements. The following buttons are debug only.
     JPanel toolbar = new JPanel();
     JButton button = new JButton("<-");
-    button.addActionListener(action -> {
-      StudioProfilers profilers = getStage().getStudioProfilers();
-      StudioMonitorStage monitor = new StudioMonitorStage(profilers);
-      profilers.setStage(monitor);
-    });
+    button.addActionListener(action -> getStage().getStudioProfilers().setMonitoringStage());
     toolbar.add(button);
     return toolbar;
   }

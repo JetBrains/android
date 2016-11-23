@@ -206,7 +206,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     JPanel toolbar = new JPanel();
 
     JButton button = new JButton("<-");
-    button.addActionListener(action -> returnToStudioStage());
+    button.addActionListener(action -> myStage.getStudioProfilers().setMonitoringStage());
     toolbar.add(button);
     toolbar.add(myCaptureButton);
 

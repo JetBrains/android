@@ -172,6 +172,10 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
     }
   }
 
+  public void setMonitoringStage() {
+    setStage(new StudioMonitorStage(this));
+  }
+
   /**
    * Chooses a process, and starts profiling it if not already (and stops profiling the previous
    * one).
