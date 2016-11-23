@@ -33,6 +33,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Collections;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
@@ -47,6 +48,9 @@ public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
   @Override
   protected void populateUi(JPanel container, Choreographer choreographer) {
     container.setLayout(new GridBagLayout());
+
+    Range viewRange = getMonitor().getTimeline().getViewRange();
+    Range dataRange = getMonitor().getTimeline().getDataRange();
 
     final JLabel label = new JLabel(getMonitor().getName());
     label.setBorder(MONITOR_LABEL_PADDING);
@@ -70,13 +74,12 @@ public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
     lineChartPanel.setOpaque(false);
     lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
     final LineChart lineChart = new LineChart();
-    lineChart
-      .addLine(new RangedContinuousSeries("Memory", getMonitor().getTimeline().getViewRange(), leftYRange, getMonitor().getTotalMemory()),
-               new LineConfig(ProfilerColors.MEMORY_TOTAL).setFilled(true));
+    RangedContinuousSeries memSeries = new RangedContinuousSeries("Memory", viewRange, leftYRange, getMonitor().getTotalMemory());
+    lineChart.addLine(memSeries, new LineConfig(ProfilerColors.MEMORY_TOTAL).setFilled(true));
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
     final LegendComponent legend = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, LEGEND_UPDATE_FREQUENCY_MS);
-    legend.setLegendData(lineChart.getLegendDataFromLineChart());
+    legend.setLegendData(Collections.singletonList(lineChart.createLegendRenderData(memSeries, MEMORY_AXIS_FORMATTER, dataRange)));
 
     final JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);
