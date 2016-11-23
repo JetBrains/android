@@ -87,6 +87,6 @@ public class SyncMessagesTest extends IdeaTestCase {
     verify(myNotificationManager).clearNotifications("Missing Dependencies", PROJECT_SYNC, GRADLE_SYSTEM_ID);
     verify(myNotificationManager).clearNotifications("Variant Selection Conflicts", PROJECT_SYNC, GRADLE_SYSTEM_ID);
     verify(myNotificationManager).clearNotifications("Generated Sources", PROJECT_SYNC, GRADLE_SYSTEM_ID);
-    verify(myNotificationManager).clearNotifications("Gradle Sync Issue", PROJECT_SYNC, GRADLE_SYSTEM_ID);
+    verify(myNotificationManager).clearNotifications("Gradle Sync Issues", PROJECT_SYNC, GRADLE_SYSTEM_ID);
   }
 }
