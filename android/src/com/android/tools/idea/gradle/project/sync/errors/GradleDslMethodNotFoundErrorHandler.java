@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenGradleSettingsHyperlink;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleWrapper;
@@ -50,13 +51,10 @@ import java.util.regex.Pattern;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.DSL_METHOD_NOT_FOUND;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.openapi.util.text.StringUtil.startsWith;
 
 public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
   private static final String GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX = "Gradle DSL method not found";
-  private static final Pattern MISSING_METHOD_PATTERN =
-    Pattern.compile("org.gradle.api.internal.MissingMethodException: Could not find method (.*?) .*");
+  private static final Pattern MISSING_METHOD_PATTERN = Pattern.compile("Could not find method (.*?) .*");
 
   @Override
   public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
@@ -72,9 +70,10 @@ public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
 
   @Nullable
   private static String findErrorMessage(@NotNull Throwable rootCause) {
-    String text = rootCause.toString();
-    if (isNotEmpty(text) && startsWith(text, "org.gradle.api.internal.MissingMethodException")) {
-      String method = parseMissingMethod(text);
+    String errorType = rootCause.getClass().getName();
+    if (errorType.equals("org.gradle.api.internal.MissingMethodException") ||
+        errorType.equals("org.gradle.internal.metaobject.AbstractDynamicObject$CustomMessageMissingMethodException")) {
+      String method = parseMissingMethod(rootCause.getMessage());
       updateUsageTracker(DSL_METHOD_NOT_FOUND, method);
       return GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX + ": '" + method + "'";
     }
@@ -90,18 +89,16 @@ public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
   private static void getQuickFixHyperlinks(@NotNull NotificationData notification, @NotNull Project project, @NotNull String text) {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     String filePath = notification.getFilePath();
-    VirtualFile virtualFile = filePath != null ? LocalFileSystem.getInstance().refreshAndFindFileByPath(filePath) : null;
-    if (virtualFile != null && FN_BUILD_GRADLE.equals(virtualFile.getName())) {
-      updateNotificationWithBuildFile(project, virtualFile, notification, text);
+    VirtualFile file = filePath != null ? LocalFileSystem.getInstance().refreshAndFindFileByPath(filePath) : null;
+    if (file != null && FN_BUILD_GRADLE.equals(file.getName())) {
+      updateNotificationWithBuildFile(project, file, notification, text);
+      return;
     }
-    else if (virtualFile != null && notification.getLine() > 0 && notification.getNavigatable() == null) {
-      OpenFileDescriptor descriptor =
-        new OpenFileDescriptor(project, virtualFile, notification.getLine() - 1 /* lines are zero-based */, -1);
-      notification.setNavigatable(descriptor);
+    if (file != null && notification.getLine() > 0 && notification.getNavigatable() == null) {
+      OpenFileHyperlink hyperlink = new OpenFileHyperlink(filePath, notification.getLine() - 1 /* lines are zero-based */);
+      hyperlinks.add(hyperlink);
     }
-    else {
-      SyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
-    }
+    SyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
   }
 
   private static void updateNotificationWithBuildFile(@NotNull Project project,
@@ -129,9 +126,11 @@ public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
     notification.setTitle(title);
     notification.setMessage(newMsg);
     notification.setNotificationCategory(NotificationCategory.convert(DEFAULT_NOTIFICATION_TYPE));
+
     hyperlinks.add(gradleSettingsHyperlink);
     hyperlinks.add(applyGradlePluginHyperlink);
     hyperlinks.add(upgradeAndroidPluginHyperlink);
+
     SyncMessages.getInstance(project).addNotificationListener(notification, hyperlinks);
   }
 

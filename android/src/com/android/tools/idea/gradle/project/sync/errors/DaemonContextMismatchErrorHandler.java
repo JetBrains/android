@@ -29,6 +29,7 @@ import java.util.List;
 
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
+// See https://code.google.com/p/android/issues/detail?id=76984
 public class DaemonContextMismatchErrorHandler extends BaseSyncErrorHandler {
   private static final String JAVA_HOME = "javaHome=";
 
