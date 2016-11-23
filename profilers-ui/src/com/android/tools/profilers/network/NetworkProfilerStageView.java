@@ -108,7 +108,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     gbc.gridy = 0;
     panel.add(eventsComponent, gbc);
 
-    gbc.gridy = 2;
+    gbc.gridy = 1;
     panel.add(new NetworkRadioView(this).getComponent(), gbc);
 
     JPanel monitorPanel = new JBPanel(new GridBagLayout());
@@ -192,7 +192,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     monitorPanel.add(axisPanel, GBC_FULL);
     monitorPanel.add(lineChartPanel, GBC_FULL);
 
-    gbc.gridy = 1;
+    gbc.gridy = 2;
     gbc.weighty = 1;
     panel.add(monitorPanel, gbc);
 
