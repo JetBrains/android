@@ -15,27 +15,64 @@
  */
 package com.android.tools.profilers;
 
-
 import com.android.tools.profiler.proto.*;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.inprocess.InProcessChannelBuilder;
 import org.jetbrains.annotations.NotNull;
 
-public interface ProfilerClient {
-  @NotNull
-  ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerClient();
+public class ProfilerClient {
+
+  @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerClient;
+  @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myMemoryClient;
+  @NotNull private final CpuServiceGrpc.CpuServiceBlockingStub myCpuClient;
+  @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkClient;
+  @NotNull private final EventServiceGrpc.EventServiceBlockingStub myEventClient;
+  @NotNull private final EnergyServiceGrpc.EnergyServiceBlockingStub myEnergyClient;
+
+  public ProfilerClient(String name) {
+    // Stash the currently set context class loader so ManagedChannelProvider can find an appropriate implementation.
+    ClassLoader stashedContextClassLoader = Thread.currentThread().getContextClassLoader();
+    Thread.currentThread().setContextClassLoader(ManagedChannelBuilder.class.getClassLoader());
+    ManagedChannel channel = InProcessChannelBuilder.forName(name).usePlaintext(true).build();
+    Thread.currentThread().setContextClassLoader(stashedContextClassLoader);
+
+    myProfilerClient = ProfilerServiceGrpc.newBlockingStub(channel);
+    myMemoryClient = MemoryServiceGrpc.newBlockingStub(channel);
+    myCpuClient = CpuServiceGrpc.newBlockingStub(channel);
+    myNetworkClient = NetworkServiceGrpc.newBlockingStub(channel);
+    myEventClient = EventServiceGrpc.newBlockingStub(channel);
+    myEnergyClient = EnergyServiceGrpc.newBlockingStub(channel);
+  }
 
   @NotNull
-  MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient();
+  public ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerClient() {
+    return myProfilerClient;
+  }
 
   @NotNull
-  CpuServiceGrpc.CpuServiceBlockingStub getCpuClient();
+  public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient() {
+    return myMemoryClient;
+  }
 
   @NotNull
-  NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient();
+  public CpuServiceGrpc.CpuServiceBlockingStub getCpuClient() {
+    return myCpuClient;
+  }
 
   @NotNull
-  EventServiceGrpc.EventServiceBlockingStub getEventClient();
+  public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient() {
+    return myNetworkClient;
+  }
 
   @NotNull
-  EnergyServiceGrpc.EnergyServiceBlockingStub getEnergyClient();
+  public EventServiceGrpc.EventServiceBlockingStub getEventClient() {
+    return myEventClient;
+  }
+
+  @NotNull
+  public EnergyServiceGrpc.EnergyServiceBlockingStub getEnergyClient() {
+    return myEnergyClient;
+  }
 }
 
