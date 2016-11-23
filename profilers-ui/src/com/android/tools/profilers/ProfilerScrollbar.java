@@ -45,10 +45,9 @@ public final class ProfilerScrollbar extends JBScrollBar implements Animatable {
   private static final long MS_TO_US = TimeUnit.MILLISECONDS.toMicros(1);
 
   /**
-   * Percentage threshold to switch {@link #myTimeline} to streaming mode.
-   * e.g. if the scrollbar is more than 95% to the right, {@link #myTimeline} will be set to streaming
+   * Pixel threshold to switch {@link #myTimeline} to streaming mode.
    */
-  private static final float STREAMING_POSITION_THRESHOLD = 0.95f;
+  private static final float STREAMING_POSITION_THRESHOLD_PX = 10;
 
   @NotNull final ProfilerTimeline myTimeline;
 
@@ -94,7 +93,8 @@ public final class ProfilerScrollbar extends JBScrollBar implements Animatable {
 
         myScrolling = false;
         BoundedRangeModel model = getModel();
-        if ((model.getValue() + model.getExtent()) / (float)model.getMaximum() >= STREAMING_POSITION_THRESHOLD) {
+        float snapPercentage = 1 - (STREAMING_POSITION_THRESHOLD_PX / (float)getWidth());
+        if ((model.getValue() + model.getExtent()) / (float)model.getMaximum() >= snapPercentage) {
           myTimeline.setStreaming(true);
         }
       }
