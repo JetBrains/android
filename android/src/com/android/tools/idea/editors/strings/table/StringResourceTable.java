@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.strings.table;
 
 import com.android.tools.idea.editors.strings.StringResourceData;
 import com.android.tools.idea.ui.TableUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.PasteProvider;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -30,13 +31,16 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
-import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.datatransfer.Transferable;
-import java.awt.event.MouseAdapter;
 import java.util.Arrays;
+import java.util.OptionalInt;
+import java.util.stream.IntStream;
+
+import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.*;
 
 public final class StringResourceTable extends JBTable implements DataProvider, PasteProvider {
   public StringResourceTable() {
@@ -54,19 +58,15 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
     };
 
     getDefaultEditor(Boolean.class).addCellEditorListener(editorListener);
-
-    JTableHeader header = getTableHeader();
-    MouseAdapter mouseListener = new HeaderCellSelectionListener(this);
-
-    header.setReorderingAllowed(false);
-    header.addMouseListener(mouseListener);
-    header.addMouseMotionListener(mouseListener);
+    tableHeader.setReorderingAllowed(false);
 
     TableCellEditor editor = new StringsCellEditor();
     editor.addCellEditorListener(editorListener);
 
+    setAutoResizeMode(AUTO_RESIZE_OFF);
     setCellSelectionEnabled(true);
     setDefaultEditor(String.class, editor);
+    setDefaultRenderer(String.class, new StringsCellRenderer());
 
     new TableSpeedSearch(this);
   }
@@ -117,11 +117,11 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
   private static final class NeedsTranslationsRowFilter extends RowFilter<TableModel, Integer> {
     @Override
     public boolean include(@NotNull Entry<? extends TableModel, ? extends Integer> entry) {
-      if ((Boolean)entry.getValue(StringResourceTableModel.UNTRANSLATABLE_COLUMN)) {
+      if ((Boolean)entry.getValue(UNTRANSLATABLE_COLUMN)) {
         return false;
       }
 
-      for (int i = StringResourceTableModel.FIXED_COLUMN_COUNT; i < entry.getValueCount(); i++) {
+      for (int i = FIXED_COLUMN_COUNT; i < entry.getValueCount(); i++) {
         if (entry.getValue(i).equals("")) {
           return true;
         }
@@ -129,6 +129,65 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
 
       return false;
     }
+  }
+
+  @Override
+  public void setModel(@NotNull TableModel model) {
+    super.setModel(model);
+    OptionalInt optionalWidth = getKeyColumnPreferredWidth();
+
+    if (optionalWidth.isPresent()) {
+      columnModel.getColumn(KEY_COLUMN).setPreferredWidth(optionalWidth.getAsInt());
+    }
+
+    if (tableHeader == null) {
+      return;
+    }
+
+    setLocaleColumnHeaderRenderers();
+    optionalWidth = getDefaultValueAndLocaleColumnPreferredWidths();
+
+    if (optionalWidth.isPresent()) {
+      int width = optionalWidth.getAsInt();
+
+      IntStream.range(DEFAULT_VALUE_COLUMN, getColumnCount())
+        .mapToObj(columnModel::getColumn)
+        .forEach(column -> column.setPreferredWidth(width));
+    }
+  }
+
+  @NotNull
+  @VisibleForTesting
+  public OptionalInt getKeyColumnPreferredWidth() {
+    return IntStream.range(0, getRowCount())
+      .map(row -> getPreferredWidth(getCellRenderer(row, KEY_COLUMN), getValueAt(row, KEY_COLUMN), row, KEY_COLUMN))
+      .max();
+  }
+
+  private void setLocaleColumnHeaderRenderers() {
+    TableCellRenderer renderer = new LocaleRenderer(tableHeader.getDefaultRenderer(), (StringResourceTableModel)getModel());
+
+    IntStream.range(FIXED_COLUMN_COUNT, getColumnCount())
+      .mapToObj(columnModel::getColumn)
+      .forEach(column -> column.setHeaderRenderer(renderer));
+  }
+
+  @NotNull
+  @VisibleForTesting
+  public OptionalInt getDefaultValueAndLocaleColumnPreferredWidths() {
+    return IntStream.range(DEFAULT_VALUE_COLUMN, getColumnCount())
+      .map(column -> getPreferredWidth(getHeaderRenderer(column), getColumnName(column), -1, column))
+      .max();
+  }
+
+  @NotNull
+  private TableCellRenderer getHeaderRenderer(int column) {
+    TableCellRenderer renderer = columnModel.getColumn(column).getHeaderRenderer();
+    return renderer == null ? tableHeader.getDefaultRenderer() : renderer;
+  }
+
+  private int getPreferredWidth(@NotNull TableCellRenderer renderer, @NotNull Object value, int row, int column) {
+    return renderer.getTableCellRendererComponent(this, value, false, false, row, column).getPreferredSize().width + 2;
   }
 
   @Nullable
@@ -144,7 +203,7 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
     }
     else {
       int column = getSelectedColumn();
-      return column != StringResourceTableModel.KEY_COLUMN && column != StringResourceTableModel.UNTRANSLATABLE_COLUMN;
+      return column != KEY_COLUMN && column != UNTRANSLATABLE_COLUMN;
     }
   }
 
