@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post.project;
 import com.android.tools.idea.gradle.project.AndroidGradleNotificationStub;
 import com.android.tools.idea.gradle.project.AndroidGradleNotificationStub.NotificationMessage;
 import com.android.tools.idea.gradle.project.sync.setup.post.project.SdkToolsVersionSetupStep.InstallSdkToolsHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
