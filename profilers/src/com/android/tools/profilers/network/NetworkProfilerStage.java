@@ -121,13 +121,13 @@ public class NetworkProfilerStage extends Stage {
    */
   @Nullable
   private static String getFileSuffixFromContentType(@NotNull HttpData httpData) {
-    Map<String, String> responseFields = httpData.getHttpResponseFields();
-    if (responseFields != null && responseFields.containsKey(HttpData.FIELD_CONTENT_TYPE)) {
-      String contentType = responseFields.get(HttpData.FIELD_CONTENT_TYPE);
-      for (Map.Entry<String, String> entry : CONTENT_SUFFIX_MAP.entrySet()) {
-        if (contentType.contains(entry.getKey())) {
-          return entry.getValue();
-        }
+    String contentType = httpData.getHttpResponseField(HttpData.FIELD_CONTENT_TYPE);
+    if (contentType == null) {
+      return null;
+    }
+    for (Map.Entry<String, String> entry : CONTENT_SUFFIX_MAP.entrySet()) {
+      if (contentType.contains(entry.getKey())) {
+        return entry.getValue();
       }
     }
     return null;
