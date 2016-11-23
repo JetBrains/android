@@ -345,7 +345,7 @@ public abstract class BaseLineChartSegment extends BaseSegment {
       if (iconType == null) {
         iconType = lineConfig.isFilled() ? LegendRenderData.IconType.BOX : LegendRenderData.IconType.LINE;
       }
-      legendRenderDataList.add(new LegendRenderData(iconType, lineConfig.getColor(), series));
+      legendRenderDataList.add(new LegendRenderData(iconType, lineConfig.getColor(), series.getLabel()));
     }
     return legendRenderDataList;
   }

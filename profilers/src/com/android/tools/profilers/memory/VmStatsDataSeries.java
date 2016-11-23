@@ -25,6 +25,7 @@ import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -53,7 +54,7 @@ public final class VmStatsDataSeries implements DataSeries<Long> {
       .setAppId(myProcessId)
       .setStartTime(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTime(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
-    com.android.tools.profiler.proto.MemoryProfiler.MemoryData response = myClient.getData(dataRequestBuilder.build());
+    MemoryProfiler.MemoryData response = myClient.getData(dataRequestBuilder.build());
 
     List<SeriesData<Long>> seriesData = new ArrayList<>();
     for (MemoryProfiler.MemoryData.VmStatsSample sample : response.getVmStatsSamplesList()) {
@@ -61,5 +62,32 @@ public final class VmStatsDataSeries implements DataSeries<Long> {
       seriesData.add(new SeriesData<>(dataTimestamp, myFilter.apply(sample)));
     }
     return ContainerUtil.immutableList(seriesData);
+  }
+
+  @Override
+  public SeriesData<Long> getClosestData(long x) {
+    // TODO: Change the Memory API to allow specifying padding in the request as number of samples.
+    long xNs = TimeUnit.MICROSECONDS.toNanos(x);
+    long bufferNs = TimeUnit.SECONDS.toNanos(1);
+    MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()
+      .setAppId(myProcessId)
+      .setStartTime(xNs - bufferNs)
+      .setEndTime(xNs + bufferNs);
+    MemoryProfiler.MemoryData response = myClient.getData(dataRequestBuilder.build());
+
+    List<MemoryProfiler.MemoryData.VmStatsSample> list = response.getVmStatsSamplesList();
+    if (list.size() == 0) {
+      return null;
+    }
+
+    MemoryProfiler.MemoryData.VmStatsSample sample = MemoryProfiler.MemoryData.VmStatsSample.newBuilder().setTimestamp(xNs).build();
+    int index = Collections.binarySearch(list, sample, (left, right) -> {
+      long diff = left.getTimestamp() - right.getTimestamp();
+      return (diff == 0) ? 0 : (diff < 0) ? -1 : 1;
+    });
+
+    index = DataSeries.convertBinarySearchIndex(index, list.size());
+    long timestamp = TimeUnit.NANOSECONDS.toMicros(list.get(index).getTimestamp());
+    return new SeriesData<>(timestamp, myFilter.apply(list.get(index)));
   }
 }

@@ -18,6 +18,7 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.intellij.util.containers.ContainerUtil;
@@ -25,6 +26,7 @@ import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -91,5 +93,43 @@ public class NetworkTrafficDataSeries implements DataSeries<Long> {
       }
     }
     return ContainerUtil.immutableList(seriesData);
+  }
+
+  @Override
+  public SeriesData<Long> getClosestData(long x) {
+    // TODO: Change the Network API to allow specifying padding in the request as number of samples.
+    long xNs = TimeUnit.MICROSECONDS.toNanos(x);
+    long bufferNs = TimeUnit.SECONDS.toNanos(1);
+    NetworkProfiler.NetworkDataRequest.Builder dataRequestBuilder = NetworkProfiler.NetworkDataRequest.newBuilder()
+      .setAppId(myProcessId)
+      .setType(NetworkProfiler.NetworkDataRequest.Type.SPEED)
+      .setStartTimestamp(xNs - bufferNs)
+      .setEndTimestamp(xNs + bufferNs);
+    NetworkProfiler.NetworkDataResponse response = myClient.getData(dataRequestBuilder.build());
+
+    List<NetworkProfiler.NetworkProfilerData> list = response.getDataList();
+    if (list.size() == 0) {
+      return null;
+    }
+
+    NetworkProfiler.NetworkProfilerData sample = NetworkProfiler.NetworkProfilerData.newBuilder().setBasicInfo(
+      Common.CommonData.newBuilder().setEndTimestamp(xNs)).build();
+    int index = Collections.binarySearch(list, sample, (left, right) -> {
+      long diff = left.getBasicInfo().getEndTimestamp() - right.getBasicInfo().getEndTimestamp();
+      return (diff == 0) ? 0 : (diff < 0) ? -1 : 1;
+    });
+
+    index = DataSeries.convertBinarySearchIndex(index, list.size());
+    long timestamp = TimeUnit.NANOSECONDS.toMicros(list.get(index).getBasicInfo().getEndTimestamp());
+
+    NetworkProfiler.SpeedData speedData = list.get(index).getSpeedData();
+    switch (myType) {
+      case BYTES_RECEIVED:
+        return new SeriesData<>(timestamp, speedData.getReceived());
+      case BYTES_SENT:
+        return new SeriesData<>(timestamp, speedData.getSent());
+      default:
+        throw new IllegalStateException("Unexpected network traffic data series type: " + myType);
+    }
   }
 }

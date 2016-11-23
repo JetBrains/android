@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.LegendComponent;
+import com.android.tools.adtui.LegendRenderData;
 import com.android.tools.adtui.chart.linechart.EventConfig;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
@@ -36,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
@@ -103,6 +105,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     StudioProfilers profilers = getStage().getStudioProfilers();
     ProfilerTimeline timeline = profilers.getTimeline();
     Range viewRange = getTimeline().getViewRange();
+    Range dataRange = getTimeline().getDataRange();
 
     JPanel panel = new JBPanel(new GridBagLayout());
     setupPanAndZoomListeners(panel);
@@ -143,26 +146,27 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     Range leftYRange = new Range();
     Range rightYRange = new Range();
 
+    RangedContinuousSeries javaSeries = new RangedContinuousSeries("Java", viewRange, leftYRange, monitor.getJavaMemory());
+    RangedContinuousSeries nativeSeries = new RangedContinuousSeries("Native", viewRange, leftYRange, monitor.getNativeMemory());
+    RangedContinuousSeries graphcisSeries = new RangedContinuousSeries("Graphics", viewRange, leftYRange, monitor.getGraphicsMemory());
+    RangedContinuousSeries stackSeries = new RangedContinuousSeries("Stack", viewRange, leftYRange, monitor.getStackMemory());
+    RangedContinuousSeries codeSeries = new RangedContinuousSeries("Code", viewRange, leftYRange, monitor.getCodeMemory());
+    RangedContinuousSeries otherSeries = new RangedContinuousSeries("Others", viewRange, leftYRange, monitor.getOthersMemory());
+    RangedContinuousSeries totalSeries = new RangedContinuousSeries("Total", viewRange, leftYRange, monitor.getTotalMemory());
+    RangedContinuousSeries objectSeries = new RangedContinuousSeries("Objects", viewRange, rightYRange, monitor.getObjectCount());
+
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
     lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
     final LineChart lineChart = new LineChart();
-    lineChart.addLine(new RangedContinuousSeries("Java", viewRange, leftYRange, monitor.getJavaMemory()),
-                      new LineConfig(ProfilerColors.MEMORY_JAVA).setFilled(true).setStacked(true));
-    lineChart.addLine(new RangedContinuousSeries("Native", viewRange, leftYRange, monitor.getNativeMemory()),
-                      new LineConfig(ProfilerColors.MEMORY_NATIVE).setFilled(true).setStacked(true));
-    lineChart.addLine(new RangedContinuousSeries("Graphics", viewRange, leftYRange, monitor.getGraphicsMemory()),
-                      new LineConfig(ProfilerColors.MEMORY_GRAPHCIS).setFilled(true).setStacked(true));
-    lineChart.addLine(new RangedContinuousSeries("Stack", viewRange, leftYRange, monitor.getStackMemory()),
-                      new LineConfig(ProfilerColors.MEMORY_STACK).setFilled(true).setStacked(true));
-    lineChart.addLine(new RangedContinuousSeries("Code", viewRange, leftYRange, monitor.getCodeMemory()),
-                      new LineConfig(ProfilerColors.MEMORY_CODE).setFilled(true).setStacked(true));
-    lineChart.addLine(new RangedContinuousSeries("Others", viewRange, leftYRange, monitor.getOthersMemory()),
-                      new LineConfig(ProfilerColors.MEMORY_OTHERS).setFilled(true).setStacked(true));
-    lineChart.addLine(new RangedContinuousSeries("Total", viewRange, leftYRange, monitor.getTotalMemory()),
-                      new LineConfig(ProfilerColors.MEMORY_TOTAL).setFilled(true));
-    lineChart.addLine(new RangedContinuousSeries("Objects", viewRange, rightYRange, monitor.getObjectCount()),
-                      new LineConfig(ProfilerColors.MEMORY_OBJECTS).setStroke(LineConfig.DEFAULT_DASH_STROKE));
+    lineChart.addLine(javaSeries, new LineConfig(ProfilerColors.MEMORY_JAVA).setFilled(true).setStacked(true));
+    lineChart.addLine(nativeSeries, new LineConfig(ProfilerColors.MEMORY_NATIVE).setFilled(true).setStacked(true));
+    lineChart.addLine(graphcisSeries, new LineConfig(ProfilerColors.MEMORY_GRAPHCIS).setFilled(true).setStacked(true));
+    lineChart.addLine(stackSeries, new LineConfig(ProfilerColors.MEMORY_STACK).setFilled(true).setStacked(true));
+    lineChart.addLine(codeSeries, new LineConfig(ProfilerColors.MEMORY_CODE).setFilled(true).setStacked(true));
+    lineChart.addLine(otherSeries, new LineConfig(ProfilerColors.MEMORY_OTHERS).setFilled(true).setStacked(true));
+    lineChart.addLine(totalSeries, new LineConfig(ProfilerColors.MEMORY_TOTAL).setFilled(true));
+    lineChart.addLine(objectSeries, new LineConfig(ProfilerColors.MEMORY_OBJECTS).setStroke(LineConfig.DEFAULT_DASH_STROKE));
 
     // TODO set proper colors.
     lineChart
@@ -200,7 +204,16 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     axisPanel.add(rightAxis, BorderLayout.EAST);
 
     final LegendComponent legend = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, LEGEND_UPDATE_FREQUENCY_MS);
-    legend.setLegendData(lineChart.getLegendDataFromLineChart());
+    ArrayList<LegendRenderData> legendData = new ArrayList<>();
+    legendData.add(lineChart.createLegendRenderData(javaSeries, MEMORY_AXIS_FORMATTER, dataRange));
+    legendData.add(lineChart.createLegendRenderData(nativeSeries, MEMORY_AXIS_FORMATTER, dataRange));
+    legendData.add(lineChart.createLegendRenderData(graphcisSeries, MEMORY_AXIS_FORMATTER, dataRange));
+    legendData.add(lineChart.createLegendRenderData(stackSeries, MEMORY_AXIS_FORMATTER, dataRange));
+    legendData.add(lineChart.createLegendRenderData(codeSeries, MEMORY_AXIS_FORMATTER, dataRange));
+    legendData.add(lineChart.createLegendRenderData(otherSeries, MEMORY_AXIS_FORMATTER, dataRange));
+    legendData.add(lineChart.createLegendRenderData(totalSeries, MEMORY_AXIS_FORMATTER, dataRange));
+    legendData.add(lineChart.createLegendRenderData(objectSeries, OBJECT_COUNT_AXIS_FORMATTER, dataRange));
+    legend.setLegendData(legendData);
     getChoreographer().register(legend);
 
     final JPanel legendPanel = new JBPanel(new BorderLayout());

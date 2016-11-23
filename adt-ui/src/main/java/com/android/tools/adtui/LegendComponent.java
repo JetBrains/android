@@ -17,8 +17,6 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.LegendRenderData;
-import com.android.tools.adtui.model.ReportingSeries;
 import com.intellij.ui.components.JBLabel;
 
 import javax.swing.*;
@@ -36,25 +34,17 @@ public class LegendComponent extends AnimatedComponent {
     VERTICAL,
   }
 
-  /**
-   * Thickness, in pixels, of the line icon.
-   */
-  private static final int LINE_THICKNESS = 3;
-
-  /**
-   * Width of the line icon in pixels.
-   */
-  private static final int LINE_ICON_WIDTH_PX = 16;
+  private static final BasicStroke LINE_STROKE = new BasicStroke(3);
 
   /**
    * Side of the (squared) box icon in pixels.
    */
-  private static final int BOX_ICON_SIDE_PX = 10;
+  private static final int ICON_WIDTH_PX = 10;
 
   /**
    * Distance, in pixels, between icons and their correspondent labels.
    */
-  private static final int ICON_MARGIN_PX = 10;
+  private static final int ICON_MARGIN_PX = 5;
 
   /**
    * Vertical space, in pixels, between the legend and the border of the parent component
@@ -65,7 +55,12 @@ public class LegendComponent extends AnimatedComponent {
   /**
    * Distance, in pixels, between legends.
    */
-  private int LEGEND_MARGIN_PX = 20;
+  private int LEGEND_MARGIN_PX = 10;
+
+  /**
+   * Min width of the label so that the legends don't shuffle around as the magnitude of the data changes.
+   */
+  private static final int LABEL_MIN_WIDTH_PX = 100;
 
   private int mFrequencyMillis;
 
@@ -80,8 +75,8 @@ public class LegendComponent extends AnimatedComponent {
   /**
    * Legend component that renders a label, and icon for each series in a chart.
    *
-   * @param orientation      Determines if we want the labels to be stacked horizontally or vertically
-   * @param frequencyMillis  How frequently the labels get updated
+   * @param orientation     Determines if we want the labels to be stacked horizontally or vertically
+   * @param frequencyMillis How frequently the labels get updated
    */
   public LegendComponent(Orientation orientation, int frequencyMillis) {
     mFrequencyMillis = frequencyMillis;
@@ -96,7 +91,7 @@ public class LegendComponent extends AnimatedComponent {
     mLegendRenderData = new ArrayList<>(data);
     mLabelsToDraw = new ArrayList<>(mLegendRenderData.size());
     for (LegendRenderData initialData : mLegendRenderData) {
-      JBLabel label = new JBLabel(initialData.getLabel());
+      JBLabel label = new JBLabel();
       label.setFont(AdtUiUtils.DEFAULT_FONT);
       mLabelsToDraw.add(label);
     }
@@ -109,16 +104,19 @@ public class LegendComponent extends AnimatedComponent {
       mLastUpdate = now;
       for (int i = 0; i < mLegendRenderData.size(); ++i) {
         LegendRenderData data = mLegendRenderData.get(i);
-        ReportingSeries series = data.getSeries();
         JLabel label = mLabelsToDraw.get(i);
-        Dimension preferredSize = label.getPreferredSize();
-        label.setBounds(0, 0, preferredSize.width, preferredSize.height);
-        if (series != null) {
-          ReportingSeries.ReportingData report = series.getLatestReportingData();
-          if (report != null) {
-            label.setText(String.format("%s: %s", series.getLabel(), report.formattedYData));
-          }
+        if (data.hasData()) {
+          label.setText(String.format("%s: %s", data.getLabel(), data.getFormattedData()));
         }
+        else {
+          label.setText(data.getLabel());
+        }
+        Dimension preferredSize = label.getPreferredSize();
+        if (preferredSize.getWidth() < LABEL_MIN_WIDTH_PX) {
+          preferredSize.width = LABEL_MIN_WIDTH_PX;
+          label.setPreferredSize(preferredSize);
+        }
+        label.setBounds(0, 0, preferredSize.width, preferredSize.height);
       }
 
       // As we adjust the size of the label we need to adjust our own size
@@ -147,19 +145,19 @@ public class LegendComponent extends AnimatedComponent {
       // TODO: Add config for LegendRenderData.IconType.DOTTED_LINE once we support dashed lines.
       if (data.getIcon() == LegendRenderData.IconType.BOX) {
         // Adjust the box initial Y coordinate to align the box and the label vertically.
-        int boxY = LEGEND_VERTICAL_PADDING_PX + (labelPreferredSize.height - BOX_ICON_SIDE_PX) / 2;
+        int boxY = LEGEND_VERTICAL_PADDING_PX + (labelPreferredSize.height - ICON_WIDTH_PX) / 2;
         g2d.setColor(data.getColor());
-        g2d.fillRect(0, boxY, BOX_ICON_SIDE_PX, BOX_ICON_SIDE_PX);
-        xOffset = BOX_ICON_SIDE_PX + ICON_MARGIN_PX;
+        g2d.fillRect(0, boxY, ICON_WIDTH_PX, ICON_WIDTH_PX);
+        xOffset = ICON_WIDTH_PX + ICON_MARGIN_PX;
       }
       else if (data.getIcon() == LegendRenderData.IconType.LINE) {
         g2d.setColor(data.getColor());
         Stroke defaultStroke = g2d.getStroke();
-        g2d.setStroke(new BasicStroke(LINE_THICKNESS));
+        g2d.setStroke(LINE_STROKE);
         int lineY = LEGEND_VERTICAL_PADDING_PX + labelPreferredSize.height / 2;
-        g2d.drawLine(xOffset, lineY, LINE_ICON_WIDTH_PX, lineY);
+        g2d.drawLine(xOffset, lineY, ICON_WIDTH_PX, lineY);
         g2d.setStroke(defaultStroke);
-        xOffset = LINE_ICON_WIDTH_PX + ICON_MARGIN_PX;
+        xOffset = ICON_WIDTH_PX + ICON_MARGIN_PX;
       }
       g2d.translate(xOffset, LEGEND_VERTICAL_PADDING_PX);
       label.paint(g2d);
@@ -178,7 +176,7 @@ public class LegendComponent extends AnimatedComponent {
     int totalWidth = 0;
     int totalHeight = 0;
     // Using line icon (vs box icon) because it's wider. Extra space is better than lack of space.
-    int iconPaddedSize = LINE_ICON_WIDTH_PX + ICON_MARGIN_PX + LEGEND_MARGIN_PX;
+    int iconPaddedSize = ICON_WIDTH_PX + ICON_MARGIN_PX + LEGEND_MARGIN_PX;
     // Calculate total size of all icons + labels.
     for (JLabel label : mLabelsToDraw) {
       Dimension size = label.getPreferredSize();
