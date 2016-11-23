@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.compatibility.version;
 
-import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.BuildEnvironment;
 import com.intellij.openapi.module.Module;

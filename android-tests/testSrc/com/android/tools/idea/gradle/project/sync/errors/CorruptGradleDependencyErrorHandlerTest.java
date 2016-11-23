@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
 import java.util.List;
