@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibi
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
-import com.android.tools.idea.gradle.project.sync.setup.post.project.PostSyncProjectSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.post.project.ProjectSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.PluginVersionUpgrade;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
@@ -55,8 +55,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   @Mock private GradleSyncInvoker mySyncInvoker;
   @Mock private GradleSyncState mySyncState;
   @Mock private DependencySetupErrors myDependencySetupErrors;
-  @Mock private PostSyncProjectSetupStep mySetupStep1;
-  @Mock private PostSyncProjectSetupStep mySetupStep2;
+  @Mock private ProjectSetup myProjectSetup;
   @Mock private GradleSyncSummary mySyncSummary;
   @Mock private PluginVersionUpgrade myVersionUpgrade;
   @Mock private SyncMessages mySyncMessages;
@@ -80,12 +79,10 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     when(mySyncState.getSummary()).thenReturn(mySyncSummary);
     when(myModuleValidatorFactory.create(project)).thenReturn(myModuleValidator);
 
-    PostSyncProjectSetupStep[] setupSteps = {mySetupStep1, mySetupStep2};
-
     mySetup =
-      new PostSyncProjectSetup(project, myAndroidSdks, mySyncInvoker, mySyncState, myDependencySetupErrors, setupSteps, myVersionUpgrade,
-                               mySyncMessages, myModuleSetupStep, myVersionCompatibilityChecker, myProjectBuilder, myModuleValidatorFactory,
-                               myRunManager);
+      new PostSyncProjectSetup(project, myAndroidSdks, mySyncInvoker, mySyncState, myDependencySetupErrors, myProjectSetup,
+                               myVersionUpgrade, mySyncMessages, myModuleSetupStep, myVersionCompatibilityChecker, myProjectBuilder,
+                               myModuleValidatorFactory, myRunManager);
   }
 
   public void testJUnitRunConfigurationSetup() {
@@ -127,9 +124,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     verify(mySyncState, times(1)).syncSkipped(lastSyncTimestamp);
     verify(mySyncInvoker, times(1)).requestProjectSyncAndSourceGeneration(getProject(), null);
-
-    verify(mySetupStep1, never()).setUpProject(getProject(), myProgressIndicator);
-    verify(mySetupStep2, never()).setUpProject(getProject(), myProgressIndicator);
+    verify(myProjectSetup, never()).setUpProject(myProgressIndicator, true);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=225938
@@ -143,9 +138,6 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
            .setCleanProjectAfterSync(true);
     // @formatter:on
 
-    when(mySetupStep1.invokeOnFailedSync()).thenReturn(true);
-    when(mySetupStep2.invokeOnFailedSync()).thenReturn(true);
-
     mySetup.setUpProject(request, myProgressIndicator);
 
     Project project = getProject();
@@ -155,11 +147,9 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       verify(myModuleValidator, times(1)).validate(module);
     }
+
     verify(myModuleValidator, times(1)).fixAndReportFoundIssues();
-
-    verify(mySetupStep1, times(1)).setUpProject(project, myProgressIndicator);
-    verify(mySetupStep2, times(1)).setUpProject(project, myProgressIndicator);
-
+    verify(myProjectSetup, times(1)).setUpProject(myProgressIndicator, true);
     verify(mySyncState, times(1)).syncEnded();
 
     // Source generation should not be invoked if sync failed.
