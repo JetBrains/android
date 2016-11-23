@@ -26,9 +26,12 @@ import org.jetbrains.annotations.Nullable;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
+import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -194,6 +197,28 @@ public class PTableTest extends AndroidTestCase {
     assertHasOriginalValuesExceptFor(myItem1, myItem2, myItem3);
   }
 
+  public void testClickOnStar() {
+    fireMousePressed(1, 0, 10);
+    assertThat(myEmptyItem.getStarState()).isEqualTo(StarState.STARRED);
+    fireMousePressed(1, 0, 10);
+    assertThat(myEmptyItem.getStarState()).isEqualTo(StarState.STAR_ABLE);
+  }
+
+  private void fireMousePressed(int row, int column, int xOffset) {
+    Rectangle bounds = myTable.getCellRect(row, column, false);
+    int x = bounds.x + xOffset;
+    int y = bounds.y + 5;
+    MouseEvent event = mock(MouseEvent.class);
+    when(event.getX()).thenReturn(x);
+    when(event.getY()).thenReturn(y);
+    when(event.getPoint()).thenReturn(new Point(x, y));
+    when(event.getComponent()).thenReturn(myTable);
+
+    for (MouseListener listener : myTable.getMouseListeners()) {
+      listener.mousePressed(event);
+    }
+  }
+
   private void assertHasOriginalValues() {
     assertThat(mySimpleItem.getValue()).isEqualTo("value");
     assertThat(myEmptyItem.getValue()).isNull();
@@ -242,10 +267,12 @@ public class PTableTest extends AndroidTestCase {
   private static class SimpleItem extends PTableItem {
     private String myName;
     private String myValue;
+    private StarState myStarState;
 
     private SimpleItem(@NotNull String name, @Nullable String value) {
       myName = name;
       myValue = value;
+      myStarState = StarState.STAR_ABLE;
     }
 
     @NotNull
@@ -258,6 +285,17 @@ public class PTableTest extends AndroidTestCase {
     @Override
     public String getValue() {
       return myValue;
+    }
+
+    @NotNull
+    @Override
+    public StarState getStarState() {
+      return myStarState;
+    }
+
+    @Override
+    public void setStarState(@NotNull StarState starState) {
+      myStarState = starState;
     }
 
     @Nullable

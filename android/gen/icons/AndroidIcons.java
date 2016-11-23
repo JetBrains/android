@@ -205,6 +205,9 @@ public class AndroidIcons {
     public static final Icon DesignProperty = load("/icons/nele/design-property.png");  // 12x12
     public static final Icon DesignPropertyEnabled = load("/icons/nele/design-property-enabled.png");  // 12x12
 
+    public static final Icon StarOutline = load("/icons/nele/star-outline.png");  // 12x12
+    public static final Icon StarFilled = load("/icons/nele/star-filled.png");  // 16x16
+
     public static final Icon TextStyleBold = load("/icons/nele/text/text-style-bold.png"); // 16x16
     public static final Icon TextStyleItalics = load("/icons/nele/text/text-style-italics.png"); // 16x16
     public static final Icon TextAllCaps = load("/icons/nele/text/text-all-caps.png"); // 16x16
