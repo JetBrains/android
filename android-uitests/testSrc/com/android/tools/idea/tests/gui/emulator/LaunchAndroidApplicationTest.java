@@ -59,7 +59,7 @@ public class LaunchAndroidApplicationTest {
   @Before
   public void setUp() throws Exception {
     MockAvdManagerConnection.inject();
-    getEmulatorConnection().deleteAvd(AVD_NAME);
+    getEmulatorConnection().deleteAvd(AVD_NAME.replace(' ', '_'));
   }
 
   @After
@@ -67,10 +67,9 @@ public class LaunchAndroidApplicationTest {
     // Close a no-window emulator by calling 'adb emu kill'
     // because default stopAVD implementation (i.e., 'kill pid') cannot close a no-window emulator.
     getEmulatorConnection().stopRunningAvd();
-    getEmulatorConnection().deleteAvd(AVD_NAME);
+    getEmulatorConnection().deleteAvd(AVD_NAME.replace(' ', '_'));
   }
 
-  @Ignore("http://b/30795134")
   @RunIn(TestGroup.QA)
   @Test
   public void testRunOnEmulator() throws IOException, ClassNotFoundException {
@@ -196,7 +195,7 @@ public class LaunchAndroidApplicationTest {
 
     avdEditWizard.getChooseSystemImageStep()
       .selectTab("x86 Images")
-      .selectSystemImage("KitKat", "19", "x86", "Android 4.4");
+      .selectSystemImage("Nougat", "24", "x86", "Android 7.0");
     avdEditWizard.clickNext();
 
     avdEditWizard.getConfigureAvdOptionsStep()
