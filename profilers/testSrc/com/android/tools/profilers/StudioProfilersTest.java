@@ -17,9 +17,8 @@ package com.android.tools.profilers;
 
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
-import io.grpc.Channel;
+import com.android.tools.profilers.cpu.CpuProfilerStage;
 import io.grpc.Server;
-import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.stub.StreamObserver;
 import org.junit.Before;
@@ -29,16 +28,15 @@ import static org.junit.Assert.assertEquals;
 
 final public class StudioProfilersTest {
   public static final String CHANNEL_NAME = "StudioProfilerTestChannel";
-  private ProfilerServiceGrpc.ProfilerServiceBlockingStub client;
+  private ProfilerClient myClient;
 
   @Before
   public void setUp() throws Exception {
-    Channel channel = InProcessChannelBuilder.forName(CHANNEL_NAME).usePlaintext(true).build();
-    client = ProfilerServiceGrpc.newBlockingStub(channel);
+    myClient = new ProfilerClient(CHANNEL_NAME);
   }
 
   @Test
-  public void test() throws Exception {
+  public void testVersion() throws Exception {
     final String version = "3141592";
     ProfilerServiceGrpc.ProfilerServiceImplBase
       service = new ProfilerServiceGrpc.ProfilerServiceImplBase() {
@@ -51,8 +49,23 @@ final public class StudioProfilersTest {
 
     Server server = InProcessServerBuilder.forName(CHANNEL_NAME).addService(service).build();
     server.start();
-    Profiler.VersionResponse response = client.getVersion(Profiler.VersionRequest.getDefaultInstance());
+    Profiler.VersionResponse response = myClient.getProfilerClient().getVersion(Profiler.VersionRequest.getDefaultInstance());
     assertEquals(version, response.getVersion());
     server.shutdownNow();
+  }
+
+  @Test
+  public void testClearedOnMonitorStage() throws Exception {
+    StudioProfilers profilers = new StudioProfilers(myClient);
+
+    assertEquals(0, profilers.getTimeline().getSelectionRange().getMin(), 0);
+    assertEquals(0, profilers.getTimeline().getSelectionRange().getMax(), 0);
+
+    profilers.setStage(new CpuProfilerStage(profilers));
+    profilers.getTimeline().getSelectionRange().set(10, 10);
+    profilers.setMonitoringStage();
+
+    assertEquals(0, profilers.getTimeline().getSelectionRange().getMin(), 0);
+    assertEquals(0, profilers.getTimeline().getSelectionRange().getMax(), 0);
   }
 }
