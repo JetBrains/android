@@ -40,6 +40,10 @@ public class SdkBuildToolsTooLowErrorHandlerTest extends AndroidGradleTestCase {
     mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
   }
 
+  public void testGetInstance() {
+    assertNotNull(SdkBuildToolsTooLowErrorHandler.getInstance());
+  }
+
   public void testHandleError() throws Exception {
     // SdkBuildToolsTooLowErrorHandler requires modules to be loaded, so do a full sync first
     loadSimpleApplication();
