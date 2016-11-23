@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.sdk;
 
-import com.android.tools.idea.gradle.service.notification.hyperlink.DownloadJdk8Hyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.SelectJdkFromFileSystemHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.UseEmbeddedJdkHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.DownloadJdk8Hyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.UseEmbeddedJdkHyperlink;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;

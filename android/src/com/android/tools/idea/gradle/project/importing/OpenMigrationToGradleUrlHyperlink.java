@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.importing;
 
-import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 
 /**
  * Hyperlink to the "Migrating to Gradle" document.

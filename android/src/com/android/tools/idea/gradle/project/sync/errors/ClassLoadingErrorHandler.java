@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -35,9 +35,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
-import static com.android.tools.idea.gradle.service.notification.hyperlink.OpenProjectStructureHyperlink.openJdkSettings;
-import static com.android.tools.idea.gradle.service.notification.hyperlink.StopGradleDaemonsHyperlink.createStopGradleDaemonsHyperlink;
-import static com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.syncProjectRefreshingDependencies;
+import static com.android.tools.idea.gradle.project.sync.hyperlink.OpenProjectStructureHyperlink.openJdkSettings;
+import static com.android.tools.idea.gradle.project.sync.hyperlink.StopGradleDaemonsHyperlink.createStopGradleDaemonsHyperlink;
+import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.syncProjectRefreshingDependencies;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CLASS_NOT_FOUND;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.METHOD_NOT_FOUND;
