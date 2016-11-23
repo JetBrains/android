@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.messages;
 
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;

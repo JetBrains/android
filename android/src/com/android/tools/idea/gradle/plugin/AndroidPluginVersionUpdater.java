@@ -37,7 +37,7 @@ import java.io.File;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.CLASSPATH;
-import static com.android.tools.idea.gradle.service.notification.hyperlink.SearchInBuildFilesHyperlink.searchInBuildFiles;
+import static com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink.searchInBuildFiles;
 import static com.android.tools.idea.gradle.util.GradleUtil.isSupportedGradleVersion;
 import static com.android.tools.idea.gradle.util.GradleWrapper.getDefaultPropertiesFilePath;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
