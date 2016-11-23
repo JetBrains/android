@@ -104,4 +104,20 @@ public class NlPreviewFixture extends ToolWindowFixture {
   public List<NlComponentFixture> getAllComponents() {
     return myDesignSurfaceFixture.getAllComponents();
   }
+
+  /**
+   * Switch to showing only the blueprint view.
+   */
+  public NlPreviewFixture showOnlyBlueprintView() {
+    DesignSurface surface = myDesignSurfaceFixture.target();
+    if (surface.getScreenMode() != DesignSurface.ScreenMode.BLUEPRINT_ONLY) {
+      getConfigToolbar().showBlueprint();
+    }
+    return this;
+  }
+
+  public NlPreviewFixture waitForScreenMode(@NotNull DesignSurface.ScreenMode mode) {
+    Wait.seconds(1).expecting("the design surface to be in mode " + mode).until(() -> myDesignSurfaceFixture.isInScreenMode(mode));
+    return this;
+  }
 }

@@ -401,6 +401,12 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
       SelectionModel selectionModel = model.getSelectionModel();
       selectionModel.addListener(mySelectionListener);
       selectionAfter = selectionModel.getSelection();
+      if (myInteractionManager.isListening() && !getLayoutType().isSupportedByDesigner()) {
+        myInteractionManager.unregisterListeners();
+      }
+      else if (!myInteractionManager.isListening() && getLayoutType().isSupportedByDesigner()) {
+        myInteractionManager.registerListeners();
+      }
     }
     else {
       myScreenView = null;
@@ -451,7 +457,9 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
       myLayers.add(new SceneLayer(myScreenView));
     }
     myLayers.add(new WarningLayer(myScreenView));
-    myLayers.add(new CanvasResizeLayer(this, myScreenView));
+    if (getLayoutType().isSupportedByDesigner()) {
+      myLayers.add(new CanvasResizeLayer(this, myScreenView));
+    }
   }
 
   private void addBlueprintLayers(@NotNull ScreenView view) {
@@ -472,7 +480,7 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
    * @return The new {@link Dimension} of the LayeredPane (ScreenView)
    */
   @Nullable
-  private Dimension updateScrolledAreaSize() {
+  public Dimension updateScrolledAreaSize() {
     if (myScreenView == null) {
       return null;
     }
@@ -1182,6 +1190,17 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
         }
       }
 
+      g2d.setComposite(oldComposite);
+      for (Layer layer : myLayers) {
+        if (!layer.isHidden()) {
+          layer.paint(g2d);
+        }
+      }
+
+      if (!getLayoutType().isSupportedByDesigner()) {
+        return;
+      }
+
       if (paintedFrame) {
         // Only use alpha on the ruler bar if overlaying the device art
         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.9f));
@@ -1189,13 +1208,6 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
       else {
         // Only show bounds dashed lines when there's no device
         paintBoundsRectangle(g2d);
-      }
-
-      g2d.setComposite(oldComposite);
-      for (Layer layer : myLayers) {
-        if (!layer.isHidden()) {
-          layer.paint(g2d);
-        }
       }
 
       // Temporary overlays:
@@ -1210,10 +1222,10 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
     }
 
     private void paintBackground(@NotNull Graphics2D graphics, int lx, int ly) {
-      int width = myScrollPane.getWidth() - RULER_SIZE_PX;
-      int height = myScrollPane.getHeight() - RULER_SIZE_PX;
+      int width = myScrollPane.getWidth();
+      int height = myScrollPane.getHeight();
       graphics.setColor(DESIGN_SURFACE_BG);
-      graphics.fillRect(RULER_SIZE_PX + lx, RULER_SIZE_PX + ly, width, height);
+      graphics.fillRect(lx, ly, width, height);
     }
 
     private void paintRulers(@NotNull Graphics2D g, int scrolledX, int scrolledY) {
@@ -1317,13 +1329,14 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
     protected void paintChildren(@NotNull Graphics graphics) {
       super.paintChildren(graphics); // paints the screen
 
-      // Paint rulers on top of whatever is under the scroll panel
-
-      Graphics2D g2d = (Graphics2D)graphics;
-      // (x,y) coordinates of the top left corner in the view port
-      int tlx = myScrollPane.getHorizontalScrollBar().getValue();
-      int tly = myScrollPane.getVerticalScrollBar().getValue();
-      paintRulers(g2d, tlx, tly);
+      if (getLayoutType().isSupportedByDesigner()) {
+        // Paint rulers on top of whatever is under the scroll panel
+        Graphics2D g2d = (Graphics2D)graphics;
+        // (x,y) coordinates of the top left corner in the view port
+        int tlx = myScrollPane.getHorizontalScrollBar().getValue();
+        int tly = myScrollPane.getVerticalScrollBar().getValue();
+        paintRulers(g2d, tlx, tly);
+      }
     }
 
     @Nullable

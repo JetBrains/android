@@ -215,6 +215,11 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     return splitter;
   }
 
+  public void setMinimizePanelsVisible(boolean visible) {
+    myLeftMinimizePanel.setVisible(visible);
+    myRightMinimizePanel.setVisible(visible);
+  }
+
   @NotNull
   private String getWidthPropertyName(@NotNull Layout layout, @NotNull Side side) {
     return TOOL_WINDOW_PROPERTY_PREFIX + layout.getPrefix() + myName + "." + side.name() + ".WIDTH";
