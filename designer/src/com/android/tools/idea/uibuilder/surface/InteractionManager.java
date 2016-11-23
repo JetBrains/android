@@ -118,6 +118,9 @@ public class InteractionManager {
   /** Drop target installed by this manager */
   private DropTarget myDropTarget;
 
+  /** Indicates whether listeners have been registered to listen for interactions */
+  private boolean myIsListening;
+
   /**
    * Constructs a new {@link InteractionManager} for the given
    * {@link DesignSurface}.
@@ -168,8 +171,9 @@ public class InteractionManager {
    * Registers all the listeners needed by the {@link InteractionManager}.
    */
   public void registerListeners() {
-    assert myListener == null;
-    myListener = new Listener();
+    if (myListener == null) {
+      myListener = new Listener();
+    }
     JComponent layeredPane = mySurface.getLayeredPane();
     layeredPane.addMouseMotionListener(myListener);
     layeredPane.addMouseWheelListener(myListener);
@@ -180,6 +184,7 @@ public class InteractionManager {
       myDropTarget = new DropTarget(mySurface.getLayeredPane(), DnDConstants.ACTION_COPY_OR_MOVE, myListener, true, null);
     }
     myHoverTimer.addActionListener(myListener);
+    myIsListening = true;
   }
 
   /**
@@ -187,8 +192,21 @@ public class InteractionManager {
    * {@link #registerListeners}.
    */
   public void unregisterListeners() {
+    JComponent layeredPane = mySurface.getLayeredPane();
+    layeredPane.removeMouseMotionListener(myListener);
+    layeredPane.removeMouseWheelListener(myListener);
+    layeredPane.removeMouseListener(myListener);
+    layeredPane.removeKeyListener(myListener);
     myDropTarget.removeDropTargetListener(myListener);
     myHoverTimer.removeActionListener(myListener);
+    myIsListening = false;
+  }
+
+  /**
+   * Returns whether this is currently listening to interactions with a {@link Listener}
+   */
+  public boolean isListening() {
+    return myIsListening;
   }
 
   /**

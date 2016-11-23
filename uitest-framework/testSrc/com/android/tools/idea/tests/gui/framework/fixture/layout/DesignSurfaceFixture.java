@@ -179,4 +179,8 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
       .map(this::createComponentFixture)
       .collect(Collectors.toList());
   }
+
+  public boolean isInScreenMode(@NotNull DesignSurface.ScreenMode mode) {
+    return target().getScreenMode() == mode;
+  }
 }

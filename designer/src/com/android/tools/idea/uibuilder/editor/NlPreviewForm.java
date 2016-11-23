@@ -74,6 +74,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
   private Pending myPendingFile;
   private TextEditor myEditor;
   private CaretModel myCaretModel;
+  private DesignSurface.ScreenMode myScreenMode;
 
   public NlPreviewForm(NlPreviewManager manager) {
     myManager = manager;
@@ -316,11 +317,23 @@ public class NlPreviewForm implements Disposable, CaretListener {
         // only if the zoom was previously set to FIT
         mySurface.zoomToFit();
       }
+      else {
+        mySurface.updateScrolledAreaSize();
+      }
       setEditor(myManager.getActiveLayoutXmlEditor());
       model.activate();
       myWorkBench.setToolContext(mySurface);
       myWorkBench.setFileEditor(myEditor);
       myActionsToolbar.setModel(model);
+      if (!model.getType().isSupportedByDesigner()) {
+        myScreenMode = mySurface.getScreenMode();
+        mySurface.setScreenMode(DesignSurface.ScreenMode.SCREEN_ONLY, false);
+        myWorkBench.setMinimizePanelsVisible(false);
+      }
+      else if (myScreenMode != null && mySurface.getScreenMode() == DesignSurface.ScreenMode.SCREEN_ONLY) {
+        mySurface.setScreenMode(myScreenMode, false);
+        myWorkBench.setMinimizePanelsVisible(true);
+      }
     }
   }
 
