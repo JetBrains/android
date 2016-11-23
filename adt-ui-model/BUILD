@@ -3,8 +3,8 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "adt-ui-model",
     srcs = ["src/main/java"],
-    test_srcs = ["testSrc"],
     tags = ["managed"],
+    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
