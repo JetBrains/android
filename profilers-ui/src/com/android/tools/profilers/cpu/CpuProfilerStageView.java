@@ -20,6 +20,7 @@ import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.*;
 import com.android.tools.profilers.*;
@@ -96,26 +97,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     monitorPanel.setOpaque(false);
     monitorPanel.setBorder(MONITOR_BORDER);
 
-    SelectionComponent selection = new SelectionComponent(timeline.getSelectionRange(), timeline.getViewRange());
-    monitorPanel.add(selection, GBC_FULL);
-
     RangedContinuousSeries thisCpuSeries =
       new RangedContinuousSeries("App", viewRange, leftYRange, cpu.getThisProcessCpuUsage());
     RangedContinuousSeries otherCpuSeries =
       new RangedContinuousSeries("Others", viewRange, leftYRange, cpu.getOtherProcessesCpuUsage());
     RangedContinuousSeries threadsCountSeries =
       new RangedContinuousSeries("Threads", viewRange, rightYRange, cpu.getThreadsCount());
-
-    final JPanel lineChartPanel = new JBPanel(new BorderLayout());
-    lineChartPanel.setOpaque(false);
-    lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
-    LineChart lineChart = new LineChart();
-    lineChart.addLine(thisCpuSeries, new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true).setStacked(true));
-    lineChart.addLine(otherCpuSeries, new LineConfig(ProfilerColors.CPU_OTHER_USAGE).setFilled(true).setStacked(true));
-    lineChart.addLine(threadsCountSeries, new LineConfig(ProfilerColors.THREADS_COUNT_COLOR)
-      .setStepped(true).setStroke(LineConfig.DEFAULT_DASH_STROKE));
-    lineChartPanel.add(lineChart, BorderLayout.CENTER);
-    monitorPanel.add(lineChartPanel, GBC_FULL);
 
     final JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
@@ -140,6 +127,26 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     axisPanel.add(rightAxis, BorderLayout.EAST);
     monitorPanel.add(axisPanel, GBC_FULL);
 
+    SelectionComponent selection = new SelectionComponent(timeline.getSelectionRange(), timeline.getViewRange());
+    final JPanel overlayPanel = new JBPanel(new BorderLayout());
+    overlayPanel.setOpaque(false);
+    overlayPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
+    final OverlayComponent overlay = new OverlayComponent(selection);
+    overlayPanel.add(overlay, BorderLayout.CENTER);
+    monitorPanel.add(overlayPanel, GBC_FULL);
+    monitorPanel.add(selection, GBC_FULL);    // Selection needs to be behind the OverlayComponent which handles clicking of DurationData.
+
+    final JPanel lineChartPanel = new JBPanel(new BorderLayout());
+    lineChartPanel.setOpaque(false);
+    lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
+    LineChart lineChart = new LineChart();
+    lineChart.addLine(thisCpuSeries, new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true).setStacked(true));
+    lineChart.addLine(otherCpuSeries, new LineConfig(ProfilerColors.CPU_OTHER_USAGE).setFilled(true).setStacked(true));
+    lineChart.addLine(threadsCountSeries, new LineConfig(ProfilerColors.THREADS_COUNT_COLOR)
+      .setStepped(true).setStroke(LineConfig.DEFAULT_DASH_STROKE));
+    lineChartPanel.add(lineChart, BorderLayout.CENTER);
+    monitorPanel.add(lineChartPanel, GBC_FULL);
+
     final LegendComponent legend = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, LEGEND_UPDATE_FREQUENCY_MS);
     ArrayList<LegendRenderData> legendData = new ArrayList<>();
     legendData.add(lineChart.createLegendRenderData(thisCpuSeries, CPU_USAGE_AXIS, dataRange));
@@ -161,8 +168,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     DurationDataRenderer<DurationData> traceRenderer =
       new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, myStage.getCpuTraceDataSeries()), ProfilerColors.CPU_CAPTURE_EVENT)
         .setlabelProvider(data -> "Trace")
-        .setStroke(new BasicStroke(1)).build();
+        .setStroke(new BasicStroke(1))
+        .setLabelBackground(Color.DARK_GRAY, Color.GRAY, Color.lightGray).build();
     lineChart.addCustomRenderer(traceRenderer);
+    overlay.addDurationDataRenderer(traceRenderer);
 
     RangedListModel<CpuThreadsModel.RangedCpuThread> model = myStage.getThreadStates();
     myThreads = new JBList(model);
