@@ -34,8 +34,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -48,6 +50,16 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 public class SdkBuildToolsTooLowErrorHandler extends SyncErrorHandler {
   private static final Pattern SDK_BUILD_TOOLS_TOO_LOW_PATTERN =
     Pattern.compile("The SDK Build Tools revision \\((.*)\\) is too low for project '(.*)'. Minimum required is (.*)");
+
+  @NotNull
+  public static SdkBuildToolsTooLowErrorHandler getInstance() {
+    for (SyncErrorHandler errorHandler : SyncErrorHandler.getExtensions()) {
+      if (errorHandler instanceof SdkBuildToolsTooLowErrorHandler) {
+        return (SdkBuildToolsTooLowErrorHandler)errorHandler;
+      }
+    }
+    throw new IllegalStateException("Unable to find an instance of " + SdkBuildToolsTooLowErrorHandler.class.getName());
+  }
 
   @Override
   public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
@@ -65,43 +77,51 @@ public class SdkBuildToolsTooLowErrorHandler extends SyncErrorHandler {
   @NotNull
   private List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull Project project, @NotNull String text) {
     Matcher matcher = SDK_BUILD_TOOLS_TOO_LOW_PATTERN.matcher(getFirstLineMessage(text));
-    List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     if (matcher.matches()) {
-      boolean buildToolInstalled = false;
-
-      String minimumVersion = matcher.group(3);
-
-      AndroidSdkHandler sdkHandler = null;
-      AndroidSdkData androidSdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
-      if (androidSdkData != null) {
-        sdkHandler = androidSdkData.getSdkHandler();
-      }
-      if (sdkHandler != null) {
-        ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-        RepositoryPackages packages = sdkHandler.getSdkManager(progress).getPackages();
-        LocalPackage buildTool = packages.getLocalPackages().get(getBuildToolsPath(parseRevision(minimumVersion)));
-        buildToolInstalled = buildTool != null;
-      }
-
       String gradlePath = matcher.group(2);
       Module module = findModuleByGradlePath(project, gradlePath);
-      if (module != null) {
-        VirtualFile buildFile = getGradleBuildFile(module);
-        AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.find(project);
-        if (!buildToolInstalled) {
-          if (androidPluginInfo != null && androidPluginInfo.isExperimental()) {
-            hyperlinks.add(new InstallBuildToolsHyperlink(minimumVersion, null));
-          }
-          else {
-            hyperlinks.add(new InstallBuildToolsHyperlink(minimumVersion, buildFile));
-          }
+      String minimumVersion = matcher.group(3);
+      return getQuickFixHyperlinks(minimumVersion, project, module);
+    }
+    return Collections.emptyList();
+  }
+
+  @NotNull
+  public List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull String minimumVersion,
+                                                           @NotNull Project project,
+                                                           @Nullable Module module) {
+    List<NotificationHyperlink> hyperlinks = new ArrayList<>();
+    boolean buildToolInstalled = false;
+
+    AndroidSdkHandler sdkHandler = null;
+    AndroidSdkData androidSdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
+    if (androidSdkData != null) {
+      sdkHandler = androidSdkData.getSdkHandler();
+    }
+
+    if (sdkHandler != null) {
+      ProgressIndicator progress = new StudioLoggerProgressIndicator(SdkBuildToolsTooLowErrorHandler.class);
+      RepositoryPackages packages = sdkHandler.getSdkManager(progress).getPackages();
+      LocalPackage buildTool = packages.getLocalPackages().get(getBuildToolsPath(parseRevision(minimumVersion)));
+      buildToolInstalled = buildTool != null;
+    }
+
+    if (module != null) {
+      VirtualFile buildFile = getGradleBuildFile(module);
+      AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.find(project);
+      if (!buildToolInstalled) {
+        if (androidPluginInfo != null && androidPluginInfo.isExperimental()) {
+          hyperlinks.add(new InstallBuildToolsHyperlink(minimumVersion, null));
         }
-        else if (buildFile != null && androidPluginInfo != null && !androidPluginInfo.isExperimental()) {
-          hyperlinks.add(new FixBuildToolsVersionHyperlink(buildFile, minimumVersion));
+        else {
+          hyperlinks.add(new InstallBuildToolsHyperlink(minimumVersion, buildFile));
         }
-        if (buildFile != null) {
-          hyperlinks.add(new OpenFileHyperlink(buildFile.getPath()));
-        }
+      }
+      else if (buildFile != null && androidPluginInfo != null && !androidPluginInfo.isExperimental()) {
+        hyperlinks.add(new FixBuildToolsVersionHyperlink(buildFile, minimumVersion));
+      }
+      if (buildFile != null) {
+        hyperlinks.add(new OpenFileHyperlink(buildFile.getPath()));
       }
     }
     return hyperlinks;
