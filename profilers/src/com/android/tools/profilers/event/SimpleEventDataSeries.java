@@ -15,10 +15,7 @@
  */
 package com.android.tools.profilers.event;
 
-import com.android.tools.adtui.model.DataSeries;
-import com.android.tools.adtui.model.EventAction;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.*;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import com.android.tools.profilers.ProfilerClient;
