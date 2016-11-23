@@ -39,9 +39,9 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * Tets for {@link ForcedPluginPreviewVersionUpgrade}.
+ * Tets for {@link ForcedPluginPreviewVersionUpgradeStep}.
  */
-public class ForcedPluginPreviewVersionUpgradeIdeaTest extends IdeaTestCase {
+public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends IdeaTestCase {
   @Mock private AndroidPluginInfo myPluginInfo;
   @Mock private AndroidPluginGeneration myPluginGeneration;
 
@@ -51,7 +51,7 @@ public class ForcedPluginPreviewVersionUpgradeIdeaTest extends IdeaTestCase {
 
   private TestDialog myOriginalTestDialog;
 
-  private ForcedPluginPreviewVersionUpgrade myVersionUpgrade;
+  private ForcedPluginPreviewVersionUpgradeStep myVersionUpgrade;
 
   @Override
   protected void setUp() throws Exception {
@@ -64,7 +64,7 @@ public class ForcedPluginPreviewVersionUpgradeIdeaTest extends IdeaTestCase {
     myVersionUpdater = IdeComponents.replaceServiceWithMock(project, AndroidPluginVersionUpdater.class);
     mySyncMessages = SyncMessagesStub.replaceSyncMessagesService(project);
 
-    myVersionUpgrade = new ForcedPluginPreviewVersionUpgrade();
+    myVersionUpgrade = new ForcedPluginPreviewVersionUpgradeStep();
   }
 
   @Override
