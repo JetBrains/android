@@ -19,11 +19,11 @@ import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.adtui.LabelWithEditLink;
 import com.android.tools.idea.npw.importing.ImportUIUtil;
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
 import com.android.tools.idea.templates.*;
 import com.android.tools.idea.ui.ApiComboBoxItem;
-import com.android.tools.adtui.LabelWithEditLink;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.base.*;
@@ -95,6 +95,11 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   private final Map<String, Object> myPresetParameters = Maps.newHashMap();
   @NotNull private final Key<String> myPackageNameKey;
   private final LoadingCache<File, Optional<Icon>> myThumbnailsCache = CacheBuilder.newBuilder().build(new TemplateIconLoader());
+  private final Map<String, Object> myParameterDefaultValues = Maps.newHashMap();
+  private final Map<Parameter, List<JComponent>> myParameterComponents = new WeakHashMap<>();
+  private final StringEvaluator myEvaluator = new StringEvaluator();
+  private final Map<JComponent, Parameter> myDataComponentParameters = new WeakHashMap<>();
+  private final String myStepTitle;
   /**
    * Can be null if this is used for non-android libs.
    * TODO: Use for icon
@@ -107,15 +112,10 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   private JPanel myRootPanel;
   private JLabel myParameterDescription;
   private JSeparator myFooterSeparator;
-  private Map<String, Object> myParameterDefaultValues = Maps.newHashMap();
   private TemplateEntry myCurrentTemplate;
   private JComboBox mySourceSet;
   private JLabel mySourceSetLabel;
-  private boolean myUpdatingDefaults = false;
-  private Map<Parameter, List<JComponent>> myParameterComponents = new WeakHashMap<>();
-  private final StringEvaluator myEvaluator = new StringEvaluator();
-  private Map<JComponent, Parameter> myDataComponentParameters = new WeakHashMap<>();
-  private final String myStepTitle;
+  private boolean myUpdatingDefaults;
 
   /**
    * Creates a new template parameters wizard step.
@@ -605,36 +605,28 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   }
 
   private void setSelectedTemplate(@Nullable TemplateEntry template) {
-    if (template == null) {
+    if (template == null || Objects.equal(myCurrentTemplate, template)) {
       return;
     }
-    TemplateMetadata metadata = template.getMetadata();
-    myTemplateIcon.setText(template.getTitle());
+
+    myCurrentTemplate = template;
+
+    TemplateMetadata metadata = myCurrentTemplate.getMetadata();
+    myTemplateIcon.setText(myCurrentTemplate.getTitle());
 
     String string = ImportUIUtil.makeHtmlString(metadata.getDescription());
     myTemplateDescription.setText(string);
-    updateControls(template);
-  }
 
-  private void updateControls(@Nullable TemplateEntry entry) {
-    if (Objects.equal(myCurrentTemplate, entry)) {
-      return;
-    }
-    myCurrentTemplate = entry;
-    final Set<Parameter> parameters;
-    if (entry != null) {
-      updateStateWithDefaults(entry.getParameters());
-      parameters = ImmutableSet.copyOf(filterNonUIParameters(entry));
-    }
-    else {
-      parameters = ImmutableSet.of();
-    }
+    updateStateWithDefaults(myCurrentTemplate.getParameters());
+
     for (Component component : myTemplateParameters.getComponents()) {
       myTemplateParameters.remove(component);
       if (component instanceof JComponent) {
         deregister((JComponent)component);
       }
     }
+
+    Set<Parameter> parameters = ImmutableSet.copyOf(filterNonUIParameters(myCurrentTemplate));
     int lastRow = addParameterComponents(parameters.size() + 1, parameters);
     addSourceSetControls(lastRow);
   }
@@ -901,7 +893,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   }
 
   private class ChooseClassAction implements ActionListener {
-    private Parameter myParameter;
+    @NotNull private final Parameter myParameter;
     @NotNull private final Module myModule;
 
     public ChooseClassAction(@NotNull Parameter parameter, @NotNull Module module) {
