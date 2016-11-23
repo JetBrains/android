@@ -31,7 +31,14 @@ public class HNode<T> {
   private int mDepth;
 
   public HNode() {
+    this(null, 0, 0);
+  }
+
+  public HNode(@Nullable T data, long start, long end) {
     mNodes = new ArrayList<>();
+    mData = data;
+    mStart = start;
+    mEnd = end;
   }
 
   @NotNull
