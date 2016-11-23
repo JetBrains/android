@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
+import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependenciesSetup;
 import com.intellij.openapi.application.ApplicationManager;
@@ -34,7 +34,7 @@ import org.mockito.Mock;
 import java.io.File;
 import java.io.IOException;
 
-import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.*;
+import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.*;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.mockito.Mockito.*;
