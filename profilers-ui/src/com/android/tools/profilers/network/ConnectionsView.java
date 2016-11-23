@@ -71,7 +71,7 @@ class ConnectionsView {
    * Columns for each connection information
    */
   private enum Column {
-    INDEX, URL, SIZE, DURATION, TIMELINE
+    URL, SIZE, DURATION, TIMELINE
   }
 
   @NotNull
@@ -175,9 +175,6 @@ class ConnectionsView {
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
       switch (Column.values()[columnIndex]) {
-        case INDEX:
-          return String.valueOf(rowIndex);
-
         case URL:
           return myDataList.get(rowIndex).getUrl();
 
