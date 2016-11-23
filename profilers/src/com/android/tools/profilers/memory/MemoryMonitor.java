@@ -74,6 +74,11 @@ public class MemoryMonitor extends ProfilerMonitor {
     return new VmStatsDataSeries(myClient, myProcessId, sample -> (long)(sample.getJavaAllocationCount() - sample.getJavaFreeCount()));
   }
 
+  @NotNull
+  public GcStatsDataSeries getGcCount() {
+    return new GcStatsDataSeries(myClient, myProcessId);
+  }
+
   @Override
   public String getName() {
     return "Memory";
