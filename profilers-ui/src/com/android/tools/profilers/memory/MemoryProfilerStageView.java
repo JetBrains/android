@@ -30,6 +30,7 @@ import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.event.EventMonitorView;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.components.JBPanel;
@@ -65,7 +66,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     JToolBar toolBar = new JToolBar();
     toolBar.setFloatable(false);
 
-    JButton backButton = new JButton("Go back");
+    JButton backButton = new JButton();
+    backButton.setIcon(AllIcons.Actions.Back);
     toolBar.add(backButton);
     backButton.addActionListener(action -> getStage().getStudioProfilers().setMonitoringStage());
 
