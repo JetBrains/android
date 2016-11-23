@@ -561,6 +561,7 @@ public class GradleSyncTest {
 
   // Verify that the IDE warns users about rendering issue when using plugin 1.2.0 to 1.2.2.
   // See https://code.google.com/p/android/issues/detail?id=170841
+  @Ignore("http://ag/1261774")
   @Test
   public void withLayoutRenderingIssue() throws IOException {
     guiTest.importMultiModule();
