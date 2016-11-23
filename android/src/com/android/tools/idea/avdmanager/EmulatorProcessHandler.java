@@ -34,7 +34,7 @@ import java.io.*;
 import java.util.concurrent.Future;
 
 /**
- * The {@link com.android.tools.idea.avdmanager.EmulatorProcessHandler} is a custom process handler specific to handling
+ * The {@link EmulatorProcessHandler} is a custom process handler specific to handling
  * the emulator process. The majority of the code is derived from {@link com.intellij.execution.process.BaseOSProcessHandler}.
  *
  * Unlike other processes, the emulator executable is a wrapper process that is mainly used to spawn off the real emulator. So its
@@ -66,18 +66,15 @@ public class EmulatorProcessHandler extends ProcessHandler implements TaskExecut
           final BaseDataReader stderrReader = new EmulatorOutputReader(myProcess.getErrorStream(), ProcessOutputTypes.STDERR,
                                                                        presentableName);
 
-          executeTask(new Runnable() {
-            @Override
-            public void run() {
-              try {
-                stderrReader.waitFor();
-                stdoutReader.waitFor();
-              }
-              catch (InterruptedException ignore) {
-              }
-              finally {
-                notifyProcessTerminated(0);
-              }
+          executeTask(() -> {
+            try {
+              stderrReader.waitFor();
+              stdoutReader.waitFor();
+            }
+            catch (InterruptedException ignore) {
+            }
+            finally {
+              notifyProcessTerminated(0);
             }
           });
         }
@@ -106,12 +103,9 @@ public class EmulatorProcessHandler extends ProcessHandler implements TaskExecut
 
   @Override
   protected void detachProcessImpl() {
-    final Runnable runnable = new Runnable() {
-      @Override
-      public void run() {
-        closeStreams();
-        notifyProcessDetached();
-      }
+    final Runnable runnable = () -> {
+      closeStreams();
+      notifyProcessDetached();
     };
 
     executeTask(runnable);
