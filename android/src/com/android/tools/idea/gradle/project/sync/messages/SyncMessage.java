@@ -31,7 +31,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class SyncMessage {
-  public static final String DEFAULT_GROUP = "Gradle Sync Issue";
+  public static final String DEFAULT_GROUP = "Gradle Sync Issues";
 
   @NotNull private final String myGroup;
   @NotNull private final MessageType myType;

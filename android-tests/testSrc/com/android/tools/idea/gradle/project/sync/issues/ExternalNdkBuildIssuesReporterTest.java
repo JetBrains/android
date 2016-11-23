@@ -20,9 +20,9 @@ import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
+import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
-import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
@@ -48,14 +48,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link ExternalNativeBuildIssuesReporter}.
+ * Tests for {@link ExternalNdkBuildIssuesReporter}.
  */
-public class ExternalNativeBuildIssuesReporterTest extends AndroidGradleTestCase {
+public class ExternalNdkBuildIssuesReporterTest extends AndroidGradleTestCase {
   private SyncIssue mySyncIssue;
   private SyncMessagesStub mySyncMessagesStub;
   private BuildOutputParser myOutputParser;
   private SyncErrorHandlerStub myErrorHandler;
-  private ExternalNativeBuildIssuesReporter myReporter;
+  private ExternalNdkBuildIssuesReporter myReporter;
 
   @Override
   public void setUp() throws Exception {
@@ -64,8 +64,8 @@ public class ExternalNativeBuildIssuesReporterTest extends AndroidGradleTestCase
     mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
     myOutputParser = mock(BuildOutputParser.class);
     myErrorHandler = new SyncErrorHandlerStub();
-    AbstractSyncErrorHandler[] errorHandlers = {myErrorHandler};
-    myReporter = new ExternalNativeBuildIssuesReporter(myOutputParser, errorHandlers);
+    SyncErrorHandler[] errorHandlers = {myErrorHandler};
+    myReporter = new ExternalNdkBuildIssuesReporter(myOutputParser, errorHandlers);
   }
 
   public void testGetSupportedIssueType() {
@@ -147,14 +147,11 @@ public class ExternalNativeBuildIssuesReporterTest extends AndroidGradleTestCase
     assertTrue(myErrorHandler.isInvoked());
   }
 
-  private static class SyncErrorHandlerStub extends AbstractSyncErrorHandler {
+  private static class SyncErrorHandlerStub extends SyncErrorHandler {
     private boolean myInvoked;
 
     @Override
-    public boolean handleError(@NotNull List<String> message,
-                               @NotNull ExternalSystemException error,
-                               @NotNull NotificationData notification,
-                               @NotNull Project project) {
+    public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
       myInvoked = true;
       return true;
     }

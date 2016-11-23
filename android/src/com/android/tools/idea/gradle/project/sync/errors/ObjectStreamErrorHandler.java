@@ -16,10 +16,11 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.project.sync.hyperlink.BuildProjectHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenAndroidSdkManagerHyperlink;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
@@ -29,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 // See https://code.google.com/p/android/issues/detail?id=72556
@@ -59,6 +59,7 @@ public class ObjectStreamErrorHandler extends SyncErrorHandler {
 
   private static void findAndAddQuickFixes(@NotNull NotificationData notification, @NotNull Project project, @NotNull String text) {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
+
     NotificationHyperlink buildProjectHyperlink = new BuildProjectHyperlink();
     NotificationHyperlink openAndroidSdkManagerHyperlink = new OpenAndroidSdkManagerHyperlink();
     text += "Please try one of the following:<ul>" +
@@ -67,10 +68,11 @@ public class ObjectStreamErrorHandler extends SyncErrorHandler {
 
     hyperlinks.add(buildProjectHyperlink);
     hyperlinks.add(openAndroidSdkManagerHyperlink);
-    String title = String.format(FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT, project.getName());
-    notification.setTitle(title);
+
+    notification.setTitle(SyncMessage.DEFAULT_GROUP);
     notification.setMessage(text);
     notification.setNotificationCategory(NotificationCategory.convert(DEFAULT_NOTIFICATION_TYPE));
+
     SyncMessages.getInstance(project).addNotificationListener(notification, hyperlinks);
   }
 }
