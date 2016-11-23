@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.assetstudiolib.AssetStudio;
 import com.android.assetstudiolib.GraphicGenerator;
+import com.android.assetstudiolib.MaterialDesignIcons;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
@@ -131,7 +131,7 @@ public class ViewEditorImpl extends ViewEditor {
       return;
     }
 
-    try (InputStream in = GraphicGenerator.class.getClassLoader().getResourceAsStream(AssetStudio.getPathForBasename(asset))) {
+    try (InputStream in = GraphicGenerator.class.getClassLoader().getResourceAsStream(MaterialDesignIcons.getPathForBasename(asset))) {
       createResourceFile(FD_RES_DRAWABLE, asset + DOT_XML, ByteStreams.toByteArray(in));
     }
     catch (IOException exception) {
