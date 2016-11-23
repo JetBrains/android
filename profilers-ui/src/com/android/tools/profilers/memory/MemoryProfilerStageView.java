@@ -145,8 +145,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(SwingConstants.TOP);
 
-    Range leftYRange = new Range();
-    Range rightYRange = new Range();
+    Range leftYRange = new Range(0, 0);
+    Range rightYRange = new Range(0, 0);
 
     RangedContinuousSeries javaSeries = new RangedContinuousSeries("Java", viewRange, leftYRange, monitor.getJavaMemory());
     RangedContinuousSeries nativeSeries = new RangedContinuousSeries("Native", viewRange, leftYRange, monitor.getNativeMemory());

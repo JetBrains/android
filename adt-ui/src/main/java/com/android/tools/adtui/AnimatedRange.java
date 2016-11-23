@@ -57,23 +57,23 @@ public class AnimatedRange extends Range implements Animatable {
   }
 
   @Override
-  public void setMin(double from) {
-    myTargetMin = from;
+  public void setMin(double min) {
+    myTargetMin = min;
   }
 
   @Override
-  public void setMax(double to) {
-    myTargetMax = to;
+  public void setMax(double max) {
+    myTargetMax = max;
   }
 
   @Override
   public void animate(float frameLength) {
-    if (myCurrentMin != myTargetMin) {
-      myCurrentMin = Choreographer.lerp(myCurrentMin, myTargetMin, myLerpFraction, frameLength, myLerpThreshold);
+    if (myMin != myTargetMin) {
+      myMin = Choreographer.lerp(myMin, myTargetMin, myLerpFraction, frameLength, myLerpThreshold);
     }
 
-    if (myCurrentMax != myTargetMax) {
-      myCurrentMax = Choreographer.lerp(myCurrentMax, myTargetMax, myLerpFraction, frameLength, myLerpThreshold);
+    if (myMax != myTargetMax) {
+      myMax = Choreographer.lerp(myMax, myTargetMax, myLerpFraction, frameLength, myLerpThreshold);
     }
   }
 }

@@ -68,12 +68,12 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
   private JScrollBar mScrollBar;
 
   public FlameGraphVisualTest() {
-    this.mTimeGlobalRangeUs = new Range();
+    this.mTimeGlobalRangeUs = new Range(0, 0);
 
     AxisComponent.Builder builder = new AxisComponent.Builder(mTimeGlobalRangeUs, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM);
     this.mAxis = builder.build();
 
-    this.mTimeSelectionRangeUs = new Range();
+    this.mTimeSelectionRangeUs = new Range(0, 0);
 
     this.mLineChart = new LineChart();
     this.mSelector = new SelectionComponent(mTimeSelectionRangeUs, mTimeGlobalRangeUs);
