@@ -39,6 +39,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
@@ -72,6 +73,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     StudioProfilers profilers = stage.getStudioProfilers();
     ProfilerTimeline timeline = profilers.getTimeline();
+    Range viewRange = timeline.getViewRange();
+    Range dataRange = timeline.getDataRange();
 
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
     // that attempts to read the same range instance.
@@ -96,14 +99,17 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     SelectionComponent selection = new SelectionComponent(timeline.getSelectionRange(), timeline.getViewRange());
     monitorPanel.add(selection, GBC_FULL);
 
+    RangedContinuousSeries thisCpuSeries =
+      new RangedContinuousSeries("App", viewRange, leftYRange, cpu.getThisProcessCpuUsage());
+    RangedContinuousSeries otherCpuSeries =
+      new RangedContinuousSeries("Others", viewRange, leftYRange, cpu.getOtherProcessesCpuUsage());
+
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
     lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
     LineChart lineChart = new LineChart();
-    lineChart.addLine(new RangedContinuousSeries("App", getTimeline().getViewRange(), leftYRange, cpu.getThisProcessCpuUsage()),
-                      new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true).setStacked(true));
-    lineChart.addLine(new RangedContinuousSeries("Others", getTimeline().getViewRange(), leftYRange, cpu.getOtherProcessesCpuUsage()),
-                      new LineConfig(ProfilerColors.CPU_OTHER_USAGE).setFilled(true).setStacked(true));
+    lineChart.addLine(thisCpuSeries, new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true).setStacked(true));
+    lineChart.addLine(otherCpuSeries, new LineConfig(ProfilerColors.CPU_OTHER_USAGE).setFilled(true).setStacked(true));
     // TODO add num threads series.
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
     monitorPanel.add(lineChartPanel, GBC_FULL);
@@ -132,7 +138,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     monitorPanel.add(axisPanel, GBC_FULL);
 
     final LegendComponent legend = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, LEGEND_UPDATE_FREQUENCY_MS);
-    legend.setLegendData(lineChart.getLegendDataFromLineChart());
+    ArrayList<LegendRenderData> legendData = new ArrayList<>();
+    legendData.add(lineChart.createLegendRenderData(thisCpuSeries, CPU_USAGE_AXIS, dataRange));
+    legendData.add(lineChart.createLegendRenderData(otherCpuSeries, CPU_USAGE_AXIS, dataRange));
+    legend.setLegendData(legendData);
 
     final JLabel label = new JLabel(cpu.getName());
     label.setBorder(MONITOR_LABEL_PADDING);
