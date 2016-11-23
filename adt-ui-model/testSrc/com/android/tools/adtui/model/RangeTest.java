@@ -22,6 +22,7 @@ import java.util.List;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class RangeTest {
 
@@ -74,9 +75,11 @@ public class RangeTest {
   public void testSubstractEmpty() {
     Range range = new Range(0, 10);
     List<Range> substract = range.subtract(new Range(5, 5));
-    assertThat(substract, hasSize(1));
+    assertThat(substract, hasSize(2));
     assertEquals(0, substract.get(0).getMin(), 0);
-    assertEquals(10, substract.get(0).getMax(), 0);
+    assertEquals(5, substract.get(0).getMax(), 0);
+    assertEquals(5, substract.get(1).getMin(), 0);
+    assertEquals(10, substract.get(1).getMax(), 0);
   }
 
   @Test
@@ -84,6 +87,14 @@ public class RangeTest {
     Range range = new Range(0, 0);
     List<Range> substract = range.subtract(new Range(-5, 5));
     assertThat(substract, empty());
+  }
+
+  @Test
+  public void testSubstractFromPointOutside() {
+    Range range = new Range(10, 10);
+    List<Range> substract = range.subtract(new Range(25, 50));
+    assertEquals(10, substract.get(0).getMin(), 0);
+    assertEquals(10, substract.get(0).getMax(), 0);
   }
 
   @Test
@@ -114,7 +125,23 @@ public class RangeTest {
   public void testNoIntersection() {
     Range range = new Range(1, 10);
     Range intersection = range.getIntersection(new Range(15, 25));
-    assertEquals(0, intersection.getMin(), 0);
-    assertEquals(0, intersection.getMax(), 0);
+    assertTrue(intersection.isEmpty());
   }
+
+  @Test
+  public void testPointIntersection() {
+    Range range = new Range(1, 10);
+    Range intersection = range.getIntersection(new Range(5, 5));
+    assertEquals(5, intersection.getMin(), 0);
+    assertEquals(5, intersection.getMax(), 0);
+  }
+
+  @Test
+  public void testIntersectionPoint() {
+    Range range = new Range(5, 5);
+    Range intersection = range.getIntersection(new Range(0, 10));
+    assertEquals(5, intersection.getMin(), 0);
+    assertEquals(5, intersection.getMax(), 0);
+  }
+
 }

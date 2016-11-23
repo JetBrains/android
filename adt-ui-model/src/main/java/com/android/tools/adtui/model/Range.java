@@ -19,27 +19,28 @@ package com.android.tools.adtui.model;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Range  {
+public class Range {
 
-  protected double myCurrentMin;
+  // TODO: Make these private once AnimatedRange is removed.
+  protected double myMin;
 
-  protected double myCurrentMax;
+  protected double myMax;
 
   public Range(double min, double max) {
-    myCurrentMin = min;
-    myCurrentMax = max;
+    myMin = min;
+    myMax = max;
   }
 
   public Range() {
-    this(0, 0);
+    clear();
   }
 
-  public void setMin(double from) {
-    myCurrentMin = from;
+  public void setMin(double min) {
+    myMin = min;
   }
 
-  public void setMax(double to) {
-    myCurrentMax = to;
+  public void setMax(double max) {
+    myMax = max;
   }
 
   public void set(double min, double max) {
@@ -52,11 +53,11 @@ public class Range  {
   }
 
   public double getMin() {
-    return myCurrentMin;
+    return myMin;
   }
 
   public double getMax() {
-    return myCurrentMax;
+    return myMax;
   }
 
   public double getLength() {
@@ -67,8 +68,27 @@ public class Range  {
     return getMax() == getMin();
   }
 
+  public boolean isEmpty() {
+    return myMin > myMax;
+  }
+
+  public boolean contains(double value) {
+    return myMin <= value && value <= myMax;
+  }
+
+  /**
+   * Empties a range.
+   */
+  public void clear() {
+    // Any value of max < min would do, but using MAX_VALUE preserves the invariant:
+    // For any x, x < myMax and x > myMin are false.
+    myMax = -Double.MAX_VALUE;
+    myMin = Double.MAX_VALUE;
+  }
+
   /**
    * Returns the closest value to a number that is within the Range or the number itself if it already is.
+   *
    * @param value The number to be clamped
    */
   public double clamp(double value) {
@@ -84,6 +104,7 @@ public class Range  {
 
   /**
    * Shifts the values of min and max by a determined delta.
+   *
    * @param delta Number to be added to min and max
    */
   public void shift(double delta) {
@@ -97,19 +118,19 @@ public class Range  {
    */
   public List<Range> subtract(Range range) {
     List<Range> ret = new LinkedList<>();
-    if (isPoint()) {
-      // All gone
-    } else if (range.isPoint()) {
+    Range intersection = getIntersection(range);
+    if (intersection.isEmpty()) {
       ret.add(this);
-    } else if (range.getMin() > getMin() && range.getMax() < getMax()) {
-      ret.add(new Range(getMin(), range.getMin()));
-      ret.add(new Range(range.getMax(), getMax()));
-    } else if (range.getMin() > getMin() && range.getMin() < getMax()) {
-      ret.add(new Range(getMin(), range.getMin()));
-    } else if (range.getMax() > getMin() && range.getMax() < getMax()) {
-      ret.add(new Range(range.getMax(), getMax()));
-    } else if (range.getMin() > getMax() || range.getMax() < getMin()){
-      ret.add(this);
+    }
+    else {
+      Range left = new Range(myMin, intersection.getMin());
+      Range right = new Range(intersection.getMax(), myMax);
+      if (!left.isPoint()) {
+        ret.add(left);
+      }
+      if (!right.isPoint()) {
+        ret.add(right);
+      }
     }
     return ret;
   }
@@ -119,9 +140,10 @@ public class Range  {
    * Note that this doesn't handle correctly intersections with empty ranges.
    */
   public Range getIntersection(Range range) {
-    if (range.getMin() > getMax() || range.getMax() < getMin()) {
+    if (isEmpty() || range.isEmpty() || range.getMin() > getMax() || range.getMax() < getMin()) {
       return new Range();
-    } else {
+    }
+    else {
       return new Range(Math.max(getMin(), range.getMin()), Math.min(getMax(), range.getMax()));
     }
   }

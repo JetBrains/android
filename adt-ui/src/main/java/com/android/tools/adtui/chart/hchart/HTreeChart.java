@@ -57,7 +57,7 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
   public HTreeChart() {
     mRoot = new HNode<>();
     mRect = new Rectangle2D.Float();
-    mYRange = new Range();
+    mYRange = new Range(0, 0);
     addMouseWheelListener(this);
     mOrientation = HTreeChart.Orientation.TOP_DOWN;
     setFocusable(true);
