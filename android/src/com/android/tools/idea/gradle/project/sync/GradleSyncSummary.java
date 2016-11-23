@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.android.annotations.Nullable;
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.intellij.openapi.project.Project;
@@ -33,7 +32,6 @@ public class GradleSyncSummary {
   private boolean mySyncErrorsFound;
   private boolean myWrongJdkFound;
 
-  @VisibleForTesting
   public GradleSyncSummary(@NotNull Project project) {
     myProject = project;
     reset();

@@ -29,6 +29,7 @@ import java.util.List;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CONNECTION_DENIED;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
+// See https://code.google.com/p/android/issues/detail?id=75520
 public class ConnectionPermissionDeniedErrorHandler extends BaseSyncErrorHandler {
   @Override
   @Nullable

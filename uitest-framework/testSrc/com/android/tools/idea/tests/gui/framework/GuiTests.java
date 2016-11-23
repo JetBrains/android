@@ -132,7 +132,6 @@ public final class GuiTests {
 
     AndroidPlugin.GuiTestSuiteState state = getGuiTestSuiteState();
     state.setSkipSdkMerge(false);
-    state.setUseCachedGradleModelOnly(false);
 
     // TODO: setUpDefaultGeneralSettings();
   }
