@@ -57,6 +57,7 @@ public final class ImageDiffUtil {
     addAll(new EventEntriesRegistrar().getImageDiffEntries());
     addAll(new AccordionEntriesRegistrar().getImageDiffEntries());
     addAll(new RangeEntriesRegistrar().getImageDiffEntries());
+    addAll(new LegendComponentRegistrar().getImageDiffEntries());
   }});
 
   static {
