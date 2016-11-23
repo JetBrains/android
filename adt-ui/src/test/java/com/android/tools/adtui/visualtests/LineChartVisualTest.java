@@ -19,9 +19,11 @@ package com.android.tools.adtui.visualtests;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AnimatedTimeRange;
+import com.android.tools.adtui.SelectionComponent;
 import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
 import com.intellij.util.containers.ImmutableList;
@@ -38,11 +40,18 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.android.tools.adtui.common.AdtUiUtils.GBC_FULL;
 import static com.android.tools.adtui.model.DurationData.UNSPECIFIED_DURATION;
 
 public class LineChartVisualTest extends VisualTest {
 
+  private final JLabel mClickDisplayLabel = new JLabel();
+
   private LineChart mLineChart;
+
+  private SelectionComponent mySelectionComponent;
+
+  private OverlayComponent myOverlayComponent;
 
   private List<RangedContinuousSeries> mRangedData;
 
@@ -70,9 +79,14 @@ public class LineChartVisualTest extends VisualTest {
 
     List<Animatable> componentsList = new ArrayList<>();
 
+    mySelectionComponent = new SelectionComponent(new Range(0, 0), timeGlobalRangeUs);
+    myOverlayComponent = new OverlayComponent(mySelectionComponent);
+
     // Add the scene components to the list
     componentsList.add(mAnimatedTimeRange);
     componentsList.add(mLineChart);
+    componentsList.add(mySelectionComponent);
+
 
     Range yRange = new Range(0.0, 100.0);
     for (int i = 0; i < 4; i++) {
@@ -91,19 +105,26 @@ public class LineChartVisualTest extends VisualTest {
     mDurationData2 = new DefaultDataSeries<>();
     RangedSeries<DurationData> series1 = new RangedSeries<>(timeGlobalRangeUs, mDurationData1);
     RangedSeries<DurationData> series2 = new RangedSeries<>(timeGlobalRangeUs, mDurationData2);
-    mDurationRendererBlocking = new DurationDataRenderer.Builder(series1, Color.BLUE)
+    mDurationRendererBlocking = new DurationDataRenderer.Builder(series1, Color.WHITE)
+      .setLabelBackground(Color.DARK_GRAY, Color.GRAY, Color.lightGray)
       .setIsBlocking(true)
       .setIcon(UIManager.getIcon("Tree.leafIcon"))
-      .setlabelProvider(durationdata -> "Blocking").build();
+      .setlabelProvider(durationdata -> "Blocking")
+      .setClickHander(durationData -> mClickDisplayLabel.setText(durationData.toString())).build();
 
-    mDurationRendererAttached = new DurationDataRenderer.Builder(series2, Color.BLACK)
+    mDurationRendererAttached = new DurationDataRenderer.Builder(series2, Color.WHITE)
+      .setLabelBackground(Color.DARK_GRAY, Color.GRAY, Color.lightGray)
       .setIcon(UIManager.getIcon("Tree.leafIcon"))
       .setlabelProvider(durationdata -> "Attached")
-      .setAttachLineSeries(mRangedData.get(0)).build();
+      .setAttachLineSeries(mRangedData.get(0))
+      .setClickHander(durationData -> mClickDisplayLabel.setText(durationData.toString())).build();
     mLineChart.addCustomRenderer(mDurationRendererBlocking);
     mLineChart.addCustomRenderer(mDurationRendererAttached);
+    myOverlayComponent.addDurationDataRenderer(mDurationRendererBlocking);
+    myOverlayComponent.addDurationDataRenderer(mDurationRendererAttached);
     componentsList.add(mDurationRendererBlocking);
     componentsList.add(mDurationRendererAttached);
+    componentsList.add(myOverlayComponent);
 
     return componentsList;
   }
@@ -120,8 +141,12 @@ public class LineChartVisualTest extends VisualTest {
 
   @Override
   protected void populateUi(@NotNull JPanel panel) {
+    JPanel layered = new JPanel(new GridBagLayout());
+    JPanel controls = VisualTest.createControlledPane(panel, layered);
     mLineChart.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
-    JPanel controls = VisualTest.createControlledPane(panel, mLineChart);
+    layered.add(myOverlayComponent, GBC_FULL);
+    layered.add(mySelectionComponent, GBC_FULL);
+    layered.add(mLineChart, GBC_FULL);
 
     final AtomicInteger variance = new AtomicInteger(10);
     final AtomicInteger delay = new AtomicInteger(100);
@@ -266,6 +291,8 @@ public class LineChartVisualTest extends VisualTest {
       }
     });
     controls.add(tapButton);
+
+    controls.add(mClickDisplayLabel);
 
     controls.add(
       new Box.Filler(new Dimension(0, 0), new Dimension(300, Integer.MAX_VALUE),
