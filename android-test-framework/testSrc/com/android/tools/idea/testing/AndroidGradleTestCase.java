@@ -511,8 +511,17 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     return "";
   }
 
+  protected void requestSyncAndWait(@NotNull GradleSyncInvoker.Request request) throws Exception {
+    SyncListener syncListener = requestSync(request);
+    checkStatus(syncListener);
+  }
+
   protected void requestSyncAndWait() throws Exception {
     SyncListener syncListener = requestSync();
+    checkStatus(syncListener);
+  }
+
+  private static void checkStatus(@NotNull SyncListener syncListener) {
     if (!syncListener.success) {
       String cause = syncListener.failureMessage;
       if (isEmpty(cause)) {
@@ -533,10 +542,15 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @NotNull
   private SyncListener requestSync() throws Exception {
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false);
+    return requestSync(request);
+  }
+
+  @NotNull
+  private SyncListener requestSync(@NotNull GradleSyncInvoker.Request request) throws Exception {
     SyncListener syncListener = new SyncListener();
     refreshProjectFiles();
 
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false);
     GradleSyncInvoker.getInstance().requestProjectSync(getProject(), request, syncListener);
 
     syncListener.await();
