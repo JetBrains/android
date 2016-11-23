@@ -47,7 +47,7 @@ import static com.android.tools.profilers.ProfilerColors.NETWORK_WAITING_COLOR;
  * This class responsible for displaying table of connections information (e.g url, duration, timeline)
  * for network profiling. Each row in the table represents a single connection.
  */
-class ConnectionsView {
+final class ConnectionsView {
   private static final int ROW_HEIGHT_PADDING = 5;
 
   public interface DetailedViewListener {
@@ -71,7 +71,21 @@ class ConnectionsView {
    * Columns for each connection information
    */
   private enum Column {
-    URL, SIZE, DURATION, TIMELINE
+    URL(0.25), SIZE(0.25/4), TYPE(0.25/4), STATUS(0.25/4), TIME(0.25/4), TIMELINE(0.5);
+
+    private final double myWidthPercentage;
+
+    Column(double widthPercentage) {
+      myWidthPercentage = widthPercentage;
+    }
+
+    public double getWidthPercentage() {
+      return myWidthPercentage;
+    }
+
+    public String toDisplayString() {
+      return StringUtil.capitalize(name().toLowerCase(Locale.getDefault()));
+    }
   }
 
   @NotNull
@@ -120,7 +134,10 @@ class ConnectionsView {
     table.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {
-        table.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setPreferredWidth(myConnectionsTable.getWidth() / 2);
+        for (int i = 0; i < Column.values().length; ++i) {
+          Column column = Column.values()[i];
+          table.getColumnModel().getColumn(i).setPreferredWidth((int)(table.getWidth() * column.getWidthPercentage()));
+        }
       }
     });
 
@@ -159,7 +176,7 @@ class ConnectionsView {
 
     @Override
     public String getColumnName(int column) {
-      return StringUtil.capitalize(Column.values()[column].toString().toLowerCase(Locale.getDefault()));
+      return Column.values()[column].toDisplayString();
     }
 
     @Override
@@ -174,21 +191,31 @@ class ConnectionsView {
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
+      HttpData data = myDataList.get(rowIndex);
       switch (Column.values()[columnIndex]) {
         case URL:
-          return myDataList.get(rowIndex).getUrl();
+          return data.getUrl();
 
         case SIZE:
-          long bytes = myDataList.get(rowIndex).getHttpResponseBodySize();
-          return bytes >= 0 ? String.valueOf(bytes / 1024) + " K" : "";
+          String contentLength = data.getHttpResponseField(HttpData.FIELD_CONTENT_LENGTH);
+          int bytes = (contentLength != null) ? Integer.parseInt(contentLength): -1;
+          return bytes >= 0 ? StringUtil.formatFileSize(bytes) : "";
 
-        case DURATION:
-          HttpData httpData = myDataList.get(rowIndex);
-          if (httpData.getEndTimeUs() >= httpData.getStartTimeUs()) {
-            long durationMs = TimeUnit.MICROSECONDS.toMillis(httpData.getEndTimeUs() - httpData.getStartTimeUs());
-            return String.valueOf(durationMs) + " ms";
+        case TYPE:
+          String contentType = data.getHttpResponseField(HttpData.FIELD_CONTENT_TYPE);
+          return StringUtil.notNullize(contentType);
+
+        case STATUS:
+          int status = data.getStatusCode();
+          return status > -1 ? Integer.toString(status) : "";
+
+        case TIME:
+          if (data.getEndTimeUs() >= data.getStartTimeUs()) {
+            long durationMs = TimeUnit.MICROSECONDS.toMillis(data.getEndTimeUs() - data.getStartTimeUs());
+            return StringUtil.formatDuration(durationMs);
+          } else {
+            return "";
           }
-          break;
 
         case TIMELINE:
           // This column has a custom renderer; see getColumnClass

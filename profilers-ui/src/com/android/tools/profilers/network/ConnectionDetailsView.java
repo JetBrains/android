@@ -35,7 +35,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Map;
 
 /**
  * View to display a single network request and its response's detailed information.
@@ -94,11 +93,11 @@ public class ConnectionDetailsView extends JPanel {
       HyperlinkLabel urlLabel = new HyperlinkLabel(httpData.getUrl());
       urlLabel.setHyperlinkTarget(httpData.getUrl());
       myFieldsPanel.add(urlLabel, new ProportionalLayout.Constraint(row, 2));
-      Map<String, String> responseFields = httpData.getHttpResponseFields();
-      if (responseFields != null && responseFields.containsKey(HttpData.FIELD_CONTENT_TYPE)) {
+
+      String contentType = httpData.getHttpResponseField(HttpData.FIELD_CONTENT_TYPE);
+      if (contentType != null) {
         row++;
         myFieldsPanel.add(new BoldLabel("Content type"), new ProportionalLayout.Constraint(row, 0));
-        String contentType = responseFields.get(HttpData.FIELD_CONTENT_TYPE);
         // Content type looks like "type/subtype;" or "type/subtype; parameters".
         // Always convert to "type"
         contentType = contentType.split(";")[0];
