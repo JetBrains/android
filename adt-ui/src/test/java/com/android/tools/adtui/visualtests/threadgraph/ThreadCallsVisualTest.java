@@ -69,12 +69,12 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
   private JScrollBar mScrollBar;
 
   public ThreadCallsVisualTest() {
-    this.mTimeGlobalRangeUs = new Range();
+    this.mTimeGlobalRangeUs = new Range(0, 0);
 
     AxisComponent.Builder builder = new AxisComponent.Builder(mTimeGlobalRangeUs, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM);
     this.mAxis = builder.build();
 
-    this.mTimeSelectionRangeUs = new Range();
+    this.mTimeSelectionRangeUs = new Range(0, 0);
 
     this.mChart = new HTreeChart<Method>();
     this.mChart.setHRenderer(new JavaMethodHRenderer());

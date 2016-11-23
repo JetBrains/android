@@ -83,8 +83,8 @@ public class AxisLineChartVisualTest extends VisualTest {
     mLineChart = new LineChart();
 
     mStartTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-    final Range timeCurrentRangeUs = new Range();
-    mTimeGlobalRangeUs = new Range();
+    final Range timeCurrentRangeUs = new Range(0, 0);
+    mTimeGlobalRangeUs = new Range(0, 0);
     mAnimatedTimeRange = new AnimatedTimeRange(mTimeGlobalRangeUs, mStartTimeUs);
     mScrollbar = new RangeScrollbar(mTimeGlobalRangeUs, timeCurrentRangeUs);
 

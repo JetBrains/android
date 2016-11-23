@@ -70,7 +70,7 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
       new MemoryProfiler(this),
       new NetworkProfiler(this));
 
-    myDataRangUs = new Range();
+    myDataRangUs = new Range(0, 0);
     myTimeline = new ProfilerTimeline(myDataRangUs);
 
     myProcesses = Maps.newHashMap();

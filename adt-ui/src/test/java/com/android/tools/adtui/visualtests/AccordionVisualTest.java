@@ -67,7 +67,7 @@ public class AccordionVisualTest extends VisualTest {
   @Override
   protected List<Animatable> createComponentsList() {
     mStartTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-    Range timeGlobalRangeUs = new Range();
+    Range timeGlobalRangeUs = new Range(0, 0);
     mAnimatedTimeRange = new AnimatedTimeRange(timeGlobalRangeUs, mStartTimeUs);
 
     mPanelX = new JBPanel();

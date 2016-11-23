@@ -92,7 +92,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     JComponent eventsComponent = eventsView.initialize(getChoreographer());
 
     Range leftYRange = new Range(0, 100);
-    Range rightYRange = new Range();
+    Range rightYRange = new Range(0, 0);
     JPanel monitorPanel = new JBPanel(new GridBagLayout());
     monitorPanel.setOpaque(false);
     monitorPanel.setBorder(MONITOR_BORDER);
