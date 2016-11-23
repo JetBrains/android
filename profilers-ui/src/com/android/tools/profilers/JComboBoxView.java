@@ -65,8 +65,14 @@ public class JComboBoxView<T, A extends Enum<A>> implements ItemListener {
 
     myIgnoreEvents = true;
     myCombo.removeAllItems();
-    for (T t : list) {
-      myCombo.addItem(t);
+    if (list.isEmpty()) {
+      // We add a null item so combobox can get its layout updated and width set properly,
+      // for the empty message (e.g., "No Connected Devices").
+      myCombo.addItem(null);
+    } else {
+      for (T t : list) {
+        myCombo.addItem(t);
+      }
     }
     myCombo.setSelectedItem(selected);
     myIgnoreEvents = false;

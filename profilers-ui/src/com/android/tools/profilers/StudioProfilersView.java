@@ -23,6 +23,9 @@ import com.android.tools.profilers.memory.MemoryProfilerStageView;
 import com.android.tools.profilers.network.NetworkProfilerStageView;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.SimpleTextAttributes;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -63,6 +66,7 @@ public class StudioProfilersView {
                                                 myProfiler::getDevice,
                                                 myProfiler::setDevice);
     devices.bind();
+    deviceCombo.setRenderer(new DeviceComboBoxRenderer());
 
     JComboBox<Profiler.Process> processCombo = new JComboBox<>();
     JComboBoxView processes = new JComboBoxView<>(processCombo, myProfiler, ProfilerAspect.PROCESSES,
@@ -70,7 +74,7 @@ public class StudioProfilersView {
                                                   myProfiler::getProcess,
                                                   myProfiler::setProcess);
     processes.bind();
-
+    processCombo.setRenderer(new ProcessComboBoxRenderer());
 
     JPanel toolbar = new JPanel(new BorderLayout());
 
@@ -112,5 +116,65 @@ public class StudioProfilersView {
 
   public JPanel getComponent() {
     return myComponent;
+  }
+
+  private static class DeviceComboBoxRenderer extends ColoredListCellRenderer<Profiler.Device> {
+
+    @NotNull
+    private final String myEmptyText = "No Connected Devices";
+
+    @Override
+    protected void customizeCellRenderer(@NotNull JList list, Profiler.Device value, int index,
+                                         boolean selected, boolean hasFocus) {
+      if (value != null) {
+        renderDeviceName(value);
+      } else {
+        append(myEmptyText, SimpleTextAttributes.ERROR_ATTRIBUTES);
+      }
+    }
+
+    public void renderDeviceName(@NotNull Profiler.Device d) {
+      // As of 2016-11, only model and serial are populated in Profiler.Device.
+      // Model seems to be a string in the form of "model-serial". Here we are trying
+      // to divide it into real model name and serial number, and then render them nicely.
+      // TODO: Render better structured info when more fields are populated in Profiler.Device.
+      String model = d.getModel();
+      String serial = d.getSerial();
+      String suffix = String.format("-%s", serial);
+      if (model.endsWith(suffix)) {
+        model = model.substring(0, model.length() - suffix.length());
+      }
+      append(model, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+      append(String.format(" (%1$s)", serial), SimpleTextAttributes.GRAY_ATTRIBUTES);
+    }
+  }
+
+  private static class ProcessComboBoxRenderer extends ColoredListCellRenderer<Profiler.Process> {
+
+    @NotNull
+    private final String myEmptyText = "No Debuggable Processes";
+
+    @Override
+    protected void customizeCellRenderer(@NotNull JList list, Profiler.Process value, int index,
+                                         boolean selected, boolean hasFocus) {
+      if (value != null) {
+        renderProcessName(value);
+      } else {
+        append(myEmptyText, SimpleTextAttributes.ERROR_ATTRIBUTES);
+      }
+    }
+
+    private void renderProcessName(@NotNull Profiler.Process process) {
+      String name = process.getName();
+      if (name == null) {
+        return;
+      }
+      // Highlight the last part of the process name.
+      int index = name.lastIndexOf('.');
+      append(name.substring(0, index + 1), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+      append(name.substring(index + 1), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+
+      append(String.format(" (%1$d)", process.getPid()), SimpleTextAttributes.GRAY_ATTRIBUTES);
+    }
   }
 }
