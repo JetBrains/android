@@ -33,7 +33,7 @@ import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 
-public class ForcedPluginPreviewVersionUpgrade extends PluginVersionUpgrade {
+public class ForcedPluginPreviewVersionUpgradeStep extends PluginVersionUpgradeStep {
   @Override
   public boolean checkAndPerformUpgrade(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
     AndroidPluginGeneration pluginGeneration = pluginInfo.getPluginGeneration();

@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 
-public class RecommendedPluginVersionUpgrade extends PluginVersionUpgrade {
+public class RecommendedPluginVersionUpgradeStep extends PluginVersionUpgradeStep {
   @Override
   public boolean checkAndPerformUpgrade(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
     if (shouldRecommendUpgrade(pluginInfo)) {
