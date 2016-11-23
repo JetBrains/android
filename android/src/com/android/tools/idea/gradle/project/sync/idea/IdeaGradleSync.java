@@ -15,48 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
-import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.GradleProjectSyncData;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.android.tools.idea.gradle.project.sync.GradleSync;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Maps;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
+import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
-import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.SystemProperties;
-import org.jetbrains.android.AndroidPlugin;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Map;
-
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.GradleUtil.getCachedProjectData;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.ProxyUtil.isValidProxyObject;
-import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshProject;
-import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
-import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 
 @Deprecated
 public class IdeaGradleSync implements GradleSync {
@@ -70,11 +46,12 @@ public class IdeaGradleSync implements GradleSync {
     // Prevent IDEA from syncing with Gradle. We want to have full control of syncing.
     project.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, true);
 
-    if (forceSyncWithCachedModel() || request.isUseCachedGradleModels()) {
+    if (SYNC_WITH_CACHED_MODEL_ONLY || request.isUseCachedGradleModels()) {
       GradleProjectSyncData syncData = GradleProjectSyncData.getInstance((project));
       if (syncData != null && syncData.canUseCachedProjectData()) {
-        DataNode<ProjectData> cache = getCachedProjectData(project);
-        if (cache != null && !isCacheMissingModels(cache, project)) {
+        DataNodeCaches dataNodeCaches = DataNodeCaches.getInstance(project);
+        DataNode<ProjectData> cache = dataNodeCaches.getCachedProjectData();
+        if (cache != null && !dataNodeCaches.isCacheMissingModels(cache)) {
           PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
 
           // @formatter:off
@@ -105,86 +82,5 @@ public class IdeaGradleSync implements GradleSync {
     ProgressExecutionMode executionMode = request.getProgressExecutionMode();
     refreshProject(project, GRADLE_SYSTEM_ID, externalProjectPath, setUpTask, false /* resolve dependencies */,
                    executionMode, true /* always report import errors */);
-  }
-
-  private static boolean forceSyncWithCachedModel() {
-    if (SYNC_WITH_CACHED_MODEL_ONLY) {
-      return true;
-    }
-    if (isGuiTestingMode()) {
-      AndroidPlugin.GuiTestSuiteState state = getGuiTestSuiteState();
-      return state.syncWithCachedModelOnly();
-    }
-    return false;
-  }
-
-  @VisibleForTesting
-  static boolean isCacheMissingModels(@NotNull DataNode<ProjectData> cache, @NotNull Project project) {
-    Collection<DataNode<ModuleData>> moduleDataNodes = findAll(cache, MODULE);
-    if (!moduleDataNodes.isEmpty()) {
-      Map<String, DataNode<ModuleData>> moduleDataNodesByName = indexByModuleName(moduleDataNodes);
-
-      ModuleManager moduleManager = ModuleManager.getInstance(project);
-      for (Module module : moduleManager.getModules()) {
-        DataNode<ModuleData> moduleDataNode = moduleDataNodesByName.get(module.getName());
-        if (moduleDataNode == null) {
-          // When a Gradle facet is present, there should be a cache node for the module.
-          GradleFacet gradleFacet = GradleFacet.getInstance(module);
-          if (gradleFacet != null) {
-            return true;
-          }
-        }
-        else if (isCacheMissingModels(moduleDataNode, module)) {
-          return true;
-        }
-      }
-      return false;
-    }
-    return true;
-  }
-
-  @NotNull
-  private static Map<String, DataNode<ModuleData>> indexByModuleName(@NotNull Collection<DataNode<ModuleData>> moduleDataNodes) {
-    Map<String, DataNode<ModuleData>> mapping = Maps.newHashMap();
-    for (DataNode<ModuleData> moduleDataNode : moduleDataNodes) {
-      ModuleData data = moduleDataNode.getData();
-      mapping.put(data.getExternalName(), moduleDataNode);
-    }
-    return mapping;
-  }
-
-  private static boolean isCacheMissingModels(@NotNull DataNode<ModuleData> cache, @NotNull Module module) {
-    GradleFacet gradleFacet = GradleFacet.getInstance(module);
-    if (gradleFacet != null) {
-      DataNode<GradleModuleModel> gradleDataNode = find(cache, GRADLE_MODULE_MODEL);
-      if (gradleDataNode == null) {
-        return true;
-      }
-
-      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null) {
-        DataNode<AndroidModuleModel> androidDataNode = find(cache, ANDROID_MODEL);
-        if (androidDataNode == null || !isValidProxyObject(androidDataNode.getData().getAndroidProject())) {
-          return true;
-        }
-      }
-      else {
-        JavaFacet javaFacet = JavaFacet.getInstance(module);
-        if (javaFacet != null) {
-          DataNode<JavaModuleModel> javaProjectDataNode = find(cache, JAVA_MODULE_MODEL);
-          if (javaProjectDataNode == null) {
-            return true;
-          }
-        }
-      }
-    }
-    NdkFacet ndkFacet = NdkFacet.getInstance(module);
-    if (ndkFacet != null) {
-      DataNode<NdkModuleModel> ndkModuleModelDataNode = find(cache, NDK_MODEL);
-      if (ndkModuleModelDataNode == null || !isValidProxyObject(ndkModuleModelDataNode.getData().getAndroidProject())) {
-        return true;
-      }
-    }
-    return false;
   }
 }

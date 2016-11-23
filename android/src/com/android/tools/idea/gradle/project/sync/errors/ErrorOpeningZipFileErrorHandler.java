@@ -29,6 +29,7 @@ import java.util.List;
 
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
+// See https://code.google.com/p/android/issues/detail?id=76797
 public class ErrorOpeningZipFileErrorHandler extends SyncErrorHandler {
   @Override
   public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {

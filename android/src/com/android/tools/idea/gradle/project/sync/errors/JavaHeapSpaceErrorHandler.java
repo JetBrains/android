@@ -29,6 +29,7 @@ import java.util.List;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.OUT_OF_MEMORY;
 import static com.intellij.openapi.util.text.StringUtil.*;
 
+// See https://code.google.com/p/android/issues/detail?id=75060
 public class JavaHeapSpaceErrorHandler extends BaseSyncErrorHandler {
   @Override
   @Nullable
