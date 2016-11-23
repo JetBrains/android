@@ -1069,8 +1069,6 @@
                     interface="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.PluginVersionUpgradeStep"/>
 
     <extensionPoint qualifiedName="com.android.captureType" interface="com.android.tools.idea.profiling.capture.CaptureType"/>
-    <extensionPoint qualifiedName="com.android.gradle.syncErrorHandler"
-                    interface="com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.syncErrorHandler"
                     interface="com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler"/>
     <extensionPoint qualifiedName="com.android.gradle.gradleEditorModelCustomizer"

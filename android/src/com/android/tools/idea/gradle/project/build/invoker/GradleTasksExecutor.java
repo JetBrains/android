@@ -33,7 +33,6 @@ import com.android.tools.idea.gradle.project.build.invoker.messages.GradleBuildT
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.google.common.annotations.VisibleForTesting;
@@ -41,21 +40,15 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.CompilerManagerImpl;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
-import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerBundle;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
-import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
-import com.intellij.openapi.externalSystem.service.notification.NotificationData;
-import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -76,7 +69,6 @@ import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
 import com.intellij.pom.Navigatable;
 import com.intellij.ui.AppIcon;
 import com.intellij.ui.content.*;
-import com.intellij.util.Consumer;
 import com.intellij.util.Function;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.ui.MessageCategory;
@@ -92,13 +84,11 @@ import org.jetbrains.plugins.gradle.service.execution.GradleProgressEventConvert
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
 import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
@@ -188,10 +178,6 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
     };
 
     private static final long ONE_MINUTE_MS = 60L /*sec*/ * 1000L /*millisec*/;
-
-    // Dummy objects used for mapping {@link AbstractSyncErrorHandler} to the 'build messages' environment.
-    private static final Notification DUMMY_NOTIFICATION = new Notification("dummy", "dummy", "dummy", NotificationType.ERROR);
-    private static final Object DUMMY_EVENT_SOURCE = new Object();
 
     @NonNls private static final String CONTENT_NAME = "Gradle Build";
     @NonNls private static final String APP_ICON_ID = "compiler";
@@ -718,7 +704,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
         if (myErrorTreeView != null && !myRequest.getProject().isDisposed()) {
           Message.Kind messageKind = message.getKind();
           int type = translateMessageKind(messageKind);
-          LinkAwareMessageData messageData = prepareMessage(message);
+          String[] textLines = splitIntoLines(message);
           if (navigatable == null) {
             VirtualFile file = findFileFrom(message);
 
@@ -728,10 +714,10 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
             int line = position.getStartLine();
             int column = position.getStartColumn();
 
-            myErrorTreeView.addMessage(type, messageData.textLines, file, line, column, messageData.hyperlinkListener);
+            myErrorTreeView.addMessage(type, textLines, file, line, column, null);
           }
           else {
-            myErrorTreeView.addMessage(type, messageData.textLines, null, navigatable, null, null, messageData.hyperlinkListener);
+            myErrorTreeView.addMessage(type, textLines, null, navigatable, null, null, null);
           }
 
           boolean autoActivate = !myMessagesAutoActivated && type == MessageCategory.ERROR;
@@ -744,78 +730,12 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
     }
 
     @NotNull
-    private LinkAwareMessageData prepareMessage(@NotNull Message message) {
-      List<String> rawTextLines;
+    private static String[] splitIntoLines(@NotNull Message message) {
       String text = message.getText();
       if (text.indexOf('\n') == -1) {
-        rawTextLines = Collections.singletonList(text);
+        return new String[] { text };
       }
-      else {
-        rawTextLines = new ArrayList<>(on('\n').splitToList(text));
-      }
-      if (message.getKind() != Message.Kind.ERROR) {
-        //noinspection unchecked
-        return new LinkAwareMessageData(toStringArray(rawTextLines), null);
-      }
-
-      // The general idea is to adapt existing gradle output enhancers (AbstractSyncErrorHandler) to the 'gradle build' process.
-      // Their are built in assumption that they enhance external system's NotificationData by custom html hyperlinks markup and
-      // corresponding listeners. So, what we do here is just providing fake NotificationData to the handlers and extract the
-      // data added by them (if any).
-      List<String> enhancedTextLines = null; // Text lines with added hyperlinks, i.e. hold text to actually show to end-user
-      List<String> linesBuffer = new ArrayList<>(1);
-      linesBuffer.add("");
-      NotificationData dummyData =
-        new NotificationData("", message.getText(), NotificationCategory.ERROR, NotificationSource.PROJECT_SYNC);
-      String previousMessage = dummyData.getMessage();
-      for (AbstractSyncErrorHandler handler : AbstractSyncErrorHandler.EP_NAME.getExtensions()) {
-        // We experienced that AbstractSyncErrorHandler often look to the first line only (because gradle output is sequential, line-by-line.
-        // That's why we roll through all message lines and offer every of them to the handler.
-        for (int i = 0; i < rawTextLines.size(); i++) {
-          String line = rawTextLines.get(i);
-
-          // This logic comes from gradle itself. Corresponding 'clearing' code remains at BuildFailureParser.parse()
-          String prefixToStrip = "> ";
-          line = trimStart(line, prefixToStrip);
-
-          linesBuffer.set(0, line);
-          boolean handled = handler.handleError(linesBuffer, new ExternalSystemException(message.getText()), dummyData,
-                                                myRequest.getProject());
-          if (handled) {
-            // Extract text added by the handler and store it at the 'enhancedTextLines' collection.
-            String currentMessage = dummyData.getMessage();
-            if (currentMessage.length() > previousMessage.length()) {
-              int j = previousMessage.length();
-              if (currentMessage.charAt(j) == '\n') {
-                j++;
-              }
-              String addedText = currentMessage.substring(j);
-              if (enhancedTextLines == null) {
-                enhancedTextLines = new ArrayList<>(rawTextLines);
-              }
-              enhancedTextLines.add(addedText);
-              previousMessage = currentMessage;
-            }
-          }
-        }
-      }
-      List<String> textLinesToUse;
-      Consumer<String> hyperlinkListener;
-      if (enhancedTextLines == null) {
-        textLinesToUse = rawTextLines;
-        hyperlinkListener = null;
-      }
-      else {
-        textLinesToUse = enhancedTextLines;
-        // AbstractSyncErrorHandler add hyperlinks (which we derived earlier and stored in 'enhancedTextLines') and hyperlink listeners
-        // (facaded by the NotificationData.getListener()). So, what we do here is just delegating 'activate link' event
-        // to those hyperlink listeners added by AbstractSyncErrorHandler.
-        hyperlinkListener = url -> {
-          HyperlinkEvent event = new HyperlinkEvent(DUMMY_EVENT_SOURCE, HyperlinkEvent.EventType.ACTIVATED, null, url);
-          dummyData.getListener().hyperlinkUpdate(DUMMY_NOTIFICATION, event);
-        };
-      }
-      return new LinkAwareMessageData(toStringArray(textLinesToUse), hyperlinkListener);
+      return toStringArray(on('\n').splitToList(text));
     }
 
     @Nullable
@@ -1139,25 +1059,6 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
       @Override
       public boolean canNavigateToSource() {
         return false;
-      }
-    }
-
-    /**
-     * 'Parameter object' pattern for preparing data to be stored at the 'build messages' output tree structure.
-     */
-    private static class LinkAwareMessageData {
-      /**
-       * Target node text split by lines.
-       */
-      @NotNull final String[] textLines;
-      /**
-       * A listener to use for the target text's hyperlinks (if any). Is expected to receives link's href value as an argument.
-       */
-      @Nullable final Consumer<String> hyperlinkListener;
-
-      LinkAwareMessageData(@NotNull String[] textLines, @Nullable Consumer<String> hyperlinkListener) {
-        this.textLines = textLines;
-        this.hyperlinkListener = hyperlinkListener;
       }
     }
   }
