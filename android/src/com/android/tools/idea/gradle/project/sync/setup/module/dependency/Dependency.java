@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.customizer.dependency;
+package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
@@ -31,8 +31,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.BINARY;
-import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.SOURCE;
+import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
+import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.SOURCE;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
@@ -158,6 +158,7 @@ public abstract class Dependency {
   @NotNull
   private static String getBundleName(@NotNull AndroidBundle bundle) {
     MavenCoordinates coordinates = bundle.getResolvedCoordinates();
+    //noinspection ConstantConditions
     if (coordinates != null) {
       return coordinates.getArtifactId() + "-" + coordinates.getVersion();
     }
@@ -218,9 +219,10 @@ public abstract class Dependency {
     if (isEmpty(gradleProjectPath)) {
       getLogger().error(message("android.gradle.dependency.atom.invalid.external", atom.getName()));
     }
-
-    dependencies.add(new ModuleDependency(gradleProjectPath, scope));
-    addAtomTransitiveDependencies(atom, dependencies, scope, unique);
+    else {
+      dependencies.add(new ModuleDependency(gradleProjectPath, scope));
+      addAtomTransitiveDependencies(atom, dependencies, scope, unique);
+    }
   }
 
   @NotNull

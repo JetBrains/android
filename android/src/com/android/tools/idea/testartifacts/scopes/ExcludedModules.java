@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
-import com.android.tools.idea.gradle.customizer.dependency.DependencySet;
-import com.android.tools.idea.gradle.customizer.dependency.ModuleDependency;
+import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
+import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.containers.HashSet;
