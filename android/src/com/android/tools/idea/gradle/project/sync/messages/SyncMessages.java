@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.messages;
 
 import com.android.tools.idea.gradle.notification.QuickFixNotificationListener;
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
