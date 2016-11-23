@@ -24,7 +24,6 @@ import com.intellij.openapi.externalSystem.service.notification.NotificationData
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,9 +34,10 @@ public class GenericErrorHandler extends SyncErrorHandler {
 
   @Override
   public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
-    String text = findErrorMessage(getRootCause(error), notification, project);
+    //noinspection ThrowableResultOfMethodCallIgnored
+    String text = getRootCause(error).getMessage();
     if (text != null) {
-      List<NotificationHyperlink> hyperlinks = getQuickFixHyperlinks(notification, project, text);
+      List<NotificationHyperlink> hyperlinks = getQuickFixHyperlinks(notification, text);
       if (!hyperlinks.isEmpty()) {
         updateUsageTracker();
         SyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
@@ -47,17 +47,8 @@ public class GenericErrorHandler extends SyncErrorHandler {
     return false;
   }
 
-  @Override
-  @Nullable
-  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
-    return rootCause.getMessage();
-  }
-
-  @Override
   @NotNull
-  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
-                                                              @NotNull Project project,
-                                                              @NotNull String text) {
+  private List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification, @NotNull String text) {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     List<String> message = Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(text);
     String lastLine = message.get(message.size() - 1);

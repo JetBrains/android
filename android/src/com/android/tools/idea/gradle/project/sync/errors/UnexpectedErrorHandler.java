@@ -28,7 +28,7 @@ import java.util.List;
 
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class UnexpectedErrorHandler extends SyncErrorHandler {
+public class UnexpectedErrorHandler extends BaseSyncErrorHandler {
   private static final String UNEXPECTED_ERROR_FILE_BUG = "This is an unexpected error. Please file a bug containing the idea.log file.";
 
   @Override

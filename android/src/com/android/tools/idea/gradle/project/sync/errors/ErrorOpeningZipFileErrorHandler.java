@@ -32,17 +32,20 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 public class ErrorOpeningZipFileErrorHandler extends SyncErrorHandler {
   @Override
   public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
-    String text = findErrorMessage(getRootCause(error), notification, project);
+    String text = findErrorMessage(getRootCause(error));
     if (text != null) {
-      getQuickFixHyperlinks(notification, project, text);
+      List<NotificationHyperlink> hyperlinks = new ArrayList<>();
+      NotificationHyperlink syncProjectHyperlink = SyncProjectWithExtraCommandLineOptionsHyperlink.syncProjectRefreshingDependencies();
+      hyperlinks.add(syncProjectHyperlink);
+      String newText = text + syncProjectHyperlink.toHtml();
+      SyncMessages.getInstance(project).updateNotification(notification, newText, hyperlinks);
       return true;
     }
     return false;
   }
 
-  @Override
   @Nullable
-  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
+  private String findErrorMessage(@NotNull Throwable rootCause) {
     String text = rootCause.getMessage();
     if (isNotEmpty(text) && text.contains("error in opening zip file")) {
       updateUsageTracker();
@@ -50,18 +53,5 @@ public class ErrorOpeningZipFileErrorHandler extends SyncErrorHandler {
              "Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)\n";
     }
     return null;
-  }
-
-  @Override
-  @NotNull
-  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
-                                                              @NotNull Project project,
-                                                              @NotNull String text) {
-    List<NotificationHyperlink> hyperlinks = new ArrayList<>();
-    NotificationHyperlink syncProjectHyperlink = SyncProjectWithExtraCommandLineOptionsHyperlink.syncProjectRefreshingDependencies();
-    hyperlinks.add(syncProjectHyperlink);
-    String newText = text + syncProjectHyperlink.toHtml();
-    SyncMessages.getInstance(project).updateNotification(notification, newText, hyperlinks);
-    return hyperlinks;
   }
 }

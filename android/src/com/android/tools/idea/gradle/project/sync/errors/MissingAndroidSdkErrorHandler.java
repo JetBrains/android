@@ -38,11 +38,10 @@ import static com.google.common.io.Closeables.close;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.SDK_NOT_FOUND;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class MissingAndroidSdkErrorHandler extends SyncErrorHandler {
-
+public class MissingAndroidSdkErrorHandler extends BaseSyncErrorHandler {
   private static final String FIX_SDK_DIR_PROPERTY = "Please fix the 'sdk.dir' property in the local.properties file.";
-  private static final Pattern SDK_NOT_FOUND_PATTERN = Pattern.compile("The SDK directory '(.*?)' does not exist.");
   private static final String SDK_DIR_PROPERTY_MISSING = "No sdk.dir property defined in local.properties file.";
+  private static final Pattern SDK_NOT_FOUND_PATTERN = Pattern.compile("The SDK directory '(.*?)' does not exist.");
 
   @Override
   @Nullable

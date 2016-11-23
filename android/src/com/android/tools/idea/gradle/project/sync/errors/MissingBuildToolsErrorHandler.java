@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.MISSING_BUILD_TOOLS;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class MissingBuildToolsErrorHandler extends SyncErrorHandler {
+public class MissingBuildToolsErrorHandler extends BaseSyncErrorHandler {
   private final Pattern MISSING_BUILD_TOOLS_PATTERN = Pattern.compile("(Cause: )?(F|f)ailed to find Build Tools revision (.*)");
 
   @Override

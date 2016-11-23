@@ -60,7 +60,7 @@ public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
 
   @Override
   public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
-    String text = findErrorMessage(getRootCause(error), notification, project);
+    String text = findErrorMessage(getRootCause(error));
     if (text != null) {
       // Handle update notification inside of getQuickFixHyperlinks,
       // because it uses different interfaces based on conditions
@@ -70,9 +70,8 @@ public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
     return false;
   }
 
-  @Override
   @Nullable
-  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
+  private static String findErrorMessage(@NotNull Throwable rootCause) {
     String text = rootCause.toString();
     if (isNotEmpty(text) && startsWith(text, "org.gradle.api.internal.MissingMethodException")) {
       String method = parseMissingMethod(text);
@@ -88,14 +87,10 @@ public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
     return matcher.find() ? matcher.group(1) : "";
   }
 
-  @Override
-  @NotNull
-  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
-                                                              @NotNull Project project,
-                                                              @NotNull String text) {
+  private static void getQuickFixHyperlinks(@NotNull NotificationData notification, @NotNull Project project, @NotNull String text) {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     String filePath = notification.getFilePath();
-    final VirtualFile virtualFile = filePath != null ? LocalFileSystem.getInstance().refreshAndFindFileByPath(filePath) : null;
+    VirtualFile virtualFile = filePath != null ? LocalFileSystem.getInstance().refreshAndFindFileByPath(filePath) : null;
     if (virtualFile != null && FN_BUILD_GRADLE.equals(virtualFile.getName())) {
       updateNotificationWithBuildFile(project, virtualFile, notification, text);
     }
@@ -107,13 +102,12 @@ public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
     else {
       SyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
     }
-    return hyperlinks;
   }
 
-  private void updateNotificationWithBuildFile(@NotNull Project project,
-                                               @NotNull VirtualFile virtualFile,
-                                               @NotNull NotificationData notification,
-                                               @NotNull String text) {
+  private static void updateNotificationWithBuildFile(@NotNull Project project,
+                                                      @NotNull VirtualFile virtualFile,
+                                                      @NotNull NotificationData notification,
+                                                      @NotNull String text) {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     NotificationHyperlink gradleSettingsHyperlink = getGradleSettingsHyperlink(project);
     NotificationHyperlink applyGradlePluginHyperlink = getApplyGradlePluginHyperlink(virtualFile, notification);
