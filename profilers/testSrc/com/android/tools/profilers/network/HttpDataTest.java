@@ -17,8 +17,6 @@ package com.android.tools.profilers.network;
 
 import org.junit.Test;
 
-import java.util.Map;
-
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -29,10 +27,8 @@ public class HttpDataTest {
     HttpData data = new HttpData();
     data.setHttpResponseFields("first=1 \n  second  = 2\n equation=x+y=10");
 
-    Map<String, String> fields = data.getHttpResponseFields();
-    assert fields != null;
-    assertThat(fields.get("first"), equalTo("1"));
-    assertThat(fields.get("second"), equalTo("2"));
-    assertThat(fields.get("equation"), equalTo("x+y=10"));
+    assertThat(data.getHttpResponseField("first"), equalTo("1"));
+    assertThat(data.getHttpResponseField("second"), equalTo("2"));
+    assertThat(data.getHttpResponseField("equation"), equalTo("x+y=10"));
   }
 }
