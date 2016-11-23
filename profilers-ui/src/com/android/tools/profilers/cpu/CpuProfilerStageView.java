@@ -27,6 +27,7 @@ import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.event.EventMonitorView;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.components.JBList;
@@ -214,7 +215,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     JPanel toolbar = new JPanel();
 
-    JButton button = new JButton("<-");
+    JButton button = new JButton();
+    button.setIcon(AllIcons.Actions.Back);
     button.addActionListener(action -> myStage.getStudioProfilers().setMonitoringStage());
     toolbar.add(button);
     toolbar.add(myCaptureButton);

@@ -29,6 +29,7 @@ import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.event.EventMonitorView;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.components.JBPanel;
@@ -209,10 +210,11 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   @Override
   public JComponent getToolbar() {
     // TODO Replace with real network profiler toolbar elements. The following buttons are debug only.
-    JPanel toolbar = new JPanel();
-    JButton button = new JButton("<-");
+    JPanel toolbar = new JPanel(new BorderLayout());
+    JButton button = new JButton();
+    button.setIcon(AllIcons.Actions.Back);
     button.addActionListener(action -> getStage().getStudioProfilers().setMonitoringStage());
-    toolbar.add(button);
+    toolbar.add(button, BorderLayout.WEST);
     return toolbar;
   }
 }
