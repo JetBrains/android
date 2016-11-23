@@ -15,15 +15,14 @@
  */
 package com.android.tools.adtui.imagediff;
 
-import com.android.tools.adtui.SimpleEventComponent;
-import com.android.tools.adtui.StackedEventComponent;
-import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.*;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.EventAction;
 import com.android.tools.adtui.model.RangedSeries;
 
-import javax.swing.*;
 import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
@@ -188,7 +187,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     @Override
     protected void setUp() {
       myData = new DefaultDataSeries<>();
-      myStackedEventComponent = new StackedEventComponent(new RangedSeries<>(myXRange, myData), ACTIVITY_GRAPH_HEIGHT);
+      myStackedEventComponent = new StackedEventComponent(new RangedSeries<>(myXRange, myData));
       myContentPane.add(myStackedEventComponent, BorderLayout.CENTER);
       myComponents.add(myStackedEventComponent);
     }
@@ -241,19 +240,20 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
     private static final int ICON_HEIGHT = 16;
 
-    private static final Icon[] MOCK_ICONS = {
-      AdtUiUtils.buildStaticImage(Color.red, ICON_WIDTH, ICON_HEIGHT),
-      AdtUiUtils.buildStaticImage(Color.green, ICON_WIDTH, ICON_HEIGHT),
-      AdtUiUtils.buildStaticImage(Color.blue, ICON_WIDTH, ICON_HEIGHT)
-    };
-
+    private static final Map<ActionType, SimpleEventRenderer> MOCK_RENDERERS;
+    static {
+      MOCK_RENDERERS = new HashMap();
+      MOCK_RENDERERS.put(ActionType.TOUCH, new TouchEventRenderer());
+      MOCK_RENDERERS.put(ActionType.ROTATE, new EventIconRenderer("/icons/events/rotate-event.png", "/icons/events/rotate-event_dark.png"));
+      MOCK_RENDERERS.put(ActionType.KEYBOARD, new EventIconRenderer("/icons/events/keyboard-event.png", "/icons/events/keyboard-event_dark.png"));
+    }
     /**
      * Enum that defines what Icon to draw for an event action.
      */
     private enum ActionType {
       TOUCH,
-      HOLD,
-      DOUBLE_TAP
+      ROTATE,
+      KEYBOARD
     }
 
     protected SimpleEventComponent mySimpleEventComponent;
@@ -275,14 +275,14 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     @Override
     protected void setUp() {
       myData = new DefaultDataSeries<>();
-      mySimpleEventComponent = new SimpleEventComponent<>(new RangedSeries<>(myXRange, myData), MOCK_ICONS);
+      mySimpleEventComponent = new SimpleEventComponent<>(new RangedSeries<>(myXRange, myData), MOCK_RENDERERS);
       myContentPane.add(mySimpleEventComponent, BorderLayout.CENTER);
       myComponents.add(mySimpleEventComponent);
     }
 
     protected void performTap(long eventTime) {
       EventAction<EventAction.Action, ActionType> event =
-        new EventAction<>(eventTime, 0, EventAction.Action.DOWN, ActionType.HOLD);
+        new EventAction<>(eventTime, 0, EventAction.Action.DOWN, ActionType.TOUCH);
       myData.add(eventTime, event);
       event = new EventAction<>(eventTime, eventTime, EventAction.Action.UP, ActionType.TOUCH);
       myData.add(eventTime, event);

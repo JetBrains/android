@@ -15,30 +15,25 @@
  */
 package com.android.tools.profilers.event;
 
-import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.SimpleEventComponent;
-import com.android.tools.adtui.StackedEventComponent;
-import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.*;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.profilers.ProfilerMonitorView;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
 
-  private static final int ACTIVITY_GRAPH_HEIGHT = 31;
-
-  private static final int ICON_WIDTH = 16;
-
-  private static final int ICON_HEIGHT = 16;
-
-  private static final Icon[] ICONS = {
-    AdtUiUtils.buildStaticImage(Color.red, ICON_WIDTH, ICON_HEIGHT),
-    AdtUiUtils.buildStaticImage(Color.green, ICON_WIDTH, ICON_HEIGHT),
-    AdtUiUtils.buildStaticImage(Color.blue, ICON_WIDTH, ICON_HEIGHT)
-  };
+  private static final Map<EventActionType, SimpleEventRenderer> RENDERERS;
+  static {
+    RENDERERS = new HashMap();
+    RENDERERS.put(EventActionType.TOUCH, new TouchEventRenderer());
+    RENDERERS.put(EventActionType.ROTATION, new EventIconRenderer("/icons/events/rotate-event.png", "/icons/events/rotate-event_dark.png"));
+    RENDERERS.put(EventActionType.KEYBOARD, new EventIconRenderer("/icons/events/keyboard-event.png", "/icons/events/keyboard-event_dark.png"));
+  }
 
   public EventMonitorView(@NotNull EventMonitor monitor) {
     super(monitor);
@@ -63,15 +58,14 @@ public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
     c.weightx = 1.0;
     c.weighty = 0.5;
     SimpleEventComponent<EventActionType> events =
-      new SimpleEventComponent<>(new RangedSeries<>(getMonitor().getTimeline().getViewRange(), getMonitor().getSimpleEvents()), ICONS);
+      new SimpleEventComponent<>(new RangedSeries<>(getMonitor().getTimeline().getViewRange(), getMonitor().getSimpleEvents()), RENDERERS);
     container.add(events, c);
     choreographer.register(events);
 
     c.gridy = 1;
     c.weighty = 0.5;
     StackedEventComponent activities =
-      new StackedEventComponent(new RangedSeries<>(getMonitor().getTimeline().getViewRange(), getMonitor().getActivityEvents()),
-                                ACTIVITY_GRAPH_HEIGHT);
+      new StackedEventComponent(new RangedSeries<>(getMonitor().getTimeline().getViewRange(), getMonitor().getActivityEvents()));
     container.add(activities, c);
     choreographer.register(activities);
   }
