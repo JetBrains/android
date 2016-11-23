@@ -58,7 +58,7 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
     // double-check GradleSyncState, just in case
     GradleVersion gradleVersionFromSync = GradleSyncState.getInstance(project).getSummary().getGradleVersion();
     assertNotNull(gradleVersionFromSync);
-    assertEquals(expected, gradleVersionFromSync.toString());
+    assertEquals(expected, GradleVersions.removeTimestampFromGradleVersion(gradleVersionFromSync.toString()));
   }
 
   public void testReadGradleVersionFromWrapper() throws Exception {
