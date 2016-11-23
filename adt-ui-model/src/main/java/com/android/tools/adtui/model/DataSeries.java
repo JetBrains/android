@@ -29,6 +29,10 @@ public interface DataSeries<E> {
    *         If there is no data to the right, the data to the immediate left is returned.
    */
   default SeriesData<E> getClosestData(long x) {
+    ImmutableList<SeriesData<E>> list = getDataForXRange(new Range(x,x));
+    if (list != null && list.size() != 0) {
+      return list.get(0);
+    }
     return null;
   }
 
