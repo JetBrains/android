@@ -123,8 +123,9 @@ public class GradleVersions {
     return null;
   }
 
+  @VisibleForTesting
   @NotNull
-  private static String removeTimestampFromGradleVersion(@NotNull String gradleVersion) {
+  static String removeTimestampFromGradleVersion(@NotNull String gradleVersion) {
     int dashIndex = gradleVersion.indexOf('-');
     if (dashIndex != -1) {
       // in case this is a nightly (e.g. "2.4-20150409092851+0000").
