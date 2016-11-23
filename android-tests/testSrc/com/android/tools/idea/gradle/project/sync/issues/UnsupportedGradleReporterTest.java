@@ -70,7 +70,7 @@ public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
     assertThat(message.getText()).hasLength(1);
 
     // @formatter:off
-    assertAbout(syncMessage()).that(message).hasGroup("Gradle Sync Issue")
+    assertAbout(syncMessage()).that(message).hasGroup("Gradle Sync Issues")
                                             .hasMessageLine(expectedText, 0);
     // @formatter:on
 

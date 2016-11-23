@@ -22,13 +22,12 @@ import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
+import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler;
 import com.android.tools.idea.gradle.project.sync.messages.MessageType;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
-import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
@@ -45,12 +44,12 @@ import static com.android.builder.model.SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_PRO
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
-class ExternalNativeBuildIssuesReporter extends BaseSyncIssuesReporter {
+class ExternalNdkBuildIssuesReporter extends BaseSyncIssuesReporter {
   @NotNull private final BuildOutputParser myBuildOutputParser;
-  @NotNull private final AbstractSyncErrorHandler[] myErrorHandlers;
+  @NotNull private final SyncErrorHandler[] myErrorHandlers;
 
-  ExternalNativeBuildIssuesReporter() {
-    this(createBuildOutputParser(), AbstractSyncErrorHandler.EP_NAME.getExtensions());
+  ExternalNdkBuildIssuesReporter() {
+    this(createBuildOutputParser(), SyncErrorHandler.getExtensions());
   }
 
   @NotNull
@@ -59,7 +58,7 @@ class ExternalNativeBuildIssuesReporter extends BaseSyncIssuesReporter {
   }
 
   @VisibleForTesting
-  ExternalNativeBuildIssuesReporter(@NotNull BuildOutputParser buildOutputParser, @NotNull AbstractSyncErrorHandler[] errorHandlers) {
+  ExternalNdkBuildIssuesReporter(@NotNull BuildOutputParser buildOutputParser, @NotNull SyncErrorHandler[] errorHandlers) {
     myBuildOutputParser = buildOutputParser;
     myErrorHandlers = errorHandlers;
   }
@@ -92,8 +91,8 @@ class ExternalNativeBuildIssuesReporter extends BaseSyncIssuesReporter {
           NotificationData notification = messages.createNotification(group, text, category, position);
 
           // Try to parse the error messages using the list of existing error handlers to find any potential quick-fixes.
-          for (AbstractSyncErrorHandler handler : myErrorHandlers) {
-            if (handler.handleError(ImmutableList.of(text), new ExternalSystemException(text), notification, project)) {
+          for (SyncErrorHandler handler : myErrorHandlers) {
+            if (handler.handleError(new ExternalSystemException(text), notification, project)) {
               break;
             }
           }

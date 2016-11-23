@@ -16,8 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -34,7 +35,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.OpenProjectStructureHyperlink.openJdkSettings;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.StopGradleDaemonsHyperlink.createStopGradleDaemonsHyperlink;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.syncProjectRefreshingDependencies;
@@ -108,8 +108,7 @@ public class ClassLoadingErrorHandler extends SyncErrorHandler {
                     "or the version of Gradle requested by the project.</li></ul>" +
                     "In the case of corrupt Gradle processes, you can also try closing the IDE and then killing all Java processes.";
 
-    String title = String.format(FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT, project.getName());
-    notification.setTitle(title);
+    notification.setTitle(SyncMessage.DEFAULT_GROUP);
     notification.setMessage(newMsg);
     notification.setNotificationCategory(NotificationCategory.convert(DEFAULT_NOTIFICATION_TYPE));
 

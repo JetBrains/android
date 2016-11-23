@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
+import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.MessageType;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
@@ -28,8 +28,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static com.android.builder.model.SyncIssue.TYPE_GRADLE_TOO_OLD;
+import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedGradleVersionErrorHandler.getQuickFixHyperlinks;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessage.DEFAULT_GROUP;
-import static com.android.tools.idea.gradle.service.notification.errors.UnsupportedGradleVersionErrorHandler.getQuickFixHyperlinks;
 
 class UnsupportedGradleReporter extends BaseSyncIssuesReporter {
   @Override

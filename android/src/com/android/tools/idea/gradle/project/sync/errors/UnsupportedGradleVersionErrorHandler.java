@@ -94,8 +94,26 @@ public class UnsupportedGradleVersionErrorHandler extends BaseSyncErrorHandler {
   protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
                                                               @NotNull Project project,
                                                               @NotNull String text) {
-    List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     String gradleVersion = getSupportedGradleVersion(getFirstLineMessage(text));
+    return getQuickFixHyperlinks(project, gradleVersion);
+  }
+
+  @Nullable
+  private static String getSupportedGradleVersion(@NotNull String message) {
+    Matcher matcher = UNSUPPORTED_GRADLE_VERSION_PATTERN.matcher(message);
+    if (matcher.matches()) {
+      String version = matcher.group(1);
+      if (isNotEmpty(version)) {
+        return version;
+      }
+    }
+    return null;
+  }
+
+
+  @NotNull
+  public static List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull Project project, @Nullable String gradleVersion) {
+    List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     GradleWrapper gradleWrapper = GradleWrapper.find(project);
     if (gradleWrapper != null) {
       // It is very likely that we need to fix the model version as well. Do everything in one shot.
@@ -112,17 +130,5 @@ public class UnsupportedGradleVersionErrorHandler extends BaseSyncErrorHandler {
     }
     hyperlinks.add(new OpenGradleSettingsHyperlink());
     return hyperlinks;
-  }
-
-  @Nullable
-  private static String getSupportedGradleVersion(@NotNull String message) {
-    Matcher matcher = UNSUPPORTED_GRADLE_VERSION_PATTERN.matcher(message);
-    if (matcher.matches()) {
-      String version = matcher.group(1);
-      if (isNotEmpty(version)) {
-        return version;
-      }
-    }
-    return null;
   }
 }

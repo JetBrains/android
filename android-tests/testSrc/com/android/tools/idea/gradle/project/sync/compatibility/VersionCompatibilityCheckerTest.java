@@ -91,7 +91,7 @@ public class VersionCompatibilityCheckerTest extends AndroidGradleTestCase {
                                      gradleVersion, currentModelVersion);
 
     // @formatter:off
-    assertAbout(syncMessage()).that(message).hasGroup("Gradle Sync Issue")
+    assertAbout(syncMessage()).that(message).hasGroup("Gradle Sync Issues")
                                             .hasType(ERROR)
                                             .hasMessageLine(firstLine, 0)
                                             .hasMessageLine(failureMessage, 1);
