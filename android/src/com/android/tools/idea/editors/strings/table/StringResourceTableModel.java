@@ -123,13 +123,9 @@ public class StringResourceTableModel extends AbstractTableModel {
     }
   }
 
+  @NotNull
   @Override
   public String getColumnName(int column) {
-    return column < FIXED_COLUMN_COUNT ? getFixedColumnName(column) : LocaleMenuAction.getLocaleLabel(getLocale(column), false);
-  }
-
-  @NotNull
-  static String getFixedColumnName(int column) {
     switch (column) {
       case KEY_COLUMN:
         return "Key";
@@ -138,21 +134,7 @@ public class StringResourceTableModel extends AbstractTableModel {
       case DEFAULT_VALUE_COLUMN:
         return "Default Value";
       default:
-        throw new AssertionError(column);
-    }
-  }
-
-  @NotNull
-  static Object getFixedColumnSampleData(int column) {
-    switch (column) {
-      case KEY_COLUMN:
-        return "hello_strings_editor";
-      case UNTRANSLATABLE_COLUMN:
-        return true;
-      case DEFAULT_VALUE_COLUMN:
-        return "Hello, editor! This is a default value for a string key.";
-      default:
-        throw new AssertionError(column);
+        return LocaleMenuAction.getLocaleLabel(getLocale(column), false);
     }
   }
 

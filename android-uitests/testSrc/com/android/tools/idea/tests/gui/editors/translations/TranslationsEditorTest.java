@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.editors.translations;
 
+import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
@@ -34,15 +35,21 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.swing.*;
+import javax.swing.table.TableColumnModel;
 import javax.swing.text.DefaultEditorKit;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.stream.IntStream;
 
+import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.DEFAULT_VALUE_COLUMN;
+import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.KEY_COLUMN;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab.EDITOR;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(GuiTestRunner.class)
 public final class TranslationsEditorTest {
@@ -88,6 +95,44 @@ public final class TranslationsEditorTest {
   }
 
   @Test
+  public void setModel() {
+    StringResourceTable table = (StringResourceTable)myTranslationsEditor.getTable().target();
+    OptionalInt optionalWidth = table.getKeyColumnPreferredWidth();
+    TableColumnModel model = table.getColumnModel();
+
+    assertTrue(optionalWidth.isPresent());
+    assertEquals(optionalWidth.getAsInt(), model.getColumn(KEY_COLUMN).getPreferredWidth());
+
+    optionalWidth = table.getDefaultValueAndLocaleColumnPreferredWidths();
+    int width = optionalWidth.getAsInt();
+
+    assertTrue(optionalWidth.isPresent());
+
+    IntStream.range(DEFAULT_VALUE_COLUMN, table.getColumnCount())
+      .mapToObj(model::getColumn)
+      .forEach(column -> assertEquals(width, column.getPreferredWidth()));
+  }
+
+  @Test
+  public void paste() {
+    JTableFixture table = myTranslationsEditor.getTable();
+    table.selectCell(TableCell.row(1).column(2));
+
+    String data = "app_name\tapp_name_en\n" +
+                  "cancel\tcancel_en\n";
+
+    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(data), EmptyClipboardOwner.INSTANCE);
+
+    KeyStroke keyStroke = getKeyStroke(table.target().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT), "paste");
+    table.pressAndReleaseKey(KeyPressInfo.keyCode(keyStroke.getKeyCode()).modifiers(keyStroke.getModifiers()));
+
+    assertEquals("app_name", table.valueAt(TableCell.row(1).column(2)));
+    assertEquals("app_name_en", table.valueAt(TableCell.row(1).column(3)));
+    assertEquals("cancel", table.valueAt(TableCell.row(2).column(2)));
+    assertEquals("cancel_en", table.valueAt(TableCell.row(2).column(3)));
+  }
+
+  @Test
   public void enteringTextInTranslationTextFieldUpdatesTableCell() {
     JTableFixture table = myTranslationsEditor.getTable();
     TableCell cell = TableCell.row(2).column(3);
@@ -111,25 +156,6 @@ public final class TranslationsEditorTest {
     translationTextField.pressAndReleaseKey(KeyPressInfo.keyCode(keyStroke.getKeyCode()).modifiers(keyStroke.getModifiers()));
 
     assertEquals(-1, translationTextField.font().target().canDisplayUpTo("יישום פשוט"));
-  }
-
-  @Test
-  public void paste() {
-    JTableFixture table = myTranslationsEditor.getTable();
-    table.selectCell(TableCell.row(1).column(2));
-
-    String data = "app_name\tapp_name_en\n" +
-                  "cancel\tcancel_en\n";
-
-    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(data), EmptyClipboardOwner.INSTANCE);
-
-    KeyStroke keyStroke = getKeyStroke(table.target().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT), "paste");
-    table.pressAndReleaseKey(KeyPressInfo.keyCode(keyStroke.getKeyCode()).modifiers(keyStroke.getModifiers()));
-
-    assertEquals("app_name", table.valueAt(TableCell.row(1).column(2)));
-    assertEquals("app_name_en", table.valueAt(TableCell.row(1).column(3)));
-    assertEquals("cancel", table.valueAt(TableCell.row(2).column(2)));
-    assertEquals("cancel_en", table.valueAt(TableCell.row(2).column(3)));
   }
 
   @NotNull
