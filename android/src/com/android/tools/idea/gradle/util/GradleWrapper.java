@@ -42,7 +42,7 @@ import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
 public final class GradleWrapper {
   @NonNls public static final String GRADLEW_PROPERTIES_PATH = join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_PROPERTIES);
-  private static final Pattern GRADLE_DISTRIBUTION_URL_PATTERN = Pattern.compile(".*-([^-]+)-([^.]+).zip");
+  private static final Pattern GRADLE_DISTRIBUTION_URL_PATTERN = Pattern.compile(".*/gradle-([^-]+)(-[^-]+)?-(bin|all).zip");
 
   @NotNull private final File myPropertiesFilePath;
   @Nullable private final Project myProject;
