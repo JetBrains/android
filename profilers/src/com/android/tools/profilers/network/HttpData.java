@@ -15,13 +15,12 @@
  */
 package com.android.tools.profilers.network;
 
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
 import java.io.File;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -31,6 +30,7 @@ import java.util.Map;
  */
 public class HttpData {
   public static final String FIELD_CONTENT_TYPE = "Content-Type";
+  public static final String FIELD_CONTENT_LENGTH = "Content-Length";
 
   private long myId;
   private String myUrl;
@@ -38,13 +38,11 @@ public class HttpData {
   private long myStartTimeUs;
   private long myDownloadingTimeUs;
   private long myEndTimeUs;
-  private Map<String, String> myResponseFields;
+  private int myStatusCode = -1;
+  private final Map<String, String> myResponseFields = new HashMap<>();
   private String myResponsePayloadId;
   // TODO: Move it to datastore, for now virtual file creation cannot select file type.
   private File myResponsePayloadFile;
-  // TODO: Use content-length value from response fields.
-  // Holds the non-negative response body size in bytes if present, otherwise it is -1 by default.
-  private long myHttpResponseBodySize = -1;
 
   public long getId() {
     return myId;
@@ -94,6 +92,14 @@ public class HttpData {
     myEndTimeUs = endTimeUs;
   }
 
+  public int getStatusCode() {
+    return myStatusCode;
+  }
+
+  public void setStatusCode(int statusCode) {
+    myStatusCode = statusCode;
+  }
+
   public String getHttpResponsePayloadId() {
     return myResponsePayloadId;
   }
@@ -111,37 +117,40 @@ public class HttpData {
     myResponsePayloadFile = payloadFile;
   }
 
-  public void setHttpResponseBodySize(long size) {
-    myHttpResponseBodySize = size;
-  }
-
-  public long getHttpResponseBodySize() {
-    return myHttpResponseBodySize;
-  }
-
+  /**
+   * Set the header response fields for this connection. To retrieve a single field,
+   * use {@link #getHttpResponseField(String)}
+   */
   public void setHttpResponseFields(@NotNull String fields) {
-    myResponseFields = getFieldsMap(fields);
+    parseHttpFieldsMap(fields);
   }
 
   @Nullable
-  public Map<String, String> getHttpResponseFields() {
-    return myResponseFields;
+  public String getHttpResponseField(@NotNull String field) {
+    return myResponseFields.get(field);
   }
 
-  private static Map<String, String> getFieldsMap(@NotNull String fields) {
-    List<String> lines = Arrays.asList(fields.split("\\n"));
-    Map<String, String> fieldsMap = new HashMap<>();
-    for (String line : lines) {
-      String[] keyAndValue = line.split("=", 2);
-
-      // TODO: investigate, as this sometimes throws an exception
-      // assert keyAndValue.length == 2 : String.format("Unexpected http response field %s", line);
-      if (keyAndValue.length == 2) {
-        fieldsMap.put(keyAndValue[0].trim(), keyAndValue[1].trim());
+  private void parseHttpFieldsMap(@NotNull String fields) {
+    myResponseFields.clear();
+    boolean isFirstLine = true;
+    for (String line : fields.split("\\n")) {
+      if (line.trim().isEmpty()) {
+        continue;
       }
+      String[] keyAndValue = line.split("=", 2);
+      assert keyAndValue.length == 2 : String.format("Unexpected http response field (%s)", line);
+      String key = keyAndValue[0].trim();
+      String value = StringUtil.trimEnd(keyAndValue[1].trim(), ';');
+      myResponseFields.put(key, value);
+      if (key.equals("null")) {
+        // Parse the status code from the status line.
+        // According to https://www.w3.org/Protocols/rfc2616/rfc2616-sec6.html,
+        // the first line of a Response message is the Status-Line and the format is:
+        // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRL
+        assert isFirstLine;
+        setStatusCode(Integer.parseInt(value.split(" ")[1]));
+      }
+      isFirstLine = false;
     }
-    return fieldsMap;
   }
-
-
 }
