@@ -16,15 +16,16 @@
 package com.android.tools.idea.gradle.project.build;
 
 import com.android.ide.common.blame.Message;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.AbstractIterator;
 import com.intellij.notification.NotificationType;
@@ -166,7 +167,7 @@ public class PostProjectBuildTasksExecutor {
 
   @VisibleForTesting
   void onBuildCompletion(Iterator<String> errorMessages, int errorCount) {
-    if (requiresAndroidModel(myProject)) {
+    if (AndroidProjectInfo.getInstance(myProject).requiresAndroidModel()) {
       executeProjectChanges(myProject, this::excludeOutputFolders);
 
       if (isOfflineBuildModeEnabled(myProject)) {

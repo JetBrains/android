@@ -1,6 +1,6 @@
 package org.jetbrains.android.compiler;
 
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.compiler.impl.BuildTargetScopeProvider;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.compiler.CompileScope;
@@ -61,13 +61,14 @@ public class AndroidBuildTargetScopeProvider extends BuildTargetScopeProvider {
   @Override
   public List<TargetTypeBuildScope> getBuildTargetScopes(@NotNull CompileScope baseScope, @NotNull CompilerFilter filter,
                                                          @NotNull Project project, boolean forceBuild) {
-    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID) || Projects.requiresAndroidModel(project)) {
+    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID) ||
+        AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
       return Collections.emptyList();
     }
-    final List<String> appTargetIds = new ArrayList<String>();
-    final List<String> libTargetIds = new ArrayList<String>();
-    final List<String> allTargetIds = new ArrayList<String>();
-    final List<String> manifestMergingTargetIds = new ArrayList<String>();
+    final List<String> appTargetIds = new ArrayList<>();
+    final List<String> libTargetIds = new ArrayList<>();
+    final List<String> allTargetIds = new ArrayList<>();
+    final List<String> manifestMergingTargetIds = new ArrayList<>();
     final boolean fullBuild = AndroidCompileUtil.isFullBuild(baseScope);
 
     for (Module module : baseScope.getAffectedModules()) {
@@ -90,7 +91,7 @@ public class AndroidBuildTargetScopeProvider extends BuildTargetScopeProvider {
         }
       }
     }
-    final List<TargetTypeBuildScope> result = new ArrayList<TargetTypeBuildScope>();
+    final List<TargetTypeBuildScope> result = new ArrayList<>();
     result.add(CmdlineProtoUtil.createTargetsScope(
       AndroidCommonUtils.MANIFEST_MERGING_BUILD_TARGET_TYPE_ID, manifestMergingTargetIds, forceBuild));
 

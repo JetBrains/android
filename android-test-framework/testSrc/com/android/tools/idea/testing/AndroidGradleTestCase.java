@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.testing;
 
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.base.Charsets;
@@ -77,7 +78,6 @@ import static com.android.SdkConstants.*;
 import static com.android.testutils.TestUtils.getSdk;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.gradle.util.Projects.isLegacyIdeaAndroidProject;
-import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.io.Files.write;
@@ -183,7 +183,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
           // Since we don't really open the project, but we manually register listeners in the gradle importer
           // by explicitly calling AndroidGradleProjectComponent#configureGradleProject, we need to counteract
           // that here, otherwise the testsuite will leak
-          if (requiresAndroidModel(project)) {
+          if (AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
             AndroidGradleProjectComponent projectComponent = AndroidGradleProjectComponent.getInstance(project);
             projectComponent.projectClosed();
           }
@@ -257,7 +257,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     importProject(project.getName(), projectRoot, listener);
 
-    assertTrue(requiresAndroidModel(project));
+    assertTrue(AndroidProjectInfo.getInstance(project).requiresAndroidModel());
     assertFalse(isLegacyIdeaAndroidProject(project));
 
     ModuleManager moduleManager = ModuleManager.getInstance(project);

@@ -1,8 +1,8 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.lint.*;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.res.PsiProjectListener;
 import com.android.tools.lint.checks.DeprecationDetector;
 import com.android.tools.lint.checks.GradleDetector;
@@ -95,7 +95,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
 
     if (fileType == StdFileTypes.XML) {
       if (facet == null || facet.getLocalResourceManager().getFileResourceFolderType(file) == null &&
-          !SdkConstants.ANDROID_MANIFEST_XML.equals(vFile.getName())) {
+          !ANDROID_MANIFEST_XML.equals(vFile.getName())) {
         return null;
       }
     }
@@ -111,7 +111,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
       }
       // Ensure that we're listening to the PSI structure for Gradle file edit notifications
       Project project = file.getProject();
-      if (Projects.requiresAndroidModel(project)) {
+      if (AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
         PsiProjectListener.getInstance(project);
       }
     }
@@ -422,12 +422,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
 
   private static class MyEditInspectionToolsSettingsAction extends CustomEditInspectionToolsSettingsAction {
     private MyEditInspectionToolsSettingsAction(@NotNull HighlightDisplayKey key, @NotNull final AndroidLintInspectionBase inspection) {
-      super(key, new Computable<String>() {
-        @Override
-        public String compute() {
-          return "Edit '" + inspection.getDisplayName() + "' inspection settings";
-        }
-      });
+      super(key, () -> "Edit '" + inspection.getDisplayName() + "' inspection settings");
     }
   }
 }

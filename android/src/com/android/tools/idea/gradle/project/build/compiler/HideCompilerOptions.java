@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.compiler;
 
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.compiler.options.CompilerOptionsFilter;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 public class HideCompilerOptions implements CompilerOptionsFilter {
   @Override
   public boolean isAvailable(@NotNull Setting setting, @NotNull Project project) {
-    if (!Projects.requiresAndroidModel(project)) {
+    if (!AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
       return true;
     }
     return Setting.EXTERNAL_BUILD != setting && Setting.ADD_NOT_NULL_ASSERTIONS != setting;
