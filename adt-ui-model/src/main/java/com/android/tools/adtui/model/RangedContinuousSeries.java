@@ -26,7 +26,7 @@ import java.util.Collections;
  * Represents a view into a continuous series, where the data in view is only
  * within given x and y ranged.
  */
-public class RangedContinuousSeries extends RangedSeries<Long> implements ReportingSeries {
+public class RangedContinuousSeries extends RangedSeries<Long> {
 
   @NotNull
   private final String mLabel;
@@ -46,23 +46,7 @@ public class RangedContinuousSeries extends RangedSeries<Long> implements Report
   }
 
   @NotNull
-  @Override
   public String getLabel() {
     return mLabel;
-  }
-
-  @Deprecated
-  @Override
-  @Nullable
-  public ReportingData getLatestReportingData() {
-    //TODO reinvestigate how to retrieve hovered tooltip values.
-    return null;
-  }
-
-  @Deprecated
-  @Override
-  public Collection<ReportingData> getFullReportingData(long x) {
-    //TODO reinvestigate how to retrieve hovered tooltip values
-    return Collections.emptyList();
   }
 }

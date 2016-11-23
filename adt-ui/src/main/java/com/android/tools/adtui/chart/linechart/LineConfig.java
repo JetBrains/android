@@ -16,7 +16,7 @@
 
 package com.android.tools.adtui.chart.linechart;
 
-import com.android.tools.adtui.model.LegendRenderData;
+import com.android.tools.adtui.LegendRenderData;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,7 +47,7 @@ public class LineConfig {
                     0.0f);  // Dash phase - just starts at zero.
 
   //TODO Move colors out of LineConfig
-  public static final Color[] COLORS = {
+  private static final Color[] COLORS = {
     new JBColor(0x6baed6, 0x6baed6),
     new JBColor(0xff0000, 0xff0000),
     new JBColor(0xfd8d3c, 0xfd8d3c),
@@ -155,5 +155,13 @@ public class LineConfig {
   @Nullable
   public LegendRenderData.IconType getLegendIconType() {
     return myLegendIconType;
+  }
+
+  /**
+   * @deprecated This is mostly used by visual tests and should really be removed. Color resources can live elsewhere.
+   */
+  @NotNull
+  public static Color getColor(int index) {
+    return COLORS[index % COLORS.length];
   }
 }

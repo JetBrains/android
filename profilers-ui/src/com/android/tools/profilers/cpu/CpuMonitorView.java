@@ -32,6 +32,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Collections;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
@@ -46,6 +47,9 @@ public class CpuMonitorView extends ProfilerMonitorView<CpuMonitor> {
   @Override
   protected void populateUi(JPanel container, Choreographer choreographer) {
     container.setLayout(new GridBagLayout());
+
+    Range viewRange = getMonitor().getTimeline().getViewRange();
+    Range dataRange = getMonitor().getTimeline().getDataRange();
 
     final JLabel label = new JLabel(getMonitor().getName());
     label.setBorder(MONITOR_LABEL_PADDING);
@@ -70,14 +74,12 @@ public class CpuMonitorView extends ProfilerMonitorView<CpuMonitor> {
     lineChartPanel.setOpaque(false);
     lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
     final LineChart lineChart = new LineChart();
-    lineChart
-      .addLine(
-        new RangedContinuousSeries("CPU", getMonitor().getTimeline().getViewRange(), leftYRange, getMonitor().getThisProcessCpuUsage()),
-        new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true));
+    RangedContinuousSeries cpuSeries = new RangedContinuousSeries("CPU", viewRange, leftYRange, getMonitor().getThisProcessCpuUsage());
+    lineChart.addLine(cpuSeries, new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true));
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
     final LegendComponent legend = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, LEGEND_UPDATE_FREQUENCY_MS);
-    legend.setLegendData(lineChart.getLegendDataFromLineChart());
+    legend.setLegendData(Collections.singletonList(lineChart.createLegendRenderData(cpuSeries, CPU_USAGE_AXIS, dataRange)));
 
     final JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);
