@@ -136,7 +136,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     strategy = strategies.get(TYPE_EXTERNAL_NATIVE_BUILD_PROCESS_EXCEPTION);
-    assertThat(strategy).isInstanceOf(ExternalNativeBuildIssuesReporter.class);
+    assertThat(strategy).isInstanceOf(ExternalNdkBuildIssuesReporter.class);
     assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     strategy = strategies.get(TYPE_GRADLE_TOO_OLD);

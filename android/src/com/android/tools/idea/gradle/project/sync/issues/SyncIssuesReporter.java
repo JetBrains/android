@@ -42,7 +42,7 @@ public class SyncIssuesReporter {
   }
 
   public SyncIssuesReporter(@NotNull UnresolvedDependenciesReporter unresolvedDependenciesReporter) {
-    this(unresolvedDependenciesReporter, new ExternalNativeBuildIssuesReporter(), new UnsupportedGradleReporter());
+    this(unresolvedDependenciesReporter, new ExternalNdkBuildIssuesReporter(), new UnsupportedGradleReporter());
   }
 
   @VisibleForTesting
