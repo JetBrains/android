@@ -37,7 +37,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -54,19 +53,18 @@ public class MissingPlatformErrorHandler extends SyncErrorHandler {
 
   @Override
   public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
-    String text = findErrorMessage(getRootCause(error), notification, project);
+    String text = findErrorMessage(getRootCause(error));
     if (text != null) {
-      // Handle update notification inside of getQuickFixHyperlinks,
+      // Handle update notification inside of findAndAddQuickFixes,
       // because notification message might be changed there.
-      getQuickFixHyperlinks(notification, project, text);
+      findAndAddQuickFixes(notification, project, text);
       return true;
     }
     return false;
   }
 
-  @Override
   @Nullable
-  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
+  private String findErrorMessage(@NotNull Throwable rootCause) {
     String text = rootCause.getMessage();
     if ((rootCause instanceof IllegalStateException || rootCause instanceof ExternalSystemException) &&
         isNotEmpty(text) &&
@@ -90,14 +88,10 @@ public class MissingPlatformErrorHandler extends SyncErrorHandler {
     return null;
   }
 
-  @Override
-  @NotNull
-  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
-                                                              @NotNull Project project,
-                                                              @NotNull String text) {
+  private void findAndAddQuickFixes(@NotNull NotificationData notification, @NotNull Project project, @NotNull String text) {
     String missingPlatform = getMissingPlatform(text);
     if (missingPlatform == null) {
-      return Collections.emptyList();
+      return;
     }
     String loadError = null;
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
@@ -129,6 +123,5 @@ public class MissingPlatformErrorHandler extends SyncErrorHandler {
       text += "\nPossible cause: " + loadError;
     }
     SyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
-    return hyperlinks;
   }
 }

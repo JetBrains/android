@@ -15,38 +15,41 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.SdkConstants;
-import com.android.annotations.Nullable;
-import com.android.tools.idea.gradle.service.notification.hyperlink.CreateGradleWrapperHyperlink;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-
-public class Gradle2RequiredErrorHandler extends BaseSyncErrorHandler {
+public abstract class BaseSyncErrorHandler extends SyncErrorHandler {
   @Override
-  @Nullable
-  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
-    String text = rootCause.getMessage();
-    if (isNotEmpty(text) && text.endsWith("org/codehaus/groovy/runtime/typehandling/ShortTypeHandling")) {
-      updateUsageTracker();
-      return String.format("Gradle %1$s is required.", SdkConstants.GRADLE_MINIMUM_VERSION);
+  public final boolean handleError(@NotNull ExternalSystemException error,
+                                   @NotNull NotificationData notification,
+                                   @NotNull Project project) {
+    String text = findErrorMessage(getRootCause(error), notification, project);
+    if (text != null) {
+      List<NotificationHyperlink> hyperlinks = getQuickFixHyperlinks(notification, project, text);
+      SyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
+      return true;
     }
-    return null;
+    return false;
   }
 
-  @Override
+  @Nullable
+  protected abstract String findErrorMessage(@NotNull Throwable rootCause,
+                                             @NotNull NotificationData notification,
+                                             @NotNull Project project);
+
   @NotNull
   protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
                                                               @NotNull Project project,
                                                               @NotNull String text) {
-    List<NotificationHyperlink> hyperlinks = new ArrayList<>();
-    hyperlinks.add(new CreateGradleWrapperHyperlink());
-    return hyperlinks;
+    return Collections.emptyList();
   }
 }
+

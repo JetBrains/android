@@ -26,7 +26,7 @@ import java.util.List;
 
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class Jdk8RequiredErrorHandler extends SyncErrorHandler {
+public class Jdk8RequiredErrorHandler extends BaseSyncErrorHandler {
   @NotNull private final Jdks myJdks;
 
   public Jdk8RequiredErrorHandler(@NotNull Jdks jdks) {
