@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.rendering;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.tools.idea.rendering.RenderErrorContributor;
 import com.android.tools.idea.rendering.RenderLogger;
