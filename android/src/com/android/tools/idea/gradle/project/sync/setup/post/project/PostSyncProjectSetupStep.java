@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
 import com.intellij.openapi.extensions.ExtensionPointName;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +30,9 @@ public abstract class PostSyncProjectSetupStep {
     return EXTENSION_POINT_NAME.getExtensions();
   }
 
-  public abstract void setUpProject(@NotNull Project project,
-                                    @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                                    @Nullable ProgressIndicator indicator);
+  public abstract void setUpProject(@NotNull Project project, @Nullable ProgressIndicator indicator);
+
+  public boolean invokeOnFailedSync() {
+    return false;
+  }
 }

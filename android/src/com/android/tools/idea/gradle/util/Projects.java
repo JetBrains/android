@@ -185,7 +185,7 @@ public final class Projects {
       // We need to call this method here, otherwise the IDE will think the project is not a Gradle project and it won't generate
       // sources for it. This happens on new projects.
       if (runPostProjectSetupTasks) {
-        PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest);
+        PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest, null);
       }
     });
   }
