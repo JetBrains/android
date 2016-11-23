@@ -20,6 +20,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.android.tools.idea.uibuilder.property.ptable.StarState;
 import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -51,6 +52,17 @@ public class NlFlagPropertyItemValue extends PTableItem implements NlProperty {
     // Values do not have a namespace.
     // Used in PNameRenderer to not indicate the tools namespace for flag values.
     return null;
+  }
+
+  @Override
+  @NotNull
+  public StarState getStarState() {
+    return StarState.NOT_STAR_ABLE;
+  }
+
+  @Override
+  public void setStarState(@NotNull StarState starState) {
+    throw new IllegalStateException();
   }
 
   @Override

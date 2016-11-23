@@ -92,17 +92,17 @@ public class NlInspectorProvidersTest extends PropertyTestCase {
 
   private static void assertSameInstances(@NotNull List<InspectorComponent> expected,
                                           @NotNull List<InspectorComponent> actual) {
-    assertThat(expected.size()).isEqualTo(actual.size());
+    assertThat(actual.size()).isEqualTo(expected.size());
     for (int index = 0; index < expected.size(); index++) {
-      assertThat(expected.get(index)).isSameAs(actual.get(index));
+      assertThat(actual.get(index)).isSameAs(expected.get(index));
     }
   }
 
   private static void assertDifferentInstances(@NotNull List<InspectorComponent> expected,
                                                @NotNull List<InspectorComponent> actual) {
-    assertThat(expected.size()).isEqualTo(actual.size());
+    assertThat(actual.size()).isEqualTo(expected.size());
     for (int index = 0; index < expected.size(); index++) {
-      assertThat(expected.get(index)).isNotSameAs(actual.get(index));
+      assertThat(actual.get(index)).isNotSameAs(expected.get(index));
     }
   }
 }
