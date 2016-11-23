@@ -35,6 +35,7 @@ public class LegendComponent extends AnimatedComponent {
   }
 
   private static final BasicStroke LINE_STROKE = new BasicStroke(3);
+  private static final BasicStroke BORDER_STROKE = new BasicStroke(1);
 
   /**
    * Side of the (squared) box icon in pixels.
@@ -135,6 +136,8 @@ public class LegendComponent extends AnimatedComponent {
   @Override
   protected void draw(Graphics2D g2d, Dimension dim) {
     // TODO: revisit this method and try to simplify it using JBPanels and a LayoutManager.
+    Stroke defaultStroke = g2d.getStroke();
+
     for (int i = 0; i < mLegendRenderData.size(); ++i) {
       LegendRenderData data = mLegendRenderData.get(i);
       JLabel label = mLabelsToDraw.get(i);
@@ -146,13 +149,24 @@ public class LegendComponent extends AnimatedComponent {
       if (data.getIcon() == LegendRenderData.IconType.BOX) {
         // Adjust the box initial Y coordinate to align the box and the label vertically.
         int boxY = LEGEND_VERTICAL_PADDING_PX + (labelPreferredSize.height - ICON_WIDTH_PX) / 2;
-        g2d.setColor(data.getColor());
+        Color fillColor = data.getColor();
+        g2d.setColor(fillColor);
         g2d.fillRect(0, boxY, ICON_WIDTH_PX, ICON_WIDTH_PX);
+
+        int r = (int)(fillColor.getRed() * .8f);
+        int g = (int)(fillColor.getGreen() * .8f);
+        int b = (int)(fillColor.getBlue() * .8f);
+
+        Color borderColor = new Color(r,g,b);
+        g2d.setColor(borderColor);
+        g2d.setStroke(BORDER_STROKE);
+        g2d.drawRect(0, boxY, ICON_WIDTH_PX, ICON_WIDTH_PX);
+        g2d.setStroke(defaultStroke);
+
         xOffset = ICON_WIDTH_PX + ICON_MARGIN_PX;
       }
       else if (data.getIcon() == LegendRenderData.IconType.LINE) {
         g2d.setColor(data.getColor());
-        Stroke defaultStroke = g2d.getStroke();
         g2d.setStroke(LINE_STROKE);
         int lineY = LEGEND_VERTICAL_PADDING_PX + labelPreferredSize.height / 2;
         g2d.drawLine(xOffset, lineY, ICON_WIDTH_PX, lineY);
