@@ -66,6 +66,7 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
 
   private int myMouseHoverRow;
   private int myMouseHoverCol;
+  private Point myMouseHoverPoint;
 
   public PTable(@NotNull PTableModel model) {
     this(model, CopyPasteManager.getInstance());
@@ -76,6 +77,7 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
     super(model);
     myModel = model;
     myCopyPasteManager = copyPasteManager;
+    myMouseHoverPoint = new Point(-1, -1);
 
     // since the row heights are uniform, there is no need to look at more than a few items
     setMaxItemsForSizeCalculation(5);
@@ -155,6 +157,11 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
     return row == myMouseHoverRow && col == myMouseHoverCol;
   }
 
+  @NotNull
+  public Point getHoverPosition() {
+    return myMouseHoverPoint;
+  }
+
   @Override
   public void setUI(TableUI ui) {
     super.setUI(ui);
@@ -201,6 +208,14 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
     }
     else {
       myModel.expand(index);
+    }
+  }
+
+  private void toggleStar(int row) {
+    PTableItem item = (PTableItem)getValueAt(row, 0);
+    StarState state = item.getStarState();
+    if (state != StarState.NOT_STAR_ABLE) {
+      item.setStarState(state.opposite());
     }
   }
 
@@ -472,14 +487,17 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
       }
 
       PTableItem item = (PTableItem)getValueAt(row, 0);
-      if (!item.hasChildren()) {
-        return;
-      }
 
       Rectangle rectLeftColumn = getCellRect(row, convertColumnIndexToView(0), false);
-      if (rectLeftColumn.contains(e.getX(), e.getY()) && PNameRenderer.hitTestTreeNodeIcon(item, e.getX() - rectLeftColumn.x)) {
-        toggleTreeNode(row);
-        return;
+      if (rectLeftColumn.contains(e.getX(), e.getY())) {
+        if (PNameRenderer.hitTestTreeNodeIcon(item, e.getX() - rectLeftColumn.x) && item.hasChildren()) {
+          toggleTreeNode(row);
+          return;
+        }
+        if (PNameRenderer.hitTestStarIcon(e.getX() - rectLeftColumn.x)) {
+          toggleStar(row);
+          return;
+        }
       }
 
       Rectangle rectRightColumn = getCellRect(row, convertColumnIndexToView(1), false);
@@ -496,6 +514,7 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
 
     @Override
     public void mouseMoved(MouseEvent e) {
+      myMouseHoverPoint = e.getPoint();
       myMouseHoverRow = rowAtPoint(e.getPoint());
       if (myMouseHoverRow >= 0) {
         myMouseHoverCol = columnAtPoint(e.getPoint());

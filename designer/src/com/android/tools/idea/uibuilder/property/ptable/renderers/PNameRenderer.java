@@ -17,12 +17,17 @@ package com.android.tools.idea.uibuilder.property.ptable.renderers;
 
 import com.android.tools.idea.uibuilder.property.ptable.PTable;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.android.tools.idea.uibuilder.property.ptable.StarState;
 import com.intellij.ide.ui.search.SearchUtil;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.LayeredIcon;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
@@ -32,22 +37,52 @@ import static com.android.SdkConstants.TOOLS_URI;
 import static icons.AndroidIcons.NeleIcons.DesignProperty;
 
 public class PNameRenderer implements TableCellRenderer {
-  private final ColoredTableCellRenderer myRenderer = new Renderer();
+  private static final int BEFORE_STAR_SPACING = 2;
+  private static final int STAR_SIZE = 16;
+  private final JPanel myPanel;
+  private final JLabel myStarLabel;
+  private final ColoredTableCellRenderer myRenderer;
+
+  public PNameRenderer() {
+    myPanel = new JPanel(new BorderLayout());
+    myStarLabel = new JBLabel();
+    myRenderer = new Renderer();
+    myStarLabel.setPreferredSize(new Dimension(BEFORE_STAR_SPACING + STAR_SIZE, STAR_SIZE));
+    myStarLabel.setBorder(BorderFactory.createEmptyBorder(0, BEFORE_STAR_SPACING, 0, 0));
+    myPanel.add(myStarLabel, BorderLayout.WEST);
+    myPanel.add(myRenderer, BorderLayout.CENTER);
+  }
 
   @Override
-  public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean cellHasFocus, int row, int column) {
+  public Component getTableCellRendererComponent(@NotNull JTable table, @NotNull Object value, boolean isSelected, boolean cellHasFocus, int row, int column) {
     myRenderer.clear();
+    PTable ptable = (PTable)table;
     PTableItem item = (PTableItem)value;
 
     myRenderer.getTableCellRendererComponent(table, value, isSelected, cellHasFocus, row, column);
     myRenderer.setBackground(isSelected ? UIUtil.getTableSelectionBackground() : table.getBackground());
+    boolean hoveringOnStar = ptable.isHover(row, column) && hitTestStarIcon(ptable.getHoverPosition().x);
+    myStarLabel.setIcon(getStar(item.getStarState(), hoveringOnStar));
+    myPanel.setBackground(isSelected ? UIUtil.getTableSelectionBackground() : table.getBackground());
 
     SimpleTextAttributes attr = SimpleTextAttributes.REGULAR_ATTRIBUTES;
     SearchUtil.appendFragments(((PTable)table).getSpeedSearch().getEnteredPrefix(), item.getName(), attr.getStyle(), attr.getFgColor(),
                                attr.getBgColor(), myRenderer);
 
     myRenderer.setToolTipText(item.getTooltipText());
-    return myRenderer;
+    return myPanel;
+  }
+
+  @Nullable
+  private static Icon getStar(@NotNull StarState state, boolean isHovering) {
+    switch (state) {
+      case STARRED:
+        return AndroidIcons.NeleIcons.StarFilled;
+      case STAR_ABLE:
+        return isHovering ? AndroidIcons.NeleIcons.StarOutline : null;
+      default:
+        return null;
+    }
   }
 
   private static class Renderer extends ColoredTableCellRenderer {
@@ -89,13 +124,17 @@ public class PNameRenderer implements TableCellRenderer {
       }
       setIcon(icon);
       setIconTextGap(textGap);
-      setIpad(new Insets(0, indent, 0, 0));
+      setIpad(JBUI.insetsLeft(indent));
     }
+  }
+
+  public static boolean hitTestStarIcon(int x) {
+    return x >= BEFORE_STAR_SPACING && x < STAR_SIZE + BEFORE_STAR_SPACING;
   }
 
   public static boolean hitTestTreeNodeIcon(@NotNull PTableItem item, int x) {
     Icon icon = UIUtil.getTreeNodeIcon(item.isExpanded(), true, true);
-    int beforeIcon = getBeforeIconSpacing(getDepth(item), icon.getIconWidth());
+    int beforeIcon = BEFORE_STAR_SPACING + STAR_SIZE + getBeforeIconSpacing(getDepth(item), icon.getIconWidth());
     return x >= beforeIcon && x <= beforeIcon + icon.getIconWidth();
   }
 
