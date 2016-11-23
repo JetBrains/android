@@ -41,8 +41,10 @@ public class SyncIssuesReporter {
     return ServiceManager.getService(SyncIssuesReporter.class);
   }
 
+  @SuppressWarnings("unused") // Instantiated by IDEA
   public SyncIssuesReporter(@NotNull UnresolvedDependenciesReporter unresolvedDependenciesReporter) {
-    this(unresolvedDependenciesReporter, new ExternalNdkBuildIssuesReporter(), new UnsupportedGradleReporter());
+    this(unresolvedDependenciesReporter, new ExternalNdkBuildIssuesReporter(), new UnsupportedGradleReporter(),
+         new BuildToolsTooLowReporter());
   }
 
   @VisibleForTesting
@@ -55,7 +57,6 @@ public class SyncIssuesReporter {
   }
 
   public void report(@NotNull Collection<SyncIssue> syncIssues, @NotNull Module module) {
-    Project project = module.getProject();
     if (syncIssues.isEmpty()) {
       return;
     }
@@ -71,6 +72,7 @@ public class SyncIssuesReporter {
     }
 
     if (hasSyncErrors) {
+      Project project = module.getProject();
       GradleSyncState.getInstance(project).getSummary().setSyncErrorsFound(true);
     }
   }
