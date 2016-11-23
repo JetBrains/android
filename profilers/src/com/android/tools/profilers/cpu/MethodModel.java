@@ -16,54 +16,67 @@
 
 package com.android.tools.profilers.cpu;
 
+import com.google.common.annotations.VisibleForTesting;
+
 public class MethodModel {
 
-  private String mNamespace;
-  private String mName;
-  private String mSignature;
-  private String mFilename;
-  private int mLineNumber;
+  private String myNamespace;
+  private String myName;
+  private String mySignature;
+  private String myFilename;
+  private int myLineNumber;
+
+  @VisibleForTesting
+  public MethodModel(String name) {
+    myNamespace = "";
+    myName = name;
+    mySignature = "";
+  }
 
   public MethodModel() {
   }
 
   public String getNameSpace() {
-    return this.mNamespace;
+    return myNamespace;
   }
 
   public String getName() {
-    return this.mName;
+    return myName;
   }
 
   public void setName(String name) {
-    this.mName = name;
+    myName = name;
   }
 
   public String getSignature() {
-    return this.mSignature;
+    return mySignature;
   }
 
   public void setSignature(String signature) {
-    this.mSignature = signature;
+    mySignature = signature;
   }
 
   public String getFilename() {
-    return this.mFilename;
+    return myFilename;
   }
 
   public void setFilename(String filename) {
-    this.mFilename = filename;
+    myFilename = filename;
   }
 
   public int getLineNumber() {
-    return this.mLineNumber;
+    return myLineNumber;
   }
 
   public void setLineNumber(int lineNumber) {
-    this.mLineNumber = lineNumber;
+    myLineNumber = lineNumber;
   }
 
   public void setNamespace(String namespace) {
-    this.mNamespace = namespace;
+    myNamespace = namespace;
+  }
+
+  public String getId() {
+    return myNamespace + ":" + myName + ":" + mySignature;
   }
 }

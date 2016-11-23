@@ -16,6 +16,9 @@
 
 package com.android.tools.adtui.model;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class Range  {
 
   protected double myCurrentMin;
@@ -85,5 +88,41 @@ public class Range  {
    */
   public void shift(double delta) {
     set(getMin() + delta, getMax() + delta);
+  }
+
+  /**
+   * Subtracts the given range from the current range and returns the list of
+   * remaining ranges. If the given range is contained within this range, it will create
+   * a whole giving two resulting ranges.
+   */
+  public List<Range> subtract(Range range) {
+    List<Range> ret = new LinkedList<>();
+    if (isPoint()) {
+      // All gone
+    } else if (range.isPoint()) {
+      ret.add(this);
+    } else if (range.getMin() > getMin() && range.getMax() < getMax()) {
+      ret.add(new Range(getMin(), range.getMin()));
+      ret.add(new Range(range.getMax(), getMax()));
+    } else if (range.getMin() > getMin() && range.getMin() < getMax()) {
+      ret.add(new Range(getMin(), range.getMin()));
+    } else if (range.getMax() > getMin() && range.getMax() < getMax()) {
+      ret.add(new Range(range.getMax(), getMax()));
+    } else if (range.getMin() > getMax() || range.getMax() < getMin()){
+      ret.add(this);
+    }
+    return ret;
+  }
+
+  /**
+   * Returns the intersection range or [0,0] if there is no intersection.
+   * Note that this doesn't handle correctly intersections with empty ranges.
+   */
+  public Range getIntersection(Range range) {
+    if (range.getMin() > getMax() || range.getMax() < getMin()) {
+      return new Range();
+    } else {
+      return new Range(Math.max(getMin(), range.getMin()), Math.min(getMax(), range.getMax()));
+    }
   }
 }

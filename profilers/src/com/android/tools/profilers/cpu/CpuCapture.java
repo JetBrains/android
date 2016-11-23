@@ -17,13 +17,20 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedTreeModel;
 import com.android.tools.perflib.vmtrace.ThreadInfo;
+import com.android.tools.perflib.vmtrace.VmTraceData;
+import com.android.tools.perflib.vmtrace.VmTraceParser;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.AspectModel;
+import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.*;
 
 public class CpuCapture extends AspectModel<CpuCaptureAspect> {
 
@@ -39,11 +46,28 @@ public class CpuCapture extends AspectModel<CpuCaptureAspect> {
 
   @NotNull
   private final Range myRange;
+  private final VmTraceData myData;
 
   public CpuCapture(@NotNull CpuProfiler.CpuProfilingAppStopResponse response) {
-    CpuTraceArt traceArt = new CpuTraceArt();
-    traceArt.trace(response.getTrace().toByteArray());
-    myCaptureTrees = traceArt.getThreadsGraph();
+
+    // TODO: Move file parsing/manipulation to another thread.
+    try {
+      File trace = FileUtil.createTempFile("cpu_trace", ".trace");
+      try (FileOutputStream out = new FileOutputStream(trace)) {
+        out.write(response.getTrace().toByteArray());
+        VmTraceParser parser = new VmTraceParser(trace);
+        parser.parse();
+        myData = parser.getTraceData();
+      }
+
+
+      CpuTraceArt traceArt = new CpuTraceArt();
+      traceArt.parse(myData);
+      myCaptureTrees = traceArt.getThreadsGraph();
+    }
+    catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
 
     // Try to find the main thread. The main thread is called "main" but if we fail
     // to find it we will fall back to the thread with the most information.
@@ -88,5 +112,9 @@ public class CpuCapture extends AspectModel<CpuCaptureAspect> {
   @Nullable
   public HNode<MethodModel> getCaptureNode() {
     return myCaptureNode;
+  }
+
+  public RangedTreeModel getTopDown() {
+    return new TopDownTreeModel(new TopDownNode(myCaptureNode));
   }
 }
