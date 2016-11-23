@@ -70,7 +70,7 @@ public final class IconPickerDialog extends DialogWrapper {
   private static final String ALL_CATEGORY = ICON_CATEGORIES[0];
 
   private static final int COLUMN_NUMBER = 6;
-  private static final int ICON_ROW_HEIGHT = JBUI.scale(48+16);
+  private static final int ICON_ROW_HEIGHT = JBUI.scale(48 + 16);
 
   /**
    * A mapping of all categories to their target icons.
@@ -213,7 +213,7 @@ public final class IconPickerDialog extends DialogWrapper {
       }
       int row = myIconTable.getSelectedRow();
       int col = myIconTable.getSelectedColumn();
-      VdIcon icon =  row != -1 && col != -1 ? (VdIcon)myIconTable.getValueAt(row, col) : null;
+      VdIcon icon = row != -1 && col != -1 ? (VdIcon)myIconTable.getValueAt(row, col) : null;
       mySelectedIcon = icon;
       setOKActionEnabled(icon != null);
     };
@@ -272,9 +272,12 @@ public final class IconPickerDialog extends DialogWrapper {
   @Nullable
   public static VdIcon getDefaultIcon() {
     URL url = GraphicGenerator.class.getClassLoader().getResource(MATERIAL_DESIGN_ICONS_PATH + DEFAULT_ICON_NAME);
+    assert url != null;
+
     try {
       return new VdIcon(url);
-    } catch (IOException ioe) {
+    }
+    catch (IOException ioe) {
       return null;
     }
   }
@@ -299,11 +302,14 @@ public final class IconPickerDialog extends DialogWrapper {
       for (Iterator<String> iterator = GraphicGenerator.getResourcesNames(fullDirName, SdkConstants.DOT_XML); iterator.hasNext(); ) {
         final String iconName = iterator.next();
         URL url = GraphicGenerator.class.getClassLoader().getResource(fullDirName + iconName);
+        assert url != null;
+
         try {
           VdIcon icon = new VdIcon(url);
           icon.setShowName(true);
           myCategoryIcons.put(categoryName, icon);
-        } catch (IOException ignore) {
+        }
+        catch (IOException ignore) {
           // Skip this icon
         }
       }
