@@ -12,7 +12,6 @@ import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.utils.SdkUtils;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
-import com.intellij.codeInsight.FileModificationService;
 import com.intellij.codeInsight.daemon.DaemonBundle;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInsight.intention.HighPriorityAction;
@@ -416,7 +415,6 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
 
     @Override
     public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-      FileModificationService.getInstance().prepareFileForWrite(file);
       myQuickFix.apply(myStartElement, myEndElement, AndroidQuickfixContexts.EditorContext.getInstance(editor));
     }
 
