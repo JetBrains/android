@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.compiler.AndroidGradleBuildTargetConstants;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.compiler.impl.BuildTargetScopeProvider;
 import com.intellij.compiler.impl.CompositeScope;
 import com.intellij.compiler.impl.ModuleCompileScope;
@@ -40,14 +41,13 @@ import java.util.List;
  * Instructs the JPS builder to use Gradle to build the project.
  */
 public class AndroidGradleBuildTargetScopeProvider extends BuildTargetScopeProvider {
-
   @Override
   @NotNull
   public List<TargetTypeBuildScope> getBuildTargetScopes(@NotNull CompileScope baseScope,
                                                          @NotNull CompilerFilter filter,
                                                          @NotNull Project project,
                                                          boolean forceBuild) {
-    if (!Projects.requiresAndroidModel(project)) {
+    if (!AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
       return Collections.emptyList();
     }
     BuildSettings buildSettings = BuildSettings.getInstance(project);

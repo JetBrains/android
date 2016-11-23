@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -32,7 +33,7 @@ import static org.easymock.EasyMock.*;
  */
 public class ProjectsTest extends IdeaTestCase {
   public void testIsGradleProjectWithRegularProject() {
-    assertFalse(Projects.requiresAndroidModel(myProject));
+    assertFalse(AndroidProjectInfo.getInstance(myProject).requiresAndroidModel());
   }
 
   public void testIsGradleProject() {
@@ -46,7 +47,7 @@ public class ProjectsTest extends IdeaTestCase {
       ApplicationManager.getApplication().runWriteAction(facetModel::commit);
     }
 
-    assertTrue(Projects.requiresAndroidModel(myProject));
+    assertTrue(AndroidProjectInfo.getInstance(myProject).requiresAndroidModel());
   }
 
   public void testGetSelectedModules() {
