@@ -109,7 +109,8 @@ class TopDownNode {
   public void update(Range range) {
     myTotal = 0.0;
     for (HNode<MethodModel> node : myNodes) {
-      myTotal += range.getIntersection(new Range(node.getStart(), node.getEnd())).getLength();
+      Range intersection = range.getIntersection(new Range(node.getStart(), node.getEnd()));
+      myTotal += intersection.isEmpty() ? 0 : intersection.getLength();
     }
   }
 

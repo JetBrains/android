@@ -39,7 +39,7 @@ public final class ProfilerTimeline {
     myDataRangeUs = dataRangeUs;
     myViewRangeUs = new Range(myDataRangeUs.getMin(), myDataRangeUs.getMax());
     myViewRangeUs.shift(-myBufferUs);
-    mySelectionRangeUs = new Range(0, 0);
+    mySelectionRangeUs = new Range(); // Empty range
   }
 
   public void resetZoom() {

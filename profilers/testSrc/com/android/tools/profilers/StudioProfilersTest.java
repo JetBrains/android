@@ -25,6 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 final public class StudioProfilersTest {
   public static final String CHANNEL_NAME = "StudioProfilerTestChannel";
@@ -58,14 +59,12 @@ final public class StudioProfilersTest {
   public void testClearedOnMonitorStage() throws Exception {
     StudioProfilers profilers = new StudioProfilers(myClient);
 
-    assertEquals(0, profilers.getTimeline().getSelectionRange().getMin(), 0);
-    assertEquals(0, profilers.getTimeline().getSelectionRange().getMax(), 0);
+    assertTrue(profilers.getTimeline().getSelectionRange().isEmpty());
 
     profilers.setStage(new CpuProfilerStage(profilers));
     profilers.getTimeline().getSelectionRange().set(10, 10);
     profilers.setMonitoringStage();
 
-    assertEquals(0, profilers.getTimeline().getSelectionRange().getMin(), 0);
-    assertEquals(0, profilers.getTimeline().getSelectionRange().getMax(), 0);
+    assertTrue(profilers.getTimeline().getSelectionRange().isEmpty());
   }
 }
