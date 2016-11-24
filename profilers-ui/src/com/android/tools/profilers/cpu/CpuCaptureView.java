@@ -29,7 +29,6 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -38,9 +37,9 @@ import java.util.function.Function;
 import static com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN;
 
 public class CpuCaptureView {
+
   @NotNull
   private final CpuCapture myCapture;
-
   private final HTreeChart<MethodModel> myCaptureTreeChart;
   private final JBTabbedPane myPanel;
   private final JTree myTree;
@@ -57,7 +56,7 @@ public class CpuCaptureView {
     myCaptureTreeChart.setHRenderer(new SampledMethodUsageHRenderer());
     myCaptureTreeChart.setXRange(profilers.getTimeline().getSelectionRange());
 
-    RangedTreeModel model = capture.getTopDown();
+    RangedTreeModel model = getModel(capture);
     myTree = new JTree(model);
     myRangedTree = new RangedTree(profilers.getTimeline().getSelectionRange(), model);
     JComponent columnTree = new ColumnTreeBuilder(myTree)
@@ -101,8 +100,12 @@ public class CpuCaptureView {
   }
 
   private void updateThread() {
-    // Updates the tree displayed in capture panel
+    // Updates the horizontal tree displayed in capture panel
     myCaptureTreeChart.setHTree(myCapture.getCaptureNode());
+    // Updates the topdown column tree displayed in capture panel
+    RangedTreeModel model = getModel(myCapture);
+    myRangedTree.setModel(model);
+    myTree.setModel(model);
   }
 
   public JComponent getComponent() {
@@ -124,12 +127,10 @@ public class CpuCaptureView {
     choreographer.unregister(myRangedTree);
   }
 
-  @NotNull
   private static TopDownNode getNode(Object value) {
     DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
     return (TopDownNode)node.getUserObject();
   }
-
 
   private static class DoubleValueCellRenderer extends ColoredTreeCellRenderer {
     private final Function<TopDownNode, Double> myGetter;
@@ -160,9 +161,21 @@ public class CpuCaptureView {
         }
       }
       else {
+        // TODO: We should improve the visual feedback when no data is available.
         append(value.toString());
       }
     }
+  }
+
+  /**
+   * Returns a {@link RangedTreeModel} given a {@link CpuCapture}.
+   *
+   * If {@link CpuCapture#getTopDown()} returns null, this method returns an empty RangedTreeModel.
+   */
+  @NotNull
+  private static RangedTreeModel getModel(@NotNull CpuCapture capture) {
+    RangedTreeModel model = capture.getTopDown();
+    return model == null ? new TopDownTreeModel(null) : model;
   }
 
   private static class MethodNameRenderer extends ColoredTreeCellRenderer {
@@ -177,14 +190,16 @@ public class CpuCaptureView {
       if (value instanceof DefaultMutableTreeNode &&
           ((DefaultMutableTreeNode)value).getUserObject() instanceof TopDownNode) {
         TopDownNode node = (TopDownNode)((DefaultMutableTreeNode)value).getUserObject();
-        if (node.getMethodName().isEmpty()) {
-          setIcon(AllIcons.Debugger.ThreadSuspended);
-          append(node.getPackage());
-        } else {
-          setIcon(PlatformIcons.METHOD_ICON);
-          append(node.getMethodName() + "()");
-          if (node.getPackage() != null) {
-            append(" (" + node.getPackage() + ")", new SimpleTextAttributes(STYLE_PLAIN, JBColor.GRAY));
+        if (node != null) {
+          if (node.getMethodName().isEmpty()) {
+            setIcon(AllIcons.Debugger.ThreadSuspended);
+            append(node.getPackage());
+          } else {
+            setIcon(PlatformIcons.METHOD_ICON);
+            append(node.getMethodName() + "()");
+            if (node.getPackage() != null) {
+              append(" (" + node.getPackage() + ")", new SimpleTextAttributes(STYLE_PLAIN, JBColor.GRAY));
+            }
           }
         }
       } else {

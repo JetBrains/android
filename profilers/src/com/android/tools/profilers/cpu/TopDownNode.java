@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import com.google.common.collect.Iterables;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -31,7 +32,7 @@ class TopDownNode {
   private final String myId;
   private double myTotal;
 
-  public TopDownNode(HNode<MethodModel> node) {
+  public TopDownNode(@NotNull HNode<MethodModel> node) {
     myNodes = new LinkedList<>();
     myChildren = new ArrayList<>();
     myId = node.getData().getId();
