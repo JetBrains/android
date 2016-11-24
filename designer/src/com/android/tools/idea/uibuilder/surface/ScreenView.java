@@ -23,7 +23,9 @@ import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintModel;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.scene.Scene;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
@@ -43,6 +45,7 @@ public class ScreenView {
   private final DesignSurface mySurface;
   private ScreenViewType myType;
   private final NlModel myModel;
+  private Scene myScene = null;
 
   public enum ScreenViewType { NORMAL, BLUEPRINT }
 
@@ -53,6 +56,10 @@ public class ScreenView {
     mySurface = surface;
     myType = type;
     myModel = model;
+
+    if (!ConstraintModel.USE_SOLVER) {
+      myScene = Scene.createScene(myModel);
+    }
 
     myModel.getSelectionModel().addListener(new SelectionListener() {
       @Override
@@ -66,6 +73,9 @@ public class ScreenView {
       }
     });
   }
+
+  @Nullable
+  public Scene getScene() { return myScene; }
 
   @Nullable
   public RenderResult getResult() {
