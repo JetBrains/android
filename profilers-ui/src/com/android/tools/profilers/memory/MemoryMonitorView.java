@@ -56,7 +56,7 @@ public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(JLabel.TOP);
 
-    Range leftYRange = new Range();
+    Range leftYRange = new Range(0, 0);
     final JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
     AxisComponent.Builder builder = new AxisComponent.Builder(leftYRange, MEMORY_AXIS_FORMATTER,

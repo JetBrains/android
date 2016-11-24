@@ -44,6 +44,7 @@ public final class SelectionComponent extends AnimatedComponent {
   private int myMousePressed;
   private float myStartX;
   private float myEndX;
+  private boolean myEmpty;
 
   private enum Mode {
     // The default mode nothing is happening
@@ -150,6 +151,7 @@ public final class SelectionComponent extends AnimatedComponent {
 
   @Override
   protected void updateData() {
+    myEmpty = mySelectionRange.isEmpty();
     myStartX = (float)((mySelectionRange.getMin() - myRange.getMin()) / (myRange.getMax() - myRange.getMin()));
     myEndX = (float)((mySelectionRange.getMax() - myRange.getMin()) / (myRange.getMax() - myRange.getMin()));
   }
@@ -157,6 +159,10 @@ public final class SelectionComponent extends AnimatedComponent {
 
   @Override
   protected void draw(Graphics2D g, Dimension dim) {
+    if (myEmpty) {
+      return;
+    }
+
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     float startXPos = (float)(myStartX * dim.getWidth());
