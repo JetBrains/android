@@ -38,7 +38,7 @@ public class HeapDumpObjects implements MemoryObjects {
   @NotNull
   private final MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
 
-  private final MemoryNode myHeapDumpRootModelable;
+  private final MemoryNode myHeapDumpRootNode;
 
   private final int myAppId;
 
@@ -59,13 +59,13 @@ public class HeapDumpObjects implements MemoryObjects {
     myAppId = appId;
     myHeapDumpInfo = heapDumpInfo;
     myProguardMap = proguardMap;
-    myHeapDumpRootModelable = this.new RootHeapDumpAdapter();
+    myHeapDumpRootNode = this.new RootHeapDumpNode();
   }
 
   @NotNull
   @Override
-  public MemoryNode getRootAdapter() {
-    return myHeapDumpRootModelable;
+  public MemoryNode getRootNode() {
+    return myHeapDumpRootNode;
   }
 
   @Override
@@ -76,7 +76,7 @@ public class HeapDumpObjects implements MemoryObjects {
     }
   }
 
-  private class RootHeapDumpAdapter implements MemoryNode {
+  private class RootHeapDumpNode implements MemoryNode {
     @Override
     public String toString() {
       return "Heap Dump " + myHeapDumpInfo.getDumpId() + " @" + myHeapDumpInfo.getStartTime();
@@ -84,7 +84,7 @@ public class HeapDumpObjects implements MemoryObjects {
 
     @NotNull
     @Override
-    public List<MemoryNode> getSubList(long startTime, long endTime) {
+    public List<MemoryNode> getSubList(long startTimeUs, long endTimeUs) {
       DumpDataResponse response;
       while (true) {
         // TODO move this to another thread and complete before we notify
@@ -150,7 +150,7 @@ public class HeapDumpObjects implements MemoryObjects {
 
     @NotNull
     @Override
-    public List<MemoryNode> getSubList(long startTime, long endTime) {
+    public List<MemoryNode> getSubList(long startTimeUs, long endTimeUs) {
       return myHeap.getClasses().stream().map(ClassNode::new).collect(Collectors.toList());
     }
 
@@ -197,7 +197,7 @@ public class HeapDumpObjects implements MemoryObjects {
 
     @NotNull
     @Override
-    public List<MemoryNode> getSubList(long startTime, long endTime) {
+    public List<MemoryNode> getSubList(long startTimeUs, long endTimeUs) {
       // TODO implement instance expansion
       return Collections.emptyList();
     }
