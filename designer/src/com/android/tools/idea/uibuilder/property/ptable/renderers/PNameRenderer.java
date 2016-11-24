@@ -62,7 +62,7 @@ public class PNameRenderer implements TableCellRenderer {
     myRenderer.getTableCellRendererComponent(table, value, isSelected, cellHasFocus, row, column);
     myRenderer.setBackground(isSelected ? UIUtil.getTableSelectionBackground() : table.getBackground());
     boolean hoveringOnStar = ptable.isHover(row, column) && hitTestStarIcon(ptable.getHoverPosition().x);
-    myStarLabel.setIcon(getStar(item.getStarState(), hoveringOnStar));
+    myStarLabel.setIcon(getStar(item.getStarState(), isSelected, hoveringOnStar));
     myPanel.setBackground(isSelected ? UIUtil.getTableSelectionBackground() : table.getBackground());
 
     SimpleTextAttributes attr = SimpleTextAttributes.REGULAR_ATTRIBUTES;
@@ -74,12 +74,12 @@ public class PNameRenderer implements TableCellRenderer {
   }
 
   @Nullable
-  private static Icon getStar(@NotNull StarState state, boolean isHovering) {
+  private static Icon getStar(@NotNull StarState state, boolean isSelected, boolean isHovering) {
     switch (state) {
       case STARRED:
-        return AndroidIcons.NeleIcons.StarFilled;
+        return isSelected ? AndroidIcons.NeleIcons.FavoritesSelected : AndroidIcons.NeleIcons.Favorites;
       case STAR_ABLE:
-        return isHovering ? AndroidIcons.NeleIcons.StarOutline : null;
+        return isHovering ? AndroidIcons.NeleIcons.FavoritesHoverOutline : null;
       default:
         return null;
     }
