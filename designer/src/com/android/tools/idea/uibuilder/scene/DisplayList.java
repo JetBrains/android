@@ -100,6 +100,32 @@ public class DisplayList {
     }
   }
 
+  class Line implements DrawCommand {
+    Color color;
+    int x1;
+    int y1;
+    int x2;
+    int y2;
+
+    public Line(int x1, int y1, int x2, int y2, Color c) {
+      this.x1 = x1;
+      this.y1 = y1;
+      this.x2 = x2;
+      this.y2 = y2;
+      this.color = c;
+    }
+
+    @Override
+    public void paint(Graphics2D g, ScreenView screenView) {
+      g.setColor(color);
+      int sx1 = getSwingX(screenView, dpToPx(screenView, x1));
+      int sy1 = getSwingY(screenView, dpToPx(screenView, y1));
+      int sx2 = getSwingX(screenView, dpToPx(screenView, x2));
+      int sy2 = getSwingY(screenView, dpToPx(screenView, y2));
+      g.drawLine(sx1, sy1, sx2, sy2);
+    }
+  }
+
   /////////////////////////////////////////////////////////////////////////////
   // Public methods to add elements to the display list
   /////////////////////////////////////////////////////////////////////////////
@@ -110,6 +136,10 @@ public class DisplayList {
   public void addConnection(int x1, int y1, int x2, int y2, Color color) {
     myCommands.add(new Connection(x1, y1, x2, y2, color));
   }
+  public void addLine(int x1, int y1, int x2, int y2, Color color) {
+    myCommands.add(new Line(x1, y1, x2, y2, color));
+  }
+
 
   /////////////////////////////////////////////////////////////////////////////
   // Painting

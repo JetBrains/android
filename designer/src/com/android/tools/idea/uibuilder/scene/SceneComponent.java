@@ -34,6 +34,7 @@ import java.util.ArrayList;
  * </ul>
  */
 public class SceneComponent {
+
   public enum DrawState { SUBDUED, NORMAL, HOVER, SELECTED }
 
   private final Scene myScene;
@@ -58,6 +59,14 @@ public class SceneComponent {
   private int myCurrentBottom = 0;
 
   boolean used = true;
+
+  public int getCenterX() {
+    return myCurrentLeft + (myCurrentRight - myCurrentLeft) / 2;
+  }
+
+  public int getCenterY() {
+    return myCurrentTop + (myCurrentBottom - myCurrentTop) / 2;
+  }
 
   /////////////////////////////////////////////////////////////////////////////
   //region Constructor
@@ -287,13 +296,13 @@ public class SceneComponent {
     return myViewGroupHandler;
   }
 
-  public void setViewGroupHandler(@NotNull ViewGroupHandler viewGroupHandler) {
+  public void setViewGroupHandler(@NotNull ViewGroupHandler viewGroupHandler, boolean isParent) {
     if (viewGroupHandler == myViewGroupHandler) {
       return;
     }
     myTargets.clear();
     myViewGroupHandler = viewGroupHandler;
-    myViewGroupHandler.addTargets(this);
+    myViewGroupHandler.addTargets(this, isParent);
   }
 
   //endregion

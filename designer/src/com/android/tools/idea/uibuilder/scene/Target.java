@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 interface Target {
+  int getPreferenceLevel();
   boolean layout(int l, int t, int r, int b);
   void addHit(@NotNull ScenePicker picker);
   void setComponent(@NotNull SceneComponent component);
@@ -26,6 +27,6 @@ interface Target {
   void setOver(boolean over);
 
   void mouseDown(int x, int y);
-  boolean mouseDrag(int x, int y, @Nullable Target closestTarget);
-  boolean mouseRelease(int x, int y, @Nullable Target closestTarget);
+  void mouseDrag(int x, int y, @Nullable Target closestTarget);
+  void mouseRelease(int x, int y, @Nullable Target closestTarget);
 }
