@@ -29,6 +29,26 @@ public class VisualTests {
     int get();
   }
 
+  /**
+   * Adapter when you want to have a backing field for the
+   * value you want to set/get.
+   */
+  abstract static class ValueAdapter implements Value {
+    private int myValue;
+    @Override
+    public final void set(int v) {
+      myValue = v;
+      onSet(v);
+    }
+
+    @Override
+    public final int get() {
+      return myValue;
+    }
+
+    protected abstract void onSet(int v);
+  }
+
   public static void main(String[] args) throws Exception {
     SwingUtilities.invokeAndWait(() -> {
         VisualTestsDialog dialog = new VisualTestsDialog();
@@ -43,6 +63,7 @@ public class VisualTests {
         dialog.addTest(new TimelineVisualTest());
         dialog.addTest(new EventVisualTest());
         dialog.addTest(new DataReducerVisualTest());
+        dialog.addTest(new StateChartReducerVisualTest());
         dialog.setTitle("Visual Tests");
         dialog.pack();
         dialog.setVisible(true);
