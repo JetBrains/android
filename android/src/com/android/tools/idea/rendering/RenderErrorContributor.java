@@ -1390,6 +1390,10 @@ public class RenderErrorContributor {
     return myResult;
   }
 
+  protected HtmlLinkManager getLinkManager() {
+    return myLinkManager;
+  }
+
   protected Collection<RenderErrorModel.Issue> getIssues() {
     return Collections.unmodifiableCollection(myIssues);
   }
