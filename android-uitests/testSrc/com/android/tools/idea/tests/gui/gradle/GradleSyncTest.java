@@ -559,25 +559,6 @@ public class GradleSyncTest {
     assertThat(localProperties.getAndroidSdkPath()).isEqualTo(secondSdkPath);
   }
 
-  // Verify that the IDE warns users about rendering issue when using plugin 1.2.0 to 1.2.2.
-  // See https://code.google.com/p/android/issues/detail?id=170841
-  @Ignore("http://ag/1261774")
-  @Test
-  public void withLayoutRenderingIssue() throws IOException {
-    guiTest.importMultiModule();
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-
-    // @formatter:off
-    ideFrame.updateGradleWrapperVersion("2.4")
-            .updateAndroidGradlePluginVersion("1.2.0")
-            .requestProjectSync()
-            .waitForGradleProjectSyncToFinish();
-    // @formatter:on
-
-    ContentFixture syncMessages = ideFrame.getMessagesToolWindow().getGradleSyncContent();
-    syncMessages.findMessage(WARNING, firstLineStartingWith("Using an obsolete version of the Gradle plugin (1.2.0)"));
-  }
-
   // Verifies that after making a change in a build.gradle file, the editor notification saying that sync is needed shows up. This wasn't
   // the case after a project import.
   // See https://code.google.com/p/android/issues/detail?id=171370
