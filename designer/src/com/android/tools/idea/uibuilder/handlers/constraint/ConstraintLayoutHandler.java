@@ -387,9 +387,13 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    * Add resize and anchor targets on the given component
    *
    * @param component the component we'll add targets on
+   * @param isParent
    */
   @Override
-  public void addTargets(@NotNull SceneComponent component) {
+  public void addTargets(@NotNull SceneComponent component, boolean isParent) {
+    if (!isParent) {
+      component.addTarget(new DragTarget());
+    }
     component.addTarget(new ResizeTarget(ResizeTarget.Type.LEFT_TOP));
     component.addTarget(new ResizeTarget(ResizeTarget.Type.LEFT_BOTTOM));
     component.addTarget(new ResizeTarget(ResizeTarget.Type.RIGHT_TOP));
