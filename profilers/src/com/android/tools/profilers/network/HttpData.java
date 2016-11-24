@@ -33,105 +33,83 @@ public class HttpData {
   public static final String FIELD_CONTENT_TYPE = "Content-Type";
   public static final String FIELD_CONTENT_LENGTH = "Content-Length";
 
-  private long myId;
-  private String myUrl;
-  private String myMethod;
-  private long myStartTimeUs;
-  private long myDownloadingTimeUs;
-  private long myEndTimeUs;
+  private final long myId;
+  private final long myStartTimeUs;
+  private final long myEndTimeUs;
+  private final long myDownloadingTimeUs;
+  @NotNull private final String myUrl;
+  @NotNull private final String myMethod;
+
+  @Nullable private String myResponsePayloadId;
   private int myStatusCode = -1;
   private final Map<String, String> myResponseFields = new HashMap<>();
-  private String myResponsePayloadId;
   // TODO: Move it to datastore, for now virtual file creation cannot select file type.
   private File myResponsePayloadFile;
 
+  private HttpData(@NotNull Builder builder) {
+    myId = builder.myId;
+    myStartTimeUs = builder.myStartTimeUs;
+    myEndTimeUs = builder.myEndTimeUs;
+    myDownloadingTimeUs = builder.myDownloadingTimeUs;
+    myUrl = builder.myUrl;
+    myMethod = builder.myMethod;
+
+    myResponsePayloadId = builder.myResponsePayloadId;
+    if (builder.myResponseFields != null) {
+      parseResponseFields(builder.myResponseFields);
+    }
+  }
+
   public long getId() {
     return myId;
-  }
-
-  public void setId(long id) {
-    myId = id;
-  }
-
-  public String getUrl() {
-    return myUrl;
-  }
-
-  public void setUrl(String url) {
-    myUrl = url;
-  }
-
-  public String getMethod() {
-    return myMethod;
-  }
-
-  public void setMethod(String method) {
-    myMethod = method;
   }
 
   public long getStartTimeUs() {
     return myStartTimeUs;
   }
 
-  public void setStartTimeUs(long startTimeUs) {
-    myStartTimeUs = startTimeUs;
+  public long getEndTimeUs() {
+    return myEndTimeUs;
   }
 
   public long getDownloadingTimeUs() {
     return myDownloadingTimeUs;
   }
 
-  public void setDownloadingTimeUs(long downloadingTimeUs) {
-    myDownloadingTimeUs = downloadingTimeUs;
+  @NotNull
+  public String getUrl() {
+    return myUrl;
   }
 
-  public long getEndTimeUs() {
-    return myEndTimeUs;
+  @NotNull
+  public String getMethod() {
+    return myMethod;
   }
 
-  public void setEndTimeUs(long endTimeUs) {
-    myEndTimeUs = endTimeUs;
+  @Nullable
+  public String getResponsePayloadId() {
+    return myResponsePayloadId;
   }
 
   public int getStatusCode() {
     return myStatusCode;
   }
 
-  public void setStatusCode(int statusCode) {
-    myStatusCode = statusCode;
-  }
-
-  public String getHttpResponsePayloadId() {
-    return myResponsePayloadId;
-  }
-
-  public void setHttpResponsePayloadId(String payloadId) {
-    myResponsePayloadId = payloadId;
-  }
-
   @Nullable
-  public File getHttpResponsePayloadFile() {
+  public File getResponsePayloadFile() {
     return myResponsePayloadFile;
   }
 
-  public void setHttpResponsePayloadFile(@NotNull File payloadFile) {
+  public void setResponsePayloadFile(@NotNull File payloadFile) {
     myResponsePayloadFile = payloadFile;
   }
 
-  /**
-   * Set the header response fields for this connection. To retrieve a single field,
-   * use {@link #getHttpResponseField(String)}
-   */
-  public void setHttpResponseFields(@NotNull String fields) {
-    parseHttpFieldsMap(fields);
-  }
-
   @Nullable
-  public String getHttpResponseField(@NotNull String field) {
+  public String getResponseField(@NotNull String field) {
     return myResponseFields.get(field);
   }
 
-  private void parseHttpFieldsMap(@NotNull String fields) {
+  private void parseResponseFields(@NotNull String fields) {
     myResponseFields.clear();
     boolean isFirstLine = true;
     for (String line : fields.split("\\n")) {
@@ -149,7 +127,7 @@ public class HttpData {
         // the first line of a Response message is the Status-Line and the format is:
         // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRL
         assert isFirstLine;
-        setStatusCode(Integer.parseInt(value.split(" ")[1]));
+        myStatusCode = Integer.parseInt(value.split(" ")[1]);
       }
       isFirstLine = false;
     }
@@ -162,10 +140,60 @@ public class HttpData {
    * "www.example.com/demo/" -> "demo"
    * "www.example.com/test.png?res=2" -> "test.png"
    */
-  public static String getUrlName(String url) {
+  @NotNull
+  public static String getUrlName(@NotNull String url) {
     String path = URI.create(url).getPath().trim();
     path = StringUtil.trimTrailing(path, '/');
     path = path.lastIndexOf('/') != -1 ? path.substring(path.lastIndexOf('/') + 1) : path;
     return path;
+  }
+
+  public static final class Builder {
+    private final long myId;
+    private final long myStartTimeUs;
+    private final long myEndTimeUs;
+    private final long myDownloadingTimeUs;
+
+    private String myUrl;
+    private String myMethod;
+
+    private String myResponseFields;
+    private String myResponsePayloadId;
+
+    public Builder(long id, long startTimeUs, long endTimeUs, long downloadingTimeUS) {
+      myId = id;
+      myStartTimeUs = startTimeUs;
+      myEndTimeUs = endTimeUs;
+      myDownloadingTimeUs = downloadingTimeUS;
+    }
+
+    @NotNull
+    public Builder setUrl(@NotNull String url) {
+      myUrl = url;
+      return this;
+    }
+
+    @NotNull
+    public Builder setMethod(@NotNull String method) {
+      myMethod = method;
+      return this;
+    }
+
+    @NotNull
+    public Builder setResponseFields(@NotNull String responseFields) {
+      myResponseFields = responseFields;
+      return this;
+    }
+
+    @NotNull
+    public Builder setResponsePayloadId(@NotNull String payloadId) {
+      myResponsePayloadId = payloadId;
+      return this;
+    }
+
+    @NotNull
+    public HttpData build() {
+      return new HttpData(this);
+    }
   }
 }

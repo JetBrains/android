@@ -93,11 +93,11 @@ public class NetworkProfilerStage extends Stage {
    * Sets the active connection, or clears the previously selected active connection if given data is null.
    */
   public void setConnection(@Nullable HttpData data) {
-    if (data != null && data.getHttpResponsePayloadId() != null && data.getHttpResponsePayloadFile() == null) {
+    if (data != null && data.getResponsePayloadId() != null && data.getResponsePayloadFile() == null) {
       ByteString payload = myRequestsModel.requestResponsePayload(data);
       File file = null;
       try {
-        file = FileUtil.createTempFile(data.getHttpResponsePayloadId(), getFileSuffixFromContentType(data));
+        file = FileUtil.createTempFile(data.getResponsePayloadId(), getFileSuffixFromContentType(data));
         FileOutputStream outputStream = new FileOutputStream(file);
         payload.writeTo(outputStream);
       } catch (IOException e) {
@@ -107,7 +107,7 @@ public class NetworkProfilerStage extends Stage {
           file.deleteOnExit();
         }
       }
-      data.setHttpResponsePayloadFile(file);
+      data.setResponsePayloadFile(file);
     }
 
     myConnection = data;
@@ -121,7 +121,7 @@ public class NetworkProfilerStage extends Stage {
    */
   @Nullable
   private static String getFileSuffixFromContentType(@NotNull HttpData httpData) {
-    String contentType = httpData.getHttpResponseField(HttpData.FIELD_CONTENT_TYPE);
+    String contentType = httpData.getResponseField(HttpData.FIELD_CONTENT_TYPE);
     if (contentType == null) {
       return null;
     }

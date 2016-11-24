@@ -197,12 +197,12 @@ final class ConnectionsView {
           return data.getUrl();
 
         case SIZE:
-          String contentLength = data.getHttpResponseField(HttpData.FIELD_CONTENT_LENGTH);
+          String contentLength = data.getResponseField(HttpData.FIELD_CONTENT_LENGTH);
           int bytes = (contentLength != null) ? Integer.parseInt(contentLength): -1;
           return bytes >= 0 ? StringUtil.formatFileSize(bytes) : "";
 
         case TYPE:
-          String contentType = data.getHttpResponseField(HttpData.FIELD_CONTENT_TYPE);
+          String contentType = data.getResponseField(HttpData.FIELD_CONTENT_TYPE);
           return StringUtil.notNullize(contentType);
 
         case STATUS:
