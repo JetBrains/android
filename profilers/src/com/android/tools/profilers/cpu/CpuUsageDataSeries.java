@@ -82,40 +82,6 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
     return ContainerUtil.immutableList(seriesData);
   }
 
-  @Override
-  public SeriesData<Long> getClosestData(long x) {
-    // TODO: Change the CPU API to allow specifying padding in the request as number of samples.
-    long xNs = TimeUnit.MICROSECONDS.toNanos(x);
-    long bufferNs = TimeUnit.SECONDS.toNanos(1);
-    CpuProfiler.CpuDataRequest.Builder dataRequestBuilder = CpuProfiler.CpuDataRequest.newBuilder()
-      .setAppId(myProcessId)
-      .setStartTimestamp(xNs - bufferNs)
-      .setEndTimestamp(xNs + bufferNs);
-    CpuProfiler.CpuDataResponse response = myClient.getData(dataRequestBuilder.build());
-
-    List<CpuProfiler.CpuProfilerData> list = response.getDataList();
-    if (list.size() == 0) {
-      return null;
-    }
-
-    CpuProfiler.CpuProfilerData sample = CpuProfiler.CpuProfilerData.newBuilder().setBasicInfo(
-      Common.CommonData.newBuilder().setEndTimestamp(xNs)).build();
-    int index = Collections.binarySearch(list, sample, (left, right) -> {
-      long diff = left.getBasicInfo().getEndTimestamp() - right.getBasicInfo().getEndTimestamp();
-      return (diff == 0) ? 0 : (diff < 0) ? -1 : 1;
-    });
-
-    index = DataSeries.convertBinarySearchIndex(index, list.size());
-    long timestamp = TimeUnit.NANOSECONDS.toMicros(list.get(index).getBasicInfo().getEndTimestamp());
-
-    if (index == 0 || list.size() <= 1) {
-      return null; // TODO handle case where we don't have two samples to compute delta usage.
-    }
-
-    CpuUsageDataSeries.CpuUsageData usageData = getCpuUsageData(list.get(index), list.get(index - 1));
-    return new SeriesData<>(timestamp, (long)(myOtherProcesses ? usageData.getOtherProcessesUsage() : usageData.getAppUsage()));
-  }
-
   private static CpuUsageDataSeries.CpuUsageData getCpuUsageData(CpuProfiler.CpuProfilerData data, CpuProfiler.CpuProfilerData lastData) {
     long elapsed = (data.getCpuUsage().getElapsedTimeInMillisec() - lastData.getCpuUsage().getElapsedTimeInMillisec());
     // TODO: consider using raw data instead of percentage to improve efficiency.

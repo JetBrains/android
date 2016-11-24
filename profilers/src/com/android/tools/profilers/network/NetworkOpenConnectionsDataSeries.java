@@ -66,33 +66,4 @@ public class NetworkOpenConnectionsDataSeries implements DataSeries<Long> {
     }
     return ContainerUtil.immutableList(seriesData);
   }
-
-  @Override
-  public SeriesData<Long> getClosestData(long x) {
-    // TODO: Change the Network API to allow specifying padding in the request as number of samples.
-    long xNs = TimeUnit.MICROSECONDS.toNanos(x);
-    long bufferNs = TimeUnit.SECONDS.toNanos(1);
-    NetworkProfiler.NetworkDataRequest.Builder dataRequestBuilder = NetworkProfiler.NetworkDataRequest.newBuilder()
-      .setAppId(myProcessId)
-      .setType(NetworkProfiler.NetworkDataRequest.Type.CONNECTIONS)
-      .setStartTimestamp(xNs - bufferNs)
-      .setEndTimestamp(xNs + bufferNs);
-    NetworkProfiler.NetworkDataResponse response = myClient.getData(dataRequestBuilder.build());
-
-    List<NetworkProfiler.NetworkProfilerData> list = response.getDataList();
-    if (list.size() == 0) {
-      return null;
-    }
-
-    NetworkProfiler.NetworkProfilerData sample = NetworkProfiler.NetworkProfilerData.newBuilder().setBasicInfo(
-      Common.CommonData.newBuilder().setEndTimestamp(xNs)).build();
-    int index = Collections.binarySearch(list, sample, (left, right) -> {
-      long diff = left.getBasicInfo().getEndTimestamp() - right.getBasicInfo().getEndTimestamp();
-      return (diff == 0) ? 0 : (diff < 0) ? -1 : 1;
-    });
-
-    index = DataSeries.convertBinarySearchIndex(index, list.size());
-    long timestamp = TimeUnit.NANOSECONDS.toMicros(list.get(index).getBasicInfo().getEndTimestamp());
-    return new SeriesData<>(timestamp, (long)list.get(index).getConnectionData().getConnectionNumber());
-  }
 }
