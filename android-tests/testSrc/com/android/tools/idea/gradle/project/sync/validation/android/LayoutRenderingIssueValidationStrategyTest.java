@@ -70,6 +70,7 @@ public class LayoutRenderingIssueValidationStrategyTest extends AndroidGradleTes
     return androidModel;
   }
 
+  // See https://code.google.com/p/android/issues/detail?id=170841
   public void testFixAndReportFoundIssues() {
     SyncMessagesStub syncMessages = SyncMessagesStub.replaceSyncMessagesService(getProject());
 
