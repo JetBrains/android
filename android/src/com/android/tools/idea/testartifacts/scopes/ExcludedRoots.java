@@ -17,9 +17,9 @@ package com.android.tools.idea.testartifacts.scopes;
 
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.customizer.dependency.DependencySet;
-import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
-import com.android.tools.idea.gradle.customizer.dependency.ModuleDependency;
+import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
+import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
+import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -35,7 +35,7 @@ import java.io.File;
 import java.util.*;
 import java.util.function.Consumer;
 
-import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.BINARY;
+import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
 import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGeneratedSourceFolders;
