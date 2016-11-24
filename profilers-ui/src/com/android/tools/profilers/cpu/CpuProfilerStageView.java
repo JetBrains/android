@@ -88,6 +88,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     CpuMonitor cpu = new CpuMonitor(profilers);
 
     JPanel details = new JPanel(new GridBagLayout());
+    setupPanAndZoomListeners(details);
     details.setBackground(ProfilerColors.MONITOR_BACKGROUND);
     JComponent eventsComponent = eventsView.initialize(getChoreographer());
 
