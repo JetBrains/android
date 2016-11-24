@@ -218,8 +218,9 @@ public class ViewGroupHandler extends ViewHandler {
    * Give a chance to the ViewGroup to add targets to the {@linkplain SceneComponent}
    *
    * @param component the component we'll add targets on
+   * @param isParent  is it the parent viewgroup component
    */
-  public void addTargets(@NotNull SceneComponent component) {
+  public void addTargets(@NotNull SceneComponent component, boolean isParent) {
     // do nothing
   }
 }
