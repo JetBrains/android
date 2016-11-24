@@ -15,14 +15,20 @@
  */
 package com.android.tools.datastore;
 
-import org.jetbrains.annotations.Nullable;
+import com.intellij.util.Consumer;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.concurrent.ExecutorService;
 
 /**
  * An interface to perform allocation tracking using JDWP.
+ * TODO move this into its own module
  */
 public interface LegacyAllocationTracker {
   boolean setAllocationTrackingEnabled(int processId, boolean enabled);
 
-  @Nullable
-  byte[] getAllocationTrackingDump(int processId);
+  void getAllocationTrackingDump(int processId, @NotNull ExecutorService executorService, @NotNull Consumer<byte[]> consumer);
+
+  @NotNull
+  LegacyAllocationConverter parseDump(@NotNull byte[] dumpData);
 }

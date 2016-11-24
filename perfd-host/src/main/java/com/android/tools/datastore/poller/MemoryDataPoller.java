@@ -17,12 +17,14 @@ package com.android.tools.datastore.poller;
 
 import com.android.tools.adtui.model.DurationData;
 import com.android.tools.datastore.DataStoreService;
+import com.android.tools.datastore.LegacyAllocationTrackingService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.AllocationEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.AllocationTrackingSetting;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.MemorySample;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.VmStatsSample;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.application.ApplicationManager;
 import io.grpc.ManagedChannel;
@@ -31,23 +33,17 @@ import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.*;
+import java.util.*;
+import java.util.concurrent.RunnableFuture;
+
+import static com.android.tools.profiler.proto.MemoryProfiler.AllocationTrackingResponse.Status.SUCCESS;
 
 public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase implements ServicePassThrough, PollRunner.PollingCallback {
-  private final DataStoreService myDataStoreService;
+  private final LegacyAllocationTrackingService myLegacyAllocationTrackingService;
 
   private long myDataRequestStartTimestampNs = Long.MIN_VALUE;
 
   private MemoryServiceGrpc.MemoryServiceBlockingStub myPollingService;
-
-  private final ExecutorService myAllocationExecutorService =
-    Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("memorypoller").build());
-
-  // DO NOT call .get() on this future when inside synchronize block on myUpdatingDataLock.
-  private volatile Future<?> myAllocationDumpFetch = null;
 
   //TODO: Pull this into a storage container that can read/write this to disk
   //TODO: Rename MemoryData to MemoryProfilerData for consistency
@@ -55,7 +51,10 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
   protected final List<MemorySample> myMemoryData = new ArrayList<>();
   protected final List<VmStatsSample> myStatsData = new ArrayList<>();
   protected final List<HeapDumpSample> myHeapData = new ArrayList<>();
-  protected final List<AllocationDumpSample> myAllocationData = new ArrayList<>();
+  protected final List<AllocationEvent> myAllocationEvents = new ArrayList<>();
+  protected final List<AllocationTrackingSetting> myAllocationTrackingSettings = new ArrayList<>();
+  protected final Map<String, AllocatedClass> myAllocatedClasses = new HashMap<>();
+  protected final Map<ByteString, AllocationStack> myAllocationStacks = new HashMap<>();
 
   private final Object myUpdatingDataLock = new Object();
 
@@ -64,7 +63,7 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
   private int myProcessId = -1;
 
   public MemoryDataPoller(@NotNull DataStoreService dataStoreService) {
-    myDataStoreService = dataStoreService;
+    myLegacyAllocationTrackingService = new LegacyAllocationTrackingService(dataStoreService::getLegacyAllocationTracker);
   }
 
   @Override
@@ -156,174 +155,31 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
     responseObserver.onCompleted();
   }
 
-  // TODO integrate this into getData
   @Override
   public void setAllocationTracking(AllocationTrackingRequest request,
                                     StreamObserver<AllocationTrackingResponse> responseObserver) {
-    // TODO ensure only legacy or non-instrumented devices go through this path
-    AllocationTrackingResponse.Builder responseBuilder = AllocationTrackingResponse.newBuilder();
-    boolean getDump = false;
-
-    if (myDataStoreService.getLegacyAllocationTracker() == null) {
-      responseBuilder.setStatus(AllocationTrackingResponse.Status.FAILURE_UNKNOWN);
-      responseObserver.onNext(responseBuilder.build());
-      responseObserver.onCompleted();
-      return;
-    }
-
-    Future<?> pendingFetch = myAllocationDumpFetch; // TODO fix this stall when the user clicks too fast
-    if (pendingFetch != null) {
-      try {
-        pendingFetch.get();
-      }
-      catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        responseBuilder.setStatus(AllocationTrackingResponse.Status.FAILURE_UNKNOWN);
-      }
-      catch (ExecutionException e) {
-        responseBuilder.setStatus(AllocationTrackingResponse.Status.FAILURE_UNKNOWN);
-      }
-    }
-
-    synchronized (myUpdatingDataLock) {
-      AllocationDumpSample sample = myAllocationData.isEmpty() ? null : myAllocationData.get(myAllocationData.size() - 1);
-      if (request.getEnabled()) {
-        if (!myAllocationData.isEmpty() && sample.myInfo.getEndTime() == DurationData.UNSPECIFIED_DURATION) {
-          // Allocation tracking is already turned on.
-          responseBuilder.setStatus(AllocationTrackingResponse.Status.IN_PROGRESS);
-        }
-        else {
-          // A new allocation tracking is happening, so add a new entry to track it.
-          // TODO remove the time from the request
-          AllocationDumpInfo info =
-            AllocationDumpInfo.newBuilder().setDumpId(myAllocationData.size()).setStartTime(request.getRequestTime())
-              .setEndTime(DurationData.UNSPECIFIED_DURATION).setSuccess(true).build();
-          sample = new AllocationDumpSample(info);
-          myAllocationData.add(sample);
-          responseBuilder.setInfo(info);
-          responseBuilder.setStatus(AllocationTrackingResponse.Status.SUCCESS);
-        }
-      }
-      else {
-        if (myAllocationData.isEmpty() || sample.myInfo.getEndTime() != DurationData.UNSPECIFIED_DURATION) {
-          responseBuilder.setStatus(AllocationTrackingResponse.Status.NOT_ENABLED).build();
-        }
-        else {
-          sample.myInfo = sample.myInfo.toBuilder().setEndTime(request.getRequestTime()).build();
-          responseBuilder.setStatus(AllocationTrackingResponse.Status.SUCCESS);
-          getDump = true;
-        }
-      }
-
-      if (responseBuilder.getStatus() == AllocationTrackingResponse.Status.SUCCESS) {
-        boolean success =
-          myDataStoreService.getLegacyAllocationTracker().setAllocationTrackingEnabled(request.getAppId(), request.getEnabled());
-        responseObserver.onNext(
-          responseBuilder.setStatus(success ? AllocationTrackingResponse.Status.SUCCESS : AllocationTrackingResponse.Status.FAILURE_UNKNOWN)
-            .build());
-
-        assert sample != null;
-        final AllocationDumpSample finalSample = sample;
-        AllocationDumpInfo.Builder lastInfoCopyBuilder = finalSample.myInfo.toBuilder();
-        if (!success) {
-          lastInfoCopyBuilder.setEndTime(lastInfoCopyBuilder.getStartTime());
-          lastInfoCopyBuilder.setSuccess(false);
-        }
-        else if (getDump) {
-          myAllocationDumpFetch =
-            myAllocationExecutorService.submit(() -> {
-              byte[] data = myDataStoreService.getLegacyAllocationTracker().getAllocationTrackingDump(request.getAppId());
-              if (data == null) {
-                lastInfoCopyBuilder.setSuccess(false);
-              }
-              else {
-                finalSample.myData = ByteString.copyFrom(data);
-              }
-              myAllocationDumpFetch = null;
-            });
-        }
-      }
-      else {
-        responseObserver.onNext(responseBuilder.build());
-      }
-      responseObserver.onCompleted();
-    }
-  }
-
-  @Override
-  public void getAllocationDump(AllocationDumpDataRequest request,
-                                StreamObserver<DumpDataResponse> responseObserver) {
-    DumpDataResponse.Builder responseBuilder = DumpDataResponse.newBuilder();
-    AllocationDumpSample sample = null;
-    synchronized (myUpdatingDataLock) {
-      if (request.getDumpId() < 0 || request.getDumpId() >= myAllocationData.size()) {
-        responseBuilder.setStatus(DumpDataResponse.Status.NOT_FOUND);
-      }
-      else {
-        sample = myAllocationData.get(request.getDumpId());
-      }
-    }
-
-    if (sample != null) {
-      assert sample.myInfo.getDumpId() == request.getDumpId();
-      Future<?> pendingFetch = myAllocationDumpFetch;
-      if (!sample.myInfo.getSuccess()) {
-        responseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
-      }
-      else if (sample.myData == null) {
-        if (pendingFetch != null) {
-          try {
-            pendingFetch.get();
-            myAllocationDumpFetch = null;
-            if (!sample.myInfo.getSuccess()) {
-              responseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
-            }
-            else {
-              responseBuilder.setStatus(DumpDataResponse.Status.SUCCESS);
-            }
+    AllocationTrackingResponse response = myPollingService
+      .setAllocationTracking(AllocationTrackingRequest.newBuilder().setAppId(myProcessId).setEnabled(request.getEnabled()).build());
+    if (response.getStatus() == SUCCESS) {
+      myLegacyAllocationTrackingService
+        .setAllocationTracking(myProcessId, response.getTimestamp(), request.getEnabled(), (classes, stacks, allocations) -> {
+          synchronized (myUpdatingDataLock) {
+            classes.forEach(allocatedClass -> myAllocatedClasses.putIfAbsent(allocatedClass.getClassName(), allocatedClass));
+            stacks.forEach(allocationStack -> myAllocationStacks.putIfAbsent(allocationStack.getStackId(), allocationStack));
+            allocations.forEach(myAllocationEvents::add);
           }
-          catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            responseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
-          }
-          catch (ExecutionException e) {
-            responseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
-          }
-        }
-        else {
-          responseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
-        }
-      }
-      else {
-        responseBuilder.setStatus(DumpDataResponse.Status.SUCCESS);
-      }
-
-      if (responseBuilder.getStatus() == DumpDataResponse.Status.SUCCESS) {
-        ByteString data = sample.myData;
-        assert data != null;
-        responseBuilder.setData(data);
-      }
+        });
     }
-
-    responseObserver.onNext(responseBuilder.build());
+    responseObserver.onNext(response);
     responseObserver.onCompleted();
   }
 
   @Override
-  public void listAllocationDumpInfos(ListDumpInfosRequest request,
-                                  StreamObserver<ListAllocationDumpInfosResponse> responseObserver) {
-    AllocationDumpSample key = new AllocationDumpSample(AllocationDumpInfo.newBuilder().setEndTime(request.getStartTime()).build());
-    int index =
-      Collections.binarySearch(myAllocationData, key, (left, right) -> compareTimes(left.myInfo.getEndTime(), right.myInfo.getEndTime()));
-    index = index < 0 ? -(index + 1) : index;
-    ListAllocationDumpInfosResponse.Builder responseBuilder = ListAllocationDumpInfosResponse.newBuilder();
-    for (int i = index; i < myAllocationData.size(); i++) {
-      AllocationDumpSample sample = myAllocationData.get(i);
-      assert sample.myInfo.getEndTime() == DurationData.UNSPECIFIED_DURATION || request.getStartTime() <= sample.myInfo.getEndTime();
-      if (sample.myInfo.getStartTime() <= request.getEndTime()) {
-        responseBuilder.addInfos(sample.myInfo);
-      }
-    }
+  public void listAllocationTrackingEnvironments(AllocationTrackingEnvironmentRequest request,
+                                                 StreamObserver<AllocationTrackingEnvironmentResponse> responseObserver) {
+    AllocationTrackingEnvironmentResponse.Builder responseBuilder = AllocationTrackingEnvironmentResponse.newBuilder();
+    myAllocationStacks.values().forEach(responseBuilder::addAllocationStacks);
+    myAllocatedClasses.values().forEach(responseBuilder::addAllocatedClasses);
     responseObserver.onNext(responseBuilder.build());
     responseObserver.onCompleted();
   }
@@ -336,23 +192,15 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
 
     //TODO: Optimize so we do not need to loop all the data every request, ideally binary search to start time and loop till end.
     synchronized (myUpdatingDataLock) {
-      for (MemorySample obj : myMemoryData) {
-        long current = obj.getTimestamp();
-        if (current > startTime && current <= endTime) {
-          response.addMemSamples(obj);
-        }
-      }
-      for (VmStatsSample obj : myStatsData) {
-        long current = obj.getTimestamp();
-        if (current > startTime && current <= endTime) {
-          response.addVmStatsSamples(obj);
-        }
-      }
-      for (HeapDumpSample obj : myHeapData) {
-        if (obj.myInfo.getStartTime() > startTime && obj.myInfo.getEndTime() <= endTime) {
-          response.addHeapDumpInfos(obj.myInfo);
-        }
-      }
+      myMemoryData.stream().filter(obj -> obj.getTimestamp() > startTime && obj.getTimestamp() <= endTime).forEach(response::addMemSamples);
+      myStatsData.stream().filter(obj -> obj.getTimestamp() > startTime && obj.getTimestamp() <= endTime)
+        .forEach(response::addVmStatsSamples);
+      myHeapData.stream().filter(obj -> obj.myInfo.getStartTime() > startTime && obj.myInfo.getEndTime() <= endTime)
+        .forEach(obj -> response.addHeapDumpInfos(obj.myInfo));
+      myAllocationTrackingSettings.stream().filter(setting -> setting.getTimestamp() > startTime && setting.getTimestamp() <= endTime)
+        .forEach(response::addAllocationTrackingSettings);
+      myAllocationEvents.stream().filter(event -> event.getTimestamp() > startTime && event.getTimestamp() <= endTime)
+        .forEach(response::addAllocationEvents);
     }
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
@@ -369,6 +217,8 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
     synchronized (myUpdatingDataLock) {
       myMemoryData.addAll(response.getMemSamplesList());
       myStatsData.addAll(response.getVmStatsSamplesList());
+      myAllocationTrackingSettings.addAll(response.getAllocationTrackingSettingsList());
+      myAllocationEvents.addAll(response.getAllocationEventsList());
 
       List<HeapDumpSample> dumpsToFetch = new ArrayList<>();
       for (int i = 0; i < response.getHeapDumpInfosCount(); i++) {
@@ -443,15 +293,6 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
 
     public HeapDumpSample(int id) {
       myInfo = HeapDumpInfo.newBuilder().setDumpId(id).build();
-    }
-  }
-
-  private static class AllocationDumpSample {
-    @NotNull public AllocationDumpInfo myInfo;
-    @Nullable public volatile ByteString myData = null;
-
-    private AllocationDumpSample(@NotNull AllocationDumpInfo info) {
-      myInfo = info;
     }
   }
 }

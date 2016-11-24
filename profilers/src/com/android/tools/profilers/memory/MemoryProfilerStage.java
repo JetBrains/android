@@ -17,7 +17,10 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.*;
 import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryProfiler.*;
+import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.AllocationTrackingSetting;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profilers.AspectModel;
 import com.android.tools.profilers.Stage;
@@ -45,7 +48,7 @@ public class MemoryProfilerStage extends Stage {
   private final HeapDumpSampleDataSeries myHeapDumpSampleDataSeries;
 
   @NotNull
-  private final AllocationDumpSampleDataSeries myAllocationDumpSampleDataSeries;
+  private final AllocationTrackingStatusDataSeries myAllocationTrackingStatusDataSeries;
 
   @Nullable
   private HeapDumpInfo myFocusedHeapDumpInfo;
@@ -61,7 +64,7 @@ public class MemoryProfilerStage extends Stage {
     myProcessId = profilers.getProcessId();
     myClient = profilers.getClient().getMemoryClient();
     myHeapDumpSampleDataSeries = new HeapDumpSampleDataSeries();
-    myAllocationDumpSampleDataSeries = new AllocationDumpSampleDataSeries();
+    myAllocationTrackingStatusDataSeries = new AllocationTrackingStatusDataSeries();
   }
 
   @Override
@@ -124,12 +127,11 @@ public class MemoryProfilerStage extends Stage {
 
   public void setAllocationTracking(boolean enabled) {
     myClient.setAllocationTracking(
-      MemoryProfiler.AllocationTrackingRequest.newBuilder().setAppId(myProcessId)
-        .setRequestTime(getStudioProfilers().getCurrentDeviceTime()).setEnabled(enabled).build());
+      MemoryProfiler.AllocationTrackingRequest.newBuilder().setAppId(myProcessId).setEnabled(enabled).build());
   }
 
   public DataSeries<DefaultDurationData> getAllocationDumpSampleDurations() {
-    return myAllocationDumpSampleDataSeries;
+    return myAllocationTrackingStatusDataSeries;
   }
 
   private class HeapDumpSampleDataSeries implements DataSeries<HeapDumpDurationData> {
@@ -161,21 +163,45 @@ public class MemoryProfilerStage extends Stage {
     }
   }
 
-  private class AllocationDumpSampleDataSeries implements DataSeries<DefaultDurationData> {
+  private class AllocationTrackingStatusDataSeries implements DataSeries<DefaultDurationData> {
     @Override
     public ImmutableList<SeriesData<DefaultDurationData>> getDataForXRange(Range xRange) {
-      long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
-      long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
-      ListAllocationDumpInfosResponse response = myClient
-        .listAllocationDumpInfos(
-          ListDumpInfosRequest.newBuilder().setAppId(myProcessId).setStartTime(rangeMin).setEndTime(rangeMax).build());
+      long bufferNs = TimeUnit.SECONDS.toNanos(1);
+      long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin()) - bufferNs;
+      long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax()) + bufferNs;
+      MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()
+        .setAppId(myProcessId)
+        .setStartTime(rangeMin)
+        .setEndTime(rangeMax);
+      MemoryProfiler.MemoryData response = myClient.getData(dataRequestBuilder.build());
 
       List<SeriesData<DefaultDurationData>> seriesData = new ArrayList<>();
-      for (AllocationDumpInfo info : response.getInfosList()) {
-        long startTime = TimeUnit.NANOSECONDS.toMicros(info.getStartTime());
-        long endTime = TimeUnit.NANOSECONDS.toMicros(info.getEndTime());
-        seriesData.add(new SeriesData<>(startTime, new DefaultDurationData(
-          info.getEndTime() == DurationData.UNSPECIFIED_DURATION ? DurationData.UNSPECIFIED_DURATION : endTime - startTime)));
+      if (response.getAllocationTrackingSettingsCount() == 0) {
+        return ContainerUtil.immutableList(seriesData);
+      }
+
+      int i = 0;
+      if (!response.getAllocationTrackingSettings(0).getEnabled()) {
+        // If the first setting is disabled, it means there was an enabled event outside our range. We'll have to manually patch it.
+        long endTime = response.getAllocationTrackingSettings(0).getTimestamp();
+        seriesData.add(
+          new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(rangeMin),
+                           new DefaultDurationData(TimeUnit.NANOSECONDS.toMicros(endTime - rangeMin))));
+        i++;
+      }
+      for (; i < response.getAllocationTrackingSettingsCount(); i += 2) {
+        AllocationTrackingSetting start = response.getAllocationTrackingSettings(i);
+        assert start.getEnabled();
+        long startTime = start.getTimestamp();
+        long endTime = rangeMax; // To handle the last sample being enabled.
+        if (i + 1 < response.getAllocationTrackingSettingsCount()) {
+          AllocationTrackingSetting end = response.getAllocationTrackingSettings(i + 1);
+          assert !end.getEnabled();
+          endTime = end.getTimestamp();
+        }
+        seriesData.add(
+          new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(startTime),
+                           new DefaultDurationData(TimeUnit.NANOSECONDS.toMicros(endTime - startTime))));
       }
 
       return ContainerUtil.immutableList(seriesData);

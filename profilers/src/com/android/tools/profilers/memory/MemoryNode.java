@@ -51,7 +51,7 @@ public interface MemoryNode {
   }
 
   @NotNull
-  default List<MemoryNode> getSubList(long startTime, long endTime) {
+  default List<MemoryNode> getSubList(long startTimeUs, long endTimeUs) {
     return Collections.emptyList();
   }
 
