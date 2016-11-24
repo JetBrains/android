@@ -64,31 +64,4 @@ public final class MemoryDataSeries implements DataSeries<Long> {
     }
     return ContainerUtil.immutableList(seriesData);
   }
-
-  @Override
-  public SeriesData<Long> getClosestData(long x) {
-    // TODO: Change the Memory API to allow specifying padding in the request as number of samples.
-    long xNs = TimeUnit.MICROSECONDS.toNanos(x);
-    long bufferNs = TimeUnit.SECONDS.toNanos(1);
-    MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()
-      .setAppId(myProcessId)
-      .setStartTime(xNs - bufferNs)
-      .setEndTime(xNs + bufferNs);
-    MemoryProfiler.MemoryData response = myClient.getData(dataRequestBuilder.build());
-
-    List<MemorySample> list = response.getMemSamplesList();
-    if (list.size() == 0) {
-      return null;
-    }
-
-    MemorySample sample = MemorySample.newBuilder().setTimestamp(xNs).build();
-    int index = Collections.binarySearch(list, sample, (left, right) -> {
-      long diff = left.getTimestamp() - right.getTimestamp();
-      return (diff == 0) ? 0 : (diff < 0) ? -1 : 1;
-    });
-
-    index = DataSeries.convertBinarySearchIndex(index, list.size());
-    long timestamp = TimeUnit.NANOSECONDS.toMicros(list.get(index).getTimestamp());
-    return new SeriesData<>(timestamp, myFilter.apply(list.get(index)));
-  }
 }

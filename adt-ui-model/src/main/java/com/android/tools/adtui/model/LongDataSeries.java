@@ -33,15 +33,4 @@ public class LongDataSeries extends BaseDataSeries<Long> {
   public Long getY(int index) {
     return mY.get(index);
   }
-
-  @Override
-  public SeriesData<Long> getClosestData(long x) {
-    if (mX.size() == 0) {
-      return null;
-    }
-
-    int index = mX.binarySearch(x);
-    index = DataSeries.convertBinarySearchIndex(index, mX.size());
-    return new SeriesData<>(mX.get(index), mY.get(index));
-  }
 }

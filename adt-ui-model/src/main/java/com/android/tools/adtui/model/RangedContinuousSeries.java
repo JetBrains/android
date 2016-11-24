@@ -17,10 +17,6 @@
 package com.android.tools.adtui.model;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.Collections;
 
 /**
  * Represents a view into a continuous series, where the data in view is only
