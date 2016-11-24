@@ -31,6 +31,7 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -123,22 +124,23 @@ public class NewAndroidComponentAction extends AnAction {
     }
     assert file != null;
 
-    String activityDescription = e.getPresentation().getText(); // e.g. "Blank Activity", "Tabbed Activity"
+    String activityDescription = e.getPresentation().getText(); // e.g. "Empty Activity", "Tabbed Activity"
     List<AndroidSourceSet> sourceSets = AndroidSourceSet.getSourceSets(facet, targetDirectory);
     assert sourceSets.size() > 0;
-    RenderTemplateModel templateModel =
-      new RenderTemplateModel(module.getProject(), new TemplateHandle(file), sourceSets.get(0), "New " + activityDescription);
 
     String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, sourceSets, targetDirectory);
+    Project project = module.getProject();
+
+    RenderTemplateModel templateModel = new RenderTemplateModel(
+      project, new TemplateHandle(file), initialPackageSuggestion, sourceSets.get(0), "New " + activityDescription);
 
     boolean isActivity = isActivityTemplate();
     String dialogTitle = AndroidBundle.message(isActivity ? "android.wizard.new.activity.title" : "android.wizard.new.component.title");
     String stepTitle = AndroidBundle.message(isActivity ? "android.wizard.config.activity.title" : "android.wizard.config.component.title");
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    wizardBuilder.addStep(new ConfigureTemplateParametersStep(templateModel, stepTitle, initialPackageSuggestion, sourceSets, facet));
-    ModelWizardDialog dialog =
-      new StudioWizardDialogBuilder(wizardBuilder.build(), dialogTitle).setProject(module.getProject()).build();
+    wizardBuilder.addStep(new ConfigureTemplateParametersStep(templateModel, stepTitle, sourceSets, facet));
+    ModelWizardDialog dialog = new StudioWizardDialogBuilder(wizardBuilder.build(), dialogTitle).setProject(project).build();
     dialog.show();
 
     /*
