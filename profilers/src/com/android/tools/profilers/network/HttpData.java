@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -152,5 +153,19 @@ public class HttpData {
       }
       isFirstLine = false;
     }
+  }
+
+  /**
+   * Return the name of the URL, which is the final complete word in the path portion of the URL.
+   *
+   * For example,
+   * "www.example.com/demo/" -> "demo"
+   * "www.example.com/test.png?res=2" -> "test.png"
+   */
+  public static String getUrlName(String url) {
+    String path = URI.create(url).getPath().trim();
+    path = StringUtil.trimTrailing(path, '/');
+    path = path.lastIndexOf('/') != -1 ? path.substring(path.lastIndexOf('/') + 1) : path;
+    return path;
   }
 }
