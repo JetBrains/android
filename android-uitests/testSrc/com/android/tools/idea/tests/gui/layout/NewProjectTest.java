@@ -220,6 +220,7 @@ public class NewProjectTest {
     }
   }
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testStillBuildingMessage() throws Exception {
     // Create a new project and open a layout file.
