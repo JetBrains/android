@@ -61,6 +61,9 @@ class TopDownTreeModel extends DefaultTreeModel implements RangedTreeModel {
 
   private void update(DefaultMutableTreeNode node, Range range, List<Range> ranges) {
     TopDownNode data = (TopDownNode)node.getUserObject();
+    if (data == null) {
+      return;
+    }
     if (changes(data, ranges)) {
       Enumeration e = node.children();
       Map<String, DefaultMutableTreeNode> children = new HashMap<>();
