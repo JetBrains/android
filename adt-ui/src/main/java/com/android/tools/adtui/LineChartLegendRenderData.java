@@ -19,9 +19,12 @@ import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SeriesData;
+import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Render data used for displaying LineChart data. In particular, it will show the most recent data in the RangedContinuousSeries
@@ -51,7 +54,20 @@ public final class LineChartLegendRenderData extends LegendRenderData {
 
   @Override
   public String getFormattedData() {
-    SeriesData<Long> data = mySeries.getDataSeries().getClosestData((long)myRange.getMax());
-    return data == null ? null : myFormatter.getFormattedString(mySeries.getYRange().getLength(), data.value, true);
+    double time = myRange.getMax();
+    ImmutableList<SeriesData<Long>> data = mySeries.getDataSeries().getDataForXRange(new Range(time, time));
+    if (data.isEmpty()) {
+      return null;
+    }
+
+    SeriesData<Long> key = new SeriesData<>(TimeUnit.MICROSECONDS.toNanos((long)time), 0L);
+    int index = Collections.binarySearch(data, key, (left, right) -> {
+      long diff = left.x - right.x;
+      return (diff == 0) ? 0 : (diff < 0) ? -1 : 1;
+    });
+    index = index >= 0 ? index : -(index + 1); // This returns the data to the right given no exact match.
+    index = Math.max(0, Math.min(data.size() - 1, index));
+
+    return myFormatter.getFormattedString(mySeries.getYRange().getLength(), data.get(index).value, true);
   }
 }
