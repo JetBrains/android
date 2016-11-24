@@ -23,22 +23,22 @@ import java.awt.*;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
-public final class ProportionalLayoutTest {
+public final class TabularLayoutTest {
   @Test
   public void columnCountMatchesLayoutDefinition() {
-    ProportionalLayout layout = ProportionalLayout.fromString("Fit,*,123px");
+    TabularLayout layout = TabularLayout.fromString("Fit,*,123px");
     assertThat(layout.getNumColumns()).isEqualTo(3);
   }
 
   @Test
   public void minimumWidthCalculationUsesFitValues() throws Exception {
-    final JPanel panel = new JPanel(ProportionalLayout.fromString("Fit,Fit"));
+    final JPanel panel = new JPanel(TabularLayout.fromString("Fit,Fit"));
 
     Component col0 = Box.createHorizontalStrut(80);
     Component col1 = Box.createHorizontalStrut(20);
 
-    panel.add(col0, new ProportionalLayout.Constraint(0, 0));
-    panel.add(col1, new ProportionalLayout.Constraint(0, 1));
+    panel.add(col0, new TabularLayout.Constraint(0, 0));
+    panel.add(col1, new TabularLayout.Constraint(0, 1));
 
     mockPackPanel(panel);
 
@@ -47,13 +47,13 @@ public final class ProportionalLayoutTest {
 
   @Test
   public void minimumWidthCalculationFixedValuesOverrideComponentSizes() throws Exception {
-    final JPanel panel = new JPanel(ProportionalLayout.fromString("100px,50px"));
+    final JPanel panel = new JPanel(TabularLayout.fromString("100px,50px"));
 
     Component col0 = Box.createHorizontalStrut(90);
     Component col1 = Box.createHorizontalStrut(90);
 
-    panel.add(col0, new ProportionalLayout.Constraint(0, 0));
-    panel.add(col1, new ProportionalLayout.Constraint(0, 1));
+    panel.add(col0, new TabularLayout.Constraint(0, 0));
+    panel.add(col1, new TabularLayout.Constraint(0, 1));
 
     mockPackPanel(panel);
 
@@ -62,7 +62,7 @@ public final class ProportionalLayoutTest {
 
   @Test
   public void fitWidthChoosesLargestValueAcrossMultipleRows() throws Exception {
-    final JPanel panel = new JPanel(ProportionalLayout.fromString("Fit,Fit"));
+    final JPanel panel = new JPanel(TabularLayout.fromString("Fit,Fit"));
 
     final Component row0col0 = Box.createHorizontalStrut(100);
     final Component row1col0 = Box.createHorizontalStrut(300);
@@ -72,13 +72,13 @@ public final class ProportionalLayoutTest {
     final Component row2col1 = Box.createHorizontalStrut(400);
     final Component row4col1 = Box.createHorizontalStrut(100);
 
-    panel.add(row0col0, new ProportionalLayout.Constraint(0, 0));
-    panel.add(row1col0, new ProportionalLayout.Constraint(1, 0));
-    panel.add(row3col0, new ProportionalLayout.Constraint(3, 0));
+    panel.add(row0col0, new TabularLayout.Constraint(0, 0));
+    panel.add(row1col0, new TabularLayout.Constraint(1, 0));
+    panel.add(row3col0, new TabularLayout.Constraint(3, 0));
 
-    panel.add(row0col1, new ProportionalLayout.Constraint(0, 1));
-    panel.add(row2col1, new ProportionalLayout.Constraint(2, 1));
-    panel.add(row4col1, new ProportionalLayout.Constraint(4, 1));
+    panel.add(row0col1, new TabularLayout.Constraint(0, 1));
+    panel.add(row2col1, new TabularLayout.Constraint(2, 1));
+    panel.add(row4col1, new TabularLayout.Constraint(4, 1));
 
     mockPackPanel(panel);
 
@@ -95,7 +95,7 @@ public final class ProportionalLayoutTest {
 
   @Test
   public void proportionalColumnsTakeRemainingSpace() throws Exception {
-    final JPanel panel = new JPanel(ProportionalLayout.fromString("100px,Fit,3*,*,50px"));
+    final JPanel panel = new JPanel(TabularLayout.fromString("100px,Fit,3*,*,50px"));
     panel.setPreferredSize(new Dimension(300, 20));
 
     // Col 1 = 100, Col 5 = 50
@@ -109,11 +109,11 @@ public final class ProportionalLayoutTest {
     final Component col3 = new JPanel();
     final Component col4 = new JPanel();
 
-    panel.add(col0, new ProportionalLayout.Constraint(0, 0));
-    panel.add(col1, new ProportionalLayout.Constraint(0, 1));
-    panel.add(col2, new ProportionalLayout.Constraint(0, 2));
-    panel.add(col3, new ProportionalLayout.Constraint(0, 3));
-    panel.add(col4, new ProportionalLayout.Constraint(0, 4));
+    panel.add(col0, new TabularLayout.Constraint(0, 0));
+    panel.add(col1, new TabularLayout.Constraint(0, 1));
+    panel.add(col2, new TabularLayout.Constraint(0, 2));
+    panel.add(col3, new TabularLayout.Constraint(0, 3));
+    panel.add(col4, new TabularLayout.Constraint(0, 4));
 
     mockPackPanel(panel);
 
@@ -128,7 +128,7 @@ public final class ProportionalLayoutTest {
 
   @Test
   public void preferredSizeCalculationMakesRoomForProportionalColumns() throws Exception {
-    final JPanel panel = new JPanel(ProportionalLayout.fromString("*,2*,3*,4*"));
+    final JPanel panel = new JPanel(TabularLayout.fromString("*,2*,3*,4*"));
 
     // Col 0 - 10%
     // Col 1 - 20%
@@ -140,10 +140,10 @@ public final class ProportionalLayoutTest {
     final Component col2 = Box.createHorizontalStrut(30); // Needs overall width to be 100
     final Component col3 = Box.createHorizontalStrut(80); // Needs overall width to be 200
 
-    panel.add(col0, new ProportionalLayout.Constraint(0, 0));
-    panel.add(col1, new ProportionalLayout.Constraint(0, 1));
-    panel.add(col2, new ProportionalLayout.Constraint(0, 2));
-    panel.add(col3, new ProportionalLayout.Constraint(0, 3));
+    panel.add(col0, new TabularLayout.Constraint(0, 0));
+    panel.add(col1, new TabularLayout.Constraint(0, 1));
+    panel.add(col2, new TabularLayout.Constraint(0, 2));
+    panel.add(col3, new TabularLayout.Constraint(0, 3));
 
     mockPackPanel(panel);
 
@@ -156,7 +156,7 @@ public final class ProportionalLayoutTest {
 
   @Test
   public void minimumSizeCalculationCollapsesProportionalColumns() throws Exception {
-    final JPanel panel = new JPanel(ProportionalLayout.fromString("10px,990*,*,20px,3*"));
+    final JPanel panel = new JPanel(TabularLayout.fromString("10px,990*,*,20px,3*"));
 
     mockPackPanel(panel);
 
@@ -165,13 +165,13 @@ public final class ProportionalLayoutTest {
 
   @Test
   public void heightCalculationSkipsEmptyRows() throws Exception {
-    final JPanel panel = new JPanel(ProportionalLayout.fromString("100px", 0));
+    final JPanel panel = new JPanel(TabularLayout.fromString("100px", 0));
 
     final Component row0 = Box.createVerticalStrut(20);
     final Component row2 = Box.createVerticalStrut(50);
 
-    panel.add(row0, new ProportionalLayout.Constraint(0, 0));
-    panel.add(row2, new ProportionalLayout.Constraint(2, 0));
+    panel.add(row0, new TabularLayout.Constraint(0, 0));
+    panel.add(row2, new TabularLayout.Constraint(2, 0));
 
     mockPackPanel(panel);
 
@@ -184,15 +184,15 @@ public final class ProportionalLayoutTest {
 
   @Test
   public void heightCalculationIncludesVgapAndSkipsEmptyRows() throws Exception {
-    final JPanel panel = new JPanel(ProportionalLayout.fromString("100px", 20));
+    final JPanel panel = new JPanel(TabularLayout.fromString("100px", 20));
 
     final Component row2 = Box.createVerticalStrut(20);
     final Component row4 = Box.createVerticalStrut(40);
     final Component row6 = Box.createVerticalStrut(60);
 
-    panel.add(row2, new ProportionalLayout.Constraint(2, 0));
-    panel.add(row4, new ProportionalLayout.Constraint(4, 0));
-    panel.add(row6, new ProportionalLayout.Constraint(6, 0));
+    panel.add(row2, new TabularLayout.Constraint(2, 0));
+    panel.add(row4, new TabularLayout.Constraint(4, 0));
+    panel.add(row6, new TabularLayout.Constraint(6, 0));
 
     mockPackPanel(panel);
 
@@ -208,15 +208,15 @@ public final class ProportionalLayoutTest {
 
   @Test
   public void heightCalculationSkipsInvisibleRows() throws Exception {
-    final JPanel panel = new JPanel(ProportionalLayout.fromString("100px", 0));
+    final JPanel panel = new JPanel(TabularLayout.fromString("100px", 0));
 
     final Component row0 = Box.createVerticalStrut(20);
     final Component row1 = Box.createVerticalStrut(50);
     final Component row2 = Box.createVerticalStrut(20);
 
-    panel.add(row0, new ProportionalLayout.Constraint(0, 0));
-    panel.add(row1, new ProportionalLayout.Constraint(1, 0));
-    panel.add(row2, new ProportionalLayout.Constraint(2, 0));
+    panel.add(row0, new TabularLayout.Constraint(0, 0));
+    panel.add(row1, new TabularLayout.Constraint(1, 0));
+    panel.add(row2, new TabularLayout.Constraint(2, 0));
 
     row1.setVisible(false);
     mockPackPanel(panel);
@@ -229,15 +229,15 @@ public final class ProportionalLayoutTest {
 
   @Test
   public void proportionalLayoutCollapsesIfAllContentsAreInvisible() throws Exception {
-    final JPanel panel = new JPanel(ProportionalLayout.fromString("Fit", 0));
+    final JPanel panel = new JPanel(TabularLayout.fromString("Fit", 0));
 
     final Component row0 = Box.createVerticalStrut(20);
     final Component row1 = Box.createVerticalStrut(50);
     final Component row2 = Box.createVerticalStrut(20);
 
-    panel.add(row0, new ProportionalLayout.Constraint(0, 0));
-    panel.add(row1, new ProportionalLayout.Constraint(1, 0));
-    panel.add(row2, new ProportionalLayout.Constraint(2, 0));
+    panel.add(row0, new TabularLayout.Constraint(0, 0));
+    panel.add(row1, new TabularLayout.Constraint(1, 0));
+    panel.add(row2, new TabularLayout.Constraint(2, 0));
 
     row0.setVisible(false);
     row1.setVisible(false);
@@ -249,11 +249,11 @@ public final class ProportionalLayoutTest {
 
   @Test
   public void layoutTakesInsetsIntoAccount() throws Exception {
-    final JPanel panel = new JPanel(ProportionalLayout.fromString("*"));
+    final JPanel panel = new JPanel(TabularLayout.fromString("*"));
     panel.setPreferredSize(new Dimension(300, 30));
 
     final Component cell = new JPanel();
-    panel.add(cell, new ProportionalLayout.Constraint(0, 0));
+    panel.add(cell, new TabularLayout.Constraint(0, 0));
 
     final int top = 1;
     final int left = 2;
@@ -270,7 +270,7 @@ public final class ProportionalLayoutTest {
 
   @Test
   public void cellsCanSpanAcrossMultipleColumns() throws Exception {
-    final JPanel panel = new JPanel(ProportionalLayout.fromString("Fit,Fit"));
+    final JPanel panel = new JPanel(TabularLayout.fromString("Fit,Fit"));
 
     final Component row0col0 = Box.createHorizontalStrut(20);
     final Component row0col1 = Box.createHorizontalStrut(50);
@@ -278,11 +278,11 @@ public final class ProportionalLayoutTest {
     final Component row2col0 = Box.createHorizontalStrut(10);
     final Component row2col1 = Box.createHorizontalStrut(100);
 
-    panel.add(row0col0, new ProportionalLayout.Constraint(0, 0));
-    panel.add(row0col1, new ProportionalLayout.Constraint(0, 1));
-    panel.add(row1, new ProportionalLayout.Constraint(1, 0, 2));
-    panel.add(row2col0, new ProportionalLayout.Constraint(2, 0));
-    panel.add(row2col1, new ProportionalLayout.Constraint(2, 1));
+    panel.add(row0col0, new TabularLayout.Constraint(0, 0));
+    panel.add(row0col1, new TabularLayout.Constraint(0, 1));
+    panel.add(row1, new TabularLayout.Constraint(1, 0, 2));
+    panel.add(row2col0, new TabularLayout.Constraint(2, 0));
+    panel.add(row2col1, new TabularLayout.Constraint(2, 1));
 
     mockPackPanel(panel);
     assertThat(row1.getWidth()).isEqualTo(120);
@@ -290,11 +290,11 @@ public final class ProportionalLayoutTest {
 
   @Test
   public void columnSpanMustBeWithinBounds() throws Exception {
-    final JPanel panel = new JPanel(ProportionalLayout.fromString("Fit,Fit"));
+    final JPanel panel = new JPanel(TabularLayout.fromString("Fit,Fit"));
     final JPanel row = new JPanel();
 
     try {
-      panel.add(row, new ProportionalLayout.Constraint(0, 0, 3));
+      panel.add(row, new TabularLayout.Constraint(0, 0, 3));
       fail();
     }
     catch (IllegalArgumentException ignored) {
@@ -303,11 +303,11 @@ public final class ProportionalLayoutTest {
 
   @Test
   public void columnSpanMustBeGreaterThanZero() throws Exception {
-    final JPanel panel = new JPanel(ProportionalLayout.fromString("Fit,Fit"));
+    final JPanel panel = new JPanel(TabularLayout.fromString("Fit,Fit"));
     final JPanel row = new JPanel();
 
     try {
-      panel.add(row, new ProportionalLayout.Constraint(0, 0, 0));
+      panel.add(row, new TabularLayout.Constraint(0, 0, 0));
       fail();
     }
     catch (IllegalArgumentException ignored) {
