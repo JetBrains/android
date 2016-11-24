@@ -41,6 +41,12 @@ public class Scene implements ModelListener {
   private SceneComponent myRoot;
   private boolean myAnimate = true; // animate layout changes
 
+  static final int NO_LAYOUT = 0;
+  static final int IMMEDIATE_LAYOUT = 1;
+  static final int ANIMATED_LAYOUT = 2;
+
+  private int mNeedsLayout = NO_LAYOUT;
+
   private int myLastMouseX;
   private int myLastMouseY;
   private boolean myDidPreviousRepaint = true;
@@ -257,13 +263,13 @@ public class Scene implements ModelListener {
     if (handler instanceof ViewGroupHandler) {
       ViewGroupHandler viewGroupHandler = (ViewGroupHandler) handler;
       if (component.getViewGroupHandler() != viewGroupHandler) {
-        component.setViewGroupHandler(viewGroupHandler);
+        component.setViewGroupHandler(viewGroupHandler, true);
       }
       int childCount = component.getChildCount();
       for (int i = 0; i < childCount; i++) {
         SceneComponent child = component.getChild(i);
         if (child.getViewGroupHandler() != viewGroupHandler) {
-          child.setViewGroupHandler(viewGroupHandler);
+          child.setViewGroupHandler(viewGroupHandler, false);
         }
       }
     }
@@ -336,6 +342,7 @@ public class Scene implements ModelListener {
     double myClosestComponentDistance = Double.MAX_VALUE;
     Target myClosestTarget;
     double myClosestTargetDistance = Double.MAX_VALUE;
+    int myClosestTargetLevel = 0;
 
     public HitListener() {
       myPicker.setSelectListener(this);
@@ -346,6 +353,7 @@ public class Scene implements ModelListener {
       myClosestTarget = null;
       myClosestComponentDistance = Double.MAX_VALUE;
       myClosestTargetDistance = Double.MAX_VALUE;
+      myClosestTargetLevel = 0;
       myPicker.reset();
       root.addHit(myPicker);
       myPicker.find(x, y);
@@ -355,9 +363,10 @@ public class Scene implements ModelListener {
     public void over(Object over, double dist) {
       if (over instanceof Target) {
         Target target = (Target) over;
-        if (dist < myClosestTargetDistance) {
+        if (dist <= myClosestTargetDistance && target.getPreferenceLevel() >= myClosestTargetLevel) {
           myClosestTargetDistance = dist;
           myClosestTarget = target;
+          myClosestTargetLevel = target.getPreferenceLevel();
         }
       } else if (over instanceof SceneComponent) {
         SceneComponent component = (SceneComponent) over;
@@ -378,7 +387,9 @@ public class Scene implements ModelListener {
   public void mouseHover(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myLastMouseX = x;
     myLastMouseY = y;
-    myHoverListener.find(myRoot, x, y);
+    if (myRoot != null) {
+      myHoverListener.find(myRoot, x, y);
+    }
     if (myHoverListener.myClosestTarget != null) {
       myHoverListener.myClosestTarget.setOver(true);
     }
@@ -388,6 +399,7 @@ public class Scene implements ModelListener {
   }
 
   public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+    mNeedsLayout = NO_LAYOUT;
     myLastMouseX = x;
     myLastMouseY = y;
     myHitListener.find(myRoot, x, y);
@@ -400,27 +412,31 @@ public class Scene implements ModelListener {
   public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myLastMouseX = x;
     myLastMouseY = y;
-    boolean needsLayout = false;
     if (mHitTarget != null) {
       myHitListener.find(myRoot, x, y);
-      needsLayout = mHitTarget.mouseDrag(x, y, myHitListener.myClosestTarget);
+      mHitTarget.mouseDrag(x, y, myHitListener.myClosestTarget);
     }
     mouseHover(x, y);
-    if (needsLayout) {
-      myModel.requestLayout(true);
+    if (mNeedsLayout != NO_LAYOUT) {
+      myModel.requestLayout(mNeedsLayout == ANIMATED_LAYOUT ? true : false);
     }
   }
 
   public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myLastMouseX = x;
     myLastMouseY = y;
-    boolean needsLayout = false;
     if (mHitTarget!= null) {
       myHitListener.find(myRoot, x, y);
-      needsLayout = mHitTarget.mouseRelease(x, y, myHitListener.myClosestTarget);
+      mHitTarget.mouseRelease(x, y, myHitListener.myClosestTarget);
     }
-    if (needsLayout) {
-      myModel.requestLayout(true);
+    if (mNeedsLayout != NO_LAYOUT) {
+      myModel.requestLayout(mNeedsLayout == ANIMATED_LAYOUT ? true : false);
+    }
+  }
+
+  public void needsLayout(int type) {
+    if (mNeedsLayout < type) {
+      mNeedsLayout = type;
     }
   }
 

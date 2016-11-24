@@ -107,14 +107,6 @@ public class AnchorTarget implements Target {
     return myType;
   }
 
-  public int getCenterX() {
-    return myLeft + (myRight - myLeft) / 2;
-  }
-
-  public int getCenterY() {
-    return myTop + (myBottom - myTop) / 2;
-  }
-
   public void setExpandSize(boolean expand) {
     myExpandArea = expand;
   }
@@ -362,10 +354,23 @@ public class AnchorTarget implements Target {
     return null;
   }
 
+  public int getCenterX() {
+    return myLeft + (myRight - myLeft) / 2;
+  }
+
+  public int getCenterY() {
+    return myTop + (myBottom - myTop) / 2;
+  }
+
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region Mouse Handling
   /////////////////////////////////////////////////////////////////////////////
+
+  @Override
+  public int getPreferenceLevel() {
+    return 20;
+  }
 
   @Override
   public void addHit(@NotNull ScenePicker picker) {
@@ -406,7 +411,7 @@ public class AnchorTarget implements Target {
   }
 
   @Override
-  public boolean mouseDrag(int x, int y, @Nullable Target closestTarget) {
+  public void mouseDrag(int x, int y, @Nullable Target closestTarget) {
     myLastX = x;
     myLastY = y;
     if (closestTarget != null && closestTarget instanceof AnchorTarget) {
@@ -427,7 +432,8 @@ public class AnchorTarget implements Target {
           attributes.setAttribute(SdkConstants.SHERPA_URI, attribute, targetId);
           setReciprocalAttribute(attributes, attribute);
           attributes.apply();
-          return true;
+          myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
+          return;
         }
       }
     }
@@ -445,11 +451,11 @@ public class AnchorTarget implements Target {
       }
     }
     attributes.apply();
-    return true;
+    myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
   }
 
   @Override
-  public boolean mouseRelease(int x, int y, @Nullable Target closestTarget) {
+  public void mouseRelease(int x, int y, @Nullable Target closestTarget) {
     myLastX = -1;
     myLastY = -1;
     if (myComponent.getParent() != null) {
@@ -471,7 +477,7 @@ public class AnchorTarget implements Target {
           }
         };
         action.execute();
-        return true;
+        myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
       }
       else {
         String attribute = getAttribute(closestTarget);
@@ -502,11 +508,10 @@ public class AnchorTarget implements Target {
             }
           };
           action.execute();
-          return true;
+          myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
         }
       }
     }
-    return false;
   }
 
   //endregion
