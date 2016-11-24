@@ -17,13 +17,16 @@ package com.android.tools.adtui;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedTreeModel;
+import org.jetbrains.annotations.NotNull;
 
 public class RangedTree implements Animatable {
 
-  private final RangedTreeModel myModel;
+  @NotNull
   private final Range myRange;
+  @NotNull
+  private RangedTreeModel myModel;
 
-  public RangedTree(Range range, RangedTreeModel model) {
+  public RangedTree(@NotNull Range range, @NotNull RangedTreeModel model) {
     myModel = model;
     myRange = range;
   }
@@ -31,5 +34,9 @@ public class RangedTree implements Animatable {
   @Override
   public void animate(float frameLength) {
     myModel.update(myRange);
+  }
+
+  public void setModel(@NotNull RangedTreeModel model) {
+    myModel = model;
   }
 }
