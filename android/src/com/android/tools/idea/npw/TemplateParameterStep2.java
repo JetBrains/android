@@ -116,6 +116,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   private JComboBox mySourceSet;
   private JLabel mySourceSetLabel;
   private boolean myUpdatingDefaults;
+  private Set<Key> myAddedState = Sets.newHashSet();
 
   /**
    * Creates a new template parameters wizard step.
@@ -617,7 +618,14 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
     String string = ImportUIUtil.makeHtmlString(metadata.getDescription());
     myTemplateDescription.setText(string);
 
+    myParameterDefaultValues.clear();
+    for (Key addedState : myAddedState) {
+      myState.remove(addedState);
+    }
+
+    Set<Key> initialState = myState.getAllKeys();
     updateStateWithDefaults(myCurrentTemplate.getParameters());
+    myAddedState = Sets.difference(myState.getAllKeys(), initialState);
 
     for (Component component : myTemplateParameters.getComponents()) {
       myTemplateParameters.remove(component);
