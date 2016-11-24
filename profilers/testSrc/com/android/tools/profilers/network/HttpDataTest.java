@@ -31,4 +31,22 @@ public class HttpDataTest {
     assertThat(data.getHttpResponseField("second"), equalTo("2"));
     assertThat(data.getHttpResponseField("equation"), equalTo("x+y=10"));
   }
+
+  @Test
+  public void urlNameParsedProperly() {
+    String urlString = "www.google.com/l1/l2/test?query=1";
+    assertThat(HttpData.getUrlName(urlString), equalTo("test"));
+  }
+
+  @Test
+  public void urlNameParsedProperlyWithEndingSlash() {
+    String urlString = "https://www.google.com/l1/l2/test/";
+    assertThat(HttpData.getUrlName(urlString), equalTo("test"));
+  }
+
+  @Test
+  public void urlNameParsedProperlyWithEmptyPath() {
+    String urlString = "https://www.google.com";
+    assertThat(HttpData.getUrlName(urlString), equalTo(""));
+  }
 }

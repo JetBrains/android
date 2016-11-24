@@ -62,7 +62,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     leftSplitter.setFirstComponent(buildMonitorUi());
     leftSplitter.setSecondComponent(new JBScrollPane(connectionsView.getComponent()));
 
-    Splitter splitter = new Splitter(false);
+    Splitter splitter = new Splitter(false, 0.6f);
     splitter.setFirstComponent(leftSplitter);
     splitter.setSecondComponent(myConnectionDetails);
 
