@@ -46,11 +46,13 @@ public class NetworkRadioDataSeries implements DataSeries<NetworkRadioDataSeries
   @Override
   @NotNull
   public ImmutableList<SeriesData<RadioState>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+    // TODO: Change the Network API to allow specifying padding in the request as number of samples.
+    long bufferNs = TimeUnit.SECONDS.toNanos(1);
     NetworkDataRequest.Builder dataRequestBuilder = NetworkDataRequest.newBuilder()
       .setAppId(myProcessId)
       .setType(NetworkDataRequest.Type.CONNECTIVITY)
-      .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
-      .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()));
+      .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
+      .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
     NetworkDataResponse response = myClient.getData(dataRequestBuilder.build());
 
     List<SeriesData<RadioState>> seriesData = new ArrayList<>();
