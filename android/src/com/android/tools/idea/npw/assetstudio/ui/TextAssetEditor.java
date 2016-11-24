@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
-import com.android.tools.adtui.ProportionalLayout;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ObservableValue;
@@ -44,7 +44,7 @@ public final class TextAssetEditor extends JPanel implements AssetComponent<Text
   private final JComboBox myFontCombo;
 
   public TextAssetEditor() {
-    super(ProportionalLayout.fromString("50px,180px"));
+    super(TabularLayout.fromString("50px,180px"));
 
     myTextField = new JTextField();
 
@@ -52,8 +52,8 @@ public final class TextAssetEditor extends JPanel implements AssetComponent<Text
     //noinspection UndesirableClassUsage
     myFontCombo = new JComboBox();
 
-    add(myTextField, new ProportionalLayout.Constraint(0, 0));
-    add(myFontCombo, new ProportionalLayout.Constraint(0, 1));
+    add(myTextField, new TabularLayout.Constraint(0, 0));
+    add(myFontCombo, new TabularLayout.Constraint(0, 1));
 
     myBindings.bindTwoWay(new TextProperty(myTextField), myTextAsset.text());
 
