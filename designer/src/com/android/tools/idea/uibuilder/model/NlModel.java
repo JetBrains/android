@@ -260,7 +260,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       @Override
       public void run() {
         DumbService.getInstance(myFacet.getModule().getProject()).waitForSmartMode();
-        if (!myFacet.getModule().getProject().isDisposed()) {
+        if (!myFacet.isDisposed()) {
           try {
             if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() == null) {
               // Try again later - model hasn't been synced yet (and for example we won't
@@ -270,6 +270,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
               return;
             }
             updateModel();
+          }
+          catch (IncorrectOperationException e) {
+            // We can get this exception if the module/project is closed while we are updating the model. Ignore it.
+            assert myFacet.isDisposed();
           }
           catch (Throwable e) {
             Logger.getInstance(NlModel.class).error(e);
@@ -587,7 +591,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     getRenderingQueue().queue(new Update("model.render", LOW_PRIORITY) {
       @Override
       public void run() {
-        if (myFacet.getModule().getProject().isDisposed()) {
+        if (myFacet.isDisposed()) {
           return;
         }
 
