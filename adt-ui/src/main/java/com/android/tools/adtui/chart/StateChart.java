@@ -75,7 +75,10 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
    * @param colors map of a state to corresponding color
    */
   public StateChart(@NotNull Map<E, Color> colors) {
-    this(colors, new DefaultStateChartReducer<>());
+    // TODO: Replace with new DefaultStateChartReducer()
+    // Having a real reducer will be important for the final release, but we don't want to risk
+    // unintentional side effects to distract us as we prepare to meet an initial milestone.
+    this(colors, (rectangles, values) -> {});
   }
 
   @VisibleForTesting
