@@ -17,12 +17,12 @@ package com.android.tools.adtui;
 
 import com.android.tools.adtui.model.Range;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.KeyStrokeAdapter;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
+import java.awt.event.*;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 
@@ -77,7 +77,7 @@ public final class SelectionComponent extends AnimatedComponent {
     myRange = globalRange;
     mySelectionRange = selectionRange;
     myMode = Mode.NONE;
-
+    setFocusable(true);
     initListeners();
   }
 
@@ -85,6 +85,7 @@ public final class SelectionComponent extends AnimatedComponent {
     this.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
+        requestFocusInWindow();
         Dimension size = getSize();
         int x = e.getX();
         double start = size.getWidth() * myStartX;
@@ -115,31 +116,48 @@ public final class SelectionComponent extends AnimatedComponent {
     this.addMouseMotionListener(new MouseMotionAdapter() {
       @Override
       public void mouseDragged(MouseEvent e) {
-        Dimension size = getSize();
-        int delta = e.getX() - myMousePressed;
-        double rangeDelta = (myRange.getLength() / size.getWidth()) * delta;
+        double pressed = xToRange(myMousePressed);
+        double current = xToRange(e.getX());
         switch (myMode) {
           case ADJUST_MIN:
-            mySelectionRange.setMin(mySelectionRange.getMin() + rangeDelta);
+            if (current > mySelectionRange.getMax()) {
+              mySelectionRange.setMax(current);
+              myMode = Mode.ADJUST_MAX;
+            }
+            mySelectionRange.setMin(current);
             myMousePressed = e.getX();
             break;
           case ADJUST_MAX:
-            mySelectionRange.setMax(mySelectionRange.getMax() + rangeDelta);
+            if (current < mySelectionRange.getMin()) {
+              mySelectionRange.setMin(current);
+              myMode = Mode.ADJUST_MIN;
+            }
+            mySelectionRange.setMax(current);
             myMousePressed = e.getX();
             break;
           case MOVE:
+            double rangeDelta = current - pressed;
             mySelectionRange.setMax(mySelectionRange.getMax() + rangeDelta);
             mySelectionRange.setMin(mySelectionRange.getMin() + rangeDelta);
             myMousePressed = e.getX();
             break;
           case CREATE:
-            double a = xToRange(myMousePressed);
-            double b = xToRange(e.getX());
-            mySelectionRange.setMin(a < b ? a : b);
-            mySelectionRange.setMax(a < b ? b : a);
+            mySelectionRange.setMin(pressed < current ? pressed : current);
+            mySelectionRange.setMax(pressed < current ? current : pressed);
             break;
           case NONE:
             break;
+        }
+      }
+    });
+    addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyPressed(KeyEvent e) {
+        if (e.getExtendedKeyCode() == KeyEvent.VK_ESCAPE) {
+          if (!mySelectionRange.isEmpty()) {
+            mySelectionRange.clear();
+            e.consume();
+          }
         }
       }
     });
