@@ -78,8 +78,8 @@ public class ConnectionDetailsView extends JPanel {
     myFieldsPanel.removeAll();
 
     if (httpData != null) {
-      VirtualFile payloadVirtualFile = httpData.getHttpResponsePayloadFile() != null
-                                       ? LocalFileSystem.getInstance().findFileByIoFile(httpData.getHttpResponsePayloadFile()) : null;
+      VirtualFile payloadVirtualFile = httpData.getResponsePayloadFile() != null
+                                       ? LocalFileSystem.getInstance().findFileByIoFile(httpData.getResponsePayloadFile()) : null;
       if (payloadVirtualFile != null) {
         // TODO: Find proper project to refactor this.
         Project project = ProjectManager.getInstance().getDefaultProject();
@@ -92,7 +92,7 @@ public class ConnectionDetailsView extends JPanel {
       myFieldsPanel.add(new NoWrapBoldLabel("Request"), new ProportionalLayout.Constraint(row, 0));
       myFieldsPanel.add(new JLabel(HttpData.getUrlName(httpData.getUrl())), new ProportionalLayout.Constraint(row, 2));
 
-      String contentType = httpData.getHttpResponseField(HttpData.FIELD_CONTENT_TYPE);
+      String contentType = httpData.getResponseField(HttpData.FIELD_CONTENT_TYPE);
       if (contentType != null) {
         row++;
         myFieldsPanel.add(new NoWrapBoldLabel("Content type"), new ProportionalLayout.Constraint(row, 0));
@@ -108,7 +108,7 @@ public class ConnectionDetailsView extends JPanel {
       myFieldsPanel.add(new NoWrapBoldLabel("URL"), new ProportionalLayout.Constraint(row, 0));
       myFieldsPanel.add(urlLabel, new ProportionalLayout.Constraint(row, 2));
 
-      String contentLength = httpData.getHttpResponseField(HttpData.FIELD_CONTENT_LENGTH);
+      String contentLength = httpData.getResponseField(HttpData.FIELD_CONTENT_LENGTH);
       if (contentLength != null) {
         contentLength = contentLength.split(";")[0];
         row++;
