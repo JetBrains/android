@@ -131,18 +131,13 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
    */
   public ConfigureTemplateParametersStep(@NotNull RenderTemplateModel model,
                                          @NotNull String title,
-                                         @NotNull String initialPackageName,
                                          @NotNull List<AndroidSourceSet> sourceSets,
                                          @Nullable AndroidFacet facet) {
     super(model, title);
 
     myFacet = facet;
-
     mySourceSets = sourceSets;
-
     myPackageName = model.packageName();
-    myPackageName.set(initialPackageName);
-
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
     myStudioPanel = new StudioWizardStepPanel(myValidatorPanel);
 
@@ -811,7 +806,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
       int suffix = 2;
       Module module = myFacet != null ? myFacet.getModule() : null;
-      Project project = getModel().getProject().getValueOrNull();;
+      Project project = getModel().getProject().getValueOrNull();
       Set<Object> relatedValues = getRelatedValues(parameter);
       SourceProvider sourceProvider = getModel().getSourceSet().get().toSourceProvider();
       while (!parameter.uniquenessSatisfied(project, module, sourceProvider, myPackageName.get(), suggested, relatedValues)) {
