@@ -24,12 +24,12 @@ import static org.junit.Assert.assertThat;
 public class HttpDataTest {
   @Test
   public void responseFieldsStringIsCorrectlySplitAndTrimmed() throws Exception {
-    HttpData data = new HttpData();
-    data.setHttpResponseFields("first=1 \n  second  = 2\n equation=x+y=10");
-
-    assertThat(data.getHttpResponseField("first"), equalTo("1"));
-    assertThat(data.getHttpResponseField("second"), equalTo("2"));
-    assertThat(data.getHttpResponseField("equation"), equalTo("x+y=10"));
+    HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
+    builder.setResponseFields("first=1 \n  second  = 2\n equation=x+y=10");
+    HttpData data = builder.build();
+    assertThat(data.getResponseField("first"), equalTo("1"));
+    assertThat(data.getResponseField("second"), equalTo("2"));
+    assertThat(data.getResponseField("equation"), equalTo("x+y=10"));
   }
 
   @Test

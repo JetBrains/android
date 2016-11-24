@@ -22,7 +22,6 @@ import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.text.StringUtil;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -57,26 +56,26 @@ public final class RpcNetworkRequestsModel implements NetworkRequestsModel {
 
     List<HttpData> httpDataList = new ArrayList<>(response.getDataList().size());
     for (NetworkProfiler.HttpConnectionData connection: response.getDataList()) {
-      HttpData httpData = new HttpData();
-      httpData.setId(connection.getConnId());
-      httpData.setStartTimeUs(TimeUnit.NANOSECONDS.toMicros(connection.getStartTimestamp()));
-      requestHttpRequest(httpData);
+      long startTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getStartTimestamp());
+      long endTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getEndTimestamp());
+      long downloadTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getDownloadingTimestamp());
 
+      HttpData.Builder httpBuilder = new HttpData.Builder(connection.getConnId(), startTimeUs, endTimeUs, downloadTimeUs);
+
+      requestHttpRequest(connection.getConnId(), httpBuilder);
       if (connection.getEndTimestamp() != 0) {
-        httpData.setEndTimeUs(TimeUnit.NANOSECONDS.toMicros(connection.getEndTimestamp()));
-        httpData.setDownloadingTimeUs(TimeUnit.NANOSECONDS.toMicros(connection.getDownloadingTimestamp()));
-        requestHttpResponse(httpData);
-        requestHttpResponseBody(httpData);
+        requestHttpResponse(connection.getConnId(), httpBuilder);
+        requestHttpResponseBody(connection.getConnId(), httpBuilder);
       }
-      httpDataList.add(httpData);
+      httpDataList.add(httpBuilder.build());
     }
 
     return httpDataList;
   }
 
-  private void requestHttpRequest(@NotNull HttpData data) {
+  private void requestHttpRequest(long connectionId, @NotNull HttpData.Builder httpBuilder) {
     NetworkProfiler.HttpDetailsRequest request = NetworkProfiler.HttpDetailsRequest.newBuilder()
-      .setConnId(data.getId())
+      .setConnId(connectionId)
       .setType(NetworkProfiler.HttpDetailsRequest.Type.REQUEST)
       .build();
     NetworkProfiler.HttpDetailsResponse.Request result;
@@ -85,13 +84,13 @@ public final class RpcNetworkRequestsModel implements NetworkRequestsModel {
     } catch (StatusRuntimeException e) {
       return;
     }
-    data.setUrl(result.getUrl());
-    data.setMethod(result.getMethod());
+    httpBuilder.setUrl(result.getUrl());
+    httpBuilder.setMethod(result.getMethod());
   }
 
-  private void requestHttpResponseBody(@NotNull HttpData data) {
+  private void requestHttpResponseBody(long connectionId, @NotNull HttpData.Builder httpBuilder) {
     NetworkProfiler.HttpDetailsRequest request = NetworkProfiler.HttpDetailsRequest.newBuilder()
-      .setConnId(data.getId())
+      .setConnId(connectionId)
       .setType(NetworkProfiler.HttpDetailsRequest.Type.RESPONSE_BODY)
       .build();
     NetworkProfiler.HttpDetailsResponse response;
@@ -102,18 +101,18 @@ public final class RpcNetworkRequestsModel implements NetworkRequestsModel {
       return;
     }
     String payloadId = response.getResponseBody().getPayloadId();
-    data.setHttpResponsePayloadId(payloadId);
+    httpBuilder.setResponsePayloadId(payloadId);
   }
 
   @NotNull
   @Override
   public ByteString requestResponsePayload(@NotNull HttpData data) {
-    if (StringUtil.isEmpty(data.getHttpResponsePayloadId())) {
+    if (StringUtil.isEmpty(data.getResponsePayloadId())) {
       return ByteString.EMPTY;
     }
 
     NetworkProfiler.NetworkPayloadRequest payloadRequest = NetworkProfiler.NetworkPayloadRequest.newBuilder()
-      .setPayloadId(data.getHttpResponsePayloadId())
+      .setPayloadId(data.getResponsePayloadId())
       .build();
     NetworkProfiler.NetworkPayloadResponse payloadResponse;
     try {
@@ -124,9 +123,9 @@ public final class RpcNetworkRequestsModel implements NetworkRequestsModel {
     return payloadResponse.getContents();
   }
 
-  private void requestHttpResponse(@NotNull HttpData data) {
+  private void requestHttpResponse(long connectionId, @NotNull HttpData.Builder httpBuilder) {
     NetworkProfiler.HttpDetailsRequest request = NetworkProfiler.HttpDetailsRequest.newBuilder()
-      .setConnId(data.getId())
+      .setConnId(connectionId)
       .setType(NetworkProfiler.HttpDetailsRequest.Type.RESPONSE)
       .build();
     NetworkProfiler.HttpDetailsResponse response;
@@ -136,6 +135,6 @@ public final class RpcNetworkRequestsModel implements NetworkRequestsModel {
     catch (StatusRuntimeException e) {
       return;
     }
-    data.setHttpResponseFields(response.getResponse().getFields());
+    httpBuilder.setResponseFields(response.getResponse().getFields());
   }
 }
