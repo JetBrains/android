@@ -205,8 +205,9 @@ public class AndroidIcons {
     public static final Icon DesignProperty = load("/icons/nele/design-property.png");  // 12x12
     public static final Icon DesignPropertyEnabled = load("/icons/nele/design-property-enabled.png");  // 12x12
 
-    public static final Icon StarOutline = load("/icons/nele/star-outline.png");  // 12x12
-    public static final Icon StarFilled = load("/icons/nele/star-filled.png");  // 16x16
+    public static final Icon FavoritesHoverOutline = load("/icons/nele/favorites-hover-outline.png");  // 16x16
+    public static final Icon FavoritesSelected = load("/icons/nele/favorites-selected.png");  // 16x16
+    public static final Icon Favorites = load("/icons/nele/favorites.png");  // 16x16
 
     public static final Icon TextStyleBold = load("/icons/nele/text/text-style-bold.png"); // 16x16
     public static final Icon TextStyleItalics = load("/icons/nele/text/text-style-italics.png"); // 16x16
