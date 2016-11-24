@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.util.ArrayList;
 
 /**
@@ -30,6 +34,8 @@ import java.util.ArrayList;
  * </ul>
  */
 public class SceneComponent {
+  public enum DrawState { SUBDUED, NORMAL, HOVER, SELECTED }
+
   private final Scene myScene;
   private final NlComponent myNlComponent;
   private ArrayList<SceneComponent> myChildren = new ArrayList<>();
@@ -40,10 +46,33 @@ public class SceneComponent {
   private AnimatedValue myAnimatedDrawWidth = new AnimatedValue();
   private AnimatedValue myAnimatedDrawHeight = new AnimatedValue();
 
-  public boolean used = true;
+  private DrawState myDrawState = DrawState.NORMAL;
+
+  private ArrayList<Target> myTargets = new ArrayList<>();
+
+  private ViewGroupHandler myViewGroupHandler;
+
+  private int myCurrentLeft = 0;
+  private int myCurrentTop = 0;
+  private int myCurrentRight = 0;
+  private int myCurrentBottom = 0;
+
+  boolean used = true;
 
   /////////////////////////////////////////////////////////////////////////////
-  // Utilities
+  //region Constructor
+  /////////////////////////////////////////////////////////////////////////////
+
+  public SceneComponent(@NotNull Scene scene, @NotNull NlComponent component) {
+    myScene = scene;
+    myNlComponent = component;
+    updateFrom(component);
+    myScene.addComponent(this);
+  }
+
+  //endregion
+  /////////////////////////////////////////////////////////////////////////////
+  //region Utilities
   /////////////////////////////////////////////////////////////////////////////
 
   /**
@@ -54,7 +83,7 @@ public class SceneComponent {
     int target;
     long startTime;
     int duration = 350; // ms -- the duration of the animation
-
+    boolean animating = false;
     /**
      * Set the value directly without animating
      *
@@ -63,6 +92,7 @@ public class SceneComponent {
     public void setValue(int v) {
       value = v;
       startTime = 0;
+      animating = false;
     }
 
     /**
@@ -74,10 +104,12 @@ public class SceneComponent {
      */
     public void setTarget(int v, long time) {
       if (target == v) {
+        animating = false;
         return;
       }
       startTime = time;
       target = v;
+      animating = true;
     }
 
     /**
@@ -90,16 +122,19 @@ public class SceneComponent {
      */
     public int getValue(long time) {
       if (startTime == 0) {
+        animating = false;
         return value;
       }
       float progress = (time - startTime) / (float)duration;
       if (progress > 1) {
         value = target;
+        animating = false;
         return value;
       }
       else if (progress <= 0) {
         return value;
       }
+      animating = true;
       return (int)(0.5f + EaseInOutInterpolator(progress, value, target));
     }
 
@@ -122,19 +157,9 @@ public class SceneComponent {
     }
   }
 
+  //endregion
   /////////////////////////////////////////////////////////////////////////////
-  // Constructor
-  /////////////////////////////////////////////////////////////////////////////
-
-  public SceneComponent(@NotNull Scene scene, @NotNull NlComponent component) {
-    myScene = scene;
-    myNlComponent = component;
-    updateFrom(component);
-    myScene.addComponent(this);
-  }
-
-  /////////////////////////////////////////////////////////////////////////////
-  // Accessors
+  //region Accessors
   /////////////////////////////////////////////////////////////////////////////
 
   public SceneComponent getParent() {
@@ -151,6 +176,20 @@ public class SceneComponent {
 
   public int getDrawY() {
     return myAnimatedDrawY.getValue(0);
+  }
+
+  public int getOffsetParentX() {
+    if (myParent != null) {
+      return getDrawX() -  myParent.getDrawX();
+    }
+    return getDrawX();
+  }
+
+  public int getOffsetParentY() {
+    if (myParent != null) {
+      return getDrawY() -  myParent.getDrawY();
+    }
+    return getDrawY();
   }
 
   public int getDrawWidth() {
@@ -199,9 +238,73 @@ public class SceneComponent {
     return myChildren.get(i);
   }
 
+  public void setDrawState(@NotNull DrawState drawState) {
+    myDrawState = drawState;
+  }
+
+  public void setExpandTargetArea(boolean expandArea) {
+    int count = myTargets.size();
+    for (int i = 0; i < count; i++) {
+      Target target = myTargets.get(i);
+      if (target instanceof AnchorTarget) {
+        AnchorTarget anchor = (AnchorTarget) target;
+        anchor.setExpandSize(expandArea);
+      }
+    }
+  }
+
+  @VisibleForTesting
+  AnchorTarget getAnchorTarget(@NotNull AnchorTarget.Type type) {
+    int count = myTargets.size();
+    for (int i = 0; i < count; i++) {
+      if (myTargets.get(i) instanceof AnchorTarget) {
+        AnchorTarget target = (AnchorTarget) myTargets.get(i);
+        if (target.getType() == type) {
+          return target;
+        }
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  public SceneComponent getSceneComponent(@NotNull String componentId) {
+    if (componentId.equalsIgnoreCase(myNlComponent.getId())) {
+      return this;
+    }
+    int count = myChildren.size();
+    for (int i = 0; i < count; i++) {
+      SceneComponent child = myChildren.get(i);
+      SceneComponent found = child.getSceneComponent(componentId);
+      if (found != null) {
+        return found;
+      }
+    }
+    return null;
+  }
+
+  public ViewGroupHandler getViewGroupHandler() {
+    return myViewGroupHandler;
+  }
+
+  public void setViewGroupHandler(@NotNull ViewGroupHandler viewGroupHandler) {
+    if (viewGroupHandler == myViewGroupHandler) {
+      return;
+    }
+    myTargets.clear();
+    myViewGroupHandler = viewGroupHandler;
+    myViewGroupHandler.addTargets(this);
+  }
+
+  //endregion
   /////////////////////////////////////////////////////////////////////////////
-  // Maintenance
+  //region Maintenance
   /////////////////////////////////////////////////////////////////////////////
+
+  public void addTarget(@NotNull Target target) {
+    target.setComponent(this);
+    myTargets.add(target);
+  }
 
   public void addChild(@NotNull SceneComponent child) {
     child.setParent(this);
@@ -239,4 +342,69 @@ public class SceneComponent {
       myAnimatedDrawHeight.setValue(myScene.pxToDp(component.h));
     }
   }
+  //endregion
+  /////////////////////////////////////////////////////////////////////////////
+  //region Layout
+  /////////////////////////////////////////////////////////////////////////////
+
+  public boolean layout(long time) {
+    boolean needsRepaint = false;
+    myCurrentLeft = myAnimatedDrawX.getValue(time);
+    myCurrentTop = myAnimatedDrawY.getValue(time);
+    myCurrentRight = myCurrentLeft + myAnimatedDrawWidth.getValue(time);
+    myCurrentBottom = myCurrentTop + myAnimatedDrawHeight.getValue(time);
+    needsRepaint |= myAnimatedDrawX.animating;
+    needsRepaint |= myAnimatedDrawY.animating;
+    needsRepaint |= myAnimatedDrawWidth.animating;
+    needsRepaint |= myAnimatedDrawHeight.animating;
+    int num = myTargets.size();
+    for (int i = 0; i < num; i++) {
+      Target target = myTargets.get(i);
+      needsRepaint |= target.layout(myCurrentLeft, myCurrentTop, myCurrentRight, myCurrentBottom);
+    }
+    int childCount = myChildren.size();
+    for (int i = 0; i < childCount; i++) {
+      SceneComponent child = myChildren.get(i);
+      needsRepaint |= child.layout(time);
+    }
+    return needsRepaint;
+  }
+
+  public void addHit(@NotNull ScenePicker picker) {
+    if (myDrawState == DrawState.HOVER) {
+      myDrawState = DrawState.NORMAL;
+    }
+    picker.addRect(this, 0, myCurrentLeft, myCurrentTop, myCurrentRight, myCurrentBottom);
+    int num = myTargets.size();
+    for (int i = 0; i < num; i++) {
+      Target target = myTargets.get(i);
+      target.addHit(picker);
+    }
+    int childCount = myChildren.size();
+    for (int i = 0; i < childCount; i++) {
+      SceneComponent child = myChildren.get(i);
+      child.addHit(picker);
+    }
+  }
+
+  public void render(@NotNull DisplayList list) {
+    Color color = Color.red;
+    if (myDrawState == DrawState.HOVER) {
+      color = Color.yellow;
+    }
+    list.addRect(myCurrentLeft, myCurrentTop, myCurrentRight, myCurrentBottom, color);
+    int num = myTargets.size();
+    for (int i = 0; i < num; i++) {
+      Target target = myTargets.get(i);
+      target.render(list);
+    }
+    int childCount = myChildren.size();
+    for (int i = 0; i < childCount; i++) {
+      SceneComponent child = myChildren.get(i);
+      child.render(list);
+    }
+  }
+
+  //endregion
+  /////////////////////////////////////////////////////////////////////////////
 }

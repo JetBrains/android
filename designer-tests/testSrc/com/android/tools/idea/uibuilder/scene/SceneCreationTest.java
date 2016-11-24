@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,14 +28,33 @@ import static com.android.SdkConstants.*;
 /**
  * Basic tests for creating and updating a Scene out of a NlModel
  */
-public class SceneCreationTest extends LayoutTestCase {
+public class SceneCreationTest extends SceneTest {
+
+  public void testBasicScene() {
+    myScreen.get("@id/button")
+      .expectXml("<TextView\n" +
+                 "    android:id=\"@id/button\"\n" +
+                 "    android:layout_width=\"100dp\"\n" +
+                 "    android:layout_height=\"20dp\"\n" +
+                 "    tools:layout_editor_absoluteX=\"100dp\"\n" +
+                 "    tools:layout_editor_absoluteY=\"200dp\"/>");
+
+    assertTrue(myInteraction.getDisplayList().getCommands().size() > 0);
+    SceneComponent component = myScene.getSceneComponent("button");
+    assertEquals(component.getScene(), myScene);
+    NlComponent nlComponent = component.getNlComponent();
+    assertEquals(component, myScene.getSceneComponent(nlComponent));
+    assertEquals(myScene.pxToDp(myScene.dpToPx(100)), 100);
+    myScene.setDpiFactor(3.5f);
+    assertEquals(myScene.pxToDp(myScene.dpToPx(100)), 100);
+  }
 
   public void testSceneCreation() {
-    ModelBuilder builder = createSimpleModel();
+    ModelBuilder builder = createModel();
     NlModel model = builder.build();
-    Scene scene = new Scene(1);
+    Scene scene = Scene.createScene(model);
+    scene.setDpiFactor(1);
     scene.setAnimate(false);
-    scene.add(model);
     assertEquals(scene.getRoot().getChildren().size(), 1);
     ComponentDescriptor parent = builder.findByPath(CONSTRAINT_LAYOUT);
     ComponentDescriptor textView = builder.findByPath(CONSTRAINT_LAYOUT, TEXT_VIEW);
@@ -69,8 +88,9 @@ public class SceneCreationTest extends LayoutTestCase {
   }
 
 
+  @Override
   @NotNull
-  private ModelBuilder createSimpleModel() {
+  public ModelBuilder createModel() {
     ModelBuilder builder = model("constraint.xml",
                                  component(CONSTRAINT_LAYOUT)
                                    .id("@id/root")

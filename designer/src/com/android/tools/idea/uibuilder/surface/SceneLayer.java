@@ -61,17 +61,7 @@ public class SceneLayer extends Layer {
       }
 
       // Draw the components
-      NlModel model = myScreenView.getModel();
-      if (model.getComponents().size() == 0) {
-        return;
-      }
-      if (myScene == null) {
-        myScene = Scene.createScene(model);
-      }
-      else {
-        myScene.updateFrom(model);
-      }
-      myDisplay.draw(myScreenView, g, myScene);
+      myDisplay.draw(myScreenView, g, myScreenView.getScene());
     } finally {
       g.dispose();
     }
