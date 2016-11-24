@@ -59,10 +59,10 @@ public class DataReducerVisualTest extends VisualTest {
 
   @Override
   protected List<Animatable> createComponentsList() {
-    myGlobalXRange = new Range();
+    myGlobalXRange = new Range(0, 0);
     myViewXRange = new AnimatedRange();
     mySelectionXRange = new AnimatedRange();
-    myYRange = new Range();
+    myYRange = new Range(0, 0);
 
     myLineChart = new LineChart((shape, config) -> shape);
     myOptimizedLineChart = new LineChart();
