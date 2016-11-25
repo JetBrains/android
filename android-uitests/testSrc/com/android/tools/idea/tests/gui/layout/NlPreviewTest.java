@@ -26,6 +26,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.*;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -249,5 +250,29 @@ public class NlPreviewTest {
     ideFrame.invokeMenuPath("Edit", "Copy");
     ideFrame.invokeMenuPath("Edit", "Paste");
     assertEquals(5, layout.getAllComponents().size());
+  }
+
+  @Test
+  public void testPreviewingDrawable() throws Exception {
+    // Regression test for http://b.android.com/221330
+    guiTest.importSimpleApplication()
+      .getEditor()
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
+      .getLayoutPreview(true)
+      .waitForRenderToFinish()
+      .showOnlyBlueprintView()
+      .waitForScreenMode(DesignSurface.ScreenMode.BLUEPRINT_ONLY);
+    guiTest.ideFrame()
+      .getEditor()
+      .open("app/src/main/res/drawable/vector.xml", EditorFixture.Tab.EDITOR)
+      .getLayoutPreview(true)
+      .waitForRenderToFinish()
+      .waitForScreenMode(DesignSurface.ScreenMode.SCREEN_ONLY);
+    guiTest.ideFrame()
+      .getEditor()
+      .switchToTab("activity_my.xml")
+      .getLayoutPreview(false)
+      .waitForRenderToFinish()
+      .waitForScreenMode(DesignSurface.ScreenMode.BLUEPRINT_ONLY);
   }
 }

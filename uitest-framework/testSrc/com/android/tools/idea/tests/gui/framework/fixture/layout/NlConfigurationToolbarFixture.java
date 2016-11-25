@@ -109,6 +109,20 @@ public class NlConfigurationToolbarFixture {
     return this;
   }
 
+  /**
+   * Click on the "Show Blueprint" button
+   */
+  public NlConfigurationToolbarFixture showBlueprint() {
+    ActionButton button = waitUntilShowing(myRobot, myToolBar.getComponent(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull ActionButton component) {
+        return "Show Blueprint".equals(component.getAction().getTemplatePresentation().getDescription());
+      }
+    });
+    new ActionButtonFixture(myRobot, button).click();
+    return this;
+  }
+
   @NotNull
   private JButton findToolbarButton(@NotNull final String tooltip) {
     return waitUntilShowing(myRobot, new GenericTypeMatcher<JButton>(JButton.class) {

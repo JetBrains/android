@@ -517,13 +517,8 @@ public class EditorFixture {
    * @return a layout preview fixture, or null if the current file is not a layout file or the
    *     wrong tab is showing
    */
-  @Nullable
+  @NotNull
   public NlPreviewFixture getLayoutPreview(boolean switchToTabIfNecessary) {
-    VirtualFile currentFile = getCurrentFile();
-    if (ResourceHelper.getFolderType(currentFile) != ResourceFolderType.LAYOUT) {
-      return null;
-    }
-
     if (switchToTabIfNecessary) {
       selectEditorTab(Tab.EDITOR);
     }
@@ -614,7 +609,7 @@ public class EditorFixture {
   /**
    * Switch to an open tab
    */
-  public void switchToTab(@NotNull String tabName) {
+  public EditorFixture switchToTab(@NotNull String tabName) {
     TabLabel tab = waitUntilShowing(robot, new GenericTypeMatcher<TabLabel>(TabLabel.class) {
       @Override
       protected boolean isMatching(@NotNull TabLabel tabLabel) {
@@ -622,6 +617,7 @@ public class EditorFixture {
       }
     });
     robot.click(tab);
+    return this;
   }
 
   @NotNull
