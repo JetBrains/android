@@ -29,6 +29,17 @@ public class ProfilerColors {
 
   public static final Color CPU_OTHER_USAGE = new JBColor(0xDFE6EE, 0xDFE6EE);
 
+  public static final Color THREADS_COUNT_COLOR = new JBColor(0x9C928B, 0x9C928B);
+
+  public static final Map<CpuProfiler.GetThreadsResponse.State, Color> THREAD_STATES = ImmutableMap.of(
+    CpuProfiler.GetThreadsResponse.State.RUNNING, CPU_USAGE,
+    CpuProfiler.GetThreadsResponse.State.SLEEPING, new JBColor(0xEDEFF1, 0xEDEFF1),
+    CpuProfiler.GetThreadsResponse.State.DEAD, Gray.TRANSPARENT);
+
+  public static final Color THREAD_HOVER_BACKGROUND = new JBColor(0xEAEFFA, 0xEAEFFA);
+
+  public static final Color THREAD_SELECTED_BACKGROUND = new JBColor(0x3476DC, 0x3476DC);
+
   public static final Color MONITOR_BACKGROUND = JBColor.background();
 
   public static final Color MONITOR_BORDER = new JBColor(0xC9C9C9, 0xC9C9C9);
@@ -64,13 +75,4 @@ public class ProfilerColors {
   public static final Color MEMORY_OTHERS = new JBColor(new Color(103, 144, 178), new Color(59, 85, 97));
 
   public static final Color MEMORY_OBJECTS = new JBColor(new Color(89, 121, 138), new Color(65, 85, 93));
-
-  public static final Map<CpuProfiler.GetThreadsResponse.State, Color> THREAD_STATES = ImmutableMap.of(
-    CpuProfiler.GetThreadsResponse.State.RUNNING, CPU_USAGE,
-    CpuProfiler.GetThreadsResponse.State.SLEEPING, new JBColor(0xEDEFF1, 0xEDEFF1),
-    CpuProfiler.GetThreadsResponse.State.DEAD, Gray.TRANSPARENT);
-
-  public static final Color THREAD_HOVER_BACKGROUND = new JBColor(0xEAEFFA, 0xEAEFFA);
-
-  public static final Color THREAD_SELECTED_BACKGROUND = new JBColor(0x3476DC, 0x3476DC);
 }

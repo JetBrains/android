@@ -20,15 +20,14 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.android.tools.profilers.ProfilerClient;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -36,36 +35,46 @@ import java.util.concurrent.TimeUnit;
  */
 public class CpuThreadCountDataSeries implements DataSeries<Long> {
   @NotNull
-  private ProfilerClient myClient;
+  private CpuServiceGrpc.CpuServiceBlockingStub myClient;
 
-  private boolean myCollectOtherCpuUsage;
   private final int myProcessId;
 
-  public CpuThreadCountDataSeries(@NotNull ProfilerClient client, boolean collectOtherCpuUsage, int id) {
+  public CpuThreadCountDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, int id) {
     myClient = client;
-    myCollectOtherCpuUsage = collectOtherCpuUsage;
     myProcessId = id;
   }
 
   @Override
   public ImmutableList<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
-    List<SeriesData<Long>> seriesData = new ArrayList<>();
-    CpuServiceGrpc.CpuServiceBlockingStub service = myClient.getCpuClient();
-    CpuProfiler.CpuDataRequest.Builder dataRequestBuilder = CpuProfiler.CpuDataRequest.newBuilder()
+    long bufferNs = TimeUnit.SECONDS.toNanos(1);
+    CpuProfiler.GetThreadsRequest.Builder request = CpuProfiler.GetThreadsRequest.newBuilder()
       .setAppId(myProcessId)
-      .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
-      .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()));
-    CpuProfiler.CpuDataResponse response = service.getData(dataRequestBuilder.build());
-    Map<Integer, ThreadStateDataSeries> threadsStateData = new HashMap<>();
-    for (CpuProfiler.CpuProfilerData data : response.getDataList()) {
-      if (data.getDataCase() != CpuProfiler.CpuProfilerData.DataCase.THREAD_ACTIVITIES) {
-        // No data to be handled.
-        continue;
+      .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
+      .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
+
+    CpuProfiler.GetThreadsResponse response = myClient.getThreads(request.build());
+
+    TreeMap<Long, Long> count = new TreeMap<>();
+    for (CpuProfiler.GetThreadsResponse.Thread thread : response.getThreadsList()) {
+      if (thread.getActivitiesCount() > 0) {
+        CpuProfiler.GetThreadsResponse.ThreadActivity first = thread.getActivities(0);
+        CpuProfiler.GetThreadsResponse.ThreadActivity last = thread.getActivities(thread.getActivitiesCount() - 1);
+        Long current = count.get(first.getTimestamp());
+        count.put(first.getTimestamp(), current == null ? 1 : current + 1);
+        if (last.getNewState() == CpuProfiler.GetThreadsResponse.State.DEAD) {
+          current = count.get(last.getTimestamp());
+          count.put(last.getTimestamp(), current == null ? -1 : current - 1);
+        }
       }
-      long dataTimestamp = TimeUnit.NANOSECONDS.toMicros(data.getBasicInfo().getEndTimestamp());
-      CpuProfiler.ThreadActivities threadActivities = data.getThreadActivities();
-      seriesData.add(new SeriesData<>(dataTimestamp, (long)threadActivities.getActivitiesCount()));
     }
-    return ContainerUtil.immutableList(seriesData);
+
+    List<SeriesData<Long>> data = new ArrayList<>();
+    long total = 0;
+    for (Map.Entry<Long, Long> entry : count.entrySet()) {
+      total += entry.getValue();
+      data.add(new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(entry.getKey()), total));
+    }
+    data.add(new SeriesData<>((long)timeCurrentRangeUs.getMax(), total));
+    return ContainerUtil.immutableList(data);
   }
 }
