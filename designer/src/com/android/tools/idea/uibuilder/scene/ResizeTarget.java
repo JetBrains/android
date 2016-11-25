@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.model.AttributesTransaction;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,6 +42,14 @@ public class ResizeTarget implements Target {
   private int myTop = 0;
   private int myRight = 0;
   private int myBottom = 0;
+  private int mStartX1;
+  private int mStartY1;
+  private int mStartX2;
+  private int mStartY2;
+
+  public Type getType() {
+    return myType;
+  }
 
   // Type of possible resize handles
   public enum Type { LEFT, LEFT_TOP, LEFT_BOTTOM, TOP, BOTTOM, RIGHT, RIGHT_TOP, RIGHT_BOTTOM }
@@ -61,6 +77,13 @@ public class ResizeTarget implements Target {
     myComponent = component;
   }
 
+  public int getCenterX() {
+    return myLeft + (myRight - myLeft) / 2;
+  }
+
+  public int getCenterY() {
+    return myTop + (myBottom - myTop) / 2;
+  }
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region Layout
@@ -73,23 +96,12 @@ public class ResizeTarget implements Target {
     int mw = l + w / 2;
     int mh = t + h / 2;
     switch (myType) {
+      /* unused for the moment
       case LEFT: {
         myLeft = l - mySize;
         myTop = mh - mySize;
         myRight = l + mySize;
         myBottom = mh + mySize;
-      } break;
-      case LEFT_TOP: {
-        myLeft = l - mySize;
-        myTop = t - mySize;
-        myRight = l + mySize;
-        myBottom = t + mySize;
-      } break;
-      case LEFT_BOTTOM: {
-        myLeft = l - mySize;
-        myTop = b - mySize;
-        myRight = l + mySize;
-        myBottom = b + mySize;
       } break;
       case TOP: {
         myLeft = mw - mySize;
@@ -103,6 +115,25 @@ public class ResizeTarget implements Target {
         myRight = r + mySize;
         myBottom = mh + mySize;
       } break;
+      case BOTTOM: {
+        myLeft = mw - mySize;
+        myTop = b - mySize;
+        myRight = mw + mySize;
+        myBottom = b + mySize;
+      } break;
+      */
+      case LEFT_TOP: {
+        myLeft = l - mySize;
+        myTop = t - mySize;
+        myRight = l + mySize;
+        myBottom = t + mySize;
+      } break;
+      case LEFT_BOTTOM: {
+        myLeft = l - mySize;
+        myTop = b - mySize;
+        myRight = l + mySize;
+        myBottom = b + mySize;
+      } break;
       case RIGHT_TOP: {
         myLeft = r - mySize;
         myTop = t - mySize;
@@ -113,12 +144,6 @@ public class ResizeTarget implements Target {
         myLeft = r - mySize;
         myTop = b - mySize;
         myRight = r + mySize;
-        myBottom = b + mySize;
-      } break;
-      case BOTTOM: {
-        myLeft = mw - mySize;
-        myTop = b - mySize;
-        myRight = mw + mySize;
         myBottom = b + mySize;
       } break;
     }
@@ -133,6 +158,53 @@ public class ResizeTarget implements Target {
   @Override
   public void render(@NotNull DisplayList list) {
     list.addRect(myLeft, myTop, myRight, myBottom, mIsOver ? Color.yellow : Color.blue);
+  }
+
+  private void updateWidth(@NotNull AttributesTransaction attributes, int w) {
+    String position = String.format(SdkConstants.VALUE_N_DP, w);
+    attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH, position);
+  }
+
+  private void updateHeight(@NotNull AttributesTransaction attributes, int h) {
+    String position = String.format(SdkConstants.VALUE_N_DP, h);
+    attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT, position);
+  }
+
+  private void updatePositionX(@NotNull AttributesTransaction attributes, int x) {
+    String positionX = String.format(SdkConstants.VALUE_N_DP, x);
+    attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, positionX);
+  }
+
+  private void updatePositionY(@NotNull AttributesTransaction attributes, int y) {
+    String positionY = String.format(SdkConstants.VALUE_N_DP, y);
+    attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, positionY);
+  }
+
+  private void updateAttributes(@NotNull AttributesTransaction attributes, int sx, int sy) {
+    int x = sx - myComponent.getParent().getDrawX();
+    int y = sy - myComponent.getParent().getDrawY();
+    switch (myType) {
+      case RIGHT_TOP: {
+        updateWidth(attributes, x - mStartX1);
+        updatePositionY(attributes, y);
+        updateHeight(attributes, mStartY2 - sy);
+      } break;
+      case RIGHT_BOTTOM: {
+        updateWidth(attributes, x - mStartX1);
+        updateHeight(attributes, sy - mStartY1);
+      } break;
+      case LEFT_TOP: {
+        updatePositionX(attributes, x);
+        updateWidth(attributes, mStartX2 - x);
+        updatePositionY(attributes, y);
+        updateHeight(attributes, mStartY2 - sy);
+      } break;
+      case LEFT_BOTTOM: {
+        updatePositionX(attributes, x);
+        updateWidth(attributes, mStartX2 - x);
+        updateHeight(attributes, sy - mStartY1);
+      } break;
+    }
   }
 
   //endregion
@@ -153,15 +225,41 @@ public class ResizeTarget implements Target {
 
   @Override
   public void mouseDown(int x, int y) {
-
+    mStartX1 = myComponent.getDrawX();
+    mStartY1 = myComponent.getDrawY();
+    mStartX2 = myComponent.getDrawX() + myComponent.getDrawWidth();
+    mStartY2 = myComponent.getDrawY() + myComponent.getDrawHeight();
   }
 
   @Override
   public void mouseDrag(int x, int y, @Nullable Target closestTarget) {
+    NlComponent component = myComponent.getNlComponent();
+    AttributesTransaction attributes = component.startAttributeTransaction();
+    updateAttributes(attributes, x, y);
+    attributes.apply();
+    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
   }
 
   @Override
   public void mouseRelease(int x, int y, @Nullable Target closestTarget) {
+    NlComponent component = myComponent.getNlComponent();
+    AttributesTransaction attributes = component.startAttributeTransaction();
+    updateAttributes(attributes, x, y);
+    attributes.apply();
+
+    NlModel nlModel = component.getModel();
+    Project project = nlModel.getProject();
+    XmlFile file = nlModel.getFile();
+
+    String label = "Constraint";
+    WriteCommandAction action = new WriteCommandAction(project, label, file) {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        attributes.commit();
+      }
+    };
+    action.execute();
+    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
   }
 
   //endregion
