@@ -44,6 +44,11 @@ public class CpuMonitor extends ProfilerMonitor {
   }
 
   @NotNull
+  public CpuThreadCountDataSeries getThreadsCount() {
+    return new CpuThreadCountDataSeries(myProfilers.getClient().getCpuClient(), myProfilers.getProcessId());
+  }
+
+  @NotNull
   public RangedListModel<CpuThreadsModel.RangedCpuThread> getThreadStates() {
     return new CpuThreadsModel(myProfilers.getClient().getCpuClient(), myProfilers.getProcessId());
   }

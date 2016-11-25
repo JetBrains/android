@@ -93,7 +93,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     JComponent eventsComponent = eventsView.initialize(getChoreographer());
 
     Range leftYRange = new Range(0, 100);
-    Range rightYRange = new Range(0, 0);
+    Range rightYRange = new Range(0, 8);
     JPanel monitorPanel = new JBPanel(new GridBagLayout());
     monitorPanel.setOpaque(false);
     monitorPanel.setBorder(MONITOR_BORDER);
@@ -105,6 +105,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       new RangedContinuousSeries("App", viewRange, leftYRange, cpu.getThisProcessCpuUsage());
     RangedContinuousSeries otherCpuSeries =
       new RangedContinuousSeries("Others", viewRange, leftYRange, cpu.getOtherProcessesCpuUsage());
+    RangedContinuousSeries threadsCountSeries =
+      new RangedContinuousSeries("Threads", viewRange, rightYRange, cpu.getThreadsCount());
 
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
@@ -112,7 +114,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     LineChart lineChart = new LineChart();
     lineChart.addLine(thisCpuSeries, new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true).setStacked(true));
     lineChart.addLine(otherCpuSeries, new LineConfig(ProfilerColors.CPU_OTHER_USAGE).setFilled(true).setStacked(true));
-    // TODO add num threads series.
+    lineChart.addLine(threadsCountSeries, new LineConfig(ProfilerColors.THREADS_COUNT_COLOR)
+      .setStepped(true).setStroke(LineConfig.DEFAULT_DASH_STROKE));
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
     monitorPanel.add(lineChartPanel, GBC_FULL);
 
@@ -143,6 +146,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     ArrayList<LegendRenderData> legendData = new ArrayList<>();
     legendData.add(lineChart.createLegendRenderData(thisCpuSeries, CPU_USAGE_AXIS, dataRange));
     legendData.add(lineChart.createLegendRenderData(otherCpuSeries, CPU_USAGE_AXIS, dataRange));
+    legendData.add(lineChart.createLegendRenderData(threadsCountSeries, NUM_THREADS_AXIS, dataRange));
     legend.setLegendData(legendData);
 
     final JLabel label = new JLabel(cpu.getName());
