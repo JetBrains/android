@@ -276,6 +276,20 @@ public class SceneComponent {
     return null;
   }
 
+  @VisibleForTesting
+  ResizeTarget getResizeTarget(ResizeTarget.Type type) {
+    int count = myTargets.size();
+    for (int i = 0; i < count; i++) {
+      if (myTargets.get(i) instanceof ResizeTarget) {
+        ResizeTarget target = (ResizeTarget) myTargets.get(i);
+        if (target.getType() == type) {
+          return target;
+        }
+      }
+    }
+    return null;
+  }
+
   @Nullable
   public SceneComponent getSceneComponent(@NotNull String componentId) {
     if (componentId.equalsIgnoreCase(myNlComponent.getId())) {
