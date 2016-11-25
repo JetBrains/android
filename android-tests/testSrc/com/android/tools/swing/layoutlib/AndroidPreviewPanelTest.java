@@ -42,7 +42,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static com.android.tools.adtui.imagediff.ImageDiffUtil.assertImageSimilar;
 
 public class AndroidPreviewPanelTest extends AndroidTestCase {
-  public void testSimpleRender() throws ParserConfigurationException, IOException, SAXException {
+  public void testSimpleRender() throws ParserConfigurationException, IOException, SAXException, InterruptedException {
     VirtualFile layout = myFixture.copyFileToProject("themeEditor/theme_preview_layout.xml", "res/layout/theme_preview_layout.xml");
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(layout);
     AtomicBoolean executorCalled = new AtomicBoolean(false);
@@ -106,6 +106,7 @@ public class AndroidPreviewPanelTest extends AndroidTestCase {
     assertEquals("android.widget.TextView", textView.getClassName());
 
     threadPool.shutdownNow();
+    threadPool.awaitTermination(30, TimeUnit.SECONDS);
     Disposer.dispose(panel);
   }
 }
