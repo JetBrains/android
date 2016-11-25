@@ -174,7 +174,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     lineChart
       .addEvent(new RangedSeries<>(viewRange, getStage().getHeapDumpSampleDurations()), new EventConfig(Color.BLACK).setText("Heap Dump"));
     lineChart.addEvent(new RangedSeries<>(viewRange, getStage().getAllocationDumpSampleDurations()),
-                       new EventConfig(Color.BLUE).setText("Alloocation Tracking"));
+                       new EventConfig(Color.BLUE).setText("Allocation Tracking"));
 
     getChoreographer().register(lineChart);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);

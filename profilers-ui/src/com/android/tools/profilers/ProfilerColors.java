@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
@@ -29,12 +29,20 @@ public class ProfilerColors {
 
   public static final Color CPU_OTHER_USAGE = new JBColor(0xDFE6EE, 0xDFE6EE);
 
+  // TODO: define final color
+  public static final Color CPU_CAPTURE_EVENT = new JBColor(0xDDDDDD, 0xDDDDDD);
+
   public static final Color THREADS_COUNT_COLOR = new JBColor(0x9C928B, 0x9C928B);
 
-  public static final Map<CpuProfiler.GetThreadsResponse.State, Color> THREAD_STATES = ImmutableMap.of(
-    CpuProfiler.GetThreadsResponse.State.RUNNING, CPU_USAGE,
-    CpuProfiler.GetThreadsResponse.State.SLEEPING, new JBColor(0xEDEFF1, 0xEDEFF1),
-    CpuProfiler.GetThreadsResponse.State.DEAD, Gray.TRANSPARENT);
+  public static final Map<CpuProfilerStage.ThreadState, Color> THREAD_STATES =
+    new ImmutableMap.Builder<CpuProfilerStage.ThreadState, Color>()
+      .put(CpuProfilerStage.ThreadState.RUNNING, CPU_USAGE)
+      .put(CpuProfilerStage.ThreadState.RUNNING_CAPTURED, new JBColor(0x428360, 0x428360))
+      .put(CpuProfilerStage.ThreadState.SLEEPING, new JBColor(0xEDEFF1, 0xEDEFF1))
+      .put(CpuProfilerStage.ThreadState.SLEEPING_CAPTURED, new JBColor(0xAAAAAA, 0xAAAAAA))
+      .put(CpuProfilerStage.ThreadState.DEAD, Gray.TRANSPARENT)
+      .put(CpuProfilerStage.ThreadState.DEAD_CAPTURED, Gray.TRANSPARENT)
+      .build();
 
   public static final Color THREAD_HOVER_BACKGROUND = new JBColor(0xEAEFFA, 0xEAEFFA);
 

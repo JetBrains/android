@@ -23,6 +23,7 @@ import com.android.tools.perflib.vmtrace.VmTraceData;
 import com.android.tools.perflib.vmtrace.VmTraceParser;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.AspectModel;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,27 +73,30 @@ public class CpuCapture extends AspectModel<CpuCaptureAspect> {
     // Try to find the main thread. The main thread is called "main" but if we fail
     // to find it we will fall back to the thread with the most information.
     Map.Entry<ThreadInfo, HNode<MethodModel>> main = null;
+    boolean foundMainThread = false;
+    myRange = new Range();
     for (Map.Entry<ThreadInfo, HNode<MethodModel>> entry : myCaptureTrees.entrySet()) {
       if (entry.getKey().getName().equals(MAIN_THREAD_NAME)) {
         main = entry;
-        break;
+        foundMainThread = true;
       }
-      if (main == null || main.getValue().duration() < entry.getValue().duration()) {
+      if (!foundMainThread && (main == null || main.getValue().duration() < entry.getValue().duration())) {
         main = entry;
       }
+      myRange.expand(entry.getValue().getStart(), entry.getValue().getEnd());
     }
     if (main == null) {
       throw new IllegalArgumentException("Invalid trace");
     }
     myMainThreadId = main.getKey().getId();
     myCaptureNode = main.getValue();
-    myRange = new Range(myCaptureNode.getStart(), myCaptureNode.getEnd());
   }
 
   public int getMainThreadId() {
     return myMainThreadId;
   }
 
+  @NotNull
   public Range getRange() {
     return myRange;
   }
@@ -120,5 +124,14 @@ public class CpuCapture extends AspectModel<CpuCaptureAspect> {
       return null;
     }
     return new TopDownTreeModel(new TopDownNode(myCaptureNode));
+  }
+
+  @NotNull
+  public Set<ThreadInfo> getThreads() {
+    return myCaptureTrees.keySet();
+  }
+
+  public boolean containsThread(int threadId) {
+    return myCaptureTrees.keySet().stream().anyMatch(info -> info.getId() == threadId);
   }
 }
