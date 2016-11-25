@@ -27,13 +27,20 @@ import static com.android.tools.idea.uibuilder.model.Coordinates.*;
  */
 public class Display {
   private long mTime;
+  private DisplayList myDisplayList = new DisplayList();
 
   public void draw(@NotNull ScreenView screenView, @NotNull Graphics2D g, @NotNull Scene scene) {
     mTime = System.currentTimeMillis();
-    SceneComponent sceneComponent = scene.getRoot();
-    if (sceneComponent != null) {
-      draw(screenView, g, sceneComponent);
+    myDisplayList.clear();
+    boolean needsRepaint = scene.paint(myDisplayList, mTime);
+    draw(screenView, g, myDisplayList);
+    if (needsRepaint) {
+      screenView.getSurface().repaint();
     }
+  }
+
+  public void draw(@NotNull ScreenView screenView, @NotNull Graphics2D g, @NotNull DisplayList list) {
+    list.paint(g, screenView);
   }
 
   public void draw(@NotNull ScreenView screenView, @NotNull Graphics2D g, @NotNull SceneComponent component) {
