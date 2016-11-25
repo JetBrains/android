@@ -141,6 +141,11 @@ public class ResizeTarget implements Target {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
+  public int getPreferenceLevel() {
+    return 10;
+  }
+
+  @Override
   public void addHit(@NotNull ScenePicker picker) {
     mIsOver = false;
     picker.addRect(this, 0, myLeft, myTop, myRight, myBottom);
@@ -152,13 +157,11 @@ public class ResizeTarget implements Target {
   }
 
   @Override
-  public boolean mouseDrag(int x, int y, @Nullable Target closestTarget) {
-    return false;
+  public void mouseDrag(int x, int y, @Nullable Target closestTarget) {
   }
 
   @Override
-  public boolean mouseRelease(int x, int y, @Nullable Target closestTarget) {
-    return false;
+  public void mouseRelease(int x, int y, @Nullable Target closestTarget) {
   }
 
   //endregion
