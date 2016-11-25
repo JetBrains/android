@@ -788,6 +788,13 @@ public class AndroidLintTest extends AndroidTestCase {
     doGlobalInspectionTest(new AndroidLintNewApiInspection(), testDir, new AnalysisScope(getProject()));
   }
 
+  public void testDisabledTestsEnabledOnTheFly() throws Exception {
+    // If this changes test no longer applies; pick different disabled issue
+    assertThat(CommentDetector.STOP_SHIP.isEnabledByDefault()).isFalse();
+    myFixture.copyFileToProject(getGlobalTestDir() + "/Stopship.java", "src/p1/p2/Stopship.java");
+    doGlobalInspectionTest(new AndroidLintStopShipInspection());
+  }
+
   public void testImpliedTouchscreenHardware() throws Exception {
     doTestWithFix(new AndroidLintImpliedTouchscreenHardwareInspection(),
                   "Add uses-feature tag",
