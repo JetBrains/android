@@ -66,9 +66,11 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider, 
   NlPalettePanel(@NotNull Project project, @Nullable DesignSurface designSurface, @NotNull CopyPasteManager copyPasteManager) {
     myProject = project;
     myCopyPasteManager = copyPasteManager;
+    IconPreviewFactory iconPreviewFactory = new IconPreviewFactory();
+    Disposer.register(this, iconPreviewFactory);
     myDependencyManager = new DependencyManager(project, this, this);
-    myPalettePanel = new NlPaletteTreeGrid(project, myDependencyManager, this::closeAutoHideToolWindow, designSurface);
-    myPreviewPane = new NlPreviewPanel(new NlPreviewImagePanel(myDependencyManager, this::closeAutoHideToolWindow));
+    myPalettePanel = new NlPaletteTreeGrid(project, myDependencyManager, this::closeAutoHideToolWindow, designSurface, iconPreviewFactory);
+    myPreviewPane = new NlPreviewPanel(new NlPreviewImagePanel(iconPreviewFactory, myDependencyManager, this::closeAutoHideToolWindow));
     myCopyProvider = new CopyProviderImpl();
     myPalettePanel.setSelectionListener(myPreviewPane);
     myLayoutType = NlLayoutType.UNKNOWN;

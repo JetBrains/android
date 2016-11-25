@@ -47,6 +47,7 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
   private DesignSurface mySurface;
   private DependencyManager myDependencyManager;
   private NlPaletteTreeGrid myPanel;
+  private IconPreviewFactory myIconPreviewFactory;
 
   @Override
   protected void setUp() throws Exception {
@@ -54,7 +55,8 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
     myDependencyManager = mock(DependencyManager.class);
     mySurface = mock(DesignSurface.class);
     Runnable closeToolWindowCallback = mock(Runnable.class);
-    myPanel = new NlPaletteTreeGrid(getProject(), myDependencyManager, closeToolWindowCallback, mySurface);
+    myIconPreviewFactory = new IconPreviewFactory();
+    myPanel = new NlPaletteTreeGrid(getProject(), myDependencyManager, closeToolWindowCallback, mySurface, myIconPreviewFactory);
     PsiFile file = myFixture.configureByText("res/layout/mine.xml", "<LinearLayout/>");
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(file.getVirtualFile());
     when(mySurface.getConfiguration()).thenReturn(configuration);
@@ -64,8 +66,8 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
   protected void tearDown() throws Exception {
     try {
       Disposer.dispose(myPanel);
-    }
-    finally {
+      Disposer.dispose(myIconPreviewFactory);
+    } finally {
       super.tearDown();
     }
   }
