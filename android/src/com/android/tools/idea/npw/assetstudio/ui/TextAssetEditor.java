@@ -44,7 +44,7 @@ public final class TextAssetEditor extends JPanel implements AssetComponent<Text
   private final JComboBox myFontCombo;
 
   public TextAssetEditor() {
-    super(TabularLayout.fromString("50px,180px"));
+    super(new TabularLayout("50px,180px"));
 
     myTextField = new JTextField();
 
