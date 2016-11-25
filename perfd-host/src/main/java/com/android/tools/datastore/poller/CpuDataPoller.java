@@ -18,10 +18,15 @@ package com.android.tools.datastore.poller;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
+import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.ProfilerServiceGrpc;
+import com.google.protobuf3jarjar.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.RunnableFuture;
@@ -35,13 +40,21 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
   private long myDataRequestStartTimestampNs = Long.MIN_VALUE;
   private CpuServiceGrpc.CpuServiceBlockingStub myPollingService;
 
+  /**
+   * Used to get device time.
+   */
+  private ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerService;
+
   //TODO Pull this into a storage container that can read/write this to disk
   protected final List<CpuProfiler.CpuProfilerData> myData = new ArrayList<>();
   protected final Map<Integer, CpuProfiler.GetThreadsResponse.Thread.Builder> myThreads = new TreeMap<>();
+  protected final Map<Integer, TraceData> myTraces = new HashMap<>();
 
   private final Object myLock = new Object();
 
   private int myProcessId = -1;
+
+  private long myStartTraceTimestamp = -1;
 
   public CpuDataPoller() {
   }
@@ -59,6 +72,7 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
   @Override
   public void connectService(ManagedChannel channel) {
     myPollingService = CpuServiceGrpc.newBlockingStub(channel);
+    myProfilerService = ProfilerServiceGrpc.newBlockingStub(channel);
   }
 
   @Override
@@ -146,6 +160,20 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
   }
 
   @Override
+  public void getTraceInfo(CpuProfiler.GetTraceInfoRequest request, StreamObserver<CpuProfiler.GetTraceInfoResponse> responseObserver) {
+    CpuProfiler.GetTraceInfoResponse.Builder response = CpuProfiler.GetTraceInfoResponse.newBuilder();
+    for (TraceData traceInfo : myTraces.values()) {
+      CpuProfiler.TraceInfo trace = traceInfo.getTrace();
+      // Get traces that overlap with the requested range.
+      if (Math.max(trace.getFromTimestamp(), request.getFromTimestamp()) <= Math.min(trace.getFromTimestamp(), request.getToTimestamp())) {
+        response.addTraceInfo(trace);
+      }
+    }
+    responseObserver.onNext(response.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
   public void startMonitoringApp(CpuProfiler.CpuStartRequest request, StreamObserver<CpuProfiler.CpuStartResponse> observer) {
     myProcessId = request.getAppId();
     synchronized (myLock) {
@@ -166,6 +194,8 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
   @Override
   public void startProfilingApp(CpuProfiler.CpuProfilingAppStartRequest request,
                                 StreamObserver<CpuProfiler.CpuProfilingAppStartResponse> observer) {
+    // TODO: start time shouldn't be keep in a variable here, but passed through request/response instead.
+    myStartTraceTimestamp = getCurrentDeviceTimeNs();
     observer.onNext(myPollingService.startProfilingApp(request));
     observer.onCompleted();
   }
@@ -173,7 +203,35 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
   @Override
   public void stopProfilingApp(CpuProfiler.CpuProfilingAppStopRequest request,
                                StreamObserver<CpuProfiler.CpuProfilingAppStopResponse> observer) {
-    observer.onNext(myPollingService.stopProfilingApp(request));
+    CpuProfiler.CpuProfilingAppStopResponse response = myPollingService.stopProfilingApp(request);
+    TraceData trace = new TraceData(response.getTraceId(), myStartTraceTimestamp, getCurrentDeviceTimeNs());
+    myStartTraceTimestamp = -1;
+    trace.data = response.getTrace();
+    myTraces.put(response.getTraceId(), trace);
+    observer.onNext(response);
     observer.onCompleted();
+  }
+
+  private long getCurrentDeviceTimeNs() {
+   return myProfilerService.getTimes(Profiler.TimesRequest.getDefaultInstance()).getTimestampNs();
+  }
+
+  private static class TraceData {
+    private CpuProfiler.TraceInfo myTrace;
+
+    @Nullable
+    public volatile ByteString data = null;
+
+    public TraceData(int traceId, long fromTimestamp, long toTimestamp) {
+      if (fromTimestamp < 0) {
+        throw new IllegalArgumentException("Invalid trace timestamp");
+      }
+      myTrace = CpuProfiler.TraceInfo.newBuilder().setTraceId(traceId).setFromTimestamp(fromTimestamp).setToTimestamp(toTimestamp).build();
+    }
+
+    @NotNull
+    public CpuProfiler.TraceInfo getTrace() {
+      return myTrace;
+    }
   }
 }

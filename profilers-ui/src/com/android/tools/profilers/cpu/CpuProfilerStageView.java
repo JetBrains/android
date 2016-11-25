@@ -17,13 +17,14 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.StateChart;
+import com.android.tools.adtui.chart.linechart.EventConfig;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.RangedListModel;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.event.EventMonitorView;
@@ -159,7 +160,11 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     legendPanel.add(legend, BorderLayout.EAST);
     monitorPanel.add(legendPanel, GBC_FULL);
 
-    RangedListModel<CpuThreadsModel.RangedCpuThread> model = cpu.getThreadStates();
+    // Create an event representing the traces within the range.
+    lineChart.addEvent(new RangedSeries<>(timeline.getViewRange(), myStage.getCpuTraceDataSeries()),
+                       new EventConfig(ProfilerColors.CPU_CAPTURE_EVENT).setText("Trace").setFilled(true));
+
+    RangedListModel<CpuThreadsModel.RangedCpuThread> model = myStage.getThreadStates();
     myThreads = new JBList(model);
     myThreads.addListSelectionListener((e) -> {
       // TODO: support selecting multiple threads simultaneously.
@@ -274,7 +279,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     private final JLabel myLabel;
 
-    private AnimatedListRenderer<CpuThreadsModel.RangedCpuThread, StateChart<CpuProfiler.GetThreadsResponse.State>> myStateCharts;
+    private AnimatedListRenderer<CpuThreadsModel.RangedCpuThread, StateChart<CpuProfilerStage.ThreadState>> myStateCharts;
 
     /**
      * Keep the index of the item currently hovered.
@@ -285,7 +290,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       myLabel = new JLabel();
       myLabel.setFont(myLabel.getFont().deriveFont(10.0f));
       myStateCharts = new AnimatedListRenderer<>(choreographer, list, thread -> {
-        StateChart<CpuProfiler.GetThreadsResponse.State> chart = new StateChart<>(ProfilerColors.THREAD_STATES);
+        StateChart<CpuProfilerStage.ThreadState> chart = new StateChart<>(ProfilerColors.THREAD_STATES);
         chart.setHeightGap(0.35f);
         chart.addSeries(thread.getDataSeries());
         return chart;
@@ -319,9 +324,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       }
       panel.setBackground(cellBackground);
 
-      panel.add(myLabel, ProfilerLayout.GBC_FULL);
+      panel.add(myLabel, GBC_FULL);
       myLabel.setOpaque(false);
-      panel.add(myStateCharts.get(index), ProfilerLayout.GBC_FULL);
+      panel.add(myStateCharts.get(index), GBC_FULL);
       return panel;
     }
   }
