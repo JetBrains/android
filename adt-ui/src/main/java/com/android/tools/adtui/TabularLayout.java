@@ -16,6 +16,7 @@
 package com.android.tools.adtui;
 
 import com.google.common.collect.Maps;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -38,16 +39,17 @@ import java.util.stream.Stream;
  * minimum size, not preferred size, which may be useful to keep in mind.
  * <p/>
  * When a layout is requested, fixed and fit-to-width columns are calculated first, and all
- * remaining space is split by the proportional columns. Rows, in contrast, are always
- * fit-to-height (although a vertical gap can be specified). Invisible components are skipped
- * over when performing the layout.
- * TODO: Support setting sizing rules on rows as well.
+ * remaining space is split by the proportional columns. Rows, in contrast, can be added on the
+ * fly. By default, they are always fit-to-height (although a vertical gap can be specified), but
+ * they can be configured for sizing as well. To set optional row definitions, use the
+ * {@link #setRowSizing(int, SizingRule)} method.
  * <p/>
  * When you register components with a panel using this layout, you must associate it with a
  * {@link TabularLayout.Constraint} telling it which row and column it should fit within.
  * You should usually associate one element per cell, and (unless that cell is sized to fit) the
  * element will be stretched to fully contain the cell. You can additionally specify an element
  * that spans across multiple columns, but be aware that such elements are skipped when calculating
+ * the layout. It's also worth noting that invisible components are skipped over when performing
  * the layout.
  * <p/>
  * Columns are pre-allocated, so it is an error to specify a cell whose column index is out of
@@ -58,8 +60,8 @@ import java.util.stream.Stream;
 public final class TabularLayout implements LayoutManager2 {
 
   /**
-   * A definition for how to size a single column, indicating how its width will be calculated
-   * during a layout.
+   * A definition for how to size a single column or row, indicating how its width or height will
+   * be calculated during a layout.
    */
   public static final class SizingRule {
     public enum Type {
@@ -111,6 +113,40 @@ public final class TabularLayout implements LayoutManager2 {
     public int getValue() {
       return myValue;
     }
+
+    /**
+     * Create a {@link SizingRule} from a string value, where each value represents either a Fit,
+     * Fixed, or Proportional column.
+     * <p/>
+     * A Fit cell is represented by the string "Fit"
+     * A Fixed cell is represented by an integer + "px" (e.g. "100px")
+     * A Proportional cell is represented by an (optional) integer + "*" (e.g. "3*", "*")
+     */
+    @NotNull
+    public static SizingRule fromString(@NotNull String s) throws IllegalArgumentException {
+      try {
+        if (s.equals("Fit")) {
+          return new SizingRule(SizingRule.Type.FIT);
+        }
+        else if (s.endsWith("px")) {
+          int value = Integer.parseInt(s.substring(0, s.length() - 2)); // e.g. "30px" -> "30"
+          return new SizingRule(SizingRule.Type.FIXED, value);
+        }
+        else if (s.equals("*")) {
+          return new SizingRule(SizingRule.Type.PROPORTIONAL, 1);
+        }
+        else if (s.endsWith("*")) {
+          int value = Integer.parseInt(s.substring(0, s.length() - 1)); // e.g. "3*" -> "3"
+          return new SizingRule(SizingRule.Type.PROPORTIONAL, value);
+        }
+        else {
+          throw new IllegalArgumentException(String.format("Bad size value: \"%s\"", s));
+        }
+      }
+      catch (NumberFormatException ex) {
+        throw new IllegalArgumentException(String.format("Bad size value: \"%s\"", s));
+      }
+    }
   }
 
   /**
@@ -120,6 +156,7 @@ public final class TabularLayout implements LayoutManager2 {
     private final int myRow;
     private final int myCol;
     private final int myColSpan;
+    private final int myRowSpan;
 
     /**
      * Create a constraint to fit this component into a grid cell.
@@ -129,15 +166,24 @@ public final class TabularLayout implements LayoutManager2 {
     }
 
     /**
+     * Create a constraint which can live across multiple columns. Note that components which span
+     * across multiple columns aren't included in fit-to-width layout calculations.
+     */
+    public Constraint(int row, int col, int colSpan) {
+      this(row, col, 1, colSpan);
+    }
+
+    /**
      * Create a constraint which can live across multiple cells. Note that components which span
      * across multiple cells aren't included in fit-to-size layout calculations.
      */
-    public Constraint(int row, int col, int colSpan) {
+    public Constraint(int row, int col, int rowSpan, int colSpan) {
       if (colSpan < 1) {
         throw new IllegalArgumentException("TabularLayout column span must be greater than 0");
       }
       myRow = row;
       myCol = col;
+      myRowSpan = rowSpan;
       myColSpan = colSpan;
     }
 
@@ -149,37 +195,56 @@ public final class TabularLayout implements LayoutManager2 {
       return myCol;
     }
 
+    public int getRowSpan() {
+      return myRowSpan;
+    }
+
     public int getColSpan() {
       return myColSpan;
     }
   }
 
   private final List<SizingRule> myColSizes;
+  private final Map<Integer, SizingRule> myRowSizes = Maps.newHashMap();
   private int myVGap; // Vertical gap between rows
 
   private final Map<Component, Constraint> myConstraints = Maps.newHashMap();
 
   public TabularLayout(SizingRule... colSizes) {
-      myColSizes = Arrays.asList(colSizes);
+    this(colSizes, new SizingRule[0]);
+  }
+
+  public TabularLayout(SizingRule[] colSizes, SizingRule[] initialRowSizes) {
+    myColSizes = Arrays.asList(colSizes);
+    for (int i = 0; i < initialRowSizes.length; i++) {
+      setRowSizing(i, initialRowSizes[i]);
+    }
   }
 
   /**
-   * Create a {@link TabularLayout} from a comma-delimited string, where each value represents
-   * either a Fit, Fixed, or Proportional column.
-   * <p/>
-   * A Fit column is represented by the string "Fit"
-   * A Fixed column is represented by an integer + "px" (e.g. 100px)
-   * A Proportional column is represented by an integer value followed by a *
+   * Create a {@link TabularLayout} from a comma-delimited string of values that are valid for
+   * creating a {@link SizingRule}. See {@link SizingRule#fromString(String)}.
    * <p/>
    * Examples:
-   * "Fit,*,*"      - First column fits to size, remaining two columns share leftover space equally
-   * "3*,*"         - First column gets 75% of space, second column gets 25% of space
+   * "Fit,*,*"      - First cell fits to size, remaining two cells share leftover space equally
+   * "3*,*"         - First cell gets 75% of space, second cell gets 25% of space
    * "75*,25*"      - Same as above
-   * "50px,*,100px" - First column gets 50 pixels, last column gets 100, middle gets remaining
+   * "50px,*,100px" - First cell gets 50 pixels, last cell gets 100, middle gets remaining space
    */
   public TabularLayout(String colSizesString) {
     this(parseSizingRules(colSizesString));
   }
+
+  /**
+   * Like {@link TabularLayout(String)} but also specifying initial sizing conditions for rows.
+   * Unlike cols, row sizing can be added dynamically later (using {@link #setRowSizing(int, SizingRule)},
+   * but for the common case where the whole table size is known at creation time, this constructor
+   * allows it to be expressed in a much more succinct manner.
+   */
+  public TabularLayout(String colSizesString, String initialRowSizesString) {
+    this(parseSizingRules(colSizesString), parseSizingRules(initialRowSizesString));
+  }
+
 
   private static SizingRule[] parseSizingRules(String colSizesString) {
     String[] sizeStrings = colSizesString.split(",");
@@ -213,9 +278,23 @@ public final class TabularLayout implements LayoutManager2 {
     return colSizes;
   }
 
+  @NotNull
   public TabularLayout setVGap(int vGap) {
     myVGap = vGap;
     return this;
+  }
+
+  @NotNull
+  public TabularLayout setRowSizing(int rowIndex, SizingRule rowSize) {
+    myRowSizes.put(rowIndex, rowSize);
+    return this;
+  }
+
+  /**
+   * @see SizingRule#fromString(String)
+   */
+  public TabularLayout setRowSizing(int rowIndex, String rowSizeString) {
+    return setRowSizing(rowIndex, SizingRule.fromString(rowSizeString));
   }
 
   public int getNumColumns() {
@@ -306,15 +385,21 @@ public final class TabularLayout implements LayoutManager2 {
         if (!comp.isVisible()) continue;
         int colIndex = myConstraints.get(comp).getCol();
         int colSpan = myConstraints.get(comp).getColSpan();
+        int rowSpan = myConstraints.get(comp).getRowSpan();
         int rowIndex = myConstraints.get(comp).getRow();
 
         int totalWidth = 0;
         for (int currCol = colIndex; currCol < colIndex + colSpan; currCol++) {
           totalWidth += colBounds.get(currCol).size;
         }
+        int totalHeight = 0;
+        for (int currRow = rowIndex; currRow < rowIndex + rowSpan; currRow++) {
+          totalHeight += rowBounds.get(currRow).size;
+        }
+
         PosSize c = colBounds.get(colIndex);
         PosSize r = rowBounds.get(rowIndex);
-        comp.setBounds(c.pos, r.pos, totalWidth, r.size);
+        comp.setBounds(c.pos, r.pos, totalWidth, totalHeight);
       }
     }
   }
@@ -336,11 +421,37 @@ public final class TabularLayout implements LayoutManager2 {
     private int myExtraSize;
 
     /**
-     * Creates a default calculator where each rule is just a fit-to-size rule. This is useful for
-     * rows which always fit-to-size and don't support fixed / proportional sizes (yet).
+     * Creates a calculator given sparse rules (using them to create a full list of rules). This is
+     * useful for rows, where rows can be created on the fly and are set to a default sizing rule
+     * in that case.
+     *
+     * @param sparseRules A mapping of indices to rules. Any missing index will be assumed to be
+     *                    fit-to-size.
+     * @param numRules The number of rules that we should create. If {@code sparseRules} happens to
+     *                 have an index even greater than that, then {@code numRules} will be updated
+     *                 to contain it.
      */
-    public SizeCalculator(int numRules, int gap) {
-      this(Stream.generate(() -> new SizingRule(SizingRule.Type.FIT)).limit(numRules).collect(Collectors.toList()), gap);
+    public SizeCalculator(Map<Integer, SizingRule> sparseRules, int numRules, int gap) {
+      this(fromSparseRules(sparseRules, numRules), gap);
+    }
+
+    private static List<SizingRule> fromSparseRules(Map<Integer, SizingRule> sparseRules, int numRules) {
+      for (Integer ruleIndex : sparseRules.keySet()) {
+        if (ruleIndex >= numRules) {
+          numRules = ruleIndex + 1;
+        }
+      }
+
+      List<SizingRule> rules = new ArrayList<>(numRules);
+      for (int i = 0; i < numRules; i++) {
+        SizingRule rule = sparseRules.get(i);
+        if (rule == null) {
+          rule = new SizingRule(SizingRule.Type.FIT);
+        }
+        rules.add(rule);
+      }
+
+      return rules;
     }
 
     /**
@@ -493,7 +604,7 @@ public final class TabularLayout implements LayoutManager2 {
       }
 
       colCalculator = new SizeCalculator(myColSizes, 0);
-      rowCalculator = new SizeCalculator(numRows, myVGap);
+      rowCalculator = new SizeCalculator(myRowSizes, numRows, myVGap);
 
       for (Component c : components) {
         if (!c.isVisible()) {
@@ -503,10 +614,11 @@ public final class TabularLayout implements LayoutManager2 {
         Constraint constraint = myConstraints.get(c);
         Dimension size = c.getMinimumSize();
         if (constraint.getColSpan() == 1) {
-          // Only components that fit in a single column are used in calculating layouts.
           colCalculator.notifySize(constraint.getCol(), size.width);
         }
-        rowCalculator.notifySize(constraint.getRow(), size.height);
+        if (constraint.getRowSpan() == 1) {
+          rowCalculator.notifySize(constraint.getRow(), size.height);
+        }
       }
     }
   }
