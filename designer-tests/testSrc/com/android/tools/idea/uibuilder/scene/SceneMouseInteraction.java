@@ -40,33 +40,48 @@ class SceneMouseInteraction {
     }
   }
 
+  public void mouseDown(String componentId) {
+    SceneComponent component = myScene.getSceneComponent(componentId);
+    if (component != null) {
+      myLastX = component.getCenterX();
+      myLastY = component.getCenterY();
+      myScene.mouseDown(myLastX, myLastY);
+      myScene.paint(myDisplayList, System.currentTimeMillis());
+    }
+  }
+
   public void mouseRelease(String componentId, AnchorTarget.Type type) {
     SceneComponent component = myScene.getSceneComponent(componentId);
     if (component != null) {
       AnchorTarget target = component.getAnchorTarget(type);
       int x = target.getCenterX();
       int y = target.getCenterY();
-      // drag
-      int steps = 10;
-      float dx = x - myLastX;
-      float dy = y - myLastY;
-      float deltaX = dx / (float)steps;
-      float deltaY = dy / (float)steps;
-      dx = myLastX;
-      dy = myLastY;
-      for (int i = 0; i < steps; i++) {
-        myScene.mouseDrag((int)dx, (int)dy);
-        myScene.paint(myDisplayList, System.currentTimeMillis());
-        dx += deltaX;
-        dy += deltaY;
-      }
-      myScene.mouseDrag(x, y);
-      myScene.mouseRelease(x, y);
-      myScene.paint(myDisplayList, System.currentTimeMillis());
+      mouseRelease(x, y);
     }
+  }
+
+  public void mouseRelease(int x, int y) {
+    // drag first
+    int steps = 10;
+    float dx = x - myLastX;
+    float dy = y - myLastY;
+    float deltaX = dx / (float)steps;
+    float deltaY = dy / (float)steps;
+    dx = myLastX;
+    dy = myLastY;
+    for (int i = 0; i < steps; i++) {
+      myScene.mouseDrag((int)dx, (int)dy);
+      myScene.paint(myDisplayList, System.currentTimeMillis());
+      dx += deltaX;
+      dy += deltaY;
+    }
+    myScene.mouseDrag(x, y);
+    myScene.mouseRelease(x, y);
+    myScene.paint(myDisplayList, System.currentTimeMillis());
   }
 
   public DisplayList getDisplayList() {
     return myDisplayList;
   }
+
 }
