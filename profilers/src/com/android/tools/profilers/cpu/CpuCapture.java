@@ -114,7 +114,11 @@ public class CpuCapture extends AspectModel<CpuCaptureAspect> {
     return myCaptureNode;
   }
 
+  @Nullable
   public RangedTreeModel getTopDown() {
+    if (myCaptureNode == null) {
+      return null;
+    }
     return new TopDownTreeModel(new TopDownNode(myCaptureNode));
   }
 }
