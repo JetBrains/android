@@ -21,8 +21,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Data of http url connection. Each {@code HttpData} object matches a http connection with a unique id, and it includes both request data
@@ -39,11 +42,12 @@ public class HttpData {
   private final long myDownloadingTimeUs;
   @NotNull private final String myUrl;
   @NotNull private final String myMethod;
+  @NotNull private final String myTrace;
 
-  @Nullable private String myResponsePayloadId;
+  @Nullable private final String myResponsePayloadId;
+
   private int myStatusCode = -1;
   private final Map<String, String> myResponseFields = new HashMap<>();
-  private String myTrace;
   // TODO: Move it to datastore, for now virtual file creation cannot select file type.
   private File myResponsePayloadFile;
 
@@ -55,8 +59,8 @@ public class HttpData {
     myUrl = builder.myUrl;
     myMethod = builder.myMethod;
     myTrace = builder.myTrace;
-
     myResponsePayloadId = builder.myResponsePayloadId;
+
     if (builder.myResponseFields != null) {
       parseResponseFields(builder.myResponseFields);
     }
@@ -88,6 +92,9 @@ public class HttpData {
     return myMethod;
   }
 
+  @NotNull
+  public String getTrace() { return myTrace; }
+
   @Nullable
   public String getResponsePayloadId() {
     return myResponsePayloadId;
@@ -96,11 +103,6 @@ public class HttpData {
   public int getStatusCode() {
     return myStatusCode;
   }
-
-  @Nullable
-  public String getTrace() { return myTrace; }
-
-  public void setTrace(@NotNull String trace) { myTrace = trace; }
 
   @Nullable
   public File getResponsePayloadFile() {
@@ -117,26 +119,27 @@ public class HttpData {
   }
 
   private void parseResponseFields(@NotNull String fields) {
+    List<String> lines = Arrays.stream(fields.split("\\n")).filter(line -> !line.trim().isEmpty()).collect(Collectors.toList());
+    if (lines.isEmpty()) {
+      return;
+    }
+
+    String firstLine = lines.remove(0);
+    String[] tokens = firstLine.split("=", 2);
+    String status = tokens[tokens.length - 1].trim();
+    // The status-line - should be formatted as per
+    // section 6.1 of RFC 2616.
+    // https://www.w3.org/Protocols/rfc2616/rfc2616-sec6.html
+    //
+    // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase
+    assert status.startsWith("HTTP/1.") : String.format("Unexpected http response status-line (%s)", status);
+    myStatusCode = Integer.parseInt(status.split(" ")[1]);
+
     myResponseFields.clear();
-    boolean isFirstLine = true;
-    for (String line : fields.split("\\n")) {
-      if (line.trim().isEmpty()) {
-        continue;
-      }
+    for (String line: lines) {
       String[] keyAndValue = line.split("=", 2);
       assert keyAndValue.length == 2 : String.format("Unexpected http response field (%s)", line);
-      String key = keyAndValue[0].trim();
-      String value = StringUtil.trimEnd(keyAndValue[1].trim(), ';');
-      myResponseFields.put(key, value);
-      if (key.equals("null")) {
-        // Parse the status code from the status line.
-        // According to https://www.w3.org/Protocols/rfc2616/rfc2616-sec6.html,
-        // the first line of a Response message is the Status-Line and the format is:
-        // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRL
-        assert isFirstLine;
-        myStatusCode = Integer.parseInt(value.split(" ")[1]);
-      }
-      isFirstLine = false;
+      myResponseFields.put(keyAndValue[0].trim(), StringUtil.trimEnd(keyAndValue[1].trim(), ';'));
     }
   }
 
@@ -188,7 +191,7 @@ public class HttpData {
     }
 
     @NotNull
-    public Builder setTrace(String trace) {
+    public Builder setTrace(@NotNull String trace) {
       myTrace = trace;
       return this;
     }
