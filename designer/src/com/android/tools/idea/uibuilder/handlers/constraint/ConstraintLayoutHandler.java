@@ -27,6 +27,7 @@ import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -376,8 +377,29 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    */
   @Override
   public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent component) {
+    if (!ConstraintModel.USE_SOLVER) {
+      return new SceneInteraction(screenView, component);
+    }
     return new ConstraintInteraction(screenView, component);
   }
+
+  /**
+   * Add resize and anchor targets on the given component
+   *
+   * @param component the component we'll add targets on
+   */
+  @Override
+  public void addTargets(@NotNull SceneComponent component) {
+    component.addTarget(new ResizeTarget(ResizeTarget.Type.LEFT_TOP));
+    component.addTarget(new ResizeTarget(ResizeTarget.Type.LEFT_BOTTOM));
+    component.addTarget(new ResizeTarget(ResizeTarget.Type.RIGHT_TOP));
+    component.addTarget(new ResizeTarget(ResizeTarget.Type.RIGHT_BOTTOM));
+    component.addTarget(new AnchorTarget(AnchorTarget.Type.LEFT));
+    component.addTarget(new AnchorTarget(AnchorTarget.Type.TOP));
+    component.addTarget(new AnchorTarget(AnchorTarget.Type.RIGHT));
+    component.addTarget(new AnchorTarget(AnchorTarget.Type.BOTTOM));
+  }
+
 
   /**
    * Return a drag handle to handle drag and drop interaction
@@ -407,15 +429,23 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   @Override
   public boolean updateCursor(@NotNull ScreenView screenView,
                               @AndroidCoordinate int x, @AndroidCoordinate int y) {
-    DrawConstraintModel drawConstraintModel = ConstraintModel.getDrawConstraintModel(screenView);
+    if (!ConstraintModel.USE_SOLVER) {
+      Scene scene = screenView.getScene();
+      int dpX = Coordinates.pxToDp(screenView, x);
+      int dpY = Coordinates.pxToDp(screenView, y);
+      scene.mouseHover(dpX, dpY);
+      screenView.getSurface().repaint();
+    } else {
+      DrawConstraintModel drawConstraintModel = ConstraintModel.getDrawConstraintModel(screenView);
 
-    drawConstraintModel.mouseMoved(x, y);
-    int cursor = drawConstraintModel.getMouseInteraction().getMouseCursor();
+      drawConstraintModel.mouseMoved(x, y);
+      int cursor = drawConstraintModel.getMouseInteraction().getMouseCursor();
 
-    // Set the mouse cursor
-    // TODO: we should only update if we are above a component we manage, not simply all component that
-    // is a child of this viewgroup
-    screenView.getSurface().setCursor(Cursor.getPredefinedCursor(cursor));
+      // Set the mouse cursor
+      // TODO: we should only update if we are above a component we manage, not simply all component that
+      // is a child of this viewgroup
+      screenView.getSurface().setCursor(Cursor.getPredefinedCursor(cursor));
+    }
     return true;
   }
 

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.handlers.scene.ScenePicker;
 import junit.framework.TestCase;
 
 import java.awt.*;
@@ -239,7 +238,7 @@ public class ScenePickerTest extends TestCase {
     scenePicker.reset();
     error = 2;
 
-    for (int i = 0; i < 10000; i++) {
+    for (int i = 0; i < 1000; i++) {
       scenePicker.addPoint(new Integer(1), 3, 2 * (i % 100), 2 * (i / 100));
     }
 
@@ -250,7 +249,7 @@ public class ScenePickerTest extends TestCase {
       found[0] = true;
     });
 
-    for (int i = 0; i < 10000; i++) {
+    for (int i = 0; i < 1000; i++) {
       expectedDistance = Math.hypot(1, 1);
       found[0] = false;
       scenePicker.find(2 * (i % 100), 2 * (i / 100));
