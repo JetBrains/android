@@ -29,6 +29,17 @@ class SceneMouseInteraction {
     myScene.paint(myDisplayList, System.currentTimeMillis());
   }
 
+  public void mouseDown(String componentId, ResizeTarget.Type type) {
+    SceneComponent component = myScene.getSceneComponent(componentId);
+    if (component != null) {
+      ResizeTarget target = component.getResizeTarget(type);
+      myLastX = target.getCenterX();
+      myLastY = target.getCenterY();
+      myScene.mouseDown(myLastX, myLastY);
+      myScene.paint(myDisplayList, System.currentTimeMillis());
+    }
+  }
+
   public void mouseDown(String componentId, AnchorTarget.Type type) {
     SceneComponent component = myScene.getSceneComponent(componentId);
     if (component != null) {
