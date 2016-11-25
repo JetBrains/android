@@ -329,6 +329,96 @@ public final class TabularLayoutTest {
     }
   }
 
+  @Test
+  public void rowsCanBeConfiguredWithFixedHeights() throws Exception {
+    TabularLayout layout = new TabularLayout("50px", "100px,200px,300px");
+
+    final JPanel panel = new JPanel(layout);
+    final Component row0 = new JPanel();
+    final Component row1 = new JPanel();
+
+    panel.add(row0, new TabularLayout.Constraint(0, 0));
+    panel.add(row1, new TabularLayout.Constraint(1, 0));
+
+    mockPackPanel(panel);
+
+    assertThat(panel.getHeight()).isEqualTo(600);
+    assertThat(row0.getHeight()).isEqualTo(100);
+    assertThat(row0.getWidth()).isEqualTo(50);
+    assertThat(row1.getHeight()).isEqualTo(200);
+    assertThat(row1.getWidth()).isEqualTo(50);
+  }
+
+  @Test
+  public void rowsCanBeConfiguredDynamically() throws Exception {
+    TabularLayout layout = new TabularLayout("50px");
+    layout.setRowSizing(0, "100px");
+    layout.setRowSizing(1, "200px");
+    layout.setRowSizing(2, "300px");
+
+    final JPanel panel = new JPanel(layout);
+    final Component row0 = new JPanel();
+    final Component row1 = new JPanel();
+
+    panel.add(row0, new TabularLayout.Constraint(0, 0));
+    panel.add(row1, new TabularLayout.Constraint(1, 0));
+
+    mockPackPanel(panel);
+
+    assertThat(panel.getHeight()).isEqualTo(600);
+    assertThat(row0.getHeight()).isEqualTo(100);
+    assertThat(row0.getWidth()).isEqualTo(50);
+    assertThat(row1.getHeight()).isEqualTo(200);
+    assertThat(row1.getWidth()).isEqualTo(50);
+  }
+  @Test
+  public void rowsCanBeConfiguredWithProportionalHeights() throws Exception {
+    TabularLayout layout = new TabularLayout("*", "*,2*");
+
+    final JPanel panel = new JPanel(layout);
+    final Component row0 = new JPanel();
+    final Component row1 = new JPanel();
+
+    panel.setPreferredSize(new Dimension(50, 300));
+
+    panel.add(row0, new TabularLayout.Constraint(0, 0));
+    panel.add(row1, new TabularLayout.Constraint(1, 0));
+
+    mockPackPanel(panel);
+
+    assertThat(panel.getHeight()).isEqualTo(300);
+    assertThat(row0.getHeight()).isEqualTo(100);
+    assertThat(row0.getWidth()).isEqualTo(50);
+    assertThat(row1.getHeight()).isEqualTo(200);
+    assertThat(row1.getWidth()).isEqualTo(50);
+  }
+
+  @Test
+  public void cellsCanSpanAcrossMultipleRowsAndColumns() throws Exception {
+    TabularLayout layout = new TabularLayout("10px,20px,30px", "100px,200px,300px");
+    final JPanel panel = new JPanel(layout);
+
+    final JPanel cellNW = new JPanel();
+    final JPanel cellNE = new JPanel();
+    final JPanel cellSW = new JPanel();
+    final JPanel cellSE = new JPanel();
+
+    panel.add(cellNW, new TabularLayout.Constraint(0, 0, 2, 2));
+    panel.add(cellNE, new TabularLayout.Constraint(0, 1, 2, 2));
+    panel.add(cellSW, new TabularLayout.Constraint(1, 0, 2, 2));
+    panel.add(cellSE, new TabularLayout.Constraint(1, 1, 2, 2));
+
+    mockPackPanel(panel);
+    assertThat(cellNW.getWidth()).isEqualTo(30);
+    assertThat(cellNW.getHeight()).isEqualTo(300);
+    assertThat(cellNE.getWidth()).isEqualTo(50);
+    assertThat(cellNE.getHeight()).isEqualTo(300);
+    assertThat(cellSW.getWidth()).isEqualTo(30);
+    assertThat(cellSW.getHeight()).isEqualTo(500);
+    assertThat(cellSE.getWidth()).isEqualTo(50);
+    assertThat(cellSE.getHeight()).isEqualTo(500);
+  }
+
   /**
    * This fake pack method aims to imitate Frame.pack(), which we can't call in headless mode.
    */
