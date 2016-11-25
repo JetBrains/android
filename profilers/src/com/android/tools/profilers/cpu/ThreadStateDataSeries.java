@@ -25,16 +25,17 @@ import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public final class ThreadStateDataSeries implements DataSeries<CpuProfiler.GetThreadsResponse.State> {
+public final class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.ThreadState> {
 
   private final int myProcessId;
   private final int myThreadId;
-  private final CpuServiceGrpc.CpuServiceBlockingStub myService;
+  private final CpuProfilerStage myStage;
 
-  public ThreadStateDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub service, int pid, int tid) {
-    myService = service;
+  public ThreadStateDataSeries(@NotNull CpuProfilerStage stage, int pid, int tid) {
+    myStage = stage;
     myProcessId = pid;
     myThreadId = tid;
   }
@@ -44,26 +45,81 @@ public final class ThreadStateDataSeries implements DataSeries<CpuProfiler.GetTh
   }
 
   @Override
-  public ImmutableList<SeriesData<CpuProfiler.GetThreadsResponse.State>> getDataForXRange(Range xRange) {
+  public ImmutableList<SeriesData<CpuProfilerStage.ThreadState>> getDataForXRange(Range xRange) {
     // TODO Investigate if this is too slow. We can then have them share a common "series", and return a view to that series.
-    ArrayList<SeriesData<CpuProfiler.GetThreadsResponse.State>> data = new ArrayList<>();
+    ArrayList<SeriesData<CpuProfilerStage.ThreadState>> data = new ArrayList<>();
 
-    CpuProfiler.GetThreadsRequest.Builder request = CpuProfiler.GetThreadsRequest.newBuilder()
+    long min = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
+    long max = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
+    CpuServiceGrpc.CpuServiceBlockingStub client = myStage.getStudioProfilers().getClient().getCpuClient();
+    CpuProfiler.GetThreadsResponse threads = client.getThreads(CpuProfiler.GetThreadsRequest.newBuilder()
       .setAppId(myProcessId)
-      .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin()))
-      .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax()));
-    CpuProfiler.GetThreadsResponse response = myService.getThreads(request.build());
+      .setStartTimestamp(min)
+      .setEndTimestamp(max)
+      .build());
 
+    CpuProfiler.GetTraceInfoResponse traces = client.getTraceInfo(CpuProfiler.GetTraceInfoRequest.newBuilder()
+        .setAppId(myProcessId)
+        .setFromTimestamp(min)
+        .setToTimestamp(max)
+        .build());
 
-    for (CpuProfiler.GetThreadsResponse.Thread thread : response.getThreadsList()) {
+    for (CpuProfiler.GetThreadsResponse.Thread thread : threads.getThreadsList()) {
       if (thread.getTid() == myThreadId) {
-        for (CpuProfiler.GetThreadsResponse.ThreadActivity activity : thread.getActivitiesList()) {
-          CpuProfiler.GetThreadsResponse.State state = activity.getNewState();
+        // Merges information from traces and samples:
+        ArrayList<Double> captureTimes = new ArrayList<>(traces.getTraceInfoCount() * 2);
+        for (CpuProfiler.TraceInfo traceInfo : traces.getTraceInfoList()) {
+          CpuCapture capture = myStage.getCapture(traceInfo.getTraceId());
+          if (capture != null && capture.containsThread(myThreadId)) {
+            captureTimes.add(capture.getRange().getMin());
+            captureTimes.add(capture.getRange().getMax());
+          }
+        }
+
+        List<CpuProfiler.GetThreadsResponse.ThreadActivity> list = thread.getActivitiesList();
+        int i = 0;
+        int j = 0;
+        boolean inCapture = false;
+        CpuProfiler.GetThreadsResponse.State state = CpuProfiler.GetThreadsResponse.State.UNSPECIFIED;
+        while (i < list.size()) {
+          CpuProfiler.GetThreadsResponse.ThreadActivity activity = list.get(i);
+
           long timestamp = TimeUnit.NANOSECONDS.toMicros(activity.getTimestamp());
-          data.add(new SeriesData<>(timestamp, state));
+          long captureTime = j < captureTimes.size() ? captureTimes.get(j).longValue() : Long.MAX_VALUE;
+
+          long time;
+          if (captureTime < timestamp) {
+            inCapture = !inCapture;
+            time = captureTime;
+            j++;
+          }
+          else {
+            state = activity.getNewState();
+            time = timestamp;
+            i++;
+          }
+          data.add(new SeriesData<>(time, getState(state, inCapture)));
+        }
+        while (j < captureTimes.size()) {
+          inCapture = !inCapture;
+          data.add(new SeriesData<>(captureTimes.get(j).longValue(), getState(state, inCapture)));
+          j++;
         }
       }
     }
     return ContainerUtil.immutableList(data);
+  }
+
+  private static CpuProfilerStage.ThreadState getState(CpuProfiler.GetThreadsResponse.State state, boolean captured) {
+    switch (state) {
+      case RUNNING:
+        return captured ? CpuProfilerStage.ThreadState.RUNNING_CAPTURED : CpuProfilerStage.ThreadState.RUNNING;
+      case DEAD:
+        return captured ? CpuProfilerStage.ThreadState.DEAD_CAPTURED : CpuProfilerStage.ThreadState.DEAD;
+      case SLEEPING:
+        return captured ? CpuProfilerStage.ThreadState.SLEEPING_CAPTURED : CpuProfilerStage.ThreadState.SLEEPING;
+      default:
+        return CpuProfilerStage.ThreadState.UNKNOWN;
+    }
   }
 }
