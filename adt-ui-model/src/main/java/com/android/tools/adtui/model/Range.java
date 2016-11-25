@@ -96,13 +96,6 @@ public class Range {
   }
 
   /**
-   * Flips the values of min and max.
-   */
-  public void flip() {
-    set(getMax(), getMin());
-  }
-
-  /**
    * Shifts the values of min and max by a determined delta.
    *
    * @param delta Number to be added to min and max
@@ -146,5 +139,9 @@ public class Range {
     else {
       return new Range(Math.max(getMin(), range.getMin()), Math.min(getMax(), range.getMax()));
     }
+  }
+
+  public void expand(double min, double max) {
+    set(Math.min(min, myMin), Math.max(max, myMax));
   }
 }

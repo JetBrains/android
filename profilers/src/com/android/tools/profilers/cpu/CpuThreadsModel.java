@@ -31,12 +31,12 @@ import java.util.concurrent.TimeUnit;
 public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuThread>
   implements RangedListModel<CpuThreadsModel.RangedCpuThread> {
   @NotNull
-  private CpuServiceGrpc.CpuServiceBlockingStub myService;
+  private final CpuProfilerStage myStage;
 
   private final int myProcessId;
 
-  public CpuThreadsModel(@NotNull CpuServiceGrpc.CpuServiceBlockingStub service, int id) {
-    myService = service;
+  public CpuThreadsModel(@NotNull CpuProfilerStage stage, int id) {
+    myStage = stage;
     myProcessId = id;
   }
 
@@ -46,7 +46,8 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
       .setAppId(myProcessId)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)range.getMin()))
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)range.getMax()));
-    CpuProfiler.GetThreadsResponse response = myService.getThreads(request.build());
+    CpuServiceGrpc.CpuServiceBlockingStub client = myStage.getStudioProfilers().getClient().getCpuClient();
+    CpuProfiler.GetThreadsResponse response = client.getThreads(request.build());
 
     // Merge the two lists.
     int i = 0;
@@ -84,8 +85,8 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
       myName = name;
     }
 
-    public RangedSeries<CpuProfiler.GetThreadsResponse.State> getDataSeries() {
-      ThreadStateDataSeries series = new ThreadStateDataSeries(myService, myProcessId, myThreadId);
+    public RangedSeries<CpuProfilerStage.ThreadState> getDataSeries() {
+      ThreadStateDataSeries series = new ThreadStateDataSeries(myStage, myProcessId, myThreadId);
       return new RangedSeries<>(myRange, series);
     }
 
