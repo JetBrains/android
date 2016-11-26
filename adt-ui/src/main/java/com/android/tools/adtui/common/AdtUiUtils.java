@@ -49,6 +49,9 @@ public final class AdtUiUtils {
 
   public static final Color GRID_COLOR = new JBColor(Gray._192, Gray._96);
 
+  public static final GridBagConstraints GBC_FULL =
+    new GridBagConstraints(0, 0, 1, 1, 1, 1, GridBagConstraints.BASELINE, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+
   private AdtUiUtils() {
   }
 

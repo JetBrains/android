@@ -21,6 +21,7 @@ import com.android.tools.adtui.LegendRenderData;
 import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
@@ -42,6 +43,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
@@ -174,21 +176,31 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     lineChart.addLine(objectSeries, new LineConfig(ProfilerColors.MEMORY_OBJECTS).setStroke(LineConfig.DEFAULT_DASH_STROKE));
 
     // TODO set proper colors / icons
-    DurationDataRenderer<DurationData> heapDumpRenderer =
-      new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, getStage().getHeapDumpSampleDurations()), Color.BLACK)
+    DurationDataRenderer<HeapDumpDurationData> heapDumpRenderer =
+      new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, getStage().getHeapDumpSampleDurations()), Color.WHITE)
+        .setLabelBackground(Color.DARK_GRAY, Color.GRAY, Color.lightGray)
         .setIsBlocking(true)
-        .setlabelProvider(new Function<DurationData, String>() {
+        .setlabelProvider(new Function<HeapDumpDurationData, String>() {
           @Override
-          public String apply(DurationData data) {
+          public String apply(HeapDumpDurationData data) {
             return String.format("Dump (%s)", TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true));
+          }
+        })
+        .setClickHander(new Consumer<HeapDumpDurationData>() {
+          @Override
+          public void accept(HeapDumpDurationData data) {
+            getStage().setFocusedHeapDump(data.getDumpInfo());
           }
         }).build();
     DurationDataRenderer<DurationData> allocationRenderer =
-      new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, getStage().getAllocationDumpSampleDurations()), Color.BLUE)
-        .setlabelProvider(data -> String
-          .format("Allocation Record (%s)", TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
-        .build();
-
+      new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, getStage().getAllocationDumpSampleDurations()), Color.WHITE)
+        .setLabelBackground(Color.DARK_GRAY, Color.GRAY, Color.lightGray)
+        .setlabelProvider(new Function<DurationData, String>() {
+          @Override
+          public String apply(DurationData data) {
+            return String.format("Allocation Record (%s)", TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true));
+          }
+        }).build();
     DurationDataRenderer<GcDurationData> gcRenderer =
       new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, monitor.getGcCount()), Color.BLACK)
         .setlabelProvider(data -> data.toString())
@@ -198,10 +210,20 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     lineChart.addCustomRenderer(allocationRenderer);
     lineChart.addCustomRenderer(gcRenderer);
 
+    final JPanel overlayPanel = new JBPanel(new BorderLayout());
+    overlayPanel.setOpaque(false);
+    overlayPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
+    final OverlayComponent overlay = new OverlayComponent(lineChart); // TODO add SelectionComponent
+    overlay.addDurationDataRenderer(heapDumpRenderer);
+    overlay.addDurationDataRenderer(allocationRenderer);
+    overlay.addDurationDataRenderer(gcRenderer);
+    overlayPanel.add(overlay, BorderLayout.CENTER);
+
     getChoreographer().register(lineChart);
     getChoreographer().register(heapDumpRenderer);
     getChoreographer().register(allocationRenderer);
     getChoreographer().register(gcRenderer);
+    getChoreographer().register(overlay);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
     final JPanel axisPanel = new JBPanel(new BorderLayout());
@@ -248,6 +270,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     legendPanel.add(label, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
 
+    monitorPanel.add(overlayPanel, GBC_FULL);
     monitorPanel.add(legendPanel, GBC_FULL);
     monitorPanel.add(axisPanel, GBC_FULL);
     monitorPanel.add(lineChartPanel, GBC_FULL);
