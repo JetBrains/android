@@ -18,12 +18,14 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendRenderData;
-import com.android.tools.adtui.chart.linechart.EventConfig;
+import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
+import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.RangedSeries;
@@ -40,6 +42,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
@@ -170,13 +173,35 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     lineChart.addLine(totalSeries, new LineConfig(ProfilerColors.MEMORY_TOTAL).setFilled(true));
     lineChart.addLine(objectSeries, new LineConfig(ProfilerColors.MEMORY_OBJECTS).setStroke(LineConfig.DEFAULT_DASH_STROKE));
 
-    // TODO set proper colors.
-    lineChart
-      .addEvent(new RangedSeries<>(viewRange, getStage().getHeapDumpSampleDurations()), new EventConfig(Color.BLACK).setText("Heap Dump"));
-    lineChart.addEvent(new RangedSeries<>(viewRange, getStage().getAllocationDumpSampleDurations()),
-                       new EventConfig(Color.BLUE).setText("Allocation Tracking"));
+    // TODO set proper colors / icons
+    DurationDataRenderer<DurationData> heapDumpRenderer =
+      new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, getStage().getHeapDumpSampleDurations()), Color.BLACK)
+        .setIsBlocking(true)
+        .setlabelProvider(new Function<DurationData, String>() {
+          @Override
+          public String apply(DurationData data) {
+            return String.format("Dump (%s)", TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true));
+          }
+        }).build();
+    DurationDataRenderer<DurationData> allocationRenderer =
+      new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, getStage().getAllocationDumpSampleDurations()), Color.BLUE)
+        .setlabelProvider(data -> String
+          .format("Allocation Record (%s)", TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
+        .build();
+
+    DurationDataRenderer<GcDurationData> gcRenderer =
+      new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, monitor.getGcCount()), Color.BLACK)
+        .setlabelProvider(data -> data.toString())
+        .setAttachLineSeries(objectSeries).build();
+
+    lineChart.addCustomRenderer(heapDumpRenderer);
+    lineChart.addCustomRenderer(allocationRenderer);
+    lineChart.addCustomRenderer(gcRenderer);
 
     getChoreographer().register(lineChart);
+    getChoreographer().register(heapDumpRenderer);
+    getChoreographer().register(allocationRenderer);
+    getChoreographer().register(gcRenderer);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
     final JPanel axisPanel = new JBPanel(new BorderLayout());

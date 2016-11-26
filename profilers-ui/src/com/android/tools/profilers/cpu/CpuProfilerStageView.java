@@ -17,14 +17,11 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.StateChart;
-import com.android.tools.adtui.chart.linechart.EventConfig;
+import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.adtui.model.RangedListModel;
-import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.*;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.event.EventMonitorView;
@@ -161,8 +158,11 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     monitorPanel.add(legendPanel, GBC_FULL);
 
     // Create an event representing the traces within the range.
-    lineChart.addEvent(new RangedSeries<>(timeline.getViewRange(), myStage.getCpuTraceDataSeries()),
-                       new EventConfig(ProfilerColors.CPU_CAPTURE_EVENT).setText("Trace").setFilled(true));
+    DurationDataRenderer<DurationData> traceRenderer =
+      new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, myStage.getCpuTraceDataSeries()), ProfilerColors.CPU_CAPTURE_EVENT)
+        .setlabelProvider(data -> "Trace")
+        .setStroke(new BasicStroke(1)).build();
+    lineChart.addCustomRenderer(traceRenderer);
 
     RangedListModel<CpuThreadsModel.RangedCpuThread> model = myStage.getThreadStates();
     myThreads = new JBList(model);
@@ -191,6 +191,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     c.weighty = 0.4;
     details.add(monitorPanel, c);
     getChoreographer().register(lineChart);
+    getChoreographer().register(traceRenderer);
     getChoreographer().register(leftAxis);
     getChoreographer().register(rightAxis);
     getChoreographer().register(selection);
