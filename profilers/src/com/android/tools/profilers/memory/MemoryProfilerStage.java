@@ -84,7 +84,7 @@ public class MemoryProfilerStage extends Stage {
     myClient.triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.newBuilder().setAppId(myProcessId).build());
   }
 
-  public DataSeries<DurationData> getHeapDumpSampleDurations() {
+  public DataSeries<HeapDumpDurationData> getHeapDumpSampleDurations() {
     return myHeapDumpSampleDataSeries;
   }
 
@@ -135,9 +135,9 @@ public class MemoryProfilerStage extends Stage {
     return myAllocationDumpSampleDataSeries;
   }
 
-  private class HeapDumpSampleDataSeries implements DataSeries<DurationData> {
+  private class HeapDumpSampleDataSeries implements DataSeries<HeapDumpDurationData> {
     @Override
-    public ImmutableList<SeriesData<DurationData>> getDataForXRange(Range xRange) {
+    public ImmutableList<SeriesData<HeapDumpDurationData>> getDataForXRange(Range xRange) {
       long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
       long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
       ListHeapDumpInfosResponse response =
@@ -145,12 +145,12 @@ public class MemoryProfilerStage extends Stage {
           .listHeapDumpInfos(ListDumpInfosRequest.newBuilder().setAppId(myProcessId).setStartTime(rangeMin).setEndTime(rangeMax).build());
 
       HeapDumpInfo lastCompleted = null;
-      List<SeriesData<DurationData>> seriesData = new ArrayList<>();
+      List<SeriesData<HeapDumpDurationData>> seriesData = new ArrayList<>();
       for (HeapDumpInfo info : response.getInfosList()) {
         long startTime = TimeUnit.NANOSECONDS.toMicros(info.getStartTime());
         long endTime = TimeUnit.NANOSECONDS.toMicros(info.getEndTime());
-        seriesData.add(new SeriesData<>(startTime, new DurationData(
-          info.getEndTime() == DurationData.UNSPECIFIED_DURATION ? DurationData.UNSPECIFIED_DURATION : endTime - startTime)));
+        seriesData.add(new SeriesData<>(startTime, new HeapDumpDurationData(
+          info.getEndTime() == DurationData.UNSPECIFIED_DURATION ? DurationData.UNSPECIFIED_DURATION : endTime - startTime, info)));
         if (info.getEndTime() != DurationData.UNSPECIFIED_DURATION) {
           lastCompleted = info;
         }
