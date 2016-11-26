@@ -15,11 +15,11 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.DurationData;
+import com.android.tools.adtui.model.DefaultDurationData;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import org.jetbrains.annotations.NotNull;
 
-public final class HeapDumpDurationData extends DurationData {
+public final class HeapDumpDurationData extends DefaultDurationData {
 
   private final MemoryProfiler.HeapDumpInfo myDumpInfo;
 

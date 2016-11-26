@@ -15,9 +15,9 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.DurationData;
+import com.android.tools.adtui.model.DefaultDurationData;
 
-public final class GcDurationData extends DurationData {
+public final class GcDurationData extends DefaultDurationData {
 
   private final int myCount;
 

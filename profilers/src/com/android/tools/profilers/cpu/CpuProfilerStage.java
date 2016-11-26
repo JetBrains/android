@@ -17,7 +17,6 @@ package com.android.tools.profilers.cpu;
 
 
 import com.android.tools.adtui.model.*;
-import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.AspectModel;
@@ -118,28 +117,33 @@ public class CpuProfilerStage extends Stage {
       .build();
 
     CpuProfiler.CpuProfilingAppStopResponse response = myCpuService.stopProfilingApp(request);
+    CpuCapture capture = null;
 
     if (!response.getStatus().equals(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS)) {
       LOG.error("Unable to stop tracing:" + response.getStatus());
       LOG.error(response.getErrorMessage());
-      myCapture = null;
     }
     else {
-      myCapture = new CpuCapture(response);
+      capture = new CpuCapture(response);
       // Add the capture to the map using the trace from response as key
-      myTraceCaptures.put(response.getTraceId(), myCapture);
+      myTraceCaptures.put(response.getTraceId(), capture);
     }
     myAspect.changed(CpuProfilerAspect.CAPTURE);
 
-    if (myCapture != null) {
-      mySelectedThread = myCapture.getMainThreadId();
-      myAspect.changed(CpuProfilerAspect.SELECTED_THREADS);
-
-      ProfilerTimeline timeline = getStudioProfilers().getTimeline();
-      timeline.setStreaming(false);
-      timeline.getSelectionRange().set(myCapture.getRange());
+    if (capture != null) {
+      setCapture(capture);
     }
     myCapturing = false;
+  }
+
+  public void setCapture(CpuCapture capture) {
+    myCapture = capture;
+    mySelectedThread = myCapture.getMainThreadId();
+    myAspect.changed(CpuProfilerAspect.SELECTED_THREADS);
+
+    ProfilerTimeline timeline = getStudioProfilers().getTimeline();
+    timeline.setStreaming(false);
+    timeline.getSelectionRange().set(myCapture.getRange());
   }
 
   public int getSelectedThread() {
@@ -167,7 +171,7 @@ public class CpuProfilerStage extends Stage {
     return myCapturing;
   }
 
-  public DataSeries<DurationData> getCpuTraceDataSeries() {
+  public DataSeries<CpuCapture> getCpuTraceDataSeries() {
     return myCpuTraceDataSeries;
   }
 
@@ -181,9 +185,10 @@ public class CpuProfilerStage extends Stage {
     return myTraceCaptures.get(id);
   }
 
-  private class CpuTraceDataSeries implements DataSeries<DurationData> {
+
+  private class CpuTraceDataSeries implements DataSeries<CpuCapture> {
     @Override
-    public ImmutableList<SeriesData<DurationData>> getDataForXRange(Range xRange) {
+    public ImmutableList<SeriesData<CpuCapture>> getDataForXRange(Range xRange) {
       long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
       long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
 
@@ -192,13 +197,12 @@ public class CpuProfilerStage extends Stage {
         setAppId(getStudioProfilers().getProcessId()).
         setFromTimestamp(rangeMin).setToTimestamp(rangeMax).build());
 
-      List<SeriesData<DurationData>> seriesData = new ArrayList<>();
+      List<SeriesData<CpuCapture>> seriesData = new ArrayList<>();
       for (CpuProfiler.TraceInfo traceInfo : response.getTraceInfoList()) {
-        Range range = myTraceCaptures.get(traceInfo.getTraceId()).getRange();
+        CpuCapture capture = myTraceCaptures.get(traceInfo.getTraceId());
+        Range range = capture.getRange();
 
-        long from = (long)range.getMin();
-        long duration = (long)range.getLength();
-        seriesData.add(new SeriesData<>(from, new DurationData(duration)));
+        seriesData.add(new SeriesData<>((long)range.getMin(), capture));
       }
       return ContainerUtil.immutableList(seriesData);
     }
