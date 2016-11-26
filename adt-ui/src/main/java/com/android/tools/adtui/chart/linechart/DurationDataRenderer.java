@@ -32,6 +32,8 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Rectangle2D;
+import java.awt.event.MouseEvent;
+import java.awt.geom.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -48,6 +50,7 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
    * Percentage of screen dimension the icon+label for the DurationData will be offset.
    */
   private static final float DISPLAY_OFFSET_PERCENTAGE = 0.005f;
+  private static final int CLICK_REGION_DRAW_PADDING = 2;
 
   @NotNull private final RangedSeries<E> mySeries;
   @NotNull private final Color myColor;
@@ -58,11 +61,23 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
   @Nullable private Function<E, String> myTooltipProvider = null;
   @Nullable private Function<E, String> myLabelProvider = null;
   @Nullable private Consumer<E> myClickHandler = null;
+  @Nullable private Color myLabelBgColor = null;
+  @Nullable private Color myLabelHoveredBgColor = null;
+  @Nullable private Color myLabelClickedBgColor = null;
 
   @NotNull private final List<Rectangle2D.Float> myPathCache = new ArrayList<>();
   @NotNull private final List<E> myDataCache = new ArrayList<>();
   @NotNull private final List<JLabel> myLabelCache = new ArrayList<>();
-  @NotNull private final TFloatArrayList myCachedYPositions = new TFloatArrayList();
+
+  /**
+   * Cached rectangles calculated during updataData used for detecting if a DurationData label has been clicked on.
+   * Note that the x+y values (unknown actual component dimension at updateData time) stored are normalized,
+   * but the width+height values (predetermined by the icon+label dimensions) are not.
+   */
+  @NotNull private final List<Rectangle2D.Float> myClickRegionCache = new ArrayList<>();
+
+  private Point myMousePosition;
+  private boolean myClick;
 
   public DurationDataRenderer(@NotNull Builder builder) {
     mySeries = builder.mySeries;
@@ -74,6 +89,9 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
     myTooltipProvider = builder.myTooltipProvider;
     myLabelProvider = builder.myLabelProvider;
     myClickHandler = builder.myClickHandler;
+    myLabelBgColor = builder.myLabelBgColor;
+    myLabelHoveredBgColor = builder.myLabelHoveredBgColor;
+    myLabelClickedBgColor = builder.myLabelClickedBgColor;
   }
 
   @Override
@@ -85,9 +103,9 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
   public void postAnimate() {
     // Generate the rectangle regions for the duration data series
     myDataCache.clear();
+    myClickRegionCache.clear();
     myPathCache.clear();
     myLabelCache.clear();
-    myCachedYPositions.clear();
 
     double xMin = mySeries.getXRange().getMin();
     double xMax = mySeries.getXRange().getMax();
@@ -106,6 +124,8 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
       myPathCache.add(rect);
       myDataCache.add(data.value);
 
+      Rectangle2D.Float clickRegion = new Rectangle2D.Float();
+      myClickRegionCache.add(clickRegion);
       // If the DurationData series is attached to a line series, finds the Y value on the line series closest to the current DurationData.
       // This will be used as the y position to draw the icon +/ label.
       if (attachedSeriesList != null) {
@@ -122,9 +142,14 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
           attachY = (float)(1 - (seriesData.value - yMin) / (yMax - yMin));
         }
       }
-      myCachedYPositions.add(attachY);
 
-      // Cache the labels that will be rendered.
+      double regionWidth = 0;
+      double regionHeight = 0;
+      if (myIcon != null) {
+        regionWidth += myIcon.getIconWidth();
+        regionHeight += myIcon.getIconHeight();
+      }
+
       if (myLabelProvider != null) {
         JLabel label = new JLabel(myLabelProvider.apply(data.value));
         label.setFont(AdtUiUtils.DEFAULT_FONT);
@@ -132,6 +157,13 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
         Dimension size = label.getPreferredSize();
         label.setBounds(0, 0, size.width, size.height);
         myLabelCache.add(label);
+
+        regionWidth += size.getWidth(); // TODO padding between label + icon?
+        regionHeight = Math.max(regionHeight, size.getHeight());
+      }
+
+      if (regionWidth > 0) {
+        clickRegion.setRect(xStart + DISPLAY_OFFSET_PERCENTAGE, attachY - DISPLAY_OFFSET_PERCENTAGE, regionWidth, regionHeight);
       }
     }
   }
@@ -162,48 +194,92 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
       }
     }
 
-    assert myPathCache.size() == myCachedYPositions.size();
-    int xOffset = (int)(DISPLAY_OFFSET_PERCENTAGE * dim.getWidth());
-    int yOffset = (int)(DISPLAY_OFFSET_PERCENTAGE * dim.getHeight());
-    Line2D eventLine = new Line2D.Float();
-    for (int i = 0; i < myPathCache.size(); i++) {
-      Rectangle2D.Float rect = myPathCache.get(i);
-      double scaledXStart = rect.x * dim.getWidth();
-      double scaledXDuration = rect.width * dim.getWidth();
-      g2d.translate(scaledXStart, 0);
+    // Draw the start/end lines if stroke has been set.
+    if (myStroke != null) {
+      g2d.setColor(myColor);
+      g2d.setStroke(myStroke);
+      Line2D eventLine = new Line2D.Float();
+      for (int i = 0; i < myPathCache.size(); i++) {
+        Rectangle2D.Float rect = myPathCache.get(i);
+        double scaledXStart = rect.x * host.getWidth();
+        double scaledXDuration = rect.width * host.getWidth();
+        g2d.translate(scaledXStart, 0);
+        eventLine.setLine(0, 0, 0, host.getHeight());
+        g2d.draw(eventLine);
+        eventLine.setLine(scaledXDuration, 0, scaledXDuration, host.getHeight());
+        g2d.draw(eventLine);
+        g2d.translate(-scaledXStart, 0);
+      }
+    }
+  }
 
-      // Draw the start/end lines if stroke has been set.
-      if (myStroke != null) {
-        g2d.setColor(myColor);
-        g2d.setStroke(myStroke);
-        eventLine.setLine(0, 0, 0, dim.getHeight());
-        g2d.draw(eventLine);
-        eventLine.setLine(scaledXDuration, 0, scaledXDuration, dim.getHeight());
-        g2d.draw(eventLine);
+  public void renderOverlay(@NotNull Component host, @NotNull Graphics2D g2d) {
+    assert myClickRegionCache.size() == myDataCache.size();
+    for (int i = 0; i < myClickRegionCache.size(); i++) {
+      Rectangle2D.Float rect = myClickRegionCache.get(i);
+      float scaledStartX = rect.x * host.getWidth();
+      float scaledStartY = rect.y * host.getHeight() - rect.height;
+      if (myLabelBgColor != null) {
+        g2d.setColor(myLabelBgColor);
+        RoundRectangle2D scaledRect = new RoundRectangle2D.Float(scaledStartX - CLICK_REGION_DRAW_PADDING,
+                                                                 scaledStartY - CLICK_REGION_DRAW_PADDING,
+                                                                 rect.width + CLICK_REGION_DRAW_PADDING * 2,
+                                                                 rect.height + CLICK_REGION_DRAW_PADDING * 2,
+                                                                 CLICK_REGION_DRAW_PADDING,
+                                                                 CLICK_REGION_DRAW_PADDING);
+        if (myMousePosition != null && scaledRect.contains(myMousePosition)) {
+          g2d.setColor(myClick && myClickHandler != null ? myLabelClickedBgColor : myLabelHoveredBgColor);
+        }
+        g2d.fill(scaledRect);
       }
 
-      // TODO if we want these to show above components that are layered over the LineChart (e.g. SelectionCompoent),
-      // these should be extracted into a separate draw call and be handled separately.
-      double scaledYStart = myCachedYPositions.get(i) * dim.getHeight() - yOffset;
-      g2d.translate(0, scaledYStart);
+      g2d.translate(scaledStartX, scaledStartY);
       if (myIcon != null) {
-        myIcon.paintIcon(host, g2d, xOffset, -myIcon.getIconHeight());
-        double xShift = myIcon.getIconWidth() + xOffset;
-        g2d.translate(xShift, 0);
-        scaledXStart += xShift;  // keep track of the amount of shift to revert the translate at the end.
+        myIcon.paintIcon(host, g2d, 0, 0);
+        float shift = myIcon.getIconWidth();
+        g2d.translate(shift, 0);
+        scaledStartX += shift;  // keep track of the amount of shift to revert the translate at the end.
       }
 
       if (myLabelProvider != null) {
-        JLabel label = myLabelCache.get(i);
-        double yShift = label.getPreferredSize().getHeight();
-        g2d.translate(xOffset, -yShift);
-        label.paint(g2d);
-        scaledYStart -= yShift;
-        scaledXStart += xOffset;
+        myLabelCache.get(i).paint(g2d);
       }
 
-      g2d.translate(-scaledXStart, -scaledYStart);
+      g2d.translate(-scaledStartX, -scaledStartY);
     }
+
+    myClick = false;
+  }
+
+  public boolean handleMouseEvent(@NotNull MouseEvent event) {
+    myMousePosition = event.getPoint();
+    myClick = event.getClickCount() > 0;
+    if (myClickHandler == null || !myClick) {
+      return false;
+    }
+
+    assert myDataCache.size() == myClickRegionCache.size();
+    E hitData = null;
+    Dimension dim = event.getComponent().getSize();
+    for (int i = 0; i < myClickRegionCache.size(); i++) {
+      Rectangle2D.Float rect = myClickRegionCache.get(i);
+      Rectangle2D.Float scaledRect = new Rectangle2D.Float(rect.x * dim.width,
+                                                           rect.y * dim.height - rect.height,
+                                                           rect.width,
+                                                           rect.height);
+      if (scaledRect.contains(myMousePosition)) {
+        // Return the first hit region.
+        hitData = myDataCache.get(i);
+        break;
+      }
+    }
+
+    if (hitData != null) {
+      myClickHandler.accept(hitData);
+      return true;
+    }
+
+    return false;
   }
 
   public static class Builder<E extends DurationData> {
@@ -220,6 +296,9 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
     @Nullable private Function<E, String> myTooltipProvider = null;
     @Nullable private Function<E, String> myLabelProvider = null;
     @Nullable private Consumer<E> myClickHandler = null;
+    @Nullable private Color myLabelBgColor = null;
+    @Nullable private Color myLabelHoveredBgColor = null;
+    @Nullable private Color myLabelClickedBgColor = null;
 
     public Builder(@NotNull RangedSeries<E> series, @NotNull Color color) {
       mySeries = series;
@@ -280,6 +359,16 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
      */
     public Builder setClickHander(@NotNull Consumer<E> handler) {
       myClickHandler = handler;
+      return this;
+    }
+
+    /**
+     * Sets the bg color behind the icon+label when the user interacts with the DurationData.
+     */
+    public Builder setLabelBackground(@NotNull Color bgColor, @NotNull Color hoveredColor, @NotNull Color clickedColor) {
+      myLabelBgColor = bgColor;
+      myLabelHoveredBgColor = hoveredColor;
+      myLabelClickedBgColor = clickedColor;
       return this;
     }
 
