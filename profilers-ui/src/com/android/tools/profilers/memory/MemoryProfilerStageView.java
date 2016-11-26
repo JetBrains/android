@@ -26,7 +26,7 @@ import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
-import com.android.tools.adtui.model.DurationData;
+import com.android.tools.adtui.model.DefaultDurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.RangedSeries;
@@ -180,7 +180,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, getStage().getHeapDumpSampleDurations()), Color.WHITE)
         .setLabelBackground(Color.DARK_GRAY, Color.GRAY, Color.lightGray)
         .setIsBlocking(true)
-        .setlabelProvider(new Function<HeapDumpDurationData, String>() {
+        .setLabelProvider(new Function<HeapDumpDurationData, String>() {
           @Override
           public String apply(HeapDumpDurationData data) {
             return String.format("Dump (%s)", TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true));
@@ -192,18 +192,18 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
             getStage().setFocusedHeapDump(data.getDumpInfo());
           }
         }).build();
-    DurationDataRenderer<DurationData> allocationRenderer =
+    DurationDataRenderer<DefaultDurationData> allocationRenderer =
       new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, getStage().getAllocationDumpSampleDurations()), Color.WHITE)
         .setLabelBackground(Color.DARK_GRAY, Color.GRAY, Color.lightGray)
-        .setlabelProvider(new Function<DurationData, String>() {
+        .setLabelProvider(new Function<DefaultDurationData, String>() {
           @Override
-          public String apply(DurationData data) {
+          public String apply(DefaultDurationData data) {
             return String.format("Allocation Record (%s)", TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true));
           }
         }).build();
     DurationDataRenderer<GcDurationData> gcRenderer =
       new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, monitor.getGcCount()), Color.BLACK)
-        .setlabelProvider(data -> data.toString())
+        .setLabelProvider(data -> data.toString())
         .setAttachLineSeries(objectSeries).build();
 
     lineChart.addCustomRenderer(heapDumpRenderer);
