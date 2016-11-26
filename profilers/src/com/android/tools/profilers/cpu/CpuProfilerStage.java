@@ -54,6 +54,10 @@ public class CpuProfilerStage extends Stage {
   @NotNull
   private final CpuTraceDataSeries myCpuTraceDataSeries;
   private AspectModel<CpuProfilerAspect> myAspect = new AspectModel<>();
+
+  /**
+   * The current capture.
+   */
   @Nullable
   private CpuCapture myCapture;
   /**
@@ -68,7 +72,7 @@ public class CpuProfilerStage extends Stage {
   private int mySelectedThread;
 
   /**
-   * Maps trace ids to their correspondent captures.
+   * A cache of already parsed captures, indexed by trace_id.
    */
   private Map<Integer, CpuCapture> myTraceCaptures = new HashMap<>();
 
@@ -124,9 +128,9 @@ public class CpuProfilerStage extends Stage {
       LOG.error(response.getErrorMessage());
     }
     else {
-      capture = new CpuCapture(response);
-      // Add the capture to the map using the trace from response as key
-      myTraceCaptures.put(response.getTraceId(), capture);
+      capture = new CpuCapture(response.getTrace());
+      // Force parsing the capture
+      getCapture(response.getTraceId());
     }
     if (capture != null) {
       setCapture(capture);
@@ -176,8 +180,20 @@ public class CpuProfilerStage extends Stage {
     return new CpuThreadsModel(this, getStudioProfilers().getProcessId());
   }
 
-  public CpuCapture getCapture(int id) {
-    return myTraceCaptures.get(id);
+  public CpuCapture getCapture(int traceId) {
+    CpuCapture capture = myTraceCaptures.get(traceId);
+    if (capture == null) {
+      CpuProfiler.GetTraceRequest request = CpuProfiler.GetTraceRequest.newBuilder()
+        .setAppId(getStudioProfilers().getProcessId())
+        .setTraceId(traceId)
+        .build();
+      CpuProfiler.GetTraceResponse trace = myCpuService.getTrace(request);
+      if (trace.getStatus() == CpuProfiler.GetTraceResponse.Status.SUCCESS) {
+        capture = new CpuCapture(trace.getData());
+      }
+      myTraceCaptures.put(traceId, capture);
+    }
+    return capture;
   }
 
 
@@ -194,7 +210,7 @@ public class CpuProfilerStage extends Stage {
 
       List<SeriesData<CpuCapture>> seriesData = new ArrayList<>();
       for (CpuProfiler.TraceInfo traceInfo : response.getTraceInfoList()) {
-        CpuCapture capture = myTraceCaptures.get(traceInfo.getTraceId());
+        CpuCapture capture = getCapture(traceInfo.getTraceId());
         Range range = capture.getRange();
 
         seriesData.add(new SeriesData<>((long)range.getMin(), capture));
