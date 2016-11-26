@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.profilers.cpu.CpuMonitor;
 import com.android.tools.profilers.cpu.CpuMonitorView;
 import com.android.tools.profilers.event.EventMonitor;
@@ -51,29 +52,25 @@ public class StudioMonitorStageView extends StageView {
     getChoreographer().register(sb);
     getComponent().add(sb, BorderLayout.SOUTH);
 
-    JPanel monitors = new JPanel(new GridBagLayout());
+    TabularLayout layout = new TabularLayout("*");
+    JPanel monitors = new JPanel(layout);
     monitors.setBackground(ProfilerColors.MONITOR_BACKGROUND);
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.gridx = 0;
-    gbc.weightx = 1;
-    gbc.fill = GridBagConstraints.BOTH;
 
-    int y = 0;
+    int rowIndex = 0;
     for (ProfilerMonitor monitor : stage.getMonitors()) {
       ProfilerMonitorView view = binder.build(monitor);
       JComponent component = view.initialize(getChoreographer());
-      gbc.weighty = view.getVerticalWeight();
-      gbc.gridy = y++;
-      monitors.add(component, gbc);
+      int weight = (int)(view.getVerticalWeight() * 100f);
+      layout.setRowSizing(rowIndex, (weight > 0) ? weight + "*" : "Fit");
+      monitors.add(component, new TabularLayout.Constraint(rowIndex, 0));
+      rowIndex++;
     }
 
     StudioProfilers profilers = stage.getStudioProfilers();
     AxisComponent timeAxis = buildTimeAxis(profilers);
 
     getChoreographer().register(timeAxis);
-    gbc.weighty = 0;
-    gbc.gridy = y;
-    monitors.add(timeAxis, gbc);
+    monitors.add(timeAxis, new TabularLayout.Constraint(rowIndex, 0));
 
     getComponent().add(monitors, BorderLayout.CENTER);
   }

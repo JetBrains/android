@@ -21,7 +21,6 @@ import com.android.tools.profilers.ProfilerMonitorView;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,23 +49,15 @@ public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
 
   @Override
   protected void populateUi(JPanel container, Choreographer choreographer) {
-    container.setLayout(new GridBagLayout());
-    GridBagConstraints c = new GridBagConstraints();
-    c.fill = GridBagConstraints.BOTH;
-    c.gridx = 0;
-    c.gridy = 0;
-    c.weightx = 1.0;
-    c.weighty = 0.5;
+    container.setLayout(new TabularLayout("*", "*,*"));
     SimpleEventComponent<EventActionType> events =
       new SimpleEventComponent<>(new RangedSeries<>(getMonitor().getTimeline().getViewRange(), getMonitor().getSimpleEvents()), RENDERERS);
-    container.add(events, c);
+    container.add(events, new TabularLayout.Constraint(0, 0));
     choreographer.register(events);
 
-    c.gridy = 1;
-    c.weighty = 0.5;
     StackedEventComponent activities =
       new StackedEventComponent(new RangedSeries<>(getMonitor().getTimeline().getViewRange(), getMonitor().getActivityEvents()));
-    container.add(activities, c);
+    container.add(activities, new TabularLayout.Constraint(1, 0));
     choreographer.register(activities);
   }
 }
