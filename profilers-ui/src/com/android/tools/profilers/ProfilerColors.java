@@ -25,21 +25,21 @@ import java.util.Map;
 
 public class ProfilerColors {
 
-  public static final Color CPU_USAGE = new JBColor(0x62C88E, 0x62C88E);
+  public static final Color CPU_USAGE = new JBColor(0x62C88E, 0x44B67F);
 
-  public static final Color CPU_OTHER_USAGE = new JBColor(0xDFE6EE, 0xDFE6EE);
+  public static final Color CPU_OTHER_USAGE = new JBColor(0xDFE6EE, 0x34383D);
 
   // TODO: define final color
   public static final Color CPU_CAPTURE_EVENT = new JBColor(0x888888, 0x888888);
 
-  public static final Color THREADS_COUNT_COLOR = new JBColor(0x9C928B, 0x9C928B);
+  public static final Color THREADS_COUNT_COLOR = new JBColor(0x9C928B, 0xC4C32E);
 
   public static final Map<CpuProfilerStage.ThreadState, Color> THREAD_STATES =
     new ImmutableMap.Builder<CpuProfilerStage.ThreadState, Color>()
       .put(CpuProfilerStage.ThreadState.RUNNING, CPU_USAGE)
-      .put(CpuProfilerStage.ThreadState.RUNNING_CAPTURED, new JBColor(0x428360, 0x428360))
-      .put(CpuProfilerStage.ThreadState.SLEEPING, new JBColor(0xEDEFF1, 0xEDEFF1))
-      .put(CpuProfilerStage.ThreadState.SLEEPING_CAPTURED, new JBColor(0xAAAAAA, 0xAAAAAA))
+      .put(CpuProfilerStage.ThreadState.RUNNING_CAPTURED, new JBColor(0x428360, 0x61DBA2))
+      .put(CpuProfilerStage.ThreadState.SLEEPING, new JBColor(0xEDEFF1, 0x3B3E42))
+      .put(CpuProfilerStage.ThreadState.SLEEPING_CAPTURED, new JBColor(0xAAAAAA, 0x4D5054))
       .put(CpuProfilerStage.ThreadState.DEAD, Gray.TRANSPARENT)
       .put(CpuProfilerStage.ThreadState.DEAD_CAPTURED, Gray.TRANSPARENT)
       .build();
@@ -48,7 +48,7 @@ public class ProfilerColors {
 
   public static final Color THREAD_SELECTED_BACKGROUND = new JBColor(0x3476DC, 0x3476DC);
 
-  public static final Color MONITOR_BACKGROUND = JBColor.background();
+  public static final Color MONITOR_BACKGROUND = new JBColor(0xFFFFFF,0x2A2B2C);
 
   public static final Color MONITOR_BORDER = new JBColor(0xC9C9C9, 0xC9C9C9);
 
