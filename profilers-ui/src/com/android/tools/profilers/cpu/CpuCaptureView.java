@@ -19,10 +19,9 @@ import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.RangedTree;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
-import com.android.tools.adtui.model.RangedTreeModel;
-import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.adtui.model.HNode;
+import com.android.tools.profilers.ProfilerTimeline;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
@@ -44,21 +43,20 @@ public class CpuCaptureView {
   private final JBTabbedPane myPanel;
   private final JTree myTree;
   private final RangedTree myRangedTree;
+  private final CpuProfilerStageView myView;
 
-  public CpuCaptureView(@NotNull CpuCapture capture, @NotNull StudioProfilers profilers) {
+  public CpuCaptureView(@NotNull CpuCapture capture, @NotNull CpuProfilerStageView view) {
+
+    ProfilerTimeline timeline = view.getStage().getStudioProfilers().getTimeline();
+
     myCapture = capture;
-
-    myCapture.addDependency()
-      .setExecutor(ApplicationManager.getApplication()::invokeLater)
-      .onChange(CpuCaptureAspect.CAPTURE_THREAD, this::updateThread);
-
+    myView = view;
     myCaptureTreeChart = new HTreeChart<>();
     myCaptureTreeChart.setHRenderer(new SampledMethodUsageHRenderer());
-    myCaptureTreeChart.setXRange(profilers.getTimeline().getSelectionRange());
+    myCaptureTreeChart.setXRange(timeline.getSelectionRange());
 
-    RangedTreeModel model = getModel(capture);
-    myTree = new JTree(model);
-    myRangedTree = new RangedTree(profilers.getTimeline().getSelectionRange(), model);
+    myTree = new JTree();
+    myRangedTree = new RangedTree(timeline.getSelectionRange());
     JComponent columnTree = new ColumnTreeBuilder(myTree)
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
           .setName("Name")
@@ -97,13 +95,17 @@ public class CpuCaptureView {
     myPanel = new JBTabbedPane();
     myPanel.addTab("TopDown", columnTree);
     myPanel.addTab("Chart", myCaptureTreeChart);
+
+    updateThread();
   }
 
-  private void updateThread() {
+  public void updateThread() {
+    int id = myView.getStage().getSelectedThread();
     // Updates the horizontal tree displayed in capture panel
-    myCaptureTreeChart.setHTree(myCapture.getCaptureNode());
+    HNode<MethodModel> node = myCapture.getCaptureNode(id);
+    myCaptureTreeChart.setHTree(node);
     // Updates the topdown column tree displayed in capture panel
-    RangedTreeModel model = getModel(myCapture);
+    TopDownTreeModel model = node == null ? null : new TopDownTreeModel(new TopDownNode(node));
     myRangedTree.setModel(model);
     myTree.setModel(model);
   }
@@ -165,17 +167,6 @@ public class CpuCaptureView {
         append(value.toString());
       }
     }
-  }
-
-  /**
-   * Returns a {@link RangedTreeModel} given a {@link CpuCapture}.
-   *
-   * If {@link CpuCapture#getTopDown()} returns null, this method returns an empty RangedTreeModel.
-   */
-  @NotNull
-  private static RangedTreeModel getModel(@NotNull CpuCapture capture) {
-    RangedTreeModel model = capture.getTopDown();
-    return model == null ? new TopDownTreeModel(null) : model;
   }
 
   private static class MethodNameRenderer extends ColoredTreeCellRenderer {

@@ -128,22 +128,20 @@ public class CpuProfilerStage extends Stage {
       // Add the capture to the map using the trace from response as key
       myTraceCaptures.put(response.getTraceId(), capture);
     }
-    myAspect.changed(CpuProfilerAspect.CAPTURE);
-
     if (capture != null) {
       setCapture(capture);
+      setSelectedThread(capture.getMainThreadId());
     }
     myCapturing = false;
   }
 
   public void setCapture(CpuCapture capture) {
     myCapture = capture;
-    mySelectedThread = myCapture.getMainThreadId();
-    myAspect.changed(CpuProfilerAspect.SELECTED_THREADS);
 
     ProfilerTimeline timeline = getStudioProfilers().getTimeline();
     timeline.setStreaming(false);
     timeline.getSelectionRange().set(myCapture.getRange());
+    myAspect.changed(CpuProfilerAspect.CAPTURE);
   }
 
   public int getSelectedThread() {
@@ -151,9 +149,6 @@ public class CpuProfilerStage extends Stage {
   }
 
   public void setSelectedThread(int id) {
-    if (myCapture != null) {
-      myCapture.setSelectedThread(id);
-    }
     mySelectedThread = id;
     myAspect.changed(CpuProfilerAspect.SELECTED_THREADS);
   }
