@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.monitor.ui.memory.view;
 
-import com.android.tools.adtui.chart.linechart.EventConfig;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
@@ -101,9 +100,9 @@ public class MemorySegment extends BaseLineChartSegment {
                        JAVA_OBJECTS_COUNT,
                        new LineConfig(MEMORY_OBJECT_COUNT_COLOR));
 
-      // Add the heap dump event series
-      addEvent(SeriesDataType.MEMORY_HEAPDUMP_EVENT,
-               new EventConfig(MEMORY_HEAP_DUMP_COLOR).setIcon(AndroidIcons.Ddms.DumpHprof).setBlocking(true));
+      //// Add the heap dump event series
+      //addEvent(SeriesDataType.MEMORY_HEAPDUMP_EVENT,
+      //         new DurationDataConfig(MEMORY_HEAP_DUMP_COLOR).setIcon(AndroidIcons.Ddms.DumpHprof).setBlocking(true));
     }
     else {
       addMemoryLevelLine(SeriesDataType.MEMORY_TOTAL, TOTAL_MEM_USAGE, MEMORY_TOTAL_COLOR);
