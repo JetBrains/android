@@ -22,6 +22,7 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.WizardUtils.ValidationResult;
@@ -72,7 +73,6 @@ import com.intellij.util.ui.accessibility.ScreenReader;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sun.awt.CausedFocusEvent;
@@ -218,7 +218,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
     Collection<File> sdkLocations = getSdkLocations();
     mySelectedSdkLocation.set(sdkLocations.stream().findFirst());
     mySelectedSdkLocation.addListener(sender -> ApplicationManager.getApplication().invokeLater(this::reset));
-    if (AndroidUtils.isAndroidStudio()) {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
       ((CardLayout)mySdkLocationPanel.getLayout()).show(mySdkLocationPanel, "SingleSdk");
       setUpSingleSdkChooser();
       myBindingsManager.bindTwoWay(
@@ -271,7 +271,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
 
   @NotNull
   private static Collection<File> getSdkLocations() {
-    if (AndroidUtils.isAndroidStudio()) {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
       File androidHome = IdeSdks.getInstance().getAndroidSdkPath();
       if (androidHome != null) {
         return ImmutableList.of(androidHome);

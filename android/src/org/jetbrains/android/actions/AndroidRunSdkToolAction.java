@@ -1,5 +1,6 @@
 package org.jetbrains.android.actions;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.CommonBundle;
@@ -15,7 +16,6 @@ import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -47,7 +47,7 @@ public abstract class AndroidRunSdkToolAction extends DumbAwareAction {
   }
 
   public void doAction(@NotNull Project project) {
-    if (AndroidUtils.isAndroidStudio()) {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
       File androidHome = IdeSdks.getInstance().getAndroidSdkPath();
       if (androidHome != null) {
         doRunTool(project, androidHome.getPath());
@@ -71,11 +71,11 @@ public abstract class AndroidRunSdkToolAction extends DumbAwareAction {
 
     List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
     assert facets.size() > 0;
-    Set<String> sdkSet = new HashSet<String>();
+    Set<String> sdkSet = new HashSet<>();
     for (AndroidFacet facet : facets) {
       AndroidSdkData sdkData = facet.getConfiguration().getAndroidSdk();
       if (sdkData != null) {
-        sdkSet.add(sdkData.getPath());
+        sdkSet.add(sdkData.getLocation().getPath());
       }
     }
     if (sdkSet.size() == 0) {

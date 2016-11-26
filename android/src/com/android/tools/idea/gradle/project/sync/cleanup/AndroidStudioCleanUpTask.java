@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.sync.cleanup;
 
+import com.android.tools.idea.IdeInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
-
 abstract class AndroidStudioCleanUpTask extends ProjectCleanUpTask {
   @Override
   void cleanUp(@NotNull Project project) {
-    if (!isAndroidStudio()) {
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
       return;
     }
     try {

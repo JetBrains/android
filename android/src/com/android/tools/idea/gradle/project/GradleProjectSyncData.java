@@ -16,10 +16,11 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.collect.Maps;
@@ -38,18 +39,13 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.Map;
 
-import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
-import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
-import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleUserSettingsFile;
+import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.Projects.isGradleProjectModule;
-import static com.intellij.openapi.util.io.FileUtil.*;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.google.common.io.Closeables.close;
 import static com.google.common.io.Files.toByteArray;
+import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
@@ -107,7 +103,7 @@ public class GradleProjectSyncData implements Serializable {
   }
 
   private static boolean needsAndroidSdkSync(@NotNull final Project project) {
-    if (isAndroidStudio()) {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
       final File ideSdkPath = IdeSdks.getInstance().getAndroidSdkPath();
       if (ideSdkPath != null) {
         try {
