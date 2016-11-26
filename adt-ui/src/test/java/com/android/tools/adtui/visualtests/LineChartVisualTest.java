@@ -59,13 +59,13 @@ public class LineChartVisualTest extends VisualTest {
 
   private AnimatedTimeRange mAnimatedTimeRange;
 
-  private DefaultDataSeries<DurationData> mDurationData1;
+  private DefaultDataSeries<DefaultDurationData> mDurationData1;
 
-  private DefaultDataSeries<DurationData> mDurationData2;
+  private DefaultDataSeries<DefaultDurationData> mDurationData2;
 
-  private DurationDataRenderer<DurationData> mDurationRendererBlocking;
+  private DurationDataRenderer<DefaultDurationData> mDurationRendererBlocking;
 
-  private DurationDataRenderer<DurationData> mDurationRendererAttached;
+  private DurationDataRenderer<DefaultDurationData> mDurationRendererAttached;
 
   @Override
   protected List<Animatable> createComponentsList() {
@@ -103,19 +103,19 @@ public class LineChartVisualTest extends VisualTest {
 
     mDurationData1 = new DefaultDataSeries<>();
     mDurationData2 = new DefaultDataSeries<>();
-    RangedSeries<DurationData> series1 = new RangedSeries<>(timeGlobalRangeUs, mDurationData1);
-    RangedSeries<DurationData> series2 = new RangedSeries<>(timeGlobalRangeUs, mDurationData2);
+    RangedSeries<DefaultDurationData> series1 = new RangedSeries<>(timeGlobalRangeUs, mDurationData1);
+    RangedSeries<DefaultDurationData> series2 = new RangedSeries<>(timeGlobalRangeUs, mDurationData2);
     mDurationRendererBlocking = new DurationDataRenderer.Builder(series1, Color.WHITE)
       .setLabelBackground(Color.DARK_GRAY, Color.GRAY, Color.lightGray)
       .setIsBlocking(true)
       .setIcon(UIManager.getIcon("Tree.leafIcon"))
-      .setlabelProvider(durationdata -> "Blocking")
+      .setLabelProvider(durationdata -> "Blocking")
       .setClickHander(durationData -> mClickDisplayLabel.setText(durationData.toString())).build();
 
     mDurationRendererAttached = new DurationDataRenderer.Builder(series2, Color.WHITE)
       .setLabelBackground(Color.DARK_GRAY, Color.GRAY, Color.lightGray)
       .setIcon(UIManager.getIcon("Tree.leafIcon"))
-      .setlabelProvider(durationdata -> "Attached")
+      .setLabelProvider(durationdata -> "Attached")
       .setAttachLineSeries(mRangedData.get(0))
       .setClickHander(durationData -> mClickDisplayLabel.setText(durationData.toString())).build();
     mLineChart.addCustomRenderer(mDurationRendererBlocking);
@@ -256,7 +256,7 @@ public class LineChartVisualTest extends VisualTest {
       public void mousePressed(MouseEvent e) {
         // Starts a new test event and give it a max duration.
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-        DurationData newEvent = new DurationData(UNSPECIFIED_DURATION);
+        DefaultDurationData newEvent = new DefaultDurationData(UNSPECIFIED_DURATION);
         mDurationData1.add(nowUs, newEvent);
       }
 
@@ -264,8 +264,8 @@ public class LineChartVisualTest extends VisualTest {
       public void mouseReleased(MouseEvent e) {
         // Wraps up the latest event by assigning it a duration value relative to where it was started.
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-        ImmutableList<SeriesData<DurationData>> allEvents = mDurationData1.getAllData();
-        SeriesData<DurationData> lastEvent = allEvents.get(allEvents.size() - 1);
+        ImmutableList<SeriesData<DefaultDurationData>> allEvents = mDurationData1.getAllData();
+        SeriesData<DefaultDurationData> lastEvent = allEvents.get(allEvents.size() - 1);
         lastEvent.value.setDuration(nowUs - lastEvent.x);
       }
     });
@@ -277,7 +277,7 @@ public class LineChartVisualTest extends VisualTest {
       public void mousePressed(MouseEvent e) {
         // Starts a new test event and give it a max duration.
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-        DurationData newEvent = new DurationData(UNSPECIFIED_DURATION);
+        DefaultDurationData newEvent = new DefaultDurationData(UNSPECIFIED_DURATION);
         mDurationData2.add(nowUs, newEvent);
       }
 
@@ -285,8 +285,8 @@ public class LineChartVisualTest extends VisualTest {
       public void mouseReleased(MouseEvent e) {
         // Wraps up the latest event by assigning it a duration value relative to where it was started.
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-        ImmutableList<SeriesData<DurationData>> allEvents = mDurationData2.getAllData();
-        SeriesData<DurationData> lastEvent = allEvents.get(allEvents.size() - 1);
+        ImmutableList<SeriesData<DefaultDurationData>> allEvents = mDurationData2.getAllData();
+        SeriesData<DefaultDurationData> lastEvent = allEvents.get(allEvents.size() - 1);
         lastEvent.value.setDuration(nowUs - lastEvent.x);
       }
     });

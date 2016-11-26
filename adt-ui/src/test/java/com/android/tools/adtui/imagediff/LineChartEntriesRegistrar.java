@@ -181,10 +181,10 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
     }
 
     protected void addEvent(Color eventColor, boolean isFilledEvent, boolean isBlockingEvent) {
-      DefaultDataSeries<DurationData> eventData = new DefaultDataSeries<>();
-      RangedSeries<DurationData> eventSeries = new RangedSeries<>(myXRange, eventData);
-      DurationDataRenderer<DurationData> durationRenderer = new DurationDataRenderer.Builder<>(eventSeries, eventColor)
-        .setlabelProvider(durationData -> "Test Event")
+      DefaultDataSeries<DefaultDurationData> eventData = new DefaultDataSeries<>();
+      RangedSeries<DefaultDurationData> eventSeries = new RangedSeries<>(myXRange, eventData);
+      DurationDataRenderer<DefaultDurationData> durationRenderer = new DurationDataRenderer.Builder<>(eventSeries, eventColor)
+        .setLabelProvider(durationData -> "Test Event")
         .setIcon(UIManager.getIcon("Tree.leafIcon")).build();
       myLineChart.addCustomRenderer(durationRenderer);
       myComponents.add(durationRenderer);
@@ -192,7 +192,7 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
       // Set event duration and start time. Add it to eventData afterwards.
       long eventDuration = EVENT_DURATION_MULTIPLIER * TIME_DELTA_US;
       long eventStart = myCurrentTimeUs + EVENT_START_MULTIPLIER * TIME_DELTA_US;
-      DurationData newEvent = new DurationData(eventDuration);
+      DefaultDurationData newEvent = new DefaultDurationData(eventDuration);
       eventData.add(eventStart, newEvent);
     }
   }

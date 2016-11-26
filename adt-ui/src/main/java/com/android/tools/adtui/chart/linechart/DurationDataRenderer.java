@@ -17,12 +17,8 @@ package com.android.tools.adtui.chart.linechart;
 
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.DurationData;
-import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.*;
 import com.intellij.util.containers.ImmutableList;
-import gnu.trove.TFloatArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,7 +26,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
-import java.awt.geom.PathIterator;
 import java.awt.geom.Rectangle2D;
 import java.awt.event.MouseEvent;
 import java.awt.geom.*;
@@ -308,7 +303,7 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
     /**
      * If true, the renderer will gray out the line series underneath the DurationData.
      */
-    public Builder setIsBlocking(boolean value) {
+    public Builder<E> setIsBlocking(boolean value) {
       myIsBlocking = value;
       return this;
     }
@@ -316,7 +311,7 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
     /**
      * Sets the icon which will be drawn at the start point of each DurationData.
      */
-    public Builder setIcon(@NotNull Icon icon) {
+    public Builder<E> setIcon(@NotNull Icon icon) {
       myIcon = icon;
       return this;
     }
@@ -324,7 +319,7 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
     /**
      * Sets the stroke of the lines that mark the start and end of the DurationData.
      */
-    public Builder setStroke(@NotNull Stroke stroke) {
+    public Builder<E> setStroke(@NotNull Stroke stroke) {
       myStroke = stroke;
       return this;
     }
@@ -333,7 +328,7 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
      * If set the renderer will attach the content (e.g. icon/text) of the DurationData on top of the closest point of the corresponding
      * line series.
      */
-    public Builder setAttachLineSeries(@NotNull RangedContinuousSeries series) {
+    public Builder<E> setAttachLineSeries(@NotNull RangedContinuousSeries series) {
       myAttachedLineSeries = series;
       return this;
     }
@@ -341,7 +336,7 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
     /**
      * Sets the tooltip provider.
      */
-    public Builder setTooltipProvider(@NotNull Function<E, String> provider) {
+    public Builder<E> setTooltipProvider(@NotNull Function<E, String> provider) {
       myTooltipProvider = provider;
       return this;
     }
@@ -349,7 +344,7 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
     /**
      * Sets the provider of the string which will be drawn at the start point of each DurationData.
      */
-    public Builder setlabelProvider(@NotNull Function<E, String> provider) {
+    public Builder<E> setLabelProvider(@NotNull Function<E, String> provider) {
       myLabelProvider = provider;
       return this;
     }
@@ -357,7 +352,7 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
     /**
      * If set, the handler will get triggered when the user clicked on the icon+label region of the DurationData.
      */
-    public Builder setClickHander(@NotNull Consumer<E> handler) {
+    public Builder<E> setClickHander(@NotNull Consumer<E> handler) {
       myClickHandler = handler;
       return this;
     }
@@ -365,7 +360,7 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
     /**
      * Sets the bg color behind the icon+label when the user interacts with the DurationData.
      */
-    public Builder setLabelBackground(@NotNull Color bgColor, @NotNull Color hoveredColor, @NotNull Color clickedColor) {
+    public Builder<E> setLabelBackground(@NotNull Color bgColor, @NotNull Color hoveredColor, @NotNull Color clickedColor) {
       myLabelBgColor = bgColor;
       myLabelHoveredBgColor = hoveredColor;
       myLabelClickedBgColor = clickedColor;
@@ -374,7 +369,7 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
 
     @NotNull
     public DurationDataRenderer<E> build() {
-      return new DurationDataRenderer(this);
+      return new DurationDataRenderer<>(this);
     }
   }
 }
