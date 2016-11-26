@@ -19,7 +19,7 @@ package com.android.tools.adtui.visualtests;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AnimatedTimeRange;
-import com.android.tools.adtui.chart.linechart.EventConfig;
+import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.AdtUiUtils;
@@ -50,11 +50,13 @@ public class LineChartVisualTest extends VisualTest {
 
   private AnimatedTimeRange mAnimatedTimeRange;
 
-  private RangedSeries<DurationData> mEventSeries;
+  private DefaultDataSeries<DurationData> mDurationData1;
 
-  private DefaultDataSeries<DurationData> mEventData;
+  private DefaultDataSeries<DurationData> mDurationData2;
 
-  private EventConfig mEventConfig;
+  private DurationDataRenderer<DurationData> mDurationRendererBlocking;
+
+  private DurationDataRenderer<DurationData> mDurationRendererAttached;
 
   @Override
   protected List<Animatable> createComponentsList() {
@@ -85,10 +87,23 @@ public class LineChartVisualTest extends VisualTest {
     }
     mLineChart.addLines(mRangedData);
 
-    mEventData = new DefaultDataSeries<>();
-    mEventSeries = new RangedSeries<>(timeGlobalRangeUs, mEventData);
-    mEventConfig = new EventConfig(Color.BLACK).setText("Test").setIcon(UIManager.getIcon("Tree.leafIcon"));
-    mLineChart.addEvent(mEventSeries, mEventConfig);
+    mDurationData1 = new DefaultDataSeries<>();
+    mDurationData2 = new DefaultDataSeries<>();
+    RangedSeries<DurationData> series1 = new RangedSeries<>(timeGlobalRangeUs, mDurationData1);
+    RangedSeries<DurationData> series2 = new RangedSeries<>(timeGlobalRangeUs, mDurationData2);
+    mDurationRendererBlocking = new DurationDataRenderer.Builder(series1, Color.BLUE)
+      .setIsBlocking(true)
+      .setIcon(UIManager.getIcon("Tree.leafIcon"))
+      .setlabelProvider(durationdata -> "Blocking").build();
+
+    mDurationRendererAttached = new DurationDataRenderer.Builder(series2, Color.BLACK)
+      .setIcon(UIManager.getIcon("Tree.leafIcon"))
+      .setlabelProvider(durationdata -> "Attached")
+      .setAttachLineSeries(mRangedData.get(0)).build();
+    mLineChart.addCustomRenderer(mDurationRendererBlocking);
+    mLineChart.addCustomRenderer(mDurationRendererAttached);
+    componentsList.add(mDurationRendererBlocking);
+    componentsList.add(mDurationRendererAttached);
 
     return componentsList;
   }
@@ -105,8 +120,8 @@ public class LineChartVisualTest extends VisualTest {
 
   @Override
   protected void populateUi(@NotNull JPanel panel) {
-    JPanel controls = VisualTest.createControlledPane(panel, mLineChart);
     mLineChart.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
+    JPanel controls = VisualTest.createControlledPane(panel, mLineChart);
 
     final AtomicInteger variance = new AtomicInteger(10);
     final AtomicInteger delay = new AtomicInteger(100);
@@ -172,7 +187,7 @@ public class LineChartVisualTest extends VisualTest {
         // Returns the stroke width of the first line, in case there is one, or a default (1) value
         RangedContinuousSeries firstSeries = mRangedData.get(0);
         Stroke firstLineStroke = mLineChart.getLineConfig(firstSeries).getStroke();
-        return firstLineStroke instanceof BasicStroke ? (int) ((BasicStroke) firstLineStroke).getLineWidth() : 1;
+        return firstLineStroke instanceof BasicStroke ? (int)((BasicStroke)firstLineStroke).getLineWidth() : 1;
       }
     }));
     controls.add(VisualTest.createCheckbox("Shift xRange Min", itemEvent ->
@@ -191,7 +206,6 @@ public class LineChartVisualTest extends VisualTest {
       for (int i = 0; i < mRangedData.size(); i += 2) {
         RangedContinuousSeries series = mRangedData.get(i);
         mLineChart.getLineConfig(series).setStroke(stroke);
-
       }
     }));
     controls.add(VisualTest.createCheckbox("Filled lines", itemEvent -> {
@@ -211,33 +225,47 @@ public class LineChartVisualTest extends VisualTest {
       }
     }));
 
-    JButton tapButton = VisualTest.createButton("Generate Event (Hold)");
+    JButton tapButton = VisualTest.createButton("Generate Duration1 (Hold)");
     tapButton.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
         // Starts a new test event and give it a max duration.
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
         DurationData newEvent = new DurationData(UNSPECIFIED_DURATION);
-        mEventData.add(nowUs, newEvent);
+        mDurationData1.add(nowUs, newEvent);
       }
 
       @Override
       public void mouseReleased(MouseEvent e) {
         // Wraps up the latest event by assigning it a duration value relative to where it was started.
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-        ImmutableList<SeriesData<DurationData>> allEvents = mEventData.getAllData();
+        ImmutableList<SeriesData<DurationData>> allEvents = mDurationData1.getAllData();
         SeriesData<DurationData> lastEvent = allEvents.get(allEvents.size() - 1);
         lastEvent.value.setDuration(nowUs - lastEvent.x);
       }
     });
     controls.add(tapButton);
 
-    controls.add(VisualTest.createCheckbox("Blocking Events", itemEvent -> {
-      mEventConfig.setBlocking(itemEvent.getStateChange() == ItemEvent.SELECTED);
-    }));
-    controls.add(VisualTest.createCheckbox("Filled Events", itemEvent -> {
-      mEventConfig.setFilled(itemEvent.getStateChange() == ItemEvent.SELECTED);
-    }));
+    tapButton = VisualTest.createButton("Generate Duration2 (Hold)");
+    tapButton.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mousePressed(MouseEvent e) {
+        // Starts a new test event and give it a max duration.
+        long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
+        DurationData newEvent = new DurationData(UNSPECIFIED_DURATION);
+        mDurationData2.add(nowUs, newEvent);
+      }
+
+      @Override
+      public void mouseReleased(MouseEvent e) {
+        // Wraps up the latest event by assigning it a duration value relative to where it was started.
+        long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
+        ImmutableList<SeriesData<DurationData>> allEvents = mDurationData2.getAllData();
+        SeriesData<DurationData> lastEvent = allEvents.get(allEvents.size() - 1);
+        lastEvent.value.setDuration(nowUs - lastEvent.x);
+      }
+    });
+    controls.add(tapButton);
 
     controls.add(
       new Box.Filler(new Dimension(0, 0), new Dimension(300, Integer.MAX_VALUE),
