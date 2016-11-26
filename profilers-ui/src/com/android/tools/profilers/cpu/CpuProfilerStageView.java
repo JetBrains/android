@@ -165,11 +165,15 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     monitorPanel.add(legendPanel, GBC_FULL);
 
     // Create an event representing the traces within the range.
-    DurationDataRenderer<DurationData> traceRenderer =
+    DurationDataRenderer<CpuCapture> traceRenderer =
       new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, myStage.getCpuTraceDataSeries()), ProfilerColors.CPU_CAPTURE_EVENT)
-        .setlabelProvider(data -> "Trace")
+        .setLabelProvider(data -> "Capture " + data.getDuration())
         .setStroke(new BasicStroke(1))
-        .setLabelBackground(Color.DARK_GRAY, Color.GRAY, Color.lightGray).build();
+        .setLabelBackground(Color.DARK_GRAY, Color.GRAY, Color.lightGray)
+        .setClickHander(getStage()::setCapture)
+        .build();
+
+
     lineChart.addCustomRenderer(traceRenderer);
     overlay.addDurationDataRenderer(traceRenderer);
 

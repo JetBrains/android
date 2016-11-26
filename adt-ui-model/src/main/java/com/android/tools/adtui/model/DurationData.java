@@ -17,30 +17,13 @@ package com.android.tools.adtui.model;
 
 /**
  * An object that models data with duration
- *
- * TODO currently we have various ways of modelling duration samples (e.g. events, http data etc).
- *      We should consider merging them to use this base class (or something equivalent) so there is a
- *      consistent way of accessing duration info.
  */
-public class DurationData {
-
+public interface DurationData {
   /**
    * Represents data that have an infinite/unspecified duration (e.g. unfinished events).
    * TODO replace unspecified duration with Long.MAX_VALUE on perfd side so we don't have to deal with this.
    */
-  public static final int UNSPECIFIED_DURATION = -1;
+  int UNSPECIFIED_DURATION = -1;
 
-  private long mDuration;
-
-  public DurationData(long duration) {
-    mDuration = duration;
-  }
-
-  public void setDuration(long duration) {
-    mDuration = duration;
-  }
-
-  public long getDuration() {
-    return mDuration;
-  }
+  long getDuration();
 }
