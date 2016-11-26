@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.monitor.ui.visual.data;
 
-import com.android.tools.adtui.model.DurationData;
+import com.android.tools.adtui.model.DefaultDurationData;
 import com.android.tools.adtui.model.SeriesData;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-public class MemoryTestDurationDataGenerator extends TestDataGenerator<DurationData> {
+public class MemoryTestDurationDataGenerator extends TestDataGenerator<DefaultDurationData> {
 
-  private ArrayList<DurationData> mData = new ArrayList();
+  private ArrayList<DefaultDurationData> mData = new ArrayList();
   private long mStartVariance;
   private long mDurationVariance;
 
@@ -33,7 +33,7 @@ public class MemoryTestDurationDataGenerator extends TestDataGenerator<DurationD
   }
 
   @Override
-  public SeriesData<DurationData> get(int index) {
+  public SeriesData<DefaultDurationData> get(int index) {
     return new SeriesData<>(mTime.get(index), mData.get(index));
   }
 
@@ -48,7 +48,7 @@ public class MemoryTestDurationDataGenerator extends TestDataGenerator<DurationD
       long newDuration = (long)(Math.random() * mDurationVariance);
 
       mTime.add(newStart);
-      mData.add(new DurationData(newDuration));
+      mData.add(new DefaultDurationData(newDuration));
     }
 
   }

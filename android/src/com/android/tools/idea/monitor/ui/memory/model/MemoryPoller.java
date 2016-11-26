@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.monitor.ui.memory.model;
 
-import com.android.tools.adtui.model.DurationData;
+import com.android.tools.adtui.model.DefaultDurationData;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.datastore.DataAdapter;
 import com.android.tools.datastore.Poller;
@@ -249,7 +249,7 @@ public class MemoryPoller extends Poller {
     public abstract T getSampleValue(MemoryData.VmStatsSample sample);
   }
 
-  private class HeapDumpSampleAdapter implements DataAdapter<DurationData> {
+  private class HeapDumpSampleAdapter implements DataAdapter<DefaultDurationData> {
     @Override
     public int getClosestTimeIndex(long timeUs, boolean leftClosest) {
       return myDataCache.getLatestPriorHeapDumpInfoIndex(TimeUnit.MICROSECONDS.toNanos(timeUs), leftClosest);
@@ -266,28 +266,28 @@ public class MemoryPoller extends Poller {
     }
 
     @Override
-    public SeriesData<DurationData> get(int index) {
+    public SeriesData<DefaultDurationData> get(int index) {
       HeapDumpInfo info = myDataCache.getHeapDumpInfo(index);
       long startTimeUs = TimeUnit.NANOSECONDS.toMicros(info.getStartTime());
       long durationUs = info.getEndTime() == UNFINISHED_TIMESTAMP ? UNSPECIFIED_DURATION :
                         TimeUnit.NANOSECONDS.toMicros(info.getEndTime() - info.getStartTime());
-      return new SeriesData<>(startTimeUs, new DurationData(durationUs));
+      return new SeriesData<>(startTimeUs, new DefaultDurationData(durationUs));
     }
   }
 
-  private class AllocationTrackingSampleAdapter implements DataAdapter<DurationData> {
+  private class AllocationTrackingSampleAdapter implements DataAdapter<DefaultDurationData> {
     @Override
     public int getClosestTimeIndex(long timeUs, boolean leftClosest) {
       return myDataCache.getLatestPriorAllocationTrackingSampleIndex(TimeUnit.MICROSECONDS.toNanos(timeUs), leftClosest);
     }
 
     @Override
-    public SeriesData<DurationData> get(int index) {
+    public SeriesData<DefaultDurationData> get(int index) {
       AllocationTrackingSample sample = myDataCache.getAllocationTrackingSample(index);
       long startTimeUs = TimeUnit.NANOSECONDS.toMicros(sample.getStartTime());
       long durationUs = sample.getEndTime() == UNFINISHED_TIMESTAMP ? UNSPECIFIED_DURATION :
                         TimeUnit.NANOSECONDS.toMicros(sample.getEndTime() - sample.getStartTime());
-      return new SeriesData<>(startTimeUs, new DurationData(durationUs));
+      return new SeriesData<>(startTimeUs, new DefaultDurationData(durationUs));
     }
 
     @Override

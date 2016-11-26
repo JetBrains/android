@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedTreeModel;
@@ -23,7 +24,6 @@ import com.android.tools.perflib.vmtrace.VmTraceData;
 import com.android.tools.perflib.vmtrace.VmTraceParser;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.AspectModel;
-import com.google.common.collect.Iterables;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,9 +31,10 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
 
-public class CpuCapture extends AspectModel<CpuCaptureAspect> {
+public class CpuCapture extends AspectModel<CpuCaptureAspect> implements DurationData {
 
   public static final String MAIN_THREAD_NAME = "main";
 
@@ -133,5 +134,10 @@ public class CpuCapture extends AspectModel<CpuCaptureAspect> {
 
   public boolean containsThread(int threadId) {
     return myCaptureTrees.keySet().stream().anyMatch(info -> info.getId() == threadId);
+  }
+
+  @Override
+  public long getDuration() {
+    return (long)myRange.getLength();
   }
 }
