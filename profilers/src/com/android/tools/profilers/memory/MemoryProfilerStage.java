@@ -15,10 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.DataSeries;
-import com.android.tools.adtui.model.DurationData;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.*;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
@@ -131,7 +128,7 @@ public class MemoryProfilerStage extends Stage {
         .setRequestTime(getStudioProfilers().getCurrentDeviceTime()).setEnabled(enabled).build());
   }
 
-  public DataSeries<DurationData> getAllocationDumpSampleDurations() {
+  public DataSeries<DefaultDurationData> getAllocationDumpSampleDurations() {
     return myAllocationDumpSampleDataSeries;
   }
 
@@ -164,20 +161,20 @@ public class MemoryProfilerStage extends Stage {
     }
   }
 
-  private class AllocationDumpSampleDataSeries implements DataSeries<DurationData> {
+  private class AllocationDumpSampleDataSeries implements DataSeries<DefaultDurationData> {
     @Override
-    public ImmutableList<SeriesData<DurationData>> getDataForXRange(Range xRange) {
+    public ImmutableList<SeriesData<DefaultDurationData>> getDataForXRange(Range xRange) {
       long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
       long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
       ListAllocationDumpInfosResponse response = myClient
         .listAllocationDumpInfos(
           ListDumpInfosRequest.newBuilder().setAppId(myProcessId).setStartTime(rangeMin).setEndTime(rangeMax).build());
 
-      List<SeriesData<DurationData>> seriesData = new ArrayList<>();
+      List<SeriesData<DefaultDurationData>> seriesData = new ArrayList<>();
       for (AllocationDumpInfo info : response.getInfosList()) {
         long startTime = TimeUnit.NANOSECONDS.toMicros(info.getStartTime());
         long endTime = TimeUnit.NANOSECONDS.toMicros(info.getEndTime());
-        seriesData.add(new SeriesData<>(startTime, new DurationData(
+        seriesData.add(new SeriesData<>(startTime, new DefaultDurationData(
           info.getEndTime() == DurationData.UNSPECIFIED_DURATION ? DurationData.UNSPECIFIED_DURATION : endTime - startTime)));
       }
 
