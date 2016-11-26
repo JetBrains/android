@@ -49,6 +49,14 @@ public class ConnectionDetailsView extends JPanel {
   public ConnectionDetailsView() {
     super(new BorderLayout());
 
+    // Create 2x2 pane
+    //     * Fit
+    // Fit _ _
+    // *   _ _
+    //
+    // where main contents span the whole area and a close button fits into the top right
+    JPanel rootPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
+
     JBTabbedPane tabPanel = new JBTabbedPane();
 
     myResponsePanel = new JPanel(new BorderLayout());
@@ -68,16 +76,12 @@ public class ConnectionDetailsView extends JPanel {
 
     IconButton closeIcon = new IconButton("Close", AllIcons.Actions.Close, AllIcons.Actions.CloseHovered);
     InplaceButton closeButton = new InplaceButton(closeIcon, e -> this.update((HttpData) null));
+    closeButton.setMinimumSize(closeButton.getPreferredSize()); // Prevent layout phase from squishing this button
 
-    // TODO: In a followup CL, update the logic so that the close button overlaps the tab panel.
-    // So far I've tried using OverlapLayout as well as JLayeredPade+GridBadLayout, but both
-    // approaches ended up being sensitive. Some changes to one of our own custom layout managers
-    // may make this trivial, however.
-    JPanel closePanel = new JPanel(new BorderLayout());
-    closePanel.add(closeButton, BorderLayout.EAST);
+    rootPanel.add(closeButton, new TabularLayout.Constraint(0, 1));
+    rootPanel.add(tabPanel, new TabularLayout.Constraint(0, 0, 2, 2));
 
-    add(closePanel, BorderLayout.NORTH);
-    add(tabPanel);
+    add(rootPanel);
   }
 
   /**
