@@ -49,20 +49,16 @@ public final class AdtUiUtils {
 
   public static final Color GRID_COLOR = new JBColor(Gray._192, Gray._96);
 
-  public static final Color SELECTION_HANDLE = JBColor.GRAY;
-
-  public static final Color OVERLAY_INFO_BACKGROUND = JBColor.WHITE;
-
-  private AdtUiUtils() {}
+  private AdtUiUtils() {
+  }
 
   /**
    * Collapses a line of text to fit the availableSpace by truncating the string and pad the end with ellipsis.
    *
-   * @param metrics the {@link FontMetrics} used to measure the text's width.
-   * @param text the original text.
-   * @param availableSpace the available space to render the text.
+   * @param metrics           the {@link FontMetrics} used to measure the text's width.
+   * @param text              the original text.
+   * @param availableSpace    the available space to render the text.
    * @param characterToShrink the number of characters to trim by on each truncate iteration.
-   *
    * @return the fitted text. If the available space is too small to fit an ellipsys, an empty string is returned.
    */
   public static String getFittedString(FontMetrics metrics, String text, float availableSpace, int characterToShrink) {
@@ -71,7 +67,8 @@ public final class AdtUiUtils {
     if (textWidth <= availableSpace) {
       // Enough space - early return.
       return text;
-    } else if (availableSpace < ellipsysWidth) {
+    }
+    else if (availableSpace < ellipsysWidth) {
       // No space to fit "..." - early return.
       return "";
     }
