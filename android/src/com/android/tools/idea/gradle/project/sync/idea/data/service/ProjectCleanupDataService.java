@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.ImportedModule;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -32,7 +33,6 @@ import java.util.Collections;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.util.Projects.setModulesToDisposePostSync;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 /**
  * Removes modules from the project that where not created by the "Sync with Gradle" action.
@@ -52,7 +52,7 @@ public class ProjectCleanupDataService extends AbstractProjectDataService<Import
     // IntelliJ supports several gradle projects linked to one IDEA project it will be separate processes for these gradle projects importing
     // also IntelliJ does not prevent to mix gradle projects with non-gradle ones.
     // See https://youtrack.jetbrains.com/issue/IDEA-137433
-    if(!isAndroidStudio()) {
+    if(!IdeInfo.getInstance().isAndroidStudio()) {
       return;
     }
 

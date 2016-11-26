@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.hyperlink.DownloadJdk8Hyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.UseEmbeddedJdkHyperlink;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
 import java.util.List;
@@ -26,7 +27,6 @@ import java.util.List;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 /**
  * Tests for {@link Jdk8RequiredErrorHandler}.
@@ -50,7 +50,7 @@ public class Jdk8RequiredErrorHandlerTest extends AndroidGradleTestCase {
 
     assertThat(notificationUpdate.getText()).contains("Please use JDK 8 or newer.");
 
-    boolean androidStudio = isAndroidStudio();
+    boolean androidStudio = IdeInfo.getInstance().isAndroidStudio();
 
     // Verify hyperlinks are correct.
     List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();

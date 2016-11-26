@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.library.LibraryPropertiesDialog;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode;
@@ -29,7 +30,6 @@ import com.intellij.pom.Navigatable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.NAVIGATABLE_ARRAY;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
@@ -58,7 +58,7 @@ public class LibraryPropertiesAction extends AnAction {
 
   @Nullable
   private static Library findLibrary(@NotNull AnActionEvent e) {
-    if (isAndroidStudio()) {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
       Project project = e.getProject();
       if (project != null) {
         NamedLibraryElementNode node = findLibraryNode(e.getDataContext());

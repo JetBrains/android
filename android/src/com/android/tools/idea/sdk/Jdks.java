@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sdk;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.hyperlink.DownloadJdk8Hyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink;
@@ -48,7 +49,6 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static java.util.Collections.emptyList;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 /**
  * Utility methods related to IDEA JDKs.
@@ -59,9 +59,15 @@ public class Jdks {
 
   private static final LanguageLevel DEFAULT_LANG_LEVEL = JDK_1_8;
 
+  @NotNull private final IdeInfo myIdeInfo;
+
   @NotNull
   public static Jdks getInstance() {
     return ServiceManager.getService(Jdks.class);
+  }
+
+  public Jdks(@NotNull IdeInfo ideInfo) {
+    myIdeInfo = ideInfo;
   }
 
   @Nullable
@@ -74,7 +80,7 @@ public class Jdks {
     if (langLevel == null) {
       langLevel = DEFAULT_LANG_LEVEL;
     }
-    if (isAndroidStudio() && !IdeSdks.getInstance().isUsingEmbeddedJdk()) {
+    if (myIdeInfo.isAndroidStudio() && !IdeSdks.getInstance().isUsingEmbeddedJdk()) {
       Sdk jdk = createJdk(EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getPath());
       assert jdk != null && isApplicableJdk(jdk, langLevel);
       return jdk;
@@ -232,7 +238,7 @@ public class Jdks {
 
   @Nullable
   public Sdk createEmbeddedJdk() {
-    if (isAndroidStudio()) {
+    if (myIdeInfo.isAndroidStudio()) {
       Sdk jdk = createJdk(EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getPath());
       assert jdk != null;
       return jdk;

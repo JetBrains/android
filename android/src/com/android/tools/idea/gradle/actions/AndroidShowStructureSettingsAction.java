@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -29,9 +30,6 @@ import com.intellij.openapi.project.ProjectManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 /**
  * Displays the "Project Structure" dialog.
@@ -49,7 +47,7 @@ public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAct
   @Override
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
-    if (project == null && isAndroidStudio()) {
+    if (project == null && IdeInfo.getInstance().isAndroidStudio()) {
       project = ProjectManager.getInstance().getDefaultProject();
       showAndroidProjectStructure(project);
       return;

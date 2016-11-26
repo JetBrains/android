@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.editors;
 
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.compiler.actions.ArtifactAwareProjectSettingsService;
@@ -29,7 +30,6 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.ui.configuration.IdeaProjectSettingsService;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.packaging.artifacts.Artifact;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -234,6 +234,6 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
   }
 
   private boolean isGradleProjectInAndroidStudio() {
-    return AndroidUtils.isAndroidStudio() && AndroidProjectInfo.getInstance(myProject).requiresAndroidModel();
+    return IdeInfo.getInstance().isAndroidStudio() && AndroidProjectInfo.getInstance(myProject).requiresAndroidModel();
   }
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.compatibility;
 
 import com.android.annotations.Nullable;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.compatibility.version.BuildFileComponentVersionReader;
 import com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader;
 import com.android.tools.idea.gradle.project.sync.messages.MessageType;
@@ -42,7 +43,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader.*;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
@@ -164,7 +164,7 @@ class CompatibilityChecksMetadata {
     myReadersByComponentName.put("gradle", GRADLE);
     myReadersByComponentName.put("android-gradle-plugin", ANDROID_GRADLE_PLUGIN);
     myReadersByComponentName.put("android-gradle-experimental-plugin", ANDROID_GRADLE_EXPERIMENTAL_PLUGIN);
-    if (isAndroidStudio()) {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
       myReadersByComponentName.put("android-studio", ANDROID_STUDIO);
     }
   }

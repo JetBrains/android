@@ -19,6 +19,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.IdeInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -31,6 +32,7 @@ import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.Mock;
 
 import java.io.File;
 import java.util.HashMap;
@@ -47,11 +49,14 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link AndroidSdks}.
  */
 public class AndroidSdksTest extends IdeaTestCase {
+  @Mock IdeInfo myIdeInfo;
+
   private Sdk myJdk;
   private AndroidSdks myAndroidSdks;
   private File mySdkPath;
@@ -59,6 +64,8 @@ public class AndroidSdksTest extends IdeaTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    initMocks(this);
+    when(myIdeInfo.isAndroidStudio()).thenReturn(true);
 
     mySdkPath = TestUtils.getSdk();
 
@@ -66,7 +73,7 @@ public class AndroidSdksTest extends IdeaTestCase {
     myJdk = jdks.chooseOrCreateJavaSdk();
     assertNotNull(myJdk);
 
-    myAndroidSdks = new AndroidSdks(jdks);
+    myAndroidSdks = new AndroidSdks(jdks, myIdeInfo);
   }
 
   @Override
@@ -181,7 +188,7 @@ public class AndroidSdksTest extends IdeaTestCase {
 
   public void testCreateSdkWithNullJdk() {
     Jdks jdks = mock(Jdks.class);
-    myAndroidSdks = new AndroidSdks(jdks);
+    myAndroidSdks = new AndroidSdks(jdks, myIdeInfo);
 
     when(jdks.chooseOrCreateJavaSdk()).thenReturn(null);
 

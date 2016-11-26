@@ -16,12 +16,13 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallArtifactHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -35,7 +36,6 @@ import static com.android.ide.common.repository.SdkMavenRepository.ANDROID;
 import static com.android.ide.common.repository.SdkMavenRepository.GOOGLE;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
@@ -109,13 +109,13 @@ public class UnresolvedDependenciesReporterTest extends AndroidGradleTestCase {
     // @formatter:on
 
     List<NotificationHyperlink> quickFixes = message.getQuickFixes();
-    int expectedSize = isAndroidStudio() ? 2 : 1;
+    int expectedSize = IdeInfo.getInstance().isAndroidStudio() ? 2 : 1;
     assertThat(quickFixes).hasSize(expectedSize);
 
     NotificationHyperlink quickFix = quickFixes.get(0);
     assertThat(quickFix).isInstanceOf(InstallArtifactHyperlink.class);
 
-    if (isAndroidStudio()) {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
       quickFix = quickFixes.get(1);
       assertThat(quickFix).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
     }
@@ -140,7 +140,7 @@ public class UnresolvedDependenciesReporterTest extends AndroidGradleTestCase {
     // @formatter:on
 
     List<NotificationHyperlink> quickFixes = message.getQuickFixes();
-    int expectedSize = isAndroidStudio() ? 2 : 1;
+    int expectedSize = IdeInfo.getInstance().isAndroidStudio() ? 2 : 1;
     assertThat(quickFixes).hasSize(expectedSize);
 
     NotificationHyperlink quickFix = quickFixes.get(0);
@@ -149,7 +149,7 @@ public class UnresolvedDependenciesReporterTest extends AndroidGradleTestCase {
     InstallRepositoryHyperlink hyperlink = (InstallRepositoryHyperlink)quickFix;
     assertSame(ANDROID, hyperlink.getRepository());
 
-    if (isAndroidStudio()) {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
       quickFix = quickFixes.get(1);
       assertThat(quickFix).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
     }
@@ -174,7 +174,7 @@ public class UnresolvedDependenciesReporterTest extends AndroidGradleTestCase {
     // @formatter:on
 
     List<NotificationHyperlink> quickFixes = message.getQuickFixes();
-    int expectedSize = isAndroidStudio() ? 2 : 1;
+    int expectedSize = IdeInfo.getInstance().isAndroidStudio() ? 2 : 1;
     assertThat(quickFixes).hasSize(expectedSize);
 
     NotificationHyperlink quickFix = quickFixes.get(0);
@@ -183,7 +183,7 @@ public class UnresolvedDependenciesReporterTest extends AndroidGradleTestCase {
     InstallRepositoryHyperlink hyperlink = (InstallRepositoryHyperlink)quickFix;
     assertSame(GOOGLE, hyperlink.getRepository());
 
-    if (isAndroidStudio()) {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
       quickFix = quickFixes.get(1);
       assertThat(quickFix).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
     }
