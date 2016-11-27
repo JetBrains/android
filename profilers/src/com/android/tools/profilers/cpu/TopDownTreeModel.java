@@ -33,6 +33,7 @@ class TopDownTreeModel extends DefaultTreeModel implements RangedTreeModel {
   public TopDownTreeModel(TopDownNode node) {
     super(new DefaultMutableTreeNode(node));
     myRange = new Range();
+    update(new Range(-Double.MAX_VALUE, Double.MAX_VALUE));
   }
 
   @Override
