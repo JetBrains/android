@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.ProportionalLayout;
+import com.android.tools.adtui.TabularLayout;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -55,7 +55,7 @@ public class ConnectionDetailsView extends JPanel {
     myEditorPanel = new JPanel(new BorderLayout());
     myResponsePanel.add(myEditorPanel, BorderLayout.CENTER);
 
-    myFieldsPanel = new JPanel(ProportionalLayout.fromString("Fit,20px,*"));
+    myFieldsPanel = new JPanel(TabularLayout.fromString("Fit,20px,*"));
     JBScrollPane scrollPane = new JBScrollPane(myFieldsPanel);
     scrollPane.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0));
     myResponsePanel.add(scrollPane, BorderLayout.SOUTH);
@@ -102,31 +102,31 @@ public class ConnectionDetailsView extends JPanel {
       }
 
       int row = 0;
-      myFieldsPanel.add(new NoWrapBoldLabel("Request"), new ProportionalLayout.Constraint(row, 0));
-      myFieldsPanel.add(new JLabel(HttpData.getUrlName(httpData.getUrl())), new ProportionalLayout.Constraint(row, 2));
+      myFieldsPanel.add(new NoWrapBoldLabel("Request"), new TabularLayout.Constraint(row, 0));
+      myFieldsPanel.add(new JLabel(HttpData.getUrlName(httpData.getUrl())), new TabularLayout.Constraint(row, 2));
 
       String contentType = httpData.getResponseField(HttpData.FIELD_CONTENT_TYPE);
       if (contentType != null) {
         row++;
-        myFieldsPanel.add(new NoWrapBoldLabel("Content type"), new ProportionalLayout.Constraint(row, 0));
+        myFieldsPanel.add(new NoWrapBoldLabel("Content type"), new TabularLayout.Constraint(row, 0));
         // Content type looks like "type/subtype;" or "type/subtype; parameters".
         // Always convert to "type"
         contentType = contentType.split(";")[0];
-        myFieldsPanel.add(new JLabel(contentType), new ProportionalLayout.Constraint(row, 2));
+        myFieldsPanel.add(new JLabel(contentType), new TabularLayout.Constraint(row, 2));
       }
 
       HyperlinkLabel urlLabel = new HyperlinkLabel(httpData.getUrl());
       urlLabel.setHyperlinkTarget(httpData.getUrl());
       row++;
-      myFieldsPanel.add(new NoWrapBoldLabel("URL"), new ProportionalLayout.Constraint(row, 0));
-      myFieldsPanel.add(urlLabel, new ProportionalLayout.Constraint(row, 2));
+      myFieldsPanel.add(new NoWrapBoldLabel("URL"), new TabularLayout.Constraint(row, 0));
+      myFieldsPanel.add(urlLabel, new TabularLayout.Constraint(row, 2));
 
       String contentLength = httpData.getResponseField(HttpData.FIELD_CONTENT_LENGTH);
       if (contentLength != null) {
         contentLength = contentLength.split(";")[0];
         row++;
-        myFieldsPanel.add(new NoWrapBoldLabel("Content length"), new ProportionalLayout.Constraint(row, 0));
-        myFieldsPanel.add(new JLabel(contentLength), new ProportionalLayout.Constraint(row, 2));
+        myFieldsPanel.add(new NoWrapBoldLabel("Content length"), new TabularLayout.Constraint(row, 0));
+        myFieldsPanel.add(new JLabel(contentLength), new TabularLayout.Constraint(row, 2));
       }
 
       // TODO: We are showing the callstack but we can't currently click on any of the links to

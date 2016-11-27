@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.structure.services;
 
-import com.android.tools.adtui.ProportionalLayout;
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ObservableValue;
@@ -186,7 +186,7 @@ public final class ServicePanelBuilder {
     private int myCurrRow;
 
     public UiGrid(@NotNull String colDefinitions) {
-      ProportionalLayout layout = ProportionalLayout.fromString(colDefinitions);
+      TabularLayout layout = TabularLayout.fromString(colDefinitions);
       myNumCols = layout.getNumColumns();
       myPanel = new JPanel(layout);
     }
@@ -208,7 +208,7 @@ public final class ServicePanelBuilder {
     }
 
     public void addComponent(@NotNull JComponent component) {
-      myPanel.add(component, new ProportionalLayout.Constraint(myCurrRow, myCurrCol));
+      myPanel.add(component, new TabularLayout.Constraint(myCurrRow, myCurrCol));
       myCurrRow = 0;
       myCurrCol = 0;
     }
