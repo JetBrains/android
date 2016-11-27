@@ -26,13 +26,13 @@ import static org.junit.Assert.fail;
 public final class TabularLayoutTest {
   @Test
   public void columnCountMatchesLayoutDefinition() {
-    TabularLayout layout = TabularLayout.fromString("Fit,*,123px");
+    TabularLayout layout = new TabularLayout("Fit,*,123px");
     assertThat(layout.getNumColumns()).isEqualTo(3);
   }
 
   @Test
   public void minimumWidthCalculationUsesFitValues() throws Exception {
-    final JPanel panel = new JPanel(TabularLayout.fromString("Fit,Fit"));
+    final JPanel panel = new JPanel(new TabularLayout("Fit,Fit"));
 
     Component col0 = Box.createHorizontalStrut(80);
     Component col1 = Box.createHorizontalStrut(20);
@@ -47,7 +47,7 @@ public final class TabularLayoutTest {
 
   @Test
   public void minimumWidthCalculationFixedValuesOverrideComponentSizes() throws Exception {
-    final JPanel panel = new JPanel(TabularLayout.fromString("100px,50px"));
+    final JPanel panel = new JPanel(new TabularLayout("100px,50px"));
 
     Component col0 = Box.createHorizontalStrut(90);
     Component col1 = Box.createHorizontalStrut(90);
@@ -62,7 +62,7 @@ public final class TabularLayoutTest {
 
   @Test
   public void fitWidthChoosesLargestValueAcrossMultipleRows() throws Exception {
-    final JPanel panel = new JPanel(TabularLayout.fromString("Fit,Fit"));
+    final JPanel panel = new JPanel(new TabularLayout("Fit,Fit"));
 
     final Component row0col0 = Box.createHorizontalStrut(100);
     final Component row1col0 = Box.createHorizontalStrut(300);
@@ -94,8 +94,23 @@ public final class TabularLayoutTest {
   }
 
   @Test
+  public void fitWidthUsesComponentMinimumSizeNotPreferredSize() throws Exception {
+    final JPanel panel = new JPanel(new TabularLayout("Fit"));
+
+    JPanel cell = new JPanel();
+    cell.setMinimumSize(new Dimension(5, 10));
+    cell.setPreferredSize(new Dimension(15, 25));
+
+    panel.add(cell, new TabularLayout.Constraint(0, 0));
+    mockPackPanel(panel);
+
+    assertThat(panel.getWidth()).isEqualTo(5);
+    assertThat(panel.getHeight()).isEqualTo(10);
+  }
+
+  @Test
   public void proportionalColumnsTakeRemainingSpace() throws Exception {
-    final JPanel panel = new JPanel(TabularLayout.fromString("100px,Fit,3*,*,50px"));
+    final JPanel panel = new JPanel(new TabularLayout("100px,Fit,3*,*,50px"));
     panel.setPreferredSize(new Dimension(300, 20));
 
     // Col 1 = 100, Col 5 = 50
@@ -128,7 +143,7 @@ public final class TabularLayoutTest {
 
   @Test
   public void preferredSizeCalculationMakesRoomForProportionalColumns() throws Exception {
-    final JPanel panel = new JPanel(TabularLayout.fromString("*,2*,3*,4*"));
+    final JPanel panel = new JPanel(new TabularLayout("*,2*,3*,4*"));
 
     // Col 0 - 10%
     // Col 1 - 20%
@@ -156,7 +171,7 @@ public final class TabularLayoutTest {
 
   @Test
   public void minimumSizeCalculationCollapsesProportionalColumns() throws Exception {
-    final JPanel panel = new JPanel(TabularLayout.fromString("10px,990*,*,20px,3*"));
+    final JPanel panel = new JPanel(new TabularLayout("10px,990*,*,20px,3*"));
 
     mockPackPanel(panel);
 
@@ -165,7 +180,7 @@ public final class TabularLayoutTest {
 
   @Test
   public void heightCalculationSkipsEmptyRows() throws Exception {
-    final JPanel panel = new JPanel(TabularLayout.fromString("100px", 0));
+    final JPanel panel = new JPanel(new TabularLayout("100px"));
 
     final Component row0 = Box.createVerticalStrut(20);
     final Component row2 = Box.createVerticalStrut(50);
@@ -184,7 +199,7 @@ public final class TabularLayoutTest {
 
   @Test
   public void heightCalculationIncludesVgapAndSkipsEmptyRows() throws Exception {
-    final JPanel panel = new JPanel(TabularLayout.fromString("100px", 20));
+    final JPanel panel = new JPanel(new TabularLayout("100px").setVGap(20));
 
     final Component row2 = Box.createVerticalStrut(20);
     final Component row4 = Box.createVerticalStrut(40);
@@ -208,7 +223,7 @@ public final class TabularLayoutTest {
 
   @Test
   public void heightCalculationSkipsInvisibleRows() throws Exception {
-    final JPanel panel = new JPanel(TabularLayout.fromString("100px", 0));
+    final JPanel panel = new JPanel(new TabularLayout("100px"));
 
     final Component row0 = Box.createVerticalStrut(20);
     final Component row1 = Box.createVerticalStrut(50);
@@ -229,7 +244,7 @@ public final class TabularLayoutTest {
 
   @Test
   public void proportionalLayoutCollapsesIfAllContentsAreInvisible() throws Exception {
-    final JPanel panel = new JPanel(TabularLayout.fromString("Fit", 0));
+    final JPanel panel = new JPanel(new TabularLayout("Fit"));
 
     final Component row0 = Box.createVerticalStrut(20);
     final Component row1 = Box.createVerticalStrut(50);
@@ -249,7 +264,7 @@ public final class TabularLayoutTest {
 
   @Test
   public void layoutTakesInsetsIntoAccount() throws Exception {
-    final JPanel panel = new JPanel(TabularLayout.fromString("*"));
+    final JPanel panel = new JPanel(new TabularLayout("*"));
     panel.setPreferredSize(new Dimension(300, 30));
 
     final Component cell = new JPanel();
@@ -270,7 +285,7 @@ public final class TabularLayoutTest {
 
   @Test
   public void cellsCanSpanAcrossMultipleColumns() throws Exception {
-    final JPanel panel = new JPanel(TabularLayout.fromString("Fit,Fit"));
+    final JPanel panel = new JPanel(new TabularLayout("Fit,Fit"));
 
     final Component row0col0 = Box.createHorizontalStrut(20);
     final Component row0col1 = Box.createHorizontalStrut(50);
@@ -290,7 +305,7 @@ public final class TabularLayoutTest {
 
   @Test
   public void columnSpanMustBeWithinBounds() throws Exception {
-    final JPanel panel = new JPanel(TabularLayout.fromString("Fit,Fit"));
+    final JPanel panel = new JPanel(new TabularLayout("Fit,Fit"));
     final JPanel row = new JPanel();
 
     try {
@@ -303,7 +318,7 @@ public final class TabularLayoutTest {
 
   @Test
   public void columnSpanMustBeGreaterThanZero() throws Exception {
-    final JPanel panel = new JPanel(TabularLayout.fromString("Fit,Fit"));
+    final JPanel panel = new JPanel(new TabularLayout("Fit,Fit"));
     final JPanel row = new JPanel();
 
     try {

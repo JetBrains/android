@@ -55,7 +55,7 @@ public class ConnectionDetailsView extends JPanel {
     myEditorPanel = new JPanel(new BorderLayout());
     myResponsePanel.add(myEditorPanel, BorderLayout.CENTER);
 
-    myFieldsPanel = new JPanel(TabularLayout.fromString("Fit,20px,*"));
+    myFieldsPanel = new JPanel(new TabularLayout("Fit,20px,*").setVGap(10));
     JBScrollPane scrollPane = new JBScrollPane(myFieldsPanel);
     scrollPane.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0));
     myResponsePanel.add(scrollPane, BorderLayout.SOUTH);

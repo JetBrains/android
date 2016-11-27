@@ -72,7 +72,7 @@ public final class ConfigureActivityStep extends ModelWizardStep<ActivityModel> 
   }
 
   private void createUIComponents() {
-    myRootPanel = new JPanel(TabularLayout.fromString("Fit,*"));
+    myRootPanel = new JPanel(new TabularLayout("Fit,*").setVGap(10));
   }
 
   @Override
