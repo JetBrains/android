@@ -18,6 +18,7 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendRenderData;
+import com.android.tools.adtui.SelectionComponent;
 import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
@@ -210,10 +211,11 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     lineChart.addCustomRenderer(allocationRenderer);
     lineChart.addCustomRenderer(gcRenderer);
 
+    SelectionComponent selection = new SelectionComponent(timeline.getSelectionRange(), timeline.getViewRange());
     final JPanel overlayPanel = new JBPanel(new BorderLayout());
     overlayPanel.setOpaque(false);
     overlayPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
-    final OverlayComponent overlay = new OverlayComponent(lineChart); // TODO add SelectionComponent
+    final OverlayComponent overlay = new OverlayComponent(selection);
     overlay.addDurationDataRenderer(heapDumpRenderer);
     overlay.addDurationDataRenderer(allocationRenderer);
     overlay.addDurationDataRenderer(gcRenderer);
@@ -224,6 +226,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     getChoreographer().register(allocationRenderer);
     getChoreographer().register(gcRenderer);
     getChoreographer().register(overlay);
+    getChoreographer().register(selection);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
     final JPanel axisPanel = new JBPanel(new BorderLayout());
@@ -271,6 +274,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     legendPanel.add(legend, BorderLayout.EAST);
 
     monitorPanel.add(overlayPanel, GBC_FULL);
+    monitorPanel.add(selection, GBC_FULL);
     monitorPanel.add(legendPanel, GBC_FULL);
     monitorPanel.add(axisPanel, GBC_FULL);
     monitorPanel.add(lineChartPanel, GBC_FULL);
