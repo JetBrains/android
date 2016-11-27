@@ -110,7 +110,7 @@ public class MemoryClassDetailView {
       return null;
     }
 
-    MemoryNode rootAdapter = model.getRootAdapter();
+    MemoryNode rootAdapter = model.getRootNode();
 
     JPanel classesPanel = new JPanel(new BorderLayout());
     JPanel headingPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));

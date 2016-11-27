@@ -23,5 +23,5 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface MemoryObjects extends Disposable {
   @NotNull
-  MemoryNode getRootAdapter();
+  MemoryNode getRootNode();
 }
