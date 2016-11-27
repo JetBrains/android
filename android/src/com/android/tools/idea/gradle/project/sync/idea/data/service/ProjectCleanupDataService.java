@@ -16,61 +16,58 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.ImportedModule;
-import com.google.common.collect.Maps;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
+import com.android.tools.idea.gradle.project.sync.setup.post.cleanup.ProjectCleanup;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
 
-import static com.android.tools.idea.gradle.util.Projects.setModulesToDisposePostSync;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.PROJECT_CLEANUP_MODEL;
 
-/**
- * Removes modules from the project that where not created by the "Sync with Gradle" action.
- */
-public class ProjectCleanupDataService extends AbstractProjectDataService<ImportedModule, Void> {
-  @Override
-  @NotNull
-  public Key<ImportedModule> getTargetDataKey() {
-    return AndroidProjectKeys.IMPORTED_MODULE;
+public class ProjectCleanupDataService extends AbstractProjectDataService<ProjectCleanupModel, Void> {
+  @NotNull private final IdeInfo myIdeInfo;
+  @NotNull private final ProjectCleanup myProjectCleanup;
+
+  @SuppressWarnings("unused") // Instantiated by IDEA
+  public ProjectCleanupDataService(@NotNull IdeInfo ideInfo) {
+    this(ideInfo, new ProjectCleanup());
+  }
+
+  @VisibleForTesting
+  ProjectCleanupDataService(@NotNull IdeInfo ideInfo, @NotNull ProjectCleanup projectCleanup) {
+    myIdeInfo = ideInfo;
+    myProjectCleanup = projectCleanup;
   }
 
   @Override
-  public void importData(@NotNull Collection<DataNode<ImportedModule>> toImport,
+  @NotNull
+  public Key<ProjectCleanupModel> getTargetDataKey() {
+    return PROJECT_CLEANUP_MODEL;
+  }
+
+  @Override
+  public void importData(@NotNull Collection<DataNode<ProjectCleanupModel>> toImport,
                          @Nullable ProjectData projectData,
                          @NotNull Project project,
                          @NotNull IdeModifiableModelsProvider modelsProvider) {
     // IntelliJ supports several gradle projects linked to one IDEA project it will be separate processes for these gradle projects importing
     // also IntelliJ does not prevent to mix gradle projects with non-gradle ones.
     // See https://youtrack.jetbrains.com/issue/IDEA-137433
-    if(!IdeInfo.getInstance().isAndroidStudio()) {
+    if(!myIdeInfo.isAndroidStudio()) {
       return;
     }
 
-    Module[] modules = modelsProvider.getModules();
-    if (modules.length != toImport.size()) {
-      final Map<String, Module> modulesByName = Maps.newHashMap();
-      for (Module module : modules) {
-        modulesByName.put(module.getName(), module);
-      }
-      for (DataNode<ImportedModule> dataNode : toImport) {
-        String importedModuleName = dataNode.getData().getName();
-        modulesByName.remove(importedModuleName);
-      }
-      Collection<Module> modulesToDispose = Collections.emptyList();
-      if (!modulesByName.isEmpty()) {
-        modulesToDispose = modulesByName.values();
-      }
-      setModulesToDisposePostSync(project, modulesToDispose.isEmpty() ? null : modulesToDispose);
+    if (!GradleSyncState.getInstance(project).lastSyncFailedOrHasIssues()) {
+      myProjectCleanup.cleanUpProject(project, modelsProvider, null);
     }
   }
 }

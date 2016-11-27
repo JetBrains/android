@@ -27,7 +27,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
-import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.Request.DEFAULT_REQUEST;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleExecutionSettings;
 import static com.android.tools.idea.gradle.util.Projects.populate;
@@ -50,8 +49,7 @@ public class FastGradleSync {
       try {
         DataNode<ProjectData> projectDataNode = myProjectResolver.resolveProjectInfo(id, projectPath, false, settings, NULL_OBJECT);
         assert projectDataNode != null;
-        invokeAndWaitIfNeeded(
-          (ThrowableRunnable)() -> populate(project, projectDataNode, DEFAULT_REQUEST, false, false));
+        invokeAndWaitIfNeeded((ThrowableRunnable)() -> populate(project, projectDataNode, null, false));
         callback.setDone();
       }
       catch (Throwable e) {
