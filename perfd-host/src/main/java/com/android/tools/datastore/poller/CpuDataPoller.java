@@ -204,11 +204,26 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
   public void stopProfilingApp(CpuProfiler.CpuProfilingAppStopRequest request,
                                StreamObserver<CpuProfiler.CpuProfilingAppStopResponse> observer) {
     CpuProfiler.CpuProfilingAppStopResponse response = myPollingService.stopProfilingApp(request);
-    TraceData trace = new TraceData(response.getTraceId(), myStartTraceTimestamp, getCurrentDeviceTimeNs());
+    TraceData trace = new TraceData(response.getTraceId(), myStartTraceTimestamp, getCurrentDeviceTimeNs(), response.getTrace());
     myStartTraceTimestamp = -1;
-    trace.data = response.getTrace();
     myTraces.put(response.getTraceId(), trace);
     observer.onNext(response);
+    observer.onCompleted();
+  }
+
+  @Override
+  public void getTrace(CpuProfiler.GetTraceRequest request, StreamObserver<CpuProfiler.GetTraceResponse> observer) {
+
+    TraceData data = myTraces.get(request.getTraceId());
+    CpuProfiler.GetTraceResponse.Builder builder = CpuProfiler.GetTraceResponse.newBuilder();
+    if (data == null) {
+      builder.setStatus(CpuProfiler.GetTraceResponse.Status.FAILURE);
+    }
+    else {
+      builder.setStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS).setData(data.getData());
+    }
+
+    observer.onNext(builder.build());
     observer.onCompleted();
   }
 
@@ -217,21 +232,27 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
   }
 
   private static class TraceData {
+    @NotNull
+    private final ByteString myData;
+
     private CpuProfiler.TraceInfo myTrace;
 
-    @Nullable
-    public volatile ByteString data = null;
-
-    public TraceData(int traceId, long fromTimestamp, long toTimestamp) {
+    public TraceData(int traceId, long fromTimestamp, long toTimestamp, @NotNull ByteString data) {
       if (fromTimestamp < 0) {
         throw new IllegalArgumentException("Invalid trace timestamp");
       }
       myTrace = CpuProfiler.TraceInfo.newBuilder().setTraceId(traceId).setFromTimestamp(fromTimestamp).setToTimestamp(toTimestamp).build();
+      myData = data;
     }
 
     @NotNull
     public CpuProfiler.TraceInfo getTrace() {
       return myTrace;
+    }
+
+    @NotNull
+    public ByteString getData() {
+      return myData;
     }
   }
 }

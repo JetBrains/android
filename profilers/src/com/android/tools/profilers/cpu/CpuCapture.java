@@ -21,7 +21,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.android.tools.perflib.vmtrace.VmTraceData;
 import com.android.tools.perflib.vmtrace.VmTraceParser;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,14 +44,15 @@ public class CpuCapture implements DurationData {
   @NotNull
   private final Range myRange;
 
-  public CpuCapture(@NotNull CpuProfiler.CpuProfilingAppStopResponse response) {
+  public CpuCapture(@NotNull ByteString bytes) {
 
     // TODO: Move file parsing/manipulation to another thread.
+    // TODO: Remove layers, analyze whether we can keep the whole file in memory.
     try {
       File trace = FileUtil.createTempFile("cpu_trace", ".trace");
       VmTraceData data;
       try (FileOutputStream out = new FileOutputStream(trace)) {
-        out.write(response.getTrace().toByteArray());
+        out.write(bytes.toByteArray());
         VmTraceParser parser = new VmTraceParser(trace);
         parser.parse();
         data = parser.getTraceData();
