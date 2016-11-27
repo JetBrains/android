@@ -80,5 +80,6 @@ iml_module(
         "//tools/adt/idea/profilers[module]",
         "//tools/adt/idea/profilers-ui[module]",
         "//tools/idea/plugins/gradle/tooling-extension-impl:gradle-tooling-extension-impl[module]",
+        "//tools/adt/idea/wizard[module]",
     ],
 )
