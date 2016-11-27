@@ -17,5 +17,6 @@ iml_module(
         "//tools/adt/idea/adt-ui-model[module]",
         "//tools/idea/platform/platform-api[module]",
         "//tools:idea.platform-impl_and_others[module]",
+        "//tools/base/perflib:studio.perflib[module]",
     ],
 )
