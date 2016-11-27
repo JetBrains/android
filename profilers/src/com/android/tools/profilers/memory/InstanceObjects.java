@@ -17,18 +17,18 @@ package com.android.tools.profilers.memory;
 
 import org.jetbrains.annotations.NotNull;
 
-public class ClassObjects implements MemoryObjects {
+public class InstanceObjects implements MemoryObjects {
 
-  private final MemoryNode myClassNode;
+  private final MemoryNode myInstanceNode;
 
-  public ClassObjects(@NotNull MemoryNode klassRoot) {
-    myClassNode = klassRoot;
+  public InstanceObjects(@NotNull MemoryNode instance) {
+    myInstanceNode = instance;
   }
 
   @NotNull
   @Override
   public MemoryNode getRootNode() {
-    return myClassNode;
+    return myInstanceNode;
   }
 
   @Override

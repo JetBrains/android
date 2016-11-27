@@ -62,7 +62,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private MemoryInstanceView myInstanceView = new MemoryInstanceView(getStage());
 
   @NotNull private Splitter myChartClassesSplitter = new Splitter(true);
-  @NotNull private Splitter myInstanceDetailsSplitter = new Splitter(false);
+  @NotNull private Splitter myInstanceDetailsSplitter = new Splitter(true);
 
   public MemoryProfilerStageView(@NotNull MemoryProfilerStage stage) {
     super(stage);
@@ -279,7 +279,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       }
     }
 
-    MemoryObjects klass = selection.getSelectedClass();
+    ClassObjects klass = selection.getSelectedClass();
     if (myInstanceView.getCurrentClassObject() != klass) {
       myInstanceView.reset();
       myInstanceDetailsSplitter.setFirstComponent(null);
