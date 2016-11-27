@@ -167,9 +167,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     // Create an event representing the traces within the range.
     DurationDataRenderer<CpuCapture> traceRenderer =
       new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, myStage.getCpuTraceDataSeries()), ProfilerColors.CPU_CAPTURE_EVENT)
-        .setLabelProvider(data -> "Capture " + data.getDuration())
+        .setLabelProvider(this::formatCaptureLabel)
         .setStroke(new BasicStroke(1))
-        .setLabelBackground(Color.DARK_GRAY, Color.GRAY, Color.lightGray)
+        .setLabelColors(new Color(0x70000000, true), Color.BLACK, Color.lightGray, Color.WHITE)
         .setClickHander(getStage()::setCapture)
         .build();
 
@@ -249,6 +249,22 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     return panel;
   }
 
+  private String formatCaptureLabel(CpuCapture capture) {
+    Range range = getStage().getStudioProfilers().getTimeline().getDataRange();
+
+    long min = (long)(capture.getRange().getMin() - range.getMin());
+    long max = (long)(capture.getRange().getMax() - range.getMin());
+    return formatTime(min) + " - " + formatTime(max);
+  }
+
+  private static String formatTime(long micro) {
+    // TODO unify with TimeAxisFormatter
+    long min = micro / (1000000 * 60);
+    long sec = (micro % (1000000 * 60)) / 1000000;
+    long mil = (micro % 1000000) / 1000;
+
+    return String.format("%d:%d:%03d", min, sec, mil);
+  }
 
   private void updateCapture() {
     CpuCapture capture = myStage.getCapture();
