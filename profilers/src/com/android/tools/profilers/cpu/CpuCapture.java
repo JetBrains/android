@@ -18,12 +18,10 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedTreeModel;
 import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.android.tools.perflib.vmtrace.VmTraceData;
 import com.android.tools.perflib.vmtrace.VmTraceParser;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profilers.AspectModel;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,37 +32,33 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
-public class CpuCapture extends AspectModel<CpuCaptureAspect> implements DurationData {
+public class CpuCapture implements DurationData {
 
   public static final String MAIN_THREAD_NAME = "main";
 
   private final int myMainThreadId;
-
-  @Nullable
-  private HNode<MethodModel> myCaptureNode;
 
   @NotNull
   private final Map<ThreadInfo, HNode<MethodModel>> myCaptureTrees;
 
   @NotNull
   private final Range myRange;
-  private final VmTraceData myData;
 
   public CpuCapture(@NotNull CpuProfiler.CpuProfilingAppStopResponse response) {
 
     // TODO: Move file parsing/manipulation to another thread.
     try {
       File trace = FileUtil.createTempFile("cpu_trace", ".trace");
+      VmTraceData data;
       try (FileOutputStream out = new FileOutputStream(trace)) {
         out.write(response.getTrace().toByteArray());
         VmTraceParser parser = new VmTraceParser(trace);
         parser.parse();
-        myData = parser.getTraceData();
+        data = parser.getTraceData();
       }
 
-
       CpuTraceArt traceArt = new CpuTraceArt();
-      traceArt.parse(myData);
+      traceArt.parse(data);
       myCaptureTrees = traceArt.getThreadsGraph();
     }
     catch (IOException e) {
@@ -90,7 +84,6 @@ public class CpuCapture extends AspectModel<CpuCaptureAspect> implements Duratio
       throw new IllegalArgumentException("Invalid trace");
     }
     myMainThreadId = main.getKey().getId();
-    myCaptureNode = main.getValue();
   }
 
   public int getMainThreadId() {
@@ -102,29 +95,14 @@ public class CpuCapture extends AspectModel<CpuCaptureAspect> implements Duratio
     return myRange;
   }
 
-  public void setSelectedThread(int id) {
+  @Nullable
+  public HNode<MethodModel> getCaptureNode(int threadId) {
     for (Map.Entry<ThreadInfo, HNode<MethodModel>> entry : myCaptureTrees.entrySet()) {
-      if (entry.getKey().getId() == id) {
-        myCaptureNode = entry.getValue();
-        changed(CpuCaptureAspect.CAPTURE_THREAD);
-        return;
+      if (entry.getKey().getId() == threadId) {
+        return entry.getValue();
       }
     }
-    myCaptureNode = null;
-    changed(CpuCaptureAspect.CAPTURE_THREAD);
-  }
-
-  @Nullable
-  public HNode<MethodModel> getCaptureNode() {
-    return myCaptureNode;
-  }
-
-  @Nullable
-  public RangedTreeModel getTopDown() {
-    if (myCaptureNode == null) {
-      return null;
-    }
-    return new TopDownTreeModel(new TopDownNode(myCaptureNode));
+    return null;
   }
 
   @NotNull
