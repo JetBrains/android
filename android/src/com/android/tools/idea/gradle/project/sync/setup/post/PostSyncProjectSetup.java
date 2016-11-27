@@ -25,7 +25,6 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectSyncData;
-import com.android.tools.idea.gradle.project.LibraryAttachments;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -81,7 +80,6 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
@@ -96,18 +94,15 @@ import java.util.*;
 
 import static com.android.SdkConstants.FN_ANNOTATIONS_JAR;
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
-import static com.android.tools.idea.gradle.project.LibraryAttachments.getStoredLibraryAttachments;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
-import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
-import static com.android.tools.idea.gradle.util.FilePaths.pathToUrl;
-import static com.android.tools.idea.gradle.util.GradleUtil.*;
+import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidProject;
+import static com.android.tools.idea.gradle.util.GradleUtil.getNativeAndroidProject;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflicts;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 import static com.android.tools.idea.project.NewProjects.createRunConfigurations;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
@@ -220,7 +215,6 @@ public class PostSyncProjectSetup {
     executeProjectChanges(myProject, () -> {
       IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
       try {
-        attachSourcesToLibraries(modelsProvider);
         adjustModuleStructures(modelsProvider);
         modelsProvider.commit();
       }
@@ -432,46 +426,6 @@ public class PostSyncProjectSetup {
     }
   }
 
-  private void attachSourcesToLibraries(@NotNull IdeModifiableModelsProvider modelsProvider) {
-    LibraryAttachments storedLibraryAttachments = getStoredLibraryAttachments(myProject);
-
-    for (Library library : modelsProvider.getAllLibraries()) {
-      Set<String> sourcePaths = Sets.newHashSet();
-
-      for (VirtualFile file : library.getFiles(SOURCES)) {
-        sourcePaths.add(file.getUrl());
-      }
-
-      Library.ModifiableModel libraryModel = modelsProvider.getModifiableLibraryModel(library);
-
-      // Find the source attachment based on the location of the library jar file.
-      for (VirtualFile classFile : library.getFiles(CLASSES)) {
-        VirtualFile sourceJar = findSourceJarForJar(classFile);
-        if (sourceJar != null) {
-          String url = pathToUrl(sourceJar.getPath());
-          if (!sourcePaths.contains(url)) {
-            libraryModel.addRoot(url, SOURCES);
-            sourcePaths.add(url);
-          }
-        }
-      }
-
-      if (storedLibraryAttachments != null) {
-        storedLibraryAttachments.addUrlsTo(libraryModel);
-      }
-    }
-    if (storedLibraryAttachments != null) {
-      storedLibraryAttachments.removeFromProject();
-    }
-  }
-
-  @Nullable
-  private static VirtualFile findSourceJarForJar(@NotNull VirtualFile jarFile) {
-    // We need to get the real jar file. The one that we received is just a wrapper around a URL. Getting the parent from this file returns
-    // null.
-    File jarFilePath = getJarFromJarUrl(jarFile.getUrl());
-    return jarFilePath != null ? findSourceJarForLibrary(jarFilePath) : null;
-  }
 
   private void findAndShowVariantConflicts() {
     ConflictSet conflicts = findConflicts(myProject);
