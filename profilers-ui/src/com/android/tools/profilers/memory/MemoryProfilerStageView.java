@@ -23,6 +23,7 @@ import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
+import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
@@ -37,34 +38,45 @@ import com.android.tools.profilers.event.EventMonitorView;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
+
   private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 5, 5);
   private static final BaseAxisFormatter OBJECT_COUNT_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 5, "");
 
-  @NotNull private MemoryClassDetailView myDetailView = new MemoryClassDetailView(getStage());
+  @NotNull private MemoryClassView myClassView = new MemoryClassView(getStage());
+  @NotNull private MemoryInstanceView myInstanceView = new MemoryInstanceView(getStage());
 
   @NotNull private Splitter myChartClassesSplitter = new Splitter(true);
+  @NotNull private Splitter myInstanceDetailsSplitter = new Splitter(false);
 
   public MemoryProfilerStageView(@NotNull MemoryProfilerStage stage) {
     super(stage);
-    JComponent monitorUi = buildMonitorUi();
-    getComponent().add(monitorUi, BorderLayout.CENTER);
+
+    Splitter mainSplitter = new Splitter(false);
+    myChartClassesSplitter.setFirstComponent(buildMonitorUi());
+    mainSplitter.setFirstComponent(myChartClassesSplitter);
+    mainSplitter.setSecondComponent(myInstanceDetailsSplitter);
+    getComponent().add(mainSplitter, BorderLayout.CENTER);
+    detailsChanged();
 
     getStage().getAspect().addDependency()
       .setExecutor(ApplicationManager.getApplication()::invokeLater)
-      .onChange(MemoryProfilerAspect.MEMORY_DETAILS, this::detailsChanged);
+      .onChange(MemoryProfilerAspect.MEMORY_OBJECTS, this::detailsChanged);
   }
 
   @Override
@@ -88,28 +100,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     return toolBar;
   }
 
-  private JComponent buildMonitorUi() {
-    Splitter mainSplitter = new Splitter(false);
-
-    myChartClassesSplitter.setFirstComponent(createLineChart());
-
-    Splitter instancesDetailsSplitter = new Splitter(true);
-    JPanel instancesPane = new JPanel();
-    JPanel detailsPane = new JPanel();
-    instancesDetailsSplitter.setFirstComponent(instancesPane);
-    instancesDetailsSplitter.setSecondComponent(detailsPane);
-    instancesDetailsSplitter.setVisible(false);
-
-    mainSplitter.setFirstComponent(myChartClassesSplitter);
-    mainSplitter.setSecondComponent(instancesDetailsSplitter);
-
-    getComponent().add(mainSplitter, BorderLayout.CENTER);
-
-    return mainSplitter;
-  }
-
   @NotNull
-  private JPanel createLineChart() {
+  private JPanel buildMonitorUi() {
     StudioProfilers profilers = getStage().getStudioProfilers();
     ProfilerTimeline timeline = profilers.getTimeline();
     Range viewRange = getTimeline().getViewRange();
@@ -184,7 +176,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .setLabelProvider(new Function<HeapDumpDurationData, String>() {
           @Override
           public String apply(HeapDumpDurationData data) {
-            return String.format("Dump (%s)", TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true));
+            return String
+              .format("Dump (%s)", TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true));
           }
         })
         .setClickHander(new Consumer<HeapDumpDurationData>() {
@@ -199,7 +192,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .setLabelProvider(new Function<DefaultDurationData, String>() {
           @Override
           public String apply(DefaultDurationData data) {
-            return String.format("Allocation Record (%s)", TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true));
+            return String.format("Allocation Record (%s)",
+                                 TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true));
           }
         }).build();
     DurationDataRenderer<GcDurationData> gcRenderer =
@@ -287,16 +281,99 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   }
 
   private void detailsChanged() {
-    myChartClassesSplitter.setSecondComponent(null);
-    myDetailView.reset();
-
     Range viewRange = getTimeline().getViewRange();
     long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)viewRange.getMin());
     long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)viewRange.getMax());
-    myChartClassesSplitter.setSecondComponent(myDetailView.buildComponent(rangeMin, rangeMax));
+    MemoryProfilerStage.MemoryProfilerSelection selection = getStage().getSelection();
+
+    MemoryObjects heap = selection.getSelectedHeap();
+    if (myClassView.getCurrentHeapObject() != heap) {
+      myClassView.reset();
+      myChartClassesSplitter.setSecondComponent(null);
+      if (heap != null) {
+        myChartClassesSplitter.setSecondComponent(myClassView.buildComponent(heap, rangeMin, rangeMax));
+      }
+    }
+
+    MemoryObjects klass = selection.getSelectedClass();
+    if (myInstanceView.getCurrentClassObject() != klass) {
+      myInstanceView.reset();
+      myInstanceDetailsSplitter.setFirstComponent(null);
+      if (klass != null) {
+        myInstanceDetailsSplitter.setFirstComponent(myInstanceView.buildComponent(klass, rangeMin, rangeMax));
+      }
+    }
+
+    // TODO setup instance detail view.
   }
 
   private void rangeSelected() {
 
+  }
+
+  static class CapabilityColumn {
+    private final String myName;
+    private final Supplier<ColoredTreeCellRenderer> myRendererSuppier;
+    private final int myHeaderAlignment;
+    private final int myPreferredWidth;
+    private final SortOrder mySortOrder;
+    private final Comparator<MemoryObjectTreeNode> myComparator;
+
+    public CapabilityColumn(@NotNull String name,
+                            @NotNull Supplier<ColoredTreeCellRenderer> rendererSupplier,
+                            int headerAlignment,
+                            int preferredWidth,
+                            @NotNull SortOrder sortOrder,
+                            @NotNull Comparator<MemoryObjectTreeNode> comparator) {
+      myName = name;
+      myRendererSuppier = rendererSupplier;
+      myHeaderAlignment = headerAlignment;
+      myPreferredWidth = preferredWidth;
+      mySortOrder = sortOrder;
+      myComparator = comparator;
+    }
+
+    @NotNull
+    public ColumnTreeBuilder.ColumnBuilder getBuilder() {
+      return new ColumnTreeBuilder.ColumnBuilder()
+        .setName(myName)
+        .setRenderer(myRendererSuppier.get())
+        .setHeaderAlignment(myHeaderAlignment)
+        .setPreferredWidth(myPreferredWidth)
+        .setInitialOrder(mySortOrder)
+        .setComparator(myComparator);
+    }
+  }
+
+  static class DetailColumnRenderer extends ColoredTreeCellRenderer {
+    private final Function<MemoryObjectTreeNode, String> myTextGetter;
+    private final Function<MemoryObjectTreeNode, Icon> myIconGetter;
+    private final int myAlignment;
+
+    public DetailColumnRenderer(@NotNull Function<MemoryObjectTreeNode, String> textGetter,
+                                @NotNull Function<MemoryObjectTreeNode, Icon> iconGetter,
+                                int alignment) {
+      myTextGetter = textGetter;
+      myIconGetter = iconGetter;
+      myAlignment = alignment;
+    }
+
+    @Override
+    public void customizeCellRenderer(@NotNull JTree tree,
+                                      Object value,
+                                      boolean selected,
+                                      boolean expanded,
+                                      boolean leaf,
+                                      int row,
+                                      boolean hasFocus) {
+      if (value instanceof MemoryObjectTreeNode) {
+        append(myTextGetter.apply((MemoryObjectTreeNode)value));
+        Icon icon = myIconGetter.apply((MemoryObjectTreeNode)value);
+        if (icon != null) {
+          setIcon(icon);
+        }
+        setTextAlign(myAlignment);
+      }
+    }
   }
 }

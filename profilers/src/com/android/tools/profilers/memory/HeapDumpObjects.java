@@ -15,8 +15,6 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.perflib.heap.ClassObj;
-import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.ProguardMap;
 import com.android.tools.perflib.heap.Snapshot;
 import com.android.tools.perflib.heap.io.InMemoryBuffer;
@@ -28,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -121,91 +118,6 @@ public class HeapDumpObjects implements MemoryObjects {
     @Override
     public List<Capability> getCapabilities() {
       return Collections.singletonList(Capability.LABEL);
-    }
-  }
-
-  private static class HeapNode implements MemoryNode {
-    @NotNull
-    private final Heap myHeap;
-
-    public HeapNode(@NotNull Heap heap) {
-      myHeap = heap;
-    }
-
-    @NotNull
-    public Heap getHeap() {
-      return myHeap;
-    }
-
-    @Override
-    public String toString() {
-      return getName();
-    }
-
-    @NotNull
-    @Override
-    public String getName() {
-      return myHeap.getName();
-    }
-
-    @NotNull
-    @Override
-    public List<MemoryNode> getSubList(long startTimeUs, long endTimeUs) {
-      return myHeap.getClasses().stream().map(ClassNode::new).collect(Collectors.toList());
-    }
-
-    @NotNull
-    @Override
-    public List<Capability> getCapabilities() {
-      return Arrays
-        .asList(Capability.LABEL, Capability.CHILDREN_COUNT, Capability.ELEMENT_SIZE, Capability.SHALLOW_SIZE, Capability.RETAINED_SIZE);
-    }
-  }
-
-  private static class ClassNode implements MemoryNode {
-    private final ClassObj myClassObj;
-
-    public ClassNode(@NotNull ClassObj classObj) {
-      myClassObj = classObj;
-    }
-
-    @NotNull
-    @Override
-    public String getName() {
-      return myClassObj.getClassName();
-    }
-
-    @Override
-    public int getChildrenCount() {
-      return myClassObj.getInstanceCount();
-    }
-
-    @Override
-    public int getElementSize() {
-      return myClassObj.getSize();
-    }
-
-    @Override
-    public int getShallowSize() {
-      return myClassObj.getShallowSize();
-    }
-
-    @Override
-    public long getRetainedSize() {
-      return myClassObj.getTotalRetainedSize();
-    }
-
-    @NotNull
-    @Override
-    public List<MemoryNode> getSubList(long startTimeUs, long endTimeUs) {
-      // TODO implement instance expansion
-      return Collections.emptyList();
-    }
-
-    @NotNull
-    @Override
-    public List<Capability> getCapabilities() {
-      return Arrays.asList(Capability.LABEL, Capability.ELEMENT_SIZE);
     }
   }
 }
