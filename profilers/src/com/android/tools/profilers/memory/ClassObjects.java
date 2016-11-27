@@ -15,9 +15,23 @@
  */
 package com.android.tools.profilers.memory;
 
-public enum MemoryProfilerAspect {
-  MEMORY_OBJECTS,
+import org.jetbrains.annotations.NotNull;
 
-  CURRENT_DETAILED_CLASS,
-  CURRENT_DETAILED_INSTANCE
+public class ClassObjects implements MemoryObjects {
+
+  private final MemoryNode myClassRoot;
+
+  public ClassObjects(@NotNull MemoryNode klassRoot) {
+    myClassRoot = klassRoot;
+  }
+
+  @NotNull
+  @Override
+  public MemoryNode getRootNode() {
+    return myClassRoot;
+  }
+
+  @Override
+  public void dispose() {
+  }
 }
