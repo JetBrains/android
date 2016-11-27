@@ -15,14 +15,15 @@
  */
 package com.android.tools.adtui;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A layout manager which makes it easy to define components that conform to a table-like
@@ -33,10 +34,13 @@ import java.util.Map;
  * <p/>
  * Unlike {@link GridBagLayout}, which requires setting complex constraints and hard to reason
  * about weights, {@link TabularLayout} works by setting column definitions up front. A column
- * can be fixed, fit-to-size, or proportional. When a layout is requested, fixed and fit-to-size
- * columns are calculated first, and all remaining space is split by the proportional columns.
- * Rows, in contrast, are always fit to their height (although a vertical gap can be specified).
- * Invisible components are skipped over when performing the layout.
+ * can be fixed, fit-to-size, or proportional. The fit-to-size calculation uses a component's
+ * minimum size, not preferred size, which may be useful to keep in mind.
+ * <p/>
+ * When a layout is requested, fixed and fit-to-width columns are calculated first, and all
+ * remaining space is split by the proportional columns. Rows, in contrast, are always
+ * fit-to-height (although a vertical gap can be specified). Invisible components are skipped
+ * over when performing the layout.
  * TODO: Support setting sizing rules on rows as well.
  * <p/>
  * When you register components with a panel using this layout, you must associate it with a
@@ -52,8 +56,6 @@ import java.util.Map;
  * layout (meaning sparse layouts are collapsed).
  */
 public final class TabularLayout implements LayoutManager2 {
-
-  public static final int DEFAULT_GAP = 10;
 
   /**
    * A definition for how to size a single column, indicating how its width will be calculated
@@ -128,7 +130,7 @@ public final class TabularLayout implements LayoutManager2 {
 
     /**
      * Create a constraint which can live across multiple cells. Note that components which span
-     * across multiple cells aren't included in fit-to-width layout calculations.
+     * across multiple cells aren't included in fit-to-size layout calculations.
      */
     public Constraint(int row, int col, int colSpan) {
       if (colSpan < 1) {
@@ -152,15 +154,13 @@ public final class TabularLayout implements LayoutManager2 {
     }
   }
 
-  /**
-   * Creates a tabular layout with a default vertical gap.
-   *
-   * @see #fromString(String, int)
-   * @see #DEFAULT_GAP
-   */
-  @NotNull
-  public static TabularLayout fromString(@NotNull String colSizesString) throws IllegalArgumentException {
-    return fromString(colSizesString, DEFAULT_GAP);
+  private final List<SizingRule> myColSizes;
+  private int myVGap; // Vertical gap between rows
+
+  private final Map<Component, Constraint> myConstraints = Maps.newHashMap();
+
+  public TabularLayout(SizingRule... colSizes) {
+      myColSizes = Arrays.asList(colSizes);
   }
 
   /**
@@ -177,15 +177,16 @@ public final class TabularLayout implements LayoutManager2 {
    * "75*,25*"      - Same as above
    * "50px,*,100px" - First column gets 50 pixels, last column gets 100, middle gets remaining
    */
-  @NotNull
-  public static TabularLayout fromString(@NotNull String colSizesString, int vGap) throws IllegalArgumentException {
-    List<String> splits = Lists.newArrayList(Splitter.on(',').split(colSizesString));
-    int numColumns = splits.size();
+  public TabularLayout(String colSizesString) {
+    this(parseSizingRules(colSizesString));
+  }
 
-    SizingRule[] colSizes = new SizingRule[numColumns];
+  private static SizingRule[] parseSizingRules(String colSizesString) {
+    String[] sizeStrings = colSizesString.split(",");
+    SizingRule[] colSizes = new SizingRule[sizeStrings.length];
     try {
-      for (int i = 0; i < splits.size(); i++) {
-        String s = splits.get(i);
+      for (int i = 0; i < sizeStrings.length; i++) {
+        String s = sizeStrings[i];
         if (s.equals("Fit")) {
           colSizes[i] = new SizingRule(SizingRule.Type.FIT);
         }
@@ -209,38 +210,16 @@ public final class TabularLayout implements LayoutManager2 {
       throw new IllegalArgumentException(String.format("Bad column definition: \"%s\"", colSizesString));
     }
 
-    return new TabularLayout(vGap, colSizes);
+    return colSizes;
   }
 
-  private final SizingRule[] myColSizes;
-  private final float[] myColPercentages;
-  private final int myVGap; // Vertical gap between rows
-
-  private final Map<Component, Constraint> myConstraints = Maps.newHashMap();
-
-  public TabularLayout(int vGap, SizingRule... colSizes) {
+  public TabularLayout setVGap(int vGap) {
     myVGap = vGap;
-    myColSizes = colSizes;
-    myColPercentages = new float[myColSizes.length];
-
-    float totalProportionalWidth = 0;
-    for (SizingRule colSize : myColSizes) {
-      if (colSize.getType() == SizingRule.Type.PROPORTIONAL) {
-        totalProportionalWidth += colSize.getValue();
-      }
-    }
-    if (totalProportionalWidth > 0) {
-      for (int i = 0; i < myColSizes.length; i++) {
-        SizingRule colSize = colSizes[i];
-        if (colSize.getType() == SizingRule.Type.PROPORTIONAL) {
-          myColPercentages[i] = colSize.getValue() / totalProportionalWidth;
-        }
-      }
-    }
+    return this;
   }
 
   public int getNumColumns() {
-    return myColSizes.length;
+    return myColSizes.size();
   }
 
   @Override
@@ -250,9 +229,9 @@ public final class TabularLayout implements LayoutManager2 {
     }
 
     Constraint typedConstraint = (Constraint)constraint;
-    if (typedConstraint.myCol + typedConstraint.myColSpan > myColSizes.length) {
+    if (typedConstraint.myCol + typedConstraint.myColSpan > myColSizes.size()) {
       throw new IllegalArgumentException(String.format("Component added with invalid column span. col: %1$d, span: %2$d, num cols: %3$d",
-                                                       typedConstraint.myCol, typedConstraint.myColSpan, myColSizes.length));
+                                                       typedConstraint.myCol, typedConstraint.myColSpan, myColSizes.size()));
     }
 
     myConstraints.put(comp, (Constraint)constraint);
@@ -290,191 +269,39 @@ public final class TabularLayout implements LayoutManager2 {
 
   @Override
   public Dimension preferredLayoutSize(Container parent) {
-    int[] widths = new int[myColSizes.length];
-    int[] heights;
+    LayoutResult result = new LayoutResult(parent);
 
-    for (int i = 0; i < myColSizes.length; i++) {
-      SizingRule colSize = myColSizes[i];
-      if (colSize.getType() == SizingRule.Type.FIXED) {
-        widths[i] = colSize.getValue();
-      }
-    }
-
-    synchronized (parent.getTreeLock()) {
-      Insets insets = parent.getInsets();
-      int componentCount = parent.getComponentCount();
-
-      int numRows = 1;
-      for (int i = 0; i < componentCount; i++) {
-        Component comp = parent.getComponent(i);
-        int rowIndex = myConstraints.get(comp).getRow();
-        numRows = Math.max(rowIndex + 1, numRows);
-      }
-      heights = new int[numRows];
-
-      // Calculate leftover width which, if we had, would fit all proportional columns.
-      int maxDesiredWidth = 0;
-
-      for (int i = 0; i < componentCount; i++) {
-        Component comp = parent.getComponent(i);
-        if (!comp.isVisible()) continue;
-
-        Dimension d = comp.getPreferredSize();
-
-        int rowIndex = myConstraints.get(comp).getRow();
-        heights[rowIndex] = Math.max(heights[rowIndex], d.height);
-
-        int colIndex = myConstraints.get(comp).getCol();
-        int colSpan = myConstraints.get(comp).getColSpan();
-        SizingRule colSize = myColSizes[colIndex];
-        if (colSize.getType() == SizingRule.Type.FIT && colSpan == 1) {
-          widths[colIndex] = Math.max(widths[colIndex], d.width);
-        }
-        else if (colSize.getType() == SizingRule.Type.PROPORTIONAL) {
-          // Calculate how much total leftover width would be needed to fit this cell
-          // after it takes its percentage cut
-          int desiredWidth = Math.round(d.width / myColPercentages[colIndex]);
-          maxDesiredWidth = Math.max(maxDesiredWidth, desiredWidth);
-        }
-      }
-
-      int h = 0;
-      for (int height : heights) {
-        if (h > 0 && height > 0) h += myVGap;
-        h += height;
-      }
-      int w = maxDesiredWidth;
-      for (int width : widths) {
-        w += width;
-      }
-      return new Dimension(insets.left + insets.right + w, insets.top + insets.bottom + h);
-    }
+    int w = result.colCalculator.getTotalSize(true);
+    int h = result.rowCalculator.getTotalSize(true);
+    Insets insets = result.insets;
+    return new Dimension(insets.left + insets.right + w, insets.top + insets.bottom + h);
   }
 
   @Override
   public Dimension minimumLayoutSize(Container parent) {
-    int[] widths = new int[myColSizes.length];
-    int[] heights;
-    for (int i = 0; i < myColSizes.length; i++) {
-      SizingRule colSize = myColSizes[i];
-      if (colSize.getType() == SizingRule.Type.FIXED) {
-        widths[i] = colSize.getValue();
-      }
-    }
+    LayoutResult result = new LayoutResult(parent);
 
-    synchronized (parent.getTreeLock()) {
-      Insets insets = parent.getInsets();
-      int componentCount = parent.getComponentCount();
-
-      int numRows = 1;
-      for (int i = 0; i < componentCount; i++) {
-        Component comp = parent.getComponent(i);
-        int rowIndex = myConstraints.get(comp).getRow();
-        numRows = Math.max(rowIndex + 1, numRows);
-      }
-      heights = new int[numRows];
-
-      for (int i = 0; i < componentCount; i++) {
-        Component comp = parent.getComponent(i);
-        if (!comp.isVisible()) continue;
-        Dimension d = comp.getMinimumSize();
-
-        int rowIndex = myConstraints.get(comp).getRow();
-        heights[rowIndex] = Math.max(heights[rowIndex], d.height);
-
-        int colIndex = myConstraints.get(comp).getCol();
-        int colSpan = myConstraints.get(comp).getColSpan();
-        SizingRule colSize = myColSizes[colIndex];
-        if (colSize.getType() == SizingRule.Type.FIT && colSpan == 1) {
-          widths[colIndex] = Math.max(widths[colIndex], d.width);
-        }
-      }
-
-      int h = 0;
-      for (int height : heights) {
-        if (h > 0 && height > 0) h += myVGap;
-        h += height;
-      }
-      int w = 0;
-      for (float width : widths) {
-        w += width;
-      }
-
-      return new Dimension(insets.left + insets.right + w, insets.top + insets.bottom + h);
-    }
+    int w = result.colCalculator.getTotalSize(false);
+    int h = result.rowCalculator.getTotalSize(false);
+    Insets insets = result.insets;
+    return new Dimension(insets.left + insets.right + w, insets.top + insets.bottom + h);
   }
 
   @Override
   public void layoutContainer(Container parent) {
-    int numCols = myColSizes.length;
-    int[] colXs = new int[numCols];
-    int[] colWs = new int[numCols];
-    int[] rowYs;
-    int[] rowHs;
-
-    for (int i = 0; i < myColSizes.length; i++) {
-      SizingRule column = myColSizes[i];
-      if (column.getType() == SizingRule.Type.FIXED) {
-        colWs[i] = column.getValue();
-      }
-    }
-
     synchronized (parent.getTreeLock()) {
+      LayoutResult result = new LayoutResult(parent);
+      int numCols = result.colCalculator.getLength();
+      int numRows = result.rowCalculator.getLength();
+      if (numRows == 0 || numCols == 0) {
+        return;
+      }
+
       Insets insets = parent.getInsets();
-      int componentCount = parent.getComponentCount();
+      List<PosSize> rowBounds = result.rowCalculator.getBounds(insets.top, parent.getHeight() - insets.bottom - insets.top);
+      List<PosSize> colBounds = result.colCalculator.getBounds(insets.left, parent.getWidth() - insets.right - insets.left);
 
-      int numRows = 1;
-      for (int i = 0; i < componentCount; i++) {
-        Component comp = parent.getComponent(i);
-        int rowIndex = myConstraints.get(comp).getRow();
-        numRows = Math.max(numRows, rowIndex + 1);
-      }
-      rowYs = new int[numRows];
-      rowHs = new int[numRows];
-
-      for (int i = 0; i < componentCount; i++) {
-        Component comp = parent.getComponent(i);
-        if (!comp.isVisible()) continue;
-        Dimension d = comp.getMinimumSize();
-
-        int rowIndex = myConstraints.get(comp).getRow();
-        rowHs[rowIndex] = Math.max(rowHs[rowIndex], d.height);
-
-        int colIndex = myConstraints.get(comp).getCol();
-        int colSpan = myConstraints.get(comp).getColSpan();
-        SizingRule colSize = myColSizes[colIndex];
-        if (colSize.getType() == SizingRule.Type.FIT && colSpan == 1) {
-          colWs[colIndex] = Math.max(colWs[colIndex], d.width);
-        }
-      }
-
-      int leftoverWidth = parent.getWidth() - insets.right - insets.left;
-      for (int colW : colWs) {
-        leftoverWidth -= colW;
-      }
-
-      if (leftoverWidth > 0) {
-        for (int i = 0; i < numCols; i++) {
-          if (myColPercentages[i] > 0) {
-            colWs[i] = Math.round(myColPercentages[i] * leftoverWidth);
-          }
-        }
-      }
-
-      rowYs[0] = insets.top;
-      for (int i = 1; i < rowYs.length; i++) {
-        rowYs[i] = rowYs[i - 1] + rowHs[i - 1];
-        if (rowHs[i] > 0 && rowYs[i] > insets.top) {
-          rowYs[i] += myVGap;
-        }
-      }
-
-      colXs[0] = insets.left;
-      for (int i = 1; i < colXs.length; i++) {
-        colXs[i] = colXs[i - 1] + colWs[i - 1];
-      }
-
-      for (int i = 0; i < componentCount; i++) {
+      for (int i = 0; i < parent.getComponentCount(); i++) {
         Component comp = parent.getComponent(i);
         if (!comp.isVisible()) continue;
         int colIndex = myConstraints.get(comp).getCol();
@@ -483,9 +310,203 @@ public final class TabularLayout implements LayoutManager2 {
 
         int totalWidth = 0;
         for (int currCol = colIndex; currCol < colIndex + colSpan; currCol++) {
-          totalWidth += colWs[currCol];
+          totalWidth += colBounds.get(currCol).size;
         }
-        comp.setBounds(colXs[colIndex], rowYs[rowIndex], totalWidth, rowHs[rowIndex]);
+        PosSize c = colBounds.get(colIndex);
+        PosSize r = rowBounds.get(rowIndex);
+        comp.setBounds(c.pos, r.pos, totalWidth, r.size);
+      }
+    }
+  }
+
+  /**
+   * Class responsible for calculating the final sizes of columns and rows, given an initial set of
+   * size rules and being notified of the sizes of different components that occupy the table.
+   * <p/>
+   * Note that we create a calculator for each dimension. Rows get one and columns get one.
+   */
+  private static final class SizeCalculator {
+    private final List<SizingRule> myRules;
+    private final int myGap;
+    private final List<Integer> mySizes;
+    private final List<Float> myPercentages;
+
+    // Proportional cells can shrink to 0 if pressed, but ideally we should have enough extra size
+    // for them as well, if we could request a preferred size.
+    private int myExtraSize;
+
+    /**
+     * Creates a default calculator where each rule is just a fit-to-size rule. This is useful for
+     * rows which always fit-to-size and don't support fixed / proportional sizes (yet).
+     */
+    public SizeCalculator(int numRules, int gap) {
+      this(Stream.generate(() -> new SizingRule(SizingRule.Type.FIT)).limit(numRules).collect(Collectors.toList()), gap);
+    }
+
+    /**
+     * Creates a calculator given an initial set of sizing rules. Use {@link #notifySize(int, int)}
+     * to fill it out with real values, and then call {@link #getBounds(int, int)} to pull out the
+     * final sizing values.
+     */
+    public SizeCalculator(List<SizingRule> rules, int gap) {
+      myRules = rules;
+      myGap = gap;
+      mySizes = Stream.generate(() -> 0).limit(rules.size()).collect(Collectors.toList());
+      myPercentages = Stream.generate(() -> 0f).limit(rules.size()).collect(Collectors.toList());
+
+      float totalProportionalSize = 0;
+
+      for (SizingRule rule : myRules) {
+        if (rule.getType() == SizingRule.Type.PROPORTIONAL) {
+          totalProportionalSize += rule.getValue();
+        }
+      }
+
+      for (int i = 0; i < myRules.size(); i++) {
+        SizingRule rule = myRules.get(i);
+        if (rule.getType() == SizingRule.Type.PROPORTIONAL) {
+          assert (totalProportionalSize > 0); // Set above
+          // e.g. "3*, *" -> "75%, 25%"
+          myPercentages.set(i, rule.getValue() / totalProportionalSize);
+        }
+        else if (rule.getType() == SizingRule.Type.FIXED) {
+          mySizes.set(i, rule.getValue());
+        }
+      }
+    }
+
+    /**
+     * Notify this calculator of a component's size, keeping track of it if relevant.
+     */
+    public void notifySize(int i, int size) {
+      SizingRule rule = myRules.get(i);
+      if (rule.getType() == SizingRule.Type.FIT) {
+        mySizes.set(i, Math.max(mySizes.get(i), size));
+      }
+      else if (rule.getType() == SizingRule.Type.PROPORTIONAL) {
+        // Calculate how much total leftover size would be needed to fit this cell
+        // after it takes its percentage cut.
+        myExtraSize = Math.max(myExtraSize, Math.round(size / myPercentages.get(i)));
+      }
+    }
+
+    /**
+     * Returns the number of items in this calculator.
+     */
+    public int getLength() {
+      return mySizes.size();
+    }
+
+    /**
+     * Returns the total size of all cells as well as gaps. Call after you are finished calling
+     * {@link #notifySize(int, int)}.
+     *
+     * @param includeExtraSize Include the size needed to make space for the proportional cells as
+     *                         well. Minimum size calculations should ignore it while preferred
+     *                         size calculations should include it.
+     */
+    public int getTotalSize(boolean includeExtraSize) {
+      int totalSize = includeExtraSize ? myExtraSize : 0;
+      for (Integer size : mySizes) {
+        if (totalSize > 0 && size > 0) {
+          // Put gap only between non-zero values except for the first one
+          totalSize += myGap;
+        }
+        totalSize += size;
+      }
+      return totalSize;
+    }
+
+    /**
+     * Get a list of (pos, size) pairs, useful for setting the bounds of Swing components directly.
+     * For example, for columns with no gaps, this would represent
+     *
+     * x1         x2     x3
+     * |----w1----|--w2--|----------w3----------|
+     *
+     * @param start The initial position of the first cell
+     * @param totalSpace The total space of the parent container, used to calculate the final size
+     *                   of proportional columns.
+     */
+    public List<PosSize> getBounds(int start, int totalSpace) {
+      List<PosSize> bounds = Stream.generate(PosSize::new).limit(mySizes.size()).collect(Collectors.toList());
+      if (bounds.size() == 0) {
+        return bounds;
+      }
+
+      int remainingSpace = totalSpace;
+      for (int i = 0; i < mySizes.size(); i++) {
+        bounds.get(i).size = mySizes.get(i);
+        remainingSpace -= mySizes.get(i);
+      }
+
+      if (remainingSpace > 0) {
+        for (int i = 0; i < myRules.size(); i++) {
+          SizingRule rule = myRules.get(i);
+          if (rule.getType() == SizingRule.Type.PROPORTIONAL) {
+            bounds.get(i).size = Math.round(remainingSpace * myPercentages.get(i));
+          }
+        }
+      }
+
+      int pos = start;
+      for (PosSize bound : bounds) {
+        if (bound.size > 0) {
+          bound.pos = pos;
+          pos += bound.size + myGap;
+        }
+      }
+
+      return bounds;
+    }
+  }
+
+  /**
+   * A position/size pair. For columns, this is x/width, and for rows, this is y/height.
+   */
+  private static final class PosSize {
+    public int pos;
+    public int size;
+  }
+
+  /**
+   * Class which, when instantiated on a parent container, runs through all its components,
+   * calculates what the sizes of rows and columns should be, and makes that data available
+   * through {@link #rowCalculator} and {@link #colCalculator} fields.
+   */
+  private final class LayoutResult {
+    public final Insets insets;
+    public final SizeCalculator rowCalculator;
+    public final SizeCalculator colCalculator;
+
+    public LayoutResult(Container container) {
+      List<Component> components = new ArrayList<>();
+
+      int numRows = 0;
+      synchronized (container.getTreeLock()) {
+        insets = container.getInsets();
+        for (int i = 0; i < container.getComponentCount(); i++) {
+          Component c = container.getComponent(i);
+          components.add(c);
+          numRows = Math.max(numRows, myConstraints.get(c).getRow() + 1);
+        }
+      }
+
+      colCalculator = new SizeCalculator(myColSizes, 0);
+      rowCalculator = new SizeCalculator(numRows, myVGap);
+
+      for (Component c : components) {
+        if (!c.isVisible()) {
+          continue;
+        }
+
+        Constraint constraint = myConstraints.get(c);
+        Dimension size = c.getMinimumSize();
+        if (constraint.getColSpan() == 1) {
+          // Only components that fit in a single column are used in calculating layouts.
+          colCalculator.notifySize(constraint.getCol(), size.width);
+        }
+        rowCalculator.notifySize(constraint.getRow(), size.height);
       }
     }
   }
