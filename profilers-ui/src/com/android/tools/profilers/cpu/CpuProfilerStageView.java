@@ -262,7 +262,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       myCaptureView = null;
     }
     else {
-      myCaptureView = new CpuCaptureView(capture, getStage().getStudioProfilers());
+      myCaptureView = new CpuCaptureView(capture, this);
       myCaptureView.register(getChoreographer());
       mySplitter.setSecondComponent(myCaptureView.getComponent());
     }
@@ -286,6 +286,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       if (myStage.getSelectedThread() == thread.getThreadId()) {
         myThreads.setSelectedIndex(i);
       }
+    }
+    if (myCaptureView != null) {
+      myCaptureView.updateThread();
     }
   }
 
