@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.wizard.model.demo.npw.steps;
 
-import com.android.tools.adtui.ProportionalLayout;
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.demo.npw.models.ActivityModel;
 import com.intellij.ui.components.JBLabel;
@@ -58,10 +58,10 @@ public final class ConfigureActivityStep extends ModelWizardStep<ActivityModel> 
     myRootPanel.removeAll();
     int row = 0;
     for (String param : getModel().getTargetTemplate().getParameters()) {
-      myRootPanel.add(new JBLabel(param + ": "), new ProportionalLayout.Constraint(row, 0));
+      myRootPanel.add(new JBLabel(param + ": "), new TabularLayout.Constraint(row, 0));
       JBTextField valueTextField = new JBTextField("Value" + (row + 1));
       valueTextField.putClientProperty("param", param);
-      myRootPanel.add(valueTextField, new ProportionalLayout.Constraint(row, 1));
+      myRootPanel.add(valueTextField, new TabularLayout.Constraint(row, 1));
 
       if (row == 0) {
         myPreferredFocus = valueTextField;
@@ -72,7 +72,7 @@ public final class ConfigureActivityStep extends ModelWizardStep<ActivityModel> 
   }
 
   private void createUIComponents() {
-    myRootPanel = new JPanel(ProportionalLayout.fromString("Fit,*"));
+    myRootPanel = new JPanel(TabularLayout.fromString("Fit,*"));
   }
 
   @Override

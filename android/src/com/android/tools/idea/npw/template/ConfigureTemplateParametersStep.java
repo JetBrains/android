@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.template;
 
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
@@ -25,7 +26,6 @@ import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.npw.template.components.*;
 import com.android.tools.idea.templates.*;
-import com.android.tools.adtui.ProportionalLayout;
 import com.android.tools.idea.ui.TooltipLabel;
 import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.BindingsManager;
@@ -523,7 +523,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   }
 
   private void createUIComponents() {
-    myParametersPanel = new JPanel(ProportionalLayout.fromString("Fit,*", 10));
+    myParametersPanel = new JPanel(TabularLayout.fromString("Fit,*", 10));
   }
 
   private void resetPanel() {
@@ -733,16 +733,16 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     }
 
     public void addToPanel(@NotNull JPanel panel) {
-      assert panel.getLayout().getClass().equals(ProportionalLayout.class);
+      assert panel.getLayout().getClass().equals(TabularLayout.class);
       int row = panel.getComponentCount();
 
       if (myHeader != null) {
-        panel.add(myHeader, new ProportionalLayout.Constraint(row, 0));
+        panel.add(myHeader, new TabularLayout.Constraint(row, 0));
         assert myWantGrow == WantGrow.NO;
       }
 
       int colspan = myWantGrow == WantGrow.YES ? 2 : 1;
-      panel.add(myComponent, new ProportionalLayout.Constraint(row, 1, colspan));
+      panel.add(myComponent, new TabularLayout.Constraint(row, 1, colspan));
     }
 
     public void setEnabled(boolean enabled) {
