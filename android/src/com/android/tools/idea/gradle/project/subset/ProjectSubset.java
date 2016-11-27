@@ -102,7 +102,7 @@ public class ProjectSubset {
     if (selectedModules != null) {
       setSelection(selectedModules);
       if (!Arrays.equals(getSelection(), selection)) {
-        populate(myProject, projectInfo, selectedModules, DEFAULT_REQUEST, true);
+        populate(myProject, projectInfo, selectedModules, DEFAULT_REQUEST);
       }
     }
   }
@@ -255,7 +255,7 @@ public class ProjectSubset {
       notification.showBalloon(MODULE_LOOKUP_MESSAGE_TITLE, text, INFORMATION);
     });
 
-    populate(myProject, projectInfo, selectedModules, DEFAULT_REQUEST, true);
+    populate(myProject, projectInfo, selectedModules, DEFAULT_REQUEST);
   }
 
   /**
@@ -307,7 +307,7 @@ public class ProjectSubset {
 
           finalSelection.addAll(selectedModules);
           setSelection(finalSelection);
-          populate(myProject, projectInfo, finalSelection, DEFAULT_REQUEST, true);
+          populate(myProject, projectInfo, finalSelection, DEFAULT_REQUEST);
         }
       }
     });
@@ -352,7 +352,7 @@ public class ProjectSubset {
           }
           if (!selectedModules.isEmpty() && found) {
             setSelection(selectedModules);
-            populate(project, projectInfo, selectedModules, DEFAULT_REQUEST, true);
+            populate(project, projectInfo, selectedModules, DEFAULT_REQUEST);
           }
         }
       }.queue();

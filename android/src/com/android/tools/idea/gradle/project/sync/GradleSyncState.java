@@ -258,6 +258,17 @@ public class GradleSyncState {
     myChangeNotification.notifyStateChanged();
   }
 
+  public boolean lastSyncFailedOrHasIssues() {
+    // This will be true if sync failed because of an exception thrown by Gradle. GradleSyncState will know that sync stopped.
+    boolean lastSyncFailed = lastSyncFailed();
+
+    // This will be true if sync was successful but there were sync issues found (e.g. unresolved dependencies.)
+    // GradleSyncState still thinks that sync is still being executed.
+    boolean hasSyncErrors = mySummary.hasSyncErrors();
+
+    return lastSyncFailed || hasSyncErrors;
+  }
+
   /**
    * Indicates whether the last Gradle sync failed. This method returns {@code false} if there is a sync task is currently running.
    * <p>

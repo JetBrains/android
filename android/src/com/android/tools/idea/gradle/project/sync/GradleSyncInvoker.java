@@ -190,17 +190,11 @@ public class GradleSyncInvoker {
 
     boolean useNewGradleSync = GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC;
     if (!useNewGradleSync) {
-      resetProject(project);
+      removeAndroidModels(project);
     }
     myPreSyncProjectCleanUp.cleanUp(project);
 
-    GradleSync gradleSync;
-    if (useNewGradleSync) {
-      gradleSync = new NewGradleSync();
-    }
-    else {
-      gradleSync = new IdeaGradleSync();
-    }
+    GradleSync gradleSync = useNewGradleSync ? new NewGradleSync() : new IdeaGradleSync();
     gradleSync.sync(project, request, listener);
   }
 
@@ -218,7 +212,7 @@ public class GradleSyncInvoker {
   }
 
   // See issue: https://code.google.com/p/android/issues/detail?id=64508
-  private static void resetProject(@NotNull Project project) {
+  private static void removeAndroidModels(@NotNull Project project) {
     // Remove all Android models from module. Otherwise, if re-import/sync fails, editors will not show the proper notification of the
     // failure.
     ModuleManager moduleManager = ModuleManager.getInstance(project);

@@ -15,19 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
-import com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
 import com.android.tools.idea.gradle.project.sync.setup.post.project.ProjectSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.PluginVersionUpgrade;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.intellij.execution.BeforeRunTask;
@@ -51,15 +49,13 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Tests for {@link PostSyncProjectSetup}.
  */
 public class PostSyncProjectSetupTest extends IdeaTestCase {
-  @Mock private AndroidSdks myAndroidSdks;
+  @Mock private IdeInfo myIdeInfo;
   @Mock private GradleSyncInvoker mySyncInvoker;
   @Mock private GradleSyncState mySyncState;
   @Mock private DependencySetupErrors myDependencySetupErrors;
   @Mock private ProjectSetup myProjectSetup;
   @Mock private GradleSyncSummary mySyncSummary;
   @Mock private PluginVersionUpgrade myVersionUpgrade;
-  @Mock private SyncMessages mySyncMessages;
-  @Mock private DependenciesModuleSetupStep myModuleSetupStep;
   @Mock private VersionCompatibilityChecker myVersionCompatibilityChecker;
   @Mock private GradleProjectBuilder myProjectBuilder;
   @Mock private CommonModuleValidator.Factory myModuleValidatorFactory;
@@ -80,12 +76,13 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     when(myModuleValidatorFactory.create(project)).thenReturn(myModuleValidator);
 
     mySetup =
-      new PostSyncProjectSetup(project, myAndroidSdks, mySyncInvoker, mySyncState, myDependencySetupErrors, myProjectSetup,
-                               myVersionUpgrade, mySyncMessages, myModuleSetupStep, myVersionCompatibilityChecker, myProjectBuilder,
-                               myModuleValidatorFactory, myRunManager);
+      new PostSyncProjectSetup(project, myIdeInfo, mySyncInvoker, mySyncState, myDependencySetupErrors, myProjectSetup, myVersionUpgrade,
+                               myVersionCompatibilityChecker, myProjectBuilder, myModuleValidatorFactory, myRunManager);
   }
 
   public void testJUnitRunConfigurationSetup() {
+    when(myIdeInfo.isAndroidStudio()).thenReturn(true);
+
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
     mySetup.setUpProject(request, myProgressIndicator);
     ConfigurationFactory configurationFactory = AndroidJUnitConfigurationType.getInstance().getConfigurationFactories()[0];
@@ -111,7 +108,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
   // See: https://code.google.com/p/android/issues/detail?id=225938
   public void testSyncWithCachedModelsFinishedWithSyncIssues() {
-    simulateSyncFinishedWithIssues();
+    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(true);
 
     long lastSyncTimestamp = 2L;
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
@@ -129,7 +126,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
   // See: https://code.google.com/p/android/issues/detail?id=225938
   public void testSyncFinishedWithSyncIssues() {
-    simulateSyncFinishedWithIssues();
+    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(true);
 
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
 
@@ -154,10 +151,5 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     // Source generation should not be invoked if sync failed.
     verify(myProjectBuilder, never()).generateSourcesOnly(true);
-  }
-
-  private void simulateSyncFinishedWithIssues() {
-    when(mySyncState.lastSyncFailed()).thenReturn(false);
-    when(mySyncSummary.hasSyncErrors()).thenReturn(true);
   }
 }

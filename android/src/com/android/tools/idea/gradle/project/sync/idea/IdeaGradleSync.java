@@ -34,7 +34,6 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshProject;
 
-@Deprecated
 public class IdeaGradleSync implements GradleSync {
   private static final boolean SYNC_WITH_CACHED_MODEL_ONLY =
     SystemProperties.getBooleanProperty("studio.sync.with.cached.model.only", false);
