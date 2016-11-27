@@ -18,25 +18,28 @@ package com.android.tools.adtui;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedTreeModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class RangedTree implements Animatable {
 
   @NotNull
   private final Range myRange;
-  @NotNull
+  @Nullable
   private RangedTreeModel myModel;
 
-  public RangedTree(@NotNull Range range, @NotNull RangedTreeModel model) {
-    myModel = model;
+  public RangedTree(@NotNull Range range) {
+    myModel = null;
     myRange = range;
   }
 
   @Override
   public void animate(float frameLength) {
-    myModel.update(myRange);
+    if (myModel != null) {
+      myModel.update(myRange);
+    }
   }
 
-  public void setModel(@NotNull RangedTreeModel model) {
+  public void setModel(@Nullable RangedTreeModel model) {
     myModel = model;
   }
 }
