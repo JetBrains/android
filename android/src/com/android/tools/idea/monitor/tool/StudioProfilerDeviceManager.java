@@ -18,9 +18,10 @@ package com.android.tools.idea.monitor.tool;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ddmlib.*;
-import com.android.tools.datastore.LegacyAllocationTracker;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.profilers.ProfilerClient;
+import com.android.tools.datastore.LegacyAllocationConverter;
+import com.android.tools.datastore.LegacyAllocationTracker;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.profiler.proto.Profiler;
@@ -31,12 +32,15 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.Consumer;
 import com.intellij.util.net.NetUtils;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.concurrent.ExecutorService;
 
 import static com.android.ddmlib.Client.CHANGE_NAME;
 import static com.android.ddmlib.IDevice.CHANGE_STATE;
@@ -260,13 +264,36 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
     }
 
     @Override
-    @Nullable
-    public byte[] getAllocationTrackingDump(int processId) {
-      Client client = getClient(myDevice, processId);
-      if (client == null) {
-        return null;
+    public void getAllocationTrackingDump(int processId, @NotNull ExecutorService executorService, @NotNull Consumer<byte[]> consumer) {
+      Client targetClient = getClient(myDevice, processId);
+      if (targetClient == null) {
+        return;
       }
-      return client.getClientData().getAllocationsData();
+      AndroidDebugBridge.addClientChangeListener(new AndroidDebugBridge.IClientChangeListener() {
+        @Override
+        public void clientChanged(@NonNull Client client, int changeMask) {
+          if (targetClient == client && (changeMask & Client.CHANGE_HEAP_ALLOCATIONS) != 0) {
+            final byte[] data = client.getClientData().getAllocationsData();
+            executorService.submit(() -> consumer.consume(data));
+            AndroidDebugBridge.removeClientChangeListener(this);
+          }
+        }
+      });
+      targetClient.requestAllocationDetails();
+    }
+
+    @NotNull
+    @Override
+    public LegacyAllocationConverter parseDump(@NotNull byte[] dumpData) {
+      // TODO fix allocation file overflow bug
+      AllocationInfo[] rawInfos = AllocationsParser.parse(ByteBuffer.wrap(dumpData));
+      LegacyAllocationConverter converter = new LegacyAllocationConverter();
+      for (AllocationInfo info : rawInfos) {
+        byte[] sha256 = converter.addCallStack(new LegacyAllocationConverter.CallStack(info.getStackTrace()));
+        int classId = converter.addClassName(info.getAllocatedClass());
+        converter.addAllocation(new LegacyAllocationConverter.Allocation(classId, info.getSize(), info.getThreadId(), sha256));
+      }
+      return converter;
     }
 
     @Nullable
