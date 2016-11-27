@@ -108,6 +108,19 @@ public class CpuCaptureView {
     TopDownTreeModel model = node == null ? null : new TopDownTreeModel(new TopDownNode(node));
     myRangedTree.setModel(model);
     myTree.setModel(model);
+
+    expandTreeNodes();
+  }
+
+  /**
+   * Expands a few nodes in order to improve the visual feedback of the list.
+   */
+  private void expandTreeNodes() {
+    int maxRowsToExpand = 8; // TODO: adjust this value if necessary.
+    int i = 0;
+    while (i < myTree.getRowCount() && i < maxRowsToExpand) {
+      myTree.expandRow(i++);
+    }
   }
 
   public JComponent getComponent() {
