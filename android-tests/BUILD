@@ -80,5 +80,6 @@ iml_module(
         "//tools/analytics-library:analytics-shared[module, test]",
         "//tools/analytics-library:analytics-testing[module, test]",
         "//tools/analytics-library:analytics-tracker[module, test]",
+        "//tools/adt/idea/wizard[module, test]",
     ],
 )
