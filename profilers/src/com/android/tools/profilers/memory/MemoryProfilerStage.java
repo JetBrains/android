@@ -162,7 +162,9 @@ public class MemoryProfilerStage extends Stage {
         }
       }
 
-      if (lastCompleted != null) {
+      // TODO reinvestigate this logic flow - calling getDataForXRange should not automatically trigger a heap dump focus.
+      // Otherwise when this is called for different ranges (e.g. user scrolling), this will fire when heap dumps become visible.
+      if (lastCompleted != null && myFocusedHeapDumpInfo == null) {
         setFocusedHeapDump(lastCompleted);
       }
 
