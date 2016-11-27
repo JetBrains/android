@@ -23,6 +23,7 @@ import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.AllocationTrackingSetting;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profilers.AspectModel;
+import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
 import com.intellij.openapi.util.Disposer;
@@ -92,6 +93,12 @@ public class MemoryProfilerStage extends Stage {
     if (myFocusedHeapDumpInfo != sample) {
       myFocusedHeapDumpInfo = sample;
       setMemoryObjects(new HeapDumpObjects(myClient, myProcessId, myFocusedHeapDumpInfo, null));
+    }
+
+    if (myFocusedHeapDumpInfo != null) {
+      ProfilerTimeline timeline = getStudioProfilers().getTimeline();
+      timeline.getSelectionRange().set(TimeUnit.NANOSECONDS.toMicros(myFocusedHeapDumpInfo.getStartTime()),
+                                       TimeUnit.NANOSECONDS.toMicros(myFocusedHeapDumpInfo.getEndTime()));
     }
   }
 
