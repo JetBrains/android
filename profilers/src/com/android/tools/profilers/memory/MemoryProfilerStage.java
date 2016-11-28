@@ -15,11 +15,11 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.DataSeries;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
-import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profilers.AspectModel;
@@ -35,6 +35,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static com.android.tools.adtui.model.DurationData.UNSPECIFIED_DURATION;
 
 public class MemoryProfilerStage extends Stage {
 
@@ -90,13 +92,10 @@ public class MemoryProfilerStage extends Stage {
   private final HeapDumpSampleDataSeries myHeapDumpSampleDataSeries;
 
   @NotNull
-  private final AllocationTrackingStatusDataSeries myAllocationTrackingStatusDataSeries;
+  private final AllocationInfosDataSeries myAllocationInfosDataSeries;
 
-  @Nullable
-  private HeapDumpInfo myFocusedHeapDumpInfo;
-
-  @Nullable
-  private HeapDumpInfo myFocusedDiffHeapDumpInfo;
+  @NotNull
+  private final ExclusiveMemoryObjectsSelection myExclusiveMemoryObjectsSelection;
 
   @NotNull
   private MemoryProfilerSelection mySelection;
@@ -106,7 +105,8 @@ public class MemoryProfilerStage extends Stage {
     myProcessId = profilers.getProcessId();
     myClient = profilers.getClient().getMemoryClient();
     myHeapDumpSampleDataSeries = new HeapDumpSampleDataSeries();
-    myAllocationTrackingStatusDataSeries = new AllocationTrackingStatusDataSeries();
+    myAllocationInfosDataSeries = new AllocationInfosDataSeries();
+    myExclusiveMemoryObjectsSelection = new ExclusiveMemoryObjectsSelection();
     mySelection = new MemoryProfilerSelection();
   }
 
@@ -132,29 +132,20 @@ public class MemoryProfilerStage extends Stage {
   }
 
   public void setFocusedHeapDump(@NotNull HeapDumpInfo sample) {
-    if (myFocusedHeapDumpInfo != sample) {
-      myFocusedHeapDumpInfo = sample;
-      selectHeap(new HeapDumpObjects(myClient, myProcessId, myFocusedHeapDumpInfo, null));
-    }
-
-    if (myFocusedHeapDumpInfo != null) {
-      ProfilerTimeline timeline = getStudioProfilers().getTimeline();
-      timeline.getSelectionRange().set(TimeUnit.NANOSECONDS.toMicros(myFocusedHeapDumpInfo.getStartTime()),
-                                       TimeUnit.NANOSECONDS.toMicros(myFocusedHeapDumpInfo.getEndTime()));
-    }
+    myExclusiveMemoryObjectsSelection.setFocusedHeapDumpInfo(sample);
+    ProfilerTimeline timeline = getStudioProfilers().getTimeline();
+    timeline.getSelectionRange().set(TimeUnit.NANOSECONDS.toMicros(sample.getStartTime()),
+                                     TimeUnit.NANOSECONDS.toMicros(sample.getEndTime()));
   }
 
   public void setFocusedDiffHeapDump(@NotNull HeapDumpInfo diffSample) {
-    if (myFocusedDiffHeapDumpInfo != diffSample) {
-      myFocusedDiffHeapDumpInfo = diffSample;
-      myAspect.changed(MemoryProfilerAspect.MEMORY_OBJECTS);
-    }
+    myExclusiveMemoryObjectsSelection.setFocusedDiffHeapDumpInfo(diffSample);
   }
 
-  public void setTimeRange(@NotNull Range timeRange) {
-    if (getAllocationDumpSampleDurations().getDataForXRange(timeRange).size() > 0) {
-      // TODO pull data based on new time range and signal aspect changed
-    }
+  public void setAllocationsTimeRange(long startNs, long endNs) {
+    myExclusiveMemoryObjectsSelection.setSelectionRange(startNs, endNs);
+    ProfilerTimeline timeline = getStudioProfilers().getTimeline();
+    timeline.getSelectionRange().set(TimeUnit.NANOSECONDS.toMicros(startNs), TimeUnit.NANOSECONDS.toMicros(endNs));
   }
 
 
@@ -205,13 +196,84 @@ public class MemoryProfilerStage extends Stage {
     return mySelection;
   }
 
-  public void setAllocationTracking(boolean enabled) {
-    myClient.trackAllocations(
+  /**
+   * @return the actual status, which may be different from the input
+   */
+  public boolean trackAllocations(boolean enabled) {
+    TrackAllocationsResponse response = myClient.trackAllocations(
       MemoryProfiler.TrackAllocationsRequest.newBuilder().setAppId(myProcessId).setEnabled(enabled).build());
+    switch (response.getStatus()) {
+      case SUCCESS:
+        return enabled;
+      case IN_PROGRESS:
+        return true;
+      case NOT_ENABLED:
+        return false;
+      default:
+        return false;
+    }
   }
 
-  public DataSeries<DefaultDurationData> getAllocationDumpSampleDurations() {
-    return myAllocationTrackingStatusDataSeries;
+  @NotNull
+  public DataSeries<AllocationsDurationData> getAllocationInfosDurations() {
+    return myAllocationInfosDataSeries;
+  }
+
+  private class ExclusiveMemoryObjectsSelection {
+    @Nullable
+    private HeapDumpInfo myFocusedHeapDumpInfo = null;
+
+    @Nullable
+    private HeapDumpInfo myFocusedDiffHeapDumpInfo = null;
+
+    private long mySelectionStartTime = Long.MAX_VALUE;
+
+    private long mySelectionEndTime = Long.MIN_VALUE;
+
+    public void setFocusedHeapDumpInfo(@NotNull HeapDumpInfo focusedHeapDumpInfo) {
+      if (focusedHeapDumpInfo != myFocusedHeapDumpInfo) {
+        myFocusedHeapDumpInfo = focusedHeapDumpInfo;
+        mySelectionStartTime = Long.MAX_VALUE;
+        mySelectionEndTime = Long.MIN_VALUE;
+        selectHeap(new HeapDumpObjects(myClient, myProcessId, myFocusedHeapDumpInfo, null));
+      }
+    }
+
+    @Nullable
+    public HeapDumpInfo getFocusedHeapDumpInfo() {
+      return myFocusedHeapDumpInfo;
+    }
+
+    public void setFocusedDiffHeapDumpInfo(@NotNull HeapDumpInfo focusedDiffHeapDumpInfo) {
+      assert myFocusedDiffHeapDumpInfo != null && mySelectionStartTime == Long.MAX_VALUE && mySelectionEndTime == Long.MIN_VALUE;
+      if (focusedDiffHeapDumpInfo != myFocusedDiffHeapDumpInfo) {
+        myFocusedDiffHeapDumpInfo = focusedDiffHeapDumpInfo;
+        myAspect.changed(MemoryProfilerAspect.MEMORY_OBJECTS);
+        // TODO implement/set diff view
+      }
+    }
+
+    @Nullable
+    public HeapDumpInfo getFocusedDiffHeapDumpInfo() {
+      return myFocusedDiffHeapDumpInfo;
+    }
+
+    public void setSelectionRange(long startTime, long endTime) {
+      myFocusedHeapDumpInfo = null;
+      myFocusedDiffHeapDumpInfo = null;
+      mySelectionStartTime = startTime;
+      mySelectionEndTime = endTime;
+      selectHeap(new AllocationObjects(myClient, myProcessId, startTime, endTime));
+      myAspect.changed(MemoryProfilerAspect.MEMORY_OBJECTS);
+    }
+
+    public void clearSelection() {
+      myFocusedHeapDumpInfo = null;
+      myFocusedDiffHeapDumpInfo = null;
+      mySelectionStartTime = Long.MAX_VALUE;
+      mySelectionEndTime = Long.MIN_VALUE;
+      myAspect.changed(MemoryProfilerAspect.MEMORY_OBJECTS);
+    }
   }
 
   private class HeapDumpSampleDataSeries implements DataSeries<HeapDumpDurationData> {
@@ -223,70 +285,49 @@ public class MemoryProfilerStage extends Stage {
         myClient
           .listHeapDumpInfos(ListDumpInfosRequest.newBuilder().setAppId(myProcessId).setStartTime(rangeMin).setEndTime(rangeMax).build());
 
-      HeapDumpInfo lastCompleted = null;
       List<SeriesData<HeapDumpDurationData>> seriesData = new ArrayList<>();
       for (HeapDumpInfo info : response.getInfosList()) {
         long startTime = TimeUnit.NANOSECONDS.toMicros(info.getStartTime());
         long endTime = TimeUnit.NANOSECONDS.toMicros(info.getEndTime());
         seriesData.add(new SeriesData<>(startTime, new HeapDumpDurationData(
-          info.getEndTime() == DurationData.UNSPECIFIED_DURATION ? DurationData.UNSPECIFIED_DURATION : endTime - startTime, info)));
-        if (info.getEndTime() != DurationData.UNSPECIFIED_DURATION) {
-          lastCompleted = info;
-        }
-      }
-
-      // TODO reinvestigate this logic flow - calling getDataForXRange should not automatically trigger a heap dump focus.
-      // Otherwise when this is called for different ranges (e.g. user scrolling), this will fire when heap dumps become visible.
-      if (lastCompleted != null && myFocusedHeapDumpInfo == null) {
-        setFocusedHeapDump(lastCompleted);
+          info.getEndTime() == UNSPECIFIED_DURATION ? UNSPECIFIED_DURATION : endTime - startTime, info)));
       }
 
       return ContainerUtil.immutableList(seriesData);
     }
   }
 
-  private class AllocationTrackingStatusDataSeries implements DataSeries<DefaultDurationData> {
+  private class AllocationInfosDataSeries implements DataSeries<AllocationsDurationData> {
+    @NotNull
+    public List<AllocationsInfo> getDataForXRange(long rangeMinNs, long rangeMaxNs) {
+      MemoryRequest.Builder dataRequestBuilder = MemoryRequest.newBuilder()
+        .setAppId(myProcessId)
+        .setStartTime(rangeMinNs)
+        .setEndTime(rangeMaxNs);
+      MemoryData response = myClient.getData(dataRequestBuilder.build());
+      return response.getAllocationsInfoList();
+    }
+
     @Override
-    public ImmutableList<SeriesData<DefaultDurationData>> getDataForXRange(Range xRange) {
+    public ImmutableList<SeriesData<AllocationsDurationData>> getDataForXRange(Range xRange) {
       long bufferNs = TimeUnit.SECONDS.toNanos(1);
       long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin()) - bufferNs;
       long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax()) + bufferNs;
-      MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()
-        .setAppId(myProcessId)
-        .setStartTime(rangeMin)
-        .setEndTime(rangeMax);
-      MemoryProfiler.MemoryData response = myClient.getData(dataRequestBuilder.build());
 
-      List<SeriesData<DefaultDurationData>> seriesData = new ArrayList<>();
-      if (response.getAllocationsInfoCount() == 0) {
+      List<AllocationsInfo> infos = getDataForXRange(rangeMin, rangeMax);
+
+      List<SeriesData<AllocationsDurationData>> seriesData = new ArrayList<>();
+      if (infos.size() == 0) {
         return ContainerUtil.immutableList(seriesData);
       }
 
-      int i = 0;
-      // TODO use single entry for both start/stop?
-      if (!response.getAllocationsInfo(0).getEnabled()) {
-        // If the first setting is disabled, it means there was an enabled event outside our range. We'll have to manually patch it.
-        long endTime = response.getAllocationsInfo(0).getTimestamp();
+      for (AllocationsInfo info : infos) {
+        long startTimeNs = info.getStartTime();
+        long endTimeNs = info.getEndTime();
+        long durationUs = endTimeNs == UNSPECIFIED_DURATION ? UNSPECIFIED_DURATION : TimeUnit.NANOSECONDS.toMicros(endTimeNs - startTimeNs);
         seriesData.add(
-          new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(rangeMin),
-                           new DefaultDurationData(TimeUnit.NANOSECONDS.toMicros(endTime - rangeMin))));
-        i++;
+          new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(startTimeNs), new AllocationsDurationData(durationUs, startTimeNs, endTimeNs)));
       }
-      for (; i < response.getAllocationsInfoCount(); i += 2) {
-        AllocationsInfo start = response.getAllocationsInfo(i);
-        assert start.getEnabled();
-        long startTime = start.getTimestamp();
-        long endTime = rangeMax; // To handle the last sample being enabled.
-        if (i + 1 < response.getAllocationsInfoCount()) {
-          AllocationsInfo end = response.getAllocationsInfo(i + 1);
-          assert !end.getEnabled();
-          endTime = end.getTimestamp();
-        }
-        seriesData.add(
-          new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(startTime),
-                           new DefaultDurationData(TimeUnit.NANOSECONDS.toMicros(endTime - startTime))));
-      }
-
       return ContainerUtil.immutableList(seriesData);
     }
   }

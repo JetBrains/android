@@ -109,7 +109,7 @@ final class MemoryInstanceView {
   }
 
   @Nullable
-  public JComponent buildComponent(@NotNull MemoryObjects model, long startTime, long endTime) {
+  public JComponent buildComponent(@NotNull MemoryObjects model) {
     myMemoryObjects = model;
     MemoryNode rootNode = model.getRootNode();
 
@@ -122,16 +122,16 @@ final class MemoryInstanceView {
     headingPanel.add(close, BorderLayout.EAST);
 
     instancesPanel.add(headingPanel, BorderLayout.NORTH);
-    buildTree(instancesPanel, rootNode, startTime, endTime);
+    buildTree(instancesPanel, rootNode);
 
     return instancesPanel;
   }
 
-  private void buildTree(@NotNull JPanel parentPanel, @NotNull MemoryNode adapter, long startTime, long endTime) {
+  private void buildTree(@NotNull JPanel parentPanel, @NotNull MemoryNode adapter) {
     ensureTreeInitialized(parentPanel, adapter);
     assert myTreeRoot != null && myTreeModel != null;
     myTreeRoot.removeAll();
-    for (MemoryNode subAdapter : adapter.getSubList(startTime, endTime)) {
+    for (MemoryNode subAdapter : adapter.getSubList()) {
       // TODO populate fields
       myTreeRoot.add(new MemoryObjectTreeNode(subAdapter));
     }
