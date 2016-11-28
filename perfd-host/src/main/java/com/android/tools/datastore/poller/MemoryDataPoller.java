@@ -21,7 +21,7 @@ import com.android.tools.datastore.LegacyAllocationTrackingService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.AllocationEvent;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.AllocationTrackingSetting;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.MemorySample;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.VmStatsSample;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
@@ -36,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.RunnableFuture;
 
-import static com.android.tools.profiler.proto.MemoryProfiler.AllocationTrackingResponse.Status.SUCCESS;
+import static com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse.Status.SUCCESS;
 
 public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase implements ServicePassThrough, PollRunner.PollingCallback {
   private final LegacyAllocationTrackingService myLegacyAllocationTrackingService;
@@ -52,7 +52,7 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
   protected final List<VmStatsSample> myStatsData = new ArrayList<>();
   protected final List<HeapDumpSample> myHeapData = new ArrayList<>();
   protected final List<AllocationEvent> myAllocationEvents = new ArrayList<>();
-  protected final List<AllocationTrackingSetting> myAllocationTrackingSettings = new ArrayList<>();
+  protected final List<AllocationsInfo> myAllocationsInfos = new ArrayList<>();
   protected final Map<String, AllocatedClass> myAllocatedClasses = new HashMap<>();
   protected final Map<ByteString, AllocationStack> myAllocationStacks = new HashMap<>();
 
@@ -156,10 +156,10 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
   }
 
   @Override
-  public void setAllocationTracking(AllocationTrackingRequest request,
-                                    StreamObserver<AllocationTrackingResponse> responseObserver) {
-    AllocationTrackingResponse response = myPollingService
-      .setAllocationTracking(AllocationTrackingRequest.newBuilder().setAppId(myProcessId).setEnabled(request.getEnabled()).build());
+  public void trackAllocations(TrackAllocationsRequest request,
+                               StreamObserver<TrackAllocationsResponse> responseObserver) {
+    TrackAllocationsResponse response = myPollingService
+      .trackAllocations(TrackAllocationsRequest.newBuilder().setAppId(myProcessId).setEnabled(request.getEnabled()).build());
     if (response.getStatus() == SUCCESS) {
       myLegacyAllocationTrackingService
         .setAllocationTracking(myProcessId, response.getTimestamp(), request.getEnabled(), (classes, stacks, allocations) -> {
@@ -175,9 +175,9 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
   }
 
   @Override
-  public void listAllocationTrackingEnvironments(AllocationTrackingEnvironmentRequest request,
-                                                 StreamObserver<AllocationTrackingEnvironmentResponse> responseObserver) {
-    AllocationTrackingEnvironmentResponse.Builder responseBuilder = AllocationTrackingEnvironmentResponse.newBuilder();
+  public void listAllocationContexts(AllocationContextsRequest request,
+                                     StreamObserver<AllocationContextsResponse> responseObserver) {
+    AllocationContextsResponse.Builder responseBuilder = AllocationContextsResponse.newBuilder();
     myAllocationStacks.values().forEach(responseBuilder::addAllocationStacks);
     myAllocatedClasses.values().forEach(responseBuilder::addAllocatedClasses);
     responseObserver.onNext(responseBuilder.build());
@@ -197,8 +197,8 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
         .forEach(response::addVmStatsSamples);
       myHeapData.stream().filter(obj -> obj.myInfo.getStartTime() > startTime && obj.myInfo.getEndTime() <= endTime)
         .forEach(obj -> response.addHeapDumpInfos(obj.myInfo));
-      myAllocationTrackingSettings.stream().filter(setting -> setting.getTimestamp() > startTime && setting.getTimestamp() <= endTime)
-        .forEach(response::addAllocationTrackingSettings);
+      myAllocationsInfos.stream().filter(setting -> setting.getTimestamp() > startTime && setting.getTimestamp() <= endTime)
+        .forEach(response::addAllocationsInfo);
       myAllocationEvents.stream().filter(event -> event.getTimestamp() > startTime && event.getTimestamp() <= endTime)
         .forEach(response::addAllocationEvents);
     }
@@ -217,7 +217,7 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
     synchronized (myUpdatingDataLock) {
       myMemoryData.addAll(response.getMemSamplesList());
       myStatsData.addAll(response.getVmStatsSamplesList());
-      myAllocationTrackingSettings.addAll(response.getAllocationTrackingSettingsList());
+      myAllocationsInfos.addAll(response.getAllocationsInfoList());
       myAllocationEvents.addAll(response.getAllocationEventsList());
 
       List<HeapDumpSample> dumpsToFetch = new ArrayList<>();
