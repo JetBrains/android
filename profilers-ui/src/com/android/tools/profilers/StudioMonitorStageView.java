@@ -52,9 +52,14 @@ public class StudioMonitorStageView extends StageView {
     getChoreographer().register(sb);
     getComponent().add(sb, BorderLayout.SOUTH);
 
+    // Create a 2-row panel. First row, all monitors; second row, the timeline. This way, the
+    // timeline will always be at the bottom, even if no monitors are found (e.g. when the phone is
+    // disconnected).
+    JPanel topPanel = new JPanel(new TabularLayout("*", "*,Fit"));
+    topPanel.setBackground(ProfilerColors.MONITOR_BACKGROUND);
+
     TabularLayout layout = new TabularLayout("*");
     JPanel monitors = new JPanel(layout);
-    monitors.setBackground(ProfilerColors.MONITOR_BACKGROUND);
 
     int rowIndex = 0;
     for (ProfilerMonitor monitor : stage.getMonitors()) {
@@ -70,9 +75,10 @@ public class StudioMonitorStageView extends StageView {
     AxisComponent timeAxis = buildTimeAxis(profilers);
 
     getChoreographer().register(timeAxis);
-    monitors.add(timeAxis, new TabularLayout.Constraint(rowIndex, 0));
+    topPanel.add(monitors, new TabularLayout.Constraint(0, 0));
+    topPanel.add(timeAxis, new TabularLayout.Constraint(1, 0));
 
-    getComponent().add(monitors, BorderLayout.CENTER);
+    getComponent().add(topPanel, BorderLayout.CENTER);
   }
 
   @Override
