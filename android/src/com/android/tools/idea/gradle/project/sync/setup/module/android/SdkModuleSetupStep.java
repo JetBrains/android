@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.builder.model.AndroidProject;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
@@ -42,7 +43,6 @@ import java.util.List;
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.SDK_SETUP_ISSUES;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -63,7 +63,7 @@ public class SdkModuleSetupStep extends AndroidModuleSetupStep {
     File androidSdkHomePath = IdeSdks.getInstance().getAndroidSdkPath();
     // Android SDK may be not configured in IntelliJ
     if (androidSdkHomePath == null) {
-      assert !isAndroidStudio();
+      assert !IdeInfo.getInstance().isAndroidStudio();
       logAndroidSdkHomeNotFound();
       return;
     }

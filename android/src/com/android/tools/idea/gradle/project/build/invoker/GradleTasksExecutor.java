@@ -21,6 +21,7 @@ import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.fd.FlightRecorder;
 import com.android.tools.idea.fd.InstantRunBuildProgressListener;
 import com.android.tools.idea.fd.InstantRunSettings;
@@ -113,7 +114,6 @@ import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.jetbrains.android.AndroidPlugin.*;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
 /**
@@ -239,7 +239,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
     @Override
     public void run(@NotNull ProgressIndicator indicator) {
-      if (isAndroidStudio()) {
+      if (IdeInfo.getInstance().isAndroidStudio()) {
         // See https://code.google.com/p/android/issues/detail?id=169743
         clearStoredGradleJvmArgs(getProject());
       }
@@ -568,7 +568,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
         // This is temporary. Once we have support for hyperlinks in "Messages" window, we'll show the error message the with a
         // hyperlink to set the JDK home.
         // For now we show the "Select SDK" dialog, but only giving the option to set the JDK path.
-        if (isAndroidStudio() && error.startsWith("Supplied javaHome is not a valid folder")) {
+        if (IdeInfo.getInstance().isAndroidStudio() && error.startsWith("Supplied javaHome is not a valid folder")) {
           IdeSdks ideSdks = IdeSdks.getInstance();
           File androidHome = ideSdks.getAndroidSdkPath();
           String androidSdkPath = androidHome != null ? androidHome.getPath() : null;

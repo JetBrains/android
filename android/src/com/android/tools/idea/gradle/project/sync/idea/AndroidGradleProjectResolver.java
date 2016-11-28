@@ -21,13 +21,14 @@ import com.android.builder.model.Variant;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.Revision;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.gradle.*;
-import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
-import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.ImportedModule;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
+import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -81,7 +82,6 @@ import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.PathUtil.getJarPathForClass;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getModuleConfigPath;
 
 /**
@@ -291,7 +291,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     if (isInProcessMode(GRADLE_SYSTEM_ID)) {
       List<KeyValue<String, String>> args = new ArrayList<>();
 
-      if (!isAndroidStudio()) {
+      if (!IdeInfo.getInstance().isAndroidStudio()) {
         LocalProperties localProperties = getLocalProperties();
         if (localProperties.getAndroidSdkPath() == null) {
           File androidHomePath = IdeSdks.getInstance().getAndroidSdkPath();

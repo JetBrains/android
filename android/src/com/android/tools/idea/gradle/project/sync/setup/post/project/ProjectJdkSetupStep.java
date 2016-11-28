@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
@@ -34,7 +35,6 @@ import org.jetbrains.annotations.Nullable;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessage.DEFAULT_GROUP;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 public class ProjectJdkSetupStep extends ProjectSetupStep {
   @NotNull private final IdeSdks myIdeSdks;
@@ -53,7 +53,7 @@ public class ProjectJdkSetupStep extends ProjectSetupStep {
 
   @Override
   public void setUpProject(@NotNull Project project, @Nullable ProgressIndicator indicator) {
-    doSetUpProject(project, isAndroidStudio());
+    doSetUpProject(project, IdeInfo.getInstance().isAndroidStudio());
   }
 
   @VisibleForTesting

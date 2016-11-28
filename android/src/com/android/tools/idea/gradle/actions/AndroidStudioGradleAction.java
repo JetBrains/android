@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -25,8 +26,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
-
 /**
  * Base class for actions that perform Gradle-specific tasks in Android Studio.
  */
@@ -34,7 +33,7 @@ public abstract class AndroidStudioGradleAction extends AnAction {
   protected final boolean myAndroidStudio;
 
   protected AndroidStudioGradleAction(@Nullable String text) {
-    this(text, isAndroidStudio());
+    this(text, IdeInfo.getInstance().isAndroidStudio());
   }
 
   @VisibleForTesting
@@ -43,7 +42,7 @@ public abstract class AndroidStudioGradleAction extends AnAction {
   }
 
   protected AndroidStudioGradleAction(@Nullable String text, @Nullable String description, @Nullable Icon icon) {
-    this(text, description, icon, isAndroidStudio());
+    this(text, description, icon, IdeInfo.getInstance().isAndroidStudio());
   }
 
   private AndroidStudioGradleAction(@Nullable String text, @Nullable String description, @Nullable Icon icon, boolean androidStudio) {

@@ -22,6 +22,7 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -58,7 +59,6 @@ import static com.intellij.openapi.projectRoots.JavaSdk.checkForJdk;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 public class IdeSdks {
   @NonNls public static final String MAC_JDK_CONTENT_PATH = "/Contents/Home";
@@ -67,16 +67,21 @@ public class IdeSdks {
   @NotNull private final AndroidSdks myAndroidSdks;
   @NotNull private final Jdks myJdks;
   @NotNull private final EmbeddedDistributionPaths myEmbeddedDistributionPaths;
+  @NotNull private final IdeInfo myIdeInfo;
 
   @NotNull
   public static IdeSdks getInstance() {
     return ServiceManager.getService(IdeSdks.class);
   }
 
-  public IdeSdks(@NotNull AndroidSdks androidSdks, @NotNull Jdks jdks, @NotNull EmbeddedDistributionPaths embeddedDistributionPaths) {
+  public IdeSdks(@NotNull AndroidSdks androidSdks,
+                 @NotNull Jdks jdks,
+                 @NotNull EmbeddedDistributionPaths embeddedDistributionPaths,
+                 @NotNull IdeInfo ideInfo) {
     myAndroidSdks = androidSdks;
     myJdks = jdks;
     myEmbeddedDistributionPaths = embeddedDistributionPaths;
+    myIdeInfo = ideInfo;
   }
 
   /**
@@ -176,7 +181,7 @@ public class IdeSdks {
       File canonicalPath = resolvePath(path);
       Sdk chosenJdk = null;
 
-      if (isAndroidStudio()) {
+      if (myIdeInfo.isAndroidStudio()) {
         // Delete all JDKs in Android Studio. We want to have only one.
         List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance());
         for (final Sdk jdk : jdks) {
@@ -222,7 +227,7 @@ public class IdeSdks {
   /**
    * Iterates through all Android SDKs and makes them point to the given JDK.
    */
-  private  void updateAndroidSdks(@NotNull Sdk jdk) {
+  private void updateAndroidSdks(@NotNull Sdk jdk) {
     for (Sdk sdk : myAndroidSdks.getAllAndroidSdks()) {
       AndroidSdkAdditionalData oldData = myAndroidSdks.getAndroidSdkAdditionalData(sdk);
       if (oldData == null) {
@@ -396,6 +401,7 @@ public class IdeSdks {
 
   /**
    * Indicates whether the IDE is using its embedded JDK. This JDK is used to invoke Gradle.
+   *
    * @return {@code true} if the IDE is using the embedded JDK; {@code false} otherwise.
    */
   public boolean isUsingEmbeddedJdk() {
@@ -407,7 +413,7 @@ public class IdeSdks {
    * Makes the IDE use its embedded JDK or a JDK selected by the user. This JDK is used to invoke Gradle.
    */
   public void setUseEmbeddedJdk() {
-    checkState(isAndroidStudio(), "This method is for use in Android Studio only.");
+    checkState(myIdeInfo.isAndroidStudio(), "This method is for use in Android Studio only.");
     setJdkPath(myEmbeddedDistributionPaths.getEmbeddedJdkPath());
   }
 
@@ -443,7 +449,7 @@ public class IdeSdks {
     }
 
     // This happens when user has a fresh installation of Android Studio, and goes through the 'First Run' Wizard.
-    if (isAndroidStudio()) {
+    if (myIdeInfo.isAndroidStudio()) {
       Sdk jdk = myJdks.createEmbeddedJdk();
       assert isJdkCompatible(jdk, preferredVersion);
       return jdk;

@@ -17,6 +17,7 @@ package com.android.tools.idea.npw;
 
 import com.android.SdkConstants;
 import com.android.repository.io.FileOpUtils;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
@@ -49,7 +50,6 @@ import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -212,7 +212,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     }
 
     // This is required for Android plugin in IDEA
-    if (!AndroidUtils.isAndroidStudio()) {
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
       final Sdk jdk = IdeSdks.getInstance().getJdk();
       if (jdk != null) {
         ApplicationManager.getApplication().runWriteAction(() -> ProjectRootManager.getInstance(myProject).setProjectSdk(jdk));

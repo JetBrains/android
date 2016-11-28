@@ -17,6 +17,7 @@
 package com.android.tools.idea.stats;
 
 import com.android.annotations.NonNull;
+import com.android.tools.idea.IdeInfo;
 import com.intellij.internal.statistic.connect.StatisticsConnectionService;
 import com.intellij.internal.statistic.connect.StatisticsResult;
 import com.intellij.internal.statistic.connect.StatisticsService;
@@ -25,7 +26,6 @@ import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationNamesInfo;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,7 +88,7 @@ public class AndroidStatisticsService implements StatisticsService {
   @SuppressWarnings("ConstantConditions")
   @Override
   public StatisticsResult send() {
-    if (!AndroidUtils.isAndroidStudio()) {
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
       // If this is running as part of another product (not studio), then we return immediately
       // without sending anything via this service
       return new StatisticsResult(StatisticsResult.ResultCode.SEND, "OK");
@@ -104,12 +104,10 @@ public class AndroidStatisticsService implements StatisticsService {
   }
 
   /**
-   * Checks whether the statistics service has a service URL and is authorized
-   * to send statistics.
+   * Checks whether the statistics service has a service URL and is authorized to send statistics.
    *
-   * @return A {@link StatisticsResult} with a
-   * {@link com.intellij.internal.statistic.connect.StatisticsResult.ResultCode#SEND} result code
-   * on success, otherwise one of the error result codes.
+   * @return A {@link StatisticsResult} with a {@link StatisticsResult.ResultCode#SEND} result code on success, otherwise one of the error
+   * result codes.
    */
   static StatisticsResult areStatisticsAuthorized() {
     // Get the redirected URL

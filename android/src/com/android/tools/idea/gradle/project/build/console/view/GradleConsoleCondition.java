@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.build.console.view;
 
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 
 import static com.android.tools.idea.gradle.util.Projects.canImportAsGradleProject;
-import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 /**
  * Makes "Gradle Console" tool window available only for Gradle projects in Android Studio.
@@ -28,6 +28,8 @@ import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 public class GradleConsoleCondition implements Condition<Project> {
   @Override
   public boolean value(Project project) {
-    return isAndroidStudio() && project != null && (isBuildWithGradle(project) || canImportAsGradleProject(project.getBaseDir()));
+    return IdeInfo.getInstance().isAndroidStudio() &&
+           project != null &&
+           (GradleProjectInfo.getInstance(project).isBuildWithGradle() || canImportAsGradleProject(project.getBaseDir()));
   }
 }
