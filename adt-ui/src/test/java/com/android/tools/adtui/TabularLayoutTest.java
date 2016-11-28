@@ -419,6 +419,65 @@ public final class TabularLayoutTest {
     assertThat(cellSE.getHeight()).isEqualTo(500);
   }
 
+  @Test
+  public void proportionalSizingHandlesRoundingErrorWhenSizesRoundDown() throws Exception {
+    // 3 rows - each row gets 33.333...% of the space. However, since Swing sizes are integers,
+    // for a panel of size 100, this would give us "33" * 3, missing a pixel. Tabular layout should
+    // add back that missing space somehow.
+    TabularLayout layout = new TabularLayout("*", "*,*,*");
+
+    final JPanel panel = new JPanel(layout);
+    final Component row0 = new JPanel();
+    final Component row1 = new JPanel();
+    final Component row2 = new JPanel();
+
+    panel.add(row0, new TabularLayout.Constraint(0, 0));
+    panel.add(row1, new TabularLayout.Constraint(1, 0));
+    panel.add(row2, new TabularLayout.Constraint(2, 0));
+
+    panel.setPreferredSize(new Dimension(50, 100));
+    mockPackPanel(panel);
+    assertThat(row0.getHeight() + row1.getHeight() + row2.getHeight()).isEqualTo(100);
+  }
+
+  @Test
+  public void proportionalSizingHandlesRoundingErrorWhenSizesRoundUp() throws Exception {
+    // 8 rows - each row gets 12.5% of the space. However, since Swing sizes are integers,
+    // for a panel of size 100, this would give us "13" * 8, which is 4 pixels too large. Tabular
+    // layout should remove out that extra space somehow.
+    TabularLayout layout = new TabularLayout("*", "*,*,*,*,*,*,*,*");
+
+    final JPanel panel = new JPanel(layout);
+    final Component row0 = new JPanel();
+    final Component row1 = new JPanel();
+    final Component row2 = new JPanel();
+    final Component row3 = new JPanel();
+    final Component row4 = new JPanel();
+    final Component row5 = new JPanel();
+    final Component row6 = new JPanel();
+    final Component row7 = new JPanel();
+
+    panel.add(row0, new TabularLayout.Constraint(0, 0));
+    panel.add(row1, new TabularLayout.Constraint(1, 0));
+    panel.add(row2, new TabularLayout.Constraint(2, 0));
+    panel.add(row3, new TabularLayout.Constraint(3, 0));
+    panel.add(row4, new TabularLayout.Constraint(4, 0));
+    panel.add(row5, new TabularLayout.Constraint(5, 0));
+    panel.add(row6, new TabularLayout.Constraint(6, 0));
+    panel.add(row7, new TabularLayout.Constraint(7, 0));
+
+    panel.setPreferredSize(new Dimension(50, 100));
+    mockPackPanel(panel);
+    assertThat(row0.getHeight() +
+               row1.getHeight() +
+               row2.getHeight() +
+               row3.getHeight() +
+               row4.getHeight() +
+               row5.getHeight() +
+               row6.getHeight() +
+               row7.getHeight()).isEqualTo(100);
+  }
+
   /**
    * This fake pack method aims to imitate Frame.pack(), which we can't call in headless mode.
    */
