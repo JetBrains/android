@@ -20,7 +20,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -144,7 +146,8 @@ public class HttpData {
   }
 
   /**
-   * Return the name of the URL, which is the final complete word in the path portion of the URL.
+   * Return the name of the URL, which is the final complete word in the path portion of the URL. Additionally,
+   * the returned value is URL decoded, so that, say, "Hello%2520World" -> "Hello World".
    *
    * For example,
    * "www.example.com/demo/" -> "demo"
@@ -155,6 +158,17 @@ public class HttpData {
     String path = URI.create(url).getPath().trim();
     path = StringUtil.trimTrailing(path, '/');
     path = path.lastIndexOf('/') != -1 ? path.substring(path.lastIndexOf('/') + 1) : path;
+    // URL might be encoded an arbitrarily deep number of times. Keep decoding until we peel away the final layer.
+    // Usually this is only expected to loop once or twice.
+    try {
+      String lastPath;
+      do {
+        lastPath = path;
+        path = URLDecoder.decode(path, "UTF-8");
+      } while (!path.equals(lastPath));
+    } catch (UnsupportedEncodingException e) {
+      // TODO: Log this exception.
+    }
     return path;
   }
 
