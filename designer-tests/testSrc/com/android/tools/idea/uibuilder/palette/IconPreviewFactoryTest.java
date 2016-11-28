@@ -15,70 +15,71 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import com.android.SdkConstants;
+import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.ui.designer.EditorDesignSurface;
+import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.intellij.psi.xml.XmlFile;
-import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.AndroidTestCase;
+import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.intellij.psi.PsiFile;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-public class IconPreviewFactoryTest extends AndroidTestCase {
+import static com.android.SdkConstants.RELATIVE_LAYOUT;
+import static java.io.File.separator;
 
-  @Language("XML")
-  private static final String XML =
-    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-    "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-    "    android:layout_width=\"match_parent\"\n" +
-    "    android:layout_height=\"match_parent\">\n" +
-    "    <!-- My comment -->\n" +
-    "    <TextView " +
-    "        android:layout_width=\"match_parent\"\n" +
-    "        android:layout_height=\"match_parent\"\n" +
-    "        android:text=\"@string/hello\" />\n" +
-    "</FrameLayout>";
+public class IconPreviewFactoryTest extends LayoutTestCase {
+  private static final float MAX_PERCENT_DIFFERENT = 6.5f;
+  private Palette.Item myItem;
+  private ScreenView myScreenView;
+  private IconPreviewFactory myFactory;
 
-  // This test is here to make sure we generate a preview image for each component that is supposed to have a preview.
-  // If LayoutLib has trouble with a component (or a combination of components) we may start missing previews of several components.
-  // Also make sure we have unique IDs for all preview components.
-  public void testLoad() throws Exception {
-    // TODO Get this test to pass
-    // noinspection ConstantConditions
-    if (true) {
-      return;
-    }
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    Palette palette = loadPalette();
+    List<Palette.Item> items = new ArrayList<>();
+    palette.accept(items::add);
+    myItem = items.get(0);
 
-    List<String> requestedIds = Lists.newArrayList();
-    List<String> generatedIds = Lists.newArrayList();
-    IconPreviewFactory factory = IconPreviewFactory.get();
-    factory.load(getConfiguration(), loadPalette(), true, requestedIds, generatedIds);
-
-    Set<String> ids = Sets.newLinkedHashSet();
-
-    requestedIds.stream()
-      .filter(id -> !ids.add(id))
-      .forEach(id -> fail("This id contains multiple definitions: " + id));
-
-    generatedIds.stream()
-      .filter(id -> !ids.remove(id))
-      .forEach(id -> fail("Image generated but not requested: " + id));
-
-    // TODO: Add the design support library to the test project (could not find out how to do so).
-    assertTrue(ids.remove(SdkConstants.TOOLBAR_V7));
-
-    assertEmpty("Failed to generate preview for: " + Joiner.on(", ").join(ids), ids);
+    NlModel model = createModel();
+    myScreenView = surface().screen(model).getScreen();
+    myFactory = IconPreviewFactory.get();
+    myFacet.setRenderService(new MyRenderService(myFacet));
   }
 
-  private Configuration getConfiguration() {
-    XmlFile layout1 = (XmlFile)myFixture.addFileToProject("res/layout/my_layout1.xml", XML);
-    return myFacet.getConfigurationManager().getConfiguration(layout1.getVirtualFile());
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      myFacet.setRenderService(null);
+    }
+    finally {
+      super.tearDown();
+    }
+  }
+
+  public void testRenderDragImage() throws Exception {
+    BufferedImage image = myFactory.renderDragImage(myItem, myScreenView);
+    File goldenFile = new File(getTestDataPath() + separator + "palette" + separator + "TextView.png");
+    BufferedImage goldenImage = ImageIO.read(goldenFile);
+    if (image == null) {
+      throw new RuntimeException(getTestDataPath());
+    }
+    ImageDiffUtil.assertImageSimilar("TextView.png", goldenImage, image, MAX_PERCENT_DIFFERENT);
   }
 
   private Palette loadPalette() throws Exception {
@@ -89,5 +90,35 @@ public class IconPreviewFactoryTest extends AndroidTestCase {
     }
 
     return model.getPalette(NlLayoutType.LAYOUT);
+  }
+
+  @NotNull
+  private NlModel createModel() {
+    ModelBuilder builder = model("relative.xml",
+                                 component(RELATIVE_LAYOUT)
+                                   .withBounds(0, 0, 1000, 1000)
+                                   .matchParentWidth()
+                                   .matchParentHeight());
+    return builder.build();
+  }
+
+  // Disable security manager during tests (for bazel)
+  private static class MyRenderService extends RenderService {
+
+    public MyRenderService(@NotNull AndroidFacet facet) {
+      super(facet);
+    }
+
+    @Override
+    @Nullable
+    public RenderTask createTask(@Nullable PsiFile psiFile,
+                                 @NotNull Configuration configuration,
+                                 @NotNull RenderLogger logger,
+                                 @Nullable EditorDesignSurface surface) {
+      RenderTask task = super.createTask(psiFile, configuration, logger, surface);
+      assert task != null;
+      task.disableSecurityManager();
+      return task;
+    }
   }
 }

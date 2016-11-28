@@ -144,35 +144,33 @@ public class IconPreviewFactory {
 
     // Some components require a parent to render correctly.
     xml = String.format(LINEAR_LAYOUT, CONTAINER_ID, component.getTag().getText());
-    RenderResult result = renderImage(xml, model.getConfiguration());
-    if (result == null) {
-      return null;
-    }
-    BufferedImage image = result.getRenderedImage();
-    if (image == null) {
-      return null;
-    }
-    List<ViewInfo> infos = result.getRootViews();
-    if (infos.isEmpty()) {
-      return null;
-    }
-    infos = infos.get(0).getChildren();
-    if (infos == null || infos.isEmpty()) {
-      return null;
-    }
-    ViewInfo view = infos.get(0);
-    if (image.getHeight() < view.getBottom() || image.getWidth() < view.getRight() ||
-      view.getBottom() <= view.getTop() || view.getRight() <= view.getLeft()) {
-      return null;
-    }
-    @AndroidCoordinate
-    int shadowWitdh = SHADOW_SIZE * screenView.getConfiguration().getDensity().getDpiValue() / Density.DEFAULT_DENSITY;
-    @SwingCoordinate
-    int shadowIncrement = 1 + Coordinates.getSwingDimension(screenView, shadowWitdh);
-    return image.getSubimage(view.getLeft(),
-                             view.getTop(),
-                             Math.min(view.getRight() + shadowIncrement, image.getWidth()),
-                             Math.min(view.getBottom() + shadowIncrement, image.getHeight()));
+    return renderImage(xml, model.getConfiguration(), result -> {
+      BufferedImage image = result.getRenderedImage();
+      if (image == null) {
+        return null;
+      }
+      List<ViewInfo> infos = result.getRootViews();
+      if (infos.isEmpty()) {
+        return null;
+      }
+      infos = infos.get(0).getChildren();
+      if (infos == null || infos.isEmpty()) {
+        return null;
+      }
+      ViewInfo view = infos.get(0);
+      if (image.getHeight() < view.getBottom() || image.getWidth() < view.getRight() ||
+          view.getBottom() <= view.getTop() || view.getRight() <= view.getLeft()) {
+        return null;
+      }
+      @AndroidCoordinate
+      int shadowWitdh = SHADOW_SIZE * screenView.getConfiguration().getDensity().getDpiValue() / Density.DEFAULT_DENSITY;
+      @SwingCoordinate
+      int shadowIncrement = 1 + Coordinates.getSwingDimension(screenView, shadowWitdh);
+      return image.getSubimage(view.getLeft(),
+                               view.getTop(),
+                               Math.min(view.getRight() + shadowIncrement, image.getWidth()),
+                               Math.min(view.getBottom() + shadowIncrement, image.getHeight()));
+    });
   }
 
   private static BufferedImage readImage(@NotNull String id, @NotNull Configuration configuration) {
@@ -249,8 +247,7 @@ public class IconPreviewFactory {
         loadSources(sources, requestedIds, palette.getItems());
         for (StringBuilder source : sources) {
           String preview = String.format(LINEAR_LAYOUT, CONTAINER_ID, source);
-          RenderResult result = renderImage(preview, configuration);
-          addResultToCache(result, generatedIds, configuration);
+          renderImage(preview, configuration, result -> addResultToCache(result, generatedIds, configuration));
         }
         return null;
       }
@@ -340,16 +337,18 @@ public class IconPreviewFactory {
     return target == null ? SdkVersionInfo.HIGHEST_KNOWN_STABLE_API + "U" : target.getVersion().getApiString();
   }
 
-  private static void addResultToCache(@Nullable RenderResult result, @Nullable List<String> ids, @NotNull Configuration configuration) {
+  @Nullable
+  private static BufferedImage addResultToCache(@Nullable RenderResult result, @Nullable List<String> ids, @NotNull Configuration configuration) {
     if (result == null || result.getRenderedImage() == null || result.getRootViews().isEmpty()) {
-      return;
+      return null;
     }
     ImageAccumulator accumulator = new ImageAccumulator(result.getRenderedImage(), ids, configuration);
     accumulator.run(result.getRootViews(), 0, null);
+    return null;
   }
 
   @Nullable
-  private static RenderResult renderImage(@NotNull String xml, @NotNull Configuration configuration) {
+  private static BufferedImage renderImage(@NotNull String xml, @NotNull Configuration configuration, @NotNull RenderResultHandler handler) {
     AndroidFacet facet = AndroidFacet.getInstance(configuration.getModule());
     if (facet == null) {
       return null;
@@ -359,16 +358,24 @@ public class IconPreviewFactory {
     RenderService renderService = RenderService.get(facet);
     RenderLogger logger = renderService.createLogger();
     final RenderTask task = renderService.createTask(file, configuration, logger, null);
-    RenderResult result = null;
-    if (task != null) {
+    if (task == null) {
+      return null;
+    }
+    try {
       task.setOverrideBgColor(UIUtil.TRANSPARENT_COLOR.getRGB());
       task.setDecorations(false);
       task.setRenderingMode(SessionParams.RenderingMode.V_SCROLL);
       task.setFolderType(ResourceFolderType.LAYOUT);
-      result = task.render();
+      //noinspection deprecation
+      RenderResult result = task.render();
+      if (result == null) {
+        return null;
+      }
+      return handler.handle(result);
+    }
+    finally {
       task.dispose();
     }
-    return result;
   }
 
   private static class ImageAccumulator {
@@ -444,5 +451,10 @@ public class IconPreviewFactory {
         }
       }
     }
+  }
+
+  private interface RenderResultHandler {
+    @Nullable
+    BufferedImage handle(@NotNull RenderResult result);
   }
 }
