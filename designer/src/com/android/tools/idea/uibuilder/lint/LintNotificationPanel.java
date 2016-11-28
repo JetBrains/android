@@ -349,8 +349,7 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
       BufferedImage image = new BufferedImage(iw, ih, BufferedImage.TYPE_INT_ARGB);
 
       RenderResult renderResult = myScreenView.getModel().getRenderResult();
-      if (renderResult != null && renderResult.getRenderedImage() != null) {
-        BufferedImage fullImage = renderResult.getRenderedImage();
+      if (renderResult != null && renderResult.hasImage()) {
         // Draw the component into the preview image
         Graphics2D g2d = (Graphics2D)image.getGraphics();
 
@@ -429,7 +428,7 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
         g2d.setRenderingHint(KEY_RENDERING, VALUE_RENDER_QUALITY);
         g2d.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
         g2d.setRenderingHint(KEY_ALPHA_INTERPOLATION, VALUE_ALPHA_INTERPOLATION_QUALITY);
-        g2d.drawImage(fullImage, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, null);
+        renderResult.getRenderedImage().drawImageTo(g2d, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2);
 
         if (!component.isRoot()) {
           Area outside = new Area(new Rectangle2D.Double(0, 0, iw, ih));

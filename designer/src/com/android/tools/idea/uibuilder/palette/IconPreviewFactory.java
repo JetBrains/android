@@ -145,8 +145,7 @@ public class IconPreviewFactory {
     // Some components require a parent to render correctly.
     xml = String.format(LINEAR_LAYOUT, CONTAINER_ID, component.getTag().getText());
     return renderImage(xml, model.getConfiguration(), result -> {
-      BufferedImage image = result.getRenderedImage();
-      if (image == null) {
+      if (!result.hasImage()) {
         return null;
       }
       List<ViewInfo> infos = result.getRootViews();
@@ -158,6 +157,7 @@ public class IconPreviewFactory {
         return null;
       }
       ViewInfo view = infos.get(0);
+      ImagePool.Image image = result.getRenderedImage();
       if (image.getHeight() < view.getBottom() || image.getWidth() < view.getRight() ||
           view.getBottom() <= view.getTop() || view.getRight() <= view.getLeft()) {
         return null;
@@ -166,7 +166,7 @@ public class IconPreviewFactory {
       int shadowWitdh = SHADOW_SIZE * screenView.getConfiguration().getDensity().getDpiValue() / Density.DEFAULT_DENSITY;
       @SwingCoordinate
       int shadowIncrement = 1 + Coordinates.getSwingDimension(screenView, shadowWitdh);
-      return image.getSubimage(view.getLeft(),
+      return image.getCopy().getSubimage(view.getLeft(),
                                view.getTop(),
                                Math.min(view.getRight() + shadowIncrement, image.getWidth()),
                                Math.min(view.getBottom() + shadowIncrement, image.getHeight()));
@@ -342,7 +342,7 @@ public class IconPreviewFactory {
     if (result == null || result.getRenderedImage() == null || result.getRootViews().isEmpty()) {
       return null;
     }
-    ImageAccumulator accumulator = new ImageAccumulator(result.getRenderedImage(), ids, configuration);
+    ImageAccumulator accumulator = new ImageAccumulator(result.getRenderedImage().getCopy(), ids, configuration);
     accumulator.run(result.getRootViews(), 0, null);
     return null;
   }
