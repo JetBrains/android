@@ -117,7 +117,6 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.intellij.openapi.application.ApplicationManager.getApplication;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.util.PlatformUtils.getPlatformPrefix;
 
 /**
  * @author yole, coyote
@@ -912,9 +911,5 @@ public class AndroidUtils {
       }
     }
     return false;
-  }
-
-  public static boolean isAndroidStudio() {
-    return "AndroidStudio".equals(getPlatformPrefix());
   }
 }

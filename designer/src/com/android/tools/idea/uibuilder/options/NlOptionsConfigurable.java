@@ -1,5 +1,6 @@
 package com.android.tools.idea.uibuilder.options;
 
+import com.android.tools.idea.IdeInfo;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
@@ -10,8 +11,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 public class NlOptionsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
   private JBCheckBox myPreferXml;
@@ -67,7 +66,7 @@ public class NlOptionsConfigurable implements SearchableConfigurable, Configurab
   @Nls
   @Override
   public String getDisplayName() {
-    if (isAndroidStudio()) {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
       return "Layout Editor";
     } else {
       return "Android Layout Editor";

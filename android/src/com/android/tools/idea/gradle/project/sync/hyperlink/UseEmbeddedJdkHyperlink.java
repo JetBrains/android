@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
@@ -22,12 +23,10 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
-
 public class UseEmbeddedJdkHyperlink extends NotificationHyperlink {
   @Nullable
   public static UseEmbeddedJdkHyperlink create() {
-    if (isAndroidStudio()) {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
       return new UseEmbeddedJdkHyperlink();
     }
     return null;
