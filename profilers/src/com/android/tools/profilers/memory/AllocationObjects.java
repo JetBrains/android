@@ -95,14 +95,14 @@ public class AllocationObjects implements MemoryObjects {
       long startTimeNs = TimeUnit.MICROSECONDS.toNanos(startTimeUs) - buffer;
       long endTimeNs = TimeUnit.MICROSECONDS.toNanos(endTimeUs) + buffer;
 
-      AllocationTrackingEnvironmentResponse environmentResponse = myClient.listAllocationTrackingEnvironments(
-        AllocationTrackingEnvironmentRequest.newBuilder().setAppId(myAppId).setStartTime(startTimeNs).setEndTime(endTimeNs).build());
+      AllocationContextsResponse contextsResponse = myClient.listAllocationContexts(
+        AllocationContextsRequest.newBuilder().setAppId(myAppId).setStartTime(startTimeNs).setEndTime(endTimeNs).build());
 
       TIntObjectHashMap<ClassNode> classNodes = new TIntObjectHashMap<>();
       Map<ByteString, AllocationStack> callStacks = new HashMap<>();
-      environmentResponse.getAllocatedClassesList().stream()
+      contextsResponse.getAllocatedClassesList().stream()
         .map(className -> classNodes.put(className.getClassId(), new ClassNode(className)));
-      environmentResponse.getAllocationStacksList().stream().map(callStack -> callStacks.putIfAbsent(callStack.getStackId(), callStack));
+      contextsResponse.getAllocationStacksList().stream().map(callStack -> callStacks.putIfAbsent(callStack.getStackId(), callStack));
 
       MemoryData response = myClient
         .getData(MemoryProfiler.MemoryRequest.newBuilder().setAppId(myAppId).setStartTime(startTimeNs).setEndTime(endTimeNs).build());

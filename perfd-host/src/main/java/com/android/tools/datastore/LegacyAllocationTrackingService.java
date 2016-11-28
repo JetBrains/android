@@ -20,13 +20,10 @@ import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.AllocationEvent;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.function.Supplier;
 
 // TODO find a better place for Legacy* classes.
@@ -34,9 +31,6 @@ public class LegacyAllocationTrackingService {
   public interface LegacyAllocationTrackingCallback {
     void accept(List<AllocatedClass> classes, List<AllocationStack> stacks, List<AllocationEvent> events);
   }
-
-  @Nullable
-  private Future<?> myPendingAllocationDumpFetch = null;
 
   @NotNull
   private Supplier<LegacyAllocationTracker> myTrackerSupplier;
@@ -65,19 +59,8 @@ public class LegacyAllocationTrackingService {
     }
 
     myOngoingTracking = enabled;
-    if (myPendingAllocationDumpFetch != null) {
-      try {
-        myPendingAllocationDumpFetch.get();
-        myPendingAllocationDumpFetch = null;
-      }
-      catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-      }
-      catch (ExecutionException ignored) {
-      }
-    }
-
     if (!enabled) {
+      // TODO fix this so this method is reentrant/locks
       tracker.getAllocationTrackingDump(processId, myAllocationExecutorService, data -> {
         if (data != null) {
           LegacyAllocationConverter converter = tracker.parseDump(data);
