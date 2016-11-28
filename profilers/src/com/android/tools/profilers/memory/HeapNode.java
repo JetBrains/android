@@ -51,7 +51,7 @@ class HeapNode implements MemoryNode {
 
   @NotNull
   @Override
-  public List<MemoryNode> getSubList(long startTime, long endTime) {
+  public List<MemoryNode> getSubList() {
     return myHeap.getClasses().stream().map(ClassNode::new).collect(Collectors.toList());
   }
 

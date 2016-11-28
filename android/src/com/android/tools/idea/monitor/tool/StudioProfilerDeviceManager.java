@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ddmlib.*;
 import com.android.tools.datastore.DataStoreService;
+import com.android.tools.datastore.LegacyAllocationConverter.CallStack;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.datastore.LegacyAllocationConverter;
 import com.android.tools.datastore.LegacyAllocationTracker;
@@ -33,6 +34,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Consumer;
+import com.intellij.util.containers.HashSet;
 import com.intellij.util.net.NetUtils;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +42,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 
 import static com.android.ddmlib.Client.CHANGE_NAME;
@@ -288,10 +291,19 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
       // TODO fix allocation file overflow bug
       AllocationInfo[] rawInfos = AllocationsParser.parse(ByteBuffer.wrap(dumpData));
       LegacyAllocationConverter converter = new LegacyAllocationConverter();
+      Map<List<StackTraceElement>, CallStack> fastUniqueStacks = new HashMap<>(); // because Sets don't have get()
       for (AllocationInfo info : rawInfos) {
-        byte[] sha256 = converter.addCallStack(new LegacyAllocationConverter.CallStack(info.getStackTrace()));
+        List<StackTraceElement> stackTraceElements = Arrays.asList(info.getStackTrace());
+        CallStack callStack;
+        if (!fastUniqueStacks.containsKey(stackTraceElements)) {
+          callStack = converter.addCallStack(new CallStack(stackTraceElements));
+          fastUniqueStacks.put(stackTraceElements, callStack);
+        }
+        else {
+          callStack = fastUniqueStacks.get(stackTraceElements);
+        }
         int classId = converter.addClassName(info.getAllocatedClass());
-        converter.addAllocation(new LegacyAllocationConverter.Allocation(classId, info.getSize(), info.getThreadId(), sha256));
+        converter.addAllocation(new LegacyAllocationConverter.Allocation(classId, info.getSize(), info.getThreadId(), callStack.getId()));
       }
       return converter;
     }

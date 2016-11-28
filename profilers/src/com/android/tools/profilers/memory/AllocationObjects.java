@@ -31,13 +31,15 @@ public class AllocationObjects implements MemoryObjects {
   @NotNull private final RootAllocationsNode myRoot;
   @NotNull private final MemoryServiceBlockingStub myClient;
   private final int myAppId;
-  private long myLastStartTimeUs = Long.MAX_VALUE;
-  private long myLastEndTimeUs = Long.MIN_VALUE;
+  private final long myStartTimeNs;
+  private final long myEndTimeNs;
 
-  public AllocationObjects(@NotNull MemoryServiceBlockingStub client, int appId) {
+  public AllocationObjects(@NotNull MemoryServiceBlockingStub client, int appId, long startTimeNs, long endTimeNs) {
     myClient = client;
     myAppId = appId;
     myRoot = new RootAllocationsNode();
+    myStartTimeNs = startTimeNs;
+    myEndTimeNs = endTimeNs;
   }
 
   @NotNull
@@ -55,13 +57,13 @@ public class AllocationObjects implements MemoryObjects {
     @Override
     public String toString() {
       return "Allocations" +
-             (myLastStartTimeUs != Long.MAX_VALUE ? " from " + myLastStartTimeUs : "") +
-             (myLastEndTimeUs != Long.MIN_VALUE ? " to " + myLastEndTimeUs : "");
+             (myStartTimeNs != Long.MAX_VALUE ? " from " + TimeUnit.NANOSECONDS.toMicros(myStartTimeNs) + "us" : "") +
+             (myEndTimeNs != Long.MIN_VALUE ? " to " + TimeUnit.NANOSECONDS.toMicros(myEndTimeNs) + "us" : "");
     }
 
     @NotNull
     @Override
-    public List<MemoryNode> getSubList(long startTimeUs, long endTimeUs) {
+    public List<MemoryNode> getSubList() {
       return Collections.singletonList(new HeapNode());
     }
 
@@ -86,26 +88,18 @@ public class AllocationObjects implements MemoryObjects {
 
     @NotNull
     @Override
-    public List<MemoryNode> getSubList(long startTimeUs, long endTimeUs) {
-      myLastStartTimeUs = startTimeUs;
-      myLastEndTimeUs = endTimeUs;
-
+    public List<MemoryNode> getSubList() {
       // TODO add caching
-      long buffer = TimeUnit.SECONDS.toNanos(1);
-      long startTimeNs = TimeUnit.MICROSECONDS.toNanos(startTimeUs) - buffer;
-      long endTimeNs = TimeUnit.MICROSECONDS.toNanos(endTimeUs) + buffer;
-
       AllocationContextsResponse contextsResponse = myClient.listAllocationContexts(
-        AllocationContextsRequest.newBuilder().setAppId(myAppId).setStartTime(startTimeNs).setEndTime(endTimeNs).build());
+        AllocationContextsRequest.newBuilder().setAppId(myAppId).setStartTime(myStartTimeNs).setEndTime(myEndTimeNs).build());
 
       TIntObjectHashMap<ClassNode> classNodes = new TIntObjectHashMap<>();
       Map<ByteString, AllocationStack> callStacks = new HashMap<>();
-      contextsResponse.getAllocatedClassesList().stream()
-        .map(className -> classNodes.put(className.getClassId(), new ClassNode(className)));
-      contextsResponse.getAllocationStacksList().stream().map(callStack -> callStacks.putIfAbsent(callStack.getStackId(), callStack));
+      contextsResponse.getAllocatedClassesList().forEach(className -> classNodes.put(className.getClassId(), new ClassNode(className)));
+      contextsResponse.getAllocationStacksList().forEach(callStack -> callStacks.putIfAbsent(callStack.getStackId(), callStack));
 
       MemoryData response = myClient
-        .getData(MemoryProfiler.MemoryRequest.newBuilder().setAppId(myAppId).setStartTime(startTimeNs).setEndTime(endTimeNs).build());
+        .getData(MemoryProfiler.MemoryRequest.newBuilder().setAppId(myAppId).setStartTime(myStartTimeNs).setEndTime(myEndTimeNs).build());
       // TODO make sure class IDs fall into a global pool
       for (AllocationEvent event : response.getAllocationEventsList()) {
         assert classNodes.contains(event.getAllocatedClassId());
@@ -150,7 +144,7 @@ public class AllocationObjects implements MemoryObjects {
 
     @NotNull
     @Override
-    public List<MemoryNode> getSubList(long startTimeUs, long endTimeUs) {
+    public List<MemoryNode> getSubList() {
       return myInstanceNodes;
     }
   }

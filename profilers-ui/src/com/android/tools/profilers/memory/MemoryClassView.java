@@ -124,7 +124,7 @@ final class MemoryClassView {
   }
 
   @Nullable
-  public JComponent buildComponent(@NotNull MemoryObjects model, long startTime, long endTime) {
+  public JComponent buildComponent(@NotNull MemoryObjects model) {
     myMemoryObjects = model;
     MemoryNode rootNode = myMemoryObjects.getRootNode();
 
@@ -134,7 +134,7 @@ final class MemoryClassView {
 
     JToolBar toolBar = new JToolBar();
     toolBar.setFloatable(false);
-    List<MemoryNode> itemList = rootNode.getSubList(startTime, endTime);
+    List<MemoryNode> itemList = rootNode.getSubList();
 
     ComboBoxModel<MemoryNode> comboBoxModel = new DefaultComboBoxModel<>(itemList.toArray(new MemoryNode[itemList.size()]));
     ComboBox<MemoryNode> comboBox = new ComboBox<>(comboBoxModel);
@@ -142,18 +142,24 @@ final class MemoryClassView {
       // TODO abstract out selection path so we don't need to special case
       Object item = comboBox.getSelectedItem();
       if (item != null && item instanceof MemoryNode) {
-        buildTree(classesPanel, (MemoryNode)item, startTime, endTime);
+        buildTree(classesPanel, (MemoryNode)item);
       }
     });
     toolBar.add(comboBox);
     headingPanel.add(toolBar);
 
     classesPanel.add(headingPanel, BorderLayout.PAGE_START);
+    boolean selected = false;
+    // TODO provide a default selection in the model API?
     for (MemoryNode item : itemList) {
       if (item.getName().equals("app")) {
         comboBox.setSelectedItem(item);
+        selected = true;
         break;
       }
+    }
+    if (!selected) {
+      comboBox.setSelectedItem(itemList.get(0));
     }
 
     return classesPanel;
@@ -196,11 +202,11 @@ final class MemoryClassView {
     parentPanel.add(myClassesTree, BorderLayout.CENTER);
   }
 
-  private void buildTree(@NotNull JPanel parentPanel, @NotNull MemoryNode adapter, long startTime, long endTime) {
+  private void buildTree(@NotNull JPanel parentPanel, @NotNull MemoryNode adapter) {
     ensureTreeInitialized(parentPanel, adapter);
     assert myClassesTreeRoot != null && myClassesTreeModel != null;
     myClassesTreeRoot.removeAll();
-    for (MemoryNode subAdapter : adapter.getSubList(startTime, endTime)) {
+    for (MemoryNode subAdapter : adapter.getSubList()) {
       // TODO handle package view
       myClassesTreeRoot.add(new MemoryObjectTreeNode(subAdapter));
     }
