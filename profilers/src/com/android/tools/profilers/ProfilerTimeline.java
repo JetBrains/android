@@ -34,6 +34,11 @@ public final class ProfilerTimeline {
   private long myBufferUs;
   private boolean myStreaming;
 
+  /**
+   * A simple counter that prevents streaming from being triggered if it contains a non-zero value.
+   */
+  private int myStreamLock = 0;
+
   public ProfilerTimeline(@NotNull Range dataRangeUs) {
     myBufferUs = DEFAULT_BUFFER_US;
     myDataRangeUs = dataRangeUs;
@@ -48,6 +53,8 @@ public final class ProfilerTimeline {
   }
 
   public void setStreaming(boolean value) {
+    assert myStreamLock == 0 || !value;
+
     myStreaming = value;
     if (myStreaming) {
       double deltaUs = (myDataRangeUs.getMax() - myBufferUs) - myViewRangeUs.getMax();
@@ -89,5 +96,19 @@ public final class ProfilerTimeline {
 
   public void selectAll() {
     mySelectionRangeUs.set(myViewRangeUs);
+  }
+
+  public void incrementStreamLock() {
+    myStreamLock++;
+    assert myStreamLock > 0;
+  }
+
+  public void decrementStreamLock() {
+    myStreamLock--;
+    assert myStreamLock >= 0;
+  }
+
+  public int getStreamLockCount() {
+    return myStreamLock;
   }
 }

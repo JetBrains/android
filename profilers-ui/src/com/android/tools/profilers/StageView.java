@@ -18,9 +18,7 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
-import com.android.tools.profilers.timeline.AnimatedPan;
 import com.android.tools.profilers.timeline.AnimatedTimeline;
-import com.android.tools.profilers.timeline.AnimatedZoom;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,11 +29,6 @@ public abstract class StageView<T extends Stage> {
   private final T myStage;
   private final Choreographer myChoreographer;
   private final JPanel myComponent;
-
-  /**
-   * The percentage of the current view range's length to zoom/pan per mouse wheel click.
-   */
-  private static final float VIEW_PERCENTAGE_PER_MOUSEHWEEL_FACTOR = 0.005f;
 
   public StageView(@NotNull T stage) {
     myStage = stage;
@@ -81,20 +74,6 @@ public abstract class StageView<T extends Stage> {
     timeAxis.setMinimumSize(new Dimension(0, ProfilerLayout.TIME_AXIS_HEIGHT));
     timeAxis.setPreferredSize(new Dimension(Integer.MAX_VALUE, ProfilerLayout.TIME_AXIS_HEIGHT));
     return timeAxis;
-  }
-
-  protected void setupPanAndZoomListeners(@NotNull JComponent component) {
-    component.addMouseWheelListener(e -> {
-      int count = e.getWheelRotation();
-      double deltaUs = getTimeline().getViewRange().getLength() * VIEW_PERCENTAGE_PER_MOUSEHWEEL_FACTOR * count;
-      if (e.isAltDown()) {
-        double anchor = ((float)e.getX() / e.getComponent().getWidth());
-        myChoreographer.register(new AnimatedZoom(myChoreographer, getTimeline(), deltaUs, anchor));
-      }
-      else {
-        myChoreographer.register(new AnimatedPan(myChoreographer, getTimeline(), deltaUs));
-      }
-    });
   }
 
   abstract public JComponent getToolbar();

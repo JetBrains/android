@@ -46,12 +46,32 @@ public final class AnimatedZoom implements Animatable {
   public AnimatedZoom(@NotNull Choreographer choreographer, @NotNull ProfilerTimeline timeline, double zoomDeltaUs, double anchor) {
     myChoreographer = choreographer;
     myTimeline = timeline;
-    myRemainingDeltaUs = zoomDeltaUs;
-    myAnchor = anchor;
+
+    Range viewRange = myTimeline.getViewRange();
+    Range dataRange = myTimeline.getDataRange();
+    if (viewRange.getLength() > dataRange.getLength()) {
+      // Zooming is always anchored to the end if view range is greater than data range.
+      // This handles the special case where the view range starts before the data range at the beginning of a profiling session.
+      myRemainingDeltaUs = (1 - anchor) * zoomDeltaUs;
+      myAnchor = 1;
+    }
+    else {
+      myRemainingDeltaUs = zoomDeltaUs;
+      myAnchor = anchor;
+      myTimeline.setStreaming(false);
+    }
+
+    myTimeline.incrementStreamLock();
   }
 
   @Override
   public void animate(float frameLength) {
+    if (myRemainingDeltaUs == 0) {
+      myChoreographer.unregister(this);
+      myTimeline.decrementStreamLock();
+      return;
+    }
+
     // Calculate the total amount of delta to zoom, snaps if the delta is less than a certain threshold.
     double deltaUs = Choreographer.lerp(myRemainingDeltaUs, 0, ZOOM_LERP_FRACTION, frameLength);
     if (ZOOM_LERP_THRESHOLD_US > Math.abs(deltaUs)) {
@@ -63,15 +83,10 @@ public final class AnimatedZoom implements Animatable {
     }
 
     // Define the total delta around the anchor point and update the timeline.
-    // TODO interaction with streaming?
     Range viewRange = myTimeline.getViewRange();
     double minDeltaUs = deltaUs * myAnchor;
     double maxDeltaUs = deltaUs - minDeltaUs;
     viewRange.set(myTimeline.clampToDataRange(viewRange.getMin() - minDeltaUs),
                   myTimeline.clampToDataRange(viewRange.getMax() + maxDeltaUs));
-
-    if (myRemainingDeltaUs == 0) {
-      myChoreographer.unregister(this);
-    }
   }
 }
