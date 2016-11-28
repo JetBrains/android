@@ -5,6 +5,8 @@ iml_module(
     tags = ["managed"],
     test_class = "com.android.tools.idea.DesignerTestSuite",
     test_data = [
+        "//prebuilts/studio/layoutlib:buildprop",
+        "//prebuilts/studio/layoutlib:data/fonts",
         "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/annotations",
