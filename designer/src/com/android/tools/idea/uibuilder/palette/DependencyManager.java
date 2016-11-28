@@ -20,12 +20,12 @@ import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.rendering.ImageUtils;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.UIUtil;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -36,9 +36,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class DependencyManager {
-  private static final double DOWNLOAD_SCALE = 0.7;
-  private static final double DOWNLOAD_RELATIVE_OFFSET = (1.0 - DOWNLOAD_SCALE) / DOWNLOAD_SCALE;
-
   private final Project myProject;
   private final Set<String> myMissingLibraries;
   private Module myModule;
@@ -76,20 +73,19 @@ public class DependencyManager {
 
   @NotNull
   public Icon createItemIcon(@NotNull Palette.Item item, @NotNull Component componentContext) {
-    return createItemIcon(item, item.getIcon(), componentContext);
+    return createItemIcon(item, item.getIcon(), AndroidIcons.NeleIcons.Download, componentContext);
   }
 
   @NotNull
   public Icon createLargeItemIcon(@NotNull Palette.Item item, @NotNull Component componentContext) {
-    return createItemIcon(item, item.getLargeIcon(), componentContext);
+    return createItemIcon(item, item.getLargeIcon(), AndroidIcons.NeleIcons.DownloadLarge, componentContext);
   }
 
   @NotNull
-  private Icon createItemIcon(@NotNull Palette.Item item, @NotNull Icon icon, @NotNull Component componentContext) {
+  private Icon createItemIcon(@NotNull Palette.Item item, @NotNull Icon icon, @NotNull Icon download, @NotNull Component componentContext) {
     if (!needsLibraryLoad(item)) {
       return icon;
     }
-    Icon download = AllIcons.Actions.Download;
     BufferedImage image = UIUtil.createImage(icon.getIconWidth(),
                                              icon.getIconHeight(),
                                              BufferedImage.TYPE_INT_ARGB);
@@ -97,14 +93,9 @@ public class DependencyManager {
     icon.paintIcon(componentContext, g2, 0, 0);
     int x = icon.getIconWidth() - download.getIconWidth();
     int y = icon.getIconHeight() - download.getIconHeight();
-    if (x == 0 && y == 0) {
-      g2.scale(DOWNLOAD_SCALE, DOWNLOAD_SCALE);
-      x = (int)(icon.getIconWidth() * DOWNLOAD_RELATIVE_OFFSET);
-      y = (int)(icon.getIconHeight() * DOWNLOAD_RELATIVE_OFFSET);
-    }
     download.paintIcon(componentContext, g2, x, y);
     g2.dispose();
-    return new JBImageIcon(ImageUtils.convertToRetinaIgnoringFailures(image));
+    return new JBImageIcon(UIUtil.isRetina() ? ImageUtils.convertToRetinaIgnoringFailures(image) : image);
   }
 
   private boolean checkForNewMissingDependencies() {

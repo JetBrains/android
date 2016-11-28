@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.splitter.ComponentsSplitter;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
@@ -32,8 +33,8 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,6 +44,8 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static com.android.tools.adtui.splitter.SplitterUtil.setMinimumHeight;
 
 public class NlPalettePanel extends JPanel implements Disposable, DataProvider, ToolContent<DesignSurface> {
   private final Project myProject;
@@ -69,9 +72,17 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider, 
     myPalettePanel.setSelectionListener(myPreviewPane);
     myLayoutType = NlLayoutType.UNKNOWN;
 
-    Splitter splitter = new Splitter(true, 0.8f);
-    splitter.setFirstComponent(myPalettePanel);
-    splitter.setSecondComponent(myPreviewPane);
+    // Use a ComponentSplitter instead of a Splitter here to avoid a fat splitter size.
+    ComponentsSplitter splitter = new ComponentsSplitter(true, true);
+    splitter.setInnerComponent(myPalettePanel);
+    splitter.setLastComponent(myPreviewPane);
+    splitter.setHonorComponentsMinimumSize(true);
+    splitter.setLastSize(JBUI.scale(140));
+    setMinimumHeight(myPalettePanel, 20);
+    setMinimumHeight(myPreviewPane, 40);
+    Disposer.register(this, splitter);
+    Disposer.register(this, myPalettePanel);
+    Disposer.register(this, myPreviewPane);
 
     setLayout(new BorderLayout());
     add(splitter, BorderLayout.CENTER);
@@ -164,7 +175,6 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider, 
 
   @Override
   public void dispose() {
-    Disposer.dispose(myPreviewPane);
   }
 
   @Nullable

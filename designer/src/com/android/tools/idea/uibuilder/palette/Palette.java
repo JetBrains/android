@@ -295,6 +295,12 @@ public class Palette {
           return icon;
         }
       }
+      if (myIconName != null) {
+        Icon icon = IconLoader.findIcon(myIconName + "Large", getClass());
+        if (icon != null) {
+          return icon;
+        }
+      }
       return myHandler.getLargeIcon(myTagName);
     }
 

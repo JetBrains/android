@@ -268,7 +268,7 @@ public class NlOldPalettePanel extends JPanel
       background = UIUtil.getTreeBackground();
     }
     else {
-      ResourceValue windowBackground = resolver.findItemInTheme("background", true);
+      ResourceValue windowBackground = resolver.findItemInTheme("colorBackground", true);
       background = ResourceHelper.resolveColor(resolver, windowBackground, myProject);
       if (background == null) {
         background = UIUtil.getTreeBackground();

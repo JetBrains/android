@@ -38,16 +38,16 @@ public class NlPaletteModelTest extends PaletteTestCase {
     Palette palette = model.getPalette(NlLayoutType.LAYOUT);
     Iterator<Palette.BaseItem> iterator = palette.getItems().iterator();
     Palette.Group widgets = assertIsGroup(iterator.next(), "Widgets");
-    Palette.Group textFields = assertIsGroup(iterator.next(), "Text Fields (EditText)");
+    Palette.Group textFields = assertIsGroup(iterator.next(), "Text");
     Palette.Group layouts = assertIsGroup(iterator.next(), "Layouts");
     Palette.Group containers = assertIsGroup(iterator.next(), "Containers");
-    Palette.Group images = assertIsGroup(iterator.next(), "Images & Media");
-    Palette.Group times = assertIsGroup(iterator.next(), "Date & Time");
+    Palette.Group images = assertIsGroup(iterator.next(), "Images");
+    Palette.Group times = assertIsGroup(iterator.next(), "Date");
     Palette.Group transitions = assertIsGroup(iterator.next(), "Transitions");
     Palette.Group advanced = assertIsGroup(iterator.next(), "Advanced");
-    Palette.Group google = assertIsGroup(iterator.next(), "Custom - Google");
-    Palette.Group design = assertIsGroup(iterator.next(), "Custom - Design");
-    Palette.Group appcompat = assertIsGroup(iterator.next(), "Custom - AppCompat");
+    Palette.Group google = assertIsGroup(iterator.next(), "Google");
+    Palette.Group design = assertIsGroup(iterator.next(), "Design");
+    Palette.Group appcompat = assertIsGroup(iterator.next(), "AppCompat");
     assertFalse(iterator.hasNext());
 
     iterator = widgets.getItems().iterator();
@@ -58,9 +58,7 @@ public class NlPaletteModelTest extends PaletteTestCase {
     assertRadioButton(iterator.next());
     assertCheckedTextView(iterator.next());
     assertSpinner(iterator.next());
-    assertLargeProgressBarItem(iterator.next());
     assertNormalProgressBarItem(iterator.next());
-    assertSmallProgressBarItem(iterator.next());
     assertHorizontalProgressBarItem(iterator.next());
     assertSeekBar(iterator.next());
     assertDiscreteSeekBar(iterator.next());
