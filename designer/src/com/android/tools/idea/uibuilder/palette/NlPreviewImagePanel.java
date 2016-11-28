@@ -201,7 +201,7 @@ public class NlPreviewImagePanel extends JComponent implements Disposable {
     if (resolver == null) {
       return UIUtil.getPanelBackground();
     }
-    ResourceValue windowBackground = resolver.findItemInTheme("background", true);
+    ResourceValue windowBackground = resolver.findItemInTheme("colorBackground", true);
     Color background = ResourceHelper.resolveColor(resolver, windowBackground, myDesignSurface.getProject());
     return background != null ? background : UIUtil.getPanelBackground();
   }
