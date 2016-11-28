@@ -79,20 +79,18 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     Range viewRange = timeline.getViewRange();
     Range dataRange = timeline.getDataRange();
 
-    // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
-    // that attempts to read the same range instance.
-    ProfilerScrollbar scrollbar = new ProfilerScrollbar(timeline);
-    getChoreographer().register(scrollbar);
-
-    EventMonitor events = new EventMonitor(profilers);
-    EventMonitorView eventsView = new EventMonitorView(events);
-
-    CpuMonitor cpu = new CpuMonitor(profilers);
-
     TabularLayout layout = new TabularLayout("*");
     JPanel details = new JPanel(layout);
-    setupPanAndZoomListeners(details);
     details.setBackground(ProfilerColors.MONITOR_BACKGROUND);
+
+    // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
+    // that attempts to read the same range instance.
+    ProfilerScrollbar scrollbar = new ProfilerScrollbar(getChoreographer(), timeline, details);
+    getChoreographer().register(scrollbar);
+
+    CpuMonitor cpu = new CpuMonitor(profilers);
+    EventMonitor events = new EventMonitor(profilers);
+    EventMonitorView eventsView = new EventMonitorView(events);
     JComponent eventsComponent = eventsView.initialize(getChoreographer());
 
     Range leftYRange = new Range(0, 100);

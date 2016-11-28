@@ -18,11 +18,14 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profilers.timeline.AnimatedPan;
+import com.android.tools.profilers.timeline.AnimatedZoom;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.util.ui.ButtonlessScrollBarUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.concurrent.TimeUnit;
@@ -37,6 +40,10 @@ import java.util.concurrent.TimeUnit;
  * the animation loop.
  */
 public final class ProfilerScrollbar extends JBScrollBar implements Animatable {
+  /**
+   * The percentage of the current view range's length to zoom/pan per mouse wheel click.
+   */
+  private static final float VIEW_PERCENTAGE_PER_MOUSEHWEEL_FACTOR = 0.005f;
 
   /**
    * Work in ms to keep things compatible with scrollbar's integer api.
@@ -49,11 +56,13 @@ public final class ProfilerScrollbar extends JBScrollBar implements Animatable {
    */
   private static final float STREAMING_POSITION_THRESHOLD_PX = 10;
 
-  @NotNull final ProfilerTimeline myTimeline;
+  @NotNull private final ProfilerTimeline myTimeline;
 
   private boolean myScrolling;
 
-  public ProfilerScrollbar(@NotNull ProfilerTimeline timeline) {
+  public ProfilerScrollbar(@NotNull Choreographer choreographer,
+                           @NotNull ProfilerTimeline timeline,
+                           @NotNull JComponent zoomPanComponent) {
     super(HORIZONTAL);
 
     myTimeline = timeline;
@@ -92,11 +101,20 @@ public final class ProfilerScrollbar extends JBScrollBar implements Animatable {
         }
 
         myScrolling = false;
-        BoundedRangeModel model = getModel();
-        float snapPercentage = 1 - (STREAMING_POSITION_THRESHOLD_PX / (float)getWidth());
-        if ((model.getValue() + model.getExtent()) / (float)model.getMaximum() >= snapPercentage) {
-          myTimeline.setStreaming(true);
-        }
+      }
+    });
+
+    zoomPanComponent.addMouseWheelListener(e -> {
+      int count = e.getWheelRotation();
+      double deltaUs = myTimeline.getViewRange().getLength() * VIEW_PERCENTAGE_PER_MOUSEHWEEL_FACTOR * count;
+      if (e.isAltDown()) {
+        double anchor = ((float)e.getX() / e.getComponent().getWidth());
+        AnimatedZoom zoom = new AnimatedZoom(choreographer, myTimeline, deltaUs, anchor);
+        choreographer.register(zoom);
+      }
+      else {
+        AnimatedPan pan = new AnimatedPan(choreographer, myTimeline, deltaUs);
+        choreographer.register(pan);
       }
     });
   }
@@ -120,8 +138,26 @@ public final class ProfilerScrollbar extends JBScrollBar implements Animatable {
     }
   }
 
+  @Override
+  protected void paintComponent(Graphics g) {
+    super.paintComponent(g);
+
+    // Change back to streaming mode as needed
+    // Note: isCloseToMax() checks for pixel proximity which relies on the scrollbar's dimension, which is why this code snippet
+    // is here instead of animate/postAnimate - we wouldn't get the most current size in those places.
+    if (!myTimeline.getStreaming() && isCloseToMax() && myTimeline.getStreamLockCount() == 0) {
+      myTimeline.setStreaming(true);
+    }
+  }
+
   private boolean isScrollable() {
     BoundedRangeModel model = getModel();
     return model.getMaximum() > model.getExtent();
+  }
+
+  private boolean isCloseToMax() {
+    BoundedRangeModel model = getModel();
+    float snapPercentage = 1 - (STREAMING_POSITION_THRESHOLD_PX / (float)getWidth());
+    return (model.getValue() + model.getExtent()) / (float)model.getMaximum() >= snapPercentage;
   }
 }
