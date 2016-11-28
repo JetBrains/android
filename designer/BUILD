@@ -28,6 +28,5 @@ iml_module(
         "//tools/analytics-library:analytics-protos[module]",
         "//tools/analytics-library:analytics-tracker[module]",
         "//tools/analytics-library:analytics-shared[module]",
-        "//tools/adt/idea/wizard[module]",
     ],
 )

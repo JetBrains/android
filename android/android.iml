@@ -145,6 +145,5 @@
     <orderEntry type="module" module-name="profilers" />
     <orderEntry type="module" module-name="profilers-ui" />
     <orderEntry type="module" module-name="gradle-tooling-extension-impl" />
-    <orderEntry type="module" module-name="wizard" />
   </component>
 </module>
