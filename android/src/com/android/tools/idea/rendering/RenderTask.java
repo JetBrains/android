@@ -30,9 +30,9 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.diagnostics.crash.CrashReport;
 import com.android.tools.idea.diagnostics.crash.CrashReporter;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
@@ -65,8 +65,10 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
@@ -80,6 +82,8 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
  */
 public class RenderTask implements IImageFactory {
   private static final Logger LOG = Logger.getInstance(RenderTask.class);
+
+  private final ImagePool myImagePool = new ImagePool();
 
   @NotNull
   private final RenderService myRenderService;
@@ -250,6 +254,7 @@ public class RenderTask implements IImageFactory {
    * Disposes the RenderTask and releases the allocated resources. Do not call this method while holding the read lock.
    */
   public void dispose() {
+    myImagePool.dispose();
     myLayoutlibCallback.setLogger(null);
     myLayoutlibCallback.setResourceResolver(null);
     if (myRenderSession != null) {
@@ -580,7 +585,8 @@ public class RenderTask implements IImageFactory {
               session.setSystemTimeNanos(now);
               session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
             }
-            RenderResult result = RenderResult.create(RenderTask.this, session, myPsiFile, myLogger);
+            RenderResult result =
+              RenderResult.create(RenderTask.this, session, myPsiFile, myLogger, myImagePool.copyOf(session.getImage()));
             myRenderSession = session;
             return result;
           }
@@ -700,7 +706,7 @@ public class RenderTask implements IImageFactory {
     try {
       return RenderService.runRenderAction(() -> {
         myRenderSession.measure();
-        return RenderResult.create(this, myRenderSession, myPsiFile, myLogger);
+        return RenderResult.create(this, myRenderSession, myPsiFile, myLogger, ImagePool.NULL_POOLED_IMAGE);
       });
     }
     catch (final Exception e) {
@@ -744,7 +750,8 @@ public class RenderTask implements IImageFactory {
     try {
       return RenderService.runRenderAction(() -> {
         myRenderSession.render();
-        RenderResult result = RenderResult.create(this, myRenderSession, myPsiFile, myLogger);
+        RenderResult result =
+          RenderResult.create(this, myRenderSession, myPsiFile, myLogger, myImagePool.copyOf(myRenderSession.getImage()));
         if (result.getRenderResult().getException() != null) {
           reportException(result.getRenderResult().getException());
         }
@@ -958,10 +965,6 @@ public class RenderTask implements IImageFactory {
     BufferedImage cached = myCachedImageReference != null ? myCachedImageReference.get() : null;
 
     // This can cause flicker; see steps listed in http://b.android.com/208984
-    // Temporarily disable image cache.
-    // TODO: Reenable!
-    cached = null;
-
     if (cached == null || cached.getWidth() != width || cached.getHeight() != height) {
       cached = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
       myCachedImageReference = new SoftReference<>(cached);

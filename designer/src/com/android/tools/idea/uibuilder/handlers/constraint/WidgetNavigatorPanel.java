@@ -43,7 +43,6 @@ import javax.swing.*;
 import javax.swing.event.AncestorEvent;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.BufferedImage;
 import java.util.List;
 
 import static com.android.tools.idea.uibuilder.surface.DesignSurface.ScreenMode.BOTH;
@@ -618,12 +617,11 @@ public class WidgetNavigatorPanel extends JPanel
 
       if (!myDesignSurface.getScreenMode().equals(DesignSurface.ScreenMode.BLUEPRINT_ONLY)) {
         RenderResult renderResult = currentScreenView.getModel().getRenderResult();
-        if (renderResult != null && renderResult.getRenderedImage() != null) {
-          BufferedImage image = renderResult.getRenderedImage();
-          gc.drawImage(image,
+        if (renderResult != null) {
+          renderResult.getRenderedImage().drawImageTo(gc,
                        myCenterOffset.x, myCenterOffset.y,
                        (int)Math.round(myDeviceSize.getWidth() * myDeviceScale),
-                       (int)Math.round(myDeviceSize.getHeight() * myDeviceScale), null);
+                       (int)Math.round(myDeviceSize.getHeight() * myDeviceScale));
         }
       }
 
