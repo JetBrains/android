@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
-import com.android.tools.idea.testartifacts.scopes.AndroidJunitPatcher;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.execution.JUnitPatcher;
 import com.intellij.execution.configurations.JavaParameters;
@@ -27,8 +26,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 public class AndroidJunitPatcherWithTestArtifactTest extends AndroidGradleTestCase {
 
-  // See http://b.android.com/221883.
-  public void ignore_testRemoveAndroidTestClasspath() throws Exception {
+  public void testRemoveAndroidTestClasspath() throws Exception {
     loadProject(SYNC_MULTIPROJECT);
     JUnitPatcher myPatcher = new AndroidJunitPatcher();
 
