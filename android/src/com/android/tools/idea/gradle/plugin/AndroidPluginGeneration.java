@@ -19,6 +19,7 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
@@ -26,7 +27,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import org.gradle.tooling.model.UnsupportedMethodException;
-import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -40,7 +40,7 @@ import static com.android.builder.model.AndroidProject.GENERATION_COMPONENT;
 import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER;
 import static com.android.ide.common.repository.MavenRepositories.getHighestInstalledVersion;
 import static com.android.tools.idea.gradle.dsl.model.values.GradleValue.getValues;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
+import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 
 public abstract class AndroidPluginGeneration {
   public static final AndroidPluginGeneration ORIGINAL = new AndroidPluginGeneration() {
@@ -206,7 +206,7 @@ public abstract class AndroidPluginGeneration {
       .max(COMPARE_PLUS_HIGHER);
 
     if (!highestValueCoordinate.isPresent()) {
-      if (isAndroidStudio() && !AndroidPlugin.isGuiTestingMode() &&
+      if (IdeInfo.getInstance().isAndroidStudio() && !isGuiTestingMode() &&
           !ApplicationManager.getApplication().isInternal() &&
           !ApplicationManager.getApplication().isUnitTestMode()) {
         // In a release build, Android Studio must find the latest version in its offline repo(s).

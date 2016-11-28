@@ -16,6 +16,7 @@
 package com.android.tools.idea.updater.configure;
 
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
@@ -34,7 +35,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nullable;
 
 import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 /**
  * Action to open the Android SDK pane in Settings.
@@ -46,7 +46,7 @@ public class RunSdkConfigAction extends DumbAwareAction {
 
   @Override
   public void update(AnActionEvent e) {
-    if (e == null || ActionPlaces.WELCOME_SCREEN.equals(e.getPlace()) || isAndroidStudio()) {
+    if (e == null || ActionPlaces.WELCOME_SCREEN.equals(e.getPlace()) || IdeInfo.getInstance().isAndroidStudio()) {
       Presentation presentation = e == null ? getTemplatePresentation() : e.getPresentation();
       presentation.setEnabledAndVisible(isAndroidSdkManagerEnabled());
     }

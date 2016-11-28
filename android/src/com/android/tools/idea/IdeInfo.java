@@ -13,26 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.precheck;
+package com.android.tools.idea;
 
-import com.android.tools.idea.IdeInfo;
-import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.components.ServiceManager;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult.SUCCESS;
+import static com.intellij.util.PlatformUtils.getPlatformPrefix;
 
-abstract class AndroidStudioSyncCheck extends SyncCheck {
-  @Override
+public class IdeInfo {
   @NotNull
-  final PreSyncCheckResult canSync(@NotNull Project project) {
-    if (IdeInfo.getInstance().isAndroidStudio()) {
-      return doCheckCanSync(project);
-    }
-    return SUCCESS;
+  public static IdeInfo getInstance() {
+    return ServiceManager.getService(IdeInfo.class);
   }
 
-  @VisibleForTesting
-  @NotNull
-  abstract PreSyncCheckResult doCheckCanSync(@NotNull Project project);
+  public boolean isAndroidStudio() {
+    return "AndroidStudio".equals(getPlatformPrefix());
+  }
 }

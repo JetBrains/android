@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.build.compiler;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -46,7 +48,6 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleExecutionSe
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 /**
  * Adds extra Android-Gradle related configuration options.
@@ -76,7 +77,7 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
 
     populateJvmArgs(BuildSettings.getInstance(myProject), jvmArgs);
 
-    if (!isAndroidStudio()) {
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
       // See https://code.google.com/p/android/issues/detail?id=169743
       addHttpProxySettings(jvmArgs);
     }
@@ -126,7 +127,7 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     boolean verboseProcessing = executionSettings.isVerboseProcessing();
     jvmArgs.add(createJvmArg(USE_GRADLE_VERBOSE_LOGGING, verboseProcessing));
 
-    if (!isAndroidStudio()) {
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
       // See https://code.google.com/p/android/issues/detail?id=169743
       String jvmOptions = executionSettings.getDaemonVmOptions();
       int jvmOptionCount = 0;
@@ -191,6 +192,6 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
 
   @Override
   public boolean isProcessPreloadingEnabled() {
-    return !isBuildWithGradle(myProject);
+    return !GradleProjectInfo.getInstance(myProject).isBuildWithGradle();
   }
 }

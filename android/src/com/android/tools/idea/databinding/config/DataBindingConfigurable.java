@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.databinding.config;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.options.ConfigurationException;
@@ -22,7 +23,6 @@ import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBRadioButton;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -100,7 +100,7 @@ public class DataBindingConfigurable implements SearchableConfigurable {
   @Nls
   @Override
   public String getDisplayName() {
-    return AndroidUtils.isAndroidStudio() ? "Data Binding" : "Android Data Binding";
+    return IdeInfo.getInstance().isAndroidStudio() ? "Data Binding" : "Android Data Binding";
   }
 
   @Nullable

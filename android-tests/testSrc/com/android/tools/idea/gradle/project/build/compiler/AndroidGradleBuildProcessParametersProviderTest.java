@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.compiler;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
@@ -39,7 +40,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.easymock.classextension.EasyMock.*;
@@ -56,7 +56,7 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     super.setUp();
 
     IdeSdks ideSdks = IdeSdks.getInstance();
-    if (isAndroidStudio()) {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
       ApplicationManager.getApplication().runWriteAction(ideSdks::setUseEmbeddedJdk);
     }
 
@@ -83,7 +83,7 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     expect(settings.getGradleHome()).andReturn("~/gradle-1.6");
     expect(settings.isVerboseProcessing()).andReturn(true);
     expect(settings.getServiceDirectory()).andReturn("~./gradle");
-    if (!isAndroidStudio()) {
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
       expect(settings.getDaemonVmOptions()).andReturn("-Xmx2048m -XX:MaxPermSize=512m");
     }
 
@@ -101,7 +101,8 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     assertEquals("true", jvmArgs.get("-Dcom.android.studio.gradle.use.verbose.logging"));
     assertEquals("~." + File.separatorChar + "gradle", jvmArgs.get("-Dcom.android.studio.gradle.service.dir.path"));
 
-    if (isAndroidStudio()) {
+    if (IdeInfo.getInstance().
+      isAndroidStudio()) {
       String javaPath = FileUtilRt.toSystemDependentName(EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getAbsolutePath());
       assertEquals(javaPath, jvmArgs.get("-Dcom.android.studio.gradle.java.home.path"));
     }

@@ -17,6 +17,7 @@ package com.android.tools.idea.sdk;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
@@ -61,11 +62,11 @@ import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 import static org.jetbrains.android.sdk.AndroidSdkType.DEFAULT_EXTERNAL_DOCUMENTATION_URL;
 import static org.jetbrains.android.sdk.AndroidSdkType.SDK_NAME;
 import static org.jetbrains.android.util.AndroidCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 public class AndroidSdks {
   @NonNls public static final String SDK_NAME_PREFIX = "Android ";
 
+  @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final Jdks myJdks;
 
   @Nullable private AndroidSdkData mySdkData;
@@ -75,15 +76,16 @@ public class AndroidSdks {
     return ServiceManager.getService(AndroidSdks.class);
   }
 
-  public AndroidSdks(@NotNull Jdks jdks) {
+  public AndroidSdks(@NotNull Jdks jdks, @NotNull IdeInfo ideInfo) {
+    myIdeInfo = ideInfo;
     myJdks = jdks;
   }
 
   @Nullable
   public File findPathOfSdkWithoutAddonsFolder(@NotNull Project project) {
-    if (isAndroidStudio()) {
+    if (myIdeInfo.isAndroidStudio()) {
       File sdkPath = IdeSdks.getInstance().getAndroidSdkPath();
-      if (isMissingAddonsFolder(sdkPath)) {
+      if (sdkPath != null && isMissingAddonsFolder(sdkPath)) {
         return sdkPath;
       }
     }
@@ -105,7 +107,7 @@ public class AndroidSdks {
     return null;
   }
 
-  private boolean isMissingAddonsFolder(File sdkHomePath) {
+  private static boolean isMissingAddonsFolder(@NotNull File sdkHomePath) {
     File addonsFolder = new File(sdkHomePath, FD_ADDONS);
     return !addonsFolder.isDirectory() || notNullize(addonsFolder.listFiles()).length == 0;
   }
@@ -160,7 +162,7 @@ public class AndroidSdks {
   @Nullable
   public AndroidSdkData tryToChooseAndroidSdk() {
     if (mySdkData == null) {
-      if (isAndroidStudio()) {
+      if (myIdeInfo.isAndroidStudio()) {
         // TODO fix circular dependency between IdeSdks and AndroidSdks
         File path = IdeSdks.getInstance().getAndroidSdkPath();
         if (path != null) {

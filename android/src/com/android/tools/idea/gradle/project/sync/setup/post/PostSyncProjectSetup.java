@@ -22,10 +22,7 @@ import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.gradle.project.sync.setup.module.dependency.Dependency;
-import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
-import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
-import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectSyncData;
 import com.android.tools.idea.gradle.project.LibraryAttachments;
@@ -40,6 +37,10 @@ import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
+import com.android.tools.idea.gradle.project.sync.setup.module.dependency.Dependency;
+import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
+import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
+import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
 import com.android.tools.idea.gradle.project.sync.setup.post.project.ProjectSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.PluginVersionUpgrade;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
@@ -110,7 +111,6 @@ import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 public class PostSyncProjectSetup {
   @NotNull private final Project myProject;
@@ -240,7 +240,8 @@ public class PostSyncProjectSetup {
 
     // For Android Studio, use "Gradle-Aware Make" to run JUnit tests.
     // For IDEA, use regular "Make".
-    String taskName = isAndroidStudio() ? MakeBeforeRunTaskProvider.TASK_NAME : ExecutionBundle.message("before.launch.compile.step");
+    boolean androidStudio = IdeInfo.getInstance().isAndroidStudio();
+    String taskName = androidStudio ? MakeBeforeRunTaskProvider.TASK_NAME : ExecutionBundle.message("before.launch.compile.step");
     setMakeStepInJunitRunConfigurations(taskName);
 
     notifySyncFinished(request);

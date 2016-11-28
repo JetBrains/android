@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.importing;
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.annotations.VisibleForTesting;
@@ -35,7 +36,6 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.project.NewProjects.activateProjectView;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.intellij.ide.impl.ProjectUtil.focusProjectWindow;
 import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpenedFile;
 import static com.intellij.openapi.ui.Messages.showErrorDialog;
@@ -90,7 +90,7 @@ public class GradleProjectImporter {
     // Messages.showErrorDialog (indicating the Android SDK path does not exist) produce a deadlock.
     try {
       LocalProperties localProperties = new LocalProperties(projectFolderPath);
-      if (isAndroidStudio()) {
+      if (IdeInfo.getInstance().isAndroidStudio()) {
         mySdkSync.syncIdeAndProjectAndroidSdks(localProperties);
       }
     }

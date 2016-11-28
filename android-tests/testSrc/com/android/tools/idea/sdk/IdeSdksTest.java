@@ -18,6 +18,7 @@ package com.android.tools.idea.sdk;
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.AndroidTestCaseHelper;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -32,18 +33,22 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link IdeSdks}.
  */
 public class IdeSdksTest extends IdeaTestCase {
+  @Mock private IdeInfo myIdeInfo;
+
   private File myAndroidSdkPath;
   private EmbeddedDistributionPaths myEmbeddedDistributionPaths;
   private IdeSdks myIdeSdks;
@@ -51,6 +56,9 @@ public class IdeSdksTest extends IdeaTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    initMocks(this);
+    Mockito.when(myIdeInfo.isAndroidStudio()).thenReturn(true);
+
     AndroidTestCaseHelper.removeExistingAndroidSdks();
     myAndroidSdkPath = TestUtils.getSdk();
 
@@ -70,9 +78,9 @@ public class IdeSdksTest extends IdeaTestCase {
     assertNotNull(facet);
     facet.getProperties().ALLOW_USER_CONFIGURATION = false;
 
-    Jdks jdks = new Jdks();
+    Jdks jdks = new Jdks(myIdeInfo);
     myEmbeddedDistributionPaths = EmbeddedDistributionPaths.getInstance();
-    myIdeSdks = new IdeSdks(new AndroidSdks(jdks), jdks, myEmbeddedDistributionPaths);
+    myIdeSdks = new IdeSdks(new AndroidSdks(jdks, myIdeInfo), jdks, myEmbeddedDistributionPaths, myIdeInfo);
   }
 
   public void testCreateAndroidSdkPerAndroidTarget() {
@@ -135,7 +143,7 @@ public class IdeSdksTest extends IdeaTestCase {
   }
 
   public void testUseEmbeddedJdk() {
-    if (!isAndroidStudio()) {
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
       System.out.println("SKIPPED: IdeSdksTest.testUseEmbeddedJdk runs only in Android Studio");
       return;
     }
