@@ -46,9 +46,9 @@ public class ProjectCleanupDataService extends AbstractProjectDataService<Import
 
   @Override
   public void importData(@NotNull Collection<DataNode<ImportedModule>> toImport,
-                         @Nullable final ProjectData projectData,
-                         @NotNull final Project project,
-                         @NotNull final IdeModifiableModelsProvider modelsProvider) {
+                         @Nullable ProjectData projectData,
+                         @NotNull Project project,
+                         @NotNull IdeModifiableModelsProvider modelsProvider) {
     // IntelliJ supports several gradle projects linked to one IDEA project it will be separate processes for these gradle projects importing
     // also IntelliJ does not prevent to mix gradle projects with non-gradle ones.
     // See https://youtrack.jetbrains.com/issue/IDEA-137433
