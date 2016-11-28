@@ -23,9 +23,11 @@ import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.SpeedSearchComparator;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
@@ -35,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
 import java.awt.*;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.MouseAdapter;
@@ -43,6 +46,7 @@ import java.awt.event.MouseListener;
 import java.util.function.Supplier;
 
 import static com.android.tools.adtui.splitter.SplitterUtil.setMinimumWidth;
+import static com.android.tools.idea.uibuilder.palette.TreeCategoryProvider.ALL;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
@@ -54,9 +58,11 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
   private final Runnable myCloseAutoHideCallback;
   private final JList<Palette.Group> myCategoryList;
   private final TreeGrid<Palette.Item> myTree;
-  private final DesignSurface mySurface;
+  private final MyFilter myFilter;
   private PaletteMode myMode;
   private SelectionListener myListener;
+  private DesignSurface mySurface;
+  private Palette myPalette;
 
   public NlPaletteTreeGrid(@NotNull Project project,
                            @NotNull DependencyManager dependencyManager,
@@ -72,8 +78,9 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     myCategoryList = new JBList();
     myCategoryList.setBackground(UIUtil.getPanelBackground());
     myCategoryList.setForeground(UIManager.getColor("Panel.foreground"));
-    myCategoryList.addListSelectionListener(event -> myTree.setVisibleSection(myCategoryList.getSelectedValue()));
+    myCategoryList.addListSelectionListener(this::categorySelectionChanged);
     myCategoryList.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));
+    myFilter = new MyFilter(myCategoryList);
 
     JScrollPane categoryPane = ScrollPaneFactory.createScrollPane(myCategoryList, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     categoryPane.setBorder(BorderFactory.createEmptyBorder());
@@ -135,14 +142,52 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
   }
 
   public void populateUiModel(@NotNull Palette palette, @NotNull DesignSurface designSurface) {
+    mySurface = designSurface;
+    myPalette = palette;
     myCategoryList.setModel(new TreeCategoryProvider(palette));
-    AbstractTreeStructure provider = myCategoryList.getModel().getSize() == 1 ? new SingleListTreeProvider(myProject, palette)
-                                                                              : new TreeProvider(myProject, palette);
+    updateTreeModel();
+  }
+
+  private void updateTreeModel() {
+    AbstractTreeStructure provider = myCategoryList.getModel().getSize() > 1 && myFilter.getPattern().isEmpty()
+                                     ? new TreeProvider(myProject, myPalette)
+                                     : new SingleListTreeProvider(myProject, myPalette);
     myTree.setModel(provider);
-    myTree.setTransferHandler(new MyItemTransferHandler(designSurface, this::getSelectedItem));
     myTree.addMouseListener(createMouseListenerForLoadMissingDependency());
     myTree.addListSelectionListener(event -> fireSelectionChanged(myTree.getSelectedElement()));
+    myTree.setVisibleSection(myCategoryList.getSelectedValue());
+    myTree.setTransferHandler(new MyItemTransferHandler(mySurface, this::getSelectedItem));
     setMode(myMode);
+  }
+
+  public void setFilter(@NotNull String pattern) {
+    String oldPattern = myFilter.getPattern();
+    myFilter.setPattern(pattern);
+    if (pattern.isEmpty()) {
+      if (!oldPattern.isEmpty()) {
+        updateTreeModel();
+      }
+      myTree.setFilter(null);
+    }
+    else {
+      if (oldPattern.isEmpty()) {
+        updateTreeModel();
+      }
+      myTree.setFilter(myFilter);
+      myTree.selectIfUnique();
+    }
+  }
+
+  @NotNull
+  public String getFilter() {
+    return myFilter.getPattern();
+  }
+
+  private void categorySelectionChanged(@NotNull ListSelectionEvent event) {
+    myTree.setVisibleSection(myCategoryList.getSelectedValue());
+    if (!myFilter.getPattern().isEmpty()) {
+      setFilter(myFilter.getPattern());
+    }
   }
 
   @NotNull
@@ -291,6 +336,36 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
         return component;
       }
       return myTree;
+    }
+  }
+
+  private static class MyFilter implements Condition<Palette.Item> {
+    private final SpeedSearchComparator myComparator;
+    private final JList<Palette.Group> myCategoryList;
+    private String myPattern;
+
+    public MyFilter(@NotNull JList<Palette.Group> categoryList) {
+      myCategoryList = categoryList;
+      myComparator = new SpeedSearchComparator(false);
+      myPattern = "";
+    }
+
+    public void setPattern(@NotNull String filter) {
+      myPattern = filter;
+    }
+
+    @NotNull
+    public String getPattern() {
+      return myPattern;
+    }
+
+    @Override
+    public boolean value(@NotNull Palette.Item item) {
+      Palette.Group group = myCategoryList.getSelectedValue();
+      if (group != null && group != ALL && group != item.getParent()) {
+        return false;
+      }
+      return myComparator.matchingFragments(myPattern, item.getTitle()) != null;
     }
   }
 }
