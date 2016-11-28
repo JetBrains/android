@@ -15,10 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.LegendComponent;
-import com.android.tools.adtui.LegendRenderData;
-import com.android.tools.adtui.SelectionComponent;
+import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
@@ -81,35 +78,27 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     EventMonitor events = new EventMonitor(profilers);
     NetworkMonitor monitor = new NetworkMonitor(getStage().getStudioProfilers());
 
-    JPanel panel = new JBPanel(new GridBagLayout());
+    TabularLayout layout = new TabularLayout("*");
+    JPanel panel = new JBPanel(layout);
     setupPanAndZoomListeners(panel);
 
     panel.setBackground(ProfilerColors.MONITOR_BACKGROUND);
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.fill = GridBagConstraints.BOTH;
-    gbc.weightx = 1;
-    gbc.gridx = 0;
-    gbc.weighty = 0;
 
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
     // that attempts to read the same range instance.
     ProfilerScrollbar sb = new ProfilerScrollbar(timeline);
     getChoreographer().register(sb);
-    gbc.gridy = 4;
-    panel.add(sb, gbc);
+    panel.add(sb, new TabularLayout.Constraint(4, 0));
 
     AxisComponent timeAxis = buildTimeAxis(profilers);
     getChoreographer().register(timeAxis);
-    gbc.gridy = 3;
-    panel.add(timeAxis, gbc);
+    panel.add(timeAxis, new TabularLayout.Constraint(3, 0));
 
     EventMonitorView eventsView = new EventMonitorView(events);
     JComponent eventsComponent = eventsView.initialize(getChoreographer());
-    gbc.gridy = 0;
-    panel.add(eventsComponent, gbc);
+    panel.add(eventsComponent, new TabularLayout.Constraint(0, 0));
 
-    gbc.gridy = 1;
-    panel.add(new NetworkRadioView(this).getComponent(), gbc);
+    panel.add(new NetworkRadioView(this).getComponent(), new TabularLayout.Constraint(1, 0));
 
     JPanel monitorPanel = new JBPanel(new GridBagLayout());
     monitorPanel.setOpaque(false);
@@ -192,9 +181,8 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     monitorPanel.add(axisPanel, GBC_FULL);
     monitorPanel.add(lineChartPanel, GBC_FULL);
 
-    gbc.gridy = 2;
-    gbc.weighty = 1;
-    panel.add(monitorPanel, gbc);
+    layout.setRowSizing(2, "*"); // Give as much space as possible to the main monitor panel
+    panel.add(monitorPanel, new TabularLayout.Constraint(2, 0));
 
     return panel;
   }

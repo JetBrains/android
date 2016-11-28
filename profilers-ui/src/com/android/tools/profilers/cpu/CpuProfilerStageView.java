@@ -22,7 +22,10 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.RangedListModel;
+import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.event.EventMonitorView;
@@ -86,7 +89,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     CpuMonitor cpu = new CpuMonitor(profilers);
 
-    JPanel details = new JPanel(new GridBagLayout());
+    TabularLayout layout = new TabularLayout("*");
+    JPanel details = new JPanel(layout);
     setupPanAndZoomListeners(details);
     details.setBackground(ProfilerColors.MONITOR_BACKGROUND);
     JComponent eventsComponent = eventsView.initialize(getChoreographer());
@@ -193,33 +197,25 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myThreads.setCellRenderer(new ThreadCellRenderer(getChoreographer(), myThreads));
     RangedList rangedList = new RangedList(getTimeline().getViewRange(), model);
 
-    GridBagConstraints c = new GridBagConstraints();
-    c.fill = GridBagConstraints.BOTH;
-    c.gridx = 0;
-    c.gridy = 0;
-    c.weightx = 1.0;
-    c.weighty = 0.0;
-    details.add(eventsComponent, c);
-    c.gridy = 1;
-    c.weighty = 0.4;
-    details.add(monitorPanel, c);
+    details.add(eventsComponent, new TabularLayout.Constraint(0, 0));
+
+    layout.setRowSizing(1, "4*");
+    details.add(monitorPanel, new TabularLayout.Constraint(1, 0));
     getChoreographer().register(lineChart);
     getChoreographer().register(traceRenderer);
     getChoreographer().register(leftAxis);
     getChoreographer().register(rightAxis);
     getChoreographer().register(selection);
     getChoreographer().register(legend);
-    c.gridy = 2;
-    c.weighty = 0.6;
-    details.add(scrollingThreads, c);
-    c.gridy = 3;
-    c.weighty = 0;
-    details.add(scrollbar, c);
+
+    layout.setRowSizing(2, "6*");
+    details.add(scrollingThreads, new TabularLayout.Constraint(2, 0));
+
+    details.add(scrollbar, new TabularLayout.Constraint(3, 0));
     AxisComponent timeAxis = buildTimeAxis(profilers);
     getChoreographer().register(timeAxis);
-    c.weighty = 0;
-    c.gridy = 4;
-    details.add(timeAxis, c);
+
+    details.add(timeAxis, new TabularLayout.Constraint(4, 0));
     getChoreographer().register(rangedList);
 
     mySplitter = new Splitter(true);
@@ -327,9 +323,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
                                                   int index,
                                                   boolean isSelected,
                                                   boolean cellHasFocus) {
-      JLayeredPane panel = new JLayeredPane();
-      panel.setLayout(new GridBagLayout());
-      panel.setOpaque(true);
+      JPanel panel = new JPanel(new TabularLayout("*"));
       myLabel.setText(value.getName());
 
       Color cellBackground = ProfilerColors.MONITOR_BACKGROUND;
@@ -341,9 +335,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       }
       panel.setBackground(cellBackground);
 
-      panel.add(myLabel, GBC_FULL);
-      myLabel.setOpaque(false);
-      panel.add(myStateCharts.get(index), GBC_FULL);
+      panel.add(myLabel, new TabularLayout.Constraint(0, 0));
+      panel.add(myStateCharts.get(index), new TabularLayout.Constraint(0, 0));
       return panel;
     }
   }
