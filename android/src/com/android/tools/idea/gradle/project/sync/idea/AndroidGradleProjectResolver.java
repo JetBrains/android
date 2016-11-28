@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
+import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectSetupModel;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -52,6 +53,7 @@ import com.intellij.util.PathsList;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
+import org.gradle.tooling.model.idea.IdeaProject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
@@ -269,6 +271,12 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     isAndroidGradleProject = resolverCtx.hasModulesWithModel(AndroidProject.class) ||
                              resolverCtx.hasModulesWithModel(NativeAndroidProject.class);
     return resolverCtx.putUserDataIfAbsent(IS_ANDROID_PROJECT_KEY, isAndroidGradleProject);
+  }
+
+  @Override
+  public void populateProjectExtraModels(@NotNull IdeaProject gradleProject, @NotNull DataNode<ProjectData> projectDataNode) {
+    projectDataNode.createChild(PROJECT_SETUP_MODEL, ProjectSetupModel.getInstance());
+    super.populateProjectExtraModels(gradleProject, projectDataNode);
   }
 
   @Override
