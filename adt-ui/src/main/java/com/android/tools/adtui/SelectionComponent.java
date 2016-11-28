@@ -17,14 +17,15 @@ package com.android.tools.adtui;
 
 import com.android.tools.adtui.model.Range;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.KeyStrokeAdapter;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
+import javax.swing.event.ChangeEvent;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A component for performing/rendering selection.
@@ -41,21 +42,23 @@ public final class SelectionComponent extends AnimatedComponent {
 
   public static final int HANDLE_WIDTH = 5;
 
+  private final List<SelectionListener> myListeners = new ArrayList<>();
+
   private int myMousePressed;
   private float myStartX;
   private float myEndX;
   private boolean myEmpty;
 
   private enum Mode {
-    // The default mode nothing is happening
+    /** The default mode: nothing is happening */
     NONE,
-    // User is currently creating a selection.
+    /** User is currently creating / sizing a new selection. */
     CREATE,
-    // User is moving the selection.
+    /** User is moving a selection. */
     MOVE,
-    // User is adjusting the min.
+    /** User is adjusting the min. */
     ADJUST_MIN,
-    // User is adjusting the max.
+    /** User is adjusting the max. */
     ADJUST_MAX
   }
 
@@ -79,6 +82,15 @@ public final class SelectionComponent extends AnimatedComponent {
     myMode = Mode.NONE;
     setFocusable(true);
     initListeners();
+  }
+
+  public void addChangeListener(final SelectionListener listener) {
+    myListeners.add(listener);
+  }
+
+  private void fireSelectionEvent() {
+    ChangeEvent e = new ChangeEvent(this);
+    myListeners.forEach(l -> l.selectionStateChanged(e));
   }
 
   private void initListeners() {
@@ -110,6 +122,9 @@ public final class SelectionComponent extends AnimatedComponent {
 
       @Override
       public void mouseReleased(MouseEvent e) {
+        if (myMode == Mode.CREATE) {
+          fireSelectionEvent();
+        }
         myMode = Mode.NONE;
       }
     });
@@ -157,6 +172,7 @@ public final class SelectionComponent extends AnimatedComponent {
           if (!mySelectionRange.isEmpty()) {
             mySelectionRange.clear();
             e.consume();
+            fireSelectionEvent();
           }
         }
       }
