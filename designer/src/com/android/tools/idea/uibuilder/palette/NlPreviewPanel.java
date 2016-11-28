@@ -18,6 +18,8 @@ package com.android.tools.idea.uibuilder.palette;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +37,9 @@ public class NlPreviewPanel extends JPanel implements SelectionListener, Disposa
     myImage.setPreferredSize(new Dimension(0, 0));
     myItemName = new JBLabel();
     myItemName.setHorizontalAlignment(SwingConstants.CENTER);
+    myItemName.setBorder(BorderFactory.createCompoundBorder(IdeBorderFactory.createBorder(SideBorder.TOP),
+                                                            BorderFactory.createEmptyBorder(4, 0, 0, 0)));
+    myItemName.setText(" ");
     add(myImage, BorderLayout.CENTER);
     add(myItemName, BorderLayout.SOUTH);
   }

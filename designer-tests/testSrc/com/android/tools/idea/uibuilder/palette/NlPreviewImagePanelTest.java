@@ -54,14 +54,15 @@ public class NlPreviewImagePanelTest extends LayoutTestCase {
   private DependencyManager myDependencyManager;
   private RepaintManager myRepaintManager;
   private VirtualFile myFile;
+  private NlModel myModel;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     myFile = myFixture.copyFileToProject(BASE_PATH + "colors.xml", "res/values/colors.xml");
-    NlModel model = createModel();
+    myModel = createModel();
     mySurface = new DesignSurface(getProject(), false);
-    mySurface.setModel(model);
+    mySurface.setModel(myModel);
     myDependencyManager = mock(DependencyManager.class);
     IconPreviewFactory iconPreviewFactory = mock(IconPreviewFactory.class);
     Runnable closeToolWindowCallback = mock(Runnable.class);
@@ -84,6 +85,8 @@ public class NlPreviewImagePanelTest extends LayoutTestCase {
     try {
       RepaintManager.setCurrentManager(null);
       reset(myRepaintManager);
+      Disposer.dispose(myPanel);
+      Disposer.dispose(myModel);
       Disposer.dispose(mySurface);
     }
     finally {

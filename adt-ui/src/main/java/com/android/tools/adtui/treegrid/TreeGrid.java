@@ -64,9 +64,15 @@ public class TreeGrid<T> extends Box {
     myLists = new ArrayList<>();
     myHideables = new ArrayList<>();
     myKeyListener = new MyKeyListener();
+  }
+
+  @Override
+  public void invalidate() {
+    super.invalidate();
 
     // The following lines makes the background of the JSeparator the same as
     // all the JLists thus making this appear as one list control with separators.
+    // Make the change here such that Look & Feel changes get the correct background color.
     // (Used in the Palette)
     setBackground(UIUtil.getListBackground());
     setOpaque(true);
