@@ -44,20 +44,22 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   private static final BaseAxisFormatter CONNECTIONS_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 1, "");
 
   private final ConnectionDetailsView myConnectionDetails;
+  private final JBScrollPane myConnectionsScroller;
 
   public NetworkProfilerStageView(NetworkProfilerStage stage) {
     super(stage);
     getStage().aspect.addDependency()
       .setExecutor(ApplicationManager.getApplication()::invokeLater)
-      .onChange(NetworkProfilerAspect.CONNECTIONS, this::updateConnectionsView)
       .onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, this::updateConnectionDetailsView);
 
     myConnectionDetails = new ConnectionDetailsView();
     ConnectionsView connectionsView = new ConnectionsView(this, stage::setConnection);
+    myConnectionsScroller = new JBScrollPane(connectionsView.getComponent());
+    myConnectionsScroller.setVisible(false);
 
     Splitter leftSplitter = new Splitter(true);
     leftSplitter.setFirstComponent(buildMonitorUi());
-    leftSplitter.setSecondComponent(new JBScrollPane(connectionsView.getComponent()));
+    leftSplitter.setSecondComponent(myConnectionsScroller);
 
     Splitter splitter = new Splitter(false, 0.6f);
     splitter.setFirstComponent(leftSplitter);
@@ -175,6 +177,8 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     legendPanel.add(legend, BorderLayout.EAST);
 
     SelectionComponent selection = new SelectionComponent(timeline.getSelectionRange(), timeline.getViewRange());
+    selection.addChangeListener(e -> myConnectionsScroller.setVisible(!timeline.getSelectionRange().isEmpty()));
+
     getChoreographer().register(selection);
     monitorPanel.add(selection, GBC_FULL);
     monitorPanel.add(legendPanel, GBC_FULL);
@@ -185,9 +189,6 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     panel.add(monitorPanel, new TabularLayout.Constraint(2, 0));
 
     return panel;
-  }
-
-  private void updateConnectionsView() {
   }
 
   private void updateConnectionDetailsView() {
