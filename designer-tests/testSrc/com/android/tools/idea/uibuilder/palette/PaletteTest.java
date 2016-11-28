@@ -39,7 +39,6 @@ public class PaletteTest extends PaletteTestCase {
     iterator = group1.getItems().iterator();
     assertTextViewItem(iterator.next());
     assertLinearLayoutItem(iterator.next());
-    assertLargeProgressBarItem(iterator.next());
     assertNormalProgressBarItem(iterator.next());
     assertFalse(iterator.hasNext());
 
@@ -82,19 +81,6 @@ public class PaletteTest extends PaletteTestCase {
     "              android:layout_height=\"match_parent\">\n" +
     "            </LinearLayout>\n" +
     "          ]]>\n" +
-    "      </xml>\n" +
-    "    </item>\n" +
-    "    <item tag=\"ProgressBar\"\n" +
-    "          id=\"LargeProgressBar\"\n" +
-    "          title=\"ProgressBar (Large)\">\n" +
-    "      <xml reuse=\"preview,drag-preview\">\n" +
-    "        <![CDATA[\n" +
-    "              <ProgressBar\n" +
-    "                style=\"?android:attr/progressBarStyleLarge\"\n" +
-    "                android:layout_width=\"wrap_content\"\n" +
-    "                android:layout_height=\"wrap_content\"\n" +
-    "              />\n" +
-    "            ]]>\n" +
     "      </xml>\n" +
     "    </item>\n" +
     "    <item tag=\"ProgressBar\"\n" +

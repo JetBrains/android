@@ -23,19 +23,6 @@
     <item tag="CheckedTextView"/>
     <item tag="Spinner"/>
     <item tag="ProgressBar"
-          id="LargeProgressBar"
-          title="ProgressBar (Large)">
-      <xml reuse="preview,drag-preview">
-        <![CDATA[
-            <ProgressBar
-              style="?android:attr/progressBarStyleLarge"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-            />
-          ]]>
-      </xml>
-    </item>
-    <item tag="ProgressBar"
           title="ProgressBar">
       <xml reuse="preview,drag-preview">
         <![CDATA[
@@ -48,20 +35,8 @@
       </xml>
     </item>
     <item tag="ProgressBar"
-          id="SmallProgressBar"
-          title="ProgressBar (Small)">
-      <xml reuse="preview,drag-preview">
-        <![CDATA[
-            <ProgressBar
-              style="?android:attr/progressBarStyleSmall"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-            />
-          ]]>
-      </xml>
-    </item>
-    <item tag="ProgressBar"
           id="HorizontalProgressBar"
+          icon="AndroidIcons.Views.ProgressBarHorizontal"
           title="ProgressBar (Horizontal)"
           scale="2.0">
       <xml reuse="preview,drag-preview">
@@ -77,6 +52,7 @@
     <item tag="SeekBar"/>
     <item tag="SeekBar"
           id="DiscreteSeekBar"
+          icon="AndroidIcons.Views.SeekBarDiscrete"
           title="SeekBar (Discrete)">
       <xml reuse="preview,drag-preview">
         <![CDATA[
@@ -96,7 +72,7 @@
     <item tag="Space"/>
   </group>
 
-  <group name="Text Fields (EditText)">
+  <group name="Text">
     <item tag="EditText" title="Plain Text">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -119,7 +95,8 @@
           ]]>
       </preview>
     </item>
-    <item tag="EditText" id="Password" title="Password">
+    <item tag="EditText" id="Password" title="Password"
+          icon="AndroidIcons.Views.EditTextPassword">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -142,7 +119,8 @@
           ]]>
       </preview>
     </item>
-    <item tag="EditText" id="PasswordNumeric" title="Password (Numeric)">
+    <item tag="EditText" id="PasswordNumeric" title="Password (Numeric)"
+          icon="AndroidIcons.Views.EditTextPasswordNumeric">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -165,7 +143,8 @@
           ]]>
       </preview>
     </item>
-    <item tag="EditText" id="Email" title="E-mail">
+    <item tag="EditText" id="Email" title="E-mail"
+      icon="AndroidIcons.Views.EditTextEmail">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -188,7 +167,8 @@
           ]]>
       </preview>
     </item>
-    <item tag="EditText" id="Phone" title="Phone">
+    <item tag="EditText" id="Phone" title="Phone"
+          icon="AndroidIcons.Views.EditTextPhone">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -211,7 +191,8 @@
           ]]>
       </preview>
     </item>
-    <item tag="EditText" id="PostalAddress" title="Postal Address">
+    <item tag="EditText" id="PostalAddress" title="Postal Address"
+          icon="AndroidIcons.Views.EditTextPostalAddress">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -234,7 +215,8 @@
           ]]>
       </preview>
     </item>
-    <item tag="EditText" id="MultilineText" title="Multiline Text">
+    <item tag="EditText" id="MultilineText" title="Multiline Text"
+          icon="AndroidIcons.Views.EditTextMultiline">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -257,7 +239,8 @@
           ]]>
       </preview>
     </item>
-    <item tag="EditText" id="Time" title="Time">
+    <item tag="EditText" id="Time" title="Time"
+          icon="AndroidIcons.Views.EditTextTime">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -280,7 +263,8 @@
           ]]>
       </preview>
     </item>
-    <item tag="EditText" id="Date" title="Date">
+    <item tag="EditText" id="Date" title="Date"
+      icon="AndroidIcons.Views.EditTextDate">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -303,7 +287,8 @@
           ]]>
       </preview>
     </item>
-    <item tag="EditText" id="Number" title="Number">
+    <item tag="EditText" id="Number" title="Number"
+          icon="AndroidIcons.Views.EditTextNumber">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -326,7 +311,8 @@
           ]]>
       </preview>
     </item>
-    <item tag="EditText" id="SignedNumber" title="Number (Signed)">
+    <item tag="EditText" id="SignedNumber" title="Number (Signed)"
+      icon="AndroidIcons.Views.EditTextSigned">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -349,7 +335,8 @@
           ]]>
       </preview>
     </item>
-    <item tag="EditText" id="DecimalNumber" title="Number (Decimal)">
+    <item tag="EditText" id="DecimalNumber" title="Number (Decimal)"
+      icon="AndroidIcons.Views.EditTextNumberDecimal">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -423,12 +410,12 @@
     <item tag="WebView"/>
     <item tag="SearchView"/>
   </group>
-  <group name="Images &amp; Media">
+  <group name="Images">
     <item tag="ImageButton"/>
     <item tag="ImageView"/>
     <item tag="VideoView"/>
   </group>
-  <group name="Date &amp; Time">
+  <group name="Date">
     <item tag="TimePicker" render-separately="true"/>
     <item tag="DatePicker"/>
     <item tag="CalendarView"/>
@@ -453,11 +440,11 @@
     <item tag="SurfaceView"/>
     <item tag="NumberPicker"/>
   </group>
-  <group name="Custom - Google">
+  <group name="Google">
     <item tag="com.google.android.gms.ads.AdView"/>
     <item tag="com.google.android.gms.maps.MapView"/>
   </group>
-  <group name="Custom - Design">
+  <group name="Design">
     <item tag="android.support.design.widget.CoordinatorLayout"/>
     <item tag="android.support.design.widget.AppBarLayout"/>
     <item tag="android.support.design.widget.TabLayout"/>
@@ -467,7 +454,7 @@
     <item tag="android.support.design.widget.TextInputLayout"/>
     <!-- Tabs -->
   </group>
-  <group name="Custom - AppCompat">
+  <group name="AppCompat">
     <item tag="android.support.v7.widget.CardView"/>
     <item tag="android.support.v7.widget.GridLayout"/>
     <item tag="android.support.v7.widget.RecyclerView"/>

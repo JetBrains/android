@@ -16,19 +16,12 @@
 package com.android.tools.idea.uibuilder.api;
 
 import com.android.tools.idea.XmlBuilder;
-import com.android.tools.idea.rendering.ImageUtils;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.ui.JBImageIcon;
-import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-
-import java.awt.*;
-import java.awt.image.BufferedImage;
 
 import static com.android.SdkConstants.*;
 
@@ -150,20 +143,12 @@ public abstract class PaletteComponentHandler {
 
   @NotNull
   protected Icon loadBuiltinLargeIcon(@NotNull String tagName) {
-    // Temporary: Scale the 2x image to 24x24
-    // TODO: Remove this code when we have 24x24 images.
-    String path = "/icons/views/" + StringUtil.capitalize(getSimpleTagName(tagName)) + "@2x.png";
-    Icon icon = IconLoader.findIcon(path, AndroidIcons.class, false, false);
-    if (icon == null) {
-      icon = AndroidIcons.Views.Unknown;
+    String path = "AndroidIcons.Views." + getSimpleTagName(tagName) + "Large";
+    Icon icon = IconLoader.findIcon(path, getClass());
+    if (icon != null) {
+      return icon;
     }
-    int size = 24;
-    BufferedImage image = UIUtil.createImage(size, size, BufferedImage.TYPE_INT_ARGB);
-    Graphics2D g2 = (Graphics2D)image.getGraphics();
-    g2.scale(24.0 / icon.getIconWidth(), 24.0 / icon.getIconHeight());
-    icon.paintIcon(null, g2, 0, 0);
-    g2.dispose();
-    return new JBImageIcon(ImageUtils.convertToRetinaIgnoringFailures(image));
+    return AndroidIcons.Views.UnknownLarge;
   }
 
   @NotNull
