@@ -48,11 +48,14 @@ public class CpuCaptureView {
   private final RangedTree myRangedTree;
   private final CpuProfilerStageView myView;
   private final CpuTraceTreeSorter myTreeSorter;
+  private final Comparator<DefaultMutableTreeNode> myDefaultSortOrder;
 
   public CpuCaptureView(@NotNull CpuCapture capture, @NotNull CpuProfilerStageView view) {
 
     ProfilerTimeline timeline = view.getStage().getStudioProfilers().getTimeline();
 
+    // Reverse the order as the default ordering is SortOrder.ASCENDING
+    myDefaultSortOrder = Collections.reverseOrder(new DoubleValueNodeComparator(TopDownNode::getTotal));
     myCapture = capture;
     myView = view;
 
@@ -75,34 +78,34 @@ public class CpuCaptureView {
           .setPreferredWidth(100)
           .setHeaderAlignment(SwingConstants.RIGHT)
           .setRenderer(new DoubleValueCellRenderer(TopDownNode::getSelf, false))
-          .setComparator(new DoubleValueNodeComparator(TopDownNode::getSelf, false)))
+          .setComparator(new DoubleValueNodeComparator(TopDownNode::getSelf)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
           .setName("%")
           .setPreferredWidth(50)
           .setRenderer(new DoubleValueCellRenderer(TopDownNode::getSelf, true))
-          .setComparator(new DoubleValueNodeComparator(TopDownNode::getSelf, true)))
+          .setComparator(new DoubleValueNodeComparator(TopDownNode::getSelf)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
           .setName("Children (μs)")
           .setPreferredWidth(100)
           .setHeaderAlignment(SwingConstants.RIGHT)
           .setRenderer(new DoubleValueCellRenderer(TopDownNode::getChildrenTotal, false))
-          .setComparator(new DoubleValueNodeComparator(TopDownNode::getChildrenTotal, false)))
+          .setComparator(new DoubleValueNodeComparator(TopDownNode::getChildrenTotal)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
           .setName("%")
           .setPreferredWidth(50)
           .setRenderer(new DoubleValueCellRenderer(TopDownNode::getChildrenTotal, true))
-          .setComparator(new DoubleValueNodeComparator(TopDownNode::getChildrenTotal, true)))
+          .setComparator(new DoubleValueNodeComparator(TopDownNode::getChildrenTotal)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
           .setName("Total (μs)")
           .setPreferredWidth(100)
           .setHeaderAlignment(SwingConstants.RIGHT)
           .setRenderer(new DoubleValueCellRenderer(TopDownNode::getTotal, false))
-          .setComparator(new DoubleValueNodeComparator(TopDownNode::getTotal, false)))
+          .setComparator(myDefaultSortOrder))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
           .setName("%")
           .setPreferredWidth(50)
           .setRenderer(new DoubleValueCellRenderer(TopDownNode::getTotal, true))
-          .setComparator(new DoubleValueNodeComparator(TopDownNode::getTotal, true)))
+          .setComparator(myDefaultSortOrder))
       .setTreeSorter(myTreeSorter)
       .build();
 
@@ -122,8 +125,7 @@ public class CpuCaptureView {
     TopDownTreeModel model = node == null ? null : new TopDownTreeModel(new TopDownNode(node));
     myRangedTree.setModel(model);
     myTree.setModel(model);
-    myTreeSorter.setModel(model);
-
+    myTreeSorter.setModel(model, myDefaultSortOrder);
     expandTreeNodes();
   }
 
@@ -172,26 +174,17 @@ public class CpuCaptureView {
 
   private class DoubleValueNodeComparator implements Comparator<DefaultMutableTreeNode> {
     private final Function<TopDownNode, Double> myGetter;
-    private final boolean myPercentage;
 
-    DoubleValueNodeComparator(Function<TopDownNode, Double> getter, boolean percentage) {
+    DoubleValueNodeComparator(Function<TopDownNode, Double> getter) {
       myGetter = getter;
-      myPercentage = percentage;
     }
 
     @Override
     public int compare(DefaultMutableTreeNode a, DefaultMutableTreeNode b) {
       TopDownNode o1 = ((TopDownNode)a.getUserObject());
       TopDownNode o2 = ((TopDownNode)b.getUserObject());
-      if (myPercentage) {
-        TopDownNode root = getNode(myTree.getModel().getRoot());
-        double total = root.getTotal();
-        Double value = ((myGetter.apply(o1)/total) * 100) - ((myGetter.apply(o2)/total) * 100);
-        return value > 0 ? 1 : -1;
-      } else {
-        Double value = myGetter.apply(o1) - myGetter.apply(o2);
-        return value > 0 ? 1 : -1;
-      }
+      Double value = myGetter.apply(o1) - myGetter.apply(o2);
+      return value > 0 ? 1 : -1;
     }
   }
   private static class DoubleValueCellRenderer extends ColoredTreeCellRenderer {
