@@ -161,7 +161,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     // TODO set proper colors / icons
     DurationDataRenderer<HeapDumpDurationData> heapDumpRenderer =
       new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, getStage().getHeapDumpSampleDurations()), Color.WHITE)
-        .setLabelBackground(Color.DARK_GRAY, Color.GRAY, Color.lightGray)
+        .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
         .setIsBlocking(true)
         .setLabelProvider(new Function<HeapDumpDurationData, String>() {
           @Override
@@ -178,7 +178,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         }).build();
     DurationDataRenderer<DefaultDurationData> allocationRenderer =
       new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, getStage().getAllocationDumpSampleDurations()), Color.WHITE)
-        .setLabelBackground(Color.DARK_GRAY, Color.GRAY, Color.lightGray)
+        .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
         .setLabelProvider(new Function<DefaultDurationData, String>() {
           @Override
           public String apply(DefaultDurationData data) {

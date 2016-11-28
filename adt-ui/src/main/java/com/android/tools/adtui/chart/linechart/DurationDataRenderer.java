@@ -45,7 +45,9 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
    * Percentage of screen dimension the icon+label for the DurationData will be offset.
    */
   private static final float DISPLAY_OFFSET_PERCENTAGE = 0.005f;
-  private static final int CLICK_REGION_DRAW_PADDING = 2;
+  private static final int CLICK_REGION_DRAW_PADDING_Y = 2;
+  private static final int CLICK_REGION_DRAW_PADDING_X = 4;
+  public static final int LABEL_ARCH_LENGTH = 7;
 
   @NotNull private final RangedSeries<E> mySeries;
   @NotNull private final Color myColor;
@@ -59,6 +61,7 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
   @Nullable private Color myLabelBgColor = null;
   @Nullable private Color myLabelHoveredBgColor = null;
   @Nullable private Color myLabelClickedBgColor = null;
+  @Nullable private Color myLabelTextColor = null;
 
   @NotNull private final List<Rectangle2D.Float> myPathCache = new ArrayList<>();
   @NotNull private final List<E> myDataCache = new ArrayList<>();
@@ -87,6 +90,7 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
     myLabelBgColor = builder.myLabelBgColor;
     myLabelHoveredBgColor = builder.myLabelHoveredBgColor;
     myLabelClickedBgColor = builder.myLabelClickedBgColor;
+    myLabelTextColor = builder.myLabelTextColor;
   }
 
   @Override
@@ -148,7 +152,7 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
       if (myLabelProvider != null) {
         JLabel label = new JLabel(myLabelProvider.apply(data.value));
         label.setFont(AdtUiUtils.DEFAULT_FONT);
-        label.setForeground(myColor);
+        label.setForeground(myLabelTextColor);
         Dimension size = label.getPreferredSize();
         label.setBounds(0, 0, size.width, size.height);
         myLabelCache.add(label);
@@ -216,12 +220,12 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
       float scaledStartY = rect.y * host.getHeight() - rect.height;
       if (myLabelBgColor != null) {
         g2d.setColor(myLabelBgColor);
-        RoundRectangle2D scaledRect = new RoundRectangle2D.Float(scaledStartX - CLICK_REGION_DRAW_PADDING,
-                                                                 scaledStartY - CLICK_REGION_DRAW_PADDING,
-                                                                 rect.width + CLICK_REGION_DRAW_PADDING * 2,
-                                                                 rect.height + CLICK_REGION_DRAW_PADDING * 2,
-                                                                 CLICK_REGION_DRAW_PADDING,
-                                                                 CLICK_REGION_DRAW_PADDING);
+        RoundRectangle2D scaledRect = new RoundRectangle2D.Float(scaledStartX - CLICK_REGION_DRAW_PADDING_X,
+                                                                 scaledStartY - CLICK_REGION_DRAW_PADDING_Y,
+                                                                 rect.width + CLICK_REGION_DRAW_PADDING_X * 2,
+                                                                 rect.height + CLICK_REGION_DRAW_PADDING_Y * 2,
+                                                                 LABEL_ARCH_LENGTH,
+                                                                 LABEL_ARCH_LENGTH);
         if (myMousePosition != null && scaledRect.contains(myMousePosition)) {
           g2d.setColor(myClick && myClickHandler != null ? myLabelClickedBgColor : myLabelHoveredBgColor);
         }
@@ -294,6 +298,7 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
     @Nullable private Color myLabelBgColor = null;
     @Nullable private Color myLabelHoveredBgColor = null;
     @Nullable private Color myLabelClickedBgColor = null;
+    @Nullable private Color myLabelTextColor = null;
 
     public Builder(@NotNull RangedSeries<E> series, @NotNull Color color) {
       mySeries = series;
@@ -358,12 +363,13 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
     }
 
     /**
-     * Sets the bg color behind the icon+label when the user interacts with the DurationData.
+     * Sets the colors to use for the label.
      */
-    public Builder<E> setLabelBackground(@NotNull Color bgColor, @NotNull Color hoveredColor, @NotNull Color clickedColor) {
+    public Builder<E> setLabelColors(@NotNull Color bgColor, @NotNull Color hoveredColor, @NotNull Color clickedColor, @NotNull Color color) {
       myLabelBgColor = bgColor;
       myLabelHoveredBgColor = hoveredColor;
       myLabelClickedBgColor = clickedColor;
+      myLabelTextColor = color;
       return this;
     }
 

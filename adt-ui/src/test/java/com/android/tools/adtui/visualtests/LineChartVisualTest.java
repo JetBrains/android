@@ -106,14 +106,14 @@ public class LineChartVisualTest extends VisualTest {
     RangedSeries<DefaultDurationData> series1 = new RangedSeries<>(timeGlobalRangeUs, mDurationData1);
     RangedSeries<DefaultDurationData> series2 = new RangedSeries<>(timeGlobalRangeUs, mDurationData2);
     mDurationRendererBlocking = new DurationDataRenderer.Builder(series1, Color.WHITE)
-      .setLabelBackground(Color.DARK_GRAY, Color.GRAY, Color.lightGray)
+      .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
       .setIsBlocking(true)
       .setIcon(UIManager.getIcon("Tree.leafIcon"))
       .setLabelProvider(durationdata -> "Blocking")
       .setClickHander(durationData -> mClickDisplayLabel.setText(durationData.toString())).build();
 
     mDurationRendererAttached = new DurationDataRenderer.Builder(series2, Color.WHITE)
-      .setLabelBackground(Color.DARK_GRAY, Color.GRAY, Color.lightGray)
+      .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
       .setIcon(UIManager.getIcon("Tree.leafIcon"))
       .setLabelProvider(durationdata -> "Attached")
       .setAttachLineSeries(mRangedData.get(0))
