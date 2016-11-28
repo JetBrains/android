@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
+import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.memory.MemoryNode.Capability;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.treeStructure.Tree;
@@ -55,7 +56,7 @@ final class MemoryInstanceView {
       new MemoryProfilerStageView.CapabilityColumn(
         "Instance",
         () -> new MemoryProfilerStageView.DetailColumnRenderer(value -> value.getAdapter().getName(),
-                                                               value -> PlatformIcons.FIELD_ICON,
+                                                               value -> PlatformIcons.INTERFACE_ICON, // borrowing IJ's interface icon...
                                                                SwingConstants.LEFT),
         SwingConstants.LEFT,
         LABEL_COLUMN_WIDTH,
@@ -162,6 +163,7 @@ final class MemoryInstanceView {
       myTreeRoot.sort(comparator);
       myTreeModel.nodeStructureChanged(myTreeRoot);
     });
+    builder.setBackground(ProfilerColors.MONITOR_BACKGROUND);
     myTree = builder.build();
     parentPanel.add(myTree, BorderLayout.CENTER);
   }

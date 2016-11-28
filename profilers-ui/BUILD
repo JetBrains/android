@@ -3,6 +3,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "profilers-ui",
     srcs = ["src"],
+    resources = ["resources"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
