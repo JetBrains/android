@@ -26,11 +26,14 @@ import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.ui.tabs.impl.ShapeTransform;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.function.Function;
 
 import static com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN;
@@ -44,6 +47,7 @@ public class CpuCaptureView {
   private final JTree myTree;
   private final RangedTree myRangedTree;
   private final CpuProfilerStageView myView;
+  private final CpuTraceTreeSorter myTreeSorter;
 
   public CpuCaptureView(@NotNull CpuCapture capture, @NotNull CpuProfilerStageView view) {
 
@@ -51,49 +55,59 @@ public class CpuCaptureView {
 
     myCapture = capture;
     myView = view;
+
     myCaptureTreeChart = new HTreeChart<>();
     myCaptureTreeChart.setHRenderer(new SampledMethodUsageHRenderer());
     myCaptureTreeChart.setXRange(timeline.getSelectionRange());
 
     myTree = new JTree();
+    myTreeSorter = new CpuTraceTreeSorter(myTree);
     myRangedTree = new RangedTree(timeline.getSelectionRange());
     JComponent columnTree = new ColumnTreeBuilder(myTree)
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
           .setName("Name")
           .setPreferredWidth(900)
           .setHeaderAlignment(SwingConstants.LEFT)
-          .setRenderer(new MethodNameRenderer()))
+          .setRenderer(new MethodNameRenderer())
+          .setComparator(new NameValueNodeComparator()))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
           .setName("Self (μs)")
           .setPreferredWidth(100)
           .setHeaderAlignment(SwingConstants.RIGHT)
-          .setRenderer(new DoubleValueCellRenderer(TopDownNode::getSelf, false)))
+          .setRenderer(new DoubleValueCellRenderer(TopDownNode::getSelf, false))
+          .setComparator(new DoubleValueNodeComparator(TopDownNode::getSelf, false)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
           .setName("%")
           .setPreferredWidth(50)
-          .setRenderer(new DoubleValueCellRenderer(TopDownNode::getSelf, true)))
+          .setRenderer(new DoubleValueCellRenderer(TopDownNode::getSelf, true))
+          .setComparator(new DoubleValueNodeComparator(TopDownNode::getSelf, true)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
           .setName("Children (μs)")
           .setPreferredWidth(100)
           .setHeaderAlignment(SwingConstants.RIGHT)
-          .setRenderer(new DoubleValueCellRenderer(TopDownNode::getChildrenTotal, false)))
+          .setRenderer(new DoubleValueCellRenderer(TopDownNode::getChildrenTotal, false))
+          .setComparator(new DoubleValueNodeComparator(TopDownNode::getChildrenTotal, false)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
           .setName("%")
           .setPreferredWidth(50)
-          .setRenderer(new DoubleValueCellRenderer(TopDownNode::getChildrenTotal, true)))
+          .setRenderer(new DoubleValueCellRenderer(TopDownNode::getChildrenTotal, true))
+          .setComparator(new DoubleValueNodeComparator(TopDownNode::getChildrenTotal, true)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
           .setName("Total (μs)")
           .setPreferredWidth(100)
           .setHeaderAlignment(SwingConstants.RIGHT)
-          .setRenderer(new DoubleValueCellRenderer(TopDownNode::getTotal, false)))
+          .setRenderer(new DoubleValueCellRenderer(TopDownNode::getTotal, false))
+          .setComparator(new DoubleValueNodeComparator(TopDownNode::getTotal, false)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
           .setName("%")
           .setPreferredWidth(50)
-          .setRenderer(new DoubleValueCellRenderer(TopDownNode::getTotal, true)))
+          .setRenderer(new DoubleValueCellRenderer(TopDownNode::getTotal, true))
+          .setComparator(new DoubleValueNodeComparator(TopDownNode::getTotal, true)))
+      .setTreeSorter(myTreeSorter)
       .build();
 
     myPanel = new JBTabbedPane();
-    myPanel.addTab("TopDown", columnTree);
+    myPanel.addTab("Top Down", columnTree);
     myPanel.addTab("Chart", myCaptureTreeChart);
 
     updateThread();
@@ -108,6 +122,7 @@ public class CpuCaptureView {
     TopDownTreeModel model = node == null ? null : new TopDownTreeModel(new TopDownNode(node));
     myRangedTree.setModel(model);
     myTree.setModel(model);
+    myTreeSorter.setModel(model);
 
     expandTreeNodes();
   }
@@ -147,6 +162,38 @@ public class CpuCaptureView {
     return (TopDownNode)node.getUserObject();
   }
 
+
+  private static class NameValueNodeComparator implements Comparator<DefaultMutableTreeNode> {
+    @Override
+    public int compare(DefaultMutableTreeNode o1, DefaultMutableTreeNode o2) {
+      return ((TopDownNode)o1.getUserObject()).getMethodName().compareTo(((TopDownNode)o2.getUserObject()).getMethodName());
+    }
+  }
+
+  private class DoubleValueNodeComparator implements Comparator<DefaultMutableTreeNode> {
+    private final Function<TopDownNode, Double> myGetter;
+    private final boolean myPercentage;
+
+    DoubleValueNodeComparator(Function<TopDownNode, Double> getter, boolean percentage) {
+      myGetter = getter;
+      myPercentage = percentage;
+    }
+
+    @Override
+    public int compare(DefaultMutableTreeNode a, DefaultMutableTreeNode b) {
+      TopDownNode o1 = ((TopDownNode)a.getUserObject());
+      TopDownNode o2 = ((TopDownNode)b.getUserObject());
+      if (myPercentage) {
+        TopDownNode root = getNode(myTree.getModel().getRoot());
+        double total = root.getTotal();
+        Double value = ((myGetter.apply(o1)/total) * 100) - ((myGetter.apply(o2)/total) * 100);
+        return value > 0 ? 1 : -1;
+      } else {
+        Double value = myGetter.apply(o1) - myGetter.apply(o2);
+        return value > 0 ? 1 : -1;
+      }
+    }
+  }
   private static class DoubleValueCellRenderer extends ColoredTreeCellRenderer {
     private final Function<TopDownNode, Double> myGetter;
     private final boolean myPercentage;

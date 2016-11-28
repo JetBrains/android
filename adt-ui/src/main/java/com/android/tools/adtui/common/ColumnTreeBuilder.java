@@ -142,8 +142,10 @@ public class ColumnTreeBuilder {
     for (ColumnBuilder column : myColumBuilders) {
       column.create(myTableModel);
     }
-    for (ColumnBuilder column : myColumBuilders) {
-      column.configure(myTable, myRowSorter, myCellRenderer);
+
+    for(int i = 0; i < myColumBuilders.size();i++) {
+      ColumnBuilder column = myColumBuilders.get(i);
+      column.configure(i, myTable, myRowSorter, myCellRenderer);
     }
 
     JPanel panel = new TreeWrapperPanel(myTable, myTree);
@@ -326,8 +328,8 @@ public class ColumnTreeBuilder {
       model.addColumn(myName);
     }
 
-    public void configure(JTable table, TableRowSorter<TableModel> sorter, ColumnTreeCellRenderer renderer) {
-      TableColumn column = table.getColumn(myName);
+    public void configure(int index, JTable table, TableRowSorter<TableModel> sorter, ColumnTreeCellRenderer renderer) {
+      TableColumn column = table.getColumnModel().getColumn(index);
       column.setPreferredWidth(myWidth);
 
       final TableCellRenderer tableCellRenderer = table.getTableHeader().getDefaultRenderer();
