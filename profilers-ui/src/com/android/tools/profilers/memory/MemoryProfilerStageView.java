@@ -15,10 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.LegendComponent;
-import com.android.tools.adtui.LegendRenderData;
-import com.android.tools.adtui.SelectionComponent;
+import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
@@ -107,33 +104,26 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     Range viewRange = getTimeline().getViewRange();
     Range dataRange = getTimeline().getDataRange();
 
-    JPanel panel = new JBPanel(new GridBagLayout());
+    TabularLayout layout = new TabularLayout("*");
+    JPanel panel = new JBPanel(layout);
     setupPanAndZoomListeners(panel);
 
     panel.setBackground(ProfilerColors.MONITOR_BACKGROUND);
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.fill = GridBagConstraints.BOTH;
-    gbc.weightx = 1;
-    gbc.gridx = 0;
-    gbc.weighty = 0;
 
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
     // that attempts to read the same range instance.
     ProfilerScrollbar sb = new ProfilerScrollbar(timeline);
     getChoreographer().register(sb);
-    gbc.gridy = 3;
-    panel.add(sb, gbc);
+    panel.add(sb, new TabularLayout.Constraint(3, 0));
 
     AxisComponent timeAxis = buildTimeAxis(profilers);
     getChoreographer().register(timeAxis);
-    gbc.gridy = 2;
-    panel.add(timeAxis, gbc);
+    panel.add(timeAxis, new TabularLayout.Constraint(2, 0));
 
     EventMonitor events = new EventMonitor(profilers);
     EventMonitorView eventsView = new EventMonitorView(events);
     JComponent eventsComponent = eventsView.initialize(getChoreographer());
-    gbc.gridy = 0;
-    panel.add(eventsComponent, gbc);
+    panel.add(eventsComponent, new TabularLayout.Constraint(0, 0));
 
     MemoryMonitor monitor = new MemoryMonitor(profilers);
     JPanel monitorPanel = new JBPanel(new GridBagLayout());
@@ -273,9 +263,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     monitorPanel.add(axisPanel, GBC_FULL);
     monitorPanel.add(lineChartPanel, GBC_FULL);
 
-    gbc.gridy = 1;
-    gbc.weighty = 1;
-    panel.add(monitorPanel, gbc);
+    layout.setRowSizing(1, "*"); // Give monitor as much space as possible
+    panel.add(monitorPanel, new TabularLayout.Constraint(1, 0));
 
     return panel;
   }
