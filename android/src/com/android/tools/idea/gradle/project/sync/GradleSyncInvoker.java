@@ -48,11 +48,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.gradle.project.LibraryAttachments.removeLibrariesAndStoreAttachments;
 import static com.android.tools.idea.gradle.project.importing.NewProjectImportGradleSyncListener.createTopLevelProjectAndOpen;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.clearStoredGradleJvmArgs;
-import static com.android.tools.idea.gradle.util.Projects.executeProjectChanges;
 import static com.android.tools.idea.gradle.util.Projects.setSyncRequestedDuringBuild;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.notification.NotificationType.ERROR;
@@ -221,19 +219,15 @@ public class GradleSyncInvoker {
 
   // See issue: https://code.google.com/p/android/issues/detail?id=64508
   private static void resetProject(@NotNull Project project) {
-    executeProjectChanges(project, () -> {
-      removeLibrariesAndStoreAttachments(project);
-
-      // Remove all AndroidProjects from module. Otherwise, if re-import/sync fails, editors will not show the proper notification of the
-      // failure.
-      ModuleManager moduleManager = ModuleManager.getInstance(project);
-      for (Module module : moduleManager.getModules()) {
-        AndroidFacet facet = AndroidFacet.getInstance(module);
-        if (facet != null) {
-          facet.setAndroidModel(null);
-        }
+    // Remove all Android models from module. Otherwise, if re-import/sync fails, editors will not show the proper notification of the
+    // failure.
+    ModuleManager moduleManager = ModuleManager.getInstance(project);
+    for (Module module : moduleManager.getModules()) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        facet.setAndroidModel(null);
       }
-    });
+    }
   }
 
   public static class Request {

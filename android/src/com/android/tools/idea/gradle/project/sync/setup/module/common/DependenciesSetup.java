@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.common;
 
+import com.android.tools.idea.gradle.project.sync.setup.module.SyncLibraryRegistry;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.*;
@@ -57,6 +58,10 @@ public class DependenciesSetup {
       // Create library.
       library = modelsProvider.createLibrary(libraryName);
       updateLibraryBinaryPaths(library, binaryPaths, modelsProvider);
+    }
+    else {
+      SyncLibraryRegistry registry = SyncLibraryRegistry.getInstance(module.getProject());
+      registry.markAsUsed(library);
     }
 
     // It is common that the same dependency is used by more than one module. Here we update the "sources" and "documentation" paths if they

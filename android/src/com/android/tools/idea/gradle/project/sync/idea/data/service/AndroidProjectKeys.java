@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectSetupModel;
 import com.intellij.openapi.externalSystem.model.Key;
 import org.jetbrains.annotations.NotNull;
 
@@ -66,7 +67,12 @@ public final class AndroidProjectKeys {
   public static final Key<JavaModuleModel> JAVA_MODULE_MODEL = Key.create(JavaModuleModel.class, NDK_MODEL.getProcessingWeight() + 10);
 
   @NotNull
-  public static final Key<ImportedModule> IMPORTED_MODULE = Key.create(ImportedModule.class, JAVA_MODULE_MODEL.getProcessingWeight() + 10);
+  public static final Key<ProjectSetupModel>
+    PROJECT_SETUP_MODEL = Key.create(ProjectSetupModel.class, JAVA_MODULE_MODEL.getProcessingWeight() + 10);
+
+  @NotNull
+  public static final Key<ImportedModule> IMPORTED_MODULE =
+    Key.create(ImportedModule.class, PROJECT_SETUP_MODEL.getProcessingWeight() + 10);
 
   private AndroidProjectKeys() {
   }
