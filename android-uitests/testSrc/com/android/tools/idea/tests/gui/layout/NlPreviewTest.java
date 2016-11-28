@@ -229,8 +229,8 @@ public class NlPreviewTest {
 
     NlPreviewFixture layout = editor.getLayoutPreview(true);
     layout
-      .dragComponentToSurface("Widgets/Button")
-      .dragComponentToSurface("Widgets/CheckBox")
+      .dragComponentToSurface("Widgets", "Button")
+      .dragComponentToSurface("Widgets", "CheckBox")
       .waitForRenderToFinish();
 
     // Find and click the first text view
