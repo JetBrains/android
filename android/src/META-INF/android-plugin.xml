@@ -852,6 +852,12 @@
                 conditionClass="com.android.tools.idea.gradle.InternalAndroidModelViewCondition"
                 icon="AndroidIcons.AndroidToolWindow"
                 factoryClass="com.android.tools.idea.gradle.InternalAndroidModelToolWindowFactory"/>
+    <toolWindow id="Android Device Explorer"
+                anchor="right"
+                secondary="true"
+                conditionClass="com.android.tools.idea.explorer.DeviceExplorerViewCondition"
+                icon="AndroidIcons.AndroidToolWindow"
+                factoryClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory"/>
     <toolWindow id="Gradle Console"
                 anchor="bottom"
                 secondary="true"
