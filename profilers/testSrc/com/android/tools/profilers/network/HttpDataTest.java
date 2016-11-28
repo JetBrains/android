@@ -18,19 +18,42 @@ package com.android.tools.profilers.network;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class HttpDataTest {
   @Test
   public void responseFieldsStringIsCorrectlySplitAndTrimmed() throws Exception {
     HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
-    builder.setResponseFields("first=1 \n  second  = 2\n equation=x+y=10");
+    builder.setResponseFields("status line =  HTTP/1.1 302 Found \n" +
+                              "first=1 \n  second  = 2\n equation=x+y=10");
     HttpData data = builder.build();
     assertThat(data.getResponseField("first"), equalTo("1"));
     assertThat(data.getResponseField("second"), equalTo("2"));
     assertThat(data.getResponseField("equation"), equalTo("x+y=10"));
   }
+
+  @Test
+  public void testResponseStatusLineWithKey() {
+    HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
+    builder.setResponseFields("   \n" +
+                              "null  =  HTTP/1.1 302 Found  \n  " +
+                              " Content-Type =  text/html; charset=UTF-8;  ");
+    HttpData data = builder.build();
+    assertThat(data.getStatusCode(), equalTo(302));
+    assertThat(data.getResponseField("Content-Type"), equalTo("text/html; charset=UTF-8"));
+  }
+
+  @Test
+  public void testResponseStatusLineWithoutKey() {
+    HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
+    builder.setResponseFields("  HTTP/1.1 200 Found  \n  " +
+                              " \n   \n  \n" +
+                              "  Content-Type =  text/html; charset=UTF-8  ");
+    HttpData data = builder.build();
+    assertThat(data.getStatusCode(), equalTo(200));
+    assertThat(data.getResponseField("Content-Type"), equalTo("text/html; charset=UTF-8"));
+  }
+
 
   @Test
   public void urlNameParsedProperly() {
