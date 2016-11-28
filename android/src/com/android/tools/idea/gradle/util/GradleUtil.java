@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
@@ -86,7 +87,6 @@ import static com.intellij.util.SystemProperties.getUserHome;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 /**
@@ -357,7 +357,7 @@ public final class GradleUtil {
   @Nullable
   public static GradleExecutionSettings getOrCreateGradleExecutionSettings(@NotNull Project project, boolean useEmbeddedGradle) {
     GradleExecutionSettings executionSettings = getGradleExecutionSettings(project);
-    if (isAndroidStudio() && useEmbeddedGradle) {
+    if (IdeInfo.getInstance().isAndroidStudio() && useEmbeddedGradle) {
       if (executionSettings == null) {
         File gradlePath = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionPath();
         assert gradlePath != null && gradlePath.isDirectory();
@@ -519,7 +519,7 @@ public final class GradleUtil {
   }
 
   public static void attemptToUseEmbeddedGradle(@NotNull Project project) {
-    if (isAndroidStudio()) {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
       GradleWrapper gradleWrapper = GradleWrapper.find(project);
       if (gradleWrapper != null) {
         String gradleVersion = null;

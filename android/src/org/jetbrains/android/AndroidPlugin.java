@@ -15,11 +15,11 @@
  */
 package org.jetbrains.android;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.fd.actions.HotswapAction;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.util.Key;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -41,7 +41,7 @@ public class AndroidPlugin implements ApplicationComponent {
 
   @Override
   public void initComponent() {
-    if (!AndroidUtils.isAndroidStudio()) {
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
       return;
     }
 

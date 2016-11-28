@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.importing;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -39,7 +40,6 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.Projects.open;
 import static com.android.tools.idea.project.NewProjects.activateProjectView;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY;
 import static com.intellij.openapi.module.StdModuleTypes.JAVA;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -76,7 +76,7 @@ public abstract class NewProjectImportGradleSyncListener extends GradleSyncListe
 
       ModifiableRootModel model = ModuleRootManager.getInstance(module).getModifiableModel();
       model.addContentEntry(contentRoot);
-      if (isAndroidStudio()) {
+      if (IdeInfo.getInstance().isAndroidStudio()) {
         // If sync fails, make sure that the project has a JDK, otherwise Groovy indices won't work (a common scenario where
         // users will update build.gradle files to fix Gradle sync.)
         // See: https://code.google.com/p/android/issues/detail?id=194621

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
@@ -51,7 +52,8 @@ import static com.android.tools.idea.gradle.project.LibraryAttachments.removeLib
 import static com.android.tools.idea.gradle.project.importing.NewProjectImportGradleSyncListener.createTopLevelProjectAndOpen;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.clearStoredGradleJvmArgs;
-import static com.android.tools.idea.gradle.util.Projects.*;
+import static com.android.tools.idea.gradle.util.Projects.executeProjectChanges;
+import static com.android.tools.idea.gradle.util.Projects.setSyncRequestedDuringBuild;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.IN_BACKGROUND_ASYNC;
@@ -60,10 +62,10 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensure
 import static com.intellij.openapi.ui.Messages.showErrorDialog;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 public class GradleSyncInvoker {
   @NotNull private final FileDocumentManager myFileDocumentManager;
+  @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final PreSyncProjectCleanUp myPreSyncProjectCleanUp;
   @NotNull private final PreSyncChecks myPreSyncChecks;
 
@@ -72,15 +74,17 @@ public class GradleSyncInvoker {
     return ServiceManager.getService(GradleSyncInvoker.class);
   }
 
-  public GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager) {
-    this(fileDocumentManager, new PreSyncProjectCleanUp(), new PreSyncChecks());
+  public GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager, @NotNull IdeInfo ideInfo) {
+    this(fileDocumentManager, ideInfo, new PreSyncProjectCleanUp(), new PreSyncChecks());
   }
 
   @VisibleForTesting
   GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager,
+                    @NotNull IdeInfo ideInfo,
                     @NotNull PreSyncProjectCleanUp preSyncProjectCleanUp,
                     @NotNull PreSyncChecks preSyncChecks) {
     myFileDocumentManager = fileDocumentManager;
+    myIdeInfo = ideInfo;
     myPreSyncProjectCleanUp = preSyncProjectCleanUp;
     myPreSyncChecks = preSyncChecks;
   }
@@ -165,7 +169,7 @@ public class GradleSyncInvoker {
   }
 
   private void sync(@NotNull Project project, @NotNull Request request, @Nullable GradleSyncListener listener) {
-    if (isAndroidStudio()) {
+    if (myIdeInfo.isAndroidStudio()) {
       // See https://code.google.com/p/android/issues/detail?id=169743
       // TODO move this method out of GradleUtil.
       clearStoredGradleJvmArgs(project);
