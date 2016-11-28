@@ -68,7 +68,6 @@ public class BasicNativeDebuggerTest {
     return (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
   }
 
-  @Ignore("https://android-jenkins.corp.google.com/builders/studio-sanity_master-dev/builds/1823")
   @Test
   public void testMultiBreakAndResume() throws IOException, ClassNotFoundException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("BasicJniApp");
@@ -243,7 +242,7 @@ public class BasicNativeDebuggerTest {
 
     avdEditWizard.getChooseSystemImageStep()
       .selectTab("x86 Images")
-      .selectSystemImage("Marshmallow", "23", "x86", "Android 6.0");
+      .selectSystemImage("Nougat", "24", "x86", "Android 7.0");
     avdEditWizard.clickNext();
 
     avdEditWizard.getConfigureAvdOptionsStep()
