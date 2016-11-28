@@ -374,9 +374,10 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
       return myDisableInspectionToolAction.startInWriteAction();
     }
 
+    @Nullable
     @Override
-    public boolean shouldMakeCurrentFileWritable() {
-      return myDisableInspectionToolAction.shouldMakeCurrentFileWritable();
+    public PsiElement getElementToMakeWritable(@NotNull PsiFile file) {
+      return myDisableInspectionToolAction.getElementToMakeWritable(file);
     }
 
     @Override
