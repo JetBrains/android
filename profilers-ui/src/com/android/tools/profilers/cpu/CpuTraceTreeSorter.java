@@ -36,16 +36,18 @@ public class CpuTraceTreeSorter implements ColumnTreeBuilder.TreeSorter<DefaultM
     myTree = tree;
   }
 
-  public void setModel(TopDownTreeModel model) {
+  public void setModel(TopDownTreeModel model, Comparator<DefaultMutableTreeNode> sorting) {
     myModel = model;
     if (myModel != null) {
       myRoot = (DefaultMutableTreeNode)model.getRoot();
+      sort(sorting, SortOrder.UNSORTED); //SortOrder Parameter is not used.
+      myTree.invalidate();
     }
   }
 
   @Override
   public void sort(Comparator<DefaultMutableTreeNode> comparator, SortOrder order) {
-    if (myComparator != comparator && myModel != null && myRoot != null) {
+    if (myModel != null && myRoot != null) {
       myComparator = comparator;
       TreePath selectionPath = myTree.getSelectionPath();
       sortTree(myRoot);
