@@ -16,6 +16,8 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
+import com.android.tools.perflib.heap.Type;
+import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.memory.MemoryNode.Capability;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.treeStructure.Tree;
@@ -25,7 +27,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.util.Comparator;
 import java.util.List;
@@ -34,6 +39,9 @@ import java.util.Map;
 final class MemoryInstanceView {
   private static final int LABEL_COLUMN_WIDTH = 500;
   private static final int DEFAULT_COLUMN_WIDTH = 80;
+
+  // Optimization: populate the tree only two levels deep from the target node during initialization and expansion.
+  private static final int EXPANSION_DEPTH_LIMIT = 2;
 
   @NotNull private final MemoryProfilerStage myStage;
 
@@ -45,7 +53,7 @@ final class MemoryInstanceView {
 
   @Nullable private MemoryObjectTreeNode myTreeRoot;
 
-  @Nullable private MemoryObjects myMemoryObjects;
+  @Nullable private ClassObjects myClassObjects;
 
   public MemoryInstanceView(@NotNull MemoryProfilerStage stage) {
     myStage = stage;
@@ -55,7 +63,11 @@ final class MemoryInstanceView {
       new MemoryProfilerStageView.CapabilityColumn(
         "Instance",
         () -> new MemoryProfilerStageView.DetailColumnRenderer(value -> value.getAdapter().getName(),
-                                                               value -> PlatformIcons.FIELD_ICON,
+                                                               value -> {
+                                                                 MemoryNode node = value.getAdapter();
+                                                                 return node instanceof InstanceNode ?
+                                                                        PlatformIcons.INTERFACE_ICON : PlatformIcons.FIELD_ICON;
+                                                               },
                                                                SwingConstants.LEFT),
         SwingConstants.LEFT,
         LABEL_COLUMN_WIDTH,
@@ -65,8 +77,12 @@ final class MemoryInstanceView {
       MemoryNode.Capability.DEPTH,
       new MemoryProfilerStageView.CapabilityColumn(
         "Depth",
-        () -> new MemoryProfilerStageView.DetailColumnRenderer(value -> Integer.toString(value.getAdapter().getDepth()), value -> null,
-                                                               SwingConstants.RIGHT),
+        () -> new MemoryProfilerStageView.DetailColumnRenderer(value -> {
+          MemoryNode node = value.getAdapter();
+          return node instanceof InstanceNode ?
+                 Integer.toString(value.getAdapter().getDepth()) : "";
+        },
+                                                               value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
@@ -75,7 +91,11 @@ final class MemoryInstanceView {
       MemoryNode.Capability.SHALLOW_SIZE,
       new MemoryProfilerStageView.CapabilityColumn(
         "Shallow Size",
-        () -> new MemoryProfilerStageView.DetailColumnRenderer(value -> Integer.toString(value.getAdapter().getShallowSize()),
+        () -> new MemoryProfilerStageView.DetailColumnRenderer(value -> {
+          MemoryNode node = value.getAdapter();
+          return node instanceof InstanceNode ?
+                 Integer.toString(value.getAdapter().getShallowSize()) : "";
+        },
                                                                value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
@@ -85,8 +105,12 @@ final class MemoryInstanceView {
       MemoryNode.Capability.RETAINED_SIZE,
       new MemoryProfilerStageView.CapabilityColumn(
         "Retained Size",
-        () -> new MemoryProfilerStageView.DetailColumnRenderer(value -> Long.toString(value.getAdapter().getRetainedSize()), value -> null,
-                                                               SwingConstants.RIGHT),
+        () -> new MemoryProfilerStageView.DetailColumnRenderer(value -> {
+          MemoryNode node = value.getAdapter();
+          return node instanceof InstanceNode ?
+                 Long.toString(value.getAdapter().getRetainedSize()) : "";
+        },
+                                                               value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
@@ -100,17 +124,17 @@ final class MemoryInstanceView {
     myTree = null;
     myTreeRoot = null;
     myTreeModel = null;
-    myMemoryObjects = null;
+    myClassObjects = null;
   }
 
   @Nullable
-  public MemoryObjects getCurrentClassObject() {
-    return myMemoryObjects;
+  public ClassObjects getCurrentClassObject() {
+    return myClassObjects;
   }
 
   @Nullable
-  public JComponent buildComponent(@NotNull MemoryObjects model) {
-    myMemoryObjects = model;
+  public JComponent buildComponent(@NotNull ClassObjects model) {
+    myClassObjects = model;
     MemoryNode rootNode = model.getRootNode();
 
     JPanel instancesPanel = new JPanel(new BorderLayout());
@@ -131,12 +155,21 @@ final class MemoryInstanceView {
     ensureTreeInitialized(parentPanel, adapter);
     assert myTreeRoot != null && myTreeModel != null;
     myTreeRoot.removeAll();
-    for (MemoryNode subAdapter : adapter.getSubList()) {
-      // TODO populate fields
-      myTreeRoot.add(new MemoryObjectTreeNode(subAdapter));
-    }
+    populateTreeNodeRecursive(myTreeRoot, EXPANSION_DEPTH_LIMIT);
     myTreeModel.nodeChanged(myTreeRoot);
     myTreeModel.reload();
+  }
+
+  private void populateTreeNodeRecursive(@NotNull MemoryObjectTreeNode parent, int expandLimit) {
+    if (expandLimit-- <= 0) {
+      return;
+    }
+
+    for (MemoryNode subAdapter : parent.getAdapter().getSubList()) {
+      MemoryObjectTreeNode child = new MemoryObjectTreeNode(subAdapter);
+      parent.add(child);
+      populateTreeNodeRecursive(child, expandLimit);
+    }
   }
 
   private void ensureTreeInitialized(@NotNull JPanel parentPanel, @NotNull MemoryNode adapter) {
@@ -145,13 +178,43 @@ final class MemoryInstanceView {
       return;
     }
 
-    myTreeRoot = new MemoryObjectTreeNode(new MemoryNode() {
-      // Place holder MemoryNode as root.
-    });
+    myTreeRoot = new MemoryObjectTreeNode(adapter);
     myTreeModel = new DefaultTreeModel(myTreeRoot);
     JTree tree = new Tree(myTreeModel);
     tree.setRootVisible(false);
     tree.setShowsRootHandles(true);
+    tree.addTreeSelectionListener(e -> {
+      // TODO handle instance selection.
+    });
+    // Not all nodes have been populated during buildTree. Here we capture the TreeExpansionEvent to check whether any children
+    // under the expanded node need to be populated.
+    tree.addTreeExpansionListener(new TreeExpansionListener() {
+      @Override
+      public void treeExpanded(TreeExpansionEvent event) {
+        TreePath path = event.getPath();
+
+        assert path.getLastPathComponent() instanceof MemoryObjectTreeNode;
+        MemoryObjectTreeNode treeNode = (MemoryObjectTreeNode)path.getLastPathComponent();
+
+        for (int i = 0; i < treeNode.getChildCount(); i++) {
+          assert treeNode.getChildAt(i) instanceof MemoryObjectTreeNode;
+          MemoryObjectTreeNode childNode = (MemoryObjectTreeNode)treeNode.getChildAt(i);
+
+          // Anything below the top level should be FieldNodes
+          assert childNode.getAdapter() instanceof FieldNode;
+          FieldNode fieldNode = (FieldNode)childNode.getAdapter();
+          if (fieldNode.getFieldValue().getField().getType() == Type.OBJECT && childNode.getChildCount() == 0) {
+            populateTreeNodeRecursive(childNode, EXPANSION_DEPTH_LIMIT);
+            myTreeModel.nodeStructureChanged(childNode);
+          }
+        }
+      }
+
+      @Override
+      public void treeCollapsed(TreeExpansionEvent event) {
+        // No-op. TODO remove unseen children?
+      }
+    });
 
     List<Capability> capabilities = adapter.getCapabilities();
     ColumnTreeBuilder builder = new ColumnTreeBuilder(tree);
@@ -162,6 +225,7 @@ final class MemoryInstanceView {
       myTreeRoot.sort(comparator);
       myTreeModel.nodeStructureChanged(myTreeRoot);
     });
+    builder.setBackground(ProfilerColors.MONITOR_BACKGROUND);
     myTree = builder.build();
     parentPanel.add(myTree, BorderLayout.CENTER);
   }

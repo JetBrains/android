@@ -23,7 +23,10 @@ import com.intellij.util.ui.tree.WideSelectionTreeUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.TableColumnModelEvent;
+import javax.swing.event.TableColumnModelListener;
 import javax.swing.table.*;
 import javax.swing.tree.AbstractLayoutCache;
 import javax.swing.tree.TreeCellRenderer;
@@ -74,7 +77,10 @@ public class ColumnTreeBuilder {
   private TreeSorter myTreeSorter;
 
   @NotNull
-  private List<ColumnBuilder> myColumBuilders;
+  private List<ColumnBuilder> myColumnBuilders;
+
+  @Nullable
+  private Color myBackground;
 
   public ColumnTreeBuilder(@NotNull JTree tree) {
     myTree = tree;
@@ -82,7 +88,7 @@ public class ColumnTreeBuilder {
     myTable = new JBTable(myTableModel);
     myCellRenderer = new ColumnTreeCellRenderer(myTree, myTable.getColumnModel());
     myRowSorter = new TableRowSorter<>(myTable.getModel());
-    myColumBuilders = new LinkedList<>();
+    myColumnBuilders = new LinkedList<>();
   }
 
   /**
@@ -90,6 +96,11 @@ public class ColumnTreeBuilder {
    */
   public ColumnTreeBuilder setTreeSorter(@NotNull TreeSorter<?> sorter) {
     myTreeSorter = sorter;
+    return this;
+  }
+
+  public ColumnTreeBuilder setBackground(@NotNull Color background) {
+    myBackground = background;
     return this;
   }
 
@@ -139,16 +150,19 @@ public class ColumnTreeBuilder {
       }
     });
     myTable.setAutoResizeMode(JTable.AUTO_RESIZE_NEXT_COLUMN);
-    for (ColumnBuilder column : myColumBuilders) {
+    for (ColumnBuilder column : myColumnBuilders) {
       column.create(myTableModel);
     }
 
-    for(int i = 0; i < myColumBuilders.size();i++) {
-      ColumnBuilder column = myColumBuilders.get(i);
+    for (int i = 0; i < myColumnBuilders.size(); i++) {
+      ColumnBuilder column = myColumnBuilders.get(i);
       column.configure(i, myTable, myRowSorter, myCellRenderer);
     }
 
     JPanel panel = new TreeWrapperPanel(myTable, myTree);
+    if (myBackground != null) {
+      panel.setBackground(myBackground);
+    }
 
     JTableHeader header = myTable.getTableHeader();
     header.setReorderingAllowed(false);
@@ -163,7 +177,7 @@ public class ColumnTreeBuilder {
   }
 
   public ColumnTreeBuilder addColumn(ColumnBuilder column) {
-    myColumBuilders.add(column);
+    myColumnBuilders.add(column);
     return this;
   }
 

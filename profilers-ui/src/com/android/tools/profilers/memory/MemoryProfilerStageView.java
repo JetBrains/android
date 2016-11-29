@@ -34,8 +34,10 @@ import com.android.tools.profilers.event.EventMonitorView;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -52,11 +54,15 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 5, 5);
   private static final BaseAxisFormatter OBJECT_COUNT_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 5, "");
 
+  @NotNull private final Icon myGcIcon = UIUtil.isUnderDarcula() ?
+                                         IconLoader.findIcon("/icons/garbage-event_dark.png", MemoryProfilerStageView.class) :
+                                         IconLoader.findIcon("/icons/garbage-event.png", MemoryProfilerStageView.class);
+
   @NotNull private MemoryClassView myClassView = new MemoryClassView(getStage());
   @NotNull private MemoryInstanceView myInstanceView = new MemoryInstanceView(getStage());
 
   @NotNull private Splitter myChartClassesSplitter = new Splitter(true);
-  @NotNull private Splitter myInstanceDetailsSplitter = new Splitter(false);
+  @NotNull private Splitter myInstanceDetailsSplitter = new Splitter(true);
 
   public MemoryProfilerStageView(@NotNull MemoryProfilerStage stage) {
     super(stage);
@@ -65,6 +71,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     myChartClassesSplitter.setFirstComponent(buildMonitorUi());
     mainSplitter.setFirstComponent(myChartClassesSplitter);
     mainSplitter.setSecondComponent(myInstanceDetailsSplitter);
+    mainSplitter.setProportion(0.6f);
     getComponent().add(mainSplitter, BorderLayout.CENTER);
     detailsChanged();
 
@@ -159,13 +166,14 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     // TODO set proper colors / icons
     DurationDataRenderer<HeapDumpDurationData> heapDumpRenderer =
-      new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, getStage().getHeapDumpSampleDurations()), Color.WHITE)
+      new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, getStage().getHeapDumpSampleDurations()), Color.BLACK)
         .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
+        .setStroke(new BasicStroke(2))
         .setIsBlocking(true)
         .setLabelProvider(
           data -> String.format("Dump (%s)", TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
-      .setClickHander(data -> getStage().setFocusedHeapDump(data.getDumpInfo()))
-      .build();
+        .setClickHander(data -> getStage().setFocusedHeapDump(data.getDumpInfo()))
+        .build();
     DurationDataRenderer<AllocationsDurationData> allocationRenderer =
       new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, getStage().getAllocationInfosDurations()), Color.LIGHT_GRAY)
         .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
@@ -176,7 +184,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .build();
     DurationDataRenderer<GcDurationData> gcRenderer =
       new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, monitor.getGcCount()), Color.BLACK)
-        .setLabelProvider(data -> data.toString())
+        .setIcon(myGcIcon)
         .setAttachLineSeries(objectSeries)
         .build();
 
@@ -271,7 +279,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       }
     }
 
-    MemoryObjects klass = selection.getSelectedClass();
+    ClassObjects klass = selection.getSelectedClass();
     if (myInstanceView.getCurrentClassObject() != klass) {
       myInstanceView.reset();
       myInstanceDetailsSplitter.setFirstComponent(null);
