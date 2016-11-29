@@ -28,9 +28,8 @@ import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
 import com.android.tools.idea.rendering.webp.WebpMetadata;
 import com.android.tools.idea.rendering.webp.WebpNativeLibHelper;
 import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -142,7 +141,7 @@ public class AvdWizardUtilsTest {
     FakeLocalPackage p = new FakeLocalPackage(path);
     p.setRevision(Revision.parseRevision(versionString));
     RepositoryPackages packages = new RepositoryPackages();
-    packages.setLocalPkgInfos(ImmutableMap.of(p.getPath(), p));
+    packages.setLocalPkgInfos(ImmutableList.of(p));
     RepoManager mgr = new FakeRepoManager(null, packages);
     return new AndroidSdkHandler(null, null, new MockFileOp(), mgr);
   }
