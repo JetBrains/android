@@ -433,14 +433,6 @@
                               <toolTipText value="&lt;html&gt;Choose how the graphics should be rendered in the emulator.&lt;br&gt;&lt;br&gt;&lt;b&gt;Hardware&lt;/b&gt;&lt;br&gt;Use your computer's graphics card for faster rendering.&lt;br&gt;&lt;br&gt;&lt;b&gt;Software&lt;/b&gt;&lt;br&gt;Emulate the graphics in software, use this to work around issues with your computer's graphics card.&lt;/html&gt;"/>
                             </properties>
                           </component>
-                          <component id="32dcd" class="com.intellij.ui.components.JBLabel" binding="myHostGraphicProblem">
-                            <constraints>
-                              <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                            </constraints>
-                            <properties>
-                              <text value="Acceleration requires API Level 15 or higher"/>
-                            </properties>
-                          </component>
                         </children>
                       </grid>
                     </children>
