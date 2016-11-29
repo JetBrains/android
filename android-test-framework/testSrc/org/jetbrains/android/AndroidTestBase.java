@@ -43,7 +43,10 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
-import org.jetbrains.android.sdk.*;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -109,6 +112,11 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/platforms/" + platformDir + "/data/res");
     sdkModificator.addRoot(resFolder, OrderRootType.CLASSES);
 
+    VirtualFile androidSrcFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/sources/" + platformDir);
+    if (androidSrcFolder != null) {
+      sdkModificator.addRoot(androidSrcFolder, OrderRootType.SOURCES);
+    }
+
     VirtualFile docsFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/docs/reference");
     if (docsFolder != null) {
       sdkModificator.addRoot(docsFolder, JavadocOrderRootType.getInstance());
@@ -158,16 +166,20 @@ public abstract class AndroidTestBase extends UsefulTestCase {
       if (androidPlatform != null) {
         // Put default platforms in the list before non-default ones so they'll be looked at first.
         return androidPlatform.getSdkData();
-      } else {
+      }
+      else {
         fail("No getAndroidPlatform() associated with the AndroidSdkAdditionalData: " + data);
       }
-    } else {
+    }
+    else {
       fail("Could not find data associated with the SDK: " + androidSdk.getName());
     }
     return null;
   }
 
-  /** Returns a description of the given elements, suitable as unit test golden file output */
+  /**
+   * Returns a description of the given elements, suitable as unit test golden file output
+   */
   public static String describeElements(@Nullable PsiElement[] elements) {
     if (elements == null) {
       return "Empty";
@@ -179,7 +191,9 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     return sb.toString();
   }
 
-  /** Appends a description of the given element, suitable as unit test golden file output */
+  /**
+   * Appends a description of the given element, suitable as unit test golden file output
+   */
   public static void appendElementDescription(@NotNull StringBuilder sb, @NotNull PsiElement element) {
     if (element instanceof LazyValueResourceElementWrapper) {
       LazyValueResourceElementWrapper wrapper = (LazyValueResourceElementWrapper)element;
@@ -194,7 +208,9 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     appendSourceDescription(sb, file, offset, segment);
   }
 
-  /** Appends a description of the given elements, suitable as unit test golden file output */
+  /**
+   * Appends a description of the given elements, suitable as unit test golden file output
+   */
   public static void appendSourceDescription(@NotNull StringBuilder sb, @Nullable PsiFile file, int offset, @Nullable Segment segment) {
     if (file != null && segment != null) {
       if (ResourceHelper.getFolderType(file) != null) {
@@ -241,13 +257,16 @@ public abstract class AndroidTestBase extends UsefulTestCase {
       for (int i = lineStart; i < lineEnd; i++) {
         if (i == offset) {
           sb.append('|');
-        } else if (i >= startOffset && i <= endOffset) {
+        }
+        else if (i >= startOffset && i <= endOffset) {
           sb.append('~');
-        } else {
+        }
+        else {
           sb.append(' ');
         }
       }
-    } else {
+    }
+    else {
       sb.append(offset);
       sb.append(":?");
     }
