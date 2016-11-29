@@ -15,9 +15,10 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.perflib.heap.Instance;
+import com.android.tools.perflib.heap.*;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -54,12 +55,29 @@ class InstanceNode implements MemoryNode {
   @NotNull
   @Override
   public List<MemoryNode> getSubList() {
-    return Collections.emptyList();
+    List<MemoryNode> sublist = new ArrayList<>();
+    if (myInstance instanceof ClassInstance) {
+      ClassInstance classInstance = (ClassInstance)myInstance;
+      for (ClassInstance.FieldValue field : classInstance.getValues()) {
+        sublist.add(new FieldNode(field));
+      }
+    }
+    else if (myInstance instanceof ArrayInstance) {
+      ArrayInstance arrayInstance = (ArrayInstance)myInstance;
+      Type arrayType = arrayInstance.getArrayType();
+      int arrayIndex = 0;
+      for (Object value : arrayInstance.getValues()) {
+        sublist.add(new FieldNode(new ClassInstance.FieldValue(new Field(arrayType, Integer.toString(arrayIndex)), value)));
+        arrayIndex++;
+      }
+    }
+
+    return sublist;
   }
 
   @NotNull
   @Override
   public List<Capability> getCapabilities() {
-    return Arrays.asList(Capability.LABEL, Capability.ELEMENT_SIZE);
+    return Arrays.asList(Capability.LABEL, Capability.DEPTH, Capability.SHALLOW_SIZE, Capability.RETAINED_SIZE);
   }
 }
