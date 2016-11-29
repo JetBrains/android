@@ -561,7 +561,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     // With IJ14 code base, we run tests with NO_FS_ROOTS_ACCESS_CHECK turned on. I'm not sure if that
     // is the cause of the issue, but not all files inside a project are seen while running unit tests.
     // This explicit refresh of the entire project fix such issues (e.g. AndroidProjectViewTest).
-    LocalFileSystem.getInstance().refreshFiles(Collections.singletonList(getProject().getBaseDir()));
+    // This refresh must be synchronous and recursive so it is completed before continuing the test and clean everything so indexes are
+    // properly updated. Apparently this solves outdated indexes and stubs problems
+    LocalFileSystem.getInstance().refresh(false /* synchronous */);
   }
 
   @NotNull
