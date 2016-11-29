@@ -30,7 +30,7 @@ public class AndroidDependenciesCache {
   private AndroidDependenciesCache(@NotNull Module module) {
     myModule = module;
 
-    module.getProject().getMessageBus().connect(module).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
+    module.getProject().getMessageBus().connect(module).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
       @Override
       public void rootsChanged(ModuleRootEvent event) {
         dropCache();
