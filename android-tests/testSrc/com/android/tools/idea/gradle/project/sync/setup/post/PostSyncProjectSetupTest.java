@@ -28,12 +28,12 @@ import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.PluginVersi
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
+import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
-import com.intellij.execution.junit.JUnitConfiguration;
-import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -88,11 +88,11 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   public void testJUnitRunConfigurationSetup() {
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
     mySetup.setUpProject(request, myProgressIndicator);
-    ConfigurationFactory configurationFactory = JUnitConfigurationType.getInstance().getConfigurationFactories()[0];
-    JUnitConfiguration jUnitConfiguration = new JUnitConfiguration("", getProject(), configurationFactory);
+    ConfigurationFactory configurationFactory = AndroidJUnitConfigurationType.getInstance().getConfigurationFactories()[0];
+    AndroidJUnitConfiguration jUnitConfiguration = new AndroidJUnitConfiguration("", getProject(), configurationFactory);
     myRunManager.addConfiguration(myRunManager.createConfiguration(jUnitConfiguration, configurationFactory), true);
 
-    RunConfiguration[] junitRunConfigurations = myRunManager.getConfigurations(JUnitConfigurationType.getInstance());
+    RunConfiguration[] junitRunConfigurations = myRunManager.getConfigurations(AndroidJUnitConfigurationType.getInstance());
     for (RunConfiguration runConfiguration : junitRunConfigurations) {
       assertSize(1, myRunManager.getBeforeRunTasks(runConfiguration));
       assertEquals(MakeBeforeRunTaskProvider.ID, myRunManager.getBeforeRunTasks(runConfiguration).get(0).getProviderId());
