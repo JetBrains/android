@@ -43,8 +43,8 @@ public class MemoryProfilerStage extends Stage {
   public static class MemoryProfilerSelection {
     // TODO this should persist across stages
     @Nullable private MemoryObjects mySelectedHeap;
-    @Nullable private MemoryObjects mySelectedClass;
-    @Nullable private MemoryObjects mySelectedInstance;
+    @Nullable private ClassObjects mySelectedClass;
+    @Nullable private InstanceObjects mySelectedInstance;
 
     @Nullable
     public MemoryObjects getSelectedHeap() {
@@ -52,12 +52,12 @@ public class MemoryProfilerStage extends Stage {
     }
 
     @Nullable
-    public MemoryObjects getSelectedClass() {
+    public ClassObjects getSelectedClass() {
       return mySelectedClass;
     }
 
     @Nullable
-    public MemoryObjects getSelectedInstance() {
+    public InstanceObjects getSelectedInstance() {
       return mySelectedInstance;
     }
 
@@ -65,15 +65,15 @@ public class MemoryProfilerStage extends Stage {
       mySelectedHeap = heap;
     }
 
-    public void setSelectedClass(@Nullable MemoryObjects klass) {
+    public void setSelectedClass(@Nullable ClassObjects klass) {
       mySelectedClass = klass;
     }
 
-    public void setSelectedInstance(@Nullable MemoryObjects instance) {
+    public void setSelectedInstance(@Nullable InstanceObjects instance) {
       mySelectedInstance = instance;
     }
 
-    public void set(@Nullable MemoryObjects heap, @Nullable MemoryObjects klass, @Nullable MemoryObjects instance) {
+    public void set(@Nullable MemoryObjects heap, @Nullable ClassObjects klass, @Nullable InstanceObjects instance) {
       mySelectedHeap = heap;
       mySelectedClass = klass;
       mySelectedInstance = instance;
@@ -149,7 +149,7 @@ public class MemoryProfilerStage extends Stage {
   }
 
 
-  public void selectInstance(@Nullable MemoryObjects instance) {
+  public void selectInstance(@Nullable InstanceObjects instance) {
     MemoryObjects previousInstance = mySelection.getSelectedInstance();
     if (previousInstance == instance) {
       return;
@@ -163,7 +163,7 @@ public class MemoryProfilerStage extends Stage {
     myAspect.changed(MemoryProfilerAspect.MEMORY_OBJECTS);
   }
 
-  public void selectClass(@Nullable MemoryObjects klass) {
+  public void selectClass(@Nullable ClassObjects klass) {
     MemoryObjects previousClass = mySelection.getSelectedClass();
     if (previousClass == klass) {
       return;
@@ -173,7 +173,13 @@ public class MemoryProfilerStage extends Stage {
       Disposer.dispose(previousClass);
     }
 
+    InstanceObjects previousInstance = mySelection.getSelectedInstance();
+    if (previousInstance != null) {
+      Disposer.dispose(previousInstance);
+    }
+
     mySelection.setSelectedClass(klass);
+    mySelection.setSelectedInstance(null);
     myAspect.changed(MemoryProfilerAspect.MEMORY_OBJECTS);
   }
 

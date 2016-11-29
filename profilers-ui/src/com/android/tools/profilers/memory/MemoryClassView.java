@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
+import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.memory.MemoryNode.Capability;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.treeStructure.Tree;
@@ -198,6 +199,7 @@ final class MemoryClassView {
       myClassesTreeRoot.sort(comparator);
       myClassesTreeModel.nodeStructureChanged(myClassesTreeRoot);
     });
+    builder.setBackground(ProfilerColors.MONITOR_BACKGROUND);
     myClassesTree = builder.build();
     parentPanel.add(myClassesTree, BorderLayout.CENTER);
   }

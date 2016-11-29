@@ -43,7 +43,9 @@ public interface MemoryNode {
     return 0;
   }
 
-  default int getDepth() { return 0; }
+  default int getDepth() {
+    return 0;
+  }
 
   default int getShallowSize() {
     return 0;
