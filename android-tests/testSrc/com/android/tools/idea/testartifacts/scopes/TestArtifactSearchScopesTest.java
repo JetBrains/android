@@ -88,22 +88,20 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     assertFalse(scopes.getAndroidTestExcludeScope().accept(module3RsRoot));
   }
 
-  // See http://b.android.com/221883.
-  public void ignore_testLibrariesExcluding() throws Exception {
+  public void testLibrariesExcluding() throws Exception {
     TestArtifactSearchScopes scopes = loadMultiProjectAndTestScopes();
 
     LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(myFixture.getProject());
 
     Library guava = libraryTable.getLibraryByName("guava-18.0"); // used by android test
-    Library hamcrest = libraryTable.getLibraryByName("hamcrest-core-1.3"); // used by both unit and android test
+    Library hamcrest = libraryTable.getLibraryByName("hamcrest-core-1.3"); // used by android test and sometimes by unit test
     Library junit = libraryTable.getLibraryByName("junit-4.12");  // used by unit test
-    Library gson = libraryTable.getLibraryByName("gson-2.4"); // used by android test
+    Library gson = libraryTable.getLibraryByName("gson-2.2.4"); // used by android test
 
     FileRootSearchScope unitTestExcludeScope = scopes.getUnitTestExcludeScope();
     assertScopeContainsLibrary(unitTestExcludeScope, guava, true);
     assertScopeContainsLibrary(unitTestExcludeScope, gson, true);
     assertScopeContainsLibrary(unitTestExcludeScope, junit, false);
-    assertScopeContainsLibrary(unitTestExcludeScope, hamcrest, false);
 
     FileRootSearchScope androidTestExcludeScope = scopes.getAndroidTestExcludeScope();
     assertScopeContainsLibrary(androidTestExcludeScope, junit, true);
