@@ -171,7 +171,7 @@ public class InstantRunTest {
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(false)
-      .dragComponentToSurface("Widgets/TextView")
+      .dragComponentToSurface("Widgets", "TextView")
       .waitForRenderToFinish();
 
     ideFrameFixture.waitForGradleProjectSyncToFinish().findRunApplicationButton().click();

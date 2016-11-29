@@ -80,8 +80,8 @@ public class NlEditorTest {
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(false)
-      .dragComponentToSurface("Widgets/TextView")
-      .dragComponentToSurface("Widgets/Button");
+      .dragComponentToSurface("Widgets", "TextView")
+      .dragComponentToSurface("Widgets", "Button");
     String layoutFileContents = guiTest.ideFrame()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
@@ -97,8 +97,8 @@ public class NlEditorTest {
     EditorFixture editor = ideFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
     NlEditorFixture layout = editor.getLayoutEditor(true)
-      .dragComponentToSurface("Widgets/Button")
-      .dragComponentToSurface("Widgets/CheckBox")
+      .dragComponentToSurface("Widgets", "Button")
+      .dragComponentToSurface("Widgets", "CheckBox")
       .waitForRenderToFinish();
 
     // Find and click the first text view

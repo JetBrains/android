@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.uibuilder.editor.NlEditorPanel;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.Coordinates;
+import com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.ActionToolbar;
@@ -28,7 +31,7 @@ import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import org.fest.swing.core.ComponentDragAndDrop;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.JTreeFixture;
+import org.fest.swing.fixture.JListFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,9 +91,13 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   }
 
   @NotNull
-  public NlEditorFixture dragComponentToSurface(@NotNull String path) {
-    JTree tree = robot().finder().findByName("Palette Tree", JTree.class, true);
-    new JTreeFixture(robot(), tree).drag(path);
+  public NlEditorFixture dragComponentToSurface(@NotNull String group, @NotNull String item) {
+    NlPaletteTreeGrid treeGrid = robot().finder().findByType(NlPaletteTreeGrid.class, true);
+    new JListFixture(robot(), (JList)treeGrid.getCategoryList()).selectItem(group);
+
+    // Wait until the list has been expanded in UI (eliminating flakiness).
+    JList list = GuiTests.waitUntilShowing(robot(), treeGrid, Matchers.byName(JList.class, group));
+    new JListFixture(robot(), list).drag(item);
     myDragAndDrop.drop(myDesignSurfaceFixture.target(), new Point(0, 0));
     return this;
   }
