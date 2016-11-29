@@ -17,11 +17,11 @@ package com.android.tools.idea.gradle.project.sync.idea.data.model;
 
 import org.jetbrains.annotations.NotNull;
 
-public class ProjectSetupModel {
-  private static final ProjectSetupModel INSTANCE = new ProjectSetupModel();
+public class ProjectCleanupModel {
+  private static final ProjectCleanupModel INSTANCE = new ProjectCleanupModel();
 
   @NotNull
-  public static ProjectSetupModel getInstance() {
+  public static ProjectCleanupModel getInstance() {
     return INSTANCE;
   }
 }
