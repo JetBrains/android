@@ -431,8 +431,8 @@ public class AndroidIcons {
     public static final Icon EditTextTimeLarge = load("/icons/views/EditTextTime_large.png"); // 24x24
     public static final Icon ExpandableListView = load("/icons/views/ExpandableListView.png"); // 16x16
     public static final Icon ExpandableListViewLarge = load("/icons/views/ExpandableListView_large.png"); // 24x24
-    public static final Icon FlexBoxLayout = load("/icons/views/FlexBoxLayout.png"); // 16x16
-    public static final Icon FlexBoxLayoutLarge = load("/icons/views/FlexBoxLayout_large.png"); // 24x24
+    public static final Icon FlexboxLayout = load("/icons/views/FlexboxLayout.png"); // 16x16
+    public static final Icon FlexboxLayoutLarge = load("/icons/views/FlexboxLayout_large.png"); // 24x24
     public static final Icon FloatingActionButton = load("/icons/views/FloatingActionButton.png"); // 16x16
     public static final Icon FloatingActionButtonLarge = load("/icons/views/FloatingActionButton_large.png"); // 24x24
     public static final Icon Fragment = load("/icons/views/fragment.png"); // 16x16
