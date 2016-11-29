@@ -64,7 +64,7 @@ class ClassNode implements MemoryNode {
 
   @NotNull
   @Override
-  public List<MemoryNode> getSubList(long startTime, long endTime) {
+  public List<MemoryNode> getSubList() {
     return myClassObj.getInstancesList().stream().map(InstanceNode::new).collect(Collectors.toList());
   }
 

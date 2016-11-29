@@ -34,20 +34,20 @@ import java.util.stream.Collectors;
 public class LegacyAllocationConverter {
   public static class CallStack {
     @NotNull
-    private final StackTraceElement[] myCallStackFrames;
+    private final List<StackTraceElement> myCallStackFrames;
 
     @NotNull
-    private final byte[] mySha256;
+    private final byte[] myId;
 
     private final int myHash;
 
-    public CallStack(@NotNull StackTraceElement[] frames) {
+    public CallStack(@NotNull List<StackTraceElement> frames) {
       myCallStackFrames = frames;
       try {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        mySha256 = digest.digest(toString().getBytes(StandardCharsets.UTF_8));
-        assert mySha256.length >= 4;
-        myHash = ByteBuffer.wrap(mySha256).getInt();
+        myId = digest.digest(toString().getBytes(StandardCharsets.UTF_8));
+        assert myId.length >= 4;
+        myHash = ByteBuffer.wrap(myId).getInt();
       }
       catch (NoSuchAlgorithmException e) {
         throw new RuntimeException("SHA-256 not defined on this system.");
@@ -64,6 +64,11 @@ public class LegacyAllocationConverter {
       return builder.toString();
     }
 
+    @NotNull
+    public byte[] getId() {
+      return myId;
+    }
+
     @Override
     public int hashCode() {
       return myHash;
@@ -74,12 +79,12 @@ public class LegacyAllocationConverter {
       if (!(obj instanceof CallStack)) {
         return false;
       }
-      return Arrays.equals(mySha256, ((CallStack)obj).mySha256);
+      return Arrays.equals(myId, ((CallStack)obj).myId);
     }
 
     @NotNull
     public AllocationStack getAllocationStack() {
-      AllocationStack.Builder builder = AllocationStack.newBuilder().setStackId(ByteString.copyFrom(mySha256));
+      AllocationStack.Builder builder = AllocationStack.newBuilder().setStackId(ByteString.copyFrom(myId));
       for (StackTraceElement frame : myCallStackFrames) {
         builder.addStackFrames(
           AllocationStack.StackFrame.newBuilder().setClassName(frame.getClassName()).setLineNumber(frame.getLineNumber())
@@ -99,16 +104,6 @@ public class LegacyAllocationConverter {
       myClassId = classId;
     }
 
-    @Override
-    public int hashCode() {
-      return myClassName.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      return (obj instanceof ClassName) && myClassName.equals(((ClassName)obj).myClassName);
-    }
-
     @NotNull
     public AllocatedClass getAllocatedClass() {
       return AllocatedClass.newBuilder().setClassName(myClassName).setClassId(myClassId).build();
@@ -123,19 +118,19 @@ public class LegacyAllocationConverter {
     private final int myThreadId;
 
     @NotNull
-    private final byte[] myCallStack;
+    private final byte[] myCallStackId;
 
-    public Allocation(int classId, int size, int threadId, @NotNull byte[] callStack) {
+    public Allocation(int classId, int size, int threadId, @NotNull byte[] callStackId) {
       myClassId = classId;
       mySize = size;
       myThreadId = threadId;
-      myCallStack = callStack;
+      myCallStackId = callStackId;
     }
 
     @NotNull
     public AllocationEvent getAllocationEvent(long time) {
       return AllocationEvent.newBuilder().setAllocatedClassId(myClassId).setSize(mySize).setThreadId(myThreadId).setTimestamp(time)
-        .setAllocationStackId(ByteString.copyFrom(myCallStack)).build();
+        .setAllocationStackId(ByteString.copyFrom(myCallStackId)).build();
     }
   }
 
@@ -160,12 +155,11 @@ public class LegacyAllocationConverter {
     return id;
   }
 
-  public byte[] addCallStack(@NotNull CallStack callStack) {
-    if (!myAllocationStacks.contains(callStack)) {
-      myAllocationStacks.add(callStack);
-    }
-
-    return callStack.mySha256;
+  @NotNull
+  public CallStack addCallStack(@NotNull CallStack callStack) {
+    assert !myAllocationStacks.contains(callStack);
+    myAllocationStacks.add(callStack);
+    return callStack;
   }
 
   public void addAllocation(@NotNull Allocation allocationInfo) {
