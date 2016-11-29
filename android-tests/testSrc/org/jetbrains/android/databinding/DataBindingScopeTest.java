@@ -19,39 +19,15 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResul
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.psi.JavaPsiFacade;
-import org.apache.commons.io.FileUtils;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-import java.io.IOException;
 
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING_AND_SIMPLE_LIB;
 
 /**
  * This class compiles a real project with data binding then checks whether the generated Binding classes match the virtual ones.
- * This test requires DataBinding's rebuildRepo task to be run first otherwise it will fail because it won't find the snapshot versions.
  */
 public class DataBindingScopeTest extends AndroidGradleTestCase {
 
-  @Override
-  protected void prepareProjectForImport(@NotNull String relativePath) throws IOException {
-    super.prepareProjectForImport(relativePath);
-    createGradlePropertiesFile(getProjectFolderPath());
-    updateGradleVersions(getProjectFolderPath());
-  }
-
-  private static void createGradlePropertiesFile(@NotNull File projectFolder) throws IOException {
-    File dataBindingRoot = new File(getTestDataPath(), "/../../../../data-binding/internal-prebuilts");
-    File out = new File(projectFolder, "databinding.props");
-    FileUtils.writeStringToFile(out, "internalDataBindingRepo=" + dataBindingRoot.getCanonicalPath());
-  }
-
-  public void testDummy() {
-    // placehlder to make PSQ happy until the test below can be re-enabled.
-  }
-
-  // TODO re-enable when we can run tests with top of tree gradle
-  public void ignored_testAccessFromInaccessibleScope() throws Exception {
+  public void testAccessFromInaccessibleScope() throws Exception {
     loadProject(PROJECT_WITH_DATA_BINDING_AND_SIMPLE_LIB);
     // temporary fix until test model can detect dependencies properly
     GradleInvocationResult assembleDebug = invokeGradleTasks(getProject(), "assembleDebug");
