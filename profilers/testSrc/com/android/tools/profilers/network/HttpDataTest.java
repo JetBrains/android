@@ -19,6 +19,7 @@ import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class HttpDataTest {
   @Test
@@ -71,5 +72,18 @@ public class HttpDataTest {
   public void urlNameParsedProperlyWithEmptyPath() {
     String urlString = "https://www.google.com";
     assertThat(HttpData.getUrlName(urlString), equalTo(""));
+  }
+
+  @Test
+  public void urlNameDecoded() {
+    String notEncoded = "https://www.google.com/test test";
+    try {
+      HttpData.getUrlName(notEncoded);
+      fail(String.format("Not-encoded URL %s should be invalid.", notEncoded));
+    } catch (IllegalArgumentException expected) {}
+    String singleEncoded = "https://www.google.com/test%20test";
+    assertThat(HttpData.getUrlName(singleEncoded), equalTo("test test"));
+    String tripleEncoded = "https://www.google.com/test%252520test";
+    assertThat(HttpData.getUrlName(tripleEncoded), equalTo("test test"));
   }
 }
