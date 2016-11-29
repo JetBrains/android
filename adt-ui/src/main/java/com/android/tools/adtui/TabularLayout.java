@@ -416,8 +416,8 @@ public final class TabularLayout implements LayoutManager2 {
     private final List<Integer> mySizes;
     private final List<Float> myPercentages;
 
-    // Proportional cells can shrink to 0 if pressed, but ideally we should have enough extra size
-    // for them as well, if we could request a preferred size.
+    // Proportional cells can shrink to 0 if pressed, but if we were able to ask for any size we
+    // preferred, we would choose a size so that all proportional columns would fit.
     private int myExtraSize;
 
     /**
@@ -552,11 +552,23 @@ public final class TabularLayout implements LayoutManager2 {
       }
 
       if (remainingSpace > 0) {
+        int spaceUsed = 0;
+        int lastIndex = -1; // Any rounding error adjustments we'll just do on the last cell
         for (int i = 0; i < myRules.size(); i++) {
           SizingRule rule = myRules.get(i);
           if (rule.getType() == SizingRule.Type.PROPORTIONAL) {
             bounds.get(i).size = Math.round(remainingSpace * myPercentages.get(i));
+            spaceUsed += bounds.get(i).size;
+            lastIndex = i;
           }
+        }
+
+        if (spaceUsed != remainingSpace && lastIndex >= 0) {
+          // Due to rounding error, we either didn't use all the space or we used too much. Make
+          // adjustments to the final column to account for it (otherwise, you'll get UI that
+          // jitters during resize). In practice, this should rarely be more than a couple of
+          // pixels.
+          bounds.get(lastIndex).size += (remainingSpace - spaceUsed);
         }
       }
 
