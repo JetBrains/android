@@ -16,8 +16,10 @@
 package org.jetbrains.android.databinding;
 
 import com.android.SdkConstants;
+import com.android.builder.model.AndroidLibrary;
 import com.android.ide.common.blame.Message;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.base.Joiner;
@@ -41,44 +43,30 @@ import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_
 
 /**
  * This class compiles a real project with data binding then checks whether the generated Binding classes match the virtual ones.
- * This test requires DataBinding's rebuildRepo task to be run first otherwise it will fail because it won't find the snapshot versions.
  */
 public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
   private static final String DATA_BINDING_COMPONENT_CLASS_NAME = SdkConstants.CLASS_DATA_BINDING_COMPONENT.replace(".", "/");
   @NotNull
   private ClassReader findViewDataBindingClass() throws IOException {
-    File explodedAars =
-      new File(getProject().getBaseDir().getCanonicalPath(), "app/build/intermediates/exploded-aar/com.android.databinding/library");
-    File[] contents = explodedAars.listFiles();
-    assert contents != null;
-    assertEquals(1, contents.length);
-    File container = contents[0]; //version
-    File classes = new File(container, "jars/classes.jar");
+    File classes = null;
+
+    AndroidModuleModel model = AndroidModuleModel.get(myAndroidFacet);
+    for (AndroidLibrary lib : model.getMainArtifact().getDependencies().getLibraries()) {
+      if (lib.getName().startsWith("com.android.databinding:library")) {
+        classes = lib.getJarFile();
+      }
+    }
+    assert classes != null;
     assertTrue(classes.exists());
-    JarFile classesJar = null;
-    try {
-      //noinspection IOResourceOpenedButNotSafelyClosed
-      classesJar = new JarFile(classes, true);
+
+    try (JarFile classesJar = new JarFile(classes, true)) {
       ZipEntry entry = classesJar.getEntry(SdkConstants.CLASS_DATA_BINDING_BASE_BINDING.replace(".", "/") + ".class");
       assertNotNull(entry);
       return new ClassReader(classesJar.getInputStream(entry));
     }
-    finally {
-      if (classesJar != null) {
-        classesJar.close();
-      }
-    }
   }
 
-  @Override
-  protected void prepareProjectForImport(@NotNull String relativePath) throws IOException {
-    super.prepareProjectForImport(relativePath);
-    createGradlePropertiesFile(getProjectFolderPath());
-    updateGradleVersions(getProjectFolderPath());
-  }
-
-  // re-enable this test after we can run tests against top of tree gradle build
-  public void ignored_testGeneratedCodeMatch() throws Exception {
+  public void testGeneratedCodeMatch() throws Exception {
     loadProject(PROJECT_WITH_DATA_BINDING);
     // temporary fix until test model can detect dependencies properly
     GradleInvocationResult assembleDebug = invokeGradleTasks(getProject(), "assembleDebug");
@@ -152,12 +140,6 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
            (viewDataBindingClass.getClassName().equals(classReader.getSuperName()) ||
             DATA_BINDING_COMPONENT_CLASS_NAME.equals(classReader.getClassName()) ||
             shouldVerify(viewDataBindingClass, superClassLookup.get(classReader), superClassLookup));
-  }
-
-  private static void createGradlePropertiesFile(@NotNull File projectFolder) throws IOException {
-    File dataBindingRoot = new File(getTestDataPath(), "/../../../../data-binding/internal-prebuilts");
-    File out = new File(projectFolder, "databinding.props");
-    FileUtils.writeStringToFile(out, "internalDataBindingRepo=" + dataBindingRoot.getCanonicalPath());
   }
 
   @NotNull

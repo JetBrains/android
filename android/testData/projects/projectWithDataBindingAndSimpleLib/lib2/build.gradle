@@ -20,7 +20,6 @@ android {
     buildToolsVersion "23.0.1"
 
     defaultConfig {
-        applicationId "com.foo.bar2"
         minSdkVersion 22
         targetSdkVersion 23
         versionCode 1
@@ -37,20 +36,8 @@ android {
     }
 }
 
-repositories {
-    jcenter()
-    if (System.getenv("MAVEN_URL") != null) {
-        maven {url System.getenv("MAVEN_URL")}
-    }
-    Properties properties = new Properties();
-    properties.load(new FileInputStream(new File(rootProject.getRootDir(), "databinding.props").getAbsolutePath()))
-    maven {
-        url properties.internalDataBindingRepo
-    }
-}
-
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    // depending on the latest allows us to laod whatever the testing infra has
+    // depending on the latest allows us to load whatever the testing infra has
     compile "com.android.support:support-v4:+"
 }

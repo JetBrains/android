@@ -62,6 +62,7 @@ import java.nio.file.Paths;
   com.android.tools.idea.testartifacts.scopes.TestArtifactsRenameTest.class,
   com.android.tools.idea.testartifacts.scopes.TestArtifactsResolveTest.class,
   org.jetbrains.android.AndroidLintTest.class,
+  org.jetbrains.android.databinding.DataBindingScopeTest.class,
   org.jetbrains.android.databinding.GeneratedCodeMatchTest.class,
   org.jetbrains.android.dom.AndroidLayoutDomTest.class,
   org.jetbrains.android.dom.AndroidManifestDomTest.class,
