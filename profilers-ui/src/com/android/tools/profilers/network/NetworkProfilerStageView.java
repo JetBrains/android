@@ -101,7 +101,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
     panel.add(new NetworkRadioView(this).getComponent(), new TabularLayout.Constraint(1, 0));
 
-    JPanel monitorPanel = new JBPanel(new GridBagLayout());
+    JPanel monitorPanel = new JBPanel(new TabularLayout("*", "*"));
     monitorPanel.setOpaque(false);
     monitorPanel.setBorder(MONITOR_BORDER);
     final JLabel label = new JLabel(monitor.getName());
@@ -179,10 +179,10 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     selection.addChangeListener(this::onSelectionChanged);
 
     getChoreographer().register(selection);
-    monitorPanel.add(selection, GBC_FULL);
-    monitorPanel.add(legendPanel, GBC_FULL);
-    monitorPanel.add(axisPanel, GBC_FULL);
-    monitorPanel.add(lineChartPanel, GBC_FULL);
+    monitorPanel.add(selection, new TabularLayout.Constraint(0, 0));
+    monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
+    monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
+    monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
 
     layout.setRowSizing(2, "*"); // Give as much space as possible to the main monitor panel
     panel.add(monitorPanel, new TabularLayout.Constraint(2, 0));
