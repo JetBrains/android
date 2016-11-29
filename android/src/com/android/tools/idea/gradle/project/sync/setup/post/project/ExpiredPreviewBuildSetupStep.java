@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
+import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.progress.ProgressIndicator;

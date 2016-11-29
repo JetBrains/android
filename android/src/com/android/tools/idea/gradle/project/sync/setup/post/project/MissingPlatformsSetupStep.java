@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post.project;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenAndroidSdkManagerHyperlink;
+import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.pom.NonNavigatable;
