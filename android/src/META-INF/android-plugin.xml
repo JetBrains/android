@@ -1068,11 +1068,11 @@
     <extensionPoint qualifiedName="com.android.gradle.sync.javaModuleSetupStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.postSyncProjectSetupStep"
-                    interface="com.android.tools.idea.gradle.project.sync.setup.post.project.ProjectSetupStep"/>
+                    interface="com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.postSyncProjectCleanupStep"
-                    interface="com.android.tools.idea.gradle.project.sync.setup.post.cleanup.ProjectCleanupStep"/>
+                    interface="com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.pluginVersionUpgradeStep"
-                    interface="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.PluginVersionUpgradeStep"/>
+                    interface="com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgradeStep"/>
 
     <extensionPoint qualifiedName="com.android.captureType" interface="com.android.tools.idea.profiling.capture.CaptureType"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.syncErrorHandler"

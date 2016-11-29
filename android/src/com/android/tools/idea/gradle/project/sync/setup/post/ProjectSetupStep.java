@@ -13,25 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.post.cleanup;
+package com.android.tools.idea.gradle.project.sync.setup.post;
 
 import com.intellij.openapi.extensions.ExtensionPointName;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class ProjectCleanupStep {
-  private static final ExtensionPointName<ProjectCleanupStep>
-    EXTENSION_POINT_NAME = ExtensionPointName.create("com.android.gradle.sync.postSyncProjectCleanupStep");
+public abstract class ProjectSetupStep {
+  private static final ExtensionPointName<ProjectSetupStep>
+    EXTENSION_POINT_NAME = ExtensionPointName.create("com.android.gradle.sync.postSyncProjectSetupStep");
 
   @NotNull
-  public static ProjectCleanupStep[] getExtensions() {
+  public static ProjectSetupStep[] getExtensions() {
     return EXTENSION_POINT_NAME.getExtensions();
   }
 
-  public abstract void cleanUpProject(@NotNull Project project,
-                                      @NotNull IdeModifiableModelsProvider ideModifiableModelsProvider,
-                                      @Nullable ProgressIndicator indicator);
+  public abstract void setUpProject(@NotNull Project project, @Nullable ProgressIndicator indicator);
+
+  public boolean invokeOnFailedSync() {
+    return false;
+  }
 }
