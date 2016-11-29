@@ -17,18 +17,14 @@ package com.android.tools.idea.sdk.install.patch;
 
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.RemotePackage;
-import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.testframework.FakeDependency;
 import com.android.repository.testframework.FakeRepoManager;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 
 import java.io.File;
 import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static com.android.repository.testframework.FakePackage.FakeLocalPackage;
 import static com.android.repository.testframework.FakePackage.FakeRemotePackage;
@@ -50,9 +46,7 @@ public class PatchInstallerUtilTest {
     FakeRemotePackage update = new FakeRemotePackage("p");
     List<RemotePackage> remote = ImmutableList.of(update, new FakeRemotePackage("patcher;v4"));
     update.setDependencies(ImmutableList.of(new FakeDependency(target.getPath())));
-    RepositoryPackages packages = new RepositoryPackages(
-      local.stream().collect(Collectors.toMap(RepoPackage::getPath, Function.identity())),
-      remote.stream().collect(Collectors.toMap(RepoPackage::getPath, Function.identity())));
+    RepositoryPackages packages = new RepositoryPackages(local, remote);
     FakeRepoManager mgr = new FakeRepoManager(new File("/sdk"), packages);
     LocalPackage patcher = PatchInstallerUtil.getDependantPatcher(update, mgr);
     assertEquals(target, patcher);
@@ -65,9 +59,7 @@ public class PatchInstallerUtilTest {
     FakeRemotePackage update = new FakeRemotePackage("p");
     List<RemotePackage> remote = ImmutableList.of(update, new FakeRemotePackage("patcher;v4"));
     update.setDependencies(ImmutableList.of(new FakeDependency(target.getPath())));
-    RepositoryPackages packages = new RepositoryPackages(
-      local.stream().collect(Collectors.toMap(RepoPackage::getPath, Function.identity())),
-      remote.stream().collect(Collectors.toMap(RepoPackage::getPath, Function.identity())));
+    RepositoryPackages packages = new RepositoryPackages(local, remote);
     FakeRepoManager mgr = new FakeRepoManager(new File("/sdk"), packages);
     LocalPackage patcher = PatchInstallerUtil.getDependantPatcher(update, mgr);
     assertNull(patcher);
@@ -77,9 +69,7 @@ public class PatchInstallerUtilTest {
   public void getLatestPatcher() throws Exception {
     LocalPackage target = new FakeLocalPackage("patcher;v3");
     List<LocalPackage> local = ImmutableList.of(new FakeLocalPackage("patcher;v1"), target, new FakeLocalPackage("patcher;v2"));
-    RepositoryPackages packages = new RepositoryPackages(
-      local.stream().collect(Collectors.toMap(RepoPackage::getPath, Function.identity())),
-      ImmutableMap.of());
+    RepositoryPackages packages = new RepositoryPackages(local, ImmutableList.of());
     FakeRepoManager mgr = new FakeRepoManager(new File("/sdk"), packages);
     LocalPackage patcher = PatchInstallerUtil.getLatestPatcher(mgr);
     assertEquals(target, patcher);
@@ -88,9 +78,7 @@ public class PatchInstallerUtilTest {
   @Test
   public void noLatestPatcher() throws Exception {
     List<LocalPackage> local = ImmutableList.of(new FakeLocalPackage("foo"));
-    RepositoryPackages packages = new RepositoryPackages(
-      local.stream().collect(Collectors.toMap(RepoPackage::getPath, Function.identity())),
-      ImmutableMap.of());
+    RepositoryPackages packages = new RepositoryPackages(local, ImmutableList.of());
     FakeRepoManager mgr = new FakeRepoManager(new File("/sdk"), packages);
     LocalPackage patcher = PatchInstallerUtil.getLatestPatcher(mgr);
     assertNull(patcher);
