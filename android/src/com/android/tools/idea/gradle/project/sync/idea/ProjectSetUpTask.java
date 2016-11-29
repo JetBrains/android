@@ -44,7 +44,9 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
 
   @NotNull private final Project myProject;
   @NotNull private final PostSyncProjectSetup.Request mySetupRequest;
+
   @Nullable private final GradleSyncListener mySyncListener;
+
   private final boolean myProjectIsNew;
   private final boolean mySelectModulesToImport;
   private final boolean mySyncSkipped;
@@ -111,11 +113,11 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
 
   private void populateProject(@NotNull DataNode<ProjectData> projectInfo) {
     if (!myProjectIsNew && ApplicationManager.getApplication().isUnitTestMode()) {
-      populate(myProject, projectInfo, mySetupRequest, mySelectModulesToImport, true);
+      populate(myProject, projectInfo, mySetupRequest, mySelectModulesToImport);
       return;
     }
-    StartupManager.getInstance(myProject)
-      .runWhenProjectIsInitialized(() -> populate(myProject, projectInfo, mySetupRequest, mySelectModulesToImport, true));
+    StartupManager startupManager = StartupManager.getInstance(myProject);
+    startupManager.runWhenProjectIsInitialized(() -> populate(myProject, projectInfo, mySetupRequest, mySelectModulesToImport));
   }
 
   @Override

@@ -16,13 +16,13 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
@@ -35,7 +35,6 @@ import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
@@ -82,8 +81,6 @@ import static java.lang.Boolean.TRUE;
  * Utility methods for {@link Project}s.
  */
 public final class Projects {
-  private static final Logger LOG = Logger.getInstance(Projects.class);
-
   private static final Key<LibraryDependency> MODULE_COMPILED_ARTIFACT = Key.create("module.compiled.artifact");
   private static final Key<Collection<Module>> MODULES_TO_DISPOSE_POST_SYNC = Key.create("project.modules.to.dispose.post.sync");
   private static final Key<Boolean> SYNC_REQUESTED_DURING_BUILD = Key.create("project.sync.requested.during.build");
@@ -117,11 +114,10 @@ public final class Projects {
 
   public static void populate(@NotNull Project project,
                               @NotNull DataNode<ProjectData> projectInfo,
-                              @NotNull PostSyncProjectSetup.Request setupRequest,
-                              boolean selectModulesToImport,
-                              boolean runPostProjectSetupTasks) {
+                              @Nullable PostSyncProjectSetup.Request setupRequest,
+                              boolean selectModulesToImport) {
     Collection<DataNode<ModuleData>> modulesToImport = getModulesToImport(project, projectInfo, selectModulesToImport);
-    populate(project, projectInfo, modulesToImport, setupRequest, runPostProjectSetupTasks);
+    populate(project, projectInfo, modulesToImport, setupRequest);
   }
 
   @NotNull
@@ -168,8 +164,7 @@ public final class Projects {
   public static void populate(@NotNull Project project,
                               @NotNull DataNode<ProjectData> projectInfo,
                               @NotNull Collection<DataNode<ModuleData>> modulesToImport,
-                              @NotNull PostSyncProjectSetup.Request setupRequest,
-                              boolean runPostProjectSetupTasks) {
+                              @Nullable PostSyncProjectSetup.Request setupRequest) {
     invokeAndWaitIfNeeded((Runnable)() -> {
       SyncMessages.getInstance(project).removeProjectMessages();
 
@@ -183,7 +178,7 @@ public final class Projects {
       });
       // We need to call this method here, otherwise the IDE will think the project is not a Gradle project and it won't generate
       // sources for it. This happens on new projects.
-      if (runPostProjectSetupTasks) {
+      if (setupRequest != null) {
         PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest, null);
       }
     });
