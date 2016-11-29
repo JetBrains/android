@@ -25,9 +25,9 @@ iml_module(
         "//tools/idea/java/java-indexing-api[module]",
         "//tools/base/asset-studio:studio.assetstudio[module]",
         "//tools/adt/idea/adt-ui[module]",
-        "//tools/analytics-library:analytics-protos[module]",
-        "//tools/analytics-library:analytics-tracker[module]",
-        "//tools/analytics-library:analytics-shared[module]",
+        "//tools/analytics-library/protos:analytics-protos[module]",
+        "//tools/analytics-library/tracker:analytics-tracker[module]",
+        "//tools/analytics-library/shared:analytics-shared[module]",
         "//tools/adt/idea/wizard[module]",
     ],
 )
