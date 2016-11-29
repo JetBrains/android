@@ -81,7 +81,7 @@ public class HeapDumpObjects implements MemoryObjects {
 
     @NotNull
     @Override
-    public List<MemoryNode> getSubList(long startTimeUs, long endTimeUs) {
+    public List<MemoryNode> getSubList() {
       DumpDataResponse response;
       while (true) {
         // TODO move this to another thread and complete before we notify
