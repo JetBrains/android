@@ -16,9 +16,12 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.Choreographer;
+import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.RangedTable;
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
@@ -26,6 +29,8 @@ import com.android.tools.adtui.model.RangedTableModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.Gray;
+import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
 
@@ -147,6 +152,9 @@ final class ConnectionsView {
   @NotNull
   private final JTable myConnectionsTable;
 
+  @NotNull
+  private final Choreographer myChoreographer;
+
   public ConnectionsView(@NotNull NetworkProfilerStageView stageView,
                          @NotNull DetailedViewListener detailedViewListener) {
     this(stageView.getStage(), stageView.getChoreographer(), stageView.getTimeline().getSelectionRange(), detailedViewListener);
@@ -161,6 +169,7 @@ final class ConnectionsView {
     myDetailedViewListener = detailedViewListener;
     myTableModel = new ConnectionsTableModel();
     mySelectionRange = selectionRange;
+    myChoreographer = choreographer;
     RangedTable rangedTable = new RangedTable(mySelectionRange, myTableModel);
     choreographer.register(rangedTable);
     myConnectionsTable = createRequestsTable();
@@ -189,8 +198,10 @@ final class ConnectionsView {
         myDetailedViewListener.showDetailedConnection(myTableModel.getHttpData(modelRow));
       }
     });
-    table.setFont(AdtUiUtils.DEFAULT_FONT);
 
+    table.setFont(AdtUiUtils.DEFAULT_FONT);
+    table.setShowVerticalLines(true);
+    table.setShowHorizontalLines(false);
     int defaultFontHeight = table.getFontMetrics(AdtUiUtils.DEFAULT_FONT).getHeight();
     table.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
 
@@ -303,25 +314,37 @@ final class ConnectionsView {
     }
   }
 
-  private static final class TimelineRenderer implements TableCellRenderer, TableModelListener {
+  private final class TimelineRenderer implements TableCellRenderer, TableModelListener {
+    private final JBColor AXIS_COLOR = new JBColor(Gray._103, Gray._120);
     /**
      * Keep in sync 1:1 with {@link ConnectionsTableModel#myDataList}. When the table asks for the
      * chart to render, it will be converted from model index to view index.
      */
     @NotNull private final List<StateChart<NetworkState>> myCharts;
     @NotNull private final JTable myTable;
+    @NotNull private final AxisComponent myAxis;
     private final Range myRange;
 
     TimelineRenderer(@NotNull JTable table, @NotNull Range range) {
       myRange = range;
       myCharts = new ArrayList<>();
       myTable = table;
+      myAxis = buildAxis();
       myTable.getModel().addTableModelListener(this);
+      myChoreographer.register(myAxis);
     }
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-      return myCharts.get(myTable.convertRowIndexToModel(row));
+      JComponent chart = myCharts.get(myTable.convertRowIndexToModel(row));
+      if (row == 0) {
+        JPanel panel = new JBPanel(new TabularLayout("*" , "*"));
+        panel.add(myAxis, new TabularLayout.Constraint(0, 0));
+        panel.add(chart, new TabularLayout.Constraint(0, 0));
+        return panel;
+      }
+
+      return chart;
     }
 
     @Override
@@ -345,6 +368,17 @@ final class ConnectionsView {
         chart.animate(1);
         myCharts.add(chart);
       }
+    }
+
+    @NotNull
+    private AxisComponent buildAxis() {
+      AxisComponent.Builder builder = new AxisComponent.Builder(myRange, new TimeAxisFormatter(1, 4, 1),
+                                                                AxisComponent.AxisOrientation.BOTTOM);
+      builder.setGlobalRange(myStage.getStudioProfilers().getDataRange()).showAxisLine(false)
+        .setOffset(myStage.getStudioProfilers().getDeviceStartUs());
+      AxisComponent axis = builder.build();
+      axis.setForeground(AXIS_COLOR);
+      return axis;
     }
   }
 

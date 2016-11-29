@@ -15,8 +15,11 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.FakeTimer;
+import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
@@ -29,6 +32,8 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import javax.swing.*;
+import javax.swing.table.TableCellRenderer;
+import java.awt.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -135,6 +140,24 @@ public class ConnectionsViewTest {
     assertThat(table.getRowCount(), is(2));
     assertThat(table.convertRowIndexToView(0), is(1));
     assertThat(table.convertRowIndexToView(1), is(0));
+  }
+
+  @Test
+  public void ensureAxisInFirstRow() throws Exception {
+    Range dataRange = new Range(0, TimeUnit.SECONDS.toMicros(100));
+    ConnectionsView view = new ConnectionsView(myStage, myChoreographer, dataRange, data -> {});
+
+    JTable table = getConnectionsTable(view);
+
+    myChoreographerTimer.step();
+
+    int timelineColumn = ConnectionsView.Column.TIMELINE.ordinal();
+    TableCellRenderer renderer = table.getCellRenderer(1, timelineColumn);
+
+    Component comp = table.prepareRenderer(renderer, 0, timelineColumn);
+    assertThat(comp instanceof JPanel, is(true));
+    assertThat(((JPanel)comp).getComponent(0) instanceof AxisComponent, is(true));
+    assertThat(((JPanel)comp).getComponent(1) instanceof StateChart, is(true));
   }
 
   private static HttpData convert(NetworkProfiler.HttpConnectionData sourceData) {
