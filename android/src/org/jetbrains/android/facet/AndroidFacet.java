@@ -453,7 +453,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       });
     });
 
-    getModule().getMessageBus().connect(this).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
+    getModule().getMessageBus().connect(this).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
       private Sdk myPrevSdk;
 
       @Override

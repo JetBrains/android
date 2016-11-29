@@ -754,7 +754,7 @@ public class ResourceNotificationManager implements ProjectComponent {
     final MessageBusConnection connection = project.getMessageBus().connect(project);
     connection.subscribe(ProjectTopics.PROJECT_ROOTS, new MyAndroidPlatformListener(project));
 
-  private class MyAndroidPlatformListener extends ModuleRootAdapter {
+  private class MyAndroidPlatformListener implements ModuleRootListener {
     private final Map<Module, Sdk> myModule2Sdk = new HashMap<Module, Sdk>();
     private final Project myProject;
 

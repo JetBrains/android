@@ -50,7 +50,7 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
 
   public AttachAndroidSdkSourcesNotificationProvider(@NotNull Project project, @NotNull final EditorNotifications notifications) {
     myProject = project;
-    myProject.getMessageBus().connect(project).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
+    myProject.getMessageBus().connect(project).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
       @Override
       public void rootsChanged(ModuleRootEvent event) {
         notifications.updateAllNotifications();
