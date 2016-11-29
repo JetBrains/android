@@ -67,8 +67,7 @@ public class NlConfigurationToolbarFixture {
 
   /** Returns the current API level of the toolbar's configuration */
   public int getApiLevel() {
-    // For a UI test, this appears pretty far removed from testing through the UI.
-    return mySurface.getConfiguration().getTarget().getVersion().getApiLevel();
+    return Integer.parseInt(new JButtonFixture(myRobot, findToolbarButton("API Version in Editor")).text());
   }
 
   /**
