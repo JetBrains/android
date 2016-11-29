@@ -57,6 +57,7 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
   protected final Map<ByteString, AllocationStack> myAllocationStacks = new HashMap<>();
 
   private final Object myUpdatingDataLock = new Object();
+  private final Object myUpdatingAllocationsLock = new Object();
 
   private HeapDumpSample myPendingHeapDumpSample = null;
 
@@ -158,20 +159,22 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
   @Override
   public void trackAllocations(TrackAllocationsRequest request,
                                StreamObserver<TrackAllocationsResponse> responseObserver) {
-    TrackAllocationsResponse response = myPollingService
-      .trackAllocations(TrackAllocationsRequest.newBuilder().setAppId(myProcessId).setEnabled(request.getEnabled()).build());
-    if (response.getStatus() == SUCCESS) {
-      myLegacyAllocationTrackingService
-        .setAllocationTracking(myProcessId, response.getTimestamp(), request.getEnabled(), (classes, stacks, allocations) -> {
-          synchronized (myUpdatingDataLock) {
-            classes.forEach(allocatedClass -> myAllocatedClasses.putIfAbsent(allocatedClass.getClassName(), allocatedClass));
-            stacks.forEach(allocationStack -> myAllocationStacks.putIfAbsent(allocationStack.getStackId(), allocationStack));
-            allocations.forEach(myAllocationEvents::add);
-          }
-        });
+    synchronized (myUpdatingAllocationsLock) {
+      TrackAllocationsResponse response = myPollingService
+        .trackAllocations(TrackAllocationsRequest.newBuilder().setAppId(myProcessId).setEnabled(request.getEnabled()).build());
+      if (response.getStatus() == SUCCESS) {
+        myLegacyAllocationTrackingService
+          .setAllocationTracking(myProcessId, response.getTimestamp(), request.getEnabled(), (classes, stacks, allocations) -> {
+            synchronized (myUpdatingDataLock) {
+              classes.forEach(allocatedClass -> myAllocatedClasses.putIfAbsent(allocatedClass.getClassName(), allocatedClass));
+              stacks.forEach(allocationStack -> myAllocationStacks.putIfAbsent(allocationStack.getStackId(), allocationStack));
+              allocations.forEach(myAllocationEvents::add);
+            }
+          });
+      }
+      responseObserver.onNext(response);
+      responseObserver.onCompleted();
     }
-    responseObserver.onNext(response);
-    responseObserver.onCompleted();
   }
 
   @Override
@@ -190,14 +193,16 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
     long startTime = request.getStartTime();
     long endTime = request.getEndTime();
 
-    //TODO: Optimize so we do not need to loop all the data every request, ideally binary search to start time and loop till end.
+    //TODO: Optimize so we do not need to loop over all the data every request, ideally binary search to start time and loop till end.
     synchronized (myUpdatingDataLock) {
       myMemoryData.stream().filter(obj -> obj.getTimestamp() > startTime && obj.getTimestamp() <= endTime).forEach(response::addMemSamples);
       myStatsData.stream().filter(obj -> obj.getTimestamp() > startTime && obj.getTimestamp() <= endTime)
         .forEach(response::addVmStatsSamples);
-      myHeapData.stream().filter(obj -> obj.myInfo.getStartTime() > startTime && obj.myInfo.getEndTime() <= endTime)
+      myHeapData.stream().filter(obj -> (obj.myInfo.getStartTime() > startTime && obj.myInfo.getStartTime() <= endTime) ||
+                                        (obj.myInfo.getEndTime() > startTime && obj.myInfo.getEndTime() <= endTime))
         .forEach(obj -> response.addHeapDumpInfos(obj.myInfo));
-      myAllocationsInfos.stream().filter(setting -> setting.getTimestamp() > startTime && setting.getTimestamp() <= endTime)
+      myAllocationsInfos.stream().filter(info -> (info.getStartTime() > startTime && info.getStartTime() <= endTime) ||
+                                                 (info.getEndTime() > startTime && info.getEndTime() <= endTime))
         .forEach(response::addAllocationsInfo);
       myAllocationEvents.stream().filter(event -> event.getTimestamp() > startTime && event.getTimestamp() <= endTime)
         .forEach(response::addAllocationEvents);
@@ -217,8 +222,22 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
     synchronized (myUpdatingDataLock) {
       myMemoryData.addAll(response.getMemSamplesList());
       myStatsData.addAll(response.getVmStatsSamplesList());
-      myAllocationsInfos.addAll(response.getAllocationsInfoList());
       myAllocationEvents.addAll(response.getAllocationEventsList());
+
+      if (response.getAllocationsInfoCount() > 0) {
+        int startAppendIndex = 0;
+        int lastEntryIndex = myAllocationsInfos.size() - 1;
+        if (lastEntryIndex >= 0 && myAllocationsInfos.get(lastEntryIndex).getEndTime() == DurationData.UNSPECIFIED_DURATION) {
+          AllocationsInfo lastOriginalEntry = myAllocationsInfos.get(lastEntryIndex);
+          AllocationsInfo firstIncomingEntry = response.getAllocationsInfo(0);
+          assert response.getAllocationsInfo(0).getStartTime() == lastOriginalEntry.getStartTime();
+          myAllocationsInfos.set(lastEntryIndex, firstIncomingEntry);
+          startAppendIndex = 1;
+        }
+        for (int i = startAppendIndex; i < response.getAllocationsInfoCount(); i++) {
+          myAllocationsInfos.add(response.getAllocationsInfo(i));
+        }
+      }
 
       List<HeapDumpSample> dumpsToFetch = new ArrayList<>();
       for (int i = 0; i < response.getHeapDumpInfosCount(); i++) {

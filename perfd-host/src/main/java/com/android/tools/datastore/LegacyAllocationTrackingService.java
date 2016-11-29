@@ -64,6 +64,7 @@ public class LegacyAllocationTrackingService {
       tracker.getAllocationTrackingDump(processId, myAllocationExecutorService, data -> {
         if (data != null) {
           LegacyAllocationConverter converter = tracker.parseDump(data);
+          // timestamp of allocations is set to the end of allocation tracking
           allocationConsumer.accept(converter.getClassNames(), converter.getAllocationStacks(), converter.getAllocationEvents(time));
         }
       });
