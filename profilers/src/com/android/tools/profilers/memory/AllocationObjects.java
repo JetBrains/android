@@ -21,6 +21,7 @@ import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.AllocationEven
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.util.containers.HashMap;
+import gnu.trove.TIntHashSet;
 import gnu.trove.TIntObjectHashMap;
 import org.jetbrains.annotations.NotNull;
 
@@ -56,9 +57,10 @@ public class AllocationObjects implements MemoryObjects {
   private class RootAllocationsNode implements MemoryNode {
     @Override
     public String toString() {
+      // TODO refactor this once MemoryNode has been refactored into concrete classes
       return "Allocations" +
-             (myStartTimeNs != Long.MAX_VALUE ? " from " + TimeUnit.NANOSECONDS.toMicros(myStartTimeNs) + "us" : "") +
-             (myEndTimeNs != Long.MIN_VALUE ? " to " + TimeUnit.NANOSECONDS.toMicros(myEndTimeNs) + "us" : "");
+             (myStartTimeNs != Long.MAX_VALUE ? " from " + TimeUnit.NANOSECONDS.toMillis(myStartTimeNs) + "ms" : "") +
+             (myEndTimeNs != Long.MIN_VALUE ? " to " + TimeUnit.NANOSECONDS.toMillis(myEndTimeNs) + "ms" : "");
     }
 
     @NotNull
@@ -100,15 +102,20 @@ public class AllocationObjects implements MemoryObjects {
 
       MemoryData response = myClient
         .getData(MemoryProfiler.MemoryRequest.newBuilder().setAppId(myAppId).setStartTime(myStartTimeNs).setEndTime(myEndTimeNs).build());
+      TIntHashSet allocatedClasses = new TIntHashSet();
       // TODO make sure class IDs fall into a global pool
       for (AllocationEvent event : response.getAllocationEventsList()) {
-        assert classNodes.contains(event.getAllocatedClassId());
+        assert classNodes.containsKey(event.getAllocatedClassId());
         assert callStacks.containsKey(event.getAllocationStackId());
         classNodes.get(event.getAllocatedClassId()).addInstance(new InstanceNode(event, callStacks.get(event.getAllocationStackId())));
+        allocatedClasses.add(event.getAllocatedClassId());
       }
 
       List<MemoryNode> results = new ArrayList<>(classNodes.size());
-      classNodes.forEachValue(results::add);
+      allocatedClasses.forEach(value -> {
+        results.add(classNodes.get(value));
+        return true;
+      });
       return results;
     }
 
