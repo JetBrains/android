@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
@@ -27,8 +28,8 @@ import com.intellij.openapi.wm.impl.AnchoredButton;
 import org.fest.swing.core.ComponentDragAndDrop;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.ComponentLookupException;
+import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JToggleButtonFixture;
-import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
@@ -60,7 +61,7 @@ public class NlPreviewFixture extends ToolWindowFixture {
   public NlPreviewFixture openPalette() {
     // Check if the palette is already open
     try {
-      myRobot.finder().findByName("Palette Tree", JTree.class, true);
+      myRobot.finder().findByType(NlPaletteTreeGrid.class, true);
     } catch (ComponentLookupException e) {
       new JToggleButtonFixture(myRobot, GuiTests.waitUntilShowing(myRobot, Matchers.byText(AnchoredButton.class, "Palette "))).click();
     }
@@ -69,10 +70,15 @@ public class NlPreviewFixture extends ToolWindowFixture {
   }
 
   @NotNull
-  public NlPreviewFixture dragComponentToSurface(@NotNull String path) {
+  public NlPreviewFixture dragComponentToSurface(@NotNull String group, @NotNull String item) {
     openPalette();
-    JTree tree = myRobot.finder().findByName("Palette Tree", JTree.class, true);
-    new JTreeFixture(myRobot, tree).drag(path);
+    NlPaletteTreeGrid treeGrid = myRobot.finder().findByType(NlPaletteTreeGrid.class, true);
+    Wait.seconds(5).expecting("the UI to be populated").until(() -> treeGrid.getCategoryList().getModel().getSize() > 0);
+    new JListFixture(myRobot, treeGrid.getCategoryList()).selectItem(group);
+
+    // Wait until the list has been expanded in UI (eliminating flakiness).
+    JList list = GuiTests.waitUntilShowing(myRobot, treeGrid, Matchers.byName(JList.class, group));
+    new JListFixture(myRobot, list).drag(item);
     myDragAndDrop.drop(myDesignSurfaceFixture.target(), new Point(0, 0));
     return this;
   }
