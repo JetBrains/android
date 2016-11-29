@@ -20,5 +20,6 @@ iml_module(
         "//tools/base/ddmlib:studio.ddmlib[module]",
         "//tools/idea/platform/annotations/common:annotations-common[module]",
         "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
+        "//tools/idea/.idea/libraries:jcip",
     ],
 )
