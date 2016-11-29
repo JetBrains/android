@@ -264,13 +264,6 @@
       <add-to-group group-id="RefactoringMenu"/>
     </action>
     <action id="Android.TraceViewSearch" text="TraceView Search" class="com.android.tools.idea.editors.vmtrace.VmTraceEditorSearchAction" use-shortcut-of="Find"/>
-    <action id="HelpTopics" class="com.android.tools.idea.actions.MeetAndroidStudioHelpAction" overrides="true"/>
-    <action class="com.intellij.ide.actions.HelpTopicsAction" id="IntelliJ.HelpTopics" text="IntelliJ IDEA Help">
-      <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="HelpTopics" />
-    </action>
-    <action class="com.android.tools.idea.actions.license.ShowLicensesUsedAction" id="Android.ShowLicenses">
-      <add-to-group group-id="HelpMenu" anchor="before" relative-to-action="Help.KeymapReference" />
-    </action>
     <action id="InferAnnotations" text="Infer Annotations..." class="com.android.tools.idea.actions.annotations.InferSupportAnnotationsAction">
       <add-to-group group-id="InspectCodeGroup" anchor="after" relative-to-action="InferNullity"/>
     </action>

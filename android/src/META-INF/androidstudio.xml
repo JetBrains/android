@@ -37,6 +37,16 @@
   </extensions>
 
   <actions>
+    <action id="HelpTopics" class="com.android.tools.idea.actions.MeetAndroidStudioHelpAction" overrides="true"/>
+
+    <action class="com.intellij.ide.actions.HelpTopicsAction" id="IntelliJ.HelpTopics" text="IntelliJ IDEA Help">
+      <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="HelpTopics" />
+    </action>
+
+    <action class="com.android.tools.idea.actions.license.ShowLicensesUsedAction" id="Android.ShowLicenses">
+      <add-to-group group-id="HelpMenu" anchor="before" relative-to-action="Help.KeymapReference" />
+    </action>
+
     <action id="Android.HotswapChanges" class="com.android.tools.idea.fd.actions.HotswapAction">
       <!-- run button short cuts must be declared in xml to work without focus! Do not remove -->
       <keyboard-shortcut first-keystroke="control F10" keymap="$default"/>
