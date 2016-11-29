@@ -57,7 +57,7 @@ public abstract class LayoutTestCase extends AndroidTestCase {
   public static String getDesignerPluginHome() {
     // Now that the Android plugin is kept in a separate place, we need to look in
     // a relative position instead
-    String adtPath = PathManager.getHomePath() + "/../adt/idea/designer-tests";
+    String adtPath = PathManager.getHomePath() + "/../adt/idea/designer";
     if (new File(adtPath).exists()) {
       return adtPath;
     }

@@ -2,7 +2,7 @@
 <module type="JAVA_MODULE" version="4">
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
-    <content url="file://$MODULE_DIR$">
+    <content url="file://$MODULE_DIR$/testSrc">
       <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
     </content>
     <orderEntry type="inheritedJdk" />
@@ -88,13 +88,13 @@
     <orderEntry type="module-library" scope="TEST">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../android/lib/dexlib2-2.0.8-dev.jar!/" />
-          <root url="jar://$MODULE_DIR$/../android/lib/dexlib2-util-2.0.8-dev.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/dexlib2-2.0.8-dev.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/dexlib2-util-2.0.8-dev.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MODULE_DIR$/../android/lib/src/dexlib2-2.0.8-dev-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../android/lib/src/dexlib2-util-2.0.8-dev-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/src/dexlib2-2.0.8-dev-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/src/dexlib2-util-2.0.8-dev-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
@@ -108,11 +108,11 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../android/lib/jsr305-1.3.9.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/jsr305-1.3.9.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MODULE_DIR$/../android/lib/jsr305-1.3.9.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/jsr305-1.3.9.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
