@@ -88,8 +88,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     assertFalse(scopes.getAndroidTestExcludeScope().accept(module3RsRoot));
   }
 
-  // See http://b.android.com/221883.
-  public void ignore_testLibrariesExcluding() throws Exception {
+  public void testLibrariesExcluding() throws Exception {
     TestArtifactSearchScopes scopes = loadMultiProjectAndTestScopes();
 
     LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(myFixture.getProject());
