@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.repository.io.FileOpUtils;
 import com.android.resources.Keyboard;
 import com.android.resources.ScreenOrientation;
@@ -151,7 +152,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private TextFieldWithBrowseButton myExternalSdCard;
   private JTextField myAvdDisplayName;
   private JBLabel myOrientationLabel;
-  private JBLabel myHostGraphicProblem;
   private JComboBox myHostGraphics;
   private JPanel myDevicePanel;
   private JPanel myAvdNamePanel;
@@ -222,21 +222,25 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   private void populateHostGraphicsDropDown() {
     myHostGraphics.removeAllItems();
-    boolean supportGuest = getSelectedApiLevel() >= 23 && isIntel() && isGoogleApiSelected();
+    GpuMode otherMode = gpuOtherMode(getSelectedApiLevel(), isIntel(), isGoogleApiSelected(), SystemInfo.isMac);
+
+    myHostGraphics.addItem(GpuMode.AUTO);
+    myHostGraphics.addItem(GpuMode.HOST);
+    myHostGraphics.addItem(otherMode);
+  }
+
+  @VisibleForTesting
+  static
+  GpuMode gpuOtherMode(int apiLevel, boolean isIntel, boolean isGoogle, boolean isMac) {
+    boolean supportGuest = (apiLevel >= 23) && isIntel && isGoogle;
     GpuMode otherMode = GpuMode.OFF;
     if (supportGuest) {
       otherMode = GpuMode.SWIFT;
     }
-    else if (!SystemInfo.isMac) {
+    else if (!isMac) {
       otherMode = GpuMode.MESA;
     }
-    myHostGraphics.addItem(GpuMode.AUTO);
-    myHostGraphics.addItem(GpuMode.HOST);
-    myHostGraphics.addItem(otherMode);
-
-    boolean atLeastVersion16 = getSelectedApiLevel() >= 16;
-    myHostGraphics.setEnabled(atLeastVersion16);
-    myHostGraphicProblem.setVisible(!atLeastVersion16);
+    return otherMode;
   }
 
   private void updateGpuControlsAfterSystemImageChange() {
@@ -261,8 +265,15 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private boolean isGoogleApiSelected() {
     assert getModel().systemImage().get().isPresent();
     SystemImageDescription systemImage = getModel().systemImage().getValue();
-    IdDisplay tag = systemImage.getTag();
-    return SystemImage.WEAR_TAG.equals(tag) || SystemImage.TV_TAG.equals(tag) || SystemImage.GOOGLE_APIS_TAG.equals(tag);
+    return isGoogleApiTag(systemImage.getTag());
+  }
+
+  @VisibleForTesting
+  static
+  boolean isGoogleApiTag(IdDisplay tag) {
+    return SystemImage.WEAR_TAG.equals(tag) ||
+           SystemImage.TV_TAG.equals(tag) ||
+           SystemImage.GOOGLE_APIS_TAG.equals(tag);
   }
 
   private boolean isIntel() {
