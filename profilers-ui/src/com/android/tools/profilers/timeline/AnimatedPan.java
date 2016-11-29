@@ -21,8 +21,6 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.ProfilerTimeline;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.event.MouseWheelEvent;
-
 /**
  * A helper {@link Animatable} object that handles smooth panning.
  */
@@ -30,6 +28,7 @@ public final class AnimatedPan implements Animatable {
 
   private static final float PAN_LERP_FRACTION = 0.5f;
   private static final float PAN_LERP_THRESHOLD_US = 1f;
+  private static final double EPSILON = 1e-9;
 
   @NotNull private Choreographer myChoreographer;
   @NotNull private final ProfilerTimeline myTimeline;
@@ -45,11 +44,30 @@ public final class AnimatedPan implements Animatable {
   public AnimatedPan(@NotNull Choreographer choreographer, @NotNull ProfilerTimeline timeline, double panDeltaUs) {
     myChoreographer = choreographer;
     myTimeline = timeline;
-    myRemainingDeltaUs = panDeltaUs;
+
+    Range viewRange = myTimeline.getViewRange();
+    Range dataRange = myTimeline.getDataRange();
+    if (viewRange.getLength() > dataRange.getLength()) {
+      // Panning not allowed if view range is longer than the data range.
+      // This handles the special case where the view range starts before the data range at the beginning of a profiling session.
+      myRemainingDeltaUs = 0;
+    }
+    else {
+      myRemainingDeltaUs = panDeltaUs;
+      myTimeline.setStreaming(false);
+    }
+
+    myTimeline.incrementStreamLock();
   }
 
   @Override
   public void animate(float frameLength) {
+    if (myRemainingDeltaUs == 0) {
+      myChoreographer.unregister(this);
+      myTimeline.decrementStreamLock();
+      return;
+    }
+
     // Calculate the total amount of delta to pan, snaps if the delta is less than a certain threshold.
     double deltaUs = Choreographer.lerp(myRemainingDeltaUs, 0, PAN_LERP_FRACTION, frameLength);
     if (PAN_LERP_THRESHOLD_US > Math.abs(deltaUs)) {
@@ -60,23 +78,26 @@ public final class AnimatedPan implements Animatable {
       myRemainingDeltaUs -= deltaUs;
     }
 
-    // TODO interaction with streaming?
     Range viewRange = myTimeline.getViewRange();
     if (deltaUs < 0) {
-      // Moving left - clamp to data min.
-      double minUs = myTimeline.clampToDataRange(viewRange.getMin() + deltaUs);
+      // Moving left - clamp to data min and stops further animation.
+      double unclampedMin = viewRange.getMin() + deltaUs;
+      double minUs = myTimeline.clampToDataRange(unclampedMin);
       deltaUs = minUs - viewRange.getMin();
+      if (unclampedMin < minUs - EPSILON) {
+        myRemainingDeltaUs = 0;
+      }
     }
     else {
-      // Moving right - clamp to data max.
-      double maxUs = myTimeline.clampToDataRange(viewRange.getMax() + deltaUs);
+      // Moving right - clamp to data max and stops further animation.
+      double unclampedMax = viewRange.getMax() + deltaUs;
+      double maxUs = myTimeline.clampToDataRange(unclampedMax);
       deltaUs = maxUs - viewRange.getMax();
+      if (unclampedMax > maxUs + EPSILON) {
+        myRemainingDeltaUs = 0;
+      }
     }
 
     viewRange.shift(deltaUs);
-
-    if (myRemainingDeltaUs == 0) {
-      myChoreographer.unregister(this);
-    }
   }
 }

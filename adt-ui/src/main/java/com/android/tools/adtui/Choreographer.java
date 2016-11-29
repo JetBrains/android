@@ -158,7 +158,6 @@ public class Choreographer implements ActionListener {
     mComponents.forEach(Animatable::postAnimate);
     mUpdating = false;
 
-
     mToUnregister.forEach(this::unregister);
     mToRegister.forEach(this::register);
 

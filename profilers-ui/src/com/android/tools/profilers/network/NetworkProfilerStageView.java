@@ -82,13 +82,11 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
     TabularLayout layout = new TabularLayout("*");
     JPanel panel = new JBPanel(layout);
-    setupPanAndZoomListeners(panel);
-
     panel.setBackground(ProfilerColors.MONITOR_BACKGROUND);
 
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
     // that attempts to read the same range instance.
-    ProfilerScrollbar sb = new ProfilerScrollbar(timeline);
+    ProfilerScrollbar sb = new ProfilerScrollbar(getChoreographer(), timeline, panel);
     getChoreographer().register(sb);
     panel.add(sb, new TabularLayout.Constraint(4, 0));
 
