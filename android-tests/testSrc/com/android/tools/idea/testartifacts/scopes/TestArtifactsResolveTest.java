@@ -21,13 +21,13 @@ import org.jetbrains.annotations.Nullable;
 
 public class TestArtifactsResolveTest extends TestArtifactsTestCase {
 
-  // Flaky test, reactivate when investigated (http://b.android.com/226541)
-  public void /*test*/DependencyResolvableOnlyInUnitTest() throws Exception {
-    if (SystemInfo.isWindows) {
-      // Do not run tests on Windows (see http://b.android.com/222904)
-      return;
-    }
+  @Override
+  protected boolean shouldRunTest() {
+    // Do not run tests on Windows (see http://b.android.com/222904)
+    return !SystemInfo.isWindows && super.shouldRunTest();
+  }
 
+  public void testDependencyResolvableOnlyInUnitTest() throws Exception {
     // Junit is a dependency for android test, defined in project's build.gradle.
     String importString = "import org.junit.Ass<caret>ert;";
 
@@ -38,13 +38,7 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
     assertNull(resolveReferenceAtCaret());
   }
 
-  // Flaky test, reactivate when investigated (http://b.android.com/226541)
-  public void /*test*/DependencyResolvableOnlyInAndroidTest() throws Exception {
-    if (SystemInfo.isWindows) {
-      // Do not run tests on Windows (see http://b.android.com/222904)
-      return;
-    }
-
+  public void testDependencyResolvableOnlyInAndroidTest() throws Exception {
     // Gson is a dependency for android test, defined in project's build.gradle.
     String importString = "import com.google.gson.Gs<caret>on;";
 
@@ -56,7 +50,7 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
   }
 
   // Flaky test, reactivate when investigated (http://b.android.com/226541)
-  public void /*test*/SourceResolvableInBothTests() throws Exception {
+  public void testSourceResolvableInBothTests() throws Exception {
     // Create class located in main source
     setCommonFileContent("MyClass.java", "class MyClass {}");
 
@@ -69,12 +63,7 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
   }
 
   // Flaky test, reactivate when investigated (http://b.android.com/226541)
-  public void /*test*/SourceResolvableOnlyInUnitTest() throws Exception {
-    if (SystemInfo.isWindows) {
-      // Do not run tests on Windows (see http://b.android.com/222904)
-      return;
-    }
-
+  public void testSourceResolvableOnlyInUnitTest() throws Exception {
     // Create class located in unit test source
     setUnitTestFileContent("MyClass.java", "class MyClass {}");
 
@@ -87,12 +76,7 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
   }
 
   // Flaky test, reactivate when investigated (http://b.android.com/226541)
-  public void /*test*/SourceResolvableOnlyInAndroidTest() throws Exception {
-    if (SystemInfo.isWindows) {
-      // Do not run tests on Windows (see http://b.android.com/222904)
-      return;
-    }
-
+  public void testSourceResolvableOnlyInAndroidTest() throws Exception {
     // Create class located in android test source
     setAndroidTestFileContent("MyClass.java", "class MyClass {}");
 
@@ -105,7 +89,7 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
   }
 
   // Flaky test, reactivate when investigated (http://b.android.com/226541)
-  public void /*test*/MultiModuleSourceResolvableInBothTests() throws Exception {
+  public void testMultiModuleSourceResolvableInBothTests() throws Exception {
     setFileContent("module2/src/main/java/MyClass.java", "class MyClass {}");
 
     String importString = "import MyC<caret>lass;";
@@ -117,12 +101,7 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
   }
 
   // Flaky test, reactivate when investigated (http://b.android.com/226541)
-  public void /*test*/MultiModuleAndroidSourceNotResolvableInTests() throws Exception {
-    if (SystemInfo.isWindows) {
-      // Do not run tests on Windows (see http://b.android.com/222904)
-      return;
-    }
-
+  public void testMultiModuleAndroidSourceNotResolvableInTests() throws Exception {
     setFileContent("module2/src/androidTest/java/MyClass.java", "class MyClass {}");
 
     String importString = "import MyC<caret>lass;";
@@ -135,12 +114,7 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
   }
 
   // Flaky test, reactivate when investigated (http://b.android.com/226541)
-  public void /*test*/MultiModuleUnitSourceNotResolvableInTests() throws Exception {
-    if (SystemInfo.isWindows) {
-      // Do not run tests on Windows (see http://b.android.com/222904)
-      return;
-    }
-
+  public void testMultiModuleUnitSourceNotResolvableInTests() throws Exception {
     setFileContent("module2/src/test/java/MyClass.java", "class MyClass {}");
 
     String importString = "import MyC<caret>lass;";

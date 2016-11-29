@@ -13,31 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.testartifacts.instrumented;
+package com.android.tools.idea.testartifacts;
 
-import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
+import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.util.SystemInfo;
 
-import static com.android.tools.idea.testartifacts.instrumented.TestConfigurationTesting.createAndroidTestConfiguration;
-import static com.android.tools.idea.testartifacts.instrumented.TestConfigurationTesting.createJUnitConfiguration;
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromDirectory;
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createJUnitConfigurationFromDirectory;
 
 /**
- * Tests for creation of test run configurations in Android Gradle projects
+ * Tests for eventual conflicts between {@link AndroidTestRunConfiguration} and {@link AndroidJUnitConfiguration}
  */
-public class CreateTestConfigurationTest extends AndroidGradleTestCase {
+public class AndroidTestAndJUnitConfigurationConflictsTest extends AndroidGradleTestCase {
   // See http://b.android.com/215255
   public void testConfigurationsAreDifferent() throws Exception {
     loadSimpleApplication();
-    TestArtifactSearchScopes.initializeScopes(getProject());
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
     }
 
-    RunConfiguration androidTestRunConfiguration = createAndroidTestConfiguration(getProject(), "app/src/androidTest/java");
-    RunConfiguration jUnitConfiguration = createJUnitConfiguration(getProject(), "app/src/test/java");
+    RunConfiguration androidTestRunConfiguration = createAndroidTestConfigurationFromDirectory(getProject(), "app/src/androidTest/java");
+    RunConfiguration jUnitConfiguration = createJUnitConfigurationFromDirectory(getProject(), "app/src/test/java");
 
     assertNotNull(jUnitConfiguration);
     assertNotNull(androidTestRunConfiguration);

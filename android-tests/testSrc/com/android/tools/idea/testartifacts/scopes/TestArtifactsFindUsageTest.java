@@ -33,26 +33,25 @@ public class TestArtifactsFindUsageTest extends TestArtifactsTestCase {
   private VirtualFile myAndroidTestFile;
 
   @Override
+  protected boolean shouldRunTest() {
+    // Do not run tests on Windows (see http://b.android.com/222904)
+    return !SystemInfo.isWindows && super.shouldRunTest();
+  }
+
+  @Override
   public void setUp() throws Exception {
     super.setUp();
     myUnitTestFile = setUnitTestFileContent("Test.java", USAGE_TEXT);
     myAndroidTestFile = setAndroidTestFileContent("AndroidTest.java", USAGE_TEXT);
   }
 
-  // Flaky test, reactivate when investigated (http://b.android.com/226541)
-  public void /*test*/FindUsagesInBothTests() throws Exception {
+  public void testFindUsagesInBothTests() throws Exception {
     setCommonFileContent("MyClass.java", CLASS_TEXT);
     Collection<UsageInfo> usages = myFixture.findUsages(myFixture.getElementAtCaret());
     assertSize(2, usages);
   }
 
-  // Flaky test, reactivate when investigated (http://b.android.com/226541)
-  public void /*test*/FindUsagesOnlyInUnitTest() throws Exception {
-    if (SystemInfo.isWindows) {
-      // Do not run tests on Windows (see http://b.android.com/222904)
-      return;
-    }
-
+  public void testFindUsagesOnlyInUnitTest() throws Exception {
     setUnitTestFileContent("MyClass.java", CLASS_TEXT);
     Collection<UsageInfo> usages = myFixture.findUsages(myFixture.getElementAtCaret());
 
@@ -62,13 +61,7 @@ public class TestArtifactsFindUsageTest extends TestArtifactsTestCase {
     assertEquals(myUnitTestFile, usage.getFile());
   }
 
-  // Flaky test, reactivate when investigated (http://b.android.com/226541)
-  public void /*test*/FindUsagesInOnlyAndroidTest() throws Exception {
-    if (SystemInfo.isWindows) {
-      // Do not run tests on Windows (see http://b.android.com/222904)
-      return;
-    }
-
+  public void testFindUsagesInOnlyAndroidTest() throws Exception {
     setAndroidTestFileContent("MyClass.java", CLASS_TEXT);
     Collection<UsageInfo> usages = myFixture.findUsages(myFixture.getElementAtCaret());
 
