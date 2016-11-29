@@ -95,7 +95,7 @@ public class MemoryObjectTreeNode implements MutableTreeNode {
   }
 
   public void add(@NotNull MemoryObjectTreeNode child) {
-    myChildren.add(child);
+    insert(child, myChildren.size());
   }
 
   @Override
