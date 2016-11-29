@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.post.cleanup;
 
 import com.android.tools.idea.gradle.project.sync.setup.module.SyncLibraryRegistry;
+import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanupStep;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.progress.ProgressIndicator;
