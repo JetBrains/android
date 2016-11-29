@@ -17,7 +17,7 @@ package com.android.tools.profilers.memory;
 
 public enum MemoryProfilerAspect {
   MEMORY_OBJECTS,
-
   CURRENT_DETAILED_CLASS,
+  LEGACY_ALLOCATION,
   CURRENT_DETAILED_INSTANCE
 }
