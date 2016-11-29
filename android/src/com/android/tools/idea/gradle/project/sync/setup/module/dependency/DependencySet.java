@@ -82,19 +82,6 @@ public class DependencySet {
     }
   }
 
-  /**
-   * Adds all the dependencies in other {@link DependencySet} to this
-   * @param other {@link DependencySet} to be added to this
-   */
-  public void addAll(DependencySet other) {
-    for (LibraryDependency libraryDependency : other.onLibraries()) {
-      add(libraryDependency);
-    }
-    for (ModuleDependency moduleDependency : other.onModules()) {
-      add(moduleDependency);
-    }
-  }
-
   private static boolean areSameArtifact(@NotNull LibraryDependency d1, @NotNull LibraryDependency d2) {
     Collection<String> binaryPaths1 = d1.getPaths(LibraryDependency.PathType.BINARY);
     Collection<String> binaryPaths2 = d2.getPaths(LibraryDependency.PathType.BINARY);
