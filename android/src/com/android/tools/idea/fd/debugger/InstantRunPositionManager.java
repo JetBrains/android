@@ -96,28 +96,38 @@ public class InstantRunPositionManager extends PositionManagerImpl {
       return file;
     }
 
-    // we only care about providing an alternate source for files inside the platform.
-    if (!AndroidFacet.isInAndroidSdk(file)) {
-      return file;
-    }
-
-    XDebugSession session = XDebuggerManager.getInstance(project).getCurrentSession();
-    if (session == null) {
-      return file;
-    }
-
-    String relPath = getRelPathFromSourceRoot(project, file);
-    if (relPath == null) {
-      return file;
-    }
-
-    AndroidVersion version = session.getDebugProcess().getProcessHandler().getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL);
+    AndroidVersion version = getAndroidVersionFromDebugSession(project);
     if (version == null) {
       return file;
     }
 
-    PsiFile source = getSourceForApiLevel(project, version, relPath);
+    PsiFile source = getApiSpecificPsi(project, file, version);
     return source == null ? file : source;
+  }
+
+  @Nullable
+  protected PsiFile getApiSpecificPsi(@NotNull Project project, @NotNull PsiFile file, @NotNull AndroidVersion version) {
+    // we only care about providing an alternate source for files inside the platform.
+    if (!AndroidFacet.isInAndroidSdk(file)) {
+      return null;
+    }
+
+    String relPath = getRelPathFromSourceRoot(project, file);
+    if (relPath == null) {
+      return null;
+    }
+
+    return getSourceForApiLevel(project, version, relPath);
+  }
+
+  @Nullable
+  private AndroidVersion getAndroidVersionFromDebugSession(@NotNull Project project) {
+    XDebugSession session = XDebuggerManager.getInstance(project).getCurrentSession();
+    if (session == null) {
+      return null;
+    }
+
+    return session.getDebugProcess().getProcessHandler().getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL);
   }
 
   @Nullable
@@ -154,7 +164,7 @@ public class InstantRunPositionManager extends PositionManagerImpl {
 
       DetailsTypes.ApiDetailsType details = (DetailsTypes.ApiDetailsType)typeDetails;
       AndroidVersion version = details.getAndroidVersion();
-      VirtualFile sourceFolder = VfsUtil.findFileByIoFile(sourcePackage.getLocation(), true);
+      VirtualFile sourceFolder = VfsUtil.findFileByIoFile(sourcePackage.getLocation(), false);
       if (sourceFolder != null && sourceFolder.isValid()) {
         sourcesByApi.put(version, sourceFolder);
       }
