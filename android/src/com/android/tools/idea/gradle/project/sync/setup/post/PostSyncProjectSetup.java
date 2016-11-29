@@ -26,8 +26,6 @@ import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibi
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
 import com.android.tools.idea.gradle.project.sync.setup.post.project.DisposedModules;
-import com.android.tools.idea.gradle.project.sync.setup.post.project.ProjectSetup;
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.PluginVersionUpgrade;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
