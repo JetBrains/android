@@ -1,13 +1,16 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
+    repositories {
+        // This will be populated by AndroidGradleTestCase
+    }
     dependencies {
         classpath 'com.android.tools.build:gradle:1.5.0'
     }
+}
+
+allprojects {
     repositories {
-        jcenter()
-        if (System.getenv("MAVEN_URL") != null) {
-            maven {url System.getenv("MAVEN_URL")}
-        }
+        // This will be populated by AndroidGradleTestCase
     }
 }
