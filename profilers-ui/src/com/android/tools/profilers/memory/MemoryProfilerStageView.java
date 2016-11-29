@@ -143,7 +143,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     RangedContinuousSeries codeSeries = new RangedContinuousSeries("Code", viewRange, leftYRange, monitor.getCodeMemory());
     RangedContinuousSeries otherSeries = new RangedContinuousSeries("Others", viewRange, leftYRange, monitor.getOthersMemory());
     RangedContinuousSeries totalSeries = new RangedContinuousSeries("Total", viewRange, leftYRange, monitor.getTotalMemory());
-    RangedContinuousSeries objectSeries = new RangedContinuousSeries("Objects", viewRange, rightYRange, monitor.getObjectCount());
+    RangedContinuousSeries objectSeries = new RangedContinuousSeries("Allocated", viewRange, rightYRange, monitor.getObjectCount());
 
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
