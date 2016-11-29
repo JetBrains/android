@@ -27,7 +27,6 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.testutils.TestUtils;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import junit.framework.TestCase;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -241,7 +240,7 @@ public class RepositoryUrlManagerTest extends TestCase {
 
   public void testResolvedCoordinateLocalFirst() throws Exception {
     RemotePackage pkg = new FakePackage.FakeRemotePackage("extras;m2repository;com;google;android;gms;play-services;4.5.0");
-    RepositoryPackages pkgs = new RepositoryPackages(ImmutableMap.of(), ImmutableMap.of(pkg.getPath(), pkg));
+    RepositoryPackages pkgs = new RepositoryPackages(ImmutableList.of(), ImmutableList.of(pkg));
     RepoManager mgr = new FakeRepoManager(pkgs);
     mySdkHandler = new AndroidSdkHandler(SDK_DIR, ANDROID_HOME, myFileOp, mgr);
     GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:4.+");
@@ -251,7 +250,7 @@ public class RepositoryUrlManagerTest extends TestCase {
 
   public void testResolvedCoordinateRemoteSdk() throws Exception {
     RemotePackage pkg = new FakePackage.FakeRemotePackage("extras;m2repository;com;google;android;gms;play-services;4.5.0");
-    RepositoryPackages pkgs = new RepositoryPackages(ImmutableMap.of(), ImmutableMap.of(pkg.getPath(), pkg));
+    RepositoryPackages pkgs = new RepositoryPackages(ImmutableList.of(), ImmutableList.of(pkg));
     RepoManager mgr = new FakeRepoManager(pkgs);
     mySdkHandler = new AndroidSdkHandler(new File("/emptysdk"), ANDROID_HOME, myFileOp, mgr);
     GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:4.+");
