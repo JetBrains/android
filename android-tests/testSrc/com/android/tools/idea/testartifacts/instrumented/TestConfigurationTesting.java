@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.testartifacts;
+package com.android.tools.idea.testartifacts.instrumented;
 
-import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.intellij.execution.Location;
 import com.intellij.execution.PsiLocation;
@@ -27,10 +26,8 @@ import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.MapDataContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,33 +40,13 @@ import static org.junit.Assert.assertNotNull;
  */
 public class TestConfigurationTesting {
   @Nullable
-  public static AndroidTestRunConfiguration createAndroidTestConfigurationFromClass(@NotNull Project project, @NotNull String qualifiedName) {
-    return createConfigurationFromClass(project, qualifiedName, AndroidTestRunConfiguration.class);
-  }
-
-  @Nullable
-  public static AndroidJUnitConfiguration createJUnitConfigurationFromClass(@NotNull Project project, @NotNull String qualifiedName) {
-    return createConfigurationFromClass(project, qualifiedName, AndroidJUnitConfiguration.class);
-  }
-
-  @Nullable
-  public static AndroidJUnitConfiguration createJUnitConfigurationFromDirectory(@NotNull Project project, @NotNull String directory) {
+  public static AndroidJUnitConfiguration createJUnitConfiguration(@NotNull Project project, @NotNull String directory) {
     return createConfigurationFromDirectory(project, directory, AndroidJUnitConfiguration.class);
   }
 
   @Nullable
-  public static AndroidTestRunConfiguration createAndroidTestConfigurationFromDirectory(@NotNull Project project, @NotNull String directory) {
+  public static AndroidTestRunConfiguration createAndroidTestConfiguration(@NotNull Project project, @NotNull String directory) {
     return createConfigurationFromDirectory(project, directory, AndroidTestRunConfiguration.class);
-  }
-
-  @Nullable
-  private static <T extends RunConfiguration> T createConfigurationFromClass(@NotNull Project project,
-                                                                             @NotNull String qualifiedName,
-                                                                             @NotNull Class<T> expectedType) {
-    PsiElement element = JavaPsiFacade.getInstance(project).findClass(qualifiedName, GlobalSearchScope.projectScope(project));
-    assertNotNull(element);
-    RunConfiguration runConfiguration = createConfigurationFromPsiElement(project, element);
-    return expectedType.isInstance(runConfiguration) ? expectedType.cast(runConfiguration) : null;
   }
 
   @Nullable
