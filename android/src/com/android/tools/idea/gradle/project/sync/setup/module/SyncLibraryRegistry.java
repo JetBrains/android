@@ -26,6 +26,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -38,6 +39,8 @@ public class SyncLibraryRegistry implements Disposable {
   @VisibleForTesting
   static final Key<SyncLibraryRegistry> KEY = Key.create("com.android.tools.gradle.sync.ProjectLibraryRegistry");
 
+  private static Factory ourFactory = new Factory();
+
   @Nullable private Project myProject;
 
   @NotNull private final Map<String, Library> myProjectLibrariesByName = new HashMap<>();
@@ -46,7 +49,7 @@ public class SyncLibraryRegistry implements Disposable {
   public static SyncLibraryRegistry getInstance(@NotNull Project project) {
     SyncLibraryRegistry registry = project.getUserData(KEY);
     if (registry == null || registry.isDisposed()) {
-      registry = new SyncLibraryRegistry(project);
+      registry = ourFactory.createNewInstance(project);
       project.putUserData(KEY, registry);
     }
     return registry;
@@ -118,9 +121,27 @@ public class SyncLibraryRegistry implements Disposable {
     myProjectLibrariesByName.clear();
   }
 
-  @VisibleForTesting
+  @TestOnly
   @NotNull
   Map<String, Library> getProjectLibrariesByName() {
     return myProjectLibrariesByName;
+  }
+
+  @TestOnly
+  public static void restoreFactory() {
+    setFactory(new Factory());
+  }
+
+  @TestOnly
+  public static void setFactory(@NotNull Factory factory) {
+    ourFactory = factory;
+  }
+
+  @VisibleForTesting
+  public static class Factory {
+    @NotNull
+    public SyncLibraryRegistry createNewInstance(@NotNull Project project) {
+      return new SyncLibraryRegistry(project);
+    }
   }
 }
