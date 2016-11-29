@@ -675,7 +675,7 @@
                     </constraints>
                     <properties>
                       <text value="Enable keyboard input"/>
-                      <toolTipText value="&lt;html&gt;Enables you to enter text input and interact with the AVD with your hardware computer keyboard instead of a of the on on-screen software keyboard.&lt;/html&gt;"/>
+                      <toolTipText value="&lt;html&gt;Lets you enter text and interact with the AVD using your hardware computer keyboard in addition to the on-screen soft keyboard.&lt;/html&gt;"/>
                     </properties>
                   </component>
                   <component id="893ba" class="javax.swing.JSeparator">
