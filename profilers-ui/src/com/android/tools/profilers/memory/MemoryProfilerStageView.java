@@ -25,7 +25,6 @@ import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
-import com.android.tools.adtui.model.DefaultDurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.RangedSeries;
@@ -43,8 +42,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -87,7 +84,11 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     backButton.addActionListener(action -> getStage().getStudioProfilers().setMonitoringStage());
 
     JToggleButton recordAllocationButton = new JToggleButton("Record");
-    recordAllocationButton.addActionListener(e -> getStage().setAllocationTracking(recordAllocationButton.isSelected()));
+    recordAllocationButton.setEnabled(true);
+    recordAllocationButton.addActionListener(e -> {
+      boolean result = getStage().trackAllocations(recordAllocationButton.isSelected());
+      recordAllocationButton.setSelected(result);
+    });
     toolBar.add(recordAllocationButton);
 
     JButton triggerHeapDumpButton = new JButton("Heap Dump");
@@ -161,33 +162,23 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, getStage().getHeapDumpSampleDurations()), Color.WHITE)
         .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
         .setIsBlocking(true)
-        .setLabelProvider(new Function<HeapDumpDurationData, String>() {
-          @Override
-          public String apply(HeapDumpDurationData data) {
-            return String
-              .format("Dump (%s)", TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true));
-          }
-        })
-        .setClickHander(new Consumer<HeapDumpDurationData>() {
-          @Override
-          public void accept(HeapDumpDurationData data) {
-            getStage().setFocusedHeapDump(data.getDumpInfo());
-          }
-        }).build();
-    DurationDataRenderer<DefaultDurationData> allocationRenderer =
-      new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, getStage().getAllocationDumpSampleDurations()), Color.WHITE)
+        .setLabelProvider(
+          data -> String.format("Dump (%s)", TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
+      .setClickHander(data -> getStage().setFocusedHeapDump(data.getDumpInfo()))
+      .build();
+    DurationDataRenderer<AllocationsDurationData> allocationRenderer =
+      new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, getStage().getAllocationInfosDurations()), Color.LIGHT_GRAY)
         .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
-        .setLabelProvider(new Function<DefaultDurationData, String>() {
-          @Override
-          public String apply(DefaultDurationData data) {
-            return String.format("Allocation Record (%s)",
-                                 TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true));
-          }
-        }).build();
+        .setStroke(new BasicStroke(2))
+        .setLabelProvider(data -> String
+          .format("Allocation Record (%s)", TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
+        .setClickHander(data -> getStage().setAllocationsTimeRange(data.getStartTimeNs(), data.getEndTimeNs()))
+        .build();
     DurationDataRenderer<GcDurationData> gcRenderer =
       new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, monitor.getGcCount()), Color.BLACK)
         .setLabelProvider(data -> data.toString())
-        .setAttachLineSeries(objectSeries).build();
+        .setAttachLineSeries(objectSeries)
+        .build();
 
     lineChart.addCustomRenderer(heapDumpRenderer);
     lineChart.addCustomRenderer(allocationRenderer);
@@ -268,9 +259,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   }
 
   private void detailsChanged() {
-    Range viewRange = getTimeline().getViewRange();
-    long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)viewRange.getMin());
-    long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)viewRange.getMax());
+    getTimeline().getSelectionRange();
     MemoryProfilerStage.MemoryProfilerSelection selection = getStage().getSelection();
 
     MemoryObjects heap = selection.getSelectedHeap();
@@ -278,7 +267,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       myClassView.reset();
       myChartClassesSplitter.setSecondComponent(null);
       if (heap != null) {
-        myChartClassesSplitter.setSecondComponent(myClassView.buildComponent(heap, rangeMin, rangeMax));
+        myChartClassesSplitter.setSecondComponent(myClassView.buildComponent(heap));
       }
     }
 
@@ -287,15 +276,11 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       myInstanceView.reset();
       myInstanceDetailsSplitter.setFirstComponent(null);
       if (klass != null) {
-        myInstanceDetailsSplitter.setFirstComponent(myInstanceView.buildComponent(klass, rangeMin, rangeMax));
+        myInstanceDetailsSplitter.setFirstComponent(myInstanceView.buildComponent(klass));
       }
     }
 
     // TODO setup instance detail view.
-  }
-
-  private void rangeSelected() {
-
   }
 
   static class CapabilityColumn {
