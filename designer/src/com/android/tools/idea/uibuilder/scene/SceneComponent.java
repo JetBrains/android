@@ -18,6 +18,9 @@ package com.android.tools.idea.uibuilder.scene;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
+import com.android.tools.idea.uibuilder.scene.target.ResizeTarget;
+import com.android.tools.idea.uibuilder.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
