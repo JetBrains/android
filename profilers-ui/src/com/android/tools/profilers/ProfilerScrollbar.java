@@ -91,6 +91,7 @@ public final class ProfilerScrollbar extends JBScrollBar implements Animatable {
         }
 
         myTimeline.setStreaming(false);
+        myTimeline.setCanStream(false);
         myScrolling = true;
       }
 
@@ -101,6 +102,7 @@ public final class ProfilerScrollbar extends JBScrollBar implements Animatable {
         }
 
         myScrolling = false;
+        myTimeline.setCanStream(true);
       }
     });
 
@@ -145,7 +147,7 @@ public final class ProfilerScrollbar extends JBScrollBar implements Animatable {
     // Change back to streaming mode as needed
     // Note: isCloseToMax() checks for pixel proximity which relies on the scrollbar's dimension, which is why this code snippet
     // is here instead of animate/postAnimate - we wouldn't get the most current size in those places.
-    if (!myTimeline.getStreaming() && isCloseToMax() && myTimeline.getStreamLockCount() == 0) {
+    if (!myTimeline.isStreaming() && isCloseToMax() && myTimeline.canStream()) {
       myTimeline.setStreaming(true);
     }
   }

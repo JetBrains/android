@@ -35,7 +35,7 @@ public final class AnimatedTimeline implements Animatable {
 
   @Override
   public void animate(float frameLength) {
-    if (!myTimeline.getStreaming()) {
+    if (!myTimeline.isStreaming()) {
       return;
     }
 
