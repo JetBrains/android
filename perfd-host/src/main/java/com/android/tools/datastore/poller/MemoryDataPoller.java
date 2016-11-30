@@ -164,7 +164,7 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
         .trackAllocations(TrackAllocationsRequest.newBuilder().setAppId(myProcessId).setEnabled(request.getEnabled()).build());
       if (response.getStatus() == SUCCESS) {
         myLegacyAllocationTrackingService
-          .setAllocationTracking(myProcessId, response.getTimestamp(), request.getEnabled(), (classes, stacks, allocations) -> {
+          .trackAllocations(myProcessId, response.getTimestamp(), request.getEnabled(), (classes, stacks, allocations) -> {
             synchronized (myUpdatingDataLock) {
               classes.forEach(allocatedClass -> myAllocatedClasses.putIfAbsent(allocatedClass.getClassName(), allocatedClass));
               stacks.forEach(allocationStack -> myAllocationStacks.putIfAbsent(allocationStack.getStackId(), allocationStack));
