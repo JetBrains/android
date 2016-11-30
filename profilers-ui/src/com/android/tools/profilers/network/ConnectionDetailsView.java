@@ -101,8 +101,8 @@ public class ConnectionDetailsView extends JPanel {
         // TODO: Find proper project to refactor this.
         Project project = ProjectManager.getInstance().getDefaultProject();
         // TODO: Investigate when the editor provider is null.
-        FileEditorProvider editorProvider = FileEditorProviderManager.getInstance().getProviders(project, payloadVirtualFile)[0];
-        FileEditor editor = editorProvider != null ? editorProvider.createEditor(project, payloadVirtualFile) : null;
+        FileEditorProvider[] editorProviders = FileEditorProviderManager.getInstance().getProviders(project, payloadVirtualFile);
+        FileEditor editor = editorProviders.length > 0 ? editorProviders[0].createEditor(project, payloadVirtualFile) : null;
         if (editor != null) {
           myEditorPanel.add(editor.getComponent(), BorderLayout.CENTER);
         }
