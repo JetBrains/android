@@ -63,7 +63,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private MemoryInstanceView myInstanceView = new MemoryInstanceView(getStage());
 
   @NotNull private Splitter myChartClassesSplitter = new Splitter(true);
-  @NotNull private Splitter myInstanceDetailsSplitter = new Splitter(true);
+  @NotNull private Splitter myInstanceDetailsSplitter = new Splitter(false);
+  @NotNull private JButton myAllocationButton;
 
   public MemoryProfilerStageView(@NotNull MemoryProfilerStage stage) {
     super(stage);
@@ -76,34 +77,39 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     getComponent().add(mainSplitter, BorderLayout.CENTER);
     detailsChanged();
 
+    myAllocationButton = new JButton("Record");
+    myAllocationButton.addActionListener(e -> getStage().trackAllocations(!getStage().isTrackingAllocations()));
+
     getStage().getAspect().addDependency()
       .setExecutor(ApplicationManager.getApplication()::invokeLater)
-      .onChange(MemoryProfilerAspect.MEMORY_OBJECTS, this::detailsChanged);
+      .onChange(MemoryProfilerAspect.MEMORY_OBJECTS, this::detailsChanged)
+      .onChange(MemoryProfilerAspect.LEGACY_ALLOCATION, this::legacyAllocationChanged);
+
+    legacyAllocationChanged();
   }
 
   @Override
   public JComponent getToolbar() {
-    JToolBar toolBar = new JToolBar();
-    toolBar.setFloatable(false);
 
     JButton backButton = new JButton();
-    backButton.setIcon(AllIcons.Actions.Back);
-    toolBar.add(backButton);
     backButton.addActionListener(action -> getStage().getStudioProfilers().setMonitoringStage());
+    backButton.setIcon(AllIcons.Actions.Back);
 
-    JToggleButton recordAllocationButton = new JToggleButton("Record");
-    recordAllocationButton.setEnabled(true);
-    recordAllocationButton.addActionListener(e -> {
-      boolean result = getStage().trackAllocations(recordAllocationButton.isSelected());
-      recordAllocationButton.setSelected(result);
-    });
-    toolBar.add(recordAllocationButton);
+    JToolBar toolBar = new JToolBar();
+    toolBar.setFloatable(false);
+    toolBar.add(backButton);
+    toolBar.add(myAllocationButton);
 
     JButton triggerHeapDumpButton = new JButton("Heap Dump");
     triggerHeapDumpButton.addActionListener(e -> getStage().requestHeapDump());
     toolBar.add(triggerHeapDumpButton);
 
     return toolBar;
+  }
+
+  private void legacyAllocationChanged() {
+    //TODO enable/disable hprof/allocation if they cannot be performed
+    myAllocationButton.setText(getStage().isTrackingAllocations() ? "Stop" : "Record");
   }
 
   @NotNull
