@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.tools.idea.rendering.ImagePool;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.idea.rendering.RenderResult;
 import com.intellij.util.ui.UIUtil;
@@ -29,7 +30,7 @@ import java.awt.image.BufferedImage;
 public class ScreenViewLayer extends Layer {
   private final ScreenView myScreenView;
   /** The source image we scaled from */
-  @Nullable private BufferedImage myImage;
+  @Nullable private ImagePool.Image myImage;
   /** Cached scaled image */
   @Nullable private BufferedImage myScaledImage;
   /** Cached last render result */
@@ -66,22 +67,22 @@ public class ScreenViewLayer extends Layer {
     return ImageUtils.convertToRetina(original);
   }
 
-  private void setNewImage(@NotNull BufferedImage newImage, double newScale) {
+  private void setNewImage(@NotNull ImagePool.Image newImage, double newScale) {
     myCachedScale = newScale;
     myImage = newImage;
     myScaledImage = null;
     boolean fastScaling = myScreenView.getSurface().isCanvasResizing(); // Fast scaling if in the middle of resizing
 
     if (UIUtil.isRetina() && ImageUtils.supportsRetina()) {
-      myScaledImage = getRetinaScaledImage(newImage, newScale, fastScaling);
+      myScaledImage = getRetinaScaledImage(newImage.getCopy(), newScale, fastScaling);
     }
     if (myScaledImage == null) {
       // Fallback to normal scaling
       if (fastScaling) {
-        myScaledImage = ImageUtils.lowQualityFastScale(newImage, newScale, newScale);
+        myScaledImage = ImageUtils.lowQualityFastScale(newImage.getCopy(), newScale, newScale);
       }
       else {
-        myScaledImage = ImageUtils.scale(newImage, newScale, newScale);
+        myScaledImage = ImageUtils.scale(newImage.getCopy(), newScale, newScale);
       }
     }
   }
@@ -97,7 +98,7 @@ public class ScreenViewLayer extends Layer {
     }
 
     RenderResult renderResult = myScreenView.getModel().getRenderResult();
-    if (renderResult != null && renderResult.getRenderedImage() != null && renderResult != myLastRenderResult) {
+    if (renderResult != null && renderResult.hasImage() && renderResult != myLastRenderResult) {
       myLastRenderResult = renderResult;
       myImage = renderResult.getRenderedImage();
       myScaledImage = null;
