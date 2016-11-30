@@ -23,13 +23,10 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestMessagesDialog;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.io.FileUtil;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.SdkConstants.RECYCLER_VIEW_LIB_ARTIFACT;
 import static com.android.tools.idea.testing.TestProjectPaths.SPLIT_BUILD_FILES;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -58,7 +55,8 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     assertEquals(DUMMY_DEPENDENCY, missingDependencies.get(0));
   }
 
-  public void testDependencyAarIsExplodedForLayoutLib() throws Exception {
+  @SuppressWarnings("unused")
+  public void ignore_testDependencyAarIsExplodedForLayoutLib() throws Exception {
     loadSimpleApplication();
     List<GradleCoordinate> dependencies = Collections.singletonList(RECYCLER_VIEW_DEPENDENCY);
     GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
