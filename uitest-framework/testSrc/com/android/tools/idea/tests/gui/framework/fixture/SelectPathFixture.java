@@ -4,6 +4,8 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiActionRunner;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +46,14 @@ public class SelectPathFixture implements ContainerFixture<JDialog> {
 
   @NotNull
   public IdeFrameFixture clickOK() {
-    GuiTests.findAndClickOkButton(this);
+    JButton button = GuiTests.waitUntilShowingAndEnabled(myRobot, myDialog, Matchers.byText(JButton.class, "OK"));
+    // Click the "OK" button pragmatically to eliminate the flakiness due to a possible click miss.
+    GuiActionRunner.execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        button.doClick();
+      }
+    });
     Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
     return myIdeFrameFixture;
   }
