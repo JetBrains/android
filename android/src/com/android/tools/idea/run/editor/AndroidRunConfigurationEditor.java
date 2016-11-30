@@ -33,13 +33,13 @@ import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.options.ex.ConfigurableCardPanel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.PanelWithAnchor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
-import com.intellij.util.NotNullProducer;
 import com.intellij.util.ui.PlatformColors;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -48,7 +48,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
@@ -88,6 +87,8 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private final AndroidProfilersPanel myAndroidProfilersPanel;
 
   public AndroidRunConfigurationEditor(final Project project, final Predicate<AndroidFacet> libraryProjectValidator, T config) {
+    Disposer.register(project, this);
+
     myModuleSelector = new ConfigurationModuleSelector(project, myModulesComboBox) {
       @Override
       public boolean isModuleAccepted(Module module) {
@@ -231,13 +232,8 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   }
 
   private void createUIComponents() {
-    myOldVersionLabel = new HyperlinkLabel("", JBColor.RED, new JBColor(new NotNullProducer<Color>() {
-      @NotNull
-      @Override
-      public Color produce() {
-        return UIUtil.getLabelBackground();
-      }
-    }), PlatformColors.BLUE);
+    // JBColor keeps a strong reference to its parameter func, so, using a lambda avoids this reference and fixes a leak
+    myOldVersionLabel = new HyperlinkLabel("", JBColor.RED, new JBColor(UIUtil::getLabelBackground), PlatformColors.BLUE);
 
     setSyncLinkMessage("");
     myOldVersionLabel.addHyperlinkListener(this);
