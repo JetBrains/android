@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.scene;
+package com.android.tools.idea.uibuilder.scene.target;
 
+import com.android.tools.idea.uibuilder.scene.DisplayList;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.ScenePicker;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-interface Target {
+public interface Target {
   int getPreferenceLevel();
   boolean layout(int l, int t, int r, int b);
   void addHit(@NotNull ScenePicker picker);
