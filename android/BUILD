@@ -94,11 +94,9 @@ iml_module(
         "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/studio/sdk:build-tools/25.0.0",  # TODO: remove after build-tools update in tools/base/bazel/sdk/prebuilts.studio.sdk.BUILD
         "//prebuilts/studio/sdk:build-tools/latest",
-        "//prebuilts/studio/sdk:constraint-layout_latest",
         "//prebuilts/studio/sdk:licenses",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:support_latest",
-        "//prebuilts/tools/common/m2/repository/com/google/code/gson/gson/2.2.4:jar",
         "//prebuilts/tools/common/m2/repository/com/google/guava/guava/18.0",
         "//prebuilts/tools/common/offline-m2:android-gradle-2.2.0",
         "//tools/adt/idea/android/annotations",
