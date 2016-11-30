@@ -46,10 +46,15 @@ public class ScreenViewLayer extends Layer {
   }
 
   @Nullable
-  private static BufferedImage getRetinaScaledImage(@NotNull BufferedImage original, double scale, boolean fastScaling) {
+  private static BufferedImage getRetinaScaledImage(@NotNull ImagePool.Image pooledImage, double scale, boolean fastScaling) {
     if (scale > 1.01) {
       // When scaling up significantly, use normal painting logic; no need to pixel double into a
       // double res image buffer!
+      return null;
+    }
+
+    BufferedImage original = pooledImage.getCopy();
+    if (original == null) {
       return null;
     }
 
@@ -74,15 +79,20 @@ public class ScreenViewLayer extends Layer {
     boolean fastScaling = myScreenView.getSurface().isCanvasResizing(); // Fast scaling if in the middle of resizing
 
     if (UIUtil.isRetina() && ImageUtils.supportsRetina()) {
-      myScaledImage = getRetinaScaledImage(newImage.getCopy(), newScale, fastScaling);
+      myScaledImage = getRetinaScaledImage(newImage, newScale, fastScaling);
     }
     if (myScaledImage == null) {
+      BufferedImage copy = newImage.getCopy();
+      if (copy == null) {
+        return;
+      }
+
       // Fallback to normal scaling
       if (fastScaling) {
-        myScaledImage = ImageUtils.lowQualityFastScale(newImage.getCopy(), newScale, newScale);
+        myScaledImage = ImageUtils.lowQualityFastScale(copy, newScale, newScale);
       }
       else {
-        myScaledImage = ImageUtils.scale(newImage.getCopy(), newScale, newScale);
+        myScaledImage = ImageUtils.scale(copy, newScale, newScale);
       }
     }
   }
