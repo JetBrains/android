@@ -72,6 +72,14 @@ public class AnchorTarget extends ConstraintTarget {
     myExpandArea = expand;
   }
 
+  public boolean isHorizontalAnchor() {
+    return myType == Type.LEFT || myType == Type.RIGHT;
+  }
+
+  public boolean isVerticalAnchor() {
+    return myType == Type.TOP || myType == Type.BOTTOM || myType == Type.BASELINE;
+  }
+
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region Layout
@@ -159,6 +167,9 @@ public class AnchorTarget extends ConstraintTarget {
 
   @Override
   public void render(@NotNull DisplayList list) {
+    if (!myComponent.getScene().allowsTarget(this)) {
+      return;
+    }
     list.addRect(myLeft, myTop, myRight, myBottom, mIsOver ? Color.yellow : Color.green);
     if (myLastX != -1 && myLastY != -1) {
       int x = myLeft + (myRight - myLeft) / 2;

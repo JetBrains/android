@@ -58,7 +58,7 @@ public class ScreenView {
     myModel = model;
 
     if (!ConstraintModel.USE_SOLVER) {
-      myScene = Scene.createScene(myModel);
+      myScene = Scene.createScene(myModel, this);
     }
 
     myModel.getSelectionModel().addListener(new SelectionListener() {
