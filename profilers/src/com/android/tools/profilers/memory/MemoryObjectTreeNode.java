@@ -31,6 +31,7 @@ package com.android.tools.profilers.memory;
  * limitations under the License.
  */
 
+import com.android.tools.profilers.memory.adapters.MemoryObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,16 +44,16 @@ import java.util.*;
  * TODO we should merge this with what's used in the current studio allocation view once we finalize on the device data structure.
  * e.g. {@link com.android.tools.idea.editors.allocations.nodes.AllocNode}
  */
-public class MemoryObjectTreeNode implements MutableTreeNode {
-  @Nullable protected MemoryObjectTreeNode myParent;
+public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTreeNode {
+  @Nullable protected MemoryObjectTreeNode<T> myParent;
 
-  @Nullable private Comparator<MemoryObjectTreeNode> myComparator = null;
+  @Nullable private Comparator<MemoryObjectTreeNode<T>> myComparator = null;
 
-  @NotNull private List<MemoryObjectTreeNode> myChildren = new ArrayList<>();
+  @NotNull private List<MemoryObjectTreeNode<T>> myChildren = new ArrayList<>();
 
-  private final MemoryNode myAdapter;
+  @NotNull private final T myAdapter;
 
-  public MemoryObjectTreeNode(@NotNull MemoryNode adapter) {
+  public MemoryObjectTreeNode(@NotNull T adapter) {
     myAdapter = adapter;
   }
 
@@ -131,7 +132,8 @@ public class MemoryObjectTreeNode implements MutableTreeNode {
     throw new RuntimeException("Not implemented, use setData/getAdapter instead.");
   }
 
-  public MemoryNode getAdapter() {
+  @NotNull
+  public T getAdapter() {
     return myAdapter;
   }
 
@@ -146,11 +148,11 @@ public class MemoryObjectTreeNode implements MutableTreeNode {
   public void setParent(@Nullable MutableTreeNode newParent) {
     removeFromParent();
     if (newParent instanceof MemoryObjectTreeNode) {
-      myParent = (MemoryObjectTreeNode)newParent;
+      myParent = (MemoryObjectTreeNode<T>)newParent;
     }
   }
 
-  public void sort(@NotNull Comparator<MemoryObjectTreeNode> comparator) {
+  public void sort(@NotNull Comparator<MemoryObjectTreeNode<T>> comparator) {
     assert myParent == null;
     myComparator = comparator;
     ensureOrder();

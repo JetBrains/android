@@ -13,20 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.memory;
+package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.perflib.heap.*;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
-class InstanceNode implements MemoryNode {
+/**
+ * A UI representation of a {@link ClassInstance}.
+ */
+public class HeapDumpInstanceObject extends InstanceObject {
   @NotNull private final Instance myInstance;
 
-  public InstanceNode(@NotNull Instance instance) {
+  public HeapDumpInstanceObject(@NotNull Instance instance) {
     myInstance = instance;
   }
 
@@ -52,14 +55,14 @@ class InstanceNode implements MemoryNode {
     return myInstance.getTotalRetainedSize();
   }
 
-  @NotNull
+  @Nullable
   @Override
-  public List<MemoryNode> getSubList() {
-    List<MemoryNode> sublist = new ArrayList<>();
+  public List<FieldObject> getFields() {
+    List<FieldObject> sublist = new ArrayList<>();
     if (myInstance instanceof ClassInstance) {
       ClassInstance classInstance = (ClassInstance)myInstance;
       for (ClassInstance.FieldValue field : classInstance.getValues()) {
-        sublist.add(new FieldNode(field));
+        sublist.add(new HeapDumpFieldObject(field));
       }
     }
     else if (myInstance instanceof ArrayInstance) {
@@ -67,7 +70,7 @@ class InstanceNode implements MemoryNode {
       Type arrayType = arrayInstance.getArrayType();
       int arrayIndex = 0;
       for (Object value : arrayInstance.getValues()) {
-        sublist.add(new FieldNode(new ClassInstance.FieldValue(new Field(arrayType, Integer.toString(arrayIndex)), value)));
+        sublist.add(new HeapDumpFieldObject(new ClassInstance.FieldValue(new Field(arrayType, Integer.toString(arrayIndex)), value)));
         arrayIndex++;
       }
     }
@@ -75,9 +78,17 @@ class InstanceNode implements MemoryNode {
     return sublist;
   }
 
-  @NotNull
+  @Nullable
   @Override
-  public List<Capability> getCapabilities() {
-    return Arrays.asList(Capability.LABEL, Capability.DEPTH, Capability.SHALLOW_SIZE, Capability.RETAINED_SIZE);
+  public AllocationStack getCallStack() {
+    AllocationStack.Builder builder = AllocationStack.newBuilder();
+    for (StackFrame stackFrame : myInstance.getStack().getFrames()) {
+      String fileName = stackFrame.getFilename();
+      String guessedClassName = fileName.endsWith(".java") ? fileName.substring(0, fileName.length() - ".java".length()) : fileName;
+      builder.addStackFrames(
+        AllocationStack.StackFrame.newBuilder().setClassName(guessedClassName).setMethodName(stackFrame.getMethodName())
+          .setLineNumber(stackFrame.getLineNumber()).setFileName(fileName).build());
+    }
+    return builder.build();
   }
 }
