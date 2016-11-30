@@ -38,10 +38,12 @@ import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.ShutDownTracker;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlTag;
@@ -69,7 +71,7 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
  * The {@link RenderService} provides rendering and layout information for
  * Android layouts. This is a wrapper around the layout library.
  */
-public class RenderService {
+public class RenderService implements Disposable {
   public static final boolean NELE_ENABLED = true;
 
   /** Number of ms that we will wait for the rendering thread to return before timing out */
@@ -106,8 +108,11 @@ public class RenderService {
 
   private final Object myCredential = new Object();
 
+  private final ImagePool myImagePool = new ImagePool();
+
   public RenderService(@NotNull AndroidFacet facet) {
     myFacet = facet;
+    Disposer.register(facet, this);
   }
 
   /**
@@ -238,7 +243,7 @@ public class RenderService {
     }
 
     try {
-      RenderTask task = new RenderTask(this, configuration, logger, layoutLib, device, myCredential, CrashReporter.getInstance());
+      RenderTask task = new RenderTask(this, configuration, logger, layoutLib, device, myCredential, CrashReporter.getInstance(), myImagePool);
       if (psiFile != null) {
         task.setPsiFile(psiFile);
       }
@@ -499,4 +504,9 @@ public class RenderService {
    * quite a long way compared to the current relevant screen pixel ranges.
    */
   private static final int MAX_MAGNITUDE = 1 << (MEASURE_SPEC_MODE_SHIFT - 5);
+
+  @Override
+  public void dispose() {
+    myImagePool.dispose();
+  }
 }
