@@ -56,6 +56,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+import java.util.Objects;
 
 public class PTable extends JBTable implements DataProvider, DeleteProvider, CutProvider, CopyProvider, PasteProvider {
   private final PNameRenderer myNameRenderer = new PNameRenderer();
@@ -266,8 +267,31 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
     return preferredComponent;
   }
 
+  public void restoreSelection(int previousSelectedRow, @Nullable PTableItem previousSelectedItem) {
+    int selectedRow = 0;
+    if (previousSelectedItem != null) {
+      PTableItem item =
+        previousSelectedRow >= 0 && previousSelectedRow < getRowCount() ? (PTableItem)getValueAt(previousSelectedRow, 0) : null;
+      if (Objects.equals(item, previousSelectedItem)) {
+        selectedRow = previousSelectedRow;
+      }
+      else {
+        for (int row = 0; row < getRowCount(); row++) {
+          item = (PTableItem)getValueAt(row, 0);
+          if (item.equals(previousSelectedItem)) {
+            selectedRow = row;
+            break;
+          }
+        }
+      }
+    }
+    if (selectedRow < getRowCount()) {
+      addRowSelectionInterval(selectedRow, selectedRow);
+    }
+  }
+
   @Nullable
-  private PTableItem getSelectedItem() {
+  public PTableItem getSelectedItem() {
     int selectedRow = getSelectedRow();
     if (isEditing() || selectedRow == -1) {
       return null;

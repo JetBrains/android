@@ -43,6 +43,7 @@ import icons.AndroidIcons;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
@@ -130,6 +131,8 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   }
 
   public void setFilter(@NotNull String filter) {
+    int selectedRow = myTable.getSelectedRow();
+    PTableItem selectedItem = myTable.getSelectedItem();
     if (filter.isEmpty()) {
       myTable.setRowSorter(null);
     }
@@ -140,6 +143,8 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
       myRowSorter.setSortKeys(null);
       myTable.setRowSorter(myRowSorter);
     }
+    myTable.restoreSelection(selectedRow, selectedItem);
+
     myInspectorPanel.setFilter(filter);
   }
 
@@ -168,9 +173,13 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     if (myTable.isEditing()) {
       myTable.removeEditor();
     }
+
+    int selectedRow = myTable.getSelectedRow();
+    PTableItem selectedItem = myTable.getSelectedItem();
+
     myModel.setItems(groupedProperties);
     if (myTable.getRowCount() > 0) {
-      myTable.addRowSelectionInterval(0, 0);
+      myTable.restoreSelection(selectedRow, selectedItem);
     }
 
     updateDefaultProperties(propertiesManager);
@@ -366,6 +375,11 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
 
   @Override
   public void performPaste(@NotNull DataContext dataContext) {
+  }
+
+  @TestOnly
+  public PTable getTable() {
+    return myTable;
   }
 
   @VisibleForTesting
