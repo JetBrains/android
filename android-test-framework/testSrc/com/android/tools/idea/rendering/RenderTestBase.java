@@ -103,7 +103,7 @@ public abstract class RenderTestBase extends AndroidTestCase {
     Result renderResult = result.getRenderResult();
     assertEquals(String.format("Render failed with message: %s\n%s", renderResult.getErrorMessage(), renderResult.getException()),
                  Result.Status.SUCCESS, result.getRenderResult().getStatus());
-    BufferedImage image = result.getRenderedImage();
+    BufferedImage image = result.getRenderedImage().getCopy();
     assertNotNull(image);
     double scale = Math.min(1, Math.min(200 / ((double)image.getWidth()), 200 / ((double)image.getHeight())));
     if (UIUtil.isAppleRetina()) {

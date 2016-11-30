@@ -612,8 +612,17 @@ public class AppBarConfigurationDialog extends JDialog {
       result = task.render();
       task.dispose();
     }
-    BufferedImage image = result != null ? result.getRenderedImage() : null;
-    return image != null && image.getHeight() >= MIN_HEIGHT && image.getWidth() >= MIN_WIDTH ? image : null;
+
+    if (result == null || !result.hasImage()) {
+      return null;
+    }
+
+    ImagePool.Image image = result.getRenderedImage();
+    if (image.getWidth() < MIN_WIDTH || image.getHeight() < MIN_HEIGHT) {
+      return null;
+    }
+
+    return result.getRenderedImage().getCopy();
   }
 
   private void updatePreviewImage(@Nullable BufferedImage image, @NotNull JBLabel view) {
