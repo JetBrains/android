@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.scene;
+package com.android.tools.idea.uibuilder.scene.target;
 
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
@@ -22,10 +22,10 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.*;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,27 +36,11 @@ import java.util.ArrayList;
 /**
  * Implements a target allowing dragging a widget for the ConstraintLayout viewgroup
  */
-public class DragTarget extends ConstraintTarget implements Target {
+public class DragTarget extends ConstraintTarget {
 
-  private int myLeft = 0;
-  private int myTop = 0;
-  private int myRight = 0;
-  private int myBottom = 0;
-
-  private boolean mIsOver = false;
   private int mOffsetX;
   private int mOffsetY;
 
-  /////////////////////////////////////////////////////////////////////////////
-  //region Accessors
-  /////////////////////////////////////////////////////////////////////////////
-
-  @Override
-  public void setOver(boolean over) {
-    mIsOver = over;
-  }
-
-  //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region Layout
   /////////////////////////////////////////////////////////////////////////////
@@ -251,12 +235,6 @@ public class DragTarget extends ConstraintTarget implements Target {
   @Override
   public int getPreferenceLevel() {
     return 0;
-  }
-
-  @Override
-  public void addHit(@NotNull ScenePicker picker) {
-    mIsOver = false;
-    picker.addRect(this, 0, myLeft, myTop, myRight, myBottom);
   }
 
   @Override
