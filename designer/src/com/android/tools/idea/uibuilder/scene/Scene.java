@@ -19,12 +19,17 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
+import com.android.tools.idea.uibuilder.scene.target.DragTarget;
+import com.android.tools.idea.uibuilder.scene.target.ResizeTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -34,8 +39,9 @@ import java.util.List;
  * of the widgets being layed out. Multiple NlModel can be used to populate
  * a Scene.
  */
-public class Scene implements ModelListener {
+public class Scene implements ModelListener, SelectionListener {
 
+  private final ScreenView myScreenView;
   private NlModel myModel;
   private float myDpiFactor;
   private HashMap<NlComponent, SceneComponent> mySceneComponents = new HashMap<>();
@@ -56,15 +62,20 @@ public class Scene implements ModelListener {
   private HitListener myHitListener = new HitListener();
   private Target mHitTarget = null;
 
+  private enum FilterType {ALL, ANCHOR, VERTICAL_ANCHOR, HORIZONTAL_ANCHOR, NONE, RESIZE}
+
+  private FilterType myFilterTarget = FilterType.NONE;
+
   /**
    * Helper static function to create a Scene instance given a NlModel
    *
-   * @param model the NlModel instance used to populate the Scene
+   * @param model      the NlModel instance used to populate the Scene
+   * @param screenView
    * @return a newly initialized Scene instance populated using the given NlModel
    */
-  public static Scene createScene(@NotNull NlModel model) {
+  public static Scene createScene(@NotNull NlModel model, ScreenView screenView) {
     int dpiFactor = model.getConfiguration().getDensity().getDpiValue();
-    Scene scene = new Scene(dpiFactor / 160f);
+    Scene scene = new Scene(screenView, dpiFactor / 160f);
     scene.add(model);
     return scene;
   }
@@ -72,10 +83,15 @@ public class Scene implements ModelListener {
   /**
    * Default constructor
    *
+   * @param screenView
    * @param dpiFactor
    */
   @VisibleForTesting
-  Scene(float dpiFactor) {
+  Scene(ScreenView screenView, float dpiFactor) {
+    myScreenView = screenView;
+    if (myScreenView != null) {
+      myScreenView.getSelectionModel().addListener(this);
+    }
     myDpiFactor = dpiFactor;
   }
 
@@ -110,9 +126,12 @@ public class Scene implements ModelListener {
 
   /**
    * Set the current dpi factor
+   *
    * @param dpiFactor
    */
-  public void setDpiFactor(float dpiFactor) { myDpiFactor = dpiFactor; }
+  public void setDpiFactor(float dpiFactor) {
+    myDpiFactor = dpiFactor;
+  }
 
   /**
    * Return the current animation status
@@ -183,10 +202,16 @@ public class Scene implements ModelListener {
       return;
     }
     NlComponent rootComponent = components.get(0).getRoot();
+    myAnimate = false;
     myRoot = updateFromComponent(rootComponent);
+    myAnimate = true;
     addTargets(myRoot);
     model.addListener(this);
     myModel = model;
+    // let's make sure the selection is correct
+    if (myScreenView != null) {
+      selectionChanged(myScreenView.getSelectionModel(), myScreenView.getSelectionModel().getSelection());
+    }
   }
 
   /**
@@ -262,7 +287,7 @@ public class Scene implements ModelListener {
   private void addTargets(@NotNull SceneComponent component) {
     ViewHandler handler = component.getNlComponent().getViewHandler();
     if (handler instanceof ViewGroupHandler) {
-      ViewGroupHandler viewGroupHandler = (ViewGroupHandler) handler;
+      ViewGroupHandler viewGroupHandler = (ViewGroupHandler)handler;
       if (component.getViewGroupHandler() != viewGroupHandler) {
         component.setViewGroupHandler(viewGroupHandler, true);
       }
@@ -273,6 +298,18 @@ public class Scene implements ModelListener {
           child.setViewGroupHandler(viewGroupHandler, false);
         }
       }
+    }
+  }
+
+  //endregion
+  /////////////////////////////////////////////////////////////////////////////
+  //region SelectionModel listener callback
+  /////////////////////////////////////////////////////////////////////////////
+
+  @Override
+  public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
+    if (myRoot != null) {
+      myRoot.markSelection(selection);
     }
   }
 
@@ -329,6 +366,55 @@ public class Scene implements ModelListener {
     return needsRepaint;
   }
 
+  /**
+   * Select the given component
+   *
+   * @param component
+   */
+  public void select(SceneComponent component) {
+    if (myScreenView != null) {
+      myScreenView.getSelectionModel().clear();
+      myScreenView.getSelectionModel().setSelection(Collections.singletonList(component.getNlComponent()));
+    }
+  }
+
+  /**
+   * Decides which target type we should display
+   *
+   * @param target
+   * @return true if the target will be displayed
+   */
+  public boolean allowsTarget(Target target) {
+    SceneComponent component = target.getComponent();
+    if (component.isSelected()) {
+      return true;
+    }
+    if (target instanceof AnchorTarget) {
+      AnchorTarget anchor = (AnchorTarget)target;
+      if (myFilterTarget == FilterType.VERTICAL_ANCHOR
+          && anchor.isVerticalAnchor()) {
+        return true;
+      }
+      if (myFilterTarget == FilterType.HORIZONTAL_ANCHOR
+          && anchor.isHorizontalAnchor()) {
+        return true;
+      }
+      if (myFilterTarget == FilterType.ANCHOR) {
+        return true;
+      }
+    }
+    if (myFilterTarget == FilterType.RESIZE && target instanceof ResizeTarget) {
+      return true;
+    }
+    if (target instanceof DragTarget) {
+      return true;
+    }
+    if (myFilterTarget == FilterType.ALL) {
+      return true;
+    }
+    return false;
+  }
+
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region Mouse Handling
@@ -363,14 +449,15 @@ public class Scene implements ModelListener {
     @Override
     public void over(Object over, double dist) {
       if (over instanceof Target) {
-        Target target = (Target) over;
+        Target target = (Target)over;
         if (dist <= myClosestTargetDistance && target.getPreferenceLevel() >= myClosestTargetLevel) {
           myClosestTargetDistance = dist;
           myClosestTarget = target;
           myClosestTargetLevel = target.getPreferenceLevel();
         }
-      } else if (over instanceof SceneComponent) {
-        SceneComponent component = (SceneComponent) over;
+      }
+      else if (over instanceof SceneComponent) {
+        SceneComponent component = (SceneComponent)over;
         if (dist < myClosestComponentDistance) {
           myClosestComponentDistance = dist;
           myClosestComponent = component;
@@ -403,9 +490,19 @@ public class Scene implements ModelListener {
     mNeedsLayout = NO_LAYOUT;
     myLastMouseX = x;
     myLastMouseY = y;
+    myFilterTarget = FilterType.NONE;
     myHitListener.find(myRoot, x, y);
     mHitTarget = myHitListener.myClosestTarget;
     if (mHitTarget != null) {
+      if (mHitTarget instanceof AnchorTarget) {
+        AnchorTarget anchor = (AnchorTarget)mHitTarget;
+        if (anchor.isHorizontalAnchor()) {
+          myFilterTarget = FilterType.HORIZONTAL_ANCHOR;
+        }
+        else {
+          myFilterTarget = FilterType.VERTICAL_ANCHOR;
+        }
+      }
       mHitTarget.mouseDown(x, y);
     }
   }
@@ -426,10 +523,11 @@ public class Scene implements ModelListener {
   public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myLastMouseX = x;
     myLastMouseY = y;
-    if (mHitTarget!= null) {
+    if (mHitTarget != null) {
       myHitListener.find(myRoot, x, y);
       mHitTarget.mouseRelease(x, y, myHitListener.myClosestTarget);
     }
+    myFilterTarget = FilterType.NONE;
     if (mNeedsLayout != NO_LAYOUT) {
       myModel.requestLayout(mNeedsLayout == ANIMATED_LAYOUT ? true : false);
     }
