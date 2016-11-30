@@ -35,4 +35,6 @@ public abstract class Stage {
   abstract public void enter();
 
   abstract public void exit();
+
+  abstract public ProfilerMode getProfilerMode();
 }

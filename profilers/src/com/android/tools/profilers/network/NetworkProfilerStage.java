@@ -19,6 +19,7 @@ import com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsResponse.Body
 import com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsResponse.Request;
 import com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsResponse.Response;
 import com.android.tools.profilers.AspectModel;
+import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
 import com.google.common.collect.ImmutableMap;
@@ -74,6 +75,12 @@ public class NetworkProfilerStage extends Stage {
 
   }
 
+  @Override
+  public ProfilerMode getProfilerMode() {
+    boolean noSelection = getStudioProfilers().getTimeline().getSelectionRange().isEmpty();
+    return myConnection == null && noSelection ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED;
+  }
+
   @NotNull
   public NetworkRequestsModel getRequestsModel() {
     return myRequestsModel;
@@ -112,6 +119,7 @@ public class NetworkProfilerStage extends Stage {
 
     myConnection = data;
     myConnectionDataEnabled = true;
+    getStudioProfilers().modeChanged();
     aspect.changed(NetworkProfilerAspect.ACTIVE_CONNECTION);
   }
 

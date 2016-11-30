@@ -22,10 +22,7 @@ import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
-import com.android.tools.profilers.AspectModel;
-import com.android.tools.profilers.ProfilerTimeline;
-import com.android.tools.profilers.Stage;
-import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.*;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ImmutableList;
@@ -121,6 +118,11 @@ public class MemoryProfilerStage extends Stage {
   public void exit() {
   }
 
+  @Override
+  public ProfilerMode getProfilerMode() {
+    return mySelection.getSelectedHeap() == null ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED;
+  }
+
   @NotNull
   public AspectModel<MemoryProfilerAspect> getAspect() {
     return myAspect;
@@ -197,6 +199,7 @@ public class MemoryProfilerStage extends Stage {
     }
 
     mySelection.setSelectedHeap(heap);
+    getStudioProfilers().modeChanged();
     myAspect.changed(MemoryProfilerAspect.MEMORY_OBJECTS);
   }
 
