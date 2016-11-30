@@ -22,6 +22,12 @@ public class TestArtifactsRenameTest extends TestArtifactsTestCase {
   private static final String MY_CLASS_TEXT = "class My<caret>Class {}";
 
   @Override
+  protected boolean shouldRunTest() {
+    // Do not run tests on Windows (see http://b.android.com/222904)
+    return !SystemInfo.isWindows && super.shouldRunTest();
+  }
+
+  @Override
   public void setUp() throws Exception {
     super.setUp();
     // Do not use single import, renaming will followed by import reorganizing which will remove all unused import statement
@@ -29,31 +35,18 @@ public class TestArtifactsRenameTest extends TestArtifactsTestCase {
     setAndroidTestFileContent("AndroidTest.java", "class AndroidTest extends MyClass {}");
   }
 
-  // Flaky test, reactivate when investigated (http://b.android.com/226541)
-  public void /*test*/RenameInBothTests() throws Exception {
+  public void ignore_testRenameInBothTests() throws Exception {
     setCommonFileContent("MyClass.java", MY_CLASS_TEXT);
     renameAndCheckResults(2);
   }
 
-  // Flaky test, reactivate when investigated (http://b.android.com/226541)
-  public void /*test*/RenameInOnlyUnitTests() throws Exception {
-    if (SystemInfo.isWindows) {
-      // Do not run tests on Windows (see http://b.android.com/222904)
-      return;
-    }
-
+  public void ignore_testRenameInOnlyUnitTests() throws Exception {
     setUnitTestFileContent("MyClass.java", MY_CLASS_TEXT);
 
     renameAndCheckResults(1);
   }
 
-  // Flaky test, reactivate when investigated (http://b.android.com/226541)
-  public void /*test*/RenameInOnlyAndroidTests() throws Exception {
-    if (SystemInfo.isWindows) {
-      // Do not run tests on Windows (see http://b.android.com/222904)
-      return;
-    }
-
+  public void ignore_testRenameInOnlyAndroidTests() throws Exception {
     setUnitTestFileContent("MyClass.java", MY_CLASS_TEXT);
     renameAndCheckResults(1);
   }
