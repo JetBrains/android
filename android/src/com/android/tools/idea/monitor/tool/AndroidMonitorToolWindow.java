@@ -16,12 +16,14 @@
 package com.android.tools.idea.monitor.tool;
 
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.*;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,17 +35,36 @@ public class AndroidMonitorToolWindow implements Disposable {
 
   @NotNull
   private final JPanel myComponent;
+  @NotNull
+  private final StudioProfilers myProfilers;
+  @NotNull
+  private final Project myProject;
 
   public AndroidMonitorToolWindow(@NotNull final Project project) {
     try {
+      myProject = project;
       StudioProfilerDeviceManager manager = new StudioProfilerDeviceManager(project);
-      StudioProfilers profiler = new StudioProfilers(manager.getClient());
-      profiler.setPreferredProcessName(getPreferredProcessName(project));
-      StudioProfilersView view = new StudioProfilersView(profiler);
+      myProfilers = new StudioProfilers(manager.getClient());
+      myProfilers.setPreferredProcessName(getPreferredProcessName(project));
+      StudioProfilersView view = new StudioProfilersView(myProfilers);
       myComponent = view.getComponent();
+
+      myProfilers.addDependency()
+        .setExecutor(ApplicationManager.getApplication()::invokeLater)
+        .onChange(ProfilerAspect.MODE, this::updateToolWindow)
+        .onChange(ProfilerAspect.STAGE, this::updateToolWindow);
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);
+    }
+  }
+
+  public void updateToolWindow() {
+    ToolWindowManager manager = ToolWindowManager.getInstance(myProject);
+    ToolWindow window = manager.getToolWindow(AndroidMonitorToolWindowFactory.ID);
+    boolean maximize = myProfilers.getMode() == ProfilerMode.EXPANDED;
+    if (maximize != manager.isMaximized(window)) {
+      manager.setMaximized(window, maximize);
     }
   }
 

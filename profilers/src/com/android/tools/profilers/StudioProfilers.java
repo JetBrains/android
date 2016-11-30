@@ -58,6 +58,7 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
 
   private boolean myConnected;
 
+  @Nullable
   private Stage myStage;
 
   public StudioProfilers(ProfilerClient service) {
@@ -294,5 +295,16 @@ final public class StudioProfilers extends AspectModel<ProfilerAspect> {
       }
     }
     return null;
+  }
+
+  public ProfilerMode getMode() {
+    if (myStage == null) {
+      return ProfilerMode.NORMAL;
+    }
+    return myStage.getProfilerMode();
+  }
+
+  public void modeChanged() {
+    changed(ProfilerAspect.MODE);
   }
 }
