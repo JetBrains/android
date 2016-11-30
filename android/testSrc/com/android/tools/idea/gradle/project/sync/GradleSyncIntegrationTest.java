@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.android.builder.model.SyncIssue;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.ProjectLibraries;
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -45,6 +47,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.ORIGINAL;
 import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.testing.FileSubject.file;
@@ -123,7 +126,7 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
   }
 
   // Disabled until the prebuilt Maven repo has all dependencies.
-  public void /*test*/WithUserDefinedLibrarySources() throws Exception {
+  public void testWithUserDefinedLibrarySources() throws Exception {
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
@@ -197,16 +200,24 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
   }
 
   // https://code.google.com/p/android/issues/detail?id=227931
-  public void /*test*/JarsFolderInExplodedAarIsExcluded() throws Exception {
+  public void testJarsFolderInExplodedAarIsExcluded() throws Exception {
     loadSimpleApplication();
 
     Module appModule = myModules.getAppModule();
     AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
     assertNotNull(androidModel);
     Collection<SyncIssue> issues = androidModel.getSyncIssues();
-    if (issues != null && !issues.isEmpty()) {
-      // This is currently happening in Bazel because the prebuilt SDK manager is not exposing app-compat and constraint layout.
-      System.out.println("Ignoring test: dependencies are not resolved");
+    assertThat(issues).isEmpty();
+
+    AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(getProject());
+    assertNotNull(pluginInfo);
+    assertEquals(pluginInfo.getPluginGeneration(), ORIGINAL);
+    GradleVersion pluginVersion = pluginInfo.getPluginVersion();
+    assertNotNull(pluginVersion);
+
+    if (pluginVersion.compareIgnoringQualifiers("2.3.0") >= 0) {
+      // Gradle plugin 2.3 stores exploded AARs in the user's cache. Excluding "jar" folder in the explode AAR is no longer needed, since
+      // it is not inside the project.
       return;
     }
 
