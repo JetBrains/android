@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.memory;
+package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.perflib.heap.ClassObj;
 import org.jetbrains.annotations.NotNull;
@@ -22,10 +22,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-class ClassNode implements MemoryNode {
+/**
+ * A UI representation of a {@link ClassObj}.
+ */
+class HeapDumpClassObject extends ClassObject {
   private final ClassObj myClassObj;
 
-  public ClassNode(@NotNull ClassObj classObj) {
+  public HeapDumpClassObject(@NotNull ClassObj classObj) {
     myClassObj = classObj;
   }
 
@@ -64,13 +67,13 @@ class ClassNode implements MemoryNode {
 
   @NotNull
   @Override
-  public List<MemoryNode> getSubList() {
-    return myClassObj.getInstancesList().stream().map(InstanceNode::new).collect(Collectors.toList());
+  public List<InstanceObject> getInstances() {
+    return myClassObj.getInstancesList().stream().map(HeapDumpInstanceObject::new).collect(Collectors.toList());
   }
 
   @NotNull
   @Override
-  public List<Capability> getCapabilities() {
-    return Arrays.asList(Capability.LABEL, Capability.DEPTH, Capability.SHALLOW_SIZE, Capability.RETAINED_SIZE);
+  public List<InstanceAttribute> getInstanceAttributes() {
+    return Arrays.asList(InstanceAttribute.LABEL, InstanceAttribute.DEPTH, InstanceAttribute.SHALLOW_SIZE, InstanceAttribute.RETAINED_SIZE);
   }
 }

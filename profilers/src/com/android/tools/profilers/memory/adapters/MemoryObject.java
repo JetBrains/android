@@ -13,15 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.memory;
+package com.android.tools.profilers.memory.adapters;
 
-import com.intellij.openapi.Disposable;
-import org.jetbrains.annotations.NotNull;
+public interface MemoryObject {
 
-/**
- * Base model interface for memory detail view.
- */
-public interface MemoryObjects extends Disposable {
-  @NotNull
-  MemoryNode getRootNode();
 }
