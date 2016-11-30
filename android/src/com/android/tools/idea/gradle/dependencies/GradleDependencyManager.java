@@ -215,7 +215,7 @@ public class GradleDependencyManager {
   }
 
   private static void requestProjectSync(@NotNull Project project, @Nullable Runnable callback) {
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false);
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(true);
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, createSyncListener(callback));
   }
 
