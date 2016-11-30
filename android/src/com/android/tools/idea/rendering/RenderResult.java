@@ -25,7 +25,6 @@ import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.image.BufferedImage;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +34,7 @@ public class RenderResult {
   @NotNull private final RenderLogger myLogger;
   @NotNull private final List<ViewInfo> myRootViews;
   @NotNull private final List<ViewInfo> mySystemRootViews;
-  @Nullable private final BufferedImage myImage;
+  @NotNull private final ImagePool.Image myImage;
   @Nullable private final RenderTask myRenderTask;
   @NotNull private final Result myRenderResult;
   @NotNull private final Map<Object, PropertiesMap> myDefaultProperties;
@@ -48,7 +47,7 @@ public class RenderResult {
                          @NotNull Result renderResult,
                          @NotNull List<ViewInfo> rootViews,
                          @NotNull List<ViewInfo> systemRootViews,
-                         @Nullable BufferedImage image,
+                         @NotNull ImagePool.Image image,
                          @NotNull Map<Object, PropertiesMap> defaultProperties) {
     myRenderTask = renderTask;
     myModule = module;
@@ -68,7 +67,8 @@ public class RenderResult {
   public static RenderResult create(@NotNull RenderTask renderTask,
                                     @NotNull RenderSession session,
                                     @NotNull PsiFile file,
-                                    @NotNull RenderLogger logger) {
+                                    @NotNull RenderLogger logger,
+                                    @NotNull ImagePool.Image image) {
     List<ViewInfo> rootViews = session.getRootViews();
     List<ViewInfo> systemRootViews = session.getSystemRootViews();
     Map<Object, PropertiesMap> defaultProperties = session.getDefaultProperties();
@@ -80,7 +80,7 @@ public class RenderResult {
       session.getResult(),
       rootViews != null ? rootViews : Collections.emptyList(),
       systemRootViews != null ? systemRootViews : Collections.emptyList(),
-      session.getImage(), // image might be null if we only inflated the layout but we didn't call render
+      image, // image might be ImagePool.NULL_POOL_IMAGE if there is no rendered image (as in layout())
       defaultProperties != null ? defaultProperties : Collections.emptyMap());
   }
 
@@ -99,7 +99,7 @@ public class RenderResult {
       Result.Status.ERROR_UNKNOWN.createResult("Failed to initialize session"),
       Collections.emptyList(),
       Collections.emptyList(),
-      null,
+      ImagePool.NULL_POOLED_IMAGE,
       Collections.emptyMap());
   }
 
@@ -121,7 +121,7 @@ public class RenderResult {
       Result.Status.ERROR_UNKNOWN.createResult(""),
       Collections.emptyList(),
       Collections.emptyList(),
-      null,
+      ImagePool.NULL_POOLED_IMAGE,
       Collections.emptyMap());
   }
 
@@ -135,9 +135,13 @@ public class RenderResult {
     return myLogger;
   }
 
-  @Nullable
-  public BufferedImage getRenderedImage() {
-    return myImage;
+  @NotNull
+  public ImagePool.Image getRenderedImage() {
+    return myImage != null ? myImage : ImagePool.NULL_POOLED_IMAGE;
+  }
+
+  public boolean hasImage() {
+    return myImage != null && myImage != ImagePool.NULL_POOLED_IMAGE;
   }
 
   @NotNull
@@ -173,6 +177,4 @@ public class RenderResult {
   public Map<Object, PropertiesMap> getDefaultProperties() {
     return myDefaultProperties;
   }
-
-
 }

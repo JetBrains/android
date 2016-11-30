@@ -1177,7 +1177,7 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
 
       RenderResult result = myScreenView.getResult();
       boolean paintedFrame = false;
-      if (myDeviceFrames && result != null && result.getRenderedImage() != null) {
+      if (myDeviceFrames && result != null && result.hasImage()) {
         Configuration configuration = myScreenView.getConfiguration();
         Device device = configuration.getDevice();
         State deviceState = configuration.getDeviceState();
