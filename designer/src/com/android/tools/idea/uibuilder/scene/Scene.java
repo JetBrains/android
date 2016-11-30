@@ -19,6 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,8 +43,8 @@ public class Scene implements ModelListener {
   private boolean myAnimate = true; // animate layout changes
 
   static final int NO_LAYOUT = 0;
-  static final int IMMEDIATE_LAYOUT = 1;
-  static final int ANIMATED_LAYOUT = 2;
+  public static final int IMMEDIATE_LAYOUT = 1;
+  public static final int ANIMATED_LAYOUT = 2;
 
   private int mNeedsLayout = NO_LAYOUT;
 

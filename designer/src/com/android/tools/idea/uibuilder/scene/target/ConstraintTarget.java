@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.scene;
+package com.android.tools.idea.uibuilder.scene.target;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -26,14 +27,13 @@ import java.util.HashMap;
 /**
  * Implements common checks on attributes of a ConstraintLayout child
  */
-public class ConstraintTarget {
+public abstract class ConstraintTarget extends BaseTarget {
   protected static final HashMap<String, String> ourReciprocalAttributes;
   protected static final HashMap<String, String> ourMarginAttributes;
   protected static final ArrayList<String> ourLeftAttributes;
   protected static final ArrayList<String> ourTopAttributes;
   protected static final ArrayList<String> ourRightAttributes;
   protected static final ArrayList<String> ourBottomAttributes;
-  protected SceneComponent myComponent;
 
   static {
     ourReciprocalAttributes = new HashMap<>();
@@ -71,10 +71,6 @@ public class ConstraintTarget {
     ourBottomAttributes = new ArrayList<>();
     ourBottomAttributes.add(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
     ourBottomAttributes.add(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
-  }
-
-  public void setComponent(@NotNull SceneComponent component) {
-    myComponent = component;
   }
 
   private boolean hasAttributes(String uri, ArrayList<String> attributes) {
