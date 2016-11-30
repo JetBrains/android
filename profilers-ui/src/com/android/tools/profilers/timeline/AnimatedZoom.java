@@ -59,16 +59,15 @@ public final class AnimatedZoom implements Animatable {
       myRemainingDeltaUs = zoomDeltaUs;
       myAnchor = anchor;
       myTimeline.setStreaming(false);
+      myTimeline.setCanStream(false);
     }
 
-    myTimeline.incrementStreamLock();
   }
 
   @Override
   public void animate(float frameLength) {
     if (myRemainingDeltaUs == 0) {
       myChoreographer.unregister(this);
-      myTimeline.decrementStreamLock();
       return;
     }
 

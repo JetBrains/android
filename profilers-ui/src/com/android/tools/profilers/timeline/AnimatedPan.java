@@ -55,16 +55,14 @@ public final class AnimatedPan implements Animatable {
     else {
       myRemainingDeltaUs = panDeltaUs;
       myTimeline.setStreaming(false);
+      myTimeline.setCanStream(myRemainingDeltaUs > 0);
     }
-
-    myTimeline.incrementStreamLock();
   }
 
   @Override
   public void animate(float frameLength) {
     if (myRemainingDeltaUs == 0) {
       myChoreographer.unregister(this);
-      myTimeline.decrementStreamLock();
       return;
     }
 

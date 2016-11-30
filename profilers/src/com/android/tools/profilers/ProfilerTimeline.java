@@ -33,11 +33,7 @@ public final class ProfilerTimeline {
   @NotNull private final Range mySelectionRangeUs;
   private long myBufferUs;
   private boolean myStreaming;
-
-  /**
-   * A simple counter that prevents streaming from being triggered if it contains a non-zero value.
-   */
-  private int myStreamLock = 0;
+  private boolean myCanStream = true;
 
   public ProfilerTimeline(@NotNull Range dataRangeUs) {
     myBufferUs = DEFAULT_BUFFER_US;
@@ -52,18 +48,45 @@ public final class ProfilerTimeline {
     myViewRangeUs.set(currentMax - DEFAULT_VIEW_LENGTH_US, currentMax);
   }
 
-  public void setStreaming(boolean value) {
-    assert myStreamLock == 0 || !value;
+  /**
+   * Change the streaming mode of this timeline. If canStream is currently set to false (e.g. while user is scrolling or zooming), then
+   * nothing happens if the caller tries to enable streaming.
+   */
+  public void setStreaming(boolean isStreaming) {
+    if (!myCanStream && isStreaming) {
+      isStreaming = false;
+    }
 
-    myStreaming = value;
+    if (myStreaming == isStreaming) {
+      return;
+    }
+
+    assert myCanStream || !isStreaming;
+
+    myStreaming = isStreaming;
     if (myStreaming) {
       double deltaUs = (myDataRangeUs.getMax() - myBufferUs) - myViewRangeUs.getMax();
       myViewRangeUs.shift(deltaUs);
     }
   }
 
-  public boolean getStreaming() {
+  public boolean isStreaming() {
     return myStreaming;
+  }
+
+  /**
+   * Sets whether the timeline can turn on streaming. If this is set to false and the timeline is currently streaming, streaming mode
+   * will be toggled off.
+   */
+  public void setCanStream(boolean canStream) {
+    myCanStream = canStream;
+    if (!myCanStream && myStreaming) {
+      setStreaming(false);
+    }
+  }
+
+  public boolean canStream() {
+    return myCanStream;
   }
 
   public long getViewBuffer() {
@@ -96,19 +119,5 @@ public final class ProfilerTimeline {
 
   public void selectAll() {
     mySelectionRangeUs.set(myViewRangeUs);
-  }
-
-  public void incrementStreamLock() {
-    myStreamLock++;
-    assert myStreamLock > 0;
-  }
-
-  public void decrementStreamLock() {
-    myStreamLock--;
-    assert myStreamLock >= 0;
-  }
-
-  public int getStreamLockCount() {
-    return myStreamLock;
   }
 }
