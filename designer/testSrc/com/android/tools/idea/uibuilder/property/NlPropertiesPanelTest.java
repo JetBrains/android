@@ -15,27 +15,97 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.property.ptable.PTable;
 import com.android.tools.idea.uibuilder.property.ptable.PTableGroupItem;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.ptable.PTableModel;
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.android.AndroidTestCase;
+import com.google.common.collect.Table;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
+import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import javax.swing.*;
+import javax.swing.table.TableModel;
+import java.util.Collections;
+import java.util.List;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ELEVATION;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class NlPropertiesPanelTest extends AndroidTestCase {
+public class NlPropertiesPanelTest extends PropertyTestCase {
   @Mock
-  RowFilter.Entry<? extends PTableModel, Integer> myEntry;
+  private RowFilter.Entry<? extends PTableModel, Integer> myEntry;
+  private Disposable myDisposable;
+  private NlPropertiesPanel myPanel;
+  private PTable myTable;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     MockitoAnnotations.initMocks(this);
+    myDisposable = Disposer.newDisposable();
+    myPanel = new NlPropertiesPanel(myPropertiesManager, myDisposable);
+    myTable = myPanel.getTable();
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      Disposer.dispose(myDisposable);
+    }
+    finally {
+      super.tearDown();
+    }
+  }
+
+  public void testSelectionIsRestoredAfterPropertyUpdate() {
+    List<NlComponent> components = Collections.singletonList(myButton);
+    Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
+    NlProperty elevation = properties.get(ANDROID_URI, ATTR_ELEVATION);
+    myPanel.setItems(components, properties, myPropertiesManager);
+    int row = findRowOf(ANDROID_URI, ATTR_ELEVATION);
+    myTable.setRowSelectionInterval(row, row);
+
+    myPanel.setItems(components, getPropertyTable(components), myPropertiesManager);
+    assertThat(myTable.getSelectedItem()).isEqualTo(elevation);
+  }
+
+  public void testSelectionIsRestoredAfterSelectionChange() {
+    List<NlComponent> initialComponents = Collections.singletonList(myButton);
+    myPanel.setItems(initialComponents, getPropertyTable(initialComponents), myPropertiesManager);
+    int row = findRowOf(ANDROID_URI, ATTR_ELEVATION);
+    myTable.setRowSelectionInterval(row, row);
+
+    List<NlComponent> newComponents = Collections.singletonList(myCheckBox1);
+    Table<String, String, NlPropertyItem> newProperties = getPropertyTable(newComponents);
+    NlProperty elevation = newProperties.get(ANDROID_URI, ATTR_ELEVATION);
+    myPanel.setItems(newComponents, newProperties, myPropertiesManager);
+    assertThat(myTable.getSelectedItem()).isSameAs(elevation);
+  }
+
+  public void testSelectionIsRestoredAfterFilterUpdateIfPossible() {
+    List<NlComponent> components = Collections.singletonList(myButton);
+    Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
+    NlProperty elevation = properties.get(ANDROID_URI, ATTR_ELEVATION);
+    myPanel.setItems(components, properties, myPropertiesManager);
+    int row = findRowOf(ANDROID_URI, ATTR_ELEVATION);
+    myTable.setRowSelectionInterval(row, row);
+
+    myPanel.setFilter("e");
+    assertThat(myTable.getSelectedItem()).isSameAs(elevation);
+    myPanel.setFilter("el");
+    assertThat(myTable.getSelectedItem()).isSameAs(elevation);
+    myPanel.setFilter("eleva");
+    assertThat(myTable.getSelectedItem()).isSameAs(elevation);
+    myPanel.setFilter("");
+    assertThat(myTable.getSelectedItem()).isSameAs(elevation);
   }
 
   public void testFilterSimpleMatch() {
@@ -110,5 +180,16 @@ public class NlPropertiesPanelTest extends AndroidTestCase {
     NlPropertiesPanel.MyFilter filter = new NlPropertiesPanel.MyFilter();
     filter.setPattern("bott");
     assertFalse(filter.include(myEntry));
+  }
+
+  private int findRowOf(@NotNull String namespace, @NotNull String name) {
+    TableModel model = myTable.getModel();
+    for (int row = 0; row < model.getRowCount(); row++) {
+      PTableItem item = (PTableItem)model.getValueAt(row, 0);
+      if (item != null && name.equals(item.getName()) && namespace.equals(item.getNamespace())) {
+        return row;
+      }
+    }
+    return -1;
   }
 }
