@@ -34,6 +34,7 @@ import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
 import java.awt.*;
 import java.util.ArrayList;
 
@@ -175,7 +176,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     legendPanel.add(legend, BorderLayout.EAST);
 
     SelectionComponent selection = new SelectionComponent(timeline.getSelectionRange(), timeline.getViewRange());
-    selection.addChangeListener(e -> myConnectionsScroller.setVisible(!timeline.getSelectionRange().isEmpty()));
+    selection.addChangeListener(this::onSelectionChanged);
 
     getChoreographer().register(selection);
     monitorPanel.add(selection, GBC_FULL);
@@ -191,6 +192,13 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
   private void updateConnectionDetailsView() {
     myConnectionDetails.update(getStage().getConnection());
+  }
+
+  private void onSelectionChanged(ChangeEvent event) {
+    // TODO This should be moved to the model, not here.
+    StudioProfilers profilers = getStage().getStudioProfilers();
+    myConnectionsScroller.setVisible(!profilers.getTimeline().getSelectionRange().isEmpty());
+    profilers.modeChanged();
   }
 
   @NotNull
