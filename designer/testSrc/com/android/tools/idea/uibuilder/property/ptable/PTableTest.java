@@ -204,6 +204,18 @@ public class PTableTest extends AndroidTestCase {
     assertThat(myEmptyItem.getStarState()).isEqualTo(StarState.STAR_ABLE);
   }
 
+  public void testRestoreSelection() {
+    assertThat(myTable.getSelectedItem()).isNull();
+    myTable.restoreSelection(1, myEmptyItem);
+    assertThat(myTable.getSelectedItem()).isSameAs(myEmptyItem);
+  }
+
+  public void testRestoreSelectionWhereRowDoesNotMatch() {
+    assertThat(myTable.getSelectedItem()).isNull();
+    myTable.restoreSelection(77, new SimpleItem("empty", null));
+    assertThat(myTable.getSelectedItem()).isSameAs(myEmptyItem);
+  }
+
   private void fireMousePressed(int row, int column, int xOffset) {
     Rectangle bounds = myTable.getCellRect(row, column, false);
     int x = bounds.x + xOffset;
