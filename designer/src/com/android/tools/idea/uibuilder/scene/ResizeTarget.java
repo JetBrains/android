@@ -91,6 +91,18 @@ public class ResizeTarget implements Target {
 
   @Override
   public boolean layout(int l, int t, int r, int b) {
+    int minWidth = 4 * mySize;
+    int minHeight = 4 * mySize;
+    if (r - l < minWidth) {
+      int d = (minWidth - (r - l)) / 2;
+      l -= d;
+      r += d;
+    }
+    if (b - t < minHeight) {
+      int d = (minHeight - (b - t)) / 2;
+      t -= d;
+      b += d;
+    }
     int w = r - l;
     int h = b - t;
     int mw = l + w / 2;
@@ -161,11 +173,17 @@ public class ResizeTarget implements Target {
   }
 
   private void updateWidth(@NotNull AttributesTransaction attributes, int w) {
+    if (w < 0) {
+      w = 0;
+    }
     String position = String.format(SdkConstants.VALUE_N_DP, w);
     attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH, position);
   }
 
   private void updateHeight(@NotNull AttributesTransaction attributes, int h) {
+    if (h < 0) {
+      h = 0;
+    }
     String position = String.format(SdkConstants.VALUE_N_DP, h);
     attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT, position);
   }

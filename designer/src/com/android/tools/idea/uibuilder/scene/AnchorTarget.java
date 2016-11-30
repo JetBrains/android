@@ -33,7 +33,7 @@ import java.util.HashMap;
 /**
  * Implements a target anchor for the ConstraintLayout viewgroup
  */
-public class AnchorTarget implements Target {
+public class AnchorTarget extends ConstraintTarget implements Target {
 
   // Type of possible anchors
   public enum Type {
@@ -42,7 +42,6 @@ public class AnchorTarget implements Target {
 
   private final int mySize = 8;
   private final int myExpandSize = 200;
-  private SceneComponent myComponent;
   private final AnchorTarget.Type myType;
   private boolean myExpandArea = false;
 
@@ -55,40 +54,6 @@ public class AnchorTarget implements Target {
   private int myBottom = 0;
   private boolean mIsOver = false;
   private HashMap<String, String> mPreviousAttributes = new HashMap();
-
-  private static final HashMap<String, String> ourReciprocalAttributes;
-  private static final ArrayList<String> ourLeftAttributes;
-  private static final ArrayList<String> ourTopAttributes;
-  private static final ArrayList<String> ourRightAttributes;
-  private static final ArrayList<String> ourBottomAttributes;
-
-  static {
-    ourReciprocalAttributes = new HashMap<>();
-    ourReciprocalAttributes.put(SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF);
-    ourReciprocalAttributes.put(SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF, SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF);
-    ourReciprocalAttributes.put(SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF);
-    ourReciprocalAttributes.put(SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF);
-    ourReciprocalAttributes.put(SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF);
-    ourReciprocalAttributes.put(SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF);
-    ourReciprocalAttributes.put(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
-    ourReciprocalAttributes.put(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
-
-    ourLeftAttributes = new ArrayList<>();
-    ourLeftAttributes.add(SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF);
-    ourLeftAttributes.add(SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF);
-
-    ourTopAttributes = new ArrayList<>();
-    ourTopAttributes.add(SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF);
-    ourTopAttributes.add(SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF);
-
-    ourRightAttributes = new ArrayList<>();
-    ourRightAttributes.add(SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF);
-    ourRightAttributes.add(SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF);
-
-    ourBottomAttributes = new ArrayList<>();
-    ourBottomAttributes.add(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
-    ourBottomAttributes.add(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
-  }
 
   /////////////////////////////////////////////////////////////////////////////
   //region Constructor
@@ -116,11 +81,6 @@ public class AnchorTarget implements Target {
     mIsOver = over;
   }
 
-  @Override
-  public void setComponent(@NotNull SceneComponent component) {
-    myComponent = component;
-  }
-
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region Layout
@@ -128,6 +88,18 @@ public class AnchorTarget implements Target {
 
   @Override
   public boolean layout(int l, int t, int r, int b) {
+    int minWidth = 4 * mySize;
+    int minHeight = 4 * mySize;
+    if (r - l < minWidth) {
+      int d = (minWidth - (r - l)) / 2;
+      l -= d;
+      r += d;
+    }
+    if (b - t < minHeight) {
+      int d = (minHeight - (b - t)) / 2;
+      t -= d;
+      b += d;
+    }
     int w = r - l;
     int h = b - t;
     int mw = l + w / 2;
@@ -209,80 +181,36 @@ public class AnchorTarget implements Target {
   //region Utilities
   /////////////////////////////////////////////////////////////////////////////
 
-  private boolean hasAttributes(String uri, ArrayList<String> attributes) {
-    NlComponent component = myComponent.getNlComponent();
-    int count = attributes.size();
-    for (int i = 0; i < count; i++) {
-      String attribute = attributes.get(i);
-      if (component.getAttribute(uri, attribute) != null) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private void clearAttributes(String uri, ArrayList<String> attributes, AttributesTransaction transaction) {
-    int count = attributes.size();
-    for (int i = 0; i < count; i++) {
-      String attribute = attributes.get(i);
-      transaction.setAttribute(uri, attribute, null);
-    }
-  }
-
-  private boolean hasLeft() {
-    return hasAttributes(SdkConstants.SHERPA_URI, ourLeftAttributes);
-  }
-
-  private boolean hasTop() {
-    return hasAttributes(SdkConstants.SHERPA_URI, ourTopAttributes);
-  }
-
-  private boolean hasRight() {
-    return hasAttributes(SdkConstants.SHERPA_URI, ourRightAttributes);
-  }
-
-  private boolean hasBottom() {
-    return hasAttributes(SdkConstants.SHERPA_URI, ourBottomAttributes);
-  }
-
-  private void setDpAttribute(String uri, String attribute, AttributesTransaction transaction, int value) {
-    String position = String.format(SdkConstants.VALUE_N_DP, value);
-    transaction.setAttribute(uri, attribute, position);
-  }
-
-  private void clear(@NotNull AttributesTransaction transaction) {
+  /**
+   * Clear the attributes related to this Anchor type
+   * @param transaction
+   */
+  private void clearMe(@NotNull AttributesTransaction transaction) {
     switch (myType) {
       case LEFT: {
         clearAttributes(SdkConstants.SHERPA_URI, ourLeftAttributes, transaction);
-        if (!hasRight()) {
-          setDpAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, transaction, myComponent.getOffsetParentX());
-        }
       }
       break;
       case RIGHT: {
         clearAttributes(SdkConstants.SHERPA_URI, ourRightAttributes, transaction);
-        if (!hasLeft()) {
-          setDpAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, transaction, myComponent.getOffsetParentX());
-        }
       }
       break;
       case TOP: {
         clearAttributes(SdkConstants.SHERPA_URI, ourTopAttributes, transaction);
-        if (!hasBottom()) {
-          setDpAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, transaction, myComponent.getOffsetParentY());
-        }
       }
       break;
       case BOTTOM: {
         clearAttributes(SdkConstants.SHERPA_URI, ourBottomAttributes, transaction);
-        if (!hasTop()) {
-          setDpAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, transaction, myComponent.getOffsetParentY());
-        }
       }
       break;
     }
   }
 
+  /**
+   * Store the existing attributes in mPreviousAttributes
+   * @param uri
+   * @param attributes
+   */
   private void rememberPreviousAttribute(@NotNull String uri, @NotNull ArrayList<String> attributes) {
     NlComponent component = myComponent.getNlComponent();
     int count = attributes.size();
@@ -292,22 +220,11 @@ public class AnchorTarget implements Target {
     }
   }
 
-  private String setReciprocalAttribute(@NotNull AttributesTransaction attributes, @NotNull String attribute) {
-    switch (myType) {
-      case LEFT:
-      case RIGHT: {
-        attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, null);
-      }
-      break;
-      case TOP:
-      case BOTTOM: {
-        attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, null);
-      }
-    }
-    attributes.setAttribute(SdkConstants.SHERPA_URI, ourReciprocalAttributes.get(attribute), null);
-    return null;
-  }
-
+  /**
+   * Return the correct attribute string given our type and the target type
+   * @param target
+   * @return
+   */
   private String getAttribute(@NotNull Target target) {
     if (!(target instanceof AnchorTarget)) {
       return null;
@@ -352,6 +269,74 @@ public class AnchorTarget implements Target {
       break;
     }
     return null;
+  }
+
+  /**
+   * Revert to the original (on mouse down) state.
+   */
+  private void revertToPreviousState() {
+    NlComponent component = myComponent.getNlComponent();
+    AttributesTransaction attributes = component.startAttributeTransaction();
+    for (String key : mPreviousAttributes.keySet()) {
+      if (key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X)) {
+        attributes.setAttribute(SdkConstants.TOOLS_URI, key, mPreviousAttributes.get(key));
+      }
+      else if (key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y)) {
+        attributes.setAttribute(SdkConstants.TOOLS_URI, key, mPreviousAttributes.get(key));
+      }
+      else {
+        attributes.setAttribute(SdkConstants.SHERPA_URI, key, mPreviousAttributes.get(key));
+      }
+    }
+    attributes.apply();
+    myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
+  }
+
+  /**
+   * Connect the anchor to the given target. Applied immediately in memory.
+   * @param component
+   * @param attribute
+   * @param targetComponent
+   * @return
+   */
+  private AttributesTransaction connectMe(NlComponent component, String attribute, NlComponent targetComponent) {
+    AttributesTransaction attributes = component.startAttributeTransaction();
+    String targetId = null;
+    if (targetComponent == component.getParent()) {
+      targetId = SdkConstants.ATTR_PARENT;
+    }
+    else {
+      targetId = SdkConstants.NEW_ID_PREFIX + targetComponent.ensureId();
+    }
+    attributes.setAttribute(SdkConstants.SHERPA_URI, attribute, targetId);
+    attributes.setAttribute(SdkConstants.SHERPA_URI, ourReciprocalAttributes.get(attribute), null);
+    cleanup(attributes);
+    attributes.apply();
+    myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
+    return attributes;
+  }
+
+  /**
+   * Disconnect the anchor
+   * @param component
+   */
+  private void disconnectMe(NlComponent component) {
+    String label = "Constraint Disconnected";
+    NlModel nlModel = component.getModel();
+    Project project = nlModel.getProject();
+    XmlFile file = nlModel.getFile();
+    AttributesTransaction attributes = component.startAttributeTransaction();
+    clearMe(attributes);
+    cleanup(attributes);
+    attributes.apply();
+    WriteCommandAction action = new WriteCommandAction(project, label, file) {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        attributes.commit();
+      }
+    };
+    action.execute();
+    myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
   }
 
   public int getCenterX() {
@@ -410,6 +395,13 @@ public class AnchorTarget implements Target {
     }
   }
 
+  /**
+   * On mouse drag, we can connect (in memory) to existing targets, or revert to the
+   * original state that we capatured on mouseDown.
+   * @param x
+   * @param y
+   * @param closestTarget
+   */
   @Override
   public void mouseDrag(int x, int y, @Nullable Target closestTarget) {
     myLastX = x;
@@ -421,39 +413,22 @@ public class AnchorTarget implements Target {
         AnchorTarget targetAnchor = (AnchorTarget)closestTarget;
         if (targetAnchor.myComponent != myComponent) {
           NlComponent targetComponent = targetAnchor.myComponent.getNlComponent();
-          AttributesTransaction attributes = component.startAttributeTransaction();
-          String targetId = null;
-          if (targetComponent == component.getParent()) {
-            targetId = SdkConstants.ATTR_PARENT;
-          }
-          else {
-            targetId = SdkConstants.NEW_ID_PREFIX + targetComponent.ensureId();
-          }
-          attributes.setAttribute(SdkConstants.SHERPA_URI, attribute, targetId);
-          setReciprocalAttribute(attributes, attribute);
-          attributes.apply();
-          myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
+          connectMe(component, attribute, targetComponent);
           return;
         }
       }
     }
-    NlComponent component = myComponent.getNlComponent();
-    AttributesTransaction attributes = component.startAttributeTransaction();
-    for (String key : mPreviousAttributes.keySet()) {
-      if (key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X)) {
-        attributes.setAttribute(SdkConstants.TOOLS_URI, key, mPreviousAttributes.get(key));
-      }
-      else if (key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y)) {
-        attributes.setAttribute(SdkConstants.TOOLS_URI, key, mPreviousAttributes.get(key));
-      }
-      else {
-        attributes.setAttribute(SdkConstants.SHERPA_URI, key, mPreviousAttributes.get(key));
-      }
-    }
-    attributes.apply();
-    myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
+    revertToPreviousState();
   }
 
+  /**
+   * On mouseRelease, we can either disconnect the current anchor (if the mouse release is on ourselve)
+   * or connect the anchor to a given target. Modifications are applied first in memory then commited
+   * to the XML model.
+   * @param x
+   * @param y
+   * @param closestTarget
+   */
   @Override
   public void mouseRelease(int x, int y, @Nullable Target closestTarget) {
     myLastX = -1;
@@ -464,43 +439,20 @@ public class AnchorTarget implements Target {
     if (closestTarget != null && closestTarget instanceof AnchorTarget) {
       NlComponent component = myComponent.getNlComponent();
       if (closestTarget == this) {
-        String label = "Constraint";
-        NlModel nlModel = component.getModel();
-        Project project = nlModel.getProject();
-        XmlFile file = nlModel.getFile();
-        WriteCommandAction action = new WriteCommandAction(project, label, file) {
-          @Override
-          protected void run(@NotNull Result result) throws Throwable {
-            AttributesTransaction attributes = component.startAttributeTransaction();
-            clear(attributes);
-            attributes.commit();
-          }
-        };
-        action.execute();
-        myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
+        disconnectMe(component);
       }
       else {
         String attribute = getAttribute(closestTarget);
         if (attribute != null) {
           AnchorTarget targetAnchor = (AnchorTarget)closestTarget;
           NlComponent targetComponent = targetAnchor.myComponent.getNlComponent();
+          AttributesTransaction attributes = connectMe(component, attribute, targetComponent);
+
           NlModel nlModel = component.getModel();
           Project project = nlModel.getProject();
           XmlFile file = nlModel.getFile();
 
-          AttributesTransaction attributes = component.startAttributeTransaction();
-          String targetId = null;
-          if (targetComponent == component.getParent()) {
-            targetId = SdkConstants.ATTR_PARENT;
-          }
-          else {
-            targetId = SdkConstants.NEW_ID_PREFIX + targetComponent.ensureId();
-          }
-          attributes.setAttribute(SdkConstants.SHERPA_URI, attribute, targetId);
-          setReciprocalAttribute(attributes, attribute);
-          attributes.apply();
-
-          String label = "Constraint";
+          String label = "Constraint Connected";
           WriteCommandAction action = new WriteCommandAction(project, label, file) {
             @Override
             protected void run(@NotNull Result result) throws Throwable {
