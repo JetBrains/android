@@ -36,7 +36,7 @@ import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 import java.io.File;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
-import static com.android.tools.idea.gradle.util.Facets.removeAllFacetsOfType;
+import static com.android.tools.idea.gradle.util.Facets.removeAllFacets;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 public class ModuleSetup {
@@ -87,12 +87,13 @@ public class ModuleSetup {
       }
       else {
         // This is an Android module without variants. Treat as a non-buildable Java module.
+        removeAndroidFacetFrom(module);
         setUpJavaModule(module, models, indicator, true /* Android project without variants */);
       }
       return;
     }
     // This is not an Android module. Remove any AndroidFacet set in a previous sync operation.
-    removeAllFacetsOfType(AndroidFacet.ID, myIdeModelsProvider.getModifiableFacetModel(module));
+    removeAndroidFacetFrom(module);
 
     NativeAndroidProject nativeAndroidProject = models.findModel(NativeAndroidProject.class);
     if (nativeAndroidProject != null) {
@@ -101,11 +102,15 @@ public class ModuleSetup {
       return;
     }
     // This is not an Android module. Remove any AndroidFacet set in a previous sync operation.
-    removeAllFacetsOfType(NdkFacet.getFacetTypeId(), myIdeModelsProvider.getModifiableFacetModel(module));
+    removeAllFacets(myIdeModelsProvider.getModifiableFacetModel(module), NdkFacet.getFacetTypeId());
 
     if (!isProjectRootFolder) {
       setUpJavaModule(module, models, indicator, false /* Regular Java module */);
     }
+  }
+
+  private void removeAndroidFacetFrom(@NotNull Module module) {
+    removeAllFacets(myIdeModelsProvider.getModifiableFacetModel(module), AndroidFacet.ID);
   }
 
   @Nullable

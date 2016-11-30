@@ -30,7 +30,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
-import static com.android.tools.idea.gradle.util.Facets.removeAllFacetsOfType;
+import static com.android.tools.idea.gradle.util.Facets.removeAllFacets;
 
 /**
  * Applies Gradle settings to the modules of an Android project.
@@ -65,7 +65,7 @@ public class GradleModuleModelDataService extends ModuleModelDataService<GradleM
         // This happens when there is an orphan IDEA module that does not map to a Gradle project. One way for this to happen is when
         // opening a project created in another machine, and Gradle import assigns a different name to a module. Then, user decides
         // not to delete the orphan module when Studio prompts to do so.
-        removeAllFacetsOfType(GradleFacet.getFacetTypeId(), modelsProvider.getModifiableFacetModel(module));
+        removeAllFacets(modelsProvider.getModifiableFacetModel(module), GradleFacet.getFacetTypeId());
       }
       else {
         myModuleSetup.setUpModule(module, modelsProvider, gradleModuleModel);
