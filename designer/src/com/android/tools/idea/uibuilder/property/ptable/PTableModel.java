@@ -20,6 +20,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.table.AbstractTableModel;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class PTableModel extends AbstractTableModel {
   private List<PTableItem> myItems;
@@ -29,7 +31,9 @@ public class PTableModel extends AbstractTableModel {
   }
 
   public void setItems(@NotNull List<PTableItem> items) {
+    Set<PTableItem> openGroups = findOpenGroups();
     myItems = items;
+    restoreOpenGroups(openGroups);
     fireTableDataChanged();
   }
 
@@ -106,6 +110,11 @@ public class PTableModel extends AbstractTableModel {
   }
 
   public void expand(int row) {
+    expandWithoutNotifying(row);
+    fireTableDataChanged();
+  }
+
+  private void expandWithoutNotifying(int row) {
     if (row >= myItems.size()) {
       return;
     }
@@ -118,6 +127,24 @@ public class PTableModel extends AbstractTableModel {
         myItems.add(row + 1 + i, children.get(i));
       }
     }
-    fireTableDataChanged();
+  }
+
+  @NotNull
+  private Set<PTableItem> findOpenGroups() {
+    return myItems.stream()
+      .filter(PTableItem::isExpanded)
+      .collect(Collectors.toSet());
+  }
+
+  private void restoreOpenGroups(@NotNull Set<PTableItem> openGroups) {
+    int row = 0;
+    while (row < myItems.size()) {
+      PTableItem item = myItems.get(row);
+      if (openGroups.contains(item)) {
+        expandWithoutNotifying(row);
+        row += item.getChildren().size();
+      }
+      row++;
+    }
   }
 }
