@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.model.Range;
 import org.jetbrains.annotations.NotNull;
 
 /**
