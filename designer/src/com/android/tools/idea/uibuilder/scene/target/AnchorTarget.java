@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.scene;
+package com.android.tools.idea.uibuilder.scene.target;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.*;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -33,7 +34,7 @@ import java.util.HashMap;
 /**
  * Implements a target anchor for the ConstraintLayout viewgroup
  */
-public class AnchorTarget extends ConstraintTarget implements Target {
+public class AnchorTarget extends ConstraintTarget {
 
   // Type of possible anchors
   public enum Type {
@@ -48,11 +49,6 @@ public class AnchorTarget extends ConstraintTarget implements Target {
   private int myLastX = -1;
   private int myLastY = -1;
 
-  private int myLeft = 0;
-  private int myTop = 0;
-  private int myRight = 0;
-  private int myBottom = 0;
-  private boolean mIsOver = false;
   private HashMap<String, String> mPreviousAttributes = new HashMap();
 
   /////////////////////////////////////////////////////////////////////////////
@@ -74,11 +70,6 @@ public class AnchorTarget extends ConstraintTarget implements Target {
 
   public void setExpandSize(boolean expand) {
     myExpandArea = expand;
-  }
-
-  @Override
-  public void setOver(boolean over) {
-    mIsOver = over;
   }
 
   //endregion
@@ -339,14 +330,6 @@ public class AnchorTarget extends ConstraintTarget implements Target {
     myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
   }
 
-  public int getCenterX() {
-    return myLeft + (myRight - myLeft) / 2;
-  }
-
-  public int getCenterY() {
-    return myTop + (myBottom - myTop) / 2;
-  }
-
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region Mouse Handling
@@ -355,12 +338,6 @@ public class AnchorTarget extends ConstraintTarget implements Target {
   @Override
   public int getPreferenceLevel() {
     return 20;
-  }
-
-  @Override
-  public void addHit(@NotNull ScenePicker picker) {
-    mIsOver = false;
-    picker.addRect(this, 0, myLeft, myTop, myRight, myBottom);
   }
 
   @Override
