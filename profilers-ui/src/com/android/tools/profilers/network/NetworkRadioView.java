@@ -99,6 +99,11 @@ public class NetworkRadioView {
       if (state == RadioState.NONE) {
         continue;
       }
+      else if (state == RadioState.LOW) {
+        // TODO: perfd currently doesn't return this state. Investigate getting it to work or
+        // consider removing this state entirely.
+        continue;
+      }
       LegendRenderData renderData = new LegendRenderData(LegendRenderData.IconType.LINE, RADIO_STATE_COLOR.get(state), state.toString());
       legendData.add(renderData);
     }
