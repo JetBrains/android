@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.uibuilder.scene.Display;
 import com.android.tools.idea.uibuilder.scene.Scene;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.SceneTransform;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -61,7 +61,7 @@ public class SceneLayer extends Layer {
       }
 
       // Draw the components
-      myDisplay.draw(myScreenView, g, myScreenView.getScene());
+      myDisplay.draw(SceneTransform.get(myScreenView), g, myScreenView.getScene());
     } finally {
       g.dispose();
     }

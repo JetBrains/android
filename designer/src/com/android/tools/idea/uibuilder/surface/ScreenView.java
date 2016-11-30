@@ -52,7 +52,7 @@ public class ScreenView {
   @SwingCoordinate private int x;
   @SwingCoordinate private int y;
 
-  public ScreenView(@NotNull DesignSurface surface, @NotNull ScreenViewType type, @NotNull NlModel model) {
+  public ScreenView(DesignSurface surface, @NotNull ScreenViewType type, @NotNull NlModel model) {
     mySurface = surface;
     myType = type;
     myModel = model;
@@ -67,7 +67,9 @@ public class ScreenView {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
-            mySurface.repaint();
+            if (mySurface!=null) {
+              mySurface.repaint();
+            }
           }
         });
       }
