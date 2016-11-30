@@ -32,6 +32,7 @@ import java.util.*;
 
 import static com.android.tools.idea.gradle.util.ProxyUtil.isValidProxyObject;
 import static com.android.tools.idea.gradle.util.ProxyUtil.reproxy;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link ProxyUtil}
@@ -80,7 +81,7 @@ public class ProxyUtilTest extends TestCase {
     assertFalse(myProxy.hashCode() == reproxy.hashCode());
     assertFalse(reproxy.equals(myProxy));
     assertFalse(reproxy.hashCode() == myProxy.hashCode());
-    assertTrue(reproxy.equals(reproxy));
+    assertThat(reproxy).isEqualTo(reproxy);
     assertTrue(reproxy.hashCode() == reproxy.hashCode());
     assertTrue(reproxy.equals(reproxy2));
     assertTrue(reproxy.hashCode() == reproxy2.hashCode());
