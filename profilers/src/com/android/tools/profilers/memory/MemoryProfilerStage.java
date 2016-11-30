@@ -100,6 +100,8 @@ public class MemoryProfilerStage extends Stage {
   @NotNull
   private MemoryProfilerSelection mySelection;
 
+  private boolean myAllocationStatus;
+
   public MemoryProfilerStage(@NotNull StudioProfilers profilers) {
     super(profilers);
     myProcessId = profilers.getProcessId();
@@ -108,6 +110,7 @@ public class MemoryProfilerStage extends Stage {
     myAllocationInfosDataSeries = new AllocationInfosDataSeries();
     myExclusiveMemoryObjectsSelection = new ExclusiveMemoryObjectsSelection();
     mySelection = new MemoryProfilerSelection();
+    myAllocationStatus = false;
   }
 
   @Override
@@ -205,19 +208,17 @@ public class MemoryProfilerStage extends Stage {
   /**
    * @return the actual status, which may be different from the input
    */
-  public boolean trackAllocations(boolean enabled) {
+  public void trackAllocations(boolean enabled) {
     TrackAllocationsResponse response = myClient.trackAllocations(
       MemoryProfiler.TrackAllocationsRequest.newBuilder().setAppId(myProcessId).setEnabled(enabled).build());
-    switch (response.getStatus()) {
-      case SUCCESS:
-        return enabled;
-      case IN_PROGRESS:
-        return true;
-      case NOT_ENABLED:
-        return false;
-      default:
-        return false;
-    }
+    myAllocationStatus = enabled && (
+      response.getStatus() == TrackAllocationsResponse.Status.SUCCESS ||
+      response.getStatus() == TrackAllocationsResponse.Status.IN_PROGRESS);
+    myAspect.changed(MemoryProfilerAspect.LEGACY_ALLOCATION);
+  }
+
+  public boolean isTrackingAllocations() {
+    return myAllocationStatus;
   }
 
   @NotNull
