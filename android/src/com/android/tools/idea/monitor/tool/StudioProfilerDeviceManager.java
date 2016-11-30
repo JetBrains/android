@@ -34,7 +34,6 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Consumer;
-import com.intellij.util.containers.HashSet;
 import com.intellij.util.net.NetUtils;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -61,6 +60,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
   private static final String DATASTORE_NAME = "DataStoreService";
   private final ProfilerClient myClient;
   private final DataStoreService myDataStoreService;
+  private final StudioLegacyAllocationTracker myLegacyAllocationTracker;
   private AndroidDebugBridge myBridge;
 
   public StudioProfilerDeviceManager(@NotNull Project project) throws IOException {
@@ -91,6 +91,9 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
     AndroidDebugBridge.addClientChangeListener(this);
     AndroidDebugBridge.addDeviceChangeListener(this);
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
+
+    myLegacyAllocationTracker = new StudioLegacyAllocationTracker();
+    myDataStoreService.setLegacyAllocationTracker(myLegacyAllocationTracker);
   }
 
   private static Logger getLogger() {
@@ -116,7 +119,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
                                          .build());
           }
           builder.addDeviceProcesses(deviceProcesses.build());
-          myDataStoreService.setLegacyAllocationTracker(new StudioLegacyAllocationTracker(device));
+          myLegacyAllocationTracker.setDevice(device);
         }
       }
       myClient.getProfilerClient().setProcesses(builder.build());
@@ -250,10 +253,10 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
   }
 
   private class StudioLegacyAllocationTracker implements LegacyAllocationTracker {
-    private final IDevice myDevice;
+    private IDevice myDevice;
     private final LegacyAllocationConverter myConverter = new LegacyAllocationConverter();
 
-    public StudioLegacyAllocationTracker(@NotNull IDevice device) {
+    public void setDevice(IDevice device) {
       myDevice = device;
     }
 
