@@ -25,6 +25,7 @@ import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.RangedSeries;
@@ -171,7 +172,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .setStroke(new BasicStroke(2))
         .setIsBlocking(true)
         .setLabelProvider(
-          data -> String.format("Dump (%s)", TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
+          data -> String.format("Dump (%s)", data.getDuration() == DurationData.UNSPECIFIED_DURATION ? "in progress" :
+                                             TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
         .setClickHander(data -> getStage().setFocusedHeapDump(data.getDumpInfo()))
         .build();
     DurationDataRenderer<AllocationsDurationData> allocationRenderer =
@@ -179,7 +181,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
         .setStroke(new BasicStroke(2))
         .setLabelProvider(data -> String
-          .format("Allocation Record (%s)", TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
+          .format("Allocation Record (%s)", data.getDuration() == DurationData.UNSPECIFIED_DURATION ? "in progress" :
+                                            TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
         .setClickHander(data -> getStage().setAllocationsTimeRange(data.getStartTimeNs(), data.getEndTimeNs()))
         .build();
     DurationDataRenderer<GcDurationData> gcRenderer =
