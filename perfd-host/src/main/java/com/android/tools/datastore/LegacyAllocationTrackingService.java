@@ -44,10 +44,10 @@ public class LegacyAllocationTrackingService {
   private final ExecutorService myAllocationExecutorService =
     Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("LegacyAllocationTrackingService").build());
 
-  public boolean setAllocationTracking(int processId,
-                                       long time,
-                                       boolean enabled,
-                                       @NotNull LegacyAllocationTrackingCallback allocationConsumer) {
+  public boolean trackAllocations(int processId,
+                                  long time,
+                                  boolean enabled,
+                                  @NotNull LegacyAllocationTrackingCallback allocationConsumer) {
     // TODO ensure only legacy or non-instrumented devices go through this path
     LegacyAllocationTracker tracker = myTrackerSupplier.get();
     if (tracker == null) {

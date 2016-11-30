@@ -97,7 +97,10 @@ public class AllocationObjects implements MemoryObjects {
 
       TIntObjectHashMap<ClassNode> classNodes = new TIntObjectHashMap<>();
       Map<ByteString, AllocationStack> callStacks = new HashMap<>();
-      contextsResponse.getAllocatedClassesList().forEach(className -> classNodes.put(className.getClassId(), new ClassNode(className)));
+      contextsResponse.getAllocatedClassesList().forEach(className -> {
+        ClassNode dupe = classNodes.put(className.getClassId(), new ClassNode(className));
+        assert dupe == null;
+      });
       contextsResponse.getAllocationStacksList().forEach(callStack -> callStacks.putIfAbsent(callStack.getStackId(), callStack));
 
       MemoryData response = myClient

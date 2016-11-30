@@ -251,6 +251,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
 
   private class StudioLegacyAllocationTracker implements LegacyAllocationTracker {
     private final IDevice myDevice;
+    private final LegacyAllocationConverter myConverter = new LegacyAllocationConverter();
 
     public StudioLegacyAllocationTracker(@NotNull IDevice device) {
       myDevice = device;
@@ -288,24 +289,18 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
     @NotNull
     @Override
     public LegacyAllocationConverter parseDump(@NotNull byte[] dumpData) {
+      myConverter.prepare();
+
       // TODO fix allocation file overflow bug
       AllocationInfo[] rawInfos = AllocationsParser.parse(ByteBuffer.wrap(dumpData));
-      LegacyAllocationConverter converter = new LegacyAllocationConverter();
-      Map<List<StackTraceElement>, CallStack> fastUniqueStacks = new HashMap<>(); // because Sets don't have get()
+
       for (AllocationInfo info : rawInfos) {
         List<StackTraceElement> stackTraceElements = Arrays.asList(info.getStackTrace());
-        CallStack callStack;
-        if (!fastUniqueStacks.containsKey(stackTraceElements)) {
-          callStack = converter.addCallStack(new CallStack(stackTraceElements));
-          fastUniqueStacks.put(stackTraceElements, callStack);
-        }
-        else {
-          callStack = fastUniqueStacks.get(stackTraceElements);
-        }
-        int classId = converter.addClassName(info.getAllocatedClass());
-        converter.addAllocation(new LegacyAllocationConverter.Allocation(classId, info.getSize(), info.getThreadId(), callStack.getId()));
+        CallStack callStack = myConverter.addCallStack(stackTraceElements);
+        int classId = myConverter.addClassName(info.getAllocatedClass());
+        myConverter.addAllocation(new LegacyAllocationConverter.Allocation(classId, info.getSize(), info.getThreadId(), callStack.getId()));
       }
-      return converter;
+      return myConverter;
     }
 
     @Nullable
