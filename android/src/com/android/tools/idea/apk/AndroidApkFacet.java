@@ -49,6 +49,9 @@ public class AndroidApkFacet extends Facet<AndroidApkFacetConfiguration> {
 
   @Nullable
   public static AndroidApkFacet getInstance(@NotNull Module module) {
+    if (module.isDisposed()) {
+      return null;
+    }
     return FacetManager.getInstance(module).getFacetByType(TYPE_ID);
   }
 
