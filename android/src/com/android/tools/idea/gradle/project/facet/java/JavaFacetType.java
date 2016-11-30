@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class JavaFacetType extends FacetType<JavaFacet, JavaFacetConfiguration> {
   public JavaFacetType() {
-    super(JavaFacet.TYPE_ID, JavaFacet.ID, JavaFacet.NAME);
+    super(JavaFacet.getFacetTypeId(), JavaFacet.getFacetId(), JavaFacet.getFacetName());
   }
 
   @Override
