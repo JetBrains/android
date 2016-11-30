@@ -128,7 +128,7 @@ public class LegacyAllocationConverter {
     }
 
     @NotNull
-    public AllocationEvent getAllocationEvent(long time) {
+    public AllocationEvent bindTimeToAllocationEvent(long time) {
       return AllocationEvent.newBuilder().setAllocatedClassId(myClassId).setSize(mySize).setThreadId(myThreadId).setTimestamp(time)
         .setAllocationStackId(ByteString.copyFrom(myCallStackId)).build();
     }
@@ -141,7 +141,7 @@ public class LegacyAllocationConverter {
   private Map<String, ClassName> myAllocatedClasses = new HashMap<>();
 
   @NotNull
-  private Set<CallStack> myAllocationStacks = new HashSet<>();
+  private Map<List<StackTraceElement>, CallStack> myAllocationStacks = new HashMap<>();
 
   public int addClassName(@NotNull String className) {
     int id;
@@ -156,10 +156,23 @@ public class LegacyAllocationConverter {
   }
 
   @NotNull
-  public CallStack addCallStack(@NotNull CallStack callStack) {
-    assert !myAllocationStacks.contains(callStack);
-    myAllocationStacks.add(callStack);
-    return callStack;
+  public CallStack addCallStack(@NotNull List<StackTraceElement> stackTraceElements) {
+    CallStack result;
+    if (!myAllocationStacks.containsKey(stackTraceElements)) {
+      result = new CallStack(stackTraceElements);
+      myAllocationStacks.put(stackTraceElements, result);
+    }
+    else {
+      result = myAllocationStacks.get(stackTraceElements);
+    }
+    return result;
+  }
+
+  /**
+   * Prepares the converter to convert a new .alloc file.
+   */
+  public void prepare() {
+    myAllocations.clear();
   }
 
   public void addAllocation(@NotNull Allocation allocationInfo) {
@@ -167,11 +180,11 @@ public class LegacyAllocationConverter {
   }
 
   public List<AllocationEvent> getAllocationEvents(long time) {
-    return myAllocations.stream().map(allocation -> allocation.getAllocationEvent(time)).collect(Collectors.toList());
+    return myAllocations.stream().map(allocation -> allocation.bindTimeToAllocationEvent(time)).collect(Collectors.toList());
   }
 
   public List<AllocationStack> getAllocationStacks() {
-    return myAllocationStacks.stream().map(CallStack::getAllocationStack).collect(Collectors.toList());
+    return myAllocationStacks.values().stream().map(CallStack::getAllocationStack).collect(Collectors.toList());
   }
 
   public List<AllocatedClass> getClassNames() {
