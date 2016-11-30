@@ -19,7 +19,6 @@ import com.android.repository.api.*;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
-import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.install.StudioSdkInstallerUtil;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -34,19 +33,13 @@ import com.android.tools.idea.ui.validation.validators.TrueValidator;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.model.ModelWizard;
-import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.notification.*;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.*;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
@@ -54,11 +47,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
 import java.awt.event.ActionEvent;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
+import java.util.function.Function;
 
 /**
  * {@link ModelWizardStep} responsible for installing all selected packages before allowing the user the proceed.
@@ -72,6 +64,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
 
   private final StudioWizardStepPanel myStudioPanel;
   private final ValidatorPanel myValidatorPanel;
+  private final AndroidSdkHandler mySdkHandler;
 
   private JPanel myContentPanel;
   private JBLabel myLabelSdkPath;
@@ -85,12 +78,10 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
 
   // Ok to keep a reference, since the wizard is short-lived and modal.
   private final RepoManager myRepoManager;
-  private final AndroidSdkHandler mySdkHandler;
   private com.android.repository.api.ProgressIndicator myLogger;
   private static final Object LOGGER_LOCK = new Object();
   private final BackgroundAction myBackgroundAction = new BackgroundAction();
   private final boolean myBackgroundable;
-  private final InstallerFactory myInstallerFactory;
 
   public InstallSelectedPackagesStep(@NotNull List<UpdatablePackage> installRequests,
                                      @NotNull Collection<LocalPackage> uninstallRequests,
@@ -99,41 +90,16 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
     super("Component Installer");
     myInstallRequests = installRequests;
     myUninstallRequests = uninstallRequests;
-    mySdkHandler = sdkHandler;
     myRepoManager = sdkHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));
     myValidatorPanel = new ValidatorPanel(this, myContentPanel);
     myStudioPanel = new StudioWizardStepPanel(myValidatorPanel, "Installing Requested Components");
     myBackgroundable = backgroundable;
-    myInstallerFactory = StudioSdkInstallerUtil.createInstallerFactory(sdkHandler);
+    mySdkHandler = sdkHandler;
   }
 
   @Override
   public Action getExtraAction() {
     return myBackgroundable ? myBackgroundAction : null;
-  }
-
-  /**
-   * Look through the list of completed changes, and set a key if any new platforms
-   * were installed.
-   */
-  private static void checkForUpgrades(@Nullable List<UpdatablePackage> completedChanges) {
-    if (completedChanges == null) {
-      return;
-    }
-    int highestNewApiLevel = 0;
-    for (UpdatablePackage updated : completedChanges) {
-      TypeDetails details = updated.getRepresentative().getTypeDetails();
-      if (details instanceof DetailsTypes.PlatformDetailsType) {
-        int api = ((DetailsTypes.PlatformDetailsType)details).getApiLevel();
-        if (api > highestNewApiLevel) {
-          highestNewApiLevel = api;
-        }
-      }
-    }
-    if (highestNewApiLevel > 0) {
-      // TODO: Fix this code after we delete WizardConstants
-      PropertiesComponent.getInstance().setValue(WizardConstants.NEWLY_INSTALLED_API_KEY.name, highestNewApiLevel, -1);
-    }
   }
 
   @Override
@@ -194,7 +160,31 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
       myLogger = new ThrottledProgressWrapper(customLogger);
     }
 
-    InstallTask task = new InstallTask(myInstallRequests, myUninstallRequests, myLogger);
+    Function<List<RepoPackage>, Void> completeCallback = failures -> {
+      UIUtil.invokeLaterIfNeeded(() -> {
+        myProgressBar.setValue(100);
+        myProgressOverallLabel.setText("");
+
+        if (!failures.isEmpty()) {
+          myInstallFailed.set(true);
+          myProgressBar.setEnabled(false);
+        }
+        else {
+          myProgressDetailLabel.setText("Done");
+          checkForUpgrades(myInstallRequests);
+        }
+        myInstallationFinished.set(true);
+      });
+      return null;
+    };
+
+    InstallerFactory factory = StudioSdkInstallerUtil.createInstallerFactory(mySdkHandler);
+
+    InstallTask task = new InstallTask(factory, mySdkHandler, StudioSettingsController.getInstance(), myLogger);
+    task.setInstallRequests(myInstallRequests);
+    task.setUninstallRequests(myUninstallRequests);
+    task.setCompleteCallback(completeCallback);
+    task.setPrepareCompleteCallback(() -> myBackgroundAction.setEnabled(false));
     ProgressIndicator indicator;
     boolean hasOpenProjects = ProjectManager.getInstance().getOpenProjects().length > 0;
     if (hasOpenProjects) {
@@ -214,171 +204,30 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
     ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, indicator);
   }
 
-  private class InstallTask extends Task.Backgroundable {
-    @NotNull private final List<UpdatablePackage> myRequestedPackages;
-    @NotNull private final Collection<LocalPackage> myUninstallPackages;
-    @NotNull private final com.android.repository.api.ProgressIndicator myProgress;
-
-    @Override
-    public void onCancel() {
-      myProgress.cancel();
+  /**
+   * Look through the list of completed changes, and set a key if any new platforms
+   * were installed.
+   */
+  private static void checkForUpgrades(@Nullable List<UpdatablePackage> completedChanges) {
+    if (completedChanges == null) {
+      return;
     }
-
-    private InstallTask(@NotNull List<UpdatablePackage> requestedPackages,
-                        @NotNull Collection<LocalPackage> uninstallPackages,
-                        @NotNull com.android.repository.api.ProgressIndicator progress) {
-      super(null, "Installing Android SDK", true, PerformInBackgroundOption.ALWAYS_BACKGROUND);
-      myRequestedPackages = requestedPackages;
-      myUninstallPackages = uninstallPackages;
-      myProgress = progress;
-    }
-
-    @Override
-    public void run(@NotNull ProgressIndicator indicator) {
-      final List<RepoPackage> failures = Lists.newArrayList();
-      Map<RepoPackage, PackageOperation> preparedPackages = Maps.newLinkedHashMap();
-      try {
-        for (UpdatablePackage updatable : myRequestedPackages) {
-          PackageOperation installer = getOrCreateInstaller(updatable.getRemote(), indicator);
-          processPackage(updatable.getRemote(), installer, preparedPackages, failures);
+    int highestNewApiLevel = 0;
+    for (UpdatablePackage updated : completedChanges) {
+      TypeDetails details = updated.getRepresentative().getTypeDetails();
+      if (details instanceof DetailsTypes.PlatformDetailsType) {
+        int api = ((DetailsTypes.PlatformDetailsType)details).getApiLevel();
+        if (api > highestNewApiLevel) {
+          highestNewApiLevel = api;
         }
-        for (LocalPackage uninstall : myUninstallPackages) {
-          processPackage(uninstall, getOrCreateUninstaller(uninstall), preparedPackages, failures);
-        }
-        // Disable the background action so the final part can't be backgrounded.
-        myBackgroundAction.setEnabled(false);
-        if (!myBackgroundAction.isBackgrounded()) {
-          for (RepoPackage p : preparedPackages.keySet()) {
-            PackageOperation installer = preparedPackages.get(p);
-            // If we're not backgrounded, go on to the final part immediately.
-            if (!installer.complete(myProgress)) {
-              failures.add(p);
-            }
-          }
-        }
-        else {
-          // Otherwise show a notification that we're ready to complete.
-          showPrepareCompleteNotification(preparedPackages.keySet());
-          return;
-        }
-      }
-      finally {
-        if (!failures.isEmpty()) {
-          myLogger.logInfo("Failed packages:");
-          for (RepoPackage p : failures) {
-            myLogger.logInfo(String.format("- %1$s (%2$s)", p.getDisplayName(), p.getPath()));
-          }
-        }
-        synchronized (LOGGER_LOCK) {
-          myLogger = null;
-        }
-      }
-      // Use a simple progress indicator here so we don't pick up the log messages from the reload.
-      StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-      myRepoManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, null, StudioSettingsController.getInstance());
-
-      UIUtil.invokeLaterIfNeeded(() -> {
-        myProgressBar.setValue(100);
-        myProgressOverallLabel.setText("");
-
-        if (!failures.isEmpty()) {
-          myInstallFailed.set(true);
-          myProgressBar.setEnabled(false);
-        }
-        else {
-          myProgressDetailLabel.setText("Done");
-          checkForUpgrades(myRequestedPackages);
-        }
-        myInstallationFinished.set(true);
-      });
-    }
-
-    @NotNull
-    private PackageOperation getOrCreateInstaller(@NotNull RepoPackage p, @NotNull ProgressIndicator indicator) {
-      // If there's already an installer in progress for this package, reuse it.
-      PackageOperation op = myRepoManager.getInProgressInstallOperation(p);
-      if (op == null || !(op instanceof Installer)) {
-        op = myInstallerFactory.createInstaller((RemotePackage)p, myRepoManager, new StudioDownloader(indicator), mySdkHandler.getFileOp());
-      }
-      return op;
-    }
-
-    @NotNull
-    private PackageOperation getOrCreateUninstaller(@NotNull RepoPackage p) {
-      // If there's already an uninstaller in progress for this package, reuse it.
-      PackageOperation op = myRepoManager.getInProgressInstallOperation(p);
-      if (op == null || !(op instanceof Uninstaller) || op.getInstallStatus() == PackageOperation.InstallStatus.FAILED) {
-        op = myInstallerFactory.createUninstaller((LocalPackage)p, myRepoManager, mySdkHandler.getFileOp());
-      }
-      return op;
-    }
-
-    private void processPackage(@NotNull RepoPackage p,
-                               @NotNull PackageOperation op,
-                               @NotNull Map<RepoPackage, PackageOperation> preparedPackages,
-                               @NotNull List<RepoPackage> failures) {
-      boolean success = false;
-      try {
-        success = op.prepare(myProgress);
-      }
-      catch (Exception e) {
-        Logger.getInstance(getClass()).warn(e);
-      }
-      if (success) {
-        preparedPackages.put(p, op);
-      }
-      else {
-        failures.add(p);
       }
     }
-
-    private void showPrepareCompleteNotification(@NotNull final Collection<RepoPackage> packages) {
-      final NotificationListener notificationListener = new NotificationListener.Adapter() {
-        @Override
-        protected void hyperlinkActivated(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-          if ("install".equals(event.getDescription())) {
-            ModelWizardDialog dialogForPaths = SdkQuickfixUtils.createDialogForPackages(null, myInstallRequests, myUninstallRequests, false);
-            if (dialogForPaths != null) {
-              dialogForPaths.show();
-            }
-          }
-          notification.expire();
-        }
-      };
-      final NotificationGroup group = new NotificationGroup("SDK Installer", NotificationDisplayType.STICKY_BALLOON, false);
-      Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-      final Project[] openProjectsOrNull = openProjects.length == 0 ? new Project[] {null} : openProjects;
-      ApplicationManager.getApplication().invokeLater(
-        () -> {
-          for (Project p : openProjectsOrNull) {
-            String message;
-            if (packages.size() == 1) {
-              RepoPackage pack = packages.iterator().next();
-              PackageOperation op = myRepoManager.getInProgressInstallOperation(pack);
-              // op shouldn't be null. But just in case, we assume it's an install.
-              String opName = op == null || op instanceof Installer ? "Install" : "Uninstall";
-              message = String.format("%1$sation of '%2$s' is ready to continue<br/><a href=\"install\">%1$s Now</a>",
-                                      opName, pack.getDisplayName());
-            }
-            else {
-              message = packages.size() + " packages are ready to install or uninstall<br/><a href=\"install\">Continue</a>";
-            }
-            group.createNotification(
-              "SDK Install", message, NotificationType.INFORMATION, notificationListener).notify(p);
-          }
-        },
-        ModalityState.NON_MODAL,  // Don't show while we're in a modal context (e.g. sdk manager)
-        o -> {
-          for (RepoPackage pack : packages) {
-            PackageOperation installer = myRepoManager.getInProgressInstallOperation(pack);
-            if (installer != null && installer.getInstallStatus() == PackageOperation.InstallStatus.PREPARED) {
-              return false;
-            }
-          }
-          return true;
-        });
+    if (highestNewApiLevel > 0) {
+      // TODO: Fix this code after we delete WizardConstants
+      PropertiesComponent.getInstance().setValue(WizardConstants.NEWLY_INSTALLED_API_KEY.name, highestNewApiLevel, -1);
     }
   }
+
 
   private final class CustomLogger implements com.android.repository.api.ProgressIndicator {
 
