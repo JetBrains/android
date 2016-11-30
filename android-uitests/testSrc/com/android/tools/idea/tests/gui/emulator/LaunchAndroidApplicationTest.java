@@ -71,6 +71,7 @@ public class LaunchAndroidApplicationTest {
   }
 
   @RunIn(TestGroup.QA)
+  @Ignore("https://android-jenkins.corp.google.com/builders/studio-sanity_master-dev/builds/2122")
   @Test
   public void testRunOnEmulator() throws IOException, ClassNotFoundException {
     guiTest.importSimpleApplication();
