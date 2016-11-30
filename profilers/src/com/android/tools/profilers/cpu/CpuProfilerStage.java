@@ -19,10 +19,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.*;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.android.tools.profilers.AspectModel;
-import com.android.tools.profilers.ProfilerTimeline;
-import com.android.tools.profilers.Stage;
-import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashMap;
@@ -90,6 +87,11 @@ public class CpuProfilerStage extends Stage {
   public void exit() {
   }
 
+  @Override
+  public ProfilerMode getProfilerMode() {
+    return myCapture == null ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED;
+  }
+
   public AspectModel<CpuProfilerAspect> getAspect() {
     return myAspect;
   }
@@ -145,6 +147,7 @@ public class CpuProfilerStage extends Stage {
     ProfilerTimeline timeline = getStudioProfilers().getTimeline();
     timeline.setStreaming(false);
     timeline.getSelectionRange().set(myCapture.getRange());
+    getStudioProfilers().modeChanged();
     myAspect.changed(CpuProfilerAspect.CAPTURE);
   }
 
