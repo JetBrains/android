@@ -22,9 +22,9 @@ import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 
 /**
- * Test dragging a widget
+ * Test dragging a widget connected top-left
  */
-public class SceneDragTest extends SceneTest {
+public class SceneDragMarginTopLeftTest extends SceneTest {
 
   @Override
   @NotNull
@@ -42,20 +42,43 @@ public class SceneDragTest extends SceneTest {
                                        .withBounds(100, 200, 100, 20)
                                        .width("100dp")
                                        .height("20dp")
-                                       .withAttribute("tools:layout_editor_absoluteX", "100dp")
-                                       .withAttribute("tools:layout_editor_absoluteY", "200dp"),
-                                     component(TEXT_VIEW)
-                                       .id("@id/button2")
-                                       .withBounds(100, 500, 5, 5)
-                                       .width("5dp")
-                                       .height("5dp")
-                                       .withAttribute("tools:layout_editor_absoluteX", "100dp")
-                                       .withAttribute("tools:layout_editor_absoluteY", "500dp")
+                                       .withAttribute("app:layout_constraintLeft_toLeftOf", "parent")
+                                       .withAttribute("app:layout_constraintTop_toTopOf", "parent")
+                                       .withAttribute("android:layout_marginLeft", "100dp")
+                                       .withAttribute("android:layout_marginTop", "200dp")
                                    ));
     return builder;
   }
 
   public void testDragRight() {
+    myInteraction.mouseDown("button");
+    myInteraction.mouseRelease(800, 210);
+    myScreen.get("@id/button")
+      .expectXml("<TextView\n" +
+                 "    android:id=\"@id/button\"\n" +
+                 "    android:layout_width=\"100dp\"\n" +
+                 "    android:layout_height=\"20dp\"\n" +
+                 "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
+                 "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "    android:layout_marginLeft=\"750dp\"\n" +
+                 "    android:layout_marginTop=\"200dp\"/>");
+  }
+
+  public void testDragBottom() {
+    myInteraction.mouseDown("button");
+    myInteraction.mouseRelease(150, 500);
+    myScreen.get("@id/button")
+      .expectXml("<TextView\n" +
+                 "    android:id=\"@id/button\"\n" +
+                 "    android:layout_width=\"100dp\"\n" +
+                 "    android:layout_height=\"20dp\"\n" +
+                 "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
+                 "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "    android:layout_marginLeft=\"100dp\"\n" +
+                 "    android:layout_marginTop=\"490dp\"/>");
+  }
+
+  public void testDragBottomRight() {
     myInteraction.mouseDown("button");
     myInteraction.mouseRelease(800, 500);
     myScreen.get("@id/button")
@@ -63,21 +86,9 @@ public class SceneDragTest extends SceneTest {
                  "    android:id=\"@id/button\"\n" +
                  "    android:layout_width=\"100dp\"\n" +
                  "    android:layout_height=\"20dp\"\n" +
-                 "    tools:layout_editor_absoluteX=\"750dp\"\n" +
-                 "    tools:layout_editor_absoluteY=\"490dp\"/>");
-  }
-
-  public void testDragTooSmallWidget() {
-    // click on the center, offset by (6, 6) -- so this should be outside of
-    // the widget bounds, unless we correctly expanded the target.
-    myInteraction.mouseDown("button2", 6, 6);
-    myInteraction.mouseRelease(200, 600);
-    myScreen.get("@id/button2")
-      .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button2\"\n" +
-                 "    android:layout_width=\"5dp\"\n" +
-                 "    android:layout_height=\"5dp\"\n" +
-                 "    tools:layout_editor_absoluteX=\"192dp\"\n" +
-                 "    tools:layout_editor_absoluteY=\"592dp\"/>");
+                 "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
+                 "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "    android:layout_marginLeft=\"750dp\"\n" +
+                 "    android:layout_marginTop=\"490dp\"/>");
   }
 }

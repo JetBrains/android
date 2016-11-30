@@ -22,9 +22,9 @@ import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 
 /**
- * Test dragging a widget
+ * Test dragging a widget connected top-left
  */
-public class SceneDragTest extends SceneTest {
+public class SceneDragMarginFromWidgetTest extends SceneTest {
 
   @Override
   @NotNull
@@ -38,7 +38,7 @@ public class SceneDragTest extends SceneTest {
                                    .withAttribute("android:padding", "20dp")
                                    .children(
                                      component(TEXT_VIEW)
-                                       .id("@id/button")
+                                       .id("@id/button1")
                                        .withBounds(100, 200, 100, 20)
                                        .width("100dp")
                                        .height("20dp")
@@ -46,38 +46,26 @@ public class SceneDragTest extends SceneTest {
                                        .withAttribute("tools:layout_editor_absoluteY", "200dp"),
                                      component(TEXT_VIEW)
                                        .id("@id/button2")
-                                       .withBounds(100, 500, 5, 5)
-                                       .width("5dp")
-                                       .height("5dp")
-                                       .withAttribute("tools:layout_editor_absoluteX", "100dp")
-                                       .withAttribute("tools:layout_editor_absoluteY", "500dp")
+                                       .withBounds(200, 200, 100, 20)
+                                       .width("100dp")
+                                       .height("20dp")
+                                       .withAttribute("app:layout_constraintLeft_toRightOf", "@+id/button1")
+                                       .withAttribute("tools:layout_editor_absoluteY", "200dp")
                                    ));
     return builder;
   }
 
   public void testDragRight() {
-    myInteraction.mouseDown("button");
-    myInteraction.mouseRelease(800, 500);
-    myScreen.get("@id/button")
-      .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    tools:layout_editor_absoluteX=\"750dp\"\n" +
-                 "    tools:layout_editor_absoluteY=\"490dp\"/>");
-  }
-
-  public void testDragTooSmallWidget() {
-    // click on the center, offset by (6, 6) -- so this should be outside of
-    // the widget bounds, unless we correctly expanded the target.
-    myInteraction.mouseDown("button2", 6, 6);
-    myInteraction.mouseRelease(200, 600);
+    myInteraction.mouseDown("button2");
+    myInteraction.mouseRelease(800, 210);
     myScreen.get("@id/button2")
       .expectXml("<TextView\n" +
                  "    android:id=\"@id/button2\"\n" +
-                 "    android:layout_width=\"5dp\"\n" +
-                 "    android:layout_height=\"5dp\"\n" +
-                 "    tools:layout_editor_absoluteX=\"192dp\"\n" +
-                 "    tools:layout_editor_absoluteY=\"592dp\"/>");
+                 "    android:layout_width=\"100dp\"\n" +
+                 "    android:layout_height=\"20dp\"\n" +
+                 "    app:layout_constraintLeft_toRightOf=\"@+id/button1\"\n" +
+                 "    tools:layout_editor_absoluteY=\"200dp\"\n" +
+                 "      android:layout_marginLeft=\"550dp\" />");
   }
+
 }

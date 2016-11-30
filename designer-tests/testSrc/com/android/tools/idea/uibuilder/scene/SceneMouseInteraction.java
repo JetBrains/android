@@ -29,6 +29,12 @@ class SceneMouseInteraction {
     myScene.paint(myDisplayList, System.currentTimeMillis());
   }
 
+  /**
+   * Simulate a click on a given resize handle of the component with componentId
+   *
+   * @param componentId the id of the component we want to click on
+   * @param type        the type of resize handle we want to click on
+   */
   public void mouseDown(String componentId, ResizeTarget.Type type) {
     SceneComponent component = myScene.getSceneComponent(componentId);
     if (component != null) {
@@ -40,6 +46,12 @@ class SceneMouseInteraction {
     }
   }
 
+  /**
+   * Simulate a click on a given anchor of the component with componentId
+   *
+   * @param componentId the id of the component we want to click on
+   * @param type        the type of anchor we want to click on
+   */
   public void mouseDown(String componentId, AnchorTarget.Type type) {
     SceneComponent component = myScene.getSceneComponent(componentId);
     if (component != null) {
@@ -51,16 +63,39 @@ class SceneMouseInteraction {
     }
   }
 
+  /**
+   * Simulate a click on the center of component with componentId
+   *
+   * @param componentId the id of the component we want to click on
+   */
   public void mouseDown(String componentId) {
+    mouseDown(componentId, 0, 0);
+  }
+
+  /**
+   * Simulate a click on the component with componentId
+   *
+   * @param componentId the id of the component we want to click on
+   * @param offsetX     x offset from the center of the component
+   * @param offsetY     y offset from the center of the component
+   */
+  public void mouseDown(String componentId, int offsetX, int offsetY) {
     SceneComponent component = myScene.getSceneComponent(componentId);
     if (component != null) {
-      myLastX = component.getCenterX();
-      myLastY = component.getCenterY();
+      myLastX = component.getCenterX() + offsetX;
+      myLastY = component.getCenterY() + offsetY;
       myScene.mouseDown(myLastX, myLastY);
       myScene.paint(myDisplayList, System.currentTimeMillis());
     }
   }
 
+  /**
+   * Simulate releasing the mouse above the given anchor of the component
+   * with the given componentId
+   *
+   * @param componentId the id of the component we will release the mouse above
+   * @param type        the type of anchor we need to be above
+   */
   public void mouseRelease(String componentId, AnchorTarget.Type type) {
     SceneComponent component = myScene.getSceneComponent(componentId);
     if (component != null) {
@@ -71,6 +106,13 @@ class SceneMouseInteraction {
     }
   }
 
+  /**
+   * Simulate releasing the mouse at the coordinates (x, y).
+   * Before doing the release, a serie of drag events will be simulated
+   *
+   * @param x coordinate on release
+   * @param y coordinate on release
+   */
   public void mouseRelease(int x, int y) {
     // drag first
     int steps = 10;
@@ -94,5 +136,4 @@ class SceneMouseInteraction {
   public DisplayList getDisplayList() {
     return myDisplayList;
   }
-
 }
