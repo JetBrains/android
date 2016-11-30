@@ -22,83 +22,85 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+// TODO: cleanup this class and its usages. Make sure to document that afterwards.
 public class HNode<T> {
 
-  private long mStart;
-  private long mEnd;
-  @Nullable private T mData;
-  @NotNull private List<HNode<T>> mNodes;
-  private int mDepth;
+  private long myStart;
+  private long myEnd;
+  @Nullable private T myData;
+  @NotNull private List<HNode<T>> myNodes;
+  private int myDepth;
 
   public HNode() {
     this(null, 0, 0);
   }
 
   public HNode(@Nullable T data, long start, long end) {
-    mNodes = new ArrayList<>();
-    mData = data;
-    mStart = start;
-    mEnd = end;
+    myNodes = new ArrayList<>();
+    myData = data;
+    myStart = start;
+    myEnd = end;
   }
 
   @NotNull
   public List<HNode<T>> getChildren() {
-    return mNodes;
+    return myNodes;
   }
 
   public void addHNode(HNode<T> node) {
-    mNodes.add(node);
+    myNodes.add(node);
   }
 
   @Nullable
   public HNode<T> getLastChild() {
-    if (mNodes.isEmpty()) {
+    if (myNodes.isEmpty()) {
       return null;
     }
-    return mNodes.get(mNodes.size() - 1);
+    return myNodes.get(myNodes.size() - 1);
   }
 
   @Nullable
   public HNode<T> getFirstChild() {
-    if (mNodes.isEmpty()) {
+    if (myNodes.isEmpty()) {
       return null;
     }
-    return mNodes.get(0);
+    return myNodes.get(0);
   }
 
   public long getEnd() {
-    return mEnd;
+    return myEnd;
   }
 
   public void setEnd(long end) {
-    mEnd = end;
+    myEnd = end;
   }
 
   public long getStart() {
-    return mStart;
+    return myStart;
   }
 
   public void setStart(long start) {
-    mStart = start;
+    myStart = start;
   }
 
+  @Nullable
   public T getData() {
-    return mData;
+    return myData;
   }
 
-  public void setData(T data) {
-    mData = data;
+  public void setData(@Nullable T data) {
+    myData = data;
   }
 
   public int getDepth() {
-    return mDepth;
+    return myDepth;
   }
 
   public void setDepth(int depth) {
-    mDepth = depth;
+    myDepth = depth;
   }
 
   public long duration() {
-    return mEnd - mStart;
+    return myEnd - myStart;
   }
 }
