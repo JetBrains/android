@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
+import com.android.tools.idea.uibuilder.scene.target.ResizeTarget;
+
 /**
  * Encapsulates basic mouse interaction on a Scene
  */

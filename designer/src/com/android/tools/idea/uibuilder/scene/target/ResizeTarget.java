@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.scene;
+package com.android.tools.idea.uibuilder.scene.target;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.DisplayList;
+import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.ScenePicker;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -31,17 +35,11 @@ import java.awt.*;
 /**
  * Implements a resize handle for the ConstraintLayout viewgroup
  */
-public class ResizeTarget implements Target {
+public class ResizeTarget extends BaseTarget {
 
-  private SceneComponent myComponent;
   private final Type myType;
   private final int mySize = 8;
-  private boolean mIsOver = false;
 
-  private int myLeft = 0;
-  private int myTop = 0;
-  private int myRight = 0;
-  private int myBottom = 0;
   private int mStartX1;
   private int mStartY1;
   private int mStartX2;
@@ -62,28 +60,6 @@ public class ResizeTarget implements Target {
     myType = type;
   }
 
-  //endregion
-  /////////////////////////////////////////////////////////////////////////////
-  //region Accessors
-  /////////////////////////////////////////////////////////////////////////////
-
-  @Override
-  public void setOver(boolean over) {
-    mIsOver = over;
-  }
-
-  @Override
-  public void setComponent(@NotNull SceneComponent component) {
-    myComponent = component;
-  }
-
-  public int getCenterX() {
-    return myLeft + (myRight - myLeft) / 2;
-  }
-
-  public int getCenterY() {
-    return myTop + (myBottom - myTop) / 2;
-  }
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region Layout
@@ -233,12 +209,6 @@ public class ResizeTarget implements Target {
   @Override
   public int getPreferenceLevel() {
     return 10;
-  }
-
-  @Override
-  public void addHit(@NotNull ScenePicker picker) {
-    mIsOver = false;
-    picker.addRect(this, 0, myLeft, myTop, myRight, myBottom);
   }
 
   @Override
