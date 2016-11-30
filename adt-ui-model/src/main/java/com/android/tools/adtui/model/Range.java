@@ -68,10 +68,17 @@ public class Range {
     return getMax() == getMin();
   }
 
+  /**
+   * Whether the range is empty.
+   * A range is considered empty if its min value is greater than its max value.
+   */
   public boolean isEmpty() {
     return myMin > myMax;
   }
 
+  /**
+   * Whether a value is between the range min and max (inclusive)
+   */
   public boolean contains(double value) {
     return myMin <= value && value <= myMax;
   }
@@ -141,6 +148,9 @@ public class Range {
     }
   }
 
+  /**
+   * Sets the range min and max to the new values if they are, respectively, less or greater than the current value.
+   */
   public void expand(double min, double max) {
     set(Math.min(min, myMin), Math.max(max, myMax));
   }
