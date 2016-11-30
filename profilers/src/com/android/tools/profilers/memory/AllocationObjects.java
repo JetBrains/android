@@ -95,10 +95,10 @@ public class AllocationObjects implements MemoryObjects {
       AllocationContextsResponse contextsResponse = myClient.listAllocationContexts(
         AllocationContextsRequest.newBuilder().setAppId(myAppId).setStartTime(myStartTimeNs).setEndTime(myEndTimeNs).build());
 
-      TIntObjectHashMap<ClassNode> classNodes = new TIntObjectHashMap<>();
+      TIntObjectHashMap<AllocationClassNode> classNodes = new TIntObjectHashMap<>();
       Map<ByteString, AllocationStack> callStacks = new HashMap<>();
       contextsResponse.getAllocatedClassesList().forEach(className -> {
-        ClassNode dupe = classNodes.put(className.getClassId(), new ClassNode(className));
+        AllocationClassNode dupe = classNodes.put(className.getClassId(), new AllocationClassNode(className));
         assert dupe == null;
       });
       contextsResponse.getAllocationStacksList().forEach(callStack -> callStacks.putIfAbsent(callStack.getStackId(), callStack));
@@ -110,7 +110,8 @@ public class AllocationObjects implements MemoryObjects {
       for (AllocationEvent event : response.getAllocationEventsList()) {
         assert classNodes.containsKey(event.getAllocatedClassId());
         assert callStacks.containsKey(event.getAllocationStackId());
-        classNodes.get(event.getAllocatedClassId()).addInstance(new InstanceNode(event, callStacks.get(event.getAllocationStackId())));
+        classNodes.get(event.getAllocatedClassId())
+          .addInstance(new AllocationInstanceNode(event, classNodes.get(event.getAllocatedClassId()), callStacks.get(event.getAllocationStackId())));
         allocatedClasses.add(event.getAllocatedClassId());
       }
 
@@ -125,15 +126,15 @@ public class AllocationObjects implements MemoryObjects {
     @NotNull
     @Override
     public List<Capability> getCapabilities() {
-      return Arrays.asList(Capability.LABEL, Capability.CHILDREN_COUNT, Capability.ELEMENT_SIZE);
+      return Arrays.asList(Capability.LABEL, Capability.CHILDREN_COUNT);
     }
   }
 
-  private static class ClassNode implements MemoryNode {
+  private static class AllocationClassNode implements MemoryNode {
     @NotNull private final AllocatedClass myAllocatedClass;
     @NotNull private final List<MemoryNode> myInstanceNodes = new ArrayList<>();
 
-    public ClassNode(@NotNull AllocatedClass allocatedClass) {
+    public AllocationClassNode(@NotNull AllocatedClass allocatedClass) {
       myAllocatedClass = allocatedClass;
     }
 
@@ -143,7 +144,7 @@ public class AllocationObjects implements MemoryObjects {
       return myAllocatedClass.getClassName();
     }
 
-    public void addInstance(@NotNull InstanceNode node) {
+    public void addInstance(@NotNull AllocationInstanceNode node) {
       myInstanceNodes.add(node);
     }
 
@@ -157,15 +158,29 @@ public class AllocationObjects implements MemoryObjects {
     public List<MemoryNode> getSubList() {
       return myInstanceNodes;
     }
+
+    @NotNull
+    @Override
+    public List<Capability> getCapabilities() {
+      return Arrays.asList(Capability.LABEL, Capability.SHALLOW_SIZE);
+    }
   }
 
-  private static class InstanceNode implements MemoryNode {
+  private static class AllocationInstanceNode implements MemoryNode {
     @NotNull private final AllocationEvent myEvent;
+    @NotNull private final AllocationClassNode myAllocationClassNode;
     @NotNull private final AllocationStack myCallStack;
 
-    public InstanceNode(@NotNull AllocationEvent event, @NotNull AllocationStack callStack) {
+    public AllocationInstanceNode(@NotNull AllocationEvent event, @NotNull AllocationClassNode allocationClassNode, @NotNull AllocationStack callStack) {
       myEvent = event;
+      myAllocationClassNode = allocationClassNode;
       myCallStack = callStack;
+    }
+
+    @NotNull
+    @Override
+    public String getName() {
+      return myAllocationClassNode.getName();
     }
 
     @Override

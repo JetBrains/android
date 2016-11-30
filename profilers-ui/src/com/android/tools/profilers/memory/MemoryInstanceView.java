@@ -81,8 +81,7 @@ final class MemoryInstanceView {
           MemoryNode node = value.getAdapter();
           return node instanceof InstanceNode ?
                  Integer.toString(value.getAdapter().getDepth()) : "";
-        },
-                                                               value -> null, SwingConstants.RIGHT),
+        }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
@@ -91,11 +90,7 @@ final class MemoryInstanceView {
       MemoryNode.Capability.SHALLOW_SIZE,
       new MemoryProfilerStageView.CapabilityColumn(
         "Shallow Size",
-        () -> new MemoryProfilerStageView.DetailColumnRenderer(value -> {
-          MemoryNode node = value.getAdapter();
-          return node instanceof InstanceNode ?
-                 Integer.toString(value.getAdapter().getShallowSize()) : "";
-        },
+        () -> new MemoryProfilerStageView.DetailColumnRenderer(value -> Integer.toString(value.getAdapter().getShallowSize()),
                                                                value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
@@ -109,8 +104,7 @@ final class MemoryInstanceView {
           MemoryNode node = value.getAdapter();
           return node instanceof InstanceNode ?
                  Long.toString(value.getAdapter().getRetainedSize()) : "";
-        },
-                                                               value -> null, SwingConstants.RIGHT),
+        }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
