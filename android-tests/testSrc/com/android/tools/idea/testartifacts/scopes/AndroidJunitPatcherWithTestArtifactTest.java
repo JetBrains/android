@@ -37,7 +37,6 @@ public class AndroidJunitPatcherWithTestArtifactTest extends AndroidGradleTestCa
     String classpath = parameters.getClassPath().getPathsString();
     assertThat(classpath).contains("junit-4.12.jar");
     assertThat(classpath).contains("gson-2.2.4.jar");
-    assertThat(classpath).contains("guava-18.0.jar");
 
     // JUnit is in test dependency, gson and guava are android test dependency
     myPatcher.patchJavaParameters(module1, parameters);
