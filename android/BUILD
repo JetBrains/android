@@ -9,7 +9,6 @@ iml_module(
         "gen",
     ],
     tags = ["managed"],
-    test_tags = ["manual"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     exports = [
