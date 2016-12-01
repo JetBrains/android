@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.memory;
+package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.perflib.heap.Heap;
 import org.jetbrains.annotations.NotNull;
@@ -22,14 +22,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.android.tools.profilers.memory.adapters.HeapObject.ClassAttribute.*;
+
 /**
- * TODO: Add header comment
+ * A UI representation for a {@link Heap}.
  */
-class HeapNode implements MemoryNode {
+class HeapDumpHeapObject extends HeapObject {
   @NotNull
   private final Heap myHeap;
 
-  public HeapNode(@NotNull Heap heap) {
+  public HeapDumpHeapObject(@NotNull Heap heap) {
     myHeap = heap;
   }
 
@@ -40,25 +42,24 @@ class HeapNode implements MemoryNode {
 
   @Override
   public String toString() {
-    return getName();
+    return getHeapName();
   }
 
   @NotNull
   @Override
-  public String getName() {
+  public String getHeapName() {
     return myHeap.getName();
   }
 
   @NotNull
   @Override
-  public List<MemoryNode> getSubList() {
-    return myHeap.getClasses().stream().map(ClassNode::new).collect(Collectors.toList());
+  public List<ClassObject> getClasses() {
+    return myHeap.getClasses().stream().map(HeapDumpClassObject::new).collect(Collectors.toList());
   }
 
   @NotNull
   @Override
-  public List<Capability> getCapabilities() {
-    return Arrays
-      .asList(Capability.LABEL, Capability.CHILDREN_COUNT, Capability.ELEMENT_SIZE, Capability.SHALLOW_SIZE, Capability.RETAINED_SIZE);
+  public List<ClassAttribute> getClassAttributes() {
+    return Arrays.asList(LABEL, CHILDREN_COUNT, ELEMENT_SIZE, SHALLOW_SIZE, RETAINED_SIZE);
   }
 }

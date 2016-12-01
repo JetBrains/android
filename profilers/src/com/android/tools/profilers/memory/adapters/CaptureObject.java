@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.memory;
+package com.android.tools.profilers.memory.adapters;
 
-public enum MemoryProfilerAspect {
-  LEGACY_ALLOCATION,
-  CURRENT_CAPTURE,
-  CURRENT_HEAP,
-  CURRENT_CLASS,
-  CURRENT_INSTANCE
+import com.intellij.openapi.Disposable;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
+public abstract class CaptureObject implements MemoryObject, Disposable {
+  @NotNull
+  public abstract String getLabel();
+
+  @NotNull
+  public abstract List<HeapObject> getHeaps();
 }
