@@ -53,13 +53,16 @@ public abstract class ConnectDebuggerTask implements DebugConnectorTask {
   @NotNull private final Set<String> myApplicationIds;
   @NotNull protected final AndroidDebugger myDebugger;
   @NotNull protected final Project myProject;
+  protected final boolean myMonitorRemoteProcess;
 
   protected ConnectDebuggerTask(@NotNull Set<String> applicationIds,
                                 @NotNull AndroidDebugger debugger,
-                                @NotNull Project project) {
+                                @NotNull Project project,
+                                boolean monitorRemoteProcess) {
     myApplicationIds = applicationIds;
     myDebugger = debugger;
     myProject = project;
+    myMonitorRemoteProcess = monitorRemoteProcess;
   }
 
   @NotNull
