@@ -52,7 +52,7 @@ public class SceneCreationTest extends SceneTest {
   public void testSceneCreation() {
     ModelBuilder builder = createModel();
     NlModel model = builder.build();
-    Scene scene = Scene.createScene(model);
+    Scene scene = Scene.createScene(model, null);
     scene.setDpiFactor(1);
     scene.setAnimate(false);
     assertEquals(scene.getRoot().getChildren().size(), 1);
