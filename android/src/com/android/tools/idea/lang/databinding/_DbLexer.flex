@@ -98,6 +98,7 @@ RESOURCE_TYPE=anim|animator|bool|color|colorStateList|dimen|dimenOffset|dimenSiz
   "~"                     { return TILDE; }
   "??"                    { return QUESTQUEST; }
   "?"                     { return QUEST; }
+  "::"                     { return COLONCOLON; }
   ":"                     { return COLON; }
   "+"                     { return PLUS; }
   "-"                     { return MINUS; }

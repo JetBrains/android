@@ -17,8 +17,12 @@ public class PsiDbInferredFormalParameterListImpl extends DataBindingPsiElement 
     super(node);
   }
 
+  public void accept(@NotNull PsiDbVisitor visitor) {
+    visitor.visitInferredFormalParameterList(this);
+  }
+
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof PsiDbVisitor) ((PsiDbVisitor)visitor).visitInferredFormalParameterList(this);
+    if (visitor instanceof PsiDbVisitor) accept((PsiDbVisitor)visitor);
     else super.accept(visitor);
   }
 

@@ -17,8 +17,12 @@ public class PsiDbExpressionListImpl extends DataBindingPsiElement implements Ps
     super(node);
   }
 
+  public void accept(@NotNull PsiDbVisitor visitor) {
+    visitor.visitExpressionList(this);
+  }
+
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof PsiDbVisitor) ((PsiDbVisitor)visitor).visitExpressionList(this);
+    if (visitor instanceof PsiDbVisitor) accept((PsiDbVisitor)visitor);
     else super.accept(visitor);
   }
 

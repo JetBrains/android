@@ -16,8 +16,12 @@ public class PsiDbClassExtractionExprImpl extends PsiDbExprImpl implements PsiDb
     super(node);
   }
 
+  public void accept(@NotNull PsiDbVisitor visitor) {
+    visitor.visitClassExtractionExpr(this);
+  }
+
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof PsiDbVisitor) ((PsiDbVisitor)visitor).visitClassExtractionExpr(this);
+    if (visitor instanceof PsiDbVisitor) accept((PsiDbVisitor)visitor);
     else super.accept(visitor);
   }
 
