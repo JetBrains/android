@@ -13,25 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.memory;
+package com.android.tools.profilers.memory.adapters;
 
 import org.jetbrains.annotations.NotNull;
 
-public class InstanceObjects implements MemoryObjects {
+import java.util.List;
 
-  private final MemoryNode myInstanceNode;
-
-  public InstanceObjects(@NotNull MemoryNode instance) {
-    myInstanceNode = instance;
+public abstract class HeapObject implements MemoryObject {
+  public enum ClassAttribute {
+    LABEL,
+    CHILDREN_COUNT,
+    ELEMENT_SIZE,
+    DEPTH,
+    SHALLOW_SIZE,
+    RETAINED_SIZE
   }
 
   @NotNull
-  @Override
-  public MemoryNode getRootNode() {
-    return myInstanceNode;
-  }
+  public abstract String getHeapName();
 
-  @Override
-  public void dispose() {
-  }
+  @NotNull
+  public abstract List<ClassObject> getClasses();
+
+  @NotNull
+  public abstract List<ClassAttribute> getClassAttributes();
 }

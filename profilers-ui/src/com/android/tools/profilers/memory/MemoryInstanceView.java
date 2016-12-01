@@ -16,10 +16,21 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
-import com.android.tools.perflib.heap.Type;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.memory.MemoryNode.Capability;
+import com.android.tools.profilers.memory.MemoryProfilerStageView.AttributeColumn;
+import com.android.tools.profilers.memory.MemoryProfilerStageView.DetailColumnRenderer;
+import com.android.tools.profilers.memory.adapters.ClassObject;
+import com.android.tools.profilers.memory.adapters.ClassObject.InstanceAttribute;
+import com.android.tools.profilers.memory.adapters.FieldObject;
+import com.android.tools.profilers.memory.adapters.InstanceObject;
+import com.android.tools.profilers.memory.adapters.InstanceObject.ValueType;
+import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.ui.Splitter;
+import com.intellij.ui.components.JBList;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.containers.HashMap;
@@ -40,76 +51,84 @@ final class MemoryInstanceView {
   private static final int LABEL_COLUMN_WIDTH = 500;
   private static final int DEFAULT_COLUMN_WIDTH = 80;
 
-  // Optimization: populate the tree only two levels deep from the target node during initialization and expansion.
-  private static final int EXPANSION_DEPTH_LIMIT = 2;
-
   @NotNull private final MemoryProfilerStage myStage;
 
-  @NotNull private final Map<Capability, MemoryProfilerStageView.CapabilityColumn> myCapabilityColumns = new HashMap<>();
+  @NotNull private final Map<InstanceAttribute, AttributeColumn> myAttributeColumns = new HashMap<>();
+
+  @Nullable private Splitter mySplitter;
 
   @Nullable private JComponent myTree;
 
   @Nullable private DefaultTreeModel myTreeModel;
 
-  @Nullable private MemoryObjectTreeNode myTreeRoot;
+  @Nullable private MemoryObjectTreeNode<InstanceObject> myTreeRoot;
 
-  @Nullable private ClassObjects myClassObjects;
+  @Nullable private ClassObject myClassObject;
+
+  @Nullable private InstanceObject myInstanceObject;
 
   public MemoryInstanceView(@NotNull MemoryProfilerStage stage) {
     myStage = stage;
 
-    myCapabilityColumns.put(
-      MemoryNode.Capability.LABEL,
-      new MemoryProfilerStageView.CapabilityColumn(
+    myStage.getAspect().addDependency()
+      .setExecutor(ApplicationManager.getApplication()::invokeLater)
+      .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::instanceChanged);
+
+    myAttributeColumns.put(
+      InstanceAttribute.LABEL,
+      new AttributeColumn(
         "Instance",
-        () -> new MemoryProfilerStageView.DetailColumnRenderer(value -> value.getAdapter().getName(),
-                                                               value -> {
-                                                                 MemoryNode node = value.getAdapter();
-                                                                 return node instanceof InstanceNode ?
-                                                                        PlatformIcons.INTERFACE_ICON : PlatformIcons.FIELD_ICON;
-                                                               },
-                                                               SwingConstants.LEFT),
+        () -> new DetailColumnRenderer(value -> ((InstanceObject)value.getAdapter()).getName(),
+                                       value -> {
+                                         MemoryObject node = value.getAdapter();
+                                         return node instanceof FieldObject ? PlatformIcons.FIELD_ICON : PlatformIcons.INTERFACE_ICON;
+                                       },
+                                       SwingConstants.LEFT),
         SwingConstants.LEFT,
         LABEL_COLUMN_WIDTH,
         SortOrder.ASCENDING,
-        (o1, o2) -> o1.getAdapter().getName().compareTo(o2.getAdapter().getName())));
-    myCapabilityColumns.put(
-      MemoryNode.Capability.DEPTH,
-      new MemoryProfilerStageView.CapabilityColumn(
+        (o1, o2) -> ((InstanceObject)o1.getAdapter()).getName().compareTo(((InstanceObject)o2.getAdapter()).getName())));
+    myAttributeColumns.put(
+      InstanceAttribute.DEPTH,
+      new AttributeColumn(
         "Depth",
-        () -> new MemoryProfilerStageView.DetailColumnRenderer(value -> {
-          MemoryNode node = value.getAdapter();
-          return node instanceof InstanceNode ?
-                 Integer.toString(value.getAdapter().getDepth()) : "";
+        () -> new DetailColumnRenderer(value -> {
+          MemoryObject node = value.getAdapter();
+          if (node instanceof InstanceObject) {
+            InstanceObject instanceObject = (InstanceObject)value.getAdapter();
+            if (instanceObject.getDepth() >= 0) {
+              return Integer.toString(instanceObject.getDepth());
+            }
+          }
+          return "";
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
-        (o1, o2) -> o1.getAdapter().getDepth() - o2.getAdapter().getDepth()));
-    myCapabilityColumns.put(
-      MemoryNode.Capability.SHALLOW_SIZE,
-      new MemoryProfilerStageView.CapabilityColumn(
+        (o1, o2) -> ((InstanceObject)o1.getAdapter()).getDepth() - ((InstanceObject)o2.getAdapter()).getDepth()));
+    myAttributeColumns.put(
+      InstanceAttribute.SHALLOW_SIZE,
+      new AttributeColumn(
         "Shallow Size",
-        () -> new MemoryProfilerStageView.DetailColumnRenderer(value -> Integer.toString(value.getAdapter().getShallowSize()),
-                                                               value -> null, SwingConstants.RIGHT),
+        () -> new DetailColumnRenderer(value -> Integer.toString(((InstanceObject)value.getAdapter()).getShallowSize()), value -> null,
+                                       SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
-        (o1, o2) -> o1.getAdapter().getShallowSize() - o2.getAdapter().getShallowSize()));
-    myCapabilityColumns.put(
-      MemoryNode.Capability.RETAINED_SIZE,
-      new MemoryProfilerStageView.CapabilityColumn(
+        (o1, o2) -> ((InstanceObject)o1.getAdapter()).getShallowSize() - ((InstanceObject)o2.getAdapter()).getShallowSize()));
+    myAttributeColumns.put(
+      InstanceAttribute.RETAINED_SIZE,
+      new AttributeColumn(
         "Retained Size",
-        () -> new MemoryProfilerStageView.DetailColumnRenderer(value -> {
-          MemoryNode node = value.getAdapter();
-          return node instanceof InstanceNode ?
-                 Long.toString(value.getAdapter().getRetainedSize()) : "";
+        () -> new DetailColumnRenderer(value -> {
+          MemoryObject node = value.getAdapter();
+          return node instanceof InstanceObject ? Long.toString(((InstanceObject)value.getAdapter()).getRetainedSize()) : "";
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
         (o1, o2) -> {
-          long diff = o1.getAdapter().getRetainedSize() - o2.getAdapter().getRetainedSize();
+          long diff = ((InstanceObject)o1.getAdapter()).getRetainedSize() - ((InstanceObject)o2.getAdapter()).getRetainedSize();
           return diff > 0 ? 1 : (diff < 0 ? -1 : 0);
         }));
   }
@@ -118,18 +137,20 @@ final class MemoryInstanceView {
     myTree = null;
     myTreeRoot = null;
     myTreeModel = null;
-    myClassObjects = null;
+    myClassObject = null;
+    mySplitter = null;
   }
 
   @Nullable
-  public ClassObjects getCurrentClassObject() {
-    return myClassObjects;
+  public ClassObject getCurrentClassObject() {
+    return myClassObject;
   }
 
   @Nullable
-  public JComponent buildComponent(@NotNull ClassObjects model) {
-    myClassObjects = model;
-    MemoryNode rootNode = model.getRootNode();
+  public JComponent buildComponent(@NotNull ClassObject targetClass) {
+    myClassObject = targetClass;
+
+    mySplitter = new Splitter(true);
 
     JPanel instancesPanel = new JPanel(new BorderLayout());
     JPanel headingPanel = new JPanel(new BorderLayout());
@@ -140,45 +161,92 @@ final class MemoryInstanceView {
     headingPanel.add(close, BorderLayout.EAST);
 
     instancesPanel.add(headingPanel, BorderLayout.NORTH);
-    buildTree(instancesPanel, rootNode);
+    buildTree(instancesPanel);
 
-    return instancesPanel;
+    mySplitter.setFirstComponent(instancesPanel);
+
+    return mySplitter;
   }
 
-  private void buildTree(@NotNull JPanel parentPanel, @NotNull MemoryNode adapter) {
-    ensureTreeInitialized(parentPanel, adapter);
-    assert myTreeRoot != null && myTreeModel != null;
+  private void buildTree(@NotNull JPanel parentPanel) {
+    ensureTreeInitialized(parentPanel);
+    assert myTreeRoot != null && myTreeModel != null && myClassObject != null;
     myTreeRoot.removeAll();
-    populateTreeNodeRecursive(myTreeRoot, EXPANSION_DEPTH_LIMIT);
+
+    for (InstanceObject instanceObject : myClassObject.getInstances()) {
+      MemoryObjectTreeNode instanceNode = new MemoryObjectTreeNode<>(instanceObject);
+      myTreeRoot.add(instanceNode);
+      populateFields(instanceNode);
+    }
     myTreeModel.nodeChanged(myTreeRoot);
     myTreeModel.reload();
   }
 
-  private void populateTreeNodeRecursive(@NotNull MemoryObjectTreeNode parent, int expandLimit) {
-    if (expandLimit-- <= 0) {
+  private static void populateFields(@NotNull MemoryObjectTreeNode parent) {
+    assert parent.getAdapter() instanceof InstanceObject;
+
+    InstanceObject adapter = (InstanceObject)parent.getAdapter();
+    if (adapter.getFields() == null) {
       return;
     }
 
-    for (MemoryNode subAdapter : parent.getAdapter().getSubList()) {
-      MemoryObjectTreeNode child = new MemoryObjectTreeNode(subAdapter);
+    for (InstanceObject subAdapter : adapter.getFields()) {
+      MemoryObjectTreeNode child = new MemoryObjectTreeNode<>(subAdapter);
       parent.add(child);
-      populateTreeNodeRecursive(child, expandLimit);
     }
   }
 
-  private void ensureTreeInitialized(@NotNull JPanel parentPanel, @NotNull MemoryNode adapter) {
+  private void instanceChanged() {
+    if (mySplitter == null || myInstanceObject == myStage.getSelectedInstance()) {
+      return;
+    }
+
+    myInstanceObject = myStage.getSelectedInstance();
+    if (myInstanceObject == null) {
+      mySplitter.setSecondComponent(null);
+      return;
+    }
+
+    AllocationStack callStack = myInstanceObject.getCallStack();
+    if (callStack == null || callStack.getStackFramesList().size() == 0) {
+      return;
+    }
+
+    DefaultListModel<StackTraceElement> model = new DefaultListModel<>();
+    callStack.getStackFramesList().forEach(frame -> model
+      .addElement(new StackTraceElement(frame.getClassName(), frame.getMethodName(), frame.getFileName(), frame.getLineNumber())));
+    mySplitter.setSecondComponent(new JBScrollPane(new JBList(model)));
+  }
+
+  private void ensureTreeInitialized(@NotNull JPanel parentPanel) {
     if (myTree != null) {
       assert myTreeModel != null && myTreeRoot != null;
       return;
     }
 
-    myTreeRoot = new MemoryObjectTreeNode(adapter);
+    myTreeRoot = new MemoryObjectTreeNode<>(new InstanceObject() {
+      @NotNull
+      @Override
+      public String getName() {
+        return "";
+      }
+    });
+
     myTreeModel = new DefaultTreeModel(myTreeRoot);
     JTree tree = new Tree(myTreeModel);
     tree.setRootVisible(false);
     tree.setShowsRootHandles(true);
     tree.addTreeSelectionListener(e -> {
-      // TODO handle instance selection.
+      TreePath path = e.getPath();
+      if (!e.isAddedPath()) {
+        return;
+      }
+
+      assert path.getLastPathComponent() instanceof MemoryObjectTreeNode;
+      MemoryObjectTreeNode instanceObject = (MemoryObjectTreeNode)path.getLastPathComponent();
+      assert instanceObject.getAdapter() instanceof InstanceObject;
+      InstanceObject selectedInstanceObject = (InstanceObject)instanceObject.getAdapter();
+      myStage.selectInstance(selectedInstanceObject);
     });
     // Not all nodes have been populated during buildTree. Here we capture the TreeExpansionEvent to check whether any children
     // under the expanded node need to be populated.
@@ -194,11 +262,11 @@ final class MemoryInstanceView {
           assert treeNode.getChildAt(i) instanceof MemoryObjectTreeNode;
           MemoryObjectTreeNode childNode = (MemoryObjectTreeNode)treeNode.getChildAt(i);
 
-          // Anything below the top level should be FieldNodes
-          assert childNode.getAdapter() instanceof FieldNode;
-          FieldNode fieldNode = (FieldNode)childNode.getAdapter();
-          if (fieldNode.getFieldValue().getField().getType() == Type.OBJECT && childNode.getChildCount() == 0) {
-            populateTreeNodeRecursive(childNode, EXPANSION_DEPTH_LIMIT);
+          // Anything below the top level should be FieldObjects
+          assert childNode.getAdapter() instanceof FieldObject;
+          FieldObject childObject = (FieldObject)childNode.getAdapter();
+          if (childObject.getValueType() == ValueType.OBJECT && childNode.getChildCount() == 0) {
+            populateFields(childNode);
             myTreeModel.nodeStructureChanged(childNode);
           }
         }
@@ -210,12 +278,13 @@ final class MemoryInstanceView {
       }
     });
 
-    List<Capability> capabilities = adapter.getCapabilities();
+    assert myClassObject != null;
+    List<InstanceAttribute> attributes = myClassObject.getInstanceAttributes();
     ColumnTreeBuilder builder = new ColumnTreeBuilder(tree);
-    for (Capability capability : capabilities) {
-      builder.addColumn(myCapabilityColumns.get(capability).getBuilder());
+    for (InstanceAttribute attribute : attributes) {
+      builder.addColumn(myAttributeColumns.get(attribute).getBuilder());
     }
-    builder.setTreeSorter((Comparator<MemoryObjectTreeNode> comparator, SortOrder sortOrder) -> {
+    builder.setTreeSorter((Comparator<MemoryObjectTreeNode<InstanceObject>> comparator, SortOrder sortOrder) -> {
       myTreeRoot.sort(comparator);
       myTreeModel.nodeStructureChanged(myTreeRoot);
     });

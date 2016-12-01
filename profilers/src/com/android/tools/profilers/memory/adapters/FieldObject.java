@@ -13,25 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.memory;
+package com.android.tools.profilers.memory.adapters;
 
 import org.jetbrains.annotations.NotNull;
 
-public class ClassObjects implements MemoryObjects {
-
-  private final MemoryNode myClassNode;
-
-  public ClassObjects(@NotNull MemoryNode klassRoot) {
-    myClassNode = klassRoot;
-  }
-
+public abstract class FieldObject extends InstanceObject {
   @NotNull
-  @Override
-  public MemoryNode getRootNode() {
-    return myClassNode;
-  }
-
-  @Override
-  public void dispose() {
-  }
+  public abstract String getFieldName();
 }
