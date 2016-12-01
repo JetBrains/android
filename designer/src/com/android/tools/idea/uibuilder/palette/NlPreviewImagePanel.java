@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.surface.PanZoomListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -54,12 +55,7 @@ public class NlPreviewImagePanel extends JComponent implements Disposable {
   private boolean myKeepImageScaledToMatchPanelWidth;
   private int myLastWidth;
 
-  public NlPreviewImagePanel(@NotNull DependencyManager dependencyManager, @NotNull Runnable closeAutoHideCallback) {
-    this(IconPreviewFactory.get(), dependencyManager, closeAutoHideCallback);
-  }
-
-  @VisibleForTesting
-  NlPreviewImagePanel(@NotNull IconPreviewFactory iconFactory,
+  public NlPreviewImagePanel(@NotNull IconPreviewFactory iconFactory,
                       @NotNull DependencyManager dependencyManager,
                       @NotNull Runnable closeAutoHideCallback) {
     myIconPreviewFactory = iconFactory;
@@ -152,7 +148,7 @@ public class NlPreviewImagePanel extends JComponent implements Disposable {
       }
     }
     myImage = null;
-    setTransferHandler(designSurface != null ? new ItemTransferHandler(myDesignSurface, this::getItem) : null);
+    setTransferHandler(designSurface != null ? new ItemTransferHandler(myDesignSurface, this::getItem, myIconPreviewFactory) : null);
     invalidateUI();
   }
 

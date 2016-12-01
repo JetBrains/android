@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.palette;
 
 import com.android.tools.adtui.splitter.ComponentsSplitter;
 import com.android.tools.adtui.treegrid.TreeGrid;
+import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
@@ -59,6 +60,7 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
   private final JList<Palette.Group> myCategoryList;
   private final TreeGrid<Palette.Item> myTree;
   private final MyFilter myFilter;
+  private final IconPreviewFactory myIconPreviewFactory;
   private PaletteMode myMode;
   private SelectionListener myListener;
   private DesignSurface mySurface;
@@ -67,12 +69,14 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
   public NlPaletteTreeGrid(@NotNull Project project,
                            @NotNull DependencyManager dependencyManager,
                            @NotNull Runnable closeAutoHideCallback,
-                           @Nullable DesignSurface designSurface) {
+                           @Nullable DesignSurface designSurface,
+                           @NotNull IconPreviewFactory iconFactory) {
     myProject = project;
     myDependencyManager = dependencyManager;
     myCloseAutoHideCallback = closeAutoHideCallback;
     mySurface = designSurface;
     myMode = PaletteMode.ICON_AND_NAME;
+    myIconPreviewFactory = iconFactory;
     myTree = new TreeGrid<>();
     //noinspection unchecked
     myCategoryList = new JBList();
@@ -156,7 +160,7 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     myTree.addMouseListener(createMouseListenerForLoadMissingDependency());
     myTree.addListSelectionListener(event -> fireSelectionChanged(myTree.getSelectedElement()));
     myTree.setVisibleSection(myCategoryList.getSelectedValue());
-    myTree.setTransferHandler(new MyItemTransferHandler(mySurface, this::getSelectedItem));
+    myTree.setTransferHandler(new MyItemTransferHandler(mySurface, this::getSelectedItem, myIconPreviewFactory));
     setMode(myMode);
   }
 
@@ -242,8 +246,10 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
 
   private class MyItemTransferHandler extends ItemTransferHandler {
 
-    public MyItemTransferHandler(@NotNull DesignSurface designSurface, @NotNull Supplier<Palette.Item> itemSupplier) {
-      super(designSurface, itemSupplier);
+    public MyItemTransferHandler(@NotNull DesignSurface designSurface,
+                                 @NotNull Supplier<Palette.Item> itemSupplier,
+                                 @NotNull IconPreviewFactory iconPreviewFactory) {
+      super(designSurface, itemSupplier, iconPreviewFactory);
     }
 
     @Override
