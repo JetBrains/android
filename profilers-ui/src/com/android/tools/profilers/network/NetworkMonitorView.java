@@ -15,10 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.LegendComponent;
-import com.android.tools.adtui.LegendRenderData;
+import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
@@ -48,7 +45,7 @@ public class NetworkMonitorView extends ProfilerMonitorView<NetworkMonitor> {
 
   @Override
   protected void populateUi(JPanel container, Choreographer choreographer) {
-    container.setLayout(new GridBagLayout());
+    container.setLayout(new TabularLayout("*", "*"));
 
     Range viewRange = getMonitor().getTimeline().getViewRange();
     Range dataRange = getMonitor().getTimeline().getDataRange();
@@ -103,9 +100,9 @@ public class NetworkMonitorView extends ProfilerMonitorView<NetworkMonitor> {
     choreographer.register(leftAxis);
     choreographer.register(legend);
 
-    container.add(legendPanel, GBC_FULL);
-    container.add(leftAxis, GBC_FULL);
-    container.add(lineChartPanel, GBC_FULL);
+    container.add(legendPanel, new TabularLayout.Constraint(0, 0));
+    container.add(leftAxis, new TabularLayout.Constraint(0, 0));
+    container.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
     container.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseReleased(MouseEvent e) {
