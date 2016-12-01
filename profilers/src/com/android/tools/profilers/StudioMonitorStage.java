@@ -43,10 +43,6 @@ public class StudioMonitorStage extends Stage {
   }
 
   @Override
-  public void exit() {
-  }
-
-  @Override
   public ProfilerMode getProfilerMode() {
     return ProfilerMode.NORMAL;
   }
