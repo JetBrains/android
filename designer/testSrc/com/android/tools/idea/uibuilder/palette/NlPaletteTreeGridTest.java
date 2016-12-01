@@ -31,6 +31,7 @@ import javax.xml.ws.Holder;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -161,6 +162,119 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
     assertThat(classify(policy.getComponentBefore(myPanel, myPanel.getCategoryList()))).isEqualTo(FocusComponent.LIST_IN_COMPONENT_TREE);
     assertThat(classify(policy.getDefaultComponent(myPanel))).isEqualTo(FocusComponent.LIST_IN_COMPONENT_TREE);
     assertThat(classify(policy.getInitialComponent(mock(Window.class)))).isEqualTo(FocusComponent.LIST_IN_COMPONENT_TREE);
+  }
+
+  public void testSetFilter() {
+    Palette palette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
+    myPanel.populateUiModel(palette, mySurface);
+    assertThat(myPanel.getComponentTree().getLists()).hasSize(11);
+    assertThat(getVisibleItems().size()).isGreaterThan(30);
+
+    myPanel.setFilter("utt");
+    assertThat(myPanel.getComponentTree().getLists()).hasSize(1);
+    assertThat(getVisibleTitles())
+      .containsExactly("Button", "ToggleButton", "RadioButton", "ImageButton", "FloatingActionButton").inOrder();
+  }
+
+  public void testSelectCategoryWithExistingFilter() {
+    Palette palette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
+    myPanel.populateUiModel(palette, mySurface);
+    myPanel.setFilter("utt");
+
+    myPanel.getCategoryList().setSelectedValue(getGroup(palette, "Widgets"), false);
+    assertThat(myPanel.getComponentTree().getLists()).hasSize(1);
+    assertThat(getVisibleTitles())
+      .containsExactly("Button", "ToggleButton", "RadioButton").inOrder();
+  }
+
+  public void testSetFilterWithExistingSelectedCategory() {
+    Palette palette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
+    myPanel.populateUiModel(palette, mySurface);
+    myPanel.getCategoryList().setSelectedValue(getGroup(palette, "Images"), false);
+    myPanel.setFilter("utt");
+
+    assertThat(myPanel.getComponentTree().getLists()).hasSize(1);
+    assertThat(getVisibleTitles()).containsExactly("ImageButton");
+  }
+
+  public void testRemoveFilterWithSelectedCategory() {
+    Palette palette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
+    myPanel.populateUiModel(palette, mySurface);
+    myPanel.setFilter("utt");
+    myPanel.getCategoryList().setSelectedValue(getGroup(palette, "Images"), false);
+
+    myPanel.setFilter("");
+    assertThat(myPanel.getComponentTree().getLists()).hasSize(11);
+    assertThat(getVisibleTitles()).containsExactly("ImageButton", "ImageView", "VideoView").inOrder();
+  }
+
+  public void testSelectAllCategoriesWithExistingFilter() {
+    Palette palette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
+    myPanel.populateUiModel(palette, mySurface);
+    myPanel.getCategoryList().setSelectedValue(getGroup(palette, "Images"), false);
+    myPanel.setFilter("utt");
+    myPanel.getCategoryList().clearSelection();
+
+    assertThat(myPanel.getComponentTree().getLists()).hasSize(1);
+    assertThat(getVisibleTitles())
+      .containsExactly("Button", "ToggleButton", "RadioButton", "ImageButton", "FloatingActionButton").inOrder();
+  }
+
+  public void testRemoveFilterAfterClearingCategorySelection() {
+    Palette palette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
+    myPanel.populateUiModel(palette, mySurface);
+    myPanel.getCategoryList().setSelectedValue(getGroup(palette, "Images"), false);
+    myPanel.setFilter("utt");
+    myPanel.getCategoryList().clearSelection();
+    myPanel.setFilter("");
+
+    assertThat(myPanel.getComponentTree().getLists()).hasSize(11);
+    assertThat(getVisibleItems().size()).isGreaterThan(30);
+  }
+
+  public void testClearCategoryAfterRemovingFilter() {
+    Palette palette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
+    myPanel.populateUiModel(palette, mySurface);
+    myPanel.setFilter("utt");
+    myPanel.getCategoryList().setSelectedValue(getGroup(palette, "Images"), false);
+    myPanel.setFilter("");
+    myPanel.getCategoryList().clearSelection();
+
+    assertThat(myPanel.getComponentTree().getLists()).hasSize(11);
+    assertThat(getVisibleItems().size()).isGreaterThan(30);
+  }
+
+  private List<String> getVisibleTitles() {
+    return getVisibleItems().stream().map(Palette.Item::getTitle).collect(Collectors.toList());
+  }
+
+  private List<Palette.Item> getVisibleItems() {
+    List<Palette.Item> items = new ArrayList<>();
+    for (JList<Palette.Item> list : myPanel.getComponentTree().getLists()) {
+      if (list.isVisible()) {
+        addItemsFromList(list, items);
+      }
+    }
+    return items;
+  }
+
+  private static void addItemsFromList(@NotNull JList<Palette.Item> list, @NotNull List<Palette.Item> items) {
+    ListModel<Palette.Item> model = list.getModel();
+    for (int index = 0; index < model.getSize(); index++) {
+      items.add(model.getElementAt(index));
+    }
+  }
+
+  private static Palette.Group getGroup(@NotNull Palette palette, @NotNull String groupName) {
+    for (Palette.BaseItem item : palette.getItems()) {
+      if (item instanceof Palette.Group) {
+        Palette.Group group = (Palette.Group)item;
+        if (group.getName().equals(groupName)) {
+          return group;
+        }
+      }
+    }
+    throw new RuntimeException("Group not found:" + groupName);
   }
 
   private enum FocusComponent {
