@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -58,7 +59,7 @@ public class IconPreviewFactoryTest extends LayoutTestCase {
 
     NlModel model = createModel();
     myScreenView = surface().screen(model).getScreen();
-    myFactory = IconPreviewFactory.get();
+    myFactory = new IconPreviewFactory();
     myFacet.setRenderService(new MyRenderService(myFacet));
   }
 
@@ -66,6 +67,7 @@ public class IconPreviewFactoryTest extends LayoutTestCase {
   public void tearDown() throws Exception {
     try {
       myFacet.setRenderService(null);
+      Disposer.dispose(myFactory);
     }
     finally {
       super.tearDown();

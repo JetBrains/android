@@ -56,6 +56,7 @@ import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.ColoredTreeCellRenderer;
@@ -109,7 +110,8 @@ public class NlOldPalettePanel extends JPanel
     myProject = project;
     myPaletteTree = new PaletteTree();
     myPaletteTree.setName("Palette Tree");
-    myIconFactory = IconPreviewFactory.get();
+    myIconFactory = new IconPreviewFactory();
+    Disposer.register(this, myIconFactory);
     myModel = NlPaletteModel.get(project);
     myMissingLibraries = new HashSet<>();
     myMode = Mode.ICON_AND_TEXT;

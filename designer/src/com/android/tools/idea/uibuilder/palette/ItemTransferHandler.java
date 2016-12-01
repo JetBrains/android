@@ -35,11 +35,14 @@ import java.util.function.Supplier;
 public class ItemTransferHandler extends TransferHandler {
   private final DesignSurface myDesignSurface;
   private final Supplier<Palette.Item> myItemSupplier;
+  private final IconPreviewFactory myIconFactory;
 
   public ItemTransferHandler(@NotNull DesignSurface designSurface,
-                             @NotNull Supplier<Palette.Item> itemSupplier) {
+                             @NotNull Supplier<Palette.Item> itemSupplier,
+                             @NotNull IconPreviewFactory iconFactory) {
     myDesignSurface = designSurface;
     myItemSupplier = itemSupplier;
+    myIconFactory = iconFactory;
   }
 
   @Override
@@ -61,8 +64,7 @@ public class ItemTransferHandler extends TransferHandler {
 
     @AndroidCoordinate
     Dimension size;
-    IconPreviewFactory iconFactory = IconPreviewFactory.get();
-    BufferedImage image = iconFactory.renderDragImage(item, screenView);
+    BufferedImage image = myIconFactory.renderDragImage(item, screenView);
     if (image != null) {
       size = new Dimension(image.getWidth(), image.getHeight());
       double scale = myDesignSurface.getScale();
