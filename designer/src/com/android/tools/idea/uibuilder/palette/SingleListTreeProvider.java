@@ -22,15 +22,22 @@ import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SingleListTreeProvider extends AbstractTreeStructure {
   private final Project myProject;
   private final Palette myPalette;
   private final Object[] myGroups;
+  private final Object[] myItems;
 
   public SingleListTreeProvider(@NotNull Project project, @NotNull Palette palette) {
     myProject = project;
     myPalette = palette;
     myGroups = new Object[]{TreeCategoryProvider.ALL};
+    List<Palette.Item> items = new ArrayList<>();
+    palette.accept(items::add);
+    myItems = items.toArray();
   }
 
   @NotNull
@@ -46,7 +53,7 @@ public class SingleListTreeProvider extends AbstractTreeStructure {
       return myGroups;
     }
     else if (element instanceof Palette.Group) {
-      return myPalette.getItems().toArray();
+      return myItems;
     }
     return ArrayUtil.EMPTY_OBJECT_ARRAY;
   }
