@@ -35,12 +35,12 @@ public abstract class SceneTest extends LayoutTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     myModel = createModel().build();
-    myScene = Scene.createScene(myModel);
+    myScreen = surface().screen(myModel);
+    myScreen.withScale(1);
+    myScene = Scene.createScene(myModel, myScreen.getScreen());
     myScene.setDpiFactor(1);
     myScene.setAnimate(false);
     myScene.updateFrom(myModel);
-    myScreen = surface().screen(myModel);
-    myScreen.withScale(1);
     myInteraction = new SceneMouseInteraction(myScene);
   }
 

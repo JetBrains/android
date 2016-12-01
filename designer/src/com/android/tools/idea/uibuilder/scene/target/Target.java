@@ -32,4 +32,6 @@ public interface Target {
   void mouseDown(int x, int y);
   void mouseDrag(int x, int y, @Nullable Target closestTarget);
   void mouseRelease(int x, int y, @Nullable Target closestTarget);
+
+  SceneComponent getComponent();
 }
