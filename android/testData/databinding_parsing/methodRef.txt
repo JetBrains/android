@@ -1,0 +1,7 @@
+FILE(0,22)
+  PsiDbFunctionRefExprImpl(FUNCTION_REF_EXPR)(0,22)
+    PsiDbIdExprImpl(ID_EXPR)(0,9)
+      PsiElement(IDENTIFIER)('viewModel')(0,9)
+    PsiElement(::)('::')(9,11)
+    PsiDbMethodNameImpl(METHOD_NAME)(11,22)
+      PsiElement(IDENTIFIER)('onUserClick')(11,22)
