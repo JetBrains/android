@@ -15,35 +15,44 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.ImportedModule;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.setup.post.project.DisposedModules;
+import com.android.tools.idea.gradle.project.sync.setup.module.ModuleDisposer;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService;
-import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.IMPORTED_MODULE;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 /**
  * Removes modules from the project that where not created by the "Sync with Gradle" action.
  */
 public class ModuleDisposalDataService extends AbstractProjectDataService<ImportedModule, Void> {
   @NotNull private final IdeInfo myIdeInfo;
+  @NotNull private final ModuleDisposer myModuleDisposer;
 
+  @SuppressWarnings("unused") // Instantiated by IDEA
   public ModuleDisposalDataService(@NotNull IdeInfo ideInfo) {
+    this(ideInfo, new ModuleDisposer());
+  }
+
+  @VisibleForTesting
+  ModuleDisposalDataService(@NotNull IdeInfo ideInfo, @NotNull ModuleDisposer moduleDisposer) {
     myIdeInfo = ideInfo;
+    myModuleDisposer = moduleDisposer;
   }
 
   @Override
@@ -66,8 +75,6 @@ public class ModuleDisposalDataService extends AbstractProjectDataService<Import
 
     Module[] modules = modelsProvider.getModules();
     if (modules.length != toImport.size()) {
-      ModifiableModuleModel moduleModel = modelsProvider.getModifiableModuleModel();
-
       Map<String, Module> modulesByName = new HashMap<>();
       for (Module module : modules) {
         modulesByName.put(module.getName(), module);
@@ -77,18 +84,8 @@ public class ModuleDisposalDataService extends AbstractProjectDataService<Import
         modulesByName.remove(importedModule.getName());
       }
 
-      Collection<Module> modulesToDispose = modulesByName.values();
-      if (!modulesToDispose.isEmpty()) {
-        List<File> imlFilesToRemove = new ArrayList<>();
-
-        for (Module toDispose : modulesToDispose) {
-          File imlFilePath = new File(toSystemDependentName(toDispose.getModuleFilePath()));
-          imlFilesToRemove.add(imlFilePath);
-          moduleModel.disposeModule(toDispose);
-        }
-
-        DisposedModules.getInstance(project).markImlFilesForDeletion(imlFilesToRemove);
-      }
+      Collection<Module> modulesToDispose = new ArrayList<>(modulesByName.values());
+      myModuleDisposer.disposeModulesAndMarkImlFilesForDeletion(modulesToDispose, project, modelsProvider);
     }
   }
 }
