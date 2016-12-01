@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.sync.hyperlink.InstallArtifactHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink;
@@ -25,6 +24,7 @@ import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -45,6 +45,8 @@ import static org.mockito.Mockito.when;
  * Tests for {@link UnresolvedDependenciesReporter}.
  */
 public class UnresolvedDependenciesReporterTest extends AndroidGradleTestCase {
+  private IdeInfo myOriginalIdeInfo;
+
   private SyncIssue mySyncIssue;
   private SyncMessagesStub mySyncMessagesStub;
   private UnresolvedDependenciesReporter myReporter;
@@ -55,6 +57,18 @@ public class UnresolvedDependenciesReporterTest extends AndroidGradleTestCase {
     mySyncIssue = mock(SyncIssue.class);
     mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
     myReporter = new UnresolvedDependenciesReporter();
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      if (myOriginalIdeInfo != null) {
+        IdeComponents.replaceService(IdeInfo.class, myOriginalIdeInfo);
+      }
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testGetSupportedIssueType() {
@@ -89,8 +103,11 @@ public class UnresolvedDependenciesReporterTest extends AndroidGradleTestCase {
     assertSame(buildFile, position.file);
   }
 
-  // fails in bazel sandbox
-  public void ignore_testReportWithConstraintLayout() throws Exception {
+  public void testReportWithConstraintLayout() throws Exception {
+    myOriginalIdeInfo = IdeInfo.getInstance();
+    IdeInfo ideInfo = IdeComponents.replaceServiceWithMock(IdeInfo.class);
+    when(ideInfo.isAndroidStudio()).thenReturn(true);
+
     loadSimpleApplication();
     mySyncMessagesStub.clearReportedMessages();
 
@@ -109,16 +126,7 @@ public class UnresolvedDependenciesReporterTest extends AndroidGradleTestCase {
     // @formatter:on
 
     List<NotificationHyperlink> quickFixes = message.getQuickFixes();
-    int expectedSize = IdeInfo.getInstance().isAndroidStudio() ? 2 : 1;
-    assertThat(quickFixes).hasSize(expectedSize);
-
-    NotificationHyperlink quickFix = quickFixes.get(0);
-    assertThat(quickFix).isInstanceOf(InstallArtifactHyperlink.class);
-
-    if (IdeInfo.getInstance().isAndroidStudio()) {
-      quickFix = quickFixes.get(1);
-      assertThat(quickFix).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
-    }
+    assertThat(quickFixes).hasSize(2);
   }
 
   public void testReportWithAppCompat() throws Exception {
