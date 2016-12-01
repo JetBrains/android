@@ -271,10 +271,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
             }
             updateModel();
           }
-          catch (IncorrectOperationException e) {
-            // We can get this exception if the module/project is closed while we are updating the model. Ignore it.
-            assert myFacet.isDisposed();
-          }
           catch (Throwable e) {
             Logger.getInstance(NlModel.class).error(e);
           }

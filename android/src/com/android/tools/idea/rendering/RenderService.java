@@ -16,7 +16,6 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.NonNull;
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.MergeCookie;
@@ -46,6 +45,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.ShutDownTracker;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.IncorrectOperationException;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
@@ -220,7 +220,9 @@ public class RenderService {
       return null;
     }
 
-    if (psiFile != null && TAG_PREFERENCE_SCREEN.equals(AndroidPsiUtils.getRootTagName(psiFile)) && !layoutLib.supports(Features.PREFERENCES_RENDERING)) {
+    if (psiFile != null &&
+        TAG_PREFERENCE_SCREEN.equals(AndroidPsiUtils.getRootTagName(psiFile)) &&
+        !layoutLib.supports(Features.PREFERENCES_RENDERING)) {
       // This means that user is using an outdated version of layoutlib. A warning to update has already been
       // presented in warnIfObsoleteLayoutLib(). Just log a plain message asking users to update.
       logger.addMessage(RenderProblem.createPlain(ERROR, "This version of the rendering library does not support rendering Preferences. " +
@@ -235,13 +237,20 @@ public class RenderService {
       return null;
     }
 
-    RenderTask task = new RenderTask(this, configuration, logger, layoutLib, device, myCredential, CrashReporter.getInstance());
-    if (psiFile != null) {
-      task.setPsiFile(psiFile);
-    }
-    task.setDesignSurface(surface);
+    try {
+      RenderTask task = new RenderTask(this, configuration, logger, layoutLib, device, myCredential, CrashReporter.getInstance());
+      if (psiFile != null) {
+        task.setPsiFile(psiFile);
+      }
+      task.setDesignSurface(surface);
 
-    return task;
+      return task;
+    } catch (IncorrectOperationException | AssertionError e) {
+      // We can get this exception if the module/project is closed while we are updating the model. Ignore it.
+      assert myFacet.isDisposed();
+    }
+
+    return null;
   }
 
   @NotNull
