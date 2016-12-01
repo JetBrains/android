@@ -18,8 +18,6 @@ package com.android.tools.idea.testartifacts.scopes;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.testartifacts.scopes.FileRootSearchScope;
-import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -60,7 +58,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     return super.shouldRunTest();
   }
 
-  public void ignore_testSrcFolderIncluding() throws Exception {
+  public void testSrcFolderIncluding() throws Exception {
     TestArtifactSearchScopes scopes = loadMultiProjectAndTestScopes();
 
     VirtualFile unitTestSource = createFile("module1/src/test/java/Test.java");
@@ -73,7 +71,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     assertFalse(scopes.isAndroidTestSource(unitTestSource));
   }
 
-  public void ignore_testModulesExcluding() throws Exception {
+  public void testModulesExcluding() throws Exception {
     TestArtifactSearchScopes scopes = loadMultiProjectAndTestScopes();
 
     VirtualFile module3JavaRoot = createFile("module3/src/main/java/Main.java");
@@ -86,7 +84,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     assertFalse(scopes.getAndroidTestExcludeScope().accept(module3RsRoot));
   }
 
-  public void ignore_testLibrariesExcluding() throws Exception {
+  public void testLibrariesExcluding() throws Exception {
     TestArtifactSearchScopes scopes = loadMultiProjectAndTestScopes();
 
     LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(myFixture.getProject());
@@ -108,7 +106,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     assertScopeContainsLibrary(androidTestExcludeScope, hamcrest, false);
   }
 
-  public void ignore_testNotExcludeLibrariesInMainArtifact() throws Exception {
+  public void testNotExcludeLibrariesInMainArtifact() throws Exception {
     TestArtifactSearchScopes scopes = loadMultiProjectAndTestScopes();
 
     LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(myFixture.getProject());
@@ -152,7 +150,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     assertScopeContainsLibrary(scopes.getAndroidTestExcludeScope(), gson, false);
   }
 
-  public void ignore_testProjectWithSharedTestFolder() throws Exception {
+  public void testProjectWithSharedTestFolder() throws Exception {
     loadProject(SHARED_TEST_FOLDER);
     TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(myFixture.getModule());
     assertNotNull(scopes);
