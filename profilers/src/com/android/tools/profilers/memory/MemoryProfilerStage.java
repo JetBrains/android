@@ -128,14 +128,6 @@ public class MemoryProfilerStage extends Stage {
   }
 
   @Override
-  public void enter() {
-  }
-
-  @Override
-  public void exit() {
-  }
-
-  @Override
   public ProfilerMode getProfilerMode() {
     return mySelection.getSelectedCaptureObject() == null ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED;
   }
