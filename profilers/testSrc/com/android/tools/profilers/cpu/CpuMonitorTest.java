@@ -19,14 +19,12 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.TestGrpcChannel;
 import com.intellij.util.containers.ImmutableList;
-import io.grpc.Server;
-import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.stub.StreamObserver;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -34,20 +32,14 @@ import java.io.IOException;
 import static org.junit.Assert.*;
 
 public class CpuMonitorTest {
-  public static final String CHANNEL_NAME = "CpuMonitorTestChannel";
+  @Rule
+  public TestGrpcChannel myGrpcChannel = new TestGrpcChannel<>("CpuMonitorTestChannel", new CpuServiceMock());
 
   private CpuMonitor myMonitor;
 
-  private Server myServer;
-
-  private StudioProfilers myProfilers;
-
   @Before
   public void setUp() throws Exception {
-    myServer = InProcessServerBuilder.forName(CHANNEL_NAME).addService(new CpuServiceMock()).build();
-    myServer.start();
-    myProfilers = new StudioProfilers(new ProfilerClient(CHANNEL_NAME));
-    myMonitor = new CpuMonitor(myProfilers);
+    myMonitor = new CpuMonitor(myGrpcChannel.getProfilers());
   }
 
   @Test
@@ -87,14 +79,10 @@ public class CpuMonitorTest {
 
   @Test
   public void testExpand() {
-    assertNull(myProfilers.getStage());
+    StudioProfilers profilers = myGrpcChannel.getProfilers();
+    assertNull(profilers.getStage());
     myMonitor.expand();
-    assertNotNull(myProfilers.getStage());
-  }
-
-  @After
-  public void tearDown() {
-    myServer.shutdownNow();
+    assertNotNull(profilers.getStage());
   }
 
   private static class CpuServiceMock extends CpuServiceGrpc.CpuServiceImplBase {

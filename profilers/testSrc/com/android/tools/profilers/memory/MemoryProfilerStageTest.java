@@ -17,28 +17,23 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
-import io.grpc.inprocess.InProcessServerBuilder;
-import io.grpc.internal.ServerImpl;
+import com.android.tools.profilers.TestGrpcChannel;
 import io.grpc.stub.StreamObserver;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
 public class MemoryProfilerStageTest {
 
-  private static final String CHANNEL_NAME = "MEMORY_TEST_CHANNEL";
+  @Rule
+  public TestGrpcChannel<MemoryServiceMock> myGrpcChannel = new TestGrpcChannel<>("MEMORY_TEST_CHANNEL", new MemoryServiceMock());
 
   @Test
   public void testToggleLegacyCapture() throws Exception {
-    ProfilerClient client = new ProfilerClient(CHANNEL_NAME);
-    MemoryServiceMock service = new MemoryServiceMock();
-    ServerImpl server = InProcessServerBuilder.forName(CHANNEL_NAME).addService(service).build();
-    server.start();
-
-
-    StudioProfilers profilers = new StudioProfilers(client);
+    StudioProfilers profilers = myGrpcChannel.getProfilers();
+    MemoryServiceMock service = myGrpcChannel.getService();
     MemoryProfilerStage stage = new MemoryProfilerStage(profilers);
     profilers.setStage(stage);
 
@@ -58,8 +53,6 @@ public class MemoryProfilerStageTest {
     service.setNextStatus(MemoryProfiler.TrackAllocationsResponse.Status.FAILURE_UNKNOWN);
     stage.trackAllocations(true);
     assertEquals(false, stage.isTrackingAllocations());
-
-    server.shutdownNow();
   }
 
   private static class MemoryServiceMock extends MemoryServiceGrpc.MemoryServiceImplBase {
