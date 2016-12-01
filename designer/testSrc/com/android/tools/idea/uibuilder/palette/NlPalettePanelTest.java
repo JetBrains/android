@@ -89,4 +89,14 @@ public class NlPalettePanelTest extends AndroidTestCase {
     DnDTransferComponent component = dndItem.getComponents().get(0);
     assertThat(component.getRepresentation()).startsWith(("<TextView"));
   }
+
+  public void testSupportsFiltering() {
+    assertThat(myPanel.supportsFiltering()).isTrue();
+  }
+
+  public void testSetFilter() {
+    assertThat(myPanel.getTreeGrid().getFilter()).isEmpty();
+    myPanel.setFilter("button");
+    assertThat(myPanel.getTreeGrid().getFilter()).isEqualTo("button");
+  }
 }

@@ -38,6 +38,7 @@ import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.awt.*;
@@ -108,6 +109,12 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider, 
   }
 
   @NotNull
+  @TestOnly
+  public NlPaletteTreeGrid getTreeGrid() {
+    return myPalettePanel;
+  }
+
+  @NotNull
   @Override
   public List<AnAction> getGearActions() {
     List<AnAction> actions = new ArrayList<>(3);
@@ -130,11 +137,12 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider, 
 
   @Override
   public boolean supportsFiltering() {
-    return false;
+    return true;
   }
 
   @Override
   public void setFilter(@NotNull String filter) {
+    myPalettePanel.setFilter(filter);
   }
 
   @Override
