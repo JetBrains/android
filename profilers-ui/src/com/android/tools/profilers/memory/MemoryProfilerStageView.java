@@ -32,6 +32,8 @@ import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.event.EventMonitorView;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
+import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
@@ -59,30 +61,29 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
                                          IconLoader.findIcon("/icons/garbage-event_dark.png", MemoryProfilerStageView.class) :
                                          IconLoader.findIcon("/icons/garbage-event.png", MemoryProfilerStageView.class);
 
-  @NotNull private MemoryClassView myClassView = new MemoryClassView(getStage());
-  @NotNull private MemoryInstanceView myInstanceView = new MemoryInstanceView(getStage());
+  @NotNull private final MemoryClassView myClassView = new MemoryClassView(getStage());
+  @NotNull private final MemoryInstanceView myInstanceView = new MemoryInstanceView(getStage());
 
+  @NotNull private Splitter myMainSplitter = new Splitter(false);
   @NotNull private Splitter myChartClassesSplitter = new Splitter(true);
-  @NotNull private Splitter myInstanceDetailsSplitter = new Splitter(false);
   @NotNull private JButton myAllocationButton;
 
   public MemoryProfilerStageView(@NotNull MemoryProfilerStage stage) {
     super(stage);
 
-    Splitter mainSplitter = new Splitter(false);
     myChartClassesSplitter.setFirstComponent(buildMonitorUi());
-    mainSplitter.setFirstComponent(myChartClassesSplitter);
-    mainSplitter.setSecondComponent(myInstanceDetailsSplitter);
-    mainSplitter.setProportion(0.6f);
-    getComponent().add(mainSplitter, BorderLayout.CENTER);
-    detailsChanged();
+    myMainSplitter.setFirstComponent(myChartClassesSplitter);
+    myMainSplitter.setProportion(0.6f);
+    getComponent().add(myMainSplitter, BorderLayout.CENTER);
+    captureObjectChanged();
 
     myAllocationButton = new JButton("Record");
     myAllocationButton.addActionListener(e -> getStage().trackAllocations(!getStage().isTrackingAllocations()));
 
     getStage().getAspect().addDependency()
       .setExecutor(ApplicationManager.getApplication()::invokeLater)
-      .onChange(MemoryProfilerAspect.MEMORY_OBJECTS, this::detailsChanged)
+      .onChange(MemoryProfilerAspect.CURRENT_CAPTURE, this::captureObjectChanged)
+      .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::classObjectChanged)
       .onChange(MemoryProfilerAspect.LEGACY_ALLOCATION, this::legacyAllocationChanged);
 
     legacyAllocationChanged();
@@ -275,32 +276,34 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     return panel;
   }
 
-  private void detailsChanged() {
-    getTimeline().getSelectionRange();
-    MemoryProfilerStage.MemoryProfilerSelection selection = getStage().getSelection();
-
-    MemoryObjects heap = selection.getSelectedHeap();
-    if (myClassView.getCurrentHeapObject() != heap) {
+  private void captureObjectChanged() {
+    CaptureObject captureObject = getStage().getSelectedCaptureObject();
+    if (myClassView.getCurrentCapture() != captureObject) {
       myClassView.reset();
       myChartClassesSplitter.setSecondComponent(null);
-      if (heap != null) {
-        myChartClassesSplitter.setSecondComponent(myClassView.buildComponent(heap));
+      myMainSplitter.setSecondComponent(null);
+      if (captureObject != null) {
+        // TODO don't rebuild the component, but update it
+        myChartClassesSplitter.setSecondComponent(myClassView.buildComponent(captureObject));
       }
     }
+  }
 
-    ClassObjects klass = selection.getSelectedClass();
-    if (myInstanceView.getCurrentClassObject() != klass) {
+  private void classObjectChanged() {
+    ClassObject classObject = getStage().getSelectedClass();
+    if (myInstanceView.getCurrentClassObject() != classObject) {
       myInstanceView.reset();
-      myInstanceDetailsSplitter.setFirstComponent(null);
-      if (klass != null) {
-        myInstanceDetailsSplitter.setFirstComponent(myInstanceView.buildComponent(klass));
+      myMainSplitter.setSecondComponent(null);
+      if (classObject != null) {
+        // TODO don't rebuild the component, but update it
+        myMainSplitter.setSecondComponent(myInstanceView.buildComponent(classObject));
       }
     }
 
     // TODO setup instance detail view.
   }
 
-  static class CapabilityColumn {
+  static class AttributeColumn {
     private final String myName;
     private final Supplier<ColoredTreeCellRenderer> myRendererSuppier;
     private final int myHeaderAlignment;
@@ -308,12 +311,12 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     private final SortOrder mySortOrder;
     private final Comparator<MemoryObjectTreeNode> myComparator;
 
-    public CapabilityColumn(@NotNull String name,
-                            @NotNull Supplier<ColoredTreeCellRenderer> rendererSupplier,
-                            int headerAlignment,
-                            int preferredWidth,
-                            @NotNull SortOrder sortOrder,
-                            @NotNull Comparator<MemoryObjectTreeNode> comparator) {
+    public AttributeColumn(@NotNull String name,
+                           @NotNull Supplier<ColoredTreeCellRenderer> rendererSupplier,
+                           int headerAlignment,
+                           int preferredWidth,
+                           @NotNull SortOrder sortOrder,
+                           @NotNull Comparator<MemoryObjectTreeNode> comparator) {
       myName = name;
       myRendererSuppier = rendererSupplier;
       myHeaderAlignment = headerAlignment;

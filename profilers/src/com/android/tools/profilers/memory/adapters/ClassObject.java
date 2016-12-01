@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.memory;
+package com.android.tools.profilers.memory.adapters;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
 
-public interface MemoryNode {
-  enum Capability {
+public abstract class ClassObject implements MemoryObject {
+  public enum InstanceAttribute {
     LABEL,
-    CHILDREN_COUNT,
     ELEMENT_SIZE,
     DEPTH,
     SHALLOW_SIZE,
@@ -31,37 +30,35 @@ public interface MemoryNode {
   }
 
   @NotNull
-  default String getName() {
+  public String getName() {
     return "";
   }
 
-  default int getChildrenCount() {
+  public int getChildrenCount() {
     return 0;
   }
 
-  default int getElementSize() {
+  public int getElementSize() {
     return 0;
   }
 
-  default int getDepth() {
+  public int getDepth() {
     return 0;
   }
 
-  default int getShallowSize() {
+  public int getShallowSize() {
     return 0;
   }
 
-  default long getRetainedSize() {
+  public long getRetainedSize() {
     return 0;
   }
 
   @NotNull
-  default List<MemoryNode> getSubList() {
+  public List<InstanceObject> getInstances() {
     return Collections.emptyList();
   }
 
   @NotNull
-  default List<Capability> getCapabilities() {
-    return Collections.emptyList();
-  }
+  public abstract List<InstanceAttribute> getInstanceAttributes();
 }
