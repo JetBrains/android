@@ -114,6 +114,7 @@ iml_module(
         "//tools/adt/idea/adt-branding",
     ],
     test_srcs = ["testSrc"],
+    test_tags = ["slow"],
     test_timeout = "eternal",
     # do not sort: must match IML order
     deps = [
