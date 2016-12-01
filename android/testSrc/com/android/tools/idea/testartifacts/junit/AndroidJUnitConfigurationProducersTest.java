@@ -39,19 +39,19 @@ public class AndroidJUnitConfigurationProducersTest extends AndroidGradleTestCas
     loadSimpleApplication();
   }
 
-  public void ignore_testCanCreateJUnitConfigurationFromJUnitTestClass() throws Exception {
+  public void testCanCreateJUnitConfigurationFromJUnitTestClass() throws Exception {
     assertNotNull(createJUnitConfigurationFromClass(getProject(), "google.simpleapplication.UnitTest"));
   }
 
-  public void ignore_testCannotCreateJUnitConfigurationFromAndroidTestClass() throws Exception {
+  public void testCannotCreateJUnitConfigurationFromAndroidTestClass() throws Exception {
     assertNull(createJUnitConfigurationFromClass(getProject(), "google.simpleapplication.ApplicationTest"));
   }
 
-  public void ignore_testCanCreateJUnitConfigurationFromJUnitTestDirectory() throws Exception {
+  public void testCanCreateJUnitConfigurationFromJUnitTestDirectory() throws Exception {
     assertNotNull(createJUnitConfigurationFromDirectory(getProject(), "app/src/test/java"));
   }
 
-  public void ignore_testCannotCreateJUnitConfigurationFromAndroidTestDirectory() throws Exception {
+  public void testCannotCreateJUnitConfigurationFromAndroidTestDirectory() throws Exception {
     assertNull(createJUnitConfigurationFromDirectory(getProject(), "app/src/androidTest/java"));
   }
 }
