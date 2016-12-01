@@ -29,6 +29,8 @@ import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.SpeedSearchComparator;
+import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,7 +65,8 @@ public class HierarchyViewer
 
   // Properties
   private final ViewNodeTableModel myTableModel;
-  private final JBTable myPropertiesPanel;
+  private final JBTable myPropertiesTable;
+  private final TableSpeedSearch myPropertiesSpeedSearch;
 
   // Node popup menu
   private final JBPopupMenu myNodePopup;
@@ -85,15 +88,24 @@ public class HierarchyViewer
 
     // Properties table
     myTableModel = new ViewNodeTableModel();
-    myPropertiesPanel = new JBTable(myTableModel);
-    myPropertiesPanel.setFillsViewportHeight(true);
-    myPropertiesPanel.getTableHeader().setReorderingAllowed(false);
+    myPropertiesTable = new JBTable(myTableModel);
+    myPropertiesTable.setFillsViewportHeight(true);
+    myPropertiesTable.getTableHeader().setReorderingAllowed(false);
+    myPropertiesSpeedSearch = new TableSpeedSearch(myPropertiesTable, (object, cell) -> {
+      if (object == null) {
+        return null;
+      }
+
+      assert object instanceof String : "The model is expected to return String instances as values";
+      return (String)object;
+    });
+    myPropertiesSpeedSearch.setComparator(new SpeedSearchComparator(false, false));
 
     myContentSplitter = new ThreeComponentsSplitter(false, true);
     Disposer.register(parent, myContentSplitter);
 
     final JScrollPane firstComponent = ScrollPaneFactory.createScrollPane(myNodeTree);
-    final JScrollPane lastComponent = ScrollPaneFactory.createScrollPane(myPropertiesPanel);
+    final JScrollPane lastComponent = ScrollPaneFactory.createScrollPane(myPropertiesTable);
 
     myContentSplitter.setFirstComponent(firstComponent);
     myContentSplitter.setInnerComponent(myPreview);
