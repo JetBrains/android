@@ -27,6 +27,7 @@ import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.tabs.impl.JBTabsImpl;
 import com.intellij.ui.tabs.impl.TabLabel;
+import com.intellij.xdebugger.impl.frame.XDebuggerFramesList;
 import com.intellij.xdebugger.impl.ui.tree.XDebuggerTree;
 import com.intellij.xdebugger.impl.ui.tree.nodes.XDebuggerTreeNode;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -34,6 +35,7 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.ComponentLookupException;
+import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.TextMatcher;
 import org.jetbrains.annotations.NotNull;
@@ -112,6 +114,17 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       } catch (ComponentLookupException e) {
         return null;
       }
+    }
+
+    @NotNull
+    public JListFixture getFramesList() {
+      JComponent debuggerComponent = getTabComponent("Debugger");
+      myRobot.click(debuggerComponent);
+      ThreeComponentsSplitter splitter =
+        myRobot.finder().findByType(debuggerComponent, ThreeComponentsSplitter.class, false);
+      JComponent component = splitter.getFirstComponent();
+      assert component != null;
+      return new JListFixture(myRobot, myRobot.finder().findByType(component, XDebuggerFramesList.class, false));
     }
 
     public void clickDebuggerTreeRoot() {
