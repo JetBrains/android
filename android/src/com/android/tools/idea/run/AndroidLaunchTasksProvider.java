@@ -173,7 +173,13 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     AndroidDebuggerState androidDebuggerState = androidDebuggerContext.getAndroidDebuggerState();
     if (androidDebuggerState != null) {
       //noinspection unchecked
-      return debugger.getConnectDebuggerTask(myEnv, version, packageIds, myFacet, androidDebuggerState, myRunConfig.getType().getId());
+      return debugger.getConnectDebuggerTask(myEnv,
+                                             version,
+                                             packageIds,
+                                             myFacet,
+                                             androidDebuggerState,
+                                             myRunConfig.getType().getId(),
+                                             monitorRemoteProcess());
     }
 
     return null;

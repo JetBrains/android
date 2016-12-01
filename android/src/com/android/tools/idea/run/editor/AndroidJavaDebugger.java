@@ -96,8 +96,9 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
                                                    @NotNull Set<String> applicationIds,
                                                    @NotNull AndroidFacet facet,
                                                    @NotNull AndroidDebuggerState state,
-                                                   @NotNull String runConfigTypeId) {
-    return new ConnectJavaDebuggerTask(applicationIds, this, env.getProject());
+                                                   @NotNull String runConfigTypeId,
+                                                   boolean monitorRemoteProcess) {
+    return new ConnectJavaDebuggerTask(applicationIds, this, env.getProject(), monitorRemoteProcess);
   }
 
   @Override
