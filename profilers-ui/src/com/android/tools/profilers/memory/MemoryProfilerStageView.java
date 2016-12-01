@@ -140,7 +140,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     panel.add(eventsComponent, new TabularLayout.Constraint(0, 0));
 
     MemoryMonitor monitor = new MemoryMonitor(profilers);
-    JPanel monitorPanel = new JBPanel(new GridBagLayout());
+    JPanel monitorPanel = new JBPanel(new TabularLayout("*", "*"));
     monitorPanel.setOpaque(false);
     monitorPanel.setBorder(MONITOR_BORDER);
     final JLabel label = new JLabel(monitor.getName());
@@ -264,11 +264,11 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     legendPanel.add(label, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
 
-    monitorPanel.add(overlayPanel, GBC_FULL);
-    monitorPanel.add(selection, GBC_FULL);
-    monitorPanel.add(legendPanel, GBC_FULL);
-    monitorPanel.add(axisPanel, GBC_FULL);
-    monitorPanel.add(lineChartPanel, GBC_FULL);
+    monitorPanel.add(overlayPanel, new TabularLayout.Constraint(0, 0));
+    monitorPanel.add(selection, new TabularLayout.Constraint(0, 0));
+    monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
+    monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
+    monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
 
     layout.setRowSizing(1, "*"); // Give monitor as much space as possible
     panel.add(monitorPanel, new TabularLayout.Constraint(1, 0));
