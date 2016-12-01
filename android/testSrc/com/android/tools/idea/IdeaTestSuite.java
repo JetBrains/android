@@ -39,15 +39,12 @@ import java.nio.file.Paths;
   com.android.tools.idea.testing.TestProjectPathsGeneratorTest.class, // This is for a standalone, test-only application
   // The following classes had failures when run in Bazel.
   com.android.tools.idea.ddms.adb.AdbServiceTest.class,
-  com.android.tools.idea.editors.theme.ConfiguredThemeEditorStyleTest.class,
-  com.android.tools.idea.editors.theme.ResolutionUtilsTest.class,
   com.android.tools.idea.exportSignedPackage.ExportSignedPackageTest.class,
   com.android.tools.idea.gradle.eclipse.GradleImportTest.class,
   com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdaterIntegrationTest.class,
   com.android.tools.idea.gradle.project.NonAndroidGradleProjectImportingTestSuite.class,
   com.android.tools.idea.gradle.project.sync.errors.MissingCMakeErrorHandlerTest.class,  // fails in bazel sandbox
   com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleTest.class,
-  com.android.tools.idea.lint.LintIdeApiDetectorTest.class,
   com.android.tools.idea.lint.LintIdeGradleDetectorTest.class,
   com.android.tools.idea.npw.importing.ArchiveToGradleModuleModelTest.class,
   com.android.tools.idea.npw.importing.ArchiveToGradleModuleStepTest.class,
