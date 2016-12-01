@@ -25,6 +25,7 @@ import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.RangedTableModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,9 +35,12 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -169,7 +173,7 @@ final class ConnectionsView {
 
   @NotNull
   private JTable createRequestsTable() {
-    JTable table = new JBTable(myTableModel);
+    JTable table = new ConnectionsTable(myTableModel);
     table.setAutoCreateRowSorter(true);
     table.getColumnModel().getColumn(Column.SIZE.ordinal()).setCellRenderer(new SizeRenderer());
     table.getColumnModel().getColumn(Column.STATUS.ordinal()).setCellRenderer(new StatusRenderer());
@@ -341,6 +345,47 @@ final class ConnectionsView {
         chart.animate(1);
         myCharts.add(chart);
       }
+    }
+  }
+
+  private static final class ConnectionsTable extends JBTable {
+    private static final JBColor HOVER_COLOR = new JBColor(0xEAEFFA, 0xEAEFFA);
+    private int myHoveredRow = -1;
+
+    ConnectionsTable(@NotNull TableModel model) {
+      super(model);
+      MouseAdapter mouseAdapter = new MouseAdapter() {
+        @Override
+        public void mouseMoved(MouseEvent e) {
+          myHoveredRow = rowAtPoint(e.getPoint());
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+          myHoveredRow = -1;
+        }
+      };
+      addMouseMotionListener(mouseAdapter);
+      addMouseListener(mouseAdapter);
+    }
+
+    @NotNull
+    @Override
+    public Component prepareRenderer(@NotNull TableCellRenderer renderer, int row, int column) {
+      Component comp = super.prepareRenderer(renderer, row, column);
+      if (isRowSelected(row)) {
+        comp.setForeground(getSelectionForeground());
+        comp.setBackground(getSelectionBackground());
+      }
+      else if (row == myHoveredRow) {
+        comp.setBackground(HOVER_COLOR);
+        comp.setForeground(getForeground());
+      }
+      else {
+        comp.setBackground(getBackground());
+        comp.setForeground(getForeground());
+      }
+      return comp;
     }
   }
 }
