@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.util.Facets.findFacet;
-import static com.android.tools.idea.gradle.util.Facets.removeAllFacetsOfType;
+import static com.android.tools.idea.gradle.util.Facets.removeAllFacets;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class NdkFacetModuleSetupStep extends NdkModuleSetupStep {
@@ -63,12 +63,12 @@ public class NdkFacetModuleSetupStep extends NdkModuleSetupStep {
   @Override
   protected void gradleModelNotFound(@NotNull Module module, @NotNull IdeModifiableModelsProvider ideModelsProvider) {
     ModifiableFacetModel facetModel = ideModelsProvider.getModifiableFacetModel(module);
-    removeAllFacetsOfType(NdkFacet.getFacetTypeId(), facetModel);
+    removeAllFacets(facetModel, NdkFacet.getFacetTypeId());
   }
 
   @Override
   @NotNull
   public String getDescription() {
-    return "Native Android Facet setup";
+    return "NDK Android Facet setup";
   }
 }
