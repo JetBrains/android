@@ -28,13 +28,12 @@ import java.util.stream.Collectors;
 class HeapDumpClassObject extends ClassObject {
   private final ClassObj myClassObj;
 
+  @NotNull
+  private String myMemoizedName;
+
   public HeapDumpClassObject(@NotNull ClassObj classObj) {
     myClassObj = classObj;
-  }
 
-  @NotNull
-  @Override
-  public String getName() {
     String className = myClassObj.getClassName();
     String packageName = null;
     int i = className.lastIndexOf(".");
@@ -42,7 +41,13 @@ class HeapDumpClassObject extends ClassObject {
       packageName = className.substring(0, i);
       className = className.substring(i + 1);
     }
-    return packageName == null ? className : String.format("%s (%s)", className, packageName);
+    myMemoizedName = packageName == null ? className : String.format("%s (%s)", className, packageName);
+  }
+
+  @NotNull
+  @Override
+  public String getName() {
+    return myMemoizedName;
   }
 
   @Override
