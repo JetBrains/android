@@ -145,6 +145,9 @@ public class ResizeTarget extends BaseTarget {
 
   @Override
   public void render(@NotNull DisplayList list) {
+    if (!myComponent.getScene().allowsTarget(this)) {
+      return;
+    }
     list.addRect(myLeft, myTop, myRight, myBottom, mIsOver ? Color.yellow : Color.blue);
   }
 

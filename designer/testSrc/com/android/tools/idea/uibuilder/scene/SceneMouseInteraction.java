@@ -41,6 +41,7 @@ class SceneMouseInteraction {
   public void mouseDown(String componentId, ResizeTarget.Type type) {
     SceneComponent component = myScene.getSceneComponent(componentId);
     if (component != null) {
+      component.setSelected(true);
       ResizeTarget target = component.getResizeTarget(type);
       myLastX = target.getCenterX();
       myLastY = target.getCenterY();
@@ -58,6 +59,7 @@ class SceneMouseInteraction {
   public void mouseDown(String componentId, AnchorTarget.Type type) {
     SceneComponent component = myScene.getSceneComponent(componentId);
     if (component != null) {
+      component.setSelected(true);
       AnchorTarget target = component.getAnchorTarget(type);
       myLastX = target.getCenterX();
       myLastY = target.getCenterY();
@@ -110,6 +112,21 @@ class SceneMouseInteraction {
   }
 
   /**
+   * Simulate releasing the mouse above the component
+   * with the given componentId
+   *
+   * @param componentId the id of the component we will release the mouse above
+   */
+  public void mouseRelease(String componentId) {
+    SceneComponent component = myScene.getSceneComponent(componentId);
+    if (component != null) {
+      int x = component.getCenterX();
+      int y = component.getCenterY();
+      mouseRelease(x, y);
+    }
+  }
+
+  /**
    * Simulate releasing the mouse at the coordinates (x, y).
    * Before doing the release, a serie of drag events will be simulated
    *
@@ -138,5 +155,18 @@ class SceneMouseInteraction {
 
   public DisplayList getDisplayList() {
     return myDisplayList;
+  }
+
+  /**
+   * Select the widget corresponding to the componentId
+   *
+   * @param componentId
+   * @param selected
+   */
+  public void select(String componentId, boolean selected) {
+    SceneComponent component = myScene.getSceneComponent(componentId);
+    if (component != null) {
+      component.setSelected(selected);
+    }
   }
 }

@@ -277,6 +277,9 @@ public class DragTarget extends ConstraintTarget {
       }
     };
     action.execute();
+    if (closestTarget == this && !myComponent.isSelected()) {
+      myComponent.getScene().select(myComponent);
+    }
     myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
   }
 

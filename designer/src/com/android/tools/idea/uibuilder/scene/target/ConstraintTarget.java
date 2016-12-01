@@ -73,18 +73,6 @@ public abstract class ConstraintTarget extends BaseTarget {
     ourBottomAttributes.add(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
   }
 
-  private boolean hasAttributes(String uri, ArrayList<String> attributes) {
-    NlComponent component = myComponent.getNlComponent();
-    int count = attributes.size();
-    for (int i = 0; i < count; i++) {
-      String attribute = attributes.get(i);
-      if (component.getAttribute(uri, attribute) != null) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   private boolean hasAttributes(@NotNull AttributesTransaction transaction, String uri, ArrayList<String> attributes) {
     int count = attributes.size();
     for (int i = 0; i < count; i++) {
@@ -110,22 +98,6 @@ public abstract class ConstraintTarget extends BaseTarget {
 
   protected boolean hasBottom(@NotNull AttributesTransaction transaction) {
     return hasAttributes(transaction, SdkConstants.SHERPA_URI, ourBottomAttributes);
-  }
-
-  protected boolean hasLeft() {
-    return hasAttributes(SdkConstants.SHERPA_URI, ourLeftAttributes);
-  }
-
-  protected boolean hasTop() {
-    return hasAttributes(SdkConstants.SHERPA_URI, ourTopAttributes);
-  }
-
-  protected boolean hasRight() {
-    return hasAttributes(SdkConstants.SHERPA_URI, ourRightAttributes);
-  }
-
-  protected boolean hasBottom() {
-    return hasAttributes(SdkConstants.SHERPA_URI, ourBottomAttributes);
   }
 
   protected void setDpAttribute(String uri, String attribute, AttributesTransaction transaction, int value) {

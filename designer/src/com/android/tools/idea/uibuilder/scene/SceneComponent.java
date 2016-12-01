@@ -25,25 +25,27 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.*;
+import java.util.List;
 
 /**
  * A SceneComponent represents the bounds of a widget (backed by NlComponent).
  * SceneComponent gave us a a couple of extra compared to NlComponent:
  * <ul>
- *   <li>expressed in Dp, not pixels</li>
- *   <li>animate layout changes</li>
- *   <li>can mix NlComponent from different NlModel in the same tree</li>
+ * <li>expressed in Dp, not pixels</li>
+ * <li>animate layout changes</li>
+ * <li>can mix NlComponent from different NlModel in the same tree</li>
  * </ul>
  */
 public class SceneComponent {
 
-  public enum DrawState { SUBDUED, NORMAL, HOVER, SELECTED }
+  public enum DrawState {SUBDUED, NORMAL, HOVER, SELECTED}
 
   private final Scene myScene;
   private final NlComponent myNlComponent;
   private ArrayList<SceneComponent> myChildren = new ArrayList<>();
   private SceneComponent myParent = null;
+  private boolean myIsSelected = true;
 
   private AnimatedValue myAnimatedDrawX = new AnimatedValue();
   private AnimatedValue myAnimatedDrawY = new AnimatedValue();
@@ -96,6 +98,7 @@ public class SceneComponent {
     long startTime;
     int duration = 350; // ms -- the duration of the animation
     boolean animating = false;
+
     /**
      * Set the value directly without animating
      *
@@ -103,6 +106,7 @@ public class SceneComponent {
      */
     public void setValue(int v) {
       value = v;
+      target = v;
       startTime = 0;
       animating = false;
     }
@@ -182,6 +186,10 @@ public class SceneComponent {
     myParent = parent;
   }
 
+  public boolean isSelected() {
+    return myIsSelected;
+  }
+
   public int getDrawX() {
     return myAnimatedDrawX.getValue(0);
   }
@@ -192,14 +200,14 @@ public class SceneComponent {
 
   public int getOffsetParentX() {
     if (myParent != null) {
-      return getDrawX() -  myParent.getDrawX();
+      return getDrawX() - myParent.getDrawX();
     }
     return getDrawX();
   }
 
   public int getOffsetParentY() {
     if (myParent != null) {
-      return getDrawY() -  myParent.getDrawY();
+      return getDrawY() - myParent.getDrawY();
     }
     return getDrawY();
   }
@@ -254,12 +262,16 @@ public class SceneComponent {
     myDrawState = drawState;
   }
 
+  public void setSelected(boolean selected) {
+    myIsSelected = selected;
+  }
+
   public void setExpandTargetArea(boolean expandArea) {
     int count = myTargets.size();
     for (int i = 0; i < count; i++) {
       Target target = myTargets.get(i);
       if (target instanceof AnchorTarget) {
-        AnchorTarget anchor = (AnchorTarget) target;
+        AnchorTarget anchor = (AnchorTarget)target;
         anchor.setExpandSize(expandArea);
       }
     }
@@ -270,7 +282,7 @@ public class SceneComponent {
     int count = myTargets.size();
     for (int i = 0; i < count; i++) {
       if (myTargets.get(i) instanceof AnchorTarget) {
-        AnchorTarget target = (AnchorTarget) myTargets.get(i);
+        AnchorTarget target = (AnchorTarget)myTargets.get(i);
         if (target.getType() == type) {
           return target;
         }
@@ -284,7 +296,7 @@ public class SceneComponent {
     int count = myTargets.size();
     for (int i = 0; i < count; i++) {
       if (myTargets.get(i) instanceof ResizeTarget) {
-        ResizeTarget target = (ResizeTarget) myTargets.get(i);
+        ResizeTarget target = (ResizeTarget)myTargets.get(i);
         if (target.getType() == type) {
           return target;
         }
@@ -368,6 +380,29 @@ public class SceneComponent {
       myAnimatedDrawHeight.setValue(myScene.pxToDp(component.h));
     }
   }
+
+  /**
+   * Given a list of components, marks the corresponding SceneComponent as selected
+   *
+   * @param components
+   */
+  public void markSelection(List<NlComponent> components) {
+    final int count = components.size();
+    myIsSelected = false;
+    for (int i = 0; i < count; i++) {
+      NlComponent component = components.get(i);
+      if (myNlComponent == component) {
+        myIsSelected = true;
+        break;
+      }
+    }
+    int childCount = myChildren.size();
+    for (int i = 0; i < childCount; i++) {
+      SceneComponent child = myChildren.get(i);
+      child.markSelection(components);
+    }
+  }
+
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region Layout
