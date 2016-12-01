@@ -37,8 +37,7 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     return !SystemInfo.isWindows && super.shouldRunTest();
   }
 
-  // Memory leak in AndroidRunConfigurationEditor. Reactivate when solved
-  public void ignore_testRunnerComponentsHiddenWhenGradleProject() throws Exception {
+  public void testRunnerComponentsHiddenWhenGradleProject() throws Exception {
     loadSimpleApplication();
 
     AndroidTestRunConfiguration androidTestRunConfiguration =
