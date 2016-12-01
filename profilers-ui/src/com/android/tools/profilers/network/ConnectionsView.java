@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.RangedTable;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
@@ -22,7 +23,7 @@ import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.RangedTableModel;
-import com.intellij.openapi.application.ApplicationManager;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
@@ -51,6 +52,8 @@ import static com.android.tools.profilers.ProfilerColors.*;
 final class ConnectionsView {
   private static final int ROW_HEIGHT_PADDING = 5;
 
+  private Range mySelectionRange;
+
   public interface DetailedViewListener {
     void showDetailedConnection(HttpData data);
   }
@@ -71,21 +74,60 @@ final class ConnectionsView {
   /**
    * Columns for each connection information
    */
-  private enum Column {
-    URL(0.25), SIZE(0.25/4), TYPE(0.25/4), STATUS(0.25/4), TIME(0.25/4), TIMELINE(0.5);
+  @VisibleForTesting
+  enum Column {
+    URL(0.25, String.class),
+    SIZE(0.25/4, Integer.class),
+    TYPE(0.25/4, String.class),
+    STATUS(0.25/4, Integer.class),
+    TIME(0.25/4, Long.class),
+    TIMELINE(0.5, Long.class);
 
     private final double myWidthPercentage;
+    private final Class<?> myType;
 
-    Column(double widthPercentage) {
+    Column(double widthPercentage, Class<?> type) {
       myWidthPercentage = widthPercentage;
+      myType = type;
     }
 
     public double getWidthPercentage() {
       return myWidthPercentage;
     }
 
+    public Class<?> getType() {
+      return myType;
+    }
+
     public String toDisplayString() {
       return StringUtil.capitalize(name().toLowerCase(Locale.getDefault()));
+    }
+
+    public Object getValueFrom(HttpData data) {
+      switch (this) {
+        case URL:
+          return data.getUrl();
+
+        case SIZE:
+          String contentLength = data.getResponseField(HttpData.FIELD_CONTENT_LENGTH);
+          return (contentLength != null) ? Integer.parseInt(contentLength) : -1;
+
+        case TYPE:
+          String contentType = data.getResponseField(HttpData.FIELD_CONTENT_TYPE);
+          return StringUtil.notNullize(contentType);
+
+        case STATUS:
+          return data.getStatusCode();
+
+        case TIME:
+          return data.getEndTimeUs() - data.getStartTimeUs();
+
+        case TIMELINE:
+          return data.getStartTimeUs();
+
+        default:
+          throw new UnsupportedOperationException("getValueFrom not implemented for: " + this);
+      }
     }
   }
 
@@ -93,7 +135,7 @@ final class ConnectionsView {
   private final DetailedViewListener myDetailedViewListener;
 
   @NotNull
-  private final NetworkProfilerStageView myStageView;
+  private final NetworkProfilerStage myStage;
 
   @NotNull
   private final ConnectionsTableModel myTableModel;
@@ -103,12 +145,21 @@ final class ConnectionsView {
 
   public ConnectionsView(@NotNull NetworkProfilerStageView stageView,
                          @NotNull DetailedViewListener detailedViewListener) {
-    myStageView = stageView;
+    this(stageView.getStage(), stageView.getChoreographer(), stageView.getTimeline().getSelectionRange(), detailedViewListener);
+  }
+
+  @VisibleForTesting
+  public ConnectionsView(@NotNull NetworkProfilerStage stage,
+                         @NotNull Choreographer choreographer,
+                         @NotNull Range selectionRange,
+                         @NotNull DetailedViewListener detailedViewListener) {
+    myStage = stage;
     myDetailedViewListener = detailedViewListener;
     myTableModel = new ConnectionsTableModel();
+    mySelectionRange = selectionRange;
+    RangedTable rangedTable = new RangedTable(mySelectionRange, myTableModel);
+    choreographer.register(rangedTable);
     myConnectionsTable = createRequestsTable();
-    RangedTable rangedTable = new RangedTable(stageView.getTimeline().getSelectionRange(), myTableModel);
-    stageView.getChoreographer().register(rangedTable);
   }
 
   @NotNull
@@ -124,7 +175,7 @@ final class ConnectionsView {
     table.getColumnModel().getColumn(Column.STATUS.ordinal()).setCellRenderer(new StatusRenderer());
     table.getColumnModel().getColumn(Column.TIME.ordinal()).setCellRenderer(new TimeRenderer());
     table.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setCellRenderer(
-      new TimelineRenderer(table, myStageView.getTimeline().getSelectionRange()));
+      new TimelineRenderer(table, mySelectionRange));
 
     table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     table.getSelectionModel().addListSelectionListener(e -> {
@@ -150,10 +201,14 @@ final class ConnectionsView {
     });
 
     // Keep the previously selected row selected if it's still there
+
+    // IJ wants to use Application.invokeLater, but we use SwingUtilities.invokeLater because it's
+    // testable (Application is null in basic unit tests)
+    //noinspection SSBasedInspection
     myTableModel.addTableModelListener(e ->
-      ApplicationManager.getApplication().invokeLater(() -> {
+      SwingUtilities.invokeLater(() -> {
         // Invoke later, because table itself listener of table model.
-        HttpData selectedData = myStageView.getStage().getConnection();
+        HttpData selectedData = myStage.getConnection();
         if (selectedData != null) {
           for (int i = 0; i < myTableModel.getRowCount(); ++i) {
             if (myTableModel.getHttpData(i).getId() == selectedData.getId()) {
@@ -171,7 +226,7 @@ final class ConnectionsView {
 
   private final class ConnectionsTableModel extends AbstractTableModel implements RangedTableModel {
     @NotNull private List<HttpData> myDataList = new ArrayList<>();
-    @NotNull private final Range myLastRange = new Range(0, 0);
+    @NotNull private final Range myLastRange = new Range();
 
     @Override
     public int getRowCount() {
@@ -191,30 +246,12 @@ final class ConnectionsView {
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
       HttpData data = myDataList.get(rowIndex);
-      switch (Column.values()[columnIndex]) {
-        case URL:
-          return data.getUrl();
+      return Column.values()[columnIndex].getValueFrom(data);
+    }
 
-        case TYPE:
-          String contentType = data.getResponseField(HttpData.FIELD_CONTENT_TYPE);
-          return StringUtil.notNullize(contentType);
-
-        case SIZE:
-          String contentLength = data.getResponseField(HttpData.FIELD_CONTENT_LENGTH);
-          return (contentLength != null) ? Integer.parseInt(contentLength) : -1;
-
-        case STATUS:
-          return data.getStatusCode();
-
-        case TIME:
-          return data.getEndTimeUs() - data.getStartTimeUs();
-
-        case TIMELINE:
-          return data.getStartTimeUs();
-
-        default:
-          throw new UnsupportedOperationException("Unexpected getValueAt called with: " + Column.values()[columnIndex]);
-      }
+    @Override
+    public Class<?> getColumnClass(int columnIndex) {
+      return Column.values()[columnIndex].getType();
     }
 
     @NotNull
@@ -225,7 +262,7 @@ final class ConnectionsView {
     @Override
     public void update(@NotNull Range range) {
       if (myLastRange.getMin() != range.getMin() || myLastRange.getMax() != range.getMax()) {
-        myDataList = myStageView.getStage().getRequestsModel().getData(range);
+        myDataList = myStage.getRequestsModel().getData(range);
         fireTableDataChanged();
         myLastRange.set(range);
       }
