@@ -67,5 +67,7 @@ iml_module(
         "//tools/base/pixelprobe:studio.pixelprobe[module, test]",
         "//tools/adt/idea/sherpa-ui[module, test]",
         "//tools/adt/idea/android-test-framework[module, test]",
+        "//tools/analytics-library/tracker:analytics-tracker[module, test]",
+        "//tools/analytics-library/protos:analytics-protos[module, test]",
     ],
 )
