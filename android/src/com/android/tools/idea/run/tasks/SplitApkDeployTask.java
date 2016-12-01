@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class SplitApkDeployTask implements LaunchTask {
+
   private final Project myProject;
   private final InstantRunContext myInstantRunContext;
 
@@ -63,7 +64,8 @@ public class SplitApkDeployTask implements LaunchTask {
     List<InstantRunArtifact> artifacts = buildInfo.getArtifacts();
 
     List<String> installOptions = Lists.newArrayList(); // TODO: should we pass in pm install options?
-    if (!buildInfo.hasMainApk()) {
+
+    if (!buildInfo.isFullBuild()) {
       installOptions.add("-p"); // partial install
       installOptions.add(myInstantRunContext.getApplicationId());
     }
