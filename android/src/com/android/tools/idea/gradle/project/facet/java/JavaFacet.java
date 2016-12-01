@@ -45,15 +45,10 @@ import static com.intellij.facet.impl.FacetUtil.saveFacetConfiguration;
  * </p>
  */
 public class JavaFacet extends Facet<JavaFacetConfiguration> {
-  private static final Logger LOG = Logger.getInstance(JavaFacet.class);
-
-  @NotNull public static FacetTypeId<JavaFacet> TYPE_ID = new FacetTypeId<>("java-gradle");
+  @NotNull private static FacetTypeId<JavaFacet> TYPE_ID = new FacetTypeId<>("java-gradle");
 
   @NonNls public static final String TEST_CLASSES_TASK_NAME = "testClasses";
   @NonNls public static final String COMPILE_JAVA_TASK_NAME = "compileJava";
-
-  @NonNls public static final String ID = "java-gradle";
-  @NonNls public static final String NAME = "Java-Gradle";
 
   private JavaModuleModel myJavaModuleModel;
 
@@ -65,15 +60,29 @@ public class JavaFacet extends Facet<JavaFacetConfiguration> {
   public JavaFacet(@NotNull Module module,
                    @NotNull String name,
                    @NotNull JavaFacetConfiguration configuration) {
-    //noinspection ConstantConditions
     super(getFacetType(), module, name, configuration, null);
   }
 
   @NotNull
   public static JavaFacetType getFacetType() {
-    FacetType facetType = FacetTypeRegistry.getInstance().findFacetType(ID);
+    FacetType facetType = FacetTypeRegistry.getInstance().findFacetType("java-gradle");
     assert facetType instanceof JavaFacetType;
     return (JavaFacetType)facetType;
+  }
+
+  @NotNull
+  public static FacetTypeId<JavaFacet> getFacetTypeId() {
+    return TYPE_ID;
+  }
+
+  @NotNull
+  public static String getFacetId() {
+    return "java-gradle";
+  }
+
+  @NotNull
+  public static String getFacetName() {
+    return "Java-Gradle";
   }
 
   @Override
@@ -99,8 +108,13 @@ public class JavaFacet extends Facet<JavaFacetConfiguration> {
       saveFacetConfiguration(config);
     }
     catch (WriteExternalException e) {
-      LOG.error("Unable to save contents of 'Java-Gradle' facet", e);
+      getLog().error("Unable to save contents of 'Java-Gradle' facet", e);
     }
+  }
+
+  @NotNull
+  private static Logger getLog() {
+    return Logger.getInstance(JavaFacet.class);
   }
 
   @Nullable

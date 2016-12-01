@@ -32,7 +32,7 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import java.io.File;
 import java.util.Collection;
 
-import static com.android.tools.idea.gradle.util.Facets.removeAllFacetsOfType;
+import static com.android.tools.idea.gradle.util.Facets.removeAllFacets;
 import static com.intellij.openapi.util.io.FileUtilRt.getRelativePath;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -45,7 +45,7 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
   @Override
   protected void gradleModelNotFound(@NotNull Module module, @NotNull IdeModifiableModelsProvider ideModelsProvider) {
     ModifiableFacetModel facetModel = ideModelsProvider.getModifiableFacetModel(module);
-    removeAllFacetsOfType(AndroidFacet.ID, facetModel);
+    removeAllFacets(facetModel, AndroidFacet.ID);
   }
 
   @Override

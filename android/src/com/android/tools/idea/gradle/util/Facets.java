@@ -33,28 +33,12 @@ public final class Facets {
   private Facets() {
   }
 
-  public static <T extends Facet> void removeAllFacetsOfType(@NotNull Module module, @NotNull FacetTypeId<T> typeId) {
-    FacetManager facetManager = FacetManager.getInstance(module);
-    Collection<T> facets = facetManager.getFacetsByType(typeId);
-    if (!facets.isEmpty()) {
-      ModifiableFacetModel model = facetManager.createModifiableModel();
-      try {
-        for (T facet : facets) {
-          model.removeFacet(facet);
-        }
-      }
-      finally {
-        model.commit();
-      }
-    }
-  }
-
-  public static <T extends Facet> void removeAllFacetsOfType(@NotNull FacetTypeId<T> typeId,
-                                                             @NotNull ModifiableFacetModel modifiableFacetModel) {
-    Collection<T> facets = modifiableFacetModel.getFacetsByType(typeId);
-    if (!facets.isEmpty()) {
+  @SafeVarargs
+  public static <T extends Facet> void removeAllFacets(@NotNull ModifiableFacetModel facetModel, @NotNull FacetTypeId<T>... typeIds) {
+    for (FacetTypeId<T> typeId : typeIds) {
+      Collection<T> facets = facetModel.getFacetsByType(typeId);
       for (T facet : facets) {
-        modifiableFacetModel.removeFacet(facet);
+        facetModel.removeFacet(facet);
       }
     }
   }

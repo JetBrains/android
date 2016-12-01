@@ -1144,6 +1144,7 @@
     <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesModuleSetupStep"/>
     <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.CompilerOutputModuleSetupStep"/>
 
+    <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.java.JavaFacetModuleSetupStep"/>
     <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.java.ContentRootsModuleSetupStep"/>
     <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.java.DependenciesModuleSetupStep"/>
     <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.java.ArtifactsByConfigurationModuleSetupStep"/>
