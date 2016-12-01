@@ -20,6 +20,7 @@ import com.google.common.collect.Ordering;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
+import java.util.Objects;
 
 public class ViewProperty implements Comparable<ViewProperty> {
 
@@ -54,8 +55,18 @@ public class ViewProperty implements Comparable<ViewProperty> {
   public int compareTo(@NotNull ViewProperty other) {
     return ComparisonChain.start()
       .compare(category, other.category, CATEGORY_COMPARATOR)
-      .compare(name, name)
+      .compare(name, other.name)
       .result();
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof ViewProperty)) {
+      return false;
+    }
+
+    ViewProperty other = (ViewProperty)obj;
+    return Objects.equals(category, other.category) && name.equals(other.name);
   }
 
   public void setValue(String value) {
