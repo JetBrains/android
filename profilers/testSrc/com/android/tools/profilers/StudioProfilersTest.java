@@ -18,46 +18,35 @@ package com.android.tools.profilers;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
-import io.grpc.Server;
-import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.stub.StreamObserver;
-import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 final public class StudioProfilersTest {
-  public static final String CHANNEL_NAME = "StudioProfilerTestChannel";
-  private ProfilerClient myClient;
+  private static final String FAKE_VERSION = "3141592";
 
-  @Before
-  public void setUp() throws Exception {
-    myClient = new ProfilerClient(CHANNEL_NAME);
-  }
+  @Rule public TestGrpcChannel myGrpcChannel =
+    new TestGrpcChannel<>("StudioProfilerTestChannel", new ProfilerServiceGrpc.ProfilerServiceImplBase() {
+      @Override
+      public void getVersion(Profiler.VersionRequest request, StreamObserver<Profiler.VersionResponse> responseObserver) {
+        responseObserver.onNext(Profiler.VersionResponse.newBuilder().setVersion(FAKE_VERSION).build());
+        responseObserver.onCompleted();
+      }
+    });
 
   @Test
   public void testVersion() throws Exception {
-    final String version = "3141592";
-    ProfilerServiceGrpc.ProfilerServiceImplBase
-      service = new ProfilerServiceGrpc.ProfilerServiceImplBase() {
-        @Override
-        public void getVersion(Profiler.VersionRequest request, StreamObserver<Profiler.VersionResponse> responseObserver) {
-          responseObserver.onNext(Profiler.VersionResponse.newBuilder().setVersion(version).build());
-          responseObserver.onCompleted();
-        }
-      };
-
-    Server server = InProcessServerBuilder.forName(CHANNEL_NAME).addService(service).build();
-    server.start();
-    Profiler.VersionResponse response = myClient.getProfilerClient().getVersion(Profiler.VersionRequest.getDefaultInstance());
-    assertEquals(version, response.getVersion());
-    server.shutdownNow();
+    Profiler.VersionResponse response =
+      myGrpcChannel.getClient().getProfilerClient().getVersion(Profiler.VersionRequest.getDefaultInstance());
+    assertEquals(FAKE_VERSION, response.getVersion());
   }
 
   @Test
   public void testClearedOnMonitorStage() throws Exception {
-    StudioProfilers profilers = new StudioProfilers(myClient);
+    StudioProfilers profilers = myGrpcChannel.getProfilers();
 
     assertTrue(profilers.getTimeline().getSelectionRange().isEmpty());
 
