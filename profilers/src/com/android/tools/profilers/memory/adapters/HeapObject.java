@@ -19,8 +19,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public abstract class HeapObject implements MemoryObject {
-  public enum ClassAttribute {
+public interface HeapObject extends MemoryObject {
+  enum ClassAttribute {
     LABEL,
     CHILDREN_COUNT,
     ELEMENT_SIZE,
@@ -30,11 +30,11 @@ public abstract class HeapObject implements MemoryObject {
   }
 
   @NotNull
-  public abstract String getHeapName();
+  String getHeapName();
 
   @NotNull
-  public abstract List<ClassObject> getClasses();
+  List<ClassObject> getClasses();
 
   @NotNull
-  public abstract List<ClassAttribute> getClassAttributes();
+  List<ClassAttribute> getClassAttributes();
 }

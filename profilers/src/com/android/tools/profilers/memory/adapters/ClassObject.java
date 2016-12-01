@@ -20,8 +20,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class ClassObject implements MemoryObject {
-  public enum InstanceAttribute {
+public interface ClassObject extends MemoryObject {
+  enum InstanceAttribute {
     LABEL,
     ELEMENT_SIZE,
     DEPTH,
@@ -30,35 +30,35 @@ public abstract class ClassObject implements MemoryObject {
   }
 
   @NotNull
-  public String getName() {
+  default String getName() {
     return "";
   }
 
-  public int getChildrenCount() {
+  default int getChildrenCount() {
     return 0;
   }
 
-  public int getElementSize() {
+  default int getElementSize() {
     return 0;
   }
 
-  public int getDepth() {
+  default int getDepth() {
     return 0;
   }
 
-  public int getShallowSize() {
+  default int getShallowSize() {
     return 0;
   }
 
-  public long getRetainedSize() {
+  default long getRetainedSize() {
     return 0;
   }
 
   @NotNull
-  public List<InstanceObject> getInstances() {
+  default List<InstanceObject> getInstances() {
     return Collections.emptyList();
   }
 
   @NotNull
-  public abstract List<InstanceAttribute> getInstanceAttributes();
+  List<InstanceAttribute> getInstanceAttributes();
 }

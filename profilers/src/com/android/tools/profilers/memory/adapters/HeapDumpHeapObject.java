@@ -27,7 +27,7 @@ import static com.android.tools.profilers.memory.adapters.HeapObject.ClassAttrib
 /**
  * A UI representation for a {@link Heap}.
  */
-class HeapDumpHeapObject extends HeapObject {
+final class HeapDumpHeapObject implements HeapObject {
   @NotNull
   private final Heap myHeap;
 
