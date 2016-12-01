@@ -19,6 +19,8 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
@@ -27,7 +29,7 @@ import org.jetbrains.android.facet.AndroidFacet;
  */
 public class FacetsTest extends IdeaTestCase {
   public void testRemoveAllFacetsWithAndroidFacets() throws Exception {
-    final FacetManager facetManager = FacetManager.getInstance(myModule);
+    FacetManager facetManager = FacetManager.getInstance(myModule);
     ApplicationManager.getApplication().runWriteAction(() -> {
       ModifiableFacetModel model = facetManager.createModifiableModel();
       try {
@@ -40,13 +42,17 @@ public class FacetsTest extends IdeaTestCase {
     });
     assertEquals(1, facetManager.getFacetsByType(AndroidFacet.ID).size());
 
-    ApplicationManager.getApplication().runWriteAction(() -> Facets.removeAllFacetsOfType(myModule, AndroidFacet.ID));
+    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    ModifiableFacetModel facetModel = modelsProvider.getModifiableFacetModel(myModule);
+    Facets.removeAllFacets(facetModel, AndroidFacet.ID);
+
+    ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
 
     assertEquals(0, facetManager.getFacetsByType(AndroidFacet.ID).size());
   }
 
   public void testRemoveAllFacetsWithAndroidGradleFacets() throws Exception {
-    final FacetManager facetManager = FacetManager.getInstance(myModule);
+    FacetManager facetManager = FacetManager.getInstance(myModule);
     ApplicationManager.getApplication().runWriteAction(() -> {
       ModifiableFacetModel model = facetManager.createModifiableModel();
       try {
@@ -60,7 +66,11 @@ public class FacetsTest extends IdeaTestCase {
 
     assertEquals(1, facetManager.getFacetsByType(GradleFacet.getFacetTypeId()).size());
 
-    ApplicationManager.getApplication().runWriteAction(() -> Facets.removeAllFacetsOfType(myModule, GradleFacet.getFacetTypeId()));
+    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    ModifiableFacetModel facetModel = modelsProvider.getModifiableFacetModel(myModule);
+    Facets.removeAllFacets(facetModel, GradleFacet.getFacetTypeId());
+
+    ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
 
     assertEquals(0, facetManager.getFacetsByType(GradleFacet.getFacetTypeId()).size());
   }

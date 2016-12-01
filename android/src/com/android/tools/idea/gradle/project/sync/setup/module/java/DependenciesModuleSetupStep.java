@@ -15,20 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
-import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
-import com.android.tools.idea.gradle.project.facet.java.JavaFacetConfiguration;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
 import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependenciesSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -46,7 +41,8 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.util.Facets.findFacet;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
-import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
+import static com.intellij.openapi.util.io.FileUtil.sanitizeFileName;
 import static java.util.Collections.singletonList;
 
 public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
@@ -54,6 +50,7 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
 
   @NotNull private final DependenciesSetup myDependenciesSetup;
 
+  @SuppressWarnings("unused") // Instantiated by IDEA
   public DependenciesModuleSetupStep() {
     this(new DependenciesSetup());
   }
@@ -84,19 +81,6 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
     }
 
     UnresolvedDependenciesReporter.getInstance().report(unresolved, module);
-
-    JavaFacet facet = setAndGetJavaGradleFacet(module, ideModelsProvider);
-    File buildFolderPath = javaModuleModel.getBuildFolderPath();
-
-    GradleFacet gradleFacet = findFacet(module, ideModelsProvider, GradleFacet.getFacetTypeId());
-    if (gradleFacet != null) {
-      // This is an actual Gradle module, because it has the AndroidGradleFacet. Top-level modules in a multi-module project usually don't
-      // have this facet.
-      facet.setJavaModuleModel(javaModuleModel);
-    }
-    JavaFacetConfiguration facetProperties = facet.getConfiguration();
-    facetProperties.BUILD_FOLDER_PATH = buildFolderPath != null ? toSystemIndependentName(buildFolderPath.getPath()) : "";
-    facetProperties.BUILDABLE = javaModuleModel.isBuildable();
   }
 
   private static void updateDependency(@NotNull Module module,
@@ -164,20 +148,6 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
       }
     }
     return DEFAULT_DEPENDENCY_SCOPE;
-  }
-
-  @NotNull
-  private static JavaFacet setAndGetJavaGradleFacet(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
-    JavaFacet facet = findFacet(module, modelsProvider, JavaFacet.TYPE_ID);
-    if (facet != null) {
-      return facet;
-    }
-
-    FacetManager facetManager = FacetManager.getInstance(module);
-    ModifiableFacetModel model = modelsProvider.getModifiableFacetModel(module);
-    facet = facetManager.createFacet(JavaFacet.getFacetType(), JavaFacet.NAME, null);
-    model.addFacet(facet);
-    return facet;
   }
 
   @Override

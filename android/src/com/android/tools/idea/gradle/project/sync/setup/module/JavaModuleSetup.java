@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.PROJECT_STRUCTURE_ISSUES;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
-import static com.android.tools.idea.gradle.util.Facets.removeAllFacetsOfType;
+import static com.android.tools.idea.gradle.util.Facets.removeAllFacets;
 
 public class JavaModuleSetup {
   private final JavaModuleSetupStep[] mySetupSteps;
@@ -73,7 +73,7 @@ public class JavaModuleSetup {
   private static void cleanUpAndroidModuleWithoutVariants(@NotNull Module module, @NotNull IdeModifiableModelsProvider ideModelsProvider) {
     // Remove Android facet, otherwise the IDE will try to build the module, and fail. The facet may have been added in a previous
     // successful commit.
-    removeAllFacetsOfType(AndroidFacet.ID, ideModelsProvider.getModifiableFacetModel(module));
+    removeAllFacets(ideModelsProvider.getModifiableFacetModel(module), AndroidFacet.ID);
 
     // Clear all source and exclude folders.
     ModifiableRootModel rootModel = ideModelsProvider.getModifiableRootModel(module);
