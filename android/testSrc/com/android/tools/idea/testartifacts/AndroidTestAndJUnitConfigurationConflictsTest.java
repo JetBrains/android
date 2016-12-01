@@ -29,7 +29,7 @@ import static com.android.tools.idea.testartifacts.TestConfigurationTesting.crea
  */
 public class AndroidTestAndJUnitConfigurationConflictsTest extends AndroidGradleTestCase {
   // See http://b.android.com/215255
-  public void ignore_testConfigurationsAreDifferent() throws Exception {
+  public void testConfigurationsAreDifferent() throws Exception {
     loadSimpleApplication();
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
