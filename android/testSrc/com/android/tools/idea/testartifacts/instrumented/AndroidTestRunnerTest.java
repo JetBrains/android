@@ -53,7 +53,7 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     assertFalse("Runner component is visible in a Gradle project", testRunParameters.getRunnerComponent().isVisible());
   }
 
-  public void ignore_testRunnerArgumentsSet() throws Exception {
+  public void testRunnerArgumentsSet() throws Exception {
     loadProject(RUN_CONFIG_RUNNER_ARGUMENTS);
     Map<String, String> expectedArguments = new HashMap<>();
     expectedArguments.put("size", "medium");
