@@ -36,6 +36,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
@@ -243,6 +244,35 @@ public class NewProjectTest {
       layoutEditor.waitForRenderToFinish();
       assertThat(layoutEditor.hasRenderErrors()).isFalse();
     }
+  }
+
+  @Test // http://b.android.com/227918
+  public void scrollingActivityFollowedByBasicActivity() throws Exception {
+    WelcomeFrameFixture.find(guiTest.robot()).createNewProject();
+
+    NewProjectWizardFixture newProjectWizard = NewProjectWizardFixture.find(guiTest.robot());
+
+    File projectPath = newProjectWizard
+      .getConfigureAndroidProjectStep()
+      .enterApplicationName("My Test App")
+      .enterPackageName("com.test.project")
+      .getLocationInFileSystem();
+
+    guiTest.setProjectPath(projectPath);
+    newProjectWizard
+      .clickNext()
+      .clickNext() // Default Form Factor
+      .chooseActivity("Scrolling Activity")
+      .clickNext()
+      .clickPrevious()
+      .chooseActivity("Basic Activity")
+      .clickNext()
+      .clickFinish();
+
+    guiTest.ideFrame().getEditor()
+      .open("app/src/main/res/layout/content_main.xml")
+      .open("app/src/main/res/layout/activity_main.xml")
+      .open("app/src/main/java/com/test/project/MainActivity.java");
   }
 
   @NotNull
