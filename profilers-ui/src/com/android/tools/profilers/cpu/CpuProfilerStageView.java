@@ -95,7 +95,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     Range leftYRange = new Range(0, 100);
     Range rightYRange = new Range(0, 8);
-    JPanel monitorPanel = new JBPanel(new GridBagLayout());
+    JPanel monitorPanel = new JBPanel(new TabularLayout("*", "*"));
     monitorPanel.setOpaque(false);
     monitorPanel.setBorder(MONITOR_BORDER);
 
@@ -127,7 +127,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         .clampToMajorTicks(true).setMargins(0, Y_AXIS_TOP_MARGIN);
     final AxisComponent rightAxis = rightAxisBuilder.build();
     axisPanel.add(rightAxis, BorderLayout.EAST);
-    monitorPanel.add(axisPanel, GBC_FULL);
+    monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
 
     SelectionComponent selection = new SelectionComponent(timeline.getSelectionRange(), timeline.getViewRange());
     final JPanel overlayPanel = new JBPanel(new BorderLayout());
@@ -135,8 +135,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     overlayPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
     final OverlayComponent overlay = new OverlayComponent(selection);
     overlayPanel.add(overlay, BorderLayout.CENTER);
-    monitorPanel.add(overlayPanel, GBC_FULL);
-    monitorPanel.add(selection, GBC_FULL);    // Selection needs to be behind the OverlayComponent which handles clicking of DurationData.
+    monitorPanel.add(overlayPanel, new TabularLayout.Constraint(0, 0));
+    monitorPanel.add(selection, new TabularLayout.Constraint(0, 0));
 
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
@@ -147,7 +147,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     lineChart.addLine(threadsCountSeries, new LineConfig(ProfilerColors.THREADS_COUNT_COLOR)
       .setStepped(true).setStroke(LineConfig.DEFAULT_DASH_STROKE));
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
-    monitorPanel.add(lineChartPanel, GBC_FULL);
+    monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
 
     final LegendComponent legend = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, LEGEND_UPDATE_FREQUENCY_MS);
     ArrayList<LegendRenderData> legendData = new ArrayList<>();
@@ -164,7 +164,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     legendPanel.setOpaque(false);
     legendPanel.add(label, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
-    monitorPanel.add(legendPanel, GBC_FULL);
+    monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
 
     // Create an event representing the traces within the range.
     DurationDataRenderer<CpuCapture> traceRenderer =
