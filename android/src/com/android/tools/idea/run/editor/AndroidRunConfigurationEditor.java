@@ -160,7 +160,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   }
 
   @Override
-  protected void resetEditorFrom(T configuration) {
+  protected void resetEditorFrom(@NotNull T configuration) {
     // Set configurations before resetting the module selector to avoid premature calls to setFacet.
     myModuleSelector.reset(configuration);
 
@@ -184,7 +184,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   }
 
   @Override
-  protected void applyEditorTo(T configuration) throws ConfigurationException {
+  protected void applyEditorTo(@NotNull T configuration) throws ConfigurationException {
     myModuleSelector.applyTo(configuration);
 
     configuration.setTargetSelectionMode((DeployTargetProvider)myDeploymentTargetCombo.getSelectedItem());
