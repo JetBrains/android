@@ -45,20 +45,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.jetbrains.android.inspections.lint.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX;
 
-/**
- * @author Eugene.Kudelevsky
- */
 class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExtension<AndroidLintGlobalInspectionContext> {
   static final Key<AndroidLintGlobalInspectionContext> ID = Key.create("AndroidLintGlobalInspectionContext");
   private Map<Issue, Map<File, List<ProblemData>>> myResults;
   private LintBaseline myBaseline;
+  private Issue myEnabledIssue;
 
   @NotNull
   @Override
@@ -82,9 +77,22 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       return;
     }
 
-    final List<Issue> issues = AndroidLintExternalAnnotator.getIssuesFromInspections(project, null);
+    List<Issue> issues = AndroidLintExternalAnnotator.getIssuesFromInspections(project, null);
     if (issues.size() == 0) {
       return;
+    }
+
+    // If running a single check by name, turn it on if it's off by default.
+    if (localTools.isEmpty() && globalTools.size() == 1) {
+      Tools tool = globalTools.get(0);
+      String id = tool.getShortName().substring(LINT_INSPECTION_PREFIX.length());
+      Issue issue = new LintIdeIssueRegistry().getIssue(id);
+      if (issue != null && !issue.isEnabledByDefault()) {
+        issues = Collections.singletonList(issue);
+        issue.setEnabledByDefault(true);
+        // And turn it back off again in cleanup
+        myEnabledIssue = issue;
+      }
     }
 
     final Map<Issue, Map<File, List<ProblemData>>> problemMap = new HashMap<>();
@@ -141,25 +149,22 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
           final PsiElement[] elements = localSearchScope.getScope();
           final List<VirtualFile> finalFiles = files;
 
-          ApplicationManager.getApplication().runReadAction(new Runnable() {
-            @Override
-            public void run() {
-              for (PsiElement element : elements) {
-                if (element instanceof PsiFile) { // should be the case since scope type is FILE
-                  Module module = ModuleUtilCore.findModuleForPsiElement(element);
-                  if (module != null && !modules.contains(module)) {
-                    modules.add(module);
-                  }
-                  VirtualFile virtualFile = ((PsiFile)element).getVirtualFile();
-                  if (virtualFile != null) {
-                    if (virtualFile instanceof StringsVirtualFile) {
-                      StringsVirtualFile f = (StringsVirtualFile)virtualFile;
-                      if (!modules.contains(f.getFacet().getModule())) {
-                        modules.add(f.getFacet().getModule());
-                      }
-                    } else {
-                      finalFiles.add(virtualFile);
+          ApplicationManager.getApplication().runReadAction(() -> {
+            for (PsiElement element : elements) {
+              if (element instanceof PsiFile) { // should be the case since scope type is FILE
+                Module module = ModuleUtilCore.findModuleForPsiElement(element);
+                if (module != null && !modules.contains(module)) {
+                  modules.add(module);
+                }
+                VirtualFile virtualFile = ((PsiFile)element).getVirtualFile();
+                if (virtualFile != null) {
+                  if (virtualFile instanceof StringsVirtualFile) {
+                    StringsVirtualFile f = (StringsVirtualFile)virtualFile;
+                    if (!modules.contains(f.getFacet().getModule())) {
+                      modules.add(f.getFacet().getModule());
                     }
+                  } else {
+                    finalFiles.add(virtualFile);
                   }
                 }
               }
@@ -306,5 +311,9 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
 
   @Override
   public void cleanup() {
+    if (myEnabledIssue != null) {
+      myEnabledIssue.setEnabledByDefault(false);
+      myEnabledIssue = null;
+    }
   }
 }
