@@ -128,6 +128,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
                                    .id("@id/merge")
                                    .matchParentWidth()
                                    .matchParentHeight()
+                                   .withAttribute(TOOLS_URI, ATTR_CONTEXT, "com.example.MyActivity")
                                    .children(
                                      component(TEXT_VIEW)
                                        .withBounds(100, 100, 100, 100)
