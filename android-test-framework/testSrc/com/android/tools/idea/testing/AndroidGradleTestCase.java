@@ -68,7 +68,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.RegEx;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
@@ -557,7 +556,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     return syncListener;
   }
 
-  private void refreshProjectFiles() {
+  private static void refreshProjectFiles() {
     // With IJ14 code base, we run tests with NO_FS_ROOTS_ACCESS_CHECK turned on. I'm not sure if that
     // is the cause of the issue, but not all files inside a project are seen while running unit tests.
     // This explicit refresh of the entire project fix such issues (e.g. AndroidProjectViewTest).

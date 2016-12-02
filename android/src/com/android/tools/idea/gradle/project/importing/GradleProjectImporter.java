@@ -40,6 +40,7 @@ import static com.intellij.ide.impl.ProjectUtil.focusProjectWindow;
 import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpenedFile;
 import static com.intellij.openapi.ui.Messages.showErrorDialog;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static com.intellij.util.ExceptionUtil.rethrowUnchecked;
 
 /**
  * Imports an Android-Gradle project without showing the "Import Project" Wizard UI.
@@ -76,18 +77,47 @@ public class GradleProjectImporter {
     myProjectFolderFactory = projectFolderFactory;
   }
 
+  public void openProject(@NotNull VirtualFile selectedFile) {
+    openOrImportProject(selectedFile, true /* open project */);
+  }
+
   /**
    * Imports the given Gradle project.
    *
    * @param selectedFile the selected build.gradle or the project's root directory.
    */
   public void importProject(@NotNull VirtualFile selectedFile) {
-    VirtualFile projectFolder = selectedFile.isDirectory() ? selectedFile : selectedFile.getParent();
-    File projectFolderPath = virtualToIoFile(projectFolder);
+    openOrImportProject(selectedFile, false /* import project */);
+  }
 
-    // Sync Android SDKs paths *before* importing project. Studio will freeze if the project has a local.properties file pointing to a SDK
-    // path that does not exist. The cause is that having 2 dialogs: one modal (the "Project Import" one) and another from
-    // Messages.showErrorDialog (indicating the Android SDK path does not exist) produce a deadlock.
+  private void openOrImportProject(@NotNull VirtualFile selectedFile, boolean open) {
+    VirtualFile projectFolder = findProjectFolder(selectedFile);
+    File projectFolderPath = virtualToIoFile(projectFolder);
+    try {
+      setUpLocalProperties(projectFolderPath);
+    }
+    catch (IOException e) {
+      return;
+    }
+    try {
+      String projectName = projectFolder.getName();
+      openOrImportProject(projectName, projectFolderPath, Request.EMPTY_REQUEST, createNewProjectListener(projectFolder), open);
+    }
+    catch (Throwable e) {
+      if (ApplicationManager.getApplication().isUnitTestMode()) {
+        rethrowUnchecked(e);
+      }
+      showErrorDialog(e.getMessage(), open ? "Open Project" : "Project Import");
+      getLogger().error(e);
+    }
+  }
+
+  @NotNull
+  private static VirtualFile findProjectFolder(@NotNull VirtualFile selectedFile) {
+    return selectedFile.isDirectory() ? selectedFile : selectedFile.getParent();
+  }
+
+  private void setUpLocalProperties(@NotNull File projectFolderPath) throws IOException {
     try {
       LocalProperties localProperties = new LocalProperties(projectFolderPath);
       if (IdeInfo.getInstance().isAndroidStudio()) {
@@ -95,30 +125,27 @@ public class GradleProjectImporter {
       }
     }
     catch (IOException e) {
-      Logger.getInstance(getClass()).info("Failed to sync SDKs", e);
+      getLogger().info("Failed to sync SDKs", e);
       showErrorDialog(e.getMessage(), "Project Import");
-      return;
+      throw e;
     }
+  }
 
-    try {
-      String projectName = projectFolder.getName();
+  @NotNull
+  private Logger getLogger() {
+    return Logger.getInstance(getClass());
+  }
 
-      importProject(projectName, projectFolderPath, new NewProjectImportGradleSyncListener() {
-        @Override
-        public void syncSucceeded(@NotNull Project project) {
-          setLastOpenedFile(project, projectFolder);
-          focusProjectWindow(project, false);
-          activateProjectView(project);
-        }
-      });
-    }
-    catch (Throwable e) {
-      if (ApplicationManager.getApplication().isUnitTestMode()) {
-        throw new RuntimeException(e);
+  @NotNull
+  private static NewProjectImportGradleSyncListener createNewProjectListener(@NotNull VirtualFile projectFolder) {
+    return new NewProjectImportGradleSyncListener() {
+      @Override
+      public void syncSucceeded(@NotNull Project project) {
+        setLastOpenedFile(project, projectFolder);
+        focusProjectWindow(project, false);
+        activateProjectView(project);
       }
-      showErrorDialog(e.getMessage(), "Project Import");
-      Logger.getInstance(getClass()).error(e);
-    }
+    };
   }
 
   public void importProject(@NotNull String projectName, @NotNull File projectFolderPath, @Nullable GradleSyncListener listener)
@@ -130,12 +157,25 @@ public class GradleProjectImporter {
                             @NotNull File projectFolderPath,
                             @NotNull Request request,
                             @Nullable GradleSyncListener listener) throws IOException, ConfigurationException {
+    openOrImportProject(projectName, projectFolderPath, request, listener, false /* import project */);
+  }
+
+  private void openOrImportProject(@NotNull String projectName,
+                                   @NotNull File projectFolderPath,
+                                   @NotNull Request request,
+                                   @Nullable GradleSyncListener listener,
+                                   boolean open) throws IOException, ConfigurationException {
     ProjectFolder projectFolder = myProjectFolderFactory.create(projectFolderPath);
     projectFolder.createTopLevelBuildFile();
     projectFolder.createIdeaProjectFolder();
 
     Project project = request.getProject();
-    Project newProject = project == null ? myNewProjectSetup.createProject(projectName, projectFolderPath.getPath()) : project;
+    Project newProject = project;
+    if (newProject == null) {
+      newProject = open
+                   ? myNewProjectSetup.openProject(projectFolderPath.getPath())
+                   : myNewProjectSetup.createProject(projectName, projectFolderPath.getPath());
+    }
 
     if (project == null) {
       GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
