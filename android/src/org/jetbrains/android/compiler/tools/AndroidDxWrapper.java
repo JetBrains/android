@@ -18,10 +18,7 @@ package org.jetbrains.android.compiler.tools;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.execution.ExecutionException;
-import com.intellij.execution.configurations.CommandLineBuilder;
-import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.execution.configurations.JavaParameters;
-import com.intellij.execution.configurations.ParametersList;
+import com.intellij.execution.configurations.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -112,7 +109,8 @@ public class AndroidDxWrapper {
 
     Process process;
     try {
-      GeneralCommandLine commandLine = CommandLineBuilder.createFromJavaParameters(parameters, true);
+      parameters.setUseDynamicClasspath(true);
+      GeneralCommandLine commandLine = parameters.toCommandLine();
       LOG.info(commandLine.getCommandLineString());
       process = commandLine.createProcess();
       AndroidCommonUtils.handleDexCompilationResult(process, commandLine.getCommandLineString(), outFile, messages, false);
