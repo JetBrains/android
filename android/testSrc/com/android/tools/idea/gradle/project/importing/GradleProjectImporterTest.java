@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -71,6 +72,26 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     assertSame(GradleSettings.getInstance(project), myGradleSettings);
 
     myProjectImporter = new GradleProjectImporter(sdkSync, mySyncInvoker, myProjectSetup, projectFolderFactory);
+  }
+
+  // See:
+  // https://code.google.com/p/android/issues/detail?id=172347
+  // https://code.google.com/p/android/issues/detail?id=227437
+  public void testOpenProject() throws Exception {
+    Project newProject = getProject();
+    VirtualFile rootFolder = newProject.getBaseDir();
+
+    when(myProjectSetup.openProject(myProjectFolderPath.getPath())).thenReturn(newProject);
+
+    myProjectImporter.openProject(rootFolder);
+
+    // Verify project setup before syncing.
+    verifyProjectFilesCreation();
+    verifyProjectCreation(never());
+    verifyProjectPreparation(null);
+    verifyGradleVmOptionsCleanup(times(1));
+
+    verify(myProjectSetup, times(1)).openProject(myProjectFolderPath.getPath());
   }
 
   public void testImportProjectWithDefaultSettings() throws Exception {
