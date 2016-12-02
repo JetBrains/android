@@ -28,8 +28,8 @@ import java.awt.*;
  */
 public class ActionTarget extends ConstraintTarget {
 
-  final static int mySize = 24;
-  final static int myGap = 8;
+  final static int mySize = 16;
+  final static int myGap = 4;
   final ActionTarget myPreviousActionTarget;
   Action myAction;
 
@@ -52,15 +52,20 @@ public class ActionTarget extends ConstraintTarget {
   }
 
   @Override
-  public boolean layout(int l, int t, int r, int b) {
+  public boolean layout(@NotNull SceneContext sceneTransform, int l, int t, int r, int b) {
+    float ratio = 1f / (float) sceneTransform.getScale();
+    if (ratio > 2) {
+      ratio = 2;
+    }
     if (myPreviousActionTarget == null) {
       myLeft = l;
     } else {
-      myLeft = myPreviousActionTarget.myRight + myGap;
+      myLeft = myPreviousActionTarget.myRight + (myGap * ratio);
     }
-    myTop = b + myGap;
-    myRight = myLeft + mySize;
-    myBottom = myTop + mySize;
+    float size = (mySize * ratio);
+    myTop = b + (myGap * ratio);
+    myRight = myLeft + size;
+    myBottom = myTop + size;
     return false;
   }
 
@@ -89,6 +94,7 @@ public class ActionTarget extends ConstraintTarget {
   public void mouseRelease(int x, int y, @Nullable Target closestTarget) {
     if (myAction != null && closestTarget == this) {
       myAction.apply(myComponent);
+      myComponent.getScene().needsRebuildList();
     }
   }
 }

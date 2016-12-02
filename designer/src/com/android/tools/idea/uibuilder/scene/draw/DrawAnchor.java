@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.scene.draw;
 import android.support.constraint.solver.widgets.Animator;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.sherpa.drawing.ColorSet;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
@@ -77,7 +78,7 @@ public class DrawAnchor extends DrawRegion {
     return this.getClass().getSimpleName()+"," + x + "," + y + "," + width + "," + height + "," + myMode;
   }
 
-  public static void add(DisplayList list, SceneContext transform, int left, int top, int right, int bottom, int mode) {
+  public static void add(@NotNull DisplayList list, @NotNull SceneContext transform, float left, float top, float right, float bottom, int mode) {
     int l = transform.getSwingX(left);
     int t = transform.getSwingY(top);
     int w = transform.getSwingDimension(right - left);
