@@ -51,8 +51,8 @@ public class NdkIntegrationDeprecatedErrorHandler extends BaseSyncErrorHandler {
                                                               @NotNull Project project,
                                                               @NotNull String text) {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
-    hyperlinks.add(new OpenUrlHyperlink("http://tools.android.com/tech-docs/new-build-system/gradle-experimental",
-                                        "Consider trying the new experimental plugin"));
+    hyperlinks.add(new OpenUrlHyperlink("https://developer.android.com/studio/build/experimental-plugin.html",
+                                          "Consider trying the new experimental plugin"));
     hyperlinks.add(new SetUseDeprecatedNdkHyperlink());
     return hyperlinks;
   }
