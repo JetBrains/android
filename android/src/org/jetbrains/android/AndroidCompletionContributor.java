@@ -210,7 +210,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
    * For every regular layout element attribute, add it with "tools:" prefix
    * (or whatever user uses for tools namespace)
    * <p/>
-   * <a href="http://tools.android.com/tips/layout-designtime-attributes">Designtime attributes docs</a>
+   * <a href="https://developer.android.com/studio/write/tool-attributes.html#design-time_view_attributes">Designtime attributes docs</a>
    */
   private static void addDesignTimeAttributes(@NotNull final String namespacePrefix,
                                               @NotNull final PsiElement psiElement,

@@ -22,6 +22,6 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
  */
 public class OpenMigrationToGradleUrlHyperlink extends OpenUrlHyperlink {
   public OpenMigrationToGradleUrlHyperlink() {
-    super("http://tools.android.com/tech-docs/new-build-system/intellij_to_gradle", "More Information about migrating to Gradle");
+    super("https://developer.android.com/studio/intro/migrate.html", "More Information about migrating to Gradle");
   }
 }

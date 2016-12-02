@@ -74,7 +74,7 @@ public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
     myMessage = "<b>The project is using an incompatible version of the " + pluginGeneration.getDescription() + ".</b><br/<br/>" +
                  "To continue opening the project, the IDE will update the plugin to version " + pluginVersion + ".<br/><br/>" +
                  "You can learn more about this version of the plugin from the " +
-                 "<a href='http://tools.android.com/tech-docs/new-build-system" + (experimental ? "/gradle-experimental" : "") +
+                 "<a href='https://developer.android.com/studio/" + (experimental ? "build/experimental-plugin.html" : "releases/gradle-plugin.html") +
                  "'>release notes</a>.<br/><br/>";
     myMessagePane.setText(myMessage);
     myMessagePane.addHyperlinkListener(new HyperlinkAdapter() {

@@ -41,7 +41,7 @@ public class CheckSdkOperation extends InstallOperation<File, File> {
   public static final String ERROR_NO_TOOLS_DIR = "SDK tools directory is missing";
   public static final String MESSAGE_CANT_RUN_TOOL;
   public static final String ERROR_CANT_RUN_TOOL;
-  public static final String URL_MISSING_LIBRARIES = "http://tools.android.com/tech-docs/linux-32-bit-libraries";
+  public static final String URL_MISSING_LIBRARIES = "https://developer.android.com/studio/troubleshoot.html#linux-libraries";
   public static final String LINK_MISSING_LIBRARIES = "Show Android SDK web page";
   public static final String TOOL_NAME = "mksdcard" + (SystemInfo.isWindows ? ".exe" : "");
 
