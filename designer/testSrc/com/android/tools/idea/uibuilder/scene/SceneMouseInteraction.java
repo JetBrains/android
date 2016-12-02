@@ -119,10 +119,22 @@ class SceneMouseInteraction {
    * @param componentId the id of the component we will release the mouse above
    */
   public void mouseRelease(String componentId) {
+    mouseRelease(componentId, 0, 0);
+  }
+
+  /**
+   * Simulate releasing the mouse above the component
+   * with the given componentId
+   *
+   * @param componentId the id of the component we will release the mouse above
+   * @param offsetX     x offset from the center of the component
+   * @param offsetY     y offset from the center of the component
+   */
+  public void mouseRelease(String componentId, int offsetX, int offsetY) {
     SceneComponent component = myScene.getSceneComponent(componentId);
     if (component != null) {
-      int x = component.getCenterX();
-      int y = component.getCenterY();
+      int x = component.getCenterX() + offsetX;
+      int y = component.getCenterY() + offsetY;
       mouseRelease(x, y);
     }
   }
