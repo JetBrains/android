@@ -16,8 +16,10 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.android.annotations.Nullable;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.ProjectSetup.ProjectSetupImpl;
+import com.android.tools.idea.gradle.project.sync.setup.module.ModuleDisposer;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleSetup;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -49,10 +51,13 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class ProjectSetupImplTest extends AndroidGradleTestCase {
   @Mock private IdeModifiableModelsProvider myModelsProvider;
+  @Mock private IdeInfo myIdeInfo;
+  @Mock private GradleSyncState mySyncState;
   @Mock private ModuleFactory myModuleFactory;
   @Mock private ModuleSetup myModuleSetup;
   @Mock private AndroidModuleValidator.Factory myAndroidModuleValidatorFactory;
   @Mock private AndroidModuleValidator myAndroidModuleValidator;
+  @Mock private ModuleDisposer myModuleDisposer;
   @Mock private ProgressIndicator myProgressIndicator;
 
   private ProjectSetupImpl myProjectSetup;
@@ -65,7 +70,8 @@ public class ProjectSetupImplTest extends AndroidGradleTestCase {
     Project project = getProject();
     when(myAndroidModuleValidatorFactory.create(project)).thenReturn(myAndroidModuleValidator);
 
-    myProjectSetup = new ProjectSetupImpl(project, myModelsProvider, myModuleFactory, myModuleSetup, myAndroidModuleValidatorFactory);
+    myProjectSetup = new ProjectSetupImpl(project, myModelsProvider, myIdeInfo, mySyncState, myModuleFactory, myModuleSetup,
+                                          myAndroidModuleValidatorFactory, myModuleDisposer);
   }
 
   public void test() {
@@ -95,7 +101,6 @@ public class ProjectSetupImplTest extends AndroidGradleTestCase {
     if (!sync.isProcessed()) {
       latch.await();
     }
-
 
     SyncAction.ProjectModels projectModels = sync.getModels();
     assertNotNull("Gradle models", projectModels);
