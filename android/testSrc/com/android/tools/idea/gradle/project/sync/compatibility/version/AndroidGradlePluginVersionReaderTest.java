@@ -87,7 +87,7 @@ public class AndroidGradlePluginVersionReaderTest extends AndroidGradleTestCase 
     quickFix = quickFixes.get(1);
     assertThat(quickFix).isInstanceOf(OpenUrlHyperlink.class);
     OpenUrlHyperlink openUrlQuickFix = (OpenUrlHyperlink)quickFix;
-    assertEquals("http://tools.android.com/tech-docs/new-build-system/version-compatibility", openUrlQuickFix.getUrl());
+    assertEquals("https://developer.android.com/studio/releases/gradle-plugin.html#updating-gradle", openUrlQuickFix.getUrl());
   }
 
   public void testGetQuickFixesWithExperimentalPlugin() throws Exception {

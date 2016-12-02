@@ -36,7 +36,7 @@ public class DslNotSupportedPanel extends EditorPanel {
     setUpAsHtmlLabel(myMessagePane);
     String msg = "Updating project properties is not supported when Gradle experimental plugin is used. You can edit them directly in " +
                  "build.gradle files. More information about the experimental plugin can be found " +
-                 "<a href=http://tools.android.com/tech-docs/new-build-system/gradle-experimental>here</a>.";
+                 "<a href=https://developer.android.com/studio/build/experimental-plugin.html>here</a>.";
     myMessagePane.setText(msg);
     myMessagePane.addHyperlinkListener(new HyperlinkAdapter() {
       @Override

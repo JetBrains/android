@@ -131,7 +131,7 @@ public class GradleEditorModelParserV1 implements GradleEditorModelParser {
       return new VersionGradleEditorEntity(AndroidBundle.message("android.gradle.editor.version.gradle.plugin"),
                                            e.getVersionSourceBindings(), e.getEntityLocation(), metaData, e.getDeclarationValueLocation(),
                                            e.getVersion(), new LibraryVersionsManager(groupId, artifactId),
-                                           "http://tools.android.com/tech-docs/new-build-system/user-guide#TOC-Simple-build-files");
+                                           "https://developer.android.com/studio/build/index.html#build-files");
     }
     return null;
   }
