@@ -34,7 +34,7 @@ public class DependencyTabFixture extends ProjectStructureDialogFixture {
   @NotNull
   public DependencyTabFixture addJarDependency(@NotNull File jarFile) {
     clickAddButtonImpl();
-    new JListFixture(robot(), waitForPopup(robot())).clickItem("File dependency");
+    new JListFixture(robot(), waitForPopup(robot())).clickItem("Jar dependency");
 
     SelectPathFixture.find(getIdeFrameFixture())
       .selectPath(jarFile)
