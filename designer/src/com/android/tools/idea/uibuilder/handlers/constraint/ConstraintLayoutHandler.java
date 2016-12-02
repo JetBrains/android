@@ -396,13 +396,32 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    */
   @Override
   public void addTargets(@NotNull SceneComponent component, boolean isParent) {
+    NlComponent nlComponent = component.getNlComponent();
+    if (nlComponent.viewInfo != null
+        && nlComponent.viewInfo.getClassName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE)) {
+      String orientation = nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ORIENTATION);
+      boolean isHorizontal = true;
+      if (orientation != null && orientation.equalsIgnoreCase(SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL)) {
+        isHorizontal = false;
+      }
+      component.addTarget(new GuidelineTarget(isHorizontal));
+      if (isHorizontal) {
+        component.addTarget(new AnchorTarget(AnchorTarget.Type.TOP));
+      } else {
+        component.addTarget(new AnchorTarget(AnchorTarget.Type.LEFT));
+      }
+      component.addTarget(new GuidelineCycleTarget(isHorizontal));
+      return;
+    }
     DragTarget dragTarget = new DragTarget();
     dragTarget.setIsParent(isParent);
     component.addTarget(dragTarget);
-    component.addTarget(new ResizeTarget(ResizeTarget.Type.LEFT_TOP));
-    component.addTarget(new ResizeTarget(ResizeTarget.Type.LEFT_BOTTOM));
-    component.addTarget(new ResizeTarget(ResizeTarget.Type.RIGHT_TOP));
-    component.addTarget(new ResizeTarget(ResizeTarget.Type.RIGHT_BOTTOM));
+    if (!isParent) {
+      component.addTarget(new ResizeTarget(ResizeTarget.Type.LEFT_TOP));
+      component.addTarget(new ResizeTarget(ResizeTarget.Type.LEFT_BOTTOM));
+      component.addTarget(new ResizeTarget(ResizeTarget.Type.RIGHT_TOP));
+      component.addTarget(new ResizeTarget(ResizeTarget.Type.RIGHT_BOTTOM));
+    }
     component.addTarget(new AnchorTarget(AnchorTarget.Type.LEFT));
     component.addTarget(new AnchorTarget(AnchorTarget.Type.TOP));
     component.addTarget(new AnchorTarget(AnchorTarget.Type.RIGHT));
@@ -452,7 +471,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       Scene scene = screenView.getScene();
       int dpX = Coordinates.pxToDp(screenView, x);
       int dpY = Coordinates.pxToDp(screenView, y);
-      scene.mouseHover(dpX, dpY);
+      scene.mouseHover(SceneContext.get(screenView), dpX, dpY);
       int cursor = scene.getMouseCursor();
 
       // Set the mouse cursor

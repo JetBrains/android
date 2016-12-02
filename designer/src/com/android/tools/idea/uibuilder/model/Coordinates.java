@@ -60,6 +60,12 @@ public class Coordinates {
     return Math.round(androidDp * (dpiValue / DEFAULT_DENSITY));
   }
 
+  public static int dpToPx(@NotNull ScreenView view, @AndroidDpCoordinate float androidDp) {
+    final Configuration configuration = view.getConfiguration();
+    final int dpiValue = configuration.getDensity().getDpiValue();
+    return Math.round(androidDp * (dpiValue / DEFAULT_DENSITY));
+  }
+
   @AndroidDpCoordinate
   public static int pxToDp(@NotNull ScreenView view, @AndroidCoordinate int androidPx) {
     final Configuration configuration = view.getConfiguration();
