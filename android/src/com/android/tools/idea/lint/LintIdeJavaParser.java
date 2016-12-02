@@ -159,6 +159,13 @@ public class LintIdeJavaParser extends JavaParser {
     return createLocation(context, element.getContainingFile(), range.getStartOffset(), range.getEndOffset());
   }
 
+  @Nullable
+  @Override
+  public File getFile(@NonNull PsiFile file) {
+    VirtualFile virtualFile = file.getVirtualFile();
+    return virtualFile != null ? VfsUtilCore.virtualToIoFile(virtualFile) : null;
+  }
+
   @NonNull
   private static Location createLocation(@NonNull JavaContext context, @Nullable PsiFile containingFile, int startOffset, int endOffset) {
     LintJavaPosition start = new LintJavaPosition(containingFile, startOffset);
@@ -228,6 +235,13 @@ public class LintIdeJavaParser extends JavaParser {
     int start = Math.max(0, from.getTextRange().getStartOffset() + fromDelta);
     int end = to.getTextRange().getEndOffset() + toDelta;
     return createLocation(context, from.getContainingFile(), start, end);
+  }
+
+  @Nullable
+  @Override
+  public PsiElement findElementAt(@NonNull JavaContext context, int offset) {
+    PsiJavaFile file = context.getJavaFile();
+    return file != null ? file.findElementAt(offset) : null;
   }
 
   @NonNull
@@ -605,13 +619,6 @@ public class LintIdeJavaParser extends JavaParser {
     @Override
     public boolean areSignaturesEqual(@NotNull PsiMethod method1, @NotNull PsiMethod method2) {
       return MethodSignatureUtil.areSignaturesEqual(method1, method2);
-    }
-
-    @Nullable
-    @Override
-    public File getFile(@NonNull PsiFile file) {
-      VirtualFile virtualFile = file.getVirtualFile();
-      return virtualFile != null ? VfsUtilCore.virtualToIoFile(virtualFile) : null;
     }
 
     @Nullable
