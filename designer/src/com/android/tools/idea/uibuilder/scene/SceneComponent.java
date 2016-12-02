@@ -21,12 +21,17 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
 import com.android.tools.idea.uibuilder.scene.target.ResizeTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
+import com.android.tools.idea.uibuilder.scene.decorator.SceneDecorator;
+import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * A SceneComponent represents the bounds of a widget (backed by NlComponent).
@@ -38,6 +43,17 @@ import java.util.List;
  * </ul>
  */
 public class SceneComponent {
+  public HashMap<String, Object> myCache = new HashMap<>();
+  public SceneDecorator myDecorator;
+
+  public ArrayList<Target> getTargets() {
+    return myTargets;
+  }
+
+  public SceneDecorator getDecorator() {
+    return myDecorator;
+  }
+
 
   public enum DrawState {SUBDUED, NORMAL, HOVER, SELECTED}
 
@@ -82,6 +98,7 @@ public class SceneComponent {
     myNlComponent = component;
     updateFrom(component);
     myScene.addComponent(this);
+    myDecorator = SceneDecorator.get(component);
   }
 
   //endregion
@@ -266,6 +283,10 @@ public class SceneComponent {
     myIsSelected = selected;
   }
 
+  public DrawState getDrawState() {
+    return myDrawState;
+  }
+
   public void setExpandTargetArea(boolean expandArea) {
     int count = myTargets.size();
     for (int i = 0; i < count; i++) {
@@ -431,6 +452,13 @@ public class SceneComponent {
     return needsRepaint;
   }
 
+  public void fillRect(@NotNull Rectangle rectangle) {
+    rectangle.x = myCurrentLeft;
+    rectangle.y = myCurrentTop;
+    rectangle.width = myCurrentRight - myCurrentLeft;
+    rectangle.height = myCurrentBottom - myCurrentTop;
+  }
+
   public void addHit(@NotNull ScenePicker picker) {
     if (myDrawState == DrawState.HOVER) {
       myDrawState = DrawState.NORMAL;
@@ -448,24 +476,21 @@ public class SceneComponent {
     }
   }
 
-  public void render(@NotNull DisplayList list) {
-    Color color = Color.red;
-    if (myDrawState == DrawState.HOVER) {
-      color = Color.yellow;
-    }
-    list.addRect(myCurrentLeft, myCurrentTop, myCurrentRight, myCurrentBottom, color);
-    int num = myTargets.size();
-    for (int i = 0; i < num; i++) {
-      Target target = myTargets.get(i);
-      target.render(list);
-    }
-    int childCount = myChildren.size();
-    for (int i = 0; i < childCount; i++) {
-      SceneComponent child = myChildren.get(i);
-      child.render(list);
-    }
+  public void buildDisplayList(long time, @NotNull DisplayList list, SceneTransform sceneTransform) {
+    myDecorator.buildList(list, time, sceneTransform, this);
   }
 
   //endregion
   /////////////////////////////////////////////////////////////////////////////
+
+  public void fillDrawRect(long time, Rectangle rec) {
+    rec.x = getDrawX(time);
+    rec.y = getDrawY(time);
+    rec.width = getDrawWidth(time);
+    rec.height = getDrawHeight(time);
+  }
+
+  public Object getId() {
+    return myNlComponent.getId();
+  }
 }

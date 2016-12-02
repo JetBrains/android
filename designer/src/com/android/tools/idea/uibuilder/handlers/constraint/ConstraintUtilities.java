@@ -874,7 +874,7 @@ public class ConstraintUtilities {
    * @param value     the attribute value we want to parse
    * @return the value of the attribute in Dp, or zero if impossible to resolve
    */
-  private static int getDpValue(@NotNull NlComponent component, String value) {
+  public static int getDpValue(@NotNull NlComponent component, String value) {
     if (value != null) {
       Configuration configuration = component.getModel().getConfiguration();
       ResourceResolver resourceResolver = configuration.getResourceResolver();
