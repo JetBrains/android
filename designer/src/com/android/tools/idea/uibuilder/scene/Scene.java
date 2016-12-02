@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
 import com.android.tools.idea.uibuilder.scene.target.DragTarget;
 import com.android.tools.idea.uibuilder.scene.target.ResizeTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
+import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
@@ -42,13 +43,14 @@ import java.util.List;
 public class Scene implements ModelListener, SelectionListener {
 
   private final ScreenView myScreenView;
+  private static final boolean DEBUG = false;
   private NlModel myModel;
   private float myDpiFactor;
   private HashMap<NlComponent, SceneComponent> mySceneComponents = new HashMap<>();
   private SceneComponent myRoot;
   private boolean myAnimate = true; // animate layout changes
 
-  static final int NO_LAYOUT = 0;
+  public static final int NO_LAYOUT = 0;
   public static final int IMMEDIATE_LAYOUT = 1;
   public static final int ANIMATED_LAYOUT = 2;
 
@@ -205,6 +207,7 @@ public class Scene implements ModelListener, SelectionListener {
     myAnimate = false;
     myRoot = updateFromComponent(rootComponent);
     myAnimate = true;
+
     addTargets(myRoot);
     model.addListener(this);
     myModel = model;
@@ -352,13 +355,42 @@ public class Scene implements ModelListener, SelectionListener {
    * @param time
    * @return true if we need to repaint the screen
    */
+  public boolean paint(@NotNull DisplayList displayList, long time, ScreenView screenView) {
+    return paint(displayList, time, SceneTransform.get(screenView));
+  }
+
+  /**
+   * Paint the current scene into the given display list
+   *
+   * @param displayList
+   * @param time
+   * @return true if we need to repaint the screen
+   */
   public boolean paint(@NotNull DisplayList displayList, long time) {
+    return paint(displayList, time, SceneTransform.get());
+  }
+
+  /**
+   * Paint the current scene into the given display list
+   *
+   * @param displayList
+   * @param time
+   * @return true if we need to repaint the screen
+   */
+  public boolean paint(@NotNull DisplayList displayList, long time, SceneTransform sceneTransform) {
     boolean needsRepaint = false;
     if (myRoot != null) {
       needsRepaint = myRoot.layout(time);
-      myRoot.render(displayList);
+      if (sceneTransform != null) {
+        myRoot.buildDisplayList(time, displayList, sceneTransform);
+        if (DEBUG) {
+          System.out.println("========= DISPLAY LIST ======== \n" + displayList.serialize());
+        }
+      }
     }
-    displayList.addRect(myLastMouseX - 4, myLastMouseY - 4, myLastMouseX + 4, myLastMouseY + 4, Color.blue);
+    else {
+      System.out.println("Scene:Paint() - NO ROOT ");
+    }
     if (myDidPreviousRepaint) {
       myDidPreviousRepaint = needsRepaint;
       needsRepaint = true;
@@ -491,8 +523,10 @@ public class Scene implements ModelListener, SelectionListener {
     myLastMouseX = x;
     myLastMouseY = y;
     myFilterTarget = FilterType.NONE;
-    myHitListener.find(myRoot, x, y);
-    mHitTarget = myHitListener.myClosestTarget;
+    if (myRoot != null) {
+      myHitListener.find(myRoot, x, y);
+      mHitTarget = myHitListener.myClosestTarget;
+    }
     if (mHitTarget != null) {
       if (mHitTarget instanceof AnchorTarget) {
         AnchorTarget anchor = (AnchorTarget)mHitTarget;

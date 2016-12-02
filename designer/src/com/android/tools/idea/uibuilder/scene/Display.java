@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-
-import static com.android.tools.idea.uibuilder.model.Coordinates.*;
 
 /**
  * Display a layout Scene
@@ -29,32 +29,22 @@ public class Display {
   private long mTime;
   private DisplayList myDisplayList = new DisplayList();
 
-  public void draw(@NotNull ScreenView screenView, @NotNull Graphics2D g, @NotNull Scene scene) {
+  public void draw(@NotNull SceneTransform sceneTransform, @NotNull Graphics2D g, @NotNull Scene scene) {
     mTime = System.currentTimeMillis();
+
     myDisplayList.clear();
-    boolean needsRepaint = scene.paint(myDisplayList, mTime);
-    draw(screenView, g, myDisplayList);
+    boolean needsRepaint = scene.paint(myDisplayList, mTime, sceneTransform);
+    draw(sceneTransform, g, myDisplayList);
     if (needsRepaint) {
-      screenView.getSurface().repaint();
+      DesignSurface designSurface = sceneTransform.getSurface();
+      if (designSurface != null) {
+        designSurface.repaint();
+      }
     }
   }
 
-  public void draw(@NotNull ScreenView screenView, @NotNull Graphics2D g, @NotNull DisplayList list) {
-    list.paint(g, screenView);
+  public void draw(@NotNull SceneTransform sceneTransform, @NotNull Graphics2D g, @NotNull DisplayList list) {
+    list.paint(g, sceneTransform);
   }
 
-  public void draw(@NotNull ScreenView screenView, @NotNull Graphics2D g, @NotNull SceneComponent component) {
-    // TODO: use decorators
-    g.setColor(Color.red);
-    int x = getSwingX(screenView, dpToPx(screenView, component.getDrawX(mTime)));
-    int y = getSwingY(screenView, dpToPx(screenView, component.getDrawY(mTime)));
-    int w = getSwingDimension(screenView, dpToPx(screenView, component.getDrawWidth(mTime)));
-    int h = getSwingDimension(screenView, dpToPx(screenView, component.getDrawHeight(mTime)));
-    g.drawRect(x, y, w, h);
-    int count = component.getChildCount();
-    for (int i = 0; i < count; i++) {
-      SceneComponent child = component.getChild(i);
-      draw(screenView, g, child);
-    }
-  }
 }
