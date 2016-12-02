@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.gradle.dependencies;
 
+import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.google.common.base.Objects;
@@ -50,6 +51,19 @@ public class GradleDependencyManager {
   @NotNull
   public static GradleDependencyManager getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, GradleDependencyManager.class);
+  }
+
+  /**
+   * Returns {@code true} if the main artifact of the given Android model depends on the given artifact, which consists of a group id and an
+   * artifact id, such as {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
+   *
+   * @param module the module to check
+   * @param artifact the artifact
+   * @return {@code true} if the module depends on the given artifact (including transitively)
+   */
+  public boolean dependsOn(@NotNull Module module, @NotNull String artifact) {
+    AndroidModuleModel gradleModel = AndroidModuleModel.get(module);
+    return gradleModel != null && GradleUtil.dependsOn(gradleModel, artifact);
   }
 
   /**

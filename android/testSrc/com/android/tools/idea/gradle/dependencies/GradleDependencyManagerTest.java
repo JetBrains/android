@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dependencies;
 
+import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
@@ -34,25 +35,30 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link GradleDependencyManager}.
  */
 public class GradleDependencyManagerTest extends AndroidGradleTestCase {
-  private static final GradleCoordinate APPCOMPAT_DEPENDENCY = new GradleCoordinate("com.android.support", "appcompat-v7", "+");
+  private static final GradleCoordinate APP_COMPAT_DEPENDENCY = new GradleCoordinate("com.android.support", "appcompat-v7", "+");
   private static final GradleCoordinate RECYCLER_VIEW_DEPENDENCY = new GradleCoordinate("com.android.support", "recyclerview-v7", "+");
   private static final GradleCoordinate DUMMY_DEPENDENCY = new GradleCoordinate("dummy.group", "dummy.artifact", "0.0.0");
-  private static final List<GradleCoordinate> DEPENDENCIES = ImmutableList.of(APPCOMPAT_DEPENDENCY, DUMMY_DEPENDENCY);
+  private static final List<GradleCoordinate> DEPENDENCIES = ImmutableList.of(APP_COMPAT_DEPENDENCY, DUMMY_DEPENDENCY);
+
+  public void testDependsOn() throws Exception {
+    loadSimpleApplication();
+    GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
+    assertThat(dependencyManager.dependsOn(myModules.getAppModule(), SdkConstants.APPCOMPAT_LIB_ARTIFACT)).isTrue();
+    assertThat(dependencyManager.dependsOn(myModules.getAppModule(), SdkConstants.LEANBACK_V17_ARTIFACT)).isFalse();
+  }
 
   public void testFindMissingDependenciesWithRegularProject() throws Exception {
     loadSimpleApplication();
     GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
     List<GradleCoordinate> missingDependencies = dependencyManager.findMissingDependencies(myModules.getAppModule(), DEPENDENCIES);
-    assertThat(missingDependencies).hasSize(1);
-    assertEquals(DUMMY_DEPENDENCY, missingDependencies.get(0));
+    assertThat(missingDependencies).containsExactly(DUMMY_DEPENDENCY);
   }
 
   public void testFindMissingDependenciesInProjectWithSplitBuildFiles() throws Exception {
     loadProject(SPLIT_BUILD_FILES);
     GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
     List<GradleCoordinate> missingDependencies = dependencyManager.findMissingDependencies(myModules.getAppModule(), DEPENDENCIES);
-    assertThat(missingDependencies).hasSize(1);
-    assertEquals(DUMMY_DEPENDENCY, missingDependencies.get(0));
+    assertThat(missingDependencies).containsExactly(DUMMY_DEPENDENCY);
   }
 
   @SuppressWarnings("unused")
