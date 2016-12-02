@@ -201,7 +201,7 @@ public class ModuleDependenciesPanel extends EditorPanel {
           public void run() {
             addExternalDependency();
           }
-        }, new PopupAction(PlatformIcons.LIBRARY_ICON, 2, "File dependency") {
+        }, new PopupAction(PlatformIcons.LIBRARY_ICON, 2, "Jar dependency") {
           @Override
           public void run() {
             addFileDependency();
