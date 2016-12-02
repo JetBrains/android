@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.scene.target;
 
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.ScenePicker;
-import com.android.tools.idea.uibuilder.scene.SceneTransform;
+import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +28,7 @@ public interface Target {
   boolean layout(int l, int t, int r, int b);
   void addHit(@NotNull ScenePicker picker);
   void setComponent(@NotNull SceneComponent component);
-  void render(@NotNull DisplayList list, @NotNull SceneTransform sceneTransform);
+  void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext);
   void setOver(boolean over);
 
   void mouseDown(int x, int y);

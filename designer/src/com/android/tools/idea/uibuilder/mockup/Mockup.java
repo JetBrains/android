@@ -450,9 +450,9 @@ public class Mockup implements ModelListener {
   }
 
   /**
-   * Get the bounds of the area in the image that will be paint.
+   * Get the bounds of the area in the image that will be buildDisplayList.
    *
-   * @return the bounds of the area in the image that will be paint.
+   * @return the bounds of the area in the image that will be buildDisplayList.
    */
   public Rectangle getCropping() {
     return myCropping;

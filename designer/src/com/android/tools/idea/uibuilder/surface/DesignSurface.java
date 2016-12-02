@@ -1248,7 +1248,7 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
 
         // Distance between two minor ticks (corrected with the current scale)
         int minorTickDistance = Math.max((int)Math.round(RULER_TICK_DISTANCE * myScale), 1);
-        // If we keep reducing the scale, at some point we only paint half of the minor ticks
+        // If we keep reducing the scale, at some point we only buildDisplayList half of the minor ticks
         int tickIncrement = (minorTickDistance > RULER_MINOR_TICK_MIN_DIST_PX) ? 1 : 2;
         int labelWidth = RULER_TEXT_FONT.getStringBounds("0000", graphics.getFontRenderContext()).getBounds().width;
         // Only display the text if it fits between major ticks

@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.scene.draw;
 
-import com.android.tools.idea.uibuilder.scene.SceneTransform;
+import com.android.tools.idea.uibuilder.scene.SceneContext;
+import com.android.tools.sherpa.drawing.ColorSet;
 
 import java.awt.*;
 import java.awt.geom.GeneralPath;
@@ -35,7 +36,7 @@ public class DrawConnection implements DrawCommand {
   public static final int DIR_RIGHT = 1;
   public static final int DIR_TOP = 2;
   public static final int DIR_BOTTOM = 3;
-  static GeneralPath s = new GeneralPath();
+  static GeneralPath ourPath = new GeneralPath();
   final static int[] dirDeltaX = {-1, +1, 0, 0};
   final static int[] dirDeltaY = {0, 0, -1, +1};
 
@@ -89,8 +90,9 @@ public class DrawConnection implements DrawCommand {
   }
 
   @Override
-  public void paint(Graphics2D g, SceneTransform sceneTransform) {
-    g.setColor(Color.GREEN);
+  public void paint(Graphics2D g, SceneContext sceneContext) {
+    ColorSet color = sceneContext.getColorSet();
+    g.setColor(color.getConstraints());
     draw(g, myConnectionType, mySource, mySourceDirection, myDest, myDestDirection, myToParent, myMargin, myBias);
   }
 
@@ -155,8 +157,8 @@ public class DrawConnection implements DrawCommand {
     int endx = getConnectionX(destDirection, dest);
     int endy = getConnectionY(destDirection, dest);
 
-    s.reset();
-    s.moveTo(startx, starty);
+    ourPath.reset();
+    ourPath.moveTo(startx, starty);
     int scale_source = 30;
     int scale_dest = (toParent) ? -40 : 40;
     if (toParent) {
@@ -197,26 +199,35 @@ public class DrawConnection implements DrawCommand {
         }
       }
     }
+    if (toParent) {
+      scale_dest *= -1;
+    }
     switch (connectionType) {
       case TYPE_CHAIN:
-        s.curveTo(startx + scale_source * dirDeltaX[sourceDirection], starty + scale_source * dirDeltaY[sourceDirection],
+        ourPath.curveTo(startx + scale_source * dirDeltaX[sourceDirection], starty + scale_source * dirDeltaY[sourceDirection],
                   endx + scale_dest * dirDeltaX[destDirection], endy + scale_dest * dirDeltaY[destDirection],
-                  endx, endy);
+                        endx, endy);
         Stroke defaultStroke = g.getStroke();
         g.setStroke(myChainStroke1);
-        g.draw(s);
+        g.draw(ourPath);
         g.setStroke(myChainStroke2);
-        g.draw(s);
+        g.draw(ourPath);
         g.setStroke(defaultStroke);
         break;
       case TYPE_SPRING:
-
-        s.curveTo(startx + scale_source * dirDeltaX[sourceDirection], starty + scale_source * dirDeltaY[sourceDirection],
-                  endx + scale_dest * dirDeltaX[destDirection], endy + scale_dest * dirDeltaY[destDirection],
-                  endx, endy);
+        if (toParent) {
+          ourPath.lineTo(endx, endy);
+        }
+        else {
+          ourPath.curveTo(startx + scale_source * dirDeltaX[sourceDirection],
+                    starty + scale_source * dirDeltaY[sourceDirection],
+                    endx + scale_dest * dirDeltaX[destDirection],
+                    endy + scale_dest * dirDeltaY[destDirection],
+                          endx, endy);
+        }
         defaultStroke = g.getStroke();
         g.setStroke(mySpringStroke);
-        g.draw(s);
+        g.draw(ourPath);
         g.setStroke(defaultStroke);
         break;
       case TYPE_CENTER:
@@ -234,20 +245,20 @@ public class DrawConnection implements DrawCommand {
           delta_x = (endx > startx) ? 10 : -10;
         }
 
-        s.curveTo(startx + scale_source * dirDeltaX[sourceDirection], starty + scale_source * dirDeltaY[sourceDirection],
+        ourPath.curveTo(startx + scale_source * dirDeltaX[sourceDirection], starty + scale_source * dirDeltaY[sourceDirection],
                   mid_x - delta_x, mid_y - delta_y,
-                  mid_x, mid_y);
+                        mid_x, mid_y);
 
-        s.curveTo(mid_x + delta_x, mid_y + delta_y,
+        ourPath.curveTo(mid_x + delta_x, mid_y + delta_y,
                   endx + scale_dest * dirDeltaX[destDirection], endy + scale_dest * dirDeltaY[destDirection],
-                  endx, endy);
-        g.draw(s);
+                        endx, endy);
+        g.draw(ourPath);
         break;
       case TYPE_NORMAL:
-        s.curveTo(startx + scale_source * dirDeltaX[sourceDirection], starty + scale_source * dirDeltaY[sourceDirection],
+        ourPath.curveTo(startx + scale_source * dirDeltaX[sourceDirection], starty + scale_source * dirDeltaY[sourceDirection],
                   endx + scale_dest * dirDeltaX[destDirection], endy + scale_dest * dirDeltaY[destDirection],
-                  endx, endy);
-        g.draw(s);
+                        endx, endy);
+        g.draw(ourPath);
     }
   }
 

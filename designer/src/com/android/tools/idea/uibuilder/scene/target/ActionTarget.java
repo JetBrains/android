@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.scene.target;
 
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.SceneTransform;
+import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,14 +65,14 @@ public class ActionTarget extends ConstraintTarget {
   }
 
   @Override
-  public void render(@NotNull DisplayList list, @NotNull SceneTransform sceneTransform) {
+  public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
     if (!myComponent.getScene().allowsTarget(this)) {
       return;
     }
     Color color = mIsOver ? Color.WHITE : Color.ORANGE;
-    list.addRect(sceneTransform, myLeft, myTop, myRight, myBottom, color);
-    list.addLine(sceneTransform, myLeft, myBottom, myRight, myTop, color);
-    list.addLine(sceneTransform, myLeft, myTop, myRight, myBottom, color);
+    list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, color);
+    list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, color);
+    list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, color);
   }
 
   @Override
