@@ -380,10 +380,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         }
       }
 
+      updateHierarchy(result);
       myRenderResultLock.writeLock().lock();
       try {
         myRenderResult = result;
-        updateHierarchy(result);
       }
       finally {
         myRenderResultLock.writeLock().unlock();
@@ -560,20 +560,25 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     synchronized (RENDERING_LOCK) {
       if (myRenderTask != null) {
         RenderResult result = myRenderTask.render();
+        // When the layout was inflated in this same call, we do not have to update the hierarchy again
+        if (!inflated) {
+          updateHierarchy(result);
+        }
         myRenderResultLock.writeLock().lock();
         try {
           myRenderResult = result;
-          // When the layout was inflated in this same call, we do not have to update the hierarchy again
-          if (!inflated) {
-            updateHierarchy(myRenderResult);
-          }
-
-          NlUsageTrackerManager.getInstance(mySurface).logRenderResult(changeType,
-                                                                       myRenderResult,
-                                                                       System.currentTimeMillis() - renderStartTimeMs);
+          // Downgrade the write lock to read lock
+          myRenderResultLock.readLock().lock();
         }
         finally {
           myRenderResultLock.writeLock().unlock();
+        }
+        try {
+          NlUsageTrackerManager.getInstance(mySurface).logRenderResult(changeType,
+                                                                       myRenderResult,
+                                                                       System.currentTimeMillis() - renderStartTimeMs);
+        } finally {
+          myRenderResultLock.readLock().unlock();
         }
       }
     }
