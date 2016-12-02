@@ -471,6 +471,10 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     doTestCompletionVariants(getTestName(true) + ".xml", "p1.MyActivity2", "p1.p2.MyActivity", "p1.p2.p3.MyActivity1");
   }
 
+  public void testContentProviderIntentFilter() throws Throwable {
+    copyFileToProject("MyDocumentsProvider.java", "src/p1/p2/MyDocumentsProvider.java");
+    doTestHighlighting();
+  }
 
   private void doTestSdkVersionAttributeValueCompletion() throws Throwable {
     final ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();
