@@ -54,7 +54,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.npw.importing.SourceToGradleModuleStepTest.class,
   com.android.tools.idea.npw.project.AndroidGradleModuleUtilsTest.class,
   com.android.tools.idea.templates.RepositoryUrlManagerTest.class,
-  com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopesTest.class,
   com.android.tools.idea.testartifacts.scopes.TestArtifactsFindUsageTest.class,
   com.android.tools.idea.testartifacts.scopes.TestArtifactsRenameTest.class,
   com.android.tools.idea.testartifacts.scopes.TestArtifactsResolveTest.class,
