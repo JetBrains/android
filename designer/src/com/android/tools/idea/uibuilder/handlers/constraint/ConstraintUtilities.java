@@ -701,8 +701,7 @@ public class ConstraintUtilities {
    * @param widget    the constraint widget we set the bias on
    */
   static void setBias(@NotNull String attribute, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
-    AttributesTransaction attributes = component.startAttributeTransaction();
-    String biasString = attributes.getAttribute(SdkConstants.SHERPA_URI, attribute);
+    String biasString = component.getAttribute(SdkConstants.SHERPA_URI, attribute);
     float bias = parseFloat(biasString, 0.5f);
     if (attribute.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS)) {
       widget.setHorizontalBiasPercent(bias);
@@ -720,8 +719,7 @@ public class ConstraintUtilities {
    * @param widget    the constraint widget we set the bias on
    */
   static void setDimensionRatio(@NotNull String attribute, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
-    AttributesTransaction attributes = component.startAttributeTransaction();
-    String dimensionRatioString = attributes.getAttribute(SdkConstants.SHERPA_URI, attribute);
+    String dimensionRatioString = component.getAttribute(SdkConstants.SHERPA_URI, attribute);
     widget.setDimensionRatio(dimensionRatioString);
   }
 
@@ -759,8 +757,7 @@ public class ConstraintUtilities {
    * @param widget    the constraint widget we set the bias on
    */
   static void setChainWeight(@NotNull String attribute, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
-    AttributesTransaction attributes = component.startAttributeTransaction();
-    String chainWeightString = attributes.getAttribute(SdkConstants.SHERPA_URI, attribute);
+    String chainWeightString = component.getAttribute(SdkConstants.SHERPA_URI, attribute);
     float weight = parseFloat(chainWeightString, 0.f);
     if (SdkConstants.ATTR_LAYOUT_HORIZONTAL_WEIGHT.equals(attribute)) {
       widget.setHorizontalWeight(weight);
@@ -849,14 +846,13 @@ public class ConstraintUtilities {
    * @return the margin in dp or 0 if it cannot be found
    */
   static int getMargin(@NotNull NlComponent component, @NotNull String attr) {
-    AttributesTransaction attributes = component.startAttributeTransaction();
-    String margin = attributes.getAttribute(SdkConstants.NS_RESOURCES, attr);
+    String margin = component.getAttribute(SdkConstants.NS_RESOURCES, attr);
     if (margin == null) {
       if (attr == SdkConstants.ATTR_LAYOUT_MARGIN_START) {
-        margin = attributes.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
+        margin = component.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
       }
       else if (attr == SdkConstants.ATTR_LAYOUT_MARGIN_END) {
-        margin = attributes.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
+        margin = component.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
       }
     }
     if (margin != null) {
@@ -944,7 +940,7 @@ public class ConstraintUtilities {
         WidgetCompanion companion = (WidgetCompanion)widgetSrc.getCompanionWidget();
         NlComponent component = (NlComponent)companion.getWidgetModel();
         String creatorAttribute = getConnectionAttributeCreator(widgetSrc.getAnchor(constraintA));
-        String creatorValue = component.startAttributeTransaction().getAttribute(SdkConstants.TOOLS_URI, creatorAttribute);
+        String creatorValue = component.getAttribute(SdkConstants.TOOLS_URI, creatorAttribute);
         if (creatorValue != null) {
           try {
             connectionCreator = Integer.parseInt(creatorValue);
@@ -1016,8 +1012,6 @@ public class ConstraintUtilities {
       return false;
     }
 
-    AttributesTransaction attributes = component.startAttributeTransaction();
-
     if (!(widget instanceof Guideline)) {
       widget.setVisibility(component.getAndroidViewVisibility());
     }
@@ -1037,7 +1031,7 @@ public class ConstraintUtilities {
       widget.setDimension(constraintModel.pxToDp(component.w),
                           constraintModel.pxToDp(component.h));
     }
-    String absoluteWidth = attributes.getAttribute(SdkConstants.TOOLS_URI,
+    String absoluteWidth = component.getAttribute(SdkConstants.TOOLS_URI,
                                                    ConvertToConstraintLayoutAction.ATTR_LAYOUT_CONVERSION_ABSOLUTE_WIDTH);
     if (absoluteWidth != null) {
       Configuration configuration = component.getModel().getConfiguration();
@@ -1047,7 +1041,7 @@ public class ConstraintUtilities {
       widget.setWidth(size);
     }
 
-    String absoluteHeight = attributes.getAttribute(SdkConstants.TOOLS_URI,
+    String absoluteHeight = component.getAttribute(SdkConstants.TOOLS_URI,
                                                     ConvertToConstraintLayoutAction.ATTR_LAYOUT_CONVERSION_ABSOLUTE_HEIGHT);
     if (absoluteHeight != null) {
       Configuration configuration = component.getModel().getConfiguration();
@@ -1092,7 +1086,7 @@ public class ConstraintUtilities {
       }
     }
 
-    String absoluteX = attributes.getAttribute(SdkConstants.TOOLS_URI,
+    String absoluteX = component.getAttribute(SdkConstants.TOOLS_URI,
                                                ConvertToConstraintLayoutAction.ATTR_LAYOUT_CONVERSION_ABSOLUTE_X);
     if (absoluteX != null) {
       Configuration configuration = component.getModel().getConfiguration();
@@ -1101,7 +1095,7 @@ public class ConstraintUtilities {
       x = constraintModel.pxToDp(position);
     }
 
-    String absoluteY = attributes.getAttribute(SdkConstants.TOOLS_URI,
+    String absoluteY = component.getAttribute(SdkConstants.TOOLS_URI,
                                                ConvertToConstraintLayoutAction.ATTR_LAYOUT_CONVERSION_ABSOLUTE_Y);
     if (absoluteY != null) {
       Configuration configuration = component.getModel().getConfiguration();
@@ -1118,7 +1112,7 @@ public class ConstraintUtilities {
     boolean overrideDimension = false;
 
     // FIXME: need to agree on the correct magic value for this rather than simply using zero.
-    String layout_width = attributes.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH);
+    String layout_width = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH);
     if (component.w == 0 || getLayoutDimensionDpValue(component, layout_width) == 0) {
       widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT);
     }
@@ -1159,7 +1153,7 @@ public class ConstraintUtilities {
     else {
       widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
     }
-    String layout_height = attributes.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT);
+    String layout_height = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT);
     if (component.h == 0 || getLayoutDimensionDpValue(component, layout_height) == 0) {
       widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT);
     }
@@ -1204,17 +1198,17 @@ public class ConstraintUtilities {
     widget.setBaselineDistance(constraintModel.pxToDp(component.getBaseline()));
     widget.resetAnchors();
 
-    String left1 = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF);
-    String left2 = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF);
-    String right1 = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF);
-    String right2 = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF);
+    String left1 = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF);
+    String left2 = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF);
+    String right1 = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF);
+    String right2 = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF);
 
-    String top1 = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF);
-    String top2 = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF);
-    String bottom1 = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
-    String bottom2 = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
-    String baseline = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
-    String ratio = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_DIMENSION_RATIO);
+    String top1 = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF);
+    String top2 = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF);
+    String bottom1 = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
+    String bottom2 = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
+    String baseline = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
+    String ratio = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_DIMENSION_RATIO);
 
     WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
     companion.getWidgetProperties().clear();
@@ -1270,7 +1264,7 @@ public class ConstraintUtilities {
       Integer size = null;
 
       if (resourceResolver != null) {
-        String textSize = attributes.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_SIZE);
+        String textSize = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_SIZE);
         if (textSize != null) {
           size = ViewEditor.resolveDimensionPixelSize(resourceResolver, textSize, configuration);
         }
@@ -1281,9 +1275,9 @@ public class ConstraintUtilities {
         //noinspection ConstantConditions
         size = ViewEditor.resolveDimensionPixelSize(resourceResolver, "15sp", configuration);
       }
-      String alignment = attributes.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_ALIGNMENT);
+      String alignment = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_ALIGNMENT);
       textWidget.setTextAlignment((alignment == null) ? TextWidget.TEXT_ALIGNMENT_VIEW_START : alignmentMap.get(alignment));
-      String single = attributes.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_SINGLE_LINE);
+      String single = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_SINGLE_LINE);
       textWidget.setSingleLine(Boolean.parseBoolean(single));
       // Cannot be null, see previous condition
       //noinspection ConstantConditions
@@ -1344,15 +1338,14 @@ public class ConstraintUtilities {
    * @param guideline the guideline widget we want to update with the values
    */
   private static void setGuideline(NlComponent component, Guideline guideline) {
-    AttributesTransaction attributes = component.startAttributeTransaction();
-    String relativeBegin = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN);
-    String relativeEnd = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END);
+    String relativeBegin = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN);
+    String relativeEnd = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END);
     boolean useFloat = useGuidelineFloat(component.getModel());
     String percentAttribute = useFloat ? SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT
                                        : SdkConstants.LAYOUT_CONSTRAINT_DEPRECATED_GUIDE_PERCENT;
 
-    String relativePercent = attributes.getAttribute(SdkConstants.SHERPA_URI, percentAttribute);
-    String oldRelativePercent = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_DEPRECATED_GUIDE_PERCENT);
+    String relativePercent = component.getAttribute(SdkConstants.SHERPA_URI, percentAttribute);
+    String oldRelativePercent = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_DEPRECATED_GUIDE_PERCENT);
     WidgetCompanion companion = (WidgetCompanion)guideline.getCompanionWidget();
     if (useFloat && oldRelativePercent != null) {
       // we need to upgrade
@@ -1400,7 +1393,7 @@ public class ConstraintUtilities {
         // Ignore
       }
     }
-    String orientation = attributes.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION);
+    String orientation = component.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION);
     if (orientation != null) {
       int newOrientation = Guideline.HORIZONTAL;
       if (SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL.equalsIgnoreCase(orientation)) {
@@ -1426,7 +1419,7 @@ public class ConstraintUtilities {
 
   @NotNull
   static String getResolvedText(@NotNull NlComponent component) {
-    String text = component.startAttributeTransaction().getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
+    String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
     if (text != null) {
       if (text.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
         return resolveStringResource(component, text);

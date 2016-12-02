@@ -19,17 +19,13 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
-import com.android.tools.idea.uibuilder.scene.target.DragTarget;
-import com.android.tools.idea.uibuilder.scene.target.ResizeTarget;
-import com.android.tools.idea.uibuilder.scene.target.Target;
+import com.android.tools.idea.uibuilder.scene.target.*;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -64,7 +60,7 @@ public class Scene implements ModelListener, SelectionListener {
   private HitListener myHitListener = new HitListener();
   private Target mHitTarget = null;
 
-  private enum FilterType {ALL, ANCHOR, VERTICAL_ANCHOR, HORIZONTAL_ANCHOR, NONE, RESIZE}
+  private enum FilterType {ALL, ANCHOR, VERTICAL_ANCHOR, HORIZONTAL_ANCHOR, BASELINE_ANCHOR, NONE, RESIZE}
 
   private FilterType myFilterTarget = FilterType.NONE;
 
@@ -419,10 +415,27 @@ public class Scene implements ModelListener, SelectionListener {
   public boolean allowsTarget(Target target) {
     SceneComponent component = target.getComponent();
     if (component.isSelected()) {
+      if (target instanceof AnchorTarget) {
+        AnchorTarget anchor = (AnchorTarget)target;
+        if (anchor.getType() == AnchorTarget.Type.BASELINE) {
+          // only show baseline anchor as needed
+          return component.canShowBaseline();
+        } else {
+          // if the baseline is showing, hide the rest of the anchors
+          return !component.canShowBaseline();
+        }
+      }
+      // if the baseline shows, hide all the targets others than ActionTarget or DragTarget
+      if (component.canShowBaseline()) {
+        return (target instanceof ActionTarget) || (target instanceof DragTarget);
+      }
       return true;
     }
     if (target instanceof AnchorTarget) {
       AnchorTarget anchor = (AnchorTarget)target;
+      if (myFilterTarget == FilterType.BASELINE_ANCHOR) {
+        return anchor.getType() == AnchorTarget.Type.BASELINE;
+      }
       if (myFilterTarget == FilterType.VERTICAL_ANCHOR
           && anchor.isVerticalAnchor()) {
         return true;
@@ -440,6 +453,9 @@ public class Scene implements ModelListener, SelectionListener {
     }
     if (target instanceof DragTarget) {
       return true;
+    }
+    if (target instanceof ActionTarget) {
+      return false;
     }
     if (myFilterTarget == FilterType.ALL) {
       return true;
@@ -472,7 +488,7 @@ public class Scene implements ModelListener, SelectionListener {
       myClosestTarget = null;
       myClosestComponentDistance = Double.MAX_VALUE;
       myClosestTargetDistance = Double.MAX_VALUE;
-      myClosestTargetLevel = 0;
+      myClosestTargetLevel = -1;
       myPicker.reset();
       root.addHit(myPicker);
       myPicker.find(x, y);
@@ -523,10 +539,11 @@ public class Scene implements ModelListener, SelectionListener {
     myLastMouseX = x;
     myLastMouseY = y;
     myFilterTarget = FilterType.NONE;
-    if (myRoot != null) {
-      myHitListener.find(myRoot, x, y);
-      mHitTarget = myHitListener.myClosestTarget;
+    if (myRoot == null) {
+      return;
     }
+    myHitListener.find(myRoot, x, y);
+    mHitTarget = myHitListener.myClosestTarget;
     if (mHitTarget != null) {
       if (mHitTarget instanceof AnchorTarget) {
         AnchorTarget anchor = (AnchorTarget)mHitTarget;
@@ -535,6 +552,9 @@ public class Scene implements ModelListener, SelectionListener {
         }
         else {
           myFilterTarget = FilterType.VERTICAL_ANCHOR;
+        }
+        if (anchor.getType() == AnchorTarget.Type.BASELINE) {
+          myFilterTarget = FilterType.BASELINE_ANCHOR;
         }
       }
       mHitTarget.mouseDown(x, y);
