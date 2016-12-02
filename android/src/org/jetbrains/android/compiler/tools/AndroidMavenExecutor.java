@@ -16,7 +16,6 @@
 package org.jetbrains.android.compiler.tools;
 
 import com.intellij.execution.ExecutionException;
-import com.intellij.execution.configurations.CommandLineBuilder;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.openapi.application.ApplicationManager;
@@ -80,7 +79,7 @@ public class AndroidMavenExecutor {
         return result;
       }
 
-      GeneralCommandLine commandLine = CommandLineBuilder.createFromJavaParameters(javaParams);
+      GeneralCommandLine commandLine = javaParams.toCommandLine();
       final StringBuildingOutputProcessor processor = new StringBuildingOutputProcessor();
       boolean success =
         AndroidUtils.executeCommand(commandLine, processor, WaitingStrategies.WaitForever.getInstance()) == ExecutionStatus.SUCCESS;
