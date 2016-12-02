@@ -15,14 +15,21 @@
  */
 package com.android.tools.idea.testartifacts;
 
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestConsoleProperties;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.executors.DefaultRunExecutor;
+import com.intellij.execution.testframework.sm.runner.SMTRunnerConsoleProperties;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
 
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromDirectory;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createJUnitConfigurationFromDirectory;
+import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_SAME_NAME_CLASSES;
 
 /**
  * Tests for eventual conflicts between {@link AndroidTestRunConfiguration} and {@link AndroidJUnitConfiguration}
@@ -43,5 +50,28 @@ public class AndroidTestAndJUnitConfigurationConflictsTest extends AndroidGradle
     assertNotNull(androidTestRunConfiguration);
 
     assertNotSame(androidTestRunConfiguration, jUnitConfiguration);
+  }
+
+  public void testDoubleClickRedirection() throws Exception {
+    String commonTestClassName = "google.testartifacts.ExampleTest";
+    loadProject(TEST_ARTIFACTS_SAME_NAME_CLASSES);
+
+    Executor executor = DefaultRunExecutor.getRunExecutorInstance();
+
+    RunConfiguration jUnitConfiguration = createJUnitConfigurationFromDirectory(getProject(), "app/src/test/java");
+    RunConfiguration androidTestRunConfiguration = createAndroidTestConfigurationFromDirectory(getProject(), "app/src/androidTest/java");
+
+    assertNotNull(jUnitConfiguration);
+    assertNotNull(androidTestRunConfiguration);
+
+    SMTRunnerConsoleProperties jUnitProperties = ((AndroidJUnitConfiguration)jUnitConfiguration).createTestConsoleProperties(executor);
+    SMTRunnerConsoleProperties androidTestProperties = new AndroidTestConsoleProperties(androidTestRunConfiguration, executor);
+
+    PsiClass[] jUnitClasses = JavaPsiFacade.getInstance(getProject()).findClasses(commonTestClassName, jUnitProperties.getScope());
+    PsiClass[] aTestClasses = JavaPsiFacade.getInstance(getProject()).findClasses(commonTestClassName, androidTestProperties.getScope());
+
+    assertSize(1, jUnitClasses);
+    assertSize(1, aTestClasses);
+    assertNotSame(jUnitClasses[0], aTestClasses[0]);
   }
 }
