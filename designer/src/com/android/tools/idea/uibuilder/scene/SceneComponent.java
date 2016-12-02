@@ -28,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -494,8 +493,8 @@ public class SceneComponent {
     }
   }
 
-  public void buildDisplayList(long time, @NotNull DisplayList list, SceneTransform sceneTransform) {
-    myDecorator.buildList(list, time, sceneTransform, this);
+  public void buildDisplayList(long time, @NotNull DisplayList list, SceneContext sceneContext) {
+    myDecorator.buildList(list, time, sceneContext, this);
   }
 
   //endregion

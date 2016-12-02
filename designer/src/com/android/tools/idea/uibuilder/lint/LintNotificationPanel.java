@@ -379,7 +379,7 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
             h = newH;
 
             if (w >= (sx2 - sx1)) {
-              // No need to scale: just paint 1-1
+              // No need to scale: just buildDisplayList 1-1
               dx1 = (w - (sx2 - sx1)) / 2;
               w = sx2 - sx1;
               dy1 = (h - (sy2 - sy1)) / 2;
@@ -391,7 +391,7 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
             w = newW;
 
             if (h >= (sy2 - sy1)) {
-              // No need to scale: just paint 1-1
+              // No need to scale: just buildDisplayList 1-1
               dx1 = (w - (sx2 - sx1)) / 2;
               w = sx2 - sx1;
               dy1 = (h - (sy2 - sy1)) / 2;
@@ -421,7 +421,7 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
           }
         }
 
-        // Use a gradient paint here with alpha?
+        // Use a gradient buildDisplayList here with alpha?
 
         //graphics.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BILINEAR);
         g2d.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BICUBIC);

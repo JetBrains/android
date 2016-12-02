@@ -639,7 +639,7 @@ public class NlOldPalettePanel extends JPanel
           // Do this just before the images are needed for painting.
           if (myIconFactory.load(myConfiguration, myModel.getPalette(myDesignSurface.getLayoutType()), false)) {
             // If we just generated the preview images, we must invalidate the row heights that the tree is
-            // caching internally. Then invalidate and wait for the next paint.
+            // caching internally. Then invalidate and wait for the next buildDisplayList.
             // Otherwise some images may be cropped.
             invalidateUI();
             return;

@@ -20,9 +20,9 @@ import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.Scene;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.SceneTransform;
+import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.scene.draw.DrawResize;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -159,11 +159,12 @@ public class ResizeTarget extends BaseTarget {
   }
 
   @Override
-  public void render(@NotNull DisplayList list, SceneTransform sceneTransform) {
+  public void render(@NotNull DisplayList list, SceneContext sceneContext) {
     if (!myComponent.getScene().allowsTarget(this)) {
       return;
     }
-    list.addRect(sceneTransform, myLeft, myTop, myRight, myBottom, mIsOver ? Color.YELLOW : Color.BLUE);
+
+    DrawResize.add(list, sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? DrawResize.OVER : DrawResize.NORMAL);
   }
 
   private void updateWidth(@NotNull AttributesTransaction attributes, int w) {
