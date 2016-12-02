@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.AndroidColorSet;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
@@ -201,17 +202,26 @@ class DrawConstraintModel implements MouseInteraction.NeedsLayoutCallback {
   /**
    * Paint ourselves and our children
    * @param gc                 the graphic context
+   * @param screenView
    * @param component          the component to draw
    * @param width              width of the canvas
    * @param height             height of the canvas
    * @param showAllConstraints flag to show or not all the existing constraints
    */
   public boolean paint(@NotNull Graphics2D gc,
+                       ScreenView screenView,
                        ConstraintWidget component, int width,
                        int height,
                        boolean showAllConstraints) {
     Graphics2D g = (Graphics2D)gc.create();
     WidgetDecorator.setShowFakeUI(mShowFakeUI);
+
+    if (!ConstraintLayoutHandler.USE_SOLVER) {
+      int dpi = myConstraintModel.getNlModel().getConfiguration().getDensity().getDpiValue();
+      myConstraintModel.setDpiValue(dpi);
+      Scene scene = screenView.getScene();
+      myConstraintModel.updateNlModel(scene, myConstraintModel.getNlModel().getComponents(), true);
+    }
 
     if (mySceneDraw.getCurrentStyle() == WidgetDecorator.BLUEPRINT_STYLE) {
        mySceneDraw.drawBackground(myConstraintModel.getScene().getWidget(component),
@@ -221,7 +231,7 @@ class DrawConstraintModel implements MouseInteraction.NeedsLayoutCallback {
       mySceneDraw.animateConstraints(myConstraintModel.getNeedsAnimateConstraints());
       myConstraintModel.setNeedsAnimateConstraints(-1);
     }
-    mySceneDraw.setApplyConstraints(ConstraintModel.USE_SOLVER);
+    mySceneDraw.setApplyConstraints(ConstraintLayoutHandler.USE_SOLVER);
     boolean ret = mySceneDraw.paintWidgets(component, width, height, myViewTransform, g, showAllConstraints, myMouseInteraction);
     g.dispose();
     return ret;
