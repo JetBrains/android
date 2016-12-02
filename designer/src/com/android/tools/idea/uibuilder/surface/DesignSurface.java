@@ -29,7 +29,7 @@ import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintModel;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.lint.LintNotificationPanel;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
@@ -453,7 +453,7 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
       myLayers.add(new ConstraintsLayer(this, myScreenView, true));
     }
 
-    if (!ConstraintModel.USE_SOLVER) {
+    if (ConstraintLayoutHandler.USE_SCENE_INTERACTION) {
       myLayers.add(new SceneLayer(myScreenView));
     }
     myLayers.add(new WarningLayer(myScreenView));
@@ -467,7 +467,7 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
     myLayers.add(new SelectionLayer(view));
     myLayers.add(new MockupLayer(view));
     myLayers.add(new CanvasResizeLayer(this, view));
-    if (!ConstraintModel.USE_SOLVER) {
+    if (ConstraintLayoutHandler.USE_SCENE_INTERACTION) {
       myLayers.add(new SceneLayer(view));
     }
   }

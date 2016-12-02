@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -34,7 +34,9 @@ public class Display {
 
     myDisplayList.clear();
     boolean needsRepaint = scene.paint(myDisplayList, mTime, sceneTransform);
-    draw(sceneTransform, g, myDisplayList);
+    if (ConstraintLayoutHandler.USE_SCENE_INTERACTION) {
+      draw(sceneTransform, g, myDisplayList);
+    }
     if (needsRepaint) {
       DesignSurface designSurface = sceneTransform.getSurface();
       if (designSurface != null) {

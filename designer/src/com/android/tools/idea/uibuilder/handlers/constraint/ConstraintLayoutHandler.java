@@ -62,6 +62,10 @@ import static com.android.SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT;
  * Handles interactions for the ConstraintLayout viewgroups
  */
 public class ConstraintLayoutHandler extends ViewGroupHandler {
+
+  public static final boolean USE_SOLVER = false;
+  public static final boolean USE_SCENE_INTERACTION = false;
+
   private static final String PREFERENCE_KEY_PREFIX = "ConstraintLayoutPreference";
   /**
    * Preference key (used with {@link PropertiesComponent}) for auto connect mode
@@ -378,7 +382,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    */
   @Override
   public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent component) {
-    if (!ConstraintModel.USE_SOLVER) {
+    if (USE_SCENE_INTERACTION) {
       return new SceneInteraction(screenView, component);
     }
     return new ConstraintInteraction(screenView, component);
@@ -444,11 +448,17 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   @Override
   public boolean updateCursor(@NotNull ScreenView screenView,
                               @AndroidCoordinate int x, @AndroidCoordinate int y) {
-    if (!ConstraintModel.USE_SOLVER) {
+    if (USE_SCENE_INTERACTION) {
       Scene scene = screenView.getScene();
       int dpX = Coordinates.pxToDp(screenView, x);
       int dpY = Coordinates.pxToDp(screenView, y);
       scene.mouseHover(dpX, dpY);
+      int cursor = scene.getMouseCursor();
+
+      // Set the mouse cursor
+      // TODO: we should only update if we are above a component we manage, not simply all component that
+      // is a child of this viewgroup
+      screenView.getSurface().setCursor(Cursor.getPredefinedCursor(cursor));
       screenView.getSurface().repaint();
     } else {
       DrawConstraintModel drawConstraintModel = ConstraintModel.getDrawConstraintModel(screenView);
@@ -489,7 +499,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     DrawConstraintModel drawConstraintModel = ConstraintModel.getDrawConstraintModel(screenView);
     updateActions(constraintModel.getSelection());
     ConstraintWidget widget = constraintModel.getScene().getWidget(component);
-    return drawConstraintModel.paint(gc, widget,
+    if (USE_SCENE_INTERACTION) {
+      return false;
+    }
+    return drawConstraintModel.paint(gc, screenView, widget,
                                      Coordinates.getSwingDimension(screenView, component.w),
                                      Coordinates.getSwingDimension(screenView, component.h),
                                      myShowAllConstraints);

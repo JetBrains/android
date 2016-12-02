@@ -111,7 +111,7 @@ public class ConstraintInteraction extends Interaction {
     drawConstraintModel.mouseReleased(ax, ay);
 
     model.updateMemoryXML(); // first do a memory update
-    model.saveToXML(false);
+    model.saveToXML(true);
     model.requestLayout(true);
 
     myScreenView.getSurface().repaint();

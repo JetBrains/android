@@ -26,6 +26,8 @@ import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor;
 import com.android.tools.idea.uibuilder.actions.ConvertToConstraintLayoutAction;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.sherpa.drawing.decorator.TextWidget;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
@@ -1000,14 +1002,16 @@ public class ConstraintUtilities {
 
   /**
    * Update the constraint widget with the component information (coming from XML)
+   *
+   * @param scene           the scene of components. Can be null.
    * @param constraintModel the constraint model we are working with
    * @param widget          constraint widget
    * @param component       the model component
    * @return true if need to save the xml
    */
-  static boolean updateWidgetFromComponent(@NotNull ConstraintModel constraintModel,
-                           @Nullable ConstraintWidget widget,
-                           @Nullable NlComponent component) {
+  static boolean updateWidgetFromComponent(@Nullable Scene scene, @NotNull ConstraintModel constraintModel,
+                                           @Nullable ConstraintWidget widget,
+                                           @Nullable NlComponent component) {
     if (component == null || widget == null) {
       return false;
     }
@@ -1016,8 +1020,23 @@ public class ConstraintUtilities {
       widget.setVisibility(component.getAndroidViewVisibility());
     }
     widget.setDebugName(component.getId());
-    WidgetsScene scene = constraintModel.getScene();
     Insets padding = component.getPadding(true);
+    WidgetsScene widgetsScene = constraintModel.getScene();
+    if (scene != null) {
+      // If the scene exists, use the bounds from it instead of from the NlComponent.
+      // This gives us animation on layout changes.
+      // Note: this is temporary, once the Scene interaction / painting is fully done we'll switch to it.
+      long time = System.currentTimeMillis();
+      SceneComponent sceneComponent = scene.getSceneComponent(component);
+      if (sceneComponent != null) {
+        widget.setDrawOrigin(sceneComponent.getDrawX(time), sceneComponent.getDrawY(time));
+        int w = sceneComponent.getDrawWidth(time);
+        int h = sceneComponent.getDrawHeight(time);
+        widget.setDimension(w, h);
+        return false;
+      }
+    }
+
     if (widget instanceof ConstraintWidgetContainer) {
       int paddingLeft = constraintModel.pxToDp(padding.left);
       int paddingTop = constraintModel.pxToDp(padding.top);
@@ -1031,6 +1050,7 @@ public class ConstraintUtilities {
       widget.setDimension(constraintModel.pxToDp(component.w),
                           constraintModel.pxToDp(component.h));
     }
+
     String absoluteWidth = component.getAttribute(SdkConstants.TOOLS_URI,
                                                    ConvertToConstraintLayoutAction.ATTR_LAYOUT_CONVERSION_ABSOLUTE_WIDTH);
     if (absoluteWidth != null) {
@@ -1057,7 +1077,7 @@ public class ConstraintUtilities {
     NlComponent parent = component.getParent();
     NlModel model = component.getModel();
     if (parent != null) {
-      ConstraintWidget parentWidget = scene.getWidget(parent);
+      ConstraintWidget parentWidget = widgetsScene.getWidget(parent);
       if (parentWidget instanceof WidgetContainer) {
         WidgetContainer parentContainerWidget = (WidgetContainer)parentWidget;
         if (widget.getParent() != parentContainerWidget) {
@@ -1104,9 +1124,11 @@ public class ConstraintUtilities {
       y = constraintModel.pxToDp(position);
     }
 
-    if (widget.getX() != x || widget.getY() != y) {
-      widget.setOrigin(x, y);
-      widget.forceUpdateDrawPosition();
+    if (scene == null) {
+      if (widget.getX() != x || widget.getY() != y) {
+        widget.setOrigin(x, y);
+        widget.forceUpdateDrawPosition();
+      }
     }
 
     boolean overrideDimension = false;
@@ -1218,24 +1240,24 @@ public class ConstraintUtilities {
     setMarginType(ConstraintAnchor.Type.TOP, component, widget);
     setMarginType(ConstraintAnchor.Type.BOTTOM, component, widget);
 
-    setTarget(model, scene, left1, widget, ConstraintAnchor.Type.LEFT, ConstraintAnchor.Type.LEFT);
+    setTarget(model, widgetsScene, left1, widget, ConstraintAnchor.Type.LEFT, ConstraintAnchor.Type.LEFT);
     setStartMargin(left1, component, widget);
-    setTarget(model, scene, left2, widget, ConstraintAnchor.Type.LEFT, ConstraintAnchor.Type.RIGHT);
+    setTarget(model, widgetsScene, left2, widget, ConstraintAnchor.Type.LEFT, ConstraintAnchor.Type.RIGHT);
     setStartMargin(left2, component, widget);
-    setTarget(model, scene, right1, widget, ConstraintAnchor.Type.RIGHT, ConstraintAnchor.Type.LEFT);
+    setTarget(model, widgetsScene, right1, widget, ConstraintAnchor.Type.RIGHT, ConstraintAnchor.Type.LEFT);
     setEndMargin(right1, component, widget);
-    setTarget(model, scene, right2, widget, ConstraintAnchor.Type.RIGHT, ConstraintAnchor.Type.RIGHT);
+    setTarget(model, widgetsScene, right2, widget, ConstraintAnchor.Type.RIGHT, ConstraintAnchor.Type.RIGHT);
     setEndMargin(right2, component, widget);
 
-    setTarget(model, scene, top1, widget, ConstraintAnchor.Type.TOP, ConstraintAnchor.Type.TOP);
+    setTarget(model, widgetsScene, top1, widget, ConstraintAnchor.Type.TOP, ConstraintAnchor.Type.TOP);
     setTopMargin(top1, component, widget);
-    setTarget(model, scene, top2, widget, ConstraintAnchor.Type.TOP, ConstraintAnchor.Type.BOTTOM);
+    setTarget(model, widgetsScene, top2, widget, ConstraintAnchor.Type.TOP, ConstraintAnchor.Type.BOTTOM);
     setTopMargin(top2, component, widget);
-    setTarget(model, scene, bottom1, widget, ConstraintAnchor.Type.BOTTOM, ConstraintAnchor.Type.TOP);
+    setTarget(model, widgetsScene, bottom1, widget, ConstraintAnchor.Type.BOTTOM, ConstraintAnchor.Type.TOP);
     setBottomMargin(bottom1, component, widget);
-    setTarget(model, scene, bottom2, widget, ConstraintAnchor.Type.BOTTOM, ConstraintAnchor.Type.BOTTOM);
+    setTarget(model, widgetsScene, bottom2, widget, ConstraintAnchor.Type.BOTTOM, ConstraintAnchor.Type.BOTTOM);
     setBottomMargin(bottom2, component, widget);
-    setTarget(model, scene, baseline, widget, ConstraintAnchor.Type.BASELINE, ConstraintAnchor.Type.BASELINE);
+    setTarget(model, widgetsScene, baseline, widget, ConstraintAnchor.Type.BASELINE, ConstraintAnchor.Type.BASELINE);
 
     setBias(SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, component, widget);
     setBias(SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, component, widget);
