@@ -61,7 +61,7 @@ public class SceneComponent {
   private final NlComponent myNlComponent;
   private ArrayList<SceneComponent> myChildren = new ArrayList<>();
   private SceneComponent myParent = null;
-  private boolean myIsSelected = true;
+  private boolean myIsSelected = false;
 
   private AnimatedValue myAnimatedDrawX = new AnimatedValue();
   private AnimatedValue myAnimatedDrawY = new AnimatedValue();
@@ -78,6 +78,8 @@ public class SceneComponent {
   private int myCurrentTop = 0;
   private int myCurrentRight = 0;
   private int myCurrentBottom = 0;
+
+  private boolean myShowBaseline = false;
 
   boolean used = true;
 
@@ -207,6 +209,14 @@ public class SceneComponent {
     return myIsSelected;
   }
 
+  public boolean canShowBaseline() {
+    return myShowBaseline;
+  }
+
+  public void setShowBaseline(boolean value) {
+    myShowBaseline = value;
+  }
+
   public int getDrawX() {
     return myAnimatedDrawX.getValue(0);
   }
@@ -279,7 +289,14 @@ public class SceneComponent {
     myDrawState = drawState;
   }
 
+  public int getBaseline() {
+    return myScene.pxToDp(myNlComponent.getBaseline());
+  }
+
   public void setSelected(boolean selected) {
+    if (!selected || (selected && !myIsSelected)) {
+      myShowBaseline = false;
+    }
     myIsSelected = selected;
   }
 
@@ -409,14 +426,15 @@ public class SceneComponent {
    */
   public void markSelection(List<NlComponent> components) {
     final int count = components.size();
-    myIsSelected = false;
+    boolean selected = false;
     for (int i = 0; i < count; i++) {
       NlComponent component = components.get(i);
       if (myNlComponent == component) {
-        myIsSelected = true;
+        selected = true;
         break;
       }
     }
+    setSelected(selected);
     int childCount = myChildren.size();
     for (int i = 0; i < childCount; i++) {
       SceneComponent child = myChildren.get(i);

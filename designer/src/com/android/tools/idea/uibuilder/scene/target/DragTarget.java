@@ -43,6 +43,7 @@ public class DragTarget extends ConstraintTarget {
 
   private int mOffsetX;
   private int mOffsetY;
+  private boolean myIsParent;
 
   /////////////////////////////////////////////////////////////////////////////
   //region Layout
@@ -243,7 +244,11 @@ public class DragTarget extends ConstraintTarget {
 
   @Override
   public int getPreferenceLevel() {
-    return 0;
+    return myIsParent ? -1 : 0;
+  }
+
+  public void setIsParent(boolean isParent) {
+    myIsParent = isParent;
   }
 
   @Override
@@ -254,6 +259,9 @@ public class DragTarget extends ConstraintTarget {
 
   @Override
   public void mouseDrag(int x, int y, @Nullable Target closestTarget) {
+    if (myComponent.getParent() == null) {
+      return;
+    }
     NlComponent component = myComponent.getNlComponent();
     AttributesTransaction attributes = component.startAttributeTransaction();
     int dx = x - myComponent.getParent().getDrawX() - mOffsetX;
@@ -266,26 +274,28 @@ public class DragTarget extends ConstraintTarget {
 
   @Override
   public void mouseRelease(int x, int y, @Nullable Target closestTarget) {
-    NlComponent component = myComponent.getNlComponent();
-    AttributesTransaction attributes = component.startAttributeTransaction();
-    int dx = x - myComponent.getParent().getDrawX() - mOffsetX;
-    int dy = y - mOffsetY;
-    updateAttributes(attributes, dx, dy);
-    cleanup(attributes);
-    attributes.apply();
+    if (myComponent.getParent() != null) {
+      NlComponent component = myComponent.getNlComponent();
+      AttributesTransaction attributes = component.startAttributeTransaction();
+      int dx = x - myComponent.getParent().getDrawX() - mOffsetX;
+      int dy = y - mOffsetY;
+      updateAttributes(attributes, dx, dy);
+      cleanup(attributes);
+      attributes.apply();
 
-    NlModel nlModel = component.getModel();
-    Project project = nlModel.getProject();
-    XmlFile file = nlModel.getFile();
+      NlModel nlModel = component.getModel();
+      Project project = nlModel.getProject();
+      XmlFile file = nlModel.getFile();
 
-    String label = "Component dragged";
-    WriteCommandAction action = new WriteCommandAction(project, label, file) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        attributes.commit();
-      }
-    };
-    action.execute();
+      String label = "Component dragged";
+      WriteCommandAction action = new WriteCommandAction(project, label, file) {
+        @Override
+        protected void run(@NotNull Result result) throws Throwable {
+          attributes.commit();
+        }
+      };
+      action.execute();
+    }
     if (closestTarget == this && !myComponent.isSelected()) {
       myComponent.getScene().select(myComponent);
     }
