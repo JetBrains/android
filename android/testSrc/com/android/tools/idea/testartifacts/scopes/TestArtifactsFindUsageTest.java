@@ -45,13 +45,13 @@ public class TestArtifactsFindUsageTest extends TestArtifactsTestCase {
     myAndroidTestFile = setAndroidTestFileContent("AndroidTest.java", USAGE_TEXT);
   }
 
-  public void ignore_testFindUsagesInBothTests() throws Exception {
+  public void testFindUsagesInBothTests() throws Exception {
     setCommonFileContent("MyClass.java", CLASS_TEXT);
     Collection<UsageInfo> usages = myFixture.findUsages(myFixture.getElementAtCaret());
     assertSize(2, usages);
   }
 
-  public void ignore_testFindUsagesOnlyInUnitTest() throws Exception {
+  public void testFindUsagesOnlyInUnitTest() throws Exception {
     setUnitTestFileContent("MyClass.java", CLASS_TEXT);
     Collection<UsageInfo> usages = myFixture.findUsages(myFixture.getElementAtCaret());
 
@@ -61,7 +61,7 @@ public class TestArtifactsFindUsageTest extends TestArtifactsTestCase {
     assertEquals(myUnitTestFile, usage.getFile());
   }
 
-  public void ignore_testFindUsagesInOnlyAndroidTest() throws Exception {
+  public void testFindUsagesInOnlyAndroidTest() throws Exception {
     setAndroidTestFileContent("MyClass.java", CLASS_TEXT);
     Collection<UsageInfo> usages = myFixture.findUsages(myFixture.getElementAtCaret());
 
