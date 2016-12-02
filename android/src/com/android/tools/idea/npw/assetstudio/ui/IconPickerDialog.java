@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.assetstudiolib.GraphicGenerator;
+import com.android.assetstudiolib.MaterialDesignIcons;
 import com.android.ide.common.vectordrawable.VdIcon;
 import com.android.tools.idea.ui.SearchField;
 import com.google.common.base.Joiner;
@@ -49,24 +50,30 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-
-import static com.android.assetstudiolib.AssetStudio.MATERIAL_DESIGN_ICONS_PATH;
 
 /**
  * Generate a dialog to pick a pre-configured material icon in vector format.
  */
 public final class IconPickerDialog extends DialogWrapper {
   private static final String DEFAULT_ICON_NAME = "action/ic_android_black_24dp.xml";
+  private static final String[] ICON_CATEGORIES = initIconCategories();
 
-  // Note that "All" is a virtual category. All icons are marked with a specific category, but
-  // no filtering will be done when "All" is selected. This is the reason we reference this array
-  // starting from index 1.
-  private static final String[] ICON_CATEGORIES =
-    {"All", "Action", "Alert", "Av", "Communication", "Content", "Device", "Editor", "File", "Hardware", "Image", "Maps", "Navigation",
-      "Notification", "Social", "Toggle"};
+  private static String[] initIconCategories() {
+    Collection<String> categories = MaterialDesignIcons.getCategories();
+
+    Collection<String> allAndCategories = new ArrayList<>(categories.size() + 1);
+
+    // "All" is not a real category. All the icons are categorized but there's no filtering when "All" is selected. This is why the array is
+    // usually dereferenced starting from 1.
+    allAndCategories.add("All");
+    allAndCategories.addAll(categories);
+
+    // noinspection SSBasedInspection
+    return allAndCategories.toArray(new String[0]);
+  }
+
   private static final String ALL_CATEGORY = ICON_CATEGORIES[0];
 
   private static final int COLUMN_NUMBER = 6;
@@ -271,7 +278,7 @@ public final class IconPickerDialog extends DialogWrapper {
 
   @Nullable
   public static VdIcon getDefaultIcon() {
-    URL url = GraphicGenerator.class.getClassLoader().getResource(MATERIAL_DESIGN_ICONS_PATH + DEFAULT_ICON_NAME);
+    URL url = GraphicGenerator.class.getClassLoader().getResource(MaterialDesignIcons.PATH + DEFAULT_ICON_NAME);
     assert url != null;
 
     try {
@@ -298,7 +305,7 @@ public final class IconPickerDialog extends DialogWrapper {
     for (int i = 1; i < ICON_CATEGORIES.length; i++) {
       String categoryName = ICON_CATEGORIES[i];
       String categoryNameLowerCase = categoryName.toLowerCase(Locale.ENGLISH);
-      String fullDirName = MATERIAL_DESIGN_ICONS_PATH + categoryNameLowerCase + '/';
+      String fullDirName = MaterialDesignIcons.PATH + categoryNameLowerCase + '/';
       for (Iterator<String> iterator = GraphicGenerator.getResourcesNames(fullDirName, SdkConstants.DOT_XML); iterator.hasNext(); ) {
         final String iconName = iterator.next();
         URL url = GraphicGenerator.class.getClassLoader().getResource(fullDirName + iconName);
