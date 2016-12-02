@@ -28,9 +28,7 @@ import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.*;
-import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
-import com.android.tools.idea.uibuilder.scene.target.DragTarget;
-import com.android.tools.idea.uibuilder.scene.target.ResizeTarget;
+import com.android.tools.idea.uibuilder.scene.target.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -394,9 +392,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    */
   @Override
   public void addTargets(@NotNull SceneComponent component, boolean isParent) {
-    if (!isParent) {
-      component.addTarget(new DragTarget());
-    }
+    DragTarget dragTarget = new DragTarget();
+    dragTarget.setIsParent(isParent);
+    component.addTarget(dragTarget);
     component.addTarget(new ResizeTarget(ResizeTarget.Type.LEFT_TOP));
     component.addTarget(new ResizeTarget(ResizeTarget.Type.LEFT_BOTTOM));
     component.addTarget(new ResizeTarget(ResizeTarget.Type.RIGHT_TOP));
@@ -405,6 +403,16 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     component.addTarget(new AnchorTarget(AnchorTarget.Type.TOP));
     component.addTarget(new AnchorTarget(AnchorTarget.Type.RIGHT));
     component.addTarget(new AnchorTarget(AnchorTarget.Type.BOTTOM));
+    if (!isParent) {
+      ActionTarget clearConstraints = new ClearConstraintsTarget(null);
+      component.addTarget(clearConstraints);
+      if (component.getNlComponent().getBaseline() > 0) {
+        component.addTarget(new AnchorTarget(AnchorTarget.Type.BASELINE));
+        component.addTarget(new ActionTarget(clearConstraints, (SceneComponent c) -> {
+          c.setShowBaseline(!c.canShowBaseline());
+        }));
+      }
+    }
   }
 
 
