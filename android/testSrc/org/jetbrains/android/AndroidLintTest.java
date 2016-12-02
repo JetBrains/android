@@ -501,6 +501,18 @@ public class AndroidLintTest extends AndroidTestCase {
                   "Remove byte order marks", "/res/layout/layout.xml", "xml");
   }
 
+  public void testBomManifest() throws Exception {
+    doTestHighlighting(new AndroidLintByteOrderMarkInspection(),"AndroidManifest.xml", "xml");
+  }
+
+  public void testBomStrings() throws Exception {
+    doTestHighlighting(new AndroidLintByteOrderMarkInspection(),"/res/values/strings.xml", "xml");
+  }
+
+  public void testBomClass() throws Exception {
+    doTestHighlighting(new AndroidLintByteOrderMarkInspection(),"/src/test/pkg/MyTest.java", "java");
+  }
+
   public void testCommitToApply() throws Exception {
     deleteManifest();
     // Need to use targetSdkVersion 9

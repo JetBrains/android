@@ -70,6 +70,12 @@ class DomPsiParser extends XmlParser {
 
   @Nullable
   @Override
+  public Node findNodeAt(@NonNull XmlContext context, int offset) {
+    return DomPsiConverter.findNodeAt(context.document, offset);
+  }
+
+  @Nullable
+  @Override
   public Document parseXml(@NonNull final XmlContext context) {
     assert myReadLock == null;
     myReadLock = ApplicationManager.getApplication().acquireReadActionLock();
