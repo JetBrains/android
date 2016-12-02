@@ -66,16 +66,6 @@ public class NetworkProfilerStage extends Stage {
   }
 
   @Override
-  public void enter() {
-
-  }
-
-  @Override
-  public void exit() {
-
-  }
-
-  @Override
   public ProfilerMode getProfilerMode() {
     boolean noSelection = getStudioProfilers().getTimeline().getSelectionRange().isEmpty();
     return myConnection == null && noSelection ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED;
