@@ -20,8 +20,6 @@ import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.Range;
 import org.junit.Test;
 
-import javax.swing.*;
-
 import static com.google.common.truth.Truth.assertThat;
 
 public class AxisComponentTest {
@@ -76,15 +74,15 @@ public class AxisComponentTest {
     // Setting the minimum tick value to 10, so that a Range of {0,5} should adjust to {0,10} by the axis.
     SingleUnitAxisFormatter formatter = new SingleUnitAxisFormatter(1, 1, 10, "");
     Range range = new Range(0, 5);
-    Choreographer choreographer = new Choreographer(new JPanel());
-    choreographer.setUpdate(false);
+    FakeTimer t = new FakeTimer();
+    Choreographer choreographer = new Choreographer(t);
 
     AxisComponent.Builder builder = new AxisComponent.Builder(range, formatter, AxisComponent.AxisOrientation.LEFT).clampToMajorTicks(true);
     AxisComponent axis = builder.build();
     choreographer.register(axis);
 
     assertThat(axis.getRange().getMax()).isWithin(0.0).of(5);  // before update.
-    choreographer.step();
+    t.step();
     assertThat(axis.getRange().getMax()).isWithin(0.0).of(10);  // after update.
   }
 }

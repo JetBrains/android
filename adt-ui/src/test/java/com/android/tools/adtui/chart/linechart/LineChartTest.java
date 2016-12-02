@@ -16,12 +16,11 @@
 package com.android.tools.adtui.chart.linechart;
 
 import com.android.tools.adtui.Choreographer;
+import com.android.tools.adtui.FakeTimer;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import org.junit.Test;
-
-import javax.swing.*;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -37,15 +36,15 @@ public class LineChartTest {
       testSeries.add(i, (long)i);
     }
     RangedContinuousSeries rangedSeries = new RangedContinuousSeries("test", xRange, yRange, testSeries);
-    Choreographer choreographer = new Choreographer(new JPanel());
-    choreographer.setUpdate(false);
+    FakeTimer t = new FakeTimer();
+    Choreographer choreographer = new Choreographer(t);
 
     LineChart lineChart = new LineChart();
     lineChart.addLine(rangedSeries);
     choreographer.register(lineChart);
 
     assertThat(yRange.getMax()).isWithin(0.0).of(50);  // before update.
-    choreographer.step();
+    t.step();
     assertThat(yRange.getMax()).isWithin(0.0).of(100);  // after update.
   }
 }
