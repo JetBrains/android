@@ -19,6 +19,8 @@ import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.ScenePicker;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
+
 /**
  * Base implementation of a Target
  */
@@ -60,6 +62,11 @@ public abstract class BaseTarget implements Target {
   /////////////////////////////////////////////////////////////////////////////
   //region Mouse Handling
   /////////////////////////////////////////////////////////////////////////////
+
+  @Override
+  public int getMouseCursor() {
+    return Cursor.DEFAULT_CURSOR;
+  }
 
   @Override
   public void addHit(@NotNull ScenePicker picker) {

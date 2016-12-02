@@ -26,6 +26,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -59,6 +60,11 @@ public class Scene implements ModelListener, SelectionListener {
   private HitListener myHoverListener = new HitListener();
   private HitListener myHitListener = new HitListener();
   private Target mHitTarget = null;
+  private int myMouseCursor;
+
+  public int getMouseCursor() {
+    return myMouseCursor;
+  }
 
   private enum FilterType {ALL, ANCHOR, VERTICAL_ANCHOR, HORIZONTAL_ANCHOR, BASELINE_ANCHOR, NONE, RESIZE}
 
@@ -523,11 +529,13 @@ public class Scene implements ModelListener, SelectionListener {
   public void mouseHover(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myLastMouseX = x;
     myLastMouseY = y;
+    myMouseCursor = Cursor.DEFAULT_CURSOR;
     if (myRoot != null) {
       myHoverListener.find(myRoot, x, y);
     }
     if (myHoverListener.myClosestTarget != null) {
       myHoverListener.myClosestTarget.setOver(true);
+      myMouseCursor = myHoverListener.myClosestTarget.getMouseCursor();
     }
     if (myHoverListener.myClosestComponent != null) {
       myHoverListener.myClosestComponent.setDrawState(SceneComponent.DrawState.HOVER);

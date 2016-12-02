@@ -144,6 +144,21 @@ public class ResizeTarget extends BaseTarget {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
+  public int getMouseCursor() {
+    switch (myType) {
+      case LEFT_TOP:
+        return Cursor.NW_RESIZE_CURSOR;
+      case LEFT_BOTTOM:
+        return Cursor.SW_RESIZE_CURSOR;
+      case RIGHT_TOP:
+        return Cursor.NE_RESIZE_CURSOR;
+      case RIGHT_BOTTOM:
+        return Cursor.SE_RESIZE_CURSOR;
+    }
+    return Cursor.DEFAULT_CURSOR;
+  }
+
+  @Override
   public void render(@NotNull DisplayList list, SceneTransform sceneTransform) {
     if (!myComponent.getScene().allowsTarget(this)) {
       return;

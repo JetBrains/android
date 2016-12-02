@@ -36,4 +36,6 @@ public interface Target {
   void mouseRelease(int x, int y, @Nullable Target closestTarget);
 
   SceneComponent getComponent();
+
+  int getMouseCursor();
 }
