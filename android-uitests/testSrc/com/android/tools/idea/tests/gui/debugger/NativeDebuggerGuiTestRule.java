@@ -40,12 +40,6 @@ public class NativeDebuggerGuiTestRule extends GuiTestRule {
   }
 
   @Override
-  @NotNull
-  protected File getTestProjectDirPath(@NotNull String projectDirName) {
-    return new File(toCanonicalPath(toSystemDependentName(TEST_DATA_DIR_PATH + "newProjects/" + projectDirName)));
-  }
-
-  @Override
   protected void updateLocalProperties(@NotNull File projectPath) throws IOException {
     super.updateLocalProperties(projectPath);
     LocalProperties localProperties = new LocalProperties(projectPath);
