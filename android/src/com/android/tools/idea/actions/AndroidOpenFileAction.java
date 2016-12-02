@@ -20,7 +20,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
-import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.PathChooserDialog;
@@ -38,9 +37,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.Projects.canImportAsGradleProject;
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
+import static com.android.tools.idea.gradle.util.Projects.canImportAsGradleProject;
 import static com.intellij.ide.actions.OpenFileAction.openFile;
+import static com.intellij.ide.impl.ProjectUtil.*;
 import static com.intellij.openapi.fileChooser.FileChooser.chooseFiles;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor;
 import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpenedFile;
@@ -70,7 +70,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
     FileChooserDescriptor descriptor = showFiles ? new ProjectOrFileChooserDescriptor() : new ProjectOnlyFileChooserDescriptor();
     descriptor.putUserData(PathChooserDialog.PREFER_LAST_OVER_EXPLICIT, showFiles);
 
-    final VirtualFile explicitPreferredDirectory = ((project != null) && !project.isDefault()) ? project.getBaseDir() : getUserHomeDir();
+    VirtualFile explicitPreferredDirectory = ((project != null) && !project.isDefault()) ? project.getBaseDir() : getUserHomeDir();
     chooseFiles(descriptor, project, explicitPreferredDirectory, files -> {
       for (VirtualFile file : files) {
         if (!descriptor.isFileSelectable(file)) {
@@ -90,7 +90,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
         // proceed with opening as a directory only if the pointed directory is not the base one
         // for the current project. The check is similar to what is done below for file-based projects
         if ((project != null) && !project.isDefault() && file.equals(project.getBaseDir())) {
-          ProjectUtil.focusProjectWindow(project, false);
+          focusProjectWindow(project, false);
           return;
         }
         if (ProjectAttachProcessor.canAttachToProject()) {
@@ -131,10 +131,10 @@ public class AndroidOpenFileAction extends DumbAwareAction {
       if (target != null) {
         Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
         if (openProjects.length > 0) {
-          int exitCode = ProjectUtil.confirmOpenNewProject(false);
+          int exitCode = confirmOpenNewProject(false);
           if (exitCode == GeneralSettings.OPEN_PROJECT_SAME_WINDOW) {
-            final Project toClose = ((project != null) && !project.isDefault()) ? project : openProjects[openProjects.length - 1];
-            if (!ProjectUtil.closeAndDispose(toClose)) {
+            Project toClose = ((project != null) && !project.isDefault()) ? project : openProjects[openProjects.length - 1];
+            if (!closeAndDispose(toClose)) {
               return false;
             }
           }
@@ -144,11 +144,11 @@ public class AndroidOpenFileAction extends DumbAwareAction {
         }
 
         GradleProjectImporter gradleImporter = GradleProjectImporter.getInstance();
-        gradleImporter.importProject(file);
+        gradleImporter.openProject(file);
         return true;
       }
     }
-    Project opened = ProjectUtil.openOrImport(file.getPath(), project, false);
+    Project opened = openOrImport(file.getPath(), project, false);
     if (opened != null) {
       setLastOpenedFile(opened, file);
       return true;
