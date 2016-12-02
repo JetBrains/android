@@ -1021,6 +1021,9 @@ public class MouseInteraction {
                                 mSelection.getOriginalWidgetBounds(), x, y);
                         mSelection.addModifiedWidget(selection.widget);
                     }
+                    if (mNeedsLayoutCallback != null) {
+                        mNeedsLayoutCallback.needsLayout(false);
+                    }
                 }
             }
             break;

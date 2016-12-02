@@ -23,7 +23,7 @@ import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintModel;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.google.common.collect.Lists;
@@ -57,7 +57,7 @@ public class ScreenView {
     myType = type;
     myModel = model;
 
-    if (!ConstraintModel.USE_SOLVER) {
+    if (!ConstraintLayoutHandler.USE_SOLVER) {
       myScene = Scene.createScene(myModel, this);
     }
 

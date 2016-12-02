@@ -23,6 +23,7 @@ import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.model.Insets;
+import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.drawing.decorator.*;
@@ -64,7 +65,6 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   public static final int DEFAULT_DENSITY = 160;
   private static final boolean DEBUG = false;
   private static final boolean USE_GUIDELINES_DURING_DND = true;
-  public static final boolean USE_SOLVER = true;
 
   private WidgetsScene myWidgetsScene = new WidgetsScene();
   private Selection mySelection = new Selection(null);
@@ -201,26 +201,28 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    */
   @Override
   public void modelChanged(@NotNull NlModel model) {
-    ApplicationManager.getApplication().invokeLater(() -> {
-      ourLock.lock();
-      if (DEBUG) {
-        System.out.println("*** Model Changed " + model.getResourceVersion()
-                           + " vs our " + myModificationCount);
-      }
+    if (!ConstraintLayoutHandler.USE_SCENE_INTERACTION) {
+      ApplicationManager.getApplication().invokeLater(() -> {
+        ourLock.lock();
+        if (DEBUG) {
+          System.out.println("*** Model Changed " + model.getResourceVersion()
+                             + " vs our " + myModificationCount);
+        }
 
-      int dpi = model.getConfiguration().getDensity().getDpiValue();
-      setDpiValue(dpi);
-      updateNlModel(model.getComponents(), true);
+        int dpi = model.getConfiguration().getDensity().getDpiValue();
+        setDpiValue(dpi);
+        updateNlModel(null, model.getComponents(), true);
 
-      myModificationCount = model.getResourceVersion();
-      if (DEBUG) {
-        System.out.println("-> updated to " + myModificationCount);
-      }
-      for (DrawConstraintModel drawConstraintModel : getDrawConstraintModels()) {
-        drawConstraintModel.repaint();
-      }
-      ourLock.unlock();
-    }, model.getModule().getDisposed());
+        myModificationCount = model.getResourceVersion();
+        if (DEBUG) {
+          System.out.println("-> updated to " + myModificationCount);
+        }
+        for (DrawConstraintModel drawConstraintModel : getDrawConstraintModels()) {
+          drawConstraintModel.repaint();
+        }
+        ourLock.unlock();
+      }, model.getModule().getDisposed());
+    }
   }
 
   @Override
@@ -449,7 +451,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    * @param animate animate the result or not
    */
   public void requestLayout(boolean animate) {
-    if (!USE_SOLVER) {
+    if (!ConstraintLayoutHandler.USE_SOLVER) {
       updateMemoryXML(); // Send changes to the XML without committing them
       getNlModel().requestLayout(animate);
     }
@@ -537,10 +539,11 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   /**
    * Use the new components in our model
    *
+   * @param scene
    * @param components list of components in NlModel
    * @param deepUpdate do a thorough update or not
    */
-  public void updateNlModel(@NotNull List<NlComponent> components, boolean deepUpdate) {
+  public void updateNlModel(@Nullable Scene scene, @NotNull List<NlComponent> components, boolean deepUpdate) {
     // Initialize a list of widgets to potentially removed from the current list of widgets
     ArrayList<ConstraintWidget> widgets = new ArrayList<>(myWidgetsScene.getWidgets());
     if (widgets.size() > 0) {
@@ -567,7 +570,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
 
     // Now update our widget from the list of components...
     for (NlComponent component : components) {
-      saveXML |= updateSolverWidgetFromComponent(component, deepUpdate);
+      saveXML |= updateSolverWidgetFromComponent(scene, component, deepUpdate);
     }
 
     if (USE_GUIDELINES_DURING_DND) {
@@ -583,7 +586,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
       updateConstraintLayoutRoots(myWidgetsScene.getRoot());
     }
 
-    if (USE_SOLVER) {
+    if (ConstraintLayoutHandler.USE_SOLVER) {
       // Finally, layout using our model.
       WidgetContainer root = myWidgetsScene.getRoot();
       if (root != null) {
@@ -735,7 +738,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
     companion.setWidgetTag(component);
     widget.setCompanionWidget(companion);
     widget.setDebugName(component.getId());
-    return ConstraintUtilities.updateWidgetFromComponent(this, widget, component);
+    return ConstraintUtilities.updateWidgetFromComponent(null, this, widget, component);
   }
 
   /**
@@ -780,10 +783,11 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   /**
    * Update the widget associated to a component with the current component attributes.
    *
+   * @param scene      the Scene of components. Can be null.
    * @param component  the component we want to update from
    * @param deepUpdate do a thorough update or not
    */
-  private boolean updateSolverWidgetFromComponent(@NotNull NlComponent component, boolean deepUpdate) {
+  private boolean updateSolverWidgetFromComponent(@Nullable Scene scene, @NotNull NlComponent component, boolean deepUpdate) {
     ConstraintWidget widget = myWidgetsScene.getWidget(component);
     if (USE_GUIDELINES_DURING_DND) {
       if (myDragDropWidget != null) {
@@ -796,9 +800,9 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
         }
       }
     }
-    boolean saveXML = ConstraintUtilities.updateWidgetFromComponent(this, widget, component);
+    boolean saveXML = ConstraintUtilities.updateWidgetFromComponent(scene, this, widget, component);
     for (NlComponent child : component.getChildren()) {
-      saveXML |= updateSolverWidgetFromComponent(child, deepUpdate);
+      saveXML |= updateSolverWidgetFromComponent(scene, child, deepUpdate);
     }
     return saveXML;
   }
