@@ -80,14 +80,6 @@ public class CpuProfilerStage extends Stage {
   }
 
   @Override
-  public void enter() {
-  }
-
-  @Override
-  public void exit() {
-  }
-
-  @Override
   public ProfilerMode getProfilerMode() {
     return myCapture == null ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED;
   }
