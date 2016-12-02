@@ -155,7 +155,10 @@ public class AnchorTarget extends ConstraintTarget {
       }
       break;
       case BASELINE: {
-        // TODO
+        myLeft = l - mySize;
+        myTop = t + myComponent.getBaseline() - mySize;
+        myRight = r + mySize;
+        myBottom = t + myComponent.getBaseline() + mySize;
       }
       break;
     }
@@ -206,6 +209,10 @@ public class AnchorTarget extends ConstraintTarget {
       break;
       case BOTTOM: {
         clearAttributes(SdkConstants.SHERPA_URI, ourBottomAttributes, transaction);
+      }
+      break;
+      case BASELINE: {
+        transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null);
       }
       break;
     }
@@ -274,6 +281,9 @@ public class AnchorTarget extends ConstraintTarget {
         }
       }
       break;
+      case BASELINE: {
+        return SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF;
+      }
     }
     return null;
   }
@@ -284,6 +294,7 @@ public class AnchorTarget extends ConstraintTarget {
   private void revertToPreviousState() {
     NlComponent component = myComponent.getNlComponent();
     AttributesTransaction attributes = component.startAttributeTransaction();
+    attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null);
     for (String key : mPreviousAttributes.keySet()) {
       if (key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X)) {
         attributes.setAttribute(SdkConstants.TOOLS_URI, key, mPreviousAttributes.get(key));
@@ -317,7 +328,9 @@ public class AnchorTarget extends ConstraintTarget {
       targetId = SdkConstants.NEW_ID_PREFIX + targetComponent.ensureId();
     }
     attributes.setAttribute(SdkConstants.SHERPA_URI, attribute, targetId);
-    attributes.setAttribute(SdkConstants.SHERPA_URI, ourReciprocalAttributes.get(attribute), null);
+    if (ourReciprocalAttributes.get(attribute) != null) {
+      attributes.setAttribute(SdkConstants.SHERPA_URI, ourReciprocalAttributes.get(attribute), null);
+    }
     cleanup(attributes);
     attributes.apply();
     myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);

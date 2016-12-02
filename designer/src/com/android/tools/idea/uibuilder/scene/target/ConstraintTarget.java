@@ -27,11 +27,12 @@ import java.util.HashMap;
  */
 public abstract class ConstraintTarget extends BaseTarget {
   protected static final HashMap<String, String> ourReciprocalAttributes;
-  protected static final HashMap<String, String> ourMarginAttributes;
+  protected static final HashMap<String, String> ourMapMarginAttributes;
   protected static final ArrayList<String> ourLeftAttributes;
   protected static final ArrayList<String> ourTopAttributes;
   protected static final ArrayList<String> ourRightAttributes;
   protected static final ArrayList<String> ourBottomAttributes;
+  protected static final ArrayList<String> ourMarginAttributes;
 
   static {
     ourReciprocalAttributes = new HashMap<>();
@@ -44,15 +45,15 @@ public abstract class ConstraintTarget extends BaseTarget {
     ourReciprocalAttributes.put(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
     ourReciprocalAttributes.put(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
 
-    ourMarginAttributes = new HashMap<>();
-    ourMarginAttributes.put(SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
-    ourMarginAttributes.put(SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
-    ourMarginAttributes.put(SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
-    ourMarginAttributes.put(SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
-    ourMarginAttributes.put(SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
-    ourMarginAttributes.put(SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
-    ourMarginAttributes.put(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
-    ourMarginAttributes.put(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
+    ourMapMarginAttributes = new HashMap<>();
+    ourMapMarginAttributes.put(SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
+    ourMapMarginAttributes.put(SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
+    ourMapMarginAttributes.put(SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
+    ourMapMarginAttributes.put(SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
+    ourMapMarginAttributes.put(SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
+    ourMapMarginAttributes.put(SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
+    ourMapMarginAttributes.put(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
+    ourMapMarginAttributes.put(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
 
     ourLeftAttributes = new ArrayList<>();
     ourLeftAttributes.add(SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF);
@@ -69,6 +70,15 @@ public abstract class ConstraintTarget extends BaseTarget {
     ourBottomAttributes = new ArrayList<>();
     ourBottomAttributes.add(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
     ourBottomAttributes.add(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
+
+    ourMarginAttributes = new ArrayList<>();
+    ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN);
+    ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
+    ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_START);
+    ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
+    ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_END);
+    ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
+    ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
   }
 
   private boolean hasAttributes(@NotNull AttributesTransaction transaction, String uri, ArrayList<String> attributes) {
@@ -108,6 +118,8 @@ public abstract class ConstraintTarget extends BaseTarget {
     boolean hasRight = hasRight(transaction);
     boolean hasTop = hasTop(transaction);
     boolean hasBottom = hasBottom(transaction);
+    boolean hasBaseline = transaction.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
+
     if (!hasLeft) {
       transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, null);
       //      transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, null); // TODO: handles RTL correctly
@@ -134,7 +146,7 @@ public abstract class ConstraintTarget extends BaseTarget {
       transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, null);
       transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
     }
-    if (!hasTop && !hasBottom) {
+    if (!hasTop && !hasBottom && !hasBaseline) {
       if (transaction.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y) == null) {
         setDpAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, transaction, myComponent.getOffsetParentY());
       }
@@ -150,5 +162,18 @@ public abstract class ConstraintTarget extends BaseTarget {
       String attribute = attributes.get(i);
       transaction.setAttribute(uri, attribute, null);
     }
+  }
+
+  protected void clearAllAttributes(AttributesTransaction transaction) {
+    clearAttributes(SdkConstants.SHERPA_URI, ourLeftAttributes, transaction);
+    clearAttributes(SdkConstants.SHERPA_URI, ourTopAttributes, transaction);
+    clearAttributes(SdkConstants.SHERPA_URI, ourRightAttributes, transaction);
+    clearAttributes(SdkConstants.SHERPA_URI, ourBottomAttributes, transaction);
+    transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, null);
+    transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
+    transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null);
+    clearAttributes(SdkConstants.ANDROID_URI, ourMarginAttributes, transaction);
+    setDpAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, transaction, myComponent.getOffsetParentX());
+    setDpAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, transaction, myComponent.getOffsetParentY());
   }
 }
