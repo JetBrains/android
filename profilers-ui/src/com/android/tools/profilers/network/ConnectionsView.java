@@ -31,17 +31,18 @@ import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.profilers.ProfilerColors.NETWORK_RECEIVING_COLOR;
-import static com.android.tools.profilers.ProfilerColors.NETWORK_SENDING_COLOR;
-import static com.android.tools.profilers.ProfilerColors.NETWORK_WAITING_COLOR;
+import static com.android.tools.profilers.ProfilerColors.*;
 
 /**
  * This class responsible for displaying table of connections information (e.g url, duration, timeline)
@@ -118,12 +119,19 @@ final class ConnectionsView {
   @NotNull
   private JTable createRequestsTable() {
     JTable table = new JBTable(myTableModel);
-    table.setDefaultRenderer(StateChart.class, new NetworkTimelineRenderer(myTableModel));
+    table.setAutoCreateRowSorter(true);
+    table.getColumnModel().getColumn(Column.SIZE.ordinal()).setCellRenderer(new SizeRenderer());
+    table.getColumnModel().getColumn(Column.STATUS.ordinal()).setCellRenderer(new StatusRenderer());
+    table.getColumnModel().getColumn(Column.TIME.ordinal()).setCellRenderer(new TimeRenderer());
+    table.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setCellRenderer(
+      new TimelineRenderer(table, myStageView.getTimeline().getSelectionRange()));
+
     table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     table.getSelectionModel().addListSelectionListener(e -> {
       int selectedRow = table.getSelectedRow();
       if (0 <= selectedRow && selectedRow < myTableModel.getRowCount()) {
-        myDetailedViewListener.showDetailedConnection(myTableModel.getHttpData(selectedRow));
+        int modelRow = myConnectionsTable.convertRowIndexToModel(selectedRow);
+        myDetailedViewListener.showDetailedConnection(myTableModel.getHttpData(modelRow));
       }
     });
     table.setFont(AdtUiUtils.DEFAULT_FONT);
@@ -149,7 +157,8 @@ final class ConnectionsView {
         if (selectedData != null) {
           for (int i = 0; i < myTableModel.getRowCount(); ++i) {
             if (myTableModel.getHttpData(i).getId() == selectedData.getId()) {
-              myConnectionsTable.setRowSelectionInterval(i, i);
+              int row = table.convertRowIndexToView(i);
+              table.setRowSelectionInterval(row, row);
               break;
             }
           }
@@ -180,51 +189,32 @@ final class ConnectionsView {
     }
 
     @Override
-    public Class<?> getColumnClass(int columnIndex) {
-      switch (Column.values()[columnIndex]) {
-        case TIMELINE:
-          return StateChart.class;
-        default:
-          return Object.class;
-      }
-    }
-
-    @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
       HttpData data = myDataList.get(rowIndex);
       switch (Column.values()[columnIndex]) {
         case URL:
           return data.getUrl();
 
-        case SIZE:
-          String contentLength = data.getResponseField(HttpData.FIELD_CONTENT_LENGTH);
-          int bytes = (contentLength != null) ? Integer.parseInt(contentLength): -1;
-          return bytes >= 0 ? StringUtil.formatFileSize(bytes) : "";
-
         case TYPE:
           String contentType = data.getResponseField(HttpData.FIELD_CONTENT_TYPE);
           return StringUtil.notNullize(contentType);
 
+        case SIZE:
+          String contentLength = data.getResponseField(HttpData.FIELD_CONTENT_LENGTH);
+          return (contentLength != null) ? Integer.parseInt(contentLength) : -1;
+
         case STATUS:
-          int status = data.getStatusCode();
-          return status > -1 ? Integer.toString(status) : "";
+          return data.getStatusCode();
 
         case TIME:
-          if (data.getEndTimeUs() >= data.getStartTimeUs()) {
-            long durationMs = TimeUnit.MICROSECONDS.toMillis(data.getEndTimeUs() - data.getStartTimeUs());
-            return StringUtil.formatDuration(durationMs);
-          } else {
-            return "";
-          }
+          return data.getEndTimeUs() - data.getStartTimeUs();
 
         case TIMELINE:
-          // This column has a custom renderer; see getColumnClass
-          break;
+          return data.getStartTimeUs();
 
         default:
           throw new UnsupportedOperationException("Unexpected getValueAt called with: " + Column.values()[columnIndex]);
       }
-      return "";
     }
 
     @NotNull
@@ -242,26 +232,63 @@ final class ConnectionsView {
     }
   }
 
-  private final class NetworkTimelineRenderer implements TableCellRenderer, TableModelListener {
-    @NotNull private final List<StateChart<NetworkState>> myCharts;
-    @NotNull private final ConnectionsTableModel myTableModel;
+  private static final class SizeRenderer extends DefaultTableCellRenderer {
+    @Override
+    protected void setValue(Object value) {
+      int bytes = (Integer)value;
+      setText(bytes >= 0 ? StringUtil.formatFileSize(bytes) : "");
+    }
+  }
 
-    NetworkTimelineRenderer(@NotNull ConnectionsTableModel tableModel) {
+  private static final class StatusRenderer extends DefaultTableCellRenderer {
+    @Override
+    protected void setValue(Object value) {
+      Integer status = (Integer)value;
+      setText(status > -1 ? Integer.toString(status) : "");
+    }
+  }
+
+  private static final class TimeRenderer extends DefaultTableCellRenderer {
+    @Override
+    protected void setValue(Object value) {
+      Long durationUs = (Long)value;
+      if (durationUs >= 0) {
+        long durationMs = TimeUnit.MICROSECONDS.toMillis(durationUs);
+        setText(StringUtil.formatDuration(durationMs));
+      }
+      else {
+        setText("");
+      }
+    }
+  }
+
+  private static final class TimelineRenderer implements TableCellRenderer, TableModelListener {
+    /**
+     * Keep in sync 1:1 with {@link ConnectionsTableModel#myDataList}. When the table asks for the
+     * chart to render, it will be converted from model index to view index.
+     */
+    @NotNull private final List<StateChart<NetworkState>> myCharts;
+    @NotNull private final JTable myTable;
+    private final Range myRange;
+
+    TimelineRenderer(@NotNull JTable table, @NotNull Range range) {
+      myRange = range;
       myCharts = new ArrayList<>();
-      myTableModel = tableModel;
-      myTableModel.addTableModelListener(this);
+      myTable = table;
+      myTable.getModel().addTableModelListener(this);
     }
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-      return myCharts.get(row);
+      return myCharts.get(myTable.convertRowIndexToModel(row));
     }
 
     @Override
     public void tableChanged(TableModelEvent e) {
       myCharts.clear();
-      for (int i = 0; i < myTableModel.getRowCount(); ++i) {
-        HttpData data = myTableModel.getHttpData(i);
+      ConnectionsTableModel model = (ConnectionsTableModel)myTable.getModel();
+      for (int i = 0; i < model.getRowCount(); ++i) {
+        HttpData data = model.getHttpData(i);
         DefaultDataSeries<NetworkState> series = new DefaultDataSeries<>();
         series.add(0, NetworkState.NONE);
         series.add(data.getStartTimeUs(), NetworkState.SENDING);
@@ -273,7 +300,7 @@ final class ConnectionsView {
         }
 
         StateChart<NetworkState> chart = new StateChart<>(NETWORK_STATE_COLORS);
-        chart.addSeries(new RangedSeries<>(myStageView.getTimeline().getSelectionRange(), series));
+        chart.addSeries(new RangedSeries<>(myRange, series));
         chart.animate(1);
         myCharts.add(chart);
       }
