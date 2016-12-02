@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.testartifacts.instrumented;
 
+import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
 import com.intellij.execution.Executor;
+import com.intellij.execution.configurations.ModuleRunProfile;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.testframework.sm.runner.SMTRunnerConsoleProperties;
 import com.intellij.execution.testframework.sm.runner.SMTestLocator;
+import com.intellij.openapi.module.Module;
+import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -33,5 +37,21 @@ public class AndroidTestConsoleProperties extends SMTRunnerConsoleProperties {
   @Override
   public SMTestLocator getTestLocator() {
     return AndroidTestLocationProvider.INSTANCE;
+  }
+
+  @NotNull
+  @Override
+  protected GlobalSearchScope initScope() {
+    GlobalSearchScope scope = super.initScope();
+
+    Module[] modules = ((ModuleRunProfile)getConfiguration()).getModules();
+    for (Module each : modules) {
+      // UnitTest scope in each module is excluded from the scope used to find JUnitTests
+      TestArtifactSearchScopes testArtifactSearchScopes = TestArtifactSearchScopes.get(each);
+      if (testArtifactSearchScopes != null) {
+        scope = scope.intersectWith(GlobalSearchScope.notScope(testArtifactSearchScopes.getUnitTestSourceScope()));
+      }
+    }
+    return scope;
   }
 }
