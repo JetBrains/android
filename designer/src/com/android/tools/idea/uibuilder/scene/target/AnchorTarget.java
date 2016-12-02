@@ -19,7 +19,9 @@ import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.scene.*;
+import com.android.tools.idea.uibuilder.scene.SceneTransform;
+import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.scene.Scene;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -166,15 +168,15 @@ public class AnchorTarget extends ConstraintTarget {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public void render(@NotNull DisplayList list) {
+  public void render(@NotNull DisplayList list, SceneTransform sceneTransform) {
     if (!myComponent.getScene().allowsTarget(this)) {
       return;
     }
-    list.addRect(myLeft, myTop, myRight, myBottom, mIsOver ? Color.yellow : Color.green);
+    list.addRect(sceneTransform, myLeft, myTop, myRight, myBottom, mIsOver ? Color.YELLOW : Color.GREEN);
     if (myLastX != -1 && myLastY != -1) {
       int x = myLeft + (myRight - myLeft) / 2;
       int y = myTop + (myBottom - myTop) / 2;
-      list.addConnection(x, y, myLastX, myLastY, Color.red);
+      list.addConnection(sceneTransform, x, y, myLastX, myLastY, Color.RED);
     }
   }
 
@@ -185,6 +187,7 @@ public class AnchorTarget extends ConstraintTarget {
 
   /**
    * Clear the attributes related to this Anchor type
+   *
    * @param transaction
    */
   private void clearMe(@NotNull AttributesTransaction transaction) {
@@ -210,6 +213,7 @@ public class AnchorTarget extends ConstraintTarget {
 
   /**
    * Store the existing attributes in mPreviousAttributes
+   *
    * @param uri
    * @param attributes
    */
@@ -224,6 +228,7 @@ public class AnchorTarget extends ConstraintTarget {
 
   /**
    * Return the correct attribute string given our type and the target type
+   *
    * @param target
    * @return
    */
@@ -296,6 +301,7 @@ public class AnchorTarget extends ConstraintTarget {
 
   /**
    * Connect the anchor to the given target. Applied immediately in memory.
+   *
    * @param component
    * @param attribute
    * @param targetComponent
@@ -320,6 +326,7 @@ public class AnchorTarget extends ConstraintTarget {
 
   /**
    * Disconnect the anchor
+   *
    * @param component
    */
   private void disconnectMe(NlComponent component) {
@@ -386,6 +393,7 @@ public class AnchorTarget extends ConstraintTarget {
   /**
    * On mouse drag, we can connect (in memory) to existing targets, or revert to the
    * original state that we capatured on mouseDown.
+   *
    * @param x
    * @param y
    * @param closestTarget
@@ -413,6 +421,7 @@ public class AnchorTarget extends ConstraintTarget {
    * On mouseRelease, we can either disconnect the current anchor (if the mouse release is on ourselve)
    * or connect the anchor to a given target. Modifications are applied first in memory then commited
    * to the XML model.
+   *
    * @param x
    * @param y
    * @param closestTarget

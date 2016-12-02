@@ -22,7 +22,10 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.scene.*;
+import com.android.tools.idea.uibuilder.scene.SceneTransform;
+import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -72,10 +75,10 @@ public class DragTarget extends ConstraintTarget {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public void render(@NotNull DisplayList list) {
-    list.addRect(myLeft, myTop, myRight, myBottom, mIsOver ? Color.yellow : Color.green);
-    list.addLine(myLeft, myTop, myRight, myBottom, Color.red);
-    list.addLine(myLeft, myBottom, myRight, myTop, Color.red);
+  public void render(@NotNull DisplayList list, SceneTransform sceneTransform) {
+    list.addRect(sceneTransform, myLeft, myTop, myRight, myBottom, mIsOver ? Color.yellow : Color.green);
+    list.addLine(sceneTransform, myLeft, myTop, myRight, myBottom, Color.red);
+    list.addLine(sceneTransform, myLeft, myBottom, myRight, myTop, Color.red);
   }
 
   //endregion
@@ -182,17 +185,20 @@ public class DragTarget extends ConstraintTarget {
       }
       attributes.setAttribute(SdkConstants.SHERPA_URI,
                               SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, String.valueOf(bias));
-    } else if (targetLeftComponent != null) {
+    }
+    else if (targetLeftComponent != null) {
       int dx = x - getLeftTargetOrigin(targetLeftComponent);
       String marginX = String.format(SdkConstants.VALUE_N_DP, dx);
       attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, marginX);
       //attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, marginX); // TODO: handles RTL correctly
-    } else if (targetRightComponent != null) {
+    }
+    else if (targetRightComponent != null) {
       int dx = getRightTargetOrigin(targetRightComponent) - (x + myComponent.getDrawWidth());
       String marginX = String.format(SdkConstants.VALUE_N_DP, dx);
       attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, marginX);
       //attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, marginX); // TODO: handles RTL correctly
-    } else {
+    }
+    else {
       String positionX = String.format(SdkConstants.VALUE_N_DP, x);
       attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, positionX);
     }
@@ -212,15 +218,18 @@ public class DragTarget extends ConstraintTarget {
       }
       attributes.setAttribute(SdkConstants.SHERPA_URI,
                               SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, String.valueOf(bias));
-    } else if (targetTopComponent != null) {
+    }
+    else if (targetTopComponent != null) {
       int dy = y - getTopTargetOrigin(targetTopComponent);
       String marginY = String.format(SdkConstants.VALUE_N_DP, dy);
       attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, marginY);
-    } else if (targetBottomComponent != null) {
+    }
+    else if (targetBottomComponent != null) {
       int dy = getBottomTargetOrigin(targetBottomComponent) - (y + myComponent.getDrawHeight());
       String marginY = String.format(SdkConstants.VALUE_N_DP, dy);
       attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, marginY);
-    } else {
+    }
+    else {
       int dy = y - myComponent.getParent().getDrawY();
       String positionY = String.format(SdkConstants.VALUE_N_DP, dy);
       attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, positionY);
