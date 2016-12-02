@@ -34,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.*;
@@ -90,6 +91,31 @@ public class InspectorPanelTest extends PropertyTestCase {
     UIUtil.dispatchAllInvocationEvents();
 
     checkVisibleRowsWithFilter(ATTR_TEXT_APPEARANCE, ATTR_TEXT_ALIGNMENT);
+  }
+
+  public void testEnterInFilterWithNoFilterSet() {
+    KeyEvent event = new KeyEvent(myInspector, 0, 0, 0, KeyEvent.VK_ENTER, '\0');
+    myInspector.enterInFilter(event);
+
+    assertThat(event.isConsumed()).isFalse();
+  }
+
+  public void testEnterInFilterWithMultipleMatchingProperties() {
+    myInspector.setFilter("text");
+    UIUtil.dispatchAllInvocationEvents();
+    KeyEvent event = new KeyEvent(myInspector, 0, 0, 0, KeyEvent.VK_ENTER, '\0');
+    myInspector.enterInFilter(event);
+
+    assertThat(event.isConsumed()).isFalse();
+  }
+
+  public void testEnterInFilter() {
+    myInspector.setFilter("textAli");
+    UIUtil.dispatchAllInvocationEvents();
+    KeyEvent event = new KeyEvent(myInspector, 0, 0, 0, KeyEvent.VK_ENTER, '\0');
+    myInspector.enterInFilter(event);
+
+    assertThat(event.isConsumed()).isTrue();
   }
 
   public void testComponentsRestoredAfterFiltering() {

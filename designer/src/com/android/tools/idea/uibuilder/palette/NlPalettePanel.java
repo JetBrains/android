@@ -43,7 +43,6 @@ import org.jetbrains.annotations.TestOnly;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.adtui.splitter.SplitterUtil.setMinimumHeight;
@@ -124,12 +123,6 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider, 
     actions.add(new TogglePaletteModeAction(this, PaletteMode.LARGE_ICONS));
     actions.add(new TogglePaletteModeAction(this, PaletteMode.SMALL_ICONS));
     return actions;
-  }
-
-  @NotNull
-  @Override
-  public List<AnAction> getAdditionalActions() {
-    return Collections.emptyList();
   }
 
   @Override

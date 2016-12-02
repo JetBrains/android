@@ -40,6 +40,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -117,18 +118,8 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
 
   @NotNull
   @Override
-  public List<AnAction> getGearActions() {
-    return Collections.emptyList();
-  }
-
-  @NotNull
-  @Override
   public List<AnAction> getAdditionalActions() {
     return Collections.singletonList(new ViewAllPropertiesAction(myPropertiesPanel));
-  }
-
-  @Override
-  public void registerCloseAutoHideWindow(@NotNull Runnable runnable) {
   }
 
   @Override
@@ -139,6 +130,12 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   @Override
   public void setFilter(@NotNull String filter) {
     myPropertiesPanel.setFilter(filter);
+  }
+
+  @Override
+  @NotNull
+  public KeyListener getFilterKeyListener() {
+    return myPropertiesPanel.getFilterKeyListener();
   }
 
   @Nullable

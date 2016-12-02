@@ -45,6 +45,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
 import static com.intellij.uiDesigner.core.GridConstraints.*;
@@ -130,6 +131,23 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
   public void setFilter(@NotNull String filter) {
     myFilter = filter;
     ApplicationManager.getApplication().invokeLater(this::updateAfterFilterChange);
+  }
+
+  public void enterInFilter(@NotNull KeyEvent event) {
+    if (myFilter.isEmpty()) {
+      return;
+    }
+    Set<JLabel> visibleLabels = myLabel2ComponentMap.keySet().stream().filter(Component::isVisible).collect(Collectors.toSet());
+    if (visibleLabels.size() != 1) {
+      return;
+    }
+    Collection<Component> components = myLabel2ComponentMap.get(visibleLabels.iterator().next());
+    if (components.size() != 1) {
+      return;
+    }
+    Component editor = components.iterator().next();
+    editor.transferFocus();
+    event.consume();
   }
 
   private void updateAfterFilterChange() {
@@ -263,8 +281,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     for (InspectorComponent component : myInspectors) {
       for (NlComponentEditor editor : component.getEditors()) {
         NlProperty property = editor.getProperty();
-        if (property != null &&
-            propertyName.equals(property.getName()) &&
+        if (propertyName.equals(property.getName()) &&
             !(designPropertyRequired && !TOOLS_URI.equals(property.getNamespace()))) {
           editor.requestFocus();
           return;
