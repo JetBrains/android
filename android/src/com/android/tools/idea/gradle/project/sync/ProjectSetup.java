@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.setup.module.ModuleDisposer;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleSetup;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.google.common.annotations.VisibleForTesting;
@@ -30,6 +32,9 @@ import org.gradle.tooling.model.idea.IdeaModule;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.android.tools.idea.gradle.util.Facets.findFacet;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
@@ -52,26 +57,35 @@ abstract class ProjectSetup {
 
     @NotNull private final Project myProject;
     @NotNull private final IdeModifiableModelsProvider myModelsProvider;
+    @NotNull private final IdeInfo myIdeInfo;
+    @NotNull private final GradleSyncState mySyncState;
     @NotNull private final ModuleFactory myModuleFactory;
     @NotNull private final ModuleSetup myModuleSetup;
     @NotNull private final AndroidModuleValidator.Factory myModuleValidatorFactory;
+    @NotNull private final ModuleDisposer myModuleDisposer;
 
     ProjectSetupImpl(@NotNull Project project, @NotNull IdeModifiableModelsProvider modelsProvider) {
-      this(project, modelsProvider, new ModuleFactory(project, modelsProvider), new ModuleSetup(modelsProvider),
-           new AndroidModuleValidator.Factory());
+      this(project, modelsProvider, IdeInfo.getInstance(), GradleSyncState.getInstance(project), new ModuleFactory(project, modelsProvider),
+           new ModuleSetup(modelsProvider), new AndroidModuleValidator.Factory(), new ModuleDisposer());
     }
 
     @VisibleForTesting
     ProjectSetupImpl(@NotNull Project project,
                      @NotNull IdeModifiableModelsProvider modelsProvider,
+                     @NotNull IdeInfo ideInfo,
+                     @NotNull GradleSyncState syncState,
                      @NotNull ModuleFactory moduleFactory,
                      @NotNull ModuleSetup moduleSetup,
-                     @NotNull AndroidModuleValidator.Factory moduleValidatorFactory) {
+                     @NotNull AndroidModuleValidator.Factory moduleValidatorFactory,
+                     @NotNull ModuleDisposer moduleDisposer) {
       myProject = project;
       myModelsProvider = modelsProvider;
+      myIdeInfo = ideInfo;
+      mySyncState = syncState;
       myModuleFactory = moduleFactory;
       myModuleSetup = moduleSetup;
       myModuleValidatorFactory = moduleValidatorFactory;
+      myModuleDisposer = moduleDisposer;
     }
 
     @Override
@@ -92,12 +106,14 @@ abstract class ProjectSetup {
     }
 
     private void setUpModules(@NotNull ProgressIndicator indicator) {
+      List<Module> modulesToDispose = new ArrayList<>();
       AndroidModuleValidator moduleValidator = myModuleValidatorFactory.create(myProject);
       for (Module module : myModelsProvider.getModules()) {
         SyncAction.ModuleModels moduleModels = module.getUserData(MODULE_GRADLE_MODELS_KEY);
         if (moduleModels == null) {
-          // This module was created in the last sync action. Mark this module for deletion.
-          // TODO remove module
+          if (myIdeInfo.isAndroidStudio() || mySyncState.lastSyncFailedOrHasIssues()) {
+            modulesToDispose.add(module);
+          }
           continue;
         }
         myModuleSetup.setUpModule(module, moduleModels, indicator);
@@ -108,6 +124,7 @@ abstract class ProjectSetup {
         module.putUserData(MODULE_GRADLE_MODELS_KEY, null);
       }
       moduleValidator.fixAndReportFoundIssues();
+      myModuleDisposer.disposeModulesAndMarkImlFilesForDeletion(modulesToDispose, myProject, myModelsProvider);
     }
 
     @Nullable
