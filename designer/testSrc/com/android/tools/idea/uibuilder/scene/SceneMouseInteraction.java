@@ -30,7 +30,7 @@ class SceneMouseInteraction {
 
   public SceneMouseInteraction(Scene scene) {
     myScene = scene;
-    myScene.paint(myDisplayList, System.currentTimeMillis());
+    myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
   }
 
   /**
@@ -47,7 +47,7 @@ class SceneMouseInteraction {
       myLastX = target.getCenterX();
       myLastY = target.getCenterY();
       myScene.mouseDown(myLastX, myLastY);
-      myScene.paint(myDisplayList, System.currentTimeMillis());
+      myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
     }
   }
 
@@ -65,7 +65,7 @@ class SceneMouseInteraction {
       myLastX = target.getCenterX();
       myLastY = target.getCenterY();
       myScene.mouseDown(myLastX, myLastY);
-      myScene.paint(myDisplayList, System.currentTimeMillis());
+      myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
     }
   }
 
@@ -91,7 +91,7 @@ class SceneMouseInteraction {
       myLastX = component.getCenterX() + offsetX;
       myLastY = component.getCenterY() + offsetY;
       myScene.mouseDown(myLastX, myLastY);
-      myScene.paint(myDisplayList, System.currentTimeMillis());
+      myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
     }
   }
 
@@ -157,13 +157,13 @@ class SceneMouseInteraction {
     dy = myLastY;
     for (int i = 0; i < steps; i++) {
       myScene.mouseDrag((int)dx, (int)dy);
-      myScene.paint(myDisplayList, System.currentTimeMillis());
+      myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
       dx += deltaX;
       dy += deltaY;
     }
     myScene.mouseDrag(x, y);
     myScene.mouseRelease(x, y);
-    myScene.paint(myDisplayList, System.currentTimeMillis());
+    myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
   }
 
   public DisplayList getDisplayList() {
