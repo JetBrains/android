@@ -417,12 +417,22 @@ public class ColumnTreeBuilder {
 
     @Override
     public boolean getScrollableTracksViewportWidth() {
-      return myTree.getScrollableTracksViewportWidth();
+      Container parent = SwingUtilities.getUnwrappedParent(this);
+      if (parent instanceof JViewport) {
+        // Note: This assumes myTree extends the full width of the panel
+        return parent.getWidth() > myTree.getPreferredSize().width;
+      }
+      return false;
     }
 
     @Override
     public boolean getScrollableTracksViewportHeight() {
-      return myTree.getScrollableTracksViewportHeight();
+      Container parent = SwingUtilities.getUnwrappedParent(this);
+      if (parent instanceof JViewport) {
+        // Note: This assumes myTable has a height of 0
+        return parent.getHeight() > myTree.getPreferredSize().height;
+      }
+      return false;
     }
   }
 }
