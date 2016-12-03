@@ -2,4 +2,7 @@
 <resources>
     <string name="app_name">Hello World</string>
     <string name="newstring">Test</string>
+    <!-- This string is automatically excluded (deselected from refactored elements list)
+        by the UnusedResourcesProcessor#isToBeChanged method -->
+    <string name="something">AUTO-EXCLUDE</string>
 </resources>
