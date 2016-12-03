@@ -329,30 +329,6 @@ public class InstantRunBuilderTest {
   }
 
   @Test
-  public void fullBuildOnFreezeSwapIfNoWorkingRunAs() throws Exception {
-
-    // We've worked around run-as failure using the run-as service,
-    // so skip this test for now.
-    assumeTrue(false);
-
-    myDumpsysPackageOutput = DUMPSYS_PACKAGE_EXISTS;
-    myDeviceBuildTimetamp = "100";
-    myAppInForeground = false;
-    myRunConfigContext.setSameExecutorAsPreviousSession(true);
-    when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
-
-    setUpDeviceForHotSwap();
-
-    myBuilder =
-      new InstantRunBuilder(myDevice, myInstantRunContext, myRunConfigContext, myTasksProvider, false,
-                            ourRunAsNotSupported, myInstalledApkCache, myInstantRunClientDelegate);
-    myBuilder.build(myTaskRunner, Collections.emptyList());
-    assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK :app:assemble",
-      myTaskRunner.getBuilds());
-  }
-
-  @Test
   public void coldSwapBuildIfAppNotRunning() throws Exception {
     myDumpsysPackageOutput = DUMPSYS_PACKAGE_EXISTS;
     myDeviceBuildTimetamp = "100";
