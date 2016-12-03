@@ -245,7 +245,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
       saveAndroidNdkPath();
 
       IdeSdks ideSdks = IdeSdks.getInstance();
-      ideSdks.setJdkPath(useEmbeddedJdk() ? EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath() : getUserSelectedJdkLocation());
+      ideSdks.setJdkPath(useEmbeddedJdk() ? EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath() : getJdkLocation());
       ideSdks.setAndroidSdkPath(getSdkLocation(), myProject);
 
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
@@ -450,7 +450,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
   public boolean isModified() {
     return !myOriginalSdkHomePath.equals(getSdkLocation().getPath()) ||
            !myOriginalNdkHomePath.equals(getNdkLocation().getPath()) ||
-           !myOriginalJdkHomePath.equals(getUserSelectedJdkLocation().getPath()) ||
+           !myOriginalJdkHomePath.equals(getJdkLocation().getPath()) ||
            myOriginalUseEmbeddedJdk != useEmbeddedJdk();
   }
 
@@ -559,7 +559,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
     }
 
     if (!useEmbeddedJdk()) {
-      File validJdkLocation = validateJdkPath(getUserSelectedJdkLocation());
+      File validJdkLocation = validateJdkPath(getJdkLocation());
       if (validJdkLocation == null) {
         throw new ConfigurationException(CHOOSE_VALID_JDK_DIRECTORY_ERR);
       }
@@ -583,20 +583,20 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
       errors.add(error);
     }
 
-    if (!useEmbeddedJdk()) {
-      File jdkLocation = validateJdkPath(getUserSelectedJdkLocation());
-      if (jdkLocation == null) {
+    File jdkLocation;
+    jdkLocation = validateJdkPath(getJdkLocation());
+
+    if (jdkLocation == null) {
+      ProjectConfigurationError error =
+        new ProjectConfigurationError(CHOOSE_VALID_JDK_DIRECTORY_ERR, myJdkLocationTextField.getTextField());
+      errors.add(error);
+    }
+    else {
+      JavaSdkVersion version = Jdks.getInstance().findVersion(jdkLocation);
+      if (version == null || !version.isAtLeast(JDK_1_8)) {
         ProjectConfigurationError error =
-          new ProjectConfigurationError(CHOOSE_VALID_JDK_DIRECTORY_ERR, myJdkLocationTextField.getTextField());
+          new ProjectConfigurationError("Please choose JDK 8 or newer", myJdkLocationTextField.getTextField());
         errors.add(error);
-      }
-      else {
-        JavaSdkVersion version = Jdks.getInstance().findVersion(jdkLocation);
-        if (version == null || !version.isAtLeast(JDK_1_8)) {
-          ProjectConfigurationError error =
-            new ProjectConfigurationError("Please choose JDK 8 or newer", myJdkLocationTextField.getTextField());
-          errors.add(error);
-        }
       }
     }
 
@@ -669,6 +669,12 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
   @NotNull
   private File getUserSelectedJdkLocation() {
     String jdkLocation = nullToEmpty(myUserSelectedJdkHomePath);
+    return new File(toSystemDependentName(jdkLocation));
+  }
+
+  @NotNull
+  private File getJdkLocation() {
+    String jdkLocation = myJdkLocationTextField.getText();
     return new File(toSystemDependentName(jdkLocation));
   }
 
