@@ -446,7 +446,7 @@ public class SceneComponent {
   //region Layout
   /////////////////////////////////////////////////////////////////////////////
 
-  public boolean layout(long time) {
+  public boolean layout(@NotNull SceneContext sceneTransform, long time) {
     boolean needsRepaint = false;
     myCurrentLeft = myAnimatedDrawX.getValue(time);
     myCurrentTop = myAnimatedDrawY.getValue(time);
@@ -459,12 +459,12 @@ public class SceneComponent {
     int num = myTargets.size();
     for (int i = 0; i < num; i++) {
       Target target = myTargets.get(i);
-      needsRepaint |= target.layout(myCurrentLeft, myCurrentTop, myCurrentRight, myCurrentBottom);
+      needsRepaint |= target.layout(sceneTransform, myCurrentLeft, myCurrentTop, myCurrentRight, myCurrentBottom);
     }
     int childCount = myChildren.size();
     for (int i = 0; i < childCount; i++) {
       SceneComponent child = myChildren.get(i);
-      needsRepaint |= child.layout(time);
+      needsRepaint |= child.layout(sceneTransform, time);
     }
     return needsRepaint;
   }
@@ -476,20 +476,23 @@ public class SceneComponent {
     rectangle.height = myCurrentBottom - myCurrentTop;
   }
 
-  public void addHit(@NotNull ScenePicker picker) {
+  public void addHit(@NotNull SceneContext sceneTransform, @NotNull ScenePicker picker) {
     if (myDrawState == DrawState.HOVER) {
       myDrawState = DrawState.NORMAL;
     }
-    picker.addRect(this, 0, myCurrentLeft, myCurrentTop, myCurrentRight, myCurrentBottom);
+    picker.addRect(this, 0, sceneTransform.getSwingX(myCurrentLeft),
+                   sceneTransform.getSwingY(myCurrentTop),
+                   sceneTransform.getSwingX(myCurrentRight),
+                   sceneTransform.getSwingY(myCurrentBottom));
     int num = myTargets.size();
     for (int i = 0; i < num; i++) {
       Target target = myTargets.get(i);
-      target.addHit(picker);
+      target.addHit(sceneTransform, picker);
     }
     int childCount = myChildren.size();
     for (int i = 0; i < childCount; i++) {
       SceneComponent child = myChildren.get(i);
-      child.addHit(picker);
+      child.addHit(sceneTransform, picker);
     }
   }
 
