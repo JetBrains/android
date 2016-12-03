@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
+import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupport;
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupportFactory;
@@ -65,7 +66,8 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
 
   public static NlTableCellEditor createForTable() {
     NlTableCellEditor cellEditor = new NlTableCellEditor();
-    cellEditor.init(new NlEnumEditor(cellEditor, new CustomComboBox(), new BrowsePanel(cellEditor, true), false));
+    BrowsePanel browsePanel = new BrowsePanel(cellEditor, true);
+    cellEditor.init(new NlEnumEditor(cellEditor, new CustomComboBox(), browsePanel, false), browsePanel);
     return cellEditor;
   }
 
@@ -143,6 +145,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     });
     //noinspection unchecked
     myCombo.setRenderer(new EnumRenderer());
+    myProperty = EmptyProperty.INSTANCE;
   }
 
   @Override
@@ -169,8 +172,8 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   private void setModel(@NotNull NlProperty property) {
     // Do not inline this method. Other classes should not know about EnumSupportFactory.
     assert EnumSupportFactory.supportsProperty(property) : this.getClass().getName() + property;
-    myEnumSupport = EnumSupportFactory.create(property);
     myProperty = property;
+    myEnumSupport = EnumSupportFactory.create(property);
     myApiVersion = getApiVersion(property);
 
     List<ValueWithDisplayString> values = myEnumSupport.getAllValues();
@@ -202,14 +205,14 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   }
 
   @Override
-  @Nullable
+  @NotNull
   public NlProperty getProperty() {
     return myProperty;
   }
 
   @NotNull
   private static String getApiVersion(@NotNull NlProperty property) {
-    IAndroidTarget target = property.getModel().getConfiguration().getTarget();
+    IAndroidTarget target = property != EmptyProperty.INSTANCE ? property.getModel().getConfiguration().getTarget() : null;
     return target == null ? SdkVersionInfo.HIGHEST_KNOWN_STABLE_API + "U" : target.getVersion().getApiString();
   }
 
