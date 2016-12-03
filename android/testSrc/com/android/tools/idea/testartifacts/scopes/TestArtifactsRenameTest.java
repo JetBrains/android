@@ -35,18 +35,18 @@ public class TestArtifactsRenameTest extends TestArtifactsTestCase {
     setAndroidTestFileContent("AndroidTest.java", "class AndroidTest extends MyClass {}");
   }
 
-  public void ignore_testRenameInBothTests() throws Exception {
+  public void testRenameInBothTests() throws Exception {
     setCommonFileContent("MyClass.java", MY_CLASS_TEXT);
     renameAndCheckResults(2);
   }
 
-  public void ignore_testRenameInOnlyUnitTests() throws Exception {
+  public void testRenameInOnlyUnitTests() throws Exception {
     setUnitTestFileContent("MyClass.java", MY_CLASS_TEXT);
 
     renameAndCheckResults(1);
   }
 
-  public void ignore_testRenameInOnlyAndroidTests() throws Exception {
+  public void testRenameInOnlyAndroidTests() throws Exception {
     setUnitTestFileContent("MyClass.java", MY_CLASS_TEXT);
     renameAndCheckResults(1);
   }

@@ -27,7 +27,7 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
     return !SystemInfo.isWindows && super.shouldRunTest();
   }
 
-  public void ignore_testDependencyResolvableOnlyInUnitTest() throws Exception {
+  public void testDependencyResolvableOnlyInUnitTest() throws Exception {
     // Junit is a dependency for android test, defined in project's build.gradle.
     String importString = "import org.junit.Ass<caret>ert;";
 
@@ -38,7 +38,7 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
     assertNull(resolveReferenceAtCaret());
   }
 
-  public void ignore_testDependencyResolvableOnlyInAndroidTest() throws Exception {
+  public void testDependencyResolvableOnlyInAndroidTest() throws Exception {
     // Gson is a dependency for android test, defined in project's build.gradle.
     String importString = "import com.google.gson.Gs<caret>on;";
 
@@ -50,7 +50,7 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
   }
 
   // Flaky test, reactivate when investigated (http://b.android.com/226541)
-  public void ignore_testSourceResolvableInBothTests() throws Exception {
+  public void testSourceResolvableInBothTests() throws Exception {
     // Create class located in main source
     setCommonFileContent("MyClass.java", "class MyClass {}");
 
@@ -63,7 +63,7 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
   }
 
   // Flaky test, reactivate when investigated (http://b.android.com/226541)
-  public void ignore_testSourceResolvableOnlyInUnitTest() throws Exception {
+  public void testSourceResolvableOnlyInUnitTest() throws Exception {
     // Create class located in unit test source
     setUnitTestFileContent("MyClass.java", "class MyClass {}");
 
@@ -76,7 +76,7 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
   }
 
   // Flaky test, reactivate when investigated (http://b.android.com/226541)
-  public void ignore_testSourceResolvableOnlyInAndroidTest() throws Exception {
+  public void testSourceResolvableOnlyInAndroidTest() throws Exception {
     // Create class located in android test source
     setAndroidTestFileContent("MyClass.java", "class MyClass {}");
 
@@ -89,7 +89,7 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
   }
 
   // Flaky test, reactivate when investigated (http://b.android.com/226541)
-  public void ignore_testMultiModuleSourceResolvableInBothTests() throws Exception {
+  public void testMultiModuleSourceResolvableInBothTests() throws Exception {
     setFileContent("module2/src/main/java/MyClass.java", "class MyClass {}");
 
     String importString = "import MyC<caret>lass;";
@@ -101,7 +101,7 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
   }
 
   // Flaky test, reactivate when investigated (http://b.android.com/226541)
-  public void ignore_testMultiModuleAndroidSourceNotResolvableInTests() throws Exception {
+  public void testMultiModuleAndroidSourceNotResolvableInTests() throws Exception {
     setFileContent("module2/src/androidTest/java/MyClass.java", "class MyClass {}");
 
     String importString = "import MyC<caret>lass;";
@@ -114,7 +114,7 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
   }
 
   // Flaky test, reactivate when investigated (http://b.android.com/226541)
-  public void ignore_testMultiModuleUnitSourceNotResolvableInTests() throws Exception {
+  public void testMultiModuleUnitSourceNotResolvableInTests() throws Exception {
     setFileContent("module2/src/test/java/MyClass.java", "class MyClass {}");
 
     String importString = "import MyC<caret>lass;";
