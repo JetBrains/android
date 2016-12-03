@@ -44,7 +44,7 @@ public class AnchorTarget extends ConstraintTarget {
     LEFT, TOP, RIGHT, BOTTOM, BASELINE
   }
 
-  private final int mySize = 8;
+  private final int mySize = 3;
   private final int myExpandSize = 200;
   private final AnchorTarget.Type myType;
   private boolean myExpandArea = false;
@@ -97,16 +97,21 @@ public class AnchorTarget extends ConstraintTarget {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public boolean layout(int l, int t, int r, int b) {
-    int minWidth = 4 * mySize;
-    int minHeight = 4 * mySize;
+  public boolean layout(@NotNull SceneContext sceneTransform, int l, int t, int r, int b) {
+    float ratio = 1f / (float) sceneTransform.getScale();
+    if (ratio > 2) {
+      ratio = 2;
+    }
+    float size = (mySize * ratio);
+    float minWidth = 4 * size;
+    float minHeight = 4 * size;
     if (r - l < minWidth) {
-      int d = (minWidth - (r - l)) / 2;
+      float d = (minWidth - (r - l)) / 2;
       l -= d;
       r += d;
     }
     if (b - t < minHeight) {
-      int d = (minHeight - (b - t)) / 2;
+      float d = (minHeight - (b - t)) / 2;
       t -= d;
       b += d;
     }
@@ -116,10 +121,10 @@ public class AnchorTarget extends ConstraintTarget {
     int mh = t + h / 2;
     switch (myType) {
       case LEFT: {
-        myLeft = l - mySize;
-        myTop = mh - mySize;
-        myRight = l + mySize;
-        myBottom = mh + mySize;
+        myLeft = l - size;
+        myTop = mh - size;
+        myRight = l + size;
+        myBottom = mh + size;
         if (myExpandArea) {
           myLeft = l - myExpandSize;
           myTop = t;
@@ -128,10 +133,10 @@ public class AnchorTarget extends ConstraintTarget {
       }
       break;
       case TOP: {
-        myLeft = mw - mySize;
-        myTop = t - mySize;
-        myRight = mw + mySize;
-        myBottom = t + mySize;
+        myLeft = mw - size;
+        myTop = t - size;
+        myRight = mw + size;
+        myBottom = t + size;
         if (myExpandArea) {
           myTop = t - myExpandSize;
           myLeft = l;
@@ -140,10 +145,10 @@ public class AnchorTarget extends ConstraintTarget {
       }
       break;
       case RIGHT: {
-        myLeft = r - mySize;
-        myTop = mh - mySize;
-        myRight = r + mySize;
-        myBottom = mh + mySize;
+        myLeft = r - size;
+        myTop = mh - size;
+        myRight = r + size;
+        myBottom = mh + size;
         if (myExpandArea) {
           myRight = r + myExpandSize;
           myTop = t;
@@ -152,10 +157,10 @@ public class AnchorTarget extends ConstraintTarget {
       }
       break;
       case BOTTOM: {
-        myLeft = mw - mySize;
-        myTop = b - mySize;
-        myRight = mw + mySize;
-        myBottom = b + mySize;
+        myLeft = mw - size;
+        myTop = b - size;
+        myRight = mw + size;
+        myBottom = b + size;
         if (myExpandArea) {
           myBottom = b + myExpandSize;
           myLeft = l;
@@ -164,10 +169,10 @@ public class AnchorTarget extends ConstraintTarget {
       }
       break;
       case BASELINE: {
-        myLeft = l - mySize;
-        myTop = t + myComponent.getBaseline() - mySize;
-        myRight = r + mySize;
-        myBottom = t + myComponent.getBaseline() + mySize;
+        myLeft = l - size;
+        myTop = t + myComponent.getBaseline() - size;
+        myRight = r + size;
+        myBottom = t + myComponent.getBaseline() + size;
       }
       break;
     }
@@ -180,14 +185,14 @@ public class AnchorTarget extends ConstraintTarget {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public void render(@NotNull DisplayList list, SceneContext sceneContext) {
+  public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
     if (!myComponent.getScene().allowsTarget(this)) {
       return;
     }
     DrawAnchor.add(list, sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? DrawAnchor.OVER : DrawAnchor.NORMAL);
     if (myLastX != -1 && myLastY != -1) {
-      int x = myLeft + (myRight - myLeft) / 2;
-      int y = myTop + (myBottom - myTop) / 2;
+      float x = myLeft + (myRight - myLeft) / 2;
+      float y = myTop + (myBottom - myTop) / 2;
       list.addConnection(sceneContext, x, y, myLastX, myLastY, Color.RED);
     }
   }

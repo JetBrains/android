@@ -189,7 +189,7 @@ public class DisplayList {
       color = new Color((int)Long.parseLong(sp[c++], 16));
     }
 
-    public Line(SceneContext transform, int x1, int y1, int x2, int y2, Color c) {
+    public Line(SceneContext transform, float x1, float y1, float x2, float y2, Color c) {
       this.x1 = transform.getSwingX(x1);
       this.y1 = transform.getSwingY(y1);
       this.x2 = transform.getSwingX(x2);
@@ -229,7 +229,7 @@ public class DisplayList {
     myCommands.add(new Rect(l, t, w, h, color));
   }
 
-  public void addRect(SceneContext transform, int left, int top, int right, int bottom, Color color) {
+  public void addRect(SceneContext transform, float left, float top, float right, float bottom, Color color) {
     int l = transform.getSwingX(left);
     int t = transform.getSwingY(top);
     int w = transform.getSwingDimension(right - left);
@@ -237,7 +237,7 @@ public class DisplayList {
     add(new Rect(l, t, w, h, color));
   }
 
-  public void addConnection(SceneContext transform, int x1, int y1, int x2, int y2, Color color) {
+  public void addConnection(SceneContext transform, float x1, float y1, float x2, float y2, Color color) {
     int sx1 = transform.getSwingX(x1);
     int sy1 = transform.getSwingY(y1);
     int sx2 = transform.getSwingX(x2);
@@ -245,7 +245,7 @@ public class DisplayList {
     add(new Connection(sx1, sy1, sx2, sy2, color));
   }
 
-  public void addLine(SceneContext transform, int x1, int y1, int x2, int y2, Color color) {
+  public void addLine(SceneContext transform, float x1, float y1, float x2, float y2, Color color) {
     add(new Line(transform, x1, y1, x2, y2, color));
   }
 

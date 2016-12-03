@@ -38,7 +38,7 @@ import java.awt.*;
 public class ResizeTarget extends BaseTarget {
 
   private final Type myType;
-  private final int mySize = 8;
+  private final int mySize = 3;
 
   private int mStartX1;
   private int mStartY1;
@@ -66,16 +66,21 @@ public class ResizeTarget extends BaseTarget {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public boolean layout(int l, int t, int r, int b) {
-    int minWidth = 4 * mySize;
-    int minHeight = 4 * mySize;
+  public boolean layout(@NotNull SceneContext sceneTransform, int l, int t, int r, int b) {
+    float ratio = 1f / (float) sceneTransform.getScale();
+    if (ratio > 2) {
+      ratio = 2;
+    }
+    float size = (mySize * ratio);
+    float minWidth =  4 * size;
+    float minHeight = 4 * size;
     if (r - l < minWidth) {
-      int d = (minWidth - (r - l)) / 2;
+      float d = (minWidth - (r - l)) / 2f;
       l -= d;
       r += d;
     }
     if (b - t < minHeight) {
-      int d = (minHeight - (b - t)) / 2;
+      float d = (minHeight - (b - t)) / 2f;
       t -= d;
       b += d;
     }
@@ -86,53 +91,53 @@ public class ResizeTarget extends BaseTarget {
     switch (myType) {
       /* unused for the moment
       case LEFT: {
-        myLeft = l - mySize;
-        myTop = mh - mySize;
-        myRight = l + mySize;
-        myBottom = mh + mySize;
+        myLeft = l - size;
+        myTop = mh - size;
+        myRight = l + size;
+        myBottom = mh + size;
       } break;
       case TOP: {
-        myLeft = mw - mySize;
-        myTop = t - mySize;
-        myRight = mw + mySize;
-        myBottom = t + mySize;
+        myLeft = mw - size;
+        myTop = t - size;
+        myRight = mw + size;
+        myBottom = t + size;
       } break;
       case RIGHT: {
-        myLeft = r - mySize;
-        myTop = mh - mySize;
-        myRight = r + mySize;
-        myBottom = mh + mySize;
+        myLeft = r - size;
+        myTop = mh - size;
+        myRight = r + size;
+        myBottom = mh + size;
       } break;
       case BOTTOM: {
-        myLeft = mw - mySize;
-        myTop = b - mySize;
-        myRight = mw + mySize;
-        myBottom = b + mySize;
+        myLeft = mw - size;
+        myTop = b - size;
+        myRight = mw + size;
+        myBottom = b + size;
       } break;
       */
       case LEFT_TOP: {
-        myLeft = l - mySize;
-        myTop = t - mySize;
-        myRight = l + mySize;
-        myBottom = t + mySize;
+        myLeft = l - size;
+        myTop = t - size;
+        myRight = l + size;
+        myBottom = t + size;
       } break;
       case LEFT_BOTTOM: {
-        myLeft = l - mySize;
-        myTop = b - mySize;
-        myRight = l + mySize;
-        myBottom = b + mySize;
+        myLeft = l - size;
+        myTop = b - size;
+        myRight = l + size;
+        myBottom = b + size;
       } break;
       case RIGHT_TOP: {
-        myLeft = r - mySize;
-        myTop = t - mySize;
-        myRight = r + mySize;
-        myBottom = t + mySize;
+        myLeft = r - size;
+        myTop = t - size;
+        myRight = r + size;
+        myBottom = t + size;
       } break;
       case RIGHT_BOTTOM: {
-        myLeft = r - mySize;
-        myTop = b - mySize;
-        myRight = r + mySize;
-        myBottom = b + mySize;
+        myLeft = r - size;
+        myTop = b - size;
+        myRight = r + size;
+        myBottom = b + size;
       } break;
     }
     return false;
@@ -193,29 +198,27 @@ public class ResizeTarget extends BaseTarget {
     attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, positionY);
   }
 
-  private void updateAttributes(@NotNull AttributesTransaction attributes, int sx, int sy) {
-    int x = sx - myComponent.getParent().getDrawX();
-    int y = sy - myComponent.getParent().getDrawY();
+  private void updateAttributes(@NotNull AttributesTransaction attributes, int x, int y) {
     switch (myType) {
       case RIGHT_TOP: {
         updateWidth(attributes, x - mStartX1);
-        updatePositionY(attributes, y);
-        updateHeight(attributes, mStartY2 - sy);
+        updatePositionY(attributes, y - myComponent.getParent().getDrawY());
+        updateHeight(attributes, mStartY2 - y);
       } break;
       case RIGHT_BOTTOM: {
         updateWidth(attributes, x - mStartX1);
-        updateHeight(attributes, sy - mStartY1);
+        updateHeight(attributes, y - mStartY1);
       } break;
       case LEFT_TOP: {
-        updatePositionX(attributes, x);
+        updatePositionX(attributes, x - myComponent.getParent().getDrawX());
         updateWidth(attributes, mStartX2 - x);
-        updatePositionY(attributes, y);
-        updateHeight(attributes, mStartY2 - sy);
+        updatePositionY(attributes, y - myComponent.getParent().getDrawY());
+        updateHeight(attributes, mStartY2 - y);
       } break;
       case LEFT_BOTTOM: {
-        updatePositionX(attributes, x);
+        updatePositionX(attributes, x - myComponent.getParent().getDrawX());
         updateWidth(attributes, mStartX2 - x);
-        updateHeight(attributes, sy - mStartY1);
+        updateHeight(attributes, y - mStartY1);
       } break;
     }
   }

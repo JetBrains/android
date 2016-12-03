@@ -64,7 +64,7 @@ public class SceneInteraction extends Interaction {
     int androidY = Coordinates.getAndroidY(myScreenView, myStartY);
     int dpX = Coordinates.pxToDp(myScreenView, androidX);
     int dpY = Coordinates.pxToDp(myScreenView, androidY);
-    myScreenView.getScene().mouseDown(dpX, dpY);
+    myScreenView.getScene().mouseDown(SceneContext.get(myScreenView), dpX, dpY);
   }
 
   /**
@@ -81,7 +81,7 @@ public class SceneInteraction extends Interaction {
     int androidY = Coordinates.getAndroidY(myScreenView, y);
     int dpX = Coordinates.pxToDp(myScreenView, androidX);
     int dpY = Coordinates.pxToDp(myScreenView, androidY);
-    myScreenView.getScene().mouseDrag(dpX, dpY);
+    myScreenView.getScene().mouseDrag(SceneContext.get(myScreenView), dpX, dpY);
     myScreenView.getSurface().repaint();
   }
 
@@ -100,7 +100,7 @@ public class SceneInteraction extends Interaction {
     final int androidY = Coordinates.getAndroidY(myScreenView, y);
     int dpX = Coordinates.pxToDp(myScreenView, androidX);
     int dpY = Coordinates.pxToDp(myScreenView, androidY);
-    myScreenView.getScene().mouseRelease(dpX, dpY);
+    myScreenView.getScene().mouseRelease(SceneContext.get(myScreenView), dpX, dpY);
     myScreenView.getSurface().repaint();
   }
 }

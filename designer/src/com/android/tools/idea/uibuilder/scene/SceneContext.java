@@ -51,21 +51,23 @@ public class SceneContext {
 
   }
 
-  public int getSwingX(int x) {
-    return x;
+  public int getSwingX(float x) {
+    return (int) x;
   }
 
-  public int getSwingY(int y) {
-    return y;
+  public int getSwingY(float y) {
+    return (int) y;
   }
 
-  public int getSwingDimension(int x) {
-    return x;
+  public int getSwingDimension(float x) {
+    return (int) x;
   }
 
   public ColorSet getColorSet() {
     return myColorSet;
   }
+
+  public double getScale() { return 1; }
 
   private static SceneContext lazySingleton;
 
@@ -106,10 +108,6 @@ public class SceneContext {
     return null;
   }
 
-  public double getScale() {
-    return 1;
-  }
-
   /**
    * The  SceneContext based on a ScreenView
    */
@@ -126,17 +124,15 @@ public class SceneContext {
     }
 
     @Override
-    public double getScale() {
-      return myScreenView.getScale();
-    }
+    public double getScale() { return myScreenView.getScale(); }
 
     @Override
-    public int getSwingX(int x) {
+    public int getSwingX(float x) {
       return Coordinates.getSwingX(myScreenView, Coordinates.dpToPx(myScreenView, x));
     }
 
     @Override
-    public int getSwingY(int y) {
+    public int getSwingY(float y) {
       return Coordinates.getSwingY(myScreenView, Coordinates.dpToPx(myScreenView, y));
     }
 
@@ -146,7 +142,7 @@ public class SceneContext {
     }
 
     @Override
-    public int getSwingDimension(int v) {
+    public int getSwingDimension(float v) {
       return Coordinates.getSwingDimension(myScreenView, Coordinates.dpToPx(myScreenView, v));
     }
   }

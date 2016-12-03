@@ -25,8 +25,8 @@ import org.jetbrains.annotations.Nullable;
 
 public interface Target {
   int getPreferenceLevel();
-  boolean layout(int l, int t, int r, int b);
-  void addHit(@NotNull ScenePicker picker);
+  boolean layout(@NotNull SceneContext context, int l, int t, int r, int b);
+  void addHit(@NotNull SceneContext context, @NotNull ScenePicker picker);
   void setComponent(@NotNull SceneComponent component);
   void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext);
   void setOver(boolean over);
@@ -38,4 +38,7 @@ public interface Target {
   SceneComponent getComponent();
 
   int getMouseCursor();
+
+  float getCenterX();
+  float getCenterY();
 }
