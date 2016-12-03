@@ -18,19 +18,51 @@ package com.android.tools.idea.uibuilder.scene;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
 import com.android.tools.idea.uibuilder.scene.target.ResizeTarget;
+import com.android.tools.idea.uibuilder.scene.target.Target;
+
+import java.util.ArrayList;
 
 /**
  * Encapsulates basic mouse interaction on a Scene
  */
 class SceneMouseInteraction {
-  int myLastX;
-  int myLastY;
+  float myLastX;
+  float myLastY;
   Scene myScene;
   DisplayList myDisplayList = new DisplayList();
 
   public SceneMouseInteraction(Scene scene) {
     myScene = scene;
     myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
+  }
+
+  /**
+   * Simulate a click on a given resize handle of the component with componentId
+   *
+   * @param componentId the id of the component we want to click on
+   * @param targetClass the class of target we want to click on
+   * @param pos         which target to click on
+   */
+  public void mouseDown(String componentId, Class targetClass, int pos) {
+    SceneComponent component = myScene.getSceneComponent(componentId);
+    if (component != null) {
+      component.setSelected(true);
+      ArrayList<Target> targets = component.getTargets();
+      int n = 0;
+      for (Target target : targets) {
+        if (targetClass.isInstance(target)) {
+          if (pos == n) {
+            myLastX = target.getCenterX();
+            myLastY = target.getCenterY();
+            break;
+          }
+          n++;
+        }
+      }
+      SceneContext transform = SceneContext.get();
+      myScene.mouseDown(transform, (int)myLastX, (int)myLastY);
+      myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
+    }
   }
 
   /**
@@ -46,7 +78,8 @@ class SceneMouseInteraction {
       ResizeTarget target = component.getResizeTarget(type);
       myLastX = target.getCenterX();
       myLastY = target.getCenterY();
-      myScene.mouseDown(myLastX, myLastY);
+      SceneContext transform = SceneContext.get();
+      myScene.mouseDown(transform, (int)myLastX, (int)myLastY);
       myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
     }
   }
@@ -64,7 +97,8 @@ class SceneMouseInteraction {
       AnchorTarget target = component.getAnchorTarget(type);
       myLastX = target.getCenterX();
       myLastY = target.getCenterY();
-      myScene.mouseDown(myLastX, myLastY);
+      SceneContext transform = SceneContext.get();
+      myScene.mouseDown(transform, (int)myLastX, (int)myLastY);
       myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
     }
   }
@@ -85,13 +119,40 @@ class SceneMouseInteraction {
    * @param offsetX     x offset from the center of the component
    * @param offsetY     y offset from the center of the component
    */
-  public void mouseDown(String componentId, int offsetX, int offsetY) {
+  public void mouseDown(String componentId, float offsetX, float offsetY) {
     SceneComponent component = myScene.getSceneComponent(componentId);
     if (component != null) {
       myLastX = component.getCenterX() + offsetX;
       myLastY = component.getCenterY() + offsetY;
-      myScene.mouseDown(myLastX, myLastY);
+      SceneContext transform = SceneContext.get();
+      myScene.mouseDown(transform, (int)myLastX, (int)myLastY);
       myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
+    }
+  }
+
+  /**
+   * Simulate releasing the mouse above the given anchor of the component
+   * with the given componentId
+   *
+   * @param componentId the id of the component we will release the mouse above
+   * @param targetClass the class of target we want to click on
+   * @param pos         which target to click on
+   */
+  public void mouseRelease(String componentId, Class targetClass, int pos) {
+    SceneComponent component = myScene.getSceneComponent(componentId);
+    if (component != null) {
+      component.setSelected(true);
+      ArrayList<Target> targets = component.getTargets();
+      int n = 0;
+      for (Target target : targets) {
+        if (targetClass.isInstance(target)) {
+          if (pos == n) {
+            mouseRelease(target.getCenterX(), target.getCenterY());
+            return;
+          }
+          n++;
+        }
+      }
     }
   }
 
@@ -106,8 +167,8 @@ class SceneMouseInteraction {
     SceneComponent component = myScene.getSceneComponent(componentId);
     if (component != null) {
       AnchorTarget target = component.getAnchorTarget(type);
-      int x = target.getCenterX();
-      int y = target.getCenterY();
+      float x = target.getCenterX();
+      float y = target.getCenterY();
       mouseRelease(x, y);
     }
   }
@@ -130,11 +191,11 @@ class SceneMouseInteraction {
    * @param offsetX     x offset from the center of the component
    * @param offsetY     y offset from the center of the component
    */
-  public void mouseRelease(String componentId, int offsetX, int offsetY) {
+  public void mouseRelease(String componentId, float offsetX, float offsetY) {
     SceneComponent component = myScene.getSceneComponent(componentId);
     if (component != null) {
-      int x = component.getCenterX() + offsetX;
-      int y = component.getCenterY() + offsetY;
+      float x = component.getCenterX() + offsetX;
+      float y = component.getCenterY() + offsetY;
       mouseRelease(x, y);
     }
   }
@@ -146,7 +207,7 @@ class SceneMouseInteraction {
    * @param x coordinate on release
    * @param y coordinate on release
    */
-  public void mouseRelease(int x, int y) {
+  public void mouseRelease(float x, float y) {
     // drag first
     int steps = 10;
     float dx = x - myLastX;
@@ -155,14 +216,15 @@ class SceneMouseInteraction {
     float deltaY = dy / (float)steps;
     dx = myLastX;
     dy = myLastY;
+    SceneContext transform = SceneContext.get();
     for (int i = 0; i < steps; i++) {
-      myScene.mouseDrag((int)dx, (int)dy);
+      myScene.mouseDrag(transform, (int)dx, (int)dy);
       myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
       dx += deltaX;
       dy += deltaY;
     }
-    myScene.mouseDrag(x, y);
-    myScene.mouseRelease(x, y);
+    myScene.mouseDrag(transform, (int)x, (int)y);
+    myScene.mouseRelease(transform, (int)x, (int)y);
     myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
   }
 

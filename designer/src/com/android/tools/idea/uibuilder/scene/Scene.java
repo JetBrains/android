@@ -389,7 +389,7 @@ public class Scene implements ModelListener, SelectionListener {
   public boolean buildDisplayList(@NotNull DisplayList displayList, long time, SceneContext sceneContext) {
     boolean needsRepaint = false;
     if (myRoot != null) {
-      needsRepaint = myRoot.layout(time);
+      needsRepaint = myRoot.layout(sceneContext, time);
       if (sceneContext != null) {
         myRoot.buildDisplayList(time, displayList, sceneContext);
         if (DEBUG) {
@@ -467,6 +467,9 @@ public class Scene implements ModelListener, SelectionListener {
     if (target instanceof DragTarget) {
       return true;
     }
+    if (target instanceof GuidelineCycleTarget) {
+      return true;
+    }
     if (target instanceof ActionTarget) {
       return false;
     }
@@ -496,15 +499,15 @@ public class Scene implements ModelListener, SelectionListener {
       myPicker.setSelectListener(this);
     }
 
-    public void find(@NotNull SceneComponent root, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+    public void find(@NotNull SceneContext transform, @NotNull SceneComponent root, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
       myClosestComponent = null;
       myClosestTarget = null;
       myClosestComponentDistance = Double.MAX_VALUE;
       myClosestTargetDistance = Double.MAX_VALUE;
       myClosestTargetLevel = -1;
       myPicker.reset();
-      root.addHit(myPicker);
-      myPicker.find(x, y);
+      root.addHit(transform, myPicker);
+      myPicker.find(transform.getSwingX(x), transform.getSwingY(y));
     }
 
     @Override
@@ -533,12 +536,12 @@ public class Scene implements ModelListener, SelectionListener {
    * @param x
    * @param y
    */
-  public void mouseHover(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+  public void mouseHover(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myLastMouseX = x;
     myLastMouseY = y;
     myMouseCursor = Cursor.DEFAULT_CURSOR;
     if (myRoot != null) {
-      myHoverListener.find(myRoot, x, y);
+      myHoverListener.find(transform, myRoot, x, y);
     }
     if (myOverTarget != myHoverListener.myClosestTarget) {
       if (myOverTarget != null) {
@@ -548,7 +551,6 @@ public class Scene implements ModelListener, SelectionListener {
       if (myHoverListener.myClosestTarget != null) {
         myHoverListener.myClosestTarget.setOver(true);
         myOverTarget = myHoverListener.myClosestTarget;
-        myMouseCursor = myHoverListener.myClosestTarget.getMouseCursor();
       }
     }
     if (myCurrentComponent != myHoverListener.myClosestComponent) {
@@ -561,9 +563,12 @@ public class Scene implements ModelListener, SelectionListener {
         myCurrentComponent = myHoverListener.myClosestComponent;
       }
     }
+    if (myOverTarget != null) {
+      myMouseCursor = myOverTarget.getMouseCursor();
+    }
   }
 
-  public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+  public void mouseDown(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     mNeedsLayout = NO_LAYOUT;
     myLastMouseX = x;
     myLastMouseY = y;
@@ -571,7 +576,7 @@ public class Scene implements ModelListener, SelectionListener {
     if (myRoot == null) {
       return;
     }
-    myHitListener.find(myRoot, x, y);
+    myHitListener.find(transform, myRoot, x, y);
     mHitTarget = myHitListener.myClosestTarget;
     if (mHitTarget != null) {
       if (mHitTarget instanceof AnchorTarget) {
@@ -590,24 +595,24 @@ public class Scene implements ModelListener, SelectionListener {
     }
   }
 
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+  public void mouseDrag(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myLastMouseX = x;
     myLastMouseY = y;
     if (mHitTarget != null) {
-      myHitListener.find(myRoot, x, y);
+      myHitListener.find(transform, myRoot, x, y);
       mHitTarget.mouseDrag(x, y, myHitListener.myClosestTarget);
     }
-    mouseHover(x, y);
+    mouseHover(transform, x, y);
     if (mNeedsLayout != NO_LAYOUT) {
       myModel.requestLayout(mNeedsLayout == ANIMATED_LAYOUT ? true : false);
     }
   }
 
-  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+  public void mouseRelease(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myLastMouseX = x;
     myLastMouseY = y;
     if (mHitTarget != null) {
-      myHitListener.find(myRoot, x, y);
+      myHitListener.find(transform, myRoot, x, y);
       mHitTarget.mouseRelease(x, y, myHitListener.myClosestTarget);
     }
     myFilterTarget = FilterType.NONE;

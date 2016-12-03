@@ -52,7 +52,7 @@ public class DragTarget extends ConstraintTarget {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public boolean layout(int l, int t, int r, int b) {
+  public boolean layout(@NotNull SceneContext sceneTransform, int l, int t, int r, int b) {
     int minWidth = 16;
     int minHeight = 16;
     if (r - l < minWidth) {
@@ -78,7 +78,7 @@ public class DragTarget extends ConstraintTarget {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public void render(@NotNull DisplayList list, SceneContext sceneContext) {
+  public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
     if (DEBUG_RENDERER) {
       list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? Color.yellow : Color.green);
       list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, Color.red);
@@ -176,7 +176,7 @@ public class DragTarget extends ConstraintTarget {
     return getDpValue(nlComponent, nlComponent.getAttribute(SdkConstants.ANDROID_URI, attribute));
   }
 
-  private void updateAttributes(AttributesTransaction attributes, int x, int y) {
+  protected void updateAttributes(AttributesTransaction attributes, int x, int y) {
     SceneComponent targetLeftComponent = getTargetComponent(SdkConstants.SHERPA_URI, ourLeftAttributes);
     SceneComponent targetRightComponent = getTargetComponent(SdkConstants.SHERPA_URI, ourRightAttributes);
     if (targetLeftComponent != null && targetRightComponent != null) {
@@ -206,7 +206,8 @@ public class DragTarget extends ConstraintTarget {
       //attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, marginX); // TODO: handles RTL correctly
     }
     else {
-      String positionX = String.format(SdkConstants.VALUE_N_DP, x);
+      int dx = x - myComponent.getParent().getDrawX();
+      String positionX = String.format(SdkConstants.VALUE_N_DP, dx);
       attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, positionX);
     }
 
@@ -259,6 +260,9 @@ public class DragTarget extends ConstraintTarget {
 
   @Override
   public void mouseDown(int x, int y) {
+    if (myComponent.getParent() == null) {
+      return;
+    }
     mOffsetX = x - myComponent.getDrawX(System.currentTimeMillis());
     mOffsetY = y - myComponent.getDrawY(System.currentTimeMillis());
   }
@@ -270,7 +274,7 @@ public class DragTarget extends ConstraintTarget {
     }
     NlComponent component = myComponent.getNlComponent();
     AttributesTransaction attributes = component.startAttributeTransaction();
-    int dx = x - myComponent.getParent().getDrawX() - mOffsetX;
+    int dx = x - mOffsetX;
     int dy = y - mOffsetY;
     updateAttributes(attributes, dx, dy);
     cleanup(attributes);
@@ -283,7 +287,7 @@ public class DragTarget extends ConstraintTarget {
     if (myComponent.getParent() != null) {
       NlComponent component = myComponent.getNlComponent();
       AttributesTransaction attributes = component.startAttributeTransaction();
-      int dx = x - myComponent.getParent().getDrawX() - mOffsetX;
+      int dx = x - mOffsetX;
       int dy = y - mOffsetY;
       updateAttributes(attributes, dx, dy);
       cleanup(attributes);
