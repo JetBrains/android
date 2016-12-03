@@ -35,30 +35,21 @@ import java.awt.event.MouseEvent;
 import java.util.EnumSet;
 import java.util.Set;
 
-import static com.android.SdkConstants.TOOLS_URI;
-
 public class BrowsePanel extends JPanel {
   private final Context myContext;
   private final ActionButton myBrowseButton;
   private final ActionButton myDesignButton;
+  private PropertyDesignState myDesignState;
 
   public interface Context {
     @Nullable
     NlProperty getProperty();
 
-    @Nullable
-    default NlProperty getDesignProperty() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Nullable
-    default NlProperty getRuntimeProperty() {
-      throw new UnsupportedOperationException();
-    }
-
+    // Overridden by table cell editor
     default void cancelEditing() {
     }
 
+    // Overridden by table cell editor
     default void stopEditing(@Nullable Object newValue) {
       NlProperty property = getProperty();
       if (property != null) {
@@ -66,10 +57,12 @@ public class BrowsePanel extends JPanel {
       }
     }
 
+    // Overridden by table cell editor
     default void addDesignProperty() {
       throw new UnsupportedOperationException();
     }
 
+    // Overridden by table cell editor
     default void removeDesignProperty() {
       throw new UnsupportedOperationException();
     }
@@ -89,11 +82,12 @@ public class BrowsePanel extends JPanel {
     }
   }
 
-  public BrowsePanel(@NotNull Context context) {
-    this(context, true);
+  // This is used from a table cell renderer only
+  public BrowsePanel() {
+    this(null, true);
   }
 
-  public BrowsePanel(@NotNull Context context, boolean showDesignButton) {
+  public BrowsePanel(@Nullable Context context, boolean showDesignButton) {
     myContext = context;
     myBrowseButton = createActionButton(new BrowseAction(context));
     myDesignButton = showDesignButton ? createActionButton(createDesignAction()) : null;
@@ -104,6 +98,14 @@ public class BrowsePanel extends JPanel {
       add(myDesignButton);
       myDesignButton.setFocusable(true);
     }
+  }
+
+  public void setDesignState(@NotNull PropertyDesignState designState) {
+    myDesignState = designState;
+  }
+
+  public PropertyDesignState getDesignState() {
+    return myDesignState;
   }
 
   public void setProperty(@NotNull NlProperty property) {
@@ -129,7 +131,7 @@ public class BrowsePanel extends JPanel {
   private static class BrowseAction extends AnAction {
     private final Context myContext;
 
-    private BrowseAction(@NotNull Context context) {
+    private BrowseAction(@Nullable Context context) {
       myContext = context;
       Presentation presentation = getTemplatePresentation();
       presentation.setIcon(AllIcons.General.Ellipsis);
@@ -138,6 +140,9 @@ public class BrowsePanel extends JPanel {
 
     @Override
     public void actionPerformed(AnActionEvent event) {
+      if (myContext == null) {
+        return;
+      }
       NlProperty property = myContext.getProperty();
       if (property == null) {
         return;
@@ -176,14 +181,12 @@ public class BrowsePanel extends JPanel {
     return type == null ? AttributeFormat.convertTypes(formats) : EnumSet.of(type);
   }
 
-  private enum DesignState {NOT_APPLICABLE, IS_REMOVABLE_DESIGN_PROPERTY, HAS_DESIGN_PROPERTY, MISSING_DESIGN_PROPERTY}
-
   private AnAction createDesignAction() {
     return new AnAction() {
       @Override
       public void update(AnActionEvent event) {
         Presentation presentation = event.getPresentation();
-        switch (checkDesignState()) {
+        switch (myDesignState) {
           case MISSING_DESIGN_PROPERTY:
             presentation.setIcon(AndroidIcons.NeleIcons.DesignProperty);
             presentation.setText("Click to specify design property");
@@ -207,7 +210,10 @@ public class BrowsePanel extends JPanel {
 
       @Override
       public void actionPerformed(AnActionEvent event) {
-        switch (checkDesignState()) {
+        if (myContext == null) {
+          return;
+        }
+        switch (myDesignState) {
           case MISSING_DESIGN_PROPERTY:
             myContext.addDesignProperty();
             break;
@@ -215,21 +221,6 @@ public class BrowsePanel extends JPanel {
             myContext.removeDesignProperty();
             break;
           default:
-        }
-      }
-
-      private DesignState checkDesignState() {
-        NlProperty property = myContext.getProperty();
-        if (property == null || myDesignButton == null) {
-          return DesignState.NOT_APPLICABLE;
-        }
-        if (TOOLS_URI.equals(property.getNamespace())) {
-          NlProperty runtimeProperty = myContext.getRuntimeProperty();
-          return runtimeProperty != null ? DesignState.IS_REMOVABLE_DESIGN_PROPERTY : DesignState.NOT_APPLICABLE;
-        }
-        else {
-          NlProperty designProperty = myContext.getDesignProperty();
-          return designProperty != null ? DesignState.HAS_DESIGN_PROPERTY : DesignState.MISSING_DESIGN_PROPERTY;
         }
       }
     };

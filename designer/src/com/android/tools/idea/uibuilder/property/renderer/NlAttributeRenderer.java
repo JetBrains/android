@@ -23,7 +23,6 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
@@ -31,14 +30,12 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.Set;
 
-public abstract class NlAttributeRenderer implements TableCellRenderer, BrowsePanel.Context {
+public abstract class NlAttributeRenderer implements TableCellRenderer {
   private final JPanel myPanel;
   private final BrowsePanel myBrowsePanel;
-  private JTable myTable;
-  private int myRow;
 
   public NlAttributeRenderer() {
-    myBrowsePanel = new BrowsePanel(this);
+    myBrowsePanel = new BrowsePanel();
     myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
     myPanel.add(myBrowsePanel, BorderLayout.LINE_END);
   }
@@ -51,8 +48,6 @@ public abstract class NlAttributeRenderer implements TableCellRenderer, BrowsePa
   public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
     assert value instanceof NlProperty;
     assert table instanceof PTable;
-    myTable = table;
-    myRow = row;
 
     Color fg, bg;
     if (isSelected) {
@@ -75,6 +70,7 @@ public abstract class NlAttributeRenderer implements TableCellRenderer, BrowsePa
 
     boolean hover = ((PTable)table).isHover(row, col);
     myBrowsePanel.setVisible(hover);
+    myBrowsePanel.setDesignState(NlTableCellEditor.getDesignState(table, row));
 
     customizeRenderContent(table, (NlProperty)value, isSelected, hasFocus, row, col);
 
@@ -89,36 +85,6 @@ public abstract class NlAttributeRenderer implements TableCellRenderer, BrowsePa
                                               int col);
 
   public abstract boolean canRender(@NotNull NlProperty p, @NotNull Set<AttributeFormat> formats);
-
-  @Nullable
-  @Override
-  public NlProperty getProperty() {
-    return NlTableCellEditor.getPropertyAt(myTable, myRow);
-  }
-
-  @Nullable
-  @Override
-  public NlProperty getDesignProperty() {
-    return NlTableCellEditor.getDesignProperty(myTable, myRow);
-  }
-
-  @Nullable
-  @Override
-  public NlProperty getRuntimeProperty() {
-    return NlTableCellEditor.getRuntimeProperty(myTable, myRow);
-  }
-
-  @Override
-  public void addDesignProperty() {
-    cancelEditing();
-    NlTableCellEditor.addDesignProperty(myTable, myRow);
-  }
-
-  @Override
-  public void removeDesignProperty() {
-    cancelEditing();
-    NlTableCellEditor.removeDesignProperty(myTable, myRow);
-  }
 
   public void mousePressed(@NotNull MouseEvent event, @NotNull Rectangle rectRightColumn) {
     myBrowsePanel.mousePressed(event, rectRightColumn);

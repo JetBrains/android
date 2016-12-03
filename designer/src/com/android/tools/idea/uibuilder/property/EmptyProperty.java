@@ -19,61 +19,42 @@ import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
-import com.android.tools.idea.uibuilder.property.ptable.StarState;
-import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.table.TableCellRenderer;
+import java.util.Collections;
 import java.util.List;
 
-public class NlFlagPropertyItemValue extends PTableItem implements NlProperty {
-  private final String myName;
-  private final NlFlagPropertyItem myFlags;
+public class EmptyProperty implements NlProperty {
 
-  public NlFlagPropertyItemValue(@NotNull String name, @NotNull NlFlagPropertyItem flags) {
-    myName = name;
-    myFlags = flags;
-    setParent(flags);
-  }
+  public static final EmptyProperty INSTANCE = new EmptyProperty();
+
+  private EmptyProperty() {}
 
   @NotNull
   @Override
   public String getName() {
-    return myName;
+    return SdkConstants.ATTR_TEXT_SIZE;
   }
 
   @Nullable
   @Override
   public String getNamespace() {
-    // Values do not have a namespace.
-    // Used in PNameRenderer to not indicate the tools namespace for flag values.
     return null;
   }
 
-  @Override
-  @NotNull
-  public StarState getStarState() {
-    return StarState.NOT_STAR_ABLE;
-  }
-
-  @Override
-  public void setStarState(@NotNull StarState starState) {
-    throw new IllegalStateException();
-  }
-
+  @Nullable
   @Override
   public String getValue() {
-    return myFlags.isItemSet(this) ? SdkConstants.VALUE_TRUE : SdkConstants.VALUE_FALSE;
+    return null;
   }
 
-  @Override
   @Nullable
+  @Override
   public String getResolvedValue() {
-    return getValue();
+    return null;
   }
 
   @Override
@@ -81,76 +62,68 @@ public class NlFlagPropertyItemValue extends PTableItem implements NlProperty {
     return false;
   }
 
-  @Override
   @Nullable
+  @Override
   public String resolveValue(@Nullable String value) {
-    return value;
+    return null;
   }
 
   @Override
   public void setValue(@Nullable Object value) {
-    if (value == null) {
-      value = SdkConstants.VALUE_FALSE;
-    }
-    myFlags.setItem(this, SdkConstants.VALUE_TRUE.equalsIgnoreCase(value.toString()));
+    throw new IllegalStateException();
   }
 
-  @NotNull
   @Override
-  public NlProperty getChildProperty(@NotNull String itemName) {
-    throw new UnsupportedOperationException(itemName);
-  }
-
   @NotNull
-  @Override
-  public NlProperty getDesignTimeProperty() {
-    throw new UnsupportedOperationException();
+  public String getTooltipText() {
+    return "";
   }
 
   @Nullable
   @Override
   public AttributeDefinition getDefinition() {
-    return myFlags.getDefinition();
+    return null;
   }
 
   @NotNull
   @Override
   public List<NlComponent> getComponents() {
-    return myFlags.getComponents();
+    return Collections.emptyList();
   }
 
   @Nullable
   @Override
   public ResourceResolver getResolver() {
-    return myFlags.getResolver();
+    return null;
   }
 
   @NotNull
   @Override
   public NlModel getModel() {
-    return myFlags.getModel();
+    throw new IllegalStateException();
   }
 
   @Nullable
   @Override
   public XmlTag getTag() {
-    return myFlags.getTag();
+    return null;
   }
 
   @Nullable
   @Override
   public String getTagName() {
-    return myFlags.getTagName();
+    return null;
   }
 
   @NotNull
   @Override
-  public TableCellRenderer getCellRenderer() {
-    return NlPropertyRenderers.getFlagItemRenderer();
+  public NlProperty getChildProperty(@NotNull String name) {
+    throw new IllegalStateException();
   }
 
+  @NotNull
   @Override
-  public boolean isEditable(int col) {
-    return true;
+  public NlProperty getDesignTimeProperty() {
+    throw new IllegalStateException();
   }
 }

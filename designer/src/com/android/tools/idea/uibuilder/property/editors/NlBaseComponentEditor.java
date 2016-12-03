@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
-import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
@@ -71,10 +70,7 @@ public abstract class NlBaseComponentEditor implements NlComponentEditor, Browse
 
   @Override
   public void refresh() {
-    NlProperty property = getProperty();
-    if (property != null) {
-      setProperty(property);
-    }
+    setProperty(getProperty());
   }
 
   @Override
@@ -109,11 +105,7 @@ public abstract class NlBaseComponentEditor implements NlComponentEditor, Browse
   }
 
   protected void displayResourcePicker() {
-    NlProperty property = getProperty();
-    if (property == null) {
-      return;
-    }
-    ChooseResourceDialog dialog = BrowsePanel.showResourceChooser(property);
+    ChooseResourceDialog dialog = BrowsePanel.showResourceChooser(getProperty());
     if (dialog.showAndGet()) {
       stopEditing(dialog.getResourceName());
     }

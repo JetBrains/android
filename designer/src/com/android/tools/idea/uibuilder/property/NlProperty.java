@@ -73,6 +73,7 @@ public interface NlProperty {
   /**
    * Get the help information about this property.
    */
+  @NotNull
   String getTooltipText();
 
   /**
@@ -90,6 +91,7 @@ public interface NlProperty {
   /**
    * Get the {@link ResourceResolver} for the component this property is associated with.
    */
+  @Nullable
   ResourceResolver getResolver();
 
   /**

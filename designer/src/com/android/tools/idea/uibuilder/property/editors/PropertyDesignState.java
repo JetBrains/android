@@ -15,40 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
-import com.android.tools.idea.uibuilder.property.NlProperty;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-
-/**
- * Common interface for various inspector editors.
- */
-public interface NlComponentEditor {
-
-  @NotNull
-  JComponent getComponent();
-
-  @Nullable
-  Object getValue();
-
-  void activate();
-
-  void setEnabled(boolean enabled);
-
-  void setVisible(boolean visible);
-
-  @NotNull
-  NlProperty getProperty();
-
-  void setProperty(@NotNull NlProperty property);
-
-  void refresh();
-
-  void requestFocus();
-
-  @Nullable
-  JLabel getLabel();
-
-  void setLabel(@NotNull JLabel label);
+enum PropertyDesignState {
+  NOT_APPLICABLE,                 // This property does not offer a separate design property (or may be a design property itself that cannot be removed)
+  IS_REMOVABLE_DESIGN_PROPERTY,   // This is a design property and it can be removed
+  HAS_DESIGN_PROPERTY,            // This is a runtime property with an existing matching design property
+  MISSING_DESIGN_PROPERTY         // This is a runtime property where no matching design property exists yet
 }

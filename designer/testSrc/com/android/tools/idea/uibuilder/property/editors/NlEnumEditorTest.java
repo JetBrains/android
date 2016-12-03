@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
+import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.property.fixtures.NlEnumEditorFixture;
 
@@ -698,5 +699,11 @@ public class NlEnumEditorTest extends PropertyTestCase {
       .key(VK_ENTER)
       .expectText("invisible")
       .expectValue("invisible");
+  }
+
+  public void testSetEmptyProperty() {
+    myFixture
+      .setProperty(getProperty(myButton, ATTR_VISIBILITY))
+      .setProperty(EmptyProperty.INSTANCE);
   }
 }
