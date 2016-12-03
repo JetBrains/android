@@ -45,7 +45,7 @@ public class BlueprintLayer extends Layer {
   }
 
   /**
-   * Base paint method. Draw the blueprint background.
+   * Base buildDisplayList method. Draw the blueprint background.
    * TODO: We might want to simplify the stack of layers and not keep this one.
    *
    * @param gc The Graphics object to draw into
@@ -73,7 +73,6 @@ public class BlueprintLayer extends Layer {
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
     g.setColor(BLUEPRINT_BG_COLOR);
     g.fillRect(mySizeRectangle.x, mySizeRectangle.y, mySizeRectangle.width, mySizeRectangle.height);
-
     if (prevClip != null) {
       g.setClip(prevClip);
     }
@@ -132,7 +131,7 @@ public class BlueprintLayer extends Layer {
       }
 
       if (!handlesPainting && !parentHandlesPainting) {
-        // If not, paint the component ourselves
+        // If not, buildDisplayList the component ourselves
         Graphics2D g = (Graphics2D)gc.create();
 
         int x = getSwingX(myScreenView, component.x);

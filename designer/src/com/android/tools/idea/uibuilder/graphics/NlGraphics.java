@@ -289,7 +289,7 @@ public class NlGraphics {
       // Its two arrow lines are at (-arrowWidth, -arrowHeight) relative
       // to the endpoint (x1 + lineLength, y1) stretching up to (x2,y2).
       // We compute the positions of (ax,ay) for the point above and
-      // below this line and paint the lines to it:
+      // below this line and buildDisplayList the lines to it:
       double ax = x1 + lineLength - arrowHeight;
       double ay = y1 - arrowWidth;
       int rx = (int)(Math.cos(angle) * (ax - x1) - Math.sin(angle) * (ay - y1) + x1);

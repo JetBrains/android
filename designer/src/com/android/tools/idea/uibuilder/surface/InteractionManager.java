@@ -65,7 +65,7 @@ public class InteractionManager {
 
   /**
    * The list of overlays associated with {@link #myCurrentInteraction}. Will be
-   * null before it has been initialized lazily by the paint routine (the
+   * null before it has been initialized lazily by the buildDisplayList routine (the
    * initialized value can never be null, but it can be an empty collection).
    */
   @Nullable

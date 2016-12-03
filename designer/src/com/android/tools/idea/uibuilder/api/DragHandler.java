@@ -121,7 +121,7 @@ public abstract class DragHandler {
   /**
    * Paints the drag feedback during the drag &amp; drop operation
    *
-   * @param graphics the graphics to paint to
+   * @param graphics the graphics to buildDisplayList to
    */
   public abstract void paint(@NotNull NlGraphics graphics);
 

@@ -22,10 +22,11 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.scene.SceneTransform;
+import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.draw.DrawComponent;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -41,6 +42,7 @@ import java.util.ArrayList;
  */
 public class DragTarget extends ConstraintTarget {
 
+  private static final boolean DEBUG_RENDERER = false;
   private int mOffsetX;
   private int mOffsetY;
   private boolean myIsParent;
@@ -76,10 +78,14 @@ public class DragTarget extends ConstraintTarget {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public void render(@NotNull DisplayList list, SceneTransform sceneTransform) {
-    list.addRect(sceneTransform, myLeft, myTop, myRight, myBottom, mIsOver ? Color.yellow : Color.green);
-    list.addLine(sceneTransform, myLeft, myTop, myRight, myBottom, Color.red);
-    list.addLine(sceneTransform, myLeft, myBottom, myRight, myTop, Color.red);
+  public void render(@NotNull DisplayList list, SceneContext sceneContext) {
+    if (DEBUG_RENDERER) {
+      list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? Color.yellow : Color.green);
+      list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, Color.red);
+      list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, Color.red);
+    } else {
+      DrawComponent.add(list, sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? DrawComponent.OVER : DrawComponent.NORMAL);
+    }
   }
 
   //endregion
