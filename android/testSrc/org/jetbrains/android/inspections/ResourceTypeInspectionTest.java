@@ -655,7 +655,7 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        // Wrong\n" +
             "        textView.setTextColor(/*Should pass resolved color instead of resource id here: `getResources().getColor(R.color.red)`*/R.color.red/**/);\n" +
             "        textView.setTextColor(/*Should pass resolved color instead of resource id here: `getResources().getColor(android.R.color.black)`*/android.R.color.black/**/);\n" +
-            "        textView.setTextColor(/*Should pass resolved color instead of resource id here: `getResources().getColor(foo > 0 ? R.color.green : R.color.blue)`*/foo > 0 ? R.color.green : R.color.blue/**/);\n" +
+            "        textView.setTextColor(foo > 0 ? /*Should pass resolved color instead of resource id here: `getResources().getColor(R.color.green)`*/R.color.green/**/ : R.color.blue);\n" +
             "        // OK\n" +
             "        textView.setTextColor(getResources().getColor(R.color.red));\n" +
             "        // OK\n" +
@@ -1236,6 +1236,115 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             //"        setDimension2(/*Should pass resolved pixel dimension instead of resource id here: `getResources().getDimension*(actualSize)`*/actualSize/**/); // ERROR\n" +
             "        setDimension2(/*Should pass resolved pixel dimension instead of resource id here: `getResources().getDimension*(getDimension1())`*/getDimension1()/**/); // ERROR\n" +
             "        setDimension2(getDimension2()); // OK\n" +
+            "    }\n" +
+            "}\n");
+  }
+
+  public void testPx2() {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=229189
+    doCheck("" +
+            "package com.example;\n" +
+            "\n" +
+            "import android.app.Activity;\n" +
+            "import android.content.Context;\n" +
+            "import android.support.annotation.Dimension;\n" +
+            "import android.support.annotation.Px;\n" +
+            "import android.util.TypedValue;\n" +
+            "import android.widget.TextView;\n" +
+            "\n" +
+            "public class X extends Activity {\n" +
+            "    public void test(TextView someView, boolean condition) {\n" +
+            "        someView.setPadding(0, 0, 0, condition ? (int) convertDpToPixels(8) : 0);\n" +
+            "        someView.setPadding(0, 0, 0, condition ? (int) convertDpToPixelsNoAnnotation(8) : 0);\n" +
+            "        setPadding(0, 0, 0, condition ? (int) convertDpToPixelsNoAnnotation(8) : 0);\n" +
+            "    }\n" +
+            "\n" +
+            "    @Dimension(unit = Dimension.PX)\n" +
+            "    public float convertDpToPixels(final float dp) {\n" +
+            "        Context context = this;\n" +
+            "        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics());\n" +
+            "    }\n" +
+            "\n" +
+            "    public float convertDpToPixelsNoAnnotation(final float dp) {\n" +
+            "        Context context = this;\n" +
+            "        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics());\n" +
+            "    }\n" +
+            "\n" +
+            "    private void setPadding(@Px int a, @Px int b, @Px int c, @Px int d) {\n" +
+            "    }\n" +
+            "}\n");
+  }
+
+  public void testOverlappingRanges() throws Exception {
+    doCheck("" +
+            "package pkg.my.myapplication;\n" +
+            "\n" +
+            "import android.support.annotation.IntRange;\n" +
+            "import android.support.annotation.Size;\n" +
+            "\n" +
+            "@SuppressWarnings({\"WeakerAccess\", \"ConstantConditions\", \"UnusedParameters\", \"unused\"})\n" +
+            "public class X {\n" +
+            "    public void testSize(\n" +
+            "            @Size(4) int exactly4,\n" +
+            "            @Size(2) int exactly2,\n" +
+            "            @Size(min = 5) int atLeast5,\n" +
+            "            @Size(max = 5) int atMost5,\n" +
+            "            @Size(min = 2, max = 5) int between2and5,\n" +
+            "            @Size(multiple = 3) int triple,\n" +
+            "            @Size(min = 4, multiple = 3) int tripleFrom4,\n" +
+            "            @Size(min = 4, multiple = 4) int quadrupleFrom4) {\n" +
+            "        sizeMin3(/*Size must be at least 3*/exactly2/**/); // ERROR\n" +
+            "        sizeMin3(exactly4); // OK\n" +
+            "        sizeMin3(atLeast5); // OK\n" +
+            "        sizeMin3(/*Size must be at least 3*/atMost5/**/); // ERROR: delta\n" +
+            "        sizeMin3(/*Size must be at least 3*/between2and5/**/); // ERROR: 2 is not included\n" +
+            "        sizeMin3(/*Size must be at least 3*/triple/**/); // ERROR\n" +
+            "        sizeMin3(tripleFrom4); // OK\n" +
+            "\n" +
+            "        sizeMin3multiple2(/*Size must be at least 3 and a multiple of 2*/tripleFrom4/**/); // ERROR\n" +
+            "        sizeMin3multiple2(quadrupleFrom4); // OK\n" +
+            "\n" +
+            "        sizeMax10(exactly2);\n" +
+            "        sizeMax10(exactly4);\n" +
+            "        sizeMax10(/*Size must be at most 10*/atLeast5/**/); // ERROR: allows numbers outside the max\n" +
+            "        sizeMax10(between2and5); // OK\n" +
+            "        sizeMax10(/*Size must be at most 10*/triple/**/); // ERROR: allows numbers outside the max\n" +
+            "    }\n" +
+            "\n" +
+            "    public void testIntRange(\n" +
+            "            @IntRange(from = 5) int atLeast5,\n" +
+            "            @IntRange(to = 5) int atMost5,\n" +
+            "            @IntRange(from = 2, to = 5) int between2and5,\n" +
+            "            @IntRange(from = 4, to = 6) int between4and6) {\n" +
+            "        rangeMin3(atLeast5); // OK\n" +
+            "        rangeMin3(/*Value must be ≥ 3*/atMost5/**/); // ERROR: delta\n" +
+            "        rangeMin3(/*Value must be ≥ 3*/between2and5/**/); // ERROR: 2 is not included\n" +
+            "\n" +
+            "        range3to6(/*Value must be ≥ 3 and ≤ 6*/atLeast5/**/); // ERROR\n" +
+            "        range3to6(/*Value must be ≥ 3 and ≤ 6*/atMost5/**/); // ERROR\n" +
+            "        range3to6(/*Value must be ≥ 3 and ≤ 6*/between2and5/**/); // ERROR not overlapping\n" +
+            "        range3to6(between4and6); // OK\n" +
+            "\n" +
+            "        rangeMax10(/*Value must be ≤ 10*/atLeast5/**/); // ERROR: allows numbers outside the max\n" +
+            "        rangeMax10(between2and5); // OK\n" +
+            "        rangeMax10(atMost5); // OK\n" +
+            "    }\n" +
+            "    public void sizeMin3(@Size(min = 3) int size) {\n" +
+            "    }\n" +
+            "\n" +
+            "    public void sizeMin3multiple2(@Size(min = 3, multiple = 2) int size) {\n" +
+            "    }\n" +
+            "\n" +
+            "    public void sizeMax10(@Size(max = 10) int size) {\n" +
+            "    }\n" +
+            "\n" +
+            "    public void rangeMin3(@IntRange(from = 3) int range) {\n" +
+            "    }\n" +
+            "\n" +
+            "    public void range3to6(@IntRange(from = 3, to = 6) int range) {\n" +
+            "    }\n" +
+            "\n" +
+            "    public void rangeMax10(@IntRange(to = 10) int range) {\n" +
             "    }\n" +
             "}\n");
   }
@@ -1831,6 +1940,18 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
                 "public @interface Px {\n" +
                 "}";
     classes.add(header + px);
+
+    @Language("JAVA")
+    String dimension = "@Retention(SOURCE)\n" +
+                "@Target({METHOD,PARAMETER,FIELD,LOCAL_VARIABLE,ANNOTATION_TYPE})\n" +
+                "public @interface Dimension {\n" +
+                "    @DimensionUnit\n" +
+                "    int unit() default PX;\n" +
+                "    int DP = 0;\n" +
+                "    int PX = 1;\n" +
+                "    int SP = 2;\n" +
+                "}";
+    classes.add(header + dimension);
 
     @Language("JAVA")
     String requiresApi = "@Retention(SOURCE)\n" +
