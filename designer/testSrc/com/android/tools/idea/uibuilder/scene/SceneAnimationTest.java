@@ -80,7 +80,7 @@ public class SceneAnimationTest extends SceneTest {
       assertEquals(component.getDrawY(currentTime), 200);
       assertEquals(component.getDrawWidth(currentTime), 100);
       assertEquals(component.getDrawHeight(currentTime), 20);
-      myScene.paint(myInteraction.getDisplayList(), currentTime);
+      myScene.buildDisplayList(myInteraction.getDisplayList(), currentTime);
       currentTime = System.currentTimeMillis();
     }
     assertEquals(900, component.getDrawX(currentTime));

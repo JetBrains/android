@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.scene.draw;
 
-import com.android.tools.idea.uibuilder.scene.SceneTransform;
+import com.android.tools.idea.uibuilder.scene.SceneContext;
 
 import java.awt.*;
 
 /**
  * Paint interface for draw commands
+ * This interface also implies a constructor that takes a String
+ * Which can expand the serialization of the of the command
  */
 public interface DrawCommand {
-  void paint(Graphics2D g, SceneTransform sceneTransform);
+  void paint(Graphics2D g, SceneContext sceneContext);
   String serialize();
 }

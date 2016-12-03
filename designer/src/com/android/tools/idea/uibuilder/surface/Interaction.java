@@ -79,7 +79,7 @@ public class Interaction {
    * Returns a list of overlays, from bottom to top (where the later overlays
    * are painted on top of earlier ones if they overlap).
    *
-   * @return A list of overlays to paint for this interaction, if applicable.
+   * @return A list of overlays to buildDisplayList for this interaction, if applicable.
    * Should not be null, but can be empty.
    */
   public List<Layer> createOverlays() {

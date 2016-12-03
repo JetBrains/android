@@ -19,9 +19,10 @@ import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.scene.SceneTransform;
+import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.uibuilder.scene.draw.DrawAnchor;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -82,6 +83,14 @@ public class AnchorTarget extends ConstraintTarget {
     return myType == Type.TOP || myType == Type.BOTTOM || myType == Type.BASELINE;
   }
 
+  @Override
+  public void setOver(boolean over) {
+    if (over != mIsOver) {
+      mIsOver = over;
+      myComponent.getScene().needsRebuildList();
+      myComponent.getScene().repaint();
+    }
+  }
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region Layout
@@ -171,15 +180,15 @@ public class AnchorTarget extends ConstraintTarget {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public void render(@NotNull DisplayList list, SceneTransform sceneTransform) {
+  public void render(@NotNull DisplayList list, SceneContext sceneContext) {
     if (!myComponent.getScene().allowsTarget(this)) {
       return;
     }
-    list.addRect(sceneTransform, myLeft, myTop, myRight, myBottom, mIsOver ? Color.YELLOW : Color.GREEN);
+    DrawAnchor.add(list, sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? DrawAnchor.OVER : DrawAnchor.NORMAL);
     if (myLastX != -1 && myLastY != -1) {
       int x = myLeft + (myRight - myLeft) / 2;
       int y = myTop + (myBottom - myTop) / 2;
-      list.addConnection(sceneTransform, x, y, myLastX, myLastY, Color.RED);
+      list.addConnection(sceneContext, x, y, myLastX, myLastY, Color.RED);
     }
   }
 

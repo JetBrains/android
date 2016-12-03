@@ -15,15 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
-import java.util.List;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
@@ -63,12 +59,8 @@ public class SceneDisplayListTest extends SceneTest {
     String simpleList = "Rect,0,0,1000,1000,ffff0000\n" +
                         "Clip,0,0,1000,1000\n" +
                         "Rect,100,200,100,20,ff00ffff\n" +
-                        "Rect,100,200,100,20,ff00ff00\n" +
-                        "Line,100,200,200,220,ffff0000\n" +
-                        "Line,100,220,200,200,ffff0000\n" +
-                        "Rect,100,200,100,20,ff00ff00\n" +
-                        "Line,100,200,200,220,ffff0000\n" +
-                        "Line,100,220,200,200,ffff0000\n" +
+                        "DrawComponent,100,200,100,20,0\n" +
+                        "DrawComponent,100,200,100,20,0\n" +
                         "UNClip\n";
 
     assertEquals(myInteraction.getDisplayList().serialize(),simpleList );
@@ -76,6 +68,6 @@ public class SceneDisplayListTest extends SceneTest {
     assertEquals(DisplayList.getDisplayList(simpleList).serialize(),simpleList);
     //noinspection UndesirableClassUsage
     BufferedImage img = new BufferedImage(1000, 1000,BufferedImage.TYPE_INT_ARGB);
-    disp.paint(img.createGraphics(),SceneTransform.get());
+    disp.paint(img.createGraphics(), SceneContext.get());
   }
 }

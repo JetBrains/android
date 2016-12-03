@@ -50,6 +50,9 @@ public class Scene implements ModelListener, SelectionListener {
   public static final int NO_LAYOUT = 0;
   public static final int IMMEDIATE_LAYOUT = 1;
   public static final int ANIMATED_LAYOUT = 2;
+  private boolean myNeedsDisplayListRebuilt = true;
+  private Target myOverTarget;
+  private SceneComponent myCurrentComponent;
 
   private int mNeedsLayout = NO_LAYOUT;
 
@@ -269,6 +272,7 @@ public class Scene implements ModelListener, SelectionListener {
     if (sceneComponent != null) {
       sceneComponent.used = true;
       sceneComponent.updateFrom(component);
+      myNeedsDisplayListRebuilt = true;
     }
     else {
       sceneComponent = new SceneComponent(this, component);
@@ -357,8 +361,8 @@ public class Scene implements ModelListener, SelectionListener {
    * @param time
    * @return true if we need to repaint the screen
    */
-  public boolean paint(@NotNull DisplayList displayList, long time, ScreenView screenView) {
-    return paint(displayList, time, SceneTransform.get(screenView));
+  public boolean buildDisplayList(@NotNull DisplayList displayList, long time, ScreenView screenView) {
+    return buildDisplayList(displayList, time, SceneContext.get(screenView));
   }
 
   /**
@@ -368,10 +372,13 @@ public class Scene implements ModelListener, SelectionListener {
    * @param time
    * @return true if we need to repaint the screen
    */
-  public boolean paint(@NotNull DisplayList displayList, long time) {
-    return paint(displayList, time, SceneTransform.get());
+  public boolean buildDisplayList(@NotNull DisplayList displayList, long time) {
+    return buildDisplayList(displayList, time, SceneContext.get());
   }
 
+  public void repaint() {
+    myScreenView.getSurface().repaint();
+  }
   /**
    * Paint the current scene into the given display list
    *
@@ -379,12 +386,12 @@ public class Scene implements ModelListener, SelectionListener {
    * @param time
    * @return true if we need to repaint the screen
    */
-  public boolean paint(@NotNull DisplayList displayList, long time, SceneTransform sceneTransform) {
+  public boolean buildDisplayList(@NotNull DisplayList displayList, long time, SceneContext sceneContext) {
     boolean needsRepaint = false;
     if (myRoot != null) {
       needsRepaint = myRoot.layout(time);
-      if (sceneTransform != null) {
-        myRoot.buildDisplayList(time, displayList, sceneTransform);
+      if (sceneContext != null) {
+        myRoot.buildDisplayList(time, displayList, sceneContext);
         if (DEBUG) {
           System.out.println("========= DISPLAY LIST ======== \n" + displayList.serialize());
         }
@@ -533,12 +540,26 @@ public class Scene implements ModelListener, SelectionListener {
     if (myRoot != null) {
       myHoverListener.find(myRoot, x, y);
     }
-    if (myHoverListener.myClosestTarget != null) {
-      myHoverListener.myClosestTarget.setOver(true);
-      myMouseCursor = myHoverListener.myClosestTarget.getMouseCursor();
+    if (myOverTarget != myHoverListener.myClosestTarget) {
+      if (myOverTarget != null) {
+        myOverTarget.setOver(false);
+        myOverTarget = null;
+      }
+      if (myHoverListener.myClosestTarget != null) {
+        myHoverListener.myClosestTarget.setOver(true);
+        myOverTarget = myHoverListener.myClosestTarget;
+        myMouseCursor = myHoverListener.myClosestTarget.getMouseCursor();
+      }
     }
-    if (myHoverListener.myClosestComponent != null) {
-      myHoverListener.myClosestComponent.setDrawState(SceneComponent.DrawState.HOVER);
+    if (myCurrentComponent != myHoverListener.myClosestComponent) {
+      if (myCurrentComponent != null) {
+        myCurrentComponent.setDrawState(SceneComponent.DrawState.NORMAL);
+        myCurrentComponent = null;
+      }
+      if (myHoverListener.myClosestComponent != null) {
+        myHoverListener.myClosestComponent.setDrawState(SceneComponent.DrawState.HOVER);
+        myCurrentComponent = myHoverListener.myClosestComponent;
+      }
     }
   }
 
@@ -601,6 +622,17 @@ public class Scene implements ModelListener, SelectionListener {
     }
   }
 
+  public boolean getNeedsDisplayListRebuilt() {
+    return myNeedsDisplayListRebuilt;
+  }
+
+  public void clearNeedsRebuildList() {
+    myNeedsDisplayListRebuilt = false;
+  }
+
+  public void needsRebuildList() {
+    myNeedsDisplayListRebuilt = true;
+  }
   //endregion
   /////////////////////////////////////////////////////////////////////////////
 }

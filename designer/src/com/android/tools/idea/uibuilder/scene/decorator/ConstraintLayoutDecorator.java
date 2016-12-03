@@ -69,11 +69,11 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
   final static String[] ourDirectionsType = {"LEFT_TYPE", "RIGHT_TYPE", "TOP_TYPE", "BOTTOM_TYPE"};
   final static int[] ourOppositeDirection = {1, 0, 3, 2};
 
-  private void convert(@NotNull SceneTransform sceneTransform, Rectangle rect) {
-    rect.x = sceneTransform.getSwingX(rect.x);
-    rect.y = sceneTransform.getSwingY(rect.y);
-    rect.width = sceneTransform.getSwingDimension(rect.width);
-    rect.height = sceneTransform.getSwingDimension(rect.height);
+  private void convert(@NotNull SceneContext sceneContext, Rectangle rect) {
+    rect.x = sceneContext.getSwingX(rect.x);
+    rect.y = sceneContext.getSwingY(rect.y);
+    rect.width = sceneContext.getSwingDimension(rect.width);
+    rect.height = sceneContext.getSwingDimension(rect.height);
   }
 
   private void gatherProperties(@NotNull SceneComponent component,
@@ -123,7 +123,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
   }
 
   @Override
-  public void buildList(@NotNull DisplayList list, long time, @NotNull SceneTransform sceneTransform, @NotNull SceneComponent component) {
+  public void buildList(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
     Color color = Color.red;
     if (component.getDrawState() == SceneComponent.DrawState.HOVER) {
       color = Color.yellow;
@@ -136,15 +136,15 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     // Create a simple rectangle for connections
     Rectangle rect = new Rectangle();
     component.fillRect(rect);
-    list.addRect(sceneTransform, rect, color);
-    DisplayList.UNClip unclip = list.addClip(sceneTransform, rect);
+    list.addRect(sceneContext, rect, color);
+    DisplayList.UNClip unclip = list.addClip(sceneContext, rect);
     ArrayList<SceneComponent> children = component.getChildren();
     // TODO: consider order of build or implement layers, we may want to render connections, children, then targets
     for (int i = 0; i < children.size(); i++) {
       SceneComponent child = children.get(i);
-      child.getDecorator().buildList(list, time, sceneTransform, child);
-      buildListTarget(list, time, sceneTransform, component, child);
-      buildListConnections(list, time, sceneTransform, component, child);
+      child.getDecorator().buildList(list, time, sceneContext, child);
+      buildListTarget(list, time, sceneContext, component, child);
+      buildListConnections(list, time, sceneContext, component, child);
     }
     list.add(unclip);
   }
@@ -161,14 +161,14 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
    */
   private void buildListTarget(@NotNull DisplayList list,
                                long time,
-                               @NotNull SceneTransform sceneTransform,
+                               @NotNull SceneContext sceneContext,
                                @NotNull SceneComponent component,
                                @NotNull SceneComponent child) {
     ArrayList<Target> targets = child.getTargets();
     int num = targets.size();
     for (int i = 0; i < num; i++) {
       Target target = targets.get(i);
-      target.render(list, sceneTransform);
+      target.render(list, sceneContext);
     }
   }
 
@@ -185,13 +185,13 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
    */
   public void buildListConnections(@NotNull DisplayList list,
                                    long time,
-                                   @NotNull SceneTransform sceneTransform,
+                                   @NotNull SceneContext sceneContext,
                                    @NotNull SceneComponent component,
                                    @NotNull SceneComponent child) {
     Rectangle dest_rect = new Rectangle();
     Rectangle source_rect = new Rectangle();
     child.fillDrawRect(time, source_rect);
-    convert(sceneTransform, source_rect);
+    convert(sceneContext, source_rect);
     int x = source_rect.x;
     int y = source_rect.y;
     int w = source_rect.width;
@@ -212,14 +212,14 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
 
       if (sc != null) {
         sc.fillDrawRect(time, dest_rect);  // get the destination rectangle
-        convert(sceneTransform, dest_rect);   // scale to screen space
+        convert(sceneContext, dest_rect);   // scale to screen space
         int connect = (type == ConnectionType.SAME) ? i : ourOppositeDirection[i];
         boolean toParent = (child.getParent().equals(sc)); // flag a child connection
         int connectType = DrawConnection.TYPE_NORMAL;
 
         if (connectionTo[ourOppositeDirection[i]] != null) { // opposite side is connected
           connectType = DrawConnection.TYPE_SPRING;
-          if (connectionTo[ourOppositeDirection[i]] == sc) { // center
+          if (connectionTo[ourOppositeDirection[i]] == sc && ! toParent) { // center
             connectType = DrawConnection.TYPE_CENTER;
           }
         }
@@ -229,6 +229,10 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
             && toComponentsTo == child  // it must connect to some one who connects to me
             && sc.myCache.get(ourDirectionsType[connect]) == ConnectionType.BACKWARD) { // and that connection must be backward as well
           connectType = DrawConnection.TYPE_CHAIN;
+          if (sc.myCache.containsKey("chain")) {
+            continue; // no need to add element to display list chains only have to go one way
+          }
+          child.myCache.put("chain","drawn");
         }
         int margin = 0;
         float bias = 0.5f;

@@ -28,25 +28,40 @@ import java.awt.*;
 public class Display {
   private long mTime;
   private DisplayList myDisplayList = new DisplayList();
+  private boolean myNeedsDisplayListRebuild;
+  double myScale = 0;
+  void reLayout() {
+    myNeedsDisplayListRebuild = true;
+  }
 
-  public void draw(@NotNull SceneTransform sceneTransform, @NotNull Graphics2D g, @NotNull Scene scene) {
+  public void draw(@NotNull SceneContext sceneContext, @NotNull Graphics2D g, @NotNull Scene scene) {
     mTime = System.currentTimeMillis();
-
-    myDisplayList.clear();
-    boolean needsRepaint = scene.paint(myDisplayList, mTime, sceneTransform);
-    if (ConstraintLayoutHandler.USE_SCENE_INTERACTION) {
-      draw(sceneTransform, g, myDisplayList);
+    if (scene.getNeedsDisplayListRebuilt()) {
+      myNeedsDisplayListRebuild =  true;
     }
-    if (needsRepaint) {
-      DesignSurface designSurface = sceneTransform.getSurface();
+    if (sceneContext.getScale() != myScale) {
+      myScale = sceneContext.getScale();
+      myNeedsDisplayListRebuild = true;
+    }
+    myNeedsDisplayListRebuild |= myDisplayList.getCommands().size() == 0;
+    if (myNeedsDisplayListRebuild) {
+      myDisplayList.clear();
+      myNeedsDisplayListRebuild = scene.buildDisplayList(myDisplayList, mTime, sceneContext);
+      scene.clearNeedsRebuildList();
+    }
+    if (ConstraintLayoutHandler.USE_SCENE_INTERACTION) {
+      draw(sceneContext, g, myDisplayList);
+    }
+    if (myNeedsDisplayListRebuild) {
+      DesignSurface designSurface = sceneContext.getSurface();
       if (designSurface != null) {
         designSurface.repaint();
       }
     }
   }
 
-  public void draw(@NotNull SceneTransform sceneTransform, @NotNull Graphics2D g, @NotNull DisplayList list) {
-    list.paint(g, sceneTransform);
+  public void draw(@NotNull SceneContext sceneContext, @NotNull Graphics2D g, @NotNull DisplayList list) {
+    sceneContext.setTime(System.currentTimeMillis());
+    list.paint(g, sceneContext);
   }
-
 }
