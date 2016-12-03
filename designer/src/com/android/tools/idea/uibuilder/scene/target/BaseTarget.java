@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.scene.target;
 
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.ScenePicker;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,10 +28,10 @@ import java.awt.*;
 public abstract class BaseTarget implements Target {
 
   protected SceneComponent myComponent;
-  protected int myLeft = 0;
-  protected int myTop = 0;
-  protected int myRight = 0;
-  protected int myBottom = 0;
+  protected float myLeft = 0;
+  protected float myTop = 0;
+  protected float myRight = 0;
+  protected float myBottom = 0;
   protected boolean mIsOver = false;
 
   /////////////////////////////////////////////////////////////////////////////
@@ -53,11 +54,11 @@ public abstract class BaseTarget implements Target {
     mIsOver = over;
   }
 
-  public int getCenterX() {
+  public float getCenterX() {
     return myLeft + (myRight - myLeft) / 2;
   }
 
-  public int getCenterY() {
+  public float getCenterY() {
     return myTop + (myBottom - myTop) / 2;
   }
 
@@ -72,11 +73,12 @@ public abstract class BaseTarget implements Target {
   }
 
   @Override
-  public void addHit(@NotNull ScenePicker picker) {
+  public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
     if (!myComponent.getScene().allowsTarget(this)) {
       return;
     }
-    picker.addRect(this, 0, myLeft, myTop, myRight, myBottom);
+    picker.addRect(this, 0, transform.getSwingX(myLeft), transform.getSwingY(myTop),
+                   transform.getSwingX(myRight), transform.getSwingY(myBottom));
   }
 
   //endregion

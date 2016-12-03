@@ -55,7 +55,7 @@ public class DrawResize extends DrawRegion {
     return super.serialize() + "," + myMode;
   }
 
-  public static void add(DisplayList list, SceneContext transform, int left, int top, int right, int bottom, int mode) {
+  public static void add(DisplayList list, SceneContext transform, float left, float top, float right, float bottom, int mode) {
     int l = transform.getSwingX(left);
     int t = transform.getSwingY(top);
     int w = transform.getSwingDimension(right - left);
