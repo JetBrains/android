@@ -179,9 +179,10 @@ public class InstantRunBuilder implements BeforeRunBuilder {
         return BuildCause.FREEZE_SWAP_REQUIRES_API21;
       }
 
-      if (!myRunAsValidator.hasWorkingRunAs(device, myInstantRunContext.getApplicationId())) {
-        return BuildCause.FREEZE_SWAP_REQUIRES_WORKING_RUN_AS;
-      }
+      // We now have a run-as server for this case.  TODO:  Remove the BuildCause for this?
+      // if (!myRunAsValidator.hasWorkingRunAs(device, myInstantRunContext.getApplicationId())) {
+      //   return BuildCause.FREEZE_SWAP_REQUIRES_WORKING_RUN_AS;
+      // }
     }
 
     if (!isAppRunning(device)) {
