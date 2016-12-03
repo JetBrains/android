@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw.assetstudio.ui;
 
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -28,6 +27,28 @@ import java.lang.reflect.InvocationTargetException;
 import static com.google.common.truth.Truth.assertThat;
 
 public class IconPickerDialogTest {
+
+  @Test
+  public void initIconCategories() {
+    assertThat(IconPickerDialog.initIconCategories()).isEqualTo(new String[]{
+      "All",
+      "Action",
+      "Alert",
+      "AV",
+      "Communication",
+      "Content",
+      "Device",
+      "Editor",
+      "File",
+      "Hardware",
+      "Image",
+      "Maps",
+      "Navigation",
+      "Notification",
+      "Places",
+      "Social",
+      "Toggle"});
+  }
 
   @Test
   public void testFiltering() throws InvocationTargetException, InterruptedException {
