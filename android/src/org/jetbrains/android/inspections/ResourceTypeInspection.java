@@ -92,7 +92,6 @@ import static com.android.tools.lint.checks.PermissionFinder.Operation.*;
 import static com.android.tools.lint.checks.SupportAnnotationDetector.*;
 import static com.android.tools.lint.detector.api.ResourceEvaluator.*;
 import static com.intellij.psi.CommonClassNames.DEFAULT_PACKAGE;
-import static com.intellij.psi.CommonClassNames.JAVA_LANG_STRING;
 import static com.intellij.psi.util.PsiFormatUtilBase.SHOW_CONTAINING_CLASS;
 import static com.intellij.psi.util.PsiFormatUtilBase.SHOW_NAME;
 import static org.jetbrains.android.inspections.lint.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX;
@@ -368,6 +367,11 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       }
 
       return myErrorNode;
+    }
+
+    @Override
+    public String toString() {
+      return myStatus.toString();
     }
 
     private enum Status {
@@ -1534,411 +1538,6 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
   }
 
-  static class RangeAllowedValues extends Constraints {
-    @NotNull
-    public String describe(@NotNull PsiExpression argument) {
-      assert false;
-      return "";
-    }
-
-    public InspectionResult isValid(@NotNull PsiExpression argument) {
-      return InspectionResult.uncertain();
-    }
-
-    @Nullable
-    protected Number guessSize(@NotNull PsiExpression argument) {
-      if (argument instanceof PsiLiteral) {
-        PsiLiteral literal = (PsiLiteral)argument;
-        Object v = literal.getValue();
-        if (v instanceof Number) {
-          return (Number)v;
-        }
-      } else if (argument instanceof PsiBinaryExpression) {
-        Object v = JavaConstantExpressionEvaluator.computeConstantExpression(argument, false);
-        if (v instanceof Number) {
-          return (Number)v;
-        }
-      } else if (argument instanceof PsiReferenceExpression) {
-        PsiReferenceExpression ref = (PsiReferenceExpression)argument;
-        PsiElement resolved = ref.resolve();
-        if (resolved instanceof PsiField) {
-          PsiField field = (PsiField)resolved;
-          PsiExpression initializer = field.getInitializer();
-          if (initializer != null) {
-            Number number = guessSize(initializer);
-            if (number != null) {
-              // If we're surrounded by an if check involving the variable, then don't validate
-              // based on the initial value since it might be clipped to a valid range
-              PsiIfStatement ifStatement = PsiTreeUtil.getParentOfType(argument, PsiIfStatement.class, true);
-              if (ifStatement != null) {
-                PsiExpression condition = ifStatement.getCondition();
-                if (comparesReference(resolved, condition)) {
-                  return null;
-                }
-              }
-            }
-            return number;
-          }
-        } else if (resolved instanceof PsiLocalVariable) {
-          PsiLocalVariable variable = (PsiLocalVariable) resolved;
-          PsiExpression initializer = variable.getInitializer();
-          if (initializer != null) {
-            Number number = guessSize(initializer);
-            if (number != null) {
-              // If we're surrounded by an if check involving the variable, then don't validate
-              // based on the initial value since it might be clipped to a valid range
-              PsiIfStatement ifStatement = PsiTreeUtil.getParentOfType(argument, PsiIfStatement.class, true);
-              if (ifStatement != null) {
-                PsiExpression condition = ifStatement.getCondition();
-                if (comparesReference(resolved, condition)) {
-                  return null;
-                }
-              }
-            }
-            return number;
-          }
-        }
-      } else if (argument instanceof PsiPrefixExpression) {
-        PsiPrefixExpression prefix = (PsiPrefixExpression)argument;
-        if (prefix.getOperationTokenType() == JavaTokenType.MINUS) {
-          PsiExpression operand = prefix.getOperand();
-          if (operand != null) {
-            Number number = guessSize(operand);
-            if (number != null) {
-              if (number instanceof Long) {
-                return -number.longValue();
-              } else if (number instanceof Integer) {
-                return -number.intValue();
-              } else if (number instanceof Double) {
-                return -number.doubleValue();
-              } else if (number instanceof Float) {
-                return -number.floatValue();
-              } else if (number instanceof Short) {
-                return -number.shortValue();
-              } else if (number instanceof Byte) {
-                return -number.byteValue();
-              }
-            }
-          }
-        }
-      }
-      return null;
-    }
-
-    /**
-     * Checks whether the given range is compatible with this one.
-     * We err on the side of caution. E.g. if we have
-     * <pre>
-     *    method(x)
-     * </pre>
-     * and the parameter declaration says that x is between 0 and 10,
-     * and then we have a parameter which is known to be in the range 5 to 15,
-     * here we consider this a compatible range; we don't flag this as
-     * an error. If however, the ranges don't overlap, *then* we complain.
-     */
-    public InspectionResult isCompatibleWith(@NotNull RangeAllowedValues other) {
-      return InspectionResult.uncertain();
-    }
-  }
-
-  static class IntRangeConstraint extends RangeAllowedValues {
-    final long from;
-    final long to;
-
-    public IntRangeConstraint(@NotNull PsiAnnotation annotation) {
-      PsiAnnotationMemberValue fromValue = annotation.findDeclaredAttributeValue(ATTR_FROM);
-      PsiAnnotationMemberValue toValue = annotation.findDeclaredAttributeValue(ATTR_TO);
-      from = getLongValue(fromValue, Long.MIN_VALUE);
-      to = getLongValue(toValue, Long.MAX_VALUE);
-    }
-
-    @Override
-    public InspectionResult isValid(@NotNull PsiExpression argument) {
-      Number literalValue = guessSize(argument);
-      if (literalValue != null) {
-        long value = literalValue.longValue();
-        return value >= from && value <= to ? InspectionResult.valid() : InspectionResult.invalid(argument);
-      }
-
-      return InspectionResult.uncertain();
-    }
-
-    @NotNull
-    @Override
-    public String describe(@NotNull PsiExpression argument) {
-      StringBuilder sb = new StringBuilder(20);
-      if (to == Long.MAX_VALUE) {
-        sb.append("Value must be \u2265 ");
-        sb.append(Long.toString(from));
-      }
-      else if (from == Long.MIN_VALUE) {
-        sb.append("Value must be \u2264 ");
-        sb.append(Long.toString(to));
-      }
-      else {
-        sb.append("Value must be \u2265 ");
-        sb.append(Long.toString(from));
-        sb.append(" and \u2264 ");
-        sb.append(Long.toString(to));
-      }
-      Number actual = guessSize(argument);
-      if (actual != null) {
-        sb.append(" (was ").append(Integer.toString(actual.intValue())).append(')');
-      }
-      return sb.toString();
-    }
-
-    @Override
-    public InspectionResult isCompatibleWith(@NotNull RangeAllowedValues other) {
-      if (other instanceof IntRangeConstraint) {
-        IntRangeConstraint otherRange = (IntRangeConstraint)other;
-        return otherRange.from > to || otherRange.to < from ? InspectionResult.invalidWithoutNode() : InspectionResult.valid();
-      } else if (other instanceof FloatRangeConstraint) {
-        FloatRangeConstraint otherRange = (FloatRangeConstraint)other;
-        return otherRange.from > to || otherRange.to < from ? InspectionResult.invalidWithoutNode() : InspectionResult.valid();
-      }
-      return InspectionResult.uncertain();
-    }
-  }
-
-  static class FloatRangeConstraint extends RangeAllowedValues {
-    final double from;
-    final double to;
-    final boolean fromInclusive;
-    final boolean toInclusive;
-
-    public FloatRangeConstraint(@NotNull PsiAnnotation annotation) {
-      PsiAnnotationMemberValue fromValue = annotation.findDeclaredAttributeValue(ATTR_FROM);
-      PsiAnnotationMemberValue toValue = annotation.findDeclaredAttributeValue(ATTR_TO);
-      PsiAnnotationMemberValue fromInclusiveValue = annotation.findDeclaredAttributeValue(ATTR_FROM_INCLUSIVE);
-      PsiAnnotationMemberValue toInclusiveValue = annotation.findDeclaredAttributeValue(ATTR_TO_INCLUSIVE);
-      from = getDoubleValue(fromValue, Double.NEGATIVE_INFINITY);
-      to = getDoubleValue(toValue, Double.POSITIVE_INFINITY);
-      fromInclusive = getBooleanValue(fromInclusiveValue, true);
-      toInclusive = getBooleanValue(toInclusiveValue, true);
-    }
-
-    @Override
-    public InspectionResult isValid(@NotNull PsiExpression argument) {
-      Number number = guessSize(argument);
-      if (number != null) {
-        double value = number.doubleValue();
-        if (!((fromInclusive && value >= from || !fromInclusive && value > from) &&
-              (toInclusive && value <= to || !toInclusive && value < to))) {
-          return InspectionResult.invalid(argument);
-        }
-        return InspectionResult.valid();
-      }
-      return InspectionResult.uncertain();
-    }
-
-    @NotNull
-    @Override
-    public String describe(@NotNull PsiExpression argument) {
-      StringBuilder sb = new StringBuilder(20);
-      if (from != Double.NEGATIVE_INFINITY) {
-        if (to != Double.POSITIVE_INFINITY) {
-          sb.append("Value must be ");
-          if (fromInclusive) {
-            sb.append('\u2265'); // >= sign
-          } else {
-            sb.append('>');
-          }
-          sb.append(' ');
-          sb.append(Double.toString(from));
-          sb.append(" and ");
-          if (toInclusive) {
-            sb.append('\u2264'); // <= sign
-          } else {
-            sb.append('<');
-          }
-          sb.append(' ');
-          sb.append(Double.toString(to));
-        } else {
-          sb.append("Value must be ");
-          if (fromInclusive) {
-            sb.append('\u2265'); // >= sign
-          } else {
-            sb.append('>');
-          }
-          sb.append(' ');
-          sb.append(Double.toString(from));
-        }
-      } else if (to != Double.POSITIVE_INFINITY) {
-        sb.append("Value must be ");
-        if (toInclusive) {
-          sb.append('\u2264'); // <= sign
-        } else {
-          sb.append('<');
-        }
-        sb.append(' ');
-        sb.append(Double.toString(to));
-      }
-      Number actual = guessSize(argument);
-      if (actual != null) {
-        sb.append(" (was ");
-        // Try to avoid going through an actual double which introduces
-        // potential rounding ugliness (e.g. source can say "2.49f" and this is printed as "2.490000009536743")
-        if (argument instanceof PsiLiteral) {
-          PsiLiteral literal = (PsiLiteral)argument;
-          sb.append(literal.getText());
-        } else {
-          sb.append(Double.toString(actual.doubleValue()));
-        }
-        sb.append(')');
-      }
-      return sb.toString();
-    }
-
-    @Override
-    public InspectionResult isCompatibleWith(@NotNull RangeAllowedValues other) {
-      if (other instanceof FloatRangeConstraint) {
-        FloatRangeConstraint otherRange = (FloatRangeConstraint)other;
-        return otherRange.from > to || otherRange.to < from ? InspectionResult.invalidWithoutNode() : InspectionResult.valid();
-      } else if (other instanceof IntRangeConstraint) {
-        IntRangeConstraint otherRange = (IntRangeConstraint)other;
-        return otherRange.from > to || otherRange.to < from ? InspectionResult.invalidWithoutNode() : InspectionResult.valid();
-      }
-      return InspectionResult.uncertain();
-    }
-  }
-
-  static class SizeConstraint extends RangeAllowedValues {
-    final long exact;
-    final long min;
-    final long max;
-    final long multiple;
-
-    public SizeConstraint(@NotNull PsiAnnotation annotation) {
-      PsiAnnotationMemberValue exactValue = annotation.findAttributeValue(ATTR_VALUE);
-      PsiAnnotationMemberValue fromValue = annotation.findDeclaredAttributeValue(ATTR_MIN);
-      PsiAnnotationMemberValue toValue = annotation.findDeclaredAttributeValue(ATTR_MAX);
-      PsiAnnotationMemberValue multipleValue = annotation.findDeclaredAttributeValue(ATTR_MULTIPLE);
-      exact = getLongValue(exactValue, -1);
-      min = getLongValue(fromValue, Long.MIN_VALUE);
-      max = getLongValue(toValue, Long.MAX_VALUE);
-      multiple = getLongValue(multipleValue, 1);
-    }
-
-    @Override
-    public InspectionResult isValid(@NotNull PsiExpression argument) {
-      Number size = guessSize(argument);
-      if (size == null) {
-        return InspectionResult.uncertain();
-      }
-      int actual = size.intValue();
-      if (exact != -1) {
-        if (exact != actual) {
-          return InspectionResult.invalid(argument);
-        }
-      } else if (actual < min || actual > max || actual % multiple != 0) {
-        return InspectionResult.invalid(argument);
-      }
-
-      return InspectionResult.valid();
-    }
-
-    @Override
-    protected Number guessSize(@NotNull PsiExpression argument) {
-      if (argument instanceof PsiNewExpression) {
-        PsiNewExpression pne = (PsiNewExpression)argument;
-        PsiArrayInitializerExpression initializer = pne.getArrayInitializer();
-        if (initializer != null) {
-          return initializer.getInitializers().length;
-        }
-        PsiExpression[] dimensions = pne.getArrayDimensions();
-        if (dimensions.length > 0) {
-          PsiExpression dimension = dimensions[0];
-          return super.guessSize(dimension);
-        }
-      } else if (argument instanceof PsiLiteral) {
-        PsiLiteral literal = (PsiLiteral)argument;
-        Object o = literal.getValue();
-        if (o instanceof String) {
-          return ((String)o).length();
-        }
-      } else if (argument instanceof PsiBinaryExpression) {
-        Object v = JavaConstantExpressionEvaluator.computeConstantExpression(argument, false);
-        if (v instanceof String) {
-          return ((String)v).length();
-        }
-      } else if (argument instanceof PsiReferenceExpression) {
-        PsiReferenceExpression ref = (PsiReferenceExpression)argument;
-        PsiElement resolved = ref.resolve();
-        if (resolved instanceof PsiField) {
-          PsiField field = (PsiField)resolved;
-          PsiExpression initializer = field.getInitializer();
-          if (initializer != null) {
-            return guessSize(initializer);
-          }
-        } else if (resolved instanceof PsiLocalVariable) {
-          PsiLocalVariable variable = (PsiLocalVariable) resolved;
-          PsiExpression initializer = variable.getInitializer();
-          if (initializer != null) {
-            return guessSize(initializer);
-          }
-        }
-      }
-      return null;
-    }
-
-    @NotNull
-    @Override
-    public String describe(@NotNull PsiExpression argument) {
-      StringBuilder sb = new StringBuilder(20);
-      if (argument.getType() != null && argument.getType().getCanonicalText().equals(JAVA_LANG_STRING)) {
-        sb.append("Length");
-      } else {
-        sb.append("Size");
-      }
-      sb.append(" must be");
-      if (exact != -1) {
-        sb.append(" exactly ");
-        sb.append(Long.toString(exact));
-        return sb.toString();
-      }
-      boolean continued = true;
-      if (min != Long.MIN_VALUE && max != Long.MAX_VALUE) {
-        sb.append(" at least ");
-        sb.append(Long.toString(min));
-        sb.append(" and at most ");
-        sb.append(Long.toString(max));
-      } else if (min != Long.MIN_VALUE) {
-        sb.append(" at least ");
-        sb.append(Long.toString(min));
-      } else  if (max != Long.MAX_VALUE) {
-        sb.append(" at most ");
-        sb.append(Long.toString(max));
-      } else {
-        continued = false;
-      }
-      if (multiple != 1) {
-        if (continued) {
-          sb.append(" and");
-        }
-        sb.append(" a multiple of ");
-        sb.append(Long.toString(multiple));
-      }
-      Number actual = guessSize(argument);
-      if (actual != null) {
-        sb.append(" (was ").append(Integer.toString(actual.intValue())).append(')');
-      }
-      return sb.toString();
-    }
-
-    @Override
-    public InspectionResult isCompatibleWith(@NotNull RangeAllowedValues other) {
-      if (other instanceof SizeConstraint) {
-        SizeConstraint otherRange = (SizeConstraint)other;
-        if ((exact != -1 || otherRange.exact != -1) && exact != otherRange.exact) {
-          return InspectionResult.invalidWithoutNode();
-        }
-        return otherRange.min > max || otherRange.max < min ? InspectionResult.invalidWithoutNode() : InspectionResult.valid();
-      }
-      return InspectionResult.uncertain();
-    }
-  }
-
   static class IndirectPermission extends Constraints {
     public final String signature;
     @Nullable public PermissionFinder.Result result;
@@ -2044,8 +1643,8 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         else if (COLOR_INT_ANNOTATION.equals(qualifiedName)) {
           constraint = merge(new ResourceTypeAllowedValues(Collections.singletonList(COLOR_INT_MARKER_TYPE)), constraint);
         }
-        else if (PX_ANNOTATION.equals(qualifiedName)) {
-          constraint = merge(new ResourceTypeAllowedValues(Collections.singletonList(PX_MARKER_TYPE)), constraint);
+        else if (PX_ANNOTATION.equals(qualifiedName) || DIMENSION_ANNOTATION.equals(qualifiedName)) {
+          constraint = merge(new ResourceTypeAllowedValues(Collections.singletonList(DIMENSION_MARKER_TYPE)), constraint);
         }
         else if (qualifiedName.startsWith(PERMISSION_ANNOTATION)) {
           // PERMISSION_ANNOTATION, PERMISSION_ANNOTATION_READ, PERMISSION_ANNOTATION_WRITE
@@ -2143,7 +1742,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
                                   argument.getText());
           issue = COLOR_USAGE;
         }
-        else if (types.contains(PX_MARKER_TYPE)) {
+        else if (types.contains(DIMENSION_MARKER_TYPE)) {
           // Keep in sync with guessLintIssue
           message = String.format("Should pass resolved pixel dimension instead of resource id here: `getResources().getDimension*(%1$s)`",
                                   argument.getText());
@@ -2259,8 +1858,9 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     if (!visited.add(expression)) return InspectionResult.valid();
     if (expression instanceof PsiConditionalExpression) {
       PsiExpression thenExpression = ((PsiConditionalExpression)expression).getThenExpression();
-      boolean thenAllowed = thenExpression == null || isAllowed(scope, thenExpression, allowedValues, manager, visited).isValid();
-      if (!thenAllowed) return InspectionResult.invalid(thenExpression);
+      if (thenExpression != null && isAllowed(scope, thenExpression, allowedValues, manager, visited).isInvalid()) {
+        return InspectionResult.invalid(thenExpression);
+      }
       PsiExpression elseExpression = ((PsiConditionalExpression)expression).getElseExpression();
       return (elseExpression == null || !isAllowed(scope, elseExpression, allowedValues, manager, visited).isInvalid()) ? InspectionResult
         .valid() : InspectionResult.invalid(elseExpression);
@@ -2296,9 +1896,10 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       if (expression instanceof PsiPrefixExpression &&
           JavaTokenType.TILDE.equals(((PsiPrefixExpression)expression).getOperationTokenType())) {
         PsiExpression operand = ((PsiPrefixExpression)expression).getOperand();
-        return (operand == null || isAllowed(scope, operand, allowedValues, manager, visited).isValid())
-               ? InspectionResult.valid()
-               : InspectionResult.invalid(operand);
+        if (operand == null) {
+          return InspectionResult.valid();
+        }
+        return  isAllowed(scope, operand, allowedValues, manager, visited);
       }
     }
 
@@ -2322,7 +1923,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
   }
 
 
-  private static long getLongValue(@Nullable PsiElement value, long defaultValue) {
+  static long getLongValue(@Nullable PsiElement value, long defaultValue) {
     if (value == null) {
       return defaultValue;
     } else if (value instanceof PsiLiteral) {
@@ -2359,7 +1960,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     return defaultValue;
   }
 
-  private static double getDoubleValue(@Nullable PsiAnnotationMemberValue value, double defaultValue) {
+  static double getDoubleValue(@Nullable PsiAnnotationMemberValue value, double defaultValue) {
     if (value == null) {
       return defaultValue;
     } else if (value instanceof PsiLiteral) {
@@ -2396,7 +1997,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     return defaultValue;
   }
 
-  private static boolean getBooleanValue(@Nullable PsiAnnotationMemberValue value, boolean defaultValue) {
+  static boolean getBooleanValue(@Nullable PsiAnnotationMemberValue value, boolean defaultValue) {
     if (value == null) {
       return defaultValue;
     } else if (value instanceof PsiLiteral) {
@@ -2436,8 +2037,9 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     if (!visited.add(expression)) return InspectionResult.valid();
     if (expression instanceof PsiConditionalExpression) {
       PsiExpression thenExpression = ((PsiConditionalExpression)expression).getThenExpression();
-      boolean thenAllowed = thenExpression == null || isAllowed(scope, thenExpression, allowedValues, manager, visited).isValid();
-      if (!thenAllowed) return InspectionResult.invalid(expression);
+      if (thenExpression != null && isAllowed(scope, thenExpression, allowedValues, manager, visited).isInvalid()) {
+        return InspectionResult.invalid(thenExpression);
+      }
       PsiExpression elseExpression = ((PsiConditionalExpression)expression).getElseExpression();
       return (elseExpression == null || !isAllowed(scope, elseExpression, allowedValues, manager, visited).isInvalid()) ? InspectionResult
         .valid() : InspectionResult.invalid(expression);
@@ -2481,7 +2083,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         if (allowedValues.types.contains(COLOR_INT_MARKER_TYPE) && PsiType.INT.equals(expression.getType())) {
           // Passing literal integer to a color
           return InspectionResult.valid();
-        } else if (allowedValues.types.contains(PX_MARKER_TYPE) && PsiType.INT.equals(expression.getType())) {
+        } else if (allowedValues.types.contains(DIMENSION_MARKER_TYPE) && PsiType.INT.equals(expression.getType())) {
           // Passing literal integer to a pixel call
           return InspectionResult.valid();
         }
@@ -2671,7 +2273,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       PsiType type = getType((PsiModifierListOwner)resolved);
       allowedForRef = getAllowedValues((PsiModifierListOwner)resolved, type, null);
       if (allowedForRef instanceof RangeAllowedValues) {
-        return allowedValues.isCompatibleWith((RangeAllowedValues)allowedForRef).useErrorNode(expression);
+        return allowedValues.contains((RangeAllowedValues)allowedForRef).useErrorNode(expression);
       }
     }
 

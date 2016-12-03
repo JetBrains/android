@@ -248,7 +248,7 @@ public class InferSupportAnnotations {
           if (type == COLOR_INT_MARKER_TYPE) {
             sb.append(COLOR_INT_ANNOTATION);
           }
-          else if (type == PX_MARKER_TYPE) {
+          else if (type == DIMENSION_MARKER_TYPE) {
             sb.append(PX_ANNOTATION);
           }
           else {
@@ -608,7 +608,7 @@ public class InferSupportAnnotations {
         type = COLOR_INT_MARKER_TYPE;
       }
       else if (qualifiedName.equals(PX_ANNOTATION)) {
-        type = PX_MARKER_TYPE;
+        type = DIMENSION_MARKER_TYPE;
       }
       if (type != null) {
         if (constraints == null) {
