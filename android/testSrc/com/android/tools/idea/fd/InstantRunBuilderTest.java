@@ -50,6 +50,8 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import static org.junit.Assume.assumeTrue;
+
 public class InstantRunBuilderTest {
   private static final String APPLICATION_ID = "instant.run";
   private static final List<String> ASSEMBLE_TASKS = ImmutableList.of(":app:assemble");
@@ -328,6 +330,11 @@ public class InstantRunBuilderTest {
 
   @Test
   public void fullBuildOnFreezeSwapIfNoWorkingRunAs() throws Exception {
+
+    // We've worked around run-as failure using the run-as service,
+    // so skip this test for now.
+    assumeTrue(false);
+
     myDumpsysPackageOutput = DUMPSYS_PACKAGE_EXISTS;
     myDeviceBuildTimetamp = "100";
     myAppInForeground = false;
