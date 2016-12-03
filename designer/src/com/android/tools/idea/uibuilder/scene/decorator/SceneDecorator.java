@@ -17,9 +17,10 @@ package com.android.tools.idea.uibuilder.scene.decorator;
 
 
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.SceneTransform;
+import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.draw.DrawComponent;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
 
@@ -78,20 +79,21 @@ public class SceneDecorator {
    * @param screenView
    * @param component
    */
-  public void buildList(@NotNull DisplayList list, long time, @NotNull SceneTransform sceneTransform, @NotNull SceneComponent component) {
+  public void buildList(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
     Rectangle rect = new Rectangle();
     Color color = Color.CYAN;
     if (component.getDrawState() == SceneComponent.DrawState.HOVER) {
       color = Color.yellow;
     }
     component.fillRect(rect); // get the rectangle from the component
-    list.addRect(sceneTransform, rect, color); // add to the list
+     list.addRect(sceneContext, rect, color); // add to the list
+
 
     ArrayList<Target> targets = component.getTargets();
 
     int num = targets.size();
     for (int i = 0; i < num; i++) {
-      targets.get(i).render(list, sceneTransform);
+      targets.get(i).render(list, sceneContext);
     }
   }
 }

@@ -18,6 +18,9 @@ package com.android.tools.idea.uibuilder.scene;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.sherpa.drawing.AndroidColorSet;
+import com.android.tools.sherpa.drawing.BlueprintColorSet;
+import com.android.tools.sherpa.drawing.ColorSet;
 
 import java.util.WeakHashMap;
 
@@ -25,8 +28,27 @@ import java.util.WeakHashMap;
  * This represents the Transform between dp to screen space.
  * There are two ways to create it get() or get(ScreenView)
  */
-public class SceneTransform {
-  private SceneTransform() {
+public class SceneContext {
+  ColorSet myColorSet;
+  Long myTime;
+
+  private SceneContext() {
+    myTime = System.currentTimeMillis();
+  }
+
+  public long getTime() {
+    return myTime;
+  }
+
+  public void setTime(long time) {
+    myTime = time;
+  }
+
+  /**
+   * Used to request Repaint
+   */
+  public void repaint() {
+
   }
 
   public int getSwingX(int x) {
@@ -41,30 +63,39 @@ public class SceneTransform {
     return x;
   }
 
-  private static SceneTransform lazySingleton;
+  public ColorSet getColorSet() {
+    return myColorSet;
+  }
+
+  private static SceneContext lazySingleton;
 
   /**
    * Provide an Identity transform used in testing
+   *
    * @return
    */
-  static SceneTransform get() {
+  public static SceneContext get() {
     if (lazySingleton == null) {
-      lazySingleton = new SceneTransform();
+      lazySingleton = new SceneContext();
+      lazySingleton.myColorSet = new BlueprintColorSet();
     }
     return lazySingleton;
   }
 
   /**
-   * Get a SceneTransform for a ScreenView. They are cached and reused using a weekhashmap.
+   * Get a SceneContext for a ScreenView. They are cached and reused using a weekhashmap.
    *
    * @param screenView
    * @return
    */
-  public static SceneTransform get(ScreenView screenView) {
+  public static SceneContext get(ScreenView screenView) {
     if (cache.containsKey(screenView)) {
       return cache.get(screenView);
     }
     ScreenViewTransform screenViewTransform = new ScreenViewTransform(screenView);
+    screenViewTransform.myColorSet =
+      (screenView.getScreenViewType() == ScreenView.ScreenViewType.BLUEPRINT) ? new BlueprintColorSet() : new AndroidColorSet();
+
     cache.put(screenView, screenViewTransform);
     return screenViewTransform;
   }
@@ -75,10 +106,14 @@ public class SceneTransform {
     return null;
   }
 
+  public double getScale() {
+    return 1;
+  }
+
   /**
-   * The  SceneTransform based on a ScreenView
+   * The  SceneContext based on a ScreenView
    */
-  private static class ScreenViewTransform extends SceneTransform {
+  private static class ScreenViewTransform extends SceneContext {
     ScreenView myScreenView;
 
     public ScreenViewTransform(ScreenView screenView) {
@@ -88,6 +123,11 @@ public class SceneTransform {
     @Override
     public DesignSurface getSurface() {
       return myScreenView.getSurface();
+    }
+
+    @Override
+    public double getScale() {
+      return myScreenView.getScale();
     }
 
     @Override
@@ -101,7 +141,11 @@ public class SceneTransform {
     }
 
     @Override
+    public void repaint() {
+      myScreenView.getSurface().repaint();
+    }
 
+    @Override
     public int getSwingDimension(int v) {
       return Coordinates.getSwingDimension(myScreenView, Coordinates.dpToPx(myScreenView, v));
     }

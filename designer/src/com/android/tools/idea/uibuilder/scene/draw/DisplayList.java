@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene.draw;
 
-import com.android.tools.idea.uibuilder.scene.SceneTransform;
+import com.android.tools.idea.uibuilder.scene.SceneContext;
 
 import java.awt.*;
 import java.lang.reflect.Constructor;
@@ -25,6 +25,7 @@ import java.util.HashMap;
 
 /**
  * DisplayList implementation for Scene
+ * Also contains some primitive display elements.
  */
 public class DisplayList {
   private ArrayList<DrawCommand> myCommands = new ArrayList<DrawCommand>();
@@ -73,7 +74,7 @@ public class DisplayList {
     }
 
     @Override
-    public void paint(Graphics2D g, SceneTransform sceneTransform) {
+    public void paint(Graphics2D g, SceneContext sceneContext) {
       g.setColor(color);
       g.drawLine(x1, y1, x2, y2);
     }
@@ -103,7 +104,7 @@ public class DisplayList {
     }
 
     @Override
-    public void paint(Graphics2D g, SceneTransform sceneTransform) {
+    public void paint(Graphics2D g, SceneContext sceneContext) {
       g.setColor(color);
       g.drawRect(x, y, width, height);
     }
@@ -135,9 +136,9 @@ public class DisplayList {
     }
 
     @Override
-    public void paint(Graphics2D g, SceneTransform sceneTransform) {
+    public void paint(Graphics2D g, SceneContext sceneContext) {
       myOriginal = g.getClip();
-      g.setClip(x, y, width, height);
+      g.clipRect(x, y, width, height);
     }
   }
 
@@ -157,7 +158,7 @@ public class DisplayList {
     }
 
     @Override
-    public void paint(Graphics2D g, SceneTransform sceneTransform) {
+    public void paint(Graphics2D g, SceneContext sceneContext) {
       g.setClip(lastClip.getOriginalShape());
     }
 
@@ -188,7 +189,7 @@ public class DisplayList {
       color = new Color((int)Long.parseLong(sp[c++], 16));
     }
 
-    public Line(SceneTransform transform, int x1, int y1, int x2, int y2, Color c) {
+    public Line(SceneContext transform, int x1, int y1, int x2, int y2, Color c) {
       this.x1 = transform.getSwingX(x1);
       this.y1 = transform.getSwingY(y1);
       this.x2 = transform.getSwingX(x2);
@@ -197,7 +198,7 @@ public class DisplayList {
     }
 
     @Override
-    public void paint(Graphics2D g, SceneTransform sceneTransform) {
+    public void paint(Graphics2D g, SceneContext sceneContext) {
       g.setColor(color);
       g.drawLine(x1, y1, x2, y2);
     }
@@ -210,7 +211,7 @@ public class DisplayList {
     myCommands.add(cmd);
   }
 
-  public UNClip addClip(SceneTransform transform, Rectangle r) {
+  public UNClip addClip(SceneContext transform, Rectangle r) {
     int l = transform.getSwingX(r.x);
     int t = transform.getSwingY(r.y);
     int w = transform.getSwingDimension(r.width);
@@ -220,7 +221,7 @@ public class DisplayList {
     return new UNClip(c);
   }
 
-  public void addRect(SceneTransform transform, Rectangle r, Color color) {
+  public void addRect(SceneContext transform, Rectangle r, Color color) {
     int l = transform.getSwingX(r.x);
     int t = transform.getSwingY(r.y);
     int w = transform.getSwingDimension(r.width);
@@ -228,7 +229,7 @@ public class DisplayList {
     myCommands.add(new Rect(l, t, w, h, color));
   }
 
-  public void addRect(SceneTransform transform, int left, int top, int right, int bottom, Color color) {
+  public void addRect(SceneContext transform, int left, int top, int right, int bottom, Color color) {
     int l = transform.getSwingX(left);
     int t = transform.getSwingY(top);
     int w = transform.getSwingDimension(right - left);
@@ -236,7 +237,7 @@ public class DisplayList {
     add(new Rect(l, t, w, h, color));
   }
 
-  public void addConnection(SceneTransform transform, int x1, int y1, int x2, int y2, Color color) {
+  public void addConnection(SceneContext transform, int x1, int y1, int x2, int y2, Color color) {
     int sx1 = transform.getSwingX(x1);
     int sy1 = transform.getSwingY(y1);
     int sx2 = transform.getSwingX(x2);
@@ -244,7 +245,7 @@ public class DisplayList {
     add(new Connection(sx1, sy1, sx2, sy2, color));
   }
 
-  public void addLine(SceneTransform transform, int x1, int y1, int x2, int y2, Color color) {
+  public void addLine(SceneContext transform, int x1, int y1, int x2, int y2, Color color) {
     add(new Line(transform, x1, y1, x2, y2, color));
   }
 
@@ -252,12 +253,12 @@ public class DisplayList {
   // Painting
   /////////////////////////////////////////////////////////////////////////////
 
-  public void paint(Graphics2D g2, SceneTransform sceneTransform) {
+  public void paint(Graphics2D g2, SceneContext sceneContext) {
     Graphics2D g = (Graphics2D)g2.create();
     int count = myCommands.size();
     for (int i = 0; i < count; i++) {
       DrawCommand command = myCommands.get(i);
-      command.paint(g, sceneTransform);
+      command.paint(g, sceneContext);
     }
     g.dispose();
   }
@@ -288,10 +289,26 @@ public class DisplayList {
       ourBuildMap.put("UNClip", UNClip.class.getConstructor(String.class));
       ourBuildMap.put("Line", Line.class.getConstructor(String.class));
       ourBuildMap.put("DrawConnection", DrawConnection.class.getConstructor(String.class));
+      addListElementConstructor(DrawResize.class);
+      addListElementConstructor(DrawAnchor.class);
+      addListElementConstructor(DrawComponent.class);
     }
     catch (Exception e) {
       e.printStackTrace();
     }
+  }
+
+  static public void addListElementConstructor(Class<? extends DrawCommand> c) {
+    try {
+      ourBuildMap.put(c.getSimpleName(), c.getConstructor(String.class));
+    }
+    catch (NoSuchMethodException e) {
+      e.printStackTrace();
+    }
+  }
+
+  static public void addListElementConstructor(String cmd, Constructor<? extends DrawCommand> constructor) {
+    ourBuildMap.put(cmd, constructor);
   }
 
   static private DrawCommand get(String cmd, String args) {

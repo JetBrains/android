@@ -71,23 +71,15 @@ public class SceneDisplayListTest3 extends SceneTest {
     String simpleList = "Rect,0,0,1000,1000,ffff0000\n" +
                         "Clip,0,0,1000,1000\n" +
                         "Rect,450,490,100,20,ff00ffff\n" +
-                        "Rect,450,490,100,20,ff00ff00\n" +
-                        "Line,450,490,550,510,ffff0000\n" +
-                        "Line,450,510,550,490,ffff0000\n" +
-                        "Rect,450,490,100,20,ff00ff00\n" +
-                        "Line,450,490,550,510,ffff0000\n" +
-                        "Line,450,510,550,490,ffff0000\n" +
-                        "DrawConnection,4,450x490x100x20,0,0x0x1000x1000,0,true,false,0,0.5\n" +
-                        "DrawConnection,4,450x490x100x20,1,0x0x1000x1000,1,true,false,0,0.5\n" +
-                        "DrawConnection,4,450x490x100x20,2,0x0x1000x1000,2,true,false,0,0.5\n" +
-                        "DrawConnection,4,450x490x100x20,3,0x0x1000x1000,3,true,false,0,0.5\n" +
+                        "DrawComponent,450,490,100,20,0\n" +
+                        "DrawComponent,450,490,100,20,0\n" +
+                        "DrawConnection,2,450x490x100x20,0,0x0x1000x1000,0,true,false,0,0.5\n" +
+                        "DrawConnection,2,450x490x100x20,1,0x0x1000x1000,1,true,false,0,0.5\n" +
+                        "DrawConnection,2,450x490x100x20,2,0x0x1000x1000,2,true,false,0,0.5\n" +
+                        "DrawConnection,2,450x490x100x20,3,0x0x1000x1000,3,true,false,0,0.5\n" +
                         "Rect,450,490,100,20,ff00ffff\n" +
-                        "Rect,450,490,100,20,ff00ff00\n" +
-                        "Line,450,490,550,510,ffff0000\n" +
-                        "Line,450,510,550,490,ffff0000\n" +
-                        "Rect,450,490,100,20,ff00ff00\n" +
-                        "Line,450,490,550,510,ffff0000\n" +
-                        "Line,450,510,550,490,ffff0000\n" +
+                        "DrawComponent,450,490,100,20,0\n" +
+                        "DrawComponent,450,490,100,20,0\n" +
                         "DrawConnection,1,450x490x100x20,3,0x0x1000x1000,3,true,false,0,0.5\n" +
                         "UNClip\n";
 
@@ -96,8 +88,8 @@ public class SceneDisplayListTest3 extends SceneTest {
     assertEquals(simpleList, DisplayList.getDisplayList(simpleList).serialize());
     //noinspection UndesirableClassUsage
     BufferedImage img = new BufferedImage(1000, 1000,BufferedImage.TYPE_INT_ARGB);
-    disp.paint(img.createGraphics(),SceneTransform.get());
-    assertEquals(22, disp.getCommands().size());
+    disp.paint(img.createGraphics(), SceneContext.get());
+    assertEquals(14, disp.getCommands().size());
     disp.clear();
   }
 }

@@ -47,6 +47,9 @@ public abstract class BaseTarget implements Target {
 
   @Override
   public void setOver(boolean over) {
+    if (over != mIsOver && myComponent != null) {
+      myComponent.getScene().repaint();
+    }
     mIsOver = over;
   }
 
@@ -73,7 +76,6 @@ public abstract class BaseTarget implements Target {
     if (!myComponent.getScene().allowsTarget(this)) {
       return;
     }
-    mIsOver = false;
     picker.addRect(this, 0, myLeft, myTop, myRight, myBottom);
   }
 
