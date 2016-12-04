@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.Projects;
@@ -27,6 +28,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.Consumer;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,6 +91,15 @@ public class GradleProjectInfo {
       }
     }
     return modules.build();
+  }
+
+  public void forEachAndroidModule(@NotNull Consumer<AndroidFacet> consumer) {
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+      if (androidFacet != null && GradleFacet.getInstance(module) != null) {
+        consumer.consume(androidFacet);
+      }
+    }
   }
 
   @Nullable
