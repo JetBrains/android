@@ -318,7 +318,6 @@ public class GradleSyncTest {
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
   }
 
-  @Ignore("http://b.android.com/222226")
   @Test
   public void moduleSelectionOnImport() throws IOException {
     GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = true;
