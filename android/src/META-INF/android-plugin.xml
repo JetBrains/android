@@ -177,6 +177,7 @@
       <action internal="true" id="Android.GetAdbAction" class="com.android.tools.idea.ddms.adb.GetAdbAction" />
       <action internal="true" id="Android.TerminateAdbAction" class="com.android.tools.idea.ddms.adb.TerminateAdbAction" />
       <action internal="true" id="Android.GenerateLayoutTestSkeletonAction" class="com.android.tools.idea.uibuilder.actions.GenerateLayoutTestSkeletonAction"/>
+      <action internal="true" id="StatisticsViewer" class="com.android.tools.idea.stats.ShowStatisticsViewerAction"/>
       <add-to-group group-id="Internal"/>
     </group>
     <action id="Android.RunLayoutInspector" class="org.jetbrains.android.actions.AndroidRunLayoutInspectorAction">
