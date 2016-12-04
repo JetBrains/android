@@ -24,6 +24,7 @@ public interface DbTokenTypes {
   IElementType EXPR = new DbElementType("EXPR");
   IElementType EXPRESSION_LIST = new DbElementType("EXPRESSION_LIST");
   IElementType FIELD_NAME = new DbElementType("FIELD_NAME");
+  IElementType FUNCTION_REF_EXPR = new DbElementType("FUNCTION_REF_EXPR");
   IElementType ID_EXPR = new DbElementType("ID_EXPR");
   IElementType INEQ_COMPARISON_EXPR = new DbElementType("INEQ_COMPARISON_EXPR");
   IElementType INFERRED_FORMAL_PARAMETER_LIST = new DbElementType("INFERRED_FORMAL_PARAMETER_LIST");
@@ -57,6 +58,7 @@ public interface DbTokenTypes {
   IElementType CHAR_KEYWORD = new DbTokenType("char");
   IElementType CLASS_KEYWORD = new DbTokenType("class");
   IElementType COLON = new DbTokenType(":");
+  IElementType COLONCOLON = new DbTokenType("::");
   IElementType COMMA = new DbTokenType(",");
   IElementType DEFAULT_KEYWORD = new DbTokenType("default");
   IElementType DIV = new DbTokenType("/");
@@ -146,14 +148,14 @@ public interface DbTokenTypes {
       else if (type == EQ_COMPARISON_EXPR) {
         return new PsiDbEqComparisonExprImpl(node);
       }
-      else if (type == EXPR) {
-        return new PsiDbExprImpl(node);
-      }
       else if (type == EXPRESSION_LIST) {
         return new PsiDbExpressionListImpl(node);
       }
       else if (type == FIELD_NAME) {
         return new PsiDbFieldNameImpl(node);
+      }
+      else if (type == FUNCTION_REF_EXPR) {
+        return new PsiDbFunctionRefExprImpl(node);
       }
       else if (type == ID_EXPR) {
         return new PsiDbIdExprImpl(node);
