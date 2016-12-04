@@ -257,7 +257,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
           starts.add(problem.getTextRange().getStartOffset());
         }
       }
-      Collections.sort(starts, Collections.<Integer>reverseOrder());
+      starts.sort(Collections.<Integer>reverseOrder());
       for (Integer offset : starts) {
         if (psiFile.isValid()) {
           XmlAttribute attribute = PsiTreeUtil.findElementOfClassAtOffset(psiFile, offset, XmlAttribute.class, false);
@@ -358,7 +358,8 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
   @Override
   protected void performRefactoring(@NotNull UsageInfo[] usages) {
     try {
-      for (PsiElement element : myElements) {
+      for (UsageInfo usage : usages) {
+        PsiElement element = usage.getElement();
         if (element != null && element.isValid()) {
           element.delete();
         }
@@ -388,5 +389,19 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
 
   public void setIncludeIds(boolean includeIds) {
     myIncludeIds = includeIds;
+  }
+
+  @Override
+  protected boolean isToBeChanged(@NotNull UsageInfo usageInfo) {
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      // Automatically exclude/deselect elements that contain the string "AUTO-EXCLUDE".
+      // This is our simple way to unit test the UI operation of users deselecting certain
+      // elements in the refactoring UI.
+      PsiElement element = usageInfo.getElement();
+      if (element != null && element.getText().contains("AUTO-EXCLUDE")) {
+        return false;
+      }
+    }
+    return super.isToBeChanged(usageInfo);
   }
 }
