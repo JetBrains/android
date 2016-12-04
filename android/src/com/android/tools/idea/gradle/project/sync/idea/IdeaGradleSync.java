@@ -44,6 +44,7 @@ public class IdeaGradleSync implements GradleSync {
                    @Nullable GradleSyncListener listener) {
     // Prevent IDEA from syncing with Gradle. We want to have full control of syncing.
     project.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, true);
+    boolean newProject = request.isNewProject();
 
     if (SYNC_WITH_CACHED_MODEL_ONLY || request.isUseCachedGradleModels()) {
       GradleProjectSyncData syncData = GradleProjectSyncData.getInstance((project));
@@ -59,8 +60,7 @@ public class IdeaGradleSync implements GradleSync {
                       .setLastSyncTimestamp(syncData.getLastGradleSyncTimestamp());
           // @formatter:on
 
-          boolean newProject = request.isNewProject();
-          ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, setupRequest, listener, newProject, !newProject, true);
+          ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, setupRequest, listener, newProject, true /* select modules */, true);
           setUpTask.onSuccess(cache);
           return;
         }
@@ -76,8 +76,8 @@ public class IdeaGradleSync implements GradleSync {
 
     String externalProjectPath = getBaseDirPath(project).getPath();
 
-    ProjectSetUpTask setUpTask =
-      new ProjectSetUpTask(project, setupRequest, listener, request.isNewProject(), false, false);
+    ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, setupRequest, listener, newProject,
+                                                      newProject /* select modules if it's a new project */, false);
     ProgressExecutionMode executionMode = request.getProgressExecutionMode();
     refreshProject(project, GRADLE_SYSTEM_ID, externalProjectPath, setUpTask, false /* resolve dependencies */,
                    executionMode, true /* always report import errors */);
