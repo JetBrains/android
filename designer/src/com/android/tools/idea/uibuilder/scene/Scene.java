@@ -15,21 +15,23 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.target.*;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.awt.event.InputEvent;
+import java.util.*;
 import java.util.List;
 
 /**
@@ -53,6 +55,7 @@ public class Scene implements ModelListener, SelectionListener {
   private boolean myNeedsDisplayListRebuilt = true;
   private Target myOverTarget;
   private SceneComponent myCurrentComponent;
+  private SceneComponent myDnDComponent;
 
   private int mNeedsLayout = NO_LAYOUT;
 
@@ -62,12 +65,13 @@ public class Scene implements ModelListener, SelectionListener {
 
   private HitListener myHoverListener = new HitListener();
   private HitListener myHitListener = new HitListener();
-  private Target mHitTarget = null;
+  private Target myHitTarget = null;
   private int myMouseCursor;
-
-  public int getMouseCursor() {
-    return myMouseCursor;
-  }
+  private SceneComponent myHitComponent;
+  ArrayList<SceneComponent> myNewSelectedComponents = new ArrayList<>();
+  private boolean myIsControlDown;
+  private boolean myIsShiftDown;
+  private boolean myIsAltDown;
 
   private enum FilterType {ALL, ANCHOR, VERTICAL_ANCHOR, HORIZONTAL_ANCHOR, BASELINE_ANCHOR, NONE, RESIZE}
 
@@ -193,6 +197,60 @@ public class Scene implements ModelListener, SelectionListener {
     return myRoot;
   }
 
+  public int getMouseCursor() {
+    return myMouseCursor;
+  }
+
+  public void setDnDComponent(NlComponent component) {
+    if (myDnDComponent != null) {
+      myDnDComponent.removeFromParent();
+    }
+    if (component != null) {
+      myDnDComponent = new SceneComponent(this, component);
+      myDnDComponent.addTarget(new DragDndTarget());
+      setAnimate(false);
+      myDnDComponent.updateFrom(component);
+      setAnimate(true);
+    }
+    else {
+      myDnDComponent = null;
+    }
+    if (myRoot != null && myDnDComponent != null) {
+      myRoot.addChild(myDnDComponent);
+      needsRebuildList();
+    }
+  }
+
+  public boolean isAutoconnectOn() {
+    return PropertiesComponent.getInstance().getBoolean(ConstraintLayoutHandler.AUTO_CONNECT_PREF_KEY, false);
+  }
+
+  /**
+   * Update the current key modifiers state
+   *
+   * @param modifiers
+   */
+  public void updateModifiers(int modifiers) {
+    myIsControlDown = (((modifiers & InputEvent.CTRL_DOWN_MASK) != 0)
+                       || ((modifiers & InputEvent.CTRL_MASK) != 0));
+    myIsShiftDown = (((modifiers & InputEvent.SHIFT_DOWN_MASK) != 0)
+                     || ((modifiers & InputEvent.SHIFT_MASK) != 0));
+    myIsAltDown = (((modifiers & InputEvent.ALT_DOWN_MASK) != 0)
+                   || ((modifiers & InputEvent.ALT_MASK) != 0));
+  }
+
+  public boolean isControlDown() {
+    return myIsControlDown;
+  }
+
+  public boolean isShiftDown() {
+    return myIsShiftDown;
+  }
+
+  public boolean isAltDown() {
+    return myIsAltDown;
+  }
+
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region Update / Maintenance of the tree
@@ -205,15 +263,13 @@ public class Scene implements ModelListener, SelectionListener {
    */
   public void add(@NotNull NlModel model) {
     List<NlComponent> components = model.getComponents();
-    if (components.size() == 0) {
-      return;
+    if (components.size() != 0) {
+      NlComponent rootComponent = components.get(0).getRoot();
+      myAnimate = false;
+      myRoot = updateFromComponent(rootComponent);
+      myAnimate = true;
+      addTargets(myRoot);
     }
-    NlComponent rootComponent = components.get(0).getRoot();
-    myAnimate = false;
-    myRoot = updateFromComponent(rootComponent);
-    myAnimate = true;
-
-    addTargets(myRoot);
     model.addListener(this);
     myModel = model;
     // let's make sure the selection is correct
@@ -256,7 +312,7 @@ public class Scene implements ModelListener, SelectionListener {
         it.remove();
       }
     }
-    if (myRoot != null) {
+    if (myRoot != null && myScreenView != null && myScreenView.getSelectionModel().isEmpty()) {
       addTargets(myRoot);
     }
   }
@@ -293,7 +349,14 @@ public class Scene implements ModelListener, SelectionListener {
    *
    * @param component
    */
-  private void addTargets(@NotNull SceneComponent component) {
+  void addTargets(@NotNull SceneComponent component) {
+    SceneComponent parent = component.getParent();
+    if (parent != null) {
+      component = parent;
+    }
+    else {
+      component = myRoot;
+    }
     ViewHandler handler = component.getNlComponent().getViewHandler();
     if (handler instanceof ViewGroupHandler) {
       ViewGroupHandler viewGroupHandler = (ViewGroupHandler)handler;
@@ -308,6 +371,17 @@ public class Scene implements ModelListener, SelectionListener {
         }
       }
     }
+    needsRebuildList();
+  }
+
+  void clearChildTargets(SceneComponent component) {
+    int count = component.getChildCount();
+    component.setViewGroupHandler(null, false);
+    for (int i = 0; i < count; i++) {
+      SceneComponent child = component.getChild(i);
+      child.setViewGroupHandler(null, false);
+      clearChildTargets(child);
+    }
   }
 
   //endregion
@@ -318,7 +392,22 @@ public class Scene implements ModelListener, SelectionListener {
   @Override
   public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
     if (myRoot != null) {
+      clearChildTargets(myRoot);
       myRoot.markSelection(selection);
+      // After a new selection, we need to figure out the context
+      if (!selection.isEmpty()) {
+        NlComponent primary = selection.get(0);
+        SceneComponent component = getSceneComponent(primary);
+        if (component != null) {
+          addTargets(component);
+        }
+        else {
+          addTargets(myRoot);
+        }
+      }
+      else {
+        addTargets(myRoot);
+      }
     }
   }
 
@@ -379,6 +468,7 @@ public class Scene implements ModelListener, SelectionListener {
   public void repaint() {
     myScreenView.getSurface().repaint();
   }
+
   /**
    * Paint the current scene into the given display list
    *
@@ -398,7 +488,9 @@ public class Scene implements ModelListener, SelectionListener {
       }
     }
     else {
-      System.out.println("Scene:Paint() - NO ROOT ");
+      if (DEBUG) {
+        System.out.println("Scene:Paint() - NO ROOT ");
+      }
     }
     if (myDidPreviousRepaint) {
       myDidPreviousRepaint = needsRepaint;
@@ -412,10 +504,25 @@ public class Scene implements ModelListener, SelectionListener {
    *
    * @param component
    */
-  public void select(SceneComponent component) {
+  public void select(ArrayList<SceneComponent> components) {
     if (myScreenView != null) {
-      myScreenView.getSelectionModel().clear();
-      myScreenView.getSelectionModel().setSelection(Collections.singletonList(component.getNlComponent()));
+      ArrayList<NlComponent> nlComponents = new ArrayList<>();
+      if (myIsShiftDown) {
+        List<NlComponent> selection = myScreenView.getSelectionModel().getSelection();
+        nlComponents.addAll(selection);
+      }
+      int count = components.size();
+      for (int i = 0; i < count; i++) {
+        NlComponent component = components.get(i).getNlComponent();
+        if (myIsShiftDown && nlComponents.contains(component)) {
+          // if shift is pressed and the component is already selected, remove it from the selection
+          nlComponents.remove(component);
+        }
+        else {
+          nlComponents.add(component);
+        }
+      }
+      myScreenView.getSelectionModel().setSelection(nlComponents);
     }
   }
 
@@ -428,19 +535,23 @@ public class Scene implements ModelListener, SelectionListener {
   public boolean allowsTarget(Target target) {
     SceneComponent component = target.getComponent();
     if (component.isSelected()) {
+      boolean hasBaselineConnection = component.getNlComponent().getAttribute(SdkConstants.SHERPA_URI,
+                                                                              SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
       if (target instanceof AnchorTarget) {
         AnchorTarget anchor = (AnchorTarget)target;
         if (anchor.getType() == AnchorTarget.Type.BASELINE) {
           // only show baseline anchor as needed
-          return component.canShowBaseline();
-        } else {
+          return component.canShowBaseline() || hasBaselineConnection;
+        }
+        else {
           // if the baseline is showing, hide the rest of the anchors
-          return !component.canShowBaseline();
+          return (!hasBaselineConnection && !component.canShowBaseline())
+                 || (hasBaselineConnection && anchor.isHorizontalAnchor());
         }
       }
-      // if the baseline shows, hide all the targets others than ActionTarget or DragTarget
+      // if the baseline shows, hide all the targets others than ActionTarget, DragTarget and ResizeTarget
       if (component.canShowBaseline()) {
-        return (target instanceof ActionTarget) || (target instanceof DragTarget);
+        return (target instanceof ActionTarget) || (target instanceof DragTarget) || (target instanceof ResizeTarget);
       }
       return true;
     }
@@ -465,6 +576,9 @@ public class Scene implements ModelListener, SelectionListener {
       return true;
     }
     if (target instanceof DragTarget) {
+      return true;
+    }
+    if (target instanceof LassoTarget) {
       return true;
     }
     if (target instanceof GuidelineCycleTarget) {
@@ -499,7 +613,10 @@ public class Scene implements ModelListener, SelectionListener {
       myPicker.setSelectListener(this);
     }
 
-    public void find(@NotNull SceneContext transform, @NotNull SceneComponent root, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+    public void find(@NotNull SceneContext transform,
+                     @NotNull SceneComponent root,
+                     @AndroidDpCoordinate int x,
+                     @AndroidDpCoordinate int y) {
       myClosestComponent = null;
       myClosestTarget = null;
       myClosestComponentDistance = Double.MAX_VALUE;
@@ -514,7 +631,14 @@ public class Scene implements ModelListener, SelectionListener {
     public void over(Object over, double dist) {
       if (over instanceof Target) {
         Target target = (Target)over;
-        if (dist <= myClosestTargetDistance && target.getPreferenceLevel() >= myClosestTargetLevel) {
+        if (dist < myClosestTargetDistance
+            || (dist == myClosestTargetDistance
+                && prefer(target.getComponent(),
+                          myClosestTarget != null ? myClosestTarget.getComponent() : null)
+                && target.getPreferenceLevel() >= myClosestTargetLevel)
+            || (dist == myClosestTargetDistance
+                && myClosestTarget == myHitTarget
+                && target instanceof AnchorTarget)) {
           myClosestTargetDistance = dist;
           myClosestTarget = target;
           myClosestTargetLevel = target.getPreferenceLevel();
@@ -522,12 +646,30 @@ public class Scene implements ModelListener, SelectionListener {
       }
       else if (over instanceof SceneComponent) {
         SceneComponent component = (SceneComponent)over;
-        if (dist < myClosestComponentDistance) {
+        if (dist < myClosestComponentDistance
+            || (dist == myClosestComponentDistance && prefer(component, myCurrentComponent))) {
           myClosestComponentDistance = dist;
           myClosestComponent = component;
         }
       }
     }
+  }
+
+  private boolean prefer(SceneComponent component, SceneComponent current) {
+    if (current == null) {
+      return true;
+    }
+    if (current == component) {
+      return true;
+    }
+    SceneComponent parent = component.getParent();
+    while (parent != null) {
+      if (parent == current) {
+        return true;
+      }
+      parent = parent.getParent();
+    }
+    return false;
   }
 
   /**
@@ -577,10 +719,11 @@ public class Scene implements ModelListener, SelectionListener {
       return;
     }
     myHitListener.find(transform, myRoot, x, y);
-    mHitTarget = myHitListener.myClosestTarget;
-    if (mHitTarget != null) {
-      if (mHitTarget instanceof AnchorTarget) {
-        AnchorTarget anchor = (AnchorTarget)mHitTarget;
+    myHitTarget = myHitListener.myClosestTarget;
+    myHitComponent = myHitListener.myClosestComponent;
+    if (myHitTarget != null) {
+      if (myHitTarget instanceof AnchorTarget) {
+        AnchorTarget anchor = (AnchorTarget)myHitTarget;
         if (anchor.isHorizontalAnchor()) {
           myFilterTarget = FilterType.HORIZONTAL_ANCHOR;
         }
@@ -591,16 +734,19 @@ public class Scene implements ModelListener, SelectionListener {
           myFilterTarget = FilterType.BASELINE_ANCHOR;
         }
       }
-      mHitTarget.mouseDown(x, y);
+      myHitTarget.mouseDown(x, y);
     }
   }
 
   public void mouseDrag(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+    if (myLastMouseX == x && myLastMouseY == y) {
+      return;
+    }
     myLastMouseX = x;
     myLastMouseY = y;
-    if (mHitTarget != null) {
+    if (myHitTarget != null) {
       myHitListener.find(transform, myRoot, x, y);
-      mHitTarget.mouseDrag(x, y, myHitListener.myClosestTarget);
+      myHitTarget.mouseDrag(x, y, myHitListener.myClosestTarget);
     }
     mouseHover(transform, x, y);
     if (mNeedsLayout != NO_LAYOUT) {
@@ -611,14 +757,53 @@ public class Scene implements ModelListener, SelectionListener {
   public void mouseRelease(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myLastMouseX = x;
     myLastMouseY = y;
-    if (mHitTarget != null) {
+    if (myHitTarget != null) {
       myHitListener.find(transform, myRoot, x, y);
-      mHitTarget.mouseRelease(x, y, myHitListener.myClosestTarget);
+      myHitTarget.mouseRelease(x, y, myHitListener.myClosestTarget);
     }
     myFilterTarget = FilterType.NONE;
+    myNewSelectedComponents.clear();
+    if (myHitComponent != null && myHitListener.myClosestComponent == myHitComponent) {
+      myNewSelectedComponents.add(myHitComponent);
+    }
+    if (myHitTarget instanceof ActionTarget) {
+      // it will be outside the bounds of the component, so will likely have
+      // selected a different one...
+      myNewSelectedComponents.clear();
+      myNewSelectedComponents.add(myHitTarget.getComponent());
+    }
+    if (myHitTarget instanceof DragTarget) {
+      DragTarget dragTarget = (DragTarget)myHitTarget;
+      if (dragTarget.hasChangedComponent()) {
+        myNewSelectedComponents.add(dragTarget.getComponent());
+      }
+    }
+    if (myHitTarget instanceof LassoTarget) {
+      LassoTarget lassoTarget = (LassoTarget)myHitTarget;
+      lassoTarget.fillSelectedComponents(myNewSelectedComponents);
+    }
+    if (!sameSelection()) {
+      select(myNewSelectedComponents);
+    }
     if (mNeedsLayout != NO_LAYOUT) {
       myModel.requestLayout(mNeedsLayout == ANIMATED_LAYOUT ? true : false);
     }
+  }
+
+  private boolean sameSelection() {
+    List<NlComponent> currentSelection = myScreenView.getSelectionModel().getSelection();
+    if (myNewSelectedComponents.size() == currentSelection.size()) {
+      int count = currentSelection.size();
+      for (int i = 0; i < count; i++) {
+        NlComponent component = currentSelection.get(i);
+        SceneComponent sceneComponent = getSceneComponent(component);
+        if (!myNewSelectedComponents.contains(sceneComponent)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
   }
 
   public void needsLayout(int type) {

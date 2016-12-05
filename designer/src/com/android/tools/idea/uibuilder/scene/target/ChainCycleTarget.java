@@ -15,41 +15,49 @@
  */
 package com.android.tools.idea.uibuilder.scene.target;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DrawAction;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class ClearConstraintsTarget extends ActionTarget implements ActionTarget.Action {
+import java.util.ArrayList;
 
-  public ClearConstraintsTarget(ActionTarget previous) {
-    super(previous, null);
-    setAction(this);
-    setActionType(DrawAction.CLEAR);
+/**
+ * Implements an action to cycle chains
+ */
+public class ChainCycleTarget extends ActionTarget {
+
+  public ChainCycleTarget(ActionTarget previous, Action action) {
+    super(previous, action);
+    setActionType(DrawAction.CHAIN);
   }
 
   @Override
-  public void apply(SceneComponent component) {
-    AttributesTransaction transaction = component.getNlComponent().startAttributeTransaction();
-    clearAllAttributes(transaction);
-    transaction.apply();
+  public boolean layout(@NotNull SceneContext sceneTransform, int l, int t, int r, int b) {
+    super.layout(sceneTransform, l, t, r, b);
+    checkIsInChain();
+    myIsVisible = myIsInHorizontalChain || myIsInVerticalChain;
+    return false;
+  }
 
-    NlModel nlModel = component.getNlComponent().getModel();
-    Project project = nlModel.getProject();
-    XmlFile file = nlModel.getFile();
-
-    String label = "Cleared all constraints";
-    WriteCommandAction action = new WriteCommandAction(project, label, file) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        transaction.commit();
+  @Override
+  public void mouseRelease(int x, int y, @Nullable Target closestTarget) {
+    if (closestTarget == this && myIsVisible) {
+      if (myIsInHorizontalChain) {
+        cycleChainStyle(myHorizontalChainHead, SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE);
       }
-    };
-    action.execute();
+      else if (myIsInVerticalChain) {
+        cycleChainStyle(myVerticalChainHead, SdkConstants.ATTR_LAYOUT_VERTICAL_CHAIN_STYLE);
+      }
+    }
   }
 }

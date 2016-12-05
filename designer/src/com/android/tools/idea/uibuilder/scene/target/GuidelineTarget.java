@@ -19,7 +19,12 @@ import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
+import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.scene.draw.DrawHorizontalNotch;
+import com.android.tools.idea.uibuilder.scene.draw.DrawVerticalNotch;
 import org.jetbrains.annotations.NotNull;
+
+import java.awt.*;
 
 /**
  * Implements the drag behaviour for ConstraintLayout Guideline
@@ -29,6 +34,17 @@ public class GuidelineTarget extends DragTarget {
 
   public GuidelineTarget(boolean isHorizontal) {
     myIsHorizontal = isHorizontal;
+  }
+
+  @Override
+  public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
+    if (myIsHorizontal) {
+      int y = (int)(myTop + (myBottom - myTop) / 2);
+      DrawHorizontalNotch.add(list, sceneContext, myLeft, y, myRight);
+    } else {
+      int x = (int)(myLeft + (myRight - myLeft) / 2);
+      DrawVerticalNotch.add(list, sceneContext, x, myTop, myBottom);
+    }
   }
 
   @Override

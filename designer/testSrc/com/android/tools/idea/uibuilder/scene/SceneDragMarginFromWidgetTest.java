@@ -65,7 +65,8 @@ public class SceneDragMarginFromWidgetTest extends SceneTest {
                  "    android:layout_height=\"20dp\"\n" +
                  "    app:layout_constraintLeft_toRightOf=\"@+id/button1\"\n" +
                  "    tools:layout_editor_absoluteY=\"200dp\"\n" +
-                 "      android:layout_marginLeft=\"550dp\" />");
+                 "      android:layout_marginLeft=\"550dp\"\n" +
+                 "      android:layout_marginStart=\"550dp\" />");
   }
 
 }
