@@ -27,6 +27,8 @@ import java.util.*;
  * It's created from an execution tree by merging the nodes with the same path from the root.
  */
 class TopDownNode {
+  private static final String INVALID_ID = "";
+
   private final List<HNode<MethodModel>> myNodes;
   private final List<TopDownNode> myChildren;
   private final String myId;
@@ -35,11 +37,12 @@ class TopDownNode {
   public TopDownNode(@NotNull HNode<MethodModel> node) {
     myNodes = new LinkedList<>();
     myChildren = new ArrayList<>();
-    myId = node.getData().getId();
+    myId = node.getData() == null ? INVALID_ID : node.getData().getId();
     myNodes.add(node);
 
     Map<String, TopDownNode> children = new TreeMap<>();
     for (HNode<MethodModel> child : node.getChildren()) {
+      assert child.getData() != null;
       TopDownNode prev = children.get(child.getData().getId());
       TopDownNode other = new TopDownNode(child);
       if (prev == null) {
@@ -83,12 +86,12 @@ class TopDownNode {
 
   public String getMethodName() {
     MethodModel data = myNodes.get(0).getData();
-    return data.getName();
+    return data == null ? "" : data.getName();
   }
 
   public String getPackage() {
     MethodModel data = myNodes.get(0).getData();
-    return data.getNameSpace();
+    return data == null ? "" : data.getNameSpace();
   }
 
   public double getTotal() {
