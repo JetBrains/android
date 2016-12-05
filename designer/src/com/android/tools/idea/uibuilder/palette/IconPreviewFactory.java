@@ -103,7 +103,7 @@ public class IconPreviewFactory implements Disposable {
 
   @Nullable
   private RenderTask getRenderTask(Configuration configuration) {
-    if (myRenderTask == null || myRenderTask.getModule() != configuration.getModule()) {
+    if (true || myRenderTask == null || myRenderTask.getModule() != configuration.getModule()) {
       if (myRenderTask != null) {
         myRenderTask.dispose();
       }
