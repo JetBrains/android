@@ -420,7 +420,8 @@ public class MenuPreviewRendererTest extends RenderTestBase {
     }
   }
 
-  public void testLightTheme() throws IOException {
+  // Disabled: https://code.google.com/p/android/issues/detail?id=229518
+  public void /*test*/LightTheme() throws IOException {
     myFixture.copyFileToProject("menus/strings.xml", "res/menu/strings.xml");
     VirtualFile file = myFixture.copyFileToProject("menus/menu1.xml", "res/menu/menu1.xml");
     assertNotNull(file);
