@@ -154,4 +154,9 @@ public class Range {
   public void expand(double min, double max) {
     set(Math.min(min, myMin), Math.max(max, myMax));
   }
+
+  @Override
+  public String toString() {
+    return !isEmpty() ? String.format("[%s..%s]", myMin, myMax) : "[]";
+  }
 }

@@ -5,6 +5,7 @@ iml_module(
     srcs = ["src"],
     resources = ["resources"],
     tags = ["managed"],
+    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -18,5 +19,6 @@ iml_module(
         "//tools/idea/platform/platform-api[module]",
         "//tools:idea.platform-impl_and_others[module]",
         "//tools/base/perflib:studio.perflib[module]",
+        "//tools/idea/.idea/libraries:JUnit4[test]",
     ],
 )
