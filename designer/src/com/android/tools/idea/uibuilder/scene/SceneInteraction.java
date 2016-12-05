@@ -34,20 +34,13 @@ public class SceneInteraction extends Interaction {
   private final ScreenView myScreenView;
 
   /**
-   * The component where we start the interaction
-   */
-  private final NlComponent myComponent;
-
-  /**
    * Base constructor
    *
    * @param screenView the ScreenView we belong to
    * @param component  the component we belong to
    */
-  public SceneInteraction(@NotNull ScreenView screenView,
-                               @NotNull NlComponent component) {
+  public SceneInteraction(@NotNull ScreenView screenView) {
     myScreenView = screenView;
-    myComponent = component;
   }
 
   /**
