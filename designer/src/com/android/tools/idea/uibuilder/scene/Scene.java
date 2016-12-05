@@ -62,8 +62,9 @@ public class Scene implements ModelListener, SelectionListener {
 
   private HitListener myHoverListener = new HitListener();
   private HitListener myHitListener = new HitListener();
-  private Target mHitTarget = null;
+  private Target myHitTarget = null;
   private int myMouseCursor;
+  private SceneComponent myHitComponent;
 
   public int getMouseCursor() {
     return myMouseCursor;
@@ -205,15 +206,13 @@ public class Scene implements ModelListener, SelectionListener {
    */
   public void add(@NotNull NlModel model) {
     List<NlComponent> components = model.getComponents();
-    if (components.size() == 0) {
-      return;
+    if (components.size() != 0) {
+      NlComponent rootComponent = components.get(0).getRoot();
+      myAnimate = false;
+      myRoot = updateFromComponent(rootComponent);
+      myAnimate = true;
+      addTargets(myRoot);
     }
-    NlComponent rootComponent = components.get(0).getRoot();
-    myAnimate = false;
-    myRoot = updateFromComponent(rootComponent);
-    myAnimate = true;
-
-    addTargets(myRoot);
     model.addListener(this);
     myModel = model;
     // let's make sure the selection is correct
@@ -256,7 +255,7 @@ public class Scene implements ModelListener, SelectionListener {
         it.remove();
       }
     }
-    if (myRoot != null) {
+    if (myRoot != null && myScreenView != null && myScreenView.getSelectionModel().isEmpty()) {
       addTargets(myRoot);
     }
   }
@@ -293,7 +292,13 @@ public class Scene implements ModelListener, SelectionListener {
    *
    * @param component
    */
-  private void addTargets(@NotNull SceneComponent component) {
+  void addTargets(@NotNull SceneComponent component) {
+    SceneComponent parent = component.getParent();
+    if (parent != null) {
+      component = parent;
+    } else {
+      component = myRoot;
+    }
     ViewHandler handler = component.getNlComponent().getViewHandler();
     if (handler instanceof ViewGroupHandler) {
       ViewGroupHandler viewGroupHandler = (ViewGroupHandler)handler;
@@ -308,6 +313,17 @@ public class Scene implements ModelListener, SelectionListener {
         }
       }
     }
+    needsRebuildList();
+  }
+
+  void clearChildTargets(SceneComponent component) {
+    int count = component.getChildCount();
+    component.setViewGroupHandler(null, false);
+    for (int i = 0; i < count; i++) {
+      SceneComponent child = component.getChild(i);
+      child.setViewGroupHandler(null, false);
+      clearChildTargets(child);
+    }
   }
 
   //endregion
@@ -318,7 +334,20 @@ public class Scene implements ModelListener, SelectionListener {
   @Override
   public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
     if (myRoot != null) {
+      clearChildTargets(myRoot);
       myRoot.markSelection(selection);
+      // After a new selection, we need to figure out the context
+      if (!selection.isEmpty()) {
+        NlComponent primary = selection.get(0);
+        SceneComponent component = getSceneComponent(primary);
+        if (component != null) {
+          addTargets(component);
+        } else {
+          addTargets(myRoot);
+        }
+      } else {
+        addTargets(myRoot);
+      }
     }
   }
 
@@ -398,7 +427,9 @@ public class Scene implements ModelListener, SelectionListener {
       }
     }
     else {
-      System.out.println("Scene:Paint() - NO ROOT ");
+      if (DEBUG) {
+        System.out.println("Scene:Paint() - NO ROOT ");
+      }
     }
     if (myDidPreviousRepaint) {
       myDidPreviousRepaint = needsRepaint;
@@ -514,7 +545,10 @@ public class Scene implements ModelListener, SelectionListener {
     public void over(Object over, double dist) {
       if (over instanceof Target) {
         Target target = (Target)over;
-        if (dist <= myClosestTargetDistance && target.getPreferenceLevel() >= myClosestTargetLevel) {
+        if (dist < myClosestTargetDistance
+          || (dist == myClosestTargetDistance && prefer(target.getComponent(),
+                                                        myClosestTarget != null ? myClosestTarget.getComponent() : null)
+              && target.getPreferenceLevel() >= myClosestTargetLevel)) {
           myClosestTargetDistance = dist;
           myClosestTarget = target;
           myClosestTargetLevel = target.getPreferenceLevel();
@@ -522,12 +556,30 @@ public class Scene implements ModelListener, SelectionListener {
       }
       else if (over instanceof SceneComponent) {
         SceneComponent component = (SceneComponent)over;
-        if (dist < myClosestComponentDistance) {
+        if (dist < myClosestComponentDistance
+          || (dist == myClosestComponentDistance && prefer(component, myCurrentComponent))) {
           myClosestComponentDistance = dist;
           myClosestComponent = component;
         }
       }
     }
+  }
+
+  private boolean prefer(SceneComponent component, SceneComponent current) {
+    if (current == null) {
+      return true;
+    }
+    if (current == component) {
+      return true;
+    }
+    SceneComponent parent = component.getParent();
+    while (parent != null) {
+      if (parent == current) {
+        return true;
+      }
+      parent = parent.getParent();
+    }
+    return false;
   }
 
   /**
@@ -577,10 +629,11 @@ public class Scene implements ModelListener, SelectionListener {
       return;
     }
     myHitListener.find(transform, myRoot, x, y);
-    mHitTarget = myHitListener.myClosestTarget;
-    if (mHitTarget != null) {
-      if (mHitTarget instanceof AnchorTarget) {
-        AnchorTarget anchor = (AnchorTarget)mHitTarget;
+    myHitTarget = myHitListener.myClosestTarget;
+    myHitComponent = myHitListener.myClosestComponent;
+    if (myHitTarget != null) {
+      if (myHitTarget instanceof AnchorTarget) {
+        AnchorTarget anchor = (AnchorTarget)myHitTarget;
         if (anchor.isHorizontalAnchor()) {
           myFilterTarget = FilterType.HORIZONTAL_ANCHOR;
         }
@@ -591,16 +644,19 @@ public class Scene implements ModelListener, SelectionListener {
           myFilterTarget = FilterType.BASELINE_ANCHOR;
         }
       }
-      mHitTarget.mouseDown(x, y);
+      myHitTarget.mouseDown(x, y);
     }
   }
 
   public void mouseDrag(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+    if (myLastMouseX == x && myLastMouseY == y) {
+      return;
+    }
     myLastMouseX = x;
     myLastMouseY = y;
-    if (mHitTarget != null) {
+    if (myHitTarget != null) {
       myHitListener.find(transform, myRoot, x, y);
-      mHitTarget.mouseDrag(x, y, myHitListener.myClosestTarget);
+      myHitTarget.mouseDrag(x, y, myHitListener.myClosestTarget);
     }
     mouseHover(transform, x, y);
     if (mNeedsLayout != NO_LAYOUT) {
@@ -611,11 +667,24 @@ public class Scene implements ModelListener, SelectionListener {
   public void mouseRelease(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myLastMouseX = x;
     myLastMouseY = y;
-    if (mHitTarget != null) {
+    if (myHitTarget != null) {
       myHitListener.find(transform, myRoot, x, y);
-      mHitTarget.mouseRelease(x, y, myHitListener.myClosestTarget);
+      myHitTarget.mouseRelease(x, y, myHitListener.myClosestTarget);
     }
     myFilterTarget = FilterType.NONE;
+    SceneComponent selectedComponent = null;
+    if (myHitComponent != null && myHitListener.myClosestComponent == myHitComponent) {
+      selectedComponent = myHitComponent;
+    }
+    if (myHitTarget instanceof DragTarget) {
+      DragTarget dragTarget = (DragTarget) myHitTarget;
+      if (dragTarget.hasChangedComponent()) {
+        selectedComponent = dragTarget.getComponent();
+      }
+    }
+    if (selectedComponent != null) {
+      select(selectedComponent);
+    }
     if (mNeedsLayout != NO_LAYOUT) {
       myModel.requestLayout(mNeedsLayout == ANIMATED_LAYOUT ? true : false);
     }

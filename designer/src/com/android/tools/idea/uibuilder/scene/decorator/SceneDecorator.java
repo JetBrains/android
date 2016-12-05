@@ -86,8 +86,7 @@ public class SceneDecorator {
       color = Color.yellow;
     }
     component.fillRect(rect); // get the rectangle from the component
-     list.addRect(sceneContext, rect, color); // add to the list
-
+    list.addRect(sceneContext, rect, color); // add to the list
 
     ArrayList<Target> targets = component.getTargets();
 
