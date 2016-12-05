@@ -86,4 +86,26 @@ public class HttpDataTest {
     String tripleEncoded = "https://www.google.com/test%252520test";
     assertThat(HttpData.getUrlName(tripleEncoded), equalTo("test test"));
   }
+
+  @Test
+  public void testBuilder() {
+    long id = 1111;
+    long startTime = 10, downloadTime = 100, endTime = 1000;
+    HttpData.Builder builder = new HttpData.Builder(id, startTime, endTime, downloadTime);
+    builder.setResponseFields("status line =  HTTP/1.1 302 Found \n").setMethod("method")
+      .setResponsePayloadId("payloadId").setTrace("trace").setUrl("url");
+
+    HttpData data = builder.build();
+
+    assertThat(data.getId(), equalTo(id));
+    assertThat(data.getStartTimeUs(), equalTo(startTime));
+    assertThat(data.getDownloadingTimeUs(), equalTo(downloadTime));
+    assertThat(data.getEndTimeUs(), equalTo(endTime));
+
+    assertThat(data.getStatusCode(), equalTo(302));
+    assertThat(data.getMethod(), equalTo("method"));
+    assertThat(data.getResponsePayloadId(), equalTo("payloadId"));
+    assertThat(data.getTrace(), equalTo("trace"));
+    assertThat(data.getUrl(), equalTo("url"));
+  }
 }
