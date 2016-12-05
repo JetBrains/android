@@ -26,14 +26,26 @@ import static org.mockito.Mockito.mock;
  */
 public class IdeComponentsTest extends IdeaTestCase {
   public void testReplaceApplicationService() {
-    SdkSync mockSdkSync = mock(SdkSync.class);
-    IdeComponents.replaceService(SdkSync.class, mockSdkSync);
-    assertSame(mockSdkSync, SdkSync.getInstance());
+    SdkSync originalSdkSync = SdkSync.getInstance();
+    try {
+      SdkSync mockSdkSync = mock(SdkSync.class);
+      IdeComponents.replaceService(SdkSync.class, mockSdkSync);
+      assertSame(mockSdkSync, SdkSync.getInstance());
+    }
+    finally {
+      IdeComponents.replaceService(SdkSync.class, originalSdkSync);
+    }
   }
 
   public void testReplaceProjectService() {
-    GradleSettings mockSettings = mock(GradleSettings.class);
-    IdeComponents.replaceService(getProject(), GradleSettings.class, mockSettings);
-    assertSame(mockSettings, GradleSettings.getInstance(getProject()));
+    GradleSettings originalGradleSettings = GradleSettings.getInstance(getProject());
+    try {
+      GradleSettings mockSettings = mock(GradleSettings.class);
+      IdeComponents.replaceService(getProject(), GradleSettings.class, mockSettings);
+      assertSame(mockSettings, GradleSettings.getInstance(getProject()));
+    }
+    finally {
+      IdeComponents.replaceService(getProject(), GradleSettings.class, originalGradleSettings);
+    }
   }
 }
