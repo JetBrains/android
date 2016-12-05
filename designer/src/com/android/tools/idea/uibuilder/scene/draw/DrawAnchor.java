@@ -29,9 +29,7 @@ public class DrawAnchor extends DrawRegion {
   public static final int NORMAL = 0;
   public static final int OVER = 1;
   int myMode;
-  static  {
 
-  }
   public DrawAnchor(String s) {
     String[] sp = s.split(",");
     int c = 0;
@@ -45,8 +43,8 @@ public class DrawAnchor extends DrawRegion {
   }
 
   private int getPulseAlpha(int deltaT) {
-    int v = (int)Animator.EaseInOutinterpolator((deltaT%1000)/1000.0, 0, 255);
-    return   v;
+    int v = (int)Animator.EaseInOutinterpolator((deltaT % 1000) / 1000.0, 0, 255);
+    return v;
   }
 
   @Override
@@ -63,9 +61,9 @@ public class DrawAnchor extends DrawRegion {
     g.fillRoundRect(x + delta, y + delta, width - delta2, height - delta2, width - delta2, height - delta2);
     Composite savedComposite = g.getComposite();
     if (myMode == OVER) {
-      int alpha =getPulseAlpha( (int) (sceneContext.getTime()%1000));
+      int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
       Composite comp = g.getComposite();
-      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,  alpha / 255f));
+      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha / 255f));
       g.setColor(colorSet.getAnchorConnectionCircle());
       g.fillRoundRect(x, y, width, height, width, height);
       sceneContext.repaint();
@@ -75,7 +73,7 @@ public class DrawAnchor extends DrawRegion {
 
   @Override
   public String serialize() {
-    return this.getClass().getSimpleName()+"," + x + "," + y + "," + width + "," + height + "," + myMode;
+    return this.getClass().getSimpleName() + "," + x + "," + y + "," + width + "," + height + "," + myMode;
   }
 
   public static void add(@NotNull DisplayList list, @NotNull SceneContext transform, float left, float top, float right, float bottom, int mode) {

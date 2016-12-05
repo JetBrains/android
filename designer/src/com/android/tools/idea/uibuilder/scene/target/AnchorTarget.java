@@ -193,7 +193,7 @@ public class AnchorTarget extends ConstraintTarget {
     if (myLastX != -1 && myLastY != -1) {
       float x = myLeft + (myRight - myLeft) / 2;
       float y = myTop + (myBottom - myTop) / 2;
-      list.addConnection(sceneContext, x, y, myLastX, myLastY, Color.RED);
+      list.addConnection(sceneContext, x, y, myLastX, myLastY, myType.ordinal(), Color.RED);
     }
   }
 
