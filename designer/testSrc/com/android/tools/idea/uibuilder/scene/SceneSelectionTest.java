@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.event.InputEvent;
 import java.util.List;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
@@ -73,4 +74,49 @@ public class SceneSelectionTest extends SceneTest {
     assertEquals(myScene.getSceneComponent("button2").getNlComponent(), componentList.get(0));
   }
 
+  public void testLassoSelection() {
+    List<NlComponent> componentList = myScreen.getScreen().getSelectionModel().getSelection();
+    assertEquals(0, componentList.size());
+    myInteraction.mouseDown(0, 0);
+    myInteraction.mouseRelease(10, 10);
+    componentList = myScreen.getScreen().getSelectionModel().getSelection();
+    assertEquals(0, componentList.size());
+    myInteraction.mouseDown(80, 190);
+    myInteraction.mouseRelease(110, 210);
+    componentList = myScreen.getScreen().getSelectionModel().getSelection();
+    assertEquals(1, componentList.size());
+    assertEquals(myScene.getSceneComponent("button").getNlComponent(), componentList.get(0));
+    myInteraction.mouseDown(0, 0);
+    myInteraction.mouseRelease(10, 10);
+    componentList = myScreen.getScreen().getSelectionModel().getSelection();
+    assertEquals(0, componentList.size());
+    myInteraction.mouseDown(80, 190);
+    myInteraction.mouseRelease(110, 510);
+    componentList = myScreen.getScreen().getSelectionModel().getSelection();
+    assertEquals(2, componentList.size());
+    assertEquals(myScene.getSceneComponent("button").getNlComponent(), componentList.get(0));
+    assertEquals(myScene.getSceneComponent("button2").getNlComponent(), componentList.get(1));
+  }
+
+  public void testShiftSelection() {
+    List<NlComponent> componentList = myScreen.getScreen().getSelectionModel().getSelection();
+    assertEquals(0, componentList.size());
+    myInteraction.mouseDown("button");
+    myInteraction.mouseRelease("button");
+    componentList = myScreen.getScreen().getSelectionModel().getSelection();
+    assertEquals(1, componentList.size());
+    assertEquals(myScene.getSceneComponent("button").getNlComponent(), componentList.get(0));
+    myScene.updateModifiers(InputEvent.SHIFT_DOWN_MASK);
+    myInteraction.mouseDown("button2");
+    myInteraction.mouseRelease("button2");
+    componentList = myScreen.getScreen().getSelectionModel().getSelection();
+    assertEquals(2, componentList.size());
+    assertEquals(myScene.getSceneComponent("button").getNlComponent(), componentList.get(0));
+    assertEquals(myScene.getSceneComponent("button2").getNlComponent(), componentList.get(1));
+    myInteraction.mouseDown("button");
+    myInteraction.mouseRelease("button");
+    componentList = myScreen.getScreen().getSelectionModel().getSelection();
+    assertEquals(1, componentList.size());
+    assertEquals(myScene.getSceneComponent("button2").getNlComponent(), componentList.get(0));
+  }
 }

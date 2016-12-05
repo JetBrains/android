@@ -59,24 +59,23 @@ public class SceneDisplayListTest2 extends SceneTest {
                  "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
                  "    app:layout_constraintBottom_toBottomOf=\"parent\"/>");
 
-    String simpleList = "Rect,0,0,1000,1000,ffff0000\n" +
+    String simpleList = "Rect,0,0,1000,1000,ffc0c0c0\n" +
                         "Clip,0,0,1000,1000\n" +
-                        "Rect,450,490,100,20,ff00ffff\n" +
-                        "DrawComponent,450,490,100,20,0\n" +
-                        "DrawComponent,450,490,100,20,0\n" +
+                        "Rect,450,490,100,20,ffc0c0c0\n" +
+                        "DrawTextRegion,450,490,100,20,0,false,false,5,5,\"\"\n" +
                         "DrawConnection,2,450x490x100x20,0,0x0x1000x1000,0,true,false,0,0.5\n" +
                         "DrawConnection,2,450x490x100x20,1,0x0x1000x1000,1,true,false,0,0.5\n" +
                         "DrawConnection,2,450x490x100x20,2,0x0x1000x1000,2,true,false,0,0.5\n" +
                         "DrawConnection,2,450x490x100x20,3,0x0x1000x1000,3,true,false,0,0.5\n" +
                         "UNClip\n";
 
-    assertEquals(myInteraction.getDisplayList().serialize(),simpleList );
+    assertEquals(simpleList, myInteraction.getDisplayList().serialize());
     DisplayList disp = DisplayList.getDisplayList(simpleList);
     assertEquals(simpleList, DisplayList.getDisplayList(simpleList).serialize());
     //noinspection UndesirableClassUsage
     BufferedImage img = new BufferedImage(1000, 1000,BufferedImage.TYPE_INT_ARGB);
     disp.paint(img.createGraphics(), SceneContext.get());
-    assertEquals(10, disp.getCommands().size());
+    assertEquals(9, disp.getCommands().size());
     disp.clear();
   }
 }

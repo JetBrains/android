@@ -56,16 +56,15 @@ public class SceneDisplayListTest extends SceneTest {
                  "    tools:layout_editor_absoluteX=\"100dp\"\n" +
                  "    tools:layout_editor_absoluteY=\"200dp\"/>");
 
-    String simpleList = "Rect,0,0,1000,1000,ffff0000\n" +
+    String simpleList = "Rect,0,0,1000,1000,ffc0c0c0\n" +
                         "Clip,0,0,1000,1000\n" +
-                        "Rect,100,200,100,20,ff00ffff\n" +
-                        "DrawComponent,100,200,100,20,0\n" +
-                        "DrawComponent,100,200,100,20,0\n" +
+                        "Rect,100,200,100,20,ffc0c0c0\n" +
+                        "DrawTextRegion,100,200,100,20,0,false,false,5,5,\"\"\n" +
                         "UNClip\n";
 
-    assertEquals(myInteraction.getDisplayList().serialize(),simpleList );
+    assertEquals(simpleList, myInteraction.getDisplayList().serialize());
     DisplayList disp = DisplayList.getDisplayList(simpleList);
-    assertEquals(DisplayList.getDisplayList(simpleList).serialize(),simpleList);
+    assertEquals(simpleList, DisplayList.getDisplayList(simpleList).serialize());
     //noinspection UndesirableClassUsage
     BufferedImage img = new BufferedImage(1000, 1000,BufferedImage.TYPE_INT_ARGB);
     disp.paint(img.createGraphics(), SceneContext.get());

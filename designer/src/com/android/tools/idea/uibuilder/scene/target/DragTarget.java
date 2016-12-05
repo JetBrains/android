@@ -23,10 +23,9 @@ import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.scene.draw.*;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.draw.DrawComponent;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -43,9 +42,14 @@ import java.util.ArrayList;
 public class DragTarget extends ConstraintTarget {
 
   private static final boolean DEBUG_RENDERER = false;
-  private int mOffsetX;
-  private int mOffsetY;
-  private boolean myIsParent;
+  protected int myOffsetX;
+  protected int myOffsetY;
+  protected boolean myChangedComponent;
+
+  ArrayList<Notch> myHorizontalNotches = new ArrayList<>();
+  ArrayList<Notch> myVerticalNotches = new ArrayList<>();
+  Notch myCurrentNotchX = null;
+  Notch myCurrentNotchY = null;
 
   /////////////////////////////////////////////////////////////////////////////
   //region Layout
@@ -83,8 +87,12 @@ public class DragTarget extends ConstraintTarget {
       list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? Color.yellow : Color.green);
       list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, Color.red);
       list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, Color.red);
-    } else {
-      DrawComponent.add(list, sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? DrawComponent.OVER : DrawComponent.NORMAL);
+    }
+    if (myCurrentNotchX != null) {
+      myCurrentNotchX.render(list, sceneContext, myComponent);
+    }
+    if (myCurrentNotchY != null) {
+      myCurrentNotchY.render(list, sceneContext, myComponent);
     }
   }
 
@@ -179,31 +187,42 @@ public class DragTarget extends ConstraintTarget {
   protected void updateAttributes(AttributesTransaction attributes, int x, int y) {
     SceneComponent targetLeftComponent = getTargetComponent(SdkConstants.SHERPA_URI, ourLeftAttributes);
     SceneComponent targetRightComponent = getTargetComponent(SdkConstants.SHERPA_URI, ourRightAttributes);
+    checkIsInChain();
     if (targetLeftComponent != null && targetRightComponent != null) {
-      int dx1 = getLeftTargetOrigin(targetLeftComponent) + getMarginValue(SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
-      int dx2 = getRightTargetOrigin(targetRightComponent) - getMarginValue(SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
-      float dw = dx2 - dx1 - myComponent.getDrawWidth();
-      float bias = (x - dx1) / dw;
-      if (bias < 0) {
-        bias = 0;
+      if (!myIsInHorizontalChain) {
+        int dx1 = getLeftTargetOrigin(targetLeftComponent) + getMarginValue(SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
+        int dx2 = getRightTargetOrigin(targetRightComponent) - getMarginValue(SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
+        float dw = dx2 - dx1 - myComponent.getDrawWidth();
+        float bias = (x - dx1) / dw;
+        if (bias < 0) {
+          bias = 0;
+        }
+        if (bias > 1) {
+          bias = 1;
+        }
+        String biasValue = null;
+        if ((int)(bias * 1000) != 500) {
+          bias = (int)(bias * 1000) / 1000f;
+          biasValue = String.valueOf(bias);
+          if (biasValue.equalsIgnoreCase("NaN")) {
+            biasValue = null;
+          }
+        }
+        attributes.setAttribute(SdkConstants.SHERPA_URI,
+                                SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, biasValue);
       }
-      if (bias > 1) {
-        bias = 1;
-      }
-      attributes.setAttribute(SdkConstants.SHERPA_URI,
-                              SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, String.valueOf(bias));
     }
     else if (targetLeftComponent != null) {
       int dx = x - getLeftTargetOrigin(targetLeftComponent);
       String marginX = String.format(SdkConstants.VALUE_N_DP, dx);
       attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, marginX);
-      //attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, marginX); // TODO: handles RTL correctly
+      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, marginX); // TODO: handles RTL correctly
     }
     else if (targetRightComponent != null) {
       int dx = getRightTargetOrigin(targetRightComponent) - (x + myComponent.getDrawWidth());
       String marginX = String.format(SdkConstants.VALUE_N_DP, dx);
       attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, marginX);
-      //attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, marginX); // TODO: handles RTL correctly
+      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, marginX); // TODO: handles RTL correctly
     }
     else {
       int dx = x - myComponent.getParent().getDrawX();
@@ -214,18 +233,28 @@ public class DragTarget extends ConstraintTarget {
     SceneComponent targetTopComponent = getTargetComponent(SdkConstants.SHERPA_URI, ourTopAttributes);
     SceneComponent targetBottomComponent = getTargetComponent(SdkConstants.SHERPA_URI, ourBottomAttributes);
     if (targetTopComponent != null && targetBottomComponent != null) {
-      int dy1 = getTopTargetOrigin(targetTopComponent) + getMarginValue(SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
-      int dy2 = getBottomTargetOrigin(targetBottomComponent) - getMarginValue(SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
-      float dh = dy2 - dy1 - myComponent.getDrawHeight();
-      float bias = (y - dy1) / dh;
-      if (bias < 0) {
-        bias = 0;
+      if (!myIsInVerticalChain) {
+        int dy1 = getTopTargetOrigin(targetTopComponent) + getMarginValue(SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
+        int dy2 = getBottomTargetOrigin(targetBottomComponent) - getMarginValue(SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
+        float dh = dy2 - dy1 - myComponent.getDrawHeight();
+        float bias = (y - dy1) / dh;
+        if (bias < 0) {
+          bias = 0;
+        }
+        if (bias > 1) {
+          bias = 1;
+        }
+        String biasValue = null;
+        if ((int)(bias * 1000) != 500) {
+          bias = (int)(bias * 1000) / 1000f;
+          biasValue = String.valueOf(bias);
+          if (biasValue.equalsIgnoreCase("NaN")) {
+            biasValue = null;
+          }
+        }
+        attributes.setAttribute(SdkConstants.SHERPA_URI,
+                                SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, biasValue);
       }
-      if (bias > 1) {
-        bias = 1;
-      }
-      attributes.setAttribute(SdkConstants.SHERPA_URI,
-                              SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, String.valueOf(bias));
     }
     else if (targetTopComponent != null) {
       int dy = y - getTopTargetOrigin(targetTopComponent);
@@ -250,21 +279,40 @@ public class DragTarget extends ConstraintTarget {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public int getPreferenceLevel() {
-    return myIsParent ? -1 : 0;
-  }
-
-  public void setIsParent(boolean isParent) {
-    myIsParent = isParent;
-  }
+  public int getPreferenceLevel() { return 0; }
 
   @Override
   public void mouseDown(int x, int y) {
     if (myComponent.getParent() == null) {
       return;
     }
-    mOffsetX = x - myComponent.getDrawX(System.currentTimeMillis());
-    mOffsetY = y - myComponent.getDrawY(System.currentTimeMillis());
+    myOffsetX = x - myComponent.getDrawX(System.currentTimeMillis());
+    myOffsetY = y - myComponent.getDrawY(System.currentTimeMillis());
+    myChangedComponent = false;
+    gatherNotches();
+  }
+
+  protected void gatherNotches() {
+    myCurrentNotchX = null;
+    myCurrentNotchY = null;
+    myHorizontalNotches.clear();
+    myVerticalNotches.clear();
+    SceneComponent parent = myComponent.getParent();
+    Notch.Provider notchProvider = parent.getNotchProvider();
+    if (notchProvider != null) {
+      notchProvider.fill(parent, myComponent, myHorizontalNotches, myVerticalNotches);
+    }
+    int count = parent.getChildCount();
+    for (int i = 0; i < count; i++) {
+      SceneComponent child = parent.getChild(i);
+      if (child == myComponent) {
+        continue;
+      }
+      Notch.Provider provider = child.getNotchProvider();
+      if (provider != null) {
+        provider.fill(child, myComponent, myHorizontalNotches, myVerticalNotches);
+      }
+    }
   }
 
   @Override
@@ -274,12 +322,43 @@ public class DragTarget extends ConstraintTarget {
     }
     NlComponent component = myComponent.getNlComponent();
     AttributesTransaction attributes = component.startAttributeTransaction();
-    int dx = x - mOffsetX;
-    int dy = y - mOffsetY;
+    int dx = x - myOffsetX;
+    int dy = y - myOffsetY;
+    dx = snapX(dx);
+    dy = snapY(dy);
     updateAttributes(attributes, dx, dy);
     cleanup(attributes);
     attributes.apply();
     myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+    myChangedComponent = true;
+  }
+
+  protected int snapX(int dx) {
+    int count = myHorizontalNotches.size();
+    for (int i = 0; i < count; i++) {
+      Notch notch = myHorizontalNotches.get(i);
+      int x = notch.apply(dx);
+      if (notch.didApply()) {
+        myCurrentNotchX = notch;
+        return x;
+      }
+    }
+    myCurrentNotchX = null;
+    return dx;
+  }
+
+  protected int snapY(int dy) {
+    int count = myVerticalNotches.size();
+    for (int i = 0; i < count; i++) {
+      Notch notch = myVerticalNotches.get(i);
+      int y = notch.apply(dy);
+      if (notch.didApply()) {
+        myCurrentNotchY = notch;
+        return y;
+      }
+    }
+    myCurrentNotchY = null;
+    return dy;
   }
 
   @Override
@@ -287,8 +366,22 @@ public class DragTarget extends ConstraintTarget {
     if (myComponent.getParent() != null) {
       NlComponent component = myComponent.getNlComponent();
       AttributesTransaction attributes = component.startAttributeTransaction();
-      int dx = x - mOffsetX;
-      int dy = y - mOffsetY;
+      int dx = x - myOffsetX;
+      int dy = y - myOffsetY;
+      if (myCurrentNotchX != null) {
+        dx = myCurrentNotchX.apply(dx);
+        if (myComponent.getScene().isAutoconnectOn()) {
+          myCurrentNotchX.apply(attributes);
+        }
+        myCurrentNotchX = null;
+      }
+      if (myCurrentNotchY != null) {
+        dy = myCurrentNotchY.apply(dy);
+        if (myComponent.getScene().isAutoconnectOn()) {
+          myCurrentNotchY.apply(attributes);
+        }
+        myCurrentNotchY = null;
+      }
       updateAttributes(attributes, dx, dy);
       cleanup(attributes);
       attributes.apply();
@@ -306,10 +399,13 @@ public class DragTarget extends ConstraintTarget {
       };
       action.execute();
     }
-    if (closestTarget == this && !myComponent.isSelected()) {
-      myComponent.getScene().select(myComponent);
+    if (myChangedComponent) {
+      myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
     }
-    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+  }
+
+  public boolean hasChangedComponent() {
+    return myChangedComponent;
   }
 
   //endregion

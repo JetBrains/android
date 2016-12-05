@@ -24,7 +24,7 @@ import java.awt.image.BufferedImage;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 
-public class SceneDisplayListTest3 extends SceneTest {
+public class SceneDisplayListTest5 extends SceneTest {
   @Override
   @NotNull
   public ModelBuilder createModel() {
@@ -52,8 +52,7 @@ public class SceneDisplayListTest3 extends SceneTest {
                        .height("20dp")
                        .withAttribute("app:layout_constraintLeft_toLeftOf", "@+id/button1")
                        .withAttribute("app:layout_constraintRight_toRightOf", "@+id/button1")
-                       .withAttribute("app:layout_constraintTop_toBottomOf", "@+id/button1")
-                       .withAttribute("app:layout_constraintBottom_toBottomOf", "parent")
+                       .withAttribute("app:layout_constraintBaseline_toBaselineOf", "@+id/button1")
                    ));
   }
 
@@ -80,8 +79,7 @@ public class SceneDisplayListTest3 extends SceneTest {
                         "DrawTextRegion,450,490,100,20,0,false,false,5,5,\"\"\n" +
                         "DrawConnection,4,450x490x100x20,0,450x490x100x20,0,false,true,0,0.5\n" +
                         "DrawConnection,4,450x490x100x20,1,450x490x100x20,1,false,true,0,0.5\n" +
-                        "DrawConnection,2,450x490x100x20,2,450x490x100x20,3,false,true,0,0.5\n" +
-                        "DrawConnection,2,450x490x100x20,3,0x0x1000x1000,3,true,false,0,0.5\n" +
+                        "DrawConnection,5,450x490x100x0,5,450x490x100x0,5,false,false,0,0.0\n" +
                         "UNClip\n";
 
     assertEquals(simpleList, myInteraction.getDisplayList().serialize());
@@ -90,7 +88,7 @@ public class SceneDisplayListTest3 extends SceneTest {
     //noinspection UndesirableClassUsage
     BufferedImage img = new BufferedImage(1000, 1000,BufferedImage.TYPE_INT_ARGB);
     disp.paint(img.createGraphics(), SceneContext.get());
-    assertEquals(15, disp.getCommands().size());
+    assertEquals(14, disp.getCommands().size());
     disp.clear();
   }
 }

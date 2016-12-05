@@ -25,9 +25,14 @@ import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.*;
+import com.android.tools.idea.uibuilder.scene.draw.ConstraintLayoutComponentNotchProvider;
+import com.android.tools.idea.uibuilder.scene.draw.ConstraintLayoutNotchProvider;
+import com.android.tools.idea.uibuilder.scene.draw.DrawAction;
+import com.android.tools.idea.uibuilder.scene.draw.Notch;
 import com.android.tools.idea.uibuilder.scene.target.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.Interaction;
@@ -64,7 +69,7 @@ import static com.android.SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT;
 public class ConstraintLayoutHandler extends ViewGroupHandler {
 
   public static final boolean USE_SOLVER = false;
-  public static final boolean USE_SCENE_INTERACTION = false;
+  public static final boolean USE_SCENE_INTERACTION = true;
 
   private static final String PREFERENCE_KEY_PREFIX = "ConstraintLayoutPreference";
   /**
@@ -383,7 +388,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   @Override
   public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent component) {
     if (USE_SCENE_INTERACTION) {
-      return new SceneInteraction(screenView, component);
+      return new SceneInteraction(screenView);
     }
     return new ConstraintInteraction(screenView, component);
   }
@@ -396,6 +401,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    */
   @Override
   public void addTargets(@NotNull SceneComponent component, boolean isParent) {
+    boolean showAnchors = !isParent;
     NlComponent nlComponent = component.getNlComponent();
     if (nlComponent.viewInfo != null
         && nlComponent.viewInfo.getClassName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE)) {
@@ -406,38 +412,42 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       }
       component.addTarget(new GuidelineTarget(isHorizontal));
       if (isHorizontal) {
-        component.addTarget(new AnchorTarget(AnchorTarget.Type.TOP));
+        component.addTarget(new GuidelineAnchorTarget(AnchorTarget.Type.TOP, true));
       } else {
-        component.addTarget(new AnchorTarget(AnchorTarget.Type.LEFT));
+        component.addTarget(new GuidelineAnchorTarget(AnchorTarget.Type.LEFT, false));
       }
       component.addTarget(new GuidelineCycleTarget(isHorizontal));
       return;
     }
-    DragTarget dragTarget = new DragTarget();
-    dragTarget.setIsParent(isParent);
-    component.addTarget(dragTarget);
     if (!isParent) {
+      DragTarget dragTarget = new DragTarget();
+      component.addTarget(dragTarget);
       component.addTarget(new ResizeTarget(ResizeTarget.Type.LEFT_TOP));
       component.addTarget(new ResizeTarget(ResizeTarget.Type.LEFT_BOTTOM));
       component.addTarget(new ResizeTarget(ResizeTarget.Type.RIGHT_TOP));
       component.addTarget(new ResizeTarget(ResizeTarget.Type.RIGHT_BOTTOM));
+      component.setNotchProvider(new ConstraintLayoutComponentNotchProvider());
+    } else {
+      component.addTarget(new LassoTarget());
+      component.setNotchProvider(new ConstraintLayoutNotchProvider());
     }
-    component.addTarget(new AnchorTarget(AnchorTarget.Type.LEFT));
-    component.addTarget(new AnchorTarget(AnchorTarget.Type.TOP));
-    component.addTarget(new AnchorTarget(AnchorTarget.Type.RIGHT));
-    component.addTarget(new AnchorTarget(AnchorTarget.Type.BOTTOM));
+    component.addTarget(new AnchorTarget(AnchorTarget.Type.LEFT, showAnchors));
+    component.addTarget(new AnchorTarget(AnchorTarget.Type.TOP, showAnchors));
+    component.addTarget(new AnchorTarget(AnchorTarget.Type.RIGHT, showAnchors));
+    component.addTarget(new AnchorTarget(AnchorTarget.Type.BOTTOM, showAnchors));
     if (!isParent) {
-      ActionTarget clearConstraints = new ClearConstraintsTarget(null);
-      component.addTarget(clearConstraints);
+      ActionTarget previousAction = (ActionTarget) component.addTarget(new ClearConstraintsTarget(null));
       if (component.getNlComponent().getBaseline() > 0) {
-        component.addTarget(new AnchorTarget(AnchorTarget.Type.BASELINE));
-        component.addTarget(new ActionTarget(clearConstraints, (SceneComponent c) -> {
-          c.setShowBaseline(!c.canShowBaseline());
-        }));
+        component.addTarget(new AnchorTarget(AnchorTarget.Type.BASELINE, showAnchors));
+        ActionTarget baselineActionTarget = new ActionTarget(previousAction, (SceneComponent c) -> {
+          c.setShowBaseline(!c.canShowBaseline()); });
+        baselineActionTarget.setActionType(DrawAction.BASELINE);
+        component.addTarget(baselineActionTarget);
+        previousAction = baselineActionTarget;
       }
+      component.addTarget(new ChainCycleTarget(previousAction, null));
     }
   }
-
 
   /**
    * Return a drag handle to handle drag and drop interaction
@@ -453,6 +463,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                        @NotNull NlComponent layout,
                                        @NotNull java.util.List<NlComponent> components,
                                        @NotNull DragType type) {
+    if (USE_SCENE_INTERACTION) {
+      return new SceneDragHandler(editor, this, layout, components, type);
+    }
     return new ConstraintDragHandler(editor, this, layout, components, type);
   }
 
@@ -542,6 +555,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                               @NotNull ViewHandler handler,
                               @NotNull NlComponent parent,
                               @NotNull List<NlComponent> selectedChildren) {
+      if (USE_SCENE_INTERACTION) {
+        return PropertiesComponent.getInstance().getBoolean(AUTO_CONNECT_PREF_KEY, false);
+      }
       return ConstraintModel.isAutoConnect();
     }
 
@@ -555,7 +571,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
         .logAction(selected
                    ? LayoutEditorEvent.LayoutEditorEventType.TURN_ON_AUTOCONNECT
                    : LayoutEditorEvent.LayoutEditorEventType.TURN_OFF_AUTOCONNECT);
-      ConstraintModel.setAutoConnect(selected);
+      if (USE_SCENE_INTERACTION) {
+        PropertiesComponent.getInstance().setValue(AUTO_CONNECT_PREF_KEY, selected, false);
+      } else {
+        ConstraintModel.setAutoConnect(selected);
+      }
     }
 
     @Override

@@ -39,12 +39,15 @@ import java.util.HashMap;
  */
 public class AnchorTarget extends ConstraintTarget {
 
+  private static final boolean DEBUG_RENDERER = false;
+  private final boolean myVisibility;
+
   // Type of possible anchors
   public enum Type {
     LEFT, TOP, RIGHT, BOTTOM, BASELINE
   }
 
-  private final int mySize = 3;
+  protected final int mySize = 3;
   private final int myExpandSize = 200;
   private final AnchorTarget.Type myType;
   private boolean myExpandArea = false;
@@ -58,8 +61,9 @@ public class AnchorTarget extends ConstraintTarget {
   //region Constructor
   /////////////////////////////////////////////////////////////////////////////
 
-  public AnchorTarget(@NotNull AnchorTarget.Type type) {
+  public AnchorTarget(@NotNull AnchorTarget.Type type, boolean visible) {
     myType = type;
+    myVisibility = visible;
   }
 
   //endregion
@@ -80,7 +84,7 @@ public class AnchorTarget extends ConstraintTarget {
   }
 
   public boolean isVerticalAnchor() {
-    return myType == Type.TOP || myType == Type.BOTTOM || myType == Type.BASELINE;
+    return myType == Type.TOP || myType == Type.BOTTOM;
   }
 
   @Override
@@ -169,10 +173,10 @@ public class AnchorTarget extends ConstraintTarget {
       }
       break;
       case BASELINE: {
-        myLeft = l - size;
-        myTop = t + myComponent.getBaseline() - size;
-        myRight = r + size;
-        myBottom = t + myComponent.getBaseline() + size;
+        myLeft = l + size;
+        myTop = t + myComponent.getBaseline() - size/2;
+        myRight = r - size;
+        myBottom = t + myComponent.getBaseline() + size/2;
       }
       break;
     }
@@ -184,16 +188,43 @@ public class AnchorTarget extends ConstraintTarget {
   //region Display
   /////////////////////////////////////////////////////////////////////////////
 
+  private boolean isConnected() {
+    NlComponent component = myComponent.getNlComponent();
+    switch (myType) {
+      case LEFT:
+        return hasAttributes(component, SdkConstants.SHERPA_URI, ourLeftAttributes);
+      case TOP:
+        return hasAttributes(component, SdkConstants.SHERPA_URI, ourTopAttributes);
+      case RIGHT:
+        return hasAttributes(component, SdkConstants.SHERPA_URI, ourRightAttributes);
+      case BOTTOM:
+        return hasAttributes(component, SdkConstants.SHERPA_URI, ourBottomAttributes);
+      case BASELINE:
+        return component.getLiveAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
+    }
+    return false;
+  }
+
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
+    if (!myVisibility) {
+      return;
+    }
     if (!myComponent.getScene().allowsTarget(this)) {
       return;
     }
-    DrawAnchor.add(list, sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? DrawAnchor.OVER : DrawAnchor.NORMAL);
+    if (DEBUG_RENDERER) {
+      list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? Color.yellow : Color.green);
+      list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, Color.red);
+      list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, Color.red);
+    }
+    DrawAnchor.add(list, sceneContext, myLeft, myTop, myRight, myBottom,
+                   myType == Type.BASELINE ? DrawAnchor.TYPE_BASELINE : DrawAnchor.TYPE_NORMAL, isConnected(),
+                   mIsOver ? DrawAnchor.OVER : DrawAnchor.NORMAL);
     if (myLastX != -1 && myLastY != -1) {
       float x = myLeft + (myRight - myLeft) / 2;
       float y = myTop + (myBottom - myTop) / 2;
-      list.addConnection(sceneContext, x, y, myLastX, myLastY, Color.RED);
+      list.addConnection(sceneContext, x, y, myLastX, myLastY, myType.ordinal());
     }
   }
 

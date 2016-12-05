@@ -21,7 +21,9 @@ import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.scene.SceneInteraction;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
@@ -451,6 +453,12 @@ public class InteractionManager {
         return;
       }
 
+      if (false && ConstraintLayoutHandler.USE_SCENE_INTERACTION) {
+        Interaction interaction = new SceneInteraction(screenView);
+        startInteraction(myLastMouseX, myLastMouseY, interaction, ourLastStateMask);
+        return;
+      }
+
       SelectionModel selectionModel = screenView.getSelectionModel();
       NlComponent component = Coordinates.findComponent(screenView, myLastMouseX, myLastMouseY);
       if (component == null) {
@@ -467,13 +475,14 @@ public class InteractionManager {
       if (viewGroupHandler == null) {
         return;
       }
+
       Interaction interaction = null;
 
       // Give a chance to the current selection's parent handler
       if (interaction == null && !selectionModel.isEmpty()) {
         NlComponent primary = screenView.getSelectionModel().getPrimary();
         NlComponent parent = primary != null ? primary.getParent() : null;
-        if (parent != null) {
+        if (parent != null && interaction == null) {
           int ax = Coordinates.getAndroidX(screenView, myLastMouseX);
           int ay = Coordinates.getAndroidY(screenView, myLastMouseY);
           if (primary.containsX(ax) && primary.containsY(ay)) {

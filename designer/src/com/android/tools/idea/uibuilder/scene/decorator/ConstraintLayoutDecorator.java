@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
 import com.android.tools.idea.uibuilder.scene.*;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.draw.DrawConnection;
+import com.android.tools.idea.uibuilder.scene.target.LassoTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,6 +44,10 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF
   };
   final static String[][] ourConnections = {LEFT_DIR, RIGHT_DIR, TOP_DIR, BOTTOM_DIR};
+
+  final static String BASELINE = "BASELINE";
+  final static String[] BASELINE_DIR = new String[]{SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF};
+  final static String BASELINE_TYPE = "BASELINE_TYPE";
 
   final static String[] MARGIN_ATTR = {
     SdkConstants.ATTR_LAYOUT_MARGIN_LEFT,
@@ -81,6 +86,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     for (int i = 0; i < ourDirections.length; i++) {
       getConnection(component, child, ourConnections[i], ourDirections[i], ourDirectionsType[i]);
     }
+    getConnection(component, child, BASELINE_DIR, BASELINE, BASELINE_TYPE);
   }
 
   /**
@@ -122,56 +128,35 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     child.myCache.put(dirType, ConnectionType.SAME);
   }
 
-  @Override
-  public void buildList(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
-    Color color = Color.red;
-    if (component.getDrawState() == SceneComponent.DrawState.HOVER) {
-      color = Color.yellow;
-    }
-    // Cache connections between children
-    for (SceneComponent child : component.getChildren()) {
-      gatherProperties(component, child);
-    }
-
-    // Create a simple rectangle for connections
-    Rectangle rect = new Rectangle();
-    component.fillRect(rect);
-    list.addRect(sceneContext, rect, color);
-    DisplayList.UNClip unclip = list.addClip(sceneContext, rect);
-    ArrayList<SceneComponent> children = component.getChildren();
-    // TODO: consider order of build or implement layers, we may want to render connections, children, then targets
-    for (int i = 0; i < children.size(); i++) {
-      SceneComponent child = children.get(i);
-      child.getDecorator().buildList(list, time, sceneContext, child);
-      buildListTarget(list, time, sceneContext, component, child);
-      buildListConnections(list, time, sceneContext, component, child);
-    }
-    list.add(unclip);
-  }
-
   /**
-   * This is used to build the display list for the targets to control the children of the layout
-   * It is called once per child of a ConstraintLayout SceneComponent
+   * This is responsible for setting the clip and building the list for this component's children
    *
    * @param list
    * @param time
-   * @param screenView
+   * @param sceneContext
    * @param component
-   * @param child
    */
-  private void buildListTarget(@NotNull DisplayList list,
-                               long time,
-                               @NotNull SceneContext sceneContext,
-                               @NotNull SceneComponent component,
-                               @NotNull SceneComponent child) {
-    ArrayList<Target> targets = child.getTargets();
-    int num = targets.size();
-    for (int i = 0; i < num; i++) {
-      Target target = targets.get(i);
-      target.render(list, sceneContext);
+  @Override
+  protected void buildListChildren(@NotNull DisplayList list,
+                                   long time,
+                                   @NotNull SceneContext sceneContext,
+                                   @NotNull SceneComponent component) {
+    ArrayList<SceneComponent> children = component.getChildren();
+    if (children.size() > 0) {
+      // Cache connections between children
+      for (SceneComponent child : component.getChildren()) {
+        gatherProperties(component, child);
+      }
+      Rectangle rect = new Rectangle();
+      component.fillRect(rect);
+      DisplayList.UNClip unClip = list.addClip(sceneContext, rect);
+      for (SceneComponent child : children) {
+        child.buildDisplayList(time, list, sceneContext);
+        buildListConnections(list, time, sceneContext, component, child); // draw child connections
+      }
+      list.add(unClip);
     }
   }
-
 
   /**
    * This is used to build the display list of Constraints hanging off of of each child.
@@ -219,7 +204,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
 
         if (connectionTo[ourOppositeDirection[i]] != null) { // opposite side is connected
           connectType = DrawConnection.TYPE_SPRING;
-          if (connectionTo[ourOppositeDirection[i]] == sc && ! toParent) { // center
+          if (connectionTo[ourOppositeDirection[i]] == sc && !toParent) { // center
             connectType = DrawConnection.TYPE_CENTER;
           }
         }
@@ -232,15 +217,15 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
           if (sc.myCache.containsKey("chain")) {
             continue; // no need to add element to display list chains only have to go one way
           }
-          child.myCache.put("chain","drawn");
+          child.myCache.put("chain", "drawn");
         }
         int margin = 0;
         float bias = 0.5f;
-        String marginString = child.getNlComponent().getAttribute(SdkConstants.NS_RESOURCES, MARGIN_ATTR[i]);
+        String marginString = child.getNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, MARGIN_ATTR[i]);
         if (marginString != null) {
           margin = ConstraintUtilities.getDpValue(child.getNlComponent(), marginString);
         }
-        String biasString = child.getNlComponent().getAttribute(SdkConstants.SHERPA_URI, BIAS_ATTR[i]);
+        String biasString = child.getNlComponent().getLiveAttribute(SdkConstants.SHERPA_URI, BIAS_ATTR[i]);
         if (biasString != null) {
           try {
             bias = Float.parseFloat(biasString);
@@ -254,6 +239,19 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         boolean shift = toComponentsTo != null;
         DrawConnection.buildDisplayList(list, connectType, source_rect, i, dest_rect, connect, toParent, shift, margin, bias);
       }
+    }
+
+    SceneComponent baseLineConnection = (SceneComponent)child.myCache.get("BASELINE");
+    if (baseLineConnection != null) {
+      baseLineConnection.fillDrawRect(time, dest_rect);  // get the destination rectangle
+      convert(sceneContext, dest_rect);   // scale to screen space
+      int dest_offset = sceneContext.getSwingDimension(baseLineConnection.getBaseline());
+      int source_offset = sceneContext.getSwingDimension(child.getBaseline());
+      source_rect.y += source_offset;
+      source_rect.height = 0;
+      dest_rect.y += dest_offset;
+      dest_rect.height = 0;
+      DrawConnection.buildDisplayList(list, DrawConnection.TYPE_BASELINE, source_rect, 5, dest_rect, 5, false, false, 0, 0f);
     }
   }
 }

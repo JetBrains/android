@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.scene;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.draw.Notch;
 import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
 import com.android.tools.idea.uibuilder.scene.target.ResizeTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
@@ -44,15 +45,6 @@ import java.util.HashMap;
 public class SceneComponent {
   public HashMap<String, Object> myCache = new HashMap<>();
   public SceneDecorator myDecorator;
-
-  public ArrayList<Target> getTargets() {
-    return myTargets;
-  }
-
-  public SceneDecorator getDecorator() {
-    return myDecorator;
-  }
-
 
   public enum DrawState {SUBDUED, NORMAL, HOVER, SELECTED}
 
@@ -81,6 +73,8 @@ public class SceneComponent {
   private boolean myShowBaseline = false;
 
   boolean used = true;
+
+  private Notch.Provider myNotchProvider;
 
   public int getCenterX() {
     return myCurrentLeft + (myCurrentRight - myCurrentLeft) / 2;
@@ -262,6 +256,11 @@ public class SceneComponent {
     return myAnimatedDrawHeight.getValue(time);
   }
 
+  public void setPosition(int dx, int dy) {
+    myAnimatedDrawX.setValue(dx);
+    myAnimatedDrawY.setValue(dy);
+  }
+
   @NotNull
   public NlComponent getNlComponent() {
     return myNlComponent;
@@ -303,6 +302,22 @@ public class SceneComponent {
     return myDrawState;
   }
 
+  public ArrayList<Target> getTargets() {
+    return myTargets;
+  }
+
+  public SceneDecorator getDecorator() {
+    return myDecorator;
+  }
+
+  public Notch.Provider getNotchProvider() {
+    return myNotchProvider;
+  }
+
+  public void setNotchProvider(Notch.Provider notchProvider) {
+    myNotchProvider = notchProvider;
+  }
+
   public void setExpandTargetArea(boolean expandArea) {
     int count = myTargets.size();
     for (int i = 0; i < count; i++) {
@@ -312,6 +327,7 @@ public class SceneComponent {
         anchor.setExpandSize(expandArea);
       }
     }
+    myScene.needsRebuildList();
   }
 
   @VisibleForTesting
@@ -362,13 +378,28 @@ public class SceneComponent {
     return myViewGroupHandler;
   }
 
-  public void setViewGroupHandler(@NotNull ViewGroupHandler viewGroupHandler, boolean isParent) {
+  public void setViewGroupHandler(@Nullable ViewGroupHandler viewGroupHandler, boolean isParent) {
     if (viewGroupHandler == myViewGroupHandler) {
       return;
     }
     myTargets.clear();
+    myNotchProvider = null;
     myViewGroupHandler = viewGroupHandler;
-    myViewGroupHandler.addTargets(this, isParent);
+    if (myViewGroupHandler != null) {
+      myViewGroupHandler.addTargets(this, isParent);
+    }
+  }
+
+  /**
+   * Returns true if the component intersects with the given rect
+   *
+   * @param rectangle
+   * @return true if intersecting with the rectangle
+   */
+  public boolean intersects(Rectangle rectangle) {
+    Rectangle bounds = new Rectangle();
+    fillRect(bounds);
+    return rectangle.intersects(bounds);
   }
 
   //endregion
@@ -376,9 +407,11 @@ public class SceneComponent {
   //region Maintenance
   /////////////////////////////////////////////////////////////////////////////
 
-  public void addTarget(@NotNull Target target) {
+  @NotNull
+  public Target addTarget(@NotNull Target target) {
     target.setComponent(this);
     myTargets.add(target);
+    return target;
   }
 
   public void addChild(@NotNull SceneComponent child) {
