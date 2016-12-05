@@ -61,11 +61,13 @@ public class SceneDisplayListTest extends SceneTest {
                         "Rect,100,200,100,20,ff00ffff\n" +
                         "DrawComponent,100,200,100,20,0\n" +
                         "DrawComponent,100,200,100,20,0\n" +
-                        "UNClip\n";
+                        "UNClip\n" +
+                        "Rect,100,200,100,20,ff00ffff\n" +
+                        "DrawComponent,100,200,100,20,0\n";
 
     assertEquals(myInteraction.getDisplayList().serialize(),simpleList );
     DisplayList disp = DisplayList.getDisplayList(simpleList);
-    assertEquals(DisplayList.getDisplayList(simpleList).serialize(),simpleList);
+    assertEquals(simpleList, DisplayList.getDisplayList(simpleList).serialize());
     //noinspection UndesirableClassUsage
     BufferedImage img = new BufferedImage(1000, 1000,BufferedImage.TYPE_INT_ARGB);
     disp.paint(img.createGraphics(), SceneContext.get());

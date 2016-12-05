@@ -39,6 +39,8 @@ import java.util.HashMap;
  */
 public class AnchorTarget extends ConstraintTarget {
 
+  private static final boolean DEBUG_RENDERER = false;
+
   // Type of possible anchors
   public enum Type {
     LEFT, TOP, RIGHT, BOTTOM, BASELINE
@@ -188,6 +190,11 @@ public class AnchorTarget extends ConstraintTarget {
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
     if (!myComponent.getScene().allowsTarget(this)) {
       return;
+    }
+    if (DEBUG_RENDERER) {
+      list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? Color.yellow : Color.green);
+      list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, Color.red);
+      list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, Color.red);
     }
     DrawAnchor.add(list, sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? DrawAnchor.OVER : DrawAnchor.NORMAL);
     if (myLastX != -1 && myLastY != -1) {
