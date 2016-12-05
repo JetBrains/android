@@ -79,14 +79,14 @@ public class GradleProjectInfo {
   }
 
   /**
-   * Returns the set of modules in the project that contain an {@code AndroidFacet}.
+   * @return the modules in a Gradle-based project that contain an {@code AndroidFacet}.
    */
   @NotNull
   public List<Module> getAndroidModules() {
     ImmutableList.Builder<Module> modules = ImmutableList.builder();
 
     for (Module module :  ModuleManager.getInstance(myProject).getModules()) {
-      if (Projects.isBuildWithGradle(module)) {
+      if (AndroidFacet.getInstance(module) != null && GradleFacet.getInstance(module) != null) {
         modules.add(module);
       }
     }
