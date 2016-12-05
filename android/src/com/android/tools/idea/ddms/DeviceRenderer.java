@@ -32,6 +32,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
+
 public class DeviceRenderer {
 
   // Prevent instantiation
@@ -51,7 +53,7 @@ public class DeviceRenderer {
       if (avdManager != null) {
         AvdInfo info = avdManager.getAvd(avdName, true);
         if (info != null) {
-          avdName = info.getProperties().get(AvdManagerConnection.AVD_INI_DISPLAY_NAME);
+          avdName = info.getProperties().get(AVD_INI_DISPLAY_NAME);
         }
       }
       if (avdName == null) {
