@@ -383,7 +383,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   @Override
   public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent component) {
     if (USE_SCENE_INTERACTION) {
-      return new SceneInteraction(screenView, component);
+      return new SceneInteraction(screenView);
     }
     return new ConstraintInteraction(screenView, component);
   }
@@ -413,10 +413,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       component.addTarget(new GuidelineCycleTarget(isHorizontal));
       return;
     }
-    DragTarget dragTarget = new DragTarget();
-    dragTarget.setIsParent(isParent);
-    component.addTarget(dragTarget);
     if (!isParent) {
+      DragTarget dragTarget = new DragTarget();
+      component.addTarget(dragTarget);
       component.addTarget(new ResizeTarget(ResizeTarget.Type.LEFT_TOP));
       component.addTarget(new ResizeTarget(ResizeTarget.Type.LEFT_BOTTOM));
       component.addTarget(new ResizeTarget(ResizeTarget.Type.RIGHT_TOP));

@@ -312,6 +312,7 @@ public class SceneComponent {
         anchor.setExpandSize(expandArea);
       }
     }
+    myScene.needsRebuildList();
   }
 
   @VisibleForTesting
@@ -362,13 +363,15 @@ public class SceneComponent {
     return myViewGroupHandler;
   }
 
-  public void setViewGroupHandler(@NotNull ViewGroupHandler viewGroupHandler, boolean isParent) {
+  public void setViewGroupHandler(@Nullable ViewGroupHandler viewGroupHandler, boolean isParent) {
     if (viewGroupHandler == myViewGroupHandler) {
       return;
     }
     myTargets.clear();
     myViewGroupHandler = viewGroupHandler;
-    myViewGroupHandler.addTargets(this, isParent);
+    if (myViewGroupHandler != null) {
+      myViewGroupHandler.addTargets(this, isParent);
+    }
   }
 
   //endregion
@@ -498,6 +501,9 @@ public class SceneComponent {
 
   public void buildDisplayList(long time, @NotNull DisplayList list, SceneContext sceneContext) {
     myDecorator.buildList(list, time, sceneContext, this);
+    for (SceneComponent child : getChildren()) {
+      child.buildDisplayList(time, list, sceneContext);
+    }
   }
 
   //endregion
