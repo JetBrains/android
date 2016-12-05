@@ -134,6 +134,7 @@ public class NetworkProfilerStage extends Stage {
   /**
    * Gets the details of the current connection, or null if none.
    */
+  @Nullable
   public ConnectionDetails getConnectionDetails() {
     if (myConnection == null) {
       return null;

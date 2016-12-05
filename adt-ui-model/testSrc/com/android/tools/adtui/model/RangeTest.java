@@ -230,4 +230,20 @@ public class RangeTest {
     assertFalse(range.contains(-0.5));
     assertFalse(range.contains(100.5));
   }
+
+  @Test
+  public void testToString() {
+    Range same1 = new Range(0, 100);
+    Range same2 = new Range(0, 100);
+    Range different = new Range(1, 99);
+    Range r = new Range(5, 10);
+    Range empty = new Range();
+
+    assertTrue(same1.toString().equals(same2.toString()));
+    assertFalse(same1.toString().equals(different.toString()));
+
+    assertFalse(r.toString().equals(empty.toString()));
+    r.clear();
+    assertTrue(r.toString().equals(empty.toString()));
+  }
 }

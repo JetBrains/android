@@ -17,6 +17,8 @@
 package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.Choreographer;
+import com.android.tools.adtui.FpsTimer;
+import com.android.tools.adtui.StopwatchTimer;
 import com.intellij.ide.ui.laf.darcula.DarculaLaf;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
@@ -89,7 +91,7 @@ public class VisualTestsDialog extends JDialog {
     darculaCheckbox = new JCheckBox("Darcula");
     darculaCheckbox.addActionListener(actionEvent -> setDarculaMode(darculaCheckbox.isSelected()));
 
-    stepButton = createButton("Step", actionEvent -> mChoreographers.forEach(Choreographer::step));
+    stepButton = createButton("Step", actionEvent -> mChoreographers.forEach(c -> c.getTimer().tick(FpsTimer.ONE_FRAME_IN_60_FPS)));
 
     updateCheckbox = new JCheckBox("Update");
     updateCheckbox.addActionListener(actionEvent -> setUpdateMode(updateCheckbox.isSelected()));
@@ -160,7 +162,15 @@ public class VisualTestsDialog extends JDialog {
   }
 
   private void setUpdateMode(boolean continuousUpdate) {
-    mChoreographers.forEach(c -> c.setUpdate(continuousUpdate));
+    for (Choreographer choreographer : mChoreographers) {
+      StopwatchTimer timer = choreographer.getTimer();
+      if (continuousUpdate) {
+        timer.start();
+      }
+      else {
+        timer.stop();
+      }
+    }
     stepButton.setEnabled(!continuousUpdate);
   }
 
