@@ -37,7 +37,7 @@ public class Display {
   public void draw(@NotNull SceneContext sceneContext, @NotNull Graphics2D g, @NotNull Scene scene) {
     mTime = System.currentTimeMillis();
     if (scene.getNeedsDisplayListRebuilt()) {
-      myNeedsDisplayListRebuild =  true;
+      myNeedsDisplayListRebuild = true;
     }
     if (sceneContext.getScale() != myScale) {
       myScale = sceneContext.getScale();

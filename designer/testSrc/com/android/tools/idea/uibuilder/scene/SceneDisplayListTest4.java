@@ -75,13 +75,13 @@ public class SceneDisplayListTest4 extends SceneTest {
                                       "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
                                       "    app:layout_constraintBottom_toBottomOf=\"parent\"/>");
     String list = myInteraction.getDisplayList().serialize();
-    assertEquals(myInteraction.getDisplayList().serialize(),list );
+    assertEquals(myInteraction.getDisplayList().serialize(), list);
     DisplayList disp = DisplayList.getDisplayList(list);
     assertEquals(list, DisplayList.getDisplayList(list).serialize());
     //noinspection UndesirableClassUsage
     BufferedImage img = new BufferedImage(1000, 1000,BufferedImage.TYPE_INT_ARGB);
     disp.paint(img.createGraphics(), SceneContext.get());
-    assertEquals(21, disp.getCommands().size());
+    assertEquals(27, disp.getCommands().size());
     disp.clear();
   }
 }

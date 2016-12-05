@@ -43,9 +43,9 @@ import java.util.ArrayList;
 public class DragTarget extends ConstraintTarget {
 
   private static final boolean DEBUG_RENDERER = false;
-  private int mOffsetX;
-  private int mOffsetY;
-  private boolean myIsParent;
+  private int myOffsetX;
+  private int myOffsetY;
+  private boolean myChangedComponent;
 
   /////////////////////////////////////////////////////////////////////////////
   //region Layout
@@ -250,21 +250,16 @@ public class DragTarget extends ConstraintTarget {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public int getPreferenceLevel() {
-    return myIsParent ? -1 : 0;
-  }
-
-  public void setIsParent(boolean isParent) {
-    myIsParent = isParent;
-  }
+  public int getPreferenceLevel() { return 0; }
 
   @Override
   public void mouseDown(int x, int y) {
     if (myComponent.getParent() == null) {
       return;
     }
-    mOffsetX = x - myComponent.getDrawX(System.currentTimeMillis());
-    mOffsetY = y - myComponent.getDrawY(System.currentTimeMillis());
+    myOffsetX = x - myComponent.getDrawX(System.currentTimeMillis());
+    myOffsetY = y - myComponent.getDrawY(System.currentTimeMillis());
+    myChangedComponent = false;
   }
 
   @Override
@@ -274,12 +269,13 @@ public class DragTarget extends ConstraintTarget {
     }
     NlComponent component = myComponent.getNlComponent();
     AttributesTransaction attributes = component.startAttributeTransaction();
-    int dx = x - mOffsetX;
-    int dy = y - mOffsetY;
+    int dx = x - myOffsetX;
+    int dy = y - myOffsetY;
     updateAttributes(attributes, dx, dy);
     cleanup(attributes);
     attributes.apply();
     myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+    myChangedComponent = true;
   }
 
   @Override
@@ -287,8 +283,8 @@ public class DragTarget extends ConstraintTarget {
     if (myComponent.getParent() != null) {
       NlComponent component = myComponent.getNlComponent();
       AttributesTransaction attributes = component.startAttributeTransaction();
-      int dx = x - mOffsetX;
-      int dy = y - mOffsetY;
+      int dx = x - myOffsetX;
+      int dy = y - myOffsetY;
       updateAttributes(attributes, dx, dy);
       cleanup(attributes);
       attributes.apply();
@@ -306,10 +302,13 @@ public class DragTarget extends ConstraintTarget {
       };
       action.execute();
     }
-    if (closestTarget == this && !myComponent.isSelected()) {
-      myComponent.getScene().select(myComponent);
+    if (myChangedComponent) {
+      myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
     }
-    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+  }
+
+  public boolean hasChangedComponent() {
+    return myChangedComponent;
   }
 
   //endregion
