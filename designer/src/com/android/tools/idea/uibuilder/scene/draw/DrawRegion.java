@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.scene.draw;
 
 import com.android.tools.idea.uibuilder.scene.SceneContext;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
@@ -30,7 +31,11 @@ public class DrawRegion extends Rectangle implements DrawCommand {
   }
 
   public DrawRegion() {
+  }
 
+  @Override
+  public int getLevel() {
+    return TARGET_LEVEL;
   }
 
   public DrawRegion(String s) {
@@ -54,5 +59,11 @@ public class DrawRegion extends Rectangle implements DrawCommand {
   public void paint(Graphics2D g, SceneContext sceneContext) {
     g.drawRect(x, y, width, height);
   }
+
+  @Override
+  public int compareTo(@NotNull Object o) {
+    return Integer.compare(getLevel(), ((DrawCommand)o).getLevel());
+  }
+
 }
 
