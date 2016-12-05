@@ -23,6 +23,7 @@ import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
 
 import java.io.File;
 
@@ -73,7 +74,7 @@ public class GradleProjectInfoTest extends IdeaTestCase {
 
   public void testIsBuildWithGradleUsingNonGradleProject() {
     // Ensure this module is *not* build by Gradle.
-    removeAndroidGradleFacetFromModule();
+    removeGradleFacetFromModule();
 
     assertFalse(myProjectInfo.isBuildWithGradle());
   }
@@ -81,7 +82,7 @@ public class GradleProjectInfoTest extends IdeaTestCase {
   // See https://code.google.com/p/android/issues/detail?id=203384
   public void testIsBuildWithGradleUsingGradleProjectWithoutGradleModules() {
     // Ensure this module is *not* build by Gradle.
-    removeAndroidGradleFacetFromModule();
+    removeGradleFacetFromModule();
 
     registerLastSyncTimestamp(1L);
 
@@ -91,7 +92,7 @@ public class GradleProjectInfoTest extends IdeaTestCase {
   // See https://code.google.com/p/android/issues/detail?id=203384
   public void testIsBuildWithGradleUsingProjectWithoutSyncTimestamp() {
     // Ensure this module is *not* build by Gradle.
-    removeAndroidGradleFacetFromModule();
+    removeGradleFacetFromModule();
 
     registerLastSyncTimestamp(-1L);
 
@@ -101,7 +102,9 @@ public class GradleProjectInfoTest extends IdeaTestCase {
   public void testGetAndroidModulesUsingGradleProject() {
     // Simulate this is a module built with Gradle
     ApplicationManager.getApplication().runWriteAction(() -> {
-      FacetManager.getInstance(getModule()).addFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null);
+      FacetManager facetManager = FacetManager.getInstance(getModule());
+      facetManager.addFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null);
+      facetManager.addFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
     });
 
     assertThat(myProjectInfo.getAndroidModules()).hasSize(1);
@@ -110,21 +113,21 @@ public class GradleProjectInfoTest extends IdeaTestCase {
 
   public void testGetAndroidModulesUsingNonGradleProject() {
     // Ensure this module is *not* build by Gradle.
-    removeAndroidGradleFacetFromModule();
+    removeGradleFacetFromModule();
 
     assertEmpty(myProjectInfo.getAndroidModules());
   }
 
   public void testGetAndroidModulesUsingGradleProjectWithoutGradleModules() {
     // Ensure this module is *not* build by Gradle.
-    removeAndroidGradleFacetFromModule();
+    removeGradleFacetFromModule();
 
     registerLastSyncTimestamp(1L);
 
     assertEmpty(myProjectInfo.getAndroidModules());
   }
 
-  private void removeAndroidGradleFacetFromModule() {
+  private void removeGradleFacetFromModule() {
     FacetManager facetManager = FacetManager.getInstance(getModule());
     GradleFacet facet = facetManager.findFacet(GradleFacet.getFacetTypeId(), GradleFacet.getFacetName());
     if (facet != null) {
