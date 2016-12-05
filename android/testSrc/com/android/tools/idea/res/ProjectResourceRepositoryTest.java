@@ -41,6 +41,8 @@ import com.intellij.openapi.module.ModuleWithNameAlreadyExists;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
@@ -208,6 +210,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
             logger.warn("Still can't find the virtual file for " + file);
           }
         });
+        myFacet.getResourceFolderManager().invalidate();
         repository.updateRoots();
       });
       // Load up the dirs again, before trying the asserts a second time.
@@ -366,6 +369,22 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     File libJar = new File(rootDir, "bundle_aar" + File.separatorChar + "library.jar");
     AndroidLibraryStub library = new AndroidLibraryStub(bundle, libJar);
     variant.getMainArtifact().getDependencies().addLibrary(library);
+
+    // Refresh temporary resource directories created by the model, so that they are accessible as VirtualFiles.
+    Collection<File> resourceDirs =
+      IdeaSourceProvider.getAllSourceProviders(myFacet)
+        .stream()
+        .flatMap(provider -> provider.getResDirectories().stream())
+        .collect(Collectors.toList());
+    refreshForVfs(resourceDirs);
+  }
+
+  private static void refreshForVfs(Collection<File> freshFiles) {
+    for (File file : freshFiles) {
+      String path = FileUtil.toSystemIndependentName(file.getPath());
+      VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(path);
+      VfsUtil.markDirtyAndRefresh(false, true, true, virtualFile);
+    }
   }
 
   @Override
