@@ -98,7 +98,7 @@ import static com.android.tools.idea.gradle.util.GradleBuilds.CONFIGURE_ON_DEMAN
 import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
-import static com.android.tools.idea.run.editor.ProfilerState.ENABLE_EXPERIMENTAL_PROFILING;
+import static com.android.tools.idea.run.editor.ProfilerState.EXPERIMENTAL_PROFILING_FLAG_ENABLED;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.io.Closeables.close;
@@ -355,7 +355,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
           attemptToUseEmbeddedGradle(project);
 
-          if (System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null) {
+          if (EXPERIMENTAL_PROFILING_FLAG_ENABLED) {
             initScripts.addProfilerClasspathInitScriptCommandLineArgTo(commandLineArguments);
             commandLineArguments.add(createProjectProperty(ANDROID_ADDITIONAL_PLUGINS, COM_ANDROID_TOOLS_PROFILER));
           }

@@ -71,7 +71,7 @@ import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.apk.ApkProjects.isApkProject;
 import static com.android.tools.idea.gradle.util.Projects.getModulesToBuildFromSelection;
 import static com.android.tools.idea.gradle.util.Projects.isDirectGradleInvocationEnabled;
-import static com.android.tools.idea.run.editor.ProfilerState.ENABLE_EXPERIMENTAL_PROFILING;
+import static com.android.tools.idea.run.editor.ProfilerState.EXPERIMENTAL_PROFILING_FLAG_ENABLED;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
@@ -323,7 +323,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
   @NotNull
   public static List<String> getProfilingOptions(@NotNull RunConfiguration configuration) {
-    if (System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) == null) {
+    if (!EXPERIMENTAL_PROFILING_FLAG_ENABLED) {
       return Collections.emptyList();
     }
 
