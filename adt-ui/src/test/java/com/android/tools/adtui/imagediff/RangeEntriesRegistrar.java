@@ -140,7 +140,7 @@ class RangeEntriesRegistrar extends ImageDiffEntriesRegistrar {
         // Therefore, step the choreographer multiple times to simulate this behavior.
         int extraSteps = 60;
         for (int i = 0; i < extraSteps; i++) {
-          myChoreographer.step();
+          myChoreographerTimer.step();
         }
       }
     });
@@ -177,7 +177,7 @@ class RangeEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
         // Calling step() will animate the time range and, as a result, it will set the max to the current time.
         // That will make the range to occupy the entire screen.
-        myChoreographer.step();
+        myChoreographerTimer.step();
 
         // Add the max range to the chart. That should occupy the chart entirely.
         long constantLineChartValue = (long) LINE_CHART_RANGE_MAX;
