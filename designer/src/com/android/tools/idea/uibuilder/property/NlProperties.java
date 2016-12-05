@@ -162,9 +162,6 @@ public class NlProperties {
     }
     NlComponent first = components.get(0);
     XmlTag firstTag = first.getTag();
-    if (!firstTag.isValid()) {
-      return null;
-    }
 
     return AndroidFacet.getInstance(firstTag);
   }
