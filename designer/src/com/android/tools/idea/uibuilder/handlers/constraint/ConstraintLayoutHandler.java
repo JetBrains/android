@@ -438,7 +438,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     }
   }
 
-
   /**
    * Return a drag handle to handle drag and drop interaction
    *
