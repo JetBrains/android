@@ -24,7 +24,13 @@ import java.awt.*;
  * This interface also implies a constructor that takes a String
  * Which can expand the serialization of the of the command
  */
-public interface DrawCommand {
+public interface DrawCommand extends Comparable {
+  public final static int COMPONENT_LEVEL = 20;
+  public final static int TARGET_LEVEL = 30;
+  public final static int CONNECTION_LEVEL = 10 ;
+  public final static int TOP_LEVEL = 50;
+  public final static int NO_SORT = -1;
+  int getLevel(); // things are drawn 0 first
   void paint(Graphics2D g, SceneContext sceneContext);
   String serialize();
 }
