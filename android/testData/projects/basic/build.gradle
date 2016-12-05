@@ -1,14 +1,15 @@
 buildscript {
     repositories {
-        jcenter()
-        if (System.getenv("MAVEN_URL") != null) {
-            maven {url System.getenv("MAVEN_URL")}
-        }
+        // This will be populated by AndroidGradleTestCase
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:1.5.0'
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
     }
 }
+
 apply plugin: 'com.android.application'
 
 repositories {
@@ -16,10 +17,8 @@ repositories {
 }
 
 dependencies {
-    compile 'com.android.support:support-v4:22.1.1'
-    debugCompile 'com.android.support:support-v13:22.1.1'
-
-    compile 'com.google.android.gms:play-services:7.3.0'
+    compile 'com.android.support:support-v4:+'
+    debugCompile 'com.android.support:support-v13:+'
 }
 
 android {
