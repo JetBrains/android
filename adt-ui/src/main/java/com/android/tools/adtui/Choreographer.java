@@ -16,11 +16,10 @@
 
 package com.android.tools.adtui;
 
+import com.android.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.HierarchyListener;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,18 +29,12 @@ import java.util.List;
  * running at a specific frame rate. This ensures all UI components and model classes are reading
  * and displaying consistent information at any given time.
  */
-public class Choreographer implements ActionListener {
-
-  private static final int DEFAULT_FPS = 60;
-  private static final float NANOSECONDS_IN_SECOND = 1000000000.0f;
-  private static final float DEFAULT_FRAME_LENGTH = 1.0f / DEFAULT_FPS;
+public class Choreographer implements StopwatchTimer.TickHandler {
 
   private final List<Animatable> mComponents;
   private List<Animatable> mToRegister;
   private List<Animatable> mToUnregister;
-  private final Timer mTimer;
-  private boolean mUpdate;
-  private long mFrameTime;
+  private final StopwatchTimer mTimer;
   private boolean mReset;
 
   /**
@@ -60,18 +53,33 @@ public class Choreographer implements ActionListener {
    *               with the Choreographer.
    */
   public Choreographer(int fps, @NotNull JComponent parent) {
+    this(new FpsTimer(fps), parent);
+  }
+
+  public Choreographer(@NotNull JComponent parent) {
+    this(new FpsTimer(), parent);
+  }
+
+  @VisibleForTesting
+  public Choreographer(@NotNull StopwatchTimer timer, @NotNull JComponent parent) {
     mParentContainer = parent;
     mComponents = new LinkedList<>();
     mToRegister = new LinkedList<>();
     mToUnregister = new LinkedList<>();
-    mUpdate = true;
     mUpdating = false;
-    mTimer = new Timer(1000 / fps, this);
+    mTimer = timer;
+    mTimer.setHandler(this);
     mTimer.start();
   }
 
-  public Choreographer(@NotNull JComponent parent) {
-    this(DEFAULT_FPS, parent);
+  @VisibleForTesting
+  public Choreographer(@NotNull StopwatchTimer timer) {
+    this(timer, new JPanel());
+  }
+
+  @VisibleForTesting
+  public StopwatchTimer getTimer() {
+    return mTimer;
   }
 
   public void register(Animatable animatable) {
@@ -103,15 +111,8 @@ public class Choreographer implements ActionListener {
   }
 
   @Override
-  public void actionPerformed(ActionEvent actionEvent) {
-    long now = System.nanoTime();
-    float frame = (now - mFrameTime) / NANOSECONDS_IN_SECOND;
-    mFrameTime = now;
-
-    if (!mUpdate) {
-      return;
-    }
-    step(frame);
+  public void onTick(float elapsed) {
+    step(elapsed);
   }
 
   /**
@@ -133,14 +134,6 @@ public class Choreographer implements ActionListener {
     };
     listener.hierarchyChanged(null);
     component.addHierarchyListener(listener);
-  }
-
-  public void setUpdate(boolean update) {
-    mUpdate = update;
-  }
-
-  public void step() {
-    step(DEFAULT_FRAME_LENGTH);
   }
 
   public void reset() {
