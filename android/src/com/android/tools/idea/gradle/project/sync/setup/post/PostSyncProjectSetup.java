@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
+import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.GradleProjectSyncData;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker;
@@ -31,6 +34,7 @@ import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
@@ -45,6 +49,7 @@ import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.module.Module;
@@ -56,6 +61,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -143,6 +149,8 @@ public class PostSyncProjectSetup {
     moduleValidator.fixAndReportFoundIssues();
 
     if (syncFailed) {
+      failTestsIfSyncIssuesPresent();
+
       myProjectSetup.setUpProject(progressIndicator, true /* sync failed */);
       // Notify "sync end" event first, to register the timestamp. Otherwise the cache (GradleProjectSyncData) will store the date of the
       // previous sync, and not the one from the sync that just ended.
@@ -196,6 +204,26 @@ public class PostSyncProjectSetup {
     }
     mySyncState.syncSkipped(syncTimestamp);
     mySyncInvoker.requestProjectSyncAndSourceGeneration(myProject, null);
+  }
+
+  private void failTestsIfSyncIssuesPresent() {
+    if (ApplicationManager.getApplication().isUnitTestMode() && mySyncState.getSummary().hasSyncErrors()) {
+      StringBuilder buffer = new StringBuilder();
+      buffer.append("Sync issues found!").append('\n');
+      GradleProjectInfo.getInstance(myProject).forEachAndroidModule(facet -> {
+        AndroidModel androidModel = facet.getAndroidModel();
+        if (androidModel instanceof AndroidModuleModel) {
+          Collection<SyncIssue> issues = ((AndroidModuleModel)androidModel).getSyncIssues();
+          if (issues != null && !issues.isEmpty()) {
+            buffer.append("Module '").append(facet.getModule().getName()).append("':").append('\n');
+            for (SyncIssue issue : issues) {
+              buffer.append(issue.getMessage()).append('\n');
+            }
+          }
+        }
+      });
+      throw new IllegalStateException(buffer.toString());
+    }
   }
 
   private void notifySyncFinished(@NotNull Request request) {
