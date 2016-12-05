@@ -19,7 +19,6 @@ package com.android.tools.adtui.visualtests;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.model.Range;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 
