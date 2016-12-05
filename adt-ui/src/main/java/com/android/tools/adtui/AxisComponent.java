@@ -434,7 +434,7 @@ public final class AxisComponent extends AnimatedComponent {
 
     if (myAxisLength > 0) {
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      g.setColor(AdtUiUtils.DEFAULT_BORDER_COLOR);
+      g.setColor(getForeground());
       g.setStroke(DEFAULT_AXIS_STROKE);
 
       if (myShowAxisLine) {
@@ -545,7 +545,7 @@ public final class AxisComponent extends AnimatedComponent {
     }
 
     if (alwaysRender || (markerOffset - reserved > 0 && markerOffset + reserved < myAxisLength)) {
-      g2d.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
+      g2d.setColor(getForeground());
       g2d.drawString(value, labelX, labelY);
     }
   }
