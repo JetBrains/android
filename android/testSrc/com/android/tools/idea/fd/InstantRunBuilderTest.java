@@ -60,9 +60,6 @@ public class InstantRunBuilderTest {
   private static final String DUMPSYS_PACKAGE_EXISTS = "Package [" + APPLICATION_ID + "]";
   private static final String DUMPSYS_NO_SUCH_PACKAGE = "";
 
-  private static final RunAsValidator ourRunAsSupported = (device, applicationId) -> true;
-  private static final RunAsValidator ourRunAsNotSupported = (device, applicationId) -> false;
-
   @Language("XML")
   private static final String BUILD_INFO =
     "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -162,7 +159,7 @@ public class InstantRunBuilderTest {
 
     myBuilder =
       new InstantRunBuilder(myDevice, myInstantRunContext, myRunConfigContext, myTasksProvider, false,
-                            ourRunAsSupported, myInstalledApkCache, myInstantRunClientDelegate);
+                            myInstalledApkCache, myInstantRunClientDelegate);
   }
 
   @NotNull
@@ -189,7 +186,7 @@ public class InstantRunBuilderTest {
   public void fullBuildIfNoDevice() throws Exception {
     InstantRunBuilder builder =
       new InstantRunBuilder(null, myInstantRunContext, myRunConfigContext, myTasksProvider, false,
-                            ourRunAsSupported, myInstalledApkCache, myInstantRunClientDelegate);
+                            myInstalledApkCache, myInstantRunClientDelegate);
     builder.build(myTaskRunner, Arrays.asList("-Pdevice.api=14", "-Pprofiling=on"));
     assertEquals(
       "gradlew -Pdevice.api=14 -Pprofiling=on -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK" +
@@ -399,7 +396,7 @@ public class InstantRunBuilderTest {
   public void flightRecorderOptions() throws Exception {
     InstantRunBuilder builder =
       new InstantRunBuilder(null, myInstantRunContext, myRunConfigContext, myTasksProvider, true,
-                            ourRunAsSupported, myInstalledApkCache, myInstantRunClientDelegate);
+                            myInstalledApkCache, myInstantRunClientDelegate);
     builder.build(myTaskRunner, Arrays.asList("-Pdevice.api=14", "-Pprofiling=on"));
     assertEquals(
       "gradlew -Pdevice.api=14 -Pprofiling=on -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK"
