@@ -100,6 +100,7 @@ iml_module(
         "//prebuilts/studio/sdk:support_latest",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:test-runner_latest",
+        "//prebuilts/studio/sdk:gms_latest",
         "//prebuilts/tools/common/m2/repository/com/google/code/findbugs/jsr305/2.0.1:jar",
         "//prebuilts/tools/common/m2/repository/com/google/code/gson/gson/2.2.4:jar",
         "//prebuilts/tools/common/m2/repository/com/google/guava/guava/18.0:jar",
