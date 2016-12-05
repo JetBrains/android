@@ -59,7 +59,7 @@ public class CpuProfilerStage extends Stage {
   private CpuCapture myCapture;
   /**
    * Whether there is a capture in progress.
-   * TODO: Timeouts
+   * TODO: Timeouts. Also, capturing state should come from the device instead of being kept here.
    */
   private boolean myCapturing;
   /**
@@ -98,8 +98,8 @@ public class CpuProfilerStage extends Stage {
     CpuProfiler.CpuProfilingAppStartResponse response = myCpuService.startProfilingApp(request);
 
     if (!response.getStatus().equals(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS)) {
-      LOG.error("Unable to start tracing:" + response.getStatus());
-      LOG.error(response.getErrorMessage());
+      LOG.warn("Unable to start tracing: " + response.getStatus());
+      LOG.warn(response.getErrorMessage());
       myCapturing = false;
     }
     else {
@@ -118,13 +118,17 @@ public class CpuProfilerStage extends Stage {
     CpuCapture capture = null;
 
     if (!response.getStatus().equals(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS)) {
-      LOG.error("Unable to stop tracing:" + response.getStatus());
-      LOG.error(response.getErrorMessage());
+      LOG.warn("Unable to stop tracing: " + response.getStatus());
+      LOG.warn(response.getErrorMessage());
     }
     else {
-      capture = new CpuCapture(response.getTrace());
-      // Force parsing the capture
-      getCapture(response.getTraceId());
+      try {
+        capture = new CpuCapture(response.getTrace());
+        // Force parsing the capture. TODO: avoid parsing the capture twice.
+        getCapture(response.getTraceId());
+      } catch (IllegalStateException e) {
+        LOG.warn("Unable to parse capture: " + e.getMessage());
+      }
     }
     if (capture != null) {
       setCapture(capture);
@@ -133,9 +137,8 @@ public class CpuProfilerStage extends Stage {
     myCapturing = false;
   }
 
-  public void setCapture(CpuCapture capture) {
+  public void setCapture(@NotNull CpuCapture capture) {
     myCapture = capture;
-
     ProfilerTimeline timeline = getStudioProfilers().getTimeline();
     timeline.setStreaming(false);
     timeline.getSelectionRange().set(myCapture.getRange());
@@ -168,7 +171,6 @@ public class CpuProfilerStage extends Stage {
   public DataSeries<CpuCapture> getCpuTraceDataSeries() {
     return myCpuTraceDataSeries;
   }
-
 
   @NotNull
   public RangedListModel<CpuThreadsModel.RangedCpuThread> getThreadStates() {
