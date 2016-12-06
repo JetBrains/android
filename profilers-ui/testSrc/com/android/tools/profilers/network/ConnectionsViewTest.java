@@ -41,7 +41,7 @@ import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.Assert.assertThat;
 
 public class ConnectionsViewTest {
-  @Rule public TestGrpcChannel myGrpcChannel = new TestGrpcChannel<>("ConnectionViewTest", new FakeNetworkService());
+  @Rule public TestGrpcChannel myGrpcChannel = new TestGrpcChannel<>("ConnectionsViewTest", new FakeNetworkService());
   private NetworkProfilerStage myStage;
   private FakeTimer myChoreographerTimer;
   private Choreographer myChoreographer;
@@ -200,6 +200,7 @@ public class ConnectionsViewTest {
     return (JTable)view.getComponent();
   }
 
+  // TODO: use TestNetworkService instead
   private static final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceImplBase {
 
     public static final ImmutableList<NetworkProfiler.HttpConnectionData> FAKE_DATA =
