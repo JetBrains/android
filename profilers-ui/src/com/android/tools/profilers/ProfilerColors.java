@@ -44,6 +44,8 @@ public class ProfilerColors {
       .put(CpuProfilerStage.ThreadState.DEAD_CAPTURED, Gray.TRANSPARENT)
       .build();
 
+  public static final Color TRANSPARENT_COLOR = new JBColor(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0));
+
   public static final Color THREAD_HOVER_BACKGROUND = new JBColor(0xEAEFFA, 0xEAEFFA);
 
   public static final Color THREAD_SELECTED_BACKGROUND = new JBColor(0x3476DC, 0x3476DC);
@@ -55,6 +57,8 @@ public class ProfilerColors {
   public static final Color NETWORK_CONNECTIONS_COLOR = new JBColor(0x9C928B, 0x9C928B);
 
   public static final Color NETWORK_RECEIVING_COLOR = new JBColor(0x5983E0, 0x5983E0);
+
+  public static final Color NETWORK_RECEIVING_SELECTED_COLOR = new JBColor(0x8ebdff, 0x8ebdff);
 
   public static final Color NETWORK_SENDING_COLOR = new JBColor(0xEF9F5C, 0xEF9F5C);
 
