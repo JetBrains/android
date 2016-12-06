@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 /**
  * A UI representation of a {@link ClassObj}.
  */
-class HeapDumpClassObject extends ClassObject {
+final class HeapDumpClassObject implements ClassObject {
   private final ClassObj myClassObj;
 
   @NotNull
