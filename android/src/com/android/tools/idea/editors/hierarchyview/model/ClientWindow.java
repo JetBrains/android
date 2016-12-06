@@ -59,7 +59,7 @@ public class ClientWindow {
   }
 
   /**
-   * Byte array representing the view hierachy dump of the window.
+   * Byte array representing the view hierarchy dump of the window.
    */
   @Nullable
   public byte[] loadWindowData(long timeout, TimeUnit unit) {
