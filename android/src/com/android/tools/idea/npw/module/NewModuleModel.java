@@ -14,6 +14,7 @@
  */
 package com.android.tools.idea.npw.module;
 
+import com.android.tools.idea.npw.project.NewProjectModel;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.ui.properties.core.*;
@@ -33,7 +34,6 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 public final class NewModuleModel extends WizardModel {
-  private final StringProperty myApplicationName = new StringValueProperty();
   private final StringProperty myModuleName = new StringValueProperty();
   private final BoolProperty myIsLibrary = new BoolValueProperty();
   private final BoolProperty myInstAppEnabled = new BoolValueProperty();
@@ -43,27 +43,28 @@ public final class NewModuleModel extends WizardModel {
   private final OptionalProperty<Map<String, Object>> myRenderTemplateValues = new OptionalValueProperty<>();
   private final Map<String, Object> myTemplateValues = Maps.newHashMap();
 
+  @NotNull private final StringProperty myApplicationName;
   @NotNull private final StringProperty myPackageName;
   @NotNull private final OptionalProperty<Project> myProject;
 
   { // Default init constructor
-    myApplicationName.set(message("android.wizard.module.config.new.application"));
-    myIsLibrary.addListener(sender -> myApplicationName.set(
-      message(myIsLibrary.get() ? "android.wizard.module.config.new.library" : "android.wizard.module.config.new.application")));
-
-    myApplicationName.addConstraint(String::trim);
     myModuleName.addConstraint(String::trim);
   }
 
   public NewModuleModel(@NotNull Project project) {
     myProject = new OptionalValueProperty<>(project);
     myPackageName = new StringValueProperty();
+
+    myApplicationName = new StringValueProperty(message("android.wizard.module.config.new.application"));
+    myApplicationName.addConstraint(String::trim);
+    myIsLibrary.addListener(sender -> myApplicationName.set(
+      message(myIsLibrary.get() ? "android.wizard.module.config.new.library" : "android.wizard.module.config.new.application")));
   }
 
-  @SuppressWarnings("unused") // TODO: This is the version without an project, to be used in project creation
-  public NewModuleModel(@NotNull OptionalProperty<Project> project, @NotNull StringProperty packageName, @NotNull File templateFile) {
-    myProject = project;
-    myPackageName = packageName;
+  public NewModuleModel(@NotNull NewProjectModel projectModel, @NotNull File templateFile) {
+    myProject = projectModel.project();
+    myPackageName = projectModel.packageName();
+    myApplicationName = projectModel.applicationName();
     myTemplateFile.setValue(templateFile);
   }
 
