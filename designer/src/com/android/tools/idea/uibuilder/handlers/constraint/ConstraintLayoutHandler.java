@@ -396,6 +396,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    */
   @Override
   public void addTargets(@NotNull SceneComponent component, boolean isParent) {
+    boolean showAnchors = !isParent;
     NlComponent nlComponent = component.getNlComponent();
     if (nlComponent.viewInfo != null
         && nlComponent.viewInfo.getClassName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE)) {
@@ -406,9 +407,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       }
       component.addTarget(new GuidelineTarget(isHorizontal));
       if (isHorizontal) {
-        component.addTarget(new AnchorTarget(AnchorTarget.Type.TOP));
+        component.addTarget(new AnchorTarget(AnchorTarget.Type.TOP, showAnchors));
       } else {
-        component.addTarget(new AnchorTarget(AnchorTarget.Type.LEFT));
+        component.addTarget(new AnchorTarget(AnchorTarget.Type.LEFT, showAnchors));
       }
       component.addTarget(new GuidelineCycleTarget(isHorizontal));
       return;
@@ -423,15 +424,15 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     } else {
       component.addTarget(new LassoTarget());
     }
-    component.addTarget(new AnchorTarget(AnchorTarget.Type.LEFT));
-    component.addTarget(new AnchorTarget(AnchorTarget.Type.TOP));
-    component.addTarget(new AnchorTarget(AnchorTarget.Type.RIGHT));
-    component.addTarget(new AnchorTarget(AnchorTarget.Type.BOTTOM));
+    component.addTarget(new AnchorTarget(AnchorTarget.Type.LEFT, showAnchors));
+    component.addTarget(new AnchorTarget(AnchorTarget.Type.TOP, showAnchors));
+    component.addTarget(new AnchorTarget(AnchorTarget.Type.RIGHT, showAnchors));
+    component.addTarget(new AnchorTarget(AnchorTarget.Type.BOTTOM, showAnchors));
     if (!isParent) {
       ActionTarget clearConstraints = new ClearConstraintsTarget(null);
       component.addTarget(clearConstraints);
       if (component.getNlComponent().getBaseline() > 0) {
-        component.addTarget(new AnchorTarget(AnchorTarget.Type.BASELINE));
+        component.addTarget(new AnchorTarget(AnchorTarget.Type.BASELINE, showAnchors));
         component.addTarget(new ActionTarget(clearConstraints, (SceneComponent c) -> {
           c.setShowBaseline(!c.canShowBaseline());
         }));
