@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.SyncLibraryRegistry;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -69,15 +70,16 @@ public class ArtifactsByConfigurationModuleSetupStep extends JavaModuleSetupStep
           }
           String libraryName = module.getName() + "." + artifactName;
           Library library = ideModelsProvider.getLibraryByName(libraryName);
+          String artifactPath = artifact.getPath();
           if (library == null) {
             // Create library.
             library = ideModelsProvider.createLibrary(libraryName);
             Library.ModifiableModel libraryModel = ideModelsProvider.getModifiableLibraryModel(library);
-            String url = pathToUrl(artifact.getPath());
+            String url = pathToUrl(artifactPath);
             libraryModel.addRoot(url, CLASSES);
           }
           else {
-            SyncLibraryRegistry.getInstance(module.getProject()).markAsUsed(library);
+            SyncLibraryRegistry.getInstance(module.getProject()).markAsUsed(library, Lists.newArrayList(artifactPath));
           }
           LibraryOrderEntry orderEntry = moduleModel.addLibraryEntry(library);
           orderEntry.setScope(COMPILE);

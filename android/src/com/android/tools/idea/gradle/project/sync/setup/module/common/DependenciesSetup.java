@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.common;
 
 import com.android.tools.idea.gradle.project.sync.setup.module.SyncLibraryRegistry;
+import com.android.tools.idea.gradle.util.FilePaths;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.*;
@@ -27,13 +28,8 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.util.FilePaths.pathToUrl;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
-import static com.intellij.openapi.util.io.FileUtilRt.extensionEquals;
-import static com.intellij.openapi.vfs.StandardFileSystems.FILE_PROTOCOL;
-import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL;
-import static com.intellij.openapi.vfs.VirtualFileManager.constructUrl;
-import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 import static java.io.File.separatorChar;
 
 public class DependenciesSetup {
@@ -61,7 +57,7 @@ public class DependenciesSetup {
     }
     else {
       SyncLibraryRegistry registry = SyncLibraryRegistry.getInstance(module.getProject());
-      registry.markAsUsed(library);
+      registry.markAsUsed(library, binaryPaths);
     }
 
     // It is common that the same dependency is used by more than one module. Here we update the "sources" and "documentation" paths if they
@@ -143,20 +139,5 @@ public class DependenciesSetup {
     for (String path : paths) {
       libraryModel.addRoot(pathToUrl(path), pathType);
     }
-  }
-
-  @NotNull
-  public static String pathToUrl(@NotNull String path) {
-    File file = new File(path);
-
-    String name = file.getName();
-    boolean isJarFile = extensionEquals(name, EXT_JAR) || extensionEquals(name, EXT_ZIP);
-    // .jar files require an URL with "jar" protocol.
-    String protocol = isJarFile ? JAR_PROTOCOL : FILE_PROTOCOL;
-    String url = constructUrl(protocol, toSystemIndependentName(file.getPath()));
-    if (isJarFile) {
-      url += JAR_SEPARATOR;
-    }
-    return url;
   }
 }
