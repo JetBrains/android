@@ -378,6 +378,8 @@ public class GradleSyncState {
 
   public void setupStarted() {
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).setupStarted(myProject));
+    AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder().setCategory(GRADLE_SYNC).setKind(GRADLE_SYNC_SETUP_STARTED);
+    UsageTracker.getInstance().log(event);
   }
 
   @VisibleForTesting
