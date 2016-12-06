@@ -22,6 +22,7 @@ import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpDataRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,10 +30,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-// TODO finish this class for the memory detail view
-public class HeapDumpCaptureObject extends CaptureObject {
+public final class HeapDumpCaptureObject implements CaptureObject {
   @NotNull
-  private final MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
+  private final MemoryServiceBlockingStub myClient;
 
   private final int myAppId;
 
@@ -45,7 +45,7 @@ public class HeapDumpCaptureObject extends CaptureObject {
   @Nullable
   private Snapshot mySnapshot;
 
-  public HeapDumpCaptureObject(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
+  public HeapDumpCaptureObject(@NotNull MemoryServiceBlockingStub client,
                                int appId,
                                @NotNull HeapDumpInfo heapDumpInfo,
                                @Nullable ProguardMap proguardMap) {

@@ -20,10 +20,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public abstract class CaptureObject implements MemoryObject, Disposable {
+public interface CaptureObject extends MemoryObject, Disposable {
   @NotNull
-  public abstract String getLabel();
+  String getLabel();
 
   @NotNull
-  public abstract List<HeapObject> getHeaps();
+  List<HeapObject> getHeaps();
 }

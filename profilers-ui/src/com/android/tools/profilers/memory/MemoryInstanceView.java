@@ -81,7 +81,21 @@ final class MemoryInstanceView {
         () -> new DetailColumnRenderer(value -> ((InstanceObject)value.getAdapter()).getName(),
                                        value -> {
                                          MemoryObject node = value.getAdapter();
-                                         return node instanceof FieldObject ? PlatformIcons.FIELD_ICON : PlatformIcons.INTERFACE_ICON;
+                                         if (node instanceof FieldObject) {
+                                           FieldObject field = ((FieldObject)node);
+                                           if (field.getIsArray()) {
+                                             return AllIcons.Debugger.Db_array;
+                                           }
+                                           else if (field.getIsPrimitive()) {
+                                             return AllIcons.Debugger.Db_primitive;
+                                           }
+                                           else {
+                                             return PlatformIcons.FIELD_ICON;
+                                           }
+                                         }
+                                         else {
+                                           return PlatformIcons.INTERFACE_ICON;
+                                         }
                                        },
                                        SwingConstants.LEFT),
         SwingConstants.LEFT,
