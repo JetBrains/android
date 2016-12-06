@@ -19,7 +19,6 @@ package com.android.tools.adtui.chart;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.common.datareducer.DefaultStateChartReducer;
 import com.android.tools.adtui.common.datareducer.StateChartReducer;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
@@ -51,7 +50,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
   private final List<RangedSeries<E>> mSeriesList;
 
   @NotNull
-  private final Map<E, Color> mColors;
+  private Map<E, Color> mColors;
 
   private float mArcWidth;
 
@@ -121,6 +120,13 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
    */
   public void setHeightGap(float gap) {
     mHeightGap = gap;
+  }
+
+  /**
+   * Changes state color map.
+   */
+  public void setColor(@NotNull Map<E, Color> colors) {
+    mColors = colors;
   }
 
   @Override

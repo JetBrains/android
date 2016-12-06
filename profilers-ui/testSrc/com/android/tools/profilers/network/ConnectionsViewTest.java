@@ -18,7 +18,6 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.FakeTimer;
-import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.NetworkProfiler;
@@ -38,6 +37,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.Assert.assertThat;
 
 public class ConnectionsViewTest {
@@ -143,6 +143,27 @@ public class ConnectionsViewTest {
   }
 
   @Test
+  public void testTableRowHighlight() {
+    Range dataRange = new Range(0, TimeUnit.SECONDS.toMicros(100));
+    ConnectionsView view = new ConnectionsView(myStage, myChoreographer, dataRange, data -> {});
+    int timelineColumn = ConnectionsView.Column.TIMELINE.ordinal();
+    JTable table = getConnectionsTable(view);
+
+    myChoreographerTimer.step();
+
+    Color backgroundColor = Color.YELLOW;
+    Color selectionColor = Color.BLUE;
+    table.setBackground(backgroundColor);
+    table.setSelectionBackground(selectionColor);
+
+    TableCellRenderer renderer = table.getCellRenderer(1, timelineColumn);
+    assertThat(table.prepareRenderer(renderer, 1, timelineColumn).getBackground(), is(backgroundColor));
+
+    table.setRowSelectionInterval(1, 1);
+    assertThat(table.prepareRenderer(renderer, 1, timelineColumn).getBackground(), is(selectionColor));
+  }
+
+  @Test
   public void ensureAxisInFirstRow() throws Exception {
     Range dataRange = new Range(0, TimeUnit.SECONDS.toMicros(100));
     ConnectionsView view = new ConnectionsView(myStage, myChoreographer, dataRange, data -> {});
@@ -156,8 +177,8 @@ public class ConnectionsViewTest {
 
     Component comp = table.prepareRenderer(renderer, 0, timelineColumn);
     assertThat(comp instanceof JPanel, is(true));
-    assertThat(((JPanel)comp).getComponent(0) instanceof AxisComponent, is(true));
-    assertThat(((JPanel)comp).getComponent(1) instanceof StateChart, is(true));
+    assertThat(((JPanel)comp).getComponent(0), instanceOf(AxisComponent.class));
+    assertThat(((JPanel)comp).getComponent(1), instanceOf(StateChart.class));
   }
 
   private static HttpData convert(NetworkProfiler.HttpConnectionData sourceData) {
