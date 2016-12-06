@@ -36,15 +36,7 @@ public class QualifierUtils {
       Method getValue = qualifier.getClass().getMethod("getValue");
       return getValue.invoke(qualifier);
     }
-    catch (NoSuchMethodException e) {
-      LOG.error(e);
-      throw new IllegalArgumentException(e);
-    }
-    catch (IllegalAccessException e) {
-      LOG.error(e);
-      throw new IllegalArgumentException(e);
-    }
-    catch (InvocationTargetException e) {
+    catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
       LOG.error(e);
       throw new IllegalArgumentException(e);
     }
@@ -75,19 +67,7 @@ public class QualifierUtils {
       Constructor constructor = qualifierClass.getConstructor(value.getClass());
       return (ResourceQualifier)constructor.newInstance(value);
     }
-    catch (NoSuchMethodException e) {
-      LOG.error(e);
-      throw new IllegalArgumentException(e);
-    }
-    catch (InstantiationException e) {
-      LOG.error(e);
-      throw new IllegalArgumentException(e);
-    }
-    catch (IllegalAccessException e) {
-      LOG.error(e);
-      throw new IllegalArgumentException(e);
-    }
-    catch (InvocationTargetException e) {
+    catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
       LOG.error(e);
       throw new IllegalArgumentException(e);
     }
