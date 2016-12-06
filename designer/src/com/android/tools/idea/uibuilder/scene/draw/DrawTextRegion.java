@@ -66,7 +66,7 @@ public class DrawTextRegion extends DrawRegion {
     mToUpperCase = Boolean.parseBoolean(sp[c++]);
     mAlignmentX = Integer.parseInt(sp[c++]);
     mAlignmentY = Integer.parseInt(sp[c++]);
-    mText = string.substring(string.indexOf('\"')+1, string.lastIndexOf('\"'));
+    mText = string.substring(string.indexOf('\"') + 1, string.lastIndexOf('\"'));
   }
 
   @Override
@@ -92,6 +92,7 @@ public class DrawTextRegion extends DrawRegion {
            mText +
            "\"";
   }
+
   public DrawTextRegion() {
 
   }
@@ -114,7 +115,7 @@ public class DrawTextRegion extends DrawRegion {
     mToUpperCase = toUpperCase;
     mAlignmentX = textAlignmentX;
     mAlignmentY = textAlignmentY;
-    mFont = new Font("Helvetica", Font.PLAIN, (int)(fontSize/2.3)); // Convert to swing size font
+    mFont = new Font("Helvetica", Font.PLAIN, (int)(fontSize / 2.3)); // Convert to swing size font
   }
 
   public static int androidToSwingFontSize(float fontSize) {

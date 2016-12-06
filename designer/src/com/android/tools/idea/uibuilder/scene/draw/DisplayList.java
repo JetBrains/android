@@ -47,8 +47,6 @@ public class DisplayList {
   /////////////////////////////////////////////////////////////////////////////
 
   static class Connection implements DrawCommand {
-
-    Color color;
     int x1;
     int y1;
     int x2;
@@ -69,11 +67,13 @@ public class DisplayList {
     public int compareTo(@NotNull Object o) {
       return Integer.compare(getLevel(), ((DrawCommand)o).getLevel());
     }
+
     @Override
     public String serialize() {
       return "Connection," + x1 + "," + y1 + "," + x2 + "," + y2
-             + myDirection + ",0x" + Integer.toHexString(color.getRGB());
+             + myDirection;
     }
+
     public Connection(String s) {
       String[] sp = s.split(",");
       int c = 0;
@@ -82,11 +82,9 @@ public class DisplayList {
       x2 = Integer.parseInt(sp[c++]);
       y2 = Integer.parseInt(sp[c++]);
       myDirection = Integer.parseInt(sp[c++]);
-      color = new Color(Integer.parseInt(sp[0], 16));
     }
 
-    public Connection(int x1, int y1, int x2, int y2, int direction, Color color) {
-      this.color = color;
+    public Connection(int x1, int y1, int x2, int y2, int direction) {
       this.x1 = x1;
       this.y1 = y1;
       this.x2 = x2;
@@ -96,38 +94,49 @@ public class DisplayList {
 
     @Override
     public void paint(Graphics2D g, SceneContext sceneContext) {
-      g.setColor(color);
+      g.setColor(sceneContext.getColorSet().getFrames());
       int start_dx = 0;
       int start_dy = 0;
       int end_dx = 0;
       int end_dy = 0;
-       switch (myDirection) {
+      int scale = 20;
+      int arrowDirection = 0;
+      switch (myDirection) {
         case DIR_LEFT:
-          start_dx = -10;
-          end_dx = (x2>x1) ? -10:10;
-
+          start_dx = -scale;
+          end_dx = (x2 > x1) ? -scale : scale;
+          arrowDirection = (x2 > x1) ? DrawConnection.DIR_LEFT : DrawConnection.DIR_RIGHT;
           break;
         case DIR_TOP:
           start_dy = -10;
-          end_dy = (y2>y1) ? -10:10;
+          end_dy = (y2 > y1) ? -scale : scale;
+          arrowDirection = (y2 > y1) ? DrawConnection.DIR_TOP : DrawConnection.DIR_BOTTOM;
 
           break;
         case DIR_RIGHT:
-          end_dx = (x2>x1) ? -10:10;
-          start_dx = 10;
+          end_dx = (x2 > x1) ? -scale : scale;
+          start_dx = scale;
+          arrowDirection = (x2 > x1) ? DrawConnection.DIR_LEFT : DrawConnection.DIR_RIGHT;
           break;
         case DIR_BOTTOM:
-          start_dy = 10;
-          end_dy = (y2>y1) ? -10:10;
+          start_dy = scale;
+          end_dy = (y2 > y1) ? -scale : scale;
+          arrowDirection = (y2 > y1) ? DrawConnection.DIR_TOP : DrawConnection.DIR_BOTTOM;
           break;
         case DIR_BASELINE:
-          start_dy = 5;
+          start_dy = -scale;
+          end_dy = scale;
+          arrowDirection = DrawConnection.DIR_BOTTOM;
           break;
       }
       GeneralPath path = new GeneralPath();
-      path.moveTo(x1,y1);
-      path.curveTo(x1+start_dx,y1+start_dy,x2+end_dx,y2+end_dy,x2,y2);
+      path.moveTo(x1, y1);
+      path.curveTo(x1 + start_dx, y1 + start_dy, x2 + end_dx, y2 + end_dy, x2, y2);
       g.draw(path);
+      int[] xPoints = new int[3];
+      int[] yPoints = new int[3];
+      DrawConnectionUtils.getArrow(arrowDirection, x2, y2, xPoints, yPoints);
+      g.fillPolygon(xPoints, yPoints, 3);
     }
   }
 
@@ -163,6 +172,7 @@ public class DisplayList {
     public int compareTo(@NotNull Object o) {
       return Integer.compare(getLevel(), ((DrawCommand)o).getLevel());
     }
+
     @Override
     public void paint(Graphics2D g, SceneContext sceneContext) {
       g.setColor(color);
@@ -187,6 +197,7 @@ public class DisplayList {
     public int compareTo(@NotNull Object o) {
       return Integer.compare(getLevel(), ((DrawCommand)o).getLevel());
     }
+
     public Clip(String s) {
       String[] sp = s.split(",");
       int c = 0;
@@ -326,12 +337,12 @@ public class DisplayList {
     add(new Rect(l, t, w, h, color));
   }
 
-  public void addConnection(SceneContext transform, float x1, float y1, float x2, float y2, int direction, Color color) {
+  public void addConnection(SceneContext transform, float x1, float y1, float x2, float y2, int direction) {
     int sx1 = transform.getSwingX(x1);
     int sy1 = transform.getSwingY(y1);
     int sx2 = transform.getSwingX(x2);
     int sy2 = transform.getSwingY(y2);
-    add(new Connection(sx1, sy1, sx2, sy2, direction, color));
+    add(new Connection(sx1, sy1, sx2, sy2, direction));
   }
 
   public void addLine(SceneContext transform, float x1, float y1, float x2, float y2, Color color) {
@@ -348,14 +359,6 @@ public class DisplayList {
     DrawCommand[] dlist = myCommands.toArray(new DrawCommand[myCommands.size()]);
     for (int i = 0; i < dlist.length; i++) {
       DrawCommand command = dlist[i];
-      if (command instanceof Clip) {
-        for (int k = i + 1; k < dlist.length; k++) {
-          if (dlist[k] instanceof UNClip) {
-            Arrays.sort(dlist, i + 1, k);
-            break;
-          }
-        }
-      }
       command.paint(g, sceneContext);
     }
     g.dispose();

@@ -80,6 +80,11 @@ public class SceneDecorator {
    * This should be called after layout
    * The Display list will contain a collection of commands that in screen space
    * It is also responsible to draw its targets (but not creating or placing targets
+   * <ol>
+   *   <li>It adds a rectangle</li>
+   *   <li>adds targets</li>
+   *   <li>add children (If children they are wrapped in a clip)</li>
+   * </ol>
    *
    * @param list
    * @param time
@@ -94,12 +99,56 @@ public class SceneDecorator {
     }
     component.fillRect(rect); // get the rectangle from the component
     list.addRect(sceneContext, rect, color); // add to the list
+    buildListComponent(list,time, sceneContext,component);
+    buildListTargets(list,time, sceneContext,component);
+    buildListChildren(list,time, sceneContext,component);
+  }
 
-    ArrayList<Target> targets = component.getTargets();
+  public void buildListComponent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
+     // default empty for now
+    // TODO add draw the component
+  }
 
-    int num = targets.size();
-    for (int i = 0; i < num; i++) {
-      targets.get(i).render(list, sceneContext);
+  /**
+   * This is responsible for setting the clip and building the list for this component's children
+   *
+   * @param list
+   * @param time
+   * @param sceneContext
+   * @param component
+   */
+  protected void buildListChildren(@NotNull DisplayList list,
+                                long time,
+                                @NotNull SceneContext sceneContext,
+                                @NotNull SceneComponent component) {
+    ArrayList<SceneComponent> children = component.getChildren();
+    if (children.size() > 0) {
+      Rectangle rect = new Rectangle();
+      component.fillRect(rect);
+      DisplayList.UNClip unClip = list.addClip(sceneContext, rect);
+      for (SceneComponent child : children) {
+        child.buildDisplayList(time, list, sceneContext);
+      }
+      list.add(unClip);
     }
   }
+
+  /**
+   * This is responsible for building the targets of this component
+   *
+   * @param list
+   * @param time
+   * @param sceneContext
+   * @param component
+   */
+  protected void buildListTargets(@NotNull DisplayList list,
+                               long time,
+                               @NotNull SceneContext sceneContext,
+                               @NotNull SceneComponent component) {
+    ArrayList<Target> targets = component.getTargets();
+    for (Target target : targets) {
+      target.render(list, sceneContext);
+    }
+  }
+
 }

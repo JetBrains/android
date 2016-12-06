@@ -50,9 +50,9 @@ public class SceneDisplayListTest3 extends SceneTest {
                        .withBounds(450, 490, 100, 20)
                        .width("100dp")
                        .height("20dp")
-                       .withAttribute("app:layout_constraintLeft_toLeftOf", "@id/button1")
-                       .withAttribute("app:layout_constraintRight_toRightOf", "@id/button1")
-                       .withAttribute("app:layout_constraintTop_toBottomOf", "@id/button1")
+                       .withAttribute("app:layout_constraintLeft_toLeftOf", "@+id/button1")
+                       .withAttribute("app:layout_constraintRight_toRightOf", "@+id/button1")
+                       .withAttribute("app:layout_constraintTop_toBottomOf", "@+id/button1")
                        .withAttribute("app:layout_constraintBottom_toBottomOf", "parent")
                    ));
   }
@@ -68,28 +68,21 @@ public class SceneDisplayListTest3 extends SceneTest {
                  "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
                  "    app:layout_constraintBottom_toBottomOf=\"parent\"/>");
 
-    String simpleList = "Rect,0,0,1000,1000,ffff0000\n" +
+    String simpleList = "Rect,0,0,1000,1000,ff00ffff\n" +
                         "Clip,0,0,1000,1000\n" +
                         "Rect,450,490,100,20,ff00ffff\n" +
-                        "DrawComponent,450,490,100,20,0\n" +
                         "DrawTextRegion,450,490,100,20,false,false,5,5,\"\"\n" +
-                        "DrawComponent,450,490,100,20,0\n" +
                         "DrawConnection,2,450x490x100x20,0,0x0x1000x1000,0,true,false,0,0.5\n" +
                         "DrawConnection,2,450x490x100x20,1,0x0x1000x1000,1,true,false,0,0.5\n" +
                         "DrawConnection,2,450x490x100x20,2,0x0x1000x1000,2,true,false,0,0.5\n" +
                         "DrawConnection,2,450x490x100x20,3,0x0x1000x1000,3,true,false,0,0.5\n" +
                         "Rect,450,490,100,20,ff00ffff\n" +
-                        "DrawComponent,450,490,100,20,0\n" +
                         "DrawTextRegion,450,490,100,20,false,false,5,5,\"\"\n" +
-                        "DrawComponent,450,490,100,20,0\n" +
-                        "DrawConnection,1,450x490x100x20,3,0x0x1000x1000,3,true,false,0,0.5\n" +
-                        "UNClip\n" +
-                        "Rect,450,490,100,20,ff00ffff\n" +
-                        "DrawComponent,450,490,100,20,0\n" +
-                        "DrawTextRegion,450,490,100,20,false,false,5,5,\"\"\n" +
-                        "Rect,450,490,100,20,ff00ffff\n" +
-                        "DrawComponent,450,490,100,20,0\n" +
-                        "DrawTextRegion,450,490,100,20,false,false,5,5,\"\"\n";
+                        "DrawConnection,4,450x490x100x20,0,450x490x100x20,0,false,true,0,0.5\n" +
+                        "DrawConnection,4,450x490x100x20,1,450x490x100x20,1,false,true,0,0.5\n" +
+                        "DrawConnection,2,450x490x100x20,2,450x490x100x20,3,false,true,0,0.5\n" +
+                        "DrawConnection,2,450x490x100x20,3,0x0x1000x1000,3,true,false,0,0.5\n" +
+                        "UNClip\n";
 
     assertEquals(simpleList, myInteraction.getDisplayList().serialize());
     DisplayList disp = DisplayList.getDisplayList(simpleList);
@@ -97,7 +90,7 @@ public class SceneDisplayListTest3 extends SceneTest {
     //noinspection UndesirableClassUsage
     BufferedImage img = new BufferedImage(1000, 1000,BufferedImage.TYPE_INT_ARGB);
     disp.paint(img.createGraphics(), SceneContext.get());
-    assertEquals(22, disp.getCommands().size());
+    assertEquals(15, disp.getCommands().size());
     disp.clear();
   }
 }

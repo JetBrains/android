@@ -83,8 +83,6 @@ public class DragTarget extends ConstraintTarget {
       list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? Color.yellow : Color.green);
       list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, Color.red);
       list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, Color.red);
-    } else {
-      DrawComponent.add(list, sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? DrawComponent.OVER : DrawComponent.NORMAL);
     }
   }
 
