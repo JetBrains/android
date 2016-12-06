@@ -58,7 +58,6 @@ public class InstantRunBuilder implements BeforeRunBuilder {
   private final InstantRunContext myInstantRunContext;
   private final AndroidRunConfigContext myRunContext;
   private final InstantRunTasksProvider myTasksProvider;
-  private final RunAsValidator myRunAsValidator;
   private final InstalledApkCache myInstalledApkCache;
   private final InstantRunClientDelegate myInstantRunClientDelegate;
   private final boolean myFlightRecorderEnabled;
@@ -66,14 +65,12 @@ public class InstantRunBuilder implements BeforeRunBuilder {
   public InstantRunBuilder(@Nullable IDevice device,
                            @NotNull InstantRunContext instantRunContext,
                            @NotNull AndroidRunConfigContext runConfigContext,
-                           @NotNull InstantRunTasksProvider tasksProvider,
-                           @NotNull RunAsValidator runAsValidator) {
+                           @NotNull InstantRunTasksProvider tasksProvider) {
     this(device,
          instantRunContext,
          runConfigContext,
          tasksProvider,
          InstantRunSettings.isRecorderEnabled(),
-         runAsValidator,
          ServiceManager.getService(InstalledApkCache.class),
          new InstantRunClientDelegate() {
          });
@@ -85,7 +82,6 @@ public class InstantRunBuilder implements BeforeRunBuilder {
                     @NotNull AndroidRunConfigContext runConfigContext,
                     @NotNull InstantRunTasksProvider tasksProvider,
                     boolean enableFlightRecorder,
-                    @NotNull RunAsValidator runAsValidator,
                     @NotNull InstalledApkCache installedApkCache,
                     @NotNull InstantRunClientDelegate delegate) {
     myDevice = device;
@@ -93,7 +89,6 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     myRunContext = runConfigContext;
     myTasksProvider = tasksProvider;
     myFlightRecorderEnabled = enableFlightRecorder;
-    myRunAsValidator = runAsValidator;
     myInstalledApkCache = installedApkCache;
     myInstantRunClientDelegate = delegate;
   }
