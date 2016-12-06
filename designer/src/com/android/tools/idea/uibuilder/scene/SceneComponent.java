@@ -53,7 +53,6 @@ public class SceneComponent {
     return myDecorator;
   }
 
-
   public enum DrawState {SUBDUED, NORMAL, HOVER, SELECTED}
 
   private final Scene myScene;
@@ -372,6 +371,21 @@ public class SceneComponent {
     if (myViewGroupHandler != null) {
       myViewGroupHandler.addTargets(this, isParent);
     }
+  }
+
+  /**
+   * Returns true if the component intersects with the given rect
+   *
+   * @param rectangle
+   * @return true if intersecting with the rectangle
+   */
+  public boolean intersects(Rectangle rectangle) {
+    float x1 = getDrawX();
+    float y1 = getDrawY();
+    float x2 = x1 + getDrawWidth();
+    float y2 = y1 + getDrawHeight();
+    Rectangle bounds = new Rectangle((int) x1, (int) y1, (int) (x2 - x1), (int) (y2 - y1));
+    return rectangle.intersects(bounds);
   }
 
   //endregion

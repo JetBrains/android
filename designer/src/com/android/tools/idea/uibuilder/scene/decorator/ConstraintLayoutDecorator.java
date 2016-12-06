@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
 import com.android.tools.idea.uibuilder.scene.*;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.draw.DrawConnection;
+import com.android.tools.idea.uibuilder.scene.target.LassoTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
 
@@ -145,6 +146,17 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       child.getDecorator().buildList(list, time, sceneContext, child);
       buildListTarget(list, time, sceneContext, component, child);
       buildListConnections(list, time, sceneContext, component, child);
+    }
+
+    // render our own targets
+    ArrayList<Target> targets = component.getTargets();
+    int num = targets.size();
+    for (int i = 0; i < num; i++) {
+      Target target = targets.get(i);
+      if (target instanceof LassoTarget) {
+        // for now only draw a lasso target if present.
+        target.render(list, sceneContext);
+      }
     }
     list.add(unclip);
   }

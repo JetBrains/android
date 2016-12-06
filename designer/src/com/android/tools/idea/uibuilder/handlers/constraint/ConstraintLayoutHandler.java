@@ -420,6 +420,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       component.addTarget(new ResizeTarget(ResizeTarget.Type.LEFT_BOTTOM));
       component.addTarget(new ResizeTarget(ResizeTarget.Type.RIGHT_TOP));
       component.addTarget(new ResizeTarget(ResizeTarget.Type.RIGHT_BOTTOM));
+    } else {
+      component.addTarget(new LassoTarget());
     }
     component.addTarget(new AnchorTarget(AnchorTarget.Type.LEFT));
     component.addTarget(new AnchorTarget(AnchorTarget.Type.TOP));

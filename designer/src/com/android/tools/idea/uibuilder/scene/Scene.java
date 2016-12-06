@@ -27,9 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
 
 /**
@@ -65,6 +63,7 @@ public class Scene implements ModelListener, SelectionListener {
   private Target myHitTarget = null;
   private int myMouseCursor;
   private SceneComponent myHitComponent;
+  ArrayList<SceneComponent> myNewSelectedComponents = new ArrayList<>();
 
   public int getMouseCursor() {
     return myMouseCursor;
@@ -296,7 +295,8 @@ public class Scene implements ModelListener, SelectionListener {
     SceneComponent parent = component.getParent();
     if (parent != null) {
       component = parent;
-    } else {
+    }
+    else {
       component = myRoot;
     }
     ViewHandler handler = component.getNlComponent().getViewHandler();
@@ -342,10 +342,12 @@ public class Scene implements ModelListener, SelectionListener {
         SceneComponent component = getSceneComponent(primary);
         if (component != null) {
           addTargets(component);
-        } else {
+        }
+        else {
           addTargets(myRoot);
         }
-      } else {
+      }
+      else {
         addTargets(myRoot);
       }
     }
@@ -408,6 +410,7 @@ public class Scene implements ModelListener, SelectionListener {
   public void repaint() {
     myScreenView.getSurface().repaint();
   }
+
   /**
    * Paint the current scene into the given display list
    *
@@ -443,10 +446,15 @@ public class Scene implements ModelListener, SelectionListener {
    *
    * @param component
    */
-  public void select(SceneComponent component) {
+  public void select(ArrayList<SceneComponent> components) {
     if (myScreenView != null) {
       myScreenView.getSelectionModel().clear();
-      myScreenView.getSelectionModel().setSelection(Collections.singletonList(component.getNlComponent()));
+      ArrayList<NlComponent> nlComponents = new ArrayList<>();
+      int count = components.size();
+      for (int i = 0; i < count; i++) {
+        nlComponents.add(components.get(i).getNlComponent());
+      }
+      myScreenView.getSelectionModel().setSelection(nlComponents);
     }
   }
 
@@ -464,7 +472,8 @@ public class Scene implements ModelListener, SelectionListener {
         if (anchor.getType() == AnchorTarget.Type.BASELINE) {
           // only show baseline anchor as needed
           return component.canShowBaseline();
-        } else {
+        }
+        else {
           // if the baseline is showing, hide the rest of the anchors
           return !component.canShowBaseline();
         }
@@ -496,6 +505,9 @@ public class Scene implements ModelListener, SelectionListener {
       return true;
     }
     if (target instanceof DragTarget) {
+      return true;
+    }
+    if (target instanceof LassoTarget) {
       return true;
     }
     if (target instanceof GuidelineCycleTarget) {
@@ -530,7 +542,10 @@ public class Scene implements ModelListener, SelectionListener {
       myPicker.setSelectListener(this);
     }
 
-    public void find(@NotNull SceneContext transform, @NotNull SceneComponent root, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+    public void find(@NotNull SceneContext transform,
+                     @NotNull SceneComponent root,
+                     @AndroidDpCoordinate int x,
+                     @AndroidDpCoordinate int y) {
       myClosestComponent = null;
       myClosestTarget = null;
       myClosestComponentDistance = Double.MAX_VALUE;
@@ -546,9 +561,9 @@ public class Scene implements ModelListener, SelectionListener {
       if (over instanceof Target) {
         Target target = (Target)over;
         if (dist < myClosestTargetDistance
-          || (dist == myClosestTargetDistance && prefer(target.getComponent(),
-                                                        myClosestTarget != null ? myClosestTarget.getComponent() : null)
-              && target.getPreferenceLevel() >= myClosestTargetLevel)) {
+            || (dist == myClosestTargetDistance && prefer(target.getComponent(),
+                                                          myClosestTarget != null ? myClosestTarget.getComponent() : null)
+                && target.getPreferenceLevel() >= myClosestTargetLevel)) {
           myClosestTargetDistance = dist;
           myClosestTarget = target;
           myClosestTargetLevel = target.getPreferenceLevel();
@@ -557,7 +572,7 @@ public class Scene implements ModelListener, SelectionListener {
       else if (over instanceof SceneComponent) {
         SceneComponent component = (SceneComponent)over;
         if (dist < myClosestComponentDistance
-          || (dist == myClosestComponentDistance && prefer(component, myCurrentComponent))) {
+            || (dist == myClosestComponentDistance && prefer(component, myCurrentComponent))) {
           myClosestComponentDistance = dist;
           myClosestComponent = component;
         }
@@ -672,19 +687,21 @@ public class Scene implements ModelListener, SelectionListener {
       myHitTarget.mouseRelease(x, y, myHitListener.myClosestTarget);
     }
     myFilterTarget = FilterType.NONE;
-    SceneComponent selectedComponent = null;
+    myNewSelectedComponents.clear();
     if (myHitComponent != null && myHitListener.myClosestComponent == myHitComponent) {
-      selectedComponent = myHitComponent;
+      myNewSelectedComponents.add(myHitComponent);
     }
     if (myHitTarget instanceof DragTarget) {
-      DragTarget dragTarget = (DragTarget) myHitTarget;
+      DragTarget dragTarget = (DragTarget)myHitTarget;
       if (dragTarget.hasChangedComponent()) {
-        selectedComponent = dragTarget.getComponent();
+        myNewSelectedComponents.add(dragTarget.getComponent());
       }
     }
-    if (selectedComponent != null) {
-      select(selectedComponent);
+    if (myHitTarget instanceof LassoTarget) {
+      LassoTarget lassoTarget = (LassoTarget)myHitTarget;
+      lassoTarget.fillSelectedComponents(myNewSelectedComponents);
     }
+    select(myNewSelectedComponents);
     if (mNeedsLayout != NO_LAYOUT) {
       myModel.requestLayout(mNeedsLayout == ANIMATED_LAYOUT ? true : false);
     }

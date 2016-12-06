@@ -52,16 +52,12 @@ class SceneMouseInteraction {
       for (Target target : targets) {
         if (targetClass.isInstance(target)) {
           if (pos == n) {
-            myLastX = target.getCenterX();
-            myLastY = target.getCenterY();
-            break;
+            mouseDown(target.getCenterX(), target.getCenterY());
+            return;
           }
           n++;
         }
       }
-      SceneContext transform = SceneContext.get();
-      myScene.mouseDown(transform, (int)myLastX, (int)myLastY);
-      myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
     }
   }
 
@@ -76,11 +72,7 @@ class SceneMouseInteraction {
     if (component != null) {
       component.setSelected(true);
       ResizeTarget target = component.getResizeTarget(type);
-      myLastX = target.getCenterX();
-      myLastY = target.getCenterY();
-      SceneContext transform = SceneContext.get();
-      myScene.mouseDown(transform, (int)myLastX, (int)myLastY);
-      myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
+      mouseDown(target.getCenterX(), target.getCenterY());
     }
   }
 
@@ -95,11 +87,7 @@ class SceneMouseInteraction {
     if (component != null) {
       component.setSelected(true);
       AnchorTarget target = component.getAnchorTarget(type);
-      myLastX = target.getCenterX();
-      myLastY = target.getCenterY();
-      SceneContext transform = SceneContext.get();
-      myScene.mouseDown(transform, (int)myLastX, (int)myLastY);
-      myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
+      mouseDown(target.getCenterX(), target.getCenterY());
     }
   }
 
@@ -122,12 +110,16 @@ class SceneMouseInteraction {
   public void mouseDown(String componentId, float offsetX, float offsetY) {
     SceneComponent component = myScene.getSceneComponent(componentId);
     if (component != null) {
-      myLastX = component.getCenterX() + offsetX;
-      myLastY = component.getCenterY() + offsetY;
-      SceneContext transform = SceneContext.get();
-      myScene.mouseDown(transform, (int)myLastX, (int)myLastY);
-      myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
+      mouseDown(component.getCenterX() + offsetX, component.getCenterY() + offsetY);
     }
+  }
+
+  public void mouseDown(float x, float y) {
+    myLastX = x;
+    myLastY = y;
+    SceneContext transform = SceneContext.get();
+    myScene.mouseDown(transform, (int)myLastX, (int)myLastY);
+    myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
   }
 
   /**
