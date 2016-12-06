@@ -73,4 +73,27 @@ public class SceneSelectionTest extends SceneTest {
     assertEquals(myScene.getSceneComponent("button2").getNlComponent(), componentList.get(0));
   }
 
+  public void testLassoSelection() {
+    List<NlComponent> componentList = myScreen.getScreen().getSelectionModel().getSelection();
+    assertEquals(0, componentList.size());
+    myInteraction.mouseDown(0, 0);
+    myInteraction.mouseRelease(10, 10);
+    componentList = myScreen.getScreen().getSelectionModel().getSelection();
+    assertEquals(0, componentList.size());
+    myInteraction.mouseDown(80, 190);
+    myInteraction.mouseRelease(110, 210);
+    componentList = myScreen.getScreen().getSelectionModel().getSelection();
+    assertEquals(1, componentList.size());
+    assertEquals(myScene.getSceneComponent("button").getNlComponent(), componentList.get(0));
+    myInteraction.mouseDown(0, 0);
+    myInteraction.mouseRelease(10, 10);
+    componentList = myScreen.getScreen().getSelectionModel().getSelection();
+    assertEquals(0, componentList.size());
+    myInteraction.mouseDown(80, 190);
+    myInteraction.mouseRelease(110, 510);
+    componentList = myScreen.getScreen().getSelectionModel().getSelection();
+    assertEquals(2, componentList.size());
+    assertEquals(myScene.getSceneComponent("button").getNlComponent(), componentList.get(0));
+    assertEquals(myScene.getSceneComponent("button2").getNlComponent(), componentList.get(1));
+  }
 }
