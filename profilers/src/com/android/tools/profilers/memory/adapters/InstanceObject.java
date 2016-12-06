@@ -22,57 +22,71 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class InstanceObject implements MemoryObject {
-  public enum ValueType {
-    UNKNOWN,
-    BOOLEAN,
-    BYTE,
-    CHAR,
-    SHORT,
-    INT,
-    LONG,
-    FLOAT,
-    DOUBLE,
-    OBJECT,
-    CLASS,
-    STRING // special case for strings
+public interface InstanceObject extends MemoryObject {
+  enum ValueType {
+    NULL(false),
+    BOOLEAN(true),
+    BYTE(true),
+    CHAR(true),
+    SHORT(true),
+    INT(true),
+    LONG(true),
+    FLOAT(true),
+    DOUBLE(true),
+    OBJECT(false),
+    CLASS(false),
+    STRING(false); // special case for strings
+
+    private boolean myIsPrimitive;
+
+    ValueType(boolean isPrimitive) {
+      myIsPrimitive = isPrimitive;
+    }
+
+    public boolean getIsPrimitive() {
+      return myIsPrimitive;
+    }
   }
 
   @NotNull
-  public abstract String getName();
+  String getName();
 
-  public int getDepth() {
+  default int getDepth() {
     return 0;
   }
 
-  public int getShallowSize() {
+  default int getShallowSize() {
     return 0;
   }
 
-  public long getRetainedSize() {
+  default long getRetainedSize() {
     return 0;
   }
 
   @Nullable
-  public List<FieldObject> getFields() {
+  default List<FieldObject> getFields() {
     return Collections.emptyList();
   }
 
   @Nullable
-  public AllocationStack getCallStack() {
+  default AllocationStack getCallStack() {
     return null;
   }
 
   @NotNull
-  public String getValueLabel() {
+  default String getValueLabel() {
     return "";
   }
 
-  public ValueType getValueType() {
-    return ValueType.UNKNOWN;
+  default ValueType getValueType() {
+    return ValueType.NULL;
   }
 
-  public boolean getIsArray() {
+  default boolean getIsArray() {
+    return false;
+  }
+
+  default boolean getIsPrimitive() {
     return false;
   }
 }

@@ -22,12 +22,44 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A UI representation of a {@link ClassInstance}.
  */
-public class HeapDumpInstanceObject extends InstanceObject {
+final class HeapDumpInstanceObject implements InstanceObject {
   @NotNull private final Instance myInstance;
+
+  public static List<FieldObject> extractFields(@NotNull Instance instance) {
+    List<FieldObject> sublist = new ArrayList<>();
+    if (instance instanceof ClassInstance) {
+      ClassInstance classInstance = (ClassInstance)instance;
+      for (ClassInstance.FieldValue field : classInstance.getValues()) {
+        sublist.add(new HeapDumpFieldObject(classInstance, field));
+      }
+    }
+    else if (instance instanceof ArrayInstance) {
+      ArrayInstance arrayInstance = (ArrayInstance)instance;
+      Type arrayType = arrayInstance.getArrayType();
+      int arrayIndex = 0;
+      for (Object value : arrayInstance.getValues()) {
+        sublist.add(
+          new HeapDumpFieldObject(arrayInstance, new ClassInstance.FieldValue(new Field(arrayType, Integer.toString(arrayIndex)), value)));
+        arrayIndex++;
+      }
+    }
+    else if (instance instanceof ClassObj) {
+      ClassObj classObj = (ClassObj)instance;
+      for (Map.Entry<Field, Object> entry : classObj.getStaticFieldValues().entrySet()) {
+        sublist.add(new HeapDumpFieldObject(classObj, new ClassInstance.FieldValue(entry.getKey(), entry.getValue())));
+      }
+    }
+    else {
+      return null;
+    }
+
+    return sublist;
+  }
 
   public HeapDumpInstanceObject(@NotNull Instance instance) {
     myInstance = instance;
@@ -58,24 +90,7 @@ public class HeapDumpInstanceObject extends InstanceObject {
   @Nullable
   @Override
   public List<FieldObject> getFields() {
-    List<FieldObject> sublist = new ArrayList<>();
-    if (myInstance instanceof ClassInstance) {
-      ClassInstance classInstance = (ClassInstance)myInstance;
-      for (ClassInstance.FieldValue field : classInstance.getValues()) {
-        sublist.add(new HeapDumpFieldObject(field));
-      }
-    }
-    else if (myInstance instanceof ArrayInstance) {
-      ArrayInstance arrayInstance = (ArrayInstance)myInstance;
-      Type arrayType = arrayInstance.getArrayType();
-      int arrayIndex = 0;
-      for (Object value : arrayInstance.getValues()) {
-        sublist.add(new HeapDumpFieldObject(new ClassInstance.FieldValue(new Field(arrayType, Integer.toString(arrayIndex)), value)));
-        arrayIndex++;
-      }
-    }
-
-    return sublist;
+    return extractFields(myInstance);
   }
 
   @Nullable

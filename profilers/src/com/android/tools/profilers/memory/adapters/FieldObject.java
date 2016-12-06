@@ -17,7 +17,7 @@ package com.android.tools.profilers.memory.adapters;
 
 import org.jetbrains.annotations.NotNull;
 
-public abstract class FieldObject extends InstanceObject {
+public interface FieldObject extends InstanceObject {
   @NotNull
-  public abstract String getFieldName();
+  String getFieldName();
 }
