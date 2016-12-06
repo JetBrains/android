@@ -141,7 +141,7 @@ public class NlPreviewImagePanelTest extends LayoutTestCase {
   private void paint() {
     BufferedImage image = UIUtil.createImage(myPanel.getWidth(), myPanel.getHeight(), TYPE_INT_ARGB);
     Graphics graphics = image.getGraphics();
-    myPanel.paint(graphics);
+    myPanel.paintComponent(graphics);
     graphics.dispose();
   }
 
