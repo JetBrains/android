@@ -25,14 +25,12 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
-import com.android.tools.idea.model.AndroidModel;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
@@ -72,8 +70,6 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
   private static final String VALUES_OVERLAY1 = "resourceRepository/valuesOverlay1.xml";
   private static final String VALUES_OVERLAY2 = "resourceRepository/valuesOverlay2.xml";
   private static final String VALUES_OVERLAY2_NO = "resourceRepository/valuesOverlay2No.xml";
-
-  private static final Logger logger = Logger.getInstance(ProjectResourceRepositoryTest.class);
 
   public void testStable() {
     assertSame(ProjectResourceRepository.getProjectResources(myFacet, true), ProjectResourceRepository.getProjectResources(myFacet, true));
@@ -181,55 +177,13 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     myFixture.copyFileToProject(LAYOUT, "res/layout/layout1.xml");
     addArchiveLibraries();
     List<VirtualFile> flavorDirs = Lists.newArrayList(myFacet.getAllResourceDirectories());
-    // For debugging: check that the IO File collection is consistent with the VirtualFile one.
-    Collection<File> ioFileFlavorDirs =
-      IdeaSourceProvider.getAllSourceProviders(myFacet)
-        .stream()
-        .flatMap(provider -> provider.getResDirectories().stream())
-        .collect(Collectors.toList());
     final ProjectResourceRepository repository = ProjectResourceRepository.create(myFacet);
     List<? extends LocalResourceRepository> originalChildren = repository.getChildren();
     // Should have a bunch repository directories from the various flavors.
     Set<VirtualFile> resourceDirs = repository.getResourceDirs();
-    String beforeState =
-      new DebugState("Before Removal", myFacet.getAndroidModel(), flavorDirs, ioFileFlavorDirs, resourceDirs, originalChildren).toString();
-    logger.warn("Test logging: " + beforeState);
-    if (resourceDirs.isEmpty()) {
-      logger.warn("Had empty resourceDirs: " + beforeState);
-      // Check if the IO files actually exist.
-      for (File ioDir : ioFileFlavorDirs) {
-        if (!ioDir.exists()) {
-          logger.warn("Dir doesn't exist: " + ioDir.getPath());
-        }
-      }
-      // See if a VFS refresh and root update will help.
-      WriteCommandAction.runWriteCommandAction(getProject(), () -> {
-        ioFileFlavorDirs.forEach(file -> {
-          VirtualFile virtualFile = VfsUtil.findFileByIoFile(file, true);
-          if (virtualFile == null) {
-            logger.warn("Still can't find the virtual file for " + file);
-          }
-        });
-        myFacet.getResourceFolderManager().invalidate();
-        repository.updateRoots();
-      });
-      // Load up the dirs again, before trying the asserts a second time.
-      flavorDirs = Lists.newArrayList(myFacet.getAllResourceDirectories());
-      originalChildren = repository.getChildren();
-      resourceDirs = repository.getResourceDirs();
-      String refreshedState =
-        new DebugState("After hacky refresh", myFacet.getAndroidModel(), flavorDirs, ioFileFlavorDirs, resourceDirs, originalChildren)
-          .toString();
-      logger.warn("State after hacky refresh: " + refreshedState);
-      // If it's still empty, just disable the test. We'll look over the logs.
-      if (resourceDirs.isEmpty() || flavorDirs.isEmpty()) {
-        logger.warn("Still no resource directories! Test disabled.");
-        return;
-      }
-    }
-    assertFalse(beforeState, resourceDirs.isEmpty());
-    assertFalse(beforeState, flavorDirs.isEmpty());
-    assertSameElements(beforeState, resourceDirs, flavorDirs);
+    assertNotEmpty(resourceDirs);
+    assertNotEmpty(flavorDirs);
+    assertSameElements(resourceDirs, flavorDirs);
 
     // Now delete a directory, notify the folder manager and updateRoots.
     final VirtualFile firstFlavor = flavorDirs.remove(0);
@@ -249,80 +203,11 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     // The child repositories should be the same since the module structure didn't change.
     List<? extends LocalResourceRepository> newChildren = repository.getChildren();
     Set<VirtualFile> newResourceDirs = repository.getResourceDirs();
-    String afterState =
-      new DebugState("After Removal", myFacet.getAndroidModel(), flavorDirs, ioFileFlavorDirs, newResourceDirs, newChildren).toString();
-    assertTrue(afterState, newChildren.equals(originalChildren));
+    assertTrue(newChildren.equals(originalChildren));
     // However, the resourceDirs should now be different, missing the first flavor directory.
-    assertSameElements(afterState, newResourceDirs, flavorDirs);
+    assertSameElements(newResourceDirs, flavorDirs);
   }
 
-  // For debugging failures to testGetResourceDirsAndUpdateRoots (temporary).
-  // See: https://code.google.com/p/android/issues/detail?id=227339
-  private static class DebugState {
-    private final String label;
-    private final AndroidModel androidModel;
-    private final Collection<VirtualFile> flavorResDirs;
-    private final Collection<File> ioFileFlavorResDirs;
-    private final Collection<VirtualFile> resDirs;
-    private final Collection<? extends LocalResourceRepository> repoChildren;
-
-    DebugState(String label,
-               AndroidModel androidModel,
-               Collection<VirtualFile> flavorResDirs,
-               Collection<File> ioFileFlavorResDirs,
-               Collection<VirtualFile> resDirs,
-               Collection<? extends LocalResourceRepository> repoChildren) {
-      this.label = label;
-      this.androidModel = androidModel;
-      this.flavorResDirs = flavorResDirs;
-      this.ioFileFlavorResDirs = ioFileFlavorResDirs;
-      this.resDirs = resDirs;
-      this.repoChildren = repoChildren;
-    }
-
-    @Override
-    public String toString() {
-      return String.format("%s: {\n\tmodel: %s\n\tflavorResDirs: %s\n\tioFileFlavorResDirs: %s\n\tresDirs: %s\n\trepoChildren: %s\n}",
-                           label,
-                           androidModel.toString(),
-                           String.format("|%d| %s",
-                                         flavorResDirs.size(),
-                                         String.join(", ", flavorResDirs.stream().map(VirtualFile::getPath).collect(Collectors.toList()))),
-                           String.format("|%d| %s",
-                                         ioFileFlavorResDirs.size(),
-                                         String.join(", ", ioFileFlavorResDirs.stream().map(File::getPath).collect(Collectors.toList()))),
-                           String.format("|%d| %s",
-                                         resDirs.size(),
-                                         String.join(", ", resDirs.stream().map(VirtualFile::getPath).collect(Collectors.toList()))),
-                           String.format("|%d| %s",
-                                         repoChildren.size(),
-                                         String.join(", ", repoChildren.stream().map(repo -> describeResourceRepository(repo, 1))
-                                           .collect(Collectors.toList())))
-      );
-    }
-
-    private static String describeResourceRepository(LocalResourceRepository repository, int tabLevel) {
-      String tabs = "";
-      for (int i = 0; i < tabLevel; ++i) {
-        tabs += "\t";
-      }
-      if (repository instanceof MultiResourceRepository) {
-        MultiResourceRepository multiRepo = (MultiResourceRepository)repository;
-        return String.format("%s%s w/ %d children {\n%s\n%s}",
-                             tabs,
-                             multiRepo.toString(),
-                             multiRepo.getChildCount(),
-                             String.join("\n",
-                                         multiRepo.getChildren().stream().map(child -> describeResourceRepository(child, tabLevel + 1))
-                                           .collect(
-                                             Collectors.toList())),
-                             tabs);
-      }
-      else {
-        return String.format("%s%s", tabs, repository.toString());
-      }
-    }
-  }
 
   public void testHasResourcesOfType() {
     // Test hasResourcesOfType merging (which may be optimized to be lighter-weight than map merging).
