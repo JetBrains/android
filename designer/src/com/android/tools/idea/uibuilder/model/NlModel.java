@@ -336,7 +336,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       return false;
     }
 
-    ResourceNotificationManager resourceNotificationManager = ResourceNotificationManager.getInstance(myFile.getProject());
+    Project project = myFile.getProject();
+    if (project.isDisposed()) {
+      return false;
+    }
+    ResourceNotificationManager resourceNotificationManager = ResourceNotificationManager.getInstance(project);
 
     // Some types of files must be saved to disk first, because layoutlib doesn't
     // delegate XML parsers for non-layout files (meaning layoutlib will read the
