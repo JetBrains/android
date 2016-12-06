@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -28,9 +30,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+
+import static com.android.tools.idea.gradle.util.FilePaths.pathToUrl;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 
 /**
  * This registry is used to keep track of the libraries that need to be removed between sync operations.
@@ -44,6 +47,7 @@ public class SyncLibraryRegistry implements Disposable {
   @Nullable private Project myProject;
 
   @NotNull private final Map<String, Library> myProjectLibrariesByName = new HashMap<>();
+  @NotNull private final Set<LibraryToUpdate> myLibrariesToUpdate = new HashSet<>();
 
   @NotNull
   public static SyncLibraryRegistry getInstance(@NotNull Project project) {
@@ -74,15 +78,31 @@ public class SyncLibraryRegistry implements Disposable {
   /**
    * Marks the given library as "used" by the project.
    *
-   * @param library the library that is being used by the project.
+   * @param library        the library that is being used by the project.
+   * @param newBinaryPaths the library's binary paths. They may be different that the existing ones.
    * @return {@code true} if the library was found in the registry; {@code false otherwise}.
    */
-  public boolean markAsUsed(@NotNull Library library) {
+  public boolean markAsUsed(@NotNull Library library, @NotNull Collection<String> newBinaryPaths) {
     checkNotDisposed();
     String name = library.getName();
     if (name != null) {
-      Library removed = myProjectLibrariesByName.remove(name);
-      if (removed != null) {
+      Library used = myProjectLibrariesByName.remove(name);
+      if (used != null) {
+        List<String> existingBinaryUrls = Lists.newArrayList(used.getUrls(CLASSES));
+        boolean urlCountChanged = newBinaryPaths.size() != existingBinaryUrls.size();
+
+        List<String> newBinaryUrls = new ArrayList<>();
+        for (String newBinaryPath : newBinaryPaths) {
+          String newBinaryUrl = pathToUrl(newBinaryPath);
+          existingBinaryUrls.remove(newBinaryUrl);
+          newBinaryUrls.add(newBinaryUrl);
+        }
+
+        if (!existingBinaryUrls.isEmpty() || urlCountChanged) {
+          // Library changed, we need to update binary paths.
+          LibraryToUpdate libraryToUpdate = new LibraryToUpdate(used, newBinaryUrls);
+          myLibrariesToUpdate.add(libraryToUpdate);
+        }
         return true;
       }
       // This library is supposed to be used, but somehow we didn't find it.
@@ -102,6 +122,12 @@ public class SyncLibraryRegistry implements Disposable {
     return myProjectLibrariesByName.values();
   }
 
+  @NotNull
+  public List<LibraryToUpdate> getLibrariesToUpdate() {
+    checkNotDisposed();
+    return ImmutableList.copyOf(myLibrariesToUpdate);
+  }
+
   private void checkNotDisposed() {
     if (isDisposed()) {
       throw new IllegalStateException("Already disposed");
@@ -119,6 +145,7 @@ public class SyncLibraryRegistry implements Disposable {
     myProject.putUserData(KEY, null);
     myProject = null;
     myProjectLibrariesByName.clear();
+    myLibrariesToUpdate.clear();
   }
 
   @TestOnly
@@ -142,6 +169,45 @@ public class SyncLibraryRegistry implements Disposable {
     @NotNull
     public SyncLibraryRegistry createNewInstance(@NotNull Project project) {
       return new SyncLibraryRegistry(project);
+    }
+  }
+
+  public static class LibraryToUpdate {
+    @NotNull private final Library myLibrary;
+    @NotNull private final Collection<String> myNewBinaryUrls;
+
+    @VisibleForTesting
+    public LibraryToUpdate(@NotNull Library library, @NotNull Collection<String> newBinaryUrls) {
+      myLibrary = library;
+      myNewBinaryUrls = newBinaryUrls;
+    }
+
+    @NotNull
+    public Library getLibrary() {
+      return myLibrary;
+    }
+
+    @NotNull
+    public Collection<String> getNewBinaryUrls() {
+      return myNewBinaryUrls;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      LibraryToUpdate update = (LibraryToUpdate)o;
+      return Objects.equals(myLibrary.getName(), update.myLibrary.getName()) &&
+             Objects.equals(myNewBinaryUrls, update.myNewBinaryUrls);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(myLibrary.getName(), myNewBinaryUrls);
     }
   }
 }

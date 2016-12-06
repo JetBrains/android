@@ -42,9 +42,22 @@ public class LibraryCleanupStep extends ProjectCleanupStep {
                              @NotNull IdeModifiableModelsProvider ideModelsProvider,
                              @Nullable ProgressIndicator indicator) {
     SyncLibraryRegistry libraryRegistry = SyncLibraryRegistry.getInstance(project);
+    // Remove unused libraries.
     for (Library library : libraryRegistry.getLibrariesToRemove()) {
       ideModelsProvider.removeLibrary(library);
     }
+    // Update library URLs if they changed between Gradle sync operations.
+    for (SyncLibraryRegistry.LibraryToUpdate libraryToUpdate : libraryRegistry.getLibrariesToUpdate()) {
+      Library library = libraryToUpdate.getLibrary();
+      Library.ModifiableModel libraryModel = ideModelsProvider.getModifiableLibraryModel(library);
+      for (String existingBinaryUrl : libraryModel.getUrls(CLASSES)) {
+        libraryModel.removeRoot(existingBinaryUrl, CLASSES);
+      }
+      for (String newBinaryUrl : libraryToUpdate.getNewBinaryUrls()) {
+        libraryModel.addRoot(newBinaryUrl, CLASSES);
+      }
+    }
+
     Disposer.dispose(libraryRegistry);
 
     attachSourcesToLibraries(ideModelsProvider);
