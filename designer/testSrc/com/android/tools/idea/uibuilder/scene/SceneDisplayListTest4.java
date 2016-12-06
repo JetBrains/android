@@ -81,7 +81,7 @@ public class SceneDisplayListTest4 extends SceneTest {
     //noinspection UndesirableClassUsage
     BufferedImage img = new BufferedImage(1000, 1000,BufferedImage.TYPE_INT_ARGB);
     disp.paint(img.createGraphics(), SceneContext.get());
-    assertEquals(33, disp.getCommands().size());
+    assertEquals(18, disp.getCommands().size());
     disp.clear();
   }
 }

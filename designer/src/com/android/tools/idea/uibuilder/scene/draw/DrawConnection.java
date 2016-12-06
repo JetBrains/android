@@ -32,6 +32,7 @@ public class DrawConnection implements DrawCommand {
   public static final int TYPE_SPRING = 2; // connected on both sides
   public static final int TYPE_CHAIN = 3;  // connected such that anchor connects back
   public static final int TYPE_CENTER = 4; // connected on both sides to the same point
+  public static final int TYPE_BASELINE = 5;  // connected such that anchor connects back
 
   public static final int DIR_LEFT = 0;
   public static final int DIR_RIGHT = 1;
@@ -167,6 +168,9 @@ public class DrawConnection implements DrawCommand {
                           int destDirection,
                           boolean toParent,
                           int margin, float bias) {
+    if (connectionType==TYPE_BASELINE) {
+      drawBaseLine( g, source, dest);
+    }
     int startx = getConnectionX(sourceDirection, source);
     int starty = getConnectionY(sourceDirection, source);
     int endx = getConnectionX(destDirection, dest);
@@ -382,6 +386,18 @@ public class DrawConnection implements DrawCommand {
 
         g.draw(ourPath);
     }
+  }
+
+  private static void drawBaseLine(Graphics2D g,
+                                   Rectangle source,
+                                   Rectangle dest){
+    ourPath.reset();
+    ourPath.moveTo(source.x+source.width/2,source.y);
+    ourPath.curveTo(  source.x+source.width/2,source.y-40,
+                      dest.x+dest.width/2,dest.y+40,
+                      dest.x+dest.width/2,dest.y);
+    g.draw(ourPath);
+
   }
 
   private static int getConnectionX(int side, Rectangle rect) {
