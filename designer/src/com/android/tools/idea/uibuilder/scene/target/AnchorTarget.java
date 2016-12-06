@@ -40,6 +40,7 @@ import java.util.HashMap;
 public class AnchorTarget extends ConstraintTarget {
 
   private static final boolean DEBUG_RENDERER = false;
+  private final boolean myVisibility;
 
   // Type of possible anchors
   public enum Type {
@@ -60,8 +61,9 @@ public class AnchorTarget extends ConstraintTarget {
   //region Constructor
   /////////////////////////////////////////////////////////////////////////////
 
-  public AnchorTarget(@NotNull AnchorTarget.Type type) {
+  public AnchorTarget(@NotNull AnchorTarget.Type type, boolean visible) {
     myType = type;
+    myVisibility = visible;
   }
 
   //endregion
@@ -205,6 +207,9 @@ public class AnchorTarget extends ConstraintTarget {
 
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
+    if (!myVisibility) {
+      return;
+    }
     if (!myComponent.getScene().allowsTarget(this)) {
       return;
     }
@@ -217,7 +222,7 @@ public class AnchorTarget extends ConstraintTarget {
     if (myLastX != -1 && myLastY != -1) {
       float x = myLeft + (myRight - myLeft) / 2;
       float y = myTop + (myBottom - myTop) / 2;
-      list.addConnection(sceneContext, x, y, myLastX, myLastY, myType.ordinal(), Color.RED);
+      list.addConnection(sceneContext, x, y, myLastX, myLastY, myType.ordinal());
     }
   }
 

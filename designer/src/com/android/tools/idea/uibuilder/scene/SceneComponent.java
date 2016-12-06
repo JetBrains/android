@@ -512,9 +512,6 @@ public class SceneComponent {
 
   public void buildDisplayList(long time, @NotNull DisplayList list, SceneContext sceneContext) {
     myDecorator.buildList(list, time, sceneContext, this);
-    for (SceneComponent child : getChildren()) {
-      child.buildDisplayList(time, list, sceneContext);
-    }
   }
 
   //endregion
