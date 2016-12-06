@@ -23,6 +23,7 @@ public final class TestProjectPaths {
   public static final String MODULE_INFO_MERGE = "projects/moduleInfo/merge";
   public static final String NAVIGATION_EDITOR = "projects/navigationEditor";
   public static final String NAVIGATOR = "projects/navigator";
+  public static final String NESTED_MODULE = "projects/nestedModule";
   public static final String PLUGIN_IN_APP = "projects/pluginInApp";
   public static final String PROJECT_WITH_APPAND_LIB = "projects/projectWithAppandLib";
   public static final String PROJECT_WITH_DATA_BINDING = "projects/projectWithDataBinding";
