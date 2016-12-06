@@ -429,7 +429,11 @@ public final class InstanceReferenceTreeView implements DataProvider {
 
   @Nullable
   private PsiClassNavigation[] getTargetFiles() {
-    Object node = myTree.getSelectionPath().getLastPathComponent();
+    TreePath path = myTree.getSelectionPath();
+    if (path == null) {
+      return null;
+    }
+    Object node = path.getLastPathComponent();
 
     String className = null;
     if (node instanceof InstanceNode) {
