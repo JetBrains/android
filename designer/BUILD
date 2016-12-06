@@ -50,7 +50,10 @@ iml_module(
     test_resources = ["testData"],
     test_runtime_deps = ["//tools/adt/idea/adt-branding"],
     test_srcs = ["testSrc"],
-    test_tags = ["slow"],
+    test_tags = [
+        "slow",
+        "exclusive",
+    ],
     test_timeout = "long",
     # do not sort: must match IML order
     deps = [
