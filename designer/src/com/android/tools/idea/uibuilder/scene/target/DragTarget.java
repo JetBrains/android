@@ -190,6 +190,7 @@ public class DragTarget extends ConstraintTarget {
       if (bias > 1) {
         bias = 1;
       }
+      bias = (int) (bias * 1000) / 1000f;
       attributes.setAttribute(SdkConstants.SHERPA_URI,
                               SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, String.valueOf(bias));
     }
@@ -197,13 +198,13 @@ public class DragTarget extends ConstraintTarget {
       int dx = x - getLeftTargetOrigin(targetLeftComponent);
       String marginX = String.format(SdkConstants.VALUE_N_DP, dx);
       attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, marginX);
-      //attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, marginX); // TODO: handles RTL correctly
+      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, marginX); // TODO: handles RTL correctly
     }
     else if (targetRightComponent != null) {
       int dx = getRightTargetOrigin(targetRightComponent) - (x + myComponent.getDrawWidth());
       String marginX = String.format(SdkConstants.VALUE_N_DP, dx);
       attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, marginX);
-      //attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, marginX); // TODO: handles RTL correctly
+      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, marginX); // TODO: handles RTL correctly
     }
     else {
       int dx = x - myComponent.getParent().getDrawX();
@@ -224,6 +225,7 @@ public class DragTarget extends ConstraintTarget {
       if (bias > 1) {
         bias = 1;
       }
+      bias = (int) (bias * 1000) / 1000f;
       attributes.setAttribute(SdkConstants.SHERPA_URI,
                               SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, String.valueOf(bias));
     }

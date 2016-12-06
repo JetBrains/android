@@ -577,9 +577,13 @@ public class Scene implements ModelListener, SelectionListener {
       if (over instanceof Target) {
         Target target = (Target)over;
         if (dist < myClosestTargetDistance
-            || (dist == myClosestTargetDistance && prefer(target.getComponent(),
-                                                          myClosestTarget != null ? myClosestTarget.getComponent() : null)
-                && target.getPreferenceLevel() >= myClosestTargetLevel)) {
+            || (dist == myClosestTargetDistance
+                && prefer(target.getComponent(),
+                          myClosestTarget != null ? myClosestTarget.getComponent() : null)
+                && target.getPreferenceLevel() >= myClosestTargetLevel)
+            || (dist == myClosestTargetDistance
+                && myClosestTarget == myHitTarget
+                && target instanceof AnchorTarget)) {
           myClosestTargetDistance = dist;
           myClosestTarget = target;
           myClosestTargetLevel = target.getPreferenceLevel();
@@ -707,6 +711,12 @@ public class Scene implements ModelListener, SelectionListener {
     if (myHitComponent != null && myHitListener.myClosestComponent == myHitComponent) {
       myNewSelectedComponents.add(myHitComponent);
     }
+    if (myHitTarget instanceof ActionTarget) {
+      // it will be outside the bounds of the component, so will likely have
+      // selected a different one...
+      myNewSelectedComponents.clear();
+      myNewSelectedComponents.add(myHitTarget.getComponent());
+    }
     if (myHitTarget instanceof DragTarget) {
       DragTarget dragTarget = (DragTarget)myHitTarget;
       if (dragTarget.hasChangedComponent()) {
@@ -717,10 +727,28 @@ public class Scene implements ModelListener, SelectionListener {
       LassoTarget lassoTarget = (LassoTarget)myHitTarget;
       lassoTarget.fillSelectedComponents(myNewSelectedComponents);
     }
-    select(myNewSelectedComponents);
+    if (!sameSelection()) {
+      select(myNewSelectedComponents);
+    }
     if (mNeedsLayout != NO_LAYOUT) {
       myModel.requestLayout(mNeedsLayout == ANIMATED_LAYOUT ? true : false);
     }
+  }
+
+  private boolean sameSelection() {
+    List<NlComponent> currentSelection = myScreenView.getSelectionModel().getSelection();
+    if (myNewSelectedComponents.size() == currentSelection.size()) {
+      int count = currentSelection.size();
+      for (int i = 0; i < count; i++) {
+        NlComponent component = currentSelection.get(i);
+        SceneComponent sceneComponent = getSceneComponent(component);
+        if (!myNewSelectedComponents.contains(sceneComponent)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
   }
 
   public void needsLayout(int type) {
