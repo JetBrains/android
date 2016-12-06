@@ -29,7 +29,7 @@ import java.io.IOException;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.UNDO;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
-@RunIn(TestGroup.PROJECT_SUPPORT)
+@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRunner.class)
 public class GradleIncreaseLanguageLevelTest {
 
