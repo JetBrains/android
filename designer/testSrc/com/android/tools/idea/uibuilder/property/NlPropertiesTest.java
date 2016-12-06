@@ -309,20 +309,20 @@ public class NlPropertiesTest extends PropertyTestCase {
     assertPresent("ImageView", properties, AUTO_URI, ATTR_SRC_COMPAT);
   }
 
-  // Temporarily disable this test as it is failing on studio builder.
-  //public void testSrcCompatIncludedWithRelativeContextName() {
-  //  Configuration configuration = myModel.getConfiguration();
-  //  configuration.setActivity(".MyActivity");
-  //  when(myDependencyManager.dependsOn(myModule, APPCOMPAT_LIB_ARTIFACT)).thenReturn(true);
-  //  addAppCompatActivity();
-  //  addMyActivityAsAppCompatActivity();
-  //
-  //  Table<String, String, NlPropertyItem> properties =
-  //    NlProperties.getInstance().getProperties(myFacet, ImmutableList.of(myImageView), myDependencyManager);
-  //
-  //  assertPresent("ImageView", properties, ANDROID_URI, ATTR_SRC);
-  //  assertPresent("ImageView", properties, AUTO_URI, ATTR_SRC_COMPAT);
-  //}
+  // Temporarily disable this test as it is failing on studio builder as of 2016-12-05.
+  public void disabled_testSrcCompatIncludedWithRelativeContextName() {
+    Configuration configuration = myModel.getConfiguration();
+    configuration.setActivity(".MyActivity");
+    when(myDependencyManager.dependsOn(myModule, APPCOMPAT_LIB_ARTIFACT)).thenReturn(true);
+    addAppCompatActivity();
+    addMyActivityAsAppCompatActivity();
+
+    Table<String, String, NlPropertyItem> properties =
+      NlProperties.getInstance().getProperties(myFacet, ImmutableList.of(myImageView), myDependencyManager);
+
+    assertPresent("ImageView", properties, ANDROID_URI, ATTR_SRC);
+    assertPresent("ImageView", properties, AUTO_URI, ATTR_SRC_COMPAT);
+  }
 
   public void testSrcCompatNotIncludedIfActivityIsNotAppCompatActivity() {
     when(myDependencyManager.dependsOn(myModule, APPCOMPAT_LIB_ARTIFACT)).thenReturn(true);
