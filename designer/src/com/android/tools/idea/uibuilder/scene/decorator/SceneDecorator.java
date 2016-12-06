@@ -16,11 +16,11 @@
 package com.android.tools.idea.uibuilder.scene.decorator;
 
 
+import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.draw.DrawComponent;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,7 +40,14 @@ public class SceneDecorator {
 
   static {
     try {
-      ourConstructorMap.put("android.support.constraint.ConstraintLayout", ConstraintLayoutDecorator.class.getConstructor());
+      ourConstructorMap.put(SdkConstants.CLASS_CONSTRAINT_LAYOUT, ConstraintLayoutDecorator.class.getConstructor());
+      ourConstructorMap.put(SdkConstants.PROGRESS_BAR, ProgressBarDecorator.class.getConstructor());
+      ourConstructorMap.put(SdkConstants.BUTTON, ButtonDecorator.class.getConstructor());
+      ourConstructorMap.put(SdkConstants.TEXT_VIEW, TextViewDecorator.class.getConstructor());
+      ourConstructorMap.put(SdkConstants.IMAGE_VIEW, ImageViewDecorator.class.getConstructor());
+      ourConstructorMap.put(SdkConstants.CHECK_BOX, CheckBoxDecorator.class.getConstructor());
+      ourConstructorMap.put(SdkConstants.SEEK_BAR, SeekBarDecorator.class.getConstructor());
+      ourConstructorMap.put(SdkConstants.SWITCH, SwitchDecorator.class.getConstructor());
     }
     catch (NoSuchMethodException e) {
     }

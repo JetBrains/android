@@ -21,10 +21,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
 
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.SdkConstants.*;
 
-public class SceneDisplayListTest4 extends SceneTest {
+public class SceneDecoratorTest extends SceneTest {
   @Override
   @NotNull
   public ModelBuilder createModel() {
@@ -36,7 +35,7 @@ public class SceneDisplayListTest4 extends SceneTest {
                    .height("1000dp")
                    .withAttribute("android:padding", "20dp")
                    .children(
-                     component(TEXT_VIEW)
+                     component(PROGRESS_BAR)
                        .id("@+id/a")
                        .withBounds(450, 490, 100, 20)
                        .width("100dp")
@@ -45,15 +44,16 @@ public class SceneDisplayListTest4 extends SceneTest {
                        .withAttribute("app:layout_constraintRight_toLeftOf", "@+id/b")
                        .withAttribute("app:layout_constraintTop_toTopOf", "parent")
                        .withAttribute("app:layout_constraintBottom_toBottomOf", "parent"),
-                     component(TEXT_VIEW)
+                     component(BUTTON)
                        .id("@+id/b")
                        .withBounds(450, 490, 100, 20)
                        .width("100dp")
                        .height("20dp")
+                       .text("this is a test")
                        .withAttribute("app:layout_constraintLeft_toRightOf", "@+id/a")
                        .withAttribute("app:layout_constraintRight_toLeftOf", "@+id/c")
                        .withAttribute("app:layout_constraintTop_toTopOf", "@+id/c"),
-                     component(TEXT_VIEW)
+                     component(IMAGE_VIEW)
                        .id("@+id/c")
                        .withBounds(450, 490, 100, 20)
                        .width("100dp")
@@ -61,12 +61,39 @@ public class SceneDisplayListTest4 extends SceneTest {
                        .withAttribute("app:layout_constraintLeft_toRightOf", "@+id/b")
                        .withAttribute("app:layout_constraintRight_toRightOf", "parent")
                        .withAttribute("app:layout_constraintTop_toBottomOf", "parent")
-                       .withAttribute("app:layout_constraintBottom_toBottomOf", "@+id/b")
+                       .withAttribute("app:layout_constraintBottom_toBottomOf", "@+id/b"),
+                     component(CHECK_BOX)
+                       .id("@+id/d")
+                       .withBounds(450, 490, 100, 20)
+                       .width("100dp")
+                       .height("20dp")
+                       .withAttribute("app:layout_constraintLeft_toRightOf", "@+id/c")
+                       .withAttribute("app:layout_constraintRight_toRightOf", "parent")
+                       .withAttribute("app:layout_constraintTop_toBottomOf", "parent")
+                       .withAttribute("app:layout_constraintBottom_toBottomOf", "@+id/c"),
+                     component(SEEK_BAR)
+                       .id("@+id/d")
+                       .withBounds(450, 490, 100, 20)
+                       .width("100dp")
+                       .height("20dp")
+                       .withAttribute("app:layout_constraintLeft_toRightOf", "@+id/c")
+                       .withAttribute("app:layout_constraintRight_toRightOf", "parent")
+                       .withAttribute("app:layout_constraintTop_toBottomOf", "parent")
+                       .withAttribute("app:layout_constraintBottom_toBottomOf", "@+id/c"),
+                     component(SWITCH)
+                       .id("@+id/d")
+                       .withBounds(450, 490, 100, 20)
+                       .width("100dp")
+                       .height("20dp")
+                       .withAttribute("app:layout_constraintLeft_toRightOf", "@+id/c")
+                       .withAttribute("app:layout_constraintRight_toRightOf", "parent")
+                       .withAttribute("app:layout_constraintTop_toBottomOf", "parent")
+                       .withAttribute("app:layout_constraintBottom_toBottomOf", "@+id/c")
                    ));
   }
 
   public void testBasicScene() {
-     myScreen.get("@+id/a").expectXml("<TextView\n" +
+     myScreen.get("@+id/a").expectXml("<ProgressBar\n" +
                                       "    android:id=\"@+id/a\"\n" +
                                       "    android:layout_width=\"100dp\"\n" +
                                       "    android:layout_height=\"20dp\"\n" +
@@ -81,7 +108,7 @@ public class SceneDisplayListTest4 extends SceneTest {
     //noinspection UndesirableClassUsage
     BufferedImage img = new BufferedImage(1000, 1000,BufferedImage.TYPE_INT_ARGB);
     disp.paint(img.createGraphics(), SceneContext.get());
-    assertEquals(33, disp.getCommands().size());
+    assertEquals(66, disp.getCommands().size());
     disp.clear();
   }
 }
