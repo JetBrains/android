@@ -23,10 +23,9 @@ import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.scene.draw.*;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.draw.DrawComponent;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -43,9 +42,14 @@ import java.util.ArrayList;
 public class DragTarget extends ConstraintTarget {
 
   private static final boolean DEBUG_RENDERER = false;
-  private int myOffsetX;
-  private int myOffsetY;
-  private boolean myChangedComponent;
+  protected int myOffsetX;
+  protected int myOffsetY;
+  protected boolean myChangedComponent;
+
+  ArrayList<Notch> myHorizontalNotches = new ArrayList<>();
+  ArrayList<Notch> myVerticalNotches = new ArrayList<>();
+  Notch myCurrentNotchX = null;
+  Notch myCurrentNotchY = null;
 
   /////////////////////////////////////////////////////////////////////////////
   //region Layout
@@ -83,6 +87,12 @@ public class DragTarget extends ConstraintTarget {
       list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? Color.yellow : Color.green);
       list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, Color.red);
       list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, Color.red);
+    }
+    if (myCurrentNotchX != null) {
+      myCurrentNotchX.render(list, sceneContext, myComponent);
+    }
+    if (myCurrentNotchY != null) {
+      myCurrentNotchY.render(list, sceneContext, myComponent);
     }
   }
 
@@ -260,6 +270,30 @@ public class DragTarget extends ConstraintTarget {
     myOffsetX = x - myComponent.getDrawX(System.currentTimeMillis());
     myOffsetY = y - myComponent.getDrawY(System.currentTimeMillis());
     myChangedComponent = false;
+    gatherNotches();
+  }
+
+  protected void gatherNotches() {
+    myCurrentNotchX = null;
+    myCurrentNotchY = null;
+    myHorizontalNotches.clear();
+    myVerticalNotches.clear();
+    SceneComponent parent = myComponent.getParent();
+    Notch.Provider notchProvider = parent.getNotchProvider();
+    if (notchProvider != null) {
+      notchProvider.fill(parent, myComponent, myHorizontalNotches, myVerticalNotches);
+    }
+    int count = parent.getChildCount();
+    for (int i = 0; i < count; i++) {
+      SceneComponent child = parent.getChild(i);
+      if (child == myComponent) {
+        continue;
+      }
+      Notch.Provider provider = child.getNotchProvider();
+      if (provider != null) {
+        provider.fill(child, myComponent, myHorizontalNotches, myVerticalNotches);
+      }
+    }
   }
 
   @Override
@@ -271,11 +305,41 @@ public class DragTarget extends ConstraintTarget {
     AttributesTransaction attributes = component.startAttributeTransaction();
     int dx = x - myOffsetX;
     int dy = y - myOffsetY;
+    dx = snapX(dx);
+    dy = snapY(dy);
     updateAttributes(attributes, dx, dy);
     cleanup(attributes);
     attributes.apply();
     myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
     myChangedComponent = true;
+  }
+
+  protected int snapX(int dx) {
+    int count = myHorizontalNotches.size();
+    for (int i = 0; i < count; i++) {
+      Notch notch = myHorizontalNotches.get(i);
+      int x = notch.apply(dx);
+      if (notch.didApply()) {
+        myCurrentNotchX = notch;
+        return x;
+      }
+    }
+    myCurrentNotchX = null;
+    return dx;
+  }
+
+  protected int snapY(int dy) {
+    int count = myVerticalNotches.size();
+    for (int i = 0; i < count; i++) {
+      Notch notch = myVerticalNotches.get(i);
+      int y = notch.apply(dy);
+      if (notch.didApply()) {
+        myCurrentNotchY = notch;
+        return y;
+      }
+    }
+    myCurrentNotchY = null;
+    return dy;
   }
 
   @Override
@@ -285,6 +349,20 @@ public class DragTarget extends ConstraintTarget {
       AttributesTransaction attributes = component.startAttributeTransaction();
       int dx = x - myOffsetX;
       int dy = y - myOffsetY;
+      if (myCurrentNotchX != null) {
+        dx = myCurrentNotchX.apply(dx);
+        if (myComponent.getScene().isAutoconnectOn()) {
+          myCurrentNotchX.apply(attributes);
+        }
+        myCurrentNotchX = null;
+      }
+      if (myCurrentNotchY != null) {
+        dy = myCurrentNotchY.apply(dy);
+        if (myComponent.getScene().isAutoconnectOn()) {
+          myCurrentNotchY.apply(attributes);
+        }
+        myCurrentNotchY = null;
+      }
       updateAttributes(attributes, dx, dy);
       cleanup(attributes);
       attributes.apply();
