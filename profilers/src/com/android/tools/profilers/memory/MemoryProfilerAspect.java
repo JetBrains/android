@@ -17,7 +17,8 @@ package com.android.tools.profilers.memory;
 
 public enum MemoryProfilerAspect {
   LEGACY_ALLOCATION,
-  CURRENT_CAPTURE,
+  CURRENT_LOADING_CAPTURE,
+  CURRENT_LOADED_CAPTURE,
   CURRENT_HEAP,
   CURRENT_CLASS,
   CURRENT_INSTANCE
