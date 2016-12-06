@@ -453,6 +453,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                        @NotNull NlComponent layout,
                                        @NotNull java.util.List<NlComponent> components,
                                        @NotNull DragType type) {
+    if (USE_SCENE_INTERACTION) {
+      return new SceneDragHandler(editor, this, layout, components, type);
+    }
     return new ConstraintDragHandler(editor, this, layout, components, type);
   }
 
