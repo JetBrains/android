@@ -19,11 +19,11 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.fd.InstantRunUtils;
-import com.android.tools.idea.fd.IrUiExperiment;
+import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.actions.AndroidStudioGradleAction;
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.AndroidSessionInfo;
-import com.android.tools.idea.run.ReRunAction;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ProgramRunnerUtil;
 import com.intellij.execution.RunManagerEx;
@@ -33,61 +33,91 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.SUPPORTED;
 
 public class HotswapAction extends AndroidStudioGradleAction implements AnAction.TransparentUpdate {
   public HotswapAction() {
-    super("Apply Changes", "Apply Changes", AllIcons.Actions.Lightning);
+    super("Apply Changes", "Apply Changes", AndroidIcons.RunIcons.HotReload);
   }
 
   @Override
   protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
     Presentation presentation = e.getPresentation();
     presentation.setEnabled(false);
-    if (InstantRunSettings.getUiExperimentStatus() != IrUiExperiment.HOTSWAP) {
-      presentation.setVisible(false);
+
+    if (!InstantRunSettings.isInstantRunEnabled()) {
+      presentation.setText("Apply Changes: Instant Run has been disabled");
       return;
     }
 
     RunnerAndConfigurationSettings settings = RunManagerEx.getInstanceEx(project).getSelectedConfiguration();
     if (settings == null) {
+      presentation.setText("Apply Changes: No run configuration selected");
       return;
     }
 
-    AndroidSessionInfo session = ReRunAction.getAndroidSessionInfo(project, settings);
+    AndroidSessionInfo session = getAndroidSessionInfo(project, settings);
     if (session == null) {
+      presentation.setText(String.format("Apply Changes: No active '%1$s' launch", settings.getName()));
       return;
     }
 
-    ProcessHandler processHandler = ReRunAction.getActiveProcessHandler(project, settings);
+    ProcessHandler processHandler = getActiveProcessHandler(project, settings);
     if (processHandler == null) {
+      presentation.setText(String.format("Apply Changes: No active '%1$s' launch", settings.getName()));
       return;
     }
 
     RunConfiguration configuration = settings.getConfiguration();
     if (!(configuration instanceof ModuleBasedConfiguration)) {
+      presentation.setText(String.format("Apply Changes: '%1$s' is not a module based configuration", settings.getName()));
       return;
     }
 
     Module module = ((ModuleBasedConfiguration)configuration).getConfigurationModule().getModule();
     if (module == null) {
+      presentation.setText(String.format("Apply Changes: No module specified in '%1$s'", settings.getName()));
+      return;
+    }
+
+    if (!(configuration instanceof AndroidRunConfigurationBase)) {
+      presentation.setText(String.format("Apply Changes: '%1$s' is not an Android launch configuration", settings.getName()));
+      return;
+    }
+
+    if (!((AndroidRunConfigurationBase)configuration).supportsInstantRun()) {
+      presentation.setText(String.format("Apply Changes: Configuration '%1$s' does not support instant run", settings.getName()));
       return;
     }
 
     // Make sure instant run is supported on the relevant device, if found.
     AndroidVersion androidVersion = InstantRunManager.getMinDeviceApiLevel(processHandler);
-    if (InstantRunManager.isInstantRunCapableDeviceVersion(androidVersion) &&
-        (InstantRunGradleUtils.getIrSupportStatus(InstantRunGradleUtils.getAppModel(module), androidVersion) == SUPPORTED)) {
-      presentation.setEnabled(true);
+    if (!InstantRunManager.isInstantRunCapableDeviceVersion(androidVersion)) {
+      presentation.setText(String.format("Apply Changes: Target device API level (%1$s) too low for Instant Run", androidVersion));
+      return;
     }
+
+    InstantRunGradleSupport status = InstantRunGradleUtils.getIrSupportStatus(InstantRunGradleUtils.getAppModel(module), androidVersion);
+    if (status != SUPPORTED) {
+      String notification = status.getUserNotification();
+      if (notification == null) {
+        notification = status.toString();
+      }
+      presentation.setText("Apply Changes: " + notification);
+      return;
+    }
+
+    presentation.setText("Apply Changes");
+    presentation.setEnabled(true);
   }
 
   @Override
@@ -98,13 +128,13 @@ public class HotswapAction extends AndroidStudioGradleAction implements AnAction
       return;
     }
 
-    AndroidSessionInfo session = ReRunAction.getAndroidSessionInfo(project, settings);
+    AndroidSessionInfo session = getAndroidSessionInfo(project, settings);
     if (session == null) {
       InstantRunManager.LOG.warn("Hotswap Action could not locate an existing session for selected run config.");
       return;
     }
 
-    Executor executor = ReRunAction.getExecutor(session.getExecutorId());
+    Executor executor = getExecutor(session.getExecutorId());
     if (executor == null) {
       InstantRunManager.LOG.warn("Hotswap Action could not identify executor");
       return;
@@ -120,5 +150,50 @@ public class HotswapAction extends AndroidStudioGradleAction implements AnAction
     InstantRunUtils.setInvokedViaAction(env, true);
     InstantRunManager.LOG.info("Invoking hotswap launch");
     ProgramRunnerUtil.executeConfiguration(env, false, true);
+  }
+
+  @Nullable
+  private static ProcessHandler getActiveProcessHandler(@Nullable Project project, @Nullable RunnerAndConfigurationSettings settings) {
+    if (project == null || settings == null) {
+      return null;
+    }
+
+    AndroidSessionInfo session = getAndroidSessionInfo(project, settings);
+    if (session == null) {
+      return null;
+    }
+
+    ProcessHandler processHandler = session.getProcessHandler();
+    if (processHandler.isProcessTerminated() || processHandler.isProcessTerminating()) {
+      return null;
+    }
+
+    return processHandler;
+  }
+
+  @Nullable
+  private static AndroidSessionInfo getAndroidSessionInfo(Project project, RunnerAndConfigurationSettings settings) {
+    RunConfiguration configuration = settings.getConfiguration();
+    if (configuration == null) {
+      return null;
+    }
+
+    AndroidSessionInfo session = AndroidSessionInfo.findOldSession(project, null, configuration.getUniqueID());
+    if (session == null) {
+      return null;
+    }
+
+    return session;
+  }
+
+  @Nullable
+  private static Executor getExecutor(@NotNull String executorId) {
+    for (Executor executor : Executor.EXECUTOR_EXTENSION_NAME.getExtensions()) {
+      if (executorId.equals(executor.getId())) {
+        return executor;
+      }
+    }
+
+    return null;
   }
 }
