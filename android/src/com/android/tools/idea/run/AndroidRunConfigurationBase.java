@@ -79,9 +79,7 @@ import java.util.concurrent.TimeUnit;
 import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.*;
 import static com.android.tools.idea.gradle.util.Projects.requiredAndroidModelMissing;
 
-public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> implements
-                                                                                                               RunnerIconProvider,
-                                                                                                               PreferGradleMake {
+public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> implements PreferGradleMake {
   private static final Logger LOG = Logger.getInstance(AndroidRunConfigurationBase.class);
 
   private static final String GRADLE_SYNC_FAILED_ERR_MSG = "Gradle project sync failed. Please fix your project and try again.";
@@ -231,42 +229,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return targets;
   }
 
-  /**
-   * Returns the instant run variant of the run or debug icon if a subsequent launch will be an instant launch. This method is called from
-   * within an action timer (so called multiple times a second), so the sequence of checks are ordered to fail fast if possible.
-   */
-  @Nullable
-  @Override
-  public Icon getExecutorIcon(@NotNull RunConfiguration configuration, @NotNull Executor executor) {
-    if (InstantRunSettings.getUiExperimentStatus() == IrUiExperiment.HOTSWAP) {
-      return null;
-    }
-
-    if (!InstantRunSettings.isInstantRunEnabled() || !supportsInstantRun()) {
-      return null;
-    }
-
-    Module module = getConfigurationModule().getModule();
-    if (module == null) {
-      return null;
-    }
-
-    AndroidSessionInfo info = AndroidSessionInfo.findOldSession(getProject(), null, getUniqueID());
-    if (info == null || !info.isInstantRun() || !info.getExecutorId().equals(executor.getId())) {
-      return null;
-    }
-
-    // Make sure instant run is supported on the relevant device, if found.
-    AndroidVersion androidVersion = InstantRunManager.getMinDeviceApiLevel(info.getProcessHandler());
-    if (InstantRunManager.isInstantRunCapableDeviceVersion(androidVersion) &&
-        (InstantRunGradleUtils.getIrSupportStatus(InstantRunGradleUtils.getAppModel(module), androidVersion) ==
-         SUPPORTED)) {
-      return executor instanceof DefaultRunExecutor ? AndroidIcons.RunIcons.Replay : AndroidIcons.RunIcons.DebugReattach;
-    }
-
-    return null;
-  }
-
   protected void validateBeforeRun(@NotNull Executor executor) throws ExecutionException {
     List<ValidationError> errors = validate(executor);
     ValidationUtil.promptAndQuickFixErrors(getProject(), errors);
@@ -403,19 +365,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     runConfigContext.setSameExecutorAsPreviousSession(info != null && executor.getId().equals(info.getExecutorId()));
     runConfigContext.setCleanRerun(InstantRunUtils.isCleanReRun(env));
 
-    boolean forceFullApk;
-    switch (InstantRunSettings.getUiExperimentStatus()) {
-      case HOTSWAP:
-        forceFullApk = !InstantRunUtils.isInvokedViaAction(env);
-        break;
-      case STOP_AND_RUN:
-        forceFullApk = InstantRunUtils.isInvokedViaAction(env);
-        break;
-      case DEFAULT:
-      default:
-        forceFullApk = false;
-    }
-    runConfigContext.setForceFullApk(forceFullApk);
+    runConfigContext.setForceFullApk(!InstantRunUtils.isInvokedViaAction(env));
 
     // Save the instant run context so that before-run task can access it
     env.putCopyableUserData(InstantRunContext.KEY, instantRunContext);

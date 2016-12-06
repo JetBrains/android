@@ -97,6 +97,10 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       return Collections.emptyList();
     }
 
+    if (myInstantRunBuildAnalyzer != null) {
+      launchTasks.add(new LaunchInstantRunServiceTask(packageName));
+    }
+
     if (!myLaunchOptions.isDebug() && myLaunchOptions.isOpenLogcatAutomatically()) {
       launchTasks.add(new ShowLogcatTask(myProject, packageName));
     }

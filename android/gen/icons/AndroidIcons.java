@@ -269,10 +269,9 @@ public class AndroidIcons {
     public static final Icon DebugReattach = load("/icons/run/debug2.png");
 
     public static final Icon Play = load("/icons/run/play.png");
-    public static final Icon Replay = load("/icons/run/play2.png");
+    public static final Icon Replay = load("/icons/run/play2.png"); // TODO: update blaze and remove this
     public static final Icon Restart = load("/icons/run/restart.png");
-    public static final Icon CleanRerun = load("/icons/run/clean_rerun.png");
-    public static final Icon ReInstallAndRun = load("/icons/run/installrun.png");
+    public static final Icon HotReload = load("/icons/run/hot-reload.png");
   }
 
   public static class SherpaIcons {
