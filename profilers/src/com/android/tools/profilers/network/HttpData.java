@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
+import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +36,14 @@ import java.util.stream.Collectors;
  * connection completes.
  */
 public class HttpData {
+  // TODO: Way more robust handling of different types. See also:
+  // http://www.iana.org/assignments/media-types/media-types.xhtml
+  private static final Map<String, String> CONTENT_EXTENSIONS_MAP = new ImmutableMap.Builder<String, String>()
+    .put("/jpeg", ".jpg")
+    .put("/json", ".json")
+    .put("/xml", ".xml")
+    .build();
+
   public static final String FIELD_CONTENT_TYPE = "Content-Type";
   public static final String FIELD_CONTENT_LENGTH = "Content-Length";
 
@@ -170,6 +179,20 @@ public class HttpData {
       // TODO: Log this exception.
     }
     return path;
+  }
+
+  /**
+   * Returns file extension based on the response Content-Type header field.
+   * If type is absent or not supported, returns null.
+   */
+  @Nullable
+  public static String guessFileExtensionFromContentType(@NotNull String contentType) {
+    for (Map.Entry<String, String> entry : CONTENT_EXTENSIONS_MAP.entrySet()) {
+      if (contentType.contains(entry.getKey())) {
+        return entry.getValue();
+      }
+    }
+    return null;
   }
 
   public static final class Builder {
