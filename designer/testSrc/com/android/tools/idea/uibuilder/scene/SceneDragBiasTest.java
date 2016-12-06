@@ -62,7 +62,7 @@ public class SceneDragBiasTest extends SceneTest {
                  "    app:layout_constraintRight_toRightOf=\"parent\"\n" +
                  "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
                  "    app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
-                 "      app:layout_constraintHorizontal_bias=\"0.055555556\"\n" +
+                 "      app:layout_constraintHorizontal_bias=\"0.055\"\n" +
                  "      app:layout_constraintVertical_bias=\"0.5\" />");
   }
 
@@ -79,7 +79,7 @@ public class SceneDragBiasTest extends SceneTest {
                  "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
                  "    app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
                  "      app:layout_constraintHorizontal_bias=\"0.5\"\n" +
-                 "      app:layout_constraintVertical_bias=\"0.091836736\" />");
+                 "      app:layout_constraintVertical_bias=\"0.091\" />");
   }
 
   public void testDragTopLeft() {
@@ -94,7 +94,7 @@ public class SceneDragBiasTest extends SceneTest {
                  "    app:layout_constraintRight_toRightOf=\"parent\"\n" +
                  "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
                  "    app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
-                 "      app:layout_constraintHorizontal_bias=\"0.16666667\"\n" +
-                 "      app:layout_constraintVertical_bias=\"0.19387755\" />");
+                 "      app:layout_constraintHorizontal_bias=\"0.166\"\n" +
+                 "      app:layout_constraintVertical_bias=\"0.193\" />");
   }
 }
