@@ -606,6 +606,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return MultiUserUtils.PRIMARY_USERID;
   }
 
+  @NotNull
   private InstantRunGradleSupport canInstantRun(@NotNull Module module,
                                                 @NotNull List<AndroidDevice> targetDevices) {
     if (targetDevices.size() != 1) {
@@ -613,6 +614,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     AndroidDevice device = targetDevices.get(0);
+    AndroidVersion version = device.getVersion();
+    if (!InstantRunManager.isInstantRunCapableDeviceVersion(version)) {
+      return API_TOO_LOW_FOR_INSTANT_RUN;
+    }
 
     IDevice targetDevice = MakeBeforeRunTaskProvider.getLaunchedDevice(device);
     if (targetDevice != null) {
@@ -625,7 +630,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       }
     }
 
-    AndroidVersion version = device.getVersion();
     InstantRunGradleSupport irSupportStatus =
       InstantRunGradleUtils.getIrSupportStatus(InstantRunGradleUtils.getAppModel(module), version);
     if (irSupportStatus != SUPPORTED) {
