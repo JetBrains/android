@@ -128,6 +128,11 @@ public class ImagePool {
         //noinspection UseOfSystemOutOrSystemErr
         System.out.printf("Re-used image %dx%d - %d\n", w, h, type);
       }
+      // Clear the image
+      Graphics2D g = image.createGraphics();
+      g.setComposite(AlphaComposite.Clear);
+      g.fillRect(0, 0, w, h);
+      g.dispose();
     }
     catch (NoSuchElementException e) {
       if (DEBUG) {
