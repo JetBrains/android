@@ -216,7 +216,10 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
 
     File gradleSettingsFile = new File(moduleRootDirPath, FN_SETTINGS_GRADLE);
-    if (gradleSettingsFile.isFile() && androidProject == null && nativeAndroidProject == null) {
+    if (gradleSettingsFile.isFile() && androidProject == null && nativeAndroidProject == null &&
+        // if the module has artifacts, it is a Java library module.
+        // https://code.google.com/p/android/issues/detail?id=226802
+        !hasArtifacts(gradleModule)) {
       // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
       // compile it using Gradle. We still need to create the module to display files inside it.
       createJavaProject(gradleModule, ideModule, false);
@@ -234,6 +237,11 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       // This is a Java lib module.
       createJavaProject(gradleModule, ideModule, androidProjectWithoutVariants);
     }
+  }
+
+  private boolean hasArtifacts(@NotNull IdeaModule gradleModule) {
+    ModuleExtendedModel javaModel = resolverCtx.getExtraProject(gradleModule, ModuleExtendedModel.class);
+    return javaModel != null && !javaModel.getArtifacts().isEmpty();
   }
 
   private void createJavaProject(@NotNull IdeaModule gradleModule,
