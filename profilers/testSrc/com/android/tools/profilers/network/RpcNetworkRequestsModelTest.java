@@ -41,7 +41,7 @@ public class RpcNetworkRequestsModelTest {
       .build();
 
   @Rule public TestGrpcChannel<TestNetworkService> myGrpcChannel =
-    new TestGrpcChannel<>("RpcNetworkRequestsModelTest", new TestNetworkService(null, FAKE_DATA));
+    new TestGrpcChannel<>("RpcNetworkRequestsModelTest", TestNetworkService.getInstanceForHttpData(FAKE_DATA));
   private RpcNetworkRequestsModel myModel;
 
   @Before

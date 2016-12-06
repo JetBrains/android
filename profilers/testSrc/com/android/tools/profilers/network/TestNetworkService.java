@@ -16,6 +16,7 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.profiler.proto.*;
+import com.android.tools.profiler.proto.NetworkProfiler;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,14 +28,47 @@ import java.util.concurrent.TimeUnit;
 import static com.android.tools.profiler.proto.NetworkProfiler.*;
 
 public final class TestNetworkService extends NetworkServiceGrpc.NetworkServiceImplBase {
+  public static final int FAKE_APP_ID = 1111;
   @NotNull private List<HttpData> myHttpDataList;
   @NotNull private List<NetworkProfilerData> myDataList;
 
-  public TestNetworkService(@Nullable List<NetworkProfilerData> dataList, @Nullable List<HttpData> httpDataList) {
-    super();
-
+  private TestNetworkService(@Nullable List<NetworkProfilerData> dataList, @Nullable List<HttpData> httpDataList) {
     myDataList = dataList != null ? dataList : new ArrayList<>();
     myHttpDataList = httpDataList != null ? httpDataList : new ArrayList<>();
+  }
+
+  @NotNull
+  public static TestNetworkService getInstanceForHttpData(@NotNull List<HttpData> httpDataList) {
+    return new TestNetworkService(null, httpDataList);
+  }
+
+  @NotNull
+  public static TestNetworkService getInstanceForNetworkData(@NotNull List<NetworkProfilerData> dataList) {
+    return new TestNetworkService(dataList, null);
+  }
+
+  @Override
+  public void getData(NetworkDataRequest request, StreamObserver<NetworkDataResponse> responseObserver) {
+    NetworkDataResponse.Builder response = NetworkDataResponse.newBuilder();
+    long startTime = request.getStartTimestamp();
+    long endTime = request.getEndTimestamp();
+
+    for (NetworkProfilerData data : myDataList) {
+      long current = data.getBasicInfo().getEndTimestamp();
+      if (current > startTime && current <= endTime) {
+        if ((request.getType() == NetworkDataRequest.Type.ALL) ||
+            (request.getType() == NetworkDataRequest.Type.SPEED &&
+             data.getDataCase() == NetworkProfilerData.DataCase.SPEED_DATA) ||
+            (request.getType() == NetworkDataRequest.Type.CONNECTIONS &&
+             data.getDataCase() == NetworkProfilerData.DataCase.CONNECTION_DATA) ||
+            (request.getType() == NetworkDataRequest.Type.CONNECTIVITY &&
+             data.getDataCase() == NetworkProfilerData.DataCase.CONNECTIVITY_DATA)) {
+          response.addData(data);
+        }
+      }
+    }
+    responseObserver.onNext(response.build());
+    responseObserver.onCompleted();
   }
 
   @Override
@@ -96,6 +130,7 @@ public final class TestNetworkService extends NetworkServiceGrpc.NetworkServiceI
     responseObserver.onCompleted();
   }
 
+  @NotNull
   public static HttpData newHttpData(long id, long startS, long downloadS, long endS) {
     long startUs = TimeUnit.SECONDS.toMicros(startS);
     long downloadUs = TimeUnit.SECONDS.toMicros(downloadS);
@@ -108,6 +143,21 @@ public final class TestNetworkService extends NetworkServiceGrpc.NetworkServiceI
       builder.setResponsePayloadId("payloadId " + id);
       builder.setResponseFields(formatFakeResponseFields(id));
     }
+    return builder.build();
+  }
+
+  @NotNull
+  public static NetworkProfilerData newNetworkData(long timestampSec,
+                                            @NotNull ConnectivityData.NetworkType networkType,
+                                            @NotNull ConnectivityData.RadioState radioState) {
+    NetworkProfilerData.Builder builder = NetworkProfilerData.newBuilder();
+
+    builder.setBasicInfo(Common.CommonData.newBuilder()
+                           .setAppId(FAKE_APP_ID)
+                           .setEndTimestamp(TimeUnit.SECONDS.toNanos(timestampSec)));
+    builder.setConnectivityData(ConnectivityData.newBuilder()
+                                  .setDefaultNetworkType(networkType)
+                                  .setRadioState(radioState));
     return builder.build();
   }
 
