@@ -132,19 +132,19 @@ public class TopDownTreeModelTest {
     return null;
   }
 
-  private double getTotal(TreeNode node) {
+  private static double getTotal(TreeNode node) {
     return ((TopDownNode)(((DefaultMutableTreeNode)node).getUserObject())).getTotal();
   }
 
-  private double getChildrenTotal(TreeNode node) {
+  private static double getChildrenTotal(TreeNode node) {
     return ((TopDownNode)(((DefaultMutableTreeNode)node).getUserObject())).getChildrenTotal();
   }
 
-  private String getId(TreeNode node) {
+  private static String getId(TreeNode node) {
     return ((TopDownNode)(((DefaultMutableTreeNode)node).getUserObject())).getId();
   }
 
-  private Set<String> getChildrenIds(TreeNode node) {
+  private static Set<String> getChildrenIds(TreeNode node) {
     Set<String> set = new HashSet<>();
     for (int i = 0; i < node.getChildCount(); i++) {
       set.add(getId(node.getChildAt(i)));

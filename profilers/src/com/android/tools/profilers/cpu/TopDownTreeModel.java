@@ -30,7 +30,7 @@ class TopDownTreeModel extends DefaultTreeModel implements RangedTreeModel {
 
   private Range myRange;
 
-  public TopDownTreeModel(TopDownNode node) {
+  public TopDownTreeModel(@NotNull TopDownNode node) {
     super(new DefaultMutableTreeNode(node));
     myRange = new Range();
     update(new Range(-Double.MAX_VALUE, Double.MAX_VALUE));
@@ -62,9 +62,7 @@ class TopDownTreeModel extends DefaultTreeModel implements RangedTreeModel {
 
   private void update(DefaultMutableTreeNode node, Range range, List<Range> ranges) {
     TopDownNode data = (TopDownNode)node.getUserObject();
-    if (data == null) {
-      return;
-    }
+
     if (changes(data, ranges)) {
       Enumeration e = node.children();
       Map<String, DefaultMutableTreeNode> children = new HashMap<>();
