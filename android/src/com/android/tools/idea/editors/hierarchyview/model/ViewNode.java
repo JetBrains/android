@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -165,6 +166,7 @@ public class ViewNode implements TreeNode {
   }
 
   @Override
+  @Nullable
   public ViewNode getParent() {
     return parent;
   }
@@ -246,5 +248,16 @@ public class ViewNode implements TreeNode {
       root.updateNodeDrawn(true);
     }
     return root;
+  }
+
+  @NotNull
+  public static TreePath getPath(@NotNull ViewNode node) {
+    List<Object> nodes = Lists.newArrayList();
+    do {
+      nodes.add(0, node);
+      node = node.parent;
+    }
+    while (node != null);
+    return new TreePath(nodes.toArray());
   }
 }

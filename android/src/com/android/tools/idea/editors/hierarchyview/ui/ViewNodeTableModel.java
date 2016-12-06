@@ -18,14 +18,12 @@ package com.android.tools.idea.editors.hierarchyview.ui;
 import com.android.tools.idea.editors.hierarchyview.model.ViewNode;
 import com.android.tools.idea.editors.hierarchyview.model.ViewProperty;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 import java.util.List;
-import java.util.Set;
 
 public class ViewNodeTableModel implements TableModel {
 
