@@ -51,6 +51,7 @@ public class Scene implements ModelListener, SelectionListener {
   private boolean myNeedsDisplayListRebuilt = true;
   private Target myOverTarget;
   private SceneComponent myCurrentComponent;
+  private SceneComponent myDnDComponent;
 
   private int mNeedsLayout = NO_LAYOUT;
 
@@ -67,6 +68,21 @@ public class Scene implements ModelListener, SelectionListener {
 
   public int getMouseCursor() {
     return myMouseCursor;
+  }
+
+  public void setDnDComponent(NlComponent component) {
+    if (myDnDComponent != null) {
+      myDnDComponent.removeFromParent();
+    }
+    if (component != null) {
+      myDnDComponent = new SceneComponent(this, component);
+    } else {
+      myDnDComponent = null;
+    }
+    if (myRoot != null && myDnDComponent != null) {
+      myRoot.addChild(myDnDComponent);
+      needsRebuildList();
+    }
   }
 
   private enum FilterType {ALL, ANCHOR, VERTICAL_ANCHOR, HORIZONTAL_ANCHOR, BASELINE_ANCHOR, NONE, RESIZE}
