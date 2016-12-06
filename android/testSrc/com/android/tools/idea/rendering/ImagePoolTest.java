@@ -69,12 +69,13 @@ public class ImagePoolTest {
   }
 
   @Test
-  public void testImagePooling() throws InterruptedException {
+  public void testImagePooling() throws InterruptedException, IOException {
     CountDownLatch countDown1 = new CountDownLatch(1);
     CountDownLatch countDown2 = new CountDownLatch(1);
     AtomicBoolean secondImageFreed = new AtomicBoolean(false);
 
     ImagePool.ImageImpl image1 = myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, (image) -> countDown1.countDown());
+    image1.drawFrom(getSampleImage());
     BufferedImage internalPtr = image1.myBuffer;
     ImagePool.ImageImpl image2 = myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, (image) -> {
       countDown2.countDown();
@@ -91,6 +92,8 @@ public class ImagePoolTest {
     image1 = myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, null);
     assertEquals(image1.myBuffer, internalPtr);
     assertFalse(secondImageFreed.get());
+    // The image is being reused. Check that it's a clean image
+    ImageDiffUtil.assertImageSimilar("clean", new BufferedImage(50, 50, BufferedImage.TYPE_INT_ARGB), image1.myBuffer, 0.0);
 
     // Save the pointer to the internal image2 buffer
     internalPtr = image2.myBuffer;
