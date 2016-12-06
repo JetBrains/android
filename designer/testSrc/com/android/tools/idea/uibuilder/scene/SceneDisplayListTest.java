@@ -60,12 +60,14 @@ public class SceneDisplayListTest extends SceneTest {
                         "Clip,0,0,1000,1000\n" +
                         "Rect,100,200,100,20,ff00ffff\n" +
                         "DrawComponent,100,200,100,20,0\n" +
+                        "DrawTextRegion,100,200,100,20,false,false,5,5,\"\"\n" +
                         "DrawComponent,100,200,100,20,0\n" +
                         "UNClip\n" +
                         "Rect,100,200,100,20,ff00ffff\n" +
-                        "DrawComponent,100,200,100,20,0\n";
+                        "DrawComponent,100,200,100,20,0\n" +
+                        "DrawTextRegion,100,200,100,20,false,false,5,5,\"\"\n";
 
-    assertEquals(myInteraction.getDisplayList().serialize(),simpleList );
+    assertEquals(simpleList, myInteraction.getDisplayList().serialize());
     DisplayList disp = DisplayList.getDisplayList(simpleList);
     assertEquals(simpleList, DisplayList.getDisplayList(simpleList).serialize());
     //noinspection UndesirableClassUsage
