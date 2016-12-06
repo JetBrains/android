@@ -34,21 +34,11 @@
   </extensions>
 
   <actions>
-    <action id="Android.CleanRun" class="com.android.tools.idea.run.ReRunAction">
-      <add-to-group group-id="RunMenu" anchor="before" relative-to-action="Stop" />
-      <add-to-group group-id="ToolbarRunGroup" anchor="before" relative-to-action="Stop" />
-    </action>
-
     <action id="Android.HotswapChanges" class="com.android.tools.idea.fd.actions.HotswapAction">
-      <add-to-group group-id="RunMenu" anchor="before" relative-to-action="Stop" />
-      <!-- <keyboard-shortcut first-keystroke="shift ctrl U" keymap="$default" /> -->
+      <add-to-group group-id="RunMenu" anchor="before" relative-to-action="Stop"/>
+      <keyboard-shortcut first-keystroke="control F10" keymap="$default"/>
+      <keyboard-shortcut first-keystroke="control meta R" keymap="Mac OS X 10.5+"/>
       <!-- <add-to-group group-id="RunnerActions" anchor="after" relative-to-action="Run" /> registered in code in AndroidPlugin -->
-    </action>
-
-    <action id="Android.StopAndInstallChanges" class="com.android.tools.idea.fd.actions.ReinstallAndRunAction">
-      <add-to-group group-id="RunMenu" anchor="before" relative-to-action="Stop" />
-      <add-to-group group-id="ToolbarRunGroup" anchor="before" relative-to-action="RunnerActions" />
-      <!-- <keyboard-shortcut first-keystroke="shift ctrl R" keymap="$default" /> -->
     </action>
 
     <action id="Android.InstantRunFeedback" class="com.android.tools.idea.fd.actions.SubmitFeedback">
