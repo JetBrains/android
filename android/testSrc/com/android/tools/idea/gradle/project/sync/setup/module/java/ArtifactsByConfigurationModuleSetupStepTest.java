@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.SyncLibraryRegistry;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -101,7 +102,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
     assertJarIsLibrary(jarFilePath);
 
     // This is the first time we create the library, it shouldn't be marked as "used".
-    verify(myLibraryRegistry, never()).markAsUsed(any());
+    verify(myLibraryRegistry, never()).markAsUsed(any(), any());
   }
 
   public void testDoSetUpModuleWithExistingLibrary() throws IOException {
@@ -127,7 +128,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
     assertJarIsLibrary(jarFilePath);
 
     // This is an existing library, it should be marked as "used".
-    verify(myLibraryRegistry, times(1)).markAsUsed(library);
+    verify(myLibraryRegistry, times(1)).markAsUsed(library, Lists.newArrayList(jarFilePath.getPath()));
   }
 
   private Library createLibrary(@NotNull File jarFilePath) {
@@ -194,6 +195,6 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
     assertAbout(libraryDependencies()).that(module).isEmpty();
 
     // No libraries were created, nothing should be marked as "used".
-    verify(myLibraryRegistry, never()).markAsUsed(any());
+    verify(myLibraryRegistry, never()).markAsUsed(any(), any());
   }
 }
