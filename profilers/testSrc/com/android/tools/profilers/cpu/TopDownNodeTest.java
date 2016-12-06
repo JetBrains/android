@@ -16,9 +16,11 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.HNode;
+import com.android.tools.adtui.model.Range;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class TopDownNodeTest {
 
@@ -36,16 +38,50 @@ public class TopDownNodeTest {
     //    +-F
 
     TopDownNode topDown = new TopDownNode(root);
-    Assert.assertEquals(":A:", topDown.getId());
-    Assert.assertEquals(2, topDown.getChildren().size());
-    Assert.assertEquals(":B:", topDown.getChildren().get(0).getId());
-    Assert.assertEquals(3, topDown.getChildren().get(0).getChildren().size());
-    Assert.assertEquals(":D:", topDown.getChildren().get(0).getChildren().get(0).getId());
-    Assert.assertEquals(":E:", topDown.getChildren().get(0).getChildren().get(1).getId());
-    Assert.assertEquals(":G:", topDown.getChildren().get(0).getChildren().get(2).getId());
-    Assert.assertEquals(":C:", topDown.getChildren().get(1).getId());
-    Assert.assertEquals(1, topDown.getChildren().get(1).getChildren().size());
-    Assert.assertEquals(":F:", topDown.getChildren().get(1).getChildren().get(0).getId());
+    assertEquals(":A:", topDown.getId());
+    assertEquals(2, topDown.getChildren().size());
+    assertEquals(":B:", topDown.getChildren().get(0).getId());
+    assertEquals(3, topDown.getChildren().get(0).getChildren().size());
+    assertEquals(":D:", topDown.getChildren().get(0).getChildren().get(0).getId());
+    assertEquals(":E:", topDown.getChildren().get(0).getChildren().get(1).getId());
+    assertEquals(":G:", topDown.getChildren().get(0).getChildren().get(2).getId());
+    assertEquals(":C:", topDown.getChildren().get(1).getId());
+    assertEquals(1, topDown.getChildren().get(1).getChildren().size());
+    assertEquals(":F:", topDown.getChildren().get(1).getChildren().get(0).getId());
+  }
+
+  @Test
+  public void testTreeTime() {
+    HNode<MethodModel> root = new HNode<>(new MethodModel("A"), 0, 10);
+    root.addHNode(new HNode<>(new MethodModel("D"), 3, 5));
+    root.addHNode(new HNode<>(new MethodModel("E"), 7, 9));
+
+    TopDownNode topDown = new TopDownNode(root);
+    topDown.update(new Range(root.getStart(), root.getEnd()));
+    for (TopDownNode child : topDown.getChildren()) {
+      child.update(new Range(root.getStart(), root.getEnd()));
+    }
+
+    assertEquals(10, topDown.getTotal(), 0);
+    assertEquals(6, topDown.getSelf(), 0);
+
+    topDown.reset();
+    assertEquals(0, topDown.getTotal(), 0);
+  }
+
+  @Test
+  public void testTreeData() {
+    MethodModel rootModel = new MethodModel("A");
+    rootModel.setNamespace("com.package");
+    TopDownNode topDown = new TopDownNode(new HNode<>(rootModel, 0, 10));
+
+    assertEquals("com.package", topDown.getPackage());
+    assertEquals("A", topDown.getMethodName());
+
+    // Cover the case of null data
+    topDown = new TopDownNode(new HNode<>());
+    assertEquals("", topDown.getPackage());
+    assertEquals("", topDown.getMethodName());
   }
 
   /**
