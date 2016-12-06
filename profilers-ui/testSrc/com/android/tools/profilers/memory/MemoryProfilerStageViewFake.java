@@ -15,25 +15,21 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.DefaultDurationData;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.StudioProfilersView;
+import org.jetbrains.annotations.NotNull;
 
-public class AllocationsDurationData extends DefaultDurationData {
+import javax.swing.*;
 
-  private final long myStartTimeNs;
-
-  private final long myEndTimeNs;
-
-  public AllocationsDurationData(long duration, long startTimeNs, long endTimeNs) {
-    super(duration);
-    myStartTimeNs = startTimeNs;
-    myEndTimeNs = endTimeNs;
+public class MemoryProfilerStageViewFake extends MemoryProfilerStageView {
+  public MemoryProfilerStageViewFake(@NotNull StudioProfilersView profilersView,
+                                     @NotNull MemoryProfilerStage stage) {
+    super(profilersView, stage);
   }
 
-  public long getStartTimeNs() {
-    return myStartTimeNs;
-  }
-
-  public long getEndTimeNs() {
-    return myEndTimeNs;
+  @NotNull
+  @Override
+  protected JComponent createEventMonitor(@NotNull StudioProfilers profilers) {
+    return new JPanel();
   }
 }

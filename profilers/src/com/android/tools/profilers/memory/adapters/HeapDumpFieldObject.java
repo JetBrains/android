@@ -110,7 +110,7 @@ final class HeapDumpFieldObject implements FieldObject {
     return myDepth;
   }
 
-  @Nullable
+  @NotNull
   @Override
   public List<FieldObject> getFields() {
     Type type = myField.getField().getType();
@@ -120,7 +120,7 @@ final class HeapDumpFieldObject implements FieldObject {
       return HeapDumpInstanceObject.extractFields((Instance)value);
     }
 
-    return null;
+    return Collections.emptyList();
   }
 
   @NotNull
