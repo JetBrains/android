@@ -38,12 +38,11 @@ import static com.android.tools.idea.res.ResourceHelper.resolveStringValue;
  * Support Progress Bar
  */
 public class TextViewDecorator extends SceneDecorator {
-
   private static final String DEFAULT_DIM = "15sp";
 
   @Override
-  public void buildList(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
-    super.buildList(list, time, sceneContext, component);
+  public void buildListComponent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
+    super.buildListComponent(list, time, sceneContext, component);
     Rectangle rect = new Rectangle();
     component.fillDrawRect(time, rect);
     int l = sceneContext.getSwingX(rect.x);
