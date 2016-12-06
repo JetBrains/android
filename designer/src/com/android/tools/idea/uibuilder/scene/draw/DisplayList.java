@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.scene.draw;
 
 import com.android.tools.idea.uibuilder.scene.SceneContext;
+import com.android.tools.idea.uibuilder.scene.decorator.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -389,6 +390,13 @@ public class DisplayList {
       addListElementConstructor(DrawResize.class);
       addListElementConstructor(DrawAnchor.class);
       addListElementConstructor(DrawComponent.class);
+      addListElementConstructor(ProgressBarDecorator.DrawProgressBar.class);
+      addListElementConstructor(ButtonDecorator.DrawButton.class);
+      addListElementConstructor(DrawTextRegion.class);
+      addListElementConstructor(ImageViewDecorator.DrawImageView.class);
+      addListElementConstructor(CheckBoxDecorator.DrawCheckbox.class);
+      addListElementConstructor(SeekBarDecorator.DrawSeekBar.class);
+      addListElementConstructor(SwitchDecorator.DrawSwitch.class);
     }
     catch (Exception e) {
       e.printStackTrace();
