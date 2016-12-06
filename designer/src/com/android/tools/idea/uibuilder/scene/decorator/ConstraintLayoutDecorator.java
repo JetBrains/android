@@ -248,11 +248,11 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         }
         int margin = 0;
         float bias = 0.5f;
-        String marginString = child.getNlComponent().getAttribute(SdkConstants.NS_RESOURCES, MARGIN_ATTR[i]);
+        String marginString = child.getNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, MARGIN_ATTR[i]);
         if (marginString != null) {
           margin = ConstraintUtilities.getDpValue(child.getNlComponent(), marginString);
         }
-        String biasString = child.getNlComponent().getAttribute(SdkConstants.SHERPA_URI, BIAS_ATTR[i]);
+        String biasString = child.getNlComponent().getLiveAttribute(SdkConstants.SHERPA_URI, BIAS_ATTR[i]);
         if (biasString != null) {
           try {
             bias = Float.parseFloat(biasString);

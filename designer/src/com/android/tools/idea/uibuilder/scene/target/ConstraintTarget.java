@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.scene.target;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -81,6 +83,17 @@ public abstract class ConstraintTarget extends BaseTarget {
     ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
   }
 
+  protected boolean hasAttributes(@NotNull NlComponent component, String uri, ArrayList<String> attributes) {
+    int count = attributes.size();
+    for (int i = 0; i < count; i++) {
+      String attribute = attributes.get(i);
+      if (component.getLiveAttribute(uri, attribute) != null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private boolean hasAttributes(@NotNull AttributesTransaction transaction, String uri, ArrayList<String> attributes) {
     int count = attributes.size();
     for (int i = 0; i < count; i++) {
@@ -122,12 +135,12 @@ public abstract class ConstraintTarget extends BaseTarget {
 
     if (!hasLeft) {
       transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, null);
-      //      transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, null); // TODO: handles RTL correctly
+      transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, null); // TODO: handles RTL correctly
       transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, null);
     }
     if (!hasRight) {
       transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, null);
-      //      transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, null); // TODO: handles RTL correctly
+      transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, null); // TODO: handles RTL correctly
       transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, null);
     }
     if (!hasLeft && !hasRight) {
