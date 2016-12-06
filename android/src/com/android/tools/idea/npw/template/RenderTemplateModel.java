@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.template;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
+import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
@@ -66,13 +67,12 @@ public final class RenderTemplateModel extends WizardModel {
     myCommandName = commandName;
   }
 
-  public RenderTemplateModel(@NotNull OptionalProperty<Project> project,
-                             @NotNull StringProperty packageName,
+  public RenderTemplateModel(@NotNull NewModuleModel moduleModel,
                              @NotNull TemplateHandle templateHandle,
                              @NotNull AndroidSourceSet sourceSet,
                              @NotNull String commandName) {
-    myProject = project;
-    myPackageName = packageName;
+    myProject = moduleModel.getProject();
+    myPackageName = moduleModel.packageName();
     mySourceSet = new ObjectValueProperty<>(sourceSet);
     myTemplateHandle = templateHandle;
     myCommandName = commandName;
@@ -161,7 +161,10 @@ public final class RenderTemplateModel extends WizardModel {
     }.execute().getResultObject();
 
     if (success) {
-      ApplicationManager.getApplication().invokeLater(() -> TemplateUtils.openEditors(project, filesToOpen, true));
+      // If this is a new project, we can't selected any file until gradle finishes sync.
+      // Cache the value of project.isOpen() in a flag, as it will return true when called later from invokeLater()
+      final boolean selectEditor = project.isOpen();
+      ApplicationManager.getApplication().invokeLater(() -> TemplateUtils.openEditors(project, filesToOpen, selectEditor));
     }
   }
 

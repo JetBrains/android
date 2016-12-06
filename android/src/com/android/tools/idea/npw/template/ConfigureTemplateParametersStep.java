@@ -167,7 +167,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
    */
   @Nullable
   private static String getRelativePath(@NotNull File base, @NotNull File file) {
-    // Note: FileUtil.getRelativePath(File, File) doesn't work, because 'file' may contain directories that are not yet created
+    // Note: Use FileUtil.getRelativePath(String, String, char) instead of FileUtil.getRelativePath(File, File), because the second version
+    // will use the base.getParent() if base directory is not yet created  (when adding a new module, the directory is created later)
     return FileUtil.getRelativePath(FileUtil.toSystemIndependentName(base.getPath()),
                                     FileUtil.toSystemIndependentName(file.getPath()), '/');
   }
