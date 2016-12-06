@@ -65,6 +65,12 @@ public class ConstraintUtilities {
     alignmentMap.put(SdkConstants.TextAlignment.VIEW_END, TextWidget.TEXT_ALIGNMENT_VIEW_END);
   }
 
+  public static int getAlignment(String s) {
+    if (alignmentMap.containsKey(s)) {
+      return alignmentMap.get(s).intValue();
+    }
+    return TextWidget.TEXT_ALIGNMENT_VIEW_START;
+  }
   /**
    * Return the corresponding margin attribute for the given anchor
    *
@@ -1440,7 +1446,7 @@ public class ConstraintUtilities {
   }
 
   @NotNull
-  static String getResolvedText(@NotNull NlComponent component) {
+  public static String getResolvedText(@NotNull NlComponent component) {
     String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
     if (text != null) {
       if (text.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
