@@ -29,17 +29,20 @@ public class DrawAnchor extends DrawRegion {
   public static final int NORMAL = 0;
   public static final int OVER = 1;
   int myMode;
+  boolean myIsConnected;
 
   public DrawAnchor(String s) {
     String[] sp = s.split(",");
     int c = 0;
     c = super.parse(sp, c);
     myMode = Integer.parseInt(sp[c++]);
+    myIsConnected = Boolean.parseBoolean(sp[c++]);
   }
 
-  public DrawAnchor(int x, int y, int width, int height, int mode) {
+  public DrawAnchor(int x, int y, int width, int height, boolean isConnected, int mode) {
     super(x, y, width, height);
     myMode = mode;
+    myIsConnected = isConnected;
   }
 
   private int getPulseAlpha(int deltaT) {
@@ -58,7 +61,9 @@ public class DrawAnchor extends DrawRegion {
     g.drawRoundRect(x, y, width, height, width, height);
     int delta = width / 4;
     int delta2 = delta * 2;
-    g.fillRoundRect(x + delta, y + delta, width - delta2, height - delta2, width - delta2, height - delta2);
+    if (myIsConnected) {
+      g.fillRoundRect(x + delta, y + delta, width - delta2, height - delta2, width - delta2, height - delta2);
+    }
     Composite savedComposite = g.getComposite();
     if (myMode == OVER) {
       int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
@@ -76,11 +81,11 @@ public class DrawAnchor extends DrawRegion {
     return this.getClass().getSimpleName() + "," + x + "," + y + "," + width + "," + height + "," + myMode;
   }
 
-  public static void add(@NotNull DisplayList list, @NotNull SceneContext transform, float left, float top, float right, float bottom, int mode) {
+  public static void add(@NotNull DisplayList list, @NotNull SceneContext transform, float left, float top, float right, float bottom, boolean isConnected, int mode) {
     int l = transform.getSwingX(left);
     int t = transform.getSwingY(top);
     int w = transform.getSwingDimension(right - left);
     int h = transform.getSwingDimension(bottom - top);
-    list.add(new DrawAnchor(l, t, w, h, mode));
+    list.add(new DrawAnchor(l, t, w, h, isConnected, mode));
   }
 }

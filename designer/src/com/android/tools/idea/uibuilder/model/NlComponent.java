@@ -647,6 +647,21 @@ public class NlComponent implements NlAttributesHolder {
     return myCurrentTransaction;
   }
 
+  /**
+   * Returns the latest attribute value (either live -- not committed -- or from xml)
+   *
+   * @param namespace
+   * @param attribute
+   * @return
+   */
+  @Nullable
+  public String getLiveAttribute(@Nullable String namespace, @NotNull String attribute) {
+    if (myCurrentTransaction != null) {
+      return myCurrentTransaction.getAttribute(namespace, attribute);
+    }
+    return getAttribute(namespace, attribute);
+  }
+
   @Override
   @Nullable
   public String getAttribute(@Nullable String namespace, @NotNull String attribute) {

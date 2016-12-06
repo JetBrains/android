@@ -186,6 +186,23 @@ public class AnchorTarget extends ConstraintTarget {
   //region Display
   /////////////////////////////////////////////////////////////////////////////
 
+  private boolean isConnected() {
+    NlComponent component = myComponent.getNlComponent();
+    switch (myType) {
+      case LEFT:
+        return hasAttributes(component, SdkConstants.SHERPA_URI, ourLeftAttributes);
+      case TOP:
+        return hasAttributes(component, SdkConstants.SHERPA_URI, ourTopAttributes);
+      case RIGHT:
+        return hasAttributes(component, SdkConstants.SHERPA_URI, ourRightAttributes);
+      case BOTTOM:
+        return hasAttributes(component, SdkConstants.SHERPA_URI, ourBottomAttributes);
+      case BASELINE:
+        return component.getLiveAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
+    }
+    return false;
+  }
+
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
     if (!myComponent.getScene().allowsTarget(this)) {
@@ -196,7 +213,7 @@ public class AnchorTarget extends ConstraintTarget {
       list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, Color.red);
       list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, Color.red);
     }
-    DrawAnchor.add(list, sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? DrawAnchor.OVER : DrawAnchor.NORMAL);
+    DrawAnchor.add(list, sceneContext, myLeft, myTop, myRight, myBottom, isConnected(), mIsOver ? DrawAnchor.OVER : DrawAnchor.NORMAL);
     if (myLastX != -1 && myLastY != -1) {
       float x = myLeft + (myRight - myLeft) / 2;
       float y = myTop + (myBottom - myTop) / 2;
