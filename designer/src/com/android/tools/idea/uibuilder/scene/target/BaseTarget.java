@@ -54,10 +54,12 @@ public abstract class BaseTarget implements Target {
     mIsOver = over;
   }
 
+  @Override
   public float getCenterX() {
     return myLeft + (myRight - myLeft) / 2;
   }
 
+  @Override
   public float getCenterY() {
     return myTop + (myBottom - myTop) / 2;
   }
