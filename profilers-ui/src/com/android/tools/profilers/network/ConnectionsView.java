@@ -28,10 +28,12 @@ import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.RangedTableModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.ExpandedItemRendererComponentWrapper;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.Gray;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -59,7 +61,7 @@ import static com.android.tools.profilers.ProfilerColors.*;
  * for network profiling. Each row in the table represents a single connection.
  */
 final class ConnectionsView {
-  private static final int ROW_HEIGHT_PADDING = 5;
+  private static final int ROW_HEIGHT_PADDING = JBUI.scale(8);
 
   private Range mySelectionRange;
 
@@ -72,12 +74,18 @@ final class ConnectionsView {
   }
 
   private static final EnumMap<NetworkState, Color> NETWORK_STATE_COLORS = new EnumMap<>(NetworkState.class);
+  private static final EnumMap<NetworkState, Color> NETWORK_STATE_SELECTED_COLORS = new EnumMap<>(NetworkState.class);
 
   static {
     NETWORK_STATE_COLORS.put(NetworkState.SENDING, NETWORK_SENDING_COLOR);
     NETWORK_STATE_COLORS.put(NetworkState.RECEIVING, NETWORK_RECEIVING_COLOR);
     NETWORK_STATE_COLORS.put(NetworkState.WAITING, NETWORK_WAITING_COLOR);
-    NETWORK_STATE_COLORS.put(NetworkState.NONE, AdtUiUtils.DEFAULT_BACKGROUND_COLOR);
+    NETWORK_STATE_COLORS.put(NetworkState.NONE, TRANSPARENT_COLOR);
+
+    NETWORK_STATE_SELECTED_COLORS.put(NetworkState.SENDING, NETWORK_SENDING_COLOR);
+    NETWORK_STATE_SELECTED_COLORS.put(NetworkState.RECEIVING, NETWORK_RECEIVING_SELECTED_COLOR);
+    NETWORK_STATE_SELECTED_COLORS.put(NetworkState.WAITING, NETWORK_WAITING_COLOR);
+    NETWORK_STATE_SELECTED_COLORS.put(NetworkState.NONE, TRANSPARENT_COLOR);
   }
 
   /**
@@ -172,7 +180,9 @@ final class ConnectionsView {
     myChoreographer = choreographer;
     RangedTable rangedTable = new RangedTable(mySelectionRange, myTableModel);
     choreographer.register(rangedTable);
-    myConnectionsTable = createRequestsTable();
+
+    myConnectionsTable = new ConnectionsTable(myTableModel);
+    customizeConnectionsTable();
   }
 
   @NotNull
@@ -180,37 +190,35 @@ final class ConnectionsView {
     return myConnectionsTable;
   }
 
-  @NotNull
-  private JTable createRequestsTable() {
-    JTable table = new ConnectionsTable(myTableModel);
-    table.setAutoCreateRowSorter(true);
-    table.getColumnModel().getColumn(Column.SIZE.ordinal()).setCellRenderer(new SizeRenderer());
-    table.getColumnModel().getColumn(Column.STATUS.ordinal()).setCellRenderer(new StatusRenderer());
-    table.getColumnModel().getColumn(Column.TIME.ordinal()).setCellRenderer(new TimeRenderer());
-    table.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setCellRenderer(
-      new TimelineRenderer(table, mySelectionRange));
+  private void customizeConnectionsTable() {
+    myConnectionsTable.setAutoCreateRowSorter(true);
+    myConnectionsTable.getColumnModel().getColumn(Column.SIZE.ordinal()).setCellRenderer(new SizeRenderer());
+    myConnectionsTable.getColumnModel().getColumn(Column.STATUS.ordinal()).setCellRenderer(new StatusRenderer());
+    myConnectionsTable.getColumnModel().getColumn(Column.TIME.ordinal()).setCellRenderer(new TimeRenderer());
+    myConnectionsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setCellRenderer(
+      new TimelineRenderer(myConnectionsTable, mySelectionRange));
 
-    table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    table.getSelectionModel().addListSelectionListener(e -> {
-      int selectedRow = table.getSelectedRow();
+    myConnectionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    myConnectionsTable.getSelectionModel().addListSelectionListener(e -> {
+      int selectedRow = myConnectionsTable.getSelectedRow();
       if (0 <= selectedRow && selectedRow < myTableModel.getRowCount()) {
         int modelRow = myConnectionsTable.convertRowIndexToModel(selectedRow);
         myDetailedViewListener.showDetailedConnection(myTableModel.getHttpData(modelRow));
       }
     });
 
-    table.setFont(AdtUiUtils.DEFAULT_FONT);
-    table.setShowVerticalLines(true);
-    table.setShowHorizontalLines(false);
-    int defaultFontHeight = table.getFontMetrics(AdtUiUtils.DEFAULT_FONT).getHeight();
-    table.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
+    myConnectionsTable.setFont(AdtUiUtils.DEFAULT_FONT);
+    myConnectionsTable.setShowVerticalLines(true);
+    myConnectionsTable.setShowHorizontalLines(false);
+    int defaultFontHeight = myConnectionsTable.getFontMetrics(AdtUiUtils.DEFAULT_FONT).getHeight();
+    myConnectionsTable.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
 
-    table.addComponentListener(new ComponentAdapter() {
+    myConnectionsTable.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {
         for (int i = 0; i < Column.values().length; ++i) {
           Column column = Column.values()[i];
-          table.getColumnModel().getColumn(i).setPreferredWidth((int)(table.getWidth() * column.getWidthPercentage()));
+          myConnectionsTable.getColumnModel().getColumn(i).setPreferredWidth((int)(myConnectionsTable.getWidth() * column.getWidthPercentage()));
         }
       }
     });
@@ -227,16 +235,14 @@ final class ConnectionsView {
         if (selectedData != null) {
           for (int i = 0; i < myTableModel.getRowCount(); ++i) {
             if (myTableModel.getHttpData(i).getId() == selectedData.getId()) {
-              int row = table.convertRowIndexToView(i);
-              table.setRowSelectionInterval(row, row);
+              int row = myConnectionsTable.convertRowIndexToView(i);
+              myConnectionsTable.setRowSelectionInterval(row, row);
               break;
             }
           }
         }
       })
     );
-
-    return table;
   }
 
   private final class ConnectionsTableModel extends AbstractTableModel implements RangedTableModel {
@@ -320,31 +326,31 @@ final class ConnectionsView {
      * Keep in sync 1:1 with {@link ConnectionsTableModel#myDataList}. When the table asks for the
      * chart to render, it will be converted from model index to view index.
      */
-    @NotNull private final List<StateChart<NetworkState>> myCharts;
+    @NotNull private final List<StateChart<NetworkState>> myCharts = new ArrayList<>();
     @NotNull private final JTable myTable;
     @NotNull private final AxisComponent myAxis;
-    private final Range myRange;
+    @NotNull private final Range myRange;
 
     TimelineRenderer(@NotNull JTable table, @NotNull Range range) {
-      myRange = range;
-      myCharts = new ArrayList<>();
       myTable = table;
+      myRange = range;
       myAxis = buildAxis();
-      myTable.getModel().addTableModelListener(this);
       myChoreographer.register(myAxis);
+      myTable.getModel().addTableModelListener(this);
     }
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-      JComponent chart = myCharts.get(myTable.convertRowIndexToModel(row));
-      if (row == 0) {
-        JPanel panel = new JBPanel(new TabularLayout("*" , "*"));
-        panel.add(myAxis, new TabularLayout.Constraint(0, 0));
-        panel.add(chart, new TabularLayout.Constraint(0, 0));
-        return panel;
-      }
+      StateChart<NetworkState> chart = myCharts.get(myTable.convertRowIndexToModel(row));
+      chart.setColor(isSelected ? NETWORK_STATE_SELECTED_COLORS : NETWORK_STATE_COLORS);
 
-      return chart;
+      JPanel panel = new JBPanel(new TabularLayout("*" , "*"));
+      if (row == 0) {
+        panel.add(myAxis, new TabularLayout.Constraint(0, 0));
+      }
+      panel.add(chart, new TabularLayout.Constraint(0, 0));
+
+      return panel;
     }
 
     @Override
@@ -364,7 +370,9 @@ final class ConnectionsView {
         }
 
         StateChart<NetworkState> chart = new StateChart<>(NETWORK_STATE_COLORS);
+        chart.setHeightGap(0.3f);
         chart.addSeries(new RangedSeries<>(myRange, series));
+        // We just need to draw once, not animate. So, drawing it by animating once
         chart.animate(1);
         myCharts.add(chart);
       }
@@ -407,18 +415,27 @@ final class ConnectionsView {
     @Override
     public Component prepareRenderer(@NotNull TableCellRenderer renderer, int row, int column) {
       Component comp = super.prepareRenderer(renderer, row, column);
+      Component toChangeComp = comp;
+
+      if (comp instanceof ExpandedItemRendererComponentWrapper) {
+        // Cell component is child of ExpandedItemRendererComponentWrapper,
+        // So, we need to change background and foreground colors of the cell component rather than the wrapper
+        toChangeComp = ((ExpandedItemRendererComponentWrapper)comp).getComponent(0);
+      }
+
       if (isRowSelected(row)) {
-        comp.setForeground(getSelectionForeground());
-        comp.setBackground(getSelectionBackground());
+        toChangeComp.setForeground(getSelectionForeground());
+        toChangeComp.setBackground(getSelectionBackground());
       }
       else if (row == myHoveredRow) {
-        comp.setBackground(HOVER_COLOR);
-        comp.setForeground(getForeground());
+        toChangeComp.setBackground(HOVER_COLOR);
+        toChangeComp.setForeground(getForeground());
       }
       else {
-        comp.setBackground(getBackground());
-        comp.setForeground(getForeground());
+        toChangeComp.setBackground(getBackground());
+        toChangeComp.setForeground(getForeground());
       }
+
       return comp;
     }
   }
