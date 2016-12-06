@@ -380,11 +380,8 @@ public class SceneComponent {
    * @return true if intersecting with the rectangle
    */
   public boolean intersects(Rectangle rectangle) {
-    float x1 = getDrawX();
-    float y1 = getDrawY();
-    float x2 = x1 + getDrawWidth();
-    float y2 = y1 + getDrawHeight();
-    Rectangle bounds = new Rectangle((int) x1, (int) y1, (int) (x2 - x1), (int) (y2 - y1));
+    Rectangle bounds = new Rectangle();
+    fillRect(bounds);
     return rectangle.intersects(bounds);
   }
 
