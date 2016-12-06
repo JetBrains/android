@@ -322,6 +322,7 @@ final class ConnectionsView {
 
   private final class TimelineRenderer implements TableCellRenderer, TableModelListener {
     private final JBColor AXIS_COLOR = new JBColor(Gray._103, Gray._120);
+    private final JBColor AXIS_COLOR_SELECTED = JBColor.BLACK;
     /**
      * Keep in sync 1:1 with {@link ConnectionsTableModel#myDataList}. When the table asks for the
      * chart to render, it will be converted from model index to view index.
@@ -346,6 +347,7 @@ final class ConnectionsView {
 
       JPanel panel = new JBPanel(new TabularLayout("*" , "*"));
       if (row == 0) {
+        myAxis.setForeground(isSelected ? AXIS_COLOR_SELECTED : AXIS_COLOR);
         panel.add(myAxis, new TabularLayout.Constraint(0, 0));
       }
       panel.add(chart, new TabularLayout.Constraint(0, 0));
@@ -391,7 +393,7 @@ final class ConnectionsView {
   }
 
   private static final class ConnectionsTable extends JBTable {
-    private static final JBColor HOVER_COLOR = new JBColor(0xEAEFFA, 0xEAEFFA);
+    private static final JBColor HOVER_COLOR = new JBColor(0xEAEFFA, 0x3B3D3F);
     private int myHoveredRow = -1;
 
     ConnectionsTable(@NotNull TableModel model) {
@@ -418,8 +420,9 @@ final class ConnectionsView {
       Component toChangeComp = comp;
 
       if (comp instanceof ExpandedItemRendererComponentWrapper) {
-        // Cell component is child of ExpandedItemRendererComponentWrapper,
-        // So, we need to change background and foreground colors of the cell component rather than the wrapper
+        // To be able to show extended value of a cell via popup, when the value is stripped,
+        // JBTable wraps the cell component into ExpandedItemRendererComponentWrapper.
+        // So, we need to change background and foreground colors of the cell component rather than the wrapper.
         toChangeComp = ((ExpandedItemRendererComponentWrapper)comp).getComponent(0);
       }
 
