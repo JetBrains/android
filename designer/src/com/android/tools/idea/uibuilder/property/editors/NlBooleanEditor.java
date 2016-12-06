@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
+import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.renderer.NlBooleanRenderer;
 import com.intellij.util.ui.ThreeStateCheckBox;
@@ -36,7 +37,7 @@ public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponen
   public static NlTableCellEditor createForTable() {
     NlTableCellEditor cellEditor = new NlTableCellEditor();
     BrowsePanel browsePanel = new BrowsePanel(cellEditor, true);
-    cellEditor.init(new NlBooleanEditor(cellEditor, browsePanel));
+    cellEditor.init(new NlBooleanEditor(cellEditor, browsePanel), browsePanel);
     return cellEditor;
   }
 
@@ -56,9 +57,10 @@ public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponen
     if (browsePanel != null) {
       myPanel.add(browsePanel, BorderLayout.LINE_END);
     }
+    myProperty = EmptyProperty.INSTANCE;
   }
 
-  @Nullable
+  @NotNull
   @Override
   public NlProperty getProperty() {
     return myProperty;

@@ -41,7 +41,7 @@ public abstract class EnumSupport {
     if (StringUtil.isEmpty(resolvedValue)) {
       return ValueWithDisplayString.UNSET;
     }
-    String hint = editorValue == null ? "default" : (!editorValue.equals(resolvedValue) ? editorValue : null);
+    String hint = StringUtil.isEmpty(editorValue) ? "default" : (!editorValue.equals(resolvedValue) ? editorValue : null);
     return createFromResolvedValue(resolvedValue, editorValue, hint);
   }
 

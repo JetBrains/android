@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
+import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.intellij.icons.AllIcons;
@@ -84,10 +85,10 @@ public class NlFlagsEditor extends NlBaseComponentEditor implements NlComponentE
     return myPanel;
   }
 
-  @Nullable
+  @NotNull
   @Override
   public NlProperty getProperty() {
-    return myProperty;
+    return myProperty != null ? myProperty : EmptyProperty.INSTANCE;
   }
 
   @Override
