@@ -175,6 +175,7 @@ public class ScreenRecorderAction {
     public void run(@NotNull ProgressIndicator indicator) {
       try {
         myDevice.pullFile(REMOTE_PATH, myLocalPath);
+        myDevice.removeRemotePackage(REMOTE_PATH);
       }
       catch (Exception e) {
         showError(myProject, "Unexpected error while copying video recording from device", e);
