@@ -61,8 +61,8 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
 
     List<LoggedUsage> usages = myUsageTracker.getUsages();
 
-    assertEquals(4, usages.size());
-    LoggedUsage usage = usages.get(3);
+    assertEquals(5, usages.size());
+    LoggedUsage usage = usages.get(4);
     assertEquals(0, usage.getTimestamp());
     assertEquals(AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS, usage.getStudioEvent().getKind());
     assertEquals(GradleBuildDetails.newBuilder()

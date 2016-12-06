@@ -51,6 +51,7 @@ import java.nio.file.Paths;
   com.android.tools.idea.npw.importing.SourceToGradleModuleStepTest.class,
   com.android.tools.idea.npw.project.AndroidGradleModuleUtilsTest.class,
   com.android.tools.idea.templates.RepositoryUrlManagerTest.class,
+  com.android.tools.perf.idea.gradle.project.sync.GradleSyncPerfTest.class, // Sync performance test only runs on perf buildbot
   org.jetbrains.android.AndroidLintTest.class,
   org.jetbrains.android.databinding.DataBindingScopeTest.class,
   org.jetbrains.android.databinding.GeneratedCodeMatchTest.class,
