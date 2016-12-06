@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.ptable.PTable;
@@ -31,21 +33,48 @@ import static com.android.SdkConstants.TOOLS_URI;
 
 public class NlTableCellEditor extends PTableCellEditor implements NlEditingListener, BrowsePanel.Context {
   private NlComponentEditor myEditor;
+  private BrowsePanel myBrowsePanel;
   private JTable myTable;
   private int myRow;
 
-  public void init(@NotNull NlComponentEditor editor) {
+  public void init(@NotNull NlComponentEditor editor, @Nullable BrowsePanel browsePanel) {
     myEditor = editor;
+    myBrowsePanel = browsePanel;
   }
 
   @Override
-  public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+  public Component getTableCellEditorComponent(@NotNull JTable table, @NotNull Object value, boolean isSelected, int row, int column) {
     assert value instanceof NlProperty;
 
     myEditor.setProperty((NlProperty)value);
     myTable = table;
     myRow = row;
+    if (myBrowsePanel != null) {
+      myBrowsePanel.setDesignState(getDesignState(table, row));
+    }
     return myEditor.getComponent();
+  }
+
+  @VisibleForTesting
+  @Nullable
+  JTable getTable() {
+    return myTable;
+  }
+
+  @VisibleForTesting
+  int getRow() {
+    return myRow;
+  }
+
+  @Override
+  public boolean stopCellEditing() {
+    if (!super.stopCellEditing()) {
+      return false;
+    }
+    myTable = null;
+    myRow = -1;
+    myEditor.setProperty(EmptyProperty.INSTANCE);
+    return true;
   }
 
   @Override
@@ -79,18 +108,6 @@ public class NlTableCellEditor extends PTableCellEditor implements NlEditingList
     return getPropertyAt(myTable, myRow);
   }
 
-  @Nullable
-  @Override
-  public NlProperty getDesignProperty() {
-    return getDesignProperty(myTable, myRow);
-  }
-
-  @Nullable
-  @Override
-  public NlProperty getRuntimeProperty() {
-    return getRuntimeProperty(myTable, myRow);
-  }
-
   @Override
   public void cancelEditing() {
     cancelCellEditing();
@@ -106,6 +123,21 @@ public class NlTableCellEditor extends PTableCellEditor implements NlEditingList
   public void removeDesignProperty() {
     cancelEditing();
     removeDesignProperty(myTable, myRow);
+  }
+
+  public static PropertyDesignState getDesignState(@NotNull JTable table, int row) {
+    NlProperty property = getPropertyAt(table, row);
+    if (property == null) {
+      return PropertyDesignState.NOT_APPLICABLE;
+    }
+    if (TOOLS_URI.equals(property.getNamespace())) {
+      NlProperty runtimeProperty = getRuntimeProperty(table, row);
+      return runtimeProperty != null ? PropertyDesignState.IS_REMOVABLE_DESIGN_PROPERTY : PropertyDesignState.NOT_APPLICABLE;
+    }
+    else {
+      NlProperty designProperty = getDesignProperty(table, row);
+      return designProperty != null ? PropertyDesignState.HAS_DESIGN_PROPERTY : PropertyDesignState.MISSING_DESIGN_PROPERTY;
+    }
   }
 
   @Nullable

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.editors.support;
 
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.common.collect.ImmutableList;
@@ -55,7 +56,8 @@ public class EnumSupportFactory {
         return false;
       case ATTR_STYLE:
         String tagName = property.getTagName();
-        return tagName != null && StyleFilter.hasWidgetStyles(property.getModel().getProject(), property.getResolver(), tagName);
+        ResourceResolver resolver = property.getResolver();
+        return tagName != null && resolver != null && StyleFilter.hasWidgetStyles(property.getModel().getProject(), resolver, tagName);
       default:
         if (property.getName().endsWith(TEXT_APPEARANCE_SUFFIX)) {
           return true;

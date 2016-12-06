@@ -16,10 +16,12 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.SdkConstants;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.support.Quantity;
 import com.android.tools.idea.uibuilder.property.renderer.NlDefaultRenderer;
@@ -75,7 +77,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   public static NlTableCellEditor createForTable(@NotNull Project project) {
     NlTableCellEditor cellEditor = new NlTableCellEditor();
     BrowsePanel browsePanel = new BrowsePanel(cellEditor, true);
-    cellEditor.init(new NlReferenceEditor(project, cellEditor, browsePanel, false));
+    cellEditor.init(new NlReferenceEditor(project, cellEditor, browsePanel, false), browsePanel);
     return cellEditor;
   }
 
@@ -154,6 +156,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
         myTextFieldWithAutoCompletion.removeSelection();
       }
     });
+    myProperty = EmptyProperty.INSTANCE;
   }
 
   @NotNull
@@ -175,6 +178,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     }
   }
 
+  @NotNull
   @Override
   public NlProperty getProperty() {
     return myProperty;
@@ -271,8 +275,12 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     if (valueAsString == null) {
       return defaultValue;
     }
+    ResourceResolver resolver = myProperty.getResolver();
+    if (resolver == null) {
+      return defaultValue;
+    }
     Configuration configuration = myProperty.getModel().getConfiguration();
-    Integer value = resolveDimensionPixelSize(myProperty.getResolver(), valueAsString, configuration);
+    Integer value = resolveDimensionPixelSize(resolver, valueAsString, configuration);
     if (value == null) {
       return defaultValue;
     }
