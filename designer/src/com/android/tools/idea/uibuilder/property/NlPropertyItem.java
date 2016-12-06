@@ -328,17 +328,13 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @Nullable
   public ResourceResolver getResolver() {
     Configuration configuration = getModel().getConfiguration();
-    //noinspection ConstantConditions
-    if (configuration == null) { // happens in unit test
-      return null;
-    }
 
     // TODO: what happens if this is configuration dependent? (in theory, those should be edited in the theme editor)
     return configuration.getResourceResolver();
   }
 
   @Override
-  public void setValue(Object value) {
+  public void setValue(@Nullable Object value) {
     // TODO: Consider making getApplication() a field to avoid statics
     assert ApplicationManager.getApplication().isDispatchThread();
     if (getModel().getProject().isDisposed()) {
@@ -404,6 +400,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   }
 
   @Override
+  @NotNull
   public String getTooltipText() {
     StringBuilder sb = new StringBuilder(100);
     sb.append(namespaceToPrefix(myNamespace));
