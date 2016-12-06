@@ -19,7 +19,9 @@ import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.ProjectLibraries;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
@@ -89,6 +91,20 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setDistributionType(DEFAULT_WRAPPED);
     GradleSettings.getInstance(project).setLinkedProjectsSettings(Collections.singletonList(projectSettings));
+  }
+
+  // See https://code.google.com/p/android/issues/detail?id=226802
+  public void testNestedModule() throws Exception {
+    // Sync must be successful.
+    loadProject(NESTED_MODULE);
+
+    Module rootModule = myModules.getModule("testNestedModule");
+    GradleFacet gradleFacet = GradleFacet.getInstance(rootModule);
+    // The root module should be considered a Java module.
+    assertNotNull(gradleFacet);
+    GradleModuleModel gradleModel = gradleFacet.getGradleModuleModel();
+    assertNotNull(gradleModel);
+    assertEquals(":", gradleModel.getGradlePath());
   }
 
   // Verifies that if syncing using cached model, and if the cached model is missing data, we fall back to a full Gradle sync.

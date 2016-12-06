@@ -1,17 +1,15 @@
-apply plugin: 'com.android.library'
+apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.3"
-
+    compileSdkVersion 25
+    buildToolsVersion "25.0.0"
     defaultConfig {
+        applicationId "google.nestedmodule"
         minSdkVersion 15
-        targetSdkVersion 23
+        targetSdkVersion 25
         versionCode 1
         versionName "1.0"
-
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
     }
     buildTypes {
         release {
@@ -22,10 +20,12 @@ android {
 }
 
 dependencies {
+    compile rootProject
     compile fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestCompile('com.android.support.test.espresso:espresso-core:+', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
     compile 'com.android.support:appcompat-v7:+'
-    testCompile 'junit:junit:+'
-    androidTestCompile 'com.android.support.test.espresso:espresso-core:+'
-    androidTestCompile 'com.android.support.test:runner:+'
-    androidTestCompile 'com.android.support:support-annotations:+'
+    compile 'com.android.support.constraint:constraint-layout:+'
+    testCompile 'junit:junit:4.+'
 }
