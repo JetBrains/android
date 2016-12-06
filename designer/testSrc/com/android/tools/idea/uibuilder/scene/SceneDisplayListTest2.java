@@ -63,6 +63,7 @@ public class SceneDisplayListTest2 extends SceneTest {
                         "Clip,0,0,1000,1000\n" +
                         "Rect,450,490,100,20,ff00ffff\n" +
                         "DrawComponent,450,490,100,20,0\n" +
+                        "DrawTextRegion,450,490,100,20,false,false,5,5,\"\"\n" +
                         "DrawComponent,450,490,100,20,0\n" +
                         "DrawConnection,2,450x490x100x20,0,0x0x1000x1000,0,true,false,0,0.5\n" +
                         "DrawConnection,2,450x490x100x20,1,0x0x1000x1000,1,true,false,0,0.5\n" +
@@ -70,7 +71,8 @@ public class SceneDisplayListTest2 extends SceneTest {
                         "DrawConnection,2,450x490x100x20,3,0x0x1000x1000,3,true,false,0,0.5\n" +
                         "UNClip\n" +
                         "Rect,450,490,100,20,ff00ffff\n" +
-                        "DrawComponent,450,490,100,20,0\n";
+                        "DrawComponent,450,490,100,20,0\n" +
+                        "DrawTextRegion,450,490,100,20,false,false,5,5,\"\"\n";
 
     assertEquals(simpleList, myInteraction.getDisplayList().serialize());
     DisplayList disp = DisplayList.getDisplayList(simpleList);
@@ -78,7 +80,7 @@ public class SceneDisplayListTest2 extends SceneTest {
     //noinspection UndesirableClassUsage
     BufferedImage img = new BufferedImage(1000, 1000,BufferedImage.TYPE_INT_ARGB);
     disp.paint(img.createGraphics(), SceneContext.get());
-    assertEquals(12, disp.getCommands().size());
+    assertEquals(14, disp.getCommands().size());
     disp.clear();
   }
 }
