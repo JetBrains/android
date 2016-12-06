@@ -200,7 +200,11 @@ public class AccelerationErrorSolution {
                   catch (ExecutionException ex) {
                     LOG.error(ex);
                     BrowserUtil.browse(KVM_INSTRUCTIONS, myProject);
-                    Messages.showWarningDialog(myProject, "Please install KVM on your own", "Installation Failed");
+                    Messages.showWarningDialog(myProject,
+                                               "Automatic KVM installation failed, please retry manually.\n\n" +
+                                               "For more details on the automatic installation failure, " +
+                                               "please consult the IDE log (Help | Show Log)",
+                                               "Installation Failed");
                   }
                 }
                 else {
