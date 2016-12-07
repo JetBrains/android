@@ -26,6 +26,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitorView;
+import com.android.tools.profilers.StudioProfilersView;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,8 +42,8 @@ public class CpuMonitorView extends ProfilerMonitorView<CpuMonitor> {
 
   private static final SingleUnitAxisFormatter CPU_USAGE_AXIS = new SingleUnitAxisFormatter(1, 2, 10, "%");
 
-  public CpuMonitorView(@NotNull CpuMonitor monitor) {
-    super(monitor);
+  public CpuMonitorView(@NotNull StudioProfilersView profilersView, @NotNull CpuMonitor monitor) {
+    super(profilersView, monitor);
   }
 
   @Override
