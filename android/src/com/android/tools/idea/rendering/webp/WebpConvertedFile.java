@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageTypeSpecifier;
 import java.awt.image.BufferedImage;
 import java.io.*;
 
@@ -76,6 +77,12 @@ class WebpConvertedFile {
       }
 
       ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream((int)sourceFileSize);
+
+      ImageTypeSpecifier type = ImageTypeSpecifier.createFromRenderedImage(image);
+      if (!WebpImageWriterSpi.canWriteImage(type)) {
+        return false;
+      }
+
       WebpImageWriterSpi.writeImage(image, byteArrayOutputStream, settings.lossless, settings.quality);
       encoded = byteArrayOutputStream.toByteArray();
       saved = sourceFileSize - encoded.length;
