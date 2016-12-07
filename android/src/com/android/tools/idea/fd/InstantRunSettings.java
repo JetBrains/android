@@ -65,14 +65,4 @@ public class InstantRunSettings {
     InstantRunConfiguration configuration = InstantRunConfiguration.getInstance();
     configuration.ENABLE_RECORDER = en;
   }
-
-  public static IrUiExperiment getUiExperimentStatus() {
-    InstantRunConfiguration configuration = InstantRunConfiguration.getInstance();
-    IrUiExperiment v = null;
-    if (InstantRunConfigurable.SHOW_IR_UI_OPTIONS) {
-      v = configuration.IR_UI_EXPERIMENT;
-    }
-
-    return v == null ? IrUiExperiment.DEFAULT : v;
-  }
 }
