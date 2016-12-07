@@ -97,12 +97,14 @@ public class FileResourceRepository extends LocalResourceRepository {
     catch (Exception e) {
       LOG.error("Failed to initialize resources", e);
     }
-    if (file.getPath().contains(AndroidModuleModel.EXPLODED_AAR)) {
-      File rDotTxt = new File(file.getParentFile(), FN_RESOURCE_TEXT);
-      if (rDotTxt.exists()) {
-        repository.myResourceTextFile = rDotTxt;
-        repository.myAarDeclaredIds = RDotTxtParser.getIdNames(rDotTxt);
-      }
+
+    // Look for a R.txt file which describes the available id's; this is
+    // available both in an exploded-aar folder as well as in the build-cache
+    // for AAR files
+    File rDotTxt = new File(file.getParentFile(), FN_RESOURCE_TEXT);
+    if (rDotTxt.exists()) {
+      repository.myResourceTextFile = rDotTxt;
+      repository.myAarDeclaredIds = RDotTxtParser.getIdNames(rDotTxt);
     }
 
     return repository;
