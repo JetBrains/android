@@ -42,7 +42,6 @@ public class InstantRunNotificationProvider {
     .put(BuildCause.API_TOO_LOW_FOR_INSTANT_RUN, AndroidBundle.message("instant.run.notification.ir.disabled.api.less.than.21"))
     .put(BuildCause.MANIFEST_RESOURCE_CHANGED, AndroidBundle.message("instant.run.notification.fullbuild.manifestresourcechanged"))
     .put(BuildCause.FREEZE_SWAP_REQUIRES_API21, AndroidBundle.message("instant.run.notification.fullbuild.api.less.than.21"))
-    .put(BuildCause.FREEZE_SWAP_REQUIRES_WORKING_RUN_AS, AndroidBundle.message("instant.run.notification.fullbuild.broken.runas"))
     .build();
 
   private final BuildSelection myBuildSelection;
