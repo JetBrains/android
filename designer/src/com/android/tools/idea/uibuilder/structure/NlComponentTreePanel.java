@@ -72,23 +72,4 @@ public class NlComponentTreePanel extends JPanel implements ToolContent<DesignSu
     }
     return Collections.singletonList(new ToggleBoundsVisibility(PropertiesComponent.getInstance(), myTree));
   }
-
-  @NotNull
-  @Override
-  public List<AnAction> getAdditionalActions() {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public void registerCloseAutoHideWindow(@NotNull Runnable runnable) {
-  }
-
-  @Override
-  public boolean supportsFiltering() {
-    return false;
-  }
-
-  @Override
-  public void setFilter(@NotNull String filter) {
-  }
 }
