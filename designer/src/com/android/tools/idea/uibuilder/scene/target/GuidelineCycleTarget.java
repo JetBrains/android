@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.scene.draw.DrawGuidelineCycle;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -65,7 +66,7 @@ public class GuidelineCycleTarget extends ConstraintTarget {
 
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneTransform) {
-    list.addRect(sceneTransform, myLeft, myTop, myRight, myBottom, Color.CYAN);
+    DrawGuidelineCycle.add(list, sceneTransform, myLeft, myTop, myRight, myBottom, 0);
   }
 
   @Override

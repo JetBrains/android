@@ -56,10 +56,10 @@ public class DrawAnchor extends DrawRegion {
 
   @Override
   public void paint(Graphics2D g, SceneContext sceneContext) {
-    if (myType==TYPE_BASELINE) {
+    if (myType == TYPE_BASELINE) {
       paintBaseline(g, sceneContext);
       return;
-     }
+    }
     ColorSet colorSet = sceneContext.getColorSet();
     Color background = colorSet.getBackground();
     Color color = colorSet.getFrames();
@@ -79,15 +79,16 @@ public class DrawAnchor extends DrawRegion {
       g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha / 255f));
       if (myIsConnected) {
         g.setColor(colorSet.getAnchorDisconnectionCircle());
-      } else {
+      }
+      else {
         g.setColor(colorSet.getAnchorConnectionCircle());
       }
 
-        g.fillRoundRect(x, y, width, height, width, height);
-        sceneContext.repaint();
-        g.setComposite(comp);
-      }
+      g.fillRoundRect(x, y, width, height, width, height);
+      sceneContext.repaint();
+      g.setComposite(comp);
     }
+  }
 
 
   public void paintBaseline(Graphics2D g, SceneContext sceneContext) {
@@ -96,10 +97,10 @@ public class DrawAnchor extends DrawRegion {
     Color background = colorSet.getBackground();
     Color color = colorSet.getFrames();
     g.setColor(color);
-    g.fillRect(x,y+height/2,width,1);
+    g.fillRect(x, y + height / 2, width, 1);
     g.setColor(background);
-    int ovalX = x+inset;
-    int ovalW = width-2*inset;
+    int ovalX = x + inset;
+    int ovalW = width - 2 * inset;
     g.fillRoundRect(ovalX, y, ovalW, height, height, height);
     g.setColor(color);
     g.drawRoundRect(ovalX, y, ovalW, height, height, height);
@@ -109,7 +110,8 @@ public class DrawAnchor extends DrawRegion {
       g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha / 255f));
       if (myIsConnected) {
         g.setColor(colorSet.getAnchorDisconnectionCircle());
-      } else {
+      }
+      else {
         g.setColor(colorSet.getAnchorConnectionCircle());
       }
 

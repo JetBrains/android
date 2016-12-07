@@ -59,9 +59,9 @@ public class SceneDisplayListTest2 extends SceneTest {
                  "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
                  "    app:layout_constraintBottom_toBottomOf=\"parent\"/>");
 
-    String simpleList = "Rect,0,0,1000,1000,ff00ffff\n" +
+    String simpleList = "Rect,0,0,1000,1000,ffc0c0c0\n" +
                         "Clip,0,0,1000,1000\n" +
-                        "Rect,450,490,100,20,ff00ffff\n" +
+                        "Rect,450,490,100,20,ffc0c0c0\n" +
                         "DrawTextRegion,450,490,100,20,0,false,false,5,5,\"\"\n" +
                         "DrawConnection,2,450x490x100x20,0,0x0x1000x1000,0,true,false,0,0.5\n" +
                         "DrawConnection,2,450x490x100x20,1,0x0x1000x1000,1,true,false,0,0.5\n" +

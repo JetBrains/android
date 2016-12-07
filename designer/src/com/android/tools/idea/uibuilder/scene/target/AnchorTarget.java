@@ -47,7 +47,7 @@ public class AnchorTarget extends ConstraintTarget {
     LEFT, TOP, RIGHT, BOTTOM, BASELINE
   }
 
-  private final int mySize = 3;
+  protected final int mySize = 3;
   private final int myExpandSize = 200;
   private final AnchorTarget.Type myType;
   private boolean myExpandArea = false;
@@ -84,7 +84,7 @@ public class AnchorTarget extends ConstraintTarget {
   }
 
   public boolean isVerticalAnchor() {
-    return myType == Type.TOP || myType == Type.BOTTOM || myType == Type.BASELINE;
+    return myType == Type.TOP || myType == Type.BOTTOM;
   }
 
   @Override
@@ -173,9 +173,9 @@ public class AnchorTarget extends ConstraintTarget {
       }
       break;
       case BASELINE: {
-        myLeft = l;
+        myLeft = l + size;
         myTop = t + myComponent.getBaseline() - size/2;
-        myRight = r;
+        myRight = r - size;
         myBottom = t + myComponent.getBaseline() + size/2;
       }
       break;

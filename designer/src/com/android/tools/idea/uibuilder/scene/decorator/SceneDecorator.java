@@ -34,6 +34,7 @@ import java.util.Map;
  * The generic Scene Decorator
  */
 public class SceneDecorator {
+  private static final boolean DEBUG = false;
   static SceneDecorator basicDecorator = new SceneDecorator();
   static Map<String, Constructor<? extends SceneDecorator>> ourConstructorMap = new HashMap<>();
   static Map<String, SceneDecorator> ourSceneMap = new HashMap<>();
@@ -93,9 +94,11 @@ public class SceneDecorator {
    */
   public void buildList(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
     Rectangle rect = new Rectangle();
-    Color color = Color.CYAN;
-    if (component.getDrawState() == SceneComponent.DrawState.HOVER) {
-      color = Color.yellow;
+    Color color = Color.lightGray;
+    if (DEBUG) {
+      if (component.getDrawState() == SceneComponent.DrawState.HOVER) {
+        color = Color.yellow;
+      }
     }
     component.fillRect(rect); // get the rectangle from the component
     list.addRect(sceneContext, rect, color); // add to the list
@@ -105,7 +108,7 @@ public class SceneDecorator {
   }
 
   public void buildListComponent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
-     // default empty for now
+    // default empty for now
     // TODO add draw the component
   }
 
