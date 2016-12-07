@@ -412,9 +412,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       }
       component.addTarget(new GuidelineTarget(isHorizontal));
       if (isHorizontal) {
-        component.addTarget(new AnchorTarget(AnchorTarget.Type.TOP, showAnchors));
+        component.addTarget(new GuidelineAnchorTarget(AnchorTarget.Type.TOP, true));
       } else {
-        component.addTarget(new AnchorTarget(AnchorTarget.Type.LEFT, showAnchors));
+        component.addTarget(new GuidelineAnchorTarget(AnchorTarget.Type.LEFT, false));
       }
       component.addTarget(new GuidelineCycleTarget(isHorizontal));
       return;
