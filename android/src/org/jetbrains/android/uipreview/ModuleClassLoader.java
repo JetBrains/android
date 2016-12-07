@@ -8,10 +8,13 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.idea.rendering.RenderClassLoader;
 import com.android.tools.idea.rendering.RenderSecurityManager;
+import com.android.tools.idea.res.FileResourceRepository;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.utils.SdkUtils;
+import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
+import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -37,6 +40,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -384,6 +388,22 @@ public final class ModuleClassLoader extends RenderClassLoader {
               AppResourceRepository appResources = AppResourceRepository.getAppResources(module, true);
               if (appResources != null) {
                 ResourceClassRegistry.get(module.getProject()).addAarLibrary(appResources, aarDir);
+              }
+            } else if (aarDir != null) {
+              // Build cache? We need to compute the package name in a slightly different way
+              File parentFile = aarDir.getParentFile();
+              if (parentFile != null) {
+                File manifest = new File(parentFile, ANDROID_MANIFEST_XML);
+                if (manifest.exists()) {
+                  AppResourceRepository appResources = AppResourceRepository.getAppResources(module, true);
+                  if (appResources != null) {
+                    FileResourceRepository repository = appResources.findRepositoryFor(parentFile);
+                    if (repository != null) {
+                      ResourceClassRegistry registry = ResourceClassRegistry.get(module.getProject());
+                      registry.addLibrary(appResources, registry.getAarPackage(parentFile));
+                    }
+                  }
+                }
               }
             }
           }

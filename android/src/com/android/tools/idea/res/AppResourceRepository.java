@@ -374,7 +374,6 @@ public class AppResourceRepository extends MultiResourceRepository {
   @Nullable
   public FileResourceRepository findRepositoryFor(@NotNull File aarDirectory) {
     String aarPath = aarDirectory.getPath();
-    assert aarPath.endsWith(DOT_AAR) || aarPath.contains(AndroidModuleModel.EXPLODED_AAR) : aarPath;
     for (LocalResourceRepository r : myLibraries) {
       if (r instanceof FileResourceRepository) {
         FileResourceRepository repository = (FileResourceRepository)r;
