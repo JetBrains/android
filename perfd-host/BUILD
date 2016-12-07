@@ -5,6 +5,7 @@ iml_module(
     srcs = ["src/main/java"],
     tags = ["managed"],
     test_resources = ["src/test/resources"],
+    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -21,5 +22,6 @@ iml_module(
         "//tools/idea/platform/annotations/common:annotations-common[module]",
         "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
         "//tools/idea/.idea/libraries:jcip",
+        "//tools/idea/.idea/libraries:mockito[test]",
     ],
 )
