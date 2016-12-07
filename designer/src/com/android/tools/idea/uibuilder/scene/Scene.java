@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.awt.event.InputEvent;
 import java.util.*;
 import java.util.List;
 
@@ -67,33 +68,9 @@ public class Scene implements ModelListener, SelectionListener {
   private int myMouseCursor;
   private SceneComponent myHitComponent;
   ArrayList<SceneComponent> myNewSelectedComponents = new ArrayList<>();
-
-  public int getMouseCursor() {
-    return myMouseCursor;
-  }
-
-  public void setDnDComponent(NlComponent component) {
-    if (myDnDComponent != null) {
-      myDnDComponent.removeFromParent();
-    }
-    if (component != null) {
-      myDnDComponent = new SceneComponent(this, component);
-      myDnDComponent.addTarget(new DragDndTarget());
-      setAnimate(false);
-      myDnDComponent.updateFrom(component);
-      setAnimate(true);
-    } else {
-      myDnDComponent = null;
-    }
-    if (myRoot != null && myDnDComponent != null) {
-      myRoot.addChild(myDnDComponent);
-      needsRebuildList();
-    }
-  }
-
-  public boolean isAutoconnectOn() {
-    return PropertiesComponent.getInstance().getBoolean(ConstraintLayoutHandler.AUTO_CONNECT_PREF_KEY, false);
-  }
+  private boolean myIsControlDown;
+  private boolean myIsShiftDown;
+  private boolean myIsAltDown;
 
   private enum FilterType {ALL, ANCHOR, VERTICAL_ANCHOR, HORIZONTAL_ANCHOR, BASELINE_ANCHOR, NONE, RESIZE}
 
@@ -217,6 +194,60 @@ public class Scene implements ModelListener, SelectionListener {
   @Nullable
   public SceneComponent getRoot() {
     return myRoot;
+  }
+
+  public int getMouseCursor() {
+    return myMouseCursor;
+  }
+
+  public void setDnDComponent(NlComponent component) {
+    if (myDnDComponent != null) {
+      myDnDComponent.removeFromParent();
+    }
+    if (component != null) {
+      myDnDComponent = new SceneComponent(this, component);
+      myDnDComponent.addTarget(new DragDndTarget());
+      setAnimate(false);
+      myDnDComponent.updateFrom(component);
+      setAnimate(true);
+    }
+    else {
+      myDnDComponent = null;
+    }
+    if (myRoot != null && myDnDComponent != null) {
+      myRoot.addChild(myDnDComponent);
+      needsRebuildList();
+    }
+  }
+
+  public boolean isAutoconnectOn() {
+    return PropertiesComponent.getInstance().getBoolean(ConstraintLayoutHandler.AUTO_CONNECT_PREF_KEY, false);
+  }
+
+  /**
+   * Update the current key modifiers state
+   *
+   * @param modifiers
+   */
+  public void updateModifiers(int modifiers) {
+    myIsControlDown = (((modifiers & InputEvent.CTRL_DOWN_MASK) != 0)
+                       || ((modifiers & InputEvent.CTRL_MASK) != 0));
+    myIsShiftDown = (((modifiers & InputEvent.SHIFT_DOWN_MASK) != 0)
+                     || ((modifiers & InputEvent.SHIFT_MASK) != 0));
+    myIsAltDown = (((modifiers & InputEvent.ALT_DOWN_MASK) != 0)
+                   || ((modifiers & InputEvent.ALT_MASK) != 0));
+  }
+
+  public boolean isControlDown() {
+    return myIsControlDown;
+  }
+
+  public boolean isShiftDown() {
+    return myIsShiftDown;
+  }
+
+  public boolean isAltDown() {
+    return myIsAltDown;
   }
 
   //endregion
@@ -474,11 +505,21 @@ public class Scene implements ModelListener, SelectionListener {
    */
   public void select(ArrayList<SceneComponent> components) {
     if (myScreenView != null) {
-      myScreenView.getSelectionModel().clear();
       ArrayList<NlComponent> nlComponents = new ArrayList<>();
+      if (myIsShiftDown) {
+        List<NlComponent> selection = myScreenView.getSelectionModel().getSelection();
+        nlComponents.addAll(selection);
+      }
       int count = components.size();
       for (int i = 0; i < count; i++) {
-        nlComponents.add(components.get(i).getNlComponent());
+        NlComponent component = components.get(i).getNlComponent();
+        if (myIsShiftDown && nlComponents.contains(component)) {
+          // if shift is pressed and the component is already selected, remove it from the selection
+          nlComponents.remove(component);
+        }
+        else {
+          nlComponents.add(component);
+        }
       }
       myScreenView.getSelectionModel().setSelection(nlComponents);
     }
