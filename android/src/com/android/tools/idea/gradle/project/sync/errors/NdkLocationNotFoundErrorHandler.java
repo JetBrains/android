@@ -89,7 +89,7 @@ public class NdkLocationNotFoundErrorHandler extends BaseSyncErrorHandler {
     return null;
   }
 
-  private static boolean setNdkPath(@NotNull Project project, @org.jetbrains.annotations.Nullable String ndkPath) {
+  private static boolean setNdkPath(@NotNull Project project, @Nullable String ndkPath) {
     LocalProperties localProperties;
     try {
       localProperties = new LocalProperties(project);
