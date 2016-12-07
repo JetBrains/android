@@ -194,17 +194,21 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     for (int i = 0; i < ourDirections.length; i++) {
       ConnectionType type = connectionTypes[i];
       SceneComponent sc = connectionTo[i];
-
+      int destType = DrawConnection.DEST_NORMAL;
       if (sc != null) {
         sc.fillDrawRect(time, dest_rect);  // get the destination rectangle
         convert(sceneContext, dest_rect);   // scale to screen space
         int connect = (type == ConnectionType.SAME) ? i : ourOppositeDirection[i];
-        boolean toParent = (child.getParent().equals(sc)); // flag a child connection
+        if (child.getParent().equals(sc)) { // flag a child connection
+          destType = DrawConnection.DEST_PARENT;
+        } else if (SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.equalsIgnoreCase(sc.getComponentClassName())){
+          destType = DrawConnection.DEST_GUIDELINE;
+        }
         int connectType = DrawConnection.TYPE_NORMAL;
 
         if (connectionTo[ourOppositeDirection[i]] != null) { // opposite side is connected
           connectType = DrawConnection.TYPE_SPRING;
-          if (connectionTo[ourOppositeDirection[i]] == sc && !toParent) { // center
+          if (connectionTo[ourOppositeDirection[i]] == sc && destType != DrawConnection.DEST_PARENT) { // center
             connectType = DrawConnection.TYPE_CENTER;
           }
         }
@@ -237,7 +241,10 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
           }
         }
         boolean shift = toComponentsTo != null;
-        DrawConnection.buildDisplayList(list, connectType, source_rect, i, dest_rect, connect, toParent, shift, margin, bias);
+        if (destType == DrawConnection.DEST_GUIDELINE) { // connections to guidelines are always Opposite
+          connect = ourOppositeDirection[i];
+        }
+        DrawConnection.buildDisplayList(list, connectType, source_rect, i, dest_rect, connect, destType, shift, margin, bias);
       }
     }
 
@@ -251,7 +258,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       source_rect.height = 0;
       dest_rect.y += dest_offset;
       dest_rect.height = 0;
-      DrawConnection.buildDisplayList(list, DrawConnection.TYPE_BASELINE, source_rect, 5, dest_rect, 5, false, false, 0, 0f);
+      DrawConnection.buildDisplayList(list, DrawConnection.TYPE_BASELINE, source_rect, 5, dest_rect, 5, DrawConnection.DEST_NORMAL, false, 0, 0f);
     }
   }
 }
