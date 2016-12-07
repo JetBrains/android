@@ -68,8 +68,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private Splitter myChartClassesSplitter = new Splitter(true);
   @NotNull private JButton myAllocationButton;
 
-  public MemoryProfilerStageView(@NotNull MemoryProfilerStage stage) {
-    super(stage);
+  public MemoryProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull MemoryProfilerStage stage) {
+    super(profilersView, stage);
 
     myChartClassesSplitter.setFirstComponent(buildMonitorUi());
     myMainSplitter.setFirstComponent(myChartClassesSplitter);
@@ -135,7 +135,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     panel.add(timeAxis, new TabularLayout.Constraint(2, 0));
 
     EventMonitor events = new EventMonitor(profilers);
-    EventMonitorView eventsView = new EventMonitorView(events);
+    EventMonitorView eventsView = new EventMonitorView(getProfilersView(), events);
     JComponent eventsComponent = eventsView.initialize(getChoreographer());
     panel.add(eventsComponent, new TabularLayout.Constraint(0, 0));
 

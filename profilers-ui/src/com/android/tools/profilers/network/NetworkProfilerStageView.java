@@ -47,8 +47,9 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   private final ConnectionDetailsView myConnectionDetails;
   private final JBScrollPane myConnectionsScroller;
 
-  public NetworkProfilerStageView(NetworkProfilerStage stage) {
-    super(stage);
+  public NetworkProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull NetworkProfilerStage stage) {
+    super(profilersView, stage);
+
     getStage().aspect.addDependency()
       .setExecutor(ApplicationManager.getApplication()::invokeLater)
       .onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, this::updateConnectionDetailsView);
@@ -95,7 +96,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     getChoreographer().register(timeAxis);
     panel.add(timeAxis, new TabularLayout.Constraint(3, 0));
 
-    EventMonitorView eventsView = new EventMonitorView(events);
+    EventMonitorView eventsView = new EventMonitorView(getProfilersView(), events);
     JComponent eventsComponent = eventsView.initialize(getChoreographer());
     panel.add(eventsComponent, new TabularLayout.Constraint(0, 0));
 

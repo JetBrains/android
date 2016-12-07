@@ -29,8 +29,10 @@ public abstract class StageView<T extends Stage> {
   private final T myStage;
   private final Choreographer myChoreographer;
   private final JPanel myComponent;
+  private final StudioProfilersView myProfilersView;
 
-  public StageView(@NotNull T stage) {
+  public StageView(@NotNull StudioProfilersView profilersView, @NotNull T stage) {
+    myProfilersView = profilersView;
     myStage = stage;
     myComponent = new JBPanel(new BorderLayout());
     myComponent.setBackground(ProfilerColors.MONITOR_BACKGROUND);
@@ -43,6 +45,11 @@ public abstract class StageView<T extends Stage> {
   @NotNull
   public T getStage() {
     return myStage;
+  }
+
+  @NotNull
+  public StudioProfilersView getProfilersView() {
+    return myProfilersView;
   }
 
   @NotNull
