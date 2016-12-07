@@ -54,7 +54,7 @@ public class NewModuleTest {
       .invokeAction(EditorFixture.EditorAction.DELETE_LINE)
       .getIdeFrame()
       .requestProjectSync()
-      .waitForGradleProjectSyncToFinish(Wait.seconds(20))
+      .waitForGradleProjectSyncToFinish(Wait.seconds(30))
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Android Library")
       .clickNextToStep("Android Library")
