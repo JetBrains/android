@@ -42,10 +42,8 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
-import com.intellij.execution.RunnerIconProvider;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.executors.DefaultDebugExecutor;
-import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.icons.AllIcons;
@@ -60,7 +58,6 @@ import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.WriteExternalException;
-import icons.AndroidIcons;
 import org.jdom.Element;
 import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -70,7 +67,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -365,7 +361,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     runConfigContext.setSameExecutorAsPreviousSession(info != null && executor.getId().equals(info.getExecutorId()));
     runConfigContext.setCleanRerun(InstantRunUtils.isCleanReRun(env));
 
-    runConfigContext.setForceFullApk(!InstantRunUtils.isInvokedViaAction(env));
+    runConfigContext.setForceColdSwap(!InstantRunUtils.isInvokedViaHotswapAction(env));
 
     // Save the instant run context so that before-run task can access it
     env.putCopyableUserData(InstantRunContext.KEY, instantRunContext);

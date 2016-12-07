@@ -420,11 +420,11 @@ public class InstantRunBuilderTest {
       myTaskRunner.getBuilds());
 
     // but a full apk is forced if this was launched from the new UI
-    myRunConfigContext.setForceFullApk(true);
+    myRunConfigContext.setForceColdSwap(true);
     myTaskRunner = new RecordingTaskRunner();
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
       myTaskRunner.getBuilds());
   }
 
