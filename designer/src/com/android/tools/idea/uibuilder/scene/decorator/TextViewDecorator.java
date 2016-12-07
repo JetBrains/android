@@ -73,8 +73,8 @@ public class TextViewDecorator extends SceneDecorator {
     int align = ConstraintUtilities.getAlignment(alignment);
     String single = nlc.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_SINGLE_LINE);
     boolean singleLine = Boolean.parseBoolean(single);
-
+    int baseLineOffset = sceneContext.getSwingDimension(component.getBaseline());
     int scaleSize =  sceneContext.getSwingDimension(size);
-    list.add(new DrawTextRegion(l, t, w, h, text, singleLine, false, align, DrawTextRegion.TEXT_ALIGNMENT_VIEW_START, scaleSize));
+    list.add(new DrawTextRegion(l, t, w, h, baseLineOffset, text, singleLine, false, align, DrawTextRegion.TEXT_ALIGNMENT_VIEW_START, scaleSize));
   }
 }

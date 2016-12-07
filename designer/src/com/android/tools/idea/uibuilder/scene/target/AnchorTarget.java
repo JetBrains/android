@@ -173,10 +173,10 @@ public class AnchorTarget extends ConstraintTarget {
       }
       break;
       case BASELINE: {
-        myLeft = l - size;
-        myTop = t + myComponent.getBaseline() - size;
-        myRight = r + size;
-        myBottom = t + myComponent.getBaseline() + size;
+        myLeft = l;
+        myTop = t + myComponent.getBaseline() - size/2;
+        myRight = r;
+        myBottom = t + myComponent.getBaseline() + size/2;
       }
       break;
     }
@@ -218,7 +218,9 @@ public class AnchorTarget extends ConstraintTarget {
       list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, Color.red);
       list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, Color.red);
     }
-    DrawAnchor.add(list, sceneContext, myLeft, myTop, myRight, myBottom, isConnected(), mIsOver ? DrawAnchor.OVER : DrawAnchor.NORMAL);
+    DrawAnchor.add(list, sceneContext, myLeft, myTop, myRight, myBottom,
+                   myType == Type.BASELINE ? DrawAnchor.TYPE_BASELINE : DrawAnchor.TYPE_NORMAL, isConnected(),
+                   mIsOver ? DrawAnchor.OVER : DrawAnchor.NORMAL);
     if (myLastX != -1 && myLastY != -1) {
       float x = myLeft + (myRight - myLeft) / 2;
       float y = myTop + (myBottom - myTop) / 2;

@@ -35,12 +35,12 @@ public class ButtonDecorator extends SceneDecorator {
     String myString;
     float mScale;
 
-    DrawButton(int x, int y, int width, int height, float scale, String string) {
-      super(x, y, width, height, string);
+    DrawButton(int x, int y, int width, int height, int baseLineOffset, float scale, String string) {
+      super(x, y, width, height, baseLineOffset, string);
       mHorizontalPadding = (int)(4 * scale);
-      mVerticalPadding = (int)(8);
-      mHorizontalMargin = (int)(4);
-      mVerticalMargin = (int)(6);
+      mVerticalPadding = (int)(8 * scale);
+      mHorizontalMargin = (int)(4 * scale);
+      mVerticalMargin = (int)(6 * scale);
       mScale = scale;
       mFont = mFont.deriveFont(mFont.getSize() * mScale);
       mToUpperCase = true;
@@ -55,6 +55,7 @@ public class ButtonDecorator extends SceneDecorator {
       y = Integer.parseInt(sp[c++]);
       width = Integer.parseInt(sp[c++]);
       height = Integer.parseInt(sp[c++]);
+      myBaseLineOffset = Integer.parseInt(sp[c++]);
       mScale = java.lang.Float.parseFloat(sp[c++]);
       mFont = mFont.deriveFont(mFont.getSize() * mScale);
       mText = s.substring(s.indexOf('\"') + 1, s.lastIndexOf('\"'));
@@ -72,6 +73,8 @@ public class ButtonDecorator extends SceneDecorator {
              "," +
              height +
              "," +
+             myBaseLineOffset +
+             "," +
              mScale +
              ",\"" +
              mText +
@@ -86,7 +89,8 @@ public class ButtonDecorator extends SceneDecorator {
         Stroke stroke = g.getStroke();
         int strokeWidth = sceneContext.getSwingDimension(3);
         g.setStroke(new BasicStroke(strokeWidth));
-        g.drawRoundRect(x, y, width, height, round, round);
+        g.drawRoundRect(x + mHorizontalMargin, y + mVerticalMargin, width - mHorizontalMargin * 2, height - mVerticalMargin * 2, round,
+                        round);
         g.setStroke(stroke);
       }
     }
@@ -103,6 +107,7 @@ public class ButtonDecorator extends SceneDecorator {
     int h = sceneContext.getSwingDimension(rect.height);
     String text = ConstraintUtilities.getResolvedText(component.getNlComponent());
     float scale = (float)sceneContext.getScale();
-    list.add(new DrawButton(l, t, w, h, scale, text));
+    int baseLineOffset = sceneContext.getSwingDimension(component.getBaseline());
+    list.add(new DrawButton(l, t, w, h, baseLineOffset, scale, text));
   }
 }
