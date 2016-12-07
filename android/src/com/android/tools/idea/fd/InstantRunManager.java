@@ -115,7 +115,7 @@ public final class InstantRunManager implements ProjectComponent {
 
   /** Returns true if the device is capable of running Instant Run */
   public static boolean isInstantRunCapableDeviceVersion(@NotNull AndroidVersion version) {
-    return version.getApiLevel() >= 15;
+    return version.getApiLevel() >= 21;
   }
 
   public static boolean hasLocalCacheOfDeviceData(@NotNull IDevice device, @NotNull InstantRunContext context) {
