@@ -30,6 +30,11 @@ public class DrawGuidelineCycle extends DrawRegion {
 
   int myMode;
 
+  @Override
+  public int getLevel() {
+    return POST_CLIP_LEVEL;
+  }
+
   public DrawGuidelineCycle(String s) {
     super(s);
     String[] sp = s.split(",");
