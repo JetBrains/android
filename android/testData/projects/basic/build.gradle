@@ -120,3 +120,5 @@ android {
         }
     }
 }
+
+assert java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().isHeadlessInstance();
