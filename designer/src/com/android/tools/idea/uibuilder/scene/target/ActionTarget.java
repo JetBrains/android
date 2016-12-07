@@ -36,6 +36,7 @@ public class ActionTarget extends ConstraintTarget {
   final ActionTarget myPreviousActionTarget;
   Action myAction;
   private int myActionType;
+  protected boolean myIsVisible = true;
 
   public interface Action {
     void apply(SceneComponent component);
@@ -83,9 +84,9 @@ public class ActionTarget extends ConstraintTarget {
     if (!myComponent.getScene().allowsTarget(this)) {
       return;
     }
-    //Color color = mIsOver ? Color.WHITE : Color.ORANGE;
-    //list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, color);
-    DrawAction.add(list, sceneContext, myLeft, myTop, myRight, myBottom, myActionType);
+    if (myIsVisible) {
+      DrawAction.add(list, sceneContext, myLeft, myTop, myRight, myBottom, myActionType);
+    }
   }
 
   @Override
