@@ -267,14 +267,12 @@ public class InstantRunBuilder implements BeforeRunBuilder {
       return false;
     }
 
-    if (InstantRunClient.USE_BUILD_ID_TEMP_FILE) {
-      // If the build id is saved in /data/local/tmp, then the build id isn't cleaned when the package is uninstalled.
-      // So we first check that the app is still installed. Note: this doesn't yet guarantee that you have uninstalled and then
-      // re-installed a different apk with the same package name..
-      // https://code.google.com/p/android/issues/detail?id=198715
-      if (!isAppInstalledForUser(device, myInstantRunContext.getApplicationId(), userId)) {
-        return false;
-      }
+    // Since the build id is saved in /data/local/tmp, the build id isn't cleaned when the package is uninstalled.
+    // So we first check that the app is still installed. Note: this doesn't yet guarantee that you have uninstalled and then
+    // re-installed a different apk with the same package name..
+    // https://code.google.com/p/android/issues/detail?id=198715
+    if (!isAppInstalledForUser(device, myInstantRunContext.getApplicationId(), userId)) {
+      return false;
     }
 
     String deviceBuildTimestamp = myInstantRunClientDelegate.getDeviceBuildTimestamp(device, myInstantRunContext);
