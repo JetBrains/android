@@ -91,30 +91,28 @@ public final class ModuleClassLoader extends RenderClassLoader {
   @Override
   protected Class<?> findClass(String name) throws ClassNotFoundException {
     try {
-      return super.findClass(name);
-    } catch (ClassNotFoundException e) {
       if (!myInsideJarClassLoader) {
         final Module module = myModuleReference.get();
-        if (module == null) {
-          throw e;
-        }
-        int index = name.lastIndexOf('.');
-        if (index != -1 && name.charAt(index + 1) == 'R' && (index == name.length() - 2 || name.charAt(index + 2) == '$') && index > 1) {
-          AppResourceRepository appResources = AppResourceRepository.getAppResources(module, false);
-          if (appResources != null) {
-            byte[] data = ResourceClassRegistry.get(module.getProject()).findClassDefinition(name, appResources);
-            if (data != null) {
-              data = convertClass(data);
-              if (DEBUG_CLASS_LOADING) {
-                //noinspection UseOfSystemOutOrSystemErr
-                System.out.println("  defining class " + name + " from AAR registry");
+        if (module != null) {
+          int index = name.lastIndexOf('.');
+          if (index != -1 && name.charAt(index + 1) == 'R' && (index == name.length() - 2 || name.charAt(index + 2) == '$') && index > 1) {
+            AppResourceRepository appResources = AppResourceRepository.getAppResources(module, false);
+            if (appResources != null) {
+              byte[] data = ResourceClassRegistry.get(module.getProject()).findClassDefinition(name, appResources);
+              if (data != null) {
+                data = convertClass(data);
+                if (DEBUG_CLASS_LOADING) {
+                  //noinspection UseOfSystemOutOrSystemErr
+                  System.out.println("  defining class " + name + " from AAR registry");
+                }
+                return defineClassAndPackage(name, data, 0, data.length);
               }
-              return defineClassAndPackage(name, data, 0, data.length);
             }
           }
-          throw e;
         }
       }
+      return super.findClass(name);
+    } catch (ClassNotFoundException e) {
       byte[] clazz = null;
       if (RecyclerViewHelper.CN_CUSTOM_ADAPTER.equals(name)) {
         clazz = RecyclerViewHelper.getAdapterClass();
@@ -233,9 +231,9 @@ public final class ModuleClassLoader extends RenderClassLoader {
     }
 
     VirtualFile vOutFolder = extension.getCompilerOutputPath();
-    AndroidFacet facet = AndroidFacet.getInstance(module);
     VirtualFile classFile = null;
     if (vOutFolder == null) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null && facet.requiresAndroidModel()) {
         AndroidModel androidModel = facet.getAndroidModel();
         if (androidModel != null) {
