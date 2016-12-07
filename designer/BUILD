@@ -15,7 +15,7 @@ iml_module(
         "//tools/sherpa:sherpa-solver[module]",
         "//tools/adt/idea/sherpa-ui[module]",
         "//tools/idea/xml/xml-psi-api[module]",
-        "//tools:idea.platform-impl_and_others[module]",
+        "//tools/idea:platform-impl_and_others[module]",
         "//tools/base/pixelprobe:studio.pixelprobe[module]",
         "//tools/base/annotations:studio.android-annotations[module]",
         "//tools/adt/idea/android/lib:jsr305-1.3.9",
@@ -57,12 +57,12 @@ iml_module(
     test_timeout = "long",
     # do not sort: must match IML order
     deps = [
-        "//tools:idea.platform-impl_and_others[module]",
+        "//tools/idea:platform-impl_and_others[module]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/designer[module, test]",
         "//tools/adt/idea/android[module, test]",
         "//tools/idea/xml/xml-psi-api[module, test]",
-        "//tools:idea.compiler-impl_and_others[module]",
+        "//tools/idea:compiler-impl_and_others[module]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/platform/lang-api[module, test]",
         "//tools/idea/.idea/libraries:layoutlib[test]",

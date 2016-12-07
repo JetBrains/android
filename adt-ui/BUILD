@@ -13,7 +13,7 @@ iml_module(
         "//tools/idea/platform/annotations[module]",
         "//tools/idea/.idea/libraries:Trove4j",
         "//tools/idea/platform/platform-api[module]",
-        "//tools:idea.platform-impl_and_others[module]",
+        "//tools/idea:platform-impl_and_others[module]",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/base/common:studio.common[module]",
         "//tools/idea/.idea/libraries:truth",
