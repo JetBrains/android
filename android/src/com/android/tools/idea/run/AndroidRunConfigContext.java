@@ -28,7 +28,7 @@ public class AndroidRunConfigContext {
   // instant run specific context
   private boolean isSameExecutorAsPreviousSession;
   private boolean myCleanRerun;
-  private boolean myForceFullApk;
+  private boolean myForceColdswap;
 
   @Nullable
   public DeviceFutures getTargetDevices() {
@@ -55,11 +55,11 @@ public class AndroidRunConfigContext {
     myCleanRerun = cleanRerun;
   }
 
-  public void setForceFullApk(boolean forceFullApk) {
-    myForceFullApk = forceFullApk;
+  public void setForceColdSwap(boolean forceColdswap) {
+    myForceColdswap = forceColdswap;
   }
 
-  public boolean isForceFullApk() {
-    return myForceFullApk;
+  public boolean isForceColdswap() {
+    return myForceColdswap;
   }
 }
