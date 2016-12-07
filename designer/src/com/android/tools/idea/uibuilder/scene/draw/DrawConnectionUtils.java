@@ -45,8 +45,8 @@ public class DrawConnectionUtils {
     sDashedStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
                                     BasicStroke.JOIN_BEVEL, 0, new float[]{2}, 0);
 
-  public static final int ARROW_SIDE = 5;
-  public static final int CONNECTION_ARROW_SIZE = 3;
+  public static final int ARROW_SIDE = 6;
+  public static final int CONNECTION_ARROW_SIZE = 5;
 
   /**
    * Utility function to draw a circle text centered at coordinates (x, y)
