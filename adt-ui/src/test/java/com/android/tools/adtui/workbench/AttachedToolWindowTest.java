@@ -507,8 +507,7 @@ public class AttachedToolWindowTest {
     SearchTextField searchField = findHeaderSearchField(myToolWindow.getComponent());
     assertThat(searchField.isVisible()).isFalse();
 
-    ActionButton button = findButtonByName(myToolWindow.getComponent(), "Search");
-    assertThat(button).isNotNull();
+    ActionButton button = findRequiredButtonByName(myToolWindow.getComponent(), "Search");
     button.click();
 
     assertThat(header.isVisible()).isFalse();
@@ -518,6 +517,40 @@ public class AttachedToolWindowTest {
 
     assertThat(header.isVisible()).isTrue();
     assertThat(searchField.isVisible()).isFalse();
+  }
+
+  @Test
+  public void testSearchTextChangesAreSentToContent() {
+    PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
+    assertThat(panel).isNotNull();
+    findRequiredButtonByName(myToolWindow.getComponent(), "Search").click();
+    SearchTextField searchField = findHeaderSearchField(myToolWindow.getComponent());
+    searchField.setText("el");
+
+    assertThat(panel.getFilter()).isEqualTo("el");
+  }
+
+  @Test
+  public void testAcceptedSearchesAreStoredInHistory() {
+    PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
+    assertThat(panel).isNotNull();
+    findRequiredButtonByName(myToolWindow.getComponent(), "Search").click();
+    SearchTextField searchField = findHeaderSearchField(myToolWindow.getComponent());
+    searchField.setText("ele");
+    fireEnterKey(searchField.getTextEditor());
+    searchField.setText("eleva");
+    fireEnterKey(searchField.getTextEditor());
+    searchField.setText("vi");
+    fireEnterKey(searchField.getTextEditor());
+    searchField.setText("visible");
+    fireEnterKey(searchField.getTextEditor());
+    searchField.setText("con");
+    fireEnterKey(searchField.getTextEditor());
+    searchField.setText("contex");
+    fireEnterKey(searchField.getTextEditor());
+
+    assertThat(myPropertiesComponent.getValue(TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.TEXT_SEARCH_HISTORY"))
+      .isEqualTo("contex\nvisible\neleva");
   }
 
   @Test
@@ -544,6 +577,19 @@ public class AttachedToolWindowTest {
   private static void fireMouseClicked(@NotNull JComponent component, @NotNull MouseEvent event) {
     for (MouseListener listener : component.getMouseListeners()) {
       listener.mouseClicked(event);
+    }
+  }
+
+  private static void fireEnterKey(@NotNull JComponent component) {
+    KeyEvent event = new KeyEvent(component, 0, 0, 0, KeyEvent.VK_ENTER, '\0');
+    for (KeyListener listener : component.getKeyListeners()) {
+      listener.keyPressed(event);
+    }
+    for (KeyListener listener : component.getKeyListeners()) {
+      listener.keyTyped(event);
+    }
+    for (KeyListener listener : component.getKeyListeners()) {
+      listener.keyReleased(event);
     }
   }
 
@@ -608,6 +654,14 @@ public class AttachedToolWindowTest {
     return (DefaultActionGroup)menuCaptor.getValue();
   }
 
+  @NotNull
+  private static ActionButton findRequiredButtonByName(@NotNull Container container, @NotNull String name) {
+    ActionButton button = findButtonByName(container, name);
+    assertThat(button).isNotNull();
+    return button;
+  }
+
+  @Nullable
   private static ActionButton findButtonByName(@NotNull Container container, @NotNull String name) {
     for (Component component : container.getComponents()) {
       if (component instanceof ActionButton) {
