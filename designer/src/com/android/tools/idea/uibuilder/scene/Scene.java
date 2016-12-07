@@ -18,10 +18,12 @@ package com.android.tools.idea.uibuilder.scene;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.target.*;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,6 +78,10 @@ public class Scene implements ModelListener, SelectionListener {
     }
     if (component != null) {
       myDnDComponent = new SceneComponent(this, component);
+      myDnDComponent.addTarget(new DragDndTarget());
+      setAnimate(false);
+      myDnDComponent.updateFrom(component);
+      setAnimate(true);
     } else {
       myDnDComponent = null;
     }
@@ -83,6 +89,10 @@ public class Scene implements ModelListener, SelectionListener {
       myRoot.addChild(myDnDComponent);
       needsRebuildList();
     }
+  }
+
+  public boolean isAutoconnectOn() {
+    return PropertiesComponent.getInstance().getBoolean(ConstraintLayoutHandler.AUTO_CONNECT_PREF_KEY, false);
   }
 
   private enum FilterType {ALL, ANCHOR, VERTICAL_ANCHOR, HORIZONTAL_ANCHOR, BASELINE_ANCHOR, NONE, RESIZE}

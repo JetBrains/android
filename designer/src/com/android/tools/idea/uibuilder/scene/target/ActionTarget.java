@@ -18,6 +18,9 @@ package com.android.tools.idea.uibuilder.scene.target;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.scene.draw.DrawAction;
+import com.android.tools.idea.uibuilder.scene.draw.DrawTextRegion;
+import com.android.tools.sherpa.drawing.decorator.TextWidget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,6 +35,7 @@ public class ActionTarget extends ConstraintTarget {
   final static int myGap = 4;
   final ActionTarget myPreviousActionTarget;
   Action myAction;
+  private int myActionType;
 
   public interface Action {
     void apply(SceneComponent component);
@@ -40,6 +44,10 @@ public class ActionTarget extends ConstraintTarget {
   public ActionTarget(ActionTarget previous, Action action) {
     myPreviousActionTarget = previous;
     myAction = action;
+  }
+
+  public void setActionType(int type) {
+    myActionType = type;
   }
 
   public void setAction(Action action) {
@@ -53,13 +61,14 @@ public class ActionTarget extends ConstraintTarget {
 
   @Override
   public boolean layout(@NotNull SceneContext sceneTransform, int l, int t, int r, int b) {
-    float ratio = 1f / (float) sceneTransform.getScale();
+    float ratio = 1f / (float)sceneTransform.getScale();
     if (ratio > 2) {
       ratio = 2;
     }
     if (myPreviousActionTarget == null) {
       myLeft = l;
-    } else {
+    }
+    else {
       myLeft = myPreviousActionTarget.myRight + (myGap * ratio);
     }
     float size = (mySize * ratio);
@@ -74,10 +83,9 @@ public class ActionTarget extends ConstraintTarget {
     if (!myComponent.getScene().allowsTarget(this)) {
       return;
     }
-    Color color = mIsOver ? Color.WHITE : Color.ORANGE;
-    list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, color);
-    list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, color);
-    list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, color);
+    //Color color = mIsOver ? Color.WHITE : Color.ORANGE;
+    //list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, color);
+    DrawAction.add(list, sceneContext, myLeft, myTop, myRight, myBottom, myActionType);
   }
 
   @Override

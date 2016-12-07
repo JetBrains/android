@@ -24,11 +24,14 @@ import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.target.DragDndTarget;
+import com.android.tools.idea.uibuilder.scene.target.DragTarget;
+import com.android.tools.idea.uibuilder.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -53,6 +56,18 @@ public class SceneDragHandler extends DragHandler {
   @Override
   public void start(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
     super.start(x, y, modifiers);
+    Scene scene = ((ViewEditorImpl) editor).getScreenView().getScene();
+    SceneComponent component = scene.getSceneComponent(myComponent);
+    ArrayList<Target> targets = component.getTargets();
+    int dx = x - myComponent.w / 2;
+    int dy = y - myComponent.h / 2;
+    for (int i = 0; i < targets.size(); i++) {
+      if (targets.get(i) instanceof DragTarget) {
+        DragTarget target = (DragTarget) targets.get(i);
+        target.mouseDown(scene.pxToDp(dx), scene.pxToDp(dy));
+        break;
+      }
+    }
   }
 
   @Nullable
@@ -61,12 +76,19 @@ public class SceneDragHandler extends DragHandler {
     String result = super.update(x, y, modifiers);
     Scene scene = ((ViewEditorImpl) editor).getScreenView().getScene();
     SceneComponent component = scene.getSceneComponent(myComponent);
-    myComponent.x = x - myComponent.w / 2;
-    myComponent.y = y - myComponent.h / 2;
+    int dx = x - myComponent.w / 2;
+    int dy = y - myComponent.h / 2;
+    myComponent.x = dx;
+    myComponent.y = dy;
     if (component != null) {
-      scene.setAnimate(false);
-      component.updateFrom(myComponent);
-      scene.setAnimate(true);
+      ArrayList<Target> targets = component.getTargets();
+      for (int i = 0; i < targets.size(); i++) {
+        if (targets.get(i) instanceof DragTarget) {
+          DragTarget target = (DragTarget) targets.get(i);
+          target.mouseDrag(scene.pxToDp(dx), scene.pxToDp(dy), null);
+          break;
+        }
+      }
     }
     scene.needsRebuildList();
     return result;
@@ -82,18 +104,22 @@ public class SceneDragHandler extends DragHandler {
   public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
     Scene scene = ((ViewEditorImpl) editor).getScreenView().getScene();
     if (myComponent != null) {
-      NlComponent component = components.get(0);
-      NlComponent root = component.getRoot();
+      NlComponent nlComponent = components.get(0);
+      NlComponent root = nlComponent.getRoot();
       root.ensureNamespace(SdkConstants.SHERPA_PREFIX, SdkConstants.AUTO_URI);
-      AttributesTransaction attributes = component.startAttributeTransaction();
-      SceneComponent parent = scene.getSceneComponent(layout);
-      int ax = scene.pxToDp(x - component.w / 2) - parent.getDrawX();
-      int ay = scene.pxToDp(y - component.h / 2) - parent.getDrawY();
-      String valueX = String.format(SdkConstants.VALUE_N_DP, ax);
-      String valueY = String.format(SdkConstants.VALUE_N_DP, ay);
-      attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, valueX);
-      attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, valueY);
-      attributes.commit();
+      SceneComponent component = scene.getSceneComponent(myComponent);
+      if (component != null) {
+        ArrayList<Target> targets = component.getTargets();
+        int dx = x - myComponent.w / 2;
+        int dy = y - myComponent.h / 2;
+        for (int i = 0; i < targets.size(); i++) {
+          if (targets.get(i) instanceof DragTarget) {
+            DragDndTarget target = (DragDndTarget) targets.get(i);
+            target.mouseRelease(scene.pxToDp(dx), scene.pxToDp(dy), nlComponent);
+            break;
+          }
+        }
+      }
     }
     scene.setDnDComponent(null);
     insertComponents(-1, insertType);
@@ -103,4 +129,5 @@ public class SceneDragHandler extends DragHandler {
   public void paint(@NotNull NlGraphics graphics) {
     // Do nothing for now
   }
+
 }

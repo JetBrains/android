@@ -21,19 +21,15 @@ import com.android.tools.sherpa.drawing.ColorSet;
 import java.awt.*;
 
 /**
- * Generic Drawing of a selection Lasso
+ * Vertical notch
  */
-public class DrawLasso extends DrawRegion {
-  public static final int NORMAL = 0;
-  public static final int OVER = 1;
-  private static final int GAP = 16;
+public class DrawVerticalNotch extends DrawRegion {
 
-  public DrawLasso(String s) {
+  public DrawVerticalNotch(String s) {
     super(s);
   }
-
-  public DrawLasso(int x, int y, int width, int height) {
-    super(x, y, width, height);
+  public DrawVerticalNotch(int x, int y, int height) {
+    super(x, y, x, height);
   }
 
   @Override
@@ -41,21 +37,16 @@ public class DrawLasso extends DrawRegion {
     ColorSet colorSet = sceneContext.getColorSet();
     Color background = colorSet.getFrames();
     g.setColor(background);
-    String valueWidth = String.valueOf(width);
-    DrawConnectionUtils.drawHorizontalMarginIndicator(g, valueWidth, x, x + width, y - GAP);
-    String valueHeight = String.valueOf(height);
-    DrawConnectionUtils.drawVerticalMarginIndicator(g, valueHeight, x - GAP, y, y + height);
     Stroke stroke = g.getStroke();
     g.setStroke(DrawConnectionUtils.sDashedStroke);
-    g.drawRect(x, y, width, height);
+    g.drawLine(x, y, x, y + height);
     g.setStroke(stroke);
   }
 
-  public static void add(DisplayList list, SceneContext transform, float left, float top, float right, float bottom) {
+  public static void add(DisplayList list, SceneContext transform, float left, float top, float bottom) {
     int l = transform.getSwingX(left);
     int t = transform.getSwingY(top);
-    int w = transform.getSwingDimension(right - left);
     int h = transform.getSwingDimension(bottom - top);
-    list.add(new DrawLasso(l, t, w, h));
+    list.add(new DrawVerticalNotch(l, t, h));
   }
 }

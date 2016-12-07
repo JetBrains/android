@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.scene.target;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.draw.DrawAction;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -29,6 +30,7 @@ public class ClearConstraintsTarget extends ActionTarget implements ActionTarget
   public ClearConstraintsTarget(ActionTarget previous) {
     super(previous, null);
     setAction(this);
+    setActionType(DrawAction.CLEAR);
   }
 
   @Override
