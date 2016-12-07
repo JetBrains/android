@@ -21,19 +21,25 @@ import com.android.tools.sherpa.drawing.ColorSet;
 import java.awt.*;
 
 /**
- * Generic Drawing of a selection Lasso
+ * Draw Action
  */
-public class DrawLasso extends DrawRegion {
-  public static final int NORMAL = 0;
-  public static final int OVER = 1;
-  private static final int GAP = 16;
+public class DrawAction extends DrawRegion {
+  public static final int CLEAR = 0;
+  public static final int BASELINE = 1;
+  public static final int CHAIN = 2;
 
-  public DrawLasso(String s) {
-    super(s);
+  int myMode;
+
+  public DrawAction(String s) {
+    String[] sp = s.split(",");
+    int c = 0;
+    c = super.parse(sp, c);
+    myMode = Integer.parseInt(sp[c++]);
   }
 
-  public DrawLasso(int x, int y, int width, int height) {
+  public DrawAction(int x, int y, int width, int height, int mode) {
     super(x, y, width, height);
+    myMode = mode;
   }
 
   @Override
@@ -41,21 +47,32 @@ public class DrawLasso extends DrawRegion {
     ColorSet colorSet = sceneContext.getColorSet();
     Color background = colorSet.getFrames();
     g.setColor(background);
-    String valueWidth = String.valueOf(width);
-    DrawConnectionUtils.drawHorizontalMarginIndicator(g, valueWidth, x, x + width, y - GAP);
-    String valueHeight = String.valueOf(height);
-    DrawConnectionUtils.drawVerticalMarginIndicator(g, valueHeight, x - GAP, y, y + height);
-    Stroke stroke = g.getStroke();
-    g.setStroke(DrawConnectionUtils.sDashedStroke);
-    g.drawRect(x, y, width, height);
-    g.setStroke(stroke);
+    int r = (int)(width * 0.3);
+    g.fillRoundRect(x, y, width, height, r, r);
+    Color color = colorSet.getText();
+    g.setColor(color);
+    String text = "X";
+    if (myMode == 1) {
+      text = "B";
+    } else if (myMode == 2) {
+      text = "C";
+    }
+    FontMetrics fontMetrics = g.getFontMetrics();
+    int tx = x + (width - fontMetrics.stringWidth(text))/2;
+    int ty = y + (height / 2) + fontMetrics.getDescent();
+    g.drawString(text, tx, ty);
   }
 
-  public static void add(DisplayList list, SceneContext transform, float left, float top, float right, float bottom) {
+  @Override
+  public String serialize() {
+    return super.serialize() + "," + myMode;
+  }
+
+  public static void add(DisplayList list, SceneContext transform, float left, float top, float right, float bottom, int mode) {
     int l = transform.getSwingX(left);
     int t = transform.getSwingY(top);
     int w = transform.getSwingDimension(right - left);
     int h = transform.getSwingDimension(bottom - top);
-    list.add(new DrawLasso(l, t, w, h));
+    list.add(new DrawAction(l, t, w, h, mode));
   }
 }
