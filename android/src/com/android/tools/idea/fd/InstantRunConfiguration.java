@@ -30,7 +30,6 @@ public class InstantRunConfiguration implements PersistentStateComponent<Instant
   public boolean SHOW_TOAST = true;
   public boolean SHOW_IR_STATUS_NOTIFICATIONS = true;
   public boolean ENABLE_RECORDER = false;
-  public IrUiExperiment IR_UI_EXPERIMENT = IrUiExperiment.DEFAULT;
 
   public static InstantRunConfiguration getInstance() {
     return ServiceManager.getService(InstantRunConfiguration.class);
