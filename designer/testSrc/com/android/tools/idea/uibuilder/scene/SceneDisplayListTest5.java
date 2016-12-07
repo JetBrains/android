@@ -71,15 +71,15 @@ public class SceneDisplayListTest5 extends SceneTest {
                         "Clip,0,0,1000,1000\n" +
                         "Rect,450,490,100,20,ffc0c0c0\n" +
                         "DrawTextRegion,450,490,100,20,0,false,false,5,5,\"\"\n" +
-                        "DrawConnection,2,450x490x100x20,0,0x0x1000x1000,0,true,false,0,0.5\n" +
-                        "DrawConnection,2,450x490x100x20,1,0x0x1000x1000,1,true,false,0,0.5\n" +
-                        "DrawConnection,2,450x490x100x20,2,0x0x1000x1000,2,true,false,0,0.5\n" +
-                        "DrawConnection,2,450x490x100x20,3,0x0x1000x1000,3,true,false,0,0.5\n" +
+                        "DrawConnection,2,450x490x100x20,0,0x0x1000x1000,0,1,false,0,0.5\n" +
+                        "DrawConnection,2,450x490x100x20,1,0x0x1000x1000,1,1,false,0,0.5\n" +
+                        "DrawConnection,2,450x490x100x20,2,0x0x1000x1000,2,1,false,0,0.5\n" +
+                        "DrawConnection,2,450x490x100x20,3,0x0x1000x1000,3,1,false,0,0.5\n" +
                         "Rect,450,490,100,20,ffc0c0c0\n" +
                         "DrawTextRegion,450,490,100,20,0,false,false,5,5,\"\"\n" +
-                        "DrawConnection,4,450x490x100x20,0,450x490x100x20,0,false,true,0,0.5\n" +
-                        "DrawConnection,4,450x490x100x20,1,450x490x100x20,1,false,true,0,0.5\n" +
-                        "DrawConnection,5,450x490x100x0,5,450x490x100x0,5,false,false,0,0.0\n" +
+                        "DrawConnection,4,450x490x100x20,0,450x490x100x20,0,0,true,0,0.5\n" +
+                        "DrawConnection,4,450x490x100x20,1,450x490x100x20,1,0,true,0,0.5\n" +
+                        "DrawConnection,5,450x490x100x0,5,450x490x100x0,5,0,false,0,0.0\n" +
                         "UNClip\n";
 
     assertEquals(simpleList, myInteraction.getDisplayList().serialize());
