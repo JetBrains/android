@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
@@ -29,7 +28,6 @@ import com.android.tools.idea.uibuilder.surface.PanZoomListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -43,6 +41,8 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 
 public class NlPreviewImagePanel extends JComponent implements Disposable {
+  private static final int BORDER_WIDTH = 10;
+  
   private final IconPreviewFactory myIconPreviewFactory;
   private final DependencyManager myDependencyManager;
   private final Runnable myCloseAutoHideCallback;
@@ -52,6 +52,7 @@ public class NlPreviewImagePanel extends JComponent implements Disposable {
   private DesignSurface myDesignSurface;
   private Palette.Item myItem;
   private BufferedImage myImage;
+  private boolean myPreviewGenerationDone;
   private boolean myKeepImageScaledToMatchPanelWidth;
   private int myLastWidth;
 
@@ -103,6 +104,7 @@ public class NlPreviewImagePanel extends JComponent implements Disposable {
 
   private void invalidateUI() {
     myImage = null;
+    myPreviewGenerationDone = false;
     repaint();
   }
 
@@ -148,30 +150,28 @@ public class NlPreviewImagePanel extends JComponent implements Disposable {
       }
     }
     myImage = null;
+    myPreviewGenerationDone = false;
     setTransferHandler(designSurface != null ? new ItemTransferHandler(myDesignSurface, this::getItem, myIconPreviewFactory) : null);
     invalidateUI();
   }
 
   @Override
-  public void paint(Graphics g) {
-    g.setColor(getBackgroundColor());
-    g.fillRect(0, 0, getWidth(), getHeight());
-    BufferedImage cachedImage = myImage;
-
-    if (cachedImage == null || cachedImage.getWidth() > getWidth() || myKeepImageScaledToMatchPanelWidth && myLastWidth != getWidth()) {
-      cachedImage = createPreviewImage();
-      myImage = cachedImage;
-      myLastWidth = getWidth();
-    }
+  public void paintComponent(@NotNull Graphics graphics) {
+    BufferedImage cachedImage = getPreviewImage();
     if (cachedImage != null) {
-      int x = Math.max(0, (getWidth() - cachedImage.getWidth()) / 2);
-      int y = Math.max(0, (getHeight() - cachedImage.getHeight()) / 2);
-      UIUtil.drawImage(g, cachedImage, x, y, this);
+      int xDiff = Math.max(0, getWidth() - cachedImage.getWidth());
+      int yDiff = Math.max(0, getHeight() - cachedImage.getHeight());
+      int xMargin = Math.min(BORDER_WIDTH, Math.max(0, xDiff - 2 * BORDER_WIDTH) / 2);
+      int yMargin = Math.min(BORDER_WIDTH, Math.max(0, yDiff - 2 * BORDER_WIDTH) / 2);
+      graphics.setColor(getBackgroundColor());
+      graphics.fillRect(xMargin, yMargin, getWidth() - 2 * xMargin, getHeight() - 2 * yMargin);
 
-      if (cachedImage.getHeight() > getHeight() && g instanceof Graphics2D) {
+      UIUtil.drawImage(graphics, cachedImage, xDiff / 2, yDiff / 2, this);
+
+      if (cachedImage.getHeight() > getHeight() && graphics instanceof Graphics2D) {
         int width = Math.min(getWidth(), cachedImage.getWidth());
         int height = Math.min(getHeight(), cachedImage.getHeight());
-        Graphics2D g2 = (Graphics2D)g;
+        Graphics2D g2 = (Graphics2D)graphics;
         Color color = getBackground();
         //noinspection UseJBColor
         g2.setPaint(new GradientPaint(
@@ -179,14 +179,14 @@ public class NlPreviewImagePanel extends JComponent implements Disposable {
           new Color(color.getRed(), color.getGreen(), color.getBlue(), 0),
           new Point(0, height),
           new Color(color.getRed(), color.getGreen(), color.getBlue(), 220)));
-        g2.fillRect(x, 0, width, height);
+        g2.fillRect(xDiff / 2, 0, width, height);
       }
     }
     else if (myItem != null) {
       Icon icon = myDependencyManager.createLargeItemIcon(myItem, this);
       int x = Math.max(0, (getWidth() - icon.getIconWidth()) / 2);
       int y = Math.max(0, (getHeight() - icon.getIconWidth()) / 2);
-      icon.paintIcon(this, g, x, y);
+      icon.paintIcon(this, graphics, x, y);
     }
   }
 
@@ -203,7 +203,14 @@ public class NlPreviewImagePanel extends JComponent implements Disposable {
   }
 
   @Nullable
-  private BufferedImage createPreviewImage() {
+  private BufferedImage getPreviewImage() {
+    if (myPreviewGenerationDone) {
+      if (myImage == null || !(myImage.getWidth() > getWidth() || myKeepImageScaledToMatchPanelWidth && myLastWidth != getWidth())) {
+        return myImage;
+      }
+    }
+    myLastWidth = getWidth();
+    myPreviewGenerationDone = true;
     if (myItem == null || myDesignSurface == null) {
       return null;
     }
@@ -222,6 +229,7 @@ public class NlPreviewImagePanel extends JComponent implements Disposable {
       scale = factor * getWidth() / image.getWidth();
     }
     image = ImageUtils.scale(image, scale);
-    return ImageUtils.convertToRetinaIgnoringFailures(image);
+    myImage = ImageUtils.convertToRetinaIgnoringFailures(image);
+    return myImage;
   }
 }
