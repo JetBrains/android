@@ -147,7 +147,7 @@ public class HotswapAction extends AndroidStudioGradleAction implements AnAction
     }
     ExecutionEnvironment env = builder.activeTarget().dataContext(e.getDataContext()).build();
 
-    InstantRunUtils.setInvokedViaAction(env, true);
+    InstantRunUtils.setInvokedViaHotswapAction(env, true);
     InstantRunManager.LOG.info("Invoking hotswap launch");
     ProgramRunnerUtil.executeConfiguration(env, false, true);
   }
