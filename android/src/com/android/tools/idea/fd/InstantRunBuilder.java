@@ -138,10 +138,6 @@ public class InstantRunBuilder implements BeforeRunBuilder {
       return BuildCause.USER_REQUESTED_CLEAN_BUILD;
     }
 
-    if (myRunContext.isForceFullApk()) {
-      return BuildCause.USER_REQUESTED_FULL_BUILD;
-    }
-
     // We assume that the deployment happens to the default user, and in here, we check whether it is still installed for the default user
     // (Note: this could be done in a better way if we knew the user for whom the installation actually took place).
     int defaultUserId = 0;
@@ -177,11 +173,10 @@ public class InstantRunBuilder implements BeforeRunBuilder {
       if (!deviceVersion.isGreaterOrEqualThan(21)) { // don't support cold swap on API < 21
         return BuildCause.FREEZE_SWAP_REQUIRES_API21;
       }
+    }
 
-      // We now have a run-as server for this case.  TODO:  Remove the BuildCause for this?
-      // if (!myRunAsValidator.hasWorkingRunAs(device, myInstantRunContext.getApplicationId())) {
-      //   return BuildCause.FREEZE_SWAP_REQUIRES_WORKING_RUN_AS;
-      // }
+    if (myRunContext.isForceColdswap()) {
+      return BuildCause.USER_REQUESTED_COLDSWAP;
     }
 
     if (!isAppRunning(device)) {

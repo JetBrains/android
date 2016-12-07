@@ -22,7 +22,6 @@ public enum BuildCause {
   USER_REQUESTED_CLEAN_BUILD(BuildMode.CLEAN),
 
   // reasons for full build
-  USER_REQUESTED_FULL_BUILD(BuildMode.FULL),
   NO_DEVICE(BuildMode.FULL),
   APP_NOT_INSTALLED(BuildMode.FULL),
   MISMATCHING_TIMESTAMPS(BuildMode.FULL),
@@ -30,9 +29,9 @@ public enum BuildCause {
   FIRST_INSTALLATION_TO_DEVICE(BuildMode.FULL), // first installation in this Android Studio session
   MANIFEST_RESOURCE_CHANGED(BuildMode.FULL),
   FREEZE_SWAP_REQUIRES_API21(BuildMode.FULL),
-  FREEZE_SWAP_REQUIRES_WORKING_RUN_AS(BuildMode.FULL),
 
   // reasons for forced cold swap build
+  USER_REQUESTED_COLDSWAP(BuildMode.COLD),
   APP_NOT_RUNNING(BuildMode.COLD),
   APP_USES_MULTIPLE_PROCESSES(BuildMode.COLD),
   ANDROID_TV_UNSUPPORTED(BuildMode.COLD),
