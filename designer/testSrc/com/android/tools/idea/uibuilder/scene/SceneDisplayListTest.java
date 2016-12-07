@@ -59,7 +59,7 @@ public class SceneDisplayListTest extends SceneTest {
     String simpleList = "Rect,0,0,1000,1000,ff00ffff\n" +
                         "Clip,0,0,1000,1000\n" +
                         "Rect,100,200,100,20,ff00ffff\n" +
-                        "DrawTextRegion,100,200,100,20,false,false,5,5,\"\"\n" +
+                        "DrawTextRegion,100,200,100,20,0,false,false,5,5,\"\"\n" +
                         "UNClip\n";
 
     assertEquals(simpleList, myInteraction.getDisplayList().serialize());

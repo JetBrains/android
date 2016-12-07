@@ -32,6 +32,7 @@ import java.util.HashMap;
  * Also contains some primitive display elements.
  */
 public class DisplayList {
+  private final static boolean DEBUG = false;
   private ArrayList<DrawCommand> myCommands = new ArrayList<DrawCommand>();
 
   public void clear() {
@@ -190,7 +191,7 @@ public class DisplayList {
 
     @Override
     public int getLevel() {
-      return NO_SORT;
+      return CLIP_LEVEL;
     }
 
     @Override
@@ -232,7 +233,7 @@ public class DisplayList {
 
     @Override
     public int getLevel() {
-      return NO_SORT;
+      return UNCLIP_LEVEL;
     }
 
     @Override
@@ -352,15 +353,127 @@ public class DisplayList {
   /////////////////////////////////////////////////////////////////////////////
   // Painting
   /////////////////////////////////////////////////////////////////////////////
+  static class CommandSet implements DrawCommand {
+    private ArrayList<DrawCommand> myCommands = new ArrayList<DrawCommand>();
+
+    public CommandSet(DrawCommand[] commands, int start, int end) {
+
+      if (commands.length == 0) {
+        return;
+      }
+      int first = findFirstClip(commands, start, end);
+      int last = findLastUnClip(commands, start, end);
+      if (first == start && last == end) {
+        myCommands.add(commands[start]);
+        for (int i = start + 1; i < end; i++) {
+          DrawCommand cmd = commands[i];
+          if (cmd instanceof Clip) {
+            int n = findLastUnClip(commands, start, end - 1);
+            cmd = new CommandSet(commands, i, n);
+            i = n + 1;
+          }
+          myCommands.add(cmd);
+        }
+        myCommands.add(commands[end]);
+      }
+      else if (first != -1 && last != -1) {
+        for (int i = start; i < first; i++) {
+          myCommands.add(commands[i]);
+        }
+        myCommands.add(new CommandSet(commands, first, last));
+        for (int i = last + 1; i <= end; i++) {
+          myCommands.add(commands[i]);
+        }
+      }
+      else {
+        for (int i = start; i <= end; i++) {
+          myCommands.add(commands[i]);
+        }
+      }
+    }
+
+    private int findFirstClip(DrawCommand[] commands, int start, int end) {
+      for (int i = start; i < end; i++) {
+        if (commands[i] instanceof Clip) {
+          return i;
+        }
+      }
+      return -1;
+    }
+
+    private int findLastUnClip(DrawCommand[] commands, int start, int end) {
+      for (int i = end; i > start; i--) {
+        if (commands[i] instanceof UNClip) {
+          return i;
+        }
+      }
+      return -1;
+    }
+
+    public void sort() {
+      myCommands.sort((o1, o2) -> Integer.compare(o1.getLevel(), o2.getLevel()));
+      myCommands.forEach(command -> {
+        if (command instanceof CommandSet) ((CommandSet)command).sort();
+      });
+    }
+
+    @Override
+    public int getLevel() {
+      return COMPONENT_LEVEL;
+    }
+
+    @Override
+    public void paint(Graphics2D g2, SceneContext sceneContext) {
+      myCommands.forEach(command -> command.paint(g2, sceneContext));
+    }
+
+    public void print(String s) {
+      myCommands.forEach(command -> {
+        if (command instanceof CommandSet) {
+          ((CommandSet)command).print(s + ">");
+        }
+        else {
+          System.out.println(s + command.serialize());
+        }
+      });
+    }
+
+    @Override
+    public String serialize() {
+      String str = "";
+      for (DrawCommand command : myCommands) {
+        str += command.serialize();
+      }
+      return str;
+    }
+
+    @Override
+    public int compareTo(@NotNull Object o) {
+      return Integer.compare(getLevel(), ((DrawCommand)o).getLevel());
+    }
+  }
 
   public void paint(Graphics2D g2, SceneContext sceneContext) {
-    Graphics2D g = (Graphics2D)g2.create();
     int count = myCommands.size();
-    DrawCommand[] dlist = myCommands.toArray(new DrawCommand[myCommands.size()]);
-    for (int i = 0; i < dlist.length; i++) {
-      DrawCommand command = dlist[i];
-      command.paint(g, sceneContext);
+    if (count == 0) {
+      return;
     }
+    if (DEBUG) {
+      System.out.println(" -> ");
+      for (int i = 0; i < myCommands.size(); i++) {
+        System.out.println(i + " " + myCommands.get(i).serialize());
+      }
+      System.out.println("<");
+    }
+    Graphics2D g = (Graphics2D)g2.create();
+    DrawCommand[] array = myCommands.toArray(new DrawCommand[myCommands.size()]);
+    CommandSet set = new CommandSet(array, 0, array.length - 1);
+    set.sort();
+    if (DEBUG) {
+      set.print(">");
+      System.out.println("-end-");
+    }
+    set.paint(g, sceneContext);
     g.dispose();
   }
 

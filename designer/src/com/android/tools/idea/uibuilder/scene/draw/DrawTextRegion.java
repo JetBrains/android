@@ -30,6 +30,7 @@ import java.awt.*;
  */
 public class DrawTextRegion extends DrawRegion {
   static boolean DO_WRAP = false;
+  protected int myBaseLineOffset = 0;
   protected int mHorizontalPadding = 0;
   protected int mVerticalPadding = 0;
   protected int mVerticalMargin = 0;
@@ -62,6 +63,7 @@ public class DrawTextRegion extends DrawRegion {
   public DrawTextRegion(String string) {
     String[] sp = string.split(",");
     int c = super.parse(sp, 0);
+    myBaseLineOffset = Integer.parseInt(sp[c++]);
     mSingleLine = Boolean.parseBoolean(sp[c++]);
     mToUpperCase = Boolean.parseBoolean(sp[c++]);
     mAlignmentX = Integer.parseInt(sp[c++]);
@@ -81,6 +83,8 @@ public class DrawTextRegion extends DrawRegion {
            "," +
            height +
            "," +
+           myBaseLineOffset +
+           "," +
            mSingleLine +
            "," +
            mToUpperCase +
@@ -97,12 +101,13 @@ public class DrawTextRegion extends DrawRegion {
 
   }
 
-  public DrawTextRegion(int x, int y, int width, int height, String text) {
+  public DrawTextRegion(int x, int y, int width, int height, int baseLineOffset, String text) {
     super(x, y, width, height);
+    myBaseLineOffset = baseLineOffset;
     mText = text;
   }
 
-  public DrawTextRegion(int x, int y, int width, int height,
+  public DrawTextRegion(int x, int y, int width, int height,int baseLineOffset,
                         String text,
                         boolean singleLine,
                         boolean toUpperCase,
@@ -198,22 +203,8 @@ public class DrawTextRegion extends DrawRegion {
         }
         break;
       }
-      switch (mAlignmentY) {
-        case TEXT_ALIGNMENT_VIEW_START: {
-          fty = ty + fontMetrics.getAscent() + fontMetrics.getMaxDescent() +
-                verticalPadding;
-        }
-        break;
-        case TEXT_ALIGNMENT_CENTER: {
-          fty = ty + fontMetrics.getAscent() + (h - fontMetrics.getAscent()) / 2;
-        }
-        break;
-        case TEXT_ALIGNMENT_VIEW_END: {
-          fty = ty + h - fontMetrics.getMaxDescent() - verticalPadding;
-        }
-        break;
-      }
-
+      fty = myBaseLineOffset+ty;
+      
       Shape clip = g.getClip();
       g.clipRect(tx, ty, w, h);
       g.drawString(string, ftx, fty);
