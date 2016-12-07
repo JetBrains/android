@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.impl.AnchoredButton;
 import com.intellij.openapi.wm.impl.InternalDecorator;
@@ -42,6 +43,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -71,7 +74,7 @@ class AttachedToolWindow<T> implements Disposable {
   private final List<UpdatableActionButton> myActionButtons;
   private final AbstractButton myMinimizedButton;
   private final ButtonDragListener<T> myDragListener;
-  private final SearchTextField mySearchField;
+  private final MySearchField mySearchField;
   private final ActionButton mySearchActionButton;
 
   @Nullable
@@ -91,21 +94,13 @@ class AttachedToolWindow<T> implements Disposable {
     myPanel = new JPanel(new BorderLayout());
     myActionButtons = new ArrayList<>(4);
     myMinimizedButton = new MinimizedButton(definition.getTitle(), definition.getIcon(), this);
-    mySearchField = new MySearchField();
+    mySearchField = new MySearchField(TOOL_WINDOW_PROPERTY_PREFIX + workBenchName + ".TEXT_SEARCH_HISTORY");
     mySearchActionButton = createActionButton(new SearchAction(), myDefinition.getButtonSize());
     setDefaultProperty(PropertyType.LEFT, definition.getSide().isLeft());
     setDefaultProperty(PropertyType.SPLIT, definition.getSplit().isBottom());
     setDefaultProperty(PropertyType.AUTO_HIDE, definition.getAutoHide().isAutoHide());
     updateContent();
     DumbService.getInstance(model.getProject()).smartInvokeLater(this::updateActions);
-    mySearchField.addDocumentListener(new DocumentAdapter() {
-      @Override
-      protected void textChanged(DocumentEvent e) {
-        if (myContent != null) {
-          myContent.setFilter(mySearchField.getText().trim());
-        }
-      }
-    });
   }
 
   @Override
@@ -661,11 +656,55 @@ class AttachedToolWindow<T> implements Disposable {
     }
   }
 
-  private class MySearchField extends SearchTextField {
+  private class MySearchField extends SearchTextFieldWithStoredHistory implements KeyListener {
+    private MySearchField(@NotNull String propertyName) {
+      super(propertyName);
+      addKeyboardListener(this);
+      addDocumentListener(new DocumentAdapter() {
+        @Override
+        protected void textChanged(DocumentEvent e) {
+          if (myContent != null) {
+            myContent.setFilter(getText().trim());
+          }
+        }
+      });
+    }
+
     @Override
     protected void onFocusLost() {
-      if (getText().trim().isEmpty()) {
+      Component focusedDescendent = IdeFocusManager.getGlobalInstance().getFocusedDescendantFor(this);
+      if (focusedDescendent == null && getText().trim().isEmpty()) {
         showSearchField(false);
+      }
+    }
+
+    @Override
+    public void keyTyped(@NotNull KeyEvent event) {
+      if (myContent != null && myContent.getFilterKeyListener() != null) {
+        myContent.getFilterKeyListener().keyTyped(event);
+        if (event.isConsumed()) {
+          addCurrentTextToHistory();
+        }
+      }
+    }
+
+    @Override
+    public void keyPressed(@NotNull KeyEvent event) {
+      if (myContent != null && myContent.getFilterKeyListener() != null) {
+        myContent.getFilterKeyListener().keyPressed(event);
+        if (event.isConsumed()) {
+          addCurrentTextToHistory();
+        }
+      }
+    }
+
+    @Override
+    public void keyReleased(@NotNull KeyEvent event) {
+      if (myContent != null && myContent.getFilterKeyListener() != null) {
+        myContent.getFilterKeyListener().keyReleased(event);
+        if (event.isConsumed()) {
+          addCurrentTextToHistory();
+        }
       }
     }
   }

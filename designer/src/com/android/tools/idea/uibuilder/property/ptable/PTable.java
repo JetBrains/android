@@ -76,7 +76,6 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
   @VisibleForTesting
   PTable(@NotNull PTableModel model, @NotNull CopyPasteManager copyPasteManager) {
     super(model);
-    myModel = model;
     myCopyPasteManager = copyPasteManager;
     myMouseHoverPoint = new Point(-1, -1);
 
@@ -116,6 +115,11 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
   public void setModel(@NotNull TableModel model) {
     myModel = (PTableModel)model;
     super.setModel(model);
+  }
+
+  @Override
+  public PTableModel getModel() {
+    return (PTableModel)super.getModel();
   }
 
   public void setEditorProvider(PTableCellEditorProvider editorProvider) {

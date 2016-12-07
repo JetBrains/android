@@ -34,6 +34,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.ScrollPaneFactory;
@@ -49,6 +50,9 @@ import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -57,7 +61,7 @@ import java.util.Map;
 
 import static com.android.SdkConstants.TOOLS_URI;
 
-public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction.Model,
+public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction.Model, Disposable,
                                                          DataProvider, DeleteProvider, CutProvider, CopyProvider, PasteProvider {
   private static final String CARD_ADVANCED = "table";
   private static final String CARD_DEFAULT = "default";
@@ -66,6 +70,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
 
   private final TableRowSorter<PTableModel> myRowSorter;
   private final MyFilter myFilter;
+  private final MyFilterKeyListener myFilterKeyListener;
   private final PTable myTable;
   private final JPanel myTablePanel;
   private final PTableModel myModel;
@@ -79,14 +84,23 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   private boolean myAllPropertiesPanelVisible;
 
   public NlPropertiesPanel(@NotNull NlPropertiesManager propertiesManager, @NotNull Disposable parentDisposable) {
+    this(propertiesManager, parentDisposable, new PTable(new PTableModel()), null);
+  }
+
+  @VisibleForTesting
+  NlPropertiesPanel(@NotNull NlPropertiesManager propertiesManager,
+                    @NotNull Disposable parentDisposable,
+                    @NotNull PTable table,
+                    @Nullable InspectorPanel inspectorPanel) {
     super(new BorderLayout());
     setOpaque(true);
     setBackground(UIUtil.TRANSPARENT_COLOR);
 
     myRowSorter = new TableRowSorter<>();
     myFilter = new MyFilter();
-    myModel = new PTableModel();
-    myTable = new PTable(myModel);
+    myFilterKeyListener = new MyFilterKeyListener();
+    myModel = table.getModel();
+    myTable = table;
     myTable.setEditorProvider(NlPropertyEditors.getInstance(propertiesManager.getProject()));
     myTable.getEmptyText().setText("No selected component");
     JComponent fewerPropertiesLink = createViewAllPropertiesLinkPanel(false);
@@ -97,9 +111,12 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     myTablePanel.add(myTable, BorderLayout.NORTH);
     myTablePanel.add(fewerPropertiesLink, BorderLayout.SOUTH);
 
-    myInspectorPanel = new InspectorPanel(propertiesManager, parentDisposable, createViewAllPropertiesLinkPanel(true));
+    myInspectorPanel = inspectorPanel != null
+                       ? inspectorPanel
+                       : new InspectorPanel(propertiesManager, parentDisposable, createViewAllPropertiesLinkPanel(true));
 
     myCardPanel = new JPanel(new JBCardLayout());
+    Disposer.register(parentDisposable, this);
 
     add(myCardPanel, BorderLayout.CENTER);
 
@@ -116,6 +133,13 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     myCardPanel.setFocusTraversalPolicy(myFocusTraversalPolicy);
     myComponents = Collections.emptyList();
     myProperties = Collections.emptyList();
+  }
+
+  @Override
+  public void dispose() {
+    JBCardLayout layout = (JBCardLayout)myCardPanel.getLayout();
+    // This will stop the timer started in JBCardLayout:
+    layout.first(myCardPanel);
   }
 
   @Override
@@ -146,6 +170,31 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     myTable.restoreSelection(selectedRow, selectedItem);
 
     myInspectorPanel.setFilter(filter);
+  }
+
+  @NotNull
+  public KeyListener getFilterKeyListener() {
+    return myFilterKeyListener;
+  }
+
+  private void enterInFilter(@NotNull KeyEvent event) {
+    if (myTable.getRowCount() != 1) {
+      PTableItem item = (PTableItem)myTable.getValueAt(0, 1);
+      if (!(item.isExpanded() && myTable.getRowCount() == item.getChildren().size() + 1)) {
+        return;
+      }
+    }
+    if (myTable.isCellEditable(0, 1)) {
+      myTable.editCellAt(0, 1);
+      myTable.transferFocus();
+      event.consume();
+    }
+    else {
+      myModel.expand(myTable.convertRowIndexToModel(0));
+      myTable.requestFocus();
+      myTable.setRowSelectionInterval(0, 0);
+      event.consume();
+    }
   }
 
   public void activatePropertySheet() {
@@ -385,7 +434,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   @VisibleForTesting
   static class MyFilter extends RowFilter<PTableModel, Integer> {
     private final SpeedSearchComparator myComparator = new SpeedSearchComparator(false);
-    private String myPattern;
+    private String myPattern = "";
 
     @VisibleForTesting
     void setPattern(@NotNull String pattern) {
@@ -435,6 +484,21 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
       }
       myLastFocusRecipient = component;
       return true;
+    }
+  }
+
+  private class MyFilterKeyListener extends KeyAdapter {
+
+    @Override
+    public void keyPressed(@NotNull KeyEvent event) {
+      if (!myFilter.myPattern.isEmpty() && event.getKeyCode() == KeyEvent.VK_ENTER && event.getModifiers() == 0) {
+        if (myAllPropertiesPanelVisible) {
+          enterInFilter(event);
+        }
+        else {
+          myInspectorPanel.enterInFilter(event);
+        }
+      }
     }
   }
 }
