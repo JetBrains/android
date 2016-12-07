@@ -16,6 +16,7 @@
 package com.android.tools.idea.fd;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.builder.model.AndroidProject;
 import com.android.builder.model.OptionalCompilationStep;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
@@ -27,6 +28,7 @@ import com.android.tools.fd.client.InstantRunClient;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.run.BeforeRunBuilder;
 import com.android.tools.idea.gradle.run.GradleTaskRunner;
+import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.run.AndroidRunConfigContext;
 import com.android.tools.idea.run.InstalledApkCache;
 import com.android.tools.idea.run.InstalledPatchCache;
@@ -42,7 +44,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.builder.model.AndroidProject.PROPERTY_OPTIONAL_COMPILATION_STEPS;
@@ -248,7 +252,12 @@ public class InstantRunBuilder implements BeforeRunBuilder {
         break;
     }
 
-    return Collections.singletonList(sb.toString());
+    String compilationSteps = sb.toString();
+
+    // Starting with Studio 2.3, we always do a split APK install on cold swaps
+    String coldSwapMode = AndroidGradleSettings.createProjectProperty(AndroidProject.PROPERTY_SIGNING_COLDSWAP_MODE, "MULTIAPK");
+
+    return ImmutableList.of(compilationSteps, coldSwapMode);
   }
 
   @NotNull
