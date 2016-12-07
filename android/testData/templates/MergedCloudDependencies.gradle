@@ -29,8 +29,8 @@ android {
 }
 
 dependencies {
+  compile 'com.android.support:appcompat-v7:+'
   // TODO: Include *.aar once it's supported in the plugin
   compile fileTree(dir: 'libs', include: ['*.jar'])
-  compile 'com.android.support:appcompat-v7:+'
   compile project(path: '${serverModulePath}', configuration: 'android-endpoints')
 }
