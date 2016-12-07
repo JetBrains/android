@@ -74,9 +74,13 @@ public class WebpImageWriterSpi extends ImageWriterSpi {
 
   @Override
   public boolean canEncodeImage(ImageTypeSpecifier type) {
+    return canWriteImage(type);
+  }
+
+  public static boolean canWriteImage(ImageTypeSpecifier type) {
     SampleModel sm = type.getSampleModel();
     ColorModel cm = type.getColorModel();
-    return (sm.getNumBands() == 4 || sm.getNumBands() == 3 || cm instanceof IndexColorModel) &&
+    return (sm.getNumBands() >= 2 && sm.getNumBands() <= 4 || cm instanceof IndexColorModel) &&
            sm.getSampleSize(0) <= 8 &&
            sm.getWidth() <= 65535 &&
            sm.getHeight() <= 65535 &&
@@ -172,16 +176,30 @@ public class WebpImageWriterSpi extends ImageWriterSpi {
         // Indexed image but not found in raster
         return;
       }
-      assert bands == 3 || bands == 4; // enforced in canEncodeImage
+      assert bands >= 2 && bands <= 4; // enforced in canEncodeImage
       DataBuffer buffer = srcRas.getDataBuffer();
-      for (int y = minY; y < maxY; y++) {
-        for (int x = minX; x < maxX; x++) {
-          for (int band = 0; band < bands; band++) {
-            int sample = sampleModel.getSample(x, y, band, buffer);
-            data[index++] = (byte)sample;
+      if (bands >= 3) {
+        for (int y = minY; y < maxY; y++) {
+          for (int x = minX; x < maxX; x++) {
+            for (int band = 0; band < bands; band++) {
+              int sample = sampleModel.getSample(x, y, band, buffer);
+              data[index++] = (byte)sample;
+            }
+            if (bands == 3) {
+              data[index++] = (byte)255; // implicit alpha in an RGB (not RGBA) image
+            }
           }
-          if (bands == 3) {
-            data[index++] = (byte)255; // implicit alpha in an RGB (not RGBA) image
+        }
+      } else {
+        assert bands == 2;
+        for (int y = minY; y < maxY; y++) {
+          for (int x = minX; x < maxX; x++) {
+            byte sample = (byte)sampleModel.getSample(x, y, 0, buffer);
+            data[index++] = sample;
+            data[index++] = sample;
+            data[index++] = sample;
+            byte alpha = (byte)sampleModel.getSample(x, y, 1, buffer);
+            data[index++] = alpha;
           }
         }
       }
