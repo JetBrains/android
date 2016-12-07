@@ -407,9 +407,11 @@ public class SceneComponent {
   //region Maintenance
   /////////////////////////////////////////////////////////////////////////////
 
-  public void addTarget(@NotNull Target target) {
+  @NotNull
+  public Target addTarget(@NotNull Target target) {
     target.setComponent(this);
     myTargets.add(target);
+    return target;
   }
 
   public void addChild(@NotNull SceneComponent child) {
