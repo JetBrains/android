@@ -88,6 +88,9 @@ public class CommandLineArgs {
       addAll(args, INIT_SCRIPT_CMD_OPTION, myClasspathInitScript.getPath());
     }
 
+    // http://b.android.com/201742, let's make sure the daemon always runs in headless mode.
+    args.add("-Djava.awt.headless=true");
+
     if (project != null) {
       String[] options = project.getUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY);
       if (options != null) {
