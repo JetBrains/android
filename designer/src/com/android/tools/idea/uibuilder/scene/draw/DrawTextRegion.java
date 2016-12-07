@@ -204,7 +204,7 @@ public class DrawTextRegion extends DrawRegion {
         break;
       }
       fty = myBaseLineOffset+ty;
-      
+
       Shape clip = g.getClip();
       g.clipRect(tx, ty, w, h);
       g.drawString(string, ftx, fty);
