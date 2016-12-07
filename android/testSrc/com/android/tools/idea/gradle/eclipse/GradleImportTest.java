@@ -6,6 +6,8 @@ import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.PropertiesFiles;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.utils.Pair;
@@ -32,9 +34,13 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.SdkConstants.*;
+import static com.android.testutils.TestUtils.getSdk;
+import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.*;
 import static com.android.tools.idea.gradle.eclipse.ImportSummary.*;
+import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.base.Charsets.UTF_8;
+import static com.google.common.truth.Truth.assertAbout;
 import static java.io.File.separator;
 import static java.io.File.separatorChar;
 
@@ -346,7 +352,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "          strings.xml\n"
                  + "build.gradle\n"
                  + "import-summary.txt\n"
-                 + (getTestSdkPathLocal() != null ? "local.properties\n" : "")
+                 + "local.properties\n"
                  + "settings.gradle\n",
                  fileTree(imported, true));
 
@@ -463,7 +469,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "        latency.rs\n"
                  + "build.gradle\n"
                  + "import-summary.txt\n"
-                 + (getTestSdkPathLocal() != null ? "local.properties\n" : "")
+                 + "local.properties\n"
                  + "settings.gradle\n",
                  fileTree(imported, true));
 
@@ -473,11 +479,7 @@ public class GradleImportTest extends AndroidTestCase {
 
   @SuppressWarnings("ResultOfMethodCallIgnored")
   public void testImportAndroidSample() throws Exception {
-    String testSdkPath = getTestSdkPathLocal();
-    if (testSdkPath == null) {
-      return;
-    }
-    File samples = new File(testSdkPath, "samples");
+    File samples = new File(getSdk().getPath(), "samples");
     if (!samples.exists()) {
       return;
     }
@@ -623,7 +625,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "          strings.xml\n"
                  + "build.gradle\n"
                  + "import-summary.txt\n"
-                 + (getTestSdkPathLocal() != null ? "local.properties\n" : "")
+                 + "local.properties\n"
                  + "settings.gradle\n",
                  fileTree(imported, true));
 
@@ -792,7 +794,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "          lib2\n"
                  + "            pkg\n"
                  + "              MyLib2Activity.java\n"
-                 + (getTestSdkPathLocal() != null ? "local.properties\n" : "")
+                 + "local.properties\n"
                  + "settings.gradle\n",
                  fileTree(imported, true));
 
@@ -1015,7 +1017,7 @@ public class GradleImportTest extends AndroidTestCase {
 
   //https://code.google.com/p/android/issues/detail?id=227931
   @SuppressWarnings("ResultOfMethodCallIgnored")
-  public void /*test*/ReplaceJar() throws Exception {
+  public void testReplaceJar() throws Exception {
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
@@ -1038,7 +1040,6 @@ public class GradleImportTest extends AndroidTestCase {
                                  + "android-support-v7-gridlayout.jar => com.android.support:gridlayout-v7:22.+\n"
                                  + MSG_FOLDER_STRUCTURE
                                  + DEFAULT_MOVED
-                                 + (getTestSdkPathLocal() == null ? MSG_MISSING_REPO_1 + "null\n" + MSG_MISSING_REPO_2 : "")
                                  + MSG_FOOTER,
                                  false /* checkBuild */);  // TODO: fix build and re-enable
 
@@ -1060,7 +1061,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "          strings.xml\n"
                  + "build.gradle\n"
                  + "import-summary.txt\n"
-                 + (getTestSdkPathLocal() != null ? "local.properties\n" : "")
+                 + "local.properties\n"
                  + "settings.gradle\n",
                  fileTree(imported, true));
 
@@ -1162,7 +1163,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "          strings.xml\n"
                  + "build.gradle\n"
                  + "import-summary.txt\n"
-                 + (getTestSdkPathLocal() != null ? "local.properties\n" : "")
+                 + "local.properties\n"
                  + "settings.gradle\n",
                  fileTree(imported, true));
 
@@ -1416,7 +1417,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "          strings.xml\n"
                  + "build.gradle\n"
                  + "import-summary.txt\n"
-                 + (getTestSdkPathLocal() != null ? "local.properties\n" : "")
+                 + "local.properties\n"
                  + "settings.gradle\n",
                  fileTree(imported, true));
 
@@ -1513,7 +1514,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "          strings.xml\n"
                  + "build.gradle\n"
                  + "import-summary.txt\n"
-                 + (getTestSdkPathLocal() != null ? "local.properties\n" : "")
+                 + "local.properties\n"
                  + "settings.gradle\n",
                  fileTree(imported, true));
 
@@ -1639,7 +1640,7 @@ public class GradleImportTest extends AndroidTestCase {
 
   //https://code.google.com/p/android/issues/detail?id=227931
   @SuppressWarnings("ResultOfMethodCallIgnored")
-  public void /*test*/ReplaceSourceLibraryProject() throws Exception {
+  public void testReplaceSourceLibraryProject() throws Exception {
     // Make a library project which looks like it can just be replaced by a project
 
     File root = Files.createTempDir();
@@ -1671,7 +1672,6 @@ public class GradleImportTest extends AndroidTestCase {
                                       "* AndroidManifest.xml => app/src/main/AndroidManifest.xml\n" +
                                       "* res/ => app/src/main/res/\n" +
                                       "* src/ => app/src/main/java/\n" +
-                                      (getTestSdkPathLocal() == null ? MSG_MISSING_REPO_1 + "null\n" + MSG_MISSING_REPO_2 : "") +
                                       MSG_FOOTER, false /* checkBuild */);
 
     // Imported project; note how lib2 is gone
@@ -1711,7 +1711,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "          lib\n"
                  + "            pkg\n"
                  + "              MyLibActivity.java\n"
-                 + (getTestSdkPathLocal() != null ? "local.properties\n" : "")
+                 + "local.properties\n"
                  + "settings.gradle\n",
                  fileTree(imported, true));
 
@@ -2180,7 +2180,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "          lib2\n"
                  + "            pkg\n"
                  + "              Library2.java\n"
-                 + (getTestSdkPathLocal() != null ? "local.properties\n" : "")
+                 + "local.properties\n"
                  + "settings.gradle\n",
                  fileTree(imported, true));
 
@@ -2468,7 +2468,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "          strings.xml\n"
                  + "build.gradle\n"
                  + "import-summary.txt\n"
-                 + (getTestSdkPathLocal() != null ? "local.properties\n" : "")
+                 + "local.properties\n"
                  + "settings.gradle\n",
                  fileTree(imported, true));
 
@@ -2522,7 +2522,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "          strings.xml\n"
                  + "build.gradle\n"
                  + "import-summary.txt\n"
-                 + (getTestSdkPathLocal() != null ? "local.properties\n" : "")
+                 + "local.properties\n"
                  + "newmodule\n"
                  + "  build.gradle\n"
                  + "  src\n"
@@ -2878,7 +2878,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "          strings.xml\n"
                  + "build.gradle\n"
                  + "import-summary.txt\n"
-                 + (getTestSdkPathLocal() != null ? "local.properties\n" : "")
+                 + "local.properties\n"
                  + "settings.gradle\n",
                  fileTree(imported, true));
 
@@ -3307,7 +3307,7 @@ public class GradleImportTest extends AndroidTestCase {
 
   //https://code.google.com/p/android/issues/detail?id=227931
   @SuppressWarnings("ResultOfMethodCallIgnored")
-  public void /*test*/FindLatestSupportLib1() throws Exception {
+  public void testFindLatestSupportLib1() throws Exception {
     // Test that we find the latest available version of the 19.x support libraries
     File projectDir = createProject("test1", "test.pkg");
 
@@ -3329,7 +3329,6 @@ public class GradleImportTest extends AndroidTestCase {
                                  + "android-support-v7-gridlayout.jar => com.android.support:gridlayout-v7:19.+\n"
                                  + MSG_FOLDER_STRUCTURE
                                  + DEFAULT_MOVED
-                                 + (getTestSdkPathLocal() == null ? MSG_MISSING_REPO_1 + "null\n" + MSG_MISSING_REPO_2 : "")
                                  + MSG_FOOTER,
                                  false /* checkBuild */);
 
@@ -3339,7 +3338,7 @@ public class GradleImportTest extends AndroidTestCase {
 
   //https://code.google.com/p/android/issues/detail?id=227931
   @SuppressWarnings("ResultOfMethodCallIgnored")
-  public void /*test*/FindLatestSupportLib2() throws Exception {
+  public void testFindLatestSupportLib2() throws Exception {
     // Like testFindLatestSupportLib1, but uses a preview platform (L)
     // Test that we find the latest available version of the 19.x support libraries
     File projectDir = createProject("test1", "test.pkg");
@@ -3362,7 +3361,6 @@ public class GradleImportTest extends AndroidTestCase {
                                  + "android-support-v7-gridlayout.jar => com.android.support:gridlayout-v7:21.+\n"
                                  + MSG_FOLDER_STRUCTURE
                                  + DEFAULT_MOVED
-                                 + (getTestSdkPathLocal() == null ? MSG_MISSING_REPO_1 + "null\n" + MSG_MISSING_REPO_2 : "")
                                  + MSG_FOOTER,
                                  false /* checkBuild */);
 
@@ -3372,7 +3370,7 @@ public class GradleImportTest extends AndroidTestCase {
 
   //https://code.google.com/p/android/issues/detail?id=227931
   @SuppressWarnings("ResultOfMethodCallIgnored")
-  public void /*test*/UnresolvedLibrary() throws Exception {
+  public void testUnresolvedLibrary() throws Exception {
     // Test that we recognize and handle unresolved support libraries
     File projectDir = createProject("test1", "test.pkg");
 
@@ -3397,7 +3395,6 @@ public class GradleImportTest extends AndroidTestCase {
                                  + "support-v4 => [com.android.support:support-v4:19.+]\n"
                                  + MSG_FOLDER_STRUCTURE
                                  + DEFAULT_MOVED
-                                 + (getTestSdkPathLocal() == null ? MSG_MISSING_REPO_1 + "null\n" + MSG_MISSING_REPO_2 : "")
                                  + MSG_FOOTER,
                                  false /* checkBuild */);
 
@@ -3474,15 +3471,7 @@ public class GradleImportTest extends AndroidTestCase {
       gradleProjectDir = destDir;
     }
 
-    String sdkPath = getTestSdkPathLocal();
-    if (sdkPath != null) {
-      importer.setSdkLocation(new File(sdkPath));
-    }
-
-    File wrapper = findGradleWrapper();
-    if (wrapper != null) {
-      importer.setGradleWrapperLocation(wrapper);
-    }
+    importer.setSdkLocation(getSdk());
 
     if (customizer != null) {
       customizer.customize(importer);
@@ -3497,15 +3486,13 @@ public class GradleImportTest extends AndroidTestCase {
     }
     else {
       importer.exportProject(destDir, false);
+      updateGradle(destDir);
     }
     String summary = Files.toString(new File(gradleProjectDir, IMPORT_SUMMARY_TXT), UTF_8);
     summary = summary.replace("\r", "");
     summary = stripOutRiskyPathMessage(summary, rootDir);
 
-    String testSdkPath = getTestSdkPathLocal();
-    if (testSdkPath != null) {
-      summary = summary.replace(testSdkPath, "$ANDROID_HOME");
-    }
+    summary = summary.replace(getSdk().getPath(), "$ANDROID_HOME");
     summary = summary.replace(separatorChar, '/');
     summary = summary.replace(adtProjectDir.getPath().replace(separatorChar, '/'), "$ROOT");
     File parentFile = adtProjectDir.getParentFile();
@@ -3536,17 +3523,11 @@ public class GradleImportTest extends AndroidTestCase {
            "        " + summary.substring(nextLineIndex + path.length());
   }
 
-  @Nullable
-  private static File findGradleWrapper() throws IOException {
-    File templates = TemplateManager.getTemplateRootFolder();
-    if (templates != null) {
-      File wrapper = TemplateManager.getWrapperLocation(templates);
-      if (wrapper.exists()) {
-        return wrapper;
-      }
-    }
-
-    return null;
+  protected static void updateGradle(File projectRoot) throws IOException {
+    GradleWrapper wrapper = GradleWrapper.create(projectRoot);
+    File path = getWorkspaceFile("tools/external/gradle/gradle-" + GRADLE_LATEST_VERSION + "-bin.zip");
+    assertAbout(file()).that(path).named("Gradle distribution path").isFile();
+    wrapper.updateDistributionUrl(path);
   }
 
   private static boolean isWindows() {
@@ -3563,6 +3544,7 @@ public class GradleImportTest extends AndroidTestCase {
     List<String> args = Lists.newArrayList();
     args.add(gradlew.getPath());
     args.add("assembleDebug");
+    args.add("-Dorg.gradle.java.home=" + EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getAbsolutePath());
     GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArgTo(args);
     GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
     CapturingProcessHandler process = new CapturingProcessHandler(cmdLine);
@@ -3968,34 +3950,16 @@ public class GradleImportTest extends AndroidTestCase {
     }
   }
 
-  @Nullable
-  protected static String getTestSdkPathLocal() {
-    String override = System.getProperty(ANDROID_HOME_ENV);
-    if (override != null) {
-      assertTrue(override, new File(override).exists());
-      return override;
-    }
-    override = System.getenv(ANDROID_HOME_ENV);
-    if (override != null) {
-      return override;
-    }
-
-    return null;
-  }
-
   /** Latest build tools version */
   private static final String BUILD_TOOLS_VERSION;
 
   static {
     String candidate = CURRENT_BUILD_TOOLS_VERSION;
-    String sdkLocation = getTestSdkPathLocal();
-    if (sdkLocation != null) {
-      FakeProgressIndicator progress = new FakeProgressIndicator();
-      AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(new File(sdkLocation));
-      BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(progress, false);
-      if (buildTool != null) {
-        candidate = buildTool.getRevision().toString();
-      }
+    FakeProgressIndicator progress = new FakeProgressIndicator();
+    AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(getSdk());
+    BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(progress, false);
+    if (buildTool != null) {
+      candidate = buildTool.getRevision().toString();
     }
 
     BUILD_TOOLS_VERSION = candidate;
