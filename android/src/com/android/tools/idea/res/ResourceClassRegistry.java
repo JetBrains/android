@@ -73,8 +73,7 @@ public class ResourceClassRegistry implements ProjectComponent {
   }
 
   @Nullable
-  @VisibleForTesting
-  String getAarPackage(@NotNull File aarDir) {
+  public String getAarPackage(@NotNull File aarDir) {
     File manifest = new File(aarDir, ANDROID_MANIFEST_XML);
     if (manifest.exists()) {
       try {
