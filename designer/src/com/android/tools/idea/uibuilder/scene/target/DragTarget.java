@@ -187,20 +187,30 @@ public class DragTarget extends ConstraintTarget {
   protected void updateAttributes(AttributesTransaction attributes, int x, int y) {
     SceneComponent targetLeftComponent = getTargetComponent(SdkConstants.SHERPA_URI, ourLeftAttributes);
     SceneComponent targetRightComponent = getTargetComponent(SdkConstants.SHERPA_URI, ourRightAttributes);
+    checkIsInChain();
     if (targetLeftComponent != null && targetRightComponent != null) {
-      int dx1 = getLeftTargetOrigin(targetLeftComponent) + getMarginValue(SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
-      int dx2 = getRightTargetOrigin(targetRightComponent) - getMarginValue(SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
-      float dw = dx2 - dx1 - myComponent.getDrawWidth();
-      float bias = (x - dx1) / dw;
-      if (bias < 0) {
-        bias = 0;
+      if (!myIsInHorizontalChain) {
+        int dx1 = getLeftTargetOrigin(targetLeftComponent) + getMarginValue(SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
+        int dx2 = getRightTargetOrigin(targetRightComponent) - getMarginValue(SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
+        float dw = dx2 - dx1 - myComponent.getDrawWidth();
+        float bias = (x - dx1) / dw;
+        if (bias < 0) {
+          bias = 0;
+        }
+        if (bias > 1) {
+          bias = 1;
+        }
+        String biasValue = null;
+        if ((int)(bias * 1000) != 500) {
+          bias = (int)(bias * 1000) / 1000f;
+          biasValue = String.valueOf(bias);
+          if (biasValue.equalsIgnoreCase("NaN")) {
+            biasValue = null;
+          }
+        }
+        attributes.setAttribute(SdkConstants.SHERPA_URI,
+                                SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, biasValue);
       }
-      if (bias > 1) {
-        bias = 1;
-      }
-      bias = (int) (bias * 1000) / 1000f;
-      attributes.setAttribute(SdkConstants.SHERPA_URI,
-                              SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, String.valueOf(bias));
     }
     else if (targetLeftComponent != null) {
       int dx = x - getLeftTargetOrigin(targetLeftComponent);
@@ -223,19 +233,28 @@ public class DragTarget extends ConstraintTarget {
     SceneComponent targetTopComponent = getTargetComponent(SdkConstants.SHERPA_URI, ourTopAttributes);
     SceneComponent targetBottomComponent = getTargetComponent(SdkConstants.SHERPA_URI, ourBottomAttributes);
     if (targetTopComponent != null && targetBottomComponent != null) {
-      int dy1 = getTopTargetOrigin(targetTopComponent) + getMarginValue(SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
-      int dy2 = getBottomTargetOrigin(targetBottomComponent) - getMarginValue(SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
-      float dh = dy2 - dy1 - myComponent.getDrawHeight();
-      float bias = (y - dy1) / dh;
-      if (bias < 0) {
-        bias = 0;
+      if (!myIsInVerticalChain) {
+        int dy1 = getTopTargetOrigin(targetTopComponent) + getMarginValue(SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
+        int dy2 = getBottomTargetOrigin(targetBottomComponent) - getMarginValue(SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
+        float dh = dy2 - dy1 - myComponent.getDrawHeight();
+        float bias = (y - dy1) / dh;
+        if (bias < 0) {
+          bias = 0;
+        }
+        if (bias > 1) {
+          bias = 1;
+        }
+        String biasValue = null;
+        if ((int)(bias * 1000) != 500) {
+          bias = (int)(bias * 1000) / 1000f;
+          biasValue = String.valueOf(bias);
+          if (biasValue.equalsIgnoreCase("NaN")) {
+            biasValue = null;
+          }
+        }
+        attributes.setAttribute(SdkConstants.SHERPA_URI,
+                                SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, biasValue);
       }
-      if (bias > 1) {
-        bias = 1;
-      }
-      bias = (int) (bias * 1000) / 1000f;
-      attributes.setAttribute(SdkConstants.SHERPA_URI,
-                              SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, String.valueOf(bias));
     }
     else if (targetTopComponent != null) {
       int dy = y - getTopTargetOrigin(targetTopComponent);
