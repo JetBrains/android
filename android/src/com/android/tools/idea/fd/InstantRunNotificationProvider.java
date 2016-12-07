@@ -82,9 +82,9 @@ public class InstantRunNotificationProvider {
       case NO_CHANGES:
         return AndroidBundle.message("instant.run.notification.nochanges");
       case HOTSWAP:
-        return appendVisibilityExplanation(AndroidBundle.message("instant.run.notification.hotswap", getRestartActivityShortcutText()));
+        return AndroidBundle.message("instant.run.notification.hotswap", getRestartActivityShortcutText());
       case WARMSWAP:
-        return appendVisibilityExplanation(AndroidBundle.message("instant.run.notification.warmswap"));
+        return AndroidBundle.message("instant.run.notification.warmswap");
       case SPLITAPK:
       case DEX: {
         StringBuilder sb = new StringBuilder("Instant Run applied code changes and restarted the app.");
@@ -124,16 +124,6 @@ public class InstantRunNotificationProvider {
         return sb.toString();
       default:
         return null;
-    }
-  }
-
-  @NotNull
-  private static String appendVisibilityExplanation(@NotNull String msg) {
-    if (InstantRunSettings.getUiExperimentStatus() == IrUiExperiment.STOP_AND_RUN) {
-      return msg + " Some changes may not be visible in the running app until it is Rerun.";
-    }
-    else {
-      return msg;
     }
   }
 
