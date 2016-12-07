@@ -26,10 +26,13 @@ import java.awt.*;
  * Draws an Anchor
  */
 public class DrawAnchor extends DrawRegion {
+  public static final int TYPE_NORMAL = 0;
+  public static final int TYPE_BASELINE = 0;
   public static final int NORMAL = 0;
   public static final int OVER = 1;
   int myMode;
   boolean myIsConnected;
+  int myType = TYPE_NORMAL;
 
   public DrawAnchor(String s) {
     String[] sp = s.split(",");
@@ -39,10 +42,11 @@ public class DrawAnchor extends DrawRegion {
     myIsConnected = Boolean.parseBoolean(sp[c++]);
   }
 
-  public DrawAnchor(int x, int y, int width, int height, boolean isConnected, int mode) {
+  public DrawAnchor(int x, int y, int width, int height, int type, boolean isConnected, int mode) {
     super(x, y, width, height);
     myMode = mode;
     myIsConnected = isConnected;
+    myType = type;
   }
 
   private int getPulseAlpha(int deltaT) {
@@ -52,6 +56,10 @@ public class DrawAnchor extends DrawRegion {
 
   @Override
   public void paint(Graphics2D g, SceneContext sceneContext) {
+    if (myType==TYPE_BASELINE) {
+      paintBaseline(g, sceneContext);
+      return;
+     }
     ColorSet colorSet = sceneContext.getColorSet();
     Color background = colorSet.getBackground();
     Color color = colorSet.getFrames();
@@ -69,8 +77,43 @@ public class DrawAnchor extends DrawRegion {
       int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
       Composite comp = g.getComposite();
       g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha / 255f));
-      g.setColor(colorSet.getAnchorConnectionCircle());
-      g.fillRoundRect(x, y, width, height, width, height);
+      if (myIsConnected) {
+        g.setColor(colorSet.getAnchorDisconnectionCircle());
+      } else {
+        g.setColor(colorSet.getAnchorConnectionCircle());
+      }
+
+        g.fillRoundRect(x, y, width, height, width, height);
+        sceneContext.repaint();
+        g.setComposite(comp);
+      }
+    }
+
+
+  public void paintBaseline(Graphics2D g, SceneContext sceneContext) {
+    int inset = width / 10;
+    ColorSet colorSet = sceneContext.getColorSet();
+    Color background = colorSet.getBackground();
+    Color color = colorSet.getFrames();
+    g.setColor(color);
+    g.fillRect(x,y+height/2,width,1);
+    g.setColor(background);
+    int ovalX = x+inset;
+    int ovalW = width-2*inset;
+    g.fillRoundRect(ovalX, y, ovalW, height, height, height);
+    g.setColor(color);
+    g.drawRoundRect(ovalX, y, ovalW, height, height, height);
+    if (myMode == OVER) {
+      int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
+      Composite comp = g.getComposite();
+      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha / 255f));
+      if (myIsConnected) {
+        g.setColor(colorSet.getAnchorDisconnectionCircle());
+      } else {
+        g.setColor(colorSet.getAnchorConnectionCircle());
+      }
+
+      g.fillRoundRect(ovalX, y, ovalW, height, height, height);
       sceneContext.repaint();
       g.setComposite(comp);
     }
@@ -81,11 +124,19 @@ public class DrawAnchor extends DrawRegion {
     return this.getClass().getSimpleName() + "," + x + "," + y + "," + width + "," + height + "," + myMode;
   }
 
-  public static void add(@NotNull DisplayList list, @NotNull SceneContext transform, float left, float top, float right, float bottom, boolean isConnected, int mode) {
+  public static void add(@NotNull DisplayList list,
+                         @NotNull SceneContext transform,
+                         float left,
+                         float top,
+                         float right,
+                         float bottom,
+                         int type,
+                         boolean isConnected,
+                         int mode) {
     int l = transform.getSwingX(left);
     int t = transform.getSwingY(top);
     int w = transform.getSwingDimension(right - left);
     int h = transform.getSwingDimension(bottom - top);
-    list.add(new DrawAnchor(l, t, w, h, isConnected, mode));
+    list.add(new DrawAnchor(l, t, w, h, type, isConnected, mode));
   }
 }
