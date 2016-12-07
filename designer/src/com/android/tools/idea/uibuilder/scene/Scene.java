@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -534,20 +535,23 @@ public class Scene implements ModelListener, SelectionListener {
   public boolean allowsTarget(Target target) {
     SceneComponent component = target.getComponent();
     if (component.isSelected()) {
+      boolean hasBaselineConnection = component.getNlComponent().getAttribute(SdkConstants.SHERPA_URI,
+                                                                              SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
       if (target instanceof AnchorTarget) {
         AnchorTarget anchor = (AnchorTarget)target;
         if (anchor.getType() == AnchorTarget.Type.BASELINE) {
           // only show baseline anchor as needed
-          return component.canShowBaseline();
+          return component.canShowBaseline() || hasBaselineConnection;
         }
         else {
           // if the baseline is showing, hide the rest of the anchors
-          return !component.canShowBaseline();
+          return (!hasBaselineConnection && !component.canShowBaseline())
+                 || (hasBaselineConnection && anchor.isHorizontalAnchor());
         }
       }
-      // if the baseline shows, hide all the targets others than ActionTarget or DragTarget
+      // if the baseline shows, hide all the targets others than ActionTarget, DragTarget and ResizeTarget
       if (component.canShowBaseline()) {
-        return (target instanceof ActionTarget) || (target instanceof DragTarget);
+        return (target instanceof ActionTarget) || (target instanceof DragTarget) || (target instanceof ResizeTarget);
       }
       return true;
     }

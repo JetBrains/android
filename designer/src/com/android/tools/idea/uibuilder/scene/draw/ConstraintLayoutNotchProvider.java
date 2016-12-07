@@ -78,6 +78,10 @@ public class ConstraintLayoutNotchProvider implements Notch.Provider {
     return hasAttributes(transaction, SdkConstants.SHERPA_URI, ourBottomAttributes);
   }
 
+  private boolean hasBaseline(@NotNull AttributesTransaction transaction) {
+    return transaction.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
+  }
+
   @Override
   public void fill(@NotNull SceneComponent component, @NotNull SceneComponent target,
                    @NotNull ArrayList<Notch> horizontalNotches, @NotNull ArrayList<Notch> verticalNotches) {
@@ -116,7 +120,7 @@ public class ConstraintLayoutNotchProvider implements Notch.Provider {
     int y2 = y1 + component.getDrawHeight();
     int midY = y1 + (y2 - y1) / 2 - target.getDrawHeight() / 2;
     verticalNotches.add(new Notch.Vertical(component, midY, y1 + (y2 - y1) / 2, (AttributesTransaction attributes) -> {
-      if (hasTop(attributes) || hasBottom(attributes)) {
+      if (hasTop(attributes) || hasBottom(attributes) || hasBaseline(attributes)) {
         return;
       }
       attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, "parent");
@@ -125,14 +129,14 @@ public class ConstraintLayoutNotchProvider implements Notch.Provider {
       attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, null);
     }));
     verticalNotches.add(new Notch.Vertical(component, y1 + 16, y1 + 16, (AttributesTransaction attributes) -> {
-      if (hasTop(attributes) || hasBottom(attributes)) {
+      if (hasTop(attributes) || hasBottom(attributes) || hasBaseline(attributes)) {
         return;
       }
       attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, "parent");
       attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, String.format(SdkConstants.VALUE_N_DP, 16));
     }));
     verticalNotches.add(new Notch.Vertical(component, y2 - target.getDrawHeight() - 16, y2 - 16, (AttributesTransaction attributes) -> {
-      if (hasTop(attributes) || hasBottom(attributes)) {
+      if (hasTop(attributes) || hasBottom(attributes) || hasBaseline(attributes)) {
         return;
       }
       attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, "parent");
