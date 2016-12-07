@@ -67,17 +67,21 @@ public class ConvertToWebpActionTest extends AndroidTestCase {
     settings.quality = 75;
 
     VirtualFile mdpi = myFixture.copyFileToProject("webp/ic_action_name-mdpi.png", "res/drawable-mdpi/ic_action_name.png");
+    // test conversion of a transparent gray issue
+    VirtualFile gray = myFixture.copyFileToProject("webp/ic_arrow_back.png", "res/drawable-mdpi/ic_arrow_back.png");
     VirtualFile xhdpi = myFixture.copyFileToProject("webp/ic_action_name-xhdpi.png", "res/drawable-xhdpi/ic_action_name.png");
     VirtualFile mdpiFolder = mdpi.getParent();
     VirtualFile xhdpiFolder = xhdpi.getParent();
 
     ConvertToWebpAction action = new ConvertToWebpAction();
-    action.convert(getProject(), settings, true, Arrays.asList(mdpi, xhdpi));
+    action.convert(getProject(), settings, true, Arrays.asList(mdpi, xhdpi, gray));
 
     // Check that we converted both images
     assertThat(xhdpiFolder.findChild("ic_action_name.png")).isNull();
     assertThat(xhdpiFolder.findChild("ic_action_name.webp")).isNotNull();
     assertThat(mdpiFolder.findChild("ic_action_name.png")).isNull();
     assertThat(mdpiFolder.findChild("ic_action_name.webp")).isNotNull();
+    assertThat(mdpiFolder.findChild("ic_arrow_back.webp")).isNotNull();
+    assertThat(mdpiFolder.findChild("ic_arrow_back.png")).isNull();
   }
 }
