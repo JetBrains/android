@@ -23,11 +23,8 @@ import io.grpc.ServerServiceDefinition;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Iterator;
-import java.util.PriorityQueue;
 import java.util.concurrent.RunnableFuture;
 
 /**
@@ -120,7 +117,7 @@ public class EventDataPoller extends EventServiceGrpc.EventServiceImplBase imple
         // 3) add the latest state change assuming the first two criteria are not met.
         for (int i = 0; i < data.getStateChangesCount(); i++) {
           EventProfiler.ActivityStateData state = data.getStateChanges(i);
-          if (state.getTimestamp() > request.getStartTimestamp() && state.getTimestamp() < request.getEndTimestamp()) {
+          if (state.getTimestamp() > request.getStartTimestamp() && state.getTimestamp() <= request.getEndTimestamp()) {
             if (builder.getStateChangesCount() == 0 && i > 0) {
               builder.addStateChanges(data.getStateChanges(i - 1));
             }
@@ -150,7 +147,7 @@ public class EventDataPoller extends EventServiceGrpc.EventServiceImplBase imple
           continue;
         }
         if ((data.getStartTimestamp() < request.getEndTimestamp()) &&
-            data.getEndTimestamp() >= request.getStartTimestamp() || data.getEndTimestamp() == 0) {
+            (data.getEndTimestamp() >= request.getStartTimestamp() || data.getEndTimestamp() == 0)) {
           response.addData(data);
         }
       }
@@ -187,4 +184,5 @@ public class EventDataPoller extends EventServiceGrpc.EventServiceImplBase imple
   public RunnableFuture<Void> getRunner() {
     return new PollRunner(this, PollRunner.POLLING_DELAY_NS);
   }
+
 }
