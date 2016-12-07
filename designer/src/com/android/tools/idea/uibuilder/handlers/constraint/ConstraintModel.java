@@ -222,6 +222,24 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
         }
         ourLock.unlock();
       }, model.getModule().getDisposed());
+    } else {
+      ApplicationManager.getApplication().invokeLater(() -> {
+        ourLock.lock();
+        if (DEBUG) {
+          System.out.println("*** Model Changed " + model.getResourceVersion()
+                             + " vs our " + myModificationCount);
+        }
+
+        int dpi = model.getConfiguration().getDensity().getDpiValue();
+        setDpiValue(dpi);
+        updateNlModel(null, model.getComponents(), true);
+
+        myModificationCount = model.getResourceVersion();
+        if (DEBUG) {
+          System.out.println("-> updated to " + myModificationCount);
+        }
+        ourLock.unlock();
+      }, model.getModule().getDisposed());
     }
   }
 

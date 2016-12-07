@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.scene;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.draw.Notch;
 import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
 import com.android.tools.idea.uibuilder.scene.target.ResizeTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
@@ -44,14 +45,6 @@ import java.util.HashMap;
 public class SceneComponent {
   public HashMap<String, Object> myCache = new HashMap<>();
   public SceneDecorator myDecorator;
-
-  public ArrayList<Target> getTargets() {
-    return myTargets;
-  }
-
-  public SceneDecorator getDecorator() {
-    return myDecorator;
-  }
 
   public enum DrawState {SUBDUED, NORMAL, HOVER, SELECTED}
 
@@ -80,6 +73,8 @@ public class SceneComponent {
   private boolean myShowBaseline = false;
 
   boolean used = true;
+
+  private Notch.Provider myNotchProvider;
 
   public int getCenterX() {
     return myCurrentLeft + (myCurrentRight - myCurrentLeft) / 2;
@@ -261,6 +256,11 @@ public class SceneComponent {
     return myAnimatedDrawHeight.getValue(time);
   }
 
+  public void setPosition(int dx, int dy) {
+    myAnimatedDrawX.setValue(dx);
+    myAnimatedDrawY.setValue(dy);
+  }
+
   @NotNull
   public NlComponent getNlComponent() {
     return myNlComponent;
@@ -300,6 +300,22 @@ public class SceneComponent {
 
   public DrawState getDrawState() {
     return myDrawState;
+  }
+
+  public ArrayList<Target> getTargets() {
+    return myTargets;
+  }
+
+  public SceneDecorator getDecorator() {
+    return myDecorator;
+  }
+
+  public Notch.Provider getNotchProvider() {
+    return myNotchProvider;
+  }
+
+  public void setNotchProvider(Notch.Provider notchProvider) {
+    myNotchProvider = notchProvider;
   }
 
   public void setExpandTargetArea(boolean expandArea) {
@@ -367,6 +383,7 @@ public class SceneComponent {
       return;
     }
     myTargets.clear();
+    myNotchProvider = null;
     myViewGroupHandler = viewGroupHandler;
     if (myViewGroupHandler != null) {
       myViewGroupHandler.addTargets(this, isParent);
