@@ -370,7 +370,7 @@ public class DisplayList {
           if (cmd instanceof Clip) {
             int n = findLastUnClip(commands, start, end - 1);
             cmd = new CommandSet(commands, i, n);
-            i = n + 1;
+            i = Math.max(n + 1, i);
           }
           myCommands.add(cmd);
         }
