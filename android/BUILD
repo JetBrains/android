@@ -18,13 +18,13 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/idea/java/openapi[module]",
-        "//tools:idea.platform-impl_and_others[module]",
-        "//tools:idea.compiler-impl_and_others[module]",
+        "//tools/idea:platform-impl_and_others[module]",
+        "//tools/idea:compiler-impl_and_others[module]",
         "//tools/idea/java/execution/openapi:execution-openapi[module]",
         "//tools/idea/platform/smRunner[module]",
         "//tools/idea/plugins/junit[module]",
         "//tools/idea/plugins/maven:maven_and_others[module]",
-        "//tools:idea.java-impl[module]",
+        "//tools/idea:java-impl[module]",
         "//tools/idea/plugins/properties[module]",
         "//tools/idea/.idea/libraries:xpp3-1.1.4-min",
         "//tools/idea/plugins/testng[module]",
@@ -131,14 +131,14 @@ iml_module(
     test_timeout = "eternal",
     # do not sort: must match IML order
     deps = [
-        "//tools:idea.platform-impl_and_others[module]",
+        "//tools/idea:platform-impl_and_others[module]",
         "//tools/adt/idea/android[module, test]",
         "//tools/idea/xml/xml-psi-api[module, test]",
         "//tools/adt/idea/adt-ui[module, test]",
         "//tools/adt/idea/adt-ui-model[module, test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:truth[test]",
-        "//tools:idea.compiler-impl_and_others[module]",
+        "//tools/idea:compiler-impl_and_others[module]",
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools/analytics-library/protos:analytics-protos[module, test]",
         "//tools/idea/.idea/libraries:freemarker-2.3.20[test]",
