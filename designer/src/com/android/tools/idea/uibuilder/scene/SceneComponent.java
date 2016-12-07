@@ -546,4 +546,11 @@ public class SceneComponent {
   public Object getId() {
     return myNlComponent.getId();
   }
+
+  public String getComponentClassName() {
+    if (myNlComponent.viewInfo == null) {
+      return null;
+    }
+    return  myNlComponent.viewInfo.getClassName();
+  }
 }
