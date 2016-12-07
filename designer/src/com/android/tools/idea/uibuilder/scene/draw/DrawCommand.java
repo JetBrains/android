@@ -29,7 +29,9 @@ public interface DrawCommand extends Comparable {
   public final static int TARGET_LEVEL = 30;
   public final static int CONNECTION_LEVEL = 10 ;
   public final static int TOP_LEVEL = 50;
-  public final static int NO_SORT = -1;
+  public final static int CLIP_LEVEL =  0;
+  public final static int UNCLIP_LEVEL =  1000;
+  public final static int POST_CLIP_LEVEL =  1010;
   int getLevel(); // things are drawn 0 first
   void paint(Graphics2D g, SceneContext sceneContext);
   String serialize();

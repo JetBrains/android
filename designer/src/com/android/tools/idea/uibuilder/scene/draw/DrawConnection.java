@@ -168,8 +168,8 @@ public class DrawConnection implements DrawCommand {
                           int destDirection,
                           boolean toParent,
                           int margin, float bias) {
-    if (connectionType==TYPE_BASELINE) {
-      drawBaseLine( g, source, dest);
+    if (connectionType == TYPE_BASELINE) {
+      drawBaseLine(g, source, dest);
     }
     int startx = getConnectionX(sourceDirection, source);
     int starty = getConnectionY(sourceDirection, source);
@@ -213,7 +213,7 @@ public class DrawConnection implements DrawCommand {
             }
             break;
           case DIR_LEFT:
-            if (endx  < startx) {
+            if (endx < startx) {
               scale_dest *= -1;
               dx *= -1;
               flip_arrow = true;
@@ -233,7 +233,7 @@ public class DrawConnection implements DrawCommand {
     int[] xPoints = new int[3];
     int[] yPoints = new int[3];
 
-    int dir = (toParent  ^ flip_arrow) ? ourOppositeDirection[destDirection] : destDirection;
+    int dir = (toParent ^ flip_arrow) ? ourOppositeDirection[destDirection] : destDirection;
     DrawConnectionUtils.getArrow(dir, endx, endy, xPoints, yPoints);
     g.fillPolygon(xPoints, yPoints, 3);
 
@@ -285,23 +285,22 @@ public class DrawConnection implements DrawCommand {
                 ? endx - GAP * 2
                 : endx + GAP * 2;
           p6y = starty + dir0_y * GAP + (source.height / 2 + GAP) * dir1_y;
-          int vline_y1 = -1,vline_y2 = -1;
-             if (source.y > dest.y+dest.height) {
-              vline_y1 = dest.y+dest.height;
-              vline_y2 = source.y;
-            }
-          if (source.y +source.height < dest.y) {
-            vline_y1 = source.y +source.height;
+          int vline_y1 = -1, vline_y2 = -1;
+          if (source.y > dest.y + dest.height) {
+            vline_y1 = dest.y + dest.height;
+            vline_y2 = source.y;
+          }
+          if (source.y + source.height < dest.y) {
+            vline_y1 = source.y + source.height;
             vline_y2 = dest.y;
           }
-          if (vline_y1!=-1) {
+          if (vline_y1 != -1) {
             Stroke stroke = g.getStroke();
             g.setStroke(myDashStroke);
-            int xpos = source.x+source.width/2;
-            g.drawLine(xpos,vline_y1,xpos,vline_y2);
+            int xpos = source.x + source.width / 2;
+            g.drawLine(xpos, vline_y1, xpos, vline_y2);
             g.setStroke(stroke);
           }
-
         }
         else {
 
@@ -313,23 +312,22 @@ public class DrawConnection implements DrawCommand {
                 : endy + GAP * 2;
           p6x = startx + dir0_x * GAP + (source.width / 2 + GAP) * dir1_x;
 
-          int vline_x1 = -1,vline_x2 = -1;
-          if (source.x > dest.x+dest.width) {
-            vline_x1 = dest.x+dest.width;
+          int vline_x1 = -1, vline_x2 = -1;
+          if (source.x > dest.x + dest.width) {
+            vline_x1 = dest.x + dest.width;
             vline_x2 = source.x;
           }
-          if (source.x +source.width < dest.x) {
-            vline_x1 = source.x +source.width;
+          if (source.x + source.width < dest.x) {
+            vline_x1 = source.x + source.width;
             vline_x2 = dest.x;
           }
-          if (vline_x1!=-1) {
+          if (vline_x1 != -1) {
             Stroke stroke = g.getStroke();
             g.setStroke(myDashStroke);
-            int ypos = source.y+source.height/2;
-            g.drawLine(vline_x1,ypos,vline_x2,ypos);
+            int ypos = source.y + source.height / 2;
+            g.drawLine(vline_x1, ypos, vline_x2, ypos);
             g.setStroke(stroke);
           }
-
         }
         int[] px = new int[6];
         int[] py = new int[6];
@@ -390,14 +388,21 @@ public class DrawConnection implements DrawCommand {
 
   private static void drawBaseLine(Graphics2D g,
                                    Rectangle source,
-                                   Rectangle dest){
+                                   Rectangle dest) {
     ourPath.reset();
-    ourPath.moveTo(source.x+source.width/2,source.y);
-    ourPath.curveTo(  source.x+source.width/2,source.y-40,
-                      dest.x+dest.width/2,dest.y+40,
-                      dest.x+dest.width/2,dest.y);
+    ourPath.moveTo(source.x + source.width / 2, source.y);
+    ourPath.curveTo(source.x + source.width / 2, source.y - 40,
+                    dest.x + dest.width / 2, dest.y + 40,
+                    dest.x + dest.width / 2, dest.y);
+    int[] xPoints = new int[3];
+    int[] yPoints = new int[3];
+    DrawConnectionUtils.getArrow(DrawConnection.DIR_BOTTOM, dest.x + dest.width / 2, dest.y, xPoints, yPoints);
+    int inset = source.width / 5;
+    g.fillRect(source.x + inset, source.y, source.width - inset * 2, 1);
+    inset = dest.width / 5;
+    g.fillRect(dest.x + inset, dest.y, dest.width - inset * 2, 1);
+    g.fillPolygon(xPoints, yPoints, 3);
     g.draw(ourPath);
-
   }
 
   private static int getConnectionX(int side, Rectangle rect) {

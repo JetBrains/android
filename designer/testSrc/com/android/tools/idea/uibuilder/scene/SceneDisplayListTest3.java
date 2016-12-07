@@ -71,13 +71,13 @@ public class SceneDisplayListTest3 extends SceneTest {
     String simpleList = "Rect,0,0,1000,1000,ff00ffff\n" +
                         "Clip,0,0,1000,1000\n" +
                         "Rect,450,490,100,20,ff00ffff\n" +
-                        "DrawTextRegion,450,490,100,20,false,false,5,5,\"\"\n" +
+                        "DrawTextRegion,450,490,100,20,0,false,false,5,5,\"\"\n" +
                         "DrawConnection,2,450x490x100x20,0,0x0x1000x1000,0,true,false,0,0.5\n" +
                         "DrawConnection,2,450x490x100x20,1,0x0x1000x1000,1,true,false,0,0.5\n" +
                         "DrawConnection,2,450x490x100x20,2,0x0x1000x1000,2,true,false,0,0.5\n" +
                         "DrawConnection,2,450x490x100x20,3,0x0x1000x1000,3,true,false,0,0.5\n" +
                         "Rect,450,490,100,20,ff00ffff\n" +
-                        "DrawTextRegion,450,490,100,20,false,false,5,5,\"\"\n" +
+                        "DrawTextRegion,450,490,100,20,0,false,false,5,5,\"\"\n" +
                         "DrawConnection,4,450x490x100x20,0,450x490x100x20,0,false,true,0,0.5\n" +
                         "DrawConnection,4,450x490x100x20,1,450x490x100x20,1,false,true,0,0.5\n" +
                         "DrawConnection,2,450x490x100x20,2,450x490x100x20,3,false,true,0,0.5\n" +
