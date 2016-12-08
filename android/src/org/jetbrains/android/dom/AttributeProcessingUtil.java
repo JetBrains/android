@@ -60,6 +60,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.rendering.RenderService.MOCKUP_EDITOR_ENABLED;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 /**
@@ -388,9 +389,11 @@ public class AttributeProcessingUtil {
       }
 
       // Mockup attributes can be associated with any View, even include tag
-      registerToolsAttribute(ATTR_MOCKUP, callback);
-      registerToolsAttribute(ATTR_MOCKUP_CROP, callback);
-      registerToolsAttribute(ATTR_MOCKUP_OPACITY, callback);
+      if (MOCKUP_EDITOR_ENABLED) {
+        registerToolsAttribute(ATTR_MOCKUP, callback);
+        registerToolsAttribute(ATTR_MOCKUP_CROP, callback);
+        registerToolsAttribute(ATTR_MOCKUP_OPACITY, callback);
+      }
     }
 
     if (element instanceof Tag || element instanceof Include || element instanceof Data) {
