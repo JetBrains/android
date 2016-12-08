@@ -18,8 +18,7 @@ package com.android.tools.profilers.network;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 public class HttpDataTest {
   @Test
@@ -107,5 +106,14 @@ public class HttpDataTest {
     assertThat(data.getResponsePayloadId(), equalTo("payloadId"));
     assertThat(data.getTrace(), equalTo("trace"));
     assertThat(data.getUrl(), equalTo("url"));
+  }
+
+  @Test
+  public void guessFileExtensionFromContentType() {
+    assertEquals(".jpg", HttpData.guessFileExtensionFromContentType("image/jpeg"));
+    assertEquals(".json", HttpData.guessFileExtensionFromContentType("application/json"));
+    assertEquals(".xml", HttpData.guessFileExtensionFromContentType("application/xml"));
+    assertNull(HttpData.guessFileExtensionFromContentType("application/text"));
+    assertNull(HttpData.guessFileExtensionFromContentType(""));
   }
 }

@@ -19,7 +19,6 @@ import com.android.tools.profilers.AspectModel;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
-import com.google.common.collect.ImmutableMap;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
@@ -28,16 +27,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Map;
 
 public class NetworkProfilerStage extends Stage {
-  // TODO: Way more robust handling of different types. See also:
-  private static final Map<String, String> CONTENT_SUFFIX_MAP = new ImmutableMap.Builder<String, String>()
-    .put("/jpeg", ".jpg")
-    .put("/json", ".json")
-    .put("/xml", ".xml")
-    .build();
-
   // If null, means no connection to show in the details pane.
   @Nullable
   private HttpData mySelectedConnection;
@@ -78,7 +69,9 @@ public class NetworkProfilerStage extends Stage {
       ByteString payload = myRequestsModel.requestResponsePayload(data);
       File file = null;
       try {
-        file = FileUtil.createTempFile(data.getResponsePayloadId(), getFileSuffixFromContentType(data));
+        String contentType = data.getResponseField(HttpData.FIELD_CONTENT_TYPE);
+        String extension = contentType == null ? "" : HttpData.guessFileExtensionFromContentType(contentType);
+        file = FileUtil.createTempFile(data.getResponsePayloadId(), extension);
         FileOutputStream outputStream = new FileOutputStream(file);
         payload.writeTo(outputStream);
       } catch (IOException e) {
@@ -94,24 +87,6 @@ public class NetworkProfilerStage extends Stage {
     mySelectedConnection = data;
     getStudioProfilers().modeChanged();
     aspect.changed(NetworkProfilerAspect.ACTIVE_CONNECTION);
-  }
-
-  /**
-   * Returns suffix for creating payload temp file based on the response MIME type.
-   * If type is absent or not supported, returns null.
-   */
-  @Nullable
-  private static String getFileSuffixFromContentType(@NotNull HttpData httpData) {
-    String contentType = httpData.getResponseField(HttpData.FIELD_CONTENT_TYPE);
-    if (contentType == null) {
-      return null;
-    }
-    for (Map.Entry<String, String> entry : CONTENT_SUFFIX_MAP.entrySet()) {
-      if (contentType.contains(entry.getKey())) {
-        return entry.getValue();
-      }
-    }
-    return null;
   }
 
   /**
