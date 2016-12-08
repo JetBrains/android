@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.FileChooserActionListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
@@ -31,6 +30,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.rendering.RenderService.MOCKUP_EDITOR_ENABLED;
 
 /**
  * Shows the popup for editing the mockup of the selected component
@@ -44,6 +44,13 @@ public class MockupEditAction extends AnAction {
 
   public MockupEditAction(@NotNull DesignSurface designSurface) {
     super(ADD_ACTION_TITLE);
+
+    if (!MOCKUP_EDITOR_ENABLED) {
+      getTemplatePresentation().setEnabledAndVisible(false);
+      myMockupToggleAction = null;
+      return;
+    }
+
     myMockupToggleAction = new MockupToggleAction(designSurface);
     ScreenView screenView = designSurface.getCurrentScreenView();
     if (screenView != null) {
@@ -78,11 +85,6 @@ public class MockupEditAction extends AnAction {
         getTemplatePresentation().setEnabled(false);
       }
     }
-  }
-
-  @Override
-  public void update(AnActionEvent e) {
-    e.getPresentation().setEnabledAndVisible(Mockup.ENABLE_FEATURE);
   }
 
   @Override

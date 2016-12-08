@@ -1202,6 +1202,18 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     doTestHighlighting();
   }
 
+  public void testToolsCompletion() throws Throwable {
+    // Regression test for
+    //   https://code.google.com/p/android/issues/detail?id=229486
+    // Don't offer tools: completion for the mockup editor yet.
+    // Also tests that the current expected set of tools attributes are offered.
+    doTestCompletionVariants("toolsCompletion.xml",
+                             "tools:listfooter",
+                             "tools:listheader",
+                             "tools:listitem",
+                             "tools:targetApi");
+  }
+
   private void doTestAttrReferenceCompletion(String textToType) throws IOException {
     copyFileToProject("attrReferences_attrs.xml", "res/values/attrReferences_attrs.xml");
     VirtualFile file = copyFileToProject(getTestName(true) + ".xml");

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -23,6 +22,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.rendering.RenderService.MOCKUP_EDITOR_ENABLED;
 
 /**
  * Delete all the mockup related attributes of the selected component
@@ -35,11 +35,7 @@ public class MockupDeleteAction extends AnAction {
   public MockupDeleteAction(@NotNull NlComponent leafComponent) {
     super(TITLE);
     myNlComponent = leafComponent;
-  }
-
-  @Override
-  public void update(AnActionEvent e) {
-    e.getPresentation().setEnabledAndVisible(Mockup.ENABLE_FEATURE);
+    getTemplatePresentation().setEnabledAndVisible(MOCKUP_EDITOR_ENABLED);
   }
 
   @Override
