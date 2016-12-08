@@ -41,7 +41,7 @@ public abstract class SceneTest extends LayoutTestCase {
     myScene.setDpiFactor(1);
     myScene.setAnimate(false);
     myScene.updateFrom(myModel);
-    myInteraction = new SceneMouseInteraction(myScene);
+    myInteraction = new SceneMouseInteraction(myScene, myScreen.getScreen());
   }
 
   @Override

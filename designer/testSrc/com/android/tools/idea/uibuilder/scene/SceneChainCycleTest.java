@@ -76,6 +76,7 @@ public class SceneChainCycleTest extends SceneTest {
   }
 
   public void testHorizontalCycle() {
+    myInteraction.select("button", true);
     myInteraction.mouseDown("button", ChainCycleTarget.class, 0);
     myInteraction.mouseRelease("button", ChainCycleTarget.class, 0);
     myScreen.get("@id/button2")
@@ -123,6 +124,7 @@ public class SceneChainCycleTest extends SceneTest {
   }
 
   public void testVerticalCycle() {
+    myInteraction.select("button3", true);
     myInteraction.mouseDown("button3", ChainCycleTarget.class, 0);
     myInteraction.mouseRelease("button3", ChainCycleTarget.class, 0);
     myScreen.get("@id/button4")
