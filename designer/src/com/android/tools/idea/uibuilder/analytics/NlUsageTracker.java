@@ -17,9 +17,15 @@ package com.android.tools.idea.uibuilder.analytics;
 
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.palette.PaletteMode;
+import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
+import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * Interface for usage tracking in the layout editor. Not that implementations of these methods should aim to return immediately.
@@ -37,4 +43,42 @@ public interface NlUsageTracker {
    * @param trigger The event that triggered the render action or null if not known.
    */
   void logRenderResult(@Nullable NlModel.ChangeType trigger, @NotNull RenderResult result, long totalRenderTimeMs);
+
+  /**
+   * Logs a component drop from the palette to either the design surface of the component tree.
+   *
+   * @param viewTagName The tag name of the component dropped in the layout editor.
+   * @param representation The XML representation of the component.
+   * @param paletteMode The mode used in the palette during the drop: icon & name, or icon only.
+   * @param selectedGroup The group used to find this component on the palette.
+   * @param filterMatches The number of matches if attribute name was selected by a filter or -1 if not filtered.
+   */
+  void logDropFromPalette(@NotNull String viewTagName,
+                          @NotNull String representation,
+                          @NotNull PaletteMode paletteMode,
+                          @NotNull String selectedGroup,
+                          int filterMatches);
+
+  /**
+   * Logs a property change action through either the inspector or the property table.
+   *
+   * @param property The property that was changed.
+   * @param propertiesMode The mode used: inspector or property table.
+   * @param filterMatches The number of matches if attribute name was selected by a filter or -1 if not filtered.
+   */
+  void logPropertyChange(@NotNull NlProperty property,
+                         @NotNull NlPropertiesPanel.PropertiesViewMode propertiesMode,
+                         int filterMatches);
+
+  /**
+   * Logs a change in the set of favorite properties shown on the inspector.
+   *
+   * @param addedPropertyName The name of a newly added property or the empty string.
+   * @param removedPropertyName The name of a newly removed property or the empty string.
+   * @param currentFavorites The names of the currently selected favorite properties.
+   */
+  void logFavoritesChange(@NotNull String addedPropertyName,
+                          @NotNull String removedPropertyName,
+                          @NotNull List<String> currentFavorites,
+                          @NotNull AndroidFacet facet);
 }

@@ -97,6 +97,29 @@ public class TreeGridTest {
   }
 
   @Test
+  public void testFilterMatchCountWithoutFilterSet() {
+    assertThat(myGrid.getFilterMatchCount()).isEqualTo(-1);
+  }
+
+  @Test
+  public void testFilterMatchCountWithNoMatches() {
+    myGrid.setFilter(s -> s.startsWith("no-matches-expected"));
+    assertThat(myGrid.getFilterMatchCount()).isEqualTo(0);
+  }
+
+  @Test
+  public void testFilterMatchCountWithSingleMatch() {
+    myGrid.setFilter(s -> s.startsWith("b2"));
+    assertThat(myGrid.getFilterMatchCount()).isEqualTo(1);
+  }
+
+  @Test
+  public void testFilterMatchCountWithMultipleMatches() {
+    myGrid.setFilter(s -> s.startsWith("b"));
+    assertThat(myGrid.getFilterMatchCount()).isEqualTo(3);
+  }
+
+  @Test
   public void testSetVisibleSection() {
     myGrid.setVisibleSection("g2");
     assertThat(myGroup1.isVisible()).isFalse();
