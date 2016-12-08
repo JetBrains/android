@@ -33,6 +33,8 @@ import com.intellij.lang.java.JavaLanguage;
 import com.intellij.lang.refactoring.NamesValidator;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -379,6 +381,31 @@ public class NlComponent implements NlAttributesHolder {
     }
 
     return assignId();
+  }
+
+  /**
+   * Ensure that there's a id, if not execute a write command to add
+   * the id to the component.
+   * @return
+   */
+  public String ensureLiveId() {
+    String id = getId();
+    if (id != null) {
+      return id;
+    }
+
+    AttributesTransaction attributes = startAttributeTransaction();
+    id = assignId();
+    attributes.apply();
+    WriteCommandAction action = new WriteCommandAction(getModel().getProject(),
+                                                       "Added id", getModel().getFile()) {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        attributes.commit();
+      }
+    };
+    action.execute();
+    return id;
   }
 
   private String assignId() {
