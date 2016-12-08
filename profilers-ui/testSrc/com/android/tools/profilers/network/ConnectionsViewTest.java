@@ -163,24 +163,6 @@ public class ConnectionsViewTest {
     assertThat(table.prepareRenderer(renderer, 1, timelineColumn).getBackground(), is(selectionColor));
   }
 
-  @Test
-  public void ensureAxisInFirstRow() throws Exception {
-    Range dataRange = new Range(0, TimeUnit.SECONDS.toMicros(100));
-    ConnectionsView view = new ConnectionsView(myStage, myChoreographer, dataRange, data -> {});
-
-    JTable table = getConnectionsTable(view);
-
-    myChoreographerTimer.step();
-
-    int timelineColumn = ConnectionsView.Column.TIMELINE.ordinal();
-    TableCellRenderer renderer = table.getCellRenderer(1, timelineColumn);
-
-    Component comp = table.prepareRenderer(renderer, 0, timelineColumn);
-    assertThat(comp instanceof JPanel, is(true));
-    assertThat(((JPanel)comp).getComponent(0), instanceOf(AxisComponent.class));
-    assertThat(((JPanel)comp).getComponent(1), instanceOf(StateChart.class));
-  }
-
   private static HttpData convert(NetworkProfiler.HttpConnectionData sourceData) {
     long id = sourceData.getConnId();
     long start = TimeUnit.NANOSECONDS.toMicros(sourceData.getStartTimestamp());
