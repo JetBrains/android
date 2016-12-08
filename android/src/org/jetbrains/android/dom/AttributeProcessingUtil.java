@@ -294,6 +294,9 @@ public class AttributeProcessingUtil {
 
   @NotNull
   public static Map<String, PsiClass> getPreferencesClassMap(@NotNull AndroidFacet facet) {
+    if (DumbService.isDumb(facet.getModule().getProject())) {
+      return Collections.emptyMap();
+    }
     return facet.getClassMap(CLASS_PREFERENCE);
   }
 
@@ -491,6 +494,9 @@ public class AttributeProcessingUtil {
                                        @NotNull AndroidFacet facet,
                                        boolean processAllExistingAttrsFirst,
                                        @NotNull AttributeProcessor callback) {
+    if (DumbService.getInstance(facet.getModule().getProject()).isDumb()) {
+      return;
+    }
     XmlTag tag = element.getXmlTag();
 
     final Set<XmlName> skippedAttributes =
