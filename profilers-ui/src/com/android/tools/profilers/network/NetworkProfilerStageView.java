@@ -55,7 +55,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
       .onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, this::updateConnectionDetailsView);
 
     myConnectionDetails = new ConnectionDetailsView();
-    ConnectionsView connectionsView = new ConnectionsView(this, stage::setConnection);
+    ConnectionsView connectionsView = new ConnectionsView(this, stage::setSelectedConnection);
     myConnectionsScroller = new JBScrollPane(connectionsView.getComponent());
     myConnectionsScroller.setVisible(false);
 
@@ -192,7 +192,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   }
 
   private void updateConnectionDetailsView() {
-    myConnectionDetails.update(getStage().getConnection());
+    myConnectionDetails.update(getStage().getSelectedConnection());
   }
 
   private void onSelectionChanged(ChangeEvent event) {

@@ -15,9 +15,6 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsResponse.Body;
-import com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsResponse.Request;
-import com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsResponse.Response;
 import com.android.tools.profilers.AspectModel;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.Stage;
@@ -34,24 +31,16 @@ import java.io.IOException;
 import java.util.Map;
 
 public class NetworkProfilerStage extends Stage {
-
-
   // TODO: Way more robust handling of different types. See also:
-  // http://www.iana.org/assignments/media-types/media-types.xhtml
-  // @formatter:off
-  private static final Map<String, String> CONTENT_SUFFIX_MAP = new ImmutableMap.Builder<String, String>().
-    put("/jpeg", ".jpg").
-    put("/json", ".json").
-    put("/xml", ".xml").
-    build();
-  // @formatter:on
-
-  // Whether the connection data screen is active.
-  private boolean myConnectionDataEnabled;
+  private static final Map<String, String> CONTENT_SUFFIX_MAP = new ImmutableMap.Builder<String, String>()
+    .put("/jpeg", ".jpg")
+    .put("/json", ".json")
+    .put("/xml", ".xml")
+    .build();
 
   // If null, means no connection to show in the details pane.
   @Nullable
-  private HttpData myConnection;
+  private HttpData mySelectedConnection;
 
   public AspectModel<NetworkProfilerAspect> aspect = new AspectModel<>();
 
@@ -68,7 +57,7 @@ public class NetworkProfilerStage extends Stage {
   @Override
   public ProfilerMode getProfilerMode() {
     boolean noSelection = getStudioProfilers().getTimeline().getSelectionRange().isEmpty();
-    return myConnection == null && noSelection ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED;
+    return mySelectedConnection == null && noSelection ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED;
   }
 
   @NotNull
@@ -81,15 +70,10 @@ public class NetworkProfilerStage extends Stage {
     return myRadioDataSeries;
   }
 
-  public void setEnableConnectionData(boolean enable) {
-    myConnectionDataEnabled = enable;
-    aspect.changed(NetworkProfilerAspect.ACTIVE_CONNECTION);
-  }
-
   /**
    * Sets the active connection, or clears the previously selected active connection if given data is null.
    */
-  public void setConnection(@Nullable HttpData data) {
+  public void setSelectedConnection(@Nullable HttpData data) {
     if (data != null && data.getResponsePayloadId() != null && data.getResponsePayloadFile() == null) {
       ByteString payload = myRequestsModel.requestResponsePayload(data);
       File file = null;
@@ -107,8 +91,7 @@ public class NetworkProfilerStage extends Stage {
       data.setResponsePayloadFile(file);
     }
 
-    myConnection = data;
-    myConnectionDataEnabled = true;
+    mySelectedConnection = data;
     getStudioProfilers().modeChanged();
     aspect.changed(NetworkProfilerAspect.ACTIVE_CONNECTION);
   }
@@ -132,41 +115,10 @@ public class NetworkProfilerStage extends Stage {
   }
 
   /**
-   * Gets the details of the current connection, or null if none.
-   */
-  @Nullable
-  public ConnectionDetails getConnectionDetails() {
-    if (myConnection == null) {
-      return null;
-    }
-    // TODO: Fetch the data via RPC
-    return new ConnectionDetails(
-        Request.getDefaultInstance(),
-        Response.newBuilder().setCode("404").build(),
-        Body.getDefaultInstance());
-  }
-
-  public boolean isConnectionDataEnabled() {
-    return myConnectionDataEnabled;
-  }
-
-  /**
    * Returns the active connection, or {@code null} if no request is currently selected.
    */
   @Nullable
-  public HttpData getConnection() {
-    return myConnection;
-  }
-
-  private static class ConnectionDetails {
-    public final Request request;
-    public final Response response;
-    public final Body body;
-
-    private ConnectionDetails(Request request, Response response, Body body) {
-      this.request = request;
-      this.response = response;
-      this.body = body;
-    }
+  public HttpData getSelectedConnection() {
+    return mySelectedConnection;
   }
 }
