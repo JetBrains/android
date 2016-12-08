@@ -16,8 +16,8 @@
 
 package org.jetbrains.android.dom;
 
-import com.android.builder.model.AndroidProject;
 import com.android.SdkConstants;
+import com.android.builder.model.AndroidProject;
 import com.android.testutils.TestUtils;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
@@ -26,6 +26,7 @@ import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -253,6 +254,16 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     myFixture.testCompletion("res/layout/main.xml", myTestFolder + "/boolResReference_after.xml");
   }
 
+  public void testBoolResourceReferenceDumbMode() throws Throwable {
+    myFixture.copyFileToProject(myTestFolder + "/boolResReference.xml", "res/layout/main.xml");
+    myFixture.copyFileToProject(myTestFolder + "/intbool.xml", "res/values/values.xml");
+    // Completion providers don't actually kick in in dumb mode, but does outside of dumb mode.
+    DumbServiceImpl.getInstance(getProject()).setDumb(true);
+    myFixture.testCompletion("res/layout/main.xml", myTestFolder + "/boolResReference.xml");
+    DumbServiceImpl.getInstance(getProject()).setDumb(false);
+    myFixture.testCompletion("res/layout/main.xml", myTestFolder + "/boolResReference_after.xml");
+  }
+
   public void testResourceReferenceAsValueHighlighting() throws Throwable {
     doTestHighlighting();
   }
@@ -352,6 +363,13 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
   }
 
   public void testTranslatableAttributeCompletion() throws Throwable {
+    toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr_after.xml");
+  }
+
+  public void testTranslatableAttributeCompletionDumbMode() throws Throwable {
+    DumbServiceImpl.getInstance(getProject()).setDumb(true);
+    toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr.xml");
+    DumbServiceImpl.getInstance(getProject()).setDumb(false);
     toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr_after.xml");
   }
 
