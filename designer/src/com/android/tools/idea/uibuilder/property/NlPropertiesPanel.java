@@ -374,6 +374,11 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
       myPattern = pattern;
     }
 
+    @NotNull
+    private String getPattern() {
+      return myPattern;
+    }
+
     @Override
     public boolean include(Entry<? extends PTableModel, ? extends Integer> entry) {
       PTableItem item = (PTableItem)entry.getValue(0);

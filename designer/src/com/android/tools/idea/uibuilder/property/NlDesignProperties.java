@@ -52,18 +52,18 @@ public class NlDesignProperties {
   }
 
   @NotNull
-  public List<NlProperty> getKnownProperties(@NotNull List<NlComponent> components) {
+  public List<NlProperty> getKnownProperties(@NotNull List<NlComponent> components, @NotNull NlPropertiesManager propertiesManager) {
     return ImmutableList.of(
-      new NlPropertyItem(components, TOOLS_URI, myContextDefinition),
-      new NlPropertyItem(components, TOOLS_URI, myListItemDefinition),
-      new NlPropertyItem(components, TOOLS_URI, myShowInItemDefinition),
-      new NlPropertyItem(components, TOOLS_URI, myOpenDrawerItemDefinition),
-      new NlPropertyItem(components, TOOLS_URI, myLayoutDefinition),
-      new NlPropertyItem(components, TOOLS_URI, myParentTagDefinition),
-      new NlPropertyItem(components, TOOLS_URI, myLayoutDefinition),
-      new NlPropertyItem(components, TOOLS_URI, myMockupDefinition),
-      new NlPropertyItem(components, TOOLS_URI, myMockupCropDefinition),
-      new NlPropertyItem(components, TOOLS_URI, myMockupOpacityDefinition));
+      new NlPropertyItem(components, propertiesManager, TOOLS_URI, myContextDefinition),
+      new NlPropertyItem(components, propertiesManager, TOOLS_URI, myListItemDefinition),
+      new NlPropertyItem(components, propertiesManager, TOOLS_URI, myShowInItemDefinition),
+      new NlPropertyItem(components, propertiesManager, TOOLS_URI, myOpenDrawerItemDefinition),
+      new NlPropertyItem(components, propertiesManager, TOOLS_URI, myLayoutDefinition),
+      new NlPropertyItem(components, propertiesManager, TOOLS_URI, myParentTagDefinition),
+      new NlPropertyItem(components, propertiesManager, TOOLS_URI, myLayoutDefinition),
+      new NlPropertyItem(components, propertiesManager, TOOLS_URI, myMockupDefinition),
+      new NlPropertyItem(components, propertiesManager, TOOLS_URI, myMockupCropDefinition),
+      new NlPropertyItem(components, propertiesManager, TOOLS_URI, myMockupOpacityDefinition));
   }
 
   private static AttributeDefinition getDefinitionByName(@NotNull String name) {

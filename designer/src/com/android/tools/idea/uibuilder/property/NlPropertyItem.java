@@ -56,6 +56,8 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
 
   @NotNull
   protected final List<NlComponent> myComponents;
+  @NotNull
+  protected final NlPropertiesManager myPropertiesManager;
   @Nullable
   protected final AttributeDefinition myDefinition;
   @NotNull
@@ -68,21 +70,23 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   private StarState myStarState;
 
   public static NlPropertyItem create(@NotNull List<NlComponent> components,
+                                      @NotNull NlPropertiesManager propertiesManager,
                                       @NotNull XmlAttributeDescriptor descriptor,
                                       @Nullable String namespace,
                                       @Nullable AttributeDefinition attributeDefinition) {
     if (attributeDefinition != null && attributeDefinition.getFormats().contains(AttributeFormat.Flag)) {
-      return new NlFlagPropertyItem(components, descriptor, namespace, attributeDefinition);
+      return new NlFlagPropertyItem(components, propertiesManager, descriptor, namespace, attributeDefinition);
     }
     else if (descriptor.getName().equals(SdkConstants.ATTR_ID)) {
-      return new NlIdPropertyItem(components, descriptor, attributeDefinition);
+      return new NlIdPropertyItem(components, propertiesManager, descriptor, attributeDefinition);
     }
     else {
-      return new NlPropertyItem(components, descriptor, namespace, attributeDefinition);
+      return new NlPropertyItem(components, propertiesManager, descriptor, namespace, attributeDefinition);
     }
   }
 
   protected NlPropertyItem(@NotNull List<NlComponent> components,
+                           @NotNull NlPropertiesManager propertiesManager,
                            @NotNull XmlAttributeDescriptor descriptor,
                            @Nullable String namespace,
                            @Nullable AttributeDefinition attributeDefinition) {
@@ -101,6 +105,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     // Instead, we have a reference to the component, and query whatever information we need from the component, and expect
     // that the component can provide that information by having a shadow copy that is consistent with the rendering
     myComponents = components;
+    myPropertiesManager = propertiesManager;
     myName = descriptor.getName();
     myNamespace = namespace;
     myDefinition = attributeDefinition;
@@ -108,11 +113,13 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   }
 
   public NlPropertyItem(@NotNull List<NlComponent> components,
+                        @NotNull NlPropertiesManager propertiesManager,
                         @NotNull String namespace,
                         @Nullable AttributeDefinition attributeDefinition) {
     assert !components.isEmpty();
     assert attributeDefinition != null;
     myComponents = components;
+    myPropertiesManager = propertiesManager;
     myName = attributeDefinition.getName();
     myNamespace = namespace;
     myDefinition = attributeDefinition;
@@ -122,6 +129,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   protected NlPropertyItem(@NotNull NlPropertyItem property, @NotNull String namespace) {
     assert !property.myComponents.isEmpty();
     myComponents = property.myComponents;
+    myPropertiesManager = property.myPropertiesManager;
     myName = property.myName;
     myNamespace = namespace;
     myDefinition = property.myDefinition;

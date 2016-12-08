@@ -111,7 +111,7 @@ public class ViewInspectorProviderTest extends PropertyTestCase {
 
     // Simulate the addition of appcompat library:
     AttributeDefinition srcCompatDefinition = new AttributeDefinition(ATTR_SRC_COMPAT);
-    properties.put(ATTR_SRC_COMPAT, new NlPropertyItem(components, ANDROID_URI, srcCompatDefinition));
+    properties.put(ATTR_SRC_COMPAT, new NlPropertyItem(components, myPropertiesManager, ANDROID_URI, srcCompatDefinition));
 
     // Check that an update will replace the ATTR_SRC with ATTR_SRC_COMPAT
     inspector.updateProperties(components, properties, myPropertiesManager);
