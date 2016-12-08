@@ -19,6 +19,7 @@ package com.android.tools.adtui.chart;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.adtui.common.datareducer.StateChartReducer;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
@@ -50,7 +51,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
   private final List<RangedSeries<E>> mSeriesList;
 
   @NotNull
-  private Map<E, Color> mColors;
+  private EnumColors<E> mColors;
 
   private float mArcWidth;
 
@@ -74,15 +75,22 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
    * @param colors map of a state to corresponding color
    */
   public StateChart(@NotNull Map<E, Color> colors) {
+    this(new EnumColors<>(colors));
+  }
+
+  public StateChart(@NotNull EnumColors<E> enumColors) {
     // TODO: Replace with new DefaultStateChartReducer()
-    // Having a real reducer will be important for the final release, but we don't want to risk
-    // unintentional side effects to distract us as we prepare to meet an initial milestone.
-    this(colors, (rectangles, values) -> {});
+    this(enumColors, (rectangles, values) -> {});
   }
 
   @VisibleForTesting
   public StateChart(@NotNull Map<E, Color> colors, @NotNull StateChartReducer<E> reducer) {
-    mColors = colors;
+    this(new EnumColors<>(colors), reducer);
+  }
+
+  @VisibleForTesting
+  public StateChart(@NotNull EnumColors<E> enumColors, @NotNull StateChartReducer<E> reducer) {
+    mColors = enumColors;
     mRectangles = new ArrayList<>();
     mValues = new ArrayList<>();
     mSeriesList = new ArrayList<>();
@@ -122,11 +130,9 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
     mHeightGap = gap;
   }
 
-  /**
-   * Changes state color map.
-   */
-  public void setColor(@NotNull Map<E, Color> colors) {
-    mColors = colors;
+  @NotNull
+  public EnumColors<E> getColors() {
+    return mColors;
   }
 
   @Override
@@ -223,7 +229,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
     for (int i = 0; i < transformedShapes.size(); i++) {
       Shape shape = transformedShapes.get(i);
       E value = transformedValues.get(i);
-      g2d.setColor(mColors.get(value));
+      g2d.setColor(mColors.getColor(value));
 
       switch (mRenderMode) {
         case BAR:
