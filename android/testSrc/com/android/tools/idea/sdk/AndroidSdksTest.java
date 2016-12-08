@@ -23,6 +23,7 @@ import com.android.tools.idea.IdeInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
@@ -135,6 +136,13 @@ public class AndroidSdksTest extends IdeaTestCase {
     VirtualFile resFolder = classRootsByName.get("res");
     File expectedResFolderPath = new File(platformPath, join("data", resFolder.getName()));
     assertAbout(file()).that(virtualToIoFile(resFolder)).isEquivalentAccordingToCompareTo(expectedResFolderPath);
+
+    Map<String, VirtualFile> docRootsByName = getSdkRootsByName(sdk, JavadocOrderRootType.getInstance());
+    assertThat(docRootsByName).hasSize(1); // offline docs folder
+
+    VirtualFile docsFolder = docRootsByName.get("reference");
+    File expectedDocsFolderPath = new File(mySdkPath, join("docs", docsFolder.getName()));
+    assertAbout(file()).that(virtualToIoFile(docsFolder)).isEquivalentAccordingToCompareTo(expectedDocsFolderPath);
   }
 
   @NotNull

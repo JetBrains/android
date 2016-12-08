@@ -25,12 +25,11 @@ import java.util.Collection;
 
 import static com.android.SdkConstants.EXT_JAR;
 import static com.android.SdkConstants.EXT_ZIP;
-import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.vfs.StandardFileSystems.FILE_PROTOCOL;
-import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL;
-import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
-import static com.intellij.openapi.vfs.VfsUtilCore.*;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.vfs.StandardFileSystems.*;
+import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.openapi.vfs.VirtualFileManager.constructUrl;
 import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 
@@ -118,5 +117,14 @@ public final class FilePaths {
       path = path.substring(0, index);
     }
     return new File(toSystemDependentName(path));
+  }
+
+  /**
+   * Converts a {@link Nullable} {@link String} to a {@link Nullable} {@link File} (with an empty string also mapping to a {@code null}
+   * {@link File}).
+   */
+  @Nullable
+  public static File pathToFile(@Nullable String path) {
+    return isNotEmpty(path) ? new File(toSystemDependentName(path)) : null;
   }
 }
