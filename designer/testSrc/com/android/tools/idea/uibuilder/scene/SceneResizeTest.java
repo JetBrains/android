@@ -50,6 +50,7 @@ public class SceneResizeTest extends SceneTest {
   }
 
   public void testResizeLeftTop() {
+    myInteraction.select("button", true);
     myInteraction.mouseDown("button", ResizeTarget.Type.LEFT_TOP);
     myInteraction.mouseRelease(300, 300);
     myScreen.get("@id/button")
@@ -62,6 +63,7 @@ public class SceneResizeTest extends SceneTest {
   }
 
   public void testResizeRightTop() {
+    myInteraction.select("button", true);
     myInteraction.mouseDown("button", ResizeTarget.Type.RIGHT_TOP);
     myInteraction.mouseRelease(900, 300);
     myScreen.get("@id/button")
@@ -74,6 +76,7 @@ public class SceneResizeTest extends SceneTest {
   }
 
   public void testResizeLeftBottom() {
+    myInteraction.select("button", true);
     myInteraction.mouseDown("button", ResizeTarget.Type.LEFT_BOTTOM);
     myInteraction.mouseRelease(300, 700);
     myScreen.get("@id/button")
@@ -86,6 +89,7 @@ public class SceneResizeTest extends SceneTest {
   }
 
   public void testResizeRightBottom() {
+    myInteraction.select("button", true);
     myInteraction.mouseDown("button", ResizeTarget.Type.RIGHT_BOTTOM);
     myInteraction.mouseRelease(900, 700);
     myScreen.get("@id/button")
