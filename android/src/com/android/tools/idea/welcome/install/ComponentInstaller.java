@@ -19,8 +19,8 @@ import com.android.repository.api.*;
 import com.android.repository.impl.installer.BasicInstallerFactory;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.progress.ThrottledProgressWrapper;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -57,13 +57,15 @@ public final class ComponentInstaller {
     return result;
   }
 
-  public void installPackages(@NotNull List<RemotePackage> packages, ProgressIndicator progress) throws WizardException {
+  public void installPackages(@NotNull List<RemotePackage> packages, @NotNull Downloader downloader, @NotNull ProgressIndicator progress)
+    throws WizardException {
+    progress = new ThrottledProgressWrapper(progress);
     RepoManager sdkManager = mySdkHandler.getSdkManager(progress);
     for (RemotePackage request : packages) {
       // Intentionally don't register any listeners on the installer, so we don't recurse on haxm
       // TODO: This is a hack. Any future rewrite of this shouldn't require this behavior.
       InstallerFactory factory = new BasicInstallerFactory();
-      Installer installer = factory.createInstaller(request, sdkManager, new StudioDownloader(), mySdkHandler.getFileOp());
+      Installer installer = factory.createInstaller(request, sdkManager, downloader, mySdkHandler.getFileOp());
       if (installer.prepare(progress)) {
         installer.complete(progress);
       }
@@ -71,7 +73,8 @@ public final class ComponentInstaller {
     sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, null, null);
   }
 
-  public void ensureSdkPackagesUninstalled(@NotNull Collection<String> packageNames, ProgressIndicator progress) throws WizardException {
+  public void ensureSdkPackagesUninstalled(@NotNull Collection<String> packageNames, @NotNull ProgressIndicator progress)
+    throws WizardException {
     RepoManager sdkManager = mySdkHandler.getSdkManager(progress);
     RepositoryPackages packages = sdkManager.getPackages();
     Map<String, LocalPackage> localPackages = packages.getLocalPackages();
