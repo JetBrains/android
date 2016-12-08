@@ -248,66 +248,6 @@ public class AndroidUtils {
     return null;
   }
 
-  public static String getDefaultRunConfigurationUrl(@NotNull AndroidFacet facet) {
-    String defaultUrl = "<<ERROR - NO URL SET>>";
-    assert facet.getProjectType() == PROJECT_TYPE_INSTANTAPP;
-    String foundUrl = new InstantAppUrlFinder(MergedManifest.get(facet)).getDefaultUrl();
-    return isEmpty(foundUrl) ? defaultUrl : foundUrl;
-  }
-
-  public static void addRunConfiguration(@NotNull final AndroidFacet facet, @Nullable final String activityClass, final boolean ask,
-                                         @Nullable final TargetSelectionMode targetSelectionMode,
-                                         @Nullable final String preferredAvdName) {
-    final Module module = facet.getModule();
-    final Project project = module.getProject();
-
-    final Runnable r = () -> {
-      final RunManager runManager = RunManager.getInstance(project);
-      final RunnerAndConfigurationSettings settings = runManager.
-        createRunConfiguration(module.getName(), AndroidRunConfigurationType.getInstance().getFactory());
-      final AndroidRunConfiguration configuration = (AndroidRunConfiguration)settings.getConfiguration();
-      configuration.setModule(module);
-
-      if (activityClass != null) {
-        configuration.setLaunchActivity(activityClass);
-      }
-      else if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
-        configuration.setLaunchUrl(getDefaultRunConfigurationUrl(facet));
-      }
-      else if (LaunchUtils.isWatchFaceApp(facet)) {
-        // In case of a watch face app, there is only a service and no default activity that can be launched
-        // Eventually, we'd need to support launching a service, but currently you cannot launch a watch face service as well.
-        // See https://code.google.com/p/android/issues/detail?id=151353
-        configuration.MODE = AndroidRunConfiguration.DO_NOTHING;
-      }
-      else {
-        configuration.MODE = AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY;
-      }
-
-      if (targetSelectionMode != null) {
-        configuration.getDeployTargetContext().setTargetSelectionMode(targetSelectionMode);
-      }
-      if (preferredAvdName != null) {
-        configuration.PREFERRED_AVD = preferredAvdName;
-      }
-      runManager.addConfiguration(settings, false);
-      runManager.setSelectedConfiguration(settings);
-    };
-    if (!ask) {
-      r.run();
-    }
-    else {
-      UIUtil.invokeLaterIfNeeded(() -> {
-        final String moduleName = facet.getModule().getName();
-        final int result = Messages.showYesNoDialog(project, AndroidBundle.message("create.run.configuration.question", moduleName),
-                                                    AndroidBundle.message("create.run.configuration.title"), Messages.getQuestionIcon());
-        if (result == Messages.YES) {
-          r.run();
-        }
-      });
-    }
-  }
-
   public static boolean isAbstract(@NotNull PsiClass c) {
     return (c.isInterface() || c.hasModifierProperty(PsiModifier.ABSTRACT));
   }
