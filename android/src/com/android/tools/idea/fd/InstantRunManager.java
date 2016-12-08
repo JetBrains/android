@@ -90,10 +90,9 @@ public final class InstantRunManager implements ProjectComponent {
     return project.getComponent(InstantRunManager.class);
   }
 
-  @NotNull
+  @Nullable
   public static AndroidVersion getMinDeviceApiLevel(@NotNull ProcessHandler processHandler) {
-    AndroidVersion version = processHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL);
-    return version == null ? AndroidVersion.DEFAULT : version;
+    return processHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL);
   }
 
   /**

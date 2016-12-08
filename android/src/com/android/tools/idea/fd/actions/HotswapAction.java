@@ -33,9 +33,10 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.keymap.Keymap;
+import com.intellij.openapi.keymap.KeymapManager;
+import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
@@ -99,8 +100,12 @@ public class HotswapAction extends AndroidStudioGradleAction implements AnAction
       return;
     }
 
-    // Make sure instant run is supported on the relevant device, if found.
     AndroidVersion androidVersion = InstantRunManager.getMinDeviceApiLevel(processHandler);
+    if (androidVersion == null) {
+      presentation.setText(String.format("Apply Changes: Cannot locate device from '%1$s'", settings.getName()));
+      return;
+    }
+
     if (!InstantRunManager.isInstantRunCapableDeviceVersion(androidVersion)) {
       presentation.setText(String.format("Apply Changes: Target device API level (%1$s) too low for Instant Run", androidVersion));
       return;
@@ -116,8 +121,15 @@ public class HotswapAction extends AndroidStudioGradleAction implements AnAction
       return;
     }
 
-    presentation.setText("Apply Changes");
+    presentation.setText("Apply Changes" + getShortcutText());
     presentation.setEnabled(true);
+  }
+
+  @Nullable
+  private static String getShortcutText() {
+    Keymap activeKeymap = KeymapManager.getInstance().getActiveKeymap();
+    Shortcut[] shortcuts = activeKeymap.getShortcuts("Android.HotswapChanges");
+    return shortcuts.length > 0 ? " (" + KeymapUtil.getShortcutText(shortcuts[0]) + ") " : "";
   }
 
   @Override
