@@ -48,13 +48,6 @@ java_import(
 )
 
 java_import(
-    name = "jsr305-1.3.9",
-    jars = ["jsr305-1.3.9.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
     name = "spantable",
     jars = ["spantable.jar"],
     tags = ["managed"],
