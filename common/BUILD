@@ -10,7 +10,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     exports = [
-        "//tools/idea/.idea/libraries:android-sdk-tools-jps",
+        "//tools/adt/idea/android/lib:jarutils",
         "//tools/base/common:studio.common",
         "//tools/base/ddmlib:studio.ddmlib",
         "//tools/base/device_validator:studio.dvlib",
@@ -24,7 +24,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/idea/platform/util[module]",
-        "//tools/idea/.idea/libraries:android-sdk-tools-jps",
+        "//tools/adt/idea/android/lib:jarutils",
         "//tools/idea/.idea/libraries:NanoXML",
         "//tools/base/common:studio.common[module]",
         "//tools/base/ddmlib:studio.ddmlib[module]",
