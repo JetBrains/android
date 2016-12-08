@@ -82,7 +82,7 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
   @Override
   @NotNull
   protected File findSdkPath() {
-    String localSdkPath = System.getenv("ANDROID_SDK_HOME");
+    String localSdkPath = System.getenv("ANDROID_HOME");
 
     if (localSdkPath != null) {
       File localSdk = new File(localSdkPath);
