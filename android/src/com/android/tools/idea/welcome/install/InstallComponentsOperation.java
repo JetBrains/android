@@ -17,6 +17,7 @@ package com.android.tools.idea.welcome.install;
 
 import com.android.repository.api.RemotePackage;
 import com.android.tools.idea.npw.importing.ImportUIUtil;
+import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ui.ConsoleViewContentType;
@@ -74,7 +75,7 @@ public class InstallComponentsOperation extends InstallOperation<File, File> {
     }
     while (!packages.isEmpty()) {
       SdkManagerProgressIndicatorIntegration logger = new SdkManagerProgressIndicatorIntegration(indicator, myContext);
-      myComponentInstaller.installPackages(packages, logger);
+      myComponentInstaller.installPackages(packages, new StudioDownloader(), logger);
       // If we didn't set remote information on the installer we assume we weren't expecting updates. So set false for
       // defaultUpdateAvailable so we don't think everything failed to install.
       try {
