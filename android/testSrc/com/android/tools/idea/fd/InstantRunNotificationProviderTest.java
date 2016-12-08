@@ -32,6 +32,14 @@ public class InstantRunNotificationProviderTest {
   }
 
   @Test
+  public void userRequestedRunHasNoNotifications() {
+    BuildSelection buildSelection = new BuildSelection(BuildCause.USER_REQUESTED_COLDSWAP, false);
+    InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.SPLITAPK, "");
+    assertNull("No notifications should be shown when the user presses Run",
+               provider.getNotificationText());
+  }
+
+  @Test
   public void cleanBuildOnUserRequest() {
     BuildSelection buildSelection = new BuildSelection(BuildCause.USER_REQUESTED_CLEAN_BUILD, false);
     InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.FULLAPK, "");
