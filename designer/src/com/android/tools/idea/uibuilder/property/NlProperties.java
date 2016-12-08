@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.utils.Pair;
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableTable;
@@ -168,21 +169,25 @@ public class NlProperties {
     }
   }
 
-  public static void saveStarState(@Nullable String propertyNamespace, @NotNull String propertyName, boolean starred) {
+  public static void saveStarState(@Nullable String propertyNamespace,
+                                   @NotNull String propertyName,
+                                   boolean starred,
+                                   @NotNull NlPropertiesManager propertiesManager) {
     String propertyNameWithPrefix = getPropertyNameWithPrefix(propertyNamespace, propertyName);
-    StringBuilder builder = new StringBuilder();
+    List<String> favorites = new ArrayList<>();
     for (String starredProperty : getStarredProperties()) {
       if (!starredProperty.equals(propertyNameWithPrefix)) {
-        builder.append(starredProperty);
-        builder.append(";");
+        favorites.add(starredProperty);
       }
     }
     if (starred) {
-      builder.append(propertyNameWithPrefix);
-      builder.append(";");
+      favorites.add(propertyNameWithPrefix);
     }
     PropertiesComponent properties = PropertiesComponent.getInstance();
-    properties.setValue(STARRED_PROP, builder.toString());
+    properties.setValue(STARRED_PROP, Joiner.on(';').join(favorites));
+    String added = starred ? propertyNameWithPrefix : "";
+    String removed = !starred ? propertyNameWithPrefix : "";
+    propertiesManager.logFavoritesChange(added, removed, favorites);
   }
 
   public static String getStarredPropertiesAsString() {

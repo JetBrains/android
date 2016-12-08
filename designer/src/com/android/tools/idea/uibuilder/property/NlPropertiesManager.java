@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property;
 import com.android.SdkConstants;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.tools.adtui.workbench.ToolContent;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -314,6 +315,20 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
         (NlPropertyItem.isReference(oldValue) || NlPropertyItem.isReference(newValue))) {
       updateSelection();
     }
+  }
+
+  public void logPropertyChange(@NotNull NlProperty property) {
+    NlUsageTrackerManager.getInstance(mySurface).logPropertyChange(
+      property,
+      myPropertiesPanel.getPropertiesViewMode(),
+      myPropertiesPanel.getFilterMatchCount());
+  }
+
+  public void logFavoritesChange(@NotNull String added, @NotNull String removed, @NotNull List<String> favorites) {
+    if (mySceneView == null) {
+      return;
+    }
+    NlUsageTrackerManager.getInstance(mySurface).logFavoritesChange(added, removed, favorites, mySceneView.getModel().getFacet());
   }
 
   // ---- Implements DesignSurfaceListener ----
