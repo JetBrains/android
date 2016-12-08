@@ -44,6 +44,7 @@ public class GotoComponentAction extends AnAction {
       if (primary != null) {
         XmlTag tag = primary.getTag();
         if (tag.isValid()) {
+          screenView.getSurface().deactivate();
           PsiNavigateUtil.navigate(tag);
         }
       }
