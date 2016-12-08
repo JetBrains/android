@@ -32,7 +32,7 @@ import java.awt.*;
 
 public class StudioProfilersView {
   private final StudioProfilers myProfiler;
-  private final ViewBinder<Stage, StageView> myBinder;
+  private final ViewBinder<StudioProfilersView, Stage, StageView> myBinder;
   private StageView myStageView;
   private BorderLayout myLayout;
   private JPanel myComponent;
@@ -99,7 +99,7 @@ public class StudioProfilersView {
       myStageView.exit();
     }
 
-    myStageView = myBinder.build(stage);
+    myStageView = myBinder.build(this, stage);
     Component prev = myLayout.getLayoutComponent(BorderLayout.CENTER);
     if (prev != null) {
       myComponent.remove(prev);

@@ -35,10 +35,10 @@ import java.awt.*;
  */
 public class StudioMonitorStageView extends StageView {
 
-  public StudioMonitorStageView(@NotNull StudioMonitorStage stage) {
-    super(stage);
+  public StudioMonitorStageView(@NotNull StudioProfilersView profilersView, @NotNull StudioMonitorStage stage) {
+    super(profilersView, stage);
 
-    ViewBinder<ProfilerMonitor, ProfilerMonitorView> binder = new ViewBinder<>();
+    ViewBinder<StudioProfilersView, ProfilerMonitor, ProfilerMonitorView> binder = new ViewBinder<>();
     binder.bind(NetworkMonitor.class, NetworkMonitorView::new);
     binder.bind(CpuMonitor.class, CpuMonitorView::new);
     binder.bind(MemoryMonitor.class, MemoryMonitorView::new);
@@ -61,7 +61,7 @@ public class StudioMonitorStageView extends StageView {
 
     int rowIndex = 0;
     for (ProfilerMonitor monitor : stage.getMonitors()) {
-      ProfilerMonitorView view = binder.build(monitor);
+      ProfilerMonitorView view = binder.build(profilersView, monitor);
       JComponent component = view.initialize(getChoreographer());
       int weight = (int)(view.getVerticalWeight() * 100f);
       layout.setRowSizing(rowIndex, (weight > 0) ? weight + "*" : "Fit");

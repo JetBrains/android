@@ -24,6 +24,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitorView;
+import com.android.tools.profilers.StudioProfilersView;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,8 +40,8 @@ public class NetworkMonitorView extends ProfilerMonitorView<NetworkMonitor> {
 
   private static final BaseAxisFormatter BANDWIDTH_AXIS_FORMATTER_L1 = new NetworkTrafficFormatter(1, 2, 5);
 
-  public NetworkMonitorView(@NotNull NetworkMonitor monitor) {
-    super(monitor);
+  public NetworkMonitorView(@NotNull StudioProfilersView profilersView, @NotNull NetworkMonitor monitor) {
+    super(profilersView, monitor);
   }
 
   @Override
