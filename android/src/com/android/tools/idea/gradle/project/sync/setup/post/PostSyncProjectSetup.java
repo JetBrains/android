@@ -56,6 +56,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
+import com.intellij.openapi.util.EmptyRunnable;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -132,6 +134,11 @@ public class PostSyncProjectSetup {
    * Invoked after a project has been synced with Gradle.
    */
   public void setUpProject(@NotNull Request request, @Nullable ProgressIndicator progressIndicator) {
+    // Force a refresh after a sync.
+    // https://code.google.com/p/android/issues/detail?id=229633
+    ApplicationManager.getApplication()
+      .runWriteAction(() -> ProjectRootManagerEx.getInstanceEx(myProject).makeRootsChange(EmptyRunnable.INSTANCE, false, true));
+
     boolean syncFailed = mySyncState.lastSyncFailedOrHasIssues();
 
     if (syncFailed && request.isUsingCachedGradleModels()) {
