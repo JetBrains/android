@@ -25,6 +25,7 @@ import com.android.repository.testframework.FakeRepoManager;
 import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
@@ -39,7 +40,7 @@ import java.util.List;
 /**
  * Tests for the local repository utility class
  */
-public class RepositoryUrlManagerTest extends TestCase {
+public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
   private static final File SDK_DIR = new File("/sdk");
   private static final File ANDROID_HOME = new File("/android-home");
 
