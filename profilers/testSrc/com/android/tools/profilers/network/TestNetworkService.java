@@ -162,6 +162,16 @@ public final class TestNetworkService extends NetworkServiceGrpc.NetworkServiceI
   }
 
   @NotNull
+  public static NetworkProfilerData newConnectionData(long timestampSec, int value) {
+    NetworkProfilerData.Builder builder = NetworkProfilerData.newBuilder();
+    builder.setBasicInfo(Common.CommonData.newBuilder()
+                           .setAppId(FAKE_APP_ID)
+                           .setEndTimestamp(TimeUnit.SECONDS.toNanos(timestampSec)));
+    builder.setConnectionData(ConnectionData.newBuilder().setConnectionNumber(value).build());
+    return builder.build();
+  }
+
+  @NotNull
   private static String formatFakeResponseFields(long id) {
     return "status line = HTTP/1.1 302 Found \n" +
            String.format("connId = %d", id);
