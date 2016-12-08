@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import com.google.common.collect.ImmutableList;
+import com.intellij.util.xml.XmlName;
 import icons.AndroidIcons;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 
@@ -111,7 +112,8 @@ public class ViewInspectorProviderTest extends PropertyTestCase {
 
     // Simulate the addition of appcompat library:
     AttributeDefinition srcCompatDefinition = new AttributeDefinition(ATTR_SRC_COMPAT);
-    properties.put(ATTR_SRC_COMPAT, new NlPropertyItem(components, ANDROID_URI, srcCompatDefinition));
+    properties.put(ATTR_SRC_COMPAT,
+                   NlPropertyItem.create(new XmlName(ATTR_SRC_COMPAT, AUTO_URI), srcCompatDefinition, components, myPropertiesManager));
 
     // Check that an update will replace the ATTR_SRC with ATTR_SRC_COMPAT
     inspector.updateProperties(components, properties, myPropertiesManager);

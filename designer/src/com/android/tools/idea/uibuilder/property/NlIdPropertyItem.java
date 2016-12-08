@@ -30,7 +30,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.rename.RenameProcessor;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.usageView.UsageInfo;
-import com.intellij.xml.XmlAttributeDescriptor;
+import com.intellij.util.xml.XmlName;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.annotations.NotNull;
@@ -56,10 +56,11 @@ public class NlIdPropertyItem extends NlPropertyItem {
 
   private Supplier<DialogBuilder> myDialogSupplier;
 
-  protected NlIdPropertyItem(@NotNull List<NlComponent> components,
-                             @NotNull XmlAttributeDescriptor descriptor,
-                             @Nullable AttributeDefinition attributeDefinition) {
-    super(components, descriptor, SdkConstants.ANDROID_URI, attributeDefinition);
+  protected NlIdPropertyItem(@NotNull XmlName name,
+                             @Nullable AttributeDefinition attributeDefinition,
+                             @NotNull List<NlComponent> components,
+                             @NotNull NlPropertiesManager propertiesManager) {
+    super(name, attributeDefinition, components, propertiesManager);
   }
 
   @Nullable

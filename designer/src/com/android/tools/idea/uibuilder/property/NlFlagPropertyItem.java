@@ -25,7 +25,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.xml.XmlAttributeDescriptor;
+import com.intellij.util.xml.XmlName;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,11 +46,11 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
 
   private static final Splitter VALUE_SPLITTER = Splitter.on("|").trimResults();
 
-  protected NlFlagPropertyItem(@NotNull List<NlComponent> components,
-                               @NotNull XmlAttributeDescriptor descriptor,
-                               @Nullable String namespace,
-                               @Nullable AttributeDefinition attributeDefinition) {
-    super(components, descriptor, namespace, attributeDefinition);
+  protected NlFlagPropertyItem(@NotNull XmlName name,
+                               @Nullable AttributeDefinition attributeDefinition,
+                               @NotNull List<NlComponent> components,
+                               @NotNull NlPropertiesManager propertiesManager) {
+    super(name, attributeDefinition, components, propertiesManager);
     assert attributeDefinition != null;
   }
 
