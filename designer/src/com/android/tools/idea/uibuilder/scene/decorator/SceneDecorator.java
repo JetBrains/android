@@ -62,6 +62,12 @@ public class SceneDecorator {
    */
   public static SceneDecorator get(NlComponent component) {
     String tag = component.getTagName();
+    if (tag != null && tag.equalsIgnoreCase(SdkConstants.VIEW_MERGE)) {
+      String parentTag = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_PARENT_TAG);
+      if (parentTag != null) {
+        tag = parentTag;
+      }
+    }
     if (ourConstructorMap.containsKey(tag)) {
       if (!ourSceneMap.containsKey(tag)) {
         try {
