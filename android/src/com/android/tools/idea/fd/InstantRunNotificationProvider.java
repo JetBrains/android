@@ -33,7 +33,8 @@ import java.util.Set;
 public class InstantRunNotificationProvider {
   private static final Set<BuildCause> ourCausesThatDontNeedNotifications = ImmutableSet.of(
     BuildCause.FIRST_INSTALLATION_TO_DEVICE,
-    BuildCause.APP_NOT_INSTALLED
+    BuildCause.APP_NOT_INSTALLED,
+    BuildCause.USER_REQUESTED_COLDSWAP
   );
 
   private static final Map<BuildCause, String> ourFullBuildNotificationsByCause = new ImmutableMap.Builder<BuildCause, String>()
