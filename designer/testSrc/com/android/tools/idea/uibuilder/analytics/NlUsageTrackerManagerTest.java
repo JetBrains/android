@@ -143,7 +143,7 @@ public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
     when(logger.getBrokenClasses()).thenReturn(brokenClasses);
     RenderResult result = mock(RenderResult.class);
     ViewInfo rootView = new ViewInfo("ConstraintLayout", null, 0, 0, 50, 50);
-    rootView.setChildren(ImmutableList.of(new ViewInfo("TextView", null, 0, 0, 30, 20)));;
+    rootView.setChildren(ImmutableList.of(new ViewInfo("TextView", null, 0, 0, 30, 20)));
     when(result.getRootViews()).thenReturn(ImmutableList.of(rootView));
     when(result.getRenderResult()).thenReturn(renderResult);
     when(result.getLogger()).thenReturn(logger);
@@ -159,5 +159,13 @@ public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
     assertEquals(1, loggedResult.getTotalIssueCount());
     assertEquals(1, loggedResult.getErrorCount());
     assertEquals(0, loggedResult.getFidelityWarningCount());
+  }
+
+  public void testLogDropFromPalette() {
+
+  }
+
+  public void testLogPropertyChange() {
+
   }
 }

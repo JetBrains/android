@@ -57,9 +57,10 @@ public class NlIdPropertyItem extends NlPropertyItem {
   private Supplier<DialogBuilder> myDialogSupplier;
 
   protected NlIdPropertyItem(@NotNull List<NlComponent> components,
+                             @NotNull NlPropertiesManager propertiesManager,
                              @NotNull XmlAttributeDescriptor descriptor,
                              @Nullable AttributeDefinition attributeDefinition) {
-    super(components, descriptor, SdkConstants.ANDROID_URI, attributeDefinition);
+    super(components, propertiesManager, descriptor, SdkConstants.ANDROID_URI, attributeDefinition);
   }
 
   @Nullable

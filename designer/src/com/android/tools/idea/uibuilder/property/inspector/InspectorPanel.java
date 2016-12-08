@@ -202,7 +202,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
         propertiesByName.put(property.getName(), property);
       }
       // Add access to known design properties
-      for (NlProperty property : myDesignProperties.getKnownProperties(components)) {
+      for (NlProperty property : myDesignProperties.getKnownProperties(components, propertiesManager)) {
         propertiesByName.putIfAbsent(property.getName(), property);
       }
 
