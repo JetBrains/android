@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
+import com.android.tools.idea.gradle.project.sync.hyperlink.InstallCMakeHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -29,7 +30,6 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link MissingCMakeErrorHandler}.
  */
 public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
-
   private SyncMessagesStub mySyncMessagesStub;
 
   @Override
@@ -52,6 +52,6 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
     // Verify hyperlinks are correct.
     List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();
     assertThat(quickFixes).hasSize(1);
-    assertThat(quickFixes.get(0)).isInstanceOf(NotificationHyperlink.class);
+    assertThat(quickFixes.get(0)).isInstanceOf(InstallCMakeHyperlink.class);
   }
 }
