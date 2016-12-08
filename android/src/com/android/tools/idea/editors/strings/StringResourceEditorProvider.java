@@ -33,7 +33,10 @@ public class StringResourceEditorProvider implements FileEditorProvider, DumbAwa
   public static final String ID = "string-resource-editor";
 
   public static boolean canViewTranslations(@NotNull Project project, @NotNull VirtualFile file) {
-    if (!file.getName().equals(AndroidResourceUtil.getDefaultResourceFileName(ResourceType.STRING))) {
+    String name = AndroidResourceUtil.getDefaultResourceFileName(ResourceType.STRING);
+    assert name != null;
+
+    if (!file.getName().endsWith(name)) {
       return false;
     }
 
