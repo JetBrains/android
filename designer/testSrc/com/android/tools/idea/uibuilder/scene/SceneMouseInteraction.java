@@ -19,20 +19,24 @@ import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
 import com.android.tools.idea.uibuilder.scene.target.ResizeTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Encapsulates basic mouse interaction on a Scene
  */
 class SceneMouseInteraction {
+  private final Scene myScene;
+  private final ScreenView myScreenView;
   float myLastX;
   float myLastY;
-  Scene myScene;
   DisplayList myDisplayList = new DisplayList();
 
-  public SceneMouseInteraction(Scene scene) {
+  public SceneMouseInteraction(Scene scene, ScreenView screenView) {
     myScene = scene;
+    myScreenView = screenView;
     myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
   }
 
@@ -46,7 +50,6 @@ class SceneMouseInteraction {
   public void mouseDown(String componentId, Class targetClass, int pos) {
     SceneComponent component = myScene.getSceneComponent(componentId);
     if (component != null) {
-      component.setSelected(true);
       ArrayList<Target> targets = component.getTargets();
       int n = 0;
       for (Target target : targets) {
@@ -70,7 +73,6 @@ class SceneMouseInteraction {
   public void mouseDown(String componentId, ResizeTarget.Type type) {
     SceneComponent component = myScene.getSceneComponent(componentId);
     if (component != null) {
-      component.setSelected(true);
       ResizeTarget target = component.getResizeTarget(type);
       mouseDown(target.getCenterX(), target.getCenterY());
     }
@@ -85,7 +87,6 @@ class SceneMouseInteraction {
   public void mouseDown(String componentId, AnchorTarget.Type type) {
     SceneComponent component = myScene.getSceneComponent(componentId);
     if (component != null) {
-      component.setSelected(true);
       AnchorTarget target = component.getAnchorTarget(type);
       mouseDown(target.getCenterX(), target.getCenterY());
     }
@@ -133,7 +134,6 @@ class SceneMouseInteraction {
   public void mouseRelease(String componentId, Class targetClass, int pos) {
     SceneComponent component = myScene.getSceneComponent(componentId);
     if (component != null) {
-      component.setSelected(true);
       ArrayList<Target> targets = component.getTargets();
       int n = 0;
       for (Target target : targets) {
@@ -233,7 +233,12 @@ class SceneMouseInteraction {
   public void select(String componentId, boolean selected) {
     SceneComponent component = myScene.getSceneComponent(componentId);
     if (component != null) {
-      component.setSelected(selected);
+      if (selected) {
+        myScene.select(Collections.singletonList(component));
+      } else {
+        myScene.select(Collections.emptyList());
+      }
+      myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
     }
   }
 }

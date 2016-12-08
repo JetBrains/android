@@ -50,6 +50,7 @@ public class SceneAnimationTest extends SceneTest {
   }
 
   public void testConnectRight() {
+    myInteraction.select("button", true);
     myInteraction.mouseDown("button", AnchorTarget.Type.RIGHT);
     myInteraction.mouseRelease("root", AnchorTarget.Type.RIGHT);
     myScreen.get("@id/button")
