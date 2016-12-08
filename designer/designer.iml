@@ -19,17 +19,7 @@
     <orderEntry type="module" module-name="pixelprobe" />
     <orderEntry type="module" module-name="images" />
     <orderEntry type="module" module-name="android-annotations" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../android/lib/jsr305-1.3.9.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/../android/lib/jsr305-1.3.9.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
+    <orderEntry type="library" name="jsr305" level="project" />
     <orderEntry type="module" module-name="dom-openapi" />
     <orderEntry type="module" module-name="lang-api" />
     <orderEntry type="library" name="layoutlib" level="project" />

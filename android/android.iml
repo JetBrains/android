@@ -63,17 +63,7 @@
         </SOURCES>
       </library>
     </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Jsr305">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/jsr305-1.3.9.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/lib/jsr305-1.3.9.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
+    <orderEntry type="library" name="jsr305" level="project" />
     <orderEntry type="library" name="jgraphx-3.4.0.1" level="project" />
     <orderEntry type="module" module-name="repository" />
     <orderEntry type="module" module-name="instant-run-client" />
