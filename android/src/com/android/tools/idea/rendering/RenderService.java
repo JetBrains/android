@@ -71,6 +71,7 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
  */
 public class RenderService {
   public static final boolean NELE_ENABLED = true;
+  public static final boolean MOCKUP_EDITOR_ENABLED = false;
 
   /** Number of ms that we will wait for the rendering thread to return before timing out */
   private static final long DEFAULT_RENDER_THREAD_TIMEOUT_MS = Integer.getInteger("layoutlib.thread.timeout", 6000);

@@ -1,6 +1,5 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
-import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.FileChooserActionListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
@@ -19,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.rendering.RenderService.MOCKUP_EDITOR_ENABLED;
 import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
 /**
@@ -36,9 +36,9 @@ public class MockupInspectorProvider implements InspectorProvider {
                               @NotNull Map<String, NlProperty> properties,
                               @NotNull NlPropertiesManager propertiesManager) {
     //noinspection ConstantConditions
-    return Mockup.ENABLE_FEATURE && properties.keySet().containsAll(MOCKUP_PROPERTIES)
-                  && !components.isEmpty()
-                  && components.get(0).getAttribute(TOOLS_URI, ATTR_MOCKUP) != null;
+    return MOCKUP_EDITOR_ENABLED && properties.keySet().containsAll(MOCKUP_PROPERTIES)
+           && !components.isEmpty()
+           && components.get(0).getAttribute(TOOLS_URI, ATTR_MOCKUP) != null;
   }
 
   @NotNull
