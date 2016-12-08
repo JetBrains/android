@@ -189,8 +189,9 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
     // Obtaining the properties, especially the first time around on a big project
     // can take close to a second, so we do it on a separate thread..
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      Table<String, String, NlPropertyItem> properties = !components.isEmpty() ? NlProperties.getInstance().getProperties(components) :
-                                                         ImmutableTable.of();
+      Table<String, String, NlPropertyItem> properties =
+        !components.isEmpty() ? NlProperties.getInstance().getProperties(this, components)
+                              : ImmutableTable.of();
 
       UIUtil.invokeLaterIfNeeded(() -> {
         if (myProject.isDisposed()) {
