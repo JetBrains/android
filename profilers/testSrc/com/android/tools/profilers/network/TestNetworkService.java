@@ -147,11 +147,22 @@ public final class TestNetworkService extends NetworkServiceGrpc.NetworkServiceI
   }
 
   @NotNull
-  public static NetworkProfilerData newNetworkData(long timestampSec,
-                                            @NotNull ConnectivityData.NetworkType networkType,
-                                            @NotNull ConnectivityData.RadioState radioState) {
+  public static NetworkProfilerData newSpeedData(long timestampSec,
+                                                 long sent,
+                                                 long received) {
     NetworkProfilerData.Builder builder = NetworkProfilerData.newBuilder();
+    builder.setBasicInfo(Common.CommonData.newBuilder()
+                           .setAppId(FAKE_APP_ID)
+                           .setEndTimestamp(TimeUnit.SECONDS.toNanos(timestampSec)));
+    builder.setSpeedData(SpeedData.newBuilder().setReceived(received).setSent(sent));
+    return builder.build();
+  }
 
+  @NotNull
+  public static NetworkProfilerData newRadioData(long timestampSec,
+                                                 @NotNull ConnectivityData.NetworkType networkType,
+                                                 @NotNull ConnectivityData.RadioState radioState) {
+    NetworkProfilerData.Builder builder = NetworkProfilerData.newBuilder();
     builder.setBasicInfo(Common.CommonData.newBuilder()
                            .setAppId(FAKE_APP_ID)
                            .setEndTimestamp(TimeUnit.SECONDS.toNanos(timestampSec)));
