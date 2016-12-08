@@ -370,7 +370,7 @@ public class AnchorTarget extends ConstraintTarget {
       targetId = SdkConstants.ATTR_PARENT;
     }
     else {
-      targetId = SdkConstants.NEW_ID_PREFIX + targetComponent.ensureId();
+      targetId = SdkConstants.NEW_ID_PREFIX + targetComponent.ensureLiveId();
     }
     attributes.setAttribute(SdkConstants.SHERPA_URI, attribute, targetId);
     if (ourReciprocalAttributes.get(attribute) != null) {
