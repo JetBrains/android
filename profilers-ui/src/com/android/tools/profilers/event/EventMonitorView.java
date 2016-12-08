@@ -18,6 +18,7 @@ package com.android.tools.profilers.event;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.profilers.ProfilerMonitorView;
+import com.android.tools.profilers.StudioProfilersView;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -34,8 +35,8 @@ public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
     RENDERERS.put(EventActionType.KEYBOARD, new EventIconRenderer("/icons/events/keyboard-event.png", "/icons/events/keyboard-event_dark.png"));
   }
 
-  public EventMonitorView(@NotNull EventMonitor monitor) {
-    super(monitor);
+  public EventMonitorView(@NotNull StudioProfilersView profilersView, @NotNull EventMonitor monitor) {
+    super(profilersView, monitor);
   }
 
   @Override

@@ -28,14 +28,21 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> {
   private static final int MINIMUM_MONITOR_HEIGHT = JBUI.scale(50);
 
   @NotNull private final T myMonitor;
+  @NotNull private final StudioProfilersView myProfilersView;
 
-  public ProfilerMonitorView(@NotNull T monitor) {
+  public ProfilerMonitorView(@NotNull StudioProfilersView profilersView, @NotNull T monitor) {
+    myProfilersView = profilersView;
     myMonitor = monitor;
   }
 
   @NotNull
   protected final T getMonitor() {
     return myMonitor;
+  }
+
+  @NotNull
+  protected final StudioProfilersView getProfilersView() {
+    return myProfilersView;
   }
 
   public final JComponent initialize(@NotNull Choreographer choreographer) {
