@@ -83,8 +83,7 @@ public class SdksCleanupStep extends ProjectCleanupStep {
       return;
     }
     Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-    if (sdk != null && !invalidAndroidSdks.contains(sdk) && (isMissingAndroidLibrary(sdk) || shouldRemoveAnnotationsJar(sdk))) {
-      // First try to recreate SDK; workaround for issue 78072
+    if (sdk != null && !invalidAndroidSdks.contains(sdk)) {
       AndroidSdkAdditionalData additionalData = myAndroidSdks.getAndroidSdkAdditionalData(sdk);
       AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
       if (additionalData != null && sdkData != null) {
@@ -95,7 +94,9 @@ public class SdksCleanupStep extends ProjectCleanupStep {
           sdkHandler.getSdkManager(logger).loadSynchronously(0, logger, null, null);
           target = sdkHandler.getAndroidTargetManager(logger).getTargetFromHashString(additionalData.getBuildTargetHashString(), logger);
         }
-        if (target != null) {
+        if (target != null &&
+            (isMissingAndroidLibrary(sdk) || shouldRemoveAnnotationsJar(sdk) || !myAndroidSdks.hasValidDocs(sdk, target))) {
+          // First try to recreate SDK; workaround for issue 78072
           SdkModificator sdkModificator = sdk.getSdkModificator();
           sdkModificator.removeAllRoots();
           for (OrderRoot orderRoot : myAndroidSdks.getLibraryRootsForTarget(target, pathToFile(sdk.getHomePath()), true)) {
