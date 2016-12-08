@@ -40,9 +40,12 @@ public class StudioProfilersView {
   private JPanel myStageToolbar;
   private JPanel myProcessSelection;
 
+  @NotNull
+  private final IdeProfilerComponents myIdeProfilerComponents;
 
-  public StudioProfilersView(StudioProfilers profiler) {
+  public StudioProfilersView(@NotNull StudioProfilers profiler, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myProfiler = profiler;
+    myIdeProfilerComponents = ideProfilerComponents;
     myStageView = null;
     initializeUi();
 
@@ -177,5 +180,10 @@ public class StudioProfilersView {
 
       append(String.format(" (%1$d)", process.getPid()), SimpleTextAttributes.GRAY_ATTRIBUTES);
     }
+  }
+
+  @NotNull
+  public IdeProfilerComponents getIdeProfilerComponents() {
+    return myIdeProfilerComponents;
   }
 }
