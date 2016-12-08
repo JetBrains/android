@@ -42,18 +42,6 @@ public class RequestFocusHandler extends ViewHandler {
   }
 
   @Override
-  @NotNull
-  public Icon getIcon(@NotNull String tagName) {
-    return AndroidIcons.Views.RequestFocus;
-  }
-
-  @Override
-  @NotNull
-  public Icon getIcon(@NotNull NlComponent component) {
-    return AndroidIcons.Views.RequestFocus;
-  }
-
-  @Override
   @Language("XML")
   @NotNull
   public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {

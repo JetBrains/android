@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.palette;
 
 import com.android.tools.adtui.splitter.ComponentsSplitter;
 import com.android.tools.adtui.treegrid.TreeGrid;
-import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
@@ -282,10 +281,12 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
 
         case LARGE_ICONS:
           setIcon(myDependencyManager.createLargeItemIcon(item, list));
+          setToolTipText(item.getTitle());
           break;
 
         case SMALL_ICONS:
           setIcon(myDependencyManager.createItemIcon(item, list));
+          setToolTipText(item.getTitle());
           break;
       }
     }
