@@ -15,74 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.SdkConstants;
-import com.android.repository.api.Downloader;
-import com.android.repository.api.ProgressIndicator;
-import com.android.repository.api.RemotePackage;
-import com.android.repository.api.SettingsController;
-import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.hyperlink.InstallCMakeHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.StudioDownloader;
-import com.android.tools.idea.sdk.StudioSettingsController;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.wizard.model.ModelWizardDialog;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import static com.android.repository.api.RepoManager.DEFAULT_EXPIRATION_PERIOD_MS;
-import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class MissingCMakeErrorHandler extends BaseSyncErrorHandler {
-  @NotNull private final Downloader myDownloader;
-  @Nullable private final AndroidSdkHandler mySdkHandler;
-  @Nullable private final SettingsController mySettingsController;
-  @Nullable private final RemotePackage myCmakePackage;
-
-  @SuppressWarnings("unused") // Instantiated by IDEA
-  public MissingCMakeErrorHandler() {
-    this(new StudioDownloader(), null, StudioSettingsController.getInstance());
-  }
-
-  @VisibleForTesting
-  MissingCMakeErrorHandler(@NotNull Downloader downloader,
-                           @Nullable AndroidSdkHandler sdkHandler,
-                           @Nullable SettingsController settingsController) {
-    mySdkHandler = sdkHandler;
-    myDownloader = downloader;
-    mySettingsController = settingsController;
-    myCmakePackage = getCmakePackage();
-  }
-
   @Nullable
-  private RemotePackage getCmakePackage() {
-    // We need to statically fetch the SDK handler each time because the location might change.
-    // TODO: remove the need for doing this each time.
-    AndroidSdkHandler sdkHandler = mySdkHandler;
-    if (sdkHandler == null) {
-      sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-    }
-
-    ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-    sdkHandler.getSdkManager(progress).loadSynchronously(DEFAULT_EXPIRATION_PERIOD_MS, progress, myDownloader,
-                                                         mySettingsController);
-    return sdkHandler.getLatestRemotePackageForPrefix(SdkConstants.FD_CMAKE, false, progress);
-  }
-
   @Override
-  @Nullable
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
-    String text = rootCause.getMessage();
-    if (isNotEmpty(text) && getFirstLineMessage(text).startsWith("Failed to find CMake.") && myCmakePackage != null) {
+    String message = rootCause.getMessage();
+    if (isNotEmpty(message) && getFirstLineMessage(message).startsWith("Failed to find CMake.")) {
       updateUsageTracker();
       return "Failed to find CMake.";
     }
@@ -94,25 +44,6 @@ public class MissingCMakeErrorHandler extends BaseSyncErrorHandler {
   protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
                                                               @NotNull Project project,
                                                               @NotNull String text) {
-    if (myCmakePackage == null) {
-      return super.getQuickFixHyperlinks(notification, project, text);
-    }
-    List<NotificationHyperlink> hyperlinks = new ArrayList<>();
-    NotificationHyperlink installCMakeLink = getInstallCMakeNotificationHyperlink(myCmakePackage.getPath());
-    hyperlinks.add(installCMakeLink);
-    return hyperlinks;
-  }
-
-  @NotNull
-  private static NotificationHyperlink getInstallCMakeNotificationHyperlink(@NotNull String cmakePackagePath) {
-    return new NotificationHyperlink("install.cmake", "Install CMake and sync project") {
-      @Override
-      protected void execute(@NotNull Project project) {
-        ModelWizardDialog dialog = createDialogForPaths(project, ImmutableList.of(cmakePackagePath));
-        if (dialog != null && dialog.showAndGet()) {
-          GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
-        }
-      }
-    };
+    return Collections.singletonList(new InstallCMakeHyperlink());
   }
 }
