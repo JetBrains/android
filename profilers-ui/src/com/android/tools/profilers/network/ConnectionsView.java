@@ -15,12 +15,13 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.RangedTable;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.Range;
@@ -29,8 +30,8 @@ import com.android.tools.adtui.model.RangedTableModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ExpandedItemRendererComponentWrapper;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.Gray;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
@@ -49,7 +50,6 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -73,20 +73,6 @@ final class ConnectionsView {
     SENDING, RECEIVING, WAITING, NONE
   }
 
-  private static final EnumMap<NetworkState, Color> NETWORK_STATE_COLORS = new EnumMap<>(NetworkState.class);
-  private static final EnumMap<NetworkState, Color> NETWORK_STATE_SELECTED_COLORS = new EnumMap<>(NetworkState.class);
-
-  static {
-    NETWORK_STATE_COLORS.put(NetworkState.SENDING, NETWORK_SENDING_COLOR);
-    NETWORK_STATE_COLORS.put(NetworkState.RECEIVING, NETWORK_RECEIVING_COLOR);
-    NETWORK_STATE_COLORS.put(NetworkState.WAITING, NETWORK_WAITING_COLOR);
-    NETWORK_STATE_COLORS.put(NetworkState.NONE, TRANSPARENT_COLOR);
-
-    NETWORK_STATE_SELECTED_COLORS.put(NetworkState.SENDING, NETWORK_SENDING_COLOR);
-    NETWORK_STATE_SELECTED_COLORS.put(NetworkState.RECEIVING, NETWORK_RECEIVING_SELECTED_COLOR);
-    NETWORK_STATE_SELECTED_COLORS.put(NetworkState.WAITING, NETWORK_WAITING_COLOR);
-    NETWORK_STATE_SELECTED_COLORS.put(NetworkState.NONE, TRANSPARENT_COLOR);
-  }
 
   /**
    * Columns for each connection information
@@ -321,8 +307,17 @@ final class ConnectionsView {
   }
 
   private final class TimelineRenderer implements TableCellRenderer, TableModelListener {
+    private final EnumColors<NetworkState> NETWORK_STATE_COLORS = new EnumColors.Builder<NetworkState>(2)
+      .add(NetworkState.SENDING, NETWORK_SENDING_COLOR, NETWORK_SENDING_COLOR)
+      .add(NetworkState.RECEIVING, NETWORK_RECEIVING_COLOR, NETWORK_RECEIVING_SELECTED_COLOR)
+      .add(NetworkState.WAITING, NETWORK_WAITING_COLOR, NETWORK_WAITING_COLOR)
+      .add(NetworkState.NONE, TRANSPARENT_COLOR, TRANSPARENT_COLOR)
+      .build();
+
     private final JBColor AXIS_COLOR = new JBColor(Gray._103, Gray._120);
     private final JBColor AXIS_COLOR_SELECTED = JBColor.BLACK;
+
+
     /**
      * Keep in sync 1:1 with {@link ConnectionsTableModel#myDataList}. When the table asks for the
      * chart to render, it will be converted from model index to view index.
@@ -343,7 +338,7 @@ final class ConnectionsView {
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
       StateChart<NetworkState> chart = myCharts.get(myTable.convertRowIndexToModel(row));
-      chart.setColor(isSelected ? NETWORK_STATE_SELECTED_COLORS : NETWORK_STATE_COLORS);
+      chart.getColors().setColorIndex(isSelected ? 1 : 0);
 
       JPanel panel = new JBPanel(new TabularLayout("*" , "*"));
       if (row == 0) {
