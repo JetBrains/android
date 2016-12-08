@@ -20,6 +20,7 @@ import com.intellij.psi.xml.XmlTag;
 import junit.framework.TestCase;
 
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.android.SdkConstants.*;
 import static org.mockito.Mockito.mock;
@@ -34,7 +35,22 @@ public class TagSnapshotTest extends TestCase {
     XmlTag linearLayout = createTag("LinearLayout", button, textView);
     setAttributes(linearLayout, androidAttribute(ATTR_ORIENTATION, VALUE_VERTICAL));
 
-    TagSnapshot snapshot = TagSnapshot.createTagSnapshot(linearLayout);
+    AtomicInteger callCount = new AtomicInteger(0);
+    TagSnapshot snapshot = TagSnapshot.createTagSnapshot(linearLayout, (tag) -> {
+      callCount.incrementAndGet();
+
+      if ("LinearLayout".equals(tag.tagName)) {
+        assertEquals(VALUE_VERTICAL, tag.getAttribute(ATTR_ORIENTATION, ANDROID_URI));
+        assertEquals(2, tag.children.size());
+      }
+      else {
+        assertEquals(VALUE_WRAP_CONTENT, tag.getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI));
+        assertEquals(VALUE_WRAP_CONTENT, tag.getAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI));
+        assertEquals(0, tag.children.size());
+      }
+    });
+    // Once per element
+    assertEquals(3, callCount.get());
     TagSnapshot synthetic = TagSnapshot.createSyntheticTag(createTag("transformed"), "synthetic", null, null,
                                                            Collections.<AttributeSnapshot>emptyList(),
                                                            Collections.<TagSnapshot>emptyList());

@@ -384,7 +384,7 @@ public class NlModelTest extends LayoutTestCase {
 
     assertThat(originalFrameLayout).isSameAs(newButton);
 
-    TagSnapshot snapshot = TagSnapshot.createTagSnapshot(newRoot);
+    TagSnapshot snapshot = TagSnapshot.createTagSnapshot(newRoot, null);
     ViewInfo viewInfo = new ViewInfo("android.widget.LinearLayout", snapshot, 0, 0, 500, 500);
     views.add(viewInfo);
 
