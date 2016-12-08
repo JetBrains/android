@@ -121,6 +121,16 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
 
   @Nullable
   public static Icon getIconForViewTag(@NotNull String tagName) {
+    return getIconForView(tagName);
+  }
+
+  @Nullable
+  public static Icon getLargeIconForViewTag(@NotNull String tagName) {
+    return getIconForView(tagName + "Large");
+  }
+
+  @Nullable
+  private static Icon getIconForView(@NotNull String keyName) {
     synchronized (ourViewTagName2Icon) {
       if (ourViewTagName2Icon.isEmpty()) {
         final Map<String, Icon> map = getInitialViewTagName2IconMap();
@@ -129,11 +139,11 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
           ourViewTagName2Icon.put(entry.getKey(), Ref.create(entry.getValue()));
         }
       }
-      Ref<Icon> iconRef = ourViewTagName2Icon.get(tagName);
+      Ref<Icon> iconRef = ourViewTagName2Icon.get(keyName);
 
       if (iconRef == null) {
-        iconRef = Ref.create(IconLoader.findIcon("AndroidIcons.Views." + tagName));
-        ourViewTagName2Icon.put(tagName, iconRef);
+        iconRef = Ref.create(IconLoader.findIcon("AndroidIcons.Views." + keyName));
+        ourViewTagName2Icon.put(keyName, iconRef);
       }
       return iconRef.get();
     }
@@ -143,9 +153,13 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
   private static Map<String, Icon> getInitialViewTagName2IconMap() {
     final HashMap<String, Icon> map = new HashMap<>();
     map.put("fragment", AndroidIcons.Views.Fragment);
+    map.put("fragmentLarge", AndroidIcons.Views.FragmentLarge);
     map.put("include", AndroidIcons.Views.Include);
+    map.put("includeLarge", AndroidIcons.Views.IncludeLarge);
     map.put("view", AndroidIcons.Views.View);
+    map.put("viewLarge", AndroidIcons.Views.ViewLarge);
     map.put("requestFocus", AndroidIcons.Views.RequestFocus);
+    map.put("requestFocusLarge", AndroidIcons.Views.RequestFocusLarge);
     return map;
   }
 }

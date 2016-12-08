@@ -23,18 +23,15 @@ import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.text.StringUtil;
-import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.util.EnumSet;
 import java.util.List;
 
 import static com.android.SdkConstants.ATTR_LAYOUT;
 import static com.android.SdkConstants.ATTR_VISIBILITY;
-import static com.android.SdkConstants.TOOLS_URI;
 
 /**
  * Handler for the {@code <include>} tag
@@ -65,18 +62,6 @@ public final class IncludeHandler extends ViewHandler {
   public String getTitleAttributes(@NotNull NlComponent component) {
     String layout = component.getAttribute(null, ATTR_LAYOUT);
     return StringUtil.isEmpty(layout) ? "" : "- " + layout;
-  }
-
-  @Override
-  @NotNull
-  public Icon getIcon(@NotNull String tagName) {
-    return AndroidIcons.Views.Include;
-  }
-
-  @Override
-  @NotNull
-  public Icon getIcon(@NotNull NlComponent component) {
-    return AndroidIcons.Views.Include;
   }
 
   @Override
