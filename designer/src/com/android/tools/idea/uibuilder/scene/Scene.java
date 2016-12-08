@@ -504,7 +504,7 @@ public class Scene implements ModelListener, SelectionListener {
    *
    * @param component
    */
-  public void select(ArrayList<SceneComponent> components) {
+  public void select(List<SceneComponent> components) {
     if (myScreenView != null) {
       ArrayList<NlComponent> nlComponents = new ArrayList<>();
       if (myIsShiftDown) {
@@ -603,11 +603,10 @@ public class Scene implements ModelListener, SelectionListener {
    */
   class HitListener implements ScenePicker.HitElementListener {
     private ScenePicker myPicker = new ScenePicker();
-    SceneComponent myClosestComponent;
     double myClosestComponentDistance = Double.MAX_VALUE;
-    Target myClosestTarget;
     double myClosestTargetDistance = Double.MAX_VALUE;
-    int myClosestTargetLevel = 0;
+    ArrayList<SceneComponent> myHitComponents = new ArrayList<>();
+    ArrayList<Target> myHitTargets = new ArrayList<>();
 
     public HitListener() {
       myPicker.setSelectListener(this);
@@ -617,11 +616,10 @@ public class Scene implements ModelListener, SelectionListener {
                      @NotNull SceneComponent root,
                      @AndroidDpCoordinate int x,
                      @AndroidDpCoordinate int y) {
-      myClosestComponent = null;
-      myClosestTarget = null;
+      myHitComponents.clear();
+      myHitTargets.clear();
       myClosestComponentDistance = Double.MAX_VALUE;
       myClosestTargetDistance = Double.MAX_VALUE;
-      myClosestTargetLevel = -1;
       myPicker.reset();
       root.addHit(transform, myPicker);
       myPicker.find(transform.getSwingX(x), transform.getSwingY(y));
@@ -631,45 +629,131 @@ public class Scene implements ModelListener, SelectionListener {
     public void over(Object over, double dist) {
       if (over instanceof Target) {
         Target target = (Target)over;
-        if (dist < myClosestTargetDistance
-            || (dist == myClosestTargetDistance
-                && prefer(target.getComponent(),
-                          myClosestTarget != null ? myClosestTarget.getComponent() : null)
-                && target.getPreferenceLevel() >= myClosestTargetLevel)
-            || (dist == myClosestTargetDistance
-                && myClosestTarget == myHitTarget
-                && target instanceof AnchorTarget)) {
+        if (dist < myClosestTargetDistance) {
+          myHitTargets.clear();
+          myHitTargets.add(target);
           myClosestTargetDistance = dist;
-          myClosestTarget = target;
-          myClosestTargetLevel = target.getPreferenceLevel();
+        } else if (dist == myClosestTargetDistance) {
+          myHitTargets.add(target);
         }
       }
       else if (over instanceof SceneComponent) {
         SceneComponent component = (SceneComponent)over;
-        if (dist < myClosestComponentDistance
-            || (dist == myClosestComponentDistance && prefer(component, myCurrentComponent))) {
+        if (dist < myClosestComponentDistance) {
+          myHitComponents.clear();
+          myHitComponents.add(component);
           myClosestComponentDistance = dist;
-          myClosestComponent = component;
+        } else if (dist == myClosestComponentDistance) {
+          myHitComponents.add(component);
         }
       }
     }
-  }
 
-  private boolean prefer(SceneComponent component, SceneComponent current) {
-    if (current == null) {
-      return true;
-    }
-    if (current == component) {
-      return true;
-    }
-    SceneComponent parent = component.getParent();
-    while (parent != null) {
-      if (parent == current) {
-        return true;
+    /**
+     * Return the "best" target among the list of targets found by the hit detector.
+     * If more than one target have been found, we pick the top-level target preferably,
+     * unless there's a component selected (in that case, we pick the best top-level target belonging
+     * to a component in the selection)
+     *
+     * @return preferred target
+     */
+    public Target getClosestTarget() {
+      int count = myHitTargets.size();
+      if (count == 0) {
+        return null;
       }
-      parent = parent.getParent();
+      if (count == 1) {
+        return myHitTargets.get(0);
+      }
+      List<NlComponent> selection = myScreenView.getSelectionModel().getSelection();
+      if (selection.isEmpty()) {
+        Target candidate = myHitTargets.get(count - 1);
+        for (int i = count - 2; i >= 0; i--) {
+          Target target = myHitTargets.get(i);
+          if (target.getPreferenceLevel() > candidate.getPreferenceLevel()) {
+            candidate = target;
+          }
+        }
+        return candidate;
+      }
+      Target candidate = myHitTargets.get(count - 1);
+      boolean inSelection = selection.contains(candidate.getComponent().getNlComponent());
+
+      for (int i = count - 2; i >= 0; i--) {
+        Target target = myHitTargets.get(i);
+        if (!selection.contains(target.getComponent().getNlComponent())) {
+           continue;
+        }
+        if (!inSelection || target.getPreferenceLevel() > candidate.getPreferenceLevel()) {
+          candidate = target;
+          inSelection = true;
+        }
+      }
+      return candidate;
     }
-    return false;
+
+    /**
+     * Return a target out of the list of hit targets that doesn't
+     * include filteredTarget -- unless that's the only choice. The idea is that when dealing with targets,
+     * if there's overlap, you don't want to pick on mouseRelease the same one you already clicked on in mouseDown.
+     *
+     * @param filteredTarget
+     * @return the preferred target out of the list
+     */
+    public Target getFilteredTarget(Target filteredTarget) {
+      int count = myHitTargets.size();
+      Target hit = null;
+      boolean found = false;
+      for (int i = 0; i < count; i++) {
+        Target target = myHitTargets.get(i);
+        if (target == filteredTarget) {
+          found = true;
+          continue;
+        }
+        if (target.getClass() == filteredTarget.getClass()){
+          hit = target;
+        }
+      }
+      if (hit == null && found) {
+        hit = filteredTarget;
+      }
+      return hit;
+    }
+
+    /**
+     * We want to get the best component, defined as the top-level one (in the draw order) and
+     * a preference to the selected one (in case multiple components overlap)
+     *
+     * @return the best component to pick
+     */
+    public SceneComponent getClosestComponent() {
+      int count = myHitComponents.size();
+      if (count == 0) {
+        return null;
+      }
+      if (count == 1) {
+        return myHitComponents.get(0);
+      }
+      List<NlComponent> selection = myScreenView.getSelectionModel().getSelection();
+      if (selection.isEmpty()) {
+        return myHitComponents.get(count - 1);
+      }
+      SceneComponent candidate = myHitComponents.get(count - 1);
+      boolean inSelection = selection.contains(candidate.getNlComponent());
+      if (inSelection) {
+        return candidate;
+      }
+
+      for (int i = count - 2; i >= 0; i--) {
+        SceneComponent target = myHitComponents.get(i);
+        if (!selection.contains(target.getNlComponent())) {
+          continue;
+        }
+        candidate = target;
+        break;
+      }
+      return candidate;
+    }
   }
 
   /**
@@ -685,24 +769,26 @@ public class Scene implements ModelListener, SelectionListener {
     if (myRoot != null) {
       myHoverListener.find(transform, myRoot, x, y);
     }
-    if (myOverTarget != myHoverListener.myClosestTarget) {
+    Target closestTarget = myHoverListener.getClosestTarget();
+    if (myOverTarget != closestTarget) {
       if (myOverTarget != null) {
         myOverTarget.setOver(false);
         myOverTarget = null;
       }
-      if (myHoverListener.myClosestTarget != null) {
-        myHoverListener.myClosestTarget.setOver(true);
-        myOverTarget = myHoverListener.myClosestTarget;
+      if (closestTarget != null) {
+        closestTarget.setOver(true);
+        myOverTarget = closestTarget;
       }
     }
-    if (myCurrentComponent != myHoverListener.myClosestComponent) {
+    SceneComponent closestComponent = myHoverListener.getClosestComponent();
+    if (myCurrentComponent != closestComponent) {
       if (myCurrentComponent != null) {
         myCurrentComponent.setDrawState(SceneComponent.DrawState.NORMAL);
         myCurrentComponent = null;
       }
-      if (myHoverListener.myClosestComponent != null) {
-        myHoverListener.myClosestComponent.setDrawState(SceneComponent.DrawState.HOVER);
-        myCurrentComponent = myHoverListener.myClosestComponent;
+      if (closestComponent != null) {
+        closestComponent.setDrawState(SceneComponent.DrawState.HOVER);
+        myCurrentComponent = closestComponent;
       }
     }
     if (myOverTarget != null) {
@@ -719,8 +805,9 @@ public class Scene implements ModelListener, SelectionListener {
       return;
     }
     myHitListener.find(transform, myRoot, x, y);
-    myHitTarget = myHitListener.myClosestTarget;
-    myHitComponent = myHitListener.myClosestComponent;
+    myHitTarget = null;
+    myHitTarget = myHitListener.getClosestTarget();
+    myHitComponent = myHitListener.getClosestComponent();
     if (myHitTarget != null) {
       if (myHitTarget instanceof AnchorTarget) {
         AnchorTarget anchor = (AnchorTarget)myHitTarget;
@@ -746,7 +833,7 @@ public class Scene implements ModelListener, SelectionListener {
     myLastMouseY = y;
     if (myHitTarget != null) {
       myHitListener.find(transform, myRoot, x, y);
-      myHitTarget.mouseDrag(x, y, myHitListener.myClosestTarget);
+      myHitTarget.mouseDrag(x, y, myHitListener.getClosestTarget());
     }
     mouseHover(transform, x, y);
     if (mNeedsLayout != NO_LAYOUT) {
@@ -759,11 +846,11 @@ public class Scene implements ModelListener, SelectionListener {
     myLastMouseY = y;
     if (myHitTarget != null) {
       myHitListener.find(transform, myRoot, x, y);
-      myHitTarget.mouseRelease(x, y, myHitListener.myClosestTarget);
+      myHitTarget.mouseRelease(x, y, myHitListener.getFilteredTarget(myHitTarget));
     }
     myFilterTarget = FilterType.NONE;
     myNewSelectedComponents.clear();
-    if (myHitComponent != null && myHitListener.myClosestComponent == myHitComponent) {
+    if (myHitComponent != null && myHitListener.getClosestComponent() == myHitComponent) {
       myNewSelectedComponents.add(myHitComponent);
     }
     if (myHitTarget instanceof ActionTarget) {
