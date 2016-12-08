@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.uibuilder.mockup.editor.FileChooserActionListener;
+import com.android.tools.idea.uibuilder.mockup.editor.MockUpFileChooser;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import org.jetbrains.android.dom.attrs.ToolsAttributeUtil;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
@@ -36,11 +36,11 @@ import static com.android.tools.idea.rendering.RenderService.MOCKUP_EDITOR_ENABL
  * Shows the popup for editing the mockup of the selected component
  */
 public class MockupEditAction extends AnAction {
-
-  private static FileChooserActionListener ourFileChooserActionListener = new FileChooserActionListener();
   private final static String EDIT_ACTION_TITLE = "Edit Mockup";
   private final static String ADD_ACTION_TITLE = "Add Mockup";
+
   private final MockupToggleAction myMockupToggleAction;
+  private final DesignSurface myDesignSurface;
 
   public MockupEditAction(@NotNull DesignSurface designSurface) {
     super(ADD_ACTION_TITLE);
@@ -48,48 +48,67 @@ public class MockupEditAction extends AnAction {
     if (!MOCKUP_EDITOR_ENABLED) {
       getTemplatePresentation().setEnabledAndVisible(false);
       myMockupToggleAction = null;
+      myDesignSurface = null;
       return;
     }
 
+    myDesignSurface = designSurface;
     myMockupToggleAction = new MockupToggleAction(designSurface);
-    ScreenView screenView = designSurface.getCurrentScreenView();
-    if (screenView != null) {
-      List<NlComponent> selection = screenView.getSelectionModel().getSelection();
-      if (selection.isEmpty()) {
-        selection = screenView.getModel().getComponents();
+  }
+
+  @Override
+  public void update(@NotNull AnActionEvent event) {
+    Presentation presentation = event.getPresentation();
+    if (MOCKUP_EDITOR_ENABLED) {
+      // If the selected component already has a mock-up attribute, display the Edit text
+      // else display the add text
+      NlComponent component = getFirstSelectedComponent();
+      if (component == null) {
+        presentation.setEnabled(false);
       }
-      if (!selection.isEmpty()) {
-        NlComponent nlComponent = selection.get(0);
-        Presentation presentation = getTemplatePresentation();
-
-        // If the selected component already has a mockup attribute, display the Edit text
-        // else display the add text
-        if (nlComponent.getAttribute(TOOLS_URI, ATTR_MOCKUP) != null) {
-          presentation.setText(EDIT_ACTION_TITLE);
-        }
-        else {
-          presentation.setText(ADD_ACTION_TITLE);
-        }
-
-        // When changing the mockup, we want to change both the file and reset the cropping
-        // so we add the two properties
-        ourFileChooserActionListener.setFilePathProperty(new NlPropertyItem(
-          Collections.singletonList(nlComponent),
-          TOOLS_URI, ToolsAttributeUtil.getAttrDefByName(ATTR_MOCKUP)));
-
-        ourFileChooserActionListener.setCropProperty(new NlPropertyItem(
-          Collections.singletonList(nlComponent),
-          TOOLS_URI, ToolsAttributeUtil.getAttrDefByName(ATTR_MOCKUP_CROP)));
+      else if (component.getAttribute(TOOLS_URI, ATTR_MOCKUP) != null) {
+        presentation.setText(EDIT_ACTION_TITLE);
       }
       else {
-        getTemplatePresentation().setEnabled(false);
+        presentation.setText(ADD_ACTION_TITLE);
       }
     }
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
-    myMockupToggleAction.setSelected(e, true);
-    ourFileChooserActionListener.actionPerformed(null);
+  public void actionPerformed(@NotNull AnActionEvent event) {
+    myMockupToggleAction.setSelected(event, true);
+    NlComponent component = getFirstSelectedComponent();
+    if (component == null) {
+      return;
+    }
+    Project project = component.getModel().getProject();
+    myMockupToggleAction.setSelected(event, true);
+    MockUpFileChooser.INSTANCE.chooseMockUpFile(
+      component,
+      (path) -> new WriteCommandAction.Simple(project, event.getPresentation().getText()) {
+        @Override
+        protected void run() throws Throwable {
+          component.setAttribute(TOOLS_URI, ATTR_MOCKUP, path);
+          component.setAttribute(TOOLS_URI, ATTR_MOCKUP_CROP, "");
+        }
+      }.execute()
+    );
+  }
+
+  @Nullable
+  public NlComponent getFirstSelectedComponent() {
+    ScreenView screenView = myDesignSurface.getCurrentScreenView();
+    if (screenView == null) {
+      return null;
+    }
+    List<NlComponent> selection = screenView.getSelectionModel().getSelection();
+    if (selection.isEmpty()) {
+      selection = screenView.getModel().getComponents();
+    }
+    if (selection.isEmpty()) {
+      return null;
+    }
+    return selection.get(0);
   }
 }
