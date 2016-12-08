@@ -231,7 +231,7 @@ final class ConnectionsView {
     myTableModel.addTableModelListener(e ->
       SwingUtilities.invokeLater(() -> {
         // Invoke later, because table itself listener of table model.
-        HttpData selectedData = myStage.getConnection();
+        HttpData selectedData = myStage.getSelectedConnection();
         if (selectedData != null) {
           for (int i = 0; i < myTableModel.getRowCount(); ++i) {
             if (myTableModel.getHttpData(i).getId() == selectedData.getId()) {

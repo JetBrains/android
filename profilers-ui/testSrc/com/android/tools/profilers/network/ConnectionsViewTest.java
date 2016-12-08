@@ -95,7 +95,7 @@ public class ConnectionsViewTest {
     // auto-selects it, which is checked for below.
     int arbitraryIndex = 1;
     HttpData activeData = convert(FakeNetworkService.FAKE_DATA.get(arbitraryIndex));
-    myStage.setConnection(activeData);
+    myStage.setSelectedConnection(activeData);
 
     CountDownLatch latchSelected = new CountDownLatch(1);
     table.getSelectionModel().addListSelectionListener(e -> {
