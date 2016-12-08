@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
-import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -84,7 +83,6 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
         }
         if (!isTest) {
           myProject.save();
-          DaemonCodeAnalyzer.getInstance(myProject).restart();
         }
       }
 
