@@ -27,7 +27,10 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
@@ -245,7 +248,11 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface> {
             myModel.getSelectionModel().setSelection(myModel.getComponents());
           }
           if (!selection.isEmpty()) {
-            new MockupEditAction(mySurface).actionPerformed(null);
+            MockupEditAction action = new MockupEditAction(mySurface);
+            AnActionEvent event = new AnActionEvent(
+              null, DataContext.EMPTY_CONTEXT, "", action.getTemplatePresentation().clone(), ActionManager.getInstance(), 0);
+            action.update(event);
+            action.actionPerformed(event);
           }
         }
       }
