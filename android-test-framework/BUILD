@@ -13,7 +13,7 @@ iml_module(
         "//tools/adt/idea/android[module, test]",
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/android/lib:jsr305-1.3.9[test]",
+        "//tools/idea/.idea/libraries:jsr305[test]",
         "//tools/adt/idea/adt-ui[module, test]",
     ],
 )

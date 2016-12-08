@@ -18,7 +18,7 @@ iml_module(
         "//tools/idea:platform-impl_and_others[module]",
         "//tools/base/pixelprobe:studio.pixelprobe[module]",
         "//tools/base/annotations:studio.android-annotations[module]",
-        "//tools/adt/idea/android/lib:jsr305-1.3.9",
+        "//tools/idea/.idea/libraries:jsr305",
         "//tools/idea/platform/lang-api[module]",
         "//tools/idea/.idea/libraries:layoutlib",
         "//tools/idea/java/java-psi-impl[module]",
