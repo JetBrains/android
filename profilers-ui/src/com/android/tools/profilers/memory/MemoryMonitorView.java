@@ -27,6 +27,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitorView;
+import com.android.tools.profilers.StudioProfilersView;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,8 +43,8 @@ public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
 
   private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 2, 5);
 
-  public MemoryMonitorView(@NotNull MemoryMonitor monitor) {
-    super(monitor);
+  public MemoryMonitorView(@NotNull StudioProfilersView profilersView, @NotNull MemoryMonitor monitor) {
+    super(profilersView, monitor);
   }
 
   @Override

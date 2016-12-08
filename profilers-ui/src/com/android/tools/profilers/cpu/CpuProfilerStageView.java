@@ -64,9 +64,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   @Nullable
   private CpuCaptureView myCaptureView;
 
-  public CpuProfilerStageView(@NotNull CpuProfilerStage stage) {
+  public CpuProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull CpuProfilerStage stage) {
     // TODO: decide if the constructor should be split into multiple methods in order to organize the code and improve readability
-    super(stage);
+    super(profilersView, stage);
     myStage = stage;
 
     stage.getAspect().addDependency()
@@ -90,7 +90,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     CpuMonitor cpu = new CpuMonitor(profilers);
     EventMonitor events = new EventMonitor(profilers);
-    EventMonitorView eventsView = new EventMonitorView(events);
+    EventMonitorView eventsView = new EventMonitorView(profilersView, events);
     JComponent eventsComponent = eventsView.initialize(getChoreographer());
 
     Range leftYRange = new Range(0, 100);
