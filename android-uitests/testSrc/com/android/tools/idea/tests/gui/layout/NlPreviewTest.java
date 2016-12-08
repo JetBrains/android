@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.layout;
 
-import com.android.repository.Revision;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
@@ -39,7 +37,6 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForBackgro
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static org.junit.Assert.*;
-import static org.junit.Assume.assumeTrue;
 
 /**
  * UI test for the layout preview window
@@ -163,18 +160,11 @@ public class NlPreviewTest {
     // matches the expected overlay semantics); also edits these in the Gradle file and
     // checks that the layout rendering is updated after a Gradle sync.
 
-    guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
-
-    AndroidModuleModel androidModel = guiTest.ideFrame().getAndroidModel("app");
-    String modelVersion = androidModel.getAndroidProject().getModelVersion();
-    Revision version = Revision.parseRevision(modelVersion);
-    assumeTrue("This test tests behavior that starts working in 0.14.+", version.getMajor() != 0 || version.getMinor() >= 14);
-
-    EditorFixture editor = guiTest.ideFrame().getEditor();
     String layoutFilePath = "app/src/main/res/layout/dynamic_layout.xml";
-    editor.open(layoutFilePath, EditorFixture.Tab.EDITOR);
-    NlPreviewFixture preview = editor.getLayoutPreview(true);
-    preview.waitForRenderToFinish();
+    EditorFixture editor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest").getEditor();
+    NlPreviewFixture preview = editor.open(layoutFilePath, EditorFixture.Tab.EDITOR)
+      .getLayoutPreview(true)
+      .waitForRenderToFinish();
 
     assertFalse(preview.hasRenderErrors());
 
