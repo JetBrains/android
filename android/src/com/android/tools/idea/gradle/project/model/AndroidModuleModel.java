@@ -33,11 +33,17 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.search.GlobalSearchScope;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -1056,8 +1062,36 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @Override
-  @Nullable
-  public Long getLastBuildTimestamp(@NotNull Project project) {
-    return PostProjectBuildTasksExecutor.getInstance(project).getLastBuildTimestamp();
+  public boolean isClassFileOutOfDate(@NotNull Module module, @NotNull String fqcn, @NotNull VirtualFile classFile) {
+    Project project = module.getProject();
+    GlobalSearchScope scope = module.getModuleWithDependenciesScope();
+    VirtualFile sourceFile =
+      ApplicationManager.getApplication().runReadAction((Computable<VirtualFile>)() -> {
+        PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(fqcn, scope);
+        if (psiClass == null) {
+          return null;
+        }
+        PsiFile psiFile = psiClass.getContainingFile();
+        if (psiFile == null) {
+          return null;
+        }
+        return psiFile.getVirtualFile();
+      });
+
+    // Edited but not yet saved?
+    if (sourceFile == null || FileDocumentManager.getInstance().isFileModified(sourceFile)) {
+      return false;
+    }
+    // Check timestamp
+    long sourceFileModified = sourceFile.getTimeStamp();
+
+    // User modifications on the source file might not always result on a new .class file.
+    // We use the project modification time instead to display the warning more reliably.
+    long lastBuildTimestamp = classFile.getTimeStamp();
+    Long projectBuildTimestamp = PostProjectBuildTasksExecutor.getInstance(project).getLastBuildTimestamp();
+    if (projectBuildTimestamp != null) {
+      lastBuildTimestamp = projectBuildTimestamp;
+    }
+    return sourceFileModified > lastBuildTimestamp && lastBuildTimestamp > 0L;
   }
 }
