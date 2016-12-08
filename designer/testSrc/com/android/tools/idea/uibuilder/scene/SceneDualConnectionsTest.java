@@ -28,6 +28,7 @@ import static com.android.SdkConstants.TEXT_VIEW;
 public class SceneDualConnectionsTest extends SceneTest {
 
   public void testDeleteLeft() {
+    myInteraction.select("button", true);
     myInteraction.mouseDown("button", AnchorTarget.Type.LEFT);
     myInteraction.mouseRelease("button", AnchorTarget.Type.LEFT);
     myScreen.get("@id/button")
@@ -51,6 +52,7 @@ public class SceneDualConnectionsTest extends SceneTest {
   }
 
   public void testDeleteTop() {
+    myInteraction.select("button", true);
     myInteraction.mouseDown("button", AnchorTarget.Type.TOP);
     myInteraction.mouseRelease("button", AnchorTarget.Type.TOP);
     myScreen.get("@id/button")
@@ -74,6 +76,7 @@ public class SceneDualConnectionsTest extends SceneTest {
   }
 
   public void testDeleteRight() {
+    myInteraction.select("button", true);
     myInteraction.mouseDown("button", AnchorTarget.Type.RIGHT);
     myInteraction.mouseRelease("button", AnchorTarget.Type.RIGHT);
     myScreen.get("@id/button")
@@ -97,6 +100,7 @@ public class SceneDualConnectionsTest extends SceneTest {
   }
 
   public void testDeleteBottom() {
+    myInteraction.select("button", true);
     myInteraction.mouseDown("button", AnchorTarget.Type.BOTTOM);
     myInteraction.mouseRelease("button", AnchorTarget.Type.BOTTOM);
     myScreen.get("@id/button")
