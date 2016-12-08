@@ -175,7 +175,7 @@ iml_module(
         "//tools/idea/plugins/junit[module, test]",
         "//tools/adt/idea/profilers[module, test]",
         "//tools/adt/idea/android-test-framework[module, test]",
-        "//tools/adt/idea/android/lib:jsr305-1.3.9",
+        "//tools/idea/.idea/libraries:jsr305[test]",
         "//tools/analytics-library/shared:analytics-shared[module, test]",
         "//tools/analytics-library/testing:analytics-testing[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
