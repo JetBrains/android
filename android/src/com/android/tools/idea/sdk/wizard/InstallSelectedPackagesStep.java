@@ -333,6 +333,10 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
       myLogger.info(s);
     }
 
+    @Override
+    public void logVerbose(@NotNull String s) {
+    }
+
     private void appendText(@NotNull final String s) {
       UIUtil.invokeLaterIfNeeded(() -> {
         String current = mySdkManagerOutput.getText();
