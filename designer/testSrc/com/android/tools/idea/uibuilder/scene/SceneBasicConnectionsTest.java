@@ -28,6 +28,7 @@ import static com.android.SdkConstants.TEXT_VIEW;
 public class SceneBasicConnectionsTest extends SceneTest {
 
   public void testConnectLeft() {
+    myInteraction.select("button", true);
     myInteraction.mouseDown("button", AnchorTarget.Type.LEFT);
     myInteraction.mouseRelease("root", AnchorTarget.Type.LEFT);
     myScreen.get("@id/button")
@@ -40,6 +41,7 @@ public class SceneBasicConnectionsTest extends SceneTest {
   }
 
   public void testConnectTop() {
+    myInteraction.select("button", true);
     myInteraction.mouseDown("button", AnchorTarget.Type.TOP);
     myInteraction.mouseRelease("root", AnchorTarget.Type.TOP);
     myScreen.get("@id/button")
@@ -52,6 +54,7 @@ public class SceneBasicConnectionsTest extends SceneTest {
   }
 
   public void testConnectRight() {
+    myInteraction.select("button", true);
     myInteraction.mouseDown("button", AnchorTarget.Type.RIGHT);
     myInteraction.mouseRelease("root", AnchorTarget.Type.RIGHT);
     myScreen.get("@id/button")
@@ -64,6 +67,7 @@ public class SceneBasicConnectionsTest extends SceneTest {
   }
 
   public void testConnectBottom() {
+    myInteraction.select("button", true);
     myInteraction.mouseDown("button", AnchorTarget.Type.BOTTOM);
     myInteraction.mouseRelease("root", AnchorTarget.Type.BOTTOM);
     myScreen.get("@id/button")
