@@ -8,16 +8,28 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.idea.rendering.RenderClassLoader;
 import com.android.tools.idea.rendering.RenderSecurityManager;
-import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.FileResourceRepository;
 import com.android.tools.idea.res.ResourceClassRegistry;
+import com.android.tools.idea.res.AppResourceRepository;
 import com.android.utils.SdkUtils;
+import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
+import com.google.common.io.Files;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.containers.WeakHashMap;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -28,11 +40,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
-import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
@@ -82,7 +94,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
       if (!myInsideJarClassLoader) {
         final Module module = myModuleReference.get();
         if (module != null) {
-          if (isResourceClassName(name)) {
+          int index = name.lastIndexOf('.');
+          if (index != -1 && name.charAt(index + 1) == 'R' && (index == name.length() - 2 || name.charAt(index + 2) == '$') && index > 1) {
             AppResourceRepository appResources = AppResourceRepository.getAppResources(module, false);
             if (appResources != null) {
               byte[] data = ResourceClassRegistry.get(module.getProject()).findClassDefinition(name, appResources);
@@ -248,39 +261,72 @@ public final class ModuleClassLoader extends RenderClassLoader {
    * @return true if the source file has been modified, or false if not (or if the source file cannot be found)
    */
   public boolean isSourceModified(@NotNull final String fqcn, @Nullable final Object myCredential) {
-    // Don't flag R.java edits; not done by user
-    if (isResourceClassName(fqcn)) {
-      return false;
-    }
-
-    Module module = myModuleReference.get();
+    final Module module = myModuleReference.get();
     if (module == null) {
       return false;
     }
     VirtualFile classFile = getClassFile(fqcn);
 
     // Make sure the class file is up to date and if not, log an error
-    if (classFile == null) {
-      return false;
-    }
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null || facet.getAndroidModel() == null) {
-      return false;
-    }
-    // Allow file system access for timestamps.
-    boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
-    try {
-      return facet.getAndroidModel().isClassFileOutOfDate(module, fqcn, classFile);
-    } finally {
-      RenderSecurityManager.exitSafeRegion(token);
-    }
-  }
+    if (classFile != null) {
+      // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
+      boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
+      try {
+        long classFileModified = classFile.getTimeStamp();
+        if (classFileModified > 0L) {
+          VirtualFile virtualFile = ApplicationManager.getApplication().runReadAction(new Computable<VirtualFile>() {
+            @Nullable
+            @Override
+            public VirtualFile compute() {
+              Project project = module.getProject();
+              GlobalSearchScope scope = module.getModuleWithDependenciesScope();
+              PsiManager psiManager = PsiManager.getInstance(project);
+              JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(psiManager.getProject());
+              PsiClass source = psiFacade.findClass(fqcn, scope);
+              if (source != null) {
+                PsiFile containingFile = source.getContainingFile();
+                if (containingFile != null) {
+                  return containingFile.getVirtualFile();
+                }
+              }
+              return null;
+            }
+          });
 
-  // matches foo.bar.R or foo.bar.R$baz
-  private static final Pattern RESOURCE_CLASS_NAME = Pattern.compile(".+\\.R(\\$[^.]+)?$");
+          if (virtualFile != null && !FN_RESOURCE_CLASS.equals(virtualFile.getName())) { // Don't flag R.java edits; not done by user
+            // Edited but not yet saved?
+            boolean modified = FileDocumentManager.getInstance().isFileModified(virtualFile);
+            if (!modified) {
+              // Check timestamp
+              File sourceFile = VfsUtilCore.virtualToIoFile(virtualFile);
+              long sourceFileModified = sourceFile.lastModified();
 
-  private static boolean isResourceClassName(@NotNull String className) {
-    return RESOURCE_CLASS_NAME.matcher(className).matches();
+              AndroidFacet facet = AndroidFacet.getInstance(module);
+              // User modifications on the source file might not always result on a new .class file.
+              // We use the project modification time instead to display the warning more reliably.
+              // Also, some build systems may use a constant last modified timestamp for .class files,
+              // for deterministic builds, so the project modification time is more reliable.
+              long lastBuildTimestamp = classFileModified;
+              if (facet != null && facet.requiresAndroidModel() && facet.getAndroidModel() != null) {
+                Long projectBuildTimestamp = facet.getAndroidModel().getLastBuildTimestamp(module.getProject());
+                if (projectBuildTimestamp != null) {
+                  lastBuildTimestamp = projectBuildTimestamp;
+                }
+              }
+              if (sourceFileModified > lastBuildTimestamp && lastBuildTimestamp > 0L) {
+                modified = true;
+              }
+            }
+
+            return modified;
+          }
+        }
+      } finally {
+        RenderSecurityManager.exitSafeRegion(token);
+      }
+    }
+
+    return false;
   }
 
   @Override

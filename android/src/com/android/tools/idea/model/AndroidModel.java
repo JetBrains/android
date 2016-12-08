@@ -17,7 +17,6 @@ package com.android.tools.idea.model;
 
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -154,7 +153,8 @@ public interface AndroidModel {
   ClassJarProvider getClassJarProvider();
 
   /**
-   * @return Whether the class specified by fqcn is out of date and needs to be rebuilt.
+   * @return The timestamp of the latest project build, in milliseconds; or {@code null} if unknown.
    */
-  boolean isClassFileOutOfDate(@NotNull Module module, @NotNull String fqcn, @NotNull VirtualFile classFile);
+  @Nullable
+  Long getLastBuildTimestamp(@NotNull Project project);
 }
