@@ -26,7 +26,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -36,10 +35,10 @@ import static org.junit.Assert.*;
 public class NetworkRadioDataSeriesTest {
   private static final ImmutableList<NetworkProfiler.NetworkProfilerData> FAKE_DATA =
     new ImmutableList.Builder<NetworkProfiler.NetworkProfilerData>()
-      .add(TestNetworkService.newNetworkData(0, ConnectivityData.NetworkType.WIFI, ConnectivityData.RadioState.UNSPECIFIED))
-      .add(TestNetworkService.newNetworkData(5, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.ACTIVE))
-      .add(TestNetworkService.newNetworkData(10, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.IDLE))
-      .add(TestNetworkService.newNetworkData(15, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.SLEEPING))
+      .add(TestNetworkService.newRadioData(0, ConnectivityData.NetworkType.WIFI, ConnectivityData.RadioState.UNSPECIFIED))
+      .add(TestNetworkService.newRadioData(5, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.ACTIVE))
+      .add(TestNetworkService.newRadioData(10, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.IDLE))
+      .add(TestNetworkService.newRadioData(15, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.SLEEPING))
       .build();
   @Rule public TestGrpcChannel<TestNetworkService> myGrpcChannel =
     new TestGrpcChannel<>("NetworkRadioDataSeriesTest", TestNetworkService.getInstanceForNetworkData(FAKE_DATA));
