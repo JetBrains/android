@@ -49,12 +49,12 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.sdklib.IAndroidTarget.RESOURCES;
+import static com.android.tools.idea.gradle.util.FilePaths.pathToFile;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createUniqueSdkName;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.JarFileSystem.JAR_SEPARATOR;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -247,10 +247,9 @@ public class AndroidSdks {
 
     Sdk sdk = table.createSdk(tempName, AndroidSdkType.getInstance());
 
-    SdkModificator sdkModificator = sdk.getSdkModificator();
+    SdkModificator sdkModificator = getAndInitialiseSdkModificator(sdk, target, jdk);
     sdkModificator.setHomePath(sdkPath.getPath());
-    setUpSdk(sdk, sdkModificator, target, sdkName, Arrays.asList(table.getAllJdks()), jdk, addRoots);
-    sdkModificator.commitChanges();
+    setUpSdkAndCommit(sdkModificator, sdkName, Arrays.asList(table.getAllJdks()), addRoots);
 
     ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().addJdk(sdk));
     return sdk;
@@ -262,39 +261,49 @@ public class AndroidSdks {
                        @NotNull Collection<Sdk> allSdks,
                        @Nullable Sdk jdk,
                        boolean addRoots) {
-    SdkModificator sdkModificator = androidSdk.getSdkModificator();
-    setUpSdk(androidSdk, sdkModificator, target, sdkName, allSdks, jdk, addRoots);
-    sdkModificator.commitChanges();
+    setUpSdkAndCommit(getAndInitialiseSdkModificator(androidSdk, target, jdk), sdkName, allSdks, addRoots);
   }
 
-  public void setUpSdk(@NotNull Sdk androidSdk,
-                       @NotNull SdkModificator androidSdkModificator,
-                       @NotNull IAndroidTarget target,
-                       @NotNull String sdkName,
-                       @NotNull Collection<Sdk> allSdks,
-                       @Nullable Sdk jdk,
-                       boolean addRoots) {
+  @NotNull
+  private static SdkModificator getAndInitialiseSdkModificator(@NotNull Sdk androidSdk,
+                                                               @NotNull IAndroidTarget target,
+                                                               @Nullable Sdk jdk) {
+    SdkModificator sdkModificator = androidSdk.getSdkModificator();
     AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(androidSdk, jdk);
     data.setBuildTarget(target);
+    sdkModificator.setSdkAdditionalData(data);
+    if (jdk != null) {
+      sdkModificator.setVersionString(jdk.getVersionString());
+    }
+    return sdkModificator;
+  }
 
-    findAndSetPlatformSources(target, androidSdkModificator);
+  private void setUpSdkAndCommit(@NotNull SdkModificator sdkModificator,
+                                 @NotNull String sdkName,
+                                 @NotNull Collection<Sdk> allSdks,
+                                 boolean addRoots) {
+    AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdkModificator.getSdkAdditionalData();
+    assert data != null;
+    AndroidSdkData androidSdkData = getSdkData(sdkModificator.getHomePath());
+    assert androidSdkData != null;
+    IAndroidTarget target = data.getBuildTarget(androidSdkData);
+    assert target != null;
+
+    findAndSetPlatformSources(target, sdkModificator);
 
     String name = createUniqueSdkName(sdkName, allSdks);
-    androidSdkModificator.setName(name);
-    if (jdk != null) {
-      androidSdkModificator.setVersionString(jdk.getVersionString());
-    }
-    androidSdkModificator.setSdkAdditionalData(data);
+    sdkModificator.setName(name);
 
     if (addRoots) {
-      List<OrderRoot> newRoots = getLibraryRootsForTarget(target, androidSdk, true);
-      androidSdkModificator.removeAllRoots();
+      List<OrderRoot> newRoots = getLibraryRootsForTarget(target, pathToFile(sdkModificator.getHomePath()), true);
+      sdkModificator.removeAllRoots();
       for (OrderRoot orderRoot : newRoots) {
-        androidSdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
+        sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
       }
       // TODO move this method to Jdks.
-      attachJdkAnnotations(androidSdkModificator);
+      attachJdkAnnotations(sdkModificator);
     }
+    sdkModificator.commitChanges();
   }
 
   public void findAndSetPlatformSources(@NotNull IAndroidTarget target, @NotNull SdkModificator sdkModificator) {
@@ -329,19 +338,8 @@ public class AndroidSdks {
 
   @NotNull
   public List<OrderRoot> getLibraryRootsForTarget(@NotNull IAndroidTarget target,
-                                                  @NotNull Sdk androidSdk,
+                                                  @Nullable File sdkPath,
                                                   boolean addPlatformAndAddOnJars) {
-    return getLibraryRootsForTarget(target, getHomePath(androidSdk), addPlatformAndAddOnJars);
-  }
-
-  @Nullable
-  private static File getHomePath(@NotNull Sdk androidSdk) {
-    String sdkPathValue = androidSdk.getHomePath();
-    return isNotEmpty(sdkPathValue) ? new File(sdkPathValue) : null;
-  }
-
-  @NotNull
-  public List<OrderRoot> getLibraryRootsForTarget(@NotNull IAndroidTarget target, @Nullable File sdkPath, boolean addPlatformAndAddOnJars) {
     List<OrderRoot> result = new ArrayList<>();
 
     if (addPlatformAndAddOnJars) {
