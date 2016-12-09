@@ -262,7 +262,7 @@ final class ConnectionsView {
     @Override
     public void update(@NotNull Range range) {
       if (myLastRange.getMin() != range.getMin() || myLastRange.getMax() != range.getMax()) {
-        myDataList = myStage.getRequestsModel().getData(range);
+        myDataList = myStage.getConnectionsModel().getData(range);
         fireTableDataChanged();
         myLastRange.set(range);
       }
