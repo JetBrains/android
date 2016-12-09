@@ -20,6 +20,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.netty.NettyChannelBuilder;
@@ -39,6 +40,7 @@ public class DataStoreService {
   private static final int MAX_MESSAGE_SIZE = 512 * 1024 * 1024 - 1;
   private ManagedChannel myChannel;
   private ServerBuilder myServerBuilder;
+  private Server myServer;
   private List<ServicePassThrough> myServices = new ArrayList<>();
   private LegacyAllocationTracker myLegacyAllocationTracker;
 
@@ -46,7 +48,8 @@ public class DataStoreService {
     try {
       myServerBuilder = InProcessServerBuilder.forName(name);
       createPollers();
-      myServerBuilder.build().start();
+      myServer = myServerBuilder.build();
+      myServer.start();
     }
     catch (IOException ex) {
       LOG.error(ex.getMessage());
@@ -117,6 +120,10 @@ public class DataStoreService {
       myChannel.shutdown();
     }
     myChannel = null;
+  }
+
+  public void shutdown() {
+    myServer.shutdownNow();
   }
 
   /**
