@@ -45,6 +45,7 @@ import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
+import com.intellij.ide.SaveAndSyncHandler;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.Extensions;
@@ -54,6 +55,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.util.EmptyRunnable;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -129,10 +131,7 @@ public class PostSyncProjectSetup {
    * Invoked after a project has been synced with Gradle.
    */
   public void setUpProject(@NotNull Request request, @Nullable ProgressIndicator progressIndicator) {
-    // Force a refresh after a sync.
-    // https://code.google.com/p/android/issues/detail?id=229633
-    ApplicationManager.getApplication()
-      .runWriteAction(() -> ProjectRootManagerEx.getInstanceEx(myProject).makeRootsChange(EmptyRunnable.INSTANCE, false, true));
+    forceRefresh();
 
     boolean syncFailed = mySyncState.lastSyncFailedOrHasIssues();
 
@@ -193,6 +192,17 @@ public class PostSyncProjectSetup {
         createRunConfigurations(facet);
       }
     }
+  }
+
+  private void forceRefresh() {
+    // Force a refresh after a sync.
+    // https://code.google.com/p/android/issues/detail?id=229633
+    ApplicationManager.getApplication()
+      .runWriteAction(() -> ProjectRootManagerEx.getInstanceEx(myProject).makeRootsChange(EmptyRunnable.INSTANCE, false, true));
+
+    // We are doing the same as SynchronizeAction, which seems to be the only thing that forces an actual refresh.
+    SaveAndSyncHandler.getInstance().refreshOpenFiles();
+    VirtualFileManager.getInstance().refreshWithoutFileWatcher(true /* asynchronous */);
   }
 
   private void onCachedModelsSetupFailure(@NotNull Request request) {
