@@ -16,21 +16,17 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.profilers.IdeProfilerComponents;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorProvider;
-import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.popup.IconButton;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.InplaceButton;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.components.labels.BoldLabel;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -46,8 +42,12 @@ public class ConnectionDetailsView extends JPanel {
   private final JPanel myFieldsPanel;
   private final JTextArea myCallstackView;
 
-  public ConnectionDetailsView() {
+  @NotNull
+  private final IdeProfilerComponents myIdeProfilerComponents;
+
+  public ConnectionDetailsView(@NotNull IdeProfilerComponents ideProfilerComponents) {
     super(new BorderLayout());
+    myIdeProfilerComponents = ideProfilerComponents;
 
     // Create 2x2 pane
     //     * Fit
@@ -95,17 +95,9 @@ public class ConnectionDetailsView extends JPanel {
     myCallstackView.setText("");
 
     if (httpData != null) {
-      VirtualFile payloadVirtualFile = httpData.getResponsePayloadFile() != null
-                                       ? LocalFileSystem.getInstance().findFileByIoFile(httpData.getResponsePayloadFile()) : null;
-      if (payloadVirtualFile != null) {
-        // TODO: Find proper project to refactor this.
-        Project project = ProjectManager.getInstance().getDefaultProject();
-        // TODO: Investigate when the editor provider is null.
-        FileEditorProvider[] editorProviders = FileEditorProviderManager.getInstance().getProviders(project, payloadVirtualFile);
-        FileEditor editor = editorProviders.length > 0 ? editorProviders[0].createEditor(project, payloadVirtualFile) : null;
-        if (editor != null) {
-          myEditorPanel.add(editor.getComponent(), BorderLayout.CENTER);
-        }
+      JComponent fileViewer = myIdeProfilerComponents.getFileViewer(httpData.getResponsePayloadFile());
+      if (fileViewer != null) {
+        myEditorPanel.add(fileViewer, BorderLayout.CENTER);
       }
 
       int row = 0;
@@ -144,6 +136,38 @@ public class ConnectionDetailsView extends JPanel {
     }
     setVisible(httpData != null);
     revalidate();
+  }
+
+  @VisibleForTesting
+  @Nullable
+  Component getFileViewer() {
+    return myEditorPanel.getComponentCount() > 0 ? myEditorPanel.getComponent(0) : null;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  int getFieldComponentIndex(String labelText) {
+    for (int i = 0; i < myFieldsPanel.getComponentCount(); i+=2) {
+      if (myFieldsPanel.getComponent(i) instanceof JLabel) {
+        JLabel label = (JLabel) myFieldsPanel.getComponent(i);
+        if (label.getText().contains(labelText)) {
+          return i;
+        }
+      }
+    }
+    return -1;
+  }
+
+  @VisibleForTesting
+  @Nullable
+  Component getFieldComponent(int index) {
+    return index >= 0 && index < myFieldsPanel.getComponentCount() ? myFieldsPanel.getComponent(index) : null;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  String getCallstackText() {
+    return myCallstackView.getText();
   }
 
   private static final class NoWrapBoldLabel extends BoldLabel {
