@@ -64,7 +64,8 @@ public class DeployApkTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    ApkInstaller installer = new ApkInstaller(myProject, myLaunchOptions, ServiceManager.getService(InstalledApkCache.class), printer);
+    FullApkInstaller
+      installer = new FullApkInstaller(myProject, myLaunchOptions, ServiceManager.getService(InstalledApkCache.class), printer);
     for (ApkInfo apk : myApks) {
       if (!apk.getFile().exists()) {
         String message = "The APK file " + apk.getFile().getPath() + " does not exist on disk.";
