@@ -16,7 +16,7 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.profiler.proto.*;
-import com.android.tools.profiler.proto.NetworkProfiler;
+import com.google.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,8 +29,10 @@ import static com.android.tools.profiler.proto.NetworkProfiler.*;
 
 public final class TestNetworkService extends NetworkServiceGrpc.NetworkServiceImplBase {
   public static final int FAKE_APP_ID = 1111;
-  @NotNull private final List<HttpData> myHttpDataList;
-  @NotNull private final List<NetworkProfilerData> myDataList;
+  public static final String FAKE_PAYLOAD = "Test Payload";
+
+  @NotNull private List<HttpData> myHttpDataList;
+  @NotNull private List<NetworkProfilerData> myDataList;
 
   private TestNetworkService(@NotNull Builder builder) {
     myDataList = builder.myDataList;
@@ -117,6 +119,13 @@ public final class TestNetworkService extends NetworkServiceGrpc.NetworkServiceI
     }
 
     responseObserver.onNext(response.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void getPayload(NetworkPayloadRequest request,
+                         StreamObserver<NetworkPayloadResponse> responseObserver) {
+    responseObserver.onNext(NetworkPayloadResponse.newBuilder().setContents(ByteString.copyFromUtf8(FAKE_PAYLOAD)).build());
     responseObserver.onCompleted();
   }
 

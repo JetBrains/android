@@ -20,7 +20,6 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.text.StringUtil;
-import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -46,13 +45,7 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
     NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
       .setAppId(myPid).setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax())).build();
-    NetworkProfiler.HttpRangeResponse response;
-
-    try {
-      response = myNetworkService.getHttpRange(request);
-    } catch (StatusRuntimeException e) {
-      return Collections.emptyList();
-    }
+    NetworkProfiler.HttpRangeResponse response = myNetworkService.getHttpRange(request);
 
     List<HttpData> httpDataList = new ArrayList<>(response.getDataList().size());
     for (NetworkProfiler.HttpConnectionData connection: response.getDataList()) {
@@ -78,12 +71,7 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
       .setConnId(connectionId)
       .setType(NetworkProfiler.HttpDetailsRequest.Type.REQUEST)
       .build();
-    NetworkProfiler.HttpDetailsResponse.Request result;
-    try {
-      result = myNetworkService.getHttpDetails(request).getRequest();
-    } catch (StatusRuntimeException e) {
-      return;
-    }
+    NetworkProfiler.HttpDetailsResponse.Request result = myNetworkService.getHttpDetails(request).getRequest();
     httpBuilder.setUrl(result.getUrl());
     httpBuilder.setMethod(result.getMethod());
     httpBuilder.setTrace(result.getTrace());
@@ -94,13 +82,8 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
       .setConnId(connectionId)
       .setType(NetworkProfiler.HttpDetailsRequest.Type.RESPONSE_BODY)
       .build();
-    NetworkProfiler.HttpDetailsResponse response;
-    try {
-      response = myNetworkService.getHttpDetails(request);
-    }
-    catch (StatusRuntimeException e) {
-      return;
-    }
+    NetworkProfiler.HttpDetailsResponse response = myNetworkService.getHttpDetails(request);
+
     String payloadId = response.getResponseBody().getPayloadId();
     httpBuilder.setResponsePayloadId(payloadId);
   }
@@ -115,12 +98,7 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
     NetworkProfiler.NetworkPayloadRequest payloadRequest = NetworkProfiler.NetworkPayloadRequest.newBuilder()
       .setPayloadId(data.getResponsePayloadId())
       .build();
-    NetworkProfiler.NetworkPayloadResponse payloadResponse;
-    try {
-      payloadResponse = myNetworkService.getPayload(payloadRequest);
-    } catch (StatusRuntimeException e) {
-      return ByteString.EMPTY;
-    }
+    NetworkProfiler.NetworkPayloadResponse payloadResponse = myNetworkService.getPayload(payloadRequest);
     return payloadResponse.getContents();
   }
 
@@ -129,13 +107,8 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
       .setConnId(connectionId)
       .setType(NetworkProfiler.HttpDetailsRequest.Type.RESPONSE)
       .build();
-    NetworkProfiler.HttpDetailsResponse response;
-    try {
-      response = myNetworkService.getHttpDetails(request);
-    }
-    catch (StatusRuntimeException e) {
-      return;
-    }
+    NetworkProfiler.HttpDetailsResponse response = myNetworkService.getHttpDetails(request);
+
     httpBuilder.setResponseFields(response.getResponse().getFields());
   }
 }
