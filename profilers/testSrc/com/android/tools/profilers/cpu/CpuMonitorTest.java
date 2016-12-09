@@ -21,6 +21,7 @@ import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.TestGrpcChannel;
+import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.intellij.util.containers.ImmutableList;
 import io.grpc.stub.StreamObserver;
 import org.junit.Before;
@@ -29,6 +30,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 
+import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.Assert.*;
 
 public class CpuMonitorTest {
@@ -82,7 +84,7 @@ public class CpuMonitorTest {
     StudioProfilers profilers = myGrpcChannel.getProfilers();
     assertNull(profilers.getStage());
     myMonitor.expand();
-    assertNotNull(profilers.getStage());
+    assertThat(profilers.getStage(), instanceOf(CpuProfilerStage.class));
   }
 
   private static class CpuServiceMock extends CpuServiceGrpc.CpuServiceImplBase {
