@@ -348,7 +348,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     NlComponent first = myComponents.get(0);
     String componentName = myComponents.size() == 1 ? first.getTagName() : "Multiple";
     String msg = String.format("Set %1$s.%2$s to %3$s", componentName, myName, attrValue);
-    new WriteCommandAction.Simple(getModel().getProject(), msg, first.getTag().getContainingFile()) {
+    new WriteCommandAction.Simple(getModel().getProject(), msg, getModel().getFile()) {
       @Override
       protected void run() throws Throwable {
         for (NlComponent component : myComponents) {
