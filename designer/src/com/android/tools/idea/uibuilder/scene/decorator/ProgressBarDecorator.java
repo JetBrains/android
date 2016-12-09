@@ -30,6 +30,12 @@ import java.awt.*;
  */
 public class ProgressBarDecorator extends SceneDecorator {
   public static class DrawProgressBar extends DrawRegion {
+
+    @Override
+    public int getLevel() {
+      return COMPONENT_LEVEL;
+    }
+
     DrawProgressBar(int x, int y, int width, int height) {
       super(x, y, width, height);
     }

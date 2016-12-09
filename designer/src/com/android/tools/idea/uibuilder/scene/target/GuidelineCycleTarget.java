@@ -45,7 +45,7 @@ public class GuidelineCycleTarget extends ConstraintTarget {
 
   @Override
   public int getPreferenceLevel() {
-    return 0;
+    return Target.GUIDELINE_LEVEL;
   }
 
   @Override
