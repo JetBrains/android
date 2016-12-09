@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.scene.decorator;
 
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.draw.DrawRegion;
+import com.android.tools.idea.uibuilder.scene.draw.DrawTextRegion;
 import com.android.tools.sherpa.drawing.ColorSet;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,26 +30,65 @@ import java.awt.*;
  * Support Buttons
  */
 public class CheckBoxDecorator extends SceneDecorator {
-  public static class DrawCheckbox extends DrawRegion {
+  public static class DrawCheckbox extends DrawTextRegion {
+    private float mScale;
     int[] xp = new int[3];
     int[] yp = new int[3];
 
-    DrawCheckbox(int x, int y, int width, int height) {
-      super(x, y, width, height);
+    @Override
+    public int getLevel() {
+      return COMPONENT_LEVEL;
+    }
+
+    DrawCheckbox(int x, int y, int width, int height, int baselineOffset, float scale, String text) {
+      super(x, y, width, height, baselineOffset, text, true, false, DrawTextRegion.TEXT_ALIGNMENT_VIEW_START,
+            DrawTextRegion.TEXT_ALIGNMENT_CENTER, 32);
+      mScale = scale;
+      mFont = mFont.deriveFont(32 * mScale);
     }
 
     public DrawCheckbox(String s) {
       String[] sp = s.split(",");
-      super.parse(sp, 0);
+      int c = 0;
+      x = Integer.parseInt(sp[c++]);
+      y = Integer.parseInt(sp[c++]);
+      width = Integer.parseInt(sp[c++]);
+      height = Integer.parseInt(sp[c++]);
+      myBaseLineOffset = Integer.parseInt(sp[c++]);
+      mScale = java.lang.Float.parseFloat(sp[c++]);
+      mFont = mFont.deriveFont(mFont.getSize() * mScale);
+      mText = s.substring(s.indexOf('\"') + 1, s.lastIndexOf('\"'));
+    }
+
+    @Override
+    public String serialize() {
+      return this.getClass().getSimpleName() +
+             "," +
+             x +
+             "," +
+             y +
+             "," +
+             width +
+             "," +
+             height +
+             "," +
+             myBaseLineOffset +
+             "," +
+             mScale +
+             ",\"" +
+             mText +
+             "\"";
     }
 
     @Override
     public void paint(Graphics2D g, SceneContext sceneContext) {
+      int margin = height / 5;
+      mHorizontalPadding = height;
+      super.paint(g, sceneContext);
       if (sceneContext.getColorSet().drawBackground()) {
         Stroke stroke = g.getStroke();
         g.setStroke(new BasicStroke(2));
         g.setColor(sceneContext.getColorSet().getFrames());
-        int margin = height / 5;
         g.drawRoundRect(x + margin, y + margin, height - margin * 2, height - margin * 2, 4, 4);
         margin *= 2;
         int xv = x + margin;
@@ -74,6 +115,9 @@ public class CheckBoxDecorator extends SceneDecorator {
     int t = sceneContext.getSwingY(rect.y);
     int w = sceneContext.getSwingDimension(rect.width);
     int h = sceneContext.getSwingDimension(rect.height);
-    list.add(new DrawCheckbox(l, t, w, h));
+    String text = ConstraintUtilities.getResolvedText(component.getNlComponent());
+    int baseLineOffset = sceneContext.getSwingDimension(component.getBaseline());
+    float scale = (float)sceneContext.getScale();
+    list.add(new DrawCheckbox(l, t, w, h, baseLineOffset, scale, text));
   }
 }

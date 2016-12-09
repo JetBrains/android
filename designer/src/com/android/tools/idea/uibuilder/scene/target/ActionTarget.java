@@ -31,7 +31,7 @@ import java.awt.*;
  */
 public class ActionTarget extends ConstraintTarget {
 
-  final static int mySize = 16;
+  final static int mySize = 12;
   final static int myGap = 4;
   final ActionTarget myPreviousActionTarget;
   Action myAction;
@@ -57,7 +57,7 @@ public class ActionTarget extends ConstraintTarget {
 
   @Override
   public int getPreferenceLevel() {
-    return 0;
+    return Target.ACTION_LEVEL;
   }
 
   @Override
@@ -85,7 +85,7 @@ public class ActionTarget extends ConstraintTarget {
       return;
     }
     if (myIsVisible) {
-      DrawAction.add(list, sceneContext, myLeft, myTop, myRight, myBottom, myActionType);
+      DrawAction.add(list, sceneContext, myLeft, myTop, myRight, myBottom, myActionType, mIsOver);
     }
   }
 

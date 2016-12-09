@@ -32,8 +32,21 @@ import java.awt.*;
 public class GuidelineTarget extends DragTarget {
   boolean myIsHorizontal = true;
 
+  @Override
+  public int getPreferenceLevel() {
+    return Target.GUIDELINE_LEVEL;
+  }
+
   public GuidelineTarget(boolean isHorizontal) {
     myIsHorizontal = isHorizontal;
+  }
+
+  @Override
+  public int getMouseCursor() {
+    if (myIsHorizontal) {
+      return Cursor.N_RESIZE_CURSOR;
+    }
+    return Cursor.E_RESIZE_CURSOR;
   }
 
   @Override
@@ -49,7 +62,7 @@ public class GuidelineTarget extends DragTarget {
 
   @Override
   public boolean layout(@NotNull SceneContext sceneTransform, int l, int t, int r, int b) {
-    int dist = 4;
+    int dist = 6;
     SceneComponent parent = myComponent.getParent();
     if (parent != null) {
       if (myIsHorizontal) {

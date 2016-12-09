@@ -29,6 +29,12 @@ import java.awt.*;
  */
 public class SeekBarDecorator extends SceneDecorator {
   public static class DrawSeekBar extends DrawRegion {
+
+    @Override
+    public int getLevel() {
+      return COMPONENT_LEVEL;
+    }
+
     DrawSeekBar(int x, int y, int width, int height) {
       super(x, y, width, height);
     }
