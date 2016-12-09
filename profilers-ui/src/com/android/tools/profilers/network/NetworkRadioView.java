@@ -80,7 +80,7 @@ public class NetworkRadioView {
     LegendComponent legend = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, Integer.MAX_VALUE);
     legend.setLegendData(getLegendData());
     // As legend doesn't change over time, it doesn't need to be in {@code Choreographer}}, so draw it by animating once.
-    legend.animate(1);
+    legend.update(1);
 
     JPanel topPane = new JPanel(new BorderLayout());
     topPane.setOpaque(false);

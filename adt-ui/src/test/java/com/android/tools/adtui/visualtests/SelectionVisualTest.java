@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.visualtests;
 
-import com.android.tools.adtui.Animatable;
+import com.android.tools.adtui.Updatable;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.SelectionComponent;
 import com.android.tools.adtui.model.Range;
@@ -40,7 +40,7 @@ public class SelectionVisualTest extends VisualTest {
   private JTextField mySelectionMax;
 
   @Override
-  protected List<Animatable> createComponentsList() {
+  protected List<Updatable> createComponentsList() {
 
     myRange = new Range(0, 1000);
     mySelectionRange = new Range(100, 900);
@@ -48,7 +48,7 @@ public class SelectionVisualTest extends VisualTest {
     mySelection = new SelectionComponent(mySelectionRange, myRange);
 
     // Add the scene components to the list
-    List<Animatable> componentsList = new ArrayList<>();
+    List<Updatable> componentsList = new ArrayList<>();
     componentsList.add(mySelection);
     componentsList.add(frameLength -> {
       myRangeMin.setText(String.valueOf(myRange.getMin()));

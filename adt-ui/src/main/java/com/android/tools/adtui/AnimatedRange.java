@@ -21,7 +21,7 @@ import com.android.tools.adtui.model.Range;
 /**
  * An {@link Range} object that interpolates to its min/max values.
  */
-public class AnimatedRange extends Range implements Animatable {
+public class AnimatedRange extends Range implements Updatable {
 
   private static final float DEFAULT_LERP_FRACTION = 0.95f;
   private static final float DEFAULT_LERP_THRESHOLD = 0.001f;
@@ -67,13 +67,13 @@ public class AnimatedRange extends Range implements Animatable {
   }
 
   @Override
-  public void animate(float frameLength) {
+  public void update(float elapsed) {
     if (myMin != myTargetMin) {
-      myMin = Choreographer.lerp(myMin, myTargetMin, myLerpFraction, frameLength, myLerpThreshold);
+      myMin = Choreographer.lerp(myMin, myTargetMin, myLerpFraction, elapsed, myLerpThreshold);
     }
 
     if (myMax != myTargetMax) {
-      myMax = Choreographer.lerp(myMax, myTargetMax, myLerpFraction, frameLength, myLerpThreshold);
+      myMax = Choreographer.lerp(myMax, myTargetMax, myLerpFraction, elapsed, myLerpThreshold);
     }
   }
 }

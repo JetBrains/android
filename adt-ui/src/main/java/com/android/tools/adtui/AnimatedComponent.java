@@ -31,7 +31,7 @@ import java.util.List;
  * #draw(Graphics2D)}, as well as pay attention to the field {@link #mFrameLength} as it controls
  * the behavior of timed animations.
  */
-public abstract class AnimatedComponent extends JComponent implements Animatable {
+public abstract class AnimatedComponent extends JComponent implements Updatable {
 
   protected static final float DEFAULT_LERP_FRACTION = 0.99f;
   protected static final float DEFAULT_LERP_THRESHOLD_PERCENTAGE = 0.001f;
@@ -148,7 +148,7 @@ public abstract class AnimatedComponent extends JComponent implements Animatable
   }
 
   @Override
-  public void animate(float frameLength) {
+  public void update(float elapsed) {
     if (mDrawCount > 1) {
       // draw is expected to be triggered once per component per animation cycle.
       // Otherwise, we are potentially wasting cycles repainting the same data. e.g. This can
@@ -161,7 +161,7 @@ public abstract class AnimatedComponent extends JComponent implements Animatable
     }
     mDrawCount = 0;
 
-    mFrameLength = frameLength;
+    mFrameLength = elapsed;
 
     mUpdateStartTime = System.nanoTime();
     this.updateData();

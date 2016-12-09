@@ -16,38 +16,38 @@
 
 package com.android.tools.adtui;
 
-public interface Animatable {
+public interface Updatable {
 
   /**
-   * Used for resetting any cached states from previous frames that an {@link Animatable}
+   * Used for resetting any cached states from previous frames that an {@link Updatable}
    * depends on.
    */
   default void reset() {
   }
 
   /**
-   * Triggered by the {@link Choreographer} to give an {@link Animatable} a chance to
+   * Triggered by the {@link Choreographer} to give an {@link Updatable} a chance to
    * update/interpolate any components or data based on the current frame rate.
    */
-  void animate(float frameLength);
+  void update(float elapsed);
 
   /**
    * Triggered by the {@link Choreographer} after all components have finished animating.
-   * This allows an {@link Animatable} to read any data modified by other components
-   * during {@link #animate(float)}.
+   * This allows an {@link Updatable} to read any data modified by other components
+   * during {@link #update(float)}.
    */
-  default void postAnimate() {
+  default void postUpdate() {
   }
 
   /**
-   * An auxiliary function to allow an {@link Animatable} to configure its interpolation speed when calling the
+   * An auxiliary function to allow an {@link Updatable} to configure its interpolation speed when calling the
    * {@link Choreographer#lerp(float, float, float, float, float)} method.
    */
   default void setLerpFraction(float fraction) {
   }
 
   /**
-   * An auxiliary function to allow an {@link Animatable} to configure its lerp snapping threshold when calling the
+   * An auxiliary function to allow an {@link Updatable} to configure its lerp snapping threshold when calling the
    * {@link Choreographer#lerp(float, float, float, float, float)} method.
    */
   default void setLerpThreshold(float threshold) {
