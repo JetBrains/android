@@ -88,7 +88,6 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     myStage.selectInstance(DUMMY_INSTANCE);
     assertView(DUMMY_CAPTURE, DUMMY_HEAP_2, DUMMY_CLASS_2, DUMMY_INSTANCE);
-    assertTrue(!myStageView.getInstanceView().getComponent().getSecondComponent().isVisible());
 
     myStage.selectCapture(null, null);
     assertView(null, null, null, null);
@@ -116,6 +115,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
       assertEquals(heapObjectComboBoxModel.getSize(), 0);
       assertNull(myStageView.getClassView().getTree());
       assertFalse(myStageView.getInstanceView().getComponent().isVisible());
+      assertFalse(myStageView.getInstanceDetailsView().getComponent().isVisible());
       return;
     }
 
@@ -142,7 +142,8 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     if (expectedClassObject == null) {
       assertEquals(null, classTree.getLastSelectedPathComponent());
-      assertTrue(!myStageView.getInstanceView().getComponent().isVisible());
+      assertFalse(myStageView.getInstanceView().getComponent().isVisible());
+      assertFalse(myStageView.getInstanceDetailsView().getComponent().isVisible());
       return;
     }
 
@@ -159,6 +160,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     if (expectedInstanceObject == null) {
       assertEquals(null, instanceTree.getLastSelectedPathComponent());
+      assertFalse(myStageView.getInstanceDetailsView().getComponent().isVisible());
       return;
     }
 
@@ -168,5 +170,10 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     //noinspection unchecked
     MemoryObjectTreeNode<InstanceObject> selectedInstanceObject = (MemoryObjectTreeNode<InstanceObject>)selectedInstanceNode;
     assertEquals(expectedInstanceObject, selectedInstanceObject.getAdapter());
+
+    boolean detailsViewVisible = (expectedInstanceObject.getCallStack() != null &&
+                                  expectedInstanceObject.getCallStack().getStackFramesCount() > 0) ||
+                                 !expectedInstanceObject.getReferences().isEmpty();
+    assertEquals(detailsViewVisible, myStageView.getInstanceDetailsView().getComponent().isVisible());
   }
 }

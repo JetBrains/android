@@ -31,9 +31,7 @@ import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.event.EventMonitorView;
-import com.android.tools.profilers.memory.adapters.AllocationsCaptureObject;
-import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
+import com.android.tools.profilers.memory.adapters.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.icons.AllIcons;
@@ -42,6 +40,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,6 +71,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private final MemoryHeapView myHeapView = new MemoryHeapView(getStage());
   @NotNull private final MemoryClassView myClassView = new MemoryClassView(getStage());
   @NotNull private final MemoryInstanceView myInstanceView = new MemoryInstanceView(getStage());
+  @NotNull private final MemoryInstanceDetailsView myInstanceDetailsView = new MemoryInstanceDetailsView(getStage());
 
   @Nullable private CaptureObject myCaptureObject = null;
   @Nullable private CountDownLatch myCaptureLoadingLatch = null;
@@ -79,6 +79,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private Splitter myMainSplitter = new Splitter(false);
   @NotNull private Splitter myChartCaptureSplitter = new Splitter(true);
   @NotNull private JPanel myCapturePanel = new JPanel(new BorderLayout());
+  @NotNull private Splitter myInstanceDetailsSplitter = new Splitter(true);
+
   @NotNull private JButton myAllocationButton;
 
   public MemoryProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull MemoryProfilerStage stage) {
@@ -86,8 +88,10 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     myChartCaptureSplitter.setFirstComponent(buildMonitorUi());
     myChartCaptureSplitter.setSecondComponent(buildCaptureUi());
+    myInstanceDetailsSplitter.setFirstComponent(myInstanceView.getComponent());
+    myInstanceDetailsSplitter.setSecondComponent(myInstanceDetailsView.getComponent());
     myMainSplitter.setFirstComponent(myChartCaptureSplitter);
-    myMainSplitter.setSecondComponent(myInstanceView.getComponent());
+    myMainSplitter.setSecondComponent(myInstanceDetailsSplitter);
     myMainSplitter.setProportion(0.6f);
     getComponent().add(myMainSplitter, BorderLayout.CENTER);
     captureObjectChanged();
@@ -157,6 +161,12 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull
   MemoryInstanceView getInstanceView() {
     return myInstanceView;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  MemoryInstanceDetailsView getInstanceDetailsView() {
+    return myInstanceDetailsView;
   }
 
   /**
@@ -343,7 +353,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     JToolBar toolBar = new JToolBar();
     toolBar.setFloatable(false);
-
     toolBar.add(myHeapView.getComponent());
     headingPanel.add(toolBar);
 
@@ -387,6 +396,41 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       assert myCaptureLoadingLatch != null;
       myCaptureLoadingLatch.countDown();
       myCaptureLoadingLatch = null;
+    }
+  }
+
+  /**
+   * TODO currently we have slightly different icons for the MemoryInstanceView vs the MemoryInstanceDetailsView.
+   * Re-investigate and see if they should share the same conditions.
+   */
+  @NotNull
+  static Icon getInstanceObjectIcon(@NotNull InstanceObject instance) {
+    if (instance instanceof FieldObject) {
+      FieldObject field = (FieldObject)instance;
+      if (field.getIsArray()) {
+        return AllIcons.Debugger.Db_array;
+      }
+      else if (field.getIsPrimitive()) {
+        return AllIcons.Debugger.Db_primitive;
+      }
+      else {
+        return PlatformIcons.FIELD_ICON;
+      }
+    }
+    else if (instance instanceof ReferenceObject) {
+      ReferenceObject referrer = (ReferenceObject)instance;
+      if (referrer.getIsRoot()) {
+        return AllIcons.Hierarchy.Subtypes;
+      }
+      else if (referrer.getIsArray()) {
+        return AllIcons.Debugger.Db_array;
+      }
+      else {
+        return PlatformIcons.FIELD_ICON;
+      }
+    }
+    else {
+      return PlatformIcons.INTERFACE_ICON;
     }
   }
 }

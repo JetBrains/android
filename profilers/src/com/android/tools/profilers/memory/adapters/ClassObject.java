@@ -21,14 +21,6 @@ import java.util.Collections;
 import java.util.List;
 
 public interface ClassObject extends MemoryObject {
-  enum InstanceAttribute {
-    LABEL,
-    ELEMENT_SIZE,
-    DEPTH,
-    SHALLOW_SIZE,
-    RETAINED_SIZE
-  }
-
   @NotNull
   default String getName() {
     return "";
@@ -60,5 +52,5 @@ public interface ClassObject extends MemoryObject {
   }
 
   @NotNull
-  List<InstanceAttribute> getInstanceAttributes();
+  List<InstanceObject.InstanceAttribute> getInstanceAttributes();
 }
