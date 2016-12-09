@@ -256,6 +256,7 @@ public class AndroidProjectStub implements AndroidProject {
   }
 
   @Override
+  @NotNull
   public String getBuildToolsVersion() {
     throw new UnsupportedOperationException();
   }
