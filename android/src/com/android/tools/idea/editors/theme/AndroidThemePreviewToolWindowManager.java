@@ -38,6 +38,7 @@ import com.intellij.openapi.editor.event.*;
 import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
@@ -266,6 +267,18 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
 
     boolean available = false;
     if (newEditor != null && isApplicableEditor(newEditor)) {
+      if (DumbService.getInstance(myProject).isDumb()) {
+        // Delay getBestConfiguration until resource indexes have had a chance to run.
+        DumbService.getInstance(myProject).runWhenSmart(
+          () -> {
+            if (newEditor.isValid()) {
+              processFileEditorChange(newEditor);
+            }
+          }
+        );
+        myToolWindow.setAvailable(false, null);
+        return;
+      }
       myActiveEditor = newEditor;
       CaretModel caretModel = myActiveEditor.getEditor().getCaretModel();
       caretModel.addCaretListener(myCaretListener);
@@ -391,14 +404,14 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
     @Override
     public void selectionChanged(@NonNull FileEditorManagerEvent event) {
       final FileEditor newEditor = event.getNewEditor();
-      TextEditor layoutXmlEditor = null;
+      TextEditor applicableTextEditor = null;
       if (newEditor instanceof TextEditor) {
         final TextEditor textEditor = (TextEditor)newEditor;
         if (isApplicableEditor(textEditor)) {
-          layoutXmlEditor = textEditor;
+          applicableTextEditor = textEditor;
         }
       }
-      processFileEditorChange(layoutXmlEditor);
+      processFileEditorChange(applicableTextEditor);
     }
   }
 
