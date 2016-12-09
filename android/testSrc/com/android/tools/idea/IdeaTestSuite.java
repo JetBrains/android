@@ -49,9 +49,6 @@ import java.nio.file.Paths;
   org.jetbrains.android.AndroidLintTest.class,
   org.jetbrains.android.databinding.DataBindingScopeTest.class,
   org.jetbrains.android.databinding.GeneratedCodeMatchTest.class,
-  org.jetbrains.android.dom.AndroidLayoutDomTest.class,
-  org.jetbrains.android.dom.AndroidManifestDomTest.class,
-  org.jetbrains.android.dom.AndroidXmlResourcesDomTest.class,
 
   // Require resources with spaces (HTML File template)
   // https://github.com/bazelbuild/bazel/issues/374
