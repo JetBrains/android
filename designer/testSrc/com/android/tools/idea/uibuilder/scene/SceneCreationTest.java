@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
+import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static org.junit.Assert.assertNotEquals;
 
 /**
  * Basic tests for creating and updating a Scene out of a NlModel
@@ -45,15 +48,15 @@ public class SceneCreationTest extends SceneTest {
     NlComponent nlComponent = component.getNlComponent();
     assertEquals(component, myScene.getSceneComponent(nlComponent));
     assertEquals(myScene.pxToDp(myScene.dpToPx(100)), 100);
-    myScene.setDpiFactor(3.5f);
+    myScene.setDpiFactorOverride(3.5f);
     assertEquals(myScene.pxToDp(myScene.dpToPx(100)), 100);
   }
 
   public void testSceneCreation() {
     ModelBuilder builder = createModel();
     NlModel model = builder.build();
-    Scene scene = Scene.createScene(model, null);
-    scene.setDpiFactor(1);
+    Scene scene = Scene.createScene(model, myScreen.getScreen());
+    scene.setDpiFactorOverride(1);
     scene.setAnimate(false);
     assertEquals(scene.getRoot().getChildren().size(), 1);
     ComponentDescriptor parent = builder.findByPath(CONSTRAINT_LAYOUT);
@@ -85,6 +88,38 @@ public class SceneCreationTest extends SceneTest {
     assertEquals(220, sceneTextView.getDrawY());
     assertEquals(200, sceneTextView.getDrawWidth());
     assertEquals(30, sceneTextView.getDrawHeight());
+  }
+
+  public static int pxToDp(@AndroidCoordinate int px, float dpiFactor) {
+    return (int)(0.5f + px / dpiFactor);
+  }
+
+  public void testDeviceChange() {
+    ModelBuilder builder = createModel();
+    NlModel model = builder.build();
+    Configuration config = model.getConfiguration();
+    config.setDevice(config.getConfigurationManager().getDeviceById("Nexus 6P"), false);
+
+    Scene scene = Scene.createScene(model, myScreen.getScreen());
+    scene.setAnimate(false);
+
+    ComponentDescriptor parent = builder.findByPath(CONSTRAINT_LAYOUT);
+    ComponentDescriptor textView = builder.findByPath(CONSTRAINT_LAYOUT, TEXT_VIEW);
+    SceneComponent sceneTextView = scene.getRoot().getChildren().get(0);
+
+    float dpiFactor =  560 / 160f;
+    assertEquals(pxToDp(100, dpiFactor), sceneTextView.getDrawX());
+    assertEquals(pxToDp(200, dpiFactor), sceneTextView.getDrawY());
+    assertEquals(pxToDp(100, dpiFactor), sceneTextView.getDrawWidth());
+    assertEquals(pxToDp(20, dpiFactor), sceneTextView.getDrawHeight());
+
+    config.setDevice(config.getConfigurationManager().getDeviceById("Nexus S"), false);
+    dpiFactor = 240 / 160f;
+
+    assertEquals(pxToDp(100, dpiFactor), sceneTextView.getDrawX());
+    assertEquals(pxToDp(200, dpiFactor), sceneTextView.getDrawY());
+    assertEquals(pxToDp(100, dpiFactor), sceneTextView.getDrawWidth());
+    assertEquals(pxToDp(20, dpiFactor), sceneTextView.getDrawHeight());
   }
 
 
