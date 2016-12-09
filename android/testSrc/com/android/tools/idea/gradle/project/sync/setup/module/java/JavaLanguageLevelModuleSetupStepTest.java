@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -32,6 +30,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.intellij.pom.java.LanguageLevel.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -95,18 +94,9 @@ public class JavaLanguageLevelModuleSetupStepTest extends IdeaTestCase {
     AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
     when(androidModel.getJavaLanguageLevel()).thenReturn(languageLevel);
 
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      Module module = createModule(name);
-      FacetManager facetManager = FacetManager.getInstance(module);
-      ModifiableFacetModel facetModel = facetManager.createModifiableModel();
-      try {
-        AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
-        facetModel.addFacet(facet);
-        facet.setAndroidModel(androidModel);
-      } finally {
-        facetModel.commit();
-      }
-    });
+    Module module = createModule(name);
+    AndroidFacet facet = createAndAddAndroidFacet(module);
+    facet.setAndroidModel(androidModel);
   }
 
   public void testSetUpModuleWithNoLanguageLevel() {

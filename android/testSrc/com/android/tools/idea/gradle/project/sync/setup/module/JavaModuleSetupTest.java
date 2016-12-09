@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
-import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.ModifiableFacetModel;
+import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -31,6 +29,7 @@ import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.mockito.Mock;
 
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.same;
@@ -92,15 +91,10 @@ public class JavaModuleSetupTest extends IdeaTestCase {
     when(myJavaModuleModel.isAndroidModuleWithoutVariants()).thenReturn(true);
 
     Module module = getModule();
+    // Add AndroidFacet to verify that is removed.
+    createAndAddAndroidFacet(module);
 
     ApplicationManager.getApplication().runWriteAction(() -> {
-      // Add AndroidFacet to verify that is removed.
-      FacetManager facetManager = FacetManager.getInstance(module);
-      AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
-      ModifiableFacetModel facetModel = facetManager.createModifiableModel();
-      facetModel.addFacet(facet);
-      facetModel.commit();
-
       // Add source folders and excluded folders to verify that they are removed.
       ModifiableRootModel modifiableModel = ModuleRootManager.getInstance(module).getModifiableModel();
       ContentEntry contentEntry = modifiableModel.addContentEntry("file://fakePath");

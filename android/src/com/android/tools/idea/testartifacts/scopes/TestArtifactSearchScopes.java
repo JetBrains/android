@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.project.sync.setup.module.dependency.Depend
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ProjectFileIndex;
@@ -76,17 +75,14 @@ public final class TestArtifactSearchScopes implements Disposable {
   }
 
   /**
-   * Initialize the scopes of all Gradle-based Android modules in the given project. This method must be invoked after a project sync with
-   * Gradle.
+   * Initialize the test scopes in the given module if the module is Gradle-based Android.
+   *
+   * @param module the given module.
    */
-  public static void initializeScopes(@NotNull Project project) {
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    for (Module module : moduleManager.getModules()) {
-      TestArtifactSearchScopes scopes;
-      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-      scopes = androidModel != null ? new TestArtifactSearchScopes(module) : null;
-      module.putUserData(SEARCH_SCOPES_KEY, scopes);
-    }
+  public static void initializeScope(@NotNull Module module) {
+    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+    TestArtifactSearchScopes scopes = androidModel != null ? new TestArtifactSearchScopes(module) : null;
+    module.putUserData(SEARCH_SCOPES_KEY, scopes);
   }
 
   @NotNull private final Module myModule;
@@ -106,6 +102,7 @@ public final class TestArtifactSearchScopes implements Disposable {
   private TestArtifactSearchScopes(@NotNull Module module) {
     myModule = module;
     Disposer.register(module, this);
+    module.putUserData(SEARCH_SCOPES_KEY, this);
   }
 
   @NotNull
@@ -221,15 +218,16 @@ public final class TestArtifactSearchScopes implements Disposable {
 
   /**
    * Adds children modules' dependencies to own set of dependencies
-   * @param original {@link DependencySet} where module children are
-   * @param toMergeMain the set in which should be merged children's main dependencies
+   *
+   * @param original       {@link DependencySet} where module children are
+   * @param toMergeMain    the set in which should be merged children's main dependencies
    * @param toMergeAndroid the set in which should be merged children's android test dependencies
-   * @param toMergeUnit the set in which should be merged children's unit test dependencies
+   * @param toMergeUnit    the set in which should be merged children's unit test dependencies
    */
   private void mergeSubmoduleDependencies(@NotNull DependencySet original,
-                                 @Nullable DependencySet toMergeMain,
-                                 @Nullable DependencySet toMergeAndroid,
-                                 @Nullable DependencySet toMergeUnit) {
+                                          @Nullable DependencySet toMergeMain,
+                                          @Nullable DependencySet toMergeAndroid,
+                                          @Nullable DependencySet toMergeUnit) {
     for (ModuleDependency moduleDependency : original.onModules()) {
       Module module = moduleDependency.getModule(myModule.getProject());
       if (module != null) {
@@ -299,7 +297,7 @@ public final class TestArtifactSearchScopes implements Disposable {
   @NotNull
   private DependencySet extractMainDependencies(AndroidModuleModel androidModel) {
     if (mainDependencies == null) {
-      mainDependencies = extractDependencies(COMPILE, androidModel.getMainArtifact(), androidModel.getModelVersion());;
+      mainDependencies = extractDependencies(COMPILE, androidModel.getMainArtifact(), androidModel.getModelVersion());
     }
     return mainDependencies;
   }
@@ -320,5 +318,4 @@ public final class TestArtifactSearchScopes implements Disposable {
   public void dispose() {
     myModule.putUserData(SEARCH_SCOPES_KEY, null);
   }
-
 }

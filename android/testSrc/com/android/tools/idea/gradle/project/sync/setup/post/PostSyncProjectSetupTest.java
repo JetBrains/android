@@ -52,6 +52,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   @Mock private GradleSyncState mySyncState;
   @Mock private DependencySetupErrors myDependencySetupErrors;
   @Mock private ProjectSetup myProjectSetup;
+  @Mock private ModuleSetup myModuleSetup;
   @Mock private GradleSyncSummary mySyncSummary;
   @Mock private PluginVersionUpgrade myVersionUpgrade;
   @Mock private VersionCompatibilityChecker myVersionCompatibilityChecker;
@@ -73,9 +74,9 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     when(mySyncState.getSummary()).thenReturn(mySyncSummary);
     when(myModuleValidatorFactory.create(project)).thenReturn(myModuleValidator);
 
-    mySetup =
-      new PostSyncProjectSetup(project, myIdeInfo, mySyncInvoker, mySyncState, myDependencySetupErrors, myProjectSetup, myVersionUpgrade,
-                               myVersionCompatibilityChecker, myProjectBuilder, myModuleValidatorFactory, myRunManager);
+    mySetup = new PostSyncProjectSetup(project, myIdeInfo, mySyncInvoker, mySyncState, myDependencySetupErrors, myProjectSetup,
+                                       myModuleSetup, myVersionUpgrade, myVersionCompatibilityChecker, myProjectBuilder,
+                                       myModuleValidatorFactory, myRunManager);
   }
 
   public void testJUnitRunConfigurationSetup() {
