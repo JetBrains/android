@@ -808,12 +808,6 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
     return myScreenView != null ? myScreenView.getConfiguration() : null;
   }
 
-  public void setConfiguration(@NotNull Configuration configuration) {
-    if (myScreenView != null) {
-      myScreenView.setConfiguration(configuration);
-    }
-  }
-
   public void setScrollPosition(int x, int y) {
     setScrollPosition(new Point(x, y));
   }

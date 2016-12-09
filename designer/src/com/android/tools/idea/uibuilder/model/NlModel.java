@@ -1987,19 +1987,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     myPreviousTheme = myConfiguration.getTheme();
   }
 
-  public void setConfiguration(@NotNull Configuration configuration) {
-    myConfiguration = configuration;
-    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
-    ResourceVersion version = manager.addListener(this, myFacet, myFile, myConfiguration);
-    if (!version.equals(myRenderedVersion)) {
-      requestModelUpdate();
-      myModelVersion.myResourceVersion.incrementAndGet();
-    }
-    myConfigurationModificationCount = myConfiguration.getModificationCount();
-
-    updateTrackingConfiguration();
-  }
-
   private class AndroidPreviewProgressIndicator extends ProgressIndicatorBase {
     private final Object myLock = new Object();
 
