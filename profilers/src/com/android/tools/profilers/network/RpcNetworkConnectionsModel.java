@@ -27,15 +27,15 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A {@link NetworkRequestsModel} that uses an RPC mechanism to complete its queries.
+ * A {@link NetworkConnectionsModel} that uses an RPC mechanism to complete its queries.
  */
-public final class RpcNetworkRequestsModel implements NetworkRequestsModel {
+public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
   @NotNull
   private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkService;
 
   private final int myPid;
 
-  public RpcNetworkRequestsModel(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub service, int pid) {
+  public RpcNetworkConnectionsModel(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub service, int pid) {
     myNetworkService = service;
     myPid = pid;
   }
