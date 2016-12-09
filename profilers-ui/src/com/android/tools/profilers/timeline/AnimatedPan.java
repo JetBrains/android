@@ -15,16 +15,16 @@
  */
 package com.android.tools.profilers.timeline;
 
-import com.android.tools.adtui.Animatable;
+import com.android.tools.adtui.Updatable;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.ProfilerTimeline;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A helper {@link Animatable} object that handles smooth panning.
+ * A helper {@link Updatable} object that handles smooth panning.
  */
-public final class AnimatedPan implements Animatable {
+public final class AnimatedPan implements Updatable {
 
   private static final float PAN_LERP_FRACTION = 0.5f;
   private static final float PAN_LERP_THRESHOLD_US = 1f;
@@ -60,14 +60,14 @@ public final class AnimatedPan implements Animatable {
   }
 
   @Override
-  public void animate(float frameLength) {
+  public void update(float elapsed) {
     if (myRemainingDeltaUs == 0) {
       myChoreographer.unregister(this);
       return;
     }
 
     // Calculate the total amount of delta to pan, snaps if the delta is less than a certain threshold.
-    double deltaUs = Choreographer.lerp(myRemainingDeltaUs, 0, PAN_LERP_FRACTION, frameLength);
+    double deltaUs = Choreographer.lerp(myRemainingDeltaUs, 0, PAN_LERP_FRACTION, elapsed);
     if (PAN_LERP_THRESHOLD_US > Math.abs(deltaUs)) {
       deltaUs = myRemainingDeltaUs;
       myRemainingDeltaUs = 0;

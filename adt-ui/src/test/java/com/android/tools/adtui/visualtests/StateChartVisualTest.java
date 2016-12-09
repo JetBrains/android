@@ -16,7 +16,7 @@
 
 package com.android.tools.adtui.visualtests;
 
-import com.android.tools.adtui.Animatable;
+import com.android.tools.adtui.Updatable;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.AxisComponent;
@@ -91,7 +91,7 @@ public class StateChartVisualTest extends VisualTest {
   }
 
   @Override
-  protected List<Animatable> createComponentsList() {
+  protected List<Updatable> createComponentsList() {
     long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     mTimeGlobalRangeUs = new Range(nowUs, nowUs + TimeUnit.SECONDS.toMicros(60));
     mAnimatedTimeRange = new AnimatedTimeRange(mTimeGlobalRangeUs, 0);

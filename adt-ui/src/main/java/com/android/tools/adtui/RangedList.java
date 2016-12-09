@@ -18,7 +18,7 @@ package com.android.tools.adtui;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedListModel;
 
-public class RangedList implements Animatable {
+public class RangedList implements Updatable {
 
   private final RangedListModel myModel;
   private final Range myRange;
@@ -29,7 +29,7 @@ public class RangedList implements Animatable {
   }
 
   @Override
-  public void animate(float frameLength) {
+  public void update(float elapsed) {
     myModel.update(myRange);
   }
 }

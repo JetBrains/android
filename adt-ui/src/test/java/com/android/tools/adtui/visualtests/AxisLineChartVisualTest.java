@@ -77,7 +77,7 @@ public class AxisLineChartVisualTest extends VisualTest {
   private LegendComponent mLegendComponent;
 
   @Override
-  protected List<Animatable> createComponentsList() {
+  protected List<Updatable> createComponentsList() {
     mRangedData = new ArrayList<>();
     mData = new ArrayList<>();
     mLineChart = new LineChart();

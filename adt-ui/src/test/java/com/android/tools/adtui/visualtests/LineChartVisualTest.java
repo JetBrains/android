@@ -16,7 +16,7 @@
 
 package com.android.tools.adtui.visualtests;
 
-import com.android.tools.adtui.Animatable;
+import com.android.tools.adtui.Updatable;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.SelectionComponent;
@@ -68,7 +68,7 @@ public class LineChartVisualTest extends VisualTest {
   private DurationDataRenderer<DefaultDurationData> mDurationRendererAttached;
 
   @Override
-  protected List<Animatable> createComponentsList() {
+  protected List<Updatable> createComponentsList() {
     mRangedData = new ArrayList<>();
     mData = new ArrayList<>();
 
@@ -77,7 +77,7 @@ public class LineChartVisualTest extends VisualTest {
     mLineChart = new LineChart();
     mAnimatedTimeRange = new AnimatedTimeRange(timeGlobalRangeUs, 0);
 
-    List<Animatable> componentsList = new ArrayList<>();
+    List<Updatable> componentsList = new ArrayList<>();
 
     mySelectionComponent = new SelectionComponent(new Range(0, 0), timeGlobalRangeUs);
     myOverlayComponent = new OverlayComponent(mySelectionComponent);

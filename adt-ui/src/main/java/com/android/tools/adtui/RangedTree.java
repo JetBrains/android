@@ -20,7 +20,7 @@ import com.android.tools.adtui.model.RangedTreeModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class RangedTree implements Animatable {
+public class RangedTree implements Updatable {
 
   @NotNull
   private final Range myRange;
@@ -33,7 +33,7 @@ public class RangedTree implements Animatable {
   }
 
   @Override
-  public void animate(float frameLength) {
+  public void update(float elapsed) {
     if (myModel != null) {
       myModel.update(myRange);
     }

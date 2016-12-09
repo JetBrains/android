@@ -40,7 +40,7 @@ import java.util.TreeSet;
  * components based on the ratio between their preferred sizes, while respecting its own
  * getMinSize()/getMaxSize() dimensions.
  */
-public class AccordionLayout implements LayoutManager2, Animatable {
+public class AccordionLayout implements LayoutManager2, Updatable {
 
   private static final float DEFAULT_LERP_FRACTION = 0.9999f;
   private static final float DEFAULT_LERP_THRESHOLD_PIXEL = 1;
@@ -388,7 +388,7 @@ public class AccordionLayout implements LayoutManager2, Animatable {
   }
 
   @Override
-  public void animate(float frameLength) {
+  public void update(float elapsed) {
     boolean hasMaximizedComponents = false;
     mPreferredTotal = 0;
     mMaxTotal = 0;
@@ -424,11 +424,11 @@ public class AccordionLayout implements LayoutManager2, Animatable {
       }
 
       if (info.currentSize != targetSize) {
-        info.currentSize = Choreographer.lerp(info.currentSize, targetSize, mLerpFraction, frameLength, mLerpThreshold);
+        info.currentSize = Choreographer.lerp(info.currentSize, targetSize, mLerpFraction, elapsed, mLerpThreshold);
       }
 
       if (currentSize != minSize) {
-        currentSize = Choreographer.lerp(currentSize, minSize, mLerpFraction, frameLength, mLerpThreshold);
+        currentSize = Choreographer.lerp(currentSize, minSize, mLerpFraction, elapsed, mLerpThreshold);
       }
 
       switch (info.state) {

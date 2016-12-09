@@ -16,7 +16,7 @@
 
 package com.android.tools.adtui.visualtests;
 
-import com.android.tools.adtui.Animatable;
+import com.android.tools.adtui.Updatable;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Choreographer;
 import com.intellij.ui.components.JBPanel;
@@ -63,7 +63,7 @@ public abstract class VisualTest {
    * @return An ordered {@code List} containing the Animatables which should be added to the
    * {@link Choreographer} of this {@link VisualTest}.
    */
-  protected abstract List<Animatable> createComponentsList();
+  protected abstract List<Updatable> createComponentsList();
 
   /**
    * @return the components that needs to render debug information.
@@ -72,12 +72,12 @@ public abstract class VisualTest {
     return Collections.emptyList();
   }
 
-  protected final void addToChoreographer(@NotNull Animatable animatable) {
-    mChoreographer.register(animatable);
+  protected final void addToChoreographer(@NotNull Updatable updatable) {
+    mChoreographer.register(updatable);
   }
 
-  protected final void addToChoreographer(@NotNull List<Animatable> animatables) {
-    mChoreographer.register(animatables);
+  protected final void addToChoreographer(@NotNull List<Updatable> updatables) {
+    mChoreographer.register(updatables);
   }
 
   /**
