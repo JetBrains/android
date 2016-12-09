@@ -15,13 +15,8 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.SdkConstants;
-import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.ModifiableFacetModel;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.io.FileUtilRt;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import org.gradle.tooling.model.DomainObjectSet;
@@ -31,6 +26,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
+import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static org.easymock.EasyMock.*;
 
 /**
@@ -45,8 +43,8 @@ public class GradleUtilIdeaTest extends IdeaTestCase {
     super.setUp();
     File moduleFilePath = new File(myModule.getModuleFilePath());
     myModuleRootDir = moduleFilePath.getParentFile();
-    myBuildFile = new File(myModuleRootDir, SdkConstants.FN_BUILD_GRADLE);
-    FileUtilRt.createIfNotExists(myBuildFile);
+    myBuildFile = new File(myModuleRootDir, FN_BUILD_GRADLE);
+    createIfNotExists(myBuildFile);
   }
 
   public void testGetGradleBuildFileFromRootDir() {
@@ -73,18 +71,8 @@ public class GradleUtilIdeaTest extends IdeaTestCase {
 
     GradleModuleModel gradleModuleModel = new GradleModuleModel(myModule.getName(), project, myBuildFile, "2.2.1");
 
-    final FacetManager facetManager = FacetManager.getInstance(myModule);
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      ModifiableFacetModel model = facetManager.createModifiableModel();
-      try {
-        GradleFacet facet = facetManager.createFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null);
-        model.addFacet(facet);
-        facet.setGradleModuleModel(gradleModuleModel);
-      }
-      finally {
-        model.commit();
-      }
-    });
+    GradleFacet facet = createAndAddGradleFacet(myModule);
+    facet.setGradleModuleModel(gradleModuleModel);
 
     VirtualFile buildFile = GradleUtil.getGradleBuildFile(myModule);
     assertIsGradleBuildFile(buildFile);
@@ -96,7 +84,6 @@ public class GradleUtilIdeaTest extends IdeaTestCase {
     assertNotNull(buildFile);
     assertFalse(buildFile.isDirectory());
     assertTrue(buildFile.isValid());
-    assertEquals(SdkConstants.FN_BUILD_GRADLE, buildFile.getName());
+    assertEquals(FN_BUILD_GRADLE, buildFile.getName());
   }
-
 }

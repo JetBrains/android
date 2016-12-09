@@ -18,9 +18,6 @@ package com.android.tools.idea.gradle.project.sync.setup.post;
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.ModifiableFacetModel;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
@@ -30,6 +27,7 @@ import org.mockito.Mock;
 
 import static com.android.builder.model.AndroidProject.GENERATION_ORIGINAL;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.ORIGINAL;
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
@@ -104,17 +102,7 @@ public class PluginVersionUpgradeTest extends IdeaTestCase {
     AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
     when(androidModel.getAndroidProject()).thenReturn(androidProject);
 
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      FacetManager facetManager = FacetManager.getInstance(module);
-      ModifiableFacetModel facetModel = facetManager.createModifiableModel();
-      try {
-        AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
-        facet.setAndroidModel(androidModel);
-        facetModel.addFacet(facet);
-      }
-      finally {
-        facetModel.commit();
-      }
-    });
+    AndroidFacet facet = createAndAddAndroidFacet(module);
+    facet.setAndroidModel(androidModel);
   }
 }

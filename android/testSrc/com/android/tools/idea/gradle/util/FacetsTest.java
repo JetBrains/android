@@ -24,22 +24,16 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
+
 /**
  * Tests for {@link Facets}.
  */
 public class FacetsTest extends IdeaTestCase {
   public void testRemoveAllFacetsWithAndroidFacets() throws Exception {
+    createAndAddAndroidFacet(myModule);
     FacetManager facetManager = FacetManager.getInstance(myModule);
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      ModifiableFacetModel model = facetManager.createModifiableModel();
-      try {
-        AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
-        model.addFacet(facet);
-      }
-      finally {
-        model.commit();
-      }
-    });
     assertEquals(1, facetManager.getFacetsByType(AndroidFacet.ID).size());
 
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
@@ -52,18 +46,8 @@ public class FacetsTest extends IdeaTestCase {
   }
 
   public void testRemoveAllFacetsWithAndroidGradleFacets() throws Exception {
+    createAndAddGradleFacet(myModule);
     FacetManager facetManager = FacetManager.getInstance(myModule);
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      ModifiableFacetModel model = facetManager.createModifiableModel();
-      try {
-        GradleFacet facet = facetManager.createFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null);
-        model.addFacet(facet);
-      }
-      finally {
-        model.commit();
-      }
-    });
-
     assertEquals(1, facetManager.getFacetsByType(GradleFacet.getFacetTypeId()).size());
 
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());

@@ -23,14 +23,11 @@ import com.android.tools.idea.gradle.project.sync.setup.module.ModuleDisposer;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleSetup;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +37,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
@@ -118,15 +116,9 @@ public class ProjectSetupImplTest extends AndroidGradleTestCase {
 
     // Add AndroidFacet and AndroidGradleModel to "app" module, to ensure that the validator gets invoked.
     AndroidModuleModel appAndroidModel = mock(AndroidModuleModel.class);
-    AndroidFacet appAndroidFacet = ApplicationManager.getApplication().runReadAction(new Computable<AndroidFacet>() {
-      @Override
-      public AndroidFacet compute() {
-        FacetManager facetManager = FacetManager.getInstance(appModule);
-        AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
-        facet.setAndroidModel(appAndroidModel);
-        return facet;
-      }
-    });
+
+    AndroidFacet appAndroidFacet = createAndAddAndroidFacet(appModule);
+    appAndroidFacet.setAndroidModel(appAndroidModel);
 
     // This happens before AndroidModuleValidator gets invoked. AndroidFacet and AndroidGradleModel need to be set in the module to
     // participate in validation.

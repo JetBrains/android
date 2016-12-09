@@ -19,12 +19,9 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.collect.Lists;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Computable;
@@ -40,6 +37,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -62,21 +61,10 @@ public class IdeSdksTest extends IdeaTestCase {
     AndroidTestCaseHelper.removeExistingAndroidSdks();
     myAndroidSdkPath = TestUtils.getSdk();
 
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      FacetManager facetManager = FacetManager.getInstance(myModule);
-
-      ModifiableFacetModel model = facetManager.createModifiableModel();
-      try {
-        model.addFacet(facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null));
-        model.addFacet(facetManager.createFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null));
-      }
-      finally {
-        model.commit();
-      }
-    });
-    AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    assertNotNull(facet);
+    AndroidFacet facet = createAndAddAndroidFacet(myModule);
     facet.getProperties().ALLOW_USER_CONFIGURATION = false;
+
+    createAndAddGradleFacet(myModule);
 
     Jdks jdks = new Jdks(myIdeInfo);
     myEmbeddedDistributionPaths = EmbeddedDistributionPaths.getInstance();
