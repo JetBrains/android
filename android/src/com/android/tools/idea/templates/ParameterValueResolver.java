@@ -34,13 +34,7 @@ import java.util.Set;
  */
 public final class ParameterValueResolver {
 
-  @NotNull private static final Deduplicator DO_NOTHING_DEDUPLICATOR = new Deduplicator() {
-    @Nullable
-    @Override
-    public String deduplicate(@NotNull Parameter parameter, @Nullable String value) {
-      return value;
-    }
-  };
+  @NotNull private static final Deduplicator DO_NOTHING_DEDUPLICATOR = (parameter, value) -> value;
   @NotNull private final Set<Parameter> myComputedParameters = Sets.newHashSet();
   @NotNull private final Set<Parameter> myStaticParameters = Sets.newHashSet();
   @NotNull private final Deduplicator myDeduplicator;
