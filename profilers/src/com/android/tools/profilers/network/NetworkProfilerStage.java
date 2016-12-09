@@ -33,7 +33,7 @@ public class NetworkProfilerStage extends Stage {
   @Nullable
   private HttpData mySelectedConnection;
 
-  public AspectModel<NetworkProfilerAspect> aspect = new AspectModel<>();
+  private AspectModel<NetworkProfilerAspect> myAspect = new AspectModel<>();
 
   private final NetworkConnectionsModel myConnectionsModel =
     new RpcNetworkConnectionsModel(getStudioProfilers().getClient().getNetworkClient(), getStudioProfilers().getProcessId());
@@ -86,7 +86,7 @@ public class NetworkProfilerStage extends Stage {
 
     mySelectedConnection = data;
     getStudioProfilers().modeChanged();
-    aspect.changed(NetworkProfilerAspect.ACTIVE_CONNECTION);
+    getAspect().changed(NetworkProfilerAspect.ACTIVE_CONNECTION);
   }
 
   /**
@@ -95,5 +95,10 @@ public class NetworkProfilerStage extends Stage {
   @Nullable
   public HttpData getSelectedConnection() {
     return mySelectedConnection;
+  }
+
+  @NotNull
+  public AspectModel<NetworkProfilerAspect> getAspect() {
+    return myAspect;
   }
 }
