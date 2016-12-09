@@ -58,7 +58,7 @@ public class DataReducerVisualTest extends VisualTest {
   private SelectionComponent mySelection;
 
   @Override
-  protected List<Animatable> createComponentsList() {
+  protected List<Updatable> createComponentsList() {
     myGlobalXRange = new Range(0, 0);
     myViewXRange = new AnimatedRange();
     mySelectionXRange = new AnimatedRange();

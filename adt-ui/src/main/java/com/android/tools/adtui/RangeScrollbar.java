@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
  * C. {@link Range#mCurrentMax} -> BoundedRangeModel's min + extent
  * D. Range data's global maximum -> BoundedRangeModel's max
  */
-public final class RangeScrollbar extends JBScrollBar implements Animatable {
+public final class RangeScrollbar extends JBScrollBar implements Updatable {
   /**
    * Different states to control the behavior of the scrollbar:
    * STREAMING - Sticks to the end of the range to allow users to see the most recent data.
@@ -129,7 +129,7 @@ public final class RangeScrollbar extends JBScrollBar implements Animatable {
   }
 
   @Override
-  public void animate(float frameLength) {
+  public void update(float elapsed) {
     if (mScrollingMode == ScrollingMode.STREAMING) {
       double globalMax = mGlobalRange.getMax();
       // TODO reinvestigate how to quit streaming mode.

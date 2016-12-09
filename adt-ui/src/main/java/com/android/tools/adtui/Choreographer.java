@@ -25,15 +25,15 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * An auxiliary object that synchronizes a group of {@link Animatable} via a simple update loop
+ * An auxiliary object that synchronizes a group of {@link Updatable} via a simple update loop
  * running at a specific frame rate. This ensures all UI components and model classes are reading
  * and displaying consistent information at any given time.
  */
 public class Choreographer implements StopwatchTimer.TickHandler {
 
-  private final List<Animatable> mComponents;
-  private List<Animatable> mToRegister;
-  private List<Animatable> mToUnregister;
+  private final List<Updatable> mComponents;
+  private List<Updatable> mToRegister;
+  private List<Updatable> mToUnregister;
   private final StopwatchTimer mTimer;
   private boolean mReset;
 
@@ -82,25 +82,25 @@ public class Choreographer implements StopwatchTimer.TickHandler {
     return mTimer;
   }
 
-  public void register(Animatable animatable) {
+  public void register(Updatable updatable) {
     if (mUpdating) {
-      mToRegister.add(animatable);
+      mToRegister.add(updatable);
     } else {
-      mComponents.add(animatable);
+      mComponents.add(updatable);
     }
   }
 
-  public void register(@NotNull List<Animatable> animatables) {
-    for (Animatable animatable : animatables) {
-      register(animatable);
+  public void register(@NotNull List<Updatable> updatables) {
+    for (Updatable updatable : updatables) {
+      register(updatable);
     }
   }
 
-  public void unregister(@NotNull Animatable animatable) {
+  public void unregister(@NotNull Updatable updatable) {
     if (mUpdating) {
-      mToUnregister.add(animatable);
+      mToUnregister.add(updatable);
     } else {
-      mComponents.remove(animatable);
+      mComponents.remove(updatable);
     }
   }
 
@@ -143,12 +143,12 @@ public class Choreographer implements StopwatchTimer.TickHandler {
   private void step(float frameLength) {
     mUpdating = true;
     if (mReset) {
-      mComponents.forEach(Animatable::reset);
+      mComponents.forEach(Updatable::reset);
       mReset = false;
     }
 
-    mComponents.forEach(component -> component.animate(frameLength));
-    mComponents.forEach(Animatable::postAnimate);
+    mComponents.forEach(component -> component.update(frameLength));
+    mComponents.forEach(Updatable::postUpdate);
     mUpdating = false;
 
     mToUnregister.forEach(this::unregister);
