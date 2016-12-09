@@ -39,7 +39,7 @@ public class TimelineVisualTest extends VisualTest {
   private TimelineData mData;
 
   @Override
-  protected List<Animatable> createComponentsList() {
+  protected List<Updatable> createComponentsList() {
     mEvents = new EventData();
     mData = new TimelineData(2, 2000);
     mTimeline = new TimelineComponent(mData, mEvents, 1.0f, 10.0f, 1000.0f, 10.0f);

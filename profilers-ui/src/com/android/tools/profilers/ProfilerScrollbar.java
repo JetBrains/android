@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.Animatable;
+import com.android.tools.adtui.Updatable;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.timeline.AnimatedPan;
@@ -34,12 +34,12 @@ import java.util.concurrent.TimeUnit;
  * A custom toolbar that synchronizes with the data+view ranges from the {@link ProfilerTimeline}.
  *
  * This control sets the timeline into streaming mode if users drags the thumb all the way to the right.
- * Also, any updates back to the timeline object are handled inside {@link #animate(float)} so that
+ * Also, any updates back to the timeline object are handled inside {@link #update(float)} so that
  * view range is synchronized with the {@link Choreographer}. This also means that this control should be
- * registered before/after all {@link Animatable} to ensure the view range does not change in the middle of
+ * registered before/after all {@link Updatable} to ensure the view range does not change in the middle of
  * the animation loop.
  */
-public final class ProfilerScrollbar extends JBScrollBar implements Animatable {
+public final class ProfilerScrollbar extends JBScrollBar implements Updatable {
   /**
    * The percentage of the current view range's length to zoom/pan per mouse wheel click.
    */
@@ -122,7 +122,7 @@ public final class ProfilerScrollbar extends JBScrollBar implements Animatable {
   }
 
   @Override
-  public void animate(float frameLength) {
+  public void update(float elapsed) {
     Range dataRangeUs = myTimeline.getDataRange();
     Range viewRangeUs = myTimeline.getViewRange();
     int dataExtentMs = (int)((dataRangeUs.getLength() - myTimeline.getViewBuffer()) / MS_TO_US);

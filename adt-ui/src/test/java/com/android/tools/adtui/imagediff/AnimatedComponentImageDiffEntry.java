@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.imagediff;
 
-import com.android.tools.adtui.Animatable;
+import com.android.tools.adtui.Updatable;
 import com.android.tools.adtui.AnimatedRange;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.FakeTimer;
@@ -64,7 +64,7 @@ abstract class AnimatedComponentImageDiffEntry extends ImageDiffEntry {
 
   protected AnimatedRange myXRange;
 
-  protected List<Animatable> myComponents;
+  protected List<Updatable> myComponents;
 
   protected FakeTimer myChoreographerTimer;
 

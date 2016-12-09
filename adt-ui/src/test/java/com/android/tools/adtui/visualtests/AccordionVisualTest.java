@@ -65,7 +65,7 @@ public class AccordionVisualTest extends VisualTest {
   private ArrayList<LongDataSeries> mData;
 
   @Override
-  protected List<Animatable> createComponentsList() {
+  protected List<Updatable> createComponentsList() {
     mStartTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     Range timeGlobalRangeUs = new Range(0, 0);
     mAnimatedTimeRange = new AnimatedTimeRange(timeGlobalRangeUs, mStartTimeUs);
@@ -76,7 +76,7 @@ public class AccordionVisualTest extends VisualTest {
     mAccordionY = new AccordionLayout(mPanelY, AccordionLayout.Orientation.VERTICAL);
     mPanelX.setLayout(mAccordionX);
     mPanelY.setLayout(mAccordionY);
-    List<Animatable> componentsList = new ArrayList<>();
+    List<Updatable> componentsList = new ArrayList<>();
 
     // Add the scene components to the list
     componentsList.add(mAccordionX);

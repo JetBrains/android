@@ -352,7 +352,7 @@ final class ConnectionsView {
         chart.setHeightGap(0.3f);
         chart.addSeries(new RangedSeries<>(myRange, series));
         // We just need to draw once, not animate. So, drawing it by animating once
-        chart.animate(1);
+        chart.update(1);
         myCharts.add(chart);
       }
     }
