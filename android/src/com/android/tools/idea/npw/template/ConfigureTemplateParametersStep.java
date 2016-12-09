@@ -398,6 +398,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     myEvaluationState = EvaluationState.EVALUATING;
 
     Collection<Parameter> parameters = getModel().getTemplateHandle().getMetadata().getParameters();
+    Set<String> excludedParameters = Sets.newHashSet();
 
     try {
       Map<String, Object> additionalValues = Maps.newHashMap();
@@ -421,10 +422,14 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
         if (!enabledStr.isEmpty()) {
           boolean enabled = myEvaluator.evaluateBooleanExpression(enabledStr, allValues, true);
           myParameterRows.get(parameter).setEnabled(enabled);
+          if (!enabled) {
+            excludedParameters.add(parameter.id);
+          }
         }
 
         if (!isParameterVisible(parameter)) {
           myParameterRows.get(parameter).setVisible(false);
+          excludedParameters.add(parameter.id);
           continue;
         }
 
@@ -432,6 +437,9 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
         if (!visibilityStr.isEmpty()) {
           boolean visible = myEvaluator.evaluateBooleanExpression(visibilityStr, allValues, true);
           myParameterRows.get(parameter).setVisible(visible);
+          if (!visible) {
+            excludedParameters.add(parameter.id);
+          }
         }
       }
 
@@ -445,7 +453,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       myEvaluationState = EvaluationState.NOT_EVALUATING;
     }
 
-    myInvalidParameterMessage.set(Strings.nullToEmpty(validateAllParameters()));
+    myInvalidParameterMessage.set(Strings.nullToEmpty(validateAllParametersExcept(excludedParameters)));
   }
 
   /**
@@ -470,7 +478,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   }
 
   @Nullable
-  private String validateAllParameters() {
+  private String validateAllParametersExcept(@NotNull Set<String> excludedParameters) {
     String message = null;
 
     Collection<Parameter> parameters = getModel().getTemplateHandle().getMetadata().getParameters();
@@ -480,7 +488,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
     for (Parameter parameter : parameters) {
       ObservableValue<?> property = myParameterRows.get(parameter).getProperty();
-      if (property == null) {
+      if (property == null || excludedParameters.contains(parameter.id)) {
         continue;
       }
 
