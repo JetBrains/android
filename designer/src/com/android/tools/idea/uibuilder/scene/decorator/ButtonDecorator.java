@@ -35,6 +35,11 @@ public class ButtonDecorator extends SceneDecorator {
     String myString;
     float mScale;
 
+    @Override
+    public int getLevel() {
+      return COMPONENT_LEVEL;
+    }
+
     DrawButton(int x, int y, int width, int height, int baseLineOffset, float scale, String string) {
       super(x, y, width, height, baseLineOffset, string);
       mHorizontalPadding = (int)(4 * scale);

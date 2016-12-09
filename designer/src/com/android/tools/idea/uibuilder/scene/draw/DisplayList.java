@@ -102,37 +102,44 @@ public class DisplayList {
       int end_dy = 0;
       int scale = 20;
       int arrowDirection = 0;
+      int arrowX = x2;
+      int arrowY = y2;
+      int arrowGap = DrawConnectionUtils.CONNECTION_ARROW_SIZE;
       switch (myDirection) {
         case DIR_LEFT:
           start_dx = -scale;
           end_dx = (x2 > x1) ? -scale : scale;
           arrowDirection = (x2 > x1) ? DrawConnection.DIR_LEFT : DrawConnection.DIR_RIGHT;
+          arrowX += (x2 > x1) ? -arrowGap : arrowGap;
           break;
         case DIR_TOP:
           start_dy = -10;
           end_dy = (y2 > y1) ? -scale : scale;
           arrowDirection = (y2 > y1) ? DrawConnection.DIR_TOP : DrawConnection.DIR_BOTTOM;
-
+          arrowY += (y2 > y1) ? -arrowGap : arrowGap;
           break;
         case DIR_RIGHT:
           end_dx = (x2 > x1) ? -scale : scale;
           start_dx = scale;
           arrowDirection = (x2 > x1) ? DrawConnection.DIR_LEFT : DrawConnection.DIR_RIGHT;
+          arrowX += (x2 > x1) ? -arrowGap : arrowGap;
           break;
         case DIR_BOTTOM:
           start_dy = scale;
           end_dy = (y2 > y1) ? -scale : scale;
           arrowDirection = (y2 > y1) ? DrawConnection.DIR_TOP : DrawConnection.DIR_BOTTOM;
+          arrowY += (y2 > y1) ? -arrowGap : arrowGap;
           break;
         case DIR_BASELINE:
           start_dy = -scale;
           end_dy = scale;
           arrowDirection = DrawConnection.DIR_BOTTOM;
+          arrowY += (y2 > y1) ? -arrowGap : arrowGap;
           break;
       }
       GeneralPath path = new GeneralPath();
       path.moveTo(x1, y1);
-      path.curveTo(x1 + start_dx, y1 + start_dy, x2 + end_dx, y2 + end_dy, x2, y2);
+      path.curveTo(x1 + start_dx, y1 + start_dy, x2 + end_dx, y2 + end_dy, arrowX, arrowY);
       g.draw(path);
       int[] xPoints = new int[3];
       int[] yPoints = new int[3];

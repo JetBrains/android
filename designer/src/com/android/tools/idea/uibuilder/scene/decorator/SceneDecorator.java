@@ -100,9 +100,6 @@ public class SceneDecorator {
    * @param component
    */
   public void buildList(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
-    Rectangle rect = new Rectangle();
-
-
     buildListComponent(list, time, sceneContext, component);
     buildListTargets(list, time, sceneContext, component);
     buildListChildren(list, time, sceneContext, component);
