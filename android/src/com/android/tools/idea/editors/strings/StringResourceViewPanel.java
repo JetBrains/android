@@ -34,7 +34,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.actionSystem.ex.CheckboxAction;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -67,7 +66,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntSupplier;
@@ -201,7 +199,10 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
   private ActionToolbar createToolbar() {
     DefaultActionGroup group = new DefaultActionGroup();
-    final ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true);
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true);
+
+    JComponent toolbarComponent = toolbar.getComponent();
+    toolbarComponent.setName("toolbar");
 
     final AnAction addKeyAction = new AnAction("Add Key", "", AllIcons.ToolbarDecorator.Add) {
       @Override
@@ -223,8 +224,8 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
     group.add(addKeyAction);
     group.add(new RemoveKeysAction());
-    group.add(new AddLocaleAction(toolbar.getComponent()));
-    group.add(newShowOnlyKeysNeedingTranslationsAction());
+    group.add(new AddLocaleAction(toolbarComponent));
+    group.add(new FilterKeysAction(myTable));
     group.add(new BrowserHelpAction("Translations editor", "https://developer.android.com/r/studio-ui/translations-editor.html"));
 
     return toolbar;
@@ -282,7 +283,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
       List<Locale> missingLocales = LocaleMenuAction.getAllLocales();
       missingLocales.removeAll(data.getLocales());
-      Collections.sort(missingLocales, Locale.LANGUAGE_NAME_COMPARATOR);
+      missingLocales.sort(Locale.LANGUAGE_NAME_COMPARATOR);
 
       final JBList list = new JBList(missingLocales);
       list.setFixedCellHeight(20);
@@ -329,26 +330,6 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
       popup.showUnderneathOf(myComponent);
     }
-  }
-
-  private AnAction newShowOnlyKeysNeedingTranslationsAction() {
-    return new CheckboxAction("Show only keys _needing translations") {
-      @Override
-      public boolean isSelected(AnActionEvent event) {
-        return myTable.getRowSorter() != null;
-      }
-
-      @Override
-      public void setSelected(AnActionEvent event, boolean showingOnlyKeysNeedingTranslations) {
-        myTable.setShowingOnlyKeysNeedingTranslations(showingOnlyKeysNeedingTranslations);
-      }
-
-      @Override
-      public void update(AnActionEvent event) {
-        event.getPresentation().setEnabled(myTable.getData() != null);
-        super.update(event);
-      }
-    };
   }
 
   public boolean dataIsCurrent() {

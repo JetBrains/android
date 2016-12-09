@@ -85,6 +85,26 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
     return ((StringResourceTableModel)getModel()).getData();
   }
 
+  @Nullable
+  public StringResourceTableRowFilter getRowFilter() {
+    @SuppressWarnings("unchecked")
+    DefaultRowSorter<? extends TableModel, Integer> sorter = (DefaultRowSorter<? extends TableModel, Integer>)getRowSorter();
+
+    return sorter == null ? null : (StringResourceTableRowFilter)sorter.getRowFilter();
+  }
+
+  public void setRowFilter(@Nullable StringResourceTableRowFilter filter) {
+    if (filter == null) {
+      setRowSorter(null);
+    }
+    else {
+      DefaultRowSorter<StringResourceTableModel, Integer> sorter = new TableRowSorter<>((StringResourceTableModel)getModel());
+      sorter.setRowFilter(filter);
+
+      setRowSorter(sorter);
+    }
+  }
+
   public int getSelectedRowModelIndex() {
     return convertRowIndexToModel(getSelectedRow());
   }
@@ -98,37 +118,6 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
 
   public int getSelectedColumnModelIndex() {
     return convertColumnIndexToModel(getSelectedColumn());
-  }
-
-  public void setShowingOnlyKeysNeedingTranslations(boolean showingOnlyKeysNeedingTranslations) {
-    DefaultRowSorter<TableModel, Integer> rowSorter;
-
-    if (showingOnlyKeysNeedingTranslations) {
-      rowSorter = new TableRowSorter<>(getModel());
-      rowSorter.setRowFilter(new NeedsTranslationsRowFilter());
-    }
-    else {
-      rowSorter = null;
-    }
-
-    setRowSorter(rowSorter);
-  }
-
-  private static final class NeedsTranslationsRowFilter extends RowFilter<TableModel, Integer> {
-    @Override
-    public boolean include(@NotNull Entry<? extends TableModel, ? extends Integer> entry) {
-      if ((Boolean)entry.getValue(UNTRANSLATABLE_COLUMN)) {
-        return false;
-      }
-
-      for (int i = FIXED_COLUMN_COUNT; i < entry.getValueCount(); i++) {
-        if (entry.getValue(i).equals("")) {
-          return true;
-        }
-      }
-
-      return false;
-    }
   }
 
   @Override

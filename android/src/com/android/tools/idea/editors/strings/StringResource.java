@@ -36,7 +36,7 @@ public final class StringResource {
   @NotNull
   private final Map<Locale, ResourceItemEntry> myLocaleToTranslationMap = new HashMap<>();
 
-  StringResource(@NotNull String key) {
+  public StringResource(@NotNull String key) {
     myKey = key;
     myDefaultValue = new ResourceItemEntry();
   }
@@ -72,7 +72,7 @@ public final class StringResource {
     return myTranslatable;
   }
 
-  void setTranslatable(boolean translatable) {
+  public void setTranslatable(boolean translatable) {
     myTranslatable = translatable;
   }
 

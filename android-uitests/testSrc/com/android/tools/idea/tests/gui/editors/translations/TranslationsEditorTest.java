@@ -41,6 +41,7 @@ import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.stream.IntStream;
@@ -49,7 +50,7 @@ import static com.android.tools.idea.editors.strings.table.StringResourceTableMo
 import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.KEY_COLUMN;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab.EDITOR;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @RunWith(GuiTestRunner.class)
 public final class TranslationsEditorTest {
@@ -95,22 +96,36 @@ public final class TranslationsEditorTest {
   }
 
   @Test
+  public void showKeysNeedingTranslationForEnglish() {
+    myTranslationsEditor.clickFilterKeysComboBoxItem("Show Keys Needing a Translation for English (en)");
+    assertEquals(Collections.singletonList("cancel"), myTranslationsEditor.keys());
+  }
+
+  @Test
   public void setModel() {
     StringResourceTable table = (StringResourceTable)myTranslationsEditor.getTable().target();
     OptionalInt optionalWidth = table.getKeyColumnPreferredWidth();
     TableColumnModel model = table.getColumnModel();
 
-    assertTrue(optionalWidth.isPresent());
-    assertEquals(optionalWidth.getAsInt(), model.getColumn(KEY_COLUMN).getPreferredWidth());
+    if (optionalWidth.isPresent()) {
+      assertEquals(optionalWidth.getAsInt(), model.getColumn(KEY_COLUMN).getPreferredWidth());
+    }
+    else {
+      fail();
+    }
 
     optionalWidth = table.getDefaultValueAndLocaleColumnPreferredWidths();
-    int width = optionalWidth.getAsInt();
 
-    assertTrue(optionalWidth.isPresent());
+    if (optionalWidth.isPresent()) {
+      int width = optionalWidth.getAsInt();
 
-    IntStream.range(DEFAULT_VALUE_COLUMN, table.getColumnCount())
-      .mapToObj(model::getColumn)
-      .forEach(column -> assertEquals(width, column.getPreferredWidth()));
+      IntStream.range(DEFAULT_VALUE_COLUMN, table.getColumnCount())
+        .mapToObj(model::getColumn)
+        .forEach(column -> assertEquals(width, column.getPreferredWidth()));
+    }
+    else {
+      fail();
+    }
   }
 
   @Test
