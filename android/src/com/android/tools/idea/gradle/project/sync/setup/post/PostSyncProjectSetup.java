@@ -35,6 +35,7 @@ import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.project.AndroidRunConfigurations;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
@@ -71,7 +72,6 @@ import java.util.Map;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflicts;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
-import static com.android.tools.idea.project.NewProjects.createRunConfigurations;
 
 public class PostSyncProjectSetup {
   @NotNull private final Project myProject;
@@ -150,7 +150,8 @@ public class PostSyncProjectSetup {
     myVersionCompatibilityChecker.checkAndReportComponentIncompatibilities(myProject);
 
     CommonModuleValidator moduleValidator = myModuleValidatorFactory.create(myProject);
-    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+    for (Module module : moduleManager.getModules()) {
       moduleValidator.validate(module);
     }
     moduleValidator.fixAndReportFoundIssues();
@@ -193,11 +194,10 @@ public class PostSyncProjectSetup {
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
 
-    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null && facet.isAppProject()) {
-        createRunConfigurations(facet);
+        AndroidRunConfigurations.getInstance().createRunConfiguration(facet);
       }
     }
   }

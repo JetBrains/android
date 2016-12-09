@@ -17,6 +17,7 @@ package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.project.AndroidRunConfigurations;
 import com.android.tools.idea.run.activity.DefaultActivityLocator;
 import com.intellij.facet.FacetType;
 import com.intellij.framework.detection.DetectedFrameworkDescription;
@@ -138,7 +139,7 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
 
       Manifest manifest = facet.getManifest();
       if (manifest != null && DefaultActivityLocator.getDefaultLauncherActivityName(module.getProject(), manifest) != null) {
-        addRunConfiguration(facet, null, false, null, null);
+        AndroidRunConfigurations.getInstance().addRunConfiguration(facet, null, null, null);
       }
     }
   }
