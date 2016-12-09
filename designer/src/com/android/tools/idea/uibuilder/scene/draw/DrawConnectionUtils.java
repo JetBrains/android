@@ -25,6 +25,9 @@ import java.awt.geom.Rectangle2D;
  * Utilities for creating various graphics
  */
 public class DrawConnectionUtils {
+  static final int ZIGZAG = 2;
+  static final int CENTER_ZIGZAG = 3;
+  public static final int MARGIN_SPACING = 3;
 
   private static final boolean DEBUG = false;
 
@@ -274,6 +277,7 @@ public class DrawConnectionUtils {
 
   /**
    * This is used to draw ageneral path
+   *
    * @param path
    * @param xPoints
    * @param yPoints
@@ -282,8 +286,7 @@ public class DrawConnectionUtils {
    */
   static void drawLines(GeneralPath path, int[] xPoints, int[] yPoints, int length, int archLen) {
     for (int i = 1; i < length; i++) {
-      path.lineTo(xPoints[i],yPoints[i]);
-
+      path.lineTo(xPoints[i], yPoints[i]);
     }
   }
 
@@ -292,14 +295,14 @@ public class DrawConnectionUtils {
    * This will only work if the path consist of only vertical or horizontal lines.
    * it assumes the path has already been moved to the start point
    *
-   * @param path path that will be filled
+   * @param path    path that will be filled
    * @param xPoints
    * @param yPoints
    * @param length
    * @param archLen
    */
-  static void drawRound(GeneralPath path,  int[] xPoints, int[] yPoints, int length, int archLen) {
-     int lastx = xPoints[0];
+  static void drawRound(GeneralPath path, int[] xPoints, int[] yPoints, int length, int archLen) {
+    int lastx = xPoints[0];
     int lasty = yPoints[0];
     int p = 1;
     while (p < length - 1) {
@@ -314,20 +317,21 @@ public class DrawConnectionUtils {
       int d0ys = Integer.signum(d0y);
       int d1xs = Integer.signum(d1x);
       int d1ys = Integer.signum(d1y);
-       int useArch = Math.min(len0-2, Math.min(len1/2-2,archLen));
+      int useArch = Math.min(len0 - 2, Math.min(len1 / 2 - 2, archLen));
       if (useArch < 2) {
-         path.lineTo(xPoints[p], yPoints[p]);
+        path.lineTo(xPoints[p], yPoints[p]);
         lastx = xPoints[p];
         lasty = yPoints[p];
-      } else {
-         path.lineTo(xPoints[p] - useArch * d0xs, yPoints[p] - useArch * d0ys);
+      }
+      else {
+        path.lineTo(xPoints[p] - useArch * d0xs, yPoints[p] - useArch * d0ys);
         lastx = xPoints[p] + useArch * d1xs;
         lasty = yPoints[p] + useArch * d1ys;
 
-      // map direction to degrees / 90
-        int dir0 = (d0xs==0)?((d0ys<1)?0:2):(d0xs>0)?1:3;
-        int dir1 = (d1xs==0)?((d1ys<1)?0:2):(d1xs>0)?1:3;
-        int rot = (4+dir1-dir0)%4;
+        // map direction to degrees / 90
+        int dir0 = (d0xs == 0) ? ((d0ys < 1) ? 0 : 2) : (d0xs > 0) ? 1 : 3;
+        int dir1 = (d1xs == 0) ? ((d1ys < 1) ? 0 : 2) : (d1xs > 0) ? 1 : 3;
+        int rot = (4 + dir1 - dir0) % 4;
         boolean dir = rot == 1;
 
         drawArc(path, xPoints[p] - useArch * d0xs, yPoints[p] - useArch * d0ys, lastx, lasty,
@@ -337,7 +341,7 @@ public class DrawConnectionUtils {
       p++;
     }
     path.lineTo(xPoints[p], yPoints[p]);
-   }
+  }
 
   private static void drawArc(Path2D p, float x0, float y0, float x1, float y1, float a, float b,
                               float theta, boolean isMoreThanHalf, boolean isPositiveArc) {
@@ -368,7 +372,7 @@ public class DrawConnectionUtils {
     double disc = 1.0 / dsq - 1.0 / 4.0;
     if (disc < 0.0) {
 
-      float adjust = (float) (Math.sqrt(dsq) / 1.99999);
+      float adjust = (float)(Math.sqrt(dsq) / 1.99999);
       drawArc(p, x0, y0, x1, y1, a * adjust, b * adjust, theta, isMoreThanHalf, isPositiveArc);
       return; /* Points are too far apart */
     }
@@ -380,7 +384,8 @@ public class DrawConnectionUtils {
     if (isMoreThanHalf == isPositiveArc) {
       cx = xm - sdy;
       cy = ym + sdx;
-    } else {
+    }
+    else {
       cx = xm + sdy;
       cy = ym - sdx;
     }
@@ -391,7 +396,8 @@ public class DrawConnectionUtils {
     if (isPositiveArc != (sweep >= 0)) {
       if (sweep > 0) {
         sweep -= 2 * Math.PI;
-      } else {
+      }
+      else {
         sweep += 2 * Math.PI;
       }
     }
@@ -408,13 +414,13 @@ public class DrawConnectionUtils {
   /**
    * Converts an arc to cubic Bezier segments and records them in p.
    *
-   * @param p The target for the cubic Bezier segments
-   * @param cx The x coordinate center of the ellipse
-   * @param cy The y coordinate center of the ellipse
-   * @param a The radius of the ellipse in the horizontal direction
-   * @param b The radius of the ellipse in the vertical direction
-   * @param e1x E(eta1) x coordinate of the starting point of the arc
-   * @param e1y E(eta2) y coordinate of the starting point of the arc
+   * @param p     The target for the cubic Bezier segments
+   * @param cx    The x coordinate center of the ellipse
+   * @param cy    The y coordinate center of the ellipse
+   * @param a     The radius of the ellipse in the horizontal direction
+   * @param b     The radius of the ellipse in the vertical direction
+   * @param e1x   E(eta1) x coordinate of the starting point of the arc
+   * @param e1y   E(eta2) y coordinate of the starting point of the arc
    * @param theta The angle that the ellipse bounding rectangle makes with the horizontal plane
    * @param start The start angle of the arc on the ellipse
    * @param sweep The angle (positive or negative) of the sweep of the arc on the ellipse
@@ -426,7 +432,7 @@ public class DrawConnectionUtils {
     // and http://www.spaceroots.org/documents/ellipse/node22.html
 
     // Maximum of 45 degrees per cubic Bezier segment
-    int numSegments = Math.abs((int) Math.ceil(sweep * 4 / Math.PI));
+    int numSegments = Math.abs((int)Math.ceil(sweep * 4 / Math.PI));
 
     double eta1 = start;
     double cosTheta = Math.cos(theta);
@@ -452,12 +458,227 @@ public class DrawConnectionUtils {
       double q2x = e2x - alpha * ep2x;
       double q2y = e2y - alpha * ep2y;
 
-      p.curveTo((float) q1x, (float) q1y, (float) q2x, (float) q2y, (float) e2x, (float) e2y);
+      p.curveTo((float)q1x, (float)q1y, (float)q2x, (float)q2y, (float)e2x, (float)e2y);
       eta1 = eta2;
       e1x = e2x;
       e1y = e2y;
       ep1x = ep2x;
       ep1y = ep2y;
     }
+  }
+
+
+  /**
+   * Add an vertical spring between (x0, y1) and (x0, y1) to the given path object
+   *
+   * @param path the path object we'll add the spring to
+   * @param x0   the x coordinate of the spring
+   * @param y1   the y start coordinate
+   * @param y2   the y end coordiante
+   */
+  public static void addVerticalSmallSpring(Path2D.Float path, int x0, int y1, int y2) {
+    int springHeight = 2;
+    int springWidth = 2;
+    int distance = Math.abs(y2 - y1);
+    int numSprings = (distance / (springHeight));
+    int leftOver = (distance - (numSprings * springHeight)) / 2;
+    path.lineTo(x0, y1);
+    path.lineTo(x0, y1 - leftOver);
+    int count = 0;
+    if (y1 > y2) {
+      for (int y = y1 - leftOver; y > y2 + leftOver; y -= springHeight) {
+        int x = (count % 2 == 0) ? x0 - springWidth : x0 + springWidth;
+        path.lineTo(x, y);
+        count++;
+      }
+    }
+    else {
+      for (int y = y1 + leftOver; y < y2 - leftOver; y += springHeight) {
+        int x = (count % 2 == 0) ? x0 - springWidth : x0 + springWidth;
+        path.lineTo(x, y);
+        count++;
+      }
+    }
+    path.lineTo(x0, y2 + leftOver);
+    path.lineTo(x0, y2);
+  }
+
+  /**
+   * Add an horizontal spring between (x1, y0) and (x2, y0) to the given path object
+   *
+   * @param path the path object we'll add the spring to
+   * @param y0   the y coordinate of the spring
+   * @param x1   the x start coordinate
+   * @param x2   the x end coordiante
+   */
+  public static void addHorizontalSmallSpring(Path2D.Float path, int y0, int x1, int x2) {
+    int springHeight = 2;
+    int springWidth = 2;
+    int distance = Math.abs(x2 - x1);
+    int numSprings = (distance / (springHeight));
+    int leftOver = (distance - (numSprings * springHeight)) / 2;
+    path.lineTo(x1, y0);
+    path.lineTo(x1 - leftOver, y0 - leftOver);
+    int count = 0;
+    if (x1 > x2) {
+      for (int x = x1 - leftOver; x > x2 + leftOver; x -= springHeight) {
+        int y = (count % 2 == 0) ? y0 - springWidth : y0 + springWidth;
+        path.lineTo(x, y);
+        count++;
+      }
+    }
+    else {
+      for (int x = x1 + leftOver; x < x2 - leftOver; x += springHeight) {
+        int y = (count % 2 == 0) ? y0 - springWidth : y0 + springWidth;
+        path.lineTo(x, y);
+        count++;
+      }
+    }
+    path.lineTo(x2 + leftOver, y0);
+    path.lineTo(x2, y0);
+  }
+
+  /**
+   * Draw an horizontal, centered zig-zag line.
+   * The color and style used for the drawing will be the current ones in the graphics context.
+   *
+   * @param path path that will be added to
+   * @param x1   start x point
+   * @param x2   end x point
+   * @param y    y point
+   */
+  public static void drawHorizontalZigZagLine(Path2D.Float path, int x1, int x2, int y) {
+    drawHorizontalZigZagLine(path, x1, x2, y, CENTER_ZIGZAG, CENTER_ZIGZAG);
+  }
+
+  /**
+   * Draw an horizontal zig-zag line.
+   * The color and style used for the drawing will be the current ones in the graphics context.
+   *
+   * @param path path that will be added to
+   * @param x1   start x point
+   * @param x2   end x point
+   * @param y    y point
+   * @param dY1  positive height of the zig-zag
+   * @param dY2  negative height of the zig-zag
+   */
+  static void drawHorizontalZigZagLine(Path2D.Float path, int x1, int x2, int y, int dY1, int dY2) {
+    if (x2 < x1) {
+      int temp = x1;
+      x1 = x2;
+      x2 = temp;
+    }
+    int distance = x2 - x1;
+    int step = ZIGZAG * 2 + (dY2 > 0 ? ZIGZAG : 0);
+    int count = (distance / step) - 2;
+    int remainings = distance - (count * step);
+    int x = x1 + remainings / 2;
+    path.moveTo(x1, y);
+    path.lineTo(x, y);
+    for (int i = 0; i < count; i++) {
+      path.lineTo(x + ZIGZAG, y + dY1);
+      path.lineTo(x + 2 * ZIGZAG, y - dY2);
+      if (dY2 != 0) {
+        path.lineTo(x + 3 * ZIGZAG, y);
+      }
+      x += step;
+    }
+    path.lineTo(x2, y);
+  }
+
+  /**
+   * Draw a vertical, centered zig-zag line.
+   * The color and style used for the drawing will be the current ones in the graphics context.
+   *
+   * @param path path that will be added to
+   * @param x    x point
+   * @param y1   start y point
+   * @param y2   end y point
+   */
+  public static void drawVerticalZigZagLine(Path2D.Float path, int x, int y1, int y2) {
+    drawVerticalZigZagLine(path, x, y1, y2, CENTER_ZIGZAG, CENTER_ZIGZAG);
+  }
+
+  /**
+   * Draw a vertical zig-zag line.
+   * The color and style used for the drawing will be the current ones in the graphics context.
+   *
+   * @param path path that will be added to
+   * @param x    x point
+   * @param y1   start y point
+   * @param y2   end y point
+   * @param dX1  positive width of the zig-zag
+   * @param dX2  negative width of the zig-zag
+   */
+  static void drawVerticalZigZagLine(Path2D.Float path, int x, int y1, int y2, int dX1, int dX2) {
+    if (y2 < y1) {
+      int temp = y1;
+      y1 = y2;
+      y2 = temp;
+    }
+    int distance = y2 - y1;
+    int step = ZIGZAG * 2 + (dX2 > 0 ? ZIGZAG : 0);
+    int count = (distance / step) - 2;
+    int remainings = distance - (count * step);
+    int y = y1 + remainings / 2;
+    path.moveTo(x, y1);
+    path.lineTo(x, y);
+    for (int i = 0; i < count; i++) {
+      path.lineTo(x + dX1, y + ZIGZAG);
+      path.lineTo(x - dX2, y + 2 * ZIGZAG);
+      if (dX2 != 0) {
+        path.lineTo(x, y + 3 * ZIGZAG);
+      }
+      y += step;
+    }
+    path.lineTo(x, y2);
+  }
+
+  public static int getVerticalMarginGap(Graphics2D g) {
+    return g.getFontMetrics().getHeight() + 2 * MARGIN_SPACING;
+  }
+
+  /**
+   * Get horizontal gap needed to draw the margin
+   * @param g
+   * @param string
+   * @return
+   */
+  public static int getHorizontalMarginGap(Graphics2D g, String string) {
+    return (int)(g.getFontMetrics().getStringBounds(string, g).getWidth() + 2 * MARGIN_SPACING);
+  }
+
+  /**
+   * draw the horizontal margin text and line
+   * @param g
+   * @param string
+   * @param x1
+   * @param x2
+   * @param y
+   */
+  public static void drawHorizontalMargin(Graphics2D g, String string, int x1, int x2, int y) {
+    FontMetrics metrics = g.getFontMetrics();
+    Rectangle2D rect = metrics.getStringBounds(string, g);
+    float sx = (float)((x1 + x2) / 2 - rect.getWidth() / 2);
+    float sy = (float)(y - MARGIN_SPACING - metrics.getDescent());
+    g.drawString(string, sx, sy);
+    g.drawLine(x1, y, x2, y);
+  }
+
+  /**
+   *
+   * @param g
+   * @param string
+   * @param x
+   * @param y1
+   * @param y2
+   */
+  public static void drawVerticalMargin(Graphics2D g, String string, int x, int y1, int y2) {
+    FontMetrics metrics = g.getFontMetrics();
+    Rectangle2D rect = metrics.getStringBounds(string, g);
+    g.drawLine(x, y1, x, y2);
+    float sx = (float)(x + MARGIN_SPACING);
+    float sy = (float)((y2 + y1) / 2 + rect.getHeight() / 2 - metrics.getDescent());
+    g.drawString(string, sx, sy);
   }
 }

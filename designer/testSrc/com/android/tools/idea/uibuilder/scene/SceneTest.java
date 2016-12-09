@@ -21,6 +21,10 @@ import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.intellij.openapi.util.Disposer;
 
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
+import java.util.Arrays;
+
 /**
  * Base class for Scene tests
  */
@@ -53,5 +57,48 @@ public abstract class SceneTest extends LayoutTestCase {
     }
   }
 
+  static String toAsciiArt(BufferedImage img, int lineWidth) {
+    int iw = img.getWidth();
+    int ih = img.getHeight();
+    int lines = (lineWidth * ih) / iw;
+    int[] buff = ((DataBufferInt) (img.getRaster().getDataBuffer())).getData();
+
+    // simple way to get background color assuming most of the image is empty
+    int []strip = new int[lines*lineWidth];
+    for (int i = 0; i < strip.length; i++) {
+      int iy = ((i/lineWidth) * ih) / lines;
+      int ix = ((i%lineWidth) * iw) / lineWidth;
+      strip[i] = buff[ix+iy*iw];
+    }
+
+    Arrays.sort(strip);
+    int baseColor = strip[strip.length/2];
+    String str = "";
+    for (int y = 0; y < lines; y++) {
+      char[] line = new char[lineWidth];
+      int iy = (y * ih) / lines;
+      int iny = ((y + 1) * ih) / lines;
+      for (int x = 0; x < lineWidth; x++) {
+        int ix = (x * iw) / lineWidth;
+        int inx = ((x + 1) * iw) / lineWidth;
+        boolean background = true;
+        for (int dy = iy; dy < iny; dy++) {
+          for (int dx = ix; dx < inx; dx++) {
+            int p = dx + dy * iw;
+            if (buff[p] != baseColor) {
+              background = false;
+              break;
+            }
+            if (!background) {
+              break;
+            }
+          }
+          line[x] = background ? ' ' : '#';
+        }
+      }
+      str += new String(line) + "\n";
+    }
+    return str;
+  }
   abstract public ModelBuilder createModel();
 }

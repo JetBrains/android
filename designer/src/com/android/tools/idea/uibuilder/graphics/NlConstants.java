@@ -56,7 +56,7 @@ public class NlConstants {
   public static final Font RULER_TEXT_FONT = JBUI.Fonts.miniFont();
 
   public static final Font BLUEPRINT_TEXT_FONT = RULER_TEXT_FONT;
-  public static final Color BLUEPRINT_BG_COLOR = new Color(0x133572);
+  public static final Color BLUEPRINT_BG_COLOR = new Color(0x234D6E);
   public static final Color BLUEPRINT_GRID_COLOR = new Color(0x17397b);
   public static final Color BLUEPRINT_FG_COLOR = new Color(0x6196c8);
   public static final Color BLUEPRINT_COMPONENT_BG_COLOR = new Color(0, 0, 0, 0);
