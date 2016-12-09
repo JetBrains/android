@@ -165,6 +165,21 @@ public final class ParameterValueResolverTest {
   }
 
   @Test
+  public void testDuplicatedUnique() throws CircularParameterDependencyException {
+    TemplateMetadata template = parseTemplateMetadata(NORMAL_TEMPLATE);
+    ParameterValueResolver.Deduplicator deduplicator = (parameter, value) -> value + "New";
+
+    // "p2" doesn't have a suggestion field, so it will not be a candidate for de-duplication
+    Map<Parameter, Object> defaultValuesMap1 = resolve(template.getParameters(), ImmutableMap.of(), ImmutableMap.of(), deduplicator);
+    assertEquals("Hello", defaultValuesMap1.get(getParameterObject(template, "p2")));
+
+    // Making "p2" unique, will now force it to de-duplicate (even if it doesn't have a suggest value)
+    getParameterObject(template, "p2").constraints.add(Parameter.Constraint.UNIQUE);
+    Map<Parameter, Object> defaultValuesMap2 = resolve(template.getParameters(), ImmutableMap.of(), ImmutableMap.of(), deduplicator);
+    assertEquals("HelloNew", defaultValuesMap2.get(getParameterObject(template, "p2")));
+  }
+
+  @Test
   public void testSimpleValuesResolution() throws CircularParameterDependencyException {
     TemplateMetadata template = parseTemplateMetadata(NORMAL_TEMPLATE);
     Map<Parameter, Object> defaultValuesMap = resolve(template.getParameters(), ImmutableMap.of(), ImmutableMap.of());
