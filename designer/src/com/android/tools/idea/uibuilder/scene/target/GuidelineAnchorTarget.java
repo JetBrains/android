@@ -19,11 +19,26 @@ import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
+
 /**
  * Guideline anchors
  */
 public class GuidelineAnchorTarget extends AnchorTarget {
   boolean myIsHorizontal;
+
+  @Override
+  public int getMouseCursor() {
+    if (myIsHorizontal) {
+      return Cursor.N_RESIZE_CURSOR;
+    }
+    return Cursor.E_RESIZE_CURSOR;
+  }
+
+  @Override
+  public int getPreferenceLevel() {
+    return Target.GUIDELINE_LEVEL;
+  }
 
   public GuidelineAnchorTarget(@NotNull Type type, boolean isHorizontal) {
     super(type, false);

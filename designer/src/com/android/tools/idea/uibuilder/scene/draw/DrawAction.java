@@ -27,8 +27,11 @@ public class DrawAction extends DrawRegion {
   public static final int CLEAR = 0;
   public static final int BASELINE = 1;
   public static final int CHAIN = 2;
+  private boolean myIsOver;
 
   int myMode;
+
+  protected Font mFont = new Font("Helvetica", Font.PLAIN, 14);
 
   public DrawAction(String s) {
     String[] sp = s.split(",");
@@ -37,18 +40,27 @@ public class DrawAction extends DrawRegion {
     myMode = Integer.parseInt(sp[c++]);
   }
 
-  public DrawAction(int x, int y, int width, int height, int mode) {
+  public DrawAction(int x, int y, int width, int height, int mode, boolean isOver) {
     super(x, y, width, height);
     myMode = mode;
+    myIsOver = isOver;
   }
 
   @Override
   public void paint(Graphics2D g, SceneContext sceneContext) {
-    ColorSet colorSet = sceneContext.getColorSet();
-    Color background = colorSet.getFrames();
-    g.setColor(background);
     int r = (int)(width * 0.3);
-    g.fillRoundRect(x, y, width, height, r, r);
+    ColorSet colorSet = sceneContext.getColorSet();
+    g.setColor(colorSet.getBackground());
+    g.fillRoundRect(x - 2, y - 2, width + 4, height + 4, r, r);
+    if (myIsOver) {
+      g.setColor(colorSet.getSelectedBackground());
+      g.fillRoundRect(x, y, width, height, r, r);
+      g.setColor(colorSet.getFrames());
+      g.drawRoundRect(x, y, width, height, r, r);
+    } else {
+      g.setColor(colorSet.getFrames());
+      g.fillRoundRect(x, y, width, height, r, r);
+    }
     Color color = colorSet.getText();
     g.setColor(color);
     String text = "X";
@@ -57,6 +69,7 @@ public class DrawAction extends DrawRegion {
     } else if (myMode == 2) {
       text = "C";
     }
+    g.setFont(mFont);
     FontMetrics fontMetrics = g.getFontMetrics();
     int tx = x + (width - fontMetrics.stringWidth(text))/2;
     int ty = y + (height / 2) + fontMetrics.getDescent();
@@ -68,11 +81,18 @@ public class DrawAction extends DrawRegion {
     return super.serialize() + "," + myMode;
   }
 
-  public static void add(DisplayList list, SceneContext transform, float left, float top, float right, float bottom, int mode) {
+  public static void add(DisplayList list,
+                         SceneContext transform,
+                         float left,
+                         float top,
+                         float right,
+                         float bottom,
+                         int mode,
+                         boolean isOver) {
     int l = transform.getSwingX(left);
     int t = transform.getSwingY(top);
     int w = transform.getSwingDimension(right - left);
     int h = transform.getSwingDimension(bottom - top);
-    list.add(new DrawAction(l, t, w, h, mode));
+    list.add(new DrawAction(l, t, w, h, mode, isOver));
   }
 }

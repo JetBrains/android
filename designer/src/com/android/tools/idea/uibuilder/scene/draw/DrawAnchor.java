@@ -68,6 +68,20 @@ public class DrawAnchor extends DrawRegion {
     ColorSet colorSet = sceneContext.getColorSet();
     Color background = colorSet.getBackground();
     Color color = colorSet.getFrames();
+
+    if (myMode == OVER) {
+      if (myIsConnected) {
+        g.setColor(colorSet.getAnchorDisconnectionCircle());
+      }
+      else {
+        g.setColor(colorSet.getAnchorConnectionCircle());
+      }
+      int delta = width / 3;
+      int delta2 = delta * 2;
+      g.fillRoundRect(x - delta, y - delta, width + delta2, height + delta2, width + delta2, height + delta2);
+      g.drawRoundRect(x - delta, y - delta, width + delta2, height + delta2, width + delta2, height + delta2);
+    }
+
     g.setColor(background);
     g.fillRoundRect(x, y, width, height, width, height);
     g.setColor(color);
@@ -78,7 +92,6 @@ public class DrawAnchor extends DrawRegion {
       g.fillRoundRect(x + delta, y + delta, width - delta2, height - delta2, width - delta2, height - delta2);
       g.drawRoundRect(x + delta, y + delta, width - delta2, height - delta2, width - delta2, height - delta2);
     }
-    Composite savedComposite = g.getComposite();
     if (myMode == OVER) {
       int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
       Composite comp = g.getComposite();
@@ -89,7 +102,6 @@ public class DrawAnchor extends DrawRegion {
       else {
         g.setColor(colorSet.getAnchorConnectionCircle());
       }
-
       g.fillRoundRect(x, y, width, height, width, height);
       sceneContext.repaint();
       g.setComposite(comp);
@@ -144,6 +156,6 @@ public class DrawAnchor extends DrawRegion {
     int t = transform.getSwingY(top);
     int w = transform.getSwingDimension(right - left);
     int h = transform.getSwingDimension(bottom - top);
-     list.add(new DrawAnchor(l, t, w, h, type, isConnected, mode));
+    list.add(new DrawAnchor(l, t, w, h, type, isConnected, mode));
   }
 }

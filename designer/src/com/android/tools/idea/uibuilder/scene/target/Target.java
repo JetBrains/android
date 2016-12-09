@@ -24,6 +24,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface Target {
+  // List of preference levels
+  int LASSO_LEVEL = 10;
+  int DRAG_LEVEL = 20;
+  int GUIDELINE_LEVEL = 30;
+  int RESIZE_LEVEL = 40;
+  int ANCHOR_LEVEL = 50;
+  int ACTION_LEVEL = 60;
+
   int getPreferenceLevel();
   boolean layout(@NotNull SceneContext context, int l, int t, int r, int b);
   void addHit(@NotNull SceneContext context, @NotNull ScenePicker picker);

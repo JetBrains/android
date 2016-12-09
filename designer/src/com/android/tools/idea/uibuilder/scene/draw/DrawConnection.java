@@ -58,13 +58,13 @@ public class DrawConnection implements DrawCommand {
   int myMargin;
   int myMarginDistance;
   float myBias;
+  static Stroke myBackgroundStroke = new BasicStroke(8);
   static Stroke myDashStroke = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{4, 6}, 0f);
   static Stroke mySpringStroke = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{4, 4}, 0f);
   static Stroke myChainStroke1 = new BasicStroke(6, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{3, 7}, 8f);
   static Stroke myChainStroke2 = new BasicStroke(5, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{6, 4}, 0f);
   static Stroke myChainStroke3 = new BasicStroke(4, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{3, 7}, 8f);
   static Stroke myChainStroke4 = new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{5, 5}, 4f);
-
 
   @Override
   public int getLevel() {
@@ -117,9 +117,8 @@ public class DrawConnection implements DrawCommand {
   public void paint(Graphics2D g, SceneContext sceneContext) {
     ColorSet color = sceneContext.getColorSet();
     g.setColor(color.getConstraints());
-    draw(g, myConnectionType, mySource, mySourceDirection, myDest, myDestDirection, myDestType, myMargin, myMarginDistance, myBias);
+    draw(g, color, myConnectionType, mySource, mySourceDirection, myDest, myDestDirection, myDestType, myMargin, myMarginDistance, myBias);
   }
-
 
   public DrawConnection(int connectionType,
                         Rectangle source,
@@ -174,7 +173,7 @@ public class DrawConnection implements DrawCommand {
   }
 
   public static void draw(Graphics2D g,
-                          int connectionType,
+                          ColorSet color, int connectionType,
                           Rectangle source,
                           int sourceDirection,
                           Rectangle dest,
@@ -250,12 +249,10 @@ public class DrawConnection implements DrawCommand {
 
     int dir = ((myDestType == DEST_PARENT) ^ flip_arrow) ? ourOppositeDirection[destDirection] : destDirection;
 
-
     ourPath.reset();
     ourPath.moveTo(startx, starty);
     switch (connectionType) {
       case TYPE_CHAIN:
-
         DrawConnectionUtils.getArrow(sourceDirection, startx, starty, xPoints, yPoints);
         g.fillPolygon(xPoints, yPoints, 3);
         ourPath.moveTo(startx - dx, starty - dy);
@@ -263,6 +260,7 @@ public class DrawConnection implements DrawCommand {
                         endx + dx + scale_dest * dirDeltaX[destDirection], endy + dy + scale_dest * dirDeltaY[destDirection],
                         endx + dx, endy + dy);
         Stroke defaultStroke = g.getStroke();
+        g.setColor(color.getConstraints());
         g.setStroke(myChainStroke1);
         g.draw(ourPath);
         g.setStroke(myChainStroke2);
@@ -285,7 +283,7 @@ public class DrawConnection implements DrawCommand {
               if (Math.abs(startx - endx) > gap) {
                 int marginX = endx - ((endx > startx) ? gap : -gap);
                 int arrow = ((endx > startx) ? 1 : -1) * DrawConnectionUtils.ARROW_SIDE;
-
+                g.setColor(color.getMargins());
                 DrawConnectionUtils
                   .drawHorizontalMargin(g, marginString, marginX, endx - arrow, endy);
                 springEndX = marginX;
@@ -296,6 +294,7 @@ public class DrawConnection implements DrawCommand {
               if (Math.abs(starty - endy) > gap) {
                 int marginY = endy - ((endy > starty) ? gap : -gap);
                 int arrow = ((endy > starty) ? 1 : -1) * DrawConnectionUtils.ARROW_SIDE;
+                g.setColor(color.getMargins());
                 DrawConnectionUtils
                   .drawVerticalMargin(g, marginString, endx, marginY, endy - arrow);
                 springEndY = marginY;
@@ -304,9 +303,11 @@ public class DrawConnection implements DrawCommand {
           }
 
           if (endx == startx) {
+            g.setColor(color.getConstraints());
             DrawConnectionUtils.drawVerticalZigZagLine(ourPath, startx, starty, springEndY);
           }
           else {
+            g.setColor(color.getConstraints());
             DrawConnectionUtils.drawHorizontalZigZagLine(ourPath, startx, springEndX, endy);
           }
         }
@@ -320,7 +321,6 @@ public class DrawConnection implements DrawCommand {
             g.setStroke(defaultStroke);
           }
           else {
-
             DrawConnectionUtils.drawVerticalZigZagLine(ourPath, startx, starty, endy);
             defaultStroke = g.getStroke();
             g.setStroke(mySpringStroke);
@@ -336,7 +336,6 @@ public class DrawConnection implements DrawCommand {
         }
         break;
       case TYPE_CENTER:
-
         int dir0_x = 0, dir0_y = 0; // direction of the start
         int dir1_x = 0, dir1_y = 0; // direction the arch must go
         int dir2_x = 0, dir2_y = 0;
@@ -363,12 +362,12 @@ public class DrawConnection implements DrawCommand {
             Stroke stroke = g.getStroke();
             g.setStroke(myDashStroke);
             int xpos = source.x + source.width / 2;
+            g.setColor(color.getConstraints());
             g.drawLine(xpos, vline_y1, xpos, vline_y2);
             g.setStroke(stroke);
           }
         }
         else {
-
           dir1_x = (endx > startx) ? 1 : -1;
           dir0_y = (sourceDirection == DIR_TOP) ? -1 : 1;
           dir2_y = (destDirection == DIR_TOP) ? -1 : 1;
@@ -390,6 +389,7 @@ public class DrawConnection implements DrawCommand {
             Stroke stroke = g.getStroke();
             g.setStroke(myDashStroke);
             int ypos = source.y + source.height / 2;
+            g.setColor(color.getMargins());
             g.drawLine(vline_x1, ypos, vline_x2, ypos);
             g.setStroke(stroke);
           }
@@ -409,6 +409,7 @@ public class DrawConnection implements DrawCommand {
         px[5] = endx;
         py[5] = endy;
 
+        g.setColor(color.getConstraints());
         DrawConnectionUtils.drawRound(ourPath, px, py, 6, GAP);
         DrawConnectionUtils.getArrow(dir, endx, endy, xPoints, yPoints);
         g.fillPolygon(xPoints, yPoints, 3);
@@ -419,6 +420,7 @@ public class DrawConnection implements DrawCommand {
           if (sourceDirection == DIR_RIGHT || sourceDirection == DIR_LEFT) {
             boolean above = starty < endy;
             int line_y = starty + ((above) ? -(source.height) / 4 : (source.height) / 4);
+            g.setColor(color.getMargins());
             DrawConnectionUtils.drawHorizontalMarginIndicator(g, "" + margin, startx, endx, line_y);
             if (myDestType != DEST_PARENT || (line_y < dest.y || line_y > dest.y + dest.height)) {
               int constraintX = (destDirection == DIR_LEFT) ? dest.x : dest.x + dest.width;
@@ -432,6 +434,7 @@ public class DrawConnection implements DrawCommand {
           else {
             boolean left = startx < endx;
             int line_x = startx + ((left) ? -(source.width) / 4 : (source.width) / 4);
+            g.setColor(color.getMargins());
             DrawConnectionUtils.drawVerticalMarginIndicator(g, "" + margin, line_x, starty, endy);
             if (myDestType != DEST_PARENT || (line_x < dest.x || line_x > dest.x + dest.width)) {
               int constraint_y = (destDirection == DIR_TOP) ? dest.y : dest.y + dest.height;
@@ -447,6 +450,14 @@ public class DrawConnection implements DrawCommand {
         ourPath.curveTo(startx + scale_source * dirDeltaX[sourceDirection], starty + scale_source * dirDeltaY[sourceDirection],
                         endx + dx + scale_dest * dirDeltaX[destDirection], endy + dy + scale_dest * dirDeltaY[destDirection],
                         endx + dx, endy + dy);
+        defaultStroke = g.getStroke();
+        g.setStroke(myBackgroundStroke);
+        g.setColor(color.getBackground());
+        DrawConnectionUtils.getArrow(dir, endx, endy, xPoints, yPoints);
+        g.fillPolygon(xPoints, yPoints, 3);
+        g.draw(ourPath);
+        g.setStroke(defaultStroke);
+        g.setColor(color.getConstraints());
         DrawConnectionUtils.getArrow(dir, endx, endy, xPoints, yPoints);
         g.fillPolygon(xPoints, yPoints, 3);
         g.draw(ourPath);
