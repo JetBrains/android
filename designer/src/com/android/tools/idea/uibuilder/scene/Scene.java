@@ -336,6 +336,10 @@ public class Scene implements ModelListener, SelectionListener {
     if (myRoot != null && myScreenView != null && myScreenView.getSelectionModel().isEmpty()) {
       addTargets(myRoot);
     }
+    // Makes sure the selection is correct (after DND this might not be true)
+    if (myScreenView != null) {
+      selectionChanged(myScreenView.getSelectionModel().getSelection(), false);
+    }
   }
 
   /**
@@ -412,9 +416,16 @@ public class Scene implements ModelListener, SelectionListener {
 
   @Override
   public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
+    selectionChanged(selection, true);
+  }
+
+  public void selectionChanged(@NotNull List<NlComponent> selection, boolean updateTargets) {
     if (myRoot != null) {
-      clearChildTargets(myRoot);
+      if (updateTargets) {
+        clearChildTargets(myRoot);
+      }
       myRoot.markSelection(selection);
+
       // After a new selection, we need to figure out the context
       if (!selection.isEmpty()) {
         NlComponent primary = selection.get(0);
@@ -795,10 +806,12 @@ public class Scene implements ModelListener, SelectionListener {
       if (myOverTarget != null) {
         myOverTarget.setOver(false);
         myOverTarget = null;
+        needsRebuildList();
       }
       if (closestTarget != null) {
         closestTarget.setOver(true);
         myOverTarget = closestTarget;
+        needsRebuildList();
       }
     }
     SceneComponent closestComponent = myHoverListener.getClosestComponent();
@@ -874,7 +887,8 @@ public class Scene implements ModelListener, SelectionListener {
     if (myHitComponent != null && myHitListener.getClosestComponent() == myHitComponent) {
       myNewSelectedComponents.add(myHitComponent);
     }
-    if (myHitTarget instanceof ActionTarget) {
+    if (myHitTarget instanceof ActionTarget
+      || myHitTarget instanceof GuidelineTarget) {
       // it will be outside the bounds of the component, so will likely have
       // selected a different one...
       myNewSelectedComponents.clear();

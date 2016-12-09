@@ -279,7 +279,7 @@ public class DragTarget extends ConstraintTarget {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public int getPreferenceLevel() { return 0; }
+  public int getPreferenceLevel() { return Target.DRAG_LEVEL; }
 
   @Override
   public void mouseDown(int x, int y) {

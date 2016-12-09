@@ -121,8 +121,8 @@ public class SceneDragHandler extends DragHandler {
         }
       }
     }
-    scene.setDnDComponent(null);
     insertComponents(-1, insertType);
+    scene.setDnDComponent(null);
   }
 
   @Override

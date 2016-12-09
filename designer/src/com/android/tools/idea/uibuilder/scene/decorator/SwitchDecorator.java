@@ -33,6 +33,11 @@ public class SwitchDecorator extends SceneDecorator {
   public static class DrawSwitch extends DrawTextRegion {
     private static final int MARGIN = 4;
 
+    @Override
+    public int getLevel() {
+      return COMPONENT_LEVEL;
+    }
+
     DrawSwitch(int x, int y, int width, int height, int baseLineOffset, String string) {
       super(x, y, width, height, baseLineOffset, string);
     }

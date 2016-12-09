@@ -116,6 +116,7 @@ public class DrawTextRegion extends DrawRegion {
                         int fontSize) {
     super(x, y, width, height);
     mText = text;
+    myBaseLineOffset = baseLineOffset;
     mSingleLine = singleLine;
     mToUpperCase = toUpperCase;
     mAlignmentX = textAlignmentX;
