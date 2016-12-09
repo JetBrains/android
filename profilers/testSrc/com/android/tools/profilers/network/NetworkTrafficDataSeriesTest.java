@@ -40,7 +40,7 @@ public class NetworkTrafficDataSeriesTest {
       .add(TestNetworkService.newSpeedData(16, 5, 1))
       .build();
   @Rule public TestGrpcChannel<TestNetworkService> myGrpcChannel =
-    new TestGrpcChannel<>("NetworkTrafficDataSeriesTest", TestNetworkService.getInstanceForNetworkData(FAKE_DATA));
+    new TestGrpcChannel<>("NetworkTrafficDataSeriesTest", TestNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).build());
   private NetworkTrafficDataSeries mySentSeries;
   private NetworkTrafficDataSeries myReceivedSeries;
 
@@ -56,11 +56,11 @@ public class NetworkTrafficDataSeriesTest {
   @Test
   public void sentDataAllInclusive() {
     List<SeriesData<Long>> expected = new ImmutableList.Builder<SeriesData<Long>>()
-      .add(new SeriesData<>(0, 1l))
-      .add(new SeriesData<>(2, 2l))
-      .add(new SeriesData<>(4, 3l))
-      .add(new SeriesData<>(8, 4l))
-      .add(new SeriesData<>(16, 5l))
+      .add(new SeriesData<>(0, 1L))
+      .add(new SeriesData<>(2, 2L))
+      .add(new SeriesData<>(4, 3L))
+      .add(new SeriesData<>(8, 4L))
+      .add(new SeriesData<>(16, 5L))
       .build();
     check(mySentSeries, 0, 16, expected);
   }
@@ -68,11 +68,11 @@ public class NetworkTrafficDataSeriesTest {
   @Test
   public void receivedDataAllInclusive() {
     List<SeriesData<Long>> expected = new ImmutableList.Builder<SeriesData<Long>>()
-      .add(new SeriesData<>(0, 5l))
-      .add(new SeriesData<>(2, 4l))
-      .add(new SeriesData<>(4, 3l))
-      .add(new SeriesData<>(8, 2l))
-      .add(new SeriesData<>(16, 1l))
+      .add(new SeriesData<>(0, 5L))
+      .add(new SeriesData<>(2, 4L))
+      .add(new SeriesData<>(4, 3L))
+      .add(new SeriesData<>(8, 2L))
+      .add(new SeriesData<>(16, 1L))
       .build();
     check(myReceivedSeries, 0, 16, expected);
   }
@@ -80,9 +80,9 @@ public class NetworkTrafficDataSeriesTest {
   @Test
   public void sentDataTailExcluded() {
     List<SeriesData<Long>> expected = new ImmutableList.Builder<SeriesData<Long>>()
-      .add(new SeriesData<>(0, 1l))
-      .add(new SeriesData<>(2, 2l))
-      .add(new SeriesData<>(4, 3l))
+      .add(new SeriesData<>(0, 1L))
+      .add(new SeriesData<>(2, 2L))
+      .add(new SeriesData<>(4, 3L))
       .build();
     check(mySentSeries, 0, 6, expected);
   }
@@ -90,9 +90,9 @@ public class NetworkTrafficDataSeriesTest {
   @Test
   public void receivedDataTailExcluded() {
     List<SeriesData<Long>> expected = new ImmutableList.Builder<SeriesData<Long>>()
-      .add(new SeriesData<>(0, 5l))
-      .add(new SeriesData<>(2, 4l))
-      .add(new SeriesData<>(4, 3l))
+      .add(new SeriesData<>(0, 5L))
+      .add(new SeriesData<>(2, 4L))
+      .add(new SeriesData<>(4, 3L))
       .build();
     check(myReceivedSeries, 0, 6, expected);
   }
@@ -100,9 +100,9 @@ public class NetworkTrafficDataSeriesTest {
   @Test
   public void sentDataHeadExcluded() {
     List<SeriesData<Long>> expected = new ImmutableList.Builder<SeriesData<Long>>()
-      .add(new SeriesData<>(4, 3l))
-      .add(new SeriesData<>(8, 4l))
-      .add(new SeriesData<>(16, 5l))
+      .add(new SeriesData<>(4, 3L))
+      .add(new SeriesData<>(8, 4L))
+      .add(new SeriesData<>(16, 5L))
       .build();
     check(mySentSeries, 3, 19, expected);
   }
@@ -112,7 +112,7 @@ public class NetworkTrafficDataSeriesTest {
     check(myReceivedSeries, 180, 210, Collections.emptyList());
   }
 
-  private void check(NetworkTrafficDataSeries series, long startTimeSec, long endTimeSec, List<SeriesData<Long>> expectedResult) {
+  private static void check(NetworkTrafficDataSeries series, long startTimeSec, long endTimeSec, List<SeriesData<Long>> expectedResult) {
     Range range = new Range(TimeUnit.SECONDS.toMicros(startTimeSec), TimeUnit.SECONDS.toMicros(endTimeSec));
     List<SeriesData<Long>> dataList = series.getDataForXRange(range);
     assertEquals(expectedResult.size(), dataList.size());
