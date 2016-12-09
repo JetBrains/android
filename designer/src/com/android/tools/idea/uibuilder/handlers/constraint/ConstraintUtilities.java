@@ -53,6 +53,7 @@ import static com.android.tools.idea.res.ResourceHelper.resolveStringValue;
  */
 public class ConstraintUtilities {
 
+  final static boolean APPLY_MINIMUM_SIZE = false;
   final static int MINIMUM_SIZE = 48; // in dp
   final static int MINIMUM_SIZE_EXPAND = 6; // in dp
   private static HashMap<String, Integer> alignmentMap = new HashMap<>();
@@ -1145,7 +1146,7 @@ public class ConstraintUtilities {
       widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT);
     }
     else if (layout_width != null && layout_width.equalsIgnoreCase(SdkConstants.VALUE_WRAP_CONTENT)) {
-      if (widget.getWidth() < MINIMUM_SIZE && widget instanceof WidgetContainer
+      if (APPLY_MINIMUM_SIZE && widget.getWidth() < MINIMUM_SIZE && widget instanceof WidgetContainer
           && ((WidgetContainer) widget).getChildren().size() == 0) {
         widget.setWidth(MINIMUM_SIZE);
         widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
@@ -1186,7 +1187,7 @@ public class ConstraintUtilities {
       widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT);
     }
     else if (layout_height != null && layout_height.equalsIgnoreCase(SdkConstants.VALUE_WRAP_CONTENT)) {
-      if (widget.getHeight() < MINIMUM_SIZE && widget instanceof WidgetContainer
+      if (APPLY_MINIMUM_SIZE && widget.getHeight() < MINIMUM_SIZE && widget instanceof WidgetContainer
           && ((WidgetContainer) widget).getChildren().size() == 0) {
         widget.setHeight(MINIMUM_SIZE);
         widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
