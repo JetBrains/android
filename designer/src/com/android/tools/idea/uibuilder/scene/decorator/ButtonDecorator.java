@@ -39,8 +39,8 @@ public class ButtonDecorator extends SceneDecorator {
       super(x, y, width, height, baseLineOffset, string);
       mHorizontalPadding = (int)(4 * scale);
       mVerticalPadding = (int)(8 * scale);
-      mHorizontalMargin = (int)(4 * scale);
-      mVerticalMargin = (int)(6 * scale);
+      mHorizontalMargin = (int)(8 * scale);
+      mVerticalMargin = (int)(12 * scale);
       mScale = scale;
       mFont = mFont.deriveFont(mFont.getSize() * mScale);
       mToUpperCase = true;
