@@ -35,8 +35,8 @@ public class NetworkProfilerStage extends Stage {
 
   public AspectModel<NetworkProfilerAspect> aspect = new AspectModel<>();
 
-  private final NetworkRequestsModel myRequestsModel =
-    new RpcNetworkRequestsModel(getStudioProfilers().getClient().getNetworkClient(), getStudioProfilers().getProcessId());
+  private final NetworkConnectionsModel myConnectionsModel =
+    new RpcNetworkConnectionsModel(getStudioProfilers().getClient().getNetworkClient(), getStudioProfilers().getProcessId());
 
   private final NetworkRadioDataSeries myRadioDataSeries =
     new NetworkRadioDataSeries(getStudioProfilers().getClient().getNetworkClient(), getStudioProfilers().getProcessId());
@@ -52,8 +52,8 @@ public class NetworkProfilerStage extends Stage {
   }
 
   @NotNull
-  public NetworkRequestsModel getRequestsModel() {
-    return myRequestsModel;
+  public NetworkConnectionsModel getConnectionsModel() {
+    return myConnectionsModel;
   }
 
   @NotNull
@@ -66,7 +66,7 @@ public class NetworkProfilerStage extends Stage {
    */
   public void setSelectedConnection(@Nullable HttpData data) {
     if (data != null && data.getResponsePayloadId() != null && data.getResponsePayloadFile() == null) {
-      ByteString payload = myRequestsModel.requestResponsePayload(data);
+      ByteString payload = myConnectionsModel.requestResponsePayload(data);
       File file = null;
       try {
         String contentType = data.getResponseField(HttpData.FIELD_CONTENT_TYPE);
