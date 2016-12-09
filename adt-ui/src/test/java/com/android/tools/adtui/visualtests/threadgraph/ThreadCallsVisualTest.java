@@ -91,8 +91,8 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
   }
 
   @Override
-  protected List<Animatable> createComponentsList() {
-    List<Animatable> list = new ArrayList<>();
+  protected List<Updatable> createComponentsList() {
+    List<Updatable> list = new ArrayList<>();
     list.add(mChart);
     list.add(mSelector);
     list.add(mAxis);

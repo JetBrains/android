@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.chart.linechart;
 
-import com.android.tools.adtui.Animatable;
+import com.android.tools.adtui.Updatable;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
 import com.intellij.util.containers.ImmutableList;
@@ -39,7 +39,7 @@ import static com.android.tools.adtui.model.DurationData.UNSPECIFIED_DURATION;
 /**
  * A custom renderer to support drawing {@link DurationData} over line charts
  */
-public final class DurationDataRenderer<E extends DurationData> implements Animatable, LineChartCustomRenderer {
+public final class DurationDataRenderer<E extends DurationData> implements Updatable, LineChartCustomRenderer {
 
   /**
    * Percentage of screen dimension the icon+label for the DurationData will be offset.
@@ -94,12 +94,12 @@ public final class DurationDataRenderer<E extends DurationData> implements Anima
   }
 
   @Override
-  public void animate(float frameLength) {
+  public void update(float elapsed) {
     // No-op - do everything in postAnimate in case we are attaching to a line series which needs to perform logic in its animate first.
   }
 
   @Override
-  public void postAnimate() {
+  public void postUpdate() {
     // Generate the rectangle regions for the duration data series
     myDataCache.clear();
     myClickRegionCache.clear();

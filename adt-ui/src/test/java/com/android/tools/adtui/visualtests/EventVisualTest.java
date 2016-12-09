@@ -72,7 +72,7 @@ public class EventVisualTest extends VisualTest {
 
 
   @Override
-  protected List<Animatable> createComponentsList() {
+  protected List<Updatable> createComponentsList() {
     long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     AnimatedRange xRange = new AnimatedRange(nowUs, nowUs + TimeUnit.SECONDS.toMicros(60));
     AnimatedRange xTimelineRange = new AnimatedRange(0, 0);
@@ -88,7 +88,7 @@ public class EventVisualTest extends VisualTest {
     // add horizontal time axis
     AxisComponent.Builder builder = new AxisComponent.Builder(xTimelineRange, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM);
     myTimeAxis = builder.build();
-    List<Animatable> componentsList = new ArrayList<>();
+    List<Updatable> componentsList = new ArrayList<>();
     // Add the scene components to the list
     componentsList.add(xRange);
     componentsList.add(xTimelineRange);

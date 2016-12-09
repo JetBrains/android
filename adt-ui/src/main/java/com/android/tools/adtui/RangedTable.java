@@ -19,7 +19,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedTableModel;
 import org.jetbrains.annotations.NotNull;
 
-public class RangedTable implements Animatable {
+public class RangedTable implements Updatable {
   private final RangedTableModel myModel;
   private final Range myRange;
 
@@ -29,7 +29,7 @@ public class RangedTable implements Animatable {
   }
 
   @Override
-  public void animate(float frameLength) {
+  public void update(float elapsed) {
     myModel.update(myRange);
   }
 }
