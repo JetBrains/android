@@ -16,12 +16,9 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profiler.proto.*;
-import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.TestGrpcChannel;
 import com.google.common.collect.ImmutableList;
-import io.grpc.stub.StreamObserver;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
-public class RpcNetworkRequestsModelTest {
+public class RpcNetworkConnectionsModelTest {
   private static final ImmutableList<HttpData> FAKE_DATA =
     new ImmutableList.Builder<HttpData>()
       .add(TestNetworkService.newHttpData(0, 0, 7, 14))
@@ -41,13 +38,13 @@ public class RpcNetworkRequestsModelTest {
       .build();
 
   @Rule public TestGrpcChannel<TestNetworkService> myGrpcChannel =
-    new TestGrpcChannel<>("RpcNetworkRequestsModelTest", TestNetworkService.getInstanceForHttpData(FAKE_DATA));
-  private RpcNetworkRequestsModel myModel;
+    new TestGrpcChannel<>("RpcNetworkConnectionsModelTest", TestNetworkService.getInstanceForHttpData(FAKE_DATA));
+  private NetworkConnectionsModel myModel;
 
   @Before
   public void setUp() {
     StudioProfilers profilers = myGrpcChannel.getProfilers();
-    myModel = new RpcNetworkRequestsModel(profilers.getClient().getNetworkClient(), 12);
+    myModel = new RpcNetworkConnectionsModel(profilers.getClient().getNetworkClient(), 12);
   }
 
   @Test
