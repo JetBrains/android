@@ -33,6 +33,8 @@ import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.HtmlBuilderHelper;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.webp.WebpImageReaderSpi;
+import com.android.tools.idea.rendering.webp.WebpMetadata;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
@@ -87,6 +89,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.AbstractBorder;
 import javax.swing.border.Border;
@@ -100,6 +103,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -1123,30 +1127,28 @@ public class ChooseResourceDialog extends DialogWrapper {
                   @NotNull ResourceValue resourceValue,
                   @NotNull ResourceType type) {
     if (path != null && IconDetector.isDrawableFile(path)
-        && !path.endsWith(DOT_XML)
-        && !path.endsWith(DOT_WEBP)) { //webp: render via layoutlib instead
+        && !path.endsWith(DOT_XML)) {
+      // WebP images for unknown reasons don't load via ImageIcon(path)
+      if (path.endsWith(DOT_WEBP)) {
+        try {
+          BufferedImage image = ImageIO.read(new File(path));
+          if (image != null) {
+            return new ResourceChooserIcon(size, image, checkerboardSize, interpolate);
+          }
+        } catch (IOException ignore) {
+        }
+      }
+
       return new ResourceChooserIcon(size, new ImageIcon(path).getImage(), checkerboardSize, interpolate);
     }
     else if (type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP) {
-      // Attempt to guess size for webp
+      // TODO: Attempt to guess size for XML drawables since at least for vectors, we have attributes
+      // like android:width, android:height, android:viewportWidth and android:viewportHeight
+      // which we can use to get a suitable aspect ratio
+      //noinspection UnnecessaryLocalVariable
       int width = size;
+      //noinspection UnnecessaryLocalVariable
       int height = size;
-      if (path != null && path.endsWith(DOT_WEBP)) {
-        Dimension dimension = IconDetector.getSize(new File(path));
-        if (dimension != null) {
-          if (dimension.width < width && dimension.height < height) {
-            width = dimension.width;
-            height = dimension.height;
-          } else {
-            double aspect = width / (double) height;
-            if (aspect >= 1) {
-              height /= aspect;
-            } else {
-              width *= aspect;
-            }
-          }
-        }
-      }
 
       RenderTask renderTask = getRenderTask();
       renderTask.setOverrideRenderSize(width, height);

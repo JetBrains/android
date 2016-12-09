@@ -121,6 +121,9 @@ public class ConvertFromWebpAction extends DumbAwareAction {
       WriteCommandAction.runWriteCommandAction(project, () -> {
         for (VirtualFile file : files) {
           try {
+            if (!file.isValid()) {
+              continue;
+            }
             BufferedImage image = ImageIO.read(file.getInputStream());
             if (image != null) {
               ByteArrayOutputStream stream = new ByteArrayOutputStream(2048);

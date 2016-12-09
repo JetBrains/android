@@ -18,9 +18,12 @@ package com.android.tools.idea.rendering.webp;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.ImageUtils;
+import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.SdkUtils;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
@@ -31,6 +34,8 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.DumbProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -38,20 +43,20 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.utils.SdkUtils.endsWithIgnoreCase;
@@ -226,6 +231,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
     private final WebpConversionSettings mySettings;
 
     private int myNinePatchCount;
+    private int myLauncherIconCount;
     private int myTransparentCount;
     private int myFileCount;
     private long mySaved;
@@ -271,6 +277,9 @@ public class ConvertToWebpAction extends DumbAwareAction {
         }
         if (myNinePatchCount > 0) {
           sb.append("<br>").append(Integer.toString(myNinePatchCount)).append(" 9-patch files were skipped");
+        }
+        if (myLauncherIconCount > 0) {
+          sb.append("<br>").append(Integer.toString(myLauncherIconCount)).append(" launcher icons were skipped");
         }
         if (myTransparentCount > 0) {
           sb.append("<br>").append(Integer.toString(myTransparentCount)).append(" transparent images were skipped");
@@ -343,9 +352,87 @@ public class ConvertToWebpAction extends DumbAwareAction {
       }
     }
 
+    private Set<String> getLauncherIconNames(LinkedList<VirtualFile> roots) {
+      // Find all the modules that apply to the file search roots
+      Set<Module> modules = Sets.newHashSet();
+      for (VirtualFile file : roots) {
+        Module module = ModuleUtilCore.findModuleForFile(file, myProject);
+        if (module != null) {
+          modules.add(module);
+        }
+      }
+
+      if (modules.isEmpty()) {
+        for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+          modules.add(module);
+        }
+      }
+
+      // Find all the android modules/facets
+      Set<AndroidFacet> facets = Sets.newHashSet();
+      for (Module module : modules) {
+        AndroidFacet facet = AndroidFacet.getInstance(module);
+        if (facet != null) {
+          facets.add(facet);
+        }
+      }
+
+      // For each android facet, go through the merged manifest and gather up icons
+      // TODO: Prune out libraries here if we have the dependent app module too
+      Set<String> names = Sets.newHashSet();
+      for (AndroidFacet facet : facets) {
+        Document document = MergedManifest.get(facet).getDocument();
+        if (document != null && document.getDocumentElement() != null) {
+          for (Element element : LintUtils.getChildren(document.getDocumentElement())) {
+            if (TAG_APPLICATION.equals(element.getTagName())) {
+              addIcons(names, element);
+              for (Element child : LintUtils.getChildren(element)) {
+                String tagName = child.getTagName();
+                if (tagName.equals(TAG_ACTIVITY)
+                    || tagName.equals(TAG_ACTIVITY_ALIAS)
+                    || tagName.equals(TAG_SERVICE)
+                    || tagName.equals(TAG_PROVIDER)
+                    || tagName.equals(TAG_RECEIVER)) {
+                  addIcons(names, element);
+                }
+              }
+            }
+          }
+        }
+      }
+
+
+      // Defaults
+      names.add("ic_launcher_round");
+      names.add("ic_launcher");
+
+      return names;
+    }
+
+    private static void addIcons(Set<String> names, Element element) {
+      String icon = element.getAttributeNS(ANDROID_URI, ATTR_ICON);
+      if (icon != null) {
+        if (icon.startsWith(DRAWABLE_PREFIX)) {
+          names.add(icon.substring(DRAWABLE_PREFIX.length()));
+        } else if (icon.startsWith(MIPMAP_PREFIX)) {
+          names.add(icon.substring(MIPMAP_PREFIX.length()));
+        }
+      }
+      icon = element.getAttributeNS(ANDROID_URI, ATTR_ROUND_ICON);
+      if (icon != null) {
+        if (icon.startsWith(DRAWABLE_PREFIX)) {
+          names.add(icon.substring(DRAWABLE_PREFIX.length()));
+        } else if (icon.startsWith(MIPMAP_PREFIX)) {
+          names.add(icon.substring(MIPMAP_PREFIX.length()));
+        }
+      }
+    }
+
     @NotNull
     private List<WebpConvertedFile> findImages(@NotNull ProgressIndicator progressIndicator, @NotNull LinkedList<VirtualFile> images) {
       List<WebpConvertedFile> files = Lists.newArrayList();
+
+      Set<String> launcherIconNames = getLauncherIconNames(images);
 
       while (!images.isEmpty()) {
         progressIndicator.checkCanceled();
@@ -357,7 +444,13 @@ public class ConvertToWebpAction extends DumbAwareAction {
           }
         }
         else if (isEligibleForConversion(file, null)) { // null settings: don't skip transparent/nine patches etc: we want to count those
-          if (isEligibleForConversion(file, mySettings)) {
+          if (launcherIconNames.contains(LintUtils.getBaseName(file.getName())) &&
+              file.getParent() != null && (
+                file.getParent().getName().startsWith(FD_RES_DRAWABLE)
+                || file.getParent().getName().startsWith(FD_RES_MIPMAP))) {
+            myLauncherIconCount++;
+          }
+          else if (isEligibleForConversion(file, mySettings)) {
             WebpConvertedFile convertedFile = WebpConvertedFile.create(file, mySettings);
             if (convertedFile != null) {
               files.add(convertedFile);
