@@ -230,7 +230,7 @@ public class ResizeTarget extends BaseTarget {
 
   @Override
   public int getPreferenceLevel() {
-    return 10;
+    return Target.RESIZE_LEVEL;
   }
 
   @Override

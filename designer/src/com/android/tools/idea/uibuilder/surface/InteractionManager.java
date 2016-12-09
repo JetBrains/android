@@ -378,7 +378,9 @@ public class InteractionManager {
       }
     }
 
-    mySurface.setCursor(null);
+    if (!ConstraintLayoutHandler.USE_SCENE_INTERACTION) {
+      mySurface.setCursor(null);
+    }
   }
 
   /**

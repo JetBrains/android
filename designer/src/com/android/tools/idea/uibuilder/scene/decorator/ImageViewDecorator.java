@@ -93,6 +93,11 @@ public class ImageViewDecorator extends SceneDecorator {
       sPathHeight = bounds.height;
     }
 
+    @Override
+    public int getLevel() {
+      return COMPONENT_LEVEL;
+    }
+
     DrawImageView(int x, int y, int width, int height) {
       super(x, y, width, height);
     }
