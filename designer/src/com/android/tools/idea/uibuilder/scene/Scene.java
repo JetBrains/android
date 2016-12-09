@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.scene;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
@@ -26,6 +27,7 @@ import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,6 +35,8 @@ import java.awt.*;
 import java.awt.event.InputEvent;
 import java.util.*;
 import java.util.List;
+
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DEVICE;
 
 /**
  * A Scene contains a hierarchy of SceneComponent representing the bounds
@@ -44,6 +48,8 @@ public class Scene implements ModelListener, SelectionListener {
   private final ScreenView myScreenView;
   private static final boolean DEBUG = false;
   private NlModel myModel;
+  /** The DPI factor can be manually set for testing. Do not auto-update */
+  private boolean isManualDpiFactor;
   private float myDpiFactor;
   private HashMap<NlComponent, SceneComponent> mySceneComponents = new HashMap<>();
   private SceneComponent myRoot;
@@ -72,6 +78,7 @@ public class Scene implements ModelListener, SelectionListener {
   private boolean myIsControlDown;
   private boolean myIsShiftDown;
   private boolean myIsAltDown;
+  private ConfigurationListener myConfigurationListener;
 
   private enum FilterType {ALL, ANCHOR, VERTICAL_ANCHOR, HORIZONTAL_ANCHOR, BASELINE_ANCHOR, NONE, RESIZE}
 
@@ -84,9 +91,8 @@ public class Scene implements ModelListener, SelectionListener {
    * @param screenView
    * @return a newly initialized Scene instance populated using the given NlModel
    */
-  public static Scene createScene(@NotNull NlModel model, ScreenView screenView) {
-    int dpiFactor = model.getConfiguration().getDensity().getDpiValue();
-    Scene scene = new Scene(screenView, dpiFactor / 160f);
+  public static Scene createScene(@NotNull NlModel model, @NotNull ScreenView screenView) {
+    Scene scene = new Scene(screenView, model.getConfiguration().getDensity().getDpiValue());
     scene.add(model);
     return scene;
   }
@@ -97,13 +103,10 @@ public class Scene implements ModelListener, SelectionListener {
    * @param screenView
    * @param dpiFactor
    */
-  @VisibleForTesting
-  Scene(ScreenView screenView, float dpiFactor) {
+  private Scene(@NotNull ScreenView screenView, float dpiFactor) {
     myScreenView = screenView;
-    if (myScreenView != null) {
-      myScreenView.getSelectionModel().addListener(this);
-    }
-    myDpiFactor = dpiFactor;
+    myScreenView.getSelectionModel().addListener(this);
+    myDpiFactor = dpiFactor / 160f;
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -140,7 +143,9 @@ public class Scene implements ModelListener, SelectionListener {
    *
    * @param dpiFactor
    */
-  public void setDpiFactor(float dpiFactor) {
+  @VisibleForTesting
+  void setDpiFactorOverride(float dpiFactor) {
+    isManualDpiFactor = true;
     myDpiFactor = dpiFactor;
   }
 
@@ -262,6 +267,19 @@ public class Scene implements ModelListener, SelectionListener {
    * @param model the NlModel to use
    */
   public void add(@NotNull NlModel model) {
+    ConfigurationListener listener = (flags) -> {
+      if ((flags & CFG_DEVICE) != 0 && !isManualDpiFactor) {
+        float newDpiFactor = model.getConfiguration().getDensity().getDpiValue() / 160f;
+        if (myDpiFactor != newDpiFactor) {
+          // Update from the model to update the dpi
+          updateFrom(model);
+        }
+      }
+      return true;
+    };
+    model.getConfiguration().addListener(listener);
+    Disposer.register(model, () -> model.getConfiguration().removeListener(listener));
+
     List<NlComponent> components = model.getComponents();
     if (components.size() != 0) {
       NlComponent rootComponent = components.get(0).getRoot();
@@ -301,6 +319,9 @@ public class Scene implements ModelListener, SelectionListener {
     }
     for (SceneComponent component : mySceneComponents.values()) {
       component.used = false;
+    }
+    if (!isManualDpiFactor) {
+      myDpiFactor = model.getConfiguration().getDensity().getDpiValue() / 160f;
     }
     NlComponent rootComponent = components.get(0).getRoot();
     myRoot = updateFromComponent(rootComponent);
