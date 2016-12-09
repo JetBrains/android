@@ -357,7 +357,6 @@ public class DisplayList {
     private ArrayList<DrawCommand> myCommands = new ArrayList<DrawCommand>();
 
     public CommandSet(DrawCommand[] commands, int start, int end) {
-
       if (commands.length == 0) {
         return;
       }
@@ -370,7 +369,7 @@ public class DisplayList {
           if (cmd instanceof Clip) {
             int n = findLastUnClip(commands, start, end - 1);
             cmd = new CommandSet(commands, i, n);
-            i = Math.max(n + 1, i);
+            i = Math.max(n, i);
           }
           myCommands.add(cmd);
         }

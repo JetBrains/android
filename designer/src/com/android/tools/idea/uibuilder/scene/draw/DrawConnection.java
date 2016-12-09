@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.GeneralPath;
+import java.awt.geom.Path2D;
 
 /**
  * This class is the display list entry for drawing a connection
@@ -55,6 +56,7 @@ public class DrawConnection implements DrawCommand {
   int myDestType;
   boolean myShift;
   int myMargin;
+  int myMarginDistance;
   float myBias;
   static Stroke myDashStroke = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{4, 6}, 0f);
   static Stroke mySpringStroke = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{4, 4}, 0f);
@@ -78,7 +80,7 @@ public class DrawConnection implements DrawCommand {
   public String serialize() {
     return "DrawConnection," + myConnectionType + "," + rectToString(mySource) + "," +
            mySourceDirection + "," + rectToString(myDest) + "," + myDestDirection + "," +
-           myDestType + "," + myShift + "," + myMargin + "," + myBias;
+           myDestType + "," + myShift + "," + myMargin + "," + myMarginDistance + "," + myBias;
   }
 
   private static String rectToString(Rectangle r) {
@@ -107,6 +109,7 @@ public class DrawConnection implements DrawCommand {
     myDestType = Integer.parseInt(sp[c++]);
     myShift = Boolean.parseBoolean(sp[c++]);
     myMargin = Integer.parseInt(sp[c++]);
+    myMarginDistance = Integer.parseInt(sp[c++]);
     myBias = Float.parseFloat(sp[c++]);
   }
 
@@ -114,7 +117,7 @@ public class DrawConnection implements DrawCommand {
   public void paint(Graphics2D g, SceneContext sceneContext) {
     ColorSet color = sceneContext.getColorSet();
     g.setColor(color.getConstraints());
-    draw(g, myConnectionType, mySource, mySourceDirection, myDest, myDestDirection, myDestType, myMargin, myBias);
+    draw(g, myConnectionType, mySource, mySourceDirection, myDest, myDestDirection, myDestType, myMargin, myMarginDistance, myBias);
   }
 
 
@@ -126,8 +129,9 @@ public class DrawConnection implements DrawCommand {
                         int destType,
                         boolean shift,
                         int margin,
+                        int marginDistance,
                         Float bias) {
-    config(connectionType, source, sourceDirection, dest, destDirection, destType, shift, margin, bias);
+    config(connectionType, source, sourceDirection, dest, destDirection, destType, shift, margin, marginDistance, bias);
   }
 
   public static void buildDisplayList(DisplayList list,
@@ -139,8 +143,10 @@ public class DrawConnection implements DrawCommand {
                                       int destType,
                                       boolean shift,
                                       int margin,
+                                      int marginDistance,
                                       Float bias) {
-    list.add(new DrawConnection(connectionType, source, sourceDirection, dest, destDirection, destType, shift, margin, bias));
+    list
+      .add(new DrawConnection(connectionType, source, sourceDirection, dest, destDirection, destType, shift, margin, marginDistance, bias));
   }
 
   public void config(int connectionType,
@@ -151,6 +157,7 @@ public class DrawConnection implements DrawCommand {
                      int destType,
                      boolean shift,
                      int margin,
+                     int marginDistance,
                      Float bias) {
     mySource.setBounds(source);
     myDest.setBounds(dest);
@@ -162,6 +169,7 @@ public class DrawConnection implements DrawCommand {
     myDestType = destType;
     myShift = shift;
     myMargin = margin;
+    myMarginDistance = marginDistance;
     myBias = bias;
   }
 
@@ -171,8 +179,10 @@ public class DrawConnection implements DrawCommand {
                           int sourceDirection,
                           Rectangle dest,
                           int destDirection,
-                          int  myDestType,
-                          int margin, float bias) {
+                          int myDestType,
+                          int margin,
+                          int marginDistance,
+                          float bias) {
     if (connectionType == TYPE_BASELINE) {
       drawBaseLine(g, source, dest);
     }
@@ -180,15 +190,15 @@ public class DrawConnection implements DrawCommand {
     int starty = getConnectionY(sourceDirection, source);
     int endx = getConnectionX(destDirection, dest);
     int endy = getConnectionY(destDirection, dest);
-    int dx = getDestinationDX(destDirection, dest, myDestType==DEST_PARENT, 0);
-    int dy = getDestinationDY(destDirection, dest, myDestType==DEST_PARENT, 0);
+    int dx = getDestinationDX(destDirection, dest, myDestType == DEST_PARENT, 0);
+    int dy = getDestinationDY(destDirection, dest, myDestType == DEST_PARENT, 0);
     int x1 = startx;
     int y1 = starty;
 
     int scale_source = 40;
-    int scale_dest = (myDestType==DEST_PARENT) ? -40 : 40;
+    int scale_dest = (myDestType == DEST_PARENT) ? -40 : 40;
     boolean flip_arrow = false;
-    if (myDestType!=DEST_NORMAL) {
+    if (myDestType != DEST_NORMAL) {
       switch (destDirection) {
         case DIR_BOTTOM:
         case DIR_TOP:
@@ -238,14 +248,14 @@ public class DrawConnection implements DrawCommand {
     int[] xPoints = new int[3];
     int[] yPoints = new int[3];
 
-    int dir = ((myDestType==DEST_PARENT) ^ flip_arrow) ? ourOppositeDirection[destDirection] : destDirection;
-    DrawConnectionUtils.getArrow(dir, endx, endy, xPoints, yPoints);
-    g.fillPolygon(xPoints, yPoints, 3);
+    int dir = ((myDestType == DEST_PARENT) ^ flip_arrow) ? ourOppositeDirection[destDirection] : destDirection;
+
 
     ourPath.reset();
     ourPath.moveTo(startx, starty);
     switch (connectionType) {
       case TYPE_CHAIN:
+
         DrawConnectionUtils.getArrow(sourceDirection, startx, starty, xPoints, yPoints);
         g.fillPolygon(xPoints, yPoints, 3);
         ourPath.moveTo(startx - dx, starty - dy);
@@ -264,20 +274,66 @@ public class DrawConnection implements DrawCommand {
         g.setStroke(defaultStroke);
         break;
       case TYPE_SPRING:
-        if (myDestType==DEST_PARENT) {
-          ourPath.lineTo(endx, endy);
+        boolean drawArrow = true;
+        int springEndX = endx;
+        int springEndY = endy;
+        if (myDestType != DEST_NORMAL) {
+          if (margin != 0) {
+            String marginString = Integer.toString(margin);
+            if (destDirection == DIR_LEFT || destDirection == DIR_RIGHT) {
+              int gap = Math.max(marginDistance, DrawConnectionUtils.getHorizontalMarginGap(g, marginString));
+              if (Math.abs(startx - endx) > gap) {
+                int marginX = endx - ((endx > startx) ? gap : -gap);
+                int arrow = ((endx > startx) ? 1 : -1) * DrawConnectionUtils.ARROW_SIDE;
+
+                DrawConnectionUtils
+                  .drawHorizontalMargin(g, marginString, marginX, endx - arrow, endy);
+                springEndX = marginX;
+              }
+            }
+            else {
+              int gap = Math.max(marginDistance, DrawConnectionUtils.getVerticalMarginGap(g));
+              if (Math.abs(starty - endy) > gap) {
+                int marginY = endy - ((endy > starty) ? gap : -gap);
+                int arrow = ((endy > starty) ? 1 : -1) * DrawConnectionUtils.ARROW_SIDE;
+                DrawConnectionUtils
+                  .drawVerticalMargin(g, marginString, endx, marginY, endy - arrow);
+                springEndY = marginY;
+              }
+            }
+          }
+
+          if (endx == startx) {
+            DrawConnectionUtils.drawVerticalZigZagLine(ourPath, startx, starty, springEndY);
+          }
+          else {
+            DrawConnectionUtils.drawHorizontalZigZagLine(ourPath, startx, springEndX, endy);
+          }
         }
         else {
-          ourPath.curveTo(startx + scale_source * dirDeltaX[sourceDirection],
-                          starty + scale_source * dirDeltaY[sourceDirection],
-                          endx + dx + scale_dest * dirDeltaX[destDirection],
-                          endy + dy + scale_dest * dirDeltaY[destDirection],
-                          endx + dx, endy + dy);
+          if (destDirection == DIR_LEFT || destDirection == DIR_RIGHT) {
+            DrawConnectionUtils.drawHorizontalZigZagLine(ourPath, startx, endx, starty);
+            defaultStroke = g.getStroke();
+            g.setStroke(mySpringStroke);
+            drawArrow = false;
+            g.drawLine(endx, starty, endx, endy);
+            g.setStroke(defaultStroke);
+          }
+          else {
+
+            DrawConnectionUtils.drawVerticalZigZagLine(ourPath, startx, starty, endy);
+            defaultStroke = g.getStroke();
+            g.setStroke(mySpringStroke);
+            drawArrow = false;
+            g.drawLine(startx, endy, endx, endy);
+            g.setStroke(defaultStroke);
+          }
         }
-        defaultStroke = g.getStroke();
-        g.setStroke(mySpringStroke);
         g.draw(ourPath);
-        g.setStroke(defaultStroke);
+        if (drawArrow) {
+          DrawConnectionUtils.getArrow(dir, endx, endy, xPoints, yPoints);
+          g.fillPolygon(xPoints, yPoints, 3);
+        }
         break;
       case TYPE_CENTER:
 
@@ -354,7 +410,8 @@ public class DrawConnection implements DrawCommand {
         py[5] = endy;
 
         DrawConnectionUtils.drawRound(ourPath, px, py, 6, GAP);
-
+        DrawConnectionUtils.getArrow(dir, endx, endy, xPoints, yPoints);
+        g.fillPolygon(xPoints, yPoints, 3);
         g.draw(ourPath);
         break;
       case TYPE_NORMAL:
@@ -363,7 +420,7 @@ public class DrawConnection implements DrawCommand {
             boolean above = starty < endy;
             int line_y = starty + ((above) ? -(source.height) / 4 : (source.height) / 4);
             DrawConnectionUtils.drawHorizontalMarginIndicator(g, "" + margin, startx, endx, line_y);
-            if (myDestType!=DEST_PARENT || (line_y < dest.y || line_y > dest.y + dest.height)) {
+            if (myDestType != DEST_PARENT || (line_y < dest.y || line_y > dest.y + dest.height)) {
               int constraintX = (destDirection == DIR_LEFT) ? dest.x : dest.x + dest.width;
               Stroke stroke = g.getStroke();
               g.setStroke(myDashStroke);
@@ -376,7 +433,7 @@ public class DrawConnection implements DrawCommand {
             boolean left = startx < endx;
             int line_x = startx + ((left) ? -(source.width) / 4 : (source.width) / 4);
             DrawConnectionUtils.drawVerticalMarginIndicator(g, "" + margin, line_x, starty, endy);
-            if (myDestType!=DEST_PARENT || (line_x < dest.x || line_x > dest.x + dest.width)) {
+            if (myDestType != DEST_PARENT || (line_x < dest.x || line_x > dest.x + dest.width)) {
               int constraint_y = (destDirection == DIR_TOP) ? dest.y : dest.y + dest.height;
               Stroke stroke = g.getStroke();
               g.setStroke(myDashStroke);
@@ -390,7 +447,8 @@ public class DrawConnection implements DrawCommand {
         ourPath.curveTo(startx + scale_source * dirDeltaX[sourceDirection], starty + scale_source * dirDeltaY[sourceDirection],
                         endx + dx + scale_dest * dirDeltaX[destDirection], endy + dy + scale_dest * dirDeltaY[destDirection],
                         endx + dx, endy + dy);
-
+        DrawConnectionUtils.getArrow(dir, endx, endy, xPoints, yPoints);
+        g.fillPolygon(xPoints, yPoints, 3);
         g.draw(ourPath);
     }
   }
