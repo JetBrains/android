@@ -267,7 +267,7 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
       }
 
       if (!dumpsToFetch.isEmpty()) {
-        ApplicationManager.getApplication().executeOnPooledThread(() -> {
+        Runnable query = () -> {
           for (HeapDumpSample sample : dumpsToFetch) {
             DumpDataResponse dumpDataResponse = myPollingService.getHeapDump(
               HeapDumpDataRequest.newBuilder().setAppId(myProcessId).setDumpId(sample.myInfo.getDumpId()).build());
@@ -280,7 +280,12 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
               }
             }
           }
-        });
+        };
+        if (ApplicationManager.getApplication() != null ) {
+          ApplicationManager.getApplication().executeOnPooledThread(query);
+        } else { //Test Framework
+          query.run();
+        }
       }
     }
     if (response.getEndTimestamp() > myDataRequestStartTimestampNs) {
