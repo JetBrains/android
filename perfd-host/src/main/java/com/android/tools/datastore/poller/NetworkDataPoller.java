@@ -129,7 +129,7 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
         if (endTime < data.getStartTimestamp()) {
           break;
         }
-        if (data.getEndTimestamp() != 0 && data.getEndTimestamp() < startTime) {
+        if (data.getEndTimestamp() != 0 && data.getEndTimestamp() <= startTime) {
           continue;
         }
         response.addData(data);

@@ -15,6 +15,7 @@
  */
 package com.android.tools.datastore.poller;
 
+import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import com.android.tools.datastore.TestGrpcService;
@@ -28,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
-public class EventDataPollerTest {
+public class EventDataPollerTest extends DataStorePollerTest {
 
   private static final String ACTIVITY_NAME = "ActivityOne";
   private static final int ACTIVITY_HASH = ACTIVITY_NAME.hashCode();
@@ -168,12 +169,6 @@ public class EventDataPollerTest {
     StreamObserver<EventProfiler.ActivityDataResponse> observer = mock(StreamObserver.class);
     myEventDataPoller.getActivityData(request, observer);
     validateResponse(observer, expectedResponse);
-  }
-
-  private <E> void validateResponse(StreamObserver<E> observer, E expected) {
-    verify(observer, times(1)).onNext(expected);
-    verify(observer, times(1)).onCompleted();
-    verify(observer, never()).onError(any(Throwable.class));
   }
 
   private static class EventServiceMock extends EventServiceGrpc.EventServiceImplBase {
