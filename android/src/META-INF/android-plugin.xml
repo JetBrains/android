@@ -1068,6 +1068,8 @@
                     interface="com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.postSyncProjectSetupStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep"/>
+    <extensionPoint qualifiedName="com.android.gradle.sync.postSyncModuleSetupStep"
+                    interface="com.android.tools.idea.gradle.project.sync.setup.post.ModuleSetupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.postSyncProjectCleanupStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.pluginVersionUpgradeStep"
@@ -1160,6 +1162,9 @@
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.MissingPlatformsSetupStep"/>
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.SdkToolsVersionSetupStep"/>
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.ExpiredPreviewBuildSetupStep"/>
+
+    <postSyncModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.module.TestArtifactSearchScopeSetupStep"/>
+    <postSyncModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.module.AndroidRunConfigurationSetupStep"/>
 
     <postSyncProjectCleanupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.cleanup.LibraryCleanupStep"/>
     <postSyncProjectCleanupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.cleanup.ProjectStructureCleanupStep"/>

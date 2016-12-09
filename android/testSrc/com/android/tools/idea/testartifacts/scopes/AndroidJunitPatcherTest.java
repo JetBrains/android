@@ -16,19 +16,15 @@
 package com.android.tools.idea.testartifacts.scopes;
 
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.JavaArtifactStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
-import com.android.tools.idea.testartifacts.scopes.AndroidJunitPatcher;
-import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
 import com.google.common.collect.*;
 import com.intellij.execution.configurations.JavaParameters;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.ModifiableFacetModel;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.PathsList;
@@ -41,6 +37,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.normalize;
 
@@ -68,17 +65,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     myJavaParameters.getClassPath().addAll(getExampleClasspath());
 
     // Adding the facet makes Projects#isBuildWithGradle return 'true'.
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      FacetManager facetManager = FacetManager.getInstance(myModule);
-      ModifiableFacetModel model = facetManager.createModifiableModel();
-      try {
-        GradleFacet facet = facetManager.createFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null);
-        model.addFacet(facet);
-      }
-      finally {
-        model.commit();
-      }
-    });
+    createAndAddGradleFacet(myModule);
   }
 
   private List<String> getExampleClasspath() {
@@ -118,10 +105,12 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     myAndroidProject = TestProjects.createBasicProject();
     VariantStub variant = myAndroidProject.getFirstVariant();
     assertNotNull(variant);
-    AndroidModuleModel androidModel =
-      new AndroidModuleModel(myAndroidProject.getName(), myAndroidProject.getRootDir(), myAndroidProject, variant.getName());
+    AndroidModuleModel androidModel = new AndroidModuleModel(myAndroidProject.getName(), myAndroidProject.getRootDir(), myAndroidProject,
+                                                             variant.getName());
     myFacet.setAndroidModel(androidModel);
-    TestArtifactSearchScopes.initializeScopes(getProject());
+    for (Module module : ModuleManager.getInstance(getProject()).getModules()) {
+      TestArtifactSearchScopes.initializeScope(module);
+    }
   }
 
   public void testPathChanges() throws Exception {

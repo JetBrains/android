@@ -15,17 +15,15 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static org.easymock.EasyMock.*;
 
 /**
@@ -37,21 +35,14 @@ public class ProjectsTest extends IdeaTestCase {
   }
 
   public void testIsGradleProject() {
-    FacetManager facetManager = FacetManager.getInstance(myModule);
-    ModifiableFacetModel facetModel = facetManager.createModifiableModel();
-    try {
-      AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
-      facet.getProperties().ALLOW_USER_CONFIGURATION = false;
-      facetModel.addFacet(facet);
-    } finally {
-      ApplicationManager.getApplication().runWriteAction(facetModel::commit);
-    }
+    AndroidFacet facet = createAndAddAndroidFacet(myModule);
+    facet.getProperties().ALLOW_USER_CONFIGURATION = false;
 
     assertTrue(AndroidProjectInfo.getInstance(myProject).requiresAndroidModel());
   }
 
   public void testGetSelectedModules() {
-    addAndroidGradleFacet();
+    createAndAddGradleFacet(myModule);
 
     DataContext dataContext = createMock(DataContext.class);
     Module[] data = {myModule};
@@ -63,17 +54,6 @@ public class ProjectsTest extends IdeaTestCase {
     assertSame(data, selectedModules);
 
     verify(dataContext);
-  }
-
-  private void addAndroidGradleFacet() {
-    FacetManager facetManager = FacetManager.getInstance(myModule);
-    ModifiableFacetModel facetModel = facetManager.createModifiableModel();
-    try {
-      GradleFacet facet = facetManager.createFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null);
-      facetModel.addFacet(facet);
-    } finally {
-      ApplicationManager.getApplication().runWriteAction(facetModel::commit);
-    }
   }
 
   public void testGetSelectedModulesWithModuleWithoutAndroidGradleFacet() {
