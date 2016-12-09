@@ -29,22 +29,12 @@ import static com.android.tools.profiler.proto.NetworkProfiler.*;
 
 public final class TestNetworkService extends NetworkServiceGrpc.NetworkServiceImplBase {
   public static final int FAKE_APP_ID = 1111;
-  @NotNull private List<HttpData> myHttpDataList;
-  @NotNull private List<NetworkProfilerData> myDataList;
+  @NotNull private final List<HttpData> myHttpDataList;
+  @NotNull private final List<NetworkProfilerData> myDataList;
 
-  private TestNetworkService(@Nullable List<NetworkProfilerData> dataList, @Nullable List<HttpData> httpDataList) {
-    myDataList = dataList != null ? dataList : new ArrayList<>();
-    myHttpDataList = httpDataList != null ? httpDataList : new ArrayList<>();
-  }
-
-  @NotNull
-  public static TestNetworkService getInstanceForHttpData(@NotNull List<HttpData> httpDataList) {
-    return new TestNetworkService(null, httpDataList);
-  }
-
-  @NotNull
-  public static TestNetworkService getInstanceForNetworkData(@NotNull List<NetworkProfilerData> dataList) {
-    return new TestNetworkService(dataList, null);
+  private TestNetworkService(@NotNull Builder builder) {
+    myDataList = builder.myDataList;
+    myHttpDataList = builder.myHttpDataList;
   }
 
   @Override
@@ -196,5 +186,32 @@ public final class TestNetworkService extends NetworkServiceGrpc.NetworkServiceI
       }
     }
     return null;
+  }
+
+  @NotNull
+  public static Builder newBuilder() {
+    return new Builder();
+  }
+
+  public static final class Builder {
+    @NotNull private List<NetworkProfilerData> myDataList = new ArrayList<>();
+    @NotNull private List<HttpData> myHttpDataList = new ArrayList<>();
+
+    @NotNull
+    public Builder setNetworkDataList(@NotNull List<NetworkProfilerData> dataList) {
+      myDataList = dataList;
+      return this;
+    }
+
+    @NotNull
+    public Builder setHttpDataList(@NotNull List<HttpData> dataList) {
+      myHttpDataList = dataList;
+      return this;
+    }
+
+    @NotNull
+    public TestNetworkService build() {
+      return new TestNetworkService(this);
+    }
   }
 }

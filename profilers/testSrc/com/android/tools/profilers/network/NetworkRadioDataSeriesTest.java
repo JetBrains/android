@@ -41,7 +41,7 @@ public class NetworkRadioDataSeriesTest {
       .add(TestNetworkService.newRadioData(15, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.SLEEPING))
       .build();
   @Rule public TestGrpcChannel<TestNetworkService> myGrpcChannel =
-    new TestGrpcChannel<>("NetworkRadioDataSeriesTest", TestNetworkService.getInstanceForNetworkData(FAKE_DATA));
+    new TestGrpcChannel<>("NetworkRadioDataSeriesTest", TestNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).build());
   private NetworkRadioDataSeries mySeries;
 
   @Before
