@@ -78,7 +78,7 @@ public class LassoTarget extends BaseTarget {
 
   @Override
   public int getPreferenceLevel() {
-    return 0;
+    return Target.LASSO_LEVEL;
   }
 
   @Override

@@ -413,7 +413,7 @@ public class AnchorTarget extends ConstraintTarget {
 
   @Override
   public int getPreferenceLevel() {
-    return 20;
+    return Target.ANCHOR_LEVEL;
   }
 
   @Override
