@@ -24,8 +24,10 @@ import java.awt.*;
  * Generic Drawing of a SceneComponent
  */
 public class DrawComponent extends DrawRegion {
-  public static final int NORMAL = 0;
-  public static final int OVER = 1;
+  public static final int SUBDUED = 0;
+  public static final int NORMAL = 1;
+  public static final int OVER = 2;
+  public static final int SELECTED = 3;
 
   int myMode;
 
@@ -36,6 +38,11 @@ public class DrawComponent extends DrawRegion {
     myMode = Integer.parseInt(sp[c++]);
   }
 
+  @Override
+  public int getLevel() {
+     return COMPONENT_LEVEL;
+  }
+
   public DrawComponent(int x, int y, int width, int height, int mode) {
     super(x, y, width, height);
     myMode = mode;
@@ -44,15 +51,22 @@ public class DrawComponent extends DrawRegion {
   @Override
   public void paint(Graphics2D g, SceneContext sceneContext) {
     ColorSet colorSet = sceneContext.getColorSet();
-    Color background = colorSet.getFrames();
-    Color color = colorSet.getAnchorCircle();
-    g.setColor(background);
+    Color[] colors = {colorSet.getSubduedFrames(), colorSet.getFrames(), colorSet.getHighlightedFrames(), colorSet.getSelectedFrames()};
+    g.setColor(colors[myMode]);
     g.drawRect(x, y, width, height);
   }
 
   @Override
   public String serialize() {
     return super.serialize() + "," + myMode;
+  }
+
+  public static void add(DisplayList list, SceneContext sceneContext, Rectangle rect, int mode) {
+    int l = sceneContext.getSwingX(rect.x);
+    int t = sceneContext.getSwingY(rect.y);
+    int w = sceneContext.getSwingDimension(rect.width);
+    int h = sceneContext.getSwingDimension(rect.height);
+    list.add(new DrawComponent(l, t, w, h, mode));
   }
 
   public static void add(DisplayList list, SceneContext transform, float left, float top, float right, float bottom, int mode) {

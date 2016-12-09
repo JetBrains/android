@@ -201,7 +201,8 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         int connect = (type == ConnectionType.SAME) ? i : ourOppositeDirection[i];
         if (child.getParent().equals(sc)) { // flag a child connection
           destType = DrawConnection.DEST_PARENT;
-        } else if (SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.equalsIgnoreCase(sc.getComponentClassName())){
+        }
+        else if (SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.equalsIgnoreCase(sc.getComponentClassName())) {
           destType = DrawConnection.DEST_GUIDELINE;
         }
         int connectType = DrawConnection.TYPE_NORMAL;
@@ -224,10 +225,19 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
           child.myCache.put("chain", "drawn");
         }
         int margin = 0;
+        int marginDistance = 0;
         float bias = 0.5f;
         String marginString = child.getNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, MARGIN_ATTR[i]);
+        if (marginString==null) {
+          if (i == 0) { // left check if it is start
+            marginString = child.getNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_START);
+          } else if (i == 1) { // right check if it is end
+            marginString = child.getNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_END);
+          }
+        }
         if (marginString != null) {
           margin = ConstraintUtilities.getDpValue(child.getNlComponent(), marginString);
+          marginDistance = sceneContext.getSwingDimension(margin);
         }
         String biasString = child.getNlComponent().getLiveAttribute(SdkConstants.SHERPA_URI, BIAS_ATTR[i]);
         if (biasString != null) {
@@ -244,7 +254,8 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         if (destType == DrawConnection.DEST_GUIDELINE) { // connections to guidelines are always Opposite
           connect = ourOppositeDirection[i];
         }
-        DrawConnection.buildDisplayList(list, connectType, source_rect, i, dest_rect, connect, destType, shift, margin, bias);
+        DrawConnection
+          .buildDisplayList(list, connectType, source_rect, i, dest_rect, connect, destType, shift, margin, marginDistance, bias);
       }
     }
 
@@ -258,7 +269,8 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       source_rect.height = 0;
       dest_rect.y += dest_offset;
       dest_rect.height = 0;
-      DrawConnection.buildDisplayList(list, DrawConnection.TYPE_BASELINE, source_rect, 5, dest_rect, 5, DrawConnection.DEST_NORMAL, false, 0, 0f);
+      DrawConnection
+        .buildDisplayList(list, DrawConnection.TYPE_BASELINE, source_rect, 5, dest_rect, 5, DrawConnection.DEST_NORMAL, false, 0, 0, 0f);
     }
   }
 }
