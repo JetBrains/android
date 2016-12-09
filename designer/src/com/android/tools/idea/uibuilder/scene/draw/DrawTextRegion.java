@@ -43,7 +43,7 @@ public class DrawTextRegion extends DrawRegion {
   protected int mAlignmentY = TEXT_ALIGNMENT_VIEW_START;
   protected String mText;
   protected Font mFont = new Font("Helvetica", Font.PLAIN, 22);
-  private boolean mSingleLine = false;
+  protected boolean mSingleLine = false;
   JTextPane mTextPane = new JTextPane();
 
   {
@@ -107,7 +107,7 @@ public class DrawTextRegion extends DrawRegion {
     mText = text;
   }
 
-  public DrawTextRegion(int x, int y, int width, int height,int baseLineOffset,
+  public DrawTextRegion(int x, int y, int width, int height, int baseLineOffset,
                         String text,
                         boolean singleLine,
                         boolean toUpperCase,
@@ -203,7 +203,7 @@ public class DrawTextRegion extends DrawRegion {
         }
         break;
       }
-      fty = myBaseLineOffset+ty;
+      fty = myBaseLineOffset + ty;
 
       Shape clip = g.getClip();
       g.clipRect(tx, ty, w, h);

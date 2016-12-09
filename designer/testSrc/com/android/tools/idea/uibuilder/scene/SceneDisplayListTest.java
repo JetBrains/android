@@ -56,9 +56,9 @@ public class SceneDisplayListTest extends SceneTest {
                  "    tools:layout_editor_absoluteX=\"100dp\"\n" +
                  "    tools:layout_editor_absoluteY=\"200dp\"/>");
 
-    String simpleList = "Rect,0,0,1000,1000,ffc0c0c0\n" +
+    String simpleList = "DrawComponent,0,0,1000,1000,1\n" +
                         "Clip,0,0,1000,1000\n" +
-                        "Rect,100,200,100,20,ffc0c0c0\n" +
+                        "DrawComponent,100,200,100,20,1\n" +
                         "DrawTextRegion,100,200,100,20,0,false,false,5,5,\"\"\n" +
                         "UNClip\n";
 
