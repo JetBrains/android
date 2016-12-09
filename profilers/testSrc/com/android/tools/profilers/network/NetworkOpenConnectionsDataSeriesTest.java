@@ -41,7 +41,7 @@ public class NetworkOpenConnectionsDataSeriesTest {
       .build();
 
   @Rule public TestGrpcChannel<TestNetworkService> myGrpcChannel =
-    new TestGrpcChannel<>("NetworkOpenConnectionsDataSeriesTest", TestNetworkService.getInstanceForNetworkData(FAKE_DATA));
+    new TestGrpcChannel<>("NetworkOpenConnectionsDataSeriesTest", TestNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).build());
   private NetworkOpenConnectionsDataSeries mySeries;
 
   @Before
@@ -53,11 +53,11 @@ public class NetworkOpenConnectionsDataSeriesTest {
   @Test
   public void dataAllInclusive() {
     List<SeriesData<Long>> expected = new ImmutableList.Builder<SeriesData<Long>>()
-      .add(new SeriesData<>(0, 1l))
-      .add(new SeriesData<>(2, 2l))
-      .add(new SeriesData<>(4, 3l))
-      .add(new SeriesData<>(8, 4l))
-      .add(new SeriesData<>(16, 5l))
+      .add(new SeriesData<>(0, 1L))
+      .add(new SeriesData<>(2, 2L))
+      .add(new SeriesData<>(4, 3L))
+      .add(new SeriesData<>(8, 4L))
+      .add(new SeriesData<>(16, 5L))
       .build();
     check(0, 16, expected);
   }
@@ -65,9 +65,9 @@ public class NetworkOpenConnectionsDataSeriesTest {
   @Test
   public void dataTailExcluded() {
     List<SeriesData<Long>> expected = new ImmutableList.Builder<SeriesData<Long>>()
-      .add(new SeriesData<>(0, 1l))
-      .add(new SeriesData<>(2, 2l))
-      .add(new SeriesData<>(4, 3l))
+      .add(new SeriesData<>(0, 1L))
+      .add(new SeriesData<>(2, 2L))
+      .add(new SeriesData<>(4, 3L))
       .build();
     check(0, 6, expected);
   }
@@ -75,9 +75,9 @@ public class NetworkOpenConnectionsDataSeriesTest {
   @Test
   public void dataHeadExcluded() {
     List<SeriesData<Long>> expected = new ImmutableList.Builder<SeriesData<Long>>()
-      .add(new SeriesData<>(4, 3l))
-      .add(new SeriesData<>(8, 4l))
-      .add(new SeriesData<>(16, 5l))
+      .add(new SeriesData<>(4, 3L))
+      .add(new SeriesData<>(8, 4L))
+      .add(new SeriesData<>(16, 5L))
       .build();
     check(3, 19, expected);
   }
