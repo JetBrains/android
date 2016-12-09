@@ -16,6 +16,9 @@
 package com.android.tools.profilers.network;
 
 import org.junit.Test;
+import org.mockito.Mockito;
+
+import java.io.File;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
@@ -54,6 +57,34 @@ public class HttpDataTest {
     assertThat(data.getResponseField("Content-Type"), equalTo("text/html; charset=UTF-8"));
   }
 
+  @Test(expected = AssertionError.class)
+  public void emptyResponseFields() {
+    HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
+    builder.setResponseFields("");
+    builder.build();
+  }
+
+  @Test(expected = AssertionError.class)
+  public void emptyResponseFields2() {
+    HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
+    builder.setResponseFields("   \n  \n  \n\n   \n  ");
+    builder.build();
+  }
+
+  @Test(expected = AssertionError.class)
+  public void invalidResponseFields() {
+    HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
+    builder.setResponseFields("Invalid response fields");
+    builder.build();
+  }
+
+  @Test
+  public void responsePayloadFile() throws Exception {
+    HttpData data = new HttpData.Builder(1, 0, 0, 0).build();
+    File file = Mockito.mock(File.class);
+    data.setResponsePayloadFile(file);
+    assertThat(data.getResponsePayloadFile(), equalTo(file));
+  }
 
   @Test
   public void urlNameParsedProperly() {

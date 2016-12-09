@@ -15,6 +15,7 @@ iml_module(
         "//tools/adt/idea/adt-ui-model[module]",
         "//tools/idea/platform/util[module]",
         "//tools/idea/.idea/libraries:JUnit4[test]",
+        "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/base/perflib:studio.perflib[module]",
         "//tools/base/testutils:studio.testutils[module, test]",
     ],
