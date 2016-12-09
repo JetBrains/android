@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.draw.DrawComponent;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
 
@@ -88,9 +89,9 @@ public class SceneDecorator {
    * The Display list will contain a collection of commands that in screen space
    * It is also responsible to draw its targets (but not creating or placing targets
    * <ol>
-   *   <li>It adds a rectangle</li>
-   *   <li>adds targets</li>
-   *   <li>add children (If children they are wrapped in a clip)</li>
+   * <li>It adds a rectangle</li>
+   * <li>adds targets</li>
+   * <li>add children (If children they are wrapped in a clip)</li>
    * </ol>
    *
    * @param list
@@ -100,22 +101,20 @@ public class SceneDecorator {
    */
   public void buildList(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
     Rectangle rect = new Rectangle();
-    Color color = Color.lightGray;
-    if (DEBUG) {
-      if (component.getDrawState() == SceneComponent.DrawState.HOVER) {
-        color = Color.yellow;
-      }
-    }
-    component.fillRect(rect); // get the rectangle from the component
-    list.addRect(sceneContext, rect, color); // add to the list
-    buildListComponent(list,time, sceneContext,component);
-    buildListTargets(list,time, sceneContext,component);
-    buildListChildren(list,time, sceneContext,component);
+
+
+    buildListComponent(list, time, sceneContext, component);
+    buildListTargets(list, time, sceneContext, component);
+    buildListChildren(list, time, sceneContext, component);
   }
 
-  public void buildListComponent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
-    // default empty for now
-    // TODO add draw the component
+  public void buildListComponent(@NotNull DisplayList list,
+                                 long time,
+                                 @NotNull SceneContext sceneContext,
+                                 @NotNull SceneComponent component) {
+    Rectangle rect = new Rectangle();
+    component.fillRect(rect); // get the rectangle from the component
+    DrawComponent.add(list, sceneContext, rect, component.getDrawState().ordinal()); // add to the list
   }
 
   /**
@@ -127,9 +126,9 @@ public class SceneDecorator {
    * @param component
    */
   protected void buildListChildren(@NotNull DisplayList list,
-                                long time,
-                                @NotNull SceneContext sceneContext,
-                                @NotNull SceneComponent component) {
+                                   long time,
+                                   @NotNull SceneContext sceneContext,
+                                   @NotNull SceneComponent component) {
     ArrayList<SceneComponent> children = component.getChildren();
     if (children.size() > 0) {
       Rectangle rect = new Rectangle();
@@ -151,13 +150,12 @@ public class SceneDecorator {
    * @param component
    */
   protected void buildListTargets(@NotNull DisplayList list,
-                               long time,
-                               @NotNull SceneContext sceneContext,
-                               @NotNull SceneComponent component) {
+                                  long time,
+                                  @NotNull SceneContext sceneContext,
+                                  @NotNull SceneComponent component) {
     ArrayList<Target> targets = component.getTargets();
     for (Target target : targets) {
       target.render(list, sceneContext);
     }
   }
-
 }

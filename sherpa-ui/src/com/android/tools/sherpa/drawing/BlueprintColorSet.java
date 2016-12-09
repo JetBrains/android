@@ -35,7 +35,8 @@ public class BlueprintColorSet extends ColorSet {
 
         // Base colors
 
-        mBackground = new Color(24, 55, 112);
+        //mBackground = new Color(24, 55, 112);
+        mBackground = new Color(35, 77, 110);
         mFrames = new Color(100, 152, 199);
         mConstraints = new Color(102, 129, 204);
         mSoftConstraintColor = new Color(102, 129, 204, 80);

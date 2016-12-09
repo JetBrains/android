@@ -85,6 +85,7 @@ public class SceneDecoratorTest extends SceneTest {
                        .withBounds(450, 490, 100, 20)
                        .width("100dp")
                        .height("20dp")
+                       .text("switch")
                        .withAttribute("app:layout_constraintLeft_toRightOf", "@+id/c")
                        .withAttribute("app:layout_constraintRight_toRightOf", "parent")
                        .withAttribute("app:layout_constraintTop_toBottomOf", "parent")
