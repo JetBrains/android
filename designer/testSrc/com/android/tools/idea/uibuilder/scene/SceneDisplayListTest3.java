@@ -68,20 +68,20 @@ public class SceneDisplayListTest3 extends SceneTest {
                  "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
                  "    app:layout_constraintBottom_toBottomOf=\"parent\"/>");
 
-    String simpleList = "Rect,0,0,1000,1000,ffc0c0c0\n" +
+    String simpleList = "DrawComponent,0,0,1000,1000,1\n" +
                         "Clip,0,0,1000,1000\n" +
-                        "Rect,450,490,100,20,ffc0c0c0\n" +
+                        "DrawComponent,450,490,100,20,1\n" +
                         "DrawTextRegion,450,490,100,20,0,false,false,5,5,\"\"\n" +
-                        "DrawConnection,2,450x490x100x20,0,0x0x1000x1000,0,1,false,0,0.5\n" +
-                        "DrawConnection,2,450x490x100x20,1,0x0x1000x1000,1,1,false,0,0.5\n" +
-                        "DrawConnection,2,450x490x100x20,2,0x0x1000x1000,2,1,false,0,0.5\n" +
-                        "DrawConnection,2,450x490x100x20,3,0x0x1000x1000,3,1,false,0,0.5\n" +
-                        "Rect,450,490,100,20,ffc0c0c0\n" +
+                        "DrawConnection,2,450x490x100x20,0,0x0x1000x1000,0,1,false,0,0,0.5\n" +
+                        "DrawConnection,2,450x490x100x20,1,0x0x1000x1000,1,1,false,0,0,0.5\n" +
+                        "DrawConnection,2,450x490x100x20,2,0x0x1000x1000,2,1,false,0,0,0.5\n" +
+                        "DrawConnection,2,450x490x100x20,3,0x0x1000x1000,3,1,false,0,0,0.5\n" +
+                        "DrawComponent,450,490,100,20,1\n" +
                         "DrawTextRegion,450,490,100,20,0,false,false,5,5,\"\"\n" +
-                        "DrawConnection,4,450x490x100x20,0,450x490x100x20,0,0,true,0,0.5\n" +
-                        "DrawConnection,4,450x490x100x20,1,450x490x100x20,1,0,true,0,0.5\n" +
-                        "DrawConnection,2,450x490x100x20,2,450x490x100x20,3,0,true,0,0.5\n" +
-                        "DrawConnection,2,450x490x100x20,3,0x0x1000x1000,3,1,false,0,0.5\n" +
+                        "DrawConnection,4,450x490x100x20,0,450x490x100x20,0,0,true,0,0,0.5\n" +
+                        "DrawConnection,4,450x490x100x20,1,450x490x100x20,1,0,true,0,0,0.5\n" +
+                        "DrawConnection,2,450x490x100x20,2,450x490x100x20,3,0,true,0,0,0.5\n" +
+                        "DrawConnection,2,450x490x100x20,3,0x0x1000x1000,3,1,false,0,0,0.5\n" +
                         "UNClip\n";
 
     assertEquals(simpleList, myInteraction.getDisplayList().serialize());

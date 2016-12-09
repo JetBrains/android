@@ -27,7 +27,7 @@ import java.awt.*;
  */
 public class DrawAnchor extends DrawRegion {
   public static final int TYPE_NORMAL = 0;
-  public static final int TYPE_BASELINE = 0;
+  public static final int TYPE_BASELINE = 1;
   public static final int NORMAL = 0;
   public static final int OVER = 1;
   int myMode;
@@ -55,6 +55,11 @@ public class DrawAnchor extends DrawRegion {
   }
 
   @Override
+  public int getLevel() {
+     return TARGET_LEVEL;
+  }
+
+  @Override
   public void paint(Graphics2D g, SceneContext sceneContext) {
     if (myType == TYPE_BASELINE) {
       paintBaseline(g, sceneContext);
@@ -71,6 +76,7 @@ public class DrawAnchor extends DrawRegion {
     int delta2 = delta * 2;
     if (myIsConnected) {
       g.fillRoundRect(x + delta, y + delta, width - delta2, height - delta2, width - delta2, height - delta2);
+      g.drawRoundRect(x + delta, y + delta, width - delta2, height - delta2, width - delta2, height - delta2);
     }
     Composite savedComposite = g.getComposite();
     if (myMode == OVER) {
@@ -89,7 +95,6 @@ public class DrawAnchor extends DrawRegion {
       g.setComposite(comp);
     }
   }
-
 
   public void paintBaseline(Graphics2D g, SceneContext sceneContext) {
     int inset = width / 10;
@@ -114,8 +119,8 @@ public class DrawAnchor extends DrawRegion {
       else {
         g.setColor(colorSet.getAnchorConnectionCircle());
       }
-
       g.fillRoundRect(ovalX, y, ovalW, height, height, height);
+      g.drawRoundRect(ovalX, y, ovalW, height, height, height);
       sceneContext.repaint();
       g.setComposite(comp);
     }
@@ -139,6 +144,6 @@ public class DrawAnchor extends DrawRegion {
     int t = transform.getSwingY(top);
     int w = transform.getSwingDimension(right - left);
     int h = transform.getSwingDimension(bottom - top);
-    list.add(new DrawAnchor(l, t, w, h, type, isConnected, mode));
+     list.add(new DrawAnchor(l, t, w, h, type, isConnected, mode));
   }
 }
