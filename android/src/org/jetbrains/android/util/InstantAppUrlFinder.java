@@ -159,42 +159,64 @@ public final class InstantAppUrlFinder {
   static final class UrlData {
     private final String myScheme;
     private final String myHost;
+    private final String myPath;
+    private final String myPathPrefix;
     private final String myPathPattern;
 
     @NotNull
     public static UrlData of(@NotNull Node node) {
       String scheme = "";
       String host = "";
+      String path = "";
+      String pathPrefix = "";
       String pathPattern = "";
       if (node.getNodeType() == Node.ELEMENT_NODE && NODE_DATA.equals(node.getNodeName())) {
         Element element = (Element)node;
         scheme = element.getAttributeNS(ANDROID_URI, "scheme");
         host = element.getAttributeNS(ANDROID_URI, "host");
+        path = element.getAttributeNS(ANDROID_URI, "path");
+        pathPrefix = element.getAttributeNS(ANDROID_URI, "pathPrefix");
         pathPattern = element.getAttributeNS(ANDROID_URI, "pathPattern");
       }
-      return new UrlData(scheme, host, pathPattern);
+      return new UrlData(scheme, host, path, pathPrefix, pathPattern);
     }
 
     @VisibleForTesting
-    public UrlData(String scheme, String host, String pathPattern) {
+    public UrlData(String scheme, String host, String path, String pathPrefix, String pathPattern) {
       myScheme = scheme;
       myHost = host;
+      myPath = path;
+      myPathPrefix = pathPrefix;
       myPathPattern = pathPattern;
     }
 
     @NotNull
     @VisibleForTesting
     public static String convertPatternToExample(String pattern) {
-      return pattern.replace(".*", "parameter").replace("?", "X");
+      return pattern.replace(".*", "parameter");
     }
 
     public boolean isValid() {
-      return isNotEmpty(myScheme) && isNotEmpty(myHost) && isNotEmpty(myPathPattern);
+      String effectivePath = getEffectivePath();
+      return isNotEmpty(myScheme) && isNotEmpty(myHost) && isNotEmpty(effectivePath) && effectivePath.startsWith("/");
+    }
+
+    @NotNull
+    private String getEffectivePath() {
+      String path = myPath;
+      if (path.isEmpty()) {
+        if (isNotEmpty(myPathPrefix)) {
+          path = myPathPrefix + "/.*";
+        } else {
+          path = myPathPattern;
+        }
+      }
+      return path;
     }
 
     @NotNull
     public String getUrl() {
-      return String.format("%s://%s/%s", myScheme, myHost, convertPatternToExample(myPathPattern));
+      return String.format("%s://%s%s", myScheme, myHost, convertPatternToExample(getEffectivePath()));
     }
   }
 }
