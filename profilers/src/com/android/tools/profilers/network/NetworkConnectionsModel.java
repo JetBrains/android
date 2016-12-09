@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * A model class which allows querying captured network data requests.
  */
-public interface NetworkRequestsModel {
+public interface NetworkConnectionsModel {
   /**
    * This method will be invoked in each animation cycle of {@link NetworkCaptureView}.
    * @param timeCurrentRangeUs, the current visible range in {NetworkCaptureView}
