@@ -63,6 +63,21 @@ public class WebpConvertedFileTest extends AndroidTestCase {
     assertThat(convertedFile).isNull();
   }
 
+  public void testSkipLauncherIcons() throws Exception {
+    if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
+      System.out.println("WebP not available: skipping test");
+      return;
+    }
+
+    WebpConversionSettings settings = new WebpConversionSettings();
+    settings.skipTransparentImages = true;
+    settings.lossless = true;
+
+    VirtualFile file = myFixture.copyFileToProject("projects/basic/src/main/res/drawable/icon.png", "res/drawable-mdpi/ic_launcher.png");
+    WebpConvertedFile convertedFile = WebpConvertedFile.create(file, settings);
+    assertThat(convertedFile).isNull();
+  }
+
   public void testSkipNinePatches() throws Exception {
     if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
       System.out.println("WebP not available: skipping test");
