@@ -20,14 +20,14 @@ import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A UI representation of a {@link ClassInstance}.
  */
-final class HeapDumpInstanceObject implements InstanceObject {
+class HeapDumpInstanceObject implements InstanceObject {
+  private static final Comparator<Instance> DEPTH_COMPARATOR = (o1, o2) -> o1.getDistanceToGcRoot() - o2.getDistanceToGcRoot();
+
   @NotNull private final Instance myInstance;
 
   @NotNull
@@ -59,8 +59,62 @@ final class HeapDumpInstanceObject implements InstanceObject {
     return sublist;
   }
 
+  public static List<ReferenceObject> extractReferences(@NotNull Instance instance) {
+    // Sort hard referrers to appear first.
+    List<Instance> sortedReferences = new ArrayList<>(instance.getHardReverseReferences());
+    Collections.sort(sortedReferences, DEPTH_COMPARATOR);
+
+    // Soft soft referrers to appear second.
+    if (instance.getSoftReverseReferences() != null) {
+      List<Instance> sortedSoftReferences = new ArrayList<>(instance.getSoftReverseReferences());
+      Collections.sort(sortedSoftReferences, DEPTH_COMPARATOR);
+      sortedReferences.addAll(sortedSoftReferences);
+    }
+
+    List<ReferenceObject> referrers = new ArrayList<>(sortedReferences.size());
+
+    // Determine the type of references
+    for (Instance reference : sortedReferences) {
+      List<String> referenceStrings = new ArrayList<>(3);
+      if (reference instanceof ClassInstance) {
+        ClassInstance classInstance = (ClassInstance)reference;
+        for (ClassInstance.FieldValue entry : classInstance.getValues()) {
+          // This instance is referenced by a field of the referrer class
+          if (entry.getField().getType() == Type.OBJECT && entry.getValue() == instance) {
+            referenceStrings.add(entry.getField().getName());
+          }
+        }
+      }
+      else if (reference instanceof ArrayInstance) {
+        ArrayInstance arrayInstance = (ArrayInstance)reference;
+        assert arrayInstance.getArrayType() == Type.OBJECT;
+        Object[] values = arrayInstance.getValues();
+        for (int i = 0; i < values.length; ++i) {
+          // This instance is referenced by an array
+          if (values[i] == instance) {
+            referenceStrings.add(String.valueOf(i));
+          }
+        }
+      }
+      else if (reference instanceof ClassObj) {
+        ClassObj classObj = (ClassObj)reference;
+        Map<Field, Object> staticValues = classObj.getStaticFieldValues();
+        for (Map.Entry<Field, Object> entry : staticValues.entrySet()) {
+          // This instance is referenced by a static field of a Class object.
+          if (entry.getKey().getType() == Type.OBJECT && entry.getValue() == instance) {
+            referenceStrings.add(entry.getKey().getName());
+          }
+        }
+      }
+
+      referrers.add(new HeapDumpReferenceObject(new HeapDumpInstanceObject(reference), referenceStrings));
+    }
+
+    return referrers;
+  }
+
   public HeapDumpInstanceObject(@NotNull Instance instance) {
-    myInstance = instance;
+    this.myInstance = instance;
   }
 
   @NotNull
@@ -103,5 +157,29 @@ final class HeapDumpInstanceObject implements InstanceObject {
           .setLineNumber(stackFrame.getLineNumber()).setFileName(fileName).build());
     }
     return builder.build();
+  }
+
+  @Override
+  public boolean getIsArray() {
+    return myInstance instanceof ArrayInstance;
+  }
+
+  @Override
+  public boolean getIsRoot() {
+    return myInstance instanceof RootObj;
+  }
+
+  @NotNull
+  @Override
+  public List<ReferenceObject> getReferences() {
+    return getIsRoot() ? Collections.EMPTY_LIST : extractReferences(myInstance);
+  }
+
+  @NotNull
+  @Override
+  public List<InstanceAttribute> getReferenceAttributes() {
+    return Arrays
+      .asList(InstanceObject.InstanceAttribute.LABEL, InstanceObject.InstanceAttribute.DEPTH, InstanceObject.InstanceAttribute.SHALLOW_SIZE,
+              InstanceObject.InstanceAttribute.RETAINED_SIZE);
   }
 }

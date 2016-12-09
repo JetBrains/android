@@ -20,6 +20,7 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.HeapObject;
 import com.android.tools.profilers.memory.adapters.HeapObject.ClassAttribute;
+import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -159,7 +160,7 @@ final class MemoryClassView {
     myTreeRoot = new MemoryObjectTreeNode<>(new ClassObject() {
       @NotNull
       @Override
-      public List<InstanceAttribute> getInstanceAttributes() {
+      public List<InstanceObject.InstanceAttribute> getInstanceAttributes() {
         return Collections.emptyList();
       }
     });
