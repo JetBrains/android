@@ -107,6 +107,7 @@ public class FavoritesInspectorProvider implements InspectorProvider {
     public void updateProperties(@NotNull List<NlComponent> components,
                                  @NotNull Map<String, NlProperty> properties,
                                  @NotNull NlPropertiesManager propertiesManager) {
+      myEditorMap.clear();
       for (String propertyName : myStarredPropertyNames) {
         NlComponentEditor editor = myEditorMap.get(propertyName);
         if (editor != null) {
