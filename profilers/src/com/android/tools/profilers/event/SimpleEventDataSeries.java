@@ -32,9 +32,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class SimpleEventDataSeries implements DataSeries<EventAction<EventAction.Action, EventActionType>> {
 
-  private static final int ACTION_DOWN = 0;
-  private static final int ACTION_UP = 1;
-
   @NotNull
   private ProfilerClient myClient;
   private final int myProcessId;
