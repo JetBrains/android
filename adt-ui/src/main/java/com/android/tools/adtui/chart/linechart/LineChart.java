@@ -213,7 +213,7 @@ public class LineChart extends AnimatedComponent {
   }
 
   @Override
-  public void postAnimate() {
+  public void postUpdate() {
     long duration = System.nanoTime();
     int p = 0;
 

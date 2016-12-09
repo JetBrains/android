@@ -109,7 +109,7 @@ public class AnimatedRangeTest {
   }
 
   private static void triggerUpdate(@NotNull AnimatedRange range) {
-    range.animate(1);
-    range.postAnimate();
+    range.update(1);
+    range.postUpdate();
   }
 }

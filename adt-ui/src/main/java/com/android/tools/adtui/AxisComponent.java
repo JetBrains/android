@@ -330,7 +330,7 @@ public final class AxisComponent extends AnimatedComponent {
   }
 
   @Override
-  public void postAnimate() {
+  public void postUpdate() {
     myMarkerLabels.clear();
     myMajorMarkerPositions.reset();
     myMinorMarkerPositions.reset();

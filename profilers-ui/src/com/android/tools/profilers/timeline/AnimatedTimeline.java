@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.timeline;
 
-import com.android.tools.adtui.Animatable;
+import com.android.tools.adtui.Updatable;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.ProfilerTimeline;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Handles timeline streaming functionality for the Profiler UI.
  */
-public final class AnimatedTimeline implements Animatable {
+public final class AnimatedTimeline implements Updatable {
 
   @NotNull private final ProfilerTimeline myTimeline;
 
@@ -34,13 +34,13 @@ public final class AnimatedTimeline implements Animatable {
   }
 
   @Override
-  public void animate(float frameLength) {
+  public void update(float elapsed) {
     if (!myTimeline.isStreaming()) {
       return;
     }
 
     // Advances time by frameLength (up to current data max - buffer)
-    float frameLengthUs = frameLength * TimeUnit.SECONDS.toMicros(1);
+    float frameLengthUs = elapsed * TimeUnit.SECONDS.toMicros(1);
     Range viewRange = myTimeline.getViewRange();
     double viewMaxUs = viewRange.getMax();
     double deltaUs = myTimeline.clampToDataRange(viewMaxUs + frameLengthUs) - viewMaxUs;

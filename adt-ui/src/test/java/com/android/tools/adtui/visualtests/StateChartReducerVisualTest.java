@@ -55,7 +55,7 @@ public class StateChartReducerVisualTest extends VisualTest {
   private int mySampleSize;
 
   @Override
-  protected List<Animatable> createComponentsList() {
+  protected List<Updatable> createComponentsList() {
     myViewRange = new Range();
     myData = new DefaultDataSeries<>();
     RangedSeries<ColorState> series = new RangedSeries<>(myViewRange, myData);
