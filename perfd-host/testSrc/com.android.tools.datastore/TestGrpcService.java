@@ -33,15 +33,26 @@ import org.junit.rules.ExternalResource;
 public final class TestGrpcService<S extends BindableService> extends ExternalResource {
   private static final String GRPC_NAME = "Test";
   private final S myService;
+  private final BindableService mySecondaryService;
   private Server myServer;
 
   public TestGrpcService(S service) {
+    this(service, null);
+  }
+
+  public TestGrpcService(S service, BindableService secondaryService) {
     myService = service;
+    mySecondaryService = secondaryService;
   }
 
   @Override
   protected void before() throws Throwable {
-    myServer = InProcessServerBuilder.forName(GRPC_NAME).addService(myService).build();
+    InProcessServerBuilder builder = InProcessServerBuilder.forName(GRPC_NAME);
+    builder.addService(myService);
+    if (mySecondaryService != null) {
+      builder.addService(mySecondaryService);
+    }
+    myServer = builder.build();
     myServer.start();
   }
 
