@@ -15,17 +15,12 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.FakeTimer;
-import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profiler.proto.NetworkProfiler;
-import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.TestGrpcChannel;
 import com.google.common.collect.ImmutableList;
-import io.grpc.stub.StreamObserver;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,11 +32,19 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.Assert.assertThat;
 
 public class ConnectionsViewTest {
-  @Rule public TestGrpcChannel myGrpcChannel = new TestGrpcChannel<>("ConnectionsViewTest", new FakeNetworkService());
+  public static final ImmutableList<HttpData> FAKE_DATA =
+    new ImmutableList.Builder<HttpData>()
+      .add(TestNetworkService.newHttpData(1, 1, 1, 2))
+      .add(TestNetworkService.newHttpData(2, 3, 4, 5))
+      .add(TestNetworkService.newHttpData(3, 8, 10, 13))
+      .add(TestNetworkService.newHttpData(4, 21, 25, 34))
+      .build();
+
+  @Rule public TestGrpcChannel myGrpcChannel =
+    new TestGrpcChannel<>("ConnectionsViewTest", TestNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
   private NetworkProfilerStage myStage;
   private FakeTimer myChoreographerTimer;
   private Choreographer myChoreographer;
@@ -56,11 +59,11 @@ public class ConnectionsViewTest {
 
   @Test
   public void logicToExtractColumnValuesFromDataWorks() throws Exception {
-    HttpData data = convert(FakeNetworkService.FAKE_DATA.get(2)); // Request: id = 3, time = 8->13
+    HttpData data = FAKE_DATA.get(2); // Request: id = 3, time = 8->13
     assertThat(ConnectionsView.Column.URL.getValueFrom(data), is("http://example.com/3"));
-    assertThat(ConnectionsView.Column.SIZE.getValueFrom(data), is(300));
+    assertThat(ConnectionsView.Column.SIZE.getValueFrom(data), is(3));
     assertThat(ConnectionsView.Column.TYPE.getValueFrom(data), is("image/jpeg"));
-    assertThat(ConnectionsView.Column.STATUS.getValueFrom(data), is(200));
+    assertThat(ConnectionsView.Column.STATUS.getValueFrom(data), is(302));
     assertThat(ConnectionsView.Column.TIME.getValueFrom(data), is(TimeUnit.SECONDS.toMicros(5)));
     assertThat(ConnectionsView.Column.TIMELINE.getValueFrom(data), is(TimeUnit.SECONDS.toMicros(8)));
   }
@@ -94,7 +97,7 @@ public class ConnectionsViewTest {
     // We arbitrarily select one of the fake data instances and sanity check that the table
     // auto-selects it, which is checked for below.
     int arbitraryIndex = 1;
-    HttpData activeData = convert(FakeNetworkService.FAKE_DATA.get(arbitraryIndex));
+    HttpData activeData = FAKE_DATA.get(arbitraryIndex);
     myStage.setSelectedConnection(activeData);
 
     CountDownLatch latchSelected = new CountDownLatch(1);
@@ -163,16 +166,6 @@ public class ConnectionsViewTest {
     assertThat(table.prepareRenderer(renderer, 1, timelineColumn).getBackground(), is(selectionColor));
   }
 
-  private static HttpData convert(NetworkProfiler.HttpConnectionData sourceData) {
-    long id = sourceData.getConnId();
-    long start = TimeUnit.NANOSECONDS.toMicros(sourceData.getStartTimestamp());
-    long end = TimeUnit.NANOSECONDS.toMicros(sourceData.getEndTimestamp());
-    return new HttpData.Builder(id, start, end, 0)
-      .setUrl("http://example.com/" + id)
-      .setResponseFields("null = HTTP/1.1 200 OK;\nContent-Length = " + id + "00;\nContent-Type = image/jpeg;")
-      .build();
-  }
-
   /**
    * The underlying table in ConnectionsView is intentionally not exposed to regular users of the
    * class. However, for tests, it is useful to inspect the contents of the table to verify it was
@@ -180,41 +173,5 @@ public class ConnectionsViewTest {
    */
   private static JTable getConnectionsTable(ConnectionsView view) {
     return (JTable)view.getComponent();
-  }
-
-  // TODO: use TestNetworkService instead
-  private static final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceImplBase {
-
-    public static final ImmutableList<NetworkProfiler.HttpConnectionData> FAKE_DATA =
-      new ImmutableList.Builder<NetworkProfiler.HttpConnectionData>()
-        .add(newData(1, TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(2)))
-        .add(newData(2, TimeUnit.SECONDS.toMicros(3), TimeUnit.SECONDS.toMicros(5)))
-        .add(newData(3, TimeUnit.SECONDS.toMicros(8), TimeUnit.SECONDS.toMicros(13)))
-        .add(newData(4, TimeUnit.SECONDS.toMicros(21), TimeUnit.SECONDS.toMicros(34)))
-        .build();
-
-    @Override
-    public void getHttpRange(NetworkProfiler.HttpRangeRequest request, StreamObserver<NetworkProfiler.HttpRangeResponse> responseObserver) {
-      NetworkProfiler.HttpRangeResponse.Builder builder = NetworkProfiler.HttpRangeResponse.newBuilder();
-      for (NetworkProfiler.HttpConnectionData d : FAKE_DATA) {
-        // Data should be included as long as one end or the other (or both) overlaps with the request range
-        if ((request.getStartTimestamp() <= d.getEndTimestamp() && d.getEndTimestamp() <= request.getEndTimestamp()) ||
-          request.getStartTimestamp() <= d.getStartTimestamp() && d.getStartTimestamp() <= request.getEndTimestamp()) {
-          builder.addData(d);
-        }
-      }
-      NetworkProfiler.HttpRangeResponse response = builder.build();
-
-      responseObserver.onNext(response);
-      responseObserver.onCompleted();
-    }
-
-    private static NetworkProfiler.HttpConnectionData newData(long id, long startUs, long endUs) {
-      NetworkProfiler.HttpConnectionData.Builder builder = NetworkProfiler.HttpConnectionData.newBuilder();
-      builder.setConnId(id);
-      builder.setStartTimestamp(TimeUnit.MICROSECONDS.toNanos(startUs));
-      builder.setEndTimestamp(TimeUnit.MICROSECONDS.toNanos(endUs));
-      return builder.build();
-    }
   }
 }
