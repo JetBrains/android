@@ -17,9 +17,11 @@ package com.android.tools.adtui.model;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class AspectModel<T extends Enum<T>> {
@@ -43,6 +45,17 @@ public class AspectModel<T extends Enum<T>> {
 
     public Dependency setExecutor(Consumer<Runnable> executor) {
       myExecutor = executor;
+      return this;
+    }
+
+    /**
+     * Sets an executor as an instance method of a target object.
+     * If the target is null the current executor is not changed.
+     */
+    public <E> Dependency setExecutor(@Nullable E target, BiConsumer<E, Runnable> executor) {
+      if (target != null) {
+        return setExecutor(r -> executor.accept(target, r));
+      }
       return this;
     }
 
