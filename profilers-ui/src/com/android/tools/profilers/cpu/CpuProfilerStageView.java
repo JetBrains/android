@@ -71,7 +71,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myStage = stage;
 
     stage.getAspect().addDependency()
-      .setExecutor(ApplicationManager.getApplication(), Application::invokeLater)
       .onChange(CpuProfilerAspect.CAPTURE, this::updateCapture)
       .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection);
 

@@ -17,8 +17,6 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.HeapObject;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.ComboBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,7 +35,6 @@ public class MemoryHeapView {
     myStage = stage;
 
     myStage.getAspect().addDependency()
-      .setExecutor(ApplicationManager.getApplication(), Application::invokeLater)
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::setNewCapture)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::updateCaptureState)
       .onChange(MemoryProfilerAspect.CURRENT_HEAP, this::refreshHeap);

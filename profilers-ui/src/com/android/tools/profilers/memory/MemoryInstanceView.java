@@ -77,7 +77,6 @@ final class MemoryInstanceView {
     myStage = stage;
 
     myStage.getAspect().addDependency()
-      .setExecutor(ApplicationManager.getApplication(), Application::invokeLater)
       .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::refreshClass)
       .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::refreshInstance);
 
