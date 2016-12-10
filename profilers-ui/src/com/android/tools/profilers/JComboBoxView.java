@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.model.AspectModel;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 
 import javax.swing.*;
@@ -47,7 +48,7 @@ public class JComboBoxView<T, A extends Enum<A>> implements ItemListener {
   public void bind() {
     myCombo.addItemListener(this);
     myObject.addDependency()
-      .setExecutor(ApplicationManager.getApplication()::invokeLater)
+      .setExecutor(ApplicationManager.getApplication(), Application::invokeLater)
       .onChange(myAspect, this::changed);
     changed();
   }

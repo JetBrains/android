@@ -22,6 +22,7 @@ import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfilerStageView;
 import com.android.tools.profilers.network.NetworkProfilerStageView;
 import com.android.tools.profilers.network.NetworkProfilerStage;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
@@ -52,7 +53,7 @@ public class StudioProfilersView {
     myBinder.bind(NetworkProfilerStage.class, NetworkProfilerStageView::new);
 
     myProfiler.addDependency()
-      .setExecutor(ApplicationManager.getApplication()::invokeLater)
+      .setExecutor(ApplicationManager.getApplication(), Application::invokeLater)
       .onChange(ProfilerAspect.STAGE, this::updateStageView);
   }
 
