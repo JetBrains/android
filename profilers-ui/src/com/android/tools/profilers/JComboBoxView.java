@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.model.AspectModel;
 import com.intellij.openapi.application.ApplicationManager;
 
 import javax.swing.*;
