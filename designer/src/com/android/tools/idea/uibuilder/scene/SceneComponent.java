@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -45,6 +46,7 @@ import java.util.HashMap;
 public class SceneComponent {
   public HashMap<String, Object> myCache = new HashMap<>();
   public SceneDecorator myDecorator;
+  private boolean myAllowsAutoconnect = true;
 
   public enum DrawState {SUBDUED, NORMAL, HOVER, SELECTED}
 
@@ -53,6 +55,7 @@ public class SceneComponent {
   private ArrayList<SceneComponent> myChildren = new ArrayList<>();
   private SceneComponent myParent = null;
   private boolean myIsSelected = false;
+  private boolean myDragging = false;
 
   private AnimatedValue myAnimatedDrawX = new AnimatedValue();
   private AnimatedValue myAnimatedDrawY = new AnimatedValue();
@@ -94,6 +97,7 @@ public class SceneComponent {
     updateFrom(component);
     myScene.addComponent(this);
     myDecorator = SceneDecorator.get(component);
+    myAllowsAutoconnect = !myNlComponent.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE);
   }
 
   //endregion
@@ -198,6 +202,10 @@ public class SceneComponent {
     myParent = parent;
   }
 
+  public boolean allowsAutoConnect() {
+    return myScene.isAutoconnectOn() && myAllowsAutoconnect;
+  }
+
   public boolean isSelected() {
     return myIsSelected;
   }
@@ -285,6 +293,9 @@ public class SceneComponent {
 
   public void setDrawState(@NotNull DrawState drawState) {
     myDrawState = drawState;
+    if (myIsSelected) {
+      myDrawState = DrawState.SELECTED;
+    }
   }
 
   public int getBaseline() {
@@ -296,7 +307,18 @@ public class SceneComponent {
       myShowBaseline = false;
     }
     myIsSelected = selected;
+    if (myIsSelected) {
+      myDrawState = DrawState.SELECTED;
+    } else {
+      myDrawState = DrawState.NORMAL;
+    }
   }
+
+  public void setDragging(boolean dragging) {
+    myDragging = dragging;
+  }
+
+  public boolean isDragging() { return myDragging; }
 
   public DrawState getDrawState() {
     return myDrawState;

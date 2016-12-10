@@ -52,7 +52,7 @@ public class ConstraintsLayer extends Layer {
   }
 
   /**
-   * Base buildDisplayList method. Draw the layer's background and call drawComponent() on the root component.
+   * Base paint method. Draw the layer's background and call drawComponent() on the root component.
    *
    * @param gc The Graphics object to draw into
    */

@@ -56,10 +56,11 @@ public class SceneDisplayListTest extends SceneTest {
                  "    tools:layout_editor_absoluteX=\"100dp\"\n" +
                  "    tools:layout_editor_absoluteY=\"200dp\"/>");
 
-    String simpleList = "DrawComponent,0,0,1000,1000,1\n" +
+    String simpleList = "DrawComponentFrame,0,0,1000,1000,1\n" +
                         "Clip,0,0,1000,1000\n" +
-                        "DrawComponent,100,200,100,20,1\n" +
+                        "DrawComponentBackground,100,200,100,20,1\n" +
                         "DrawTextRegion,100,200,100,20,0,false,false,5,5,\"\"\n" +
+                        "DrawComponentFrame,100,200,100,20,1\n" +
                         "UNClip\n";
 
     assertEquals(simpleList, myInteraction.getDisplayList().serialize());

@@ -38,7 +38,7 @@ import java.awt.*;
 public class ResizeTarget extends BaseTarget {
 
   private final Type myType;
-  private final int mySize = 3;
+  private final int mySize = 2;
 
   private int mStartX1;
   private int mStartY1;

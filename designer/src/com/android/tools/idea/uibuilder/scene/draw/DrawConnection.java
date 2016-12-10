@@ -21,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.GeneralPath;
-import java.awt.geom.Path2D;
 
 /**
  * This class is the display list entry for drawing a connection
@@ -61,10 +60,12 @@ public class DrawConnection implements DrawCommand {
   static Stroke myBackgroundStroke = new BasicStroke(8);
   static Stroke myDashStroke = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{4, 6}, 0f);
   static Stroke mySpringStroke = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{4, 4}, 0f);
-  static Stroke myChainStroke1 = new BasicStroke(6, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{3, 7}, 8f);
-  static Stroke myChainStroke2 = new BasicStroke(5, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{6, 4}, 0f);
-  static Stroke myChainStroke3 = new BasicStroke(4, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{3, 7}, 8f);
-  static Stroke myChainStroke4 = new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{5, 5}, 4f);
+
+  final static int myChainSmallLinkLength = 6;
+  final static int myChainLinkLength = 8;
+  static Stroke myChainStroke1 = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{myChainSmallLinkLength, myChainLinkLength}, 0f);
+  static Stroke myChainStroke2 = new BasicStroke(5, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{myChainLinkLength, myChainSmallLinkLength}, myChainSmallLinkLength + 2);
+  static Stroke myChainStroke3 = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{myChainLinkLength - 4, myChainLinkLength + 2}, myChainSmallLinkLength);
 
   @Override
   public int getLevel() {
@@ -253,21 +254,18 @@ public class DrawConnection implements DrawCommand {
     ourPath.moveTo(startx, starty);
     switch (connectionType) {
       case TYPE_CHAIN:
-        DrawConnectionUtils.getArrow(sourceDirection, startx, starty, xPoints, yPoints);
-        g.fillPolygon(xPoints, yPoints, 3);
-        ourPath.moveTo(startx - dx, starty - dy);
+        ourPath.moveTo(startx, starty);
         ourPath.curveTo(startx - dx + scale_source * dirDeltaX[sourceDirection], starty - dy + scale_source * dirDeltaY[sourceDirection],
                         endx + dx + scale_dest * dirDeltaX[destDirection], endy + dy + scale_dest * dirDeltaY[destDirection],
-                        endx + dx, endy + dy);
+                        endx, endy);
         Stroke defaultStroke = g.getStroke();
         g.setColor(color.getConstraints());
         g.setStroke(myChainStroke1);
         g.draw(ourPath);
         g.setStroke(myChainStroke2);
         g.draw(ourPath);
+        g.setColor(color.getComponentObligatoryBackground());
         g.setStroke(myChainStroke3);
-        g.draw(ourPath);
-        g.setStroke(myChainStroke4);
         g.draw(ourPath);
         g.setStroke(defaultStroke);
         break;
