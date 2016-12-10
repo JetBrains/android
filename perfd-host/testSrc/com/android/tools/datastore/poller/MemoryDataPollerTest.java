@@ -79,7 +79,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     myDataStore = new DataStoreService("fake_service_name");
     myDataStore.setLegacyAllocationTracker(new FakeLegacyAllocationTracker());
     // TODO: Abstract to TestGrpcService
-    myMemoryDataPoller = new MemoryDataPoller(myDataStore);
+    myMemoryDataPoller = new MemoryDataPoller(myDataStore, Runnable::run);
     myMemoryDataPoller.connectService(myService.getChannel());
     myMemoryDataPoller
       .startMonitoringApp(MemoryProfiler.MemoryStartRequest.newBuilder().setAppId(TEST_APP_ID).build(), mock(StreamObserver.class));

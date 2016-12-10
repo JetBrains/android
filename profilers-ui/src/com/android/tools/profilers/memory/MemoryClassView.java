@@ -21,8 +21,6 @@ import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.HeapObject;
 import com.android.tools.profilers.memory.adapters.HeapObject.ClassAttribute;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.containers.HashMap;
@@ -64,7 +62,6 @@ final class MemoryClassView {
     myStage = stage;
 
     myStage.getAspect().addDependency()
-      .setExecutor(ApplicationManager.getApplication(), Application::invokeLater)
       .onChange(MemoryProfilerAspect.CURRENT_HEAP, this::refreshHeap)
       .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::refreshClass);
 
