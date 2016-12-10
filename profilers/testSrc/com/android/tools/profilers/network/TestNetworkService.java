@@ -127,7 +127,7 @@ public final class TestNetworkService extends NetworkServiceGrpc.NetworkServiceI
     long endUs = TimeUnit.SECONDS.toMicros(endS);
     HttpData.Builder builder = new HttpData.Builder(id, startUs, endUs, downloadUs);
     builder.setTrace("Trace " + id);
-    builder.setUrl("Url " + id);
+    builder.setUrl("http://example.com/" + id);
     builder.setMethod("method " + id);
     if (endS != 0) {
       builder.setResponsePayloadId("payloadId " + id);
@@ -174,8 +174,8 @@ public final class TestNetworkService extends NetworkServiceGrpc.NetworkServiceI
 
   @NotNull
   private static String formatFakeResponseFields(long id) {
-    return "status line = HTTP/1.1 302 Found \n" +
-           String.format("connId = %d", id);
+    return "status line = HTTP/1.1 302 Found \n Content-Type = image/jpeg; \n" +
+           String.format("connId = %d\n Content-Length = %d\n", id, id);
   }
 
   @Nullable
