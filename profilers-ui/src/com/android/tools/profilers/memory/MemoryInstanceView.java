@@ -27,6 +27,7 @@ import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject.ValueType;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.components.JBList;
@@ -71,7 +72,7 @@ final class MemoryInstanceView {
     myStage = stage;
 
     myStage.getAspect().addDependency()
-      .setExecutor(ApplicationManager.getApplication()::invokeLater)
+      .setExecutor(ApplicationManager.getApplication(), Application::invokeLater)
       .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::instanceChanged);
 
     myAttributeColumns.put(

@@ -30,6 +30,7 @@ import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.components.JBList;
@@ -70,7 +71,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myStage = stage;
 
     stage.getAspect().addDependency()
-      .setExecutor(ApplicationManager.getApplication()::invokeLater)
+      .setExecutor(ApplicationManager.getApplication(), Application::invokeLater)
       .onChange(CpuProfilerAspect.CAPTURE, this::updateCapture)
       .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection);
 

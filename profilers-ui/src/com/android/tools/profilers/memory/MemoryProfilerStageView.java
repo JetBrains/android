@@ -35,6 +35,7 @@ import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
@@ -81,7 +82,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     myAllocationButton.addActionListener(e -> getStage().trackAllocations(!getStage().isTrackingAllocations()));
 
     getStage().getAspect().addDependency()
-      .setExecutor(ApplicationManager.getApplication()::invokeLater)
+      .setExecutor(ApplicationManager.getApplication(), Application::invokeLater)
       .onChange(MemoryProfilerAspect.CURRENT_CAPTURE, this::captureObjectChanged)
       .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::classObjectChanged)
       .onChange(MemoryProfilerAspect.LEGACY_ALLOCATION, this::legacyAllocationChanged);
