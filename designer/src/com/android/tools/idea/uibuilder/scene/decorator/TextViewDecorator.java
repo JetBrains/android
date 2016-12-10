@@ -41,8 +41,7 @@ public class TextViewDecorator extends SceneDecorator {
   private static final String DEFAULT_DIM = "15sp";
 
   @Override
-  public void buildListComponent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
-    super.buildListComponent(list, time, sceneContext, component);
+  public void addContent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
     Rectangle rect = new Rectangle();
     component.fillDrawRect(time, rect);
     int l = sceneContext.getSwingX(rect.x);
@@ -67,6 +66,7 @@ public class TextViewDecorator extends SceneDecorator {
       // With the specified string, this method cannot return null
       //noinspection ConstantConditions
       size = ViewEditor.resolveDimensionPixelSize(resourceResolver, DEFAULT_DIM, configuration);
+      size = (int) (0.8 * size); // temporary
     }
 
     String alignment = nlc.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_ALIGNMENT);

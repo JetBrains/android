@@ -21,7 +21,8 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.draw.DrawComponent;
+import com.android.tools.idea.uibuilder.scene.draw.DrawComponentFrame;
+import com.android.tools.idea.uibuilder.scene.draw.DrawComponentBackground;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,6 +49,7 @@ public class SceneDecorator {
       ourConstructorMap.put(SdkConstants.TEXT_VIEW, TextViewDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.IMAGE_VIEW, ImageViewDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.CHECK_BOX, CheckBoxDecorator.class.getConstructor());
+      ourConstructorMap.put(SdkConstants.RADIO_BUTTON, RadioButtonDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.SEEK_BAR, SeekBarDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.SWITCH, SwitchDecorator.class.getConstructor());
     }
@@ -109,9 +111,36 @@ public class SceneDecorator {
                                  long time,
                                  @NotNull SceneContext sceneContext,
                                  @NotNull SceneComponent component) {
+    addBackground(list, sceneContext, component);
+    addContent(list, time, sceneContext, component);
+    addFrame(list, sceneContext, component);
+  }
+
+  protected void addContent(@NotNull DisplayList list,
+                                 long time,
+                                 @NotNull SceneContext sceneContext,
+                                 @NotNull SceneComponent component) {
+    // Nothing here...
+  }
+
+  protected void addBackground(@NotNull DisplayList list,
+                          @NotNull SceneContext sceneContext,
+                          @NotNull SceneComponent component) {
+    if (sceneContext.getColorSet().drawBackground()) {
+      Rectangle rect = new Rectangle();
+      component.fillRect(rect); // get the rectangle from the component
+      DrawComponentBackground.add(list, sceneContext, rect, component.getDrawState().ordinal(), false, false); // add to the list
+    }
+  }
+
+  protected void addFrame(@NotNull DisplayList list,
+                          @NotNull SceneContext sceneContext,
+                          @NotNull SceneComponent component) {
     Rectangle rect = new Rectangle();
     component.fillRect(rect); // get the rectangle from the component
-    DrawComponent.add(list, sceneContext, rect, component.getDrawState().ordinal()); // add to the list
+    boolean hasHorizontalConstraints = true; // for now, don't check
+    boolean hasVerticalConstraints = true; // for now, don't check
+    DrawComponentFrame.add(list, sceneContext, rect, component.getDrawState().ordinal(), hasHorizontalConstraints, hasVerticalConstraints); // add to the list
   }
 
   /**

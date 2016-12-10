@@ -71,6 +71,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
 
   final static ConnectionType[] DIR_TABLE = {ConnectionType.SAME, ConnectionType.BACKWARD};
   final static String[] ourDirections = {"LEFT", "RIGHT", "TOP", "BOTTOM"};
+  final static String[] ourChainDirections = {"CHAIN_LEFT", "CHAIN_RIGHT", "CHAIN_TOP", "CHAIN_BOTTOM"};
   final static String[] ourDirectionsType = {"LEFT_TYPE", "RIGHT_TYPE", "TOP_TYPE", "BOTTOM_TYPE"};
   final static int[] ourOppositeDirection = {1, 0, 3, 2};
 
@@ -126,6 +127,13 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       }
     }
     child.myCache.put(dirType, ConnectionType.SAME);
+  }
+
+  @Override
+  protected void addBackground(@NotNull DisplayList list,
+                               @NotNull SceneContext sceneContext,
+                               @NotNull SceneComponent component) {
+    // no background
   }
 
   /**
@@ -219,10 +227,10 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
             && toComponentsTo == child  // it must connect to some one who connects to me
             && sc.myCache.get(ourDirectionsType[connect]) == ConnectionType.BACKWARD) { // and that connection must be backward as well
           connectType = DrawConnection.TYPE_CHAIN;
-          if (sc.myCache.containsKey("chain")) {
+          if (sc.myCache.containsKey(ourChainDirections[ourOppositeDirection[i]])) {
             continue; // no need to add element to display list chains only have to go one way
           }
-          child.myCache.put("chain", "drawn");
+          child.myCache.put(ourChainDirections[i], "drawn");
         }
         int margin = 0;
         int marginDistance = 0;

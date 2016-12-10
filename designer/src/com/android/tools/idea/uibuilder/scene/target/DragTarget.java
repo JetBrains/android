@@ -16,12 +16,10 @@
 package com.android.tools.idea.uibuilder.scene.target;
 
 import com.android.SdkConstants;
-import com.android.ide.common.resources.ResourceResolver;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.ConstraintComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.*;
 import com.android.tools.idea.uibuilder.scene.Scene;
@@ -157,31 +155,10 @@ public class DragTarget extends ConstraintTarget {
     return origin;
   }
 
-  /**
-   * Return a dp value correctly resolved. This is only intended for generic
-   * dimensions (number + unit). Do not use this if the string can contain
-   * wrap_content or match_parent. See {@link #getLayoutDimensionDpValue(NlComponent, String)}.
-   *
-   * @param component the component we are looking at
-   * @param value     the attribute value we want to parse
-   * @return the value of the attribute in Dp, or zero if impossible to resolve
-   */
-  private static int getDpValue(@NotNull NlComponent component, String value) {
-    if (value != null) {
-      Configuration configuration = component.getModel().getConfiguration();
-      ResourceResolver resourceResolver = configuration.getResourceResolver();
-      if (resourceResolver != null) {
-        Integer px = ViewEditor.resolveDimensionPixelSize(resourceResolver, value, configuration);
-        return px == null ? 0 : (int)(0.5f + px / (configuration.getDensity().getDpiValue() / 160.0f));
-      }
-    }
-    return 0;
-  }
-
   private int getMarginValue(String attribute) {
     // TODO handles RTL + margin
     NlComponent nlComponent = myComponent.getNlComponent();
-    return getDpValue(nlComponent, nlComponent.getAttribute(SdkConstants.ANDROID_URI, attribute));
+    return ConstraintComponent.getDpValue(nlComponent, nlComponent.getAttribute(SdkConstants.ANDROID_URI, attribute));
   }
 
   protected void updateAttributes(AttributesTransaction attributes, int x, int y) {

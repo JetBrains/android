@@ -37,13 +37,16 @@ public class AndroidColorSet extends ColorSet {
 
         // Base colors
 
-        mBackground = new Color(250, 250, 250);
+        mBackground = new Color(250, 250, 250, 0);
+        mComponentObligatoryBackground = new Color(250, 250, 250);
         mFrames = Color.lightGray;
         mConstraints = Color.lightGray;
         mSoftConstraintColor = Color.cyan.darker();
         mMargins = Color.lightGray;
         mText = Color.black;
         mSnapGuides = Color.red;
+        mFakeUI = Color.black;
+        myUnconstrainedColor = Color.red;
 
         // Subdued colors
 
@@ -55,7 +58,7 @@ public class AndroidColorSet extends ColorSet {
         // Highlight colors
 
         mHighlightedBackground = Color.white;
-        mHighlightedFrames = Color.blue;
+        mHighlightedFrames = new Color(106, 161, 211);
         mHighlightedSnapGuides = Color.orange;
         mHighlightedConstraints = Color.blue.brighter();
 
