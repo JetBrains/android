@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
+package com.android.tools.adtui.model;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
