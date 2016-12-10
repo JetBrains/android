@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.profilers.AspectModel;
+import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
