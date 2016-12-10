@@ -18,6 +18,7 @@ package com.android.tools.idea.monitor.tool;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.profilers.*;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -50,7 +51,7 @@ public class AndroidMonitorToolWindow implements Disposable {
       myComponent = view.getComponent();
 
       myProfilers.addDependency()
-        .setExecutor(ApplicationManager.getApplication()::invokeLater)
+        .setExecutor(ApplicationManager.getApplication(), Application::invokeLater)
         .onChange(ProfilerAspect.MODE, this::updateToolWindow)
         .onChange(ProfilerAspect.STAGE, this::updateToolWindow);
     }
