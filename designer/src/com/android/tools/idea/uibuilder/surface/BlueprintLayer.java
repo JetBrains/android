@@ -131,7 +131,7 @@ public class BlueprintLayer extends Layer {
       }
 
       if (!handlesPainting && !parentHandlesPainting) {
-        // If not, buildDisplayList the component ourselves
+        // If not, layout the component ourselves
         Graphics2D g = (Graphics2D)gc.create();
 
         int x = getSwingX(myScreenView, component.x);

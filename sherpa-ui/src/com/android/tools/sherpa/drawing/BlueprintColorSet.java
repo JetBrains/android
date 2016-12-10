@@ -37,12 +37,18 @@ public class BlueprintColorSet extends ColorSet {
 
         //mBackground = new Color(24, 55, 112);
         mBackground = new Color(35, 77, 110);
+        mComponentObligatoryBackground = mBackground;
+        mComponentBackground = new Color(51, 105, 153, 125);
+        mComponentHighlightedBackground = new Color(51, 105, 153, 185);
         mFrames = new Color(100, 152, 199);
-        mConstraints = new Color(102, 129, 204);
+        //mConstraints = new Color(102, 129, 204);
+        mConstraints = new Color(106, 161, 211);
         mSoftConstraintColor = new Color(102, 129, 204, 80);
         mMargins = new Color(150, 150, 180);
         mText = new Color(220, 220, 220);
         mSnapGuides = new Color(220, 220, 220);
+        mFakeUI = new Color(230, 230, 250);
+        myUnconstrainedColor = new Color(220, 103, 53);
 
         // Subdued colors
 

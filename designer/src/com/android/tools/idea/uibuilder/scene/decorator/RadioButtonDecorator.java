@@ -19,7 +19,6 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.draw.DrawRegion;
 import com.android.tools.idea.uibuilder.scene.draw.DrawTextRegion;
 import com.android.tools.sherpa.drawing.ColorSet;
 import org.jetbrains.annotations.NotNull;
@@ -29,8 +28,8 @@ import java.awt.*;
 /**
  * Support Buttons
  */
-public class CheckBoxDecorator extends SceneDecorator {
-  public static class DrawCheckbox extends DrawTextRegion {
+public class RadioButtonDecorator extends SceneDecorator {
+  public static class DrawRadioButton extends DrawTextRegion {
     private float mScale;
     int[] xp = new int[3];
     int[] yp = new int[3];
@@ -40,14 +39,14 @@ public class CheckBoxDecorator extends SceneDecorator {
       return COMPONENT_LEVEL;
     }
 
-    DrawCheckbox(int x, int y, int width, int height, int baselineOffset, float scale, String text) {
+    DrawRadioButton(int x, int y, int width, int height, int baselineOffset, float scale, String text) {
       super(x, y, width, height, baselineOffset, text, true, false, DrawTextRegion.TEXT_ALIGNMENT_VIEW_START,
             DrawTextRegion.TEXT_ALIGNMENT_CENTER, 32);
       mScale = scale;
       mFont = mFont.deriveFont(32 * mScale);
     }
 
-    public DrawCheckbox(String s) {
+    public DrawRadioButton(String s) {
       String[] sp = s.split(",");
       int c = 0;
       x = Integer.parseInt(sp[c++]);
@@ -90,18 +89,8 @@ public class CheckBoxDecorator extends SceneDecorator {
         Stroke stroke = g.getStroke();
         g.setStroke(new BasicStroke(2));
         g.setColor(colorSet.getFakeUI());
-        g.drawRoundRect(x + margin, y + margin, height - margin * 2, height - margin * 2, 4, 4);
-        margin *= 2;
-        int xv = x + margin;
-        int yv = y + margin;
-        int h = height - margin * 2;
-        xp[0] = xv;
-        xp[1] = xv + h / 3;
-        xp[2] = xv + h;
-        yp[0] = yv + h / 2;
-        yp[1] = yv + h;
-        yp[2] = yv;
-        g.drawPolyline(xp, yp, 3);
+        int side = height - margin * 2;
+        g.drawRoundRect(x + margin, y + margin, side, side, side, side);
         g.setStroke(stroke);
       }
     }
@@ -119,6 +108,6 @@ public class CheckBoxDecorator extends SceneDecorator {
     String text = ConstraintUtilities.getResolvedText(component.getNlComponent());
     int baseLineOffset = sceneContext.getSwingDimension(component.getBaseline());
     float scale = (float)sceneContext.getScale();
-    list.add(new DrawCheckbox(l, t, w, h, baseLineOffset, scale, text));
+    list.add(new DrawRadioButton(l, t, w, h, baseLineOffset, scale, text));
   }
 }

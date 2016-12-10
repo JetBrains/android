@@ -59,10 +59,11 @@ public class SceneDisplayListTest2 extends SceneTest {
                  "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
                  "    app:layout_constraintBottom_toBottomOf=\"parent\"/>");
 
-    String simpleList = "DrawComponent,0,0,1000,1000,1\n" +
+    String simpleList = "DrawComponentFrame,0,0,1000,1000,1\n" +
                         "Clip,0,0,1000,1000\n" +
-                        "DrawComponent,450,490,100,20,1\n" +
+                        "DrawComponentBackground,450,490,100,20,1\n" +
                         "DrawTextRegion,450,490,100,20,0,false,false,5,5,\"\"\n" +
+                        "DrawComponentFrame,450,490,100,20,1\n" +
                         "DrawConnection,2,450x490x100x20,0,0x0x1000x1000,0,1,false,0,0,0.5\n" +
                         "DrawConnection,2,450x490x100x20,1,0x0x1000x1000,1,1,false,0,0,0.5\n" +
                         "DrawConnection,2,450x490x100x20,2,0x0x1000x1000,2,1,false,0,0,0.5\n" +
@@ -75,7 +76,7 @@ public class SceneDisplayListTest2 extends SceneTest {
     //noinspection UndesirableClassUsage
     BufferedImage img = new BufferedImage(1000, 1000,BufferedImage.TYPE_INT_ARGB);
     disp.paint(img.createGraphics(), SceneContext.get());
-    assertEquals(9, disp.getCommands().size());
+    assertEquals(10, disp.getCommands().size());
     disp.clear();
   }
 }

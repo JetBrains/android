@@ -46,12 +46,14 @@ public class SeekBarDecorator extends SceneDecorator {
 
     @Override
     public void paint(Graphics2D g, SceneContext sceneContext) {
-      g.drawRect(x, y, width, height);
+      // Draw background
       ColorSet colorSet = sceneContext.getColorSet();
       if (colorSet.drawBackground()) {
+        g.setColor(colorSet.getComponentBackground());
+        g.fillRect(x, y, width, height);
         Shape origClip = g.getClip();
         g.clipRect(x, y, width, height);
-        g.setColor(Color.WHITE);
+        g.setColor(colorSet.getFakeUI());
         g.fillRoundRect(x + 2, y + height / 2 - height / 8, width / 2, height / 4, height / 4, height / 4);
         g.drawRoundRect(x + 2, y + height / 2 - height / 8, width - 4, height / 4, height / 4, height / 4);
         g.fillArc(x + width / 2 - height / 3, y + height / 6, 2 * height / 3, 2 * height / 3, 0, 360);
@@ -61,8 +63,7 @@ public class SeekBarDecorator extends SceneDecorator {
   }
 
   @Override
-  public void buildList(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
-    super.buildList(list, time, sceneContext, component);
+  public void addContent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
     Rectangle rect = new Rectangle();
     component.fillDrawRect(time, rect);
     int l = sceneContext.getSwingX(rect.x);

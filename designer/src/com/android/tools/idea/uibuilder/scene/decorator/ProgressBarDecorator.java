@@ -45,12 +45,14 @@ public class ProgressBarDecorator extends SceneDecorator {
     }
     @Override
     public void paint(Graphics2D g, SceneContext sceneContext) {
-      g.drawRect(x, y, width, height);
+      // Draw background
       ColorSet colorSet = sceneContext.getColorSet();
       if (colorSet.drawBackground()) {
+        g.setColor(colorSet.getComponentBackground());
+        g.fillRect(x, y, width, height);
         int h = height;
         int w = width;
-        g.setColor(Color.WHITE);
+        g.setColor(colorSet.getFakeUI());
         g.fillRoundRect(x + 2, y + h / 2 - h / 8, w / 2, h / 4, h / 4, h / 4);
         g.drawRoundRect(x + 2, y + h / 2 - h / 8, w - 4, h / 4, h / 4, h / 4);
       }
@@ -58,8 +60,7 @@ public class ProgressBarDecorator extends SceneDecorator {
   }
 
   @Override
-  public void buildList(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
-    super.buildList(list,time,sceneContext,component);
+  public void addContent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
     Rectangle rect = new Rectangle();
     component.fillDrawRect(time, rect);
     int l = sceneContext.getSwingX(rect.x);

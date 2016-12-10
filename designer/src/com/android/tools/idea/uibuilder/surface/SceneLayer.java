@@ -23,6 +23,8 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.BLUEPRINT_BG_COLOR;
+
 /**
  * Basic display layer for Scene
  */
@@ -31,15 +33,16 @@ public class SceneLayer extends Layer {
   private final Dimension myScreenViewSize = new Dimension();
   private final Rectangle mySizeRectangle = new Rectangle();
   private final Display myDisplay = new Display();
-  private Scene myScene = null;
-
+  private boolean myShowOnHover = false;
+  private boolean myShowAlways = true;
   /**
    * Default constructor
    *
    * @param view the current ScreenView
    */
-  public SceneLayer(@NotNull ScreenView view) {
+  public SceneLayer(@NotNull ScreenView view, boolean showAlways) {
     myScreenView = view;
+    myShowAlways = showAlways;
   }
 
   /**
@@ -49,6 +52,9 @@ public class SceneLayer extends Layer {
    */
   @Override
   public void paint(@NotNull Graphics2D g2) {
+    if (!myShowOnHover && !myShowAlways) {
+      return;
+    }
     Graphics2D g = (Graphics2D)g2.create();
     try {
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -60,10 +66,27 @@ public class SceneLayer extends Layer {
         return;
       }
 
+      if (myShowAlways) {
+        g.setColor(BLUEPRINT_BG_COLOR);
+        g.fillRect(mySizeRectangle.x, mySizeRectangle.y, mySizeRectangle.width, mySizeRectangle.height);
+      }
+
       // Draw the components
       myDisplay.draw(SceneContext.get(myScreenView), g, myScreenView.getScene());
     } finally {
       g.dispose();
     }
+  }
+
+  public boolean isShowOnHover() {
+    return myShowOnHover;
+  }
+
+  public void setShowOnHover(boolean value) {
+    myShowOnHover = value;
+  }
+
+  public ScreenView getScreenView() {
+    return myScreenView;
   }
 }
