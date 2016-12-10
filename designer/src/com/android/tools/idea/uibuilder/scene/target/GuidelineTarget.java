@@ -17,11 +17,11 @@ package com.android.tools.idea.uibuilder.scene.target;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.ConstraintComponent;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.draw.DrawHorizontalNotch;
-import com.android.tools.idea.uibuilder.scene.draw.DrawVerticalNotch;
+import com.android.tools.idea.uibuilder.scene.draw.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -31,6 +31,9 @@ import java.awt.*;
  */
 public class GuidelineTarget extends DragTarget {
   boolean myIsHorizontal = true;
+  int myBegin = -1;
+  int myEnd = -1;
+  float myPercent = -1;
 
   @Override
   public int getPreferenceLevel() {
@@ -53,10 +56,15 @@ public class GuidelineTarget extends DragTarget {
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
     if (myIsHorizontal) {
       int y = (int)(myTop + (myBottom - myTop) / 2);
-      DrawHorizontalNotch.add(list, sceneContext, myLeft, y, myRight);
-    } else {
+      SceneComponent parent = myComponent.getParent();
+      DrawHorizontalGuideline.add(list, sceneContext, myLeft, y, myRight, parent.getDrawX(), parent.getDrawY(), parent.getDrawHeight(), myBegin, myEnd, myPercent);
+    }
+    else {
       int x = (int)(myLeft + (myRight - myLeft) / 2);
-      DrawVerticalNotch.add(list, sceneContext, x, myTop, myBottom);
+      SceneComponent parent = myComponent.getParent();
+      DrawVerticalGuideline
+        .add(list, sceneContext, x, myTop, myBottom, parent.getDrawX(), parent.getDrawY(), parent.getDrawWidth(), myBegin, myEnd,
+             myPercent);
     }
   }
 
@@ -78,32 +86,51 @@ public class GuidelineTarget extends DragTarget {
         myBottom = parent.getDrawY() + parent.getDrawHeight();
       }
     }
+    NlComponent component = myComponent.getNlComponent();
+    String begin = component.getLiveAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN);
+    String end = component.getLiveAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END);
+    String percent = component.getLiveAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT);
+    if (begin != null) {
+      myBegin = ConstraintComponent.getDpValue(component, begin);
+      myEnd = -1;
+      myPercent = -1;
+    }
+    else if (end != null) {
+      myBegin = -1;
+      myEnd = ConstraintComponent.getDpValue(component, end);
+      myPercent = -1;
+    }
+    else {
+      myBegin = -1;
+      myEnd = -1;
+      myPercent = Float.valueOf(percent);
+    }
     return false;
   }
 
   @Override
   protected void updateAttributes(AttributesTransaction attributes, int x, int y) {
-      String begin = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN);
-      String end = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END);
-      String percent = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT);
-      SceneComponent parent = myComponent.getParent();
-      int value = y - parent.getDrawY();
-      float dimension = parent.getDrawHeight();
-      if (!myIsHorizontal) {
-        value = x - parent.getDrawX();
-        dimension = parent.getDrawWidth();
-      }
-      if (begin != null) {
-        String position = String.format(SdkConstants.VALUE_N_DP, value);
-        attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, position);
-      }
-      else if (end != null) {
-        String position = String.format(SdkConstants.VALUE_N_DP, (int) dimension - value);
-        attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END, position);
-      }
-      else if (percent != null) {
-        String percentValue = String.valueOf(value / dimension);
-        attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT, percentValue);
-      }
+    String begin = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN);
+    String end = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END);
+    String percent = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT);
+    SceneComponent parent = myComponent.getParent();
+    int value = y - parent.getDrawY();
+    float dimension = parent.getDrawHeight();
+    if (!myIsHorizontal) {
+      value = x - parent.getDrawX();
+      dimension = parent.getDrawWidth();
+    }
+    if (begin != null) {
+      String position = String.format(SdkConstants.VALUE_N_DP, value);
+      attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, position);
+    }
+    else if (end != null) {
+      String position = String.format(SdkConstants.VALUE_N_DP, (int)dimension - value);
+      attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END, position);
+    }
+    else if (percent != null) {
+      String percentValue = String.valueOf(value / dimension);
+      attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT, percentValue);
+    }
   }
 }

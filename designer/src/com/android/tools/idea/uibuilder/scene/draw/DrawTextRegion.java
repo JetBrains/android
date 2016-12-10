@@ -16,7 +16,9 @@
 package com.android.tools.idea.uibuilder.scene.draw;
 
 import android.support.constraint.solver.widgets.ConstraintWidget;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
+import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.drawing.ViewTransform;
 
 import javax.swing.*;
@@ -137,11 +139,13 @@ public class DrawTextRegion extends DrawRegion {
     if (!sceneContext.getColorSet().drawBackground()) {
       return;
     }
+    super.paint(g, sceneContext);
+    ColorSet colorSet = sceneContext.getColorSet();
     int horizontalPadding = mHorizontalPadding + mHorizontalMargin;
     int verticalPadding = mVerticalPadding + mVerticalMargin;
     g.setFont(mFont);
     FontMetrics fontMetrics = g.getFontMetrics();
-    Color color = sceneContext.getColorSet().getFrames();
+    Color color = colorSet.getFrames();
     g.setColor(color);
     String string = mText;
     if (mToUpperCase) {

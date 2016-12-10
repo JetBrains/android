@@ -26,9 +26,11 @@ import java.awt.*;
 public class DrawGuidelineCycle extends DrawRegion {
   public static final int BEGIN = 0;
   public static final int END = 1;
-  private static final int PERCENT = 16;
+  public static final int PERCENT = 16;
 
   int myMode;
+
+  protected Font mFont = new Font("Helvetica", Font.PLAIN, 14);
 
   @Override
   public int getLevel() {
@@ -60,6 +62,15 @@ public class DrawGuidelineCycle extends DrawRegion {
     g.setColor(background);
     g.fillOval(x, y, width, height);
     g.drawOval(x, y, width, height);
+    if (myMode == PERCENT) {
+      String text = "%";
+      g.setColor(colorSet.getText());
+      g.setFont(mFont);
+      FontMetrics fontMetrics = g.getFontMetrics();
+      int tx = x + (width - fontMetrics.stringWidth(text))/2;
+      int ty = y + (height / 2) + fontMetrics.getDescent();
+      g.drawString(text, tx + 1, ty + 1);
+    }
   }
 
   public static void add(DisplayList list, SceneContext transform, float left, float top, float right, float bottom, int mode) {

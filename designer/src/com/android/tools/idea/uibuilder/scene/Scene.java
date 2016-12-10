@@ -585,7 +585,7 @@ public class Scene implements ModelListener, SelectionListener {
       if (component.canShowBaseline()) {
         return (target instanceof ActionTarget) || (target instanceof DragTarget) || (target instanceof ResizeTarget);
       }
-      return true;
+      return !component.isDragging();
     }
     if (target instanceof AnchorTarget) {
       AnchorTarget anchor = (AnchorTarget)target;
@@ -868,6 +868,7 @@ public class Scene implements ModelListener, SelectionListener {
     if (myHitTarget != null) {
       myHitListener.find(transform, myRoot, x, y);
       myHitTarget.mouseDrag(x, y, myHitListener.getClosestTarget());
+      myHitTarget.getComponent().setDragging(true);
     }
     mouseHover(transform, x, y);
     if (mNeedsLayout != NO_LAYOUT) {
@@ -879,6 +880,7 @@ public class Scene implements ModelListener, SelectionListener {
     myLastMouseX = x;
     myLastMouseY = y;
     if (myHitTarget != null) {
+      myHitTarget.getComponent().setDragging(false);
       myHitListener.find(transform, myRoot, x, y);
       myHitTarget.mouseRelease(x, y, myHitListener.getFilteredTarget(myHitTarget));
     }

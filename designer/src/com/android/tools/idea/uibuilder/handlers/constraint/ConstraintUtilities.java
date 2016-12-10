@@ -949,7 +949,10 @@ public class ConstraintUtilities {
         WidgetCompanion companion = (WidgetCompanion)widgetSrc.getCompanionWidget();
         NlComponent component = (NlComponent)companion.getWidgetModel();
         String creatorAttribute = getConnectionAttributeCreator(widgetSrc.getAnchor(constraintA));
-        String creatorValue = component.getAttribute(SdkConstants.TOOLS_URI, creatorAttribute);
+        String creatorValue = null;
+        if (component != null && creatorAttribute != null) {
+          creatorValue = component.getAttribute(SdkConstants.TOOLS_URI, creatorAttribute);
+        }
         if (creatorValue != null) {
           try {
             connectionCreator = Integer.parseInt(creatorValue);

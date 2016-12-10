@@ -23,7 +23,6 @@ import java.awt.*;
 import java.awt.geom.GeneralPath;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 
 
@@ -511,12 +510,14 @@ public class DisplayList {
       ourBuildMap.put("DrawConnection", DrawConnection.class.getConstructor(String.class));
       addListElementConstructor(DrawResize.class);
       addListElementConstructor(DrawAnchor.class);
-      addListElementConstructor(DrawComponent.class);
+      addListElementConstructor(DrawComponentBackground.class);
+      addListElementConstructor(DrawComponentFrame.class);
       addListElementConstructor(ProgressBarDecorator.DrawProgressBar.class);
       addListElementConstructor(ButtonDecorator.DrawButton.class);
       addListElementConstructor(DrawTextRegion.class);
       addListElementConstructor(ImageViewDecorator.DrawImageView.class);
       addListElementConstructor(CheckBoxDecorator.DrawCheckbox.class);
+      addListElementConstructor(RadioButtonDecorator.DrawRadioButton.class);
       addListElementConstructor(SeekBarDecorator.DrawSeekBar.class);
       addListElementConstructor(SwitchDecorator.DrawSwitch.class);
     }

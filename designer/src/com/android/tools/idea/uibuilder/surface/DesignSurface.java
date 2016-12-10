@@ -454,7 +454,7 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
     }
 
     if (ConstraintLayoutHandler.USE_SCENE_INTERACTION) {
-      myLayers.add(new SceneLayer(myScreenView));
+      myLayers.add(new SceneLayer(myScreenView, false));
     }
     myLayers.add(new WarningLayer(myScreenView));
     if (getLayoutType().isSupportedByDesigner()) {
@@ -463,12 +463,14 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
   }
 
   private void addBlueprintLayers(@NotNull ScreenView view) {
-    myLayers.add(new BlueprintLayer(view));
+    if (!ConstraintLayoutHandler.USE_SCENE_INTERACTION) {
+      myLayers.add(new BlueprintLayer(view));
+    }
     myLayers.add(new SelectionLayer(view));
     myLayers.add(new MockupLayer(view));
     myLayers.add(new CanvasResizeLayer(this, view));
     if (ConstraintLayoutHandler.USE_SCENE_INTERACTION) {
-      myLayers.add(new SceneLayer(view));
+      myLayers.add(new SceneLayer(view, true));
     }
   }
 
@@ -567,6 +569,13 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
           repaint();
         }
       }
+      if (layer instanceof SceneLayer) {
+        SceneLayer sceneLayer = (SceneLayer) layer;
+        if (!sceneLayer.isShowOnHover()) {
+          sceneLayer.setShowOnHover(true);
+          repaint();
+        }
+      }
     }
   }
 
@@ -579,6 +588,13 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
         ConstraintsLayer constraintsLayer = (ConstraintsLayer)layer;
         if (constraintsLayer.isShowOnHover()) {
           constraintsLayer.setShowOnHover(false);
+          repaint();
+        }
+      }
+      if (layer instanceof SceneLayer) {
+        SceneLayer sceneLayer = (SceneLayer) layer;
+        if (!sceneLayer.isShowOnHover()) {
+          sceneLayer.setShowOnHover(false);
           repaint();
         }
       }
@@ -634,6 +650,18 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
         }
         if (constraintsLayer.isShowOnHover() != show) {
           constraintsLayer.setShowOnHover(show);
+          repaint();
+        }
+      }
+      else if (layer instanceof SceneLayer) {
+        // For constraint layer, set show on hover if they are above their screen view
+        SceneLayer sceneLayer = (SceneLayer)layer;
+        boolean show = false;
+        if (sceneLayer.getScreenView() == current) {
+          show = true;
+        }
+        if (sceneLayer.isShowOnHover() != show) {
+          sceneLayer.setShowOnHover(show);
           repaint();
         }
       }

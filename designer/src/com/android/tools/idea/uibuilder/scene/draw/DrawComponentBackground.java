@@ -21,9 +21,9 @@ import com.android.tools.sherpa.drawing.ColorSet;
 import java.awt.*;
 
 /**
- * Generic Drawing of a SceneComponent
+ * Draw the background of a SceneComponent
  */
-public class DrawComponent extends DrawRegion {
+public class DrawComponentBackground extends DrawRegion {
   public static final int SUBDUED = 0;
   public static final int NORMAL = 1;
   public static final int OVER = 2;
@@ -31,7 +31,7 @@ public class DrawComponent extends DrawRegion {
 
   int myMode;
 
-  public DrawComponent(String s) {
+  public DrawComponentBackground(String s) {
     String[] sp = s.split(",");
     int c = 0;
     c = super.parse(sp, c);
@@ -43,7 +43,11 @@ public class DrawComponent extends DrawRegion {
      return COMPONENT_LEVEL;
   }
 
-  public DrawComponent(int x, int y, int width, int height, int mode) {
+  public DrawComponentBackground(int x,
+                                 int y,
+                                 int width,
+                                 int height,
+                                 int mode) {
     super(x, y, width, height);
     myMode = mode;
   }
@@ -51,9 +55,11 @@ public class DrawComponent extends DrawRegion {
   @Override
   public void paint(Graphics2D g, SceneContext sceneContext) {
     ColorSet colorSet = sceneContext.getColorSet();
-    Color[] colors = {colorSet.getSubduedFrames(), colorSet.getFrames(), colorSet.getHighlightedFrames(), colorSet.getSelectedFrames()};
-    g.setColor(colors[myMode]);
-    g.drawRect(x, y, width, height);
+    Color[] colorBackground = {colorSet.getComponentBackground(), colorSet.getComponentBackground(), colorSet.getComponentHighlightedBackground(), colorSet.getComponentHighlightedBackground()};
+    if (colorSet.drawBackground()) {
+      g.setColor(colorBackground[myMode]);
+      g.fillRect(x, y, width, height);
+    }
   }
 
   @Override
@@ -61,19 +67,16 @@ public class DrawComponent extends DrawRegion {
     return super.serialize() + "," + myMode;
   }
 
-  public static void add(DisplayList list, SceneContext sceneContext, Rectangle rect, int mode) {
+  public static void add(DisplayList list,
+                         SceneContext sceneContext,
+                         Rectangle rect,
+                         int mode,
+                         boolean hasHorizontalConstraints,
+                         boolean hasVerticalConstraints) {
     int l = sceneContext.getSwingX(rect.x);
     int t = sceneContext.getSwingY(rect.y);
     int w = sceneContext.getSwingDimension(rect.width);
     int h = sceneContext.getSwingDimension(rect.height);
-    list.add(new DrawComponent(l, t, w, h, mode));
-  }
-
-  public static void add(DisplayList list, SceneContext transform, float left, float top, float right, float bottom, int mode) {
-    int l = transform.getSwingX(left);
-    int t = transform.getSwingY(top);
-    int w = transform.getSwingDimension(right - left);
-    int h = transform.getSwingDimension(bottom - top);
-    list.add(new DrawComponent(l, t, w, h, mode));
+    list.add(new DrawComponentBackground(l, t, w, h, mode));
   }
 }
