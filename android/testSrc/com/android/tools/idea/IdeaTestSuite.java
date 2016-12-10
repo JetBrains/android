@@ -53,7 +53,6 @@ import java.nio.file.Paths;
   // Require resources with spaces (HTML File template)
   // https://github.com/bazelbuild/bazel/issues/374
   com.android.tools.idea.actions.annotations.InferSupportAnnotationsTest.class,
-  org.jetbrains.android.dom.AndroidValueResourcesTest.class,
   org.jetbrains.android.dom.CreateMissingClassFixTest.class,
 })
 public class IdeaTestSuite {
