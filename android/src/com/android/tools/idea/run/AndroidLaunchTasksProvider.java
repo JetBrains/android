@@ -85,6 +85,13 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       launchTasks.addAll(getDeployTasks(device));
 
       packageName = myApplicationIdProvider.getPackageName();
+      // launch the contributors before launching the application in case
+      // the contributors need to start listening on logcat for the application launch itself
+      for (AndroidLaunchTaskContributor taskContributor : AndroidLaunchTaskContributor.EP_NAME.getExtensions()) {
+        if (taskContributor.isApplicable(myFacet.getModule())) {
+          launchTasks.add(taskContributor.getTask(packageName));
+        }
+      }
       LaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
                                                                       myLaunchOptions.isDebug(), launchStatus);
       if (appLaunchTask != null) {
@@ -107,12 +114,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
     if (myInstantRunBuildAnalyzer != null) {
       launchTasks.add(myInstantRunBuildAnalyzer.getNotificationTask());
-    }
-
-    for (AndroidLaunchTaskContributor taskContributor : AndroidLaunchTaskContributor.EP_NAME.getExtensions()) {
-      if (taskContributor.isApplicable(myFacet.getModule())) {
-        launchTasks.add(taskContributor.getTask(packageName));
-      }
     }
 
     return launchTasks;
