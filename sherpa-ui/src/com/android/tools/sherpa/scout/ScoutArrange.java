@@ -42,6 +42,9 @@ public class ScoutArrange {
      */
     public static void align(Scout.Arrange type, ArrayList<ConstraintWidget> widgetList,
             boolean applyConstraints) {
+        if (widgetList == null || widgetList.size() == 0) {
+            return;
+        }
         int margin = Scout.getMargin();
         ConstraintWidget[] widgets = new ConstraintWidget[widgetList.size()];
         widgets = widgetList.toArray(widgets);
