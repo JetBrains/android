@@ -83,10 +83,11 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 public class RenderTask implements IImageFactory {
   private static final Logger LOG = Logger.getInstance(RenderTask.class);
 
-  private final ImagePool myImagePool = new ImagePool();
-
   @NotNull
   private final RenderService myRenderService;
+
+  @NotNull
+  private final ImagePool myImagePool;
 
   @Nullable
   private XmlFile myPsiFile;
@@ -158,12 +159,14 @@ public class RenderTask implements IImageFactory {
              @NotNull LayoutLibrary layoutLib,
              @NotNull Device device,
              @NotNull Object credential,
-             @NotNull CrashReporter crashReporter) {
+             @NotNull CrashReporter crashReporter,
+             @NotNull ImagePool imagePool) {
     myRenderService = renderService;
     myLogger = logger;
     myCredential = credential;
     myConfiguration = configuration;
     myCrashReporter = crashReporter;
+    myImagePool = imagePool;
 
     AndroidFacet facet = renderService.getFacet();
     Module module = facet.getModule();
@@ -254,7 +257,6 @@ public class RenderTask implements IImageFactory {
    * Disposes the RenderTask and releases the allocated resources. Do not call this method while holding the read lock.
    */
   public void dispose() {
-    myImagePool.dispose();
     myLayoutlibCallback.setLogger(null);
     myLayoutlibCallback.setResourceResolver(null);
     if (myRenderSession != null) {
