@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.target.ActionTarget;
 import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
 import org.jetbrains.annotations.NotNull;
 
@@ -79,6 +81,32 @@ public class SceneBasicConnectionsTest extends SceneTest {
                  "      app:layout_constraintBottom_toBottomOf=\"parent\" />");
   }
 
+  public void testConnectBaseline() {
+    myInteraction.select("button2", true);
+    myInteraction.mouseDown("button2", ActionTarget.class, 1);
+    myInteraction.mouseRelease("button2", ActionTarget.class, 1);
+    myInteraction.mouseDown("button2", AnchorTarget.Type.BASELINE);
+    myInteraction.mouseRelease("button", AnchorTarget.Type.BASELINE);
+    myScreen.get("@id/button2")
+      .expectXml("<TextView\n" +
+                 "    android:id=\"@id/button2\"\n" +
+                 "    android:layout_width=\"100dp\"\n" +
+                 "    android:layout_height=\"20dp\"\n" +
+                 "    tools:layout_editor_absoluteX=\"300dp\"\n" +
+                 "      app:layout_constraintBaseline_toBaselineOf=\"@+id/button\" />");
+    myInteraction.select("button2", false);
+    myInteraction.select("button2", true);
+    myInteraction.mouseDown("button2", AnchorTarget.Type.LEFT);
+    myInteraction.mouseRelease("button", AnchorTarget.Type.RIGHT);
+    myScreen.get("@id/button2")
+      .expectXml("<TextView\n" +
+                 "    android:id=\"@id/button2\"\n" +
+                 "    android:layout_width=\"100dp\"\n" +
+                 "    android:layout_height=\"20dp\"\n" +
+                 "      app:layout_constraintBaseline_toBaselineOf=\"@+id/button\"\n" +
+                 "      app:layout_constraintLeft_toRightOf=\"@+id/button\" />");
+  }
+
   @Override
   @NotNull
   public ModelBuilder createModel() {
@@ -96,6 +124,13 @@ public class SceneBasicConnectionsTest extends SceneTest {
                                        .width("100dp")
                                        .height("20dp")
                                        .withAttribute("tools:layout_editor_absoluteX", "100dp")
+                                       .withAttribute("tools:layout_editor_absoluteY", "200dp"),
+                                     component(TEXT_VIEW)
+                                       .id("@id/button2")
+                                       .withBounds(300, 200, 100, 20)
+                                       .width("100dp")
+                                       .height("20dp")
+                                       .withAttribute("tools:layout_editor_absoluteX", "300dp")
                                        .withAttribute("tools:layout_editor_absoluteY", "200dp")
                                    ));
     return builder;
