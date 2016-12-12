@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.model;
 
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
@@ -403,6 +405,40 @@ public class NlModelTest extends LayoutTestCase {
                  "    NlComponent{tag=<Button>, bounds=[0,0:500x500, instance=4}\n" +
                  "    NlComponent{tag=<FrameLayout>, bounds=[0,0:300x300, instance=5}",
                  myTreeDumper.toTree(model.getComponents()));
+  }
+
+  public void testThemeSelection() {
+    myFixture.addFileToProject("res/values/styles.xml",
+                               "<resources>" +
+                               "  <style name=\"Theme.MyTheme\"></style>" +
+                               "<resources>");
+    NlModel model = createDefaultModelBuilder(true)
+      .build();
+    Configuration configuration = model.getConfiguration();
+    String defaultTheme = configuration.getTheme();
+    assertNotNull(defaultTheme);
+
+    // Set a valid theme
+    configuration.setTheme("@style/Theme.MyTheme");
+    model.deactivate();
+    model.activate();
+    assertEquals("@style/Theme.MyTheme", configuration.getTheme());
+
+    // Set a valid framework theme
+    configuration.setTheme("@android:style/Theme.Material");
+    model.deactivate();
+    model.activate();
+    assertEquals("@android:style/Theme.Material", configuration.getTheme());
+
+    // Check that if we try to select an invalid theme, NlModel will set back the default theme
+    configuration.setTheme("@style/InvalidTheme");
+    model.deactivate();
+    model.activate();
+    assertEquals(defaultTheme, configuration.getTheme());
+    configuration.setTheme("@android:style/InvalidTheme");
+    model.deactivate();
+    model.activate();
+    assertEquals(defaultTheme, configuration.getTheme());
   }
 
   @Override
