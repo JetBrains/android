@@ -109,6 +109,28 @@ public class ImagePoolTest {
   }
 
   @Test
+  public void testManualFree() throws InterruptedException {
+    ImagePool.ImageImpl image = myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, null);
+    BufferedImage internalPtr = image.myBuffer;
+
+    assertNotEquals(internalPtr, myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, null).myBuffer);
+    image.dispose();
+    assertEquals(internalPtr, myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, null).myBuffer);
+    boolean threw = false;
+    try {
+      image.getCopy();
+    }
+    catch (AssertionError ignore) {
+      threw = true;
+    }
+    assertTrue("Expected assertion error trying to use an already disposed image", threw);
+
+    //noinspection UnusedAssignment
+    image = null;
+    gc();
+  }
+
+  @Test
   public void testDefaultPooling() throws InterruptedException {
     CountDownLatch countDown = new CountDownLatch(1);
     ImagePool.ImageImpl image1 = myPool.create(10, 10, BufferedImage.TYPE_INT_ARGB, (b) -> countDown.countDown());
@@ -135,6 +157,12 @@ public class ImagePoolTest {
     copy = image.getCopy();
     assertNotEquals(copy, image.myBuffer);
     ImageDiffUtil.assertImageSimilar("pooledimage", original, copy, 0.0);
+
+    copy = image.getCopy(0, 0, 25, 50);
+    assertNotEquals(copy, image.myBuffer);
+    assertEquals(25, copy.getWidth());
+    assertEquals(50, copy.getHeight());
+    ImageDiffUtil.assertImageSimilar("pooledimage", original.getSubimage(0, 0, 25, 50), copy, 0.0);
   }
 
   @Test
@@ -152,5 +180,36 @@ public class ImagePoolTest {
     // Using the null image shouldn't affect the destination
     image.drawImageTo(buffer);
     ImageDiffUtil.assertImageSimilar("sample", original, buffer, 0.0);
+  }
+
+  @Test
+  public void testPaint() throws IOException {
+    BufferedImage sample = getSampleImage();
+    ImagePool.Image image = myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, null);
+    image.paint((g) -> {
+      g.setColor(Color.RED);
+      g.fillRect(0, 0, 25, 50);
+    });
+    boolean threw = false;
+    try {
+      ImageDiffUtil.assertImageSimilar("sample", sample, image.getCopy(), 0.0);
+    }
+    catch (AssertionError ignored) {
+      threw = true;
+    }
+    assertTrue("Images must be different", threw);
+
+    image.paint((g) -> {
+      g.setColor(Color.RED);
+      g.fillRect(0, 0, 25, 50);
+      g.setColor(Color.BLUE);
+      g.fillRect(25, 0, 50, 50);
+    });
+    ImageDiffUtil.assertImageSimilar("sample", sample, image.getCopy(), 0.0);
+    image.paint((g) -> {
+      // This is a valid way to make modifications into the image and shouldn't break anything
+      image.drawImageTo(g, 0, 0, image.getWidth(), image.getHeight());
+    });
+    ImageDiffUtil.assertImageSimilar("sample", sample, image.getCopy(), 0.0);
   }
 }

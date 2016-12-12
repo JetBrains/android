@@ -26,6 +26,7 @@ import java.util.function.Function;
  * to the underlying {@link BufferedImage} to avoid clients holding references to it.
  * Once the {@link Image} is not being referenced anymore, it will be automatically returned to the pool.
  */
+@SuppressWarnings("ALL")
 public class ImagePool {
   public static final Image NULL_POOLED_IMAGE = new Image() {
 
@@ -40,14 +41,19 @@ public class ImagePool {
     }
 
     @Override
-    public void drawImageTo(@NotNull Graphics g, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2) {
-    }
+    public void drawImageTo(@NotNull Graphics g, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2) {}
+
+    @Override
+    public void paint(Consumer<Graphics2D> command) {}
 
     @Override
     @Nullable
-    public BufferedImage getCopy() {
+    public BufferedImage getCopy(int x, int y, int w, int h) {
       return null;
     }
+
+    @Override
+    public void dispose() {}
   };
 
   private static final boolean DEBUG = false;
@@ -104,6 +110,9 @@ public class ImagePool {
    * images.
    */
   public ImagePool(@NotNull BiFunction<Integer, Integer, Function<Integer, Integer>> queueSizingPolicy) {
+    if (DEBUG) {
+      System.out.println("New ImagePool");
+    }
     myQueueSizingPolicy = queueSizingPolicy;
   }
 
@@ -125,7 +134,6 @@ public class ImagePool {
         imageRef = queue.remove();
       }
       if (DEBUG) {
-        //noinspection UseOfSystemOutOrSystemErr
         System.out.printf("Re-used image %dx%d - %d\n", w, h, type);
       }
       // Clear the image
@@ -136,7 +144,6 @@ public class ImagePool {
     }
     catch (NoSuchElementException e) {
       if (DEBUG) {
-        //noinspection UseOfSystemOutOrSystemErr
         System.out.printf("New image %dx%d - %d\n", w, h, type);
       }
       //noinspection UndesirableClassUsage
@@ -145,30 +152,39 @@ public class ImagePool {
 
     ImageImpl pooledImage = new ImageImpl(image);
     final BufferedImage imagePointer = image;
-    Reference<?> reference = new FinalizablePhantomReference<Image>(pooledImage, myFinalizableReferenceQueue) {
+    FinalizablePhantomReference<Image> reference = new FinalizablePhantomReference<Image>(pooledImage, myFinalizableReferenceQueue) {
       @Override
       public void finalizeReferent() {
-        if (DEBUG) {
-          //noinspection UseOfSystemOutOrSystemErr
-          System.out.printf("Released image %dx%d - %d\n", w, h, type);
-        }
-        myReferences.remove(this);
-        getTypeQueue(w, h, type).add(new SoftReference<>(imagePointer));
-        if (freedCallback != null) {
-          freedCallback.accept(imagePointer);
+        // This method might be called twice if the user has manually called the free() method. The second call will have no effect.
+        if (myReferences.remove(this)) {
+          if (DEBUG) {
+            System.out.printf("Released image %dx%d - %d\n", w, h, type);
+          }
+          getTypeQueue(w, h, type).add(new SoftReference<>(imagePointer));
+          if (freedCallback != null) {
+            freedCallback.accept(imagePointer);
+          }
         }
       }
     };
+    pooledImage.myOwnReference = reference;
     myReferences.add(reference);
 
     return pooledImage;
   }
 
+  /**
+   * Returns a new image of width w and height h. Please note that the image might have some contents so it is the responsibility of the
+   * caller to clean it.
+   */
   @NotNull
   public Image create(final int w, final int h, final int type) {
     return create(w, h, type, null);
   }
 
+  /**
+   * Returns a pooled image with a copy of the passed {@link BufferedImage}
+   */
   @NotNull
   public Image copyOf(@Nullable BufferedImage origin) {
     if (origin == null) {
@@ -185,6 +201,9 @@ public class ImagePool {
     return image;
   }
 
+  /**
+   * Disposes the image pool
+   */
   public void dispose() {
     isDisposed = true;
     myFinalizableReferenceQueue.close();
@@ -214,6 +233,12 @@ public class ImagePool {
     void drawImageTo(@NotNull Graphics g, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2);
 
     /**
+     * Allows painting into the {@link Image}. The passed {@link Graphics2D} context will be disposed right after this call finishes so
+     * do not keep a reference to it.
+     */
+    void paint(Consumer<Graphics2D> command);
+
+    /**
      * Draws the current image to the given {@link Graphics} context.
      * See {@link Graphics#drawImage(java.awt.Image, int, int, int, int, ImageObserver)}
      */
@@ -235,15 +260,34 @@ public class ImagePool {
     }
 
     /**
+     * Returns a {@link BufferedImage} with a copy of a sub-image of the pooled image.
+     */
+    @SuppressWarnings("SameParameterValue")
+    @Nullable
+    BufferedImage getCopy(int x, int y, int w, int h);
+
+    /**
      * Returns a {@link BufferedImage} with a copy of the pooled image
      */
     @Nullable
-    BufferedImage getCopy();
+    default BufferedImage getCopy() {
+      return getCopy(0, 0, getWidth(), getHeight());
+    }
+
+    /**
+     * Manually disposes the current image. After calling this method, the image can not be used anymore.
+     * <p>
+     * This method does not need to be called directly as the images will be eventually collected anyway. However, using this method, you can
+     * speed up the collection process to avoid generating extra images.
+     */
+    void dispose();
   }
 
   public static class ImageImpl implements Image {
+    private FinalizablePhantomReference<Image> myOwnReference = null;
+
     @VisibleForTesting
-    @NotNull
+    @Nullable
     BufferedImage myBuffer;
 
     private ImageImpl(@NotNull BufferedImage image) {
@@ -252,31 +296,65 @@ public class ImagePool {
 
     @Override
     public int getWidth() {
+      assert myBuffer != null : "Image was already disposed";
       return myBuffer.getWidth();
     }
 
     @Override
     public int getHeight() {
+      assert myBuffer != null : "Image was already disposed";
       return myBuffer.getHeight();
     }
 
     @Override
     public void drawImageTo(@NotNull Graphics g, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2) {
+      assert myBuffer != null : "Image was already disposed";
       g.drawImage(myBuffer, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, null);
+    }
+
+    @Override
+    public void paint(@NotNull Consumer<Graphics2D> command) {
+      assert myBuffer != null : "Image was already disposed";
+      Graphics2D g = myBuffer.createGraphics();
+      try {
+        command.accept(g);
+      } finally {
+        g.dispose();
+      }
+    }
+
+    @Override
+    @NotNull
+    public BufferedImage getCopy(int x, int y, int w, int h) {
+      assert myBuffer != null : "Image was already disposed";
+      WritableRaster raster = myBuffer.copyData(myBuffer.getRaster().createCompatibleWritableRaster(x, y, w, h));
+      //noinspection UndesirableClassUsage
+      return new BufferedImage(myBuffer.getColorModel(), raster, myBuffer.isAlphaPremultiplied(), null);
     }
 
     @Override
     @NotNull
     public BufferedImage getCopy() {
+      assert myBuffer != null : "Image was already disposed";
       WritableRaster raster = myBuffer.copyData(myBuffer.getRaster().createCompatibleWritableRaster());
       //noinspection UndesirableClassUsage
       return new BufferedImage(myBuffer.getColorModel(), raster, myBuffer.isAlphaPremultiplied(), null);
+    }
+
+    @Override
+    public void dispose() {
+      assert myBuffer != null : "Image was already disposed";
+      myBuffer = null;
+      if (myOwnReference != null) {
+        myOwnReference.finalizeReferent();
+      }
     }
 
     /**
      * Copies the content from the origin {@link BufferedImage} into the pooled image.
      */
     void drawFrom(@NotNull BufferedImage origin) {
+      assert myBuffer != null : "Image was already disposed";
       Graphics g = myBuffer.getGraphics();
       try {
         g.drawImage(origin, 0, 0, null);
