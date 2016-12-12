@@ -113,7 +113,7 @@ public class SceneDragHandler extends DragHandler {
         int dx = x - myComponent.w / 2;
         int dy = y - myComponent.h / 2;
         for (int i = 0; i < targets.size(); i++) {
-          if (targets.get(i) instanceof DragTarget) {
+          if (targets.get(i) instanceof DragDndTarget) {
             DragDndTarget target = (DragDndTarget) targets.get(i);
             target.mouseRelease(scene.pxToDp(dx), scene.pxToDp(dy), nlComponent);
             break;

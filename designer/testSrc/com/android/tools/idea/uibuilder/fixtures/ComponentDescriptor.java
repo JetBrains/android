@@ -354,7 +354,7 @@ public class ComponentDescriptor {
     TagSnapshot snapshot = TagSnapshot.createTagSnapshotWithoutChildren(tag);
 
     TestViewInfo viewInfo = new TestViewInfo(myTagName, snapshot, left, top, right, bottom, myViewObject, myLayoutParamsObject);
-
+    viewInfo.setExtendedInfo((int) (0.8 * (bottom - top)), 0, 0, 0, 0);
     if (myViewType != null) {
       viewInfo.setViewType(myViewType);
     }
