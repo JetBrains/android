@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.util.Map;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.fest.swing.timing.Pause.pause;
 
 @RunWith(GuiTestRunner.class)
 public class ConvertToWebpActionTest {
@@ -55,10 +56,10 @@ public class ConvertToWebpActionTest {
 
     Project project = projectFrame.getProject();
     VirtualFile res = project.getBaseDir().findFileByRelativePath("app/src/main/res");
-    VirtualFile webpIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_launcher.webp");
+    VirtualFile webpIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_test.webp");
     assertThat(webpIcon).isNull();
 
-    VirtualFile pngIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_launcher.png");
+    VirtualFile pngIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_test.png");
     assertThat(pngIcon.exists()).isTrue();
     invokeConvertToWebpAction(project, res);
 
@@ -67,11 +68,11 @@ public class ConvertToWebpActionTest {
     dialog.clickOk();
 
     // Check that the webp icon now exists
-    webpIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_launcher.webp");
+    webpIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_test.webp");
     assertThat(webpIcon).isNotNull();
     assertThat(pngIcon.exists()).isFalse();
     // ..and that the .png icon doesn't
-    pngIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_launcher.png");
+    pngIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_test.png");
     assertThat(pngIcon).isNull();
   }
 
@@ -88,7 +89,7 @@ public class ConvertToWebpActionTest {
     Project project = projectFrame.getProject();
     VirtualFile res = project.getBaseDir().findFileByRelativePath("app/src/main/res");
 
-    VirtualFile pngIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_launcher.png");
+    VirtualFile pngIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_test.png");
     assertThat(pngIcon.exists()).isTrue();
     invokeConvertToWebpAction(project, res);
 
@@ -100,9 +101,9 @@ public class ConvertToWebpActionTest {
     WebpPreviewDialogFixture previewDialog = WebpPreviewDialogFixture.findDialog(guiTest.robot());
     previewDialog.clickFinish();
 
-    VirtualFile webpIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_launcher.webp");
+    VirtualFile webpIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_test.webp");
     assertThat(webpIcon).isNotNull();
-    pngIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_launcher.png");
+    pngIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_test.png");
     assertThat(pngIcon).isNull();
   }
 
