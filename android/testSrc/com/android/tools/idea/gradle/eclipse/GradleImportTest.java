@@ -9,6 +9,7 @@ import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.PropertiesFiles;
+import com.android.tools.idea.templates.TemplateManager;
 import com.android.utils.Pair;
 import com.android.utils.SdkUtils;
 import com.google.common.base.Charsets;
@@ -3544,7 +3545,6 @@ public class GradleImportTest extends AndroidTestCase {
     args.add(gradlew.getPath());
     args.add("assembleDebug");
     args.add("-Dorg.gradle.java.home=" + EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getAbsolutePath());
-    args.add("-Dcom.android.studio.gradle.java.home.path=" + EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getAbsolutePath());
     GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArgTo(args);
     GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
     CapturingProcessHandler process = new CapturingProcessHandler(cmdLine);
