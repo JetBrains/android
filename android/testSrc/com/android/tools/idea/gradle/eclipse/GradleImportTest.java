@@ -9,6 +9,7 @@ import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.PropertiesFiles;
+import com.android.tools.idea.templates.TemplateManager;
 import com.android.utils.Pair;
 import com.android.utils.SdkUtils;
 import com.google.common.base.Charsets;
@@ -3543,12 +3544,8 @@ public class GradleImportTest extends AndroidTestCase {
     List<String> args = Lists.newArrayList();
     args.add(gradlew.getPath());
     args.add("assembleDebug");
-    System.err.println("Before");
-    System.out.println("Before");
     args.add("-Dorg.gradle.java.home=" + EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getAbsolutePath());
     GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArgTo(args);
-    System.err.println("args: " + args);
-    System.out.println("args: " + args);
     GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
     CapturingProcessHandler process = new CapturingProcessHandler(cmdLine);
     // Building currently takes about 30s, so a 5min timeout should give a safe margin.
