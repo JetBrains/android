@@ -149,7 +149,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
     }
     AttributeDefinition def = myAttrs.get(name);
     if (def == null) {
-      def = new AttributeDefinition(name, parentStyleable, Collections.<AttributeFormat>emptySet());
+      def = new AttributeDefinition(name, parentStyleable, Collections.emptySet());
       myAttrs.put(def.getName(), def);
     }
     def.addFormats(formats);
