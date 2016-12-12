@@ -141,15 +141,12 @@ public class ImageViewDecorator extends SceneDecorator {
         g.setColor(Color.WHITE);
         Rectangle2D bounds = fontMetrics.getStringBounds(TITLE, g);
         g.drawString(TITLE, x + (int)((width - bounds.getWidth()) / 2f), y + (int)(height - (height - bounds.getHeight()) / 3f));
-        g.setColor(sceneContext.getColorSet().getFrames());
-        g.drawRect(x, y, width, height);
       }
     }
   }
 
   @Override
-  public void buildList(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
-    super.buildList(list, time, sceneContext, component);
+  public void addContent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
     Rectangle rect = new Rectangle();
     component.fillDrawRect(time, rect);
     int l = sceneContext.getSwingX(rect.x);

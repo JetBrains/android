@@ -50,14 +50,14 @@ public class DragDndTarget extends DragTarget {
       int dy = y - myOffsetY;
       if (myCurrentNotchX != null) {
         dx = myCurrentNotchX.apply(dx);
-        if (myComponent.getScene().isAutoconnectOn()) {
+        if (myComponent.allowsAutoConnect()) {
           myCurrentNotchX.apply(attributes);
         }
         myCurrentNotchX = null;
       }
       if (myCurrentNotchY != null) {
         dy = myCurrentNotchY.apply(dy);
-        if (myComponent.getScene().isAutoconnectOn()) {
+        if (myComponent.allowsAutoConnect()) {
           myCurrentNotchY.apply(attributes);
         }
         myCurrentNotchY = null;
