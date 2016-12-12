@@ -22,21 +22,55 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.IntConsumer;
+import java.util.function.IntSupplier;
+
 public final class ScrollViewScrollHandler implements ScrollHandler {
-  private final View myScrollView;
-  private final int myMaxScrollableHeight;
+  private final int myMaxScrollableSize;
   private final int myScrollUnitSize;
   private final int myStartScrollPosition;
+  @NotNull private final IntConsumer myScrollSetter;
+  @NotNull private final IntSupplier myScrollGetter;
+  @NotNull private final Runnable myScrollHandler;
 
-  public ScrollViewScrollHandler(@NonNull NlComponent component, int maxScrollableHeight, int scrollUnitSize) {
-    myMaxScrollableHeight = maxScrollableHeight;
+  ScrollViewScrollHandler(
+    int maxScrollableSize,
+    int scrollUnitSize,
+    @NotNull IntConsumer scrollSetter,
+    @NotNull IntSupplier scrollGetter,
+    @NotNull Runnable scrollHandler) {
+    myMaxScrollableSize = maxScrollableSize;
     myScrollUnitSize = scrollUnitSize;
+    myScrollSetter = scrollSetter;
+    myScrollGetter = scrollGetter;
+    myStartScrollPosition = scrollGetter.getAsInt();
+    myScrollHandler = scrollHandler;
+  }
 
-    ViewInfo viewInfo = component.viewInfo;
-    assert viewInfo != null;
+  @NotNull
+  private static ScrollViewScrollHandler createHandler(@NotNull View view,
+                                                       int maxScrollableSize,
+                                                       int scrollUnitSize,
+                                                       @NotNull Orientation orientation) {
+    return new ScrollViewScrollHandler(
+      maxScrollableSize,
+      scrollUnitSize,
+      orientation == Orientation.VERTICAL ? view::setScrollY : view::setScrollX,
+      orientation == Orientation.VERTICAL ? view::getScrollY : view::getScrollX,
+      () -> handleScrolling(view)
+    );
+  }
 
-    myScrollView = (View)viewInfo.getViewObject();
-    myStartScrollPosition = myScrollView.getScrollY();
+  @NotNull
+  public static ScrollViewScrollHandler createHandler(@NonNull NlComponent component,
+                                                      int maxScrollableSize,
+                                                      int scrollUnitSize,
+                                                      @NotNull Orientation orientation) {
+    ViewInfo info = component.viewInfo;
+    assert info != null;
+    View view = (View)info.getViewObject();
+    assert view != null;
+    return createHandler(view, maxScrollableSize, scrollUnitSize, orientation);
   }
 
   /**
@@ -83,20 +117,20 @@ public final class ScrollViewScrollHandler implements ScrollHandler {
    */
   @Override
   public int update(int scrollAmount) {
-    final int currentScrollPosition = myScrollView.getScrollY();
+    final int currentScrollPosition = myScrollGetter.getAsInt();
 
-    // new scroll y within [0, myMaxScrollableHeight]
-    final int newScrollY =
-      Math.min(myMaxScrollableHeight,
+    // new scroll y within [0, myMaxScrollableSize]
+    final int newScrollPos =
+      Math.min(myMaxScrollableSize,
                Math.max(0, myStartScrollPosition + scrollAmount * myScrollUnitSize));
 
-    if (newScrollY == currentScrollPosition) {
+    if (newScrollPos == currentScrollPosition) {
       return 0;
     }
 
-    myScrollView.setScrollY(newScrollY);
-    handleScrolling(myScrollView);
-    return newScrollY - currentScrollPosition;
+    myScrollSetter.accept(newScrollPos);
+    myScrollHandler.run();
+    return newScrollPos - currentScrollPosition;
   }
 
   @Override
@@ -123,5 +157,13 @@ public final class ScrollViewScrollHandler implements ScrollHandler {
     //    }
     //  }
     //}.execute();
+  }
+
+  /**
+   * Scroll orientation
+   */
+  public enum Orientation {
+    VERTICAL,
+    HORIZONTAL
   }
 }
