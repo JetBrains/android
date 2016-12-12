@@ -35,6 +35,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PsiTestUtil;
+import com.intellij.util.TimeoutUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -173,6 +174,9 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     loader.loadClassFile("com.google.example.R$string", rStringClass);
     loader.loadClassFile("com.google.example.Modified", modifiedClass);
     loader.loadClassFile("com.google.example.NotModified", notModifiedClass);
+
+    // Wait a bit to make sure timestamp is different.
+    TimeoutUtil.sleep(10);
 
     // Always false for R classes.
     assertThat(loader.isSourceModified("com.google.example.R", null)).isFalse();
