@@ -39,7 +39,7 @@ import java.nio.file.Paths;
   com.android.tools.idea.testing.TestProjectPathsGeneratorTest.class, // This is for a standalone, test-only application
   // The following classes had failures when run in Bazel.
   com.android.tools.idea.exportSignedPackage.ExportSignedPackageTest.class,
-  //com.android.tools.idea.gradle.eclipse.GradleImportTest.class,
+  com.android.tools.idea.gradle.eclipse.GradleImportTest.class,
   com.android.tools.idea.gradle.project.NonAndroidGradleProjectImportingTestSuite.class,
   com.android.tools.idea.npw.importing.ArchiveToGradleModuleModelTest.class,
   com.android.tools.idea.npw.importing.ArchiveToGradleModuleStepTest.class,
