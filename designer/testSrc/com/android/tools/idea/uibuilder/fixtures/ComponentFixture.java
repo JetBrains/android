@@ -59,6 +59,8 @@ public class ComponentFixture {
     return new DragFixture(singleton());
   }
 
+  public ScrollFixture scroll() { return new ScrollFixture(myScreenFixture, this); }
+
   public ComponentFixture expectWidth(@NotNull String width) {
     assertEquals("Wrong width", width, AndroidPsiUtils.getAttributeSafely(myComponent.getTag(), ANDROID_URI, ATTR_LAYOUT_WIDTH));
     return this;

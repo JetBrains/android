@@ -1007,18 +1007,6 @@ public class RenderTask implements IImageFactory {
         return null;
       }
     });
-
-    if (tagName != null) {
-      // In multi configuration rendering, clip to screen bounds
-      RenderPreviewMode currentMode = RenderPreviewMode.getCurrent();
-      if (currentMode != RenderPreviewMode.NONE) {
-        return;
-      }
-      if (HORIZONTAL_SCROLL_VIEW.equals(tagName)) {
-        setRenderingMode(RenderingMode.H_SCROLL);
-        setDecorations(false);
-      }
-    }
   }
 
   /**

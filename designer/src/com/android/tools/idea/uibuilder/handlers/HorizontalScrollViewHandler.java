@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.handlers.ScrollViewHandler.OneChildDragHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 
 import java.util.List;
@@ -28,7 +27,7 @@ import java.util.List;
 import static com.android.SdkConstants.*;
 
 /** Handler for the {@code <HorizontalScrollView>} widget */
-public class HorizontalScrollViewHandler extends ViewGroupHandler {
+public class HorizontalScrollViewHandler extends ScrollViewHandler {
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
@@ -65,6 +64,25 @@ public class HorizontalScrollViewHandler extends ViewGroupHandler {
                                        @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
     return new OneChildDragHandler(editor, this, layout, components, type);
+  }
+
+  @Nullable
+  @Override
+  public ScrollHandler createScrollHandler(@NotNull ViewEditor editor, @NotNull NlComponent component) {
+    int maxScrollableWidth = 0;
+    for (NlComponent child : component.getChildren()) {
+      maxScrollableWidth += child.w;
+    }
+
+    // Subtract the viewport height from the scrollable size
+    maxScrollableWidth -= component.w;
+
+    if (maxScrollableWidth > 0) {
+      // There is something to scroll
+      return ScrollViewScrollHandler.createHandler(component, maxScrollableWidth, 10, ScrollViewScrollHandler.Orientation.HORIZONTAL);
+    }
+
+    return null;
   }
 
   @Override
