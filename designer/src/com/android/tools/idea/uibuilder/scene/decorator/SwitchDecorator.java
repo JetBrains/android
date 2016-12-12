@@ -57,12 +57,11 @@ public class SwitchDecorator extends SceneDecorator {
     @Override
     public void paint(Graphics2D g, SceneContext sceneContext) {
       super.paint(g, sceneContext);
-      g.drawRect(x, y, width, height);
       ColorSet colorSet = sceneContext.getColorSet();
       if (colorSet.drawBackground()) {
         Shape origClip = g.getClip();
         g.clipRect(x, y, width, height);
-        g.setColor(Color.WHITE);
+        g.setColor(colorSet.getFakeUI());
         int sHeight = mFont.getSize() / 2;
         int sWidth = sHeight * 4;
         int sx = x + width - sWidth - MARGIN;
@@ -79,8 +78,8 @@ public class SwitchDecorator extends SceneDecorator {
   }
 
   @Override
-  public void buildList(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
-    super.buildList(list, time, sceneContext, component);
+  public void addContent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
+    super.addContent(list, time, sceneContext, component);
     Rectangle rect = new Rectangle();
     component.fillDrawRect(time, rect);
     int l = sceneContext.getSwingX(rect.x);

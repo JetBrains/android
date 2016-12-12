@@ -33,6 +33,11 @@ public class DrawAction extends DrawRegion {
 
   protected Font mFont = new Font("Helvetica", Font.PLAIN, 14);
 
+  @Override
+  public int getLevel() {
+    return POST_CLIP_LEVEL;
+  }
+
   public DrawAction(String s) {
     String[] sp = s.split(",");
     int c = 0;
@@ -50,7 +55,7 @@ public class DrawAction extends DrawRegion {
   public void paint(Graphics2D g, SceneContext sceneContext) {
     int r = (int)(width * 0.3);
     ColorSet colorSet = sceneContext.getColorSet();
-    g.setColor(colorSet.getBackground());
+    g.setColor(colorSet.getComponentObligatoryBackground());
     g.fillRoundRect(x - 2, y - 2, width + 4, height + 4, r, r);
     if (myIsOver) {
       g.setColor(colorSet.getSelectedBackground());

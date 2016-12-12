@@ -44,8 +44,7 @@ public class DrawResize extends DrawRegion {
   @Override
   public void paint(Graphics2D g, SceneContext sceneContext) {
     ColorSet colorSet = sceneContext.getColorSet();
-    Color background = colorSet.getFrames();
-    Color color = colorSet.getAnchorCircle();
+    Color background = colorSet.getSelectedFrames();
     g.setColor(background);
     g.fillRect(x, y, width, height);
   }

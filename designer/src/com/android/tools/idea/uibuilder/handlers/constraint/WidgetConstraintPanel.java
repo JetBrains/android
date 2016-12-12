@@ -158,7 +158,9 @@ public class WidgetConstraintPanel extends JPanel {
       float bias = mWidget.getHorizontalBiasPercent();
       if (mWidget.isInHorizontalChain()) {
         ConstraintWidget ctl = mWidget.getHorizontalChainControlWidget();
-        bias = ctl.getHorizontalBiasPercent();
+        if (ctl != null) {
+          bias = ctl.getHorizontalBiasPercent();
+        }
       }
       mHorizontalSlider.setValue((int)(bias * 100));
     }
@@ -167,7 +169,9 @@ public class WidgetConstraintPanel extends JPanel {
       float bias = mWidget.getVerticalBiasPercent();
       if (mWidget.isInVerticalChain()) {
         ConstraintWidget ctl = mWidget.getVerticalChainControlWidget();
-        bias = ctl.getVerticalBiasPercent();
+        if (ctl != null) {
+          bias = ctl.getVerticalBiasPercent();
+        }
       }
       mVerticalSlider.setValue(100 - (int)(bias * 100));
     }
@@ -308,7 +312,9 @@ public class WidgetConstraintPanel extends JPanel {
     float bias = (mHorizontalSlider.getValue() / 100f);
     if (mWidget.isInHorizontalChain()) {
       ConstraintWidget ctl = mWidget.getHorizontalChainControlWidget();
-      ctl.setHorizontalBiasPercent(bias);
+      if (ctl != null) {
+        ctl.setHorizontalBiasPercent(bias);
+      }
 
       mWidgetModified = true;
       mConstraintModel.getSelection().addModifiedWidget(ctl);
@@ -328,7 +334,9 @@ public class WidgetConstraintPanel extends JPanel {
     float bias = 1f - (mVerticalSlider.getValue() / 100f);
     if (mWidget.isInVerticalChain()) {
       ConstraintWidget ctl = mWidget.getVerticalChainControlWidget();
-      ctl.setVerticalBiasPercent(bias);
+      if (ctl != null) {
+        ctl.setVerticalBiasPercent(bias);
+      }
 
       mWidgetModified = true;
       mConstraintModel.getSelection().addModifiedWidget(ctl);

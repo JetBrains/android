@@ -40,6 +40,9 @@ public class ColorSet {
     protected boolean mAlwaysShowMargins = false;
 
     protected Color mBackground;
+    protected Color mComponentBackground;
+    protected Color mComponentHighlightedBackground;
+    protected Color mComponentObligatoryBackground;
     protected Color mFrames;
     protected Color mConstraints;
     protected Color mSoftConstraintColor;
@@ -48,6 +51,8 @@ public class ColorSet {
     protected Color mSnapGuides;
     protected Color mCreatedConstraints = new Color(250, 187, 32);
     protected Stroke mSoftConstraintStroke = sNormalStroke;
+
+    protected Color mFakeUI;
 
     protected Color mSubduedText;
     protected Color mSubduedBackground;
@@ -92,6 +97,7 @@ public class ColorSet {
     protected int mStyle;
 
     private Paint mBackgroundPaint;
+    protected Color myUnconstrainedColor;
 
     public Paint getBackgroundPaint() {
         return mBackgroundPaint;
@@ -109,11 +115,19 @@ public class ColorSet {
 
     public Color getAnchorConnectionCircle() { return mAnchorConnectionCircle; }
 
+    public Color getFakeUI() { return mFakeUI; }
+
     public Color getSubduedText() { return mSubduedText; }
 
     public Color getSelectedFrames() { return mSelectedFrames; }
 
     public Color getBackground() { return mBackground; }
+
+    public Color getComponentBackground() { return mComponentBackground; }
+
+    public Color getComponentObligatoryBackground() { return mComponentObligatoryBackground; }
+
+    public Color getComponentHighlightedBackground() { return mComponentHighlightedBackground; }
 
     public Color getFrames() { return mFrames; }
 
@@ -225,5 +239,9 @@ public class ColorSet {
 
     public Stroke getSoftConstraintStroke() {
         return mSoftConstraintStroke;
+    }
+
+    public Color getUnconstrainedColor() {
+        return myUnconstrainedColor;
     }
 }
