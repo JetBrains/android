@@ -437,7 +437,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     component.addTarget(new AnchorTarget(AnchorTarget.Type.BOTTOM, showAnchors));
     if (!isParent) {
       ActionTarget previousAction = (ActionTarget) component.addTarget(new ClearConstraintsTarget(null));
-      if (component.getNlComponent().getBaseline() > 0) {
+      int baseline = component.getNlComponent().getBaseline();
+      if (baseline <= 0) {
+        baseline = component.getNlComponent().viewInfo.getBaseLine();
+      }
+      if (baseline > 0) {
         component.addTarget(new AnchorTarget(AnchorTarget.Type.BASELINE, showAnchors));
         ActionTarget baselineActionTarget = new ActionTarget(previousAction, (SceneComponent c) -> {
           c.setShowBaseline(!c.canShowBaseline()); });
