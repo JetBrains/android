@@ -162,7 +162,7 @@ public class LocalResourceManager extends ResourceManager {
   }
 
   public List<DeclareStyleable> findStyleables(@NotNull String name) {
-    List<DeclareStyleable> list = new ArrayList<DeclareStyleable>();
+    List<DeclareStyleable> list = new ArrayList<>();
     for (Pair<Resources, VirtualFile> pair : getResourceElements()) {
       final Resources res = pair.getFirst();
       for (DeclareStyleable styleable : res.getDeclareStyleables()) {
