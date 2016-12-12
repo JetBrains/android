@@ -61,7 +61,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
  * Module creation for a given form factor
  */
 public class NewFormFactorModulePath extends DynamicWizardPath {
-  private static final String WH_SDK_ENV_VAR = "WH_SDK";
+  private static final String AIA_SDK_ENV_VAR = "WH_SDK";
   private static final Logger LOG = Logger.getInstance(NewFormFactorModulePath.class);
   private static final Key<Boolean> CREATE_ACTIVITY_KEY = createKey(ATTR_CREATE_ACTIVITY, PATH, Boolean.class);
 
@@ -81,7 +81,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   private static final String RELATIVE_SRC_ROOT = FileUtil.join(TemplateWizard.MAIN_FLAVOR_SOURCE_PATH, TemplateWizard.JAVA_SOURCE_PATH);
   private static final String RELATIVE_TEST_ROOT = FileUtil.join(TemplateWizard.TEST_SOURCE_PATH, TemplateWizard.JAVA_SOURCE_PATH);
 
-  private static String WH_SDK_LOCATION = System.getenv(WH_SDK_ENV_VAR);
+  private static String WH_SDK_LOCATION = System.getenv(AIA_SDK_ENV_VAR);
 
   private final FormFactor myFormFactor;
   private final File myTemplateFile;
@@ -140,8 +140,8 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     myState.put(CREATE_ACTIVITY_KEY, false);
     myState.put(IS_INSTANT_APP_KEY, false);
 
-    myState.put(WH_SDK_KEY, WH_SDK_LOCATION + "/tools/resources/shared-libs");
-    myState.put(WH_SDK_ENABLED_KEY, isNotEmpty(WH_SDK_LOCATION));
+    myState.put(AIA_SDK_KEY, WH_SDK_LOCATION + "/tools/resources/shared-libs");
+    myState.put(AIA_SDK_ENABLED_KEY, isNotEmpty(WH_SDK_LOCATION));
 
     addStep(new ConfigureAndroidModuleStepDynamic(myDisposable, myFormFactor));
     addStep(new ConfigureInstantModuleStep(myDisposable, myFormFactor));
