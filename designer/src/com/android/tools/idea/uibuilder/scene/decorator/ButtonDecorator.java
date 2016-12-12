@@ -89,11 +89,13 @@ public class ButtonDecorator extends SceneDecorator {
     @Override
     public void paint(Graphics2D g, SceneContext sceneContext) {
       super.paint(g, sceneContext);
-      if (sceneContext.getColorSet().drawBackground()) {
+      ColorSet colorSet = sceneContext.getColorSet();
+      if (colorSet.drawBackground()) {
         int round = sceneContext.getSwingDimension(5);
         Stroke stroke = g.getStroke();
         int strokeWidth = sceneContext.getSwingDimension(3);
         g.setStroke(new BasicStroke(strokeWidth));
+        g.setColor(colorSet.getFakeUI());
         g.drawRoundRect(x + mHorizontalMargin, y + mVerticalMargin, width - mHorizontalMargin * 2, height - mVerticalMargin * 2, round,
                         round);
         g.setStroke(stroke);
@@ -102,8 +104,8 @@ public class ButtonDecorator extends SceneDecorator {
   }
 
   @Override
-  public void buildList(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
-    super.buildList(list, time, sceneContext, component);
+  public void addContent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
+    super.addContent(list, time, sceneContext, component);
     Rectangle rect = new Rectangle();
     component.fillDrawRect(time, rect);
     int l = sceneContext.getSwingX(rect.x);

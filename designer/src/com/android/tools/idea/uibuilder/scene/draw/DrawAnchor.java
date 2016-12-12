@@ -66,7 +66,7 @@ public class DrawAnchor extends DrawRegion {
       return;
     }
     ColorSet colorSet = sceneContext.getColorSet();
-    Color background = colorSet.getBackground();
+    Color background = colorSet.getComponentObligatoryBackground();
     Color color = colorSet.getFrames();
 
     if (myMode == OVER) {
@@ -111,16 +111,22 @@ public class DrawAnchor extends DrawRegion {
   public void paintBaseline(Graphics2D g, SceneContext sceneContext) {
     int inset = width / 10;
     ColorSet colorSet = sceneContext.getColorSet();
-    Color background = colorSet.getBackground();
+    Color background = colorSet.getComponentObligatoryBackground();
     Color color = colorSet.getFrames();
     g.setColor(color);
     g.fillRect(x, y + height / 2, width, 1);
-    g.setColor(background);
     int ovalX = x + inset;
     int ovalW = width - 2 * inset;
+    g.setColor(background);
     g.fillRoundRect(ovalX, y, ovalW, height, height, height);
     g.setColor(color);
     g.drawRoundRect(ovalX, y, ovalW, height, height, height);
+    int delta = 3;
+    int delta2 = delta * 2;
+    if (myIsConnected) {
+      g.fillRoundRect(ovalX + delta, y + delta, ovalW - delta2, height - delta2, height - delta2, height -delta2);
+      g.drawRoundRect(ovalX + delta, y + delta, ovalW - delta2, height - delta2, height - delta2, height -delta2);
+    }
     if (myMode == OVER) {
       int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
       Composite comp = g.getComposite();
