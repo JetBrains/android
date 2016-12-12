@@ -15,24 +15,21 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.editors.strings.StringResourceEditor;
-import com.android.tools.idea.editors.strings.table.StringsCellRenderer;
+import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.google.common.collect.Lists;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import org.fest.swing.core.ComponentFinder;
 import org.fest.swing.core.ComponentMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.data.TableCell;
-import org.fest.swing.driver.BasicJTableCellReader;
-import org.fest.swing.driver.CellRendererReader;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,19 +37,11 @@ import java.util.stream.IntStream;
 
 public final class TranslationsEditorFixture {
   private final Robot myRobot;
+  private final Container myTranslationsEditor;
 
-  private final JTableFixture myTable;
-  private final JTextComponentFixture myKeyTextField;
-  private final JTextComponentFixture myTranslationTextField;
-
-  TranslationsEditorFixture(@NotNull Robot robot, @NotNull StringResourceEditor target) {
+  TranslationsEditorFixture(@NotNull Robot robot) {
     myRobot = robot;
-
-    myTable = new JTableFixture(robot, target.getTranslationsTable());
-    myTable.replaceCellReader(new BasicJTableCellReader(new StringsCellRendererReader()));
-
-    myKeyTextField = new JTextComponentFixture(robot, target.getKeyTextField());
-    myTranslationTextField = new JTextComponentFixture(robot, target.getTranslationTextField().getTextField());
+    myTranslationsEditor = (Container)robot.finder().findByName("translationsEditor");
   }
 
   public void clickFilterKeysComboBoxItem(@NotNull String text) {
@@ -61,58 +50,43 @@ public final class TranslationsEditorFixture {
     ComponentMatcher componentTextEqualsShowAllKeys =
       component -> component instanceof AbstractButton && ((AbstractButton)component).getText().equals("Show All Keys");
 
-    new JButtonFixture(myRobot, (JButton)finder.find(componentTextEqualsShowAllKeys)).click();
-    GuiTests.clickPopupMenuItemMatching(t -> t.equals(text), finder.findByName("toolbar"), myRobot);
+    new JButtonFixture(myRobot, (JButton)finder.find(myTranslationsEditor, componentTextEqualsShowAllKeys)).click();
+    GuiTests.clickPopupMenuItemMatching(t -> t.equals(text), finder.findByName(myTranslationsEditor, "toolbar"), myRobot);
   }
 
   @NotNull
   public JTableFixture getTable() {
-    return myTable;
-  }
-
-  @NotNull
-  public JTextComponentFixture getKeyTextField() {
-    return myKeyTextField;
-  }
-
-  @NotNull
-  public JTextComponentFixture getTranslationTextField() {
-    return myTranslationTextField;
-  }
-
-  @NotNull
-  public List<String> locales() {
-    List<String> columns = getColumnHeaderValues(myTable.target());
-    assert columns.size() > 3 : columns.size();
-    return columns.subList(3, columns.size());
+    return new JTableFixture(myRobot, (JTable)myRobot.finder().findByName(myTranslationsEditor, "table"));
   }
 
   @NotNull
   public List<String> keys() {
-    return IntStream.range(0, myTable.rowCount())
-      .mapToObj(row -> myTable.valueAt(TableCell.row(row).column(0)))
+    JTableFixture table = getTable();
+
+    return IntStream.range(0, table.rowCount())
+      .mapToObj(row -> table.valueAt(TableCell.row(row).column(StringResourceTableModel.KEY_COLUMN)))
       .collect(Collectors.toList());
   }
 
   @NotNull
-  private static List<String> getColumnHeaderValues(@NotNull final JTable table) {
-    return GuiQuery.getNonNull(
-      () -> {
-        int columnCount = table.getColumnModel().getColumnCount();
-        List<String> columns = Lists.newArrayListWithExpectedSize(columnCount);
-        for (int i = 0; i < columnCount; i++) {
-          columns.add(table.getColumnName(i));
-        }
-        return columns;
-      });
+  public List<String> locales() {
+    return GuiQuery.getNonNull(() -> {
+      JTable table = getTable().target();
+
+      return IntStream.range(StringResourceTableModel.FIXED_COLUMN_COUNT, table.getColumnCount())
+        .mapToObj(table::getColumnName)
+        .collect(Collectors.toList());
+    });
   }
 
-  private static class StringsCellRendererReader implements CellRendererReader {
-    @Nullable
-    @Override
-    public String valueFrom(Component c) {
-      // The toString() method of StringsCellRenderer returns the text that is displayed
-      return c instanceof StringsCellRenderer ? c.toString() : null;
-    }
+  @NotNull
+  public JTextComponentFixture getKeyTextField() {
+    return new JTextComponentFixture(myRobot, (JTextComponent)myRobot.finder().findByName(myTranslationsEditor, "keyTextField"));
+  }
+
+  @NotNull
+  public JTextComponentFixture getTranslationTextField() {
+    TextFieldWithBrowseButton field = (TextFieldWithBrowseButton)myRobot.finder().findByName(myTranslationsEditor, "translationTextField");
+    return new JTextComponentFixture(myRobot, field.getTextField());
   }
 }

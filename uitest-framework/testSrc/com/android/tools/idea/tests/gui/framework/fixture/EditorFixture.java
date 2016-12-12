@@ -547,7 +547,7 @@ public class EditorFixture {
         checkState(editors.length > 0, "no selected editors");
         FileEditor selected = editors[0];
         checkState(selected instanceof StringResourceEditor, "not a %s: %s", StringResourceEditor.class.getSimpleName(), selected);
-        return new TranslationsEditorFixture(robot, (StringResourceEditor)selected);
+        return new TranslationsEditorFixture(robot);
       });
   }
 
