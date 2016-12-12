@@ -15,6 +15,7 @@
  */
 package com.android.tools.datastore.poller;
 
+import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.profiler.proto.*;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.profiler.proto.CpuProfiler;
@@ -30,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
-public class CpuDataPollerTest {
+public class CpuDataPollerTest extends DataStorePollerTest {
 
   private static final int TEST_APP_ID = 1234;
   private static final int THREAD_ID = 4321;
@@ -192,12 +193,6 @@ public class CpuDataPollerTest {
     StreamObserver<CpuProfiler.GetTraceInfoResponse> observer = mock(StreamObserver.class);
     myCpuDataPoller.getTraceInfo(request, observer);
     validateResponse(observer, expectedResponse);
-  }
-
-  private <E> void validateResponse(StreamObserver<E> observer, E expected) {
-    verify(observer, times(1)).onNext(expected);
-    verify(observer, times(1)).onCompleted();
-    verify(observer, never()).onError(any(Throwable.class));
   }
 
   private static class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
