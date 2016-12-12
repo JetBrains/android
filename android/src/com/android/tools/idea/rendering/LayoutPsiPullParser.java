@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.rendering.RenderTask.AttributeFilter;
@@ -74,6 +75,14 @@ public class LayoutPsiPullParser extends LayoutPullParser {
                                                                                                          VALUE_MATCH_PARENT)
                                                                                  ),
                                                                                  ImmutableList.of());
+
+  private static final Consumer<TagSnapshot> TAG_SNAPSHOT_DECORATOR = (tag) -> {
+    if ("com.google.android.gms.ads.AdView".equals(tag.tagName) || "com.google.android.gms.maps.MapView".equals(tag.tagName)) {
+      tag.setAttribute(ATTR_MIN_WIDTH, TOOLS_URI, TOOLS_PREFIX, "50dp", false);
+      tag.setAttribute(ATTR_MIN_HEIGHT, TOOLS_URI, TOOLS_PREFIX, "50dp", false);
+      tag.setAttribute(ATTR_BACKGROUND, TOOLS_URI, TOOLS_PREFIX, "#AAA", false);
+    }
+  };
 
   @NotNull
   private final LayoutLog myLogger;
@@ -589,7 +598,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
         return createSnapshotForMerge(tag);
 
       default:
-        TagSnapshot root = TagSnapshot.createTagSnapshot(tag);
+        TagSnapshot root = TagSnapshot.createTagSnapshot(tag, TAG_SNAPSHOT_DECORATOR);
 
         // Ensure that root tags that qualify for adapter binding specify an id attribute, since that is required for
         // attribute binding to work. (Without this, a <ListView> at the root level will not show Item 1, Item 2, etc.
@@ -642,7 +651,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
 
   @NotNull
   private static TagSnapshot createSnapshotForFrameLayout(@NotNull XmlTag rootTag) {
-    TagSnapshot root = TagSnapshot.createTagSnapshot(rootTag);
+    TagSnapshot root = TagSnapshot.createTagSnapshot(rootTag, TAG_SNAPSHOT_DECORATOR);
 
     // tools:layout on a <FrameLayout> acts like an <include> child. This
     // lets you preview runtime additions on FrameLayouts.
@@ -687,7 +696,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
 
   @NotNull
   private static TagSnapshot createSnapshotForMerge(@NotNull XmlTag rootTag) {
-    TagSnapshot root = TagSnapshot.createTagSnapshot(rootTag);
+    TagSnapshot root = TagSnapshot.createTagSnapshot(rootTag, TAG_SNAPSHOT_DECORATOR);
     String parentTag = rootTag.getAttributeValue(ATTR_PARENT_TAG, TOOLS_URI);
     if (parentTag == null) {
       return root;

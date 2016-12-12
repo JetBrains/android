@@ -202,6 +202,37 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     assertEquals(END_TAG, parser.nextTag()); // NotAImageView (@id/third)
   }
 
+  public void testAdAndMapViews() throws Exception {
+    VirtualFile virtualFile = myFixture.copyFileToProject("xmlpull/adandmapviews.xml", "res/layout/adandmapviews.xml");
+    assertNotNull(virtualFile);
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
+    assertTrue(psiFile instanceof XmlFile);
+    XmlFile xmlFile = (XmlFile)psiFile;
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("LinearLayout", parser.getName());
+    assertEquals(START_TAG, parser.nextTag()); // ImageView
+    assertEquals("ImageView", parser.getName());
+    assertEquals(4, parser.getAttributeCount()); // id + layout_width + layout_height + src
+    assertEquals(END_TAG, parser.nextTag()); // ImageView (@id/first)
+
+    assertEquals(START_TAG, parser.nextTag()); // com.google.android.gms.maps.MapView (@id/second)
+    assertEquals("com.google.android.gms.maps.MapView", parser.getName());
+    assertEquals(6, parser.getAttributeCount()); // id + layout_ * 2 + tools:background + tools:minHeight + tools:minWidth
+    assertEquals("50dp", parser.getAttributeValue(TOOLS_URI, ATTR_MIN_WIDTH));
+    assertEquals("50dp", parser.getAttributeValue(TOOLS_URI, ATTR_MIN_HEIGHT));
+    assertEquals("#AAA", parser.getAttributeValue(TOOLS_URI, ATTR_BACKGROUND));
+    assertEquals(END_TAG, parser.nextTag()); // com.google.android.gms.maps.MapView (@id/second) (@id/second)
+
+    assertEquals(START_TAG, parser.nextTag()); // com.google.android.gms.ads.AdView (@id/third)
+    assertEquals("com.google.android.gms.ads.AdView", parser.getName());
+    assertEquals(6, parser.getAttributeCount()); // id + layout_ * 2 + tools:background + tools:minHeight + tools:minWidth
+    assertEquals("50dp", parser.getAttributeValue(TOOLS_URI, ATTR_MIN_WIDTH));
+    assertEquals("50dp", parser.getAttributeValue(TOOLS_URI, ATTR_MIN_HEIGHT));
+    assertEquals("#AAA", parser.getAttributeValue(TOOLS_URI, ATTR_BACKGROUND));
+    assertEquals(END_TAG, parser.nextTag()); // com.google.android.gms.ads.AdView (@id/third)
+  }
+
   /**
    * Verifies that the passed parser contains an empty LinearLayout. That layout is returned by the LayoutPsiPullParser when the passed
    * file is invalid or empty.
