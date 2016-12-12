@@ -94,7 +94,7 @@ public class TemplateMetadata {
   public static final String ATTR_GRID_LAYOUT_EXTRA = "usesGridLayout";
   public static final String ATTR_NAVIGATION_DRAWER_EXTRA = "usesNavigationDrawer";
 
-  public static final String ATTR_WH_SDK = "whSdkPath";
+  public static final String ATTR_AIA_SDK = "whSdkPath";
   public static final String ATTR_APP_DOMAIN = "supportedDomain";
   public static final String ATTR_ATOM_NAME = "atomName";
   public static final String ATTR_ATOM_ROUTE = "atomRoute";

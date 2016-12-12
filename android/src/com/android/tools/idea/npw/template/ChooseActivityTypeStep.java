@@ -80,7 +80,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
  * that renders "Gallery items"?
  */
 public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> {
-  private static final String WH_SDK_ENV_VAR = "WH_SDK";
+  private static final String AIA_SDK_ENV_VAR = "WH_SDK";
 
   private final RenderTemplateModel myRenderModel;
   private @NotNull TemplateHandle[] myTemplateList;
@@ -215,9 +215,9 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
     templateValues.put("files.to.open", new ArrayList<>());
 
     // TODO: Implement Instant App code
-    String whSdkLocation = System.getenv(WH_SDK_ENV_VAR);
-    templateValues.put(ATTR_WH_SDK, whSdkLocation + "/tools/resources/shared-libs");
-    templateValues.put("whSdkEnabled", isNotEmpty(whSdkLocation));
+    String aiaSdkLocation = System.getenv(AIA_SDK_ENV_VAR);
+    templateValues.put(ATTR_AIA_SDK, aiaSdkLocation + "/tools/resources/shared-libs");
+    templateValues.put("whSdkEnabled", isNotEmpty(aiaSdkLocation));
     templateValues.put("alsoCreateIapk", false);
     templateValues.put("isInstantApp", false);
 
