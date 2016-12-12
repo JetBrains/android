@@ -274,7 +274,7 @@ public class AnchorTarget extends ConstraintTarget {
     int count = attributes.size();
     for (int i = 0; i < count; i++) {
       String attribute = attributes.get(i);
-      mPreviousAttributes.put(attribute, component.getAttribute(uri, attribute));
+      mPreviousAttributes.put(attribute, component.getLiveAttribute(uri, attribute));
     }
   }
 
@@ -420,11 +420,14 @@ public class AnchorTarget extends ConstraintTarget {
   public void mouseDown(int x, int y) {
     myLastX = -1;
     myLastY = -1;
+    NlComponent component = myComponent.getNlComponent();
     mPreviousAttributes.clear();
     mPreviousAttributes.put(SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
-                            myComponent.getNlComponent().getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X));
+                            component.getLiveAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X));
     mPreviousAttributes.put(SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y,
-                            myComponent.getNlComponent().getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y));
+                            component.getLiveAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y));
+    mPreviousAttributes.put(SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF,
+                            component.getLiveAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF));
     if (myComponent.getParent() != null) {
       myComponent.getParent().setExpandTargetArea(true);
     }
