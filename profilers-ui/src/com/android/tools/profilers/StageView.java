@@ -53,6 +53,16 @@ public abstract class StageView<T extends Stage> {
   }
 
   @NotNull
+  public IdeProfilerComponents getIdeComponents() {
+    return myProfilersView.getIdeProfilerComponents();
+  }
+
+  @NotNull
+  public IdeProfilerServices getIdeServices() {
+    return myStage.getStudioProfilers().getIdeServices();
+  }
+
+  @NotNull
   public final JComponent getComponent() {
     return myComponent;
   }
