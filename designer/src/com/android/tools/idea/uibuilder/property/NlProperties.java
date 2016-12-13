@@ -69,28 +69,25 @@ public class NlProperties {
   }
 
   @NotNull
-  public Table<String, String, NlPropertyItem> getProperties(@NotNull NlPropertiesManager propertiesManager,
-                                                             @NotNull List<NlComponent> components) {
+  public Table<String, String, NlPropertyItem> getProperties(@NotNull List<NlComponent> components) {
     AndroidFacet facet = getFacet(components);
     if (facet == null) {
       return ImmutableTable.of();
     }
     GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(facet.getModule().getProject());
-    return getProperties(facet, propertiesManager, components, dependencyManager);
+    return getProperties(facet, components, dependencyManager);
   }
 
   @VisibleForTesting
   Table<String, String, NlPropertyItem> getProperties(@NotNull AndroidFacet facet,
-                                                      @NotNull NlPropertiesManager propertiesManager,
                                                       @NotNull List<NlComponent> components,
                                                       @NotNull GradleDependencyManager dependencyManager) {
-    return ApplicationManager.getApplication().runReadAction((Computable<Table<String, String, NlPropertyItem>>)() ->
-      getPropertiesWithReadLock(facet, propertiesManager, components, dependencyManager));
+    return ApplicationManager.getApplication().runReadAction(
+      (Computable<Table<String, String, NlPropertyItem>>)() -> getPropertiesWithReadLock(facet, components, dependencyManager));
   }
 
   @NotNull
   private Table<String, String, NlPropertyItem> getPropertiesWithReadLock(@NotNull AndroidFacet facet,
-                                                                          @NotNull NlPropertiesManager propertiesManager,
                                                                           @NotNull List<NlComponent> components,
                                                                           @NotNull GradleDependencyManager dependencyManager) {
     ResourceManager localResourceManager = facet.getLocalResourceManager();
@@ -123,7 +120,7 @@ public class NlProperties {
         String namespace = getNamespace(desc, tag);
         AttributeDefinitions attrDefs = NS_RESOURCES.equals(namespace) ? systemAttrDefs : localAttrDefs;
         AttributeDefinition attrDef = attrDefs == null ? null : attrDefs.getAttrDefByName(desc.getName());
-        NlPropertyItem property = NlPropertyItem.create(components, propertiesManager, desc, namespace, attrDef);
+        NlPropertyItem property = NlPropertyItem.create(components, desc, namespace, attrDef);
         properties.put(StringUtil.notNullize(namespace), property.getName(), property);
       }
 
@@ -134,7 +131,6 @@ public class NlProperties {
           // Properties for this popup can be added to the AutoCompleteTextView tag.
           properties.put(ANDROID_URI, ATTR_POPUP_BACKGROUND, NlPropertyItem.create(
             components,
-            propertiesManager,
             new AndroidAnyAttributeDescriptor(ATTR_POPUP_BACKGROUND),
             ANDROID_URI,
             systemAttrDefs != null ? systemAttrDefs.getAttrDefByName(ATTR_POPUP_BACKGROUND) : null));
@@ -151,7 +147,7 @@ public class NlProperties {
     combinedProperties.remove(AUTO_URI, ATTR_THEME);
 
     setUpDesignProperties(combinedProperties);
-    setUpSrcCompat(combinedProperties, facet, components, propertiesManager, dependencyManager);
+    setUpSrcCompat(combinedProperties, facet, components, dependencyManager);
 
     initStarState(combinedProperties);
 
@@ -287,7 +283,6 @@ public class NlProperties {
   private static void setUpSrcCompat(@NotNull Table<String, String, NlPropertyItem> properties,
                                      @NotNull AndroidFacet facet,
                                      @NotNull List<NlComponent> components,
-                                     @NotNull NlPropertiesManager propertiesManager,
                                      @NotNull GradleDependencyManager dependencyManager) {
     NlPropertyItem srcProperty = properties.get(ANDROID_URI, ATTR_SRC);
     if (srcProperty != null && shouldAddSrcCompat(facet, components, dependencyManager)) {
@@ -295,7 +290,7 @@ public class NlProperties {
       assert srcDefinition != null;
       AttributeDefinition srcCompatDefinition = new AttributeDefinition(ATTR_SRC_COMPAT, null, srcDefinition.getFormats());
       srcCompatDefinition.getParentStyleables().addAll(srcDefinition.getParentStyleables());
-      NlPropertyItem srcCompatProperty = new NlPropertyItem(components, propertiesManager, AUTO_URI, srcCompatDefinition);
+      NlPropertyItem srcCompatProperty = new NlPropertyItem(components, AUTO_URI, srcCompatDefinition);
       properties.put(AUTO_URI, ATTR_SRC_COMPAT, srcCompatProperty);
     }
   }

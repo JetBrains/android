@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.tools.adtui.workbench.ToolContent;
-import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -28,11 +27,9 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
-import com.google.wireless.android.sdk.stats.LayoutPropertyEvent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.util.Alarm;
 import com.intellij.util.ui.UIUtil;
@@ -189,9 +186,8 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
     // Obtaining the properties, especially the first time around on a big project
     // can take close to a second, so we do it on a separate thread..
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      Table<String, String, NlPropertyItem> properties =
-        !components.isEmpty() ? NlProperties.getInstance().getProperties(this, components)
-                              : ImmutableTable.of();
+      Table<String, String, NlPropertyItem> properties = !components.isEmpty() ? NlProperties.getInstance().getProperties(components) :
+                                                         ImmutableTable.of();
 
       UIUtil.invokeLaterIfNeeded(() -> {
         if (myProject.isDisposed()) {
