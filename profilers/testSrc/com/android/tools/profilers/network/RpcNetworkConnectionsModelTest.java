@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.TestGrpcChannel;
 import com.google.common.collect.ImmutableList;
+import com.google.protobuf3jarjar.ByteString;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,6 +46,20 @@ public class RpcNetworkConnectionsModelTest {
   public void setUp() {
     StudioProfilers profilers = myGrpcChannel.getProfilers();
     myModel = new RpcNetworkConnectionsModel(profilers.getClient().getNetworkClient(), 12);
+  }
+
+  @Test
+  public void requestResponsePayload() {
+    HttpData data = new HttpData.Builder(0, 0, 0, 0).setResponsePayloadId("payloadId").build();
+    assertEquals(TestNetworkService.FAKE_PAYLOAD, myModel.requestResponsePayload(data).toStringUtf8());
+  }
+
+  @Test
+  public void emptyRequestResponsePayload() {
+    HttpData data = new HttpData.Builder(0, 0, 0, 0).build();
+    assertEquals(ByteString.EMPTY, myModel.requestResponsePayload(data));
+    data = new HttpData.Builder(0, 0, 0, 0).setResponsePayloadId("").build();
+    assertEquals(ByteString.EMPTY, myModel.requestResponsePayload(data));
   }
 
   @Test
