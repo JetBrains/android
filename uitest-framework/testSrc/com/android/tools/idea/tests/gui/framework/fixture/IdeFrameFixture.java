@@ -315,6 +315,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    * @return ActionButtonFixture for the run button.
    */
   @NotNull
+  public ActionButtonFixture findDebugApplicationButton() {
+    return findActionButtonByActionId("Debug");
+  }
+
+  @NotNull
   public ActionButtonFixture findRunApplicationButton() {
     return findActionButtonByActionId("Run");
   }
