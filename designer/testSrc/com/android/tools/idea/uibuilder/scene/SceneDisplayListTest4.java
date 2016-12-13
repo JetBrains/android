@@ -66,7 +66,7 @@ public class SceneDisplayListTest4 extends SceneTest {
   }
 
   public void testBasicScene() {
-     myScreen.get("@+id/a").expectXml("<TextView\n" +
+    myScreen.get("@+id/a").expectXml("<TextView\n" +
                                       "    android:id=\"@+id/a\"\n" +
                                       "    android:layout_width=\"100dp\"\n" +
                                       "    android:layout_height=\"20dp\"\n" +
