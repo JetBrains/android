@@ -39,7 +39,10 @@ public class ConnectionDetailsViewTest {
     MockitoAnnotations.initMocks(this);
     when(myHttpData.getUrl()).thenReturn("dumbUrl");
     when(myHttpData.getTrace()).thenReturn("dumbTrace");
-    myView = new ConnectionDetailsView(myIdeProfilerComponents);
+
+    NetworkProfilerStageView view = Mockito.mock(NetworkProfilerStageView.class);
+    when(view.getIdeComponents()).thenReturn(myIdeProfilerComponents);
+    myView = new ConnectionDetailsView(view);
   }
 
   @Test
@@ -62,12 +65,12 @@ public class ConnectionDetailsViewTest {
     myView.update(myHttpData);
     assertNotNull(myView.getFileViewer());
     assertNotNull(myView.getFieldComponent(0));
-    assertFalse(myView.getCallstackText().isEmpty());
+    assertEquals(1, myView.getCallStackView().getComponentCount());
 
     myView.update((HttpData) null);
     assertNull(myView.getFileViewer());
     assertNull(myView.getFieldComponent(0));
-    assertTrue(myView.getCallstackText().isEmpty());
+    assertEquals(0, myView.getCallStackView().getComponentCount());
   }
 
   @Test
@@ -145,8 +148,11 @@ public class ConnectionDetailsViewTest {
 
   @Test
   public void callstackViewHasProperValueFromData() {
-    assertTrue(myView.getCallstackText().isEmpty());
+    assertEquals(0,  myView.getCallStackView().getComponentCount());
+
     myView.update(myHttpData);
-    assertEquals(myView.getCallstackText(), "dumbTrace");
+    assertEquals(1,  myView.getCallStackView().getComponentCount());
+
+    assertEquals("dumbTrace", ((JLabel) myView.getCallStackView().getComponent(0)).getText());
   }
 }
