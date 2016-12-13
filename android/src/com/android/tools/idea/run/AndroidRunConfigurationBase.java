@@ -240,6 +240,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     assert facet != null : "Enforced by fatal validation check in checkConfiguration.";
 
     Project project = env.getProject();
+    boolean forceColdswap = !InstantRunUtils.isInvokedViaHotswapAction(env);
 
     boolean debug = false;
     if (executor instanceof DefaultDebugExecutor) {
@@ -264,18 +265,23 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       // the ReRun action itself to pass in the device just like it happens for the restart device, but that has the complication
       // that the ReRun is now a global action and doesn't really know much details about each run (and doing that seems like a hack too.)
       if (InstantRunUtils.isReRun(env)) {
-        info.getProcessHandler().destroyProcess();
+        killSession(info);
         info = null;
       }
     }
 
-    // If we should not be fast deploying, but there is an existing session, then terminate those sessions. Otherwise, we might end up with
-    // 2 active sessions of the same launch, especially if we first think we can do a fast deploy, then end up doing a full launch
     if (info != null && deviceFutures == null) {
+      // If we should not be fast deploying, but there is an existing session, then terminate those sessions. Otherwise, we might end up
+      // with 2 active sessions of the same launch, especially if we first think we can do a fast deploy, then end up doing a full launch
       boolean continueLaunch = promptAndKillSession(executor, project, info);
       if (!continueLaunch) {
         return null;
       }
+    }
+    else if (info != null && forceColdswap) {
+      // forcibly kill app in case of run action (which forces a cold swap)
+      // normally, installing the apk will force kill the app, but we need to forcibly kill it in the case that there were no changes
+      killSession(info);
     }
 
     // If we are not fast deploying, then figure out (prompting user if needed) where to deploy
@@ -361,7 +367,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     runConfigContext.setSameExecutorAsPreviousSession(info != null && executor.getId().equals(info.getExecutorId()));
     runConfigContext.setCleanRerun(InstantRunUtils.isCleanReRun(env));
 
-    runConfigContext.setForceColdSwap(!InstantRunUtils.isInvokedViaHotswapAction(env));
+    runConfigContext.setForceColdSwap(forceColdswap);
 
     // Save the instant run context so that before-run task can access it
     env.putCopyableUserData(InstantRunContext.KEY, instantRunContext);
@@ -390,6 +396,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     InstantRunStatsService.get(project).notifyBuildStarted();
     return new AndroidRunState(env, getName(), module, applicationIdProvider, getConsoleProvider(), deviceFutures, providerFactory,
                                processHandler);
+  }
+
+  private static void killSession(@NotNull AndroidSessionInfo info) {
+    info.getProcessHandler().destroyProcess();
   }
 
   @Nullable
@@ -502,7 +512,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     LOG.info("Disconnecting existing session of the same launch configuration");
-    info.getProcessHandler().detachProcess();
+    killSession(info);
     return true;
   }
 
