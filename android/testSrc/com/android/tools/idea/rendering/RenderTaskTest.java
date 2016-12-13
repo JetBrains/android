@@ -23,17 +23,16 @@ import com.intellij.openapi.vfs.VirtualFile;
 import static org.mockito.Mockito.*;
 
 public class RenderTaskTest extends RenderTestBase {
-  public void disableTestCrashReport() throws Exception {
-    VirtualFile layoutFile = myFixture.copyFileToProject("xmlpull/simple.xml", "res/layout/foo.xml");
+  public void testCrashReport() throws Exception {
+    VirtualFile layoutFile = myFixture.addFileToProject("res/layout/foo.xml", "").getVirtualFile();
     Configuration configuration = getConfiguration(layoutFile, DEFAULT_DEVICE_ID);
     RenderLogger logger = mock(RenderLogger.class);
-    doThrow(new NullPointerException()).when(logger).warning(eq("resources.resolve.theme"), anyString(), any());
-
     CrashReporter mockCrashReporter = mock(CrashReporter.class);
 
     RenderTask task = createRenderTask(layoutFile, configuration, logger);
     task.setCrashReporter(mockCrashReporter);
-    task.render();
+    // Make sure we throw an exception during the inflate call
+    task.render((w, h) -> { throw new NullPointerException(); });
 
     verify(mockCrashReporter, times(1)).submit(isNotNull(CrashReport.class));
   }
