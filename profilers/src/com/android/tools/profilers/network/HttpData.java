@@ -131,9 +131,7 @@ public class HttpData {
 
   private void parseResponseFields(@NotNull String fields) {
     List<String> lines = Arrays.stream(fields.split("\\n")).filter(line -> !line.trim().isEmpty()).collect(Collectors.toList());
-    if (lines.isEmpty()) {
-      return;
-    }
+    assert !lines.isEmpty(): String.format("Unexpected http response fields (%s)", fields);
 
     String firstLine = lines.remove(0);
     String[] tokens = firstLine.split("=", 2);
@@ -169,6 +167,7 @@ public class HttpData {
     path = path.lastIndexOf('/') != -1 ? path.substring(path.lastIndexOf('/') + 1) : path;
     // URL might be encoded an arbitrarily deep number of times. Keep decoding until we peel away the final layer.
     // Usually this is only expected to loop once or twice.
+    // See more: http://stackoverflow.com/questions/3617784/plus-signs-being-replaced-for-252520
     try {
       String lastPath;
       do {
