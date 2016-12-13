@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.scene.ConstraintComponent;
+import com.android.tools.idea.uibuilder.scene.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.*;
 import com.android.tools.idea.uibuilder.scene.Scene;
@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.*;
 
 /**
  * Implements a target allowing dragging a widget for the ConstraintLayout viewgroup
@@ -158,7 +158,7 @@ public class DragTarget extends ConstraintTarget {
   private int getMarginValue(String attribute) {
     // TODO handles RTL + margin
     NlComponent nlComponent = myComponent.getNlComponent();
-    return ConstraintComponent.getDpValue(nlComponent, nlComponent.getAttribute(SdkConstants.ANDROID_URI, attribute));
+    return ConstraintComponentUtilities.getDpValue(nlComponent, nlComponent.getAttribute(SdkConstants.ANDROID_URI, attribute));
   }
 
   protected void updateAttributes(AttributesTransaction attributes, int x, int y) {
