@@ -4,7 +4,7 @@
   <description>
     Supports the development of Open Handset Alliance Android applications with IntelliJ IDEA.
   </description>
-  <version>10.2.3 Canary 3</version>
+  <version>10.2.3 Beta 1</version>
   <vendor>JetBrains</vendor>
 
   <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
