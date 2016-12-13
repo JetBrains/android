@@ -39,6 +39,8 @@ public class NetworkRadioDataSeriesTest {
       .add(TestNetworkService.newRadioData(5, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.ACTIVE))
       .add(TestNetworkService.newRadioData(10, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.IDLE))
       .add(TestNetworkService.newRadioData(15, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.SLEEPING))
+      .add(TestNetworkService.newRadioData(1000, ConnectivityData.NetworkType.INVALID, ConnectivityData.RadioState.SLEEPING))
+      .add(TestNetworkService.newRadioData(1005, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.UNSPECIFIED))
       .build();
   @Rule public TestGrpcChannel<TestNetworkService> myGrpcChannel =
     new TestGrpcChannel<>("NetworkRadioDataSeriesTest", TestNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).build());
@@ -88,6 +90,16 @@ public class NetworkRadioDataSeriesTest {
   @Test
   public void testSingleData() {
     check(9, 13, Collections.singletonList(new SeriesData<>(10, NetworkRadioDataSeries.RadioState.LOW)));
+  }
+
+  @Test
+  public void invalidNetworkType() {
+    check(999, 1002, Collections.singletonList(new SeriesData<>(1000, NetworkRadioDataSeries.RadioState.NONE)));
+  }
+
+  @Test
+  public void unspecifiedRadioState() {
+    check(1004, 1005, Collections.singletonList(new SeriesData<>(1005, NetworkRadioDataSeries.RadioState.NONE)));
   }
 
   @Test
