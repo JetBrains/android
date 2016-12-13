@@ -95,7 +95,7 @@ import static java.io.File.separatorChar;
 public class GradleImport {
   public static final String NL = SdkUtils.getLineSeparator();
   public static final int CURRENT_COMPILE_VERSION = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
-  public static final String CURRENT_BUILD_TOOLS_VERSION = "25.0.0";
+  public static final String CURRENT_BUILD_TOOLS_VERSION = "25.0.1";
   public static final String ANDROID_GRADLE_PLUGIN = GRADLE_PLUGIN_NAME + GRADLE_PLUGIN_RECOMMENDED_VERSION;
   public static final String MAVEN_URL_PROPERTY = "android.mavenRepoUrl";
   public static final String ECLIPSE_DOT_CLASSPATH = ".classpath";
