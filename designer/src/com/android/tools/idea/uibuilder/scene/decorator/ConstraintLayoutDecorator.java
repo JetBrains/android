@@ -103,7 +103,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     String id = null;
     ConnectionType type = ConnectionType.SAME;
     for (int i = 0; i < atributes.length; i++) {
-      id = child.getNlComponent().getAttribute(SdkConstants.SHERPA_URI, atributes[i]);
+      id = child.getNlComponent().getLiveAttribute(SdkConstants.SHERPA_URI, atributes[i]);
       type = DIR_TABLE[i];
       if (id != null) {
         break;
