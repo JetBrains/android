@@ -68,10 +68,16 @@ public class CpuMonitorTest {
   public void testGetThreadsCount() throws IOException {
     CpuThreadCountDataSeries series = myMonitor.getThreadsCount();
     ImmutableList<SeriesData<Long>> seriesDataList = series.getDataForXRange(new Range());
-    assertEquals(1, seriesDataList.size());
+    assertEquals(2, seriesDataList.size());
+    // When no threads are find within the requested range, we add the threads count (0)
+    // to both range's min and max
     SeriesData<Long> seriesData = seriesDataList.get(0);
     assertNotNull(seriesData);
-    assertEquals(0, (long)seriesData.value); // No active threads
+    assertEquals(0, (long)seriesData.value);
+
+    seriesData = seriesDataList.get(1);
+    assertNotNull(seriesData);
+    assertEquals(0, (long)seriesData.value);
   }
 
   @Test
