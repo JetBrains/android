@@ -16,6 +16,8 @@
 package com.android.tools.idea.tests.gui.layout;
 
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.fd.InstantRunSettings;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -24,7 +26,10 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWiza
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
 import org.fest.swing.util.PatternTextMatcher;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.List;
@@ -44,8 +49,9 @@ public class LayoutInspectorTest {
   @Before
   public void setUp() throws Exception {
     MockAvdManagerConnection.inject();
-    MockAvdManagerConnection mockAvdManagerConnection = (MockAvdManagerConnection) AvdManagerConnection.getDefaultAvdManagerConnection();
-    mockAvdManagerConnection.deleteAvd(AVD_NAME);
+    MockAvdManagerConnection mockAvdManagerConnection = (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
+    mockAvdManagerConnection.deleteAvd(AVD_NAME.replace(' ', '_'));
+    mockAvdManagerConnection.stopRunningAvd(); // make sure the emulator is not under connected devices from a previous run
 
     AvdManagerDialogFixture avdManagerDialog = guiTest.importSimpleApplication().invokeAvdManager();
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
@@ -53,7 +59,7 @@ public class LayoutInspectorTest {
     avdEditWizard.selectHardware().selectHardwareProfile("Nexus 5");
     avdEditWizard.clickNext();
 
-    avdEditWizard.getChooseSystemImageStep().selectTab("x86 Images").selectSystemImage("KitKat", "19", "x86", "Android 4.4");
+    avdEditWizard.getChooseSystemImageStep().selectTab("x86 Images").selectSystemImage("Nougat", "24", "x86", "Android 7.0");
     avdEditWizard.clickNext();
 
     avdEditWizard.getConfigureAvdOptionsStep().setAvdName(AVD_NAME);
@@ -65,9 +71,9 @@ public class LayoutInspectorTest {
   public void tearDown() throws Exception {
     // Close a no-window emulator by calling 'adb emu kill'
     // because default stopAVD implementation (i.e., 'kill pid') cannot close a no-window emulator.
-    MockAvdManagerConnection mockAvdManagerConnection = (MockAvdManagerConnection) AvdManagerConnection.getDefaultAvdManagerConnection();
+    MockAvdManagerConnection mockAvdManagerConnection = (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
     mockAvdManagerConnection.stopRunningAvd();
-    mockAvdManagerConnection.deleteAvd(AVD_NAME);
+    mockAvdManagerConnection.deleteAvd(AVD_NAME.replace(' ', '_'));
   }
 
   /**
@@ -83,11 +89,14 @@ public class LayoutInspectorTest {
    *   1. Verify for Layout elements in Hierarchy View of Layout Inspector
    * </pre>
    */
-  @Ignore("http://b/30795134")
   @Test
   @RunIn(TestGroup.QA)
   public void launchLayoutInspector() throws Exception {
+    InstantRunSettings.setInstantRunEnabled(false);
     guiTest.ideFrame().runApp("app").selectDevice(AVD_NAME).clickOk();
+    // wait for build to finish before requesting run tool window. otherwise run tool window won't activate.
+    guiTest.ideFrame().waitForBuildToFinish(BuildMode.ASSEMBLE);
+    // look at the run tool window to determine when the app has started so we can select the process in android tool window
     guiTest.ideFrame()
       .getRunToolWindow()
       .findContent("app")
