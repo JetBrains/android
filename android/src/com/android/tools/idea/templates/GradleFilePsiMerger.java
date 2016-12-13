@@ -48,6 +48,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrC
 import java.util.*;
 
 import static com.android.tools.idea.templates.GradleFileMergers.CONFIGURATION_ORDERING;
+import static com.android.tools.idea.templates.GradleFileMergers.removeExistingDependencies;
 
 /**
  * Utility class to help with merging Gradle files into one another
@@ -94,9 +95,7 @@ public class GradleFilePsiMerger {
     }).execute().getResultObject();
 
     if (projectNeedsCleanup) {
-      ApplicationManager.getApplication().runWriteAction(() -> {
-        Disposer.dispose(project2);
-      });
+      ApplicationManager.getApplication().runWriteAction(() -> Disposer.dispose(project2));
     }
     return result;
   }
@@ -153,11 +152,15 @@ public class GradleFilePsiMerger {
     Map<String, Multimap<String, GradleCoordinate>> dependencies = Maps.newHashMap();
     final List<String> unparsedDependencies = Lists.newArrayList();
 
-    // Load existing dependencies into the map for the existing build.gradle
-    pullDependenciesIntoMap(toRoot, dependencies, null);
+    // Load existing dependencies into a map for the existing build.gradle
+    Map<String, Multimap<String, GradleCoordinate>> originalDependencies = Maps.newHashMap();
+    pullDependenciesIntoMap(toRoot, originalDependencies, null);
 
-    // Load dependencies into the map for the new build.gradle
+    // Load dependencies into a map for the new build.gradle
     pullDependenciesIntoMap(fromRoot, dependencies, unparsedDependencies);
+
+    // filter out dependencies already met by existing build.gradle
+    removeExistingDependencies(dependencies, originalDependencies);
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
 
@@ -177,6 +180,7 @@ public class GradleFilePsiMerger {
                                                                                        configurationName,
                                                                                        dependency.toString()));
           toRoot.addBefore(dependencyElement, toRoot.getLastChild());
+          toRoot.addBefore(factory.createLineTerminator(1), toRoot.getLastChild());
         }
       }
     }
@@ -189,15 +193,11 @@ public class GradleFilePsiMerger {
 
   /**
    * Looks for statements adding dependencies to different configurations (which look like 'configurationName "dependencyCoordinate"')
-   * and tries to parse them into Gradle coordinates. If successful, adds the new coordinate to the map and removes the corresponding
-   * PsiElement from the tree.
-   *
-   * @return true if new items were added to the map
+   * and tries to parse them into Gradle coordinates. If successful, adds the new coordinate to the map.
    */
-  private static boolean pullDependenciesIntoMap(@NotNull PsiElement root,
-                                                 @NotNull Map<String, Multimap<String, GradleCoordinate>> allConfigurations,
-                                                 @Nullable List<String> unparsedDependencies) {
-    boolean wasMapUpdated = false;
+  private static void pullDependenciesIntoMap(@NotNull PsiElement root,
+                                              @NotNull Map<String, Multimap<String, GradleCoordinate>> allConfigurations,
+                                              @Nullable List<String> unparsedDependencies) {
     for (PsiElement existingElem : root.getChildren()) {
       if (existingElem instanceof GrCall) {
         PsiElement reference = existingElem.getFirstChild();
@@ -216,15 +216,10 @@ public class GradleFilePsiMerger {
                 GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(coordinateText);
                 if (coordinate != null) {
                   parsed = true;
-                  Multimap<String, GradleCoordinate> map = allConfigurations.get(configurationName);
-                  if (map == null) {
-                    map = LinkedListMultimap.create();
-                    allConfigurations.put(configurationName, map);
-                  }
+                  Multimap<String, GradleCoordinate> map =
+                    allConfigurations.computeIfAbsent(configurationName, k -> LinkedListMultimap.create());
                   if (!map.get(coordinate.getId()).contains(coordinate)) {
                     map.put(coordinate.getId(), coordinate);
-                    existingElem.delete();
-                    wasMapUpdated = true;
                   }
                 }
               }
@@ -235,9 +230,7 @@ public class GradleFilePsiMerger {
           }
         }
       }
-
     }
-    return wasMapUpdated;
   }
 
   /**

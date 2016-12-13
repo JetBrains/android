@@ -26,7 +26,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
@@ -38,6 +37,7 @@ import java.util.Set;
 
 import static com.android.tools.idea.templates.GradleFileMergers.CONFIGURATION_ORDERING;
 import static com.android.tools.idea.templates.GradleFileMergers.DEPENDENCIES;
+import static com.android.tools.idea.templates.GradleFileMergers.removeExistingDependencies;
 
 /**
  * Simplified gradle.build merger designed to be used while instantiating android project templates.
@@ -427,12 +427,17 @@ public class GradleFileSimpleMerger {
     private void mergeDependencies(@NotNull MergeContext context, @NotNull AstNode other) {
       Map<String, Multimap<String, GradleCoordinate>> dependencies = Maps.newHashMap();
       List<Ast> unparseableDependencies = Lists.newArrayListWithCapacity(10);
-      pullDependenciesIntoMap(dependencies, null);
+
+      Map<String, Multimap<String, GradleCoordinate>> originalDependencies = Maps.newHashMap();
+      pullDependenciesIntoMap(originalDependencies, null);
       other.pullDependenciesIntoMap(dependencies, unparseableDependencies);
+
+      removeExistingDependencies(dependencies, originalDependencies);
+
       RepositoryUrlManager urlManager = RepositoryUrlManager.get();
       ImmutableList<String> configurations = CONFIGURATION_ORDERING.immutableSortedCopy(dependencies.keySet());
 
-      Ast prev = null;
+      Ast prev = myParam != null ? myParam.findLast() : null;
       AndroidSdkData sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk();
       if (sdk != null) {
         for (String configuration : configurations) {
@@ -442,7 +447,6 @@ public class GradleFileSimpleMerger {
                                                                                      FileOpUtils.create());
 
           // Add the resolved dependencies:
-          prev = myParam != null ? myParam.findLast() : null;
           for (GradleCoordinate coordinate : resolved) {
             AstNode compile = new AstNode(configuration);
             compile.myParam = new ValueAst("'" + coordinate + "'");
@@ -473,7 +477,6 @@ public class GradleFileSimpleMerger {
     private void pullDependenciesIntoMap(@NotNull Map<String, Multimap<String, GradleCoordinate>> dependencies,
                                          @Nullable List<Ast> unparseableDependencies) {
       Ast node = myParam;
-      Ast prev = null;
       while (node != null) {
         assert myParam != null;
         boolean parsed = false;
@@ -494,12 +497,6 @@ public class GradleFileSimpleMerger {
 
               if (!map.get(coordinate.getId()).contains(coordinate)) {
                 map.put(coordinate.getId(), coordinate);
-
-                // Delete the current node:
-                Ast toDelete = node;
-                node = node.myNext;
-                myParam = remove(toDelete, myParam, prev);
-                continue;
               }
             }
           }
@@ -507,7 +504,6 @@ public class GradleFileSimpleMerger {
         if (!parsed && unparseableDependencies != null) {
           unparseableDependencies.add(node);
         }
-        prev = node;
         node = node.myNext;
       }
     }

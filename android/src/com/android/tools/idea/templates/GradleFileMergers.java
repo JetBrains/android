@@ -16,7 +16,12 @@
 package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
+import com.android.ide.common.repository.GradleCoordinate;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Map;
 
 /**
  * Utilities shared between {@link GradleFileSimpleMerger} and {@link GradleFilePsiMerger}.
@@ -56,6 +61,19 @@ public class GradleFileMergers {
       })
       .compound(Ordering.natural());
 
+  /**
+   * Perform an in-place removal of entries from {@code newDependencies} that are also in {@code existingDependencies}
+   */
+  public static void removeExistingDependencies(@NotNull Map<String, Multimap<String, GradleCoordinate>> newDependencies,
+                                                @NotNull Map<String, Multimap<String, GradleCoordinate>> existingDependencies) {
+    for (String configuration : newDependencies.keySet()) {
+      if (existingDependencies.containsKey(configuration)) {
+        for (Map.Entry<String, GradleCoordinate> entry : existingDependencies.get(configuration).entries()) {
+          newDependencies.get(configuration).remove(entry.getKey(), entry.getValue());
+        }
+      }
+    }
+  }
 
   private GradleFileMergers() {}
 }
