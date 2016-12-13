@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +31,7 @@ import java.io.File;
  * Each test will supply its own version of {@link #mergeGradleFile}.
  */
 @SuppressWarnings("unused")
-public abstract class GradleFileMergerTestCase extends AndroidTestCase {
+public abstract class GradleFileMergerTestCase extends AndroidGradleTestCase {
 
   /**
    * This method is implemented in the 2 actual tests: {@link GradleFilePsiMergerTest} and {@link GradleFileSimpleMergerTest}.
