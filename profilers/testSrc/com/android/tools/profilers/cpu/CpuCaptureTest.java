@@ -19,6 +19,7 @@ import com.android.testutils.TestUtils;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ThreadInfo;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -99,7 +100,8 @@ public class CpuCaptureTest {
     assertNull(capture);
   }
 
-  private static ByteString traceFileToByteString(@NotNull String filename) throws IOException {
+  @VisibleForTesting
+  static ByteString traceFileToByteString(@NotNull String filename) throws IOException {
     File traceFile = TestUtils.getWorkspaceFile(CPU_TRACES_DIR + filename);
     return ByteString.copyFrom(Files.readAllBytes(traceFile.toPath()));
   }

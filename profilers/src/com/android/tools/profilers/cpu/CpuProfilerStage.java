@@ -193,7 +193,7 @@ public class CpuProfilerStage extends Stage {
     return capture;
   }
 
-
+  // TODO: add tests for CpuTraceDataSeries. Consider moving it to its own class as the others CPU-related DataSeries.
   private class CpuTraceDataSeries implements DataSeries<CpuCapture> {
     @Override
     public ImmutableList<SeriesData<CpuCapture>> getDataForXRange(Range xRange) {
