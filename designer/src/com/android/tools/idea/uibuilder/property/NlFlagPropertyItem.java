@@ -47,11 +47,10 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
   private static final Splitter VALUE_SPLITTER = Splitter.on("|").trimResults();
 
   protected NlFlagPropertyItem(@NotNull List<NlComponent> components,
-                               @NotNull NlPropertiesManager propertiesManager,
                                @NotNull XmlAttributeDescriptor descriptor,
                                @Nullable String namespace,
                                @Nullable AttributeDefinition attributeDefinition) {
-    super(components, propertiesManager, descriptor, namespace, attributeDefinition);
+    super(components, descriptor, namespace, attributeDefinition);
     assert attributeDefinition != null;
   }
 

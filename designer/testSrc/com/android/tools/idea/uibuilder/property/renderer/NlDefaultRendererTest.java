@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.property.MockNlComponent;
 import com.android.tools.idea.uibuilder.property.NlProperties;
-import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
@@ -27,8 +26,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
-
-import static org.mockito.Mockito.mock;
 
 public class NlDefaultRendererTest extends LayoutTestCase {
   public void testSimple() {
@@ -42,10 +39,8 @@ public class NlDefaultRendererTest extends LayoutTestCase {
     XmlTag[] subTags = xmlFile.getRootTag().getSubTags();
     assertEquals(1, subTags.length);
 
-    NlPropertiesManager manager = mock(NlPropertiesManager.class);
-
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(manager, ImmutableList.of(MockNlComponent.create(subTags[0])));
+      NlProperties.getInstance().getProperties(ImmutableList.of(MockNlComponent.create(subTags[0])));
 
     NlDefaultRenderer renderer = new NlDefaultRenderer();
 

@@ -29,8 +29,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.Mockito.mock;
-
 public class NlPropertyOrderingTest extends LayoutTestCase {
   public void testGrouping() {
     @Language("XML")
@@ -39,8 +37,7 @@ public class NlPropertyOrderingTest extends LayoutTestCase {
                     "  <TextView />" +
                     "</RelativeLayout>";
     NlComponent component = getFirstComponent(source);
-    NlPropertiesManager manager = mock(NlPropertiesManager.class);
-    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(manager, ImmutableList.of(component));
+    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(ImmutableList.of(component));
     List<NlPropertyItem> propertyList = new ArrayList<>(properties.values());
     List<PTableItem> items = new NlPropertiesGrouper().group(propertyList, ImmutableList.of(component));
 
@@ -68,8 +65,7 @@ public class NlPropertyOrderingTest extends LayoutTestCase {
                     "</RelativeLayout>";
 
     NlComponent component = getFirstComponent(source);
-    NlPropertiesManager manager = mock(NlPropertiesManager.class);
-    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(manager, ImmutableList.of(component));
+    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(ImmutableList.of(component));
     List<NlPropertyItem> propertyList = new ArrayList<>(properties.values());
     List<NlPropertyItem> sortedList = new NlPropertiesSorter().sort(propertyList, ImmutableList.of(component));
     List<PTableItem> items = new NlPropertiesGrouper().group(sortedList, ImmutableList.of(component));
