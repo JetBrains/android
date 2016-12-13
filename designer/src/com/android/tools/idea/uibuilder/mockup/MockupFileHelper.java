@@ -75,6 +75,7 @@ public class MockupFileHelper {
     return image;
   }
 
+  @NotNull
   public static FileChooserDescriptor getFileChooserDescriptor() {
     return FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()
       .withFileFilter(file -> VALID_EXTENSION.contains(file.getExtension()))
