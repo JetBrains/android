@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.scene.target;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.ConstraintComponent;
+import com.android.tools.idea.uibuilder.scene.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.*;
@@ -91,13 +91,13 @@ public class GuidelineTarget extends DragTarget {
     String end = component.getLiveAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END);
     String percent = component.getLiveAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT);
     if (begin != null) {
-      myBegin = ConstraintComponent.getDpValue(component, begin);
+      myBegin = ConstraintComponentUtilities.getDpValue(component, begin);
       myEnd = -1;
       myPercent = -1;
     }
     else if (end != null) {
       myBegin = -1;
-      myEnd = ConstraintComponent.getDpValue(component, end);
+      myEnd = ConstraintComponentUtilities.getDpValue(component, end);
       myPercent = -1;
     }
     else {

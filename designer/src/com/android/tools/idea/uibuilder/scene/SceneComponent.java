@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.draw.Notch;
 import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
+import com.android.tools.idea.uibuilder.scene.target.DragDndTarget;
 import com.android.tools.idea.uibuilder.scene.target.ResizeTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.android.tools.idea.uibuilder.scene.decorator.SceneDecorator;
@@ -204,6 +205,41 @@ public class SceneComponent {
 
   public boolean allowsAutoConnect() {
     return myScene.isAutoconnectOn() && myAllowsAutoconnect;
+  }
+
+  /**
+   * Returns the index of the first instance of the given class in the list of targets
+   * @param aClass
+   * @return
+   */
+  public int findTarget(Class aClass) {
+    int count = myTargets.size();
+    for (int i = 0; i < count; i++) {
+      if (aClass.isInstance(myTargets.get(i))) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  public void removeTarget(int pos) {
+    myTargets.remove(pos);
+  }
+
+  /**
+   * Returns true if the given candidate is an ancestor of this component
+   * @param candidate
+   * @return
+   */
+  public boolean hasAncestor(SceneComponent candidate) {
+    SceneComponent parent = getParent();
+    while (parent != null) {
+      if (parent == candidate) {
+        return true;
+      }
+      parent = parent.getParent();
+    }
+    return false;
   }
 
   public boolean isSelected() {

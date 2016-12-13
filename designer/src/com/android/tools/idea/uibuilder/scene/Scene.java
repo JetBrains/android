@@ -78,7 +78,6 @@ public class Scene implements ModelListener, SelectionListener {
   private boolean myIsControlDown;
   private boolean myIsShiftDown;
   private boolean myIsAltDown;
-  private ConfigurationListener myConfigurationListener;
 
   private enum FilterType {ALL, ANCHOR, VERTICAL_ANCHOR, HORIZONTAL_ANCHOR, BASELINE_ANCHOR, NONE, RESIZE}
 
@@ -174,7 +173,10 @@ public class Scene implements ModelListener, SelectionListener {
    * @return the SceneComponent paired to the given NlComponent, if found
    */
   @Nullable
-  public SceneComponent getSceneComponent(@NotNull NlComponent component) {
+  public SceneComponent getSceneComponent(@Nullable NlComponent component) {
+    if (component == null) {
+      return null;
+    }
     return mySceneComponents.get(component);
   }
 
@@ -192,6 +194,10 @@ public class Scene implements ModelListener, SelectionListener {
     return myRoot.getSceneComponent(componentId);
   }
 
+  public List<NlComponent> getSelection() {
+    return myModel.getSelectionModel().getSelection();
+  }
+
   /**
    * Return the current SceneComponent root in the Scene
    *
@@ -207,27 +213,42 @@ public class Scene implements ModelListener, SelectionListener {
   }
 
   public void setDnDComponent(NlComponent component) {
-    if (myDnDComponent != null) {
-      myDnDComponent.removeFromParent();
-    }
-    if (component != null) {
-      myDnDComponent = new SceneComponent(this, component);
-      myDnDComponent.addTarget(new DragDndTarget());
-      setAnimate(false);
-      myDnDComponent.updateFrom(component);
-      setAnimate(true);
-    }
-    else {
+    SceneComponent existingComponent = getSceneComponent(component);
+    if ((component == null) || (existingComponent != myDnDComponent)) {
+      // We are here to reset the dnd component
+      if (myDnDComponent != null) {
+        if (myDnDComponent instanceof TemporarySceneComponent) {
+          myDnDComponent.removeFromParent();
+        } else {
+          int pos = myDnDComponent.findTarget(DragDndTarget.class);
+          if (pos != -1) {
+            myDnDComponent.removeTarget(pos);
+          }
+        }
+      }
       myDnDComponent = null;
     }
-    if (myRoot != null && myDnDComponent != null) {
-      myRoot.addChild(myDnDComponent);
-      needsRebuildList();
+
+    if (component != null) {
+      if (existingComponent == null) {
+        myDnDComponent = new TemporarySceneComponent(this, component);
+        if (myRoot != null) {
+          myRoot.addChild(myDnDComponent);
+        }
+      }
+      else {
+        myDnDComponent = existingComponent;
+        myDnDComponent.addTarget(new DragDndTarget());
+      }
     }
   }
 
   public boolean isAutoconnectOn() {
     return PropertiesComponent.getInstance().getBoolean(ConstraintLayoutHandler.AUTO_CONNECT_PREF_KEY, false);
+  }
+
+  public boolean isShowAllConstraints() {
+    return PropertiesComponent.getInstance().getBoolean(ConstraintLayoutHandler.SHOW_CONSTRAINTS_PREF_KEY);
   }
 
   /**
@@ -784,6 +805,14 @@ public class Scene implements ModelListener, SelectionListener {
         candidate = target;
         break;
       }
+      // We now have the first element in the selection. Let's try again this time...
+      for (int i = count - 1; i >= 0; i--) {
+        SceneComponent target = myHitComponents.get(i);
+        if (target.hasAncestor(candidate)) {
+          candidate = target;
+          break;
+        }
+      }
       return candidate;
     }
   }
@@ -830,6 +859,84 @@ public class Scene implements ModelListener, SelectionListener {
     }
   }
 
+  private void delegateMouseDownToSelection(int x, int y, SceneComponent currentComponent) {
+    // update other selected widgets
+    java.util.List<NlComponent> selection = getSelection();
+    if (selection.size() > 1) {
+      int count = selection.size();
+      for (int i = 0; i < count; i++) {
+        NlComponent nlComponent = selection.get(i);
+        if (nlComponent == currentComponent.getNlComponent()) {
+          continue;
+        }
+        SceneComponent c = currentComponent.getScene().getSceneComponent(nlComponent);
+        if (c != null && c != currentComponent) {
+          ArrayList<Target> targets = c.getTargets();
+          int numTargets = targets.size();
+          for (int j = 0; j < numTargets; j++) {
+            Target target = targets.get(j);
+            if (target instanceof DragTarget) {
+              DragTarget dragTarget = (DragTarget) target;
+              dragTarget.mouseDown(x, y);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private void delegateMouseDragToSelection(int x, int y, @Nullable Target closestTarget, SceneComponent currentComponent) {
+    // update other selected widgets
+    java.util.List<NlComponent> selection = getSelection();
+    if (selection.size() > 1) {
+      int count = selection.size();
+      for (int i = 0; i < count; i++) {
+        NlComponent nlComponent = selection.get(i);
+        if (nlComponent == currentComponent.getNlComponent()) {
+          continue;
+        }
+        SceneComponent c = currentComponent.getScene().getSceneComponent(nlComponent);
+        if (c != null && c != currentComponent) {
+          ArrayList<Target> targets = c.getTargets();
+          int numTargets = targets.size();
+          for (int j = 0; j < numTargets; j++) {
+            Target target = targets.get(j);
+            if (target instanceof DragTarget) {
+              DragTarget dragTarget = (DragTarget)target;
+              dragTarget.mouseDrag(x, y, closestTarget);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private void delegateMouseReleaseToSelection(int x, int y, @Nullable Target closestTarget, SceneComponent currentComponent) {
+    // update other selected widgets
+    java.util.List<NlComponent> selection = getSelection();
+    if (selection.size() > 1) {
+      int count = selection.size();
+      for (int i = 0; i < count; i++) {
+        NlComponent nlComponent = selection.get(i);
+        if (nlComponent == currentComponent.getNlComponent()) {
+          continue;
+        }
+        SceneComponent c = currentComponent.getScene().getSceneComponent(nlComponent);
+        if (c != null) {
+          ArrayList<Target> targets = c.getTargets();
+          int numTargets = targets.size();
+          for (int j = 0; j < numTargets; j++) {
+            Target target = targets.get(j);
+            if (target instanceof DragTarget) {
+              DragTarget dragTarget = (DragTarget)target;
+              dragTarget.mouseRelease(x, y, closestTarget);
+            }
+          }
+        }
+      }
+    }
+  }
+
   public void mouseDown(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     mNeedsLayout = NO_LAYOUT;
     myLastMouseX = x;
@@ -856,6 +963,9 @@ public class Scene implements ModelListener, SelectionListener {
         }
       }
       myHitTarget.mouseDown(x, y);
+      if (myHitTarget instanceof DragTarget) {
+        delegateMouseDownToSelection(x, y, myHitTarget.getComponent());
+      }
     }
   }
 
@@ -869,8 +979,15 @@ public class Scene implements ModelListener, SelectionListener {
       myHitListener.find(transform, myRoot, x, y);
       myHitTarget.mouseDrag(x, y, myHitListener.getClosestTarget());
       myHitTarget.getComponent().setDragging(true);
+      if (myHitTarget instanceof DragTarget) {
+        delegateMouseDragToSelection(x, y, myHitListener.getClosestTarget(), myHitTarget.getComponent());
+      }
     }
     mouseHover(transform, x, y);
+    checkRequestLayoutStatus();
+  }
+
+  void checkRequestLayoutStatus() {
     if (mNeedsLayout != NO_LAYOUT) {
       myModel.requestLayout(mNeedsLayout == ANIMATED_LAYOUT ? true : false);
     }
@@ -883,6 +1000,9 @@ public class Scene implements ModelListener, SelectionListener {
       myHitTarget.getComponent().setDragging(false);
       myHitListener.find(transform, myRoot, x, y);
       myHitTarget.mouseRelease(x, y, myHitListener.getFilteredTarget(myHitTarget));
+      if (myHitTarget instanceof DragTarget) {
+        delegateMouseReleaseToSelection(x, y, myHitListener.getClosestTarget(), myHitTarget.getComponent());
+      }
     }
     myFilterTarget = FilterType.NONE;
     myNewSelectedComponents.clear();
@@ -899,6 +1019,7 @@ public class Scene implements ModelListener, SelectionListener {
     if (myHitTarget instanceof DragTarget) {
       DragTarget dragTarget = (DragTarget)myHitTarget;
       if (dragTarget.hasChangedComponent()) {
+        myNewSelectedComponents.clear();
         myNewSelectedComponents.add(dragTarget.getComponent());
       }
     }
@@ -909,9 +1030,7 @@ public class Scene implements ModelListener, SelectionListener {
     if (!sameSelection()) {
       select(myNewSelectedComponents);
     }
-    if (mNeedsLayout != NO_LAYOUT) {
-      myModel.requestLayout(mNeedsLayout == ANIMATED_LAYOUT ? true : false);
-    }
+    checkRequestLayoutStatus();
   }
 
   private boolean sameSelection() {
