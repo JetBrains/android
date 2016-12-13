@@ -35,11 +35,9 @@ import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.project.AndroidRunConfigurations;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
-import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTask;
@@ -60,7 +58,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.util.EmptyRunnable;
 import com.intellij.util.SystemProperties;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -80,6 +77,7 @@ public class PostSyncProjectSetup {
   @NotNull private final GradleSyncState mySyncState;
   @NotNull private final DependencySetupErrors myDependencySetupErrors;
   @NotNull private final ProjectSetup myProjectSetup;
+  @NotNull private final ModuleSetup myModuleSetup;
   @NotNull private final PluginVersionUpgrade myPluginVersionUpgrade;
   @NotNull private final VersionCompatibilityChecker myVersionCompatibilityChecker;
   @NotNull private final GradleProjectBuilder myProjectBuilder;
@@ -101,8 +99,9 @@ public class PostSyncProjectSetup {
                               @NotNull DependencySetupErrors dependencySetupErrors,
                               @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                               @NotNull GradleProjectBuilder projectBuilder) {
-    this(project, ideInfo, syncInvoker, syncState, dependencySetupErrors, new ProjectSetup(project), new PluginVersionUpgrade(project),
-         versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(), RunManagerImpl.getInstanceImpl(project));
+    this(project, ideInfo, syncInvoker, syncState, dependencySetupErrors, new ProjectSetup(project), new ModuleSetup(project),
+         new PluginVersionUpgrade(project), versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(),
+         RunManagerImpl.getInstanceImpl(project));
   }
 
   @VisibleForTesting
@@ -112,6 +111,7 @@ public class PostSyncProjectSetup {
                        @NotNull GradleSyncState syncState,
                        @NotNull DependencySetupErrors dependencySetupErrors,
                        @NotNull ProjectSetup projectSetup,
+                       @NotNull ModuleSetup moduleSetup,
                        @NotNull PluginVersionUpgrade pluginVersionUpgrade,
                        @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                        @NotNull GradleProjectBuilder projectBuilder,
@@ -123,6 +123,7 @@ public class PostSyncProjectSetup {
     mySyncState = syncState;
     myDependencySetupErrors = dependencySetupErrors;
     myProjectSetup = projectSetup;
+    myModuleSetup = moduleSetup;
     myPluginVersionUpgrade = pluginVersionUpgrade;
     myVersionCompatibilityChecker = versionCompatibilityChecker;
     myProjectBuilder = projectBuilder;
@@ -181,8 +182,6 @@ public class PostSyncProjectSetup {
     findAndShowVariantConflicts();
     myProjectSetup.setUpProject(progressIndicator, false /* sync successful */);
 
-    TestArtifactSearchScopes.initializeScopes(myProject);
-
     // For Android Studio, use "Gradle-Aware Make" to run JUnit tests.
     // For IDEA, use regular "Make".
     boolean androidStudio = myIdeInfo.isAndroidStudio();
@@ -194,12 +193,7 @@ public class PostSyncProjectSetup {
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
 
-    for (Module module : moduleManager.getModules()) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && facet.isAppProject()) {
-        AndroidRunConfigurations.getInstance().createRunConfiguration(facet);
-      }
-    }
+    myModuleSetup.setUpModules(null);
   }
 
   private void onCachedModelsSetupFailure(@NotNull Request request) {
