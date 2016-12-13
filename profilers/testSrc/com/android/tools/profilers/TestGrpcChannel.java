@@ -19,6 +19,7 @@ import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import io.grpc.BindableService;
 import io.grpc.Server;
 import io.grpc.inprocess.InProcessServerBuilder;
+import org.jetbrains.annotations.NotNull;
 import org.junit.rules.ExternalResource;
 
 /**
@@ -54,7 +55,12 @@ public final class TestGrpcChannel<S extends BindableService> extends ExternalRe
     myServer = serverBuilder.build();
     myServer.start();
     myClient = new ProfilerClient(myName);
-    myProfilers = new StudioProfilers(myClient);
+    myProfilers = new StudioProfilers(myClient, new IdeProfilerServices() {
+      @Override
+      public boolean navigateToStackTraceLine(@NotNull String line) {
+        return false;
+      }
+    });
   }
 
   @Override

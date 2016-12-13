@@ -62,8 +62,12 @@ public final class StudioProfilers extends AspectModel<ProfilerAspect> {
   @Nullable
   private Stage myStage;
 
-  public StudioProfilers(ProfilerClient service) {
+  @NotNull
+  private final IdeProfilerServices myIdeServices;
+
+  public StudioProfilers(ProfilerClient service, @NotNull IdeProfilerServices ideServices) {
     myClient = service;
+    myIdeServices = ideServices;
     myPreferredProcessName = null;
     myStage = null;
     myProfilers = ImmutableList.of(
@@ -307,5 +311,10 @@ public final class StudioProfilers extends AspectModel<ProfilerAspect> {
 
   public void modeChanged() {
     changed(ProfilerAspect.MODE);
+  }
+
+  @NotNull
+  public IdeProfilerServices getIdeServices() {
+    return myIdeServices;
   }
 }
