@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene.draw;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.decorator.*;
 import org.jetbrains.annotations.NotNull;
@@ -373,7 +374,7 @@ public class DisplayList {
         for (int i = start + 1; i < end; i++) {
           DrawCommand cmd = commands[i];
           if (cmd instanceof Clip) {
-            int n = findLastUnClip(commands, start, end - 1);
+            int n = findNextUnClip(commands, i + 1, end - 1);
             cmd = new CommandSet(commands, i, n);
             i = Math.max(n, i);
           }
@@ -415,6 +416,23 @@ public class DisplayList {
       return -1;
     }
 
+    private int findNextUnClip(DrawCommand[] commands, int start, int end) {
+      int count = 0;
+      for (int i = start; i <= end; i++) {
+        if (commands[i] instanceof Clip) {
+          count++;
+        }
+        if (commands[i] instanceof UNClip) {
+          if (count == 0) {
+            return i;
+          } else {
+            count--;
+          }
+        }
+      }
+      return -1;
+    }
+
     public void sort() {
       myCommands.sort((o1, o2) -> Integer.compare(o1.getLevel(), o2.getLevel()));
       myCommands.forEach(command -> {
@@ -447,7 +465,7 @@ public class DisplayList {
     public String serialize() {
       String str = "";
       for (DrawCommand command : myCommands) {
-        str += command.serialize();
+        str += command.serialize() + "\n";
       }
       return str;
     }
@@ -480,6 +498,14 @@ public class DisplayList {
     }
     set.paint(g, sceneContext);
     g.dispose();
+  }
+
+  @VisibleForTesting
+  public String generateSortedDisplayList(SceneContext sceneContext) {
+    DrawCommand[] array = myCommands.toArray(new DrawCommand[myCommands.size()]);
+    CommandSet set = new CommandSet(array, 0, array.length - 1);
+    set.sort();
+    return set.serialize();
   }
 
   /**
