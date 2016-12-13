@@ -237,7 +237,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     AttributeDefinition definition = getDefinition(component, descriptor);
     String namespace = getNamespace(component, descriptor);
 
-    return NlPropertyItem.create(components, myPropertiesManager, descriptor, namespace, definition);
+    return NlPropertyItem.create(components, descriptor, namespace, definition);
   }
 
   @Nullable
@@ -276,13 +276,13 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   }
 
   @NotNull
-  protected Table<String, String, NlPropertyItem> getPropertyTable(@NotNull List<NlComponent> components) {
+  protected static Table<String, String, NlPropertyItem> getPropertyTable(@NotNull List<NlComponent> components) {
     NlProperties propertiesProvider = NlProperties.getInstance();
-    return propertiesProvider.getProperties(myPropertiesManager, components);
+    return propertiesProvider.getProperties(components);
   }
 
   @NotNull
-  protected Map<String, NlProperty> getPropertyMap(@NotNull List<NlComponent> components) {
+  protected static Map<String, NlProperty> getPropertyMap(@NotNull List<NlComponent> components) {
     if (components.isEmpty()) {
       return Collections.emptyMap();
     }
@@ -299,14 +299,14 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     }
     // Add access to known design properties
     NlDesignProperties designProperties = new NlDesignProperties();
-    for (NlProperty property : designProperties.getKnownProperties(components, myPropertiesManager)) {
+    for (NlProperty property : designProperties.getKnownProperties(components)) {
       propertiesByName.putIfAbsent(property.getName(), property);
     }
     return propertiesByName;
   }
 
   @NotNull
-  protected NlProperty getProperty(@NotNull NlComponent component, @NotNull String propertyName) {
+  protected static NlProperty getProperty(@NotNull NlComponent component, @NotNull String propertyName) {
     Map<String, NlProperty> properties = getPropertyMap(ImmutableList.of(component));
     NlProperty property = properties.get(propertyName);
     assert property != null;
@@ -314,9 +314,9 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   }
 
   @NotNull
-  protected NlProperty getPropertyWithDefaultValue(@NotNull NlComponent component,
-                                                   @NotNull String propertyName,
-                                                   @NotNull String resource) {
+  protected static NlProperty getPropertyWithDefaultValue(@NotNull NlComponent component,
+                                                          @NotNull String propertyName,
+                                                          @NotNull String resource) {
     NlPropertyItem property = (NlPropertyItem)getProperty(component, propertyName);
     property.setDefaultValue(new PropertiesMap.Property(resource, null));
     return property;

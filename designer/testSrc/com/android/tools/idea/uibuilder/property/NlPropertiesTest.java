@@ -70,7 +70,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     XmlTag rootTag = xmlFile.getRootTag();
     assert rootTag != null;
 
-    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(myPropertiesManager,
+    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(
       ImmutableList.of(MockNlComponent.create(rootTag)));
     assertTrue(properties.size() > 120); // at least 124 attributes (view + layouts) are available as of API 22
 
@@ -103,7 +103,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     assertEquals(1, subTags.length);
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myPropertiesManager, ImmutableList.of(MockNlComponent.create(subTags[0])));
+      NlProperties.getInstance().getProperties(ImmutableList.of(MockNlComponent.create(subTags[0])));
     assertTrue(properties.size() > 180); // at least 190 attributes are available as of API 22
 
     // A text view should have all of its attributes and the parent class's (View) attributes
@@ -129,7 +129,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     assertEquals(1, subTags.length);
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myPropertiesManager, ImmutableList.of(MockNlComponent.create(subTags[0])));
+      NlProperties.getInstance().getProperties(ImmutableList.of(MockNlComponent.create(subTags[0])));
     assertTrue("# of properties lesser than expected: " + properties.size(), properties.size() > 90);
 
     assertPresent(tag, properties, ANDROID_URI, ANDROID_VIEW_ATTRS);
@@ -148,7 +148,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     assertEquals(1, subTags.length);
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myPropertiesManager, ImmutableList.of(MockNlComponent.create(subTags[0])));
+      NlProperties.getInstance().getProperties(ImmutableList.of(MockNlComponent.create(subTags[0])));
 
     NlPropertyItem p = properties.get(ANDROID_URI, "id");
     assertNotNull(p);
@@ -238,7 +238,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     assertEquals(1, subTags.length);
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myPropertiesManager, ImmutableList.of(MockNlComponent.create(subTags[0])));
+      NlProperties.getInstance().getProperties(ImmutableList.of(MockNlComponent.create(subTags[0])));
     assertTrue(properties.size() > 180); // at least 190 attributes are available as of API 22
 
     // The attrs.xml in appcompat-22.0.0 includes android:focusable, theme and android:theme.
@@ -249,8 +249,7 @@ public class NlPropertiesTest extends PropertyTestCase {
   }
 
   public void testVisibleIsStarredPropertyByDefault() {
-    Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myPropertiesManager, ImmutableList.of(myTextView));
+    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(ImmutableList.of(myTextView));
     List<NlPropertyItem> starred = properties.values().stream()
       .filter(property -> property.getStarState() == StarState.STARRED)
       .collect(Collectors.toList());
@@ -262,8 +261,7 @@ public class NlPropertiesTest extends PropertyTestCase {
 
   public void testStarredPropertiesAreReadFromComponentProperties() {
     myPropertiesComponent.setValue(STARRED_PROP, propertyList(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK, ATTR_CARD_ELEVATION));
-    Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myPropertiesManager, ImmutableList.of(myTextView));
+    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(ImmutableList.of(myTextView));
     List<String> starred = properties.values().stream()
       .filter(property -> property.getStarState() == StarState.STARRED)
       .map(NlPropertyItem::getName)
@@ -305,7 +303,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     addMyActivityAsAppCompatActivity();
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myImageView), myDependencyManager);
+      NlProperties.getInstance().getProperties(myFacet, ImmutableList.of(myImageView), myDependencyManager);
 
     assertPresent("ImageView", properties, ANDROID_URI, ATTR_SRC);
     assertPresent("ImageView", properties, AUTO_URI, ATTR_SRC_COMPAT);
@@ -319,7 +317,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     addMyActivityAsAppCompatActivity();
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myImageView), myDependencyManager);
+      NlProperties.getInstance().getProperties(myFacet, ImmutableList.of(myImageView), myDependencyManager);
 
     assertPresent("ImageView", properties, ANDROID_URI, ATTR_SRC);
     assertPresent("ImageView", properties, AUTO_URI, ATTR_SRC_COMPAT);
@@ -330,7 +328,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     addMyActivityAsSystemActivity();
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myImageView), myDependencyManager);
+      NlProperties.getInstance().getProperties(myFacet, ImmutableList.of(myImageView), myDependencyManager);
 
     assertPresent("ImageView", properties, ANDROID_URI, ATTR_SRC);
     assertAbsent("ImageView", properties, AUTO_URI, ATTR_SRC_COMPAT);
@@ -342,7 +340,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     addMyActivityAsAppCompatActivity();
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myImageView), myDependencyManager);
+      NlProperties.getInstance().getProperties(myFacet, ImmutableList.of(myImageView), myDependencyManager);
 
     assertPresent("ImageView", properties, ATTR_SRC);
     assertAbsent("ImageView", properties, ATTR_SRC_COMPAT);
@@ -354,7 +352,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     addMyActivityAsAppCompatActivity();
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myImageView), myDependencyManager);
+      NlProperties.getInstance().getProperties(myFacet, ImmutableList.of(myImageView), myDependencyManager);
 
     assertPresent("ImageView", properties, ATTR_SRC);
     assertAbsent("ImageView", properties, ATTR_SRC_COMPAT);
