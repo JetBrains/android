@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import io.grpc.BindableService;
 import io.grpc.Server;
 import io.grpc.inprocess.InProcessServerBuilder;
@@ -32,15 +33,25 @@ public final class TestGrpcChannel<S extends BindableService> extends ExternalRe
   private Server myServer;
   private ProfilerClient myClient;
   private StudioProfilers myProfilers;
+  private ProfilerServiceGrpc.ProfilerServiceImplBase myProfilerService;
 
   public TestGrpcChannel(String name, S service) {
     myName = name;
     myService = service;
   }
 
+  public TestGrpcChannel(String name, S service, ProfilerServiceGrpc.ProfilerServiceImplBase profilerService) {
+    this(name, service);
+    myProfilerService = profilerService;
+  }
+
   @Override
   protected void before() throws Throwable {
-    myServer = InProcessServerBuilder.forName(myName).addService(myService).build();
+    InProcessServerBuilder serverBuilder = InProcessServerBuilder.forName(myName).addService(myService);
+    if (myProfilerService != null) {
+      serverBuilder.addService(myProfilerService);
+    }
+    myServer = serverBuilder.build();
     myServer.start();
     myClient = new ProfilerClient(myName);
     myProfilers = new StudioProfilers(myClient);
