@@ -21,21 +21,18 @@ import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.TestGrpcChannel;
-import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.intellij.util.containers.ImmutableList;
 import io.grpc.stub.StreamObserver;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.IOException;
-
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.Assert.*;
 
 public class CpuMonitorTest {
   @Rule
-  public TestGrpcChannel myGrpcChannel = new TestGrpcChannel<>("CpuMonitorTestChannel", new CpuServiceMock());
+  public TestGrpcChannel myGrpcChannel = new TestGrpcChannel<>("CpuMonitorTestChannel", new FakeCpuService());
 
   private CpuMonitor myMonitor;
 
@@ -45,7 +42,7 @@ public class CpuMonitorTest {
   }
 
   @Test
-  public void testThisProcessCpuUsage() throws IOException {
+  public void testThisProcessCpuUsage() {
     CpuUsageDataSeries series = myMonitor.getThisProcessCpuUsage();
     ImmutableList<SeriesData<Long>> seriesDataList = series.getDataForXRange(new Range());
     assertEquals(1, seriesDataList.size()); // Only current process information.
@@ -55,7 +52,7 @@ public class CpuMonitorTest {
   }
 
   @Test
-  public void testOtherProcessesCpuUsage() throws IOException {
+  public void testOtherProcessesCpuUsage() {
     CpuUsageDataSeries series = myMonitor.getOtherProcessesCpuUsage();
     ImmutableList<SeriesData<Long>> seriesDataList = series.getDataForXRange(new Range());
     assertEquals(1, seriesDataList.size()); // Only other processes information.
@@ -65,7 +62,7 @@ public class CpuMonitorTest {
   }
 
   @Test
-  public void testGetThreadsCount() throws IOException {
+  public void testGetThreadsCount() {
     CpuThreadCountDataSeries series = myMonitor.getThreadsCount();
     ImmutableList<SeriesData<Long>> seriesDataList = series.getDataForXRange(new Range());
     assertEquals(1, seriesDataList.size());
@@ -87,7 +84,7 @@ public class CpuMonitorTest {
     assertThat(profilers.getStage(), instanceOf(CpuProfilerStage.class));
   }
 
-  private static class CpuServiceMock extends CpuServiceGrpc.CpuServiceImplBase {
+  private static class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     @Override
     public void getData(CpuProfiler.CpuDataRequest request, StreamObserver<CpuProfiler.CpuDataResponse> responseObserver) {
       CpuProfiler.CpuDataResponse.Builder response = CpuProfiler.CpuDataResponse.newBuilder();
