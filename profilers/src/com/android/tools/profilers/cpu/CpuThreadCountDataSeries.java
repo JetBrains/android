@@ -74,7 +74,20 @@ public class CpuThreadCountDataSeries implements DataSeries<Long> {
       total += entry.getValue();
       data.add(new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(entry.getKey()), total));
     }
-    data.add(new SeriesData<>((long)timeCurrentRangeUs.getMax(), total));
+    // When no threads are found within the requested range, we add the threads count (0)
+    // to both range's min and max. Otherwise we wouldn't add any information to the data series
+    // within timeCurrentRangeUs and nothing would be added to the chart.
+    if (count.isEmpty()) {
+      data.add(new SeriesData<>((long)timeCurrentRangeUs.getMin(), total));
+      data.add(new SeriesData<>((long)timeCurrentRangeUs.getMax(), total));
+    }
+    // If the last timestamp added to the data series is less than timeCurrentRangeUs.getMax(),
+    // we need to replicate the last value in timeCurrentRangeUs.getMax(), so the chart renders this value
+    // until the end of the selected range.
+    else if (data.get(data.size() - 1).x < timeCurrentRangeUs.getMax()) {
+      data.add(new SeriesData<>((long)timeCurrentRangeUs.getMax(), total));
+    }
+
     return ContainerUtil.immutableList(data);
   }
 }
