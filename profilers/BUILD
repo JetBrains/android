@@ -4,6 +4,7 @@ iml_module(
     name = "profilers",
     srcs = ["src"],
     tags = ["managed"],
+    test_data = ["testData"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -15,5 +16,6 @@ iml_module(
         "//tools/idea/platform/util[module]",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/base/perflib:studio.perflib[module]",
+        "//tools/base/testutils:studio.testutils[module, test]",
     ],
 )
