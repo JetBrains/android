@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.BufferUnderflowException;
 import java.util.Map;
 import java.util.Set;
 
@@ -62,7 +63,7 @@ public class CpuCapture implements DurationData {
       traceArt.parse(data);
       myCaptureTrees = traceArt.getThreadsGraph();
     }
-    catch (IOException e) {
+    catch (IOException | BufferUnderflowException e) {
       throw new IllegalStateException(e);
     }
 
