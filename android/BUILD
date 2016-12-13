@@ -185,6 +185,7 @@ iml_module(
         "//tools/adt/idea/perfd-host[module, test]",
         "//tools/idea/plugins/junit[module, test]",
         "//tools/adt/idea/profilers[module, test]",
+        "//tools/adt/idea/profilers-ui[module, test]",
         "//tools/adt/idea/android-test-framework[module, test]",
         "//tools/idea/.idea/libraries:jsr305[test]",
         "//tools/analytics-library/shared:analytics-shared[module, test]",
