@@ -47,7 +47,7 @@ public class AndroidMonitorToolWindow implements Disposable {
       StudioProfilerDeviceManager manager = new StudioProfilerDeviceManager(project);
       myProfilers = new StudioProfilers(manager.getClient());
       myProfilers.setPreferredProcessName(getPreferredProcessName(project));
-      StudioProfilersView view = new StudioProfilersView(myProfilers);
+      StudioProfilersView view = new StudioProfilersView(myProfilers, new IntellijProfilerComponents(myProject));
       myComponent = view.getComponent();
 
       myProfilers.addDependency()
