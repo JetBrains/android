@@ -19,20 +19,18 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 import android.support.constraint.solver.widgets.ConstraintAnchor;
 import android.support.constraint.solver.widgets.ConstraintWidget;
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.*;
 import com.android.tools.idea.uibuilder.scene.draw.ConstraintLayoutComponentNotchProvider;
 import com.android.tools.idea.uibuilder.scene.draw.ConstraintLayoutNotchProvider;
 import com.android.tools.idea.uibuilder.scene.draw.DrawAction;
-import com.android.tools.idea.uibuilder.scene.draw.Notch;
 import com.android.tools.idea.uibuilder.scene.target.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.Interaction;
@@ -438,7 +436,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     if (!isParent) {
       ActionTarget previousAction = (ActionTarget) component.addTarget(new ClearConstraintsTarget(null));
       int baseline = component.getNlComponent().getBaseline();
-      if (baseline <= 0) {
+      if (baseline <= 0 && component.getNlComponent().viewInfo != null) {
         baseline = component.getNlComponent().viewInfo.getBaseLine();
       }
       if (baseline > 0) {
