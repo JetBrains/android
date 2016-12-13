@@ -59,6 +59,7 @@ public class SceneAnimationTest extends SceneTest {
                  "    android:layout_width=\"100dp\"\n" +
                  "    android:layout_height=\"20dp\"\n" +
                  "      tools:layout_editor_absoluteY=\"200dp\"\n" +
+                 "      android:layout_marginRight=\"8dp\"\n" +
                  "      app:layout_constraintRight_toRightOf=\"parent\" />");
     SceneComponent component = myScene.getSceneComponent("button");
     long currentTime = System.currentTimeMillis();

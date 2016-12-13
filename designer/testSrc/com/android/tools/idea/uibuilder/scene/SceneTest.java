@@ -42,6 +42,7 @@ public abstract class SceneTest extends LayoutTestCase {
     myScreen = surface().screen(myModel);
     myScreen.withScale(1);
     myScene = Scene.createScene(myModel, myScreen.getScreen());
+    myScene.setShowAllConstraints(true);
     myScene.setDpiFactorOverride(1);
     myScene.setAnimate(false);
     myScene.updateFrom(myModel);
