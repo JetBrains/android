@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacetConfiguration;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
-import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -33,10 +30,10 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 
+import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
+import static com.android.tools.idea.testing.Facets.createAndAddJavaFacet;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link JavaFacetModuleSetupStep}.
@@ -53,7 +50,7 @@ public class JavaFacetModuleSetupStepTest extends IdeaTestCase {
   }
 
   public void testGradleModelNotFound() {
-    createAndAddJavaFacet();
+    createAndAddJavaFacet(getModule());
 
     Module module = getModule();
     mySetupStep.gradleModelNotFound(module, myModelsProvider);
@@ -65,9 +62,9 @@ public class JavaFacetModuleSetupStepTest extends IdeaTestCase {
   }
 
   public void testDoSetUpModuleWithExistingJavaFacet() throws IOException {
-    createAndAddGradleFacet();
+    createAndAddGradleFacet(getModule());
 
-    JavaFacet facet = createAndAddJavaFacet();
+    JavaFacet facet = createAndAddJavaFacet(getModule());
     File buildFolderPath = createTempDir("build", true);
     boolean buildable = true;
 
@@ -87,7 +84,7 @@ public class JavaFacetModuleSetupStepTest extends IdeaTestCase {
   }
 
   public void testDoSetUpModuleWithNewJavaFacet() throws IOException {
-    createAndAddGradleFacet();
+    createAndAddGradleFacet(getModule());
 
     File buildFolderPath = createTempDir("build", true);
     boolean buildable = true;
@@ -124,33 +121,6 @@ public class JavaFacetModuleSetupStepTest extends IdeaTestCase {
 
     verify(javaModel).getBuildFolderPath();
     verify(javaModel).isBuildable();
-  }
-
-  @NotNull
-  private JavaFacet createAndAddJavaFacet() {
-    // Add AndroidFacet to verify that is removed.
-    FacetManager facetManager = FacetManager.getInstance(getModule());
-    JavaFacet facet = facetManager.createFacet(JavaFacet.getFacetType(), JavaFacet.getFacetName(), null);
-    addFacet(facet);
-    return facet;
-  }
-
-  @NotNull
-  private GradleFacet createAndAddGradleFacet() {
-    // Add AndroidFacet to verify that is removed.
-    FacetManager facetManager = FacetManager.getInstance(getModule());
-    GradleFacet facet = facetManager.createFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null);
-    addFacet(facet);
-    return facet;
-  }
-
-  private void addFacet(@NotNull Facet<?> facet) {
-    FacetManager facetManager = FacetManager.getInstance(getModule());
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      ModifiableFacetModel facetModel = facetManager.createModifiableModel();
-      facetModel.addFacet(facet);
-      facetModel.commit();
-    });
   }
 
   public void testDoSetUpModuleWithoutGradleFacet() throws IOException {
