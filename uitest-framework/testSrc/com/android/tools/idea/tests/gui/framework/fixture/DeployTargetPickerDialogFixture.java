@@ -65,10 +65,16 @@ public class DeployTargetPickerDialogFixture extends ComponentFixture<DeployTarg
    * {@code getListCellRendererComponent} method returns {@code this}, which is also a {@code SimpleColoredComponent}, whose
    * {@code toString} method returns what gets rendered to the cell. You may vomit now.
    */
-  private static final JListCellReader DEVICE_PICKER_CELL_READER = (jList, index) ->
-    jList.getCellRenderer().getListCellRendererComponent(jList, jList.getModel().getElementAt(index), index, true, true).toString();
+  private static final JListCellReader DEVICE_PICKER_CELL_READER = (jList, index) -> {
+    String item =
+      jList.getCellRenderer().getListCellRendererComponent(jList, jList.getModel().getElementAt(index), index, true, true).toString();
+    // Ignore everything after the parenthesis (typically includes stuff like API level and ABI)
+    return item.split("\\(", 2)[0].trim();
+  };
 
-  /* Selects a device whose entry in the devices list begins with {@code text}. */
+  /**
+   *  Selects a device whose entry in the devices list is {@code text}. Any characters after the first parenthesis are ignored.
+   */
   @NotNull
   public DeployTargetPickerDialogFixture selectDevice(String text) {
     JBList deviceList = robot().finder().findByType(target(), JBList.class);
@@ -76,7 +82,7 @@ public class DeployTargetPickerDialogFixture extends ComponentFixture<DeployTarg
     jListFixture.replaceCellReader(DEVICE_PICKER_CELL_READER);
     Wait.seconds(5).expecting(String.format("Deployment Target list to contain %s", text))
       .until(() -> Arrays.asList(jListFixture.contents()).contains(text));
-    jListFixture.selectItem(Pattern.compile(text + ".*"));
+    jListFixture.selectItem(text);
     return this;
   }
 
