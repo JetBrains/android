@@ -17,8 +17,8 @@
     <orderEntry type="module" module-name="adt-ui" />
     <orderEntry type="module" module-name="adt-ui-model" />
     <orderEntry type="module" module-name="platform-api" />
-    <orderEntry type="module" module-name="platform-impl" />
     <orderEntry type="module" module-name="perflib" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
   </component>
 </module>
