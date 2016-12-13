@@ -56,14 +56,18 @@ public class SceneDragHandler extends DragHandler {
   @Override
   public void start(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
     super.start(x, y, modifiers);
+    if (myComponent == null) {
+      return;
+    }
     Scene scene = ((ViewEditorImpl) editor).getScreenView().getScene();
+    scene.needsRebuildList();
     SceneComponent component = scene.getSceneComponent(myComponent);
     ArrayList<Target> targets = component.getTargets();
     int dx = x - myComponent.w / 2;
     int dy = y - myComponent.h / 2;
     for (int i = 0; i < targets.size(); i++) {
-      if (targets.get(i) instanceof DragTarget) {
-        DragTarget target = (DragTarget) targets.get(i);
+      if (targets.get(i) instanceof DragDndTarget) {
+        DragDndTarget target = (DragDndTarget) targets.get(i);
         target.mouseDown(scene.pxToDp(dx), scene.pxToDp(dy));
         break;
       }
@@ -74,6 +78,9 @@ public class SceneDragHandler extends DragHandler {
   @Override
   public String update(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
     String result = super.update(x, y, modifiers);
+    if (myComponent == null) {
+      return "undefined";
+    }
     Scene scene = ((ViewEditorImpl) editor).getScreenView().getScene();
     SceneComponent component = scene.getSceneComponent(myComponent);
     int dx = x - myComponent.w / 2;
@@ -83,14 +90,14 @@ public class SceneDragHandler extends DragHandler {
     if (component != null) {
       ArrayList<Target> targets = component.getTargets();
       for (int i = 0; i < targets.size(); i++) {
-        if (targets.get(i) instanceof DragTarget) {
-          DragTarget target = (DragTarget) targets.get(i);
-          target.mouseDrag(scene.pxToDp(dx), scene.pxToDp(dy), null);
+        if (targets.get(i) instanceof DragDndTarget) {
+          DragDndTarget target = (DragDndTarget) targets.get(i);
+          target.mouseDrag(scene.pxToDp(dx), scene.pxToDp(dy), target);
           break;
         }
       }
     }
-    scene.needsRebuildList();
+    scene.checkRequestLayoutStatus();
     return result;
   }
 
@@ -123,6 +130,7 @@ public class SceneDragHandler extends DragHandler {
     }
     insertComponents(-1, insertType);
     scene.setDnDComponent(null);
+    scene.checkRequestLayoutStatus();
   }
 
   @Override
