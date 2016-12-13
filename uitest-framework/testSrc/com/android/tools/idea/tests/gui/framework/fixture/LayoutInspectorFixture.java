@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.editors.hierarchyview.ui.RollOverTree;
 import com.google.common.collect.ImmutableList;
-import org.fest.swing.cell.JTreeCellReader;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JTreeFixture;
 import org.jetbrains.annotations.NotNull;
@@ -40,20 +39,10 @@ public class LayoutInspectorFixture {
     ImmutableList.Builder<String> builder = new ImmutableList.Builder<>();
     JTree tree = myRobot.finder().findByType(myTarget, RollOverTree.class, true);
     JTreeFixture treeFixture = new JTreeFixture(myRobot, tree);
-    treeFixture.replaceCellReader(TREE_NODE_CELL_READER);
     for (int i = 0; i < tree.getRowCount(); i++) {
       String element = treeFixture.valueAt(i);
-      if (element != null) {
-        builder.add(element.substring(0, element.indexOf("@")).trim());
-      }
+      builder.add(element.substring(0, element.indexOf("@")).trim());
     }
     return builder.build();
   }
-
-  private static final JTreeCellReader TREE_NODE_CELL_READER = (jTree, modelValue) -> {
-    if (modelValue != null) {
-      return modelValue.toString();
-    }
-    return null;
-  };
 }
