@@ -135,7 +135,8 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     assertTrue(noSuchField.get());
   }
 
-  public void testIsSourceModified() throws IOException {
+  // Disabled. Flaky on Mac.
+  public void disabledTestIsSourceModified() throws IOException {
     File rootDirPath = Projects.getBaseDirPath(getProject());
     AndroidProjectStub androidProject = TestProjects.createBasicProject();
     myFacet.setAndroidModel(new AndroidModuleModel(androidProject.getName(), rootDirPath, androidProject, "debug"));
