@@ -16,15 +16,19 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.profilers.IdeProfilerComponents;
+import com.android.tools.profilers.ProfilerColors;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.ui.popup.IconButton;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.InplaceButton;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.ui.components.labels.ActionLink;
 import com.intellij.ui.components.labels.BoldLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,19 +40,17 @@ import java.awt.*;
  * View to display a single network request and its response's detailed information.
  */
 public class ConnectionDetailsView extends JPanel {
-
   private final JPanel myResponsePanel;
   private final JPanel myEditorPanel;
   private final JPanel myFieldsPanel;
-  private final JTextArea myCallstackView;
+  private final JPanel myCallStackView;
 
   @NotNull
-  private final IdeProfilerComponents myIdeProfilerComponents;
+  private final NetworkProfilerStageView myStageView;
 
-  public ConnectionDetailsView(@NotNull IdeProfilerComponents ideProfilerComponents) {
+  public ConnectionDetailsView(@NotNull NetworkProfilerStageView stageView) {
     super(new BorderLayout());
-    myIdeProfilerComponents = ideProfilerComponents;
-
+    myStageView = stageView;
     // Create 2x2 pane
     //     * Fit
     // Fit _ _
@@ -68,11 +70,10 @@ public class ConnectionDetailsView extends JPanel {
     scrollPane.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0));
     myResponsePanel.add(scrollPane, BorderLayout.SOUTH);
 
-    myCallstackView = new JTextArea();
-    myCallstackView.setEditable(false);
-
+    myCallStackView = new JPanel(new VerticalFlowLayout());
+    myCallStackView.setBackground(ProfilerColors.MONITOR_BACKGROUND);
     tabPanel.addTab("Response", myResponsePanel);
-    tabPanel.addTab("Call Stack", myCallstackView);
+    tabPanel.addTab("Call Stack", new JBScrollPane(myCallStackView));
 
     IconButton closeIcon = new IconButton("Close", AllIcons.Actions.Close, AllIcons.Actions.CloseHovered);
     InplaceButton closeButton = new InplaceButton(closeIcon, e -> this.update((HttpData) null));
@@ -92,10 +93,10 @@ public class ConnectionDetailsView extends JPanel {
     setBackground(JBColor.background());
     myEditorPanel.removeAll();
     myFieldsPanel.removeAll();
-    myCallstackView.setText("");
+    myCallStackView.removeAll();
 
     if (httpData != null) {
-      JComponent fileViewer = myIdeProfilerComponents.getFileViewer(httpData.getResponsePayloadFile());
+      JComponent fileViewer = myStageView.getIdeComponents().getFileViewer(httpData.getResponsePayloadFile());
       if (fileViewer != null) {
         myEditorPanel.add(fileViewer, BorderLayout.CENTER);
       }
@@ -127,10 +128,15 @@ public class ConnectionDetailsView extends JPanel {
         myFieldsPanel.add(new NoWrapBoldLabel("Content length"), new TabularLayout.Constraint(row, 0));
         myFieldsPanel.add(new JLabel(contentLength), new TabularLayout.Constraint(row, 2));
       }
-
-      // TODO: We are showing the callstack but we can't currently click on any of the links to
-      // navigate to the code.
-      myCallstackView.setText(httpData.getTrace());
+      for (String line : httpData.getTrace().split("\\n")) {
+        JLabel label = new ActionLink(line, new AnAction() {
+          @Override
+          public void actionPerformed(AnActionEvent e) {
+            myStageView.getIdeServices().navigateToStackTraceLine(line);
+          }
+        });
+        myCallStackView.add(label);
+      }
 
       repaint();
     }
@@ -145,7 +151,12 @@ public class ConnectionDetailsView extends JPanel {
   }
 
   @VisibleForTesting
-  @NotNull
+  JPanel getCallStackView() {
+    return myCallStackView;
+  }
+
+
+  @VisibleForTesting
   int getFieldComponentIndex(String labelText) {
     for (int i = 0; i < myFieldsPanel.getComponentCount(); i+=2) {
       if (myFieldsPanel.getComponent(i) instanceof JLabel) {
@@ -162,12 +173,6 @@ public class ConnectionDetailsView extends JPanel {
   @Nullable
   Component getFieldComponent(int index) {
     return index >= 0 && index < myFieldsPanel.getComponentCount() ? myFieldsPanel.getComponent(index) : null;
-  }
-
-  @VisibleForTesting
-  @NotNull
-  String getCallstackText() {
-    return myCallstackView.getText();
   }
 
   private static final class NoWrapBoldLabel extends BoldLabel {
