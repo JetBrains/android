@@ -135,8 +135,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     assertTrue(noSuchField.get());
   }
 
-  // Disabled. Flaky on Mac.
-  public void disabledTestIsSourceModified() throws IOException {
+  public void testIsSourceModified() throws IOException {
     File rootDirPath = Projects.getBaseDirPath(getProject());
     AndroidProjectStub androidProject = TestProjects.createBasicProject();
     myFacet.setAndroidModel(new AndroidModuleModel(androidProject.getName(), rootDirPath, androidProject, "debug"));
@@ -177,7 +176,8 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     loader.loadClassFile("com.google.example.NotModified", notModifiedClass);
 
     // Wait a bit to make sure timestamp is different.
-    TimeoutUtil.sleep(10);
+    // At least one whole second because Apple's HFS only has whole second resolution.
+    TimeoutUtil.sleep(1200);
 
     // Always false for R classes.
     assertThat(loader.isSourceModified("com.google.example.R", null)).isFalse();
