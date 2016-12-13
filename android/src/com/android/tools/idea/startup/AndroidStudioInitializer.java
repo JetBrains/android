@@ -122,7 +122,7 @@ public class AndroidStudioInitializer implements Runnable {
   }
 
   private static void setUpExperimentalFeatures() {
-    if (System.getProperty(ProfilerState.ENABLE_EXPERIMENTAL_PROFILING) != null) {
+    if (ProfilerState.EXPERIMENTAL_PROFILING_FLAG_ENABLED) {
       ProjectManager.getInstance().addProjectManagerListener(new ProjectManagerAdapter() {
         @Override
         public void projectOpened(final Project project) {

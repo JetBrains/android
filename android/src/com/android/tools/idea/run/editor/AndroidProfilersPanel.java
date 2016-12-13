@@ -19,14 +19,12 @@ import com.intellij.openapi.project.Project;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.run.editor.ProfilerState.ENABLE_EXPERIMENTAL_PROFILING;
+import static com.android.tools.idea.run.editor.ProfilerState.EXPERIMENTAL_PROFILING_FLAG_ENABLED;
 
 /**
  * The configuration panel for the Android profiler settings.
  */
 public class AndroidProfilersPanel {
-  private static final boolean EXPERIMENTAL_ENABLED = System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null;
-
   private JPanel myPanel;
   private JCheckBox myAdvancedProfilingCheckBox;
 
@@ -35,7 +33,7 @@ public class AndroidProfilersPanel {
   }
 
   AndroidProfilersPanel(Project project, ProfilerState state) {
-    myAdvancedProfilingCheckBox.setVisible(EXPERIMENTAL_ENABLED);
+    myAdvancedProfilingCheckBox.setVisible(EXPERIMENTAL_PROFILING_FLAG_ENABLED);
 
     resetFrom(state);
   }
@@ -51,7 +49,6 @@ public class AndroidProfilersPanel {
    * Assigns the current UI state to the specified {@link ProfilerState}.
    */
   void applyTo(ProfilerState state) {
-    boolean enabled = System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null;
-    state.ENABLE_ADVANCED_PROFILING = myAdvancedProfilingCheckBox.isSelected() && enabled;
+    state.ENABLE_ADVANCED_PROFILING = EXPERIMENTAL_PROFILING_FLAG_ENABLED && myAdvancedProfilingCheckBox.isSelected();
   }
 }
