@@ -40,12 +40,7 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
 
   StringResourceEditor(@NotNull StringsVirtualFile file) {
     // Post startup activities (such as when reopening last open editors) are run from a background thread
-    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        myPanel = new StringResourceViewPanel(file.getFacet(), StringResourceEditor.this);
-      }
-    });
+    UIUtil.invokeAndWaitIfNeeded(() -> myPanel = new StringResourceViewPanel(file.getFacet(), this));
   }
 
   @NotNull
