@@ -21,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.util.Arrays;
@@ -159,11 +158,15 @@ public class HttpData {
    * For example,
    * "www.example.com/demo/" -> "demo"
    * "www.example.com/test.png?res=2" -> "test.png"
+   * "www.example.com" -> "www.example.com"
    */
   @NotNull
   public static String getUrlName(@NotNull String url) {
-    String path = URI.create(url).getPath().trim();
-    path = StringUtil.trimTrailing(path, '/');
+    URI uri = URI.create(url);
+    if (uri.getPath().isEmpty()) {
+      return uri.getHost();
+    }
+    String path = StringUtil.trimTrailing(uri.getPath(), '/');
     path = path.lastIndexOf('/') != -1 ? path.substring(path.lastIndexOf('/') + 1) : path;
     // URL might be encoded an arbitrarily deep number of times. Keep decoding until we peel away the final layer.
     // Usually this is only expected to loop once or twice.
@@ -174,8 +177,7 @@ public class HttpData {
         lastPath = path;
         path = URLDecoder.decode(path, "UTF-8");
       } while (!path.equals(lastPath));
-    } catch (UnsupportedEncodingException e) {
-      // TODO: Log this exception.
+    } catch (Exception ignored) {
     }
     return path;
   }
