@@ -17,15 +17,15 @@ package com.android.tools.idea.uibuilder.scene.decorator;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.*;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.draw.DrawConnection;
-import com.android.tools.idea.uibuilder.scene.target.LassoTarget;
-import com.android.tools.idea.uibuilder.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.*;
+import java.util.List;
 
 /**
  * This defines the decorator
@@ -103,7 +103,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     String id = null;
     ConnectionType type = ConnectionType.SAME;
     for (int i = 0; i < atributes.length; i++) {
-      id = child.getNlComponent().getAttribute(SdkConstants.SHERPA_URI, atributes[i]);
+      id = child.getNlComponent().getLiveAttribute(SdkConstants.SHERPA_URI, atributes[i]);
       type = DIR_TABLE[i];
       if (id != null) {
         break;
@@ -158,9 +158,14 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       Rectangle rect = new Rectangle();
       component.fillRect(rect);
       DisplayList.UNClip unClip = list.addClip(sceneContext, rect);
+      Scene scene = component.getScene();
+      boolean showAllConstraints = scene.isShowAllConstraints();
+      List<NlComponent> selection = scene.getSelection();
       for (SceneComponent child : children) {
         child.buildDisplayList(time, list, sceneContext);
-        buildListConnections(list, time, sceneContext, component, child); // draw child connections
+        if (showAllConstraints || selection.contains(child.getNlComponent())) {
+          buildListConnections(list, time, sceneContext, component, child); // draw child connections
+        }
       }
       list.add(unClip);
     }

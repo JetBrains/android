@@ -37,7 +37,7 @@ class SceneMouseInteraction {
   public SceneMouseInteraction(Scene scene, ScreenView screenView) {
     myScene = scene;
     myScreenView = screenView;
-    myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
+    repaint();
   }
 
   /**
@@ -120,7 +120,7 @@ class SceneMouseInteraction {
     myLastY = y;
     SceneContext transform = SceneContext.get();
     myScene.mouseDown(transform, (int)myLastX, (int)myLastY);
-    myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
+    repaint();
   }
 
   /**
@@ -217,7 +217,7 @@ class SceneMouseInteraction {
     }
     myScene.mouseDrag(transform, (int)x, (int)y);
     myScene.mouseRelease(transform, (int)x, (int)y);
-    myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
+    repaint();
   }
 
   public DisplayList getDisplayList() {
@@ -238,7 +238,14 @@ class SceneMouseInteraction {
       } else {
         myScene.select(Collections.emptyList());
       }
-      myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
+      repaint();
     }
+  }
+
+  /**
+   * Regenerate the display list
+   */
+  public void repaint() {
+    myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
   }
 }
