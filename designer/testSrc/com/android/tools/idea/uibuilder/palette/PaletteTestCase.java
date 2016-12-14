@@ -241,6 +241,10 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     assertStandardLayout(item, GRID_LAYOUT, IN_PLATFORM);
   }
 
+  public void assertFlexboxLayout(@NotNull Palette.BaseItem item) {
+    assertStandardLayout(item, FLEXBOX_LAYOUT, FLEXBOX_LAYOUT_LIB_ARTIFACT);
+  }
+
   public void assertFrameLayout(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, FRAME_LAYOUT, IN_PLATFORM);
   }
