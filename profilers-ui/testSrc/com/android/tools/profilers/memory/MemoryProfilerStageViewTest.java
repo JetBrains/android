@@ -23,6 +23,7 @@ import com.android.tools.profilers.memory.adapters.HeapObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -54,6 +55,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   }
 
   @Test
+  @Ignore
   public void testCaptureAndHeapView() throws Exception {
     JComponent captureComponent = myStageView.getChartCaptureSplitter().getSecondComponent();
     assertTrue(captureComponent == null || !captureComponent.isVisible());

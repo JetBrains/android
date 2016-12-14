@@ -17,11 +17,27 @@ package com.android.tools.adtui.model;
 
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.tree.TreeModel;
+public class StackedEventModel extends AspectModel<StackedEventModel.Aspect> implements Updatable {
 
-public interface RangedTreeModel extends TreeModel {
-  /**
-   * Updates the model to the given range.
-   */
-  void update(@NotNull Range range);
+  public enum Aspect {
+    STACKED_EVENT
+  }
+
+  @NotNull
+  private final RangedSeries<EventAction<EventAction.ActivityAction, String>> myRangedSeries;
+
+  public StackedEventModel(@NotNull RangedSeries<EventAction<EventAction.ActivityAction, String>> rangedSeries) {
+    myRangedSeries = rangedSeries;
+  }
+
+  @Override
+  public void update(float elapsed) {
+    // TODO: Depend on the other things.
+    changed(Aspect.STACKED_EVENT);
+  }
+
+  @NotNull
+  public RangedSeries<EventAction<EventAction.ActivityAction, String>> getRangedSeries() {
+    return myRangedSeries;
+  }
 }

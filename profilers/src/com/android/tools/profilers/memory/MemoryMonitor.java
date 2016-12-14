@@ -15,11 +15,16 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
+import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.MemorySample;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collections;
 
 public class MemoryMonitor extends ProfilerMonitor {
 
@@ -27,15 +32,38 @@ public class MemoryMonitor extends ProfilerMonitor {
 
   @NotNull
   private final MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
+  private final AxisComponentModel myYAxis;
+  private final Range myYRange;
+
+  private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 2, 5);
+  private final LineChartModel myTotalMemory;
+  private final LegendComponentModel myMemoryLegend;
+  private DurationDataModel<GcDurationData> myGcCount;
 
   public MemoryMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
     myProcessId = profilers.getProcessId();
     myClient = profilers.getClient().getMemoryClient();
+
+    myYRange = new Range(0, 0);
+    myYAxis = new AxisComponentModel(myYRange, MEMORY_AXIS_FORMATTER,
+                                     AxisComponentModel.AxisOrientation.RIGHT);
+    myYAxis.setClampToMajorTicks(true);
+
+    myTotalMemory = new LineChartModel();
+    RangedContinuousSeries memSeries = new RangedContinuousSeries("Memory", getTimeline().getViewRange(), myYRange, getTotalMemorySeries());
+    myTotalMemory.add(memSeries);
+
+    // Only update these values every 0.1s
+    myMemoryLegend = new LegendComponentModel(100);
+    LegendData data = new LegendData(memSeries, MEMORY_AXIS_FORMATTER, getTimeline().getDataRange());
+    myMemoryLegend.setLegendData(Collections.singletonList(data));
+
+    myGcCount = new DurationDataModel<>(new RangedSeries<>(getTimeline().getViewRange(), new GcStatsDataSeries(myClient, myProcessId)));
   }
 
   @NotNull
-  public MemoryDataSeries getTotalMemory() {
+  public MemoryDataSeries getTotalMemorySeries() {
     return new MemoryDataSeries(myClient, myProcessId, MemorySample::getTotalMem);
   }
 
@@ -75,8 +103,8 @@ public class MemoryMonitor extends ProfilerMonitor {
   }
 
   @NotNull
-  public GcStatsDataSeries getGcCount() {
-    return new GcStatsDataSeries(myClient, myProcessId);
+  public DurationDataModel<GcDurationData> getGcCount() {
+    return myGcCount;
   }
 
   @Override
@@ -84,7 +112,36 @@ public class MemoryMonitor extends ProfilerMonitor {
     return "Memory";
   }
 
+  @Override
+  public void enter() {
+    // TODO: NOT ALL MONITORS HAVE ENTER AND EXIT
+    myProfilers.getUpdater().register(myTotalMemory);
+    myProfilers.getUpdater().register(myYAxis);
+    myProfilers.getUpdater().register(myMemoryLegend);
+    myProfilers.getUpdater().register(myGcCount);
+  }
+
+  @Override
+  public void exit() {
+    myProfilers.getUpdater().unregister(myTotalMemory);
+    myProfilers.getUpdater().unregister(myYAxis);
+    myProfilers.getUpdater().unregister(myMemoryLegend);
+    myProfilers.getUpdater().unregister(myGcCount);
+  }
+
   public void expand() {
     myProfilers.setStage(new MemoryProfilerStage(myProfilers));
+  }
+
+  public AxisComponentModel getYAxis() {
+    return myYAxis;
+  }
+
+  public LineChartModel getTotalMemory() {
+    return myTotalMemory;
+  }
+
+  public LegendComponentModel getMemoryLegend() {
+    return myMemoryLegend;
   }
 }

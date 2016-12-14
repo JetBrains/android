@@ -15,12 +15,35 @@
  */
 package com.android.tools.adtui.model;
 
-import javax.swing.*;
+import com.android.tools.adtui.model.FpsTimer;
+import com.android.tools.adtui.model.StopwatchTimer;
 
-public interface RangedListModel<T> extends ListModel<T> {
+/**
+ * Timer that is manually controlled, using {@link #step()}, which is useful for tests.
+ */
+public final class FakeTimer extends StopwatchTimer {
+  private boolean myRunning;
 
-  /**
-   * Updates the model to the given range.
-   */
-  void update(Range range);
+  @Override
+  public void start() {
+    myRunning = true;
+  }
+
+  @Override
+  public boolean isRunning() {
+    return myRunning;
+  }
+
+  @Override
+  public void stop() {
+    myRunning = false;
+  }
+
+  public boolean step() {
+    if (!isRunning()) {
+      return false;
+    }
+    tick(FpsTimer.ONE_FRAME_IN_60_FPS);
+    return true;
+  }
 }

@@ -15,8 +15,6 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.RangedTree;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.HNode;
@@ -26,7 +24,6 @@ import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBTabbedPane;
-import com.intellij.ui.tabs.impl.ShapeTransform;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +42,6 @@ public class CpuCaptureView {
   private final HTreeChart<MethodModel> myCaptureTreeChart;
   private final JBTabbedPane myPanel;
   private final JTree myTree;
-  private final RangedTree myRangedTree;
   private final CpuProfilerStageView myView;
   private final CpuTraceTreeSorter myTreeSorter;
   private final Comparator<DefaultMutableTreeNode> myDefaultSortOrder;
@@ -59,13 +55,11 @@ public class CpuCaptureView {
     myCapture = capture;
     myView = view;
 
-    myCaptureTreeChart = new HTreeChart<>();
+    myCaptureTreeChart = new HTreeChart<>(timeline.getSelectionRange());
     myCaptureTreeChart.setHRenderer(new SampledMethodUsageHRenderer());
-    myCaptureTreeChart.setXRange(timeline.getSelectionRange());
 
     myTree = new JTree();
     myTreeSorter = new CpuTraceTreeSorter(myTree);
-    myRangedTree = new RangedTree(timeline.getSelectionRange());
     JComponent columnTree = new ColumnTreeBuilder(myTree)
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
           .setName("Name")
@@ -122,8 +116,7 @@ public class CpuCaptureView {
     HNode<MethodModel> node = myCapture.getCaptureNode(id);
     myCaptureTreeChart.setHTree(node);
     // Updates the topdown column tree displayed in capture panel
-    TopDownTreeModel model = node == null ? null : new TopDownTreeModel(new TopDownNode(node));
-    myRangedTree.setModel(model);
+    TopDownTreeModel model = node == null ? null : new TopDownTreeModel(myView.getTimeline().getSelectionRange(), new TopDownNode(node));
     myTree.setModel(model);
     myTreeSorter.setModel(model, myDefaultSortOrder);
     expandTreeNodes();
@@ -147,16 +140,6 @@ public class CpuCaptureView {
   @NotNull
   public CpuCapture getCapture() {
     return myCapture;
-  }
-
-  public void register(Choreographer choreographer) {
-    choreographer.register(myCaptureTreeChart);
-    choreographer.register(myRangedTree);
-  }
-
-  public void unregister(Choreographer choreographer) {
-    choreographer.unregister(myCaptureTreeChart);
-    choreographer.unregister(myRangedTree);
   }
 
   private static TopDownNode getNode(Object value) {

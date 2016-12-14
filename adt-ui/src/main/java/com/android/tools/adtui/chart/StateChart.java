@@ -23,6 +23,7 @@ import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.adtui.common.datareducer.StateChartReducer;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.StateChartModel;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,7 +49,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
   private static final int TEXT_PADDING = 3;
 
   @NotNull
-  private final List<RangedSeries<E>> mSeriesList;
+  private StateChartModel<E> myModel;
 
   @NotNull
   private EnumColors<E> mColors;
@@ -71,40 +72,50 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
   @NotNull
   private StateChartReducer<E> myReducer;
 
+  private boolean myRender;
+
   /**
    * @param colors map of a state to corresponding color
    */
-  public StateChart(@NotNull Map<E, Color> colors) {
-    this(new EnumColors<>(colors));
+  public StateChart(@NotNull StateChartModel<E> model, @NotNull Map<E, Color> colors) {
+    this(model, new EnumColors<>(colors));
   }
 
-  public StateChart(@NotNull EnumColors<E> enumColors) {
+  public StateChart(@NotNull StateChartModel<E> model, @NotNull EnumColors<E> enumColors) {
     // TODO: Replace with new DefaultStateChartReducer()
-    this(enumColors, (rectangles, values) -> {});
+    this(model, enumColors, (rectangles, values) -> {});
   }
 
   @VisibleForTesting
-  public StateChart(@NotNull Map<E, Color> colors, @NotNull StateChartReducer<E> reducer) {
-    this(new EnumColors<>(colors), reducer);
+  public StateChart(@NotNull StateChartModel<E> model, @NotNull Map<E, Color> colors, @NotNull StateChartReducer<E> reducer) {
+    this(model, new EnumColors<>(colors), reducer);
   }
 
   @VisibleForTesting
-  public StateChart(@NotNull EnumColors<E> enumColors, @NotNull StateChartReducer<E> reducer) {
+  public StateChart(@NotNull StateChartModel<E> model, @NotNull EnumColors<E> enumColors, @NotNull StateChartReducer<E> reducer) {
     mColors = enumColors;
     mRectangles = new ArrayList<>();
     mValues = new ArrayList<>();
-    mSeriesList = new ArrayList<>();
     mRenderMode = RenderMode.BAR;
     myReducer = reducer;
+    myRender = true;
     setFont(AdtUiUtils.DEFAULT_FONT);
+    myModel = model;
+    myModel.addDependency().onChange(StateChartModel.Aspect.STATE_CHART, this::modelChanged);
+  }
+
+  public void setModel(@NotNull StateChartModel<E> model) {
+    myModel = model;
+    modelChanged();
+  }
+
+  private void modelChanged() {
+    myRender = true;
+    opaqueRepaint();
   }
 
   public void setRenderMode(RenderMode mode) {
     mRenderMode = mode;
-  }
-
-  public void addSeries(@NotNull RangedSeries<E> series) {
-    mSeriesList.add(series);
   }
 
   /**
@@ -135,10 +146,9 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
     return mColors;
   }
 
-  @Override
-  protected void updateData() {
-    int seriesSize = mSeriesList.size();
-
+  protected void render() {
+    List<RangedSeries<E>> series = myModel.getSeries();
+    int seriesSize = series.size();
     if (seriesSize == 0) {
       return;
     }
@@ -149,7 +159,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
     mValues.clear();
 
     int seriesIndex = 0, rectCount = 0;
-    for (RangedSeries<E> data : mSeriesList) {
+    for (RangedSeries<E> data : series) {
       double min = data.getXRange().getMin();
       double max = data.getXRange().getMax();
       ImmutableList<SeriesData<E>> seriesDataList = data.getSeries();
@@ -211,6 +221,11 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
 
   @Override
   protected void draw(Graphics2D g2d, Dimension dim) {
+    if (myRender) {
+      render();
+      myRender = false;
+    }
+
     g2d.setFont(getFont());
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 

@@ -16,8 +16,9 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedListModel;
 import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.StateChartModel;
+import com.android.tools.adtui.model.Updatable;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import org.jetbrains.annotations.NotNull;
@@ -28,24 +29,27 @@ import java.util.concurrent.TimeUnit;
 /**
  * This class is responsible for making an RPC call to perfd/datastore and converting the resulting proto into UI data.
  */
-public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuThread>
-  implements RangedListModel<CpuThreadsModel.RangedCpuThread> {
+public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuThread> implements Updatable {
   @NotNull
   private final CpuProfilerStage myStage;
 
   private final int myProcessId;
 
-  public CpuThreadsModel(@NotNull CpuProfilerStage stage, int id) {
+  private final Range myRange;
+
+  public CpuThreadsModel(@NotNull Range range, @NotNull CpuProfilerStage stage, int id) {
+    myRange = range;
     myStage = stage;
     myProcessId = id;
+
+    myRange.addDependency().onChange(Range.Aspect.RANGE, this::rangeChanged);
   }
 
-  @Override
-  public void update(Range range) {
+  public void rangeChanged() {
     CpuProfiler.GetThreadsRequest.Builder request = CpuProfiler.GetThreadsRequest.newBuilder()
       .setAppId(myProcessId)
-      .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)range.getMin()))
-      .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)range.getMax()));
+      .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myRange.getMin()))
+      .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myRange.getMax()));
     CpuServiceGrpc.CpuServiceBlockingStub client = myStage.getStudioProfilers().getClient().getCpuClient();
     CpuProfiler.GetThreadsResponse response = client.getThreads(request.build());
 
@@ -58,7 +62,8 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
       if (oldThread.getThreadId() == newThread.getTid()) {
         i++;
         j++;
-      } else {
+      }
+      else {
         removeElementAt(i);
       }
     }
@@ -68,9 +73,14 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
     }
     while (j < response.getThreadsCount()) {
       CpuProfiler.GetThreadsResponse.Thread newThread = response.getThreads(j);
-      addElement(new RangedCpuThread(range, newThread.getTid(), newThread.getName()));
+      addElement(new RangedCpuThread(myRange, newThread.getTid(), newThread.getName()));
       j++;
     }
+  }
+
+  @Override
+  public void update(float elapsed) {
+    fireContentsChanged(this, 0, size());
   }
 
   public class RangedCpuThread {
@@ -78,16 +88,15 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
     private final int myThreadId;
     private final String myName;
     private final Range myRange;
+    private final StateChartModel<CpuProfilerStage.ThreadState> myModel;
 
     public RangedCpuThread(Range range, int threadId, String name) {
       myRange = range;
       myThreadId = threadId;
       myName = name;
-    }
-
-    public RangedSeries<CpuProfilerStage.ThreadState> getDataSeries() {
+      myModel = new StateChartModel<>();
       ThreadStateDataSeries series = new ThreadStateDataSeries(myStage, myProcessId, myThreadId);
-      return new RangedSeries<>(myRange, series);
+      myModel.addSeries(new RangedSeries<>(myRange, series));
     }
 
     public int getThreadId() {
@@ -96,6 +105,10 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
 
     public String getName() {
       return myName;
+    }
+
+    public StateChartModel<CpuProfilerStage.ThreadState> getModel() {
+      return myModel;
     }
   }
 }

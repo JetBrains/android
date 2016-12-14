@@ -16,10 +16,10 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.LegendComponent;
-import com.android.tools.adtui.LegendRenderData;
+import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.LegendComponentModel;
 import com.android.tools.profilers.ProfilerColors;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.util.ui.JBUI;
@@ -53,8 +53,7 @@ public class NetworkRadioView {
   @NotNull private final JComponent myComponent;
 
   public NetworkRadioView(@NotNull NetworkProfilerStageView stageView) {
-    myRadioChart = new StateChart<>(RADIO_STATE_COLOR);
-    myRadioChart.addSeries(new RangedSeries<>(stageView.getTimeline().getViewRange(), stageView.getStage().getRadioDataSeries()));
+    myRadioChart = new StateChart<>(stageView.getStage().getRadioState(), RADIO_STATE_COLOR);
     myRadioChart.setHeightGap(0.4f);
 
     myComponent = new JPanel();
@@ -64,8 +63,6 @@ public class NetworkRadioView {
     myComponent.setBorder(MONITOR_BORDER);
 
     populateUI(myComponent);
-
-    stageView.getChoreographer().register(myRadioChart);
   }
 
   @NotNull
@@ -77,10 +74,12 @@ public class NetworkRadioView {
     JLabel label = new JLabel(LABEL);
     label.setVerticalAlignment(SwingConstants.TOP);
 
-    LegendComponent legend = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, Integer.MAX_VALUE);
-    legend.setLegendData(getLegendData());
+    LegendComponentModel legendModel = new LegendComponentModel(Integer.MAX_VALUE);
+    LegendComponent legend = new LegendComponent(legendModel);
+    // TODO: Fix these legends
+    //legendModel.setLegendData(getLegendData());
     // As legend doesn't change over time, it doesn't need to be in {@code Choreographer}}, so draw it by animating once.
-    legend.update(1);
+    legendModel.update(1);
 
     JPanel topPane = new JPanel(new BorderLayout());
     topPane.setOpaque(false);
@@ -93,8 +92,8 @@ public class NetworkRadioView {
   }
 
   @NotNull
-  private static List<LegendRenderData> getLegendData() {
-    List<LegendRenderData> legendData = new ArrayList<>();
+  private static List<LegendConfig> getLegendData() {
+    List<LegendConfig> legendConfig = new ArrayList<>();
     for (RadioState state : RadioState.values()) {
       if (state == RadioState.NONE) {
         continue;
@@ -104,9 +103,9 @@ public class NetworkRadioView {
         // consider removing this state entirely.
         continue;
       }
-      LegendRenderData renderData = new LegendRenderData(LegendRenderData.IconType.LINE, RADIO_STATE_COLOR.get(state), state.toString());
-      legendData.add(renderData);
+      LegendConfig renderData = new LegendConfig(LegendConfig.IconType.LINE, RADIO_STATE_COLOR.get(state), state.toString());
+      legendConfig.add(renderData);
     }
-    return legendData;
+    return legendConfig;
   }
 }

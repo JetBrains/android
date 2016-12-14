@@ -16,9 +16,7 @@
 package com.android.tools.adtui.imagediff;
 
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.model.DefaultDataSeries;
-import com.android.tools.adtui.model.EventAction;
-import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.*;
 
 import java.awt.*;
 import java.util.HashMap;
@@ -177,6 +175,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     private static final int ACTIVITY_GRAPH_HEIGHT = 31;
 
     protected StackedEventComponent myStackedEventComponent;
+    private StackedEventModel myStackedEventModel;
 
     private DefaultDataSeries<EventAction<EventAction.ActivityAction, String>> myData;
 
@@ -187,9 +186,10 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     @Override
     protected void setUp() {
       myData = new DefaultDataSeries<>();
-      myStackedEventComponent = new StackedEventComponent(new RangedSeries<>(myXRange, myData));
+      myStackedEventModel = new StackedEventModel(new RangedSeries<>(myXRange, myData));
+      myStackedEventComponent = new StackedEventComponent(myStackedEventModel);
       myContentPane.add(myStackedEventComponent, BorderLayout.CENTER);
-      myComponents.add(myStackedEventComponent);
+      myComponents.add(myStackedEventModel);
     }
 
     protected void setUpActivityComponent(int contentPaneHeight, float eventComponentLineThickness) {
@@ -256,7 +256,9 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
       KEYBOARD
     }
 
-    protected SimpleEventComponent mySimpleEventComponent;
+    protected SimpleEventComponent<ActionType> mySimpleEventComponent;
+
+    protected SimpleEventModel<ActionType> mySimpleEventModel;
 
     private DefaultDataSeries<EventAction<EventAction.Action, ActionType>> myData;
 
@@ -275,9 +277,10 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     @Override
     protected void setUp() {
       myData = new DefaultDataSeries<>();
-      mySimpleEventComponent = new SimpleEventComponent<>(new RangedSeries<>(myXRange, myData), MOCK_RENDERERS);
+      mySimpleEventModel = new SimpleEventModel<>(new RangedSeries<>(myXRange, myData));
+      mySimpleEventComponent = new SimpleEventComponent<>(mySimpleEventModel, MOCK_RENDERERS);
       myContentPane.add(mySimpleEventComponent, BorderLayout.CENTER);
-      myComponents.add(mySimpleEventComponent);
+      myComponents.add(mySimpleEventModel);
     }
 
     protected void performTap(long eventTime) {

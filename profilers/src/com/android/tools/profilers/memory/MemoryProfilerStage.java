@@ -15,8 +15,10 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.AspectModel;
-import com.android.tools.adtui.model.DataSeries;
+import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
+import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
+import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
@@ -24,6 +26,7 @@ import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.memory.adapters.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -31,12 +34,23 @@ import com.google.common.util.concurrent.MoreExecutors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 public class MemoryProfilerStage extends Stage {
+  private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 5, 5);
+  private static final BaseAxisFormatter OBJECT_COUNT_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 5, "");
+
+  private final LineChartModel myMemorySeries;
+  private final Range myMemoryYRange;
+  private final Range myObjectsYRange;
+  private final AxisComponentModel myMemoryAxis;
+  private final AxisComponentModel myObjectsAxis;
+  private final LegendComponentModel myLegends;
+
   private final int myProcessId;
 
   @NotNull
@@ -46,10 +60,10 @@ public class MemoryProfilerStage extends Stage {
   private final MemoryServiceBlockingStub myClient;
 
   @NotNull
-  private final HeapDumpSampleDataSeries myHeapDumpSampleDataSeries;
+  private final DurationDataModel<CaptureDurationData<HeapDumpCaptureObject>> myHeapDumpDurations;
 
   @NotNull
-  private final AllocationInfosDataSeries myAllocationInfosDataSeries;
+  private final DurationDataModel<CaptureDurationData<AllocationsCaptureObject>> myAllocationDurations;
 
   @NotNull
   private final CaptureObjectLoader myLoader;
@@ -58,6 +72,7 @@ public class MemoryProfilerStage extends Stage {
   private MemoryProfilerSelection mySelection;
 
   private boolean myAllocationStatus;
+  private EventMonitor myEventMonitor;
 
   public MemoryProfilerStage(@NotNull StudioProfilers profilers) {
     this(profilers, new CaptureObjectLoader());
@@ -68,24 +83,90 @@ public class MemoryProfilerStage extends Stage {
     super(profilers);
     myProcessId = profilers.getProcessId();
     myClient = profilers.getClient().getMemoryClient();
-    myHeapDumpSampleDataSeries = new HeapDumpSampleDataSeries(profilers.getClient().getMemoryClient(), profilers.getProcessId());
-    myAllocationInfosDataSeries = new AllocationInfosDataSeries(profilers.getClient().getMemoryClient(), profilers.getProcessId());
+    HeapDumpSampleDataSeries heapDumpSeries =
+      new HeapDumpSampleDataSeries(profilers.getClient().getMemoryClient(), profilers.getProcessId());
+    AllocationInfosDataSeries allocationSeries =
+      new AllocationInfosDataSeries(profilers.getClient().getMemoryClient(), profilers.getProcessId());
     myLoader = loader;
+
+    Range viewRange = profilers.getTimeline().getViewRange();
+    Range dataRange = profilers.getTimeline().getDataRange();
+
+    myHeapDumpDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, heapDumpSeries));
+    myAllocationDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, allocationSeries));
     mySelection = new MemoryProfilerSelection(this);
+
     myAllocationStatus = false;
+
+    myMemoryYRange = new Range(0, 0);
+    myObjectsYRange = new Range(0, 0);
+
+    MemoryMonitor monitor = new MemoryMonitor(profilers);
+    RangedContinuousSeries javaSeries = new RangedContinuousSeries("Java", viewRange, myMemoryYRange, monitor.getJavaMemory());
+    RangedContinuousSeries nativeSeries = new RangedContinuousSeries("Native", viewRange, myMemoryYRange, monitor.getNativeMemory());
+    RangedContinuousSeries graphcisSeries = new RangedContinuousSeries("Graphics", viewRange, myMemoryYRange, monitor.getGraphicsMemory());
+    RangedContinuousSeries stackSeries = new RangedContinuousSeries("Stack", viewRange, myMemoryYRange, monitor.getStackMemory());
+    RangedContinuousSeries codeSeries = new RangedContinuousSeries("Code", viewRange, myMemoryYRange, monitor.getCodeMemory());
+    RangedContinuousSeries otherSeries = new RangedContinuousSeries("Others", viewRange, myMemoryYRange, monitor.getOthersMemory());
+    RangedContinuousSeries totalSeries = new RangedContinuousSeries("Total", viewRange, myMemoryYRange, monitor.getTotalMemorySeries());
+    RangedContinuousSeries objectSeries = new RangedContinuousSeries("Allocated", viewRange, myObjectsYRange, monitor.getObjectCount());
+
+    myMemorySeries = new LineChartModel();
+    myMemorySeries.add(javaSeries);
+    myMemorySeries.add(nativeSeries);
+    myMemorySeries.add(graphcisSeries);
+    myMemorySeries.add(stackSeries);
+    myMemorySeries.add(codeSeries);
+    myMemorySeries.add(otherSeries);
+    myMemorySeries.add(totalSeries);
+    myMemorySeries.add(objectSeries);
+
+    myMemoryAxis = new AxisComponentModel(myMemoryYRange, MEMORY_AXIS_FORMATTER, AxisComponentModel.AxisOrientation.RIGHT);
+    myMemoryAxis.clampToMajorTicks(true);
+
+    myObjectsAxis = new AxisComponentModel(myObjectsYRange, OBJECT_COUNT_AXIS_FORMATTER, AxisComponentModel.AxisOrientation.LEFT);
+    myObjectsAxis.clampToMajorTicks(true);
+
+    myLegends = new LegendComponentModel(100);
+    ArrayList<LegendData> legendData = new ArrayList<>();
+    legendData.add(new LegendData(javaSeries, MEMORY_AXIS_FORMATTER, dataRange));
+    legendData.add(new LegendData(nativeSeries, MEMORY_AXIS_FORMATTER, dataRange));
+    legendData.add(new LegendData(graphcisSeries, MEMORY_AXIS_FORMATTER, dataRange));
+    legendData.add(new LegendData(stackSeries, MEMORY_AXIS_FORMATTER, dataRange));
+    legendData.add(new LegendData(codeSeries, MEMORY_AXIS_FORMATTER, dataRange));
+    legendData.add(new LegendData(otherSeries, MEMORY_AXIS_FORMATTER, dataRange));
+    legendData.add(new LegendData(totalSeries, MEMORY_AXIS_FORMATTER, dataRange));
+    legendData.add(new LegendData(objectSeries, OBJECT_COUNT_AXIS_FORMATTER, dataRange));
+    myLegends.setLegendData(legendData);
+
+    myEventMonitor = new EventMonitor(profilers);
+  }
+
+  public LineChartModel getMemorySeries() {
+    return myMemorySeries;
   }
 
   @Override
   public void enter() {
-    super.enter();
-
     myLoader.start();
+    myEventMonitor.enter();
+    getStudioProfilers().getUpdater().register(myMemorySeries);
+    getStudioProfilers().getUpdater().register(myHeapDumpDurations);
+    getStudioProfilers().getUpdater().register(myAllocationDurations);
+    getStudioProfilers().getUpdater().register(myMemoryAxis);
+    getStudioProfilers().getUpdater().register(myObjectsAxis);
+    getStudioProfilers().getUpdater().register(myLegends);
   }
 
   @Override
   public void exit() {
-    super.exit();
-
+    myEventMonitor.exit();
+    getStudioProfilers().getUpdater().unregister(myMemorySeries);
+    getStudioProfilers().getUpdater().unregister(myHeapDumpDurations);
+    getStudioProfilers().getUpdater().unregister(myAllocationDurations);
+    getStudioProfilers().getUpdater().unregister(myMemoryAxis);
+    getStudioProfilers().getUpdater().unregister(myObjectsAxis);
+    getStudioProfilers().getUpdater().unregister(myLegends);
     selectCapture(null, null);
     myLoader.stop();
   }
@@ -104,8 +185,8 @@ public class MemoryProfilerStage extends Stage {
     myClient.triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.newBuilder().setAppId(myProcessId).build());
   }
 
-  public DataSeries<CaptureDurationData<HeapDumpCaptureObject>> getHeapDumpSampleDurations() {
-    return myHeapDumpSampleDataSeries;
+  public DurationDataModel<CaptureDurationData<HeapDumpCaptureObject>> getHeapDumpSampleDurations() {
+    return myHeapDumpDurations;
   }
 
   /**
@@ -125,8 +206,8 @@ public class MemoryProfilerStage extends Stage {
   }
 
   @NotNull
-  public DataSeries<CaptureDurationData<AllocationsCaptureObject>> getAllocationInfosDurations() {
-    return myAllocationInfosDataSeries;
+  public DurationDataModel<CaptureDurationData<AllocationsCaptureObject>> getAllocationInfosDurations() {
+    return myAllocationDurations;
   }
 
   public void selectInstance(@Nullable InstanceObject instanceObject) {
@@ -191,5 +272,21 @@ public class MemoryProfilerStage extends Stage {
   @Nullable
   public CaptureObject getSelectedCapture() {
     return mySelection.getCaptureObject();
+  }
+
+  public AxisComponentModel getMemoryAxis() {
+    return myMemoryAxis;
+  }
+
+  public AxisComponentModel getObjectsAxis() {
+    return myObjectsAxis;
+  }
+
+  public LegendComponentModel getLegends() {
+    return myLegends;
+  }
+
+  public EventMonitor getEventMonitor() {
+    return myEventMonitor;
   }
 }

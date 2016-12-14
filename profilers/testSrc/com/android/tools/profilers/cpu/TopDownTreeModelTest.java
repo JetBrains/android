@@ -33,10 +33,8 @@ public class TopDownTreeModelTest {
     HNode<MethodModel> tree = TopDownNodeTest.createTree();
     TopDownNode topDown = new TopDownNode(tree);
 
-    TopDownTreeModel model = new TopDownTreeModel(topDown);
-
-    // The whole tree should be visible.
-    model.update(new Range(-Double.MAX_VALUE, Double.MAX_VALUE));
+    Range range = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
+    TopDownTreeModel model = new TopDownTreeModel(range, topDown);
 
     TreeNode root = (TreeNode)model.getRoot();
     assertEquals(":A", getId(root));
@@ -63,7 +61,7 @@ public class TopDownTreeModelTest {
     assertEquals(     0, getChildrenTotal(root, ":A", ":C", ":F"), 0);
 
     // Chop the tree to 0 - 10
-    model.update(new Range(0, 10));
+    range.set(0, 10);
     root = (TreeNode)model.getRoot();
     assertEquals(":A", getId(root));
     assertEquals(ImmutableSet.of(":B"), getChildrenIds(root));
@@ -82,7 +80,7 @@ public class TopDownTreeModelTest {
     assertEquals(     0, getChildrenTotal(root, ":A", ":B", ":E"), 0);
 
     // And now to 18, 25
-    model.update(new Range(8, 25));
+    range.set(8, 25);
     root = (TreeNode)model.getRoot();
     assertEquals(":A", getId(root));
     assertEquals(ImmutableSet.of(":B", ":C"), getChildrenIds(root));

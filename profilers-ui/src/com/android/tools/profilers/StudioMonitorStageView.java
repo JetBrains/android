@@ -46,8 +46,7 @@ public class StudioMonitorStageView extends StageView {
 
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
     // that attempts to read the same range instance.
-    ProfilerScrollbar sb = new ProfilerScrollbar(getChoreographer(), getTimeline(), getComponent());
-    getChoreographer().register(sb);
+    ProfilerScrollbar sb = new ProfilerScrollbar(getTimeline(), getComponent());
     getComponent().add(sb, BorderLayout.SOUTH);
 
     // Create a 2-row panel. First row, all monitors; second row, the timeline. This way, the
@@ -62,7 +61,7 @@ public class StudioMonitorStageView extends StageView {
     int rowIndex = 0;
     for (ProfilerMonitor monitor : stage.getMonitors()) {
       ProfilerMonitorView view = binder.build(profilersView, monitor);
-      JComponent component = view.initialize(getChoreographer());
+      JComponent component = view.initialize();
       int weight = (int)(view.getVerticalWeight() * 100f);
       layout.setRowSizing(rowIndex, (weight > 0) ? weight + "*" : "Fit");
       monitors.add(component, new TabularLayout.Constraint(rowIndex, 0));
@@ -71,8 +70,6 @@ public class StudioMonitorStageView extends StageView {
 
     StudioProfilers profilers = stage.getStudioProfilers();
     AxisComponent timeAxis = buildTimeAxis(profilers);
-
-    getChoreographer().register(timeAxis);
     topPanel.add(monitors, new TabularLayout.Constraint(0, 0));
     topPanel.add(timeAxis, new TabularLayout.Constraint(1, 0));
 

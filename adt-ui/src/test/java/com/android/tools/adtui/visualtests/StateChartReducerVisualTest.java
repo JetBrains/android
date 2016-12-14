@@ -18,9 +18,7 @@ package com.android.tools.adtui.visualtests;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.DefaultDataSeries;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.*;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,16 +53,18 @@ public class StateChartReducerVisualTest extends VisualTest {
   private int mySampleSize;
 
   @Override
-  protected List<Updatable> createComponentsList() {
+  protected List<Updatable> createModelList() {
     myViewRange = new Range();
     myData = new DefaultDataSeries<>();
     RangedSeries<ColorState> series = new RangedSeries<>(myViewRange, myData);
-    myColorChart = new StateChart<>(COLOR_STATE_COLORS, (rectangles, values) -> {});
-    myColorChart.addSeries(series);
+    StateChartModel<ColorState> model = new StateChartModel();
+    myColorChart = new StateChart<>(model, COLOR_STATE_COLORS, (rectangles, values) -> {});
+    model.addSeries(series);
 
-    myOptimizedColorChart = new StateChart<>(COLOR_STATE_COLORS);
-    myOptimizedColorChart.addSeries(series);
-    return Arrays.asList(myColorChart, myOptimizedColorChart);
+    StateChartModel<ColorState> optimizedModel = new StateChartModel<>();
+    myOptimizedColorChart = new StateChart<>(optimizedModel, COLOR_STATE_COLORS);
+    optimizedModel.addSeries(series);
+    return Arrays.asList(model, optimizedModel);
   }
 
   @Override

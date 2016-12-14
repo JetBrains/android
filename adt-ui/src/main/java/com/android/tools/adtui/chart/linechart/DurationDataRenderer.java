@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.chart.linechart;
 
-import com.android.tools.adtui.Updatable;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
 import com.intellij.util.containers.ImmutableList;
@@ -39,8 +38,7 @@ import static com.android.tools.adtui.model.DurationData.UNSPECIFIED_DURATION;
 /**
  * A custom renderer to support drawing {@link DurationData} over line charts
  */
-public final class DurationDataRenderer<E extends DurationData> implements Updatable, LineChartCustomRenderer {
-
+public final class DurationDataRenderer<E extends DurationData> implements LineChartCustomRenderer {
   /**
    * Percentage of screen dimension the icon+label for the DurationData will be offset.
    */
@@ -49,12 +47,12 @@ public final class DurationDataRenderer<E extends DurationData> implements Updat
   private static final int CLICK_REGION_DRAW_PADDING_X = 4;
   public static final int LABEL_ARCH_LENGTH = 7;
 
-  @NotNull private final RangedSeries<E> mySeries;
+  @NotNull private DurationDataModel<E> myModel;
+
   @NotNull private final Color myColor;
   private boolean myIsBlocking = false;
   @Nullable private Icon myIcon = null;
   @Nullable private Stroke myStroke = null;
-  @Nullable private RangedContinuousSeries myAttachedLineSeries = null;
   @Nullable private Function<E, String> myTooltipProvider = null;
   @Nullable private Function<E, String> myLabelProvider = null;
   @Nullable private Consumer<E> myClickHandler = null;
@@ -77,13 +75,12 @@ public final class DurationDataRenderer<E extends DurationData> implements Updat
   private Point myMousePosition;
   private boolean myClick;
 
-  public DurationDataRenderer(@NotNull Builder builder) {
-    mySeries = builder.mySeries;
+  public DurationDataRenderer(@NotNull DurationDataModel<E> model, @NotNull Builder builder) {
+    myModel = model;
     myColor = builder.myColor;
     myIsBlocking = builder.myIsBlocking;
     myIcon = builder.myIcon;
     myStroke = builder.myStroke;
-    myAttachedLineSeries = builder.myAttachedLineSeries;
     myTooltipProvider = builder.myTooltipProvider;
     myLabelProvider = builder.myLabelProvider;
     myClickHandler = builder.myClickHandler;
@@ -91,26 +88,24 @@ public final class DurationDataRenderer<E extends DurationData> implements Updat
     myLabelHoveredBgColor = builder.myLabelHoveredBgColor;
     myLabelClickedBgColor = builder.myLabelClickedBgColor;
     myLabelTextColor = builder.myLabelTextColor;
+
+    myModel.addDependency().onChange(DurationDataModel.Aspect.DURATION_DATA, this::modelChanged);
   }
 
-  @Override
-  public void update(float elapsed) {
-    // No-op - do everything in postAnimate in case we are attaching to a line series which needs to perform logic in its animate first.
-  }
-
-  @Override
-  public void postUpdate() {
+  private void modelChanged() {
     // Generate the rectangle regions for the duration data series
     myDataCache.clear();
     myClickRegionCache.clear();
     myPathCache.clear();
     myLabelCache.clear();
 
-    double xMin = mySeries.getXRange().getMin();
-    double xMax = mySeries.getXRange().getMax();
-    double xLength = mySeries.getXRange().getLength();
-    ImmutableList<SeriesData<E>> seriesList = mySeries.getSeries();
-    ImmutableList<SeriesData<Long>> attachedSeriesList = myAttachedLineSeries != null ? myAttachedLineSeries.getSeries() : null;
+    RangedSeries<E> series = myModel.getSeries();
+    RangedContinuousSeries attached = myModel.getAttachedSeries();
+    double xMin = series.getXRange().getMin();
+    double xMax = series.getXRange().getMax();
+    double xLength = series.getXRange().getLength();
+    ImmutableList<SeriesData<E>> seriesList = series.getSeries();
+    ImmutableList<SeriesData<Long>> attachedSeriesList = attached != null ? attached.getSeries() : null;
     int j = 0;
     float attachY = 1;
     for (int i = 0; i < seriesList.size(); i++) {
@@ -128,8 +123,8 @@ public final class DurationDataRenderer<E extends DurationData> implements Updat
       // If the DurationData series is attached to a line series, finds the Y value on the line series closest to the current DurationData.
       // This will be used as the y position to draw the icon +/ label.
       if (attachedSeriesList != null) {
-        double yMin = myAttachedLineSeries.getYRange().getMin();
-        double yMax = myAttachedLineSeries.getYRange().getMax();
+        double yMin = attached.getYRange().getMin();
+        double yMax = attached.getYRange().getMax();
         for (; j < attachedSeriesList.size(); j++) {
           SeriesData<Long> seriesData = attachedSeriesList.get(j);
           double attachXStart = (seriesData.x - xMin) / (xMax - xMin);
@@ -283,7 +278,7 @@ public final class DurationDataRenderer<E extends DurationData> implements Updat
 
   public static class Builder<E extends DurationData> {
     // Required
-    @NotNull private final RangedSeries<E> mySeries;
+    @NotNull private final DurationDataModel<E> myModel;
     @NotNull private final Color myColor;
 
     // Optional
@@ -300,8 +295,8 @@ public final class DurationDataRenderer<E extends DurationData> implements Updat
     @Nullable private Color myLabelClickedBgColor = null;
     @Nullable private Color myLabelTextColor = null;
 
-    public Builder(@NotNull RangedSeries<E> series, @NotNull Color color) {
-      mySeries = series;
+    public Builder(@NotNull DurationDataModel<E> model, @NotNull Color color) {
+      myModel = model;
       myColor = color;
     }
 
@@ -375,7 +370,7 @@ public final class DurationDataRenderer<E extends DurationData> implements Updat
 
     @NotNull
     public DurationDataRenderer<E> build() {
-      return new DurationDataRenderer<>(this);
+      return new DurationDataRenderer<>(myModel, this);
     }
   }
 }

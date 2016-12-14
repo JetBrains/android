@@ -17,10 +17,8 @@
 package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
-import com.android.tools.adtui.model.DefaultDataSeries;
-import com.android.tools.adtui.model.EventAction;
-import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -56,7 +54,7 @@ public class EventVisualTest extends VisualTest {
 
   private ArrayList<MockActivity> myOpenActivities;
 
-  private SimpleEventComponent mySimpleEventComponent;
+  private SimpleEventComponent<ActionType> mySimpleEventComponent;
 
   private StackedEventComponent myStackedEventComponent;
 
@@ -70,33 +68,40 @@ public class EventVisualTest extends VisualTest {
 
   private AnimatedTimeRange myTimelineRange;
 
+  private AxisComponentModel myTimeAxisModel;
+
+  private SimpleEventModel<ActionType> mySimpleEventModel;
+  private StackedEventModel myStackedEventModel;
+
 
   @Override
-  protected List<Updatable> createComponentsList() {
+  protected List<Updatable> createModelList() {
     long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     AnimatedRange xRange = new AnimatedRange(nowUs, nowUs + TimeUnit.SECONDS.toMicros(60));
     AnimatedRange xTimelineRange = new AnimatedRange(0, 0);
 
     myData = new DefaultDataSeries<>();
     myActivityData = new DefaultDataSeries<>();
-    mySimpleEventComponent = new SimpleEventComponent<>(new RangedSeries<>(xRange, myData), MOCK_RENDERERS);
-    myStackedEventComponent = new StackedEventComponent(new RangedSeries<>(xRange, myActivityData));
+    mySimpleEventModel = new SimpleEventModel<>(new RangedSeries<>(xRange, myData));
+    mySimpleEventComponent = new SimpleEventComponent<>(mySimpleEventModel, MOCK_RENDERERS);
+    myStackedEventModel = new StackedEventModel(new RangedSeries<>(xRange, myActivityData));
+    myStackedEventComponent = new StackedEventComponent(myStackedEventModel);
     myAnimatedRange = new AnimatedTimeRange(xRange, 0);
     myTimelineRange = new AnimatedTimeRange(xTimelineRange, nowUs);
     myOpenActivities = new ArrayList<>();
 
     // add horizontal time axis
-    AxisComponent.Builder builder = new AxisComponent.Builder(xTimelineRange, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM);
-    myTimeAxis = builder.build();
+    myTimeAxisModel = new AxisComponentModel(xTimelineRange, TimeAxisFormatter.DEFAULT, AxisComponentModel.AxisOrientation.BOTTOM);
+    myTimeAxis = new AxisComponent(myTimeAxisModel);
     List<Updatable> componentsList = new ArrayList<>();
     // Add the scene components to the list
     componentsList.add(xRange);
     componentsList.add(xTimelineRange);
     componentsList.add(myAnimatedRange);
     componentsList.add(myTimelineRange);
-    componentsList.add(myTimeAxis);
-    componentsList.add(mySimpleEventComponent);
-    componentsList.add(myStackedEventComponent);
+    componentsList.add(myTimeAxisModel);
+    componentsList.add(mySimpleEventModel);
+    componentsList.add(myStackedEventModel);
     return componentsList;
   }
 
@@ -193,7 +198,7 @@ public class EventVisualTest extends VisualTest {
           for (Component c : host.getComponents()) {
             if (c instanceof AxisComponent) {
               AxisComponent axis = (AxisComponent)c;
-              switch (axis.getOrientation()) {
+              switch (axis.getModel().getOrientation()) {
                 case LEFT:
                   axis.setBounds(0, 0, AXIS_SIZE, dim.height);
                   break;

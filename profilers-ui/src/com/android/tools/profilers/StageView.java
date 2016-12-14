@@ -16,9 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
-import com.android.tools.profilers.timeline.AnimatedTimeline;
+import com.android.tools.adtui.model.AxisComponentModel;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +25,6 @@ import java.awt.*;
 
 public abstract class StageView<T extends Stage> {
   private final T myStage;
-  private final Choreographer myChoreographer;
   private final JPanel myComponent;
   private final StudioProfilersView myProfilersView;
 
@@ -36,10 +33,6 @@ public abstract class StageView<T extends Stage> {
     myStage = stage;
     myComponent = new JBPanel(new BorderLayout());
     myComponent.setBackground(ProfilerColors.MONITOR_BACKGROUND);
-    myChoreographer = new Choreographer(myComponent);
-    // Modifications to the view range should happen at the very beginning of each animation loop to ensure all animatables have access
-    // to the same start/end time.
-    myChoreographer.register(new AnimatedTimeline(getTimeline()));
   }
 
   @NotNull
@@ -68,26 +61,16 @@ public abstract class StageView<T extends Stage> {
   }
 
   @NotNull
-  public final Choreographer getChoreographer() {
-    return myChoreographer;
-  }
-
-  @NotNull
   public final ProfilerTimeline getTimeline() {
     return myStage.getStudioProfilers().getTimeline();
   }
 
-  public void exit() {
-    myChoreographer.stop();
-  }
-
   @NotNull
   protected AxisComponent buildTimeAxis(StudioProfilers profilers) {
-    AxisComponent.Builder builder = new AxisComponent.Builder(profilers.getTimeline().getViewRange(), TimeAxisFormatter.DEFAULT,
-                                                              AxisComponent.AxisOrientation.BOTTOM);
-    builder.setGlobalRange(profilers.getDataRange()).showAxisLine(false)
-      .setOffset(profilers.getDeviceStartUs());
-    AxisComponent timeAxis = builder.build();
+    AxisComponentModel axisModel = profilers.getViewAxis();
+
+    AxisComponent timeAxis = new AxisComponent(axisModel);
+    timeAxis.setShowAxisLine(false);
     timeAxis.setMinimumSize(new Dimension(0, ProfilerLayout.TIME_AXIS_HEIGHT));
     timeAxis.setPreferredSize(new Dimension(Integer.MAX_VALUE, ProfilerLayout.TIME_AXIS_HEIGHT));
     return timeAxis;

@@ -40,6 +40,12 @@ public class StudioMonitorStage extends Stage {
         myMonitors.add(profiler.newMonitor());
       }
     }
+    myMonitors.forEach(ProfilerMonitor::enter);
+  }
+
+  @Override
+  public void exit() {
+    myMonitors.forEach(ProfilerMonitor::exit);
   }
 
   @Override

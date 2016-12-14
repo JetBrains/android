@@ -28,7 +28,6 @@ public class MemoryProfilerStageViewFake extends MemoryProfilerStageView {
   }
 
   @NotNull
-  @Override
   protected JComponent createEventMonitor(@NotNull StudioProfilers profilers) {
     return new JPanel();
   }

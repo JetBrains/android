@@ -32,11 +32,9 @@ public abstract class Stage {
     return myProfilers;
   }
 
-  public void enter() {
-  }
+  abstract public void enter();
 
-  public void exit() {
-  }
+  abstract public void exit();
 
   abstract public ProfilerMode getProfilerMode();
 }

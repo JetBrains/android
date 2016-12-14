@@ -15,15 +15,41 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
+
 public class CpuMonitor extends ProfilerMonitor {
+
+  private static final SingleUnitAxisFormatter CPU_USAGE_FORMATTER = new SingleUnitAxisFormatter(1, 2, 10, "%");
+
+  private final LineChartModel myThisProcessCpuUsage;
+  private final AxisComponentModel myCpuUsageAxis;
+  private final LegendComponentModel myLegends;
 
   public CpuMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
+
+    Range viewRange = profilers.getTimeline().getViewRange();
+    Range dataRange = profilers.getTimeline().getDataRange();
+
+    // Cpu usage is shown as percentages (e.g. 0 - 100) and no range animation is needed.
+    Range leftYRange = new Range(0, 100);
+
+    myThisProcessCpuUsage = new LineChartModel();
+    RangedContinuousSeries cpuSeries = new RangedContinuousSeries("CPU", viewRange, leftYRange, getThisProcessCpuUsageSeries());
+    myThisProcessCpuUsage.add(cpuSeries);
+
+    myCpuUsageAxis = new AxisComponentModel(leftYRange, CPU_USAGE_FORMATTER, AxisComponentModel.AxisOrientation.RIGHT);
+    myCpuUsageAxis.clampToMajorTicks(true);
+
+    myLegends = new LegendComponentModel(100);
+    myLegends.setLegendData(Collections.singletonList(new LegendData(cpuSeries, CPU_USAGE_FORMATTER, dataRange)));
   }
 
   @NotNull
@@ -33,7 +59,7 @@ public class CpuMonitor extends ProfilerMonitor {
   }
 
   @NotNull
-  public CpuUsageDataSeries getThisProcessCpuUsage() {
+  public CpuUsageDataSeries getThisProcessCpuUsageSeries() {
     return getCpuUsage(false);
   }
 
@@ -47,12 +73,36 @@ public class CpuMonitor extends ProfilerMonitor {
     return new CpuThreadCountDataSeries(myProfilers.getClient().getCpuClient(), myProfilers.getProcessId());
   }
 
+  public LineChartModel getThisProcessCpuUsage() {
+    return myThisProcessCpuUsage;
+  }
+
   @Override
   public String getName() {
     return "CPU";
   }
 
+  @Override
+  public void exit() {
+
+  }
+
+  @Override
+  public void enter() {
+    myProfilers.getUpdater().register(myThisProcessCpuUsage);
+    myProfilers.getUpdater().register(myCpuUsageAxis);
+    myProfilers.getUpdater().register(myLegends);
+  }
+
   public void expand() {
     myProfilers.setStage(new CpuProfilerStage(myProfilers));
+  }
+
+  public AxisComponentModel getCpuUsageAxis() {
+    return myCpuUsageAxis;
+  }
+
+  public LegendComponentModel getLegends() {
+    return myLegends;
   }
 }

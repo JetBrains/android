@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.timeline;
 
-import com.android.tools.adtui.Updatable;
+import com.android.tools.adtui.model.Updatable;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.ProfilerTimeline;
@@ -61,10 +61,10 @@ public final class AnimatedPan implements Updatable {
 
   @Override
   public void update(float elapsed) {
-    if (myRemainingDeltaUs == 0) {
-      myChoreographer.unregister(this);
-      return;
-    }
+    //if (myRemainingDeltaUs == 0) {
+    //  myChoreographer.unregister(this);
+    //  return;
+    //}
 
     // Calculate the total amount of delta to pan, snaps if the delta is less than a certain threshold.
     double deltaUs = Choreographer.lerp(myRemainingDeltaUs, 0, PAN_LERP_FRACTION, elapsed);
