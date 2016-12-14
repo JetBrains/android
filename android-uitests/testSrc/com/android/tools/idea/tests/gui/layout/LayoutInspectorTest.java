@@ -62,7 +62,7 @@ public class LayoutInspectorTest {
     avdEditWizard.getChooseSystemImageStep().selectTab("x86 Images").selectSystemImage("Nougat", "24", "x86", "Android 7.0");
     avdEditWizard.clickNext();
 
-    avdEditWizard.getConfigureAvdOptionsStep().setAvdName(AVD_NAME);
+    avdEditWizard.getConfigureAvdOptionsStep().setAvdName(AVD_NAME).selectGraphicsSoftware();
     avdEditWizard.clickFinish();
     avdManagerDialog.close();
   }
