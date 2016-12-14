@@ -101,7 +101,7 @@ public class HttpDataTest {
   @Test
   public void urlNameParsedProperlyWithEmptyPath() {
     String urlString = "https://www.google.com";
-    assertThat(HttpData.getUrlName(urlString), equalTo(""));
+    assertThat(HttpData.getUrlName(urlString), equalTo("www.google.com"));
   }
 
   @Test
@@ -115,6 +115,15 @@ public class HttpDataTest {
     assertThat(HttpData.getUrlName(singleEncoded), equalTo("test test"));
     String tripleEncoded = "https://www.google.com/test%252520test";
     assertThat(HttpData.getUrlName(tripleEncoded), equalTo("test test"));
+  }
+
+  @Test
+  public void urlReturnedAsIsIfUnableToDecode() {
+    String url = "https://www.google.com/test%25-2test";
+    // Tries 2 times url decoding:
+    // 1. test%25-2test -> test%-2test
+    // 2. test%-2test -> can't decode -2 so throws an exception
+    assertEquals("test%-2test", HttpData.getUrlName(url));
   }
 
   @Test
