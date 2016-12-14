@@ -93,7 +93,11 @@ public class GoogleCrash implements CrashReporter {
   static final String KEY_VERSION = "version";
   static final String KEY_EXCEPTION_INFO = "exception_info";
 
+  // We allow reporting a max of 1 crash per 5 minutes
+  private static final double MAX_CRASHES_PER_SEC = 1.0d / (5 * 60d);
+
   private final String myCrashUrl;
+  private final UploadRateLimiter myRateLimiter;
 
   @Nullable
   private static String getAnonymizedUid() {
@@ -110,17 +114,32 @@ public class GoogleCrash implements CrashReporter {
   }
 
   GoogleCrash() {
-    this(CRASH_URL);
+    this(CRASH_URL, UploadRateLimiter.create(MAX_CRASHES_PER_SEC));
   }
 
   @VisibleForTesting
-  GoogleCrash(@NotNull String crashUrl) {
+  GoogleCrash(@NotNull String crashUrl, @NotNull UploadRateLimiter rateLimiter) {
     myCrashUrl = crashUrl;
+    myRateLimiter = rateLimiter;
   }
 
   @Override
   @NotNull
   public CompletableFuture<String> submit(@NotNull CrashReport report) {
+    return submit(report, false);
+  }
+
+  @Override
+  @NotNull
+  public CompletableFuture<String> submit(@NotNull CrashReport report, boolean userReported) {
+    if (!userReported) { // all non user reported crash events are rate limited on the client side
+      if (!myRateLimiter.tryAcquire()) {
+        CompletableFuture<String> f = new CompletableFuture<>();
+        f.completeExceptionally(new RuntimeException("Exceeded Quota of crashes that can be reported"));
+        return f;
+      }
+    }
+
     Map<String, String> parameters = getDefaultParameters();
     if (report.version != null) {
       parameters.put(KEY_VERSION, report.version);
