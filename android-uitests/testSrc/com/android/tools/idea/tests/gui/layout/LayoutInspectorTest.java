@@ -56,7 +56,7 @@ public class LayoutInspectorTest {
     avdEditWizard.getChooseSystemImageStep().selectTab("x86 Images").selectSystemImage("KitKat", "19", "x86", "Android 4.4");
     avdEditWizard.clickNext();
 
-    avdEditWizard.getConfigureAvdOptionsStep().setAvdName(AVD_NAME);
+    avdEditWizard.getConfigureAvdOptionsStep().setAvdName(AVD_NAME).selectGraphicsSoftware();
     avdEditWizard.clickFinish();
     avdManagerDialog.close();
   }
