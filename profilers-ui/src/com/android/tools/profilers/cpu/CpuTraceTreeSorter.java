@@ -16,8 +16,6 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
-import com.android.tools.adtui.model.RangedTreeModel;
-import com.intellij.codeInspection.ui.OptionAccessor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

@@ -13,22 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.common.formatter;
+package com.android.tools.adtui.model.formatter;
 
 import gnu.trove.TIntArrayList;
 import org.jetbrains.annotations.NotNull;
 
-public class EnergyAxisFormatter extends BaseAxisFormatter {
-  public static final EnergyAxisFormatter SIMPLE = new EnergyAxisFormatter(1, 5, 10);
-  public static final EnergyAxisFormatter DETAILED = new EnergyAxisFormatter(2, 5, 10);
+public final class NetworkTrafficFormatter extends BaseAxisFormatter {
+  private static final int MULTIPLIER = 1024;
+  private static final int BASE = 2;
+  private static final int[] MIN_INTERVALS = new int[]{4, 1, 1};    // 4 B/S, 1 KB/S, 1 MB/S
+  private static String[] UNITS = new String[]{"B/S", "KB/S", "MB/S"};
+  private static final TIntArrayList BASE_FACTORS = new TIntArrayList(new int[]{2, 1});
 
-  private static final int BASE = 10;
-  private static final int MULTIPLIER = 1000;
-  private static final int[] MIN_INTERVALS = new int[]{1, 1, 1};
-  private static String[] UNITS = new String[]{"uAh", "mAh", "Ah"};
-  private static final TIntArrayList BASE_FACTORS = new TIntArrayList(new int[]{1, 2, 5, 10});
+  public static final NetworkTrafficFormatter DEFAULT = new NetworkTrafficFormatter(4, 10, 2);
 
-  private EnergyAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
+  public NetworkTrafficFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
     super(maxMinorTicks, maxMajorTicks, switchThreshold);
   }
 
@@ -37,8 +36,8 @@ public class EnergyAxisFormatter extends BaseAxisFormatter {
     return UNITS.length;
   }
 
-  @NotNull
   @Override
+  @NotNull
   protected String getUnit(int index) {
     return UNITS[index];
   }
@@ -58,8 +57,8 @@ public class EnergyAxisFormatter extends BaseAxisFormatter {
     return MIN_INTERVALS[index];
   }
 
-  @NotNull
   @Override
+  @NotNull
   protected TIntArrayList getUnitBaseFactors(int index) {
     return BASE_FACTORS;
   }

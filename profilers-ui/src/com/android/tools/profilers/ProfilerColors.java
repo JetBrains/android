@@ -38,6 +38,8 @@ public class ProfilerColors {
     new ImmutableMap.Builder<CpuProfilerStage.ThreadState, Color>()
       .put(CpuProfilerStage.ThreadState.RUNNING, CPU_USAGE)
       .put(CpuProfilerStage.ThreadState.RUNNING_CAPTURED, new JBColor(0x428360, 0x61DBA2))
+      .put(CpuProfilerStage.ThreadState.WAITING, new JBColor(0x834537, 0xDB4657))
+      .put(CpuProfilerStage.ThreadState.WAITING_CAPTURED, new JBColor(0x832933, 0xA23440))
       .put(CpuProfilerStage.ThreadState.SLEEPING, new JBColor(0xEDEFF1, 0x3B3E42))
       .put(CpuProfilerStage.ThreadState.SLEEPING_CAPTURED, new JBColor(0xAAAAAA, 0x4D5054))
       .put(CpuProfilerStage.ThreadState.DEAD, Gray.TRANSPARENT)

@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.Updatable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
@@ -23,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * A helper object that manages the current view and selection ranges for the Studio Profilers.
  */
-public final class ProfilerTimeline {
+public final class ProfilerTimeline implements Updatable {
 
   private static final long DEFAULT_VIEW_LENGTH_US = TimeUnit.SECONDS.toMicros(30);
   private static final long DEFAULT_BUFFER_US = TimeUnit.SECONDS.toMicros(1);
@@ -119,5 +120,28 @@ public final class ProfilerTimeline {
 
   public void selectAll() {
     mySelectionRangeUs.set(myViewRangeUs);
+  }
+
+  @Override
+  public void update(float elapsed) {
+    if (!myStreaming) {
+      return;
+    }
+
+    // Advances time by frameLength (up to current data max - buffer)
+    float frameLengthUs = elapsed * TimeUnit.SECONDS.toMicros(1);
+    double viewMaxUs = myViewRangeUs.getMax();
+    double deltaUs = clampToDataRange(viewMaxUs + frameLengthUs) - viewMaxUs;
+    myViewRangeUs.shift(deltaUs);
+  }
+
+  public void zoom(double deltaUs, double anchor) {
+//    AnimatedZoom zoom = new AnimatedZoom(choreographer, myTimeline, deltaUs, anchor);
+    // DO NOT SUBMIT TODO: ZOOM
+  }
+
+  public void pan(double us) {
+//    AnimatedPan pan = new AnimatedPan(choreographer, myTimeline, deltaUs);
+    // DO NOT SUBMIT TODO: PAN
   }
 }

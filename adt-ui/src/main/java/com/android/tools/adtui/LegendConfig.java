@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui;
 
+import com.android.tools.adtui.chart.linechart.LineConfig;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -22,7 +23,7 @@ import java.awt.*;
 /**
  * Class to store all the render data needed to render a legend.
  */
-public class LegendRenderData {
+public class LegendConfig {
 
   public enum IconType {
     NONE,
@@ -37,9 +38,6 @@ public class LegendRenderData {
   @NotNull
   private final IconType mIcon;
 
-  @NotNull
-  private final String mLabel;
-  
   /**
    * Render data to be used when rendering the legend.
    *
@@ -47,14 +45,21 @@ public class LegendRenderData {
    * @param color  The color of the icon to be associated with the elements in the chart.
    * @param label  The label to be drawn.
    */
-  public LegendRenderData(@NotNull IconType icon, @NotNull Color color, @NotNull String label) {
+  public LegendConfig(@NotNull IconType icon, @NotNull Color color, @NotNull String label) {
     mColor = color;
     mIcon = icon;
-    mLabel = label;
   }
 
-  public String getLabel() {
-    return mLabel;
+  public LegendConfig(@NotNull LineConfig config) {
+    mColor = config.getColor();
+    IconType icon = config.getLegendIconType();
+    // Use a default icon type for the line in case there is no icon set in line config.
+    // TODO: use LegendRenderData.IconType.DOTTED_LINE for dashed lines
+    if (icon == null) {
+      mIcon = config.isFilled() ? LegendConfig.IconType.BOX : LegendConfig.IconType.LINE;
+    } else {
+      mIcon = icon;
+    }
   }
 
   public Color getColor() {
@@ -63,16 +68,5 @@ public class LegendRenderData {
 
   public IconType getIcon() {
     return mIcon;
-  }
-
-  /**
-   * Whether the legend has data to display with the legend.
-   */
-  public boolean hasData() {
-    return false;
-  }
-
-  public String getFormattedData() {
-    return "";
   }
 }

@@ -38,10 +38,12 @@ public class CpuThreadsModelTest {
   public TestGrpcChannel myGrpcChannel = new TestGrpcChannel("CpuThreadsModelTest", new FakeCpuService());
 
   private CpuThreadsModel myThreadsModel;
+  private Range myRange;
 
   @Before
   public void setUp() {
-    myThreadsModel = new CpuThreadsModel(new CpuProfilerStage(myGrpcChannel.getProfilers()), 42 /* Any process id */);
+    myRange = new Range();
+    myThreadsModel = new CpuThreadsModel(myRange, new CpuProfilerStage(myGrpcChannel.getProfilers()), 42 /* Any process id */);
   }
 
   @Test
@@ -50,7 +52,7 @@ public class CpuThreadsModelTest {
     assertEquals(0, myThreadsModel.getSize());
 
     // Updates to a range with only one thread.
-    myThreadsModel.update(new Range(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(5)));
+    myRange.set(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(5));
     assertEquals(1, myThreadsModel.getSize());
 
     CpuThreadsModel.RangedCpuThread thread1 = myThreadsModel.get(0);
@@ -59,7 +61,7 @@ public class CpuThreadsModelTest {
     assertEquals("Thread 1", thread1.getName());
 
     // Updates to a range with two threads.
-    myThreadsModel.update(new Range(TimeUnit.SECONDS.toMicros(5), TimeUnit.SECONDS.toMicros(10)));
+    myRange.set(TimeUnit.SECONDS.toMicros(5), TimeUnit.SECONDS.toMicros(10));
     assertEquals(2, myThreadsModel.getSize());
 
     thread1 = myThreadsModel.get(0);
@@ -73,7 +75,7 @@ public class CpuThreadsModelTest {
     assertEquals("Thread 2", thread2.getName());
 
     // Updates to a range with only one alive thread.
-    myThreadsModel.update(new Range(TimeUnit.SECONDS.toMicros(10), TimeUnit.SECONDS.toMicros(15)));
+    myRange.set(TimeUnit.SECONDS.toMicros(10), TimeUnit.SECONDS.toMicros(15));
     assertEquals(1, myThreadsModel.getSize());
 
     thread2 = myThreadsModel.get(0);
@@ -82,7 +84,7 @@ public class CpuThreadsModelTest {
     assertEquals("Thread 2", thread2.getName());
 
     // Updates (now backwards) to a range with only one alive thread.
-    myThreadsModel.update(new Range(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(5)));
+    myRange.set(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(5));
     assertEquals(1, myThreadsModel.getSize());
 
     thread1 = myThreadsModel.get(0);
@@ -91,7 +93,7 @@ public class CpuThreadsModelTest {
     assertEquals("Thread 1", thread1.getName());
 
     // Updates to a range with no alive threads.
-    myThreadsModel.update(new Range(TimeUnit.SECONDS.toMicros(16), TimeUnit.SECONDS.toMicros(25)));
+    myRange.set(TimeUnit.SECONDS.toMicros(16), TimeUnit.SECONDS.toMicros(25));
     assertEquals(0, myThreadsModel.getSize());
   }
 

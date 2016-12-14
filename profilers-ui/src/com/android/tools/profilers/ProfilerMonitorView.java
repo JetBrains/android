@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.Choreographer;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -45,13 +44,13 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> {
     return myProfilersView;
   }
 
-  public final JComponent initialize(@NotNull Choreographer choreographer) {
+  public final JComponent initialize() {
     JPanel container = new JBPanel();
     container.setOpaque(true);
     container.setBackground(ProfilerColors.MONITOR_BACKGROUND);
     container.setBorder(ProfilerLayout.MONITOR_BORDER);
     container.setMinimumSize(new Dimension(0, MINIMUM_MONITOR_HEIGHT));
-    populateUi(container, choreographer);
+    populateUi(container);
     return container;
   }
 
@@ -62,5 +61,5 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> {
     return 1f;
   }
 
-  abstract protected void populateUi(JPanel container, Choreographer choreographer);
+  abstract protected void populateUi(JPanel container);
 }

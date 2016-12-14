@@ -18,13 +18,11 @@ package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.chart.linechart.LineConfig;
-import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
-import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
-import com.android.tools.adtui.model.LongDataSeries;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.*;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.containers.ImmutableList;
@@ -68,19 +66,23 @@ public class AxisLineChartVisualTest extends VisualTest {
 
   private AxisComponent mTimeAxis;
 
-  private GridComponent mGrid;
-
   private SelectionComponent mSelection;
 
   private RangeScrollbar mScrollbar;
 
   private LegendComponent mLegendComponent;
+  private LineChartModel mLineChartModel;
+  private AxisComponentModel mTimeAxisModel;
+  private AxisComponentModel mMemoryAxisModel1;
+  private AxisComponentModel mMemoryAxisModel2;
+  private LegendComponentModel mLegendComponentModel;
 
   @Override
-  protected List<Updatable> createComponentsList() {
+  protected List<Updatable> createModelList() {
     mRangedData = new ArrayList<>();
     mData = new ArrayList<>();
-    mLineChart = new LineChart();
+    mLineChartModel = new LineChartModel();
+    mLineChart = new LineChart(mLineChartModel);
 
     mStartTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     final Range timeCurrentRangeUs = new Range(0, 0);
@@ -89,18 +91,20 @@ public class AxisLineChartVisualTest extends VisualTest {
     mScrollbar = new RangeScrollbar(mTimeGlobalRangeUs, timeCurrentRangeUs);
 
     // add horizontal time axis
-    AxisComponent.Builder builder = new AxisComponent.Builder(timeCurrentRangeUs, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM)
-      .setGlobalRange(mTimeGlobalRangeUs).setMargins(AXIS_SIZE, AXIS_SIZE);
-    mTimeAxis = builder.build();
+    mTimeAxisModel = new AxisComponentModel(timeCurrentRangeUs, TimeAxisFormatter.DEFAULT, AxisComponentModel.AxisOrientation.BOTTOM);
+    mTimeAxisModel.setGlobalRange(mTimeGlobalRangeUs);
+
+    mTimeAxis = new AxisComponent(mTimeAxisModel);
+    mTimeAxis.setMargins(AXIS_SIZE, AXIS_SIZE);
 
     // left memory data + axis
     Range yRange1Animatable = new Range(0, 100);
-    builder = new AxisComponent.Builder(yRange1Animatable, MemoryAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.LEFT)
-      .setLabel(SERIES1_LABEL)
-      .showMax(true)
-      .showUnitAtMax(true)
-      .setMargins(AXIS_SIZE, AXIS_SIZE);
-    mMemoryAxis1 = builder.build();
+    mMemoryAxisModel1 = new AxisComponentModel(yRange1Animatable, MemoryAxisFormatter.DEFAULT, AxisComponentModel.AxisOrientation.LEFT);
+    mMemoryAxisModel1.setLabel(SERIES1_LABEL);
+    mMemoryAxis1 = new AxisComponent(mMemoryAxisModel1);
+    mMemoryAxis1.setShowMax(true);
+    mMemoryAxis1.setShowUnitAtMax(true);
+    mMemoryAxis1.setMargins(AXIS_SIZE, AXIS_SIZE);
 
     LongDataSeries series1 = new LongDataSeries();
     RangedContinuousSeries ranged1 = new RangedContinuousSeries(SERIES1_LABEL, timeCurrentRangeUs, yRange1Animatable, series1);
@@ -109,54 +113,50 @@ public class AxisLineChartVisualTest extends VisualTest {
 
     // right memory data + axis
     Range yRange2Animatable = new Range(0, 100);
-    builder = new AxisComponent.Builder(yRange2Animatable, MemoryAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.RIGHT)
-      .setLabel(SERIES2_LABEL)
-      .showMax(true)
-      .showUnitAtMax(true)
-      .setMargins(AXIS_SIZE, AXIS_SIZE);
-    mMemoryAxis2 = builder.build();
+    mMemoryAxisModel2 = new AxisComponentModel(yRange2Animatable, MemoryAxisFormatter.DEFAULT, AxisComponentModel.AxisOrientation.RIGHT);
+    mMemoryAxisModel2.setLabel(SERIES2_LABEL);
+    mMemoryAxis2 = new AxisComponent(mMemoryAxisModel2);
+    mMemoryAxis2.setShowMax(true);
+    mMemoryAxis2.setShowUnitAtMax(true);
+    mMemoryAxis2.setMargins(AXIS_SIZE, AXIS_SIZE);
 
     LongDataSeries series2 = new LongDataSeries();
     RangedContinuousSeries ranged2 = new RangedContinuousSeries(SERIES2_LABEL, timeCurrentRangeUs, yRange2Animatable, series2);
     mRangedData.add(ranged2);
     mData.add(series2);
 
-    mLineChart.addLines(mRangedData);
-    List<LegendRenderData> legendRenderInfo = new ArrayList<>();
+    mLineChartModel.addAll(mRangedData);
+    List<LegendData> legendRenderInfo = new ArrayList<>();
 
     //Test the populated series case
-    legendRenderInfo.add(mLineChart.createLegendRenderData(mRangedData.get(0), MemoryAxisFormatter.DEFAULT, mTimeGlobalRangeUs));
-    //Test the null series case
-    legendRenderInfo.add(new LegendRenderData(LegendRenderData.IconType.LINE, LineConfig.getColor(1), SERIES2_LABEL));
+    legendRenderInfo.add(new LegendData(mRangedData.get(0), MemoryAxisFormatter.DEFAULT, mTimeGlobalRangeUs));
+    //TODO Test the null series case
 
-    mLegendComponent = new LegendComponent(LegendComponent.Orientation.VERTICAL, LABEL_UPDATE_MILLIS);
-    mLegendComponent.setLegendData(legendRenderInfo);
-
-    mGrid = new GridComponent();
-    mGrid.addAxis(mTimeAxis);
-    mGrid.addAxis(mMemoryAxis1);
+    mLegendComponentModel = new LegendComponentModel(LABEL_UPDATE_MILLIS);
+    mLegendComponentModel.setLegendData(legendRenderInfo);
+    mLegendComponent = new LegendComponent(mLegendComponentModel);
+    mLegendComponent.configure(SERIES2_LABEL, new LegendConfig(LegendConfig.IconType.LINE, LineConfig.getColor(1), SERIES2_LABEL));
 
     final AnimatedRange timeSelectionRangeUs = new AnimatedRange();
-    mSelection = new SelectionComponent(timeSelectionRangeUs, timeCurrentRangeUs);
+    SelectionModel selection = new SelectionModel(timeSelectionRangeUs, timeCurrentRangeUs);
+    mSelection = new SelectionComponent(selection);
 
     // Note: the order below is important as some components depend on
     // others to be updated first. e.g. the ranges need to be updated before the axes.
     // The comment on each line highlights why the component needs to be in that position.
     return Arrays.asList(mAnimatedTimeRange, // Update global time range immediate.
-                         mSelection, // Update selection range immediate.
                          mScrollbar, // Update current range immediate.
-                         mLineChart, // Set y's interpolation values.
-                         mMemoryAxis1, // Clamp/interpolate ranges to major ticks if enabled.
-                         mMemoryAxis2, // Sync with mMemoryAxis1 if enabled.
-                         mTimeAxis, // Read ranges.
-                         mGrid, // No-op.
+                         mLineChartModel, // Set y's interpolation values.
+                         mMemoryAxisModel1, // Clamp/interpolate ranges to major ticks if enabled.
+                         mMemoryAxisModel2, // Sync with mMemoryAxis1 if enabled.
+                         mTimeAxisModel, // Read ranges.
                          timeSelectionRangeUs,
-                         mLegendComponent); // Reset flags.
+                         mLegendComponentModel); // Reset flags.
   }
 
   @Override
   protected List<AnimatedComponent> getDebugInfoComponents() {
-    return Arrays.asList(mSelection, mLineChart, mMemoryAxis1, mMemoryAxis2, mTimeAxis, mGrid, mLegendComponent);
+    return Arrays.asList(mSelection, mLineChart, mMemoryAxis1, mMemoryAxis2, mTimeAxis, mLegendComponent);
   }
 
   @Override
@@ -224,9 +224,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     controls.add(VisualTest.createCheckbox("Stable Scroll",
                   itemEvent -> mScrollbar.setStableScrolling(itemEvent.getStateChange() == ItemEvent.SELECTED)));
     controls.add(VisualTest.createCheckbox("Clamp To Major Ticks",
-                  itemEvent -> mMemoryAxis1.setClampToMajorTicks(itemEvent.getStateChange() == ItemEvent.SELECTED)));
-    controls.add(VisualTest.createCheckbox("Sync Vertical Axes",
-                  itemEvent -> mMemoryAxis2.setParentAxis(itemEvent.getStateChange() == ItemEvent.SELECTED ? mMemoryAxis1 : null)));
+                  itemEvent -> mMemoryAxisModel1.setClampToMajorTicks(itemEvent.getStateChange() == ItemEvent.SELECTED)));
 
     controls.add(
       new Box.Filler(new Dimension(0, 0), new Dimension(300, Integer.MAX_VALUE),
@@ -235,13 +233,11 @@ public class AxisLineChartVisualTest extends VisualTest {
 
   private JLayeredPane createMockTimeline() {
     JBLayeredPane timelinePane = new JBLayeredPane();
-
     timelinePane.add(mMemoryAxis1);
     timelinePane.add(mMemoryAxis2);
     timelinePane.add(mTimeAxis);
     timelinePane.add(mLineChart);
     timelinePane.add(mSelection);
-    timelinePane.add(mGrid);
     timelinePane.add(mScrollbar);
     JBPanel labelPanel = new JBPanel(); // TODO move to ProfilerOverviewVisualTest.
     labelPanel.setLayout(new FlowLayout());
@@ -256,7 +252,7 @@ public class AxisLineChartVisualTest extends VisualTest {
           for (Component c : host.getComponents()) {
             if (c instanceof AxisComponent) {
               AxisComponent axis = (AxisComponent)c;
-              switch (axis.getOrientation()) {
+              switch (axis.getModel().getOrientation()) {
                 case LEFT:
                   axis.setBounds(0, 0, AXIS_SIZE, dim.height);
                   break;

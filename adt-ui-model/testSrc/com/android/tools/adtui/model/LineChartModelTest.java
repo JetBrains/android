@@ -13,18 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.chart.linechart;
+package com.android.tools.adtui.model;
 
-import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.FakeTimer;
-import com.android.tools.adtui.model.DefaultDataSeries;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedContinuousSeries;
 import org.junit.Test;
 
-import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
 
-public class LineChartTest {
+public class LineChartModelTest {
 
   @Test
   public void testSnapToDataMaxOnFirstUpdate() throws Exception {
@@ -37,14 +32,14 @@ public class LineChartTest {
     }
     RangedContinuousSeries rangedSeries = new RangedContinuousSeries("test", xRange, yRange, testSeries);
     FakeTimer t = new FakeTimer();
-    Choreographer choreographer = new Choreographer(t);
+    Updater updater = new Updater(t);
 
-    LineChart lineChart = new LineChart();
-    lineChart.addLine(rangedSeries);
-    choreographer.register(lineChart);
+    LineChartModel model = new LineChartModel();
+    model.add(rangedSeries);
+    updater.register(model);
 
-    assertThat(yRange.getMax()).isWithin(0.0).of(50);  // before update.
+    assertEquals(50, yRange.getMax(), .0);  // before update.
     t.step();
-    assertThat(yRange.getMax()).isWithin(0.0).of(100);  // after update.
+    assertEquals(100, yRange.getMax(), 0);  // after update.
   }
 }

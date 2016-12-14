@@ -13,23 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui;
+package com.android.tools.adtui.model;
 
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedTableModel;
 import org.jetbrains.annotations.NotNull;
 
-public class RangedTable implements Updatable {
-  private final RangedTableModel myModel;
-  private final Range myRange;
+public class SimpleEventModel<E extends Enum<E>> extends AspectModel<SimpleEventModel.Aspect> implements Updatable {
 
-  public RangedTable(@NotNull Range range, @NotNull RangedTableModel model) {
-    myModel = model;
-    myRange = range;
+  @NotNull
+  private final RangedSeries<EventAction<EventAction.Action, E>> myRangedSeries;
+
+  public SimpleEventModel(@NotNull RangedSeries<EventAction<EventAction.Action, E>> rangedSeries) {
+    myRangedSeries = rangedSeries;
+    // TODO add dependency to the rangedseries
+  }
+
+  @NotNull
+  public RangedSeries<EventAction<EventAction.Action, E>> getRangedSeries() {
+    return myRangedSeries;
+  }
+
+  public enum Aspect {
+    SIMPLE_EVENT
   }
 
   @Override
   public void update(float elapsed) {
-    myModel.update(myRange);
+    changed(Aspect.SIMPLE_EVENT);
   }
 }

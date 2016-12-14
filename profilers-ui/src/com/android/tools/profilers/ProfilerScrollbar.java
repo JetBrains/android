@@ -15,11 +15,9 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.Updatable;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profilers.timeline.AnimatedPan;
-import com.android.tools.profilers.timeline.AnimatedZoom;
+import com.android.tools.adtui.model.Updatable;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.util.ui.ButtonlessScrollBarUI;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +37,7 @@ import java.util.concurrent.TimeUnit;
  * registered before/after all {@link Updatable} to ensure the view range does not change in the middle of
  * the animation loop.
  */
-public final class ProfilerScrollbar extends JBScrollBar implements Updatable {
+public final class ProfilerScrollbar extends JBScrollBar {
   /**
    * The percentage of the current view range's length to zoom/pan per mouse wheel click.
    */
@@ -60,12 +58,13 @@ public final class ProfilerScrollbar extends JBScrollBar implements Updatable {
 
   private boolean myScrolling;
 
-  public ProfilerScrollbar(@NotNull Choreographer choreographer,
-                           @NotNull ProfilerTimeline timeline,
+  public ProfilerScrollbar(@NotNull ProfilerTimeline timeline,
                            @NotNull JComponent zoomPanComponent) {
     super(HORIZONTAL);
 
     myTimeline = timeline;
+    myTimeline.getViewRange().addDependency().onChange(Range.Aspect.RANGE, this::modelChanged);
+    myTimeline.getDataRange().addDependency().onChange(Range.Aspect.RANGE, this::modelChanged);
 
     setUI(new ButtonlessScrollBarUI() {
       /**
@@ -111,33 +110,31 @@ public final class ProfilerScrollbar extends JBScrollBar implements Updatable {
       double deltaUs = myTimeline.getViewRange().getLength() * VIEW_PERCENTAGE_PER_MOUSEHWEEL_FACTOR * count;
       if (e.isAltDown()) {
         double anchor = ((float)e.getX() / e.getComponent().getWidth());
-        AnimatedZoom zoom = new AnimatedZoom(choreographer, myTimeline, deltaUs, anchor);
-        choreographer.register(zoom);
+        myTimeline.zoom(deltaUs, anchor);
       }
       else {
-        AnimatedPan pan = new AnimatedPan(choreographer, myTimeline, deltaUs);
-        choreographer.register(pan);
+        myTimeline.pan(deltaUs);
       }
     });
   }
 
-  @Override
-  public void update(float elapsed) {
+  private void modelChanged() {
     Range dataRangeUs = myTimeline.getDataRange();
     Range viewRangeUs = myTimeline.getViewRange();
     int dataExtentMs = (int)((dataRangeUs.getLength() - myTimeline.getViewBuffer()) / MS_TO_US);
     int viewExtentMs = Math.min(dataExtentMs, (int)(viewRangeUs.getLength() / MS_TO_US));
     int viewRelativeMinMs = Math.max(0, (int)((viewRangeUs.getMin() - dataRangeUs.getMin()) / MS_TO_US));
 
-    if (myScrolling) {
-      int valueMs = getValue();
-      setValues(valueMs, viewExtentMs, 0, dataExtentMs);
-      double deltaUs = (valueMs - viewRelativeMinMs) * MS_TO_US;
-      viewRangeUs.shift(deltaUs);
-    }
-    else {
-      setValues(viewRelativeMinMs, viewExtentMs, 0, dataExtentMs);
-    }
+    // TODO: We cannot change the model in a model callback
+    //if (myScrolling) {
+    //  int valueMs = getValue();
+    //  setValues(valueMs, viewExtentMs, 0, dataExtentMs);
+    //  double deltaUs = (valueMs - viewRelativeMinMs) * MS_TO_US;
+    //  viewRangeUs.shift(deltaUs);
+    //}
+    //else {
+    //  setValues(viewRelativeMinMs, viewExtentMs, 0, dataExtentMs);
+    //}
   }
 
   @Override

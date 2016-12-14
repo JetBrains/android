@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui;
+package com.android.tools.adtui.model;
 
-import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
@@ -30,29 +26,18 @@ import java.util.concurrent.TimeUnit;
  * Render data used for displaying LineChart data. In particular, it will show the most recent data in the RangedContinuousSeries
  * based on the max value of the input range.
  */
-public final class LineChartLegendRenderData extends LegendRenderData {
+public final class LegendData {
 
   @NotNull private final Range myRange;
   @NotNull private final RangedContinuousSeries mySeries;
   @NotNull private final BaseAxisFormatter myFormatter;
 
-  public LineChartLegendRenderData(@NotNull LegendRenderData.IconType icon,
-                                   @NotNull Color color,
-                                   @NotNull Range range,
-                                   @NotNull RangedContinuousSeries series,
-                                   @NotNull BaseAxisFormatter formatter) {
-    super(icon, color, series.getLabel());
+  public LegendData(@NotNull RangedContinuousSeries series, @NotNull BaseAxisFormatter formatter, @NotNull Range range) {
     myRange = range;
     mySeries = series;
     myFormatter = formatter;
   }
 
-  @Override
-  public boolean hasData() {
-    return true;
-  }
-
-  @Override
   public String getFormattedData() {
     double time = myRange.getMax();
     ImmutableList<SeriesData<Long>> data = mySeries.getDataSeries().getDataForXRange(new Range(time, time));
@@ -69,5 +54,18 @@ public final class LineChartLegendRenderData extends LegendRenderData {
     index = Math.max(0, Math.min(data.size() - 1, index));
 
     return myFormatter.getFormattedString(mySeries.getYRange().getLength(), data.get(index).value, true);
+  }
+
+  public String get() {
+    //if (data.hasData()) {
+      return String.format("%s: %s", getName(), getFormattedData());
+    //}
+    //else {
+    //  myLegends.add(data.getLabel());
+    //}
+  }
+
+  public String getName() {
+    return mySeries.getName();
   }
 }

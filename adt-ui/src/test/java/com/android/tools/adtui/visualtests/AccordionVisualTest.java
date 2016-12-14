@@ -18,11 +18,9 @@ package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.LongDataSeries;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.*;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -65,7 +63,7 @@ public class AccordionVisualTest extends VisualTest {
   private ArrayList<LongDataSeries> mData;
 
   @Override
-  protected List<Updatable> createComponentsList() {
+  protected List<Updatable> createModelList() {
     mStartTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     Range timeGlobalRangeUs = new Range(0, 0);
     mAnimatedTimeRange = new AnimatedTimeRange(timeGlobalRangeUs, mStartTimeUs);
@@ -209,7 +207,10 @@ public class AccordionVisualTest extends VisualTest {
   @NotNull
   private LineChart generateChart(AccordionLayout layout, AccordionLayout.Orientation direction,
                                   int minSize, int preferredSize, int maxSize) {
-    LineChart chart = new LineChart(mRangedData);
+    ArrayList<RangedContinuousSeries> data = mRangedData;
+    LineChartModel model = new LineChartModel();
+    model.addAll(data);
+    LineChart chart = new LineChart(model);
     if (direction == AccordionLayout.Orientation.VERTICAL) {
       chart.setMinimumSize(new Dimension(0, minSize));
       chart.setPreferredSize(new Dimension(0, preferredSize));
@@ -234,7 +235,7 @@ public class AccordionVisualTest extends VisualTest {
         }
       }
     });
-    addToChoreographer(chart);
+    addToUpdater(model);
     return chart;
   }
 }

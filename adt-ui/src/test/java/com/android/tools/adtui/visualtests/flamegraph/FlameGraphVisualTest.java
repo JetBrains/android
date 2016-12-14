@@ -17,15 +17,13 @@
 package com.android.tools.adtui.visualtests.flamegraph;
 
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.model.HNode;
+import com.android.tools.adtui.model.LineChartModel;
+import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.linechart.LineChart;
-import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.flamegraph.SampledMethodUsage;
 import com.android.tools.adtui.flamegraph.SampledMethodUsageHRenderer;
-import com.android.tools.adtui.model.LongDataSeries;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.visualtests.VisualTest;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBPanel;
@@ -44,6 +42,7 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
   private static final String ACTION_SAVE_RECORDING = "save_recording";
   private static final String ACTION_LOAD_RECORDING = "load_recording";
   private static final String ACTION_THREAD_SELECTED = "thread_selected";
+  private final LineChartModel mLineChartModel;
 
   private HTreeChart mChart;
   private HashMap<String, HNode<SampledMethodUsage>> furnace;
@@ -66,21 +65,23 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
   private LineChart mLineChart;
 
   private JScrollBar mScrollBar;
+  private final AxisComponentModel mAxisModel;
 
   public FlameGraphVisualTest() {
     this.mTimeGlobalRangeUs = new Range(0, 0);
 
-    AxisComponent.Builder builder = new AxisComponent.Builder(mTimeGlobalRangeUs, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM);
-    this.mAxis = builder.build();
+    mAxisModel = new AxisComponentModel(mTimeGlobalRangeUs, TimeAxisFormatter.DEFAULT, AxisComponentModel.AxisOrientation.BOTTOM);
+    this.mAxis = new AxisComponent(mAxisModel);
 
     this.mTimeSelectionRangeUs = new Range(0, 0);
 
-    this.mLineChart = new LineChart();
-    this.mSelector = new SelectionComponent(mTimeSelectionRangeUs, mTimeGlobalRangeUs);
+    mLineChartModel = new LineChartModel();
+    this.mLineChart = new LineChart(mLineChartModel);
+    SelectionModel selection = new SelectionModel(mTimeSelectionRangeUs, mTimeGlobalRangeUs);
+    this.mSelector = new SelectionComponent(selection);
 
-    this.mChart = new HTreeChart<SampledMethodUsage>(HTreeChart.Orientation.BOTTOM_UP);
+    this.mChart = new HTreeChart<SampledMethodUsage>(mTimeSelectionRangeUs, HTreeChart.Orientation.BOTTOM_UP);
     this.mChart.setHRenderer(new SampledMethodUsageHRenderer());
-    this.mChart.setXRange(mTimeSelectionRangeUs);
   }
 
   @Override
@@ -89,12 +90,10 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
   }
 
   @Override
-  protected List<Updatable> createComponentsList() {
+  protected List<Updatable> createModelList() {
     List<Updatable> list = new ArrayList<>();
-    list.add(mChart);
-    list.add(mSelector);
-    list.add(mAxis);
-    list.add(mLineChart);
+    list.add(mAxisModel);
+    list.add(mLineChartModel);
     return list;
   }
 
@@ -216,7 +215,7 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
         for (int i = 0; i < 100; i++) {
           series.add((long)(start + (end - start) / 100 * i), (long)r.nextInt(100));
         }
-        mLineChart.addLine(rangedSeries);
+        mLineChartModel.add(rangedSeries);
 
         mScrollBar.setValues(mChart.getMaximumHeight() - mChart.getHeight(),
                              mChart.getHeight(), 0, mChart.getMaximumHeight());
@@ -253,7 +252,7 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
           for (Component c : host.getComponents()) {
             if (c instanceof AxisComponent) {
               AxisComponent axis = (AxisComponent)c;
-              switch (axis.getOrientation()) {
+              switch (axis.getModel().getOrientation()) {
                 case LEFT:
                 case BOTTOM:
                 case RIGHT:

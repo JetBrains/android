@@ -35,4 +35,8 @@ public abstract class ProfilerMonitor {
   }
 
   abstract public String getName();
+
+  public abstract void exit();
+
+  public abstract void enter();
 }

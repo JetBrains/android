@@ -16,7 +16,6 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedTreeModel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -26,29 +25,31 @@ import java.util.*;
 /**
  * The model for a JTree that updates for a given range. It uses a TopDownNode as it's backing tree.
  */
-class TopDownTreeModel extends DefaultTreeModel implements RangedTreeModel {
+class TopDownTreeModel extends DefaultTreeModel {
 
-  private Range myRange;
+  private final Range myRange;
+  private final Range myCurrentRange;
 
-  public TopDownTreeModel(@NotNull TopDownNode node) {
+  public TopDownTreeModel(@NotNull Range range, @NotNull TopDownNode node) {
     super(new DefaultMutableTreeNode(node));
-    myRange = new Range();
-    update(new Range(-Double.MAX_VALUE, Double.MAX_VALUE));
+    myRange = range;
+    myCurrentRange = new Range();
+    myRange.addDependency().onChange(Range.Aspect.RANGE, this::rangeChanged);
+    rangeChanged();
   }
 
-  @Override
-  public void update(@NotNull Range range) {
+  public void rangeChanged() {
     DefaultMutableTreeNode root = (DefaultMutableTreeNode)getRoot();
 
     List<Range> diffs = new LinkedList<>();
     // Add all the newly added ranges.
-    diffs.addAll(range.subtract(myRange));
+    diffs.addAll(myRange.subtract(myCurrentRange));
     // Add the ranges we don't have anymore
-    diffs.addAll(myRange.subtract(range));
+    diffs.addAll(myCurrentRange.subtract(myRange));
 
-    update(root, range, diffs);
+    update(root, myRange, diffs);
 
-    myRange.set(range);
+    myCurrentRange.set(myRange);
   }
 
   public boolean changes(TopDownNode data, List<Range> ranges) {

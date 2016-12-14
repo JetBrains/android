@@ -43,7 +43,7 @@ public class CpuMonitorTest {
 
   @Test
   public void testThisProcessCpuUsage() {
-    CpuUsageDataSeries series = myMonitor.getThisProcessCpuUsage();
+    CpuUsageDataSeries series = myMonitor.getThisProcessCpuUsageSeries();
     ImmutableList<SeriesData<Long>> seriesDataList = series.getDataForXRange(new Range());
     assertEquals(1, seriesDataList.size()); // Only current process information.
     SeriesData<Long> seriesData = seriesDataList.get(0);

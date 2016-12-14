@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.tools.adtui;
+package com.android.tools.adtui.model;
 
 public interface Updatable {
 

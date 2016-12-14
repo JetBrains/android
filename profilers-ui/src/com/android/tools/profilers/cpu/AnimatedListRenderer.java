@@ -15,8 +15,8 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Choreographer;
+import com.android.tools.adtui.AnimatedComponent;
 
 import javax.swing.*;
 import javax.swing.event.ListDataEvent;
@@ -50,7 +50,7 @@ public class AnimatedListRenderer<M, T extends AnimatedComponent> implements Lis
     List<T> toAdd = new ArrayList<T>();
     for (int i = e.getIndex0(); i <= e.getIndex1(); i++) {
       T component = myCreate.apply(myList.getModel().getElementAt(i));
-      myChoreographer.register(component);
+//      myChoreographer.register(component);
       toAdd.add(component);
     }
 
@@ -60,7 +60,7 @@ public class AnimatedListRenderer<M, T extends AnimatedComponent> implements Lis
   @Override
   public void intervalRemoved(ListDataEvent e) {
     for (int i = e.getIndex0(); i <= e.getIndex1(); i++) {
-      myChoreographer.unregister(myComponents.get(i));
+  //    myChoreographer.unregister(myComponents.get(i));
     }
     myComponents.subList(e.getIndex0(), e.getIndex1() + 1).clear();
   }
@@ -68,9 +68,9 @@ public class AnimatedListRenderer<M, T extends AnimatedComponent> implements Lis
   @Override
   public void contentsChanged(ListDataEvent e) {
     for (int i = e.getIndex0(); i <= e.getIndex1(); i++) {
-      myChoreographer.unregister(myComponents.get(i));
+    //  myChoreographer.unregister(myComponents.get(i));
       T component = myCreate.apply(myList.getModel().getElementAt(i));
-      myChoreographer.register(component);
+//      myChoreographer.register(component);
       myComponents.set(i, component);
     }
   }

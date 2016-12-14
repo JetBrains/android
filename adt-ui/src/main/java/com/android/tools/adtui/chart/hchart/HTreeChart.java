@@ -52,25 +52,29 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
   @NotNull
   private Range mYRange;
   @NotNull
+
   private Rectangle2D.Float mRect;
 
-  public HTreeChart() {
+  public HTreeChart(Range xRange, Orientation orientation) {
+    mXRange = xRange;
     mRoot = new HNode<>();
     mRect = new Rectangle2D.Float();
     mYRange = new Range(0, 0);
     addMouseWheelListener(this);
-    mOrientation = HTreeChart.Orientation.TOP_DOWN;
+    mOrientation = orientation;
     setFocusable(true);
     addMouseListener(this);
+    initializeInputMap();
+
+    xRange.addDependency().onChange(Range.Aspect.RANGE, this::rangeChanged);
   }
 
-  public HTreeChart(Orientation orientation) {
-    this();
-    mOrientation = orientation;
+  private void rangeChanged() {
+    opaqueRepaint();
   }
 
-  @Override
-  protected void updateData() {
+  public HTreeChart(Range xRange) {
+    this(xRange, HTreeChart.Orientation.TOP_DOWN);
   }
 
   @Override
@@ -159,9 +163,7 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
     return mXRange;
   }
 
-  public void setXRange(Range XRange) {
-    mXRange = XRange;
-
+  private void initializeInputMap() {
     getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), ACTION_ZOOM_IN);
     getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), ACTION_ZOOM_OUT);
     getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), ACTION_MOVE_LEFT);

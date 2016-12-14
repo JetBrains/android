@@ -19,12 +19,15 @@ package com.android.tools.adtui.model;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Range {
+public class Range extends AspectModel<Range.Aspect> {
 
-  // TODO: Make these private once AnimatedRange is removed.
-  protected double myMin;
+  public enum Aspect {
+    RANGE
+  }
 
-  protected double myMax;
+  private double myMin;
+
+  private double myMax;
 
   public Range(double min, double max) {
     myMin = min;
@@ -36,16 +39,17 @@ public class Range {
   }
 
   public void setMin(double min) {
-    myMin = min;
+    set(min, myMax);
   }
 
   public void setMax(double max) {
-    myMax = max;
+    set(myMin, max);
   }
 
   public void set(double min, double max) {
-    setMin(min);
-    setMax(max);
+    myMin = min;
+    myMax = max;
+    changed(Aspect.RANGE);
   }
 
   public void set(Range other) {
@@ -89,8 +93,7 @@ public class Range {
   public void clear() {
     // Any value of max < min would do, but using MAX_VALUE preserves the invariant:
     // For any x, x < myMax and x > myMin are false.
-    myMax = -Double.MAX_VALUE;
-    myMin = Double.MAX_VALUE;
+    set(Double.MAX_VALUE, -Double.MAX_VALUE);
   }
 
   /**
