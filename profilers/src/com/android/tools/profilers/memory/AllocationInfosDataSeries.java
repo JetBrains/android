@@ -41,7 +41,7 @@ class AllocationInfosDataSeries implements DataSeries<CaptureDurationData<Alloca
   }
 
   @NotNull
-  public List<MemoryProfiler.MemoryData.AllocationsInfo> getDataForXRange(long rangeMinNs, long rangeMaxNs) {
+  public List<MemoryProfiler.AllocationsInfo> getDataForXRange(long rangeMinNs, long rangeMaxNs) {
     MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()
       .setAppId(myProcessId)
       .setStartTime(rangeMinNs)
@@ -56,20 +56,20 @@ class AllocationInfosDataSeries implements DataSeries<CaptureDurationData<Alloca
     long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin()) - bufferNs;
     long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax()) + bufferNs;
 
-    List<MemoryProfiler.MemoryData.AllocationsInfo> infos = getDataForXRange(rangeMin, rangeMax);
+    List<MemoryProfiler.AllocationsInfo> infos = getDataForXRange(rangeMin, rangeMax);
 
     List<SeriesData<CaptureDurationData<AllocationsCaptureObject>>> seriesData = new ArrayList<>();
     if (infos.size() == 0) {
       return ContainerUtil.immutableList(seriesData);
     }
 
-    for (MemoryProfiler.MemoryData.AllocationsInfo info : infos) {
+    for (MemoryProfiler.AllocationsInfo info : infos) {
       long startTimeNs = info.getStartTime();
       long endTimeNs = info.getEndTime();
       long durationUs = endTimeNs == UNSPECIFIED_DURATION ? UNSPECIFIED_DURATION : TimeUnit.NANOSECONDS.toMicros(endTimeNs - startTimeNs);
       seriesData.add(new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(startTimeNs),
                                       new CaptureDurationData<>(
-                                        durationUs, new AllocationsCaptureObject(myClient, myProcessId, startTimeNs, endTimeNs))));
+                                        durationUs, new AllocationsCaptureObject(myClient, myProcessId, info))));
     }
     return ContainerUtil.immutableList(seriesData);
   }

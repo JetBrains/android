@@ -37,6 +37,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.UIUtil;
@@ -48,7 +49,6 @@ import java.awt.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
@@ -91,7 +91,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     captureObjectChanged();
 
     myAllocationButton = new JButton("Record");
-    myAllocationButton.addActionListener(e -> getStage().trackAllocations(!getStage().isTrackingAllocations()));
+    myAllocationButton
+      .addActionListener(e -> getStage().trackAllocations(!getStage().isTrackingAllocations(), SwingUtilities::invokeLater));
 
     getStage().getAspect().addDependency()
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::captureObjectChanged)
@@ -322,19 +323,23 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     CountDownLatch latch = new CountDownLatch(1);
     myCaptureLoadingLatch = latch;
+
+    final JBLoadingPanel loadingPanel = new JBLoadingPanel(new BorderLayout(), myCaptureObject);
+    loadingPanel.setLoadingText("Fetching results");
+    loadingPanel.startLoading();
+    myChartCaptureSplitter.setSecondComponent(loadingPanel);
     myExecutorService.submit(() -> {
-      // TODO set up progress indicator here
-      while (latch.getCount() > 0) {
-        try {
-          latch.await(33, TimeUnit.MILLISECONDS);
-        }
-        catch (InterruptedException ignored) {
-          Thread.currentThread().interrupt();
-          return;
-        }
-        // TODO update rendering here
+      // TODO update loading progress?
+      try {
+        latch.await();
       }
-      // TODO remove progress indicator here
+      catch (InterruptedException ignored) {
+      }
+
+      SwingUtilities.invokeLater(() -> {
+        loadingPanel.stopLoading();
+        myChartCaptureSplitter.setSecondComponent(myCapturePanel);
+      });
     });
   }
 
