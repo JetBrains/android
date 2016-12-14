@@ -43,15 +43,13 @@ import java.util.List;
  * Fixture wrapping the the layout editor for a particular file
  */
 public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorPanel> {
-  private final IdeFrameFixture myFrame;
   private final DesignSurfaceFixture myDesignSurfaceFixture;
   private NlPropertyInspectorFixture myPropertyFixture;
   private ComponentDragAndDrop myDragAndDrop;
 
-  public NlEditorFixture(@NotNull Robot robot, @NotNull IdeFrameFixture frame, @NotNull NlEditor editor) {
+  public NlEditorFixture(@NotNull Robot robot, @NotNull NlEditor editor) {
     super(NlEditorFixture.class, robot, editor.getComponent());
-    myFrame = frame;
-    myDesignSurfaceFixture = new DesignSurfaceFixture(robot, frame, editor.getComponent().getSurface());
+    myDesignSurfaceFixture = new DesignSurfaceFixture(robot, editor.getComponent().getSurface());
     myDragAndDrop = new ComponentDragAndDrop(robot);
   }
 

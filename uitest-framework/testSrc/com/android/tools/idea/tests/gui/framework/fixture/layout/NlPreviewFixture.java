@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid;
@@ -44,9 +43,9 @@ public class NlPreviewFixture extends ToolWindowFixture {
   private final DesignSurfaceFixture myDesignSurfaceFixture;
   private ComponentDragAndDrop myDragAndDrop;
 
-  public NlPreviewFixture(@NotNull Project project, @NotNull IdeFrameFixture frame, @NotNull Robot robot) {
+  public NlPreviewFixture(@NotNull Project project, @NotNull Robot robot) {
     super("Preview", project, robot);
-    myDesignSurfaceFixture = new DesignSurfaceFixture(robot, frame, GuiTests.waitUntilShowing(robot, Matchers.byType(DesignSurface.class)));
+    myDesignSurfaceFixture = new DesignSurfaceFixture(robot, GuiTests.waitUntilShowing(robot, Matchers.byType(DesignSurface.class)));
     myDragAndDrop = new ComponentDragAndDrop(robot);
   }
 
