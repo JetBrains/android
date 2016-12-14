@@ -31,6 +31,7 @@ import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -50,6 +51,7 @@ import java.util.*;
 import static com.android.SdkConstants.*;
 import static com.android.sdklib.IAndroidTarget.RESOURCES;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToFile;
+import static com.android.tools.idea.gradle.util.FilePaths.pathToUrl;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createUniqueSdkName;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
@@ -151,6 +153,32 @@ public class AndroidSdks {
   public AndroidSdkHandler tryToChooseSdkHandler() {
     AndroidSdkData data = tryToChooseAndroidSdk();
     return data != null ? data.getSdkHandler() : AndroidSdkHandler.getInstance(null);
+  }
+
+  /**
+   * Determines if the specified {@link Sdk} has valid docs for the Android Platform specified by the given {@link IAndroidTarget}. If
+   * docs are installed for that platform locally then we check that there is at least one reference to the local documentation in the
+   * sdk roots. If not then we check that there is at least one link to the web docs in the sdk roots.
+   */
+  public boolean hasValidDocs(@NotNull Sdk sdk, @NotNull IAndroidTarget target) {
+    File javaDocPath = findJavadocFolder(new File(getPlatformPath(target)));
+
+    if (javaDocPath == null) {
+      File sdkDir = pathToFile(sdk.getHomePath());
+      if (sdkDir != null) {
+        javaDocPath = findJavadocFolder(sdkDir);
+      }
+    }
+
+    String javaDocUrl = javaDocPath == null ? DEFAULT_EXTERNAL_DOCUMENTATION_URL : pathToUrl(javaDocPath.getPath());
+    for (String rootUrl : sdk.getRootProvider().getUrls(JavadocOrderRootType.getInstance())) {
+      // We can't tell if Urls that don't match are valid or not, all we can check is whether there is at least one valid link to
+      // the documentation we know about.
+      if (javaDocUrl.equals(rootUrl)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -431,12 +459,14 @@ public class AndroidSdks {
     return result;
   }
 
+  @NotNull
+  private static String getPlatformPath(@NotNull IAndroidTarget target) {
+    return target.isPlatform() ? target.getLocation() : target.getParent().getLocation();
+  }
+
   @Nullable
   private static VirtualFile getPlatformFolder(@NotNull IAndroidTarget target) {
-    String platformPath = target.isPlatform() ? target.getLocation() : target.getParent().getLocation();
-    if (platformPath == null) {
-      return null;
-    }
+    String platformPath = getPlatformPath(target);
     return LocalFileSystem.getInstance().refreshAndFindFileByPath(toSystemIndependentName(platformPath));
   }
 
@@ -473,6 +503,12 @@ public class AndroidSdks {
   }
 
   @Nullable
+  private static File findJavadocFolder(@NotNull File folder) {
+    File docsFolder = new File(folder, join(FD_DOCS, FD_DOCS_REFERENCE));
+    return docsFolder.isDirectory() ? docsFolder : null;
+  }
+
+  @Nullable
   private static VirtualFile findFileInLocalFileSystem(@NotNull String path) {
     return LocalFileSystem.getInstance().findFileByPath(toSystemDependentName(path));
   }
@@ -506,6 +542,34 @@ public class AndroidSdks {
    */
   public boolean needsAnnotationsJarInClasspath(@NotNull IAndroidTarget target) {
     return target.getVersion().getApiLevel() <= 15;
+  }
+
+  /**
+   * Refreshes the docs for a given SDK if required
+   *
+   * After installing or uninstalling docs we need to check if the doc roots need updating to reflect the new status of the installed
+   * documentation
+   */
+  public void refreshDocsIn(@NotNull Sdk sdk) {
+    AndroidSdkAdditionalData additionalData = getAndroidSdkAdditionalData(sdk);
+    AndroidSdkData sdkData = getSdkData(sdk);
+    if (additionalData != null && sdkData != null) {
+      IAndroidTarget target = additionalData.getBuildTarget(sdkData);
+      if (target != null && !hasValidDocs(sdk, target)) {
+        OrderRootType javaDocType = JavadocOrderRootType.getInstance();
+        SdkModificator sdkModificator = sdk.getSdkModificator();
+
+        List<OrderRoot> newRoots = getLibraryRootsForTarget(target, pathToFile(sdkModificator.getHomePath()), true);
+        sdkModificator.removeRoots(javaDocType);
+        for (OrderRoot orderRoot : newRoots) {
+          if (orderRoot.getType() == javaDocType) {
+            sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
+          }
+        }
+
+        sdkModificator.commitChanges();
+      }
+    }
   }
 
   /**
