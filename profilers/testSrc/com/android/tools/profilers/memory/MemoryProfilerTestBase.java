@@ -34,8 +34,8 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 
 public class MemoryProfilerTestBase {
+  private final FakeMemoryService myService = new FakeMemoryService();
   protected StudioProfilers myProfilers;
-  protected MemoryServiceMock myMockService;
   protected MemoryProfilerStage myStage;
 
   protected int myLegacyAllocationAspectCount;
@@ -46,7 +46,7 @@ public class MemoryProfilerTestBase {
   protected int myCurrentInstanceAspectCount;
 
   @Rule
-  public TestGrpcChannel<MemoryServiceMock> myGrpcChannel = new TestGrpcChannel<>("MEMORY_TEST_CHANNEL", new MemoryServiceMock());
+  public TestGrpcChannel myGrpcChannel = new TestGrpcChannel("MEMORY_TEST_CHANNEL", myService);
 
   @Before
   public void setup() {

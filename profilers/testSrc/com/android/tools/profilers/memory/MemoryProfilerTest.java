@@ -17,19 +17,17 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.profiler.proto.*;
 import com.android.tools.profilers.TestGrpcChannel;
-import io.grpc.stub.StreamObserver;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.android.tools.profiler.proto.MemoryProfiler.*;
 import static org.junit.Assert.*;
 
 public class MemoryProfilerTest {
   private static final int FAKE_PID = 111;
 
-  private final FakeService myService = new FakeService();
-  @Rule public TestGrpcChannel<FakeService> myGrpcChannel = new TestGrpcChannel<>("MemoryProfilerTest", myService);
+  private final FakeMemoryService myService = new FakeMemoryService();
+  @Rule public TestGrpcChannel myGrpcChannel = new TestGrpcChannel("MemoryProfilerTest", myService);
 
   private Profiler.Process FAKE_PROCESS = Profiler.Process.newBuilder().setPid(FAKE_PID).setName("FakeProcess").build();
   private MemoryProfiler myProfiler;
@@ -54,28 +52,5 @@ public class MemoryProfilerTest {
   public void stopMonitoring() {
     myProfiler.stopProfiling(FAKE_PROCESS);
     assertEquals(FAKE_PID, myService.getAppId());
-  }
-
-  private static class FakeService extends MemoryServiceGrpc.MemoryServiceImplBase {
-    private int myAppId;
-
-    @Override
-    public void startMonitoringApp(MemoryStartRequest request, StreamObserver<MemoryStartResponse> responseObserver) {
-
-      myAppId = request.getAppId();
-      responseObserver.onNext(MemoryStartResponse.newBuilder().build());
-      responseObserver.onCompleted();
-    }
-
-    @Override
-    public void stopMonitoringApp(MemoryStopRequest request, StreamObserver<MemoryStopResponse> responseObserver) {
-      myAppId = request.getAppId();
-      responseObserver.onNext(MemoryStopResponse.newBuilder().build());
-      responseObserver.onCompleted();
-    }
-
-    private int getAppId() {
-      return myAppId;
-    }
   }
 }

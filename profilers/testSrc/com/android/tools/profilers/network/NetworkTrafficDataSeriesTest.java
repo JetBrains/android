@@ -33,24 +33,24 @@ import static org.junit.Assert.assertEquals;
 public class NetworkTrafficDataSeriesTest {
   private static final ImmutableList<com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData> FAKE_DATA =
     new ImmutableList.Builder<com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData>()
-      .add(TestNetworkService.newSpeedData(0, 1, 5))
-      .add(TestNetworkService.newSpeedData(2, 2, 4))
-      .add(TestNetworkService.newSpeedData(4, 3, 3))
-      .add(TestNetworkService.newSpeedData(8, 4, 2))
-      .add(TestNetworkService.newSpeedData(16, 5, 1))
+      .add(FakeNetworkService.newSpeedData(0, 1, 5))
+      .add(FakeNetworkService.newSpeedData(2, 2, 4))
+      .add(FakeNetworkService.newSpeedData(4, 3, 3))
+      .add(FakeNetworkService.newSpeedData(8, 4, 2))
+      .add(FakeNetworkService.newSpeedData(16, 5, 1))
       .build();
-  @Rule public TestGrpcChannel<TestNetworkService> myGrpcChannel =
-    new TestGrpcChannel<>("NetworkTrafficDataSeriesTest", TestNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).build());
+  @Rule public TestGrpcChannel myGrpcChannel =
+    new TestGrpcChannel("NetworkTrafficDataSeriesTest", FakeNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).build());
   private NetworkTrafficDataSeries mySentSeries;
   private NetworkTrafficDataSeries myReceivedSeries;
 
   @Before
   public void setUp() {
     StudioProfilers profiler = myGrpcChannel.getProfilers();
-    mySentSeries = new NetworkTrafficDataSeries(profiler.getClient().getNetworkClient(), TestNetworkService.FAKE_APP_ID,
+    mySentSeries = new NetworkTrafficDataSeries(profiler.getClient().getNetworkClient(), FakeNetworkService.FAKE_APP_ID,
                                                 NetworkTrafficDataSeries.Type.BYTES_SENT);
-    myReceivedSeries = new NetworkTrafficDataSeries(profiler.getClient().getNetworkClient(), TestNetworkService.FAKE_APP_ID,
-                                                NetworkTrafficDataSeries.Type.BYTES_RECEIVED);
+    myReceivedSeries = new NetworkTrafficDataSeries(profiler.getClient().getNetworkClient(), FakeNetworkService.FAKE_APP_ID,
+                                                    NetworkTrafficDataSeries.Type.BYTES_RECEIVED);
   }
 
   @Test

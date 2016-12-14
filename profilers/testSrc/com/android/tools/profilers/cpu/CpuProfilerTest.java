@@ -39,7 +39,7 @@ public class CpuProfilerTest {
   private Profiler.Process FAKE_PROCESS = Profiler.Process.newBuilder().setPid(FAKE_PID).setName("FakeProcess").build();
 
   @Rule
-  public TestGrpcChannel<FakeCpuService> myGrpcChannel = new TestGrpcChannel<>("CpuProfilerTest", myService);
+  public TestGrpcChannel myGrpcChannel = new TestGrpcChannel("CpuProfilerTest", myService);
 
   private CpuProfiler myCpuProfiler;
 
