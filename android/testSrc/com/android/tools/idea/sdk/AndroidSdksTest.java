@@ -20,12 +20,15 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.IdeInfo;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -36,9 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.android.sdklib.AndroidTargetHash.getTargetHashString;
 import static com.android.tools.idea.testing.FileSubject.file;
@@ -48,6 +49,7 @@ import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
+import static org.jetbrains.android.sdk.AndroidSdkType.DEFAULT_EXTERNAL_DOCUMENTATION_URL;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -302,5 +304,82 @@ public class AndroidSdksTest extends IdeaTestCase {
     AndroidSdkData data = mock(AndroidSdkData.class);
     myAndroidSdks.setSdkData(data);
     assertSame(data, myAndroidSdks.tryToChooseAndroidSdk());
+  }
+
+  private Sdk setUpSdkWithDocsRoots(@NotNull IAndroidTarget target,
+                                    @NotNull Collection<String> docsRootUrls,
+                                    boolean hasLocalDocs) throws Exception {
+    Sdk sdk = myAndroidSdks.create(target, mySdkPath, "testSdk", myJdk, true);
+    assertNotNull(sdk);
+
+    if (!hasLocalDocs || !docsRootUrls.isEmpty()) {
+      SdkModificator sdkModificator = sdk.getSdkModificator();
+      if (!hasLocalDocs) {
+        sdkModificator.setHomePath(createTempDir("sdk-root").getPath());
+      }
+      if (!docsRootUrls.isEmpty()) {
+        OrderRootType javadocType = JavadocOrderRootType.getInstance();
+        sdkModificator.removeRoots(javadocType);
+        for (String url : docsRootUrls) {
+          sdkModificator.addRoot(VirtualFileManager.getInstance().findFileByUrl(url), javadocType);
+        }
+      }
+      sdkModificator.commitChanges();
+    }
+
+    return sdk;
+  }
+
+  public void testHasValidDocsWithValidLocalDocs() throws Exception {
+    IAndroidTarget target = findAndroidTarget();
+    Sdk sdk = setUpSdkWithDocsRoots(target, ImmutableList.of(), true);
+
+    // prebuilt SDK (with docs) - docs root points to local docs - valid
+    assertTrue(myAndroidSdks.hasValidDocs(sdk, target));
+  }
+
+  public void testHasValidDocsWithInvalidLocalDocs() throws Exception {
+    IAndroidTarget target = findAndroidTarget();
+    Sdk sdk = setUpSdkWithDocsRoots(target, ImmutableList.of(), false);
+
+    // random dir (no docs) - docs root points to local docs - invalid
+    assertFalse(myAndroidSdks.hasValidDocs(sdk, target));
+  }
+
+
+  public void testHasValidDocsWithInvalidRemoteDocs() throws Exception {
+    IAndroidTarget target = findAndroidTarget();
+    Sdk sdk = setUpSdkWithDocsRoots(target, ImmutableList.of("https://www.google.com"), false);
+
+    // random dir (no docs) - docs root points to random web address - invalid
+    assertFalse(myAndroidSdks.hasValidDocs(sdk, target));
+  }
+
+
+  public void testHasValidDocsWithValidRemoteDocs() throws Exception {
+    IAndroidTarget target = findAndroidTarget();
+    Sdk sdk = setUpSdkWithDocsRoots(target, ImmutableList.of(DEFAULT_EXTERNAL_DOCUMENTATION_URL), false);
+
+    // random dir (no docs) - docs root points to web docs - valid
+    assertTrue(myAndroidSdks.hasValidDocs(sdk, target));
+  }
+
+  public void testHasValidDocsWithValidAndInvalidRemoteDocs() throws Exception {
+    IAndroidTarget target = findAndroidTarget();
+    Sdk sdk = setUpSdkWithDocsRoots(target, ImmutableList.of("https://www.google.com", DEFAULT_EXTERNAL_DOCUMENTATION_URL), false);
+
+    // random dir (no docs) - docs root points to random website + web docs - valid
+    assertTrue(myAndroidSdks.hasValidDocs(sdk, target));
+  }
+
+  public void testRefreshDocsIn() throws Exception {
+    IAndroidTarget target = findAndroidTarget();
+    Sdk sdk = setUpSdkWithDocsRoots(target, ImmutableList.of("https://www.google.com"), true);
+
+    assertFalse(myAndroidSdks.hasValidDocs(sdk, target));
+
+    myAndroidSdks.refreshDocsIn(sdk);
+
+    assertTrue(myAndroidSdks.hasValidDocs(sdk, target));
   }
 }
