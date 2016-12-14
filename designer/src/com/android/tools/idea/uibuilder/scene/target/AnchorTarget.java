@@ -19,10 +19,13 @@ import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.draw.DrawAnchor;
+import com.android.tools.sherpa.scout.Scout;
+import com.intellij.openapi.actionSystem.Anchor;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -54,6 +57,8 @@ public class AnchorTarget extends ConstraintTarget {
 
   private int myLastX = -1;
   private int myLastY = -1;
+  private int myConnectedX = -1;
+  private int myConnectedY = -1;
 
   private HashMap<String, String> mPreviousAttributes = new HashMap();
 
@@ -222,9 +227,12 @@ public class AnchorTarget extends ConstraintTarget {
                    myType == Type.BASELINE ? DrawAnchor.TYPE_BASELINE : DrawAnchor.TYPE_NORMAL, isConnected(),
                    mIsOver ? DrawAnchor.OVER : DrawAnchor.NORMAL);
     if (myLastX != -1 && myLastY != -1) {
-      float x = myLeft + (myRight - myLeft) / 2;
-      float y = myTop + (myBottom - myTop) / 2;
-      list.addConnection(sceneContext, x, y, myLastX, myLastY, myType.ordinal());
+      if ((myConnectedX == -1 && myConnectedY == -1)
+          || !(myLastX == myConnectedX && myLastY == myConnectedY)) {
+        float x = myLeft + (myRight - myLeft) / 2;
+        float y = myTop + (myBottom - myTop) / 2;
+        list.addConnection(sceneContext, x, y, myLastX, myLastY, myType.ordinal());
+      }
     }
   }
 
@@ -376,10 +384,73 @@ public class AnchorTarget extends ConstraintTarget {
     if (ourReciprocalAttributes.get(attribute) != null) {
       attributes.setAttribute(SdkConstants.SHERPA_URI, ourReciprocalAttributes.get(attribute), null);
     }
+    if (ourMapMarginAttributes.get(attribute) != null) {
+      Scene scene = myComponent.getScene();
+      int marginValue = getDistance(attribute, targetComponent, scene);
+      if (!scene.isControlDown()) {
+        if (marginValue < 0) {
+          marginValue = 0;
+        } else {
+          marginValue = Scout.getMargin();
+        }
+      } else {
+        marginValue = Math.max(marginValue, 0);
+      }
+      String margin = String.format(SdkConstants.VALUE_N_DP, marginValue);
+      attributes.setAttribute(SdkConstants.ANDROID_URI, ourMapMarginAttributes.get(attribute), margin);
+      scene.needsRebuildList();
+      myConnectedX = myLastX;
+      myConnectedY = myLastY;
+    }
     cleanup(attributes);
     attributes.apply();
     myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
     return attributes;
+  }
+
+  private int getDistance(String attribute, NlComponent targetComponent, Scene scene) {
+    int marginValue;AnchorTarget targetAnchor = ConstraintComponentUtilities.getTargetAnchor(scene, targetComponent, attribute);
+    switch (myType) {
+      case LEFT: {
+        switch (targetAnchor.getType()) {
+          case LEFT:
+          case RIGHT: {
+            marginValue = (int)(getCenterX() - targetAnchor.getCenterX());
+          } break;
+          default: marginValue = 0;
+        }
+      } break;
+      case RIGHT: {
+        switch (targetAnchor.getType()) {
+          case LEFT:
+          case RIGHT: {
+            marginValue = (int)(targetAnchor.getCenterX() - getCenterX());
+          } break;
+          default: marginValue = 0;
+        }
+      } break;
+      case TOP: {
+        switch (targetAnchor.getType()) {
+          case TOP:
+          case BOTTOM: {
+            marginValue = (int)(getCenterY() - targetAnchor.getCenterY());
+          } break;
+          default: marginValue = 0;
+        }
+      } break;
+      case BOTTOM: {
+        switch (targetAnchor.getType()) {
+          case TOP:
+          case BOTTOM: {
+            marginValue = (int)(targetAnchor.getCenterY() - getCenterY());
+          } break;
+          default: marginValue = 0;
+        }
+      } break;
+      default:
+        marginValue = 0;
+    }
+    return marginValue;
   }
 
   /**
@@ -420,6 +491,8 @@ public class AnchorTarget extends ConstraintTarget {
   public void mouseDown(int x, int y) {
     myLastX = -1;
     myLastY = -1;
+    myConnectedX = -1;
+    myConnectedY = -1;
     NlComponent component = myComponent.getNlComponent();
     mPreviousAttributes.clear();
     mPreviousAttributes.put(SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X,

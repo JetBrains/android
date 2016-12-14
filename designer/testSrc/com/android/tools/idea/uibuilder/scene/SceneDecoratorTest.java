@@ -94,7 +94,7 @@ public class SceneDecoratorTest extends SceneTest {
   }
 
   public void testBasicScene() {
-     myScreen.get("@+id/a").expectXml("<ProgressBar\n" +
+    myScreen.get("@+id/a").expectXml("<ProgressBar\n" +
                                       "    android:id=\"@+id/a\"\n" +
                                       "    android:layout_width=\"100dp\"\n" +
                                       "    android:layout_height=\"20dp\"\n" +

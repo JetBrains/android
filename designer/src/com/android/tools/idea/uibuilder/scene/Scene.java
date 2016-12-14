@@ -78,6 +78,7 @@ public class Scene implements ModelListener, SelectionListener {
   private boolean myIsControlDown;
   private boolean myIsShiftDown;
   private boolean myIsAltDown;
+  private boolean myShowAllConstraints = false;
 
   private enum FilterType {ALL, ANCHOR, VERTICAL_ANCHOR, HORIZONTAL_ANCHOR, BASELINE_ANCHOR, NONE, RESIZE}
 
@@ -248,7 +249,12 @@ public class Scene implements ModelListener, SelectionListener {
   }
 
   public boolean isShowAllConstraints() {
-    return PropertiesComponent.getInstance().getBoolean(ConstraintLayoutHandler.SHOW_CONSTRAINTS_PREF_KEY);
+    return myShowAllConstraints || PropertiesComponent.getInstance().getBoolean(ConstraintLayoutHandler.SHOW_CONSTRAINTS_PREF_KEY);
+  }
+
+  @VisibleForTesting
+  public void setShowAllConstraints(boolean showAllConstraints) {
+    myShowAllConstraints = showAllConstraints;
   }
 
   /**
