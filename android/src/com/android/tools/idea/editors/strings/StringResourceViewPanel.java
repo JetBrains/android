@@ -77,9 +77,9 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   private final JBLoadingPanel myLoadingPanel;
   private JPanel myContainer;
   private StringResourceTable myTable;
-  JTextComponent myKeyTextField;
+  private JTextComponent myKeyTextField;
   @VisibleForTesting TextFieldWithBrowseButton myDefaultValueTextField;
-  TextFieldWithBrowseButton myTranslationTextField;
+  private TextFieldWithBrowseButton myTranslationTextField;
   private JPanel myToolbarPanel;
 
   private final AndroidFacet myFacet;
