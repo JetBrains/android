@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.tools.idea.uibuilder.handlers.flexbox.FlexboxLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
 
 import java.io.InputStreamReader;
@@ -74,6 +75,9 @@ public class NlPaletteModelTest extends PaletteTestCase {
     iterator = layouts.getItems().iterator();
     assertConstraintLayout(iterator.next());
     assertGridLayout(iterator.next());
+    if (FlexboxLayoutHandler.FLEXBOX_ENABLE_FLAG) {
+      assertFlexboxLayout(iterator.next());
+    }
     assertFrameLayout(iterator.next());
     assertLinearLayoutItem(iterator.next());
     assertVerticalLinearLayoutItem(iterator.next());
