@@ -15,58 +15,136 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profilers.TestGrpcChannel;
-import io.grpc.stub.StreamObserver;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
-public class MemoryProfilerStageTest {
-
+public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   @Rule
   public TestGrpcChannel<MemoryServiceMock> myGrpcChannel = new TestGrpcChannel<>("MEMORY_TEST_CHANNEL", new MemoryServiceMock());
 
-  @Test
-  public void testToggleLegacyCapture() throws Exception {
-    StudioProfilers profilers = myGrpcChannel.getProfilers();
-    MemoryServiceMock service = myGrpcChannel.getService();
-    MemoryProfilerStage stage = new MemoryProfilerStage(profilers);
-    profilers.setStage(stage);
+  @Override
+  @Before
+  public void setup() {
+    myProfilers = myGrpcChannel.getProfilers();
+    myMockService = myGrpcChannel.getService();
+    myStage = new MemoryProfilerStage(myProfilers, DUMMY_LOADER);
+    myProfilers.setStage(myStage);
 
-    assertEquals(false, stage.isTrackingAllocations());
-    service.setNextStatus(MemoryProfiler.TrackAllocationsResponse.Status.SUCCESS);
-    stage.trackAllocations(true);
-    assertEquals(true, stage.isTrackingAllocations());
-
-    service.setNextStatus(MemoryProfiler.TrackAllocationsResponse.Status.IN_PROGRESS);
-    stage.trackAllocations(true);
-    assertEquals(true, stage.isTrackingAllocations());
-
-    service.setNextStatus(MemoryProfiler.TrackAllocationsResponse.Status.SUCCESS);
-    stage.trackAllocations(false);
-    assertEquals(false, stage.isTrackingAllocations());
-
-    service.setNextStatus(MemoryProfiler.TrackAllocationsResponse.Status.FAILURE_UNKNOWN);
-    stage.trackAllocations(true);
-    assertEquals(false, stage.isTrackingAllocations());
+    super.setup();
   }
 
-  private static class MemoryServiceMock extends MemoryServiceGrpc.MemoryServiceImplBase {
-    private MemoryProfiler.TrackAllocationsResponse.Status myNextStatus;
+  @Test
+  public void testToggleLegacyCapture() throws Exception {
+    assertEquals(false, myStage.isTrackingAllocations());
+    assertNull(myStage.getSelectedCapture());
 
-    @Override
-    public void trackAllocations(MemoryProfiler.TrackAllocationsRequest request,
-                                 StreamObserver<MemoryProfiler.TrackAllocationsResponse> response) {
-      response.onNext(MemoryProfiler.TrackAllocationsResponse.newBuilder().setStatus(myNextStatus).build());
-      response.onCompleted();
-    }
+    // Test the no-action cases
+    myStage.trackAllocations(false);
+    assertEquals(false, myStage.isTrackingAllocations());
+    assertAndResetCounts(1, 0, 0, 0, 0, 0);
+    myMockService.setExplicitStatus(TrackAllocationsResponse.Status.FAILURE_UNKNOWN);
+    myStage.trackAllocations(false);
+    assertEquals(false, myStage.isTrackingAllocations());
+    assertAndResetCounts(1, 0, 0, 0, 0, 0);
 
-    public void setNextStatus(MemoryProfiler.TrackAllocationsResponse.Status status) {
-      myNextStatus = status;
-    }
+    // Starting a tracking session
+    myMockService.setExplicitStatus(null);
+    myMockService.advanceTime(1);
+    myStage.trackAllocations(true);
+    assertEquals(true, myStage.isTrackingAllocations());
+    assertEquals(null, myStage.getSelectedCapture());
+    assertAndResetCounts(1, 0, 0, 0, 0, 0);
+
+    // Attempting to start a in-progress session
+    myStage.trackAllocations(true);
+    assertEquals(true, myStage.isTrackingAllocations());
+    assertAndResetCounts(1, 0, 0, 0, 0, 0);
+
+    // Stopping a tracking session;
+    myStage.trackAllocations(false);
+    assertEquals(false, myStage.isTrackingAllocations());
+    assertAndResetCounts(1, 0, 0, 0, 0, 0);  // Stopping a tracking session should NOT fire a CURRENT_CAPTURE change event.
+  }
+
+  @Test
+  public void testMemoryObjectSelection() {
+    myStage.selectCapture(DUMMY_CAPTURE, null);
+    assertEquals(DUMMY_CAPTURE, myStage.getSelectedCapture());
+    assertNull(myStage.getSelectedHeap());
+    assertNull(myStage.getSelectedClass());
+    assertNull(myStage.getSelectedInstance());
+    assertAndResetCounts(0, 1, 1, 0, 0, 0);
+
+    // Make sure the same capture selected shouldn't result in aspects getting raised again.
+    myStage.selectCapture(DUMMY_CAPTURE, null);
+    assertEquals(DUMMY_CAPTURE, myStage.getSelectedCapture());
+    assertNull(myStage.getSelectedHeap());
+    assertNull(myStage.getSelectedClass());
+    assertNull(myStage.getSelectedInstance());
+    assertAndResetCounts(0, 0, 0, 0, 0, 0);
+
+    myStage.selectHeap(DUMMY_HEAP_1);
+    assertEquals(DUMMY_CAPTURE, myStage.getSelectedCapture());
+    assertEquals(DUMMY_HEAP_1, myStage.getSelectedHeap());
+    assertNull(myStage.getSelectedClass());
+    assertNull(myStage.getSelectedInstance());
+    assertAndResetCounts(0, 0, 0, 1, 0, 0);
+
+    myStage.selectHeap(DUMMY_HEAP_1);
+    assertEquals(DUMMY_CAPTURE, myStage.getSelectedCapture());
+    assertEquals(DUMMY_HEAP_1, myStage.getSelectedHeap());
+    assertNull(myStage.getSelectedClass());
+    assertNull(myStage.getSelectedInstance());
+    assertAndResetCounts(0, 0, 0, 0, 0, 0);
+
+    myStage.selectClass(DUMMY_CLASS_1);
+    assertEquals(DUMMY_CAPTURE, myStage.getSelectedCapture());
+    assertEquals(DUMMY_HEAP_1, myStage.getSelectedHeap());
+    assertEquals(DUMMY_CLASS_1, myStage.getSelectedClass());
+    assertNull(myStage.getSelectedInstance());
+    assertAndResetCounts(0, 0, 0, 0, 1, 0);
+
+    myStage.selectClass(DUMMY_CLASS_1);
+    assertEquals(DUMMY_CAPTURE, myStage.getSelectedCapture());
+    assertEquals(DUMMY_HEAP_1, myStage.getSelectedHeap());
+    assertEquals(DUMMY_CLASS_1, myStage.getSelectedClass());
+    assertNull(myStage.getSelectedInstance());
+    assertAndResetCounts(0, 0, 0, 0, 0, 0);
+
+    myStage.selectInstance(DUMMY_INSTANCE);
+    assertEquals(DUMMY_CAPTURE, myStage.getSelectedCapture());
+    assertEquals(DUMMY_HEAP_1, myStage.getSelectedHeap());
+    assertEquals(DUMMY_CLASS_1, myStage.getSelectedClass());
+    assertEquals(DUMMY_INSTANCE, myStage.getSelectedInstance());
+    assertAndResetCounts(0, 0, 0, 0, 0, 1);
+
+    myStage.selectInstance(DUMMY_INSTANCE);
+    assertEquals(DUMMY_CAPTURE, myStage.getSelectedCapture());
+    assertEquals(DUMMY_HEAP_1, myStage.getSelectedHeap());
+    assertEquals(DUMMY_CLASS_1, myStage.getSelectedClass());
+    assertEquals(DUMMY_INSTANCE, myStage.getSelectedInstance());
+    assertAndResetCounts(0, 0, 0, 0, 0, 0);
+
+    // Test the reverse direction, to make sure children MemoryObjects are nullified in the selection.
+    myStage.selectClass(null);
+    assertEquals(DUMMY_CAPTURE, myStage.getSelectedCapture());
+    assertEquals(DUMMY_HEAP_1, myStage.getSelectedHeap());
+    assertNull(myStage.getSelectedClass());
+    assertNull(myStage.getSelectedInstance());
+    assertAndResetCounts(0, 0, 0, 0, 1, 1);
+
+    // However, if a selection didn't change (e.g. null => null), it shouldn't trigger an aspect change either.
+    myStage.selectHeap(null);
+    assertEquals(DUMMY_CAPTURE, myStage.getSelectedCapture());
+    assertNull(myStage.getSelectedHeap());
+    assertNull(myStage.getSelectedClass());
+    assertNull(myStage.getSelectedInstance());
+    assertAndResetCounts(0, 0, 0, 1, 0, 0);
   }
 }

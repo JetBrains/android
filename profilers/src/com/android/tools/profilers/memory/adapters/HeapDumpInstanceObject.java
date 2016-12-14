@@ -30,6 +30,7 @@ import java.util.Map;
 final class HeapDumpInstanceObject implements InstanceObject {
   @NotNull private final Instance myInstance;
 
+  @NotNull
   public static List<FieldObject> extractFields(@NotNull Instance instance) {
     List<FieldObject> sublist = new ArrayList<>();
     if (instance instanceof ClassInstance) {
@@ -53,9 +54,6 @@ final class HeapDumpInstanceObject implements InstanceObject {
       for (Map.Entry<Field, Object> entry : classObj.getStaticFieldValues().entrySet()) {
         sublist.add(new HeapDumpFieldObject(classObj, new ClassInstance.FieldValue(entry.getKey(), entry.getValue())));
       }
-    }
-    else {
-      return null;
     }
 
     return sublist;
@@ -87,7 +85,7 @@ final class HeapDumpInstanceObject implements InstanceObject {
     return myInstance.getTotalRetainedSize();
   }
 
-  @Nullable
+  @NotNull
   @Override
   public List<FieldObject> getFields() {
     return extractFields(myInstance);

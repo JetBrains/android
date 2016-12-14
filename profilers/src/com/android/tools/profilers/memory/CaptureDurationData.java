@@ -16,20 +16,27 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.DefaultDurationData;
-import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
 import org.jetbrains.annotations.NotNull;
 
-public final class HeapDumpDurationData extends DefaultDurationData {
+public class CaptureDurationData <T extends CaptureObject> extends DefaultDurationData {
+  @NotNull private final T myCaptureObject;
 
-  private final MemoryProfiler.HeapDumpInfo myDumpInfo;
-
-  public HeapDumpDurationData(long duration, @NotNull MemoryProfiler.HeapDumpInfo info) {
+  public CaptureDurationData(long duration, @NotNull T captureObject) {
     super(duration);
-    myDumpInfo = info;
+    myCaptureObject = captureObject;
   }
 
   @NotNull
-  public MemoryProfiler.HeapDumpInfo getDumpInfo() {
-    return myDumpInfo;
+  public T getCaptureObject() {
+    return myCaptureObject;
+  }
+
+  public long getStartTimeNs() {
+    return myCaptureObject.getStartTimeNs();
+  }
+
+  public long getEndTimeNs() {
+    return myCaptureObject.getEndTimeNs();
   }
 }
