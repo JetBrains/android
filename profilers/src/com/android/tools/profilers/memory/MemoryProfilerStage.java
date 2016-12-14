@@ -17,84 +17,26 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.DataSeries;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryProfiler.*;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.AllocationsInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.ProfilerTimeline;
+import com.android.tools.profilers.Stage;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.adapters.*;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.ImmutableList;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.adtui.model.DurationData.UNSPECIFIED_DURATION;
-
 public class MemoryProfilerStage extends Stage {
-  private static class MemoryProfilerSelection {
-    // TODO this should persist across stages
-    @Nullable private CaptureObject mySelectedCaptureObject;
-    @Nullable private HeapObject mySelectedHeap;
-    @Nullable private ClassObject mySelectedClass;
-    @Nullable private InstanceObject mySelectedInstance;
-
-    @Nullable
-    public CaptureObject getSelectedCaptureObject() {
-      return mySelectedCaptureObject;
-    }
-
-    @Nullable
-    public HeapObject getSelectedHeap() {
-      return mySelectedHeap;
-    }
-
-    @Nullable
-    public ClassObject getSelectedClass() {
-      return mySelectedClass;
-    }
-
-    @Nullable
-    public InstanceObject getSelectedInstance() {
-      return mySelectedInstance;
-    }
-
-    public void setSelectedCaptureObject(@Nullable CaptureObject captureObject) {
-      if (mySelectedCaptureObject != null) {
-        Disposer.dispose(mySelectedCaptureObject);
-      }
-      mySelectedCaptureObject = captureObject;
-    }
-
-    public void setSelectedHeap(@Nullable HeapObject heap) {
-      mySelectedHeap = heap;
-    }
-
-    public void setSelectedClass(@Nullable ClassObject klass) {
-      mySelectedClass = klass;
-    }
-
-    public void setSelectedInstance(@Nullable InstanceObject instance) {
-      mySelectedInstance = instance;
-    }
-
-    public void set(@Nullable CaptureObject selectedCaptureObject,
-                    @Nullable HeapObject heapObject,
-                    @Nullable ClassObject classObject,
-                    @Nullable InstanceObject instanceObject) {
-      setSelectedCaptureObject(selectedCaptureObject);
-      setSelectedHeap(heapObject);
-      setSelectedClass(classObject);
-      setSelectedInstance(instanceObject);
-    }
-  }
-
   private final int myProcessId;
 
   @NotNull
@@ -110,7 +52,7 @@ public class MemoryProfilerStage extends Stage {
   private final AllocationInfosDataSeries myAllocationInfosDataSeries;
 
   @NotNull
-  private final ExclusiveMemoryObjectsSelection myExclusiveMemoryObjectsSelection;
+  private final CaptureObjectLoader myLoader;
 
   @NotNull
   private MemoryProfilerSelection mySelection;
@@ -118,19 +60,39 @@ public class MemoryProfilerStage extends Stage {
   private boolean myAllocationStatus;
 
   public MemoryProfilerStage(@NotNull StudioProfilers profilers) {
+    this(profilers, new CaptureObjectLoader());
+  }
+
+  @VisibleForTesting
+  MemoryProfilerStage(@NotNull StudioProfilers profilers, @NotNull CaptureObjectLoader loader) {
     super(profilers);
     myProcessId = profilers.getProcessId();
     myClient = profilers.getClient().getMemoryClient();
-    myHeapDumpSampleDataSeries = new HeapDumpSampleDataSeries();
-    myAllocationInfosDataSeries = new AllocationInfosDataSeries();
-    myExclusiveMemoryObjectsSelection = new ExclusiveMemoryObjectsSelection();
-    mySelection = new MemoryProfilerSelection();
+    myHeapDumpSampleDataSeries = new HeapDumpSampleDataSeries(profilers.getClient().getMemoryClient(), profilers.getProcessId());
+    myAllocationInfosDataSeries = new AllocationInfosDataSeries(profilers.getClient().getMemoryClient(), profilers.getProcessId());
+    myLoader = loader;
+    mySelection = new MemoryProfilerSelection(this);
     myAllocationStatus = false;
   }
 
   @Override
+  public void enter() {
+    super.enter();
+
+    myLoader.start();
+  }
+
+  @Override
+  public void exit() {
+    super.exit();
+
+    selectCapture(null, null);
+    myLoader.stop();
+  }
+
+  @Override
   public ProfilerMode getProfilerMode() {
-    return mySelection.getSelectedCaptureObject() == null ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED;
+    return mySelection.getCaptureObject() == null ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED;
   }
 
   @NotNull
@@ -142,95 +104,8 @@ public class MemoryProfilerStage extends Stage {
     myClient.triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.newBuilder().setAppId(myProcessId).build());
   }
 
-  public DataSeries<HeapDumpDurationData> getHeapDumpSampleDurations() {
+  public DataSeries<CaptureDurationData<HeapDumpCaptureObject>> getHeapDumpSampleDurations() {
     return myHeapDumpSampleDataSeries;
-  }
-
-  public void setFocusedHeapDump(@NotNull HeapDumpInfo sample) {
-    myExclusiveMemoryObjectsSelection.setFocusedHeapDumpInfo(sample);
-    ProfilerTimeline timeline = getStudioProfilers().getTimeline();
-    timeline.getSelectionRange().set(TimeUnit.NANOSECONDS.toMicros(sample.getStartTime()),
-                                     TimeUnit.NANOSECONDS.toMicros(sample.getEndTime()));
-  }
-
-  public void setFocusedDiffHeapDump(@NotNull HeapDumpInfo diffSample) {
-    myExclusiveMemoryObjectsSelection.setFocusedDiffHeapDumpInfo(diffSample);
-  }
-
-  public void setAllocationsTimeRange(long startNs, long endNs) {
-    myExclusiveMemoryObjectsSelection.setSelectionRange(startNs, endNs);
-    ProfilerTimeline timeline = getStudioProfilers().getTimeline();
-    timeline.getSelectionRange().set(TimeUnit.NANOSECONDS.toMicros(startNs), TimeUnit.NANOSECONDS.toMicros(endNs));
-  }
-
-
-  public void selectInstance(@Nullable InstanceObject instanceObject) {
-    InstanceObject previousInstance = mySelection.getSelectedInstance();
-    if (previousInstance == instanceObject) {
-      return;
-    }
-
-    mySelection.setSelectedInstance(instanceObject);
-    myAspect.changed(MemoryProfilerAspect.CURRENT_INSTANCE);
-  }
-
-  @Nullable
-  public InstanceObject getSelectedInstance() {
-    return mySelection.getSelectedInstance();
-  }
-
-  public void selectClass(@Nullable ClassObject classObject) {
-    ClassObject previousClass = mySelection.getSelectedClass();
-    if (previousClass == classObject) {
-      return;
-    }
-
-    mySelection.setSelectedClass(classObject);
-    mySelection.setSelectedInstance(null);
-    myAspect.changed(MemoryProfilerAspect.CURRENT_CLASS);
-  }
-
-  @Nullable
-  public ClassObject getSelectedClass() {
-    return mySelection.getSelectedClass();
-  }
-
-  public void selectHeap(@Nullable HeapObject heapObject) {
-    HeapObject previousHeap = mySelection.getSelectedHeap();
-    if (previousHeap == heapObject) {
-      return;
-    }
-
-    mySelection.setSelectedHeap(heapObject);
-    mySelection.setSelectedClass(null);
-    mySelection.setSelectedInstance(null);
-    myAspect.changed(MemoryProfilerAspect.CURRENT_HEAP);
-  }
-
-  @Nullable
-  public HeapObject getSelectedHeap() {
-    return mySelection.getSelectedHeap();
-  }
-
-  public void selectCaptureObject(@Nullable CaptureObject captureObject) {
-    CaptureObject previousCaptureObject = mySelection.getSelectedCaptureObject();
-    if (previousCaptureObject == captureObject) {
-      return;
-    }
-
-    mySelection.set(captureObject, null, null, null);
-    myAspect.changed(MemoryProfilerAspect.CURRENT_CAPTURE);
-    getStudioProfilers().modeChanged();
-  }
-
-  @Nullable
-  public CaptureObject getSelectedCaptureObject() {
-    return mySelection.getSelectedCaptureObject();
-  }
-
-  @NotNull
-  public MemoryProfilerSelection getSelection() {
-    return mySelection;
   }
 
   /**
@@ -250,121 +125,71 @@ public class MemoryProfilerStage extends Stage {
   }
 
   @NotNull
-  public DataSeries<AllocationsDurationData> getAllocationInfosDurations() {
+  public DataSeries<CaptureDurationData<AllocationsCaptureObject>> getAllocationInfosDurations() {
     return myAllocationInfosDataSeries;
   }
 
-  private class ExclusiveMemoryObjectsSelection {
-    @Nullable
-    private HeapDumpInfo myFocusedHeapDumpInfo = null;
+  public void selectInstance(@Nullable InstanceObject instanceObject) {
+    mySelection.setInstanceObject(instanceObject);
+  }
 
-    @Nullable
-    private HeapDumpInfo myFocusedDiffHeapDumpInfo = null;
+  @Nullable
+  public InstanceObject getSelectedInstance() {
+    return mySelection.getInstanceObject();
+  }
 
-    private long mySelectionStartTime = Long.MAX_VALUE;
+  public void selectClass(@Nullable ClassObject classObject) {
+    mySelection.setClassObject(classObject);
+  }
 
-    private long mySelectionEndTime = Long.MIN_VALUE;
+  @Nullable
+  public ClassObject getSelectedClass() {
+    return mySelection.getClassObject();
+  }
 
-    public void setFocusedHeapDumpInfo(@NotNull HeapDumpInfo focusedHeapDumpInfo) {
-      if (focusedHeapDumpInfo != myFocusedHeapDumpInfo) {
-        myFocusedHeapDumpInfo = focusedHeapDumpInfo;
-        mySelectionStartTime = Long.MAX_VALUE;
-        mySelectionEndTime = Long.MIN_VALUE;
-        selectCaptureObject(new HeapDumpCaptureObject(myClient, myProcessId, myFocusedHeapDumpInfo, null));
-      }
+  public void selectHeap(@Nullable HeapObject heapObject) {
+    mySelection.setHeapObject(heapObject);
+  }
+
+  @Nullable
+  public HeapObject getSelectedHeap() {
+    return mySelection.getHeapObject();
+  }
+
+  public void selectCapture(@Nullable CaptureObject captureObject, @Nullable Executor joiner) {
+    if (!mySelection.setCaptureObject(captureObject)) {
+      return;
     }
 
-    @Nullable
-    public HeapDumpInfo getFocusedHeapDumpInfo() {
-      return myFocusedHeapDumpInfo;
-    }
+    getStudioProfilers().modeChanged();
 
-    public void setFocusedDiffHeapDumpInfo(@NotNull HeapDumpInfo focusedDiffHeapDumpInfo) {
-      assert myFocusedDiffHeapDumpInfo != null && mySelectionStartTime == Long.MAX_VALUE && mySelectionEndTime == Long.MIN_VALUE;
-      if (focusedDiffHeapDumpInfo != myFocusedDiffHeapDumpInfo) {
-        myFocusedDiffHeapDumpInfo = focusedDiffHeapDumpInfo;
-        myAspect.changed(MemoryProfilerAspect.CURRENT_CAPTURE);
-        // TODO implement/set diff view
-      }
+    ProfilerTimeline timeline = getStudioProfilers().getTimeline();
+    if (captureObject != null) {
+      timeline.getSelectionRange().set(TimeUnit.NANOSECONDS.toMicros(captureObject.getStartTimeNs()),
+                                       TimeUnit.NANOSECONDS.toMicros(captureObject.getEndTimeNs()));
+      ListenableFuture<CaptureObject> future = myLoader.loadCapture(captureObject);
+      future.addListener(() -> {
+                           try {
+                             CaptureObject loadedCaptureObject = future.get();
+                             if (loadedCaptureObject != null && loadedCaptureObject == mySelection.getCaptureObject()) {
+                               myAspect.changed(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE);
+                             }
+                           }
+                           catch (InterruptedException ignored) {
+                             Thread.currentThread().interrupt();
+                           }
+                           catch (ExecutionException | CancellationException ignored) {
+                           }
+                         },
+                         joiner == null ? MoreExecutors.directExecutor() : joiner);
     }
-
-    @Nullable
-    public HeapDumpInfo getFocusedDiffHeapDumpInfo() {
-      return myFocusedDiffHeapDumpInfo;
-    }
-
-    public void setSelectionRange(long startTime, long endTime) {
-      myFocusedHeapDumpInfo = null;
-      myFocusedDiffHeapDumpInfo = null;
-      mySelectionStartTime = startTime;
-      mySelectionEndTime = endTime;
-      selectCaptureObject(new AllocationsCaptureObject(myClient, myProcessId, startTime, endTime));
-      myAspect.changed(MemoryProfilerAspect.CURRENT_CAPTURE);
-    }
-
-    public void clearSelection() {
-      myFocusedHeapDumpInfo = null;
-      myFocusedDiffHeapDumpInfo = null;
-      mySelectionStartTime = Long.MAX_VALUE;
-      mySelectionEndTime = Long.MIN_VALUE;
-      selectCaptureObject(null);
-      myAspect.changed(MemoryProfilerAspect.CURRENT_CAPTURE);
+    else {
+      timeline.getSelectionRange().clear();
     }
   }
 
-  private class HeapDumpSampleDataSeries implements DataSeries<HeapDumpDurationData> {
-    @Override
-    public ImmutableList<SeriesData<HeapDumpDurationData>> getDataForXRange(Range xRange) {
-      long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
-      long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
-      ListHeapDumpInfosResponse response =
-        myClient
-          .listHeapDumpInfos(ListDumpInfosRequest.newBuilder().setAppId(myProcessId).setStartTime(rangeMin).setEndTime(rangeMax).build());
-
-      List<SeriesData<HeapDumpDurationData>> seriesData = new ArrayList<>();
-      for (HeapDumpInfo info : response.getInfosList()) {
-        long startTime = TimeUnit.NANOSECONDS.toMicros(info.getStartTime());
-        long endTime = TimeUnit.NANOSECONDS.toMicros(info.getEndTime());
-        seriesData.add(new SeriesData<>(startTime, new HeapDumpDurationData(
-          info.getEndTime() == UNSPECIFIED_DURATION ? UNSPECIFIED_DURATION : endTime - startTime, info)));
-      }
-
-      return ContainerUtil.immutableList(seriesData);
-    }
-  }
-
-  private class AllocationInfosDataSeries implements DataSeries<AllocationsDurationData> {
-    @NotNull
-    public List<AllocationsInfo> getDataForXRange(long rangeMinNs, long rangeMaxNs) {
-      MemoryRequest.Builder dataRequestBuilder = MemoryRequest.newBuilder()
-        .setAppId(myProcessId)
-        .setStartTime(rangeMinNs)
-        .setEndTime(rangeMaxNs);
-      MemoryData response = myClient.getData(dataRequestBuilder.build());
-      return response.getAllocationsInfoList();
-    }
-
-    @Override
-    public ImmutableList<SeriesData<AllocationsDurationData>> getDataForXRange(Range xRange) {
-      long bufferNs = TimeUnit.SECONDS.toNanos(1);
-      long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin()) - bufferNs;
-      long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax()) + bufferNs;
-
-      List<AllocationsInfo> infos = getDataForXRange(rangeMin, rangeMax);
-
-      List<SeriesData<AllocationsDurationData>> seriesData = new ArrayList<>();
-      if (infos.size() == 0) {
-        return ContainerUtil.immutableList(seriesData);
-      }
-
-      for (AllocationsInfo info : infos) {
-        long startTimeNs = info.getStartTime();
-        long endTimeNs = info.getEndTime();
-        long durationUs = endTimeNs == UNSPECIFIED_DURATION ? UNSPECIFIED_DURATION : TimeUnit.NANOSECONDS.toMicros(endTimeNs - startTimeNs);
-        seriesData.add(
-          new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(startTimeNs), new AllocationsDurationData(durationUs, startTimeNs, endTimeNs)));
-      }
-      return ContainerUtil.immutableList(seriesData);
-    }
+  @Nullable
+  public CaptureObject getSelectedCapture() {
+    return mySelection.getCaptureObject();
   }
 }

@@ -156,6 +156,7 @@ public final class StudioProfilers extends AspectModel<ProfilerAspect> {
     }
     catch (Throwable t) {
       System.err.println("Run is ending....");
+      throw t;
     }
   }
 

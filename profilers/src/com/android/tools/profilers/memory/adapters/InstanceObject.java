@@ -63,7 +63,7 @@ public interface InstanceObject extends MemoryObject {
     return 0;
   }
 
-  @Nullable
+  @NotNull
   default List<FieldObject> getFields() {
     return Collections.emptyList();
   }

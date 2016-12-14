@@ -17,12 +17,12 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.memory.MemoryProfilerStageView.AttributeColumn;
-import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.HeapObject;
 import com.android.tools.profilers.memory.adapters.HeapObject.ClassAttribute;
-import com.intellij.openapi.ui.ComboBox;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.containers.HashMap;
@@ -46,23 +46,34 @@ final class MemoryClassView {
 
   @NotNull private final Map<ClassAttribute, AttributeColumn> myAttributeColumns = new HashMap<>();
 
-  @Nullable private JComponent myClassesTree;
+  @Nullable private HeapObject myHeapObject = null;
 
-  @Nullable private DefaultTreeModel myClassesTreeModel;
+  @Nullable private ClassObject myClassObject = null;
 
-  @Nullable private MemoryObjectTreeNode<ClassObject> myClassesTreeRoot;
+  @NotNull private JPanel myPanel = new JPanel(new BorderLayout());
 
-  @Nullable private CaptureObject myCaptureObject;
+  @Nullable private JComponent myColumnTree;
+
+  @Nullable private JTree myTree;
+
+  @Nullable private DefaultTreeModel myTreeModel;
+
+  @Nullable private MemoryObjectTreeNode<ClassObject> myTreeRoot;
 
   public MemoryClassView(@NotNull MemoryProfilerStage stage) {
     myStage = stage;
+
+    myStage.getAspect().addDependency()
+      .setExecutor(ApplicationManager.getApplication(), Application::invokeLater)
+      .onChange(MemoryProfilerAspect.CURRENT_HEAP, this::refreshHeap)
+      .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::refreshClass);
 
     myAttributeColumns.put(
       ClassAttribute.LABEL,
       new AttributeColumn(
         "Class Name",
-        () -> new MemoryProfilerStageView.DetailColumnRenderer(value -> ((ClassObject)value.getAdapter()).getName(),
-                                                               value -> PlatformIcons.CLASS_ICON, SwingConstants.LEFT),
+        () -> new DetailColumnRenderer(value -> ((ClassObject)value.getAdapter()).getName(),
+                                       value -> PlatformIcons.CLASS_ICON, SwingConstants.LEFT),
         SwingConstants.LEFT,
         LABEL_COLUMN_WIDTH,
         SortOrder.ASCENDING,
@@ -71,7 +82,7 @@ final class MemoryClassView {
       ClassAttribute.CHILDREN_COUNT,
       new AttributeColumn(
         "Count",
-        () -> new MemoryProfilerStageView.DetailColumnRenderer(
+        () -> new DetailColumnRenderer(
           value -> Integer.toString(((ClassObject)value.getAdapter()).getChildrenCount()),
           value -> null,
           SwingConstants.RIGHT),
@@ -83,7 +94,7 @@ final class MemoryClassView {
       ClassAttribute.ELEMENT_SIZE,
       new AttributeColumn(
         "Size",
-        () -> new MemoryProfilerStageView.DetailColumnRenderer(
+        () -> new DetailColumnRenderer(
           value -> Integer.toString(((ClassObject)value.getAdapter()).getElementSize()), value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
@@ -93,7 +104,7 @@ final class MemoryClassView {
       ClassAttribute.SHALLOW_SIZE,
       new AttributeColumn(
         "Shallow Size",
-        () -> new MemoryProfilerStageView.DetailColumnRenderer(
+        () -> new DetailColumnRenderer(
           value -> Integer.toString(((ClassObject)value.getAdapter()).getShallowSize()),
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
@@ -104,9 +115,9 @@ final class MemoryClassView {
       ClassAttribute.RETAINED_SIZE,
       new AttributeColumn(
         "Retained Size",
-        () -> new MemoryProfilerStageView.DetailColumnRenderer(value -> Long.toString(((ClassObject)value.getAdapter()).getRetainedSize()),
-                                                               value -> null,
-                                                               SwingConstants.RIGHT),
+        () -> new DetailColumnRenderer(value -> Long.toString(((ClassObject)value.getAdapter()).getRetainedSize()),
+                                       value -> null,
+                                       SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
@@ -116,85 +127,48 @@ final class MemoryClassView {
         }));
   }
 
+  @NotNull
+  JComponent getComponent() {
+    return myPanel;
+  }
+
+  @VisibleForTesting
+  @Nullable
+  JTree getTree() {
+    return myTree;
+  }
+
   /**
    * Must manually remove from parent container!
    */
-  public void reset() {
-    myClassesTree = null;
-    myClassesTreeRoot = null;
-    myClassesTreeModel = null;
-    myCaptureObject = null;
+  private void reset() {
+    myHeapObject = null;
+    myClassObject = null;
+    myColumnTree = null;
+    myTree = null;
+    myTreeRoot = null;
+    myTreeModel = null;
+    myPanel.removeAll();
+    myStage.selectClass(null);
   }
 
-  @Nullable
-  public CaptureObject getCurrentCapture() {
-    return myCaptureObject;
-  }
+  private void initializeTree() {
+    assert myColumnTree == null && myTreeModel == null && myTreeRoot == null && myTree == null;
 
-  @Nullable
-  public JComponent buildComponent(@NotNull CaptureObject captureObject) {
-    myCaptureObject = captureObject;
-
-    JPanel classesPanel = new JPanel(new BorderLayout());
-    JPanel headingPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-    headingPanel.add(new JLabel(captureObject.toString()));
-
-    JToolBar toolBar = new JToolBar();
-    toolBar.setFloatable(false);
-    List<HeapObject> heaps = captureObject.getHeaps();
-
-    ComboBoxModel<HeapObject> comboBoxModel = new DefaultComboBoxModel<>(heaps.toArray(new HeapObject[heaps.size()]));
-    ComboBox<HeapObject> comboBox = new ComboBox<>(comboBoxModel);
-    comboBox.addActionListener(e -> {
-      // TODO abstract out selection path so we don't need to special case
-      Object item = comboBox.getSelectedItem();
-      if (item != null && item instanceof HeapObject) {
-        HeapObject heap = (HeapObject)item;
-        buildTree(classesPanel, heap);
-        myStage.selectHeap(heap);
-      }
-    });
-    toolBar.add(comboBox);
-    headingPanel.add(toolBar);
-
-    classesPanel.add(headingPanel, BorderLayout.PAGE_START);
-    boolean selected = false;
-    // TODO provide a default selection in the model API?
-    for (HeapObject heap : heaps) {
-      if (heap.getHeapName().equals("app")) {
-        comboBox.setSelectedItem(heap);
-        myStage.selectHeap(heap);
-        selected = true;
-        break;
-      }
-    }
-    if (!selected) {
-      HeapObject heap = heaps.get(0);
-      comboBox.setSelectedItem(heap);
-      myStage.selectHeap(heap);
-    }
-
-    return classesPanel;
-  }
-
-  private void ensureTreeInitialized(@NotNull JPanel parentPanel, @NotNull HeapObject heapObject) {
-    if (myClassesTree != null) {
-      assert myClassesTreeModel != null && myClassesTreeRoot != null;
-      return;
-    }
-
-    myClassesTreeRoot = new MemoryObjectTreeNode<>(new ClassObject() {
+    //noinspection Convert2Lambda
+    myTreeRoot = new MemoryObjectTreeNode<>(new ClassObject() {
       @NotNull
       @Override
       public List<InstanceAttribute> getInstanceAttributes() {
         return Collections.emptyList();
       }
     });
-    myClassesTreeModel = new DefaultTreeModel(myClassesTreeRoot);
-    JTree tree = new Tree(myClassesTreeModel);
-    tree.setRootVisible(false);
-    tree.setShowsRootHandles(true);
-    tree.addTreeSelectionListener(e -> {
+
+    myTreeModel = new DefaultTreeModel(myTreeRoot);
+    myTree = new Tree(myTreeModel);
+    myTree.setRootVisible(false);
+    myTree.setShowsRootHandles(true);
+    myTree.addTreeSelectionListener(e -> {
       TreePath path = e.getPath();
       if (!e.isAddedPath()) {
         return;
@@ -206,29 +180,65 @@ final class MemoryClassView {
       myStage.selectClass((ClassObject)classObject.getAdapter());
     });
 
-    List<HeapObject.ClassAttribute> attributes = heapObject.getClassAttributes();
-    ColumnTreeBuilder builder = new ColumnTreeBuilder(tree);
+    assert myHeapObject != null;
+    List<HeapObject.ClassAttribute> attributes = myHeapObject.getClassAttributes();
+    ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree);
     for (ClassAttribute attribute : attributes) {
       builder.addColumn(myAttributeColumns.get(attribute).getBuilder());
     }
     builder.setTreeSorter((Comparator<MemoryObjectTreeNode<ClassObject>> comparator, SortOrder sortOrder) -> {
-      myClassesTreeRoot.sort(comparator);
-      myClassesTreeModel.nodeStructureChanged(myClassesTreeRoot);
+      myTreeRoot.sort(comparator);
+      myTreeModel.nodeStructureChanged(myTreeRoot);
     });
     builder.setBackground(ProfilerColors.MONITOR_BACKGROUND);
-    myClassesTree = builder.build();
-    parentPanel.add(myClassesTree, BorderLayout.CENTER);
+    myColumnTree = builder.build();
+    myPanel.add(myColumnTree, BorderLayout.CENTER);
   }
 
-  private void buildTree(@NotNull JPanel parentPanel, @NotNull HeapObject heapObject) {
-    ensureTreeInitialized(parentPanel, heapObject);
-    assert myClassesTreeRoot != null && myClassesTreeModel != null;
-    myClassesTreeRoot.removeAll();
-    for (ClassObject classObject : heapObject.getClasses()) {
+  private void populateTreeContents() {
+    assert myHeapObject != null && myTreeRoot != null && myTreeModel != null;
+    myTreeRoot.removeAll();
+    for (ClassObject classObject : myHeapObject.getClasses()) {
       // TODO handle package view
-      myClassesTreeRoot.add(new MemoryObjectTreeNode<>(classObject));
+      myTreeRoot.add(new MemoryObjectTreeNode<>(classObject));
     }
-    myClassesTreeModel.nodeChanged(myClassesTreeRoot);
-    myClassesTreeModel.reload();
+    myTreeModel.nodeChanged(myTreeRoot);
+    myTreeModel.reload();
+  }
+
+  private void refreshHeap() {
+    HeapObject heapObject = myStage.getSelectedHeap();
+    if (heapObject == myHeapObject) {
+      return;
+    }
+
+    if (heapObject == null) {
+      reset();
+      return;
+    }
+
+    if (myHeapObject == null) {
+      myHeapObject = heapObject;
+      initializeTree();
+    }
+    else {
+      myHeapObject = heapObject;
+    }
+
+    populateTreeContents();
+  }
+
+  private void refreshClass() {
+    if (myTreeRoot == null || myTreeModel == null || myTree == null) {
+      return;
+    }
+
+    myClassObject = myStage.getSelectedClass();
+    for (MemoryObjectTreeNode<ClassObject> node : myTreeRoot.getChildren()) {
+      if (node.getAdapter() == myClassObject) {
+        myTree.setSelectionPath(new TreePath(myTreeModel.getPathToRoot(node)));
+        break;
+      }
+    }
   }
 }
