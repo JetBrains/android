@@ -35,11 +35,13 @@ public class CpuProfiler extends StudioProfiler {
 
   @Override
   public void startProfiling(Profiler.Process process) {
+    // TODO: handle different status of the response
     myProfilers.getClient().getCpuClient().startMonitoringApp(CpuStartRequest.newBuilder().setAppId(process.getPid()).build());
   }
 
   @Override
   public void stopProfiling(Profiler.Process process) {
+    // TODO: handle different status of the response
     myProfilers.getClient().getCpuClient().stopMonitoringApp(CpuStopRequest.newBuilder().setAppId(process.getPid()).build());
   }
 }
