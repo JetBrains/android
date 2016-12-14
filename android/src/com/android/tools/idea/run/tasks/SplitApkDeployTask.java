@@ -17,6 +17,7 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.InstallException;
+import com.android.ddmlib.SplitApkInstaller;
 import com.android.tools.fd.client.InstantRunArtifact;
 import com.android.tools.fd.client.InstantRunArtifactType;
 import com.android.tools.fd.client.InstantRunBuildInfo;
@@ -25,6 +26,8 @@ import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunStatsService;
 import com.android.tools.idea.run.ConsolePrinter;
+import com.android.tools.idea.run.InstallResult;
+import com.android.tools.idea.run.RetryingInstaller;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -77,37 +80,65 @@ public class SplitApkDeployTask implements LaunchTask {
       }
     }
 
-    String cmd = getAdbInstallCommand(apks, installOptions);
-    printer.stdout(cmd);
-    InstantRunManager.LOG.info(cmd);
+    RetryingInstaller.Installer installer = new SplitApkInstaller(printer, apks, installOptions);
 
-    try {
-      device.installPackages(apks, true, installOptions, 5, TimeUnit.MINUTES);
+    RetryingInstaller retryingInstaller =
+      new RetryingInstaller(myProject, device, installer, myInstantRunContext.getApplicationId(), printer, launchStatus);
+    boolean status = retryingInstaller.install();
+    if (status) {
       printer.stdout("Split APKs installed");
-      InstantRunStatsService.get(myProject).notifyDeployType(DeployType.SPLITAPK, myInstantRunContext.getBuildSelection().why,
-                                                             myInstantRunContext.getInstantRunBuildInfo().getVerifierStatus(), device);
-      return true;
     }
-    catch (InstallException e) {
-      launchStatus.terminateLaunch("Error installing split apks: " + e);
-      return false;
-    }
+
+    assert myInstantRunContext.getBuildSelection() != null;
+    InstantRunStatsService.get(myProject).notifyDeployType(DeployType.SPLITAPK, myInstantRunContext.getBuildSelection().why,
+                                                           myInstantRunContext.getInstantRunBuildInfo().getVerifierStatus(), device);
+
+    return status;
   }
 
-  @NotNull
-  private static String getAdbInstallCommand(@NotNull List<File> apks, @NotNull List<String> installOptions) {
-    StringBuilder sb = new StringBuilder();
-    sb.append("$ adb install-multiple -r ");
-    if (!installOptions.isEmpty()) {
-      sb.append(Joiner.on(' ').join(installOptions));
-      sb.append(' ');
+  private static final class SplitApkInstaller implements RetryingInstaller.Installer {
+    private final ConsolePrinter myPrinter;
+    private final List<File> myApks;
+    private final List<String> myInstallOptions;
+
+    public SplitApkInstaller(@NotNull ConsolePrinter printer, @NotNull List<File> apks, @NotNull List<String> installOptions) {
+      myPrinter = printer;
+      myApks = apks;
+      myInstallOptions = installOptions;
     }
 
-    for (File f : apks) {
-      sb.append(f.getPath());
-      sb.append(' ');
+    @NotNull
+    @Override
+    public InstallResult installApp(@NotNull IDevice device, @NotNull LaunchStatus launchStatus) {
+      String cmd = getAdbInstallCommand(myApks, myInstallOptions);
+
+      try {
+        myPrinter.stdout(cmd);
+        InstantRunManager.LOG.info(cmd);
+
+        device.installPackages(myApks, true, myInstallOptions, 5, TimeUnit.MINUTES);
+        return new InstallResult(InstallResult.FailureCode.NO_ERROR, null, null);
+      }
+      catch (InstallException e) {
+        return new InstallResult(InstallResult.FailureCode.UNTYPED_ERROR, e.getMessage(), null);
+      }
     }
 
-    return sb.toString();
+    @NotNull
+    private static String getAdbInstallCommand(@NotNull List<File> apks, @NotNull List<String> installOptions) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("$ adb install-multiple -r ");
+      if (!installOptions.isEmpty()) {
+        sb.append(Joiner.on(' ').join(installOptions));
+        sb.append(' ');
+      }
+
+      for (File f : apks) {
+        sb.append(f.getPath());
+        sb.append(' ');
+      }
+
+      return sb.toString();
+    }
   }
 }
