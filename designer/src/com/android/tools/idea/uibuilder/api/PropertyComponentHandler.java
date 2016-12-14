@@ -42,6 +42,14 @@ public abstract class PropertyComponentHandler extends PaletteComponentHandler {
   }
 
   /**
+   * @return the properties that should be shown in the inspector for a child of this component.
+   */
+  @NotNull
+  public List<String> getLayoutInspectorProperties() {
+    return Collections.emptyList();
+  }
+
+  /**
    * Return the preferred property that the user usually would edit the most
    * for the given component (may be null).
    */

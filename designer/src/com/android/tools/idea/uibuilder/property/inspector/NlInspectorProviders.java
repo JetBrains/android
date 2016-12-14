@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.LafManagerListener;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,12 +38,14 @@ public class NlInspectorProviders implements LafManagerListener, Disposable {
   public NlInspectorProviders(@NotNull NlPropertiesManager propertiesManager, @NotNull Disposable parentDisposable) {
     myPropertiesManager = propertiesManager;
     myIdInspectorProvider = new IdInspectorProvider();
+    Project project = myPropertiesManager.getProject();
     myProviders = ImmutableList.of(myIdInspectorProvider,
-                                   new ViewInspectorProvider(myPropertiesManager.getProject()),
+                                   new ViewInspectorProvider(project),
                                    new ProgressBarInspectorProvider(),
                                    new TextInspectorProvider(),
                                    new MockupInspectorProvider(),
-                                   new FavoritesInspectorProvider());
+                                   new FavoritesInspectorProvider(),
+                                   new LayoutInspectorProvider(project));
     Disposer.register(parentDisposable, this);
     LafManager.getInstance().addLafManagerListener(this);
   }

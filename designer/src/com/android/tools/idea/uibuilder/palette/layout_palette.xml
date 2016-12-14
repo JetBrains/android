@@ -366,6 +366,10 @@
   <group name="Layouts">
     <item tag="android.support.constraint.ConstraintLayout"/>
     <item tag="GridLayout"/>
+    <!--
+    TODO: Uncomment this once flag for Flexbox is enabled
+    <item tag="com.google.android.flexbox.FlexboxLayout"/>
+    -->
     <item tag="FrameLayout"/>
     <item tag="LinearLayout"
           title="LinearLayout (horizontal)"
