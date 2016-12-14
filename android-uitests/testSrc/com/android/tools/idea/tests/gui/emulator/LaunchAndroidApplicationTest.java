@@ -200,7 +200,8 @@ public class LaunchAndroidApplicationTest {
     avdEditWizard.clickNext();
 
     avdEditWizard.getConfigureAvdOptionsStep()
-      .setAvdName(AVD_NAME);
+      .setAvdName(AVD_NAME)
+      .selectGraphicsSoftware();
     avdEditWizard.clickFinish();
     avdManagerDialog.close();
   }
