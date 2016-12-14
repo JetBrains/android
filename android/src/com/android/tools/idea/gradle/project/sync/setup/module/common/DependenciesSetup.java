@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.common;
 
 import com.android.tools.idea.gradle.project.sync.setup.module.SyncLibraryRegistry;
-import com.android.tools.idea.gradle.util.FilePaths;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.*;
