@@ -92,7 +92,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
 
     if (maxScrollableHeight > 0) {
       // There is something to scroll
-      return new ScrollViewScrollHandler(component, maxScrollableHeight, 10);
+      return ScrollViewScrollHandler.createHandler(component, maxScrollableHeight, 10, ScrollViewScrollHandler.Orientation.VERTICAL);
     }
 
     return null;

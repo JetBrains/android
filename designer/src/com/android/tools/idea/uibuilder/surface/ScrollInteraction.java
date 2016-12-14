@@ -41,7 +41,7 @@ public class ScrollInteraction extends Interaction {
   private int myScrollMultiplier = 1;
   private ScreenView myScreenView;
 
-  private ScrollInteraction(@NonNull ScreenView screenView, @NonNull ScrollHandler scrollHandler) {
+  public ScrollInteraction(@NonNull ScreenView screenView, @NonNull ScrollHandler scrollHandler) {
     myScreenView = screenView;
     myHandler = scrollHandler;
   }
