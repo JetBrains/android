@@ -33,6 +33,9 @@ public interface CrashReporter {
   CompletableFuture<String> submit(@NotNull CrashReport crashReport);
 
   @NotNull
+  CompletableFuture<String> submit(@NotNull CrashReport crashReport, boolean userReported);
+
+  @NotNull
   CompletableFuture<String> submit(@NotNull Map<String,String> kv);
 
   @NotNull

@@ -38,7 +38,8 @@ public abstract class CrashReport {
   private static final ImmutableSet<Class<? extends Throwable>> THROWABLE_CLASSES_TO_TRACK_MESSAGES = ImmutableSet.of(
     ArrayIndexOutOfBoundsException.class,
     ClassCastException.class,
-    ClassNotFoundException.class
+    ClassNotFoundException.class,
+    IndexOutOfBoundsException.class
   );
 
   public enum Type {
