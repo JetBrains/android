@@ -77,6 +77,7 @@ import java.util.regex.Pattern;
 import static com.android.SdkConstants.*;
 import static com.android.testutils.TestUtils.getSdk;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.Projects.isLegacyIdeaAndroidProject;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
@@ -258,9 +259,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
                              @Nullable String chosenModuleName) throws Exception {
     prepareProjectForImport(relativePath);
     Project project = getProject();
-    File projectRoot = virtualToIoFile(project.getBaseDir());
-
-    importProject(project.getName(), projectRoot, listener);
+    importProject(project.getName(), getBaseDirPath(project), listener);
 
     assertTrue(AndroidProjectInfo.getInstance(project).requiresAndroidModel());
     assertFalse(isLegacyIdeaAndroidProject(project));

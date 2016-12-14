@@ -191,11 +191,24 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     requestSyncAndWait();
   }
 
+  private void createEmptyGradleSettingsFile() throws IOException {
+    File settingsFilePath = new File(getProjectFolderPath(), FN_SETTINGS_GRADLE);
+    assertTrue(delete(settingsFilePath));
+    writeToFile(settingsFilePath, " ");
+    assertAbout(file()).that(settingsFilePath).isFile();
+    LocalFileSystem.getInstance().refresh(false /* synchronous */);
+  }
+
   public void testModuleJavaLanguageLevel() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module library1Module = myModules.getModule("library1");
     LanguageLevel javaLanguageLevel = getJavaLanguageLevel(library1Module);
     assertEquals(JDK_1_7, javaLanguageLevel);
+  }
+
+  @Nullable
+  private static LanguageLevel getJavaLanguageLevel(@NotNull Module module) {
+    return LanguageLevelModuleExtensionImpl.getInstance(module).getLanguageLevel();
   }
 
   public void testSetupEventInvoked() throws Exception {
@@ -258,18 +271,5 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     ContentEntry contentEntry = contentEntries[0];
     List<String> excludeFolderUrls = contentEntry.getExcludeFolderUrls();
     assertThat(excludeFolderUrls).contains(pathToIdeaUrl(jarsFolderPath));
-  }
-
-  @Nullable
-  private static LanguageLevel getJavaLanguageLevel(@NotNull Module module) {
-    return LanguageLevelModuleExtensionImpl.getInstance(module).getLanguageLevel();
-  }
-
-  private void createEmptyGradleSettingsFile() throws IOException {
-    File settingsFilePath = new File(getProjectFolderPath(), FN_SETTINGS_GRADLE);
-    assertTrue(delete(settingsFilePath));
-    writeToFile(settingsFilePath, " ");
-    assertAbout(file()).that(settingsFilePath).isFile();
-    LocalFileSystem.getInstance().refresh(false /* synchronous */);
   }
 }
