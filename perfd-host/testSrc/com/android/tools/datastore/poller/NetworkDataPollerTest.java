@@ -121,8 +121,8 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   }
 
 
-  public void disabledTestGetHttpRangeInvalidAppId() {
-    // Currently fails.
+  @Test
+  public void testGetHttpRangeInvalidAppId() {
     NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
       .setAppId(0)
       .setStartTimestamp(0)
@@ -213,7 +213,8 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
     validateResponse(observer, NetworkProfiler.NetworkDataResponse.getDefaultInstance());
   }
 
-  public void disabledTestGetDataInvalidAppId() {
+  @Test
+  public void testGetDataInvalidAppId() {
     NetworkProfiler.NetworkDataRequest request = NetworkProfiler.NetworkDataRequest.newBuilder()
       .setAppId(0)
       .setStartTimestamp(0)
