@@ -20,6 +20,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -37,6 +38,8 @@ public class ConstraintComponentUtilities {
 
   protected static final HashMap<String, String> ourReciprocalAttributes;
   protected static final HashMap<String, String> ourMapMarginAttributes;
+  protected static final HashMap<String, AnchorTarget.Type> ourMapSideToOriginAnchors;
+  protected static final HashMap<String, AnchorTarget.Type> ourMapSideToTargetAnchors;
   protected static final ArrayList<String> ourLeftAttributes;
   protected static final ArrayList<String> ourTopAttributes;
   protected static final ArrayList<String> ourRightAttributes;
@@ -65,6 +68,28 @@ public class ConstraintComponentUtilities {
     ourMapMarginAttributes.put(SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
     ourMapMarginAttributes.put(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
     ourMapMarginAttributes.put(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
+
+    ourMapSideToOriginAnchors = new HashMap<>();
+    ourMapSideToOriginAnchors.put(SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, AnchorTarget.Type.LEFT);
+    ourMapSideToOriginAnchors.put(SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF, AnchorTarget.Type.LEFT);
+    ourMapSideToOriginAnchors.put(SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, AnchorTarget.Type.RIGHT);
+    ourMapSideToOriginAnchors.put(SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, AnchorTarget.Type.RIGHT);
+    ourMapSideToOriginAnchors.put(SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, AnchorTarget.Type.TOP);
+    ourMapSideToOriginAnchors.put(SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, AnchorTarget.Type.TOP);
+    ourMapSideToOriginAnchors.put(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, AnchorTarget.Type.BOTTOM);
+    ourMapSideToOriginAnchors.put(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, AnchorTarget.Type.BOTTOM);
+    ourMapSideToOriginAnchors.put(SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, AnchorTarget.Type.BASELINE);
+
+    ourMapSideToTargetAnchors = new HashMap<>();
+    ourMapSideToTargetAnchors.put(SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, AnchorTarget.Type.LEFT);
+    ourMapSideToTargetAnchors.put(SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF, AnchorTarget.Type.RIGHT);
+    ourMapSideToTargetAnchors.put(SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, AnchorTarget.Type.LEFT);
+    ourMapSideToTargetAnchors.put(SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, AnchorTarget.Type.RIGHT);
+    ourMapSideToTargetAnchors.put(SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, AnchorTarget.Type.TOP);
+    ourMapSideToTargetAnchors.put(SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, AnchorTarget.Type.BOTTOM);
+    ourMapSideToTargetAnchors.put(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, AnchorTarget.Type.TOP);
+    ourMapSideToTargetAnchors.put(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, AnchorTarget.Type.BOTTOM);
+    ourMapSideToTargetAnchors.put(SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, AnchorTarget.Type.BASELINE);
 
     ourLeftAttributes = new ArrayList<>();
     ourLeftAttributes.add(SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF);
@@ -103,6 +128,38 @@ public class ConstraintComponentUtilities {
     ourVerticalAttributes.add(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
     ourVerticalAttributes.add(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
     ourVerticalAttributes.add(SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
+  }
+
+  /**
+   * Given a NlComponent and an attribute, return the corresponding AnchorTarget
+   * @param scene
+   * @param targetComponent
+   * @param attribute
+   * @return
+   */
+  public static AnchorTarget getOriginAnchor(Scene scene, NlComponent targetComponent, String attribute) {
+    AnchorTarget.Type type = ourMapSideToOriginAnchors.get(attribute);
+    SceneComponent component = scene.getSceneComponent(targetComponent);
+    if (component != null) {
+      return component.getAnchorTarget(type);
+    }
+    return null;
+  }
+
+  /**
+   * Given a NlComponent and an attribute, return the corresponding AnchorTarget
+   * @param scene
+   * @param targetComponent
+   * @param attribute
+   * @return
+   */
+  public static AnchorTarget getTargetAnchor(Scene scene, NlComponent targetComponent, String attribute) {
+    AnchorTarget.Type type = ourMapSideToTargetAnchors.get(attribute);
+    SceneComponent component = scene.getSceneComponent(targetComponent);
+    if (component != null) {
+      return component.getAnchorTarget(type);
+    }
+    return null;
   }
 
   private static boolean hasConstraints(SceneComponent component, String uri, ArrayList<String> constraints) {
