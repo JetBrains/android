@@ -15,22 +15,22 @@
  */
 package com.android.tools.datastore.poller;
 
-import com.intellij.openapi.diagnostic.Logger;
-import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * A {@link RunnableFuture} which, while running, triggers a callback at a specified period
+ * (which can be used to poll a target service at some frequency).
+ */
 public class PollRunner implements RunnableFuture<Void> {
   interface PollingCallback {
     void poll();
   }
 
   public static final long POLLING_DELAY_NS = TimeUnit.MILLISECONDS.toNanos(250);
-
-  private static Logger getLog() { return Logger.getInstance(PollRunner.class); }
 
   private long myPollPeriodNs;
 
@@ -43,7 +43,6 @@ public class PollRunner implements RunnableFuture<Void> {
   public PollRunner(PollingCallback pollCallback, long pollPeriodNs) {
     myPollingCallback = pollCallback;
     myPollPeriodNs = pollPeriodNs;
-
   }
   public void stop() {
     cancel(true);
