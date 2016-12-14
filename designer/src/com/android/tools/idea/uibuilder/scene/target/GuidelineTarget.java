@@ -31,7 +31,7 @@ import java.awt.*;
  */
 public class GuidelineTarget extends DragTarget {
   boolean myIsHorizontal = true;
-  int myBegin = -1;
+  int myBegin = 20;
   int myEnd = -1;
   float myPercent = -1;
 
@@ -100,7 +100,7 @@ public class GuidelineTarget extends DragTarget {
       myEnd = ConstraintComponentUtilities.getDpValue(component, end);
       myPercent = -1;
     }
-    else {
+    else if (percent != null) {
       myBegin = -1;
       myEnd = -1;
       myPercent = Float.valueOf(percent);
@@ -129,8 +129,14 @@ public class GuidelineTarget extends DragTarget {
       attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END, position);
     }
     else if (percent != null) {
-      String percentValue = String.valueOf(value / dimension);
-      attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT, percentValue);
+      String percentStringValue = null;
+      float percentValue = value / dimension;
+      percentValue = (int)(percentValue * 1000) / 1000f;
+      percentStringValue = String.valueOf(percentValue);
+      if (percentStringValue.equalsIgnoreCase("NaN")) {
+        percentStringValue = "0.5";
+      }
+      attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT, percentStringValue);
     }
   }
 }
