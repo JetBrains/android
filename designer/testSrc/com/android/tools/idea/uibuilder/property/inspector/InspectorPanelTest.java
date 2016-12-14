@@ -19,7 +19,6 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Table;
 import com.intellij.ide.util.PropertiesComponent;
@@ -40,8 +39,7 @@ import java.awt.event.MouseListener;
 import java.util.*;
 import java.util.List;
 
-import static com.android.SdkConstants.ATTR_TEXT_ALIGNMENT;
-import static com.android.SdkConstants.ATTR_TEXT_APPEARANCE;
+import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -54,6 +52,7 @@ public class InspectorPanelTest extends PropertyTestCase {
   private Multimap<Integer, Component> myComponents;
   private Map<String, Integer> myLabelToRowNumber;
   private Map<String, Integer> myLabelToGroupSize;
+  private Map<Component, String> myComponentToLabel;
 
   @Override
   public void setUp() throws Exception {
@@ -62,12 +61,17 @@ public class InspectorPanelTest extends PropertyTestCase {
     myOldPropertiesComponent = registerApplicationComponent(PropertiesComponent.class, myPropertiesComponent);
     myDisposable = Disposer.newDisposable();
     myInspector = new InspectorPanel(myPropertiesManager, myDisposable, new JLabel());
-    List<NlComponent> components = ImmutableList.of(myTextView);
+  }
+
+  private void init(@NotNull NlComponent... componentArray) {
+    List<NlComponent> components = Arrays.asList(componentArray);
     Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
     myInspector.setComponent(components, properties, myPropertiesManager);
     myComponents = findComponents(myInspector);
     myLabelToRowNumber = identifyLabelledRows(myComponents);
-    myLabelToGroupSize = Collections.singletonMap(ATTR_TEXT_APPEARANCE, 7);
+    myComponentToLabel = getComponentToLabelMap(myComponents, myLabelToRowNumber);
+    myLabelToGroupSize = properties.contains(ANDROID_URI, ATTR_TEXT)
+                         ? Collections.singletonMap(ATTR_TEXT_APPEARANCE, 7) : Collections.emptyMap();
   }
 
   @Override
@@ -82,11 +86,13 @@ public class InspectorPanelTest extends PropertyTestCase {
   }
 
   public void testTextAppearanceGroupInitiallyClosed() {
+    init(myTextView);
     assertThat(isGroupOpen(ATTR_TEXT_APPEARANCE)).isFalse();
     checkVisibleRowsWithoutFilter();
   }
 
   public void testFilter() {
+    init(myTextView);
     myInspector.setFilter("textA");
     UIUtil.dispatchAllInvocationEvents();
 
@@ -94,6 +100,7 @@ public class InspectorPanelTest extends PropertyTestCase {
   }
 
   public void testEnterInFilterWithNoFilterSet() {
+    init(myTextView);
     KeyEvent event = new KeyEvent(myInspector, 0, 0, 0, KeyEvent.VK_ENTER, '\0');
     myInspector.enterInFilter(event);
 
@@ -101,6 +108,7 @@ public class InspectorPanelTest extends PropertyTestCase {
   }
 
   public void testEnterInFilterWithMultipleMatchingProperties() {
+    init(myTextView);
     myInspector.setFilter("text");
     UIUtil.dispatchAllInvocationEvents();
     KeyEvent event = new KeyEvent(myInspector, 0, 0, 0, KeyEvent.VK_ENTER, '\0');
@@ -110,6 +118,7 @@ public class InspectorPanelTest extends PropertyTestCase {
   }
 
   public void testEnterInFilter() {
+    init(myTextView);
     myInspector.setFilter("textAli");
     UIUtil.dispatchAllInvocationEvents();
     KeyEvent event = new KeyEvent(myInspector, 0, 0, 0, KeyEvent.VK_ENTER, '\0');
@@ -119,6 +128,7 @@ public class InspectorPanelTest extends PropertyTestCase {
   }
 
   public void testComponentsRestoredAfterFiltering() {
+    init(myTextView);
     myInspector.setFilter("textA");
     UIUtil.dispatchAllInvocationEvents();
     myInspector.setFilter("");
@@ -129,6 +139,7 @@ public class InspectorPanelTest extends PropertyTestCase {
   }
 
   public void testExpandGroup() {
+    init(myTextView);
     assertThat(isGroupOpen(ATTR_TEXT_APPEARANCE)).isFalse();
 
     JLabel label = findFirstLabelWithText(myComponents.get(myLabelToRowNumber.get(ATTR_TEXT_APPEARANCE)));
@@ -141,6 +152,7 @@ public class InspectorPanelTest extends PropertyTestCase {
   }
 
   public void testClickOnLabelWithFilterDoesNotExpand() {
+    init(myTextView);
     myInspector.setFilter("textA");
     UIUtil.dispatchAllInvocationEvents();
     assertThat(isGroupOpen(ATTR_TEXT_APPEARANCE)).isNull();
@@ -150,6 +162,31 @@ public class InspectorPanelTest extends PropertyTestCase {
     fireMouseClick(label);
 
     assertThat(isGroupOpen(ATTR_TEXT_APPEARANCE)).isNull();
+  }
+
+  public void testProgressBarWithoutFiltering() {
+    init(myProgressBar);
+    UIUtil.dispatchAllInvocationEvents();
+
+    checkVisibleRowsWithoutFilter(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT);
+  }
+
+  public void testFilterInProgressBar() {
+    init(myProgressBar);
+    myInspector.setFilter("draw");
+    UIUtil.dispatchAllInvocationEvents();
+
+    checkVisibleRowsWithFilter(ATTR_PROGRESS_DRAWABLE, ATTR_INDETERMINATE_DRAWABLE);
+  }
+
+  public void testComponentsRestoredInProgressBarAfterFiltering() {
+    init(myProgressBar);
+    myInspector.setFilter("draw");
+    UIUtil.dispatchAllInvocationEvents();
+    myInspector.setFilter("");
+    UIUtil.dispatchAllInvocationEvents();
+
+    checkVisibleRowsWithoutFilter(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT);
   }
 
   private static void fireMouseClick(@NotNull JLabel label) {
@@ -172,7 +209,7 @@ public class InspectorPanelTest extends PropertyTestCase {
     return null;
   }
 
-  private void checkVisibleRowsWithoutFilter() {
+  private void checkVisibleRowsWithoutFilter(@NotNull String... invisiblePropertyNames) {
     Set<Component> visible = new HashSet<>();
     Set<Component> invisible = new HashSet<>();
     for (String propertyName : myLabelToGroupSize.keySet()) {
@@ -183,6 +220,9 @@ public class InspectorPanelTest extends PropertyTestCase {
           invisible.addAll(myComponents.get(row + index));
         }
       }
+    }
+    for (String propertyName : invisiblePropertyNames) {
+      invisible.addAll(myComponents.get(myLabelToRowNumber.get(propertyName)));
     }
     visible.addAll(myComponents.values());
     visible.removeAll(invisible);
@@ -204,13 +244,19 @@ public class InspectorPanelTest extends PropertyTestCase {
     checkVisibleComponents(visible, invisible);
   }
 
-  private static void checkVisibleComponents(@NotNull Set<Component> visible, @NotNull Set<Component> invisible) {
+  private void checkVisibleComponents(@NotNull Set<Component> visible, @NotNull Set<Component> invisible) {
     for (Component component : visible) {
-      assertThat(component.isVisible()).isTrue();
+      assertThat(component.isVisible()).named("Component for: " + getLabel(component) + " is visible").isTrue();
     }
     for (Component component : invisible) {
-      assertThat(component.isVisible()).isFalse();
+      assertThat(component.isVisible()).named("Component for: " + getLabel(component) + " is visible").isFalse();
     }
+  }
+
+  @NotNull
+  private String getLabel(@NotNull Component component) {
+    String label = myComponentToLabel.get(component);
+    return label != null ? label : "unknown";
   }
 
   @NotNull
@@ -236,6 +282,17 @@ public class InspectorPanelTest extends PropertyTestCase {
       }
     }
     return labelToRowNumber;
+  }
+
+  private static Map<Component, String> getComponentToLabelMap(@NotNull Multimap<Integer, Component> components,
+                                                               @NotNull Map<String, Integer> labelToRow) {
+    Map<Component, String> componentToLabel = new IdentityHashMap<>();
+    for (Map.Entry<String, Integer> labelAndRow : labelToRow.entrySet()) {
+      for (Component component : components.get(labelAndRow.getValue())) {
+        componentToLabel.put(component, labelAndRow.getKey());
+      }
+    }
+    return componentToLabel;
   }
 
   @Nullable
