@@ -20,7 +20,6 @@ import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
-import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
@@ -32,24 +31,28 @@ import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.event.EventMonitorView;
+import com.android.tools.profilers.memory.adapters.AllocationsCaptureObject;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.ClassObject;
+import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
@@ -62,18 +65,29 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
                                          IconLoader.findIcon("/icons/garbage-event_dark.png", MemoryProfilerStageView.class) :
                                          IconLoader.findIcon("/icons/garbage-event.png", MemoryProfilerStageView.class);
 
+  @NotNull private final ExecutorService myExecutorService =
+    Executors.newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat("profiler-memory-profiler-stage-view").build());
+
+  @NotNull private final MemoryCaptureView myCaptureView = new MemoryCaptureView(getStage());
+  @NotNull private final MemoryHeapView myHeapView = new MemoryHeapView(getStage());
   @NotNull private final MemoryClassView myClassView = new MemoryClassView(getStage());
   @NotNull private final MemoryInstanceView myInstanceView = new MemoryInstanceView(getStage());
 
+  @Nullable private CaptureObject myCaptureObject = null;
+  @Nullable private CountDownLatch myCaptureLoadingLatch = null;
+
   @NotNull private Splitter myMainSplitter = new Splitter(false);
-  @NotNull private Splitter myChartClassesSplitter = new Splitter(true);
+  @NotNull private Splitter myChartCaptureSplitter = new Splitter(true);
+  @NotNull private JPanel myCapturePanel = new JPanel(new BorderLayout());
   @NotNull private JButton myAllocationButton;
 
   public MemoryProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull MemoryProfilerStage stage) {
     super(profilersView, stage);
 
-    myChartClassesSplitter.setFirstComponent(buildMonitorUi());
-    myMainSplitter.setFirstComponent(myChartClassesSplitter);
+    myChartCaptureSplitter.setFirstComponent(buildMonitorUi());
+    myChartCaptureSplitter.setSecondComponent(buildCaptureUi());
+    myMainSplitter.setFirstComponent(myChartCaptureSplitter);
+    myMainSplitter.setSecondComponent(myInstanceView.getComponent());
     myMainSplitter.setProportion(0.6f);
     getComponent().add(myMainSplitter, BorderLayout.CENTER);
     captureObjectChanged();
@@ -83,8 +97,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     getStage().getAspect().addDependency()
       .setExecutor(ApplicationManager.getApplication(), Application::invokeLater)
-      .onChange(MemoryProfilerAspect.CURRENT_CAPTURE, this::captureObjectChanged)
-      .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::classObjectChanged)
+      .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::captureObjectChanged)
+      .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::captureObjectFinishedLoading)
       .onChange(MemoryProfilerAspect.LEGACY_ALLOCATION, this::legacyAllocationChanged);
 
     legacyAllocationChanged();
@@ -107,6 +121,54 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     toolBar.add(triggerHeapDumpButton);
 
     return toolBar;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public Splitter getMainSplitter() {
+    return myMainSplitter;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public Splitter getChartCaptureSplitter() {
+    return myChartCaptureSplitter;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  MemoryCaptureView getCaptureView() {
+    return myCaptureView;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  MemoryHeapView getHeapView() {
+    return myHeapView;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  MemoryClassView getClassView() {
+    return myClassView;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  MemoryInstanceView getInstanceView() {
+    return myInstanceView;
+  }
+
+  /**
+   * Overridable method for subclasses to provide their own EventMonitor component. This is useful for tests that need to remove the
+   * EventMonitor.
+   * TODO generalize this or make the EventMonitor's channel mockable
+   */
+  @NotNull
+  protected JComponent createEventMonitor(@NotNull StudioProfilers profilers) {
+    EventMonitor events = new EventMonitor(profilers);
+    EventMonitorView eventsView = new EventMonitorView(getProfilersView(), events);
+    return eventsView.initialize(getChoreographer());
   }
 
   private void legacyAllocationChanged() {
@@ -135,10 +197,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     getChoreographer().register(timeAxis);
     panel.add(timeAxis, new TabularLayout.Constraint(2, 0));
 
-    EventMonitor events = new EventMonitor(profilers);
-    EventMonitorView eventsView = new EventMonitorView(getProfilersView(), events);
-    JComponent eventsComponent = eventsView.initialize(getChoreographer());
-    panel.add(eventsComponent, new TabularLayout.Constraint(0, 0));
+    panel.add(createEventMonitor(profilers), new TabularLayout.Constraint(0, 0));
 
     MemoryMonitor monitor = new MemoryMonitor(profilers);
     JPanel monitorPanel = new JBPanel(new TabularLayout("*", "*"));
@@ -174,7 +233,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     lineChart.addLine(objectSeries, new LineConfig(ProfilerColors.MEMORY_OBJECTS).setStroke(LineConfig.DEFAULT_DASH_STROKE));
 
     // TODO set proper colors / icons
-    DurationDataRenderer<HeapDumpDurationData> heapDumpRenderer =
+    DurationDataRenderer<CaptureDurationData<HeapDumpCaptureObject>> heapDumpRenderer =
       new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, getStage().getHeapDumpSampleDurations()), Color.BLACK)
         .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
         .setStroke(new BasicStroke(2))
@@ -182,16 +241,16 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .setLabelProvider(
           data -> String.format("Dump (%s)", data.getDuration() == DurationData.UNSPECIFIED_DURATION ? "in progress" :
                                              TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
-        .setClickHander(data -> getStage().setFocusedHeapDump(data.getDumpInfo()))
+        .setClickHander(data -> getStage().selectCapture(data.getCaptureObject(), SwingUtilities::invokeLater))
         .build();
-    DurationDataRenderer<AllocationsDurationData> allocationRenderer =
+    DurationDataRenderer<CaptureDurationData<AllocationsCaptureObject>> allocationRenderer =
       new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, getStage().getAllocationInfosDurations()), Color.LIGHT_GRAY)
         .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
         .setStroke(new BasicStroke(2))
         .setLabelProvider(data -> String
           .format("Allocation Record (%s)", data.getDuration() == DurationData.UNSPECIFIED_DURATION ? "in progress" :
                                             TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
-        .setClickHander(data -> getStage().setAllocationsTimeRange(data.getStartTimeNs(), data.getEndTimeNs()))
+        .setClickHander(data -> getStage().selectCapture(data.getCaptureObject(), SwingUtilities::invokeLater))
         .build();
     DurationDataRenderer<GcDurationData> gcRenderer =
       new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, monitor.getGcCount()), Color.BLACK)
@@ -277,96 +336,57 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     return panel;
   }
 
+  @NotNull
+  private JComponent buildCaptureUi() {
+    JPanel headingPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+    headingPanel.add(myCaptureView.getComponent());
+
+    JToolBar toolBar = new JToolBar();
+    toolBar.setFloatable(false);
+
+    toolBar.add(myHeapView.getComponent());
+    headingPanel.add(toolBar);
+
+    myCapturePanel.add(headingPanel, BorderLayout.PAGE_START);
+    myCapturePanel.add(myClassView.getComponent(), BorderLayout.CENTER);
+    return myCapturePanel;
+  }
+
   private void captureObjectChanged() {
-    CaptureObject captureObject = getStage().getSelectedCaptureObject();
-    if (myClassView.getCurrentCapture() != captureObject) {
-      myClassView.reset();
-      myChartClassesSplitter.setSecondComponent(null);
-      myMainSplitter.setSecondComponent(null);
-      if (captureObject != null) {
-        // TODO don't rebuild the component, but update it
-        myChartClassesSplitter.setSecondComponent(myClassView.buildComponent(captureObject));
-      }
-    }
-  }
+    myCaptureObject = getStage().getSelectedCapture();
+    myCapturePanel.setVisible(myCaptureObject != null);
 
-  private void classObjectChanged() {
-    ClassObject classObject = getStage().getSelectedClass();
-    if (myInstanceView.getCurrentClassObject() != classObject) {
-      myInstanceView.reset();
-      myMainSplitter.setSecondComponent(null);
-      if (classObject != null) {
-        // TODO don't rebuild the component, but update it
-        myMainSplitter.setSecondComponent(myInstanceView.buildComponent(classObject));
-      }
+    if (myCaptureObject == null) {
+      return;
     }
 
-    // TODO setup instance detail view.
-  }
-
-  static class AttributeColumn {
-    private final String myName;
-    private final Supplier<ColoredTreeCellRenderer> myRendererSuppier;
-    private final int myHeaderAlignment;
-    private final int myPreferredWidth;
-    private final SortOrder mySortOrder;
-    private final Comparator<MemoryObjectTreeNode> myComparator;
-
-    public AttributeColumn(@NotNull String name,
-                           @NotNull Supplier<ColoredTreeCellRenderer> rendererSupplier,
-                           int headerAlignment,
-                           int preferredWidth,
-                           @NotNull SortOrder sortOrder,
-                           @NotNull Comparator<MemoryObjectTreeNode> comparator) {
-      myName = name;
-      myRendererSuppier = rendererSupplier;
-      myHeaderAlignment = headerAlignment;
-      myPreferredWidth = preferredWidth;
-      mySortOrder = sortOrder;
-      myComparator = comparator;
+    if (myCaptureLoadingLatch != null) {
+      myCaptureLoadingLatch.countDown();
     }
 
-    @NotNull
-    public ColumnTreeBuilder.ColumnBuilder getBuilder() {
-      return new ColumnTreeBuilder.ColumnBuilder()
-        .setName(myName)
-        .setRenderer(myRendererSuppier.get())
-        .setHeaderAlignment(myHeaderAlignment)
-        .setPreferredWidth(myPreferredWidth)
-        .setInitialOrder(mySortOrder)
-        .setComparator(myComparator);
-    }
-  }
-
-  static class DetailColumnRenderer extends ColoredTreeCellRenderer {
-    private final Function<MemoryObjectTreeNode, String> myTextGetter;
-    private final Function<MemoryObjectTreeNode, Icon> myIconGetter;
-    private final int myAlignment;
-
-    public DetailColumnRenderer(@NotNull Function<MemoryObjectTreeNode, String> textGetter,
-                                @NotNull Function<MemoryObjectTreeNode, Icon> iconGetter,
-                                int alignment) {
-      myTextGetter = textGetter;
-      myIconGetter = iconGetter;
-      myAlignment = alignment;
-    }
-
-    @Override
-    public void customizeCellRenderer(@NotNull JTree tree,
-                                      Object value,
-                                      boolean selected,
-                                      boolean expanded,
-                                      boolean leaf,
-                                      int row,
-                                      boolean hasFocus) {
-      if (value instanceof MemoryObjectTreeNode) {
-        append(myTextGetter.apply((MemoryObjectTreeNode)value));
-        Icon icon = myIconGetter.apply((MemoryObjectTreeNode)value);
-        if (icon != null) {
-          setIcon(icon);
+    CountDownLatch latch = new CountDownLatch(1);
+    myCaptureLoadingLatch = latch;
+    myExecutorService.submit(() -> {
+      // TODO set up progress indicator here
+      while (latch.getCount() > 0) {
+        try {
+          latch.await(33, TimeUnit.MILLISECONDS);
         }
-        setTextAlign(myAlignment);
+        catch (InterruptedException ignored) {
+          Thread.currentThread().interrupt();
+          return;
+        }
+        // TODO update rendering here
       }
+      // TODO remove progress indicator here
+    });
+  }
+
+  private void captureObjectFinishedLoading() {
+    if (myCaptureObject == getStage().getSelectedCapture() && myCaptureObject != null) {
+      assert myCaptureLoadingLatch != null;
+      myCaptureLoadingLatch.countDown();
+      myCaptureLoadingLatch = null;
     }
   }
 }

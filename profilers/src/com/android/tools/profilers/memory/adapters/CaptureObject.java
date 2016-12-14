@@ -26,4 +26,14 @@ public interface CaptureObject extends MemoryObject, Disposable {
 
   @NotNull
   List<HeapObject> getHeaps();
+
+  long getStartTimeNs();
+
+  long getEndTimeNs();
+
+  boolean load();
+
+  boolean isDoneLoading();
+
+  boolean isError();
 }

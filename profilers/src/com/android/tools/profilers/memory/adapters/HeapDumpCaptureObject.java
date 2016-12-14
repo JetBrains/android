@@ -21,12 +21,12 @@ import com.android.tools.perflib.heap.io.InMemoryBuffer;
 import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpDataRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
-import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,7 +43,9 @@ public final class HeapDumpCaptureObject implements CaptureObject {
   private final ProguardMap myProguardMap;
 
   @Nullable
-  private Snapshot mySnapshot;
+  private volatile Snapshot mySnapshot;
+
+  private volatile boolean myIsLoadingError = false;
 
   public HeapDumpCaptureObject(@NotNull MemoryServiceBlockingStub client,
                                int appId,
@@ -56,27 +58,52 @@ public final class HeapDumpCaptureObject implements CaptureObject {
   }
 
   @Override
-  public void dispose() {
-    if (mySnapshot != null) {
-      mySnapshot.dispose();
-      mySnapshot = null;
+  public boolean equals(Object obj) {
+    if (!(obj instanceof HeapDumpCaptureObject)) {
+      return false;
     }
+
+    HeapDumpCaptureObject other = (HeapDumpCaptureObject)obj;
+    return other.myAppId == myAppId && other.myIsLoadingError != myIsLoadingError && other.myHeapDumpInfo == myHeapDumpInfo;
   }
 
   @Override
-  public String toString() {
-    return "Heap Dump " + myHeapDumpInfo.getDumpId() + " @" + myHeapDumpInfo.getStartTime();
+  public void dispose() {
+    Snapshot snapshot = mySnapshot;
+    if (snapshot != null) {
+      snapshot.dispose();
+      mySnapshot = null;
+    }
   }
 
   @NotNull
   @Override
   public String getLabel() {
-    return "";
+    return "Heap Dump " + myHeapDumpInfo.getDumpId() + " @" + myHeapDumpInfo.getStartTime();
   }
 
   @NotNull
   @Override
   public List<HeapObject> getHeaps() {
+    Snapshot snapshot = mySnapshot;
+    if (snapshot == null) {
+      return Collections.emptyList();
+    }
+    return snapshot.getHeaps().stream().map(HeapDumpHeapObject::new).collect(Collectors.toList());
+  }
+
+  @Override
+  public long getStartTimeNs() {
+    return myHeapDumpInfo.getStartTime();
+  }
+
+  @Override
+  public long getEndTimeNs() {
+    return myHeapDumpInfo.getEndTime();
+  }
+
+  @Override
+  public boolean load() {
     DumpDataResponse response;
     while (true) {
       // TODO move this to another thread and complete before we notify
@@ -90,22 +117,36 @@ public final class HeapDumpCaptureObject implements CaptureObject {
         }
         catch (InterruptedException e) {
           Thread.currentThread().interrupt();
-          return new ArrayList<>();
+          myIsLoadingError = true;
+          return false;
         }
         continue;
       }
-      return new ArrayList<>();
+      myIsLoadingError = true;
+      return false;
     }
 
     InMemoryBuffer buffer = new InMemoryBuffer(response.getData().asReadOnlyByteBuffer());
+    Snapshot snapshot;
     if (myProguardMap != null) {
-      mySnapshot = Snapshot.createSnapshot(buffer, myProguardMap);
+      snapshot = Snapshot.createSnapshot(buffer, myProguardMap);
     }
     else {
-      mySnapshot = Snapshot.createSnapshot(buffer);
+      snapshot = Snapshot.createSnapshot(buffer);
     }
-    mySnapshot.computeDominators();
+    snapshot.computeDominators();
+    mySnapshot = snapshot;
 
-    return mySnapshot.getHeaps().stream().map(HeapDumpHeapObject::new).collect(Collectors.toList());
+    return true;
+  }
+
+  @Override
+  public boolean isDoneLoading() {
+    return mySnapshot != null || myIsLoadingError;
+  }
+
+  @Override
+  public boolean isError() {
+    return myIsLoadingError;
   }
 }
