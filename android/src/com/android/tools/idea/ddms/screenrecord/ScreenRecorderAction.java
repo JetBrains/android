@@ -46,6 +46,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ScreenRecorderAction {
   private static final String TITLE = "Screen Recorder";
+  private static final String MEDIA_UNSUPPORTED_ERROR = "-1010";
   @NonNls private static final String REMOTE_PATH = "/sdcard/ddmsrec.mp4";
 
   private static VirtualFile ourLastSavedFolder;
@@ -69,16 +70,13 @@ public class ScreenRecorderAction {
     final CountDownLatch latch = new CountDownLatch(1);
     final CollectingOutputReceiver receiver = new CollectingOutputReceiver(latch);
 
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          myDevice.startScreenRecorder(REMOTE_PATH, options, receiver);
-        }
-        catch (Exception e) {
-          showError(myProject, "Unexpected error while launching screen recorder", e);
-          latch.countDown();
-        }
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      try {
+        myDevice.startScreenRecorder(REMOTE_PATH, options, receiver);
+      }
+      catch (Exception e) {
+        showError(myProject, "Unexpected error while launching screen recorder", e);
+        latch.countDown();
       }
     });
 
@@ -140,6 +138,11 @@ public class ScreenRecorderAction {
     }
 
     private void pullRecording() {
+      // If the receiver failed to record due to unsupported screen resolution
+      if (myReceiver.getOutput().contains(MEDIA_UNSUPPORTED_ERROR)) {
+        Messages.showErrorDialog(myReceiver.getOutput(), "Screen Recorder Error");
+        return;
+      }
       FileSaverDescriptor descriptor = new FileSaverDescriptor("Save As", "", "mp4");
       FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myProject);
       VirtualFile baseDir = ourLastSavedFolder != null ? ourLastSavedFolder : VfsUtil.getUserHomeDir();
@@ -215,16 +218,13 @@ public class ScreenRecorderAction {
   }
 
   private static void showError(@Nullable final Project project, @NotNull final String message, @Nullable final Throwable throwable) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        String msg = message;
-        if (throwable != null) {
-          msg += throwable.getLocalizedMessage() != null ? ": " + throwable.getLocalizedMessage() : "";
-        }
-
-        Messages.showErrorDialog(project, msg, TITLE);
+    ApplicationManager.getApplication().invokeLater(() -> {
+      String msg = message;
+      if (throwable != null) {
+        msg += throwable.getLocalizedMessage() != null ? ": " + throwable.getLocalizedMessage() : "";
       }
+
+      Messages.showErrorDialog(project, msg, TITLE);
     });
   }
 }
