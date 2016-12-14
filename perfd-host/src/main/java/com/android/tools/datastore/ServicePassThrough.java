@@ -20,6 +20,10 @@ import io.grpc.ServerServiceDefinition;
 
 import java.util.concurrent.RunnableFuture;
 
+/**
+ * Interface for a class that wraps a grpc service. Once connected to the service, you will need to
+ * trigger its runner (probably on a background thread) to begin polling it.
+ */
 public interface ServicePassThrough {
   RunnableFuture<Void> getRunner();
 
