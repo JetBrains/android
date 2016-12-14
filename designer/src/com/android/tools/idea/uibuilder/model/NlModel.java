@@ -18,6 +18,9 @@ package com.android.tools.idea.uibuilder.model;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceType;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
@@ -193,8 +196,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       // If the resources have changed or the configuration has been modified, request a model update
       if (!version.equals(myRenderedVersion) || (myConfiguration.getModificationCount() != myConfigurationModificationCount)) {
         String theme = myConfiguration.getTheme();
-        if (theme != null && !theme.startsWith(ANDROID_STYLE_RESOURCE_PREFIX) && !myProjectResourceRepository.hasResourceItem(theme)) {
-          myConfiguration.setTheme(myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration));
+        ResourceUrl themeUrl = theme != null ? ResourceUrl.parse(myConfiguration.getTheme()) : null;
+        if (themeUrl != null &&
+            themeUrl.type == ResourceType.STYLE) {
+          ResourceResolver resolver = myConfiguration.getResourceResolver();
+          if (resolver == null || resolver.getTheme(themeUrl.name, themeUrl.framework) == null) {
+            myConfiguration.setTheme(myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration));
+          }
         }
         requestModelUpdate();
         myModelVersion.myResourceVersion.incrementAndGet();
@@ -1973,8 +1981,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   public void notifyModified(ChangeType reason) {
     String theme = myConfiguration.getTheme();
-    if (theme != null && !theme.startsWith(ANDROID_STYLE_RESOURCE_PREFIX) && !myProjectResourceRepository.hasResourceItem(theme)) {
-      myConfiguration.setTheme(myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration));
+    ResourceUrl themeUrl = theme != null ? ResourceUrl.parse(myConfiguration.getTheme()) : null;
+    if (themeUrl != null &&
+        themeUrl.type == ResourceType.STYLE) {
+      ResourceResolver resolver = myConfiguration.getResourceResolver();
+      if (resolver == null || resolver.getTheme(themeUrl.name, themeUrl.framework) == null) {
+        myConfiguration.setTheme(myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration));
+      }
     }
     myModelVersion.increase(reason);
     myModificationTrigger = reason;
