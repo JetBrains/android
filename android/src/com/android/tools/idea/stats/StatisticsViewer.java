@@ -134,6 +134,7 @@ public class StatisticsViewer extends JPanel implements Disposable {
   private void layoutConsoleView() {
     //
     final RunContentDescriptor descriptor = new RunContentDescriptor(myConsoleView, null, this, TITLE);
+    Disposer.register(this, descriptor);
 
     // must call getComponent before createConsoleActions()
     final JComponent consoleViewComponent = myConsoleView.getComponent();
