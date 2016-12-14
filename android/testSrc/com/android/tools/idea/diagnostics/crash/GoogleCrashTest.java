@@ -16,8 +16,8 @@
 package com.android.tools.idea.diagnostics.crash;
 
 import com.google.common.base.Joiner;
+import com.google.common.truth.Truth;
 import com.intellij.openapi.project.IndexNotReadyException;
-import com.intellij.testFramework.PlatformTestUtil;
 import groovy.json.internal.Charsets;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
@@ -43,15 +43,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
 
 public class GoogleCrashTest {
   public static final String STACK_TRACE =
@@ -82,7 +80,9 @@ public class GoogleCrashTest {
     assertTrue("Could not obtain free port", port > 0);
     myTestServer = new LocalTestServer(port);
     myTestServer.start();
-    myReporter = new GoogleCrash("http://localhost:" + port + "/submit");
+
+    double infiniteQps = 1000; // a high enough number for the tests here
+    myReporter = new GoogleCrash("http://localhost:" + port + "/submit", UploadRateLimiter.create(infiniteQps));
   }
 
   @After
@@ -174,6 +174,23 @@ public class GoogleCrashTest {
       .build();
     myReporter.submit(report).get();
     fail("The above get call should have failed");
+  }
+
+  @Test
+  public void checkRateLimiting() {
+    UploadRateLimiter mockLimiter = mock(UploadRateLimiter.class); // defaults to a rate limiter that denies all requests
+    myReporter = new GoogleCrash("http://404", mockLimiter); // the actual address doesn't matter since we should've stopped long before..
+    CrashReport report = CrashReport.Builder.createForException(ourIndexNotReadyException)
+      .setProduct("AndroidStudioTestProduct")
+      .setVersion("1.2.3.4")
+      .build();
+    try {
+      myReporter.submit(report).getNow("123");
+      fail("Should not be able to submit a report when the rate of crash upload exceeds the limit");
+    }
+    catch (CompletionException e) {
+      Truth.assertThat(e.getCause().getMessage()).isEqualTo("Exceeded Quota of crashes that can be reported");
+    }
   }
 
   private static int getFreePort() {
