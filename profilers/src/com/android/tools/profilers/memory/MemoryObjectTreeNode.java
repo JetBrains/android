@@ -32,6 +32,8 @@ package com.android.tools.profilers.memory;
  */
 
 import com.android.tools.profilers.memory.adapters.MemoryObject;
+import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,6 +90,10 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
   public Enumeration children() {
     ensureOrder();
     return Collections.enumeration(myChildren);
+  }
+
+  public ImmutableList<MemoryObjectTreeNode<T>> getChildren() {
+    return ContainerUtil.immutableList(myChildren);
   }
 
   @Override

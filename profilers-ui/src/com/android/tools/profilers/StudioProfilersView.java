@@ -20,8 +20,9 @@ import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfilerStageView;
-import com.android.tools.profilers.network.NetworkProfilerStageView;
 import com.android.tools.profilers.network.NetworkProfilerStage;
+import com.android.tools.profilers.network.NetworkProfilerStageView;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.ColoredListCellRenderer;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.function.BiFunction;
 
 public class StudioProfilersView {
   private final StudioProfilers myProfiler;
@@ -58,6 +60,16 @@ public class StudioProfilersView {
     myProfiler.addDependency()
       .setExecutor(ApplicationManager.getApplication(), Application::invokeLater)
       .onChange(ProfilerAspect.STAGE, this::updateStageView);
+  }
+
+  @VisibleForTesting
+  <S extends Stage, T extends StageView> void bind(@NotNull Class<S> clazz, @NotNull BiFunction<StudioProfilersView, S, T> constructor) {
+    myBinder.bind(clazz, constructor);
+  }
+
+  @VisibleForTesting
+  StageView getStageView() {
+    return myStageView;
   }
 
   private void initializeUi() {
@@ -132,7 +144,8 @@ public class StudioProfilersView {
                                          boolean selected, boolean hasFocus) {
       if (value != null) {
         renderDeviceName(value);
-      } else {
+      }
+      else {
         append(myEmptyText, SimpleTextAttributes.ERROR_ATTRIBUTES);
       }
     }
@@ -163,7 +176,8 @@ public class StudioProfilersView {
                                          boolean selected, boolean hasFocus) {
       if (value != null) {
         renderProcessName(value);
-      } else {
+      }
+      else {
         append(myEmptyText, SimpleTextAttributes.ERROR_ATTRIBUTES);
       }
     }
