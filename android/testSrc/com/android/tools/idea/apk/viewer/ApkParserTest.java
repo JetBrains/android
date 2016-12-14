@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.apk.viewer;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -24,6 +25,9 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class ApkParserTest extends AndroidTestCase {
   public void testTreeCreation() throws IOException {
@@ -37,6 +41,16 @@ public class ApkParserTest extends AndroidTestCase {
                  "  res 6\n" +
                  "    anim 6\n" +
                  "      fade.xml 6\n", dumpTree(treeNode));
+  }
+
+  public void testCompressedSize() throws InterruptedException, ExecutionException, TimeoutException {
+    VirtualFile file = myFixture.copyFileToProject("apk/1.apk");
+    VirtualFile root = ApkFileSystem.getInstance().getRootByLocal(file);
+    assertNotNull(root);
+
+    ApkParser parser = new ApkParser(file, root);
+    ListenableFuture<Long> size = parser.getCompressedFullApkSize();
+    assertEquals(274, size.get(10, TimeUnit.SECONDS).longValue());
   }
 
   public void testRezipHasSameContents() throws IOException {
