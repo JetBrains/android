@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -27,6 +27,7 @@ import com.intellij.psi.xml.XmlTag;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.ComponentDriver;
+import org.fest.swing.fixture.JMenuItemFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,14 +45,11 @@ public class NlComponentFixture {
   private final Robot myRobot;
   private final NlComponent myComponent;
   private final DesignSurface mySurface;
-  private final IdeFrameFixture myIdeFrame;
 
   public NlComponentFixture(@NotNull Robot robot,
-                            @NotNull IdeFrameFixture frame,
                             @NotNull NlComponent component,
                             @NotNull DesignSurface surface) {
     myRobot = robot;
-    myIdeFrame = frame;
     myComponent = component;
     mySurface = surface;
   }
@@ -108,13 +106,9 @@ public class NlComponentFixture {
     myRobot.waitForIdle();
   }
 
-  public void invokeContextMenuAction(String actionLabel) {
+  public void invokeContextMenuAction(@NotNull String actionLabel) {
     rightClick();
-
-    Robot robot = myRobot;
-    JMenuItem found = robot.finder().find(myIdeFrame.target(), Matchers.byText(JMenuItem.class, actionLabel));
-    new ComponentDriver(robot).click(found);
-    robot.waitForIdle();
+    new JMenuItemFixture(myRobot, GuiTests.waitUntilShowing(myRobot, Matchers.byText(JMenuItem.class, actionLabel))).click();
   }
 
   @Override

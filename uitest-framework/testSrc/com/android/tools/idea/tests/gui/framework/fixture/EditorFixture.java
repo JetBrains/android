@@ -505,7 +505,7 @@ public class EditorFixture {
         checkState(editors.length > 0, "no selected editors");
         FileEditor selected = editors[0];
         checkState(selected instanceof NlEditor, "not a %s: %s", NlEditor.class.getSimpleName(), selected);
-        return new NlEditorFixture(myFrame.robot(), myFrame, (NlEditor)selected);
+        return new NlEditorFixture(myFrame.robot(), (NlEditor)selected);
       });
   }
 
@@ -532,7 +532,7 @@ public class EditorFixture {
     Wait.seconds(1).expecting("Preview window to be visible")
       .until(() -> NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm().getSurface().isShowing());
 
-    return new NlPreviewFixture(myFrame.getProject(), myFrame, myFrame.robot());
+    return new NlPreviewFixture(myFrame.getProject(), myFrame.robot());
   }
 
   /**
