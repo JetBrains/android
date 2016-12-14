@@ -75,6 +75,10 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
       long endTime = request.getEndTimestamp();
 
       for (NetworkProfiler.NetworkProfilerData data : myData) {
+        if (data.getBasicInfo().getAppId() != request.getAppId()) {
+          continue;
+        }
+
         long current = data.getBasicInfo().getEndTimestamp();
         if (current > startTime && current <= endTime) {
           if ((request.getType() == NetworkProfiler.NetworkDataRequest.Type.ALL) ||
@@ -125,6 +129,10 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
       // Because myConnectionRangeData.values is in sorted order (by start time), then,
       // based on the requested range, we can exclude older connections and stop if we get to newer connections.
       for (ConnectionData allData: myConnectionData.values()) {
+        if (allData.myProcessId != request.getAppId()) {
+          continue;
+        }
+
         NetworkProfiler.HttpConnectionData data = allData.myCommonData;
         if (endTime < data.getStartTimestamp()) {
           break;
@@ -208,7 +216,7 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
         myHttpRangeRequestStartTimeNs = Math.max(myHttpRangeRequestStartTimeNs, data.getEndTimestamp() + 1);
 
         if (!myConnectionData.containsKey(data.getConnId())) {
-          myConnectionData.put(data.getConnId(), new ConnectionData(data));
+          myConnectionData.put(data.getConnId(), new ConnectionData(myProcessId, data));
           pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
         } else {
           myConnectionData.get(data.getConnId()).myCommonData = data;
@@ -248,12 +256,14 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
   }
 
   private static final class ConnectionData {
+    private int myProcessId;
     @NotNull private NetworkProfiler.HttpConnectionData myCommonData;
     private NetworkProfiler.HttpDetailsResponse.Body myResponseBody;
     private NetworkProfiler.HttpDetailsResponse.Request myRequest;
     private NetworkProfiler.HttpDetailsResponse.Response myResponse;
 
-    private ConnectionData(@NotNull NetworkProfiler.HttpConnectionData commonData) {
+    private ConnectionData(int processId, @NotNull NetworkProfiler.HttpConnectionData commonData) {
+      myProcessId = processId;
       myCommonData = commonData;
     }
   }
