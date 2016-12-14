@@ -27,16 +27,38 @@ import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profiler.proto.NetworkProfiler.*;
 
-public final class TestNetworkService extends NetworkServiceGrpc.NetworkServiceImplBase {
+public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceImplBase {
   public static final int FAKE_APP_ID = 1111;
   public static final String FAKE_PAYLOAD = "Test Payload";
+
+  private int myAppId;
 
   @NotNull private List<HttpData> myHttpDataList;
   @NotNull private List<NetworkProfilerData> myDataList;
 
-  private TestNetworkService(@NotNull Builder builder) {
+  private FakeNetworkService(@NotNull Builder builder) {
     myDataList = builder.myDataList;
     myHttpDataList = builder.myHttpDataList;
+  }
+
+  @Override
+  public void startMonitoringApp(NetworkStartRequest request,
+                                 StreamObserver<NetworkStartResponse> responseObserver) {
+    myAppId = request.getAppId();
+    responseObserver.onNext(NetworkStartResponse.newBuilder().build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void stopMonitoringApp(NetworkStopRequest request,
+                                StreamObserver<NetworkStopResponse> responseObserver) {
+    myAppId = request.getAppId();
+    responseObserver.onNext(NetworkStopResponse.newBuilder().build());
+    responseObserver.onCompleted();
+  }
+
+  public int getAppId() {
+    return myAppId;
   }
 
   @Override
@@ -219,8 +241,8 @@ public final class TestNetworkService extends NetworkServiceGrpc.NetworkServiceI
     }
 
     @NotNull
-    public TestNetworkService build() {
-      return new TestNetworkService(this);
+    public FakeNetworkService build() {
+      return new FakeNetworkService(this);
     }
   }
 }

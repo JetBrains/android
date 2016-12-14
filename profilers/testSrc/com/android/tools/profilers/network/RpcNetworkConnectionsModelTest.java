@@ -32,14 +32,14 @@ import static org.junit.Assert.*;
 public class RpcNetworkConnectionsModelTest {
   private static final ImmutableList<HttpData> FAKE_DATA =
     new ImmutableList.Builder<HttpData>()
-      .add(TestNetworkService.newHttpData(0, 0, 7, 14))
-      .add(TestNetworkService.newHttpData(1, 2, 3, 6))
-      .add(TestNetworkService.newHttpData(2, 4, 0, 0))
-      .add(TestNetworkService.newHttpData(3, 8, 10, 12))
+      .add(FakeNetworkService.newHttpData(0, 0, 7, 14))
+      .add(FakeNetworkService.newHttpData(1, 2, 3, 6))
+      .add(FakeNetworkService.newHttpData(2, 4, 0, 0))
+      .add(FakeNetworkService.newHttpData(3, 8, 10, 12))
       .build();
 
-  @Rule public TestGrpcChannel<TestNetworkService> myGrpcChannel =
-    new TestGrpcChannel<>("RpcNetworkConnectionsModelTest", TestNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
+  @Rule public TestGrpcChannel myGrpcChannel =
+    new TestGrpcChannel("RpcNetworkConnectionsModelTest", FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
   private NetworkConnectionsModel myModel;
 
   @Before
@@ -51,7 +51,7 @@ public class RpcNetworkConnectionsModelTest {
   @Test
   public void requestResponsePayload() {
     HttpData data = new HttpData.Builder(0, 0, 0, 0).setResponsePayloadId("payloadId").build();
-    assertEquals(TestNetworkService.FAKE_PAYLOAD, myModel.requestResponsePayload(data).toStringUtf8());
+    assertEquals(FakeNetworkService.FAKE_PAYLOAD, myModel.requestResponsePayload(data).toStringUtf8());
   }
 
   @Test

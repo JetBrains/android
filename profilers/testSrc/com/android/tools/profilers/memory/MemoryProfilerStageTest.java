@@ -25,14 +25,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
+  private final FakeMemoryService myService = new FakeMemoryService();
   @Rule
-  public TestGrpcChannel<MemoryServiceMock> myGrpcChannel = new TestGrpcChannel<>("MEMORY_TEST_CHANNEL", new MemoryServiceMock());
+  public TestGrpcChannel myGrpcChannel = new TestGrpcChannel("MEMORY_TEST_CHANNEL", myService);
 
   @Override
   @Before
   public void setup() {
     myProfilers = myGrpcChannel.getProfilers();
-    myMockService = myGrpcChannel.getService();
     myStage = new MemoryProfilerStage(myProfilers, DUMMY_LOADER);
     myProfilers.setStage(myStage);
 
@@ -48,14 +48,14 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.trackAllocations(false);
     assertEquals(false, myStage.isTrackingAllocations());
     assertAndResetCounts(1, 0, 0, 0, 0, 0);
-    myMockService.setExplicitStatus(TrackAllocationsResponse.Status.FAILURE_UNKNOWN);
+    myService.setExplicitStatus(TrackAllocationsResponse.Status.FAILURE_UNKNOWN);
     myStage.trackAllocations(false);
     assertEquals(false, myStage.isTrackingAllocations());
     assertAndResetCounts(1, 0, 0, 0, 0, 0);
 
     // Starting a tracking session
-    myMockService.setExplicitStatus(null);
-    myMockService.advanceTime(1);
+    myService.setExplicitStatus(null);
+    myService.advanceTime(1);
     myStage.trackAllocations(true);
     assertEquals(true, myStage.isTrackingAllocations());
     assertEquals(null, myStage.getSelectedCapture());

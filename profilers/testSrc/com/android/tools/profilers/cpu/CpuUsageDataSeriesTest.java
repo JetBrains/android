@@ -38,7 +38,7 @@ public class CpuUsageDataSeriesTest {
   private final FakeCpuService myService = new FakeCpuService();
 
   @Rule
-  public TestGrpcChannel myGrpcChannel = new TestGrpcChannel<>("CpuUsageDataSeriesTest", myService);
+  public TestGrpcChannel myGrpcChannel = new TestGrpcChannel("CpuUsageDataSeriesTest", myService);
 
   private CpuUsageDataSeries mySeries;
 

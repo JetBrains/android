@@ -37,14 +37,14 @@ import static org.junit.Assert.assertThat;
 public class ConnectionsViewTest {
   public static final ImmutableList<HttpData> FAKE_DATA =
     new ImmutableList.Builder<HttpData>()
-      .add(TestNetworkService.newHttpData(1, 1, 1, 2))
-      .add(TestNetworkService.newHttpData(2, 3, 4, 5))
-      .add(TestNetworkService.newHttpData(3, 8, 10, 13))
-      .add(TestNetworkService.newHttpData(4, 21, 25, 34))
+      .add(FakeNetworkService.newHttpData(1, 1, 1, 2))
+      .add(FakeNetworkService.newHttpData(2, 3, 4, 5))
+      .add(FakeNetworkService.newHttpData(3, 8, 10, 13))
+      .add(FakeNetworkService.newHttpData(4, 21, 25, 34))
       .build();
 
   @Rule public TestGrpcChannel myGrpcChannel =
-    new TestGrpcChannel<>("ConnectionsViewTest", TestNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
+    new TestGrpcChannel("ConnectionsViewTest", FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
   private NetworkProfilerStage myStage;
   private FakeTimer myChoreographerTimer;
   private Choreographer myChoreographer;
