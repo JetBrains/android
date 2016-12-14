@@ -20,7 +20,6 @@ import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
-// TODO: This class needs to be covered by tests
 public class NetworkMonitor extends ProfilerMonitor {
 
   public NetworkMonitor(@NotNull StudioProfilers profilers) {

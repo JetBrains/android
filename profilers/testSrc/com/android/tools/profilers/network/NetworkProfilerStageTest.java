@@ -21,15 +21,20 @@ import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.TestGrpcChannel;
 import com.google.common.collect.ImmutableList;
+import com.google.protobuf3jarjar.ByteString;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profiler.proto.NetworkProfiler.*;
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
 
 public class NetworkProfilerStageTest {
   private static final ImmutableList<NetworkProfilerData> FAKE_RADIO_DATA =
@@ -86,7 +91,7 @@ public class NetworkProfilerStageTest {
       .setResponsePayloadId("payloadId");
     HttpData data = builder.build();
 
-    final boolean[]  connectionChanged = {false};
+    final boolean[] connectionChanged = {false};
     myStage.getAspect().addDependency().onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, () ->
       connectionChanged[0] = true
     );
@@ -95,6 +100,27 @@ public class NetworkProfilerStageTest {
     assertNotNull(data.getResponsePayloadFile());
     assertEquals(data, myStage.getSelectedConnection());
     assertEquals(true, connectionChanged[0]);
+  }
+
+  @Test
+  public void testIoExceptionThrownWhenSelectConnection() throws IOException {
+    HttpData.Builder builder = new HttpData.Builder(1, 2, 22, 22);
+    builder.setResponseFields("null  =  HTTP/1.1 302 Found \n Content-Type = image/jpeg; ")
+      .setResponsePayloadId("payloadId");
+    HttpData data = builder.build();
+
+    NetworkProfilerStage spyStage = spy(myStage);
+
+    final boolean[] connectionChanged = {false};
+    spyStage.getAspect().addDependency().onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, () ->
+      connectionChanged[0] = true
+    );
+
+    doThrow(IOException.class).when(spyStage).getConnectionPayload(any(ByteString.class), any(HttpData.class));
+    spyStage.setSelectedConnection(data);
+    assertNull(data.getResponsePayloadFile());
+    assertNull(spyStage.getSelectedConnection());
+    assertEquals(false, connectionChanged[0]);
   }
 
   @Test
