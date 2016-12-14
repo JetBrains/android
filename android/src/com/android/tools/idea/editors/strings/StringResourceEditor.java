@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
-import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
@@ -29,7 +27,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.text.JTextComponent;
 import java.beans.PropertyChangeListener;
 
 public class StringResourceEditor extends UserDataHolderBase implements FileEditor {
@@ -115,19 +112,5 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
 
   @Override
   public void dispose() {
-  }
-
-  @VisibleForTesting
-  public JTable getTranslationsTable() {
-    return myPanel.getTable();
-  }
-
-  public JTextComponent getKeyTextField() {
-    return myPanel.myKeyTextField;
-  }
-
-  @VisibleForTesting
-  public TextFieldWithBrowseButton getTranslationTextField() {
-    return myPanel.myTranslationTextField;
   }
 }
