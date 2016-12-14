@@ -61,7 +61,7 @@ public class SubmitCrashReportTask extends Task.Backgroundable {
     CrashReport report = CrashReport.Builder.createForException(myThrowable)
       .addProductData(getProductData())
       .build();
-    CompletableFuture<String> future = CrashReporter.getInstance().submit(report);
+    CompletableFuture<String> future = CrashReporter.getInstance().submit(report, true);
 
     try {
       String token = future.get(20, TimeUnit.SECONDS); // arbitrary limit, we don't really want an error report task to take longer
