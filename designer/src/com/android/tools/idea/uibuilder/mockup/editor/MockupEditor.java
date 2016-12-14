@@ -394,37 +394,6 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface> {
     return this;
   }
 
-  @NotNull
-  @Override
-  public JComponent getFocusedComponent() {
-    return this;
-  }
-
-  @NotNull
-  @Override
-  public List<AnAction> getGearActions() {
-    return Collections.emptyList();
-  }
-
-  @NotNull
-  @Override
-  public List<AnAction> getAdditionalActions() {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public void registerCloseAutoHideWindow(@NotNull Runnable runnable) {
-  }
-
-  @Override
-  public boolean supportsFiltering() {
-    return false;
-  }
-
-  @Override
-  public void setFilter(@NotNull String filter) {
-  }
-
   /**
    * A tool is an extension to the {@link MockupEditor}. Each tool is responsible to set
    * the desired state of the MockupEditor when enabled and reset it when disabled.

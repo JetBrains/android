@@ -148,25 +148,9 @@ public class NlOldPalettePanel extends JPanel
     actions.add(new ToggleModeAction(this, Mode.PREVIEW));
     return actions;
   }
-
-  @NotNull
-  @Override
-  public List<AnAction> getAdditionalActions() {
-    return Collections.emptyList();
-  }
-
   @Override
   public void registerCloseAutoHideWindow(@NotNull Runnable runnable) {
     myCloseCallback = runnable;
-  }
-
-  @Override
-  public boolean supportsFiltering() {
-    return false;
-  }
-
-  @Override
-  public void setFilter(@NotNull String filter) {
   }
 
   public enum Mode {
