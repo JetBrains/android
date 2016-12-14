@@ -350,7 +350,7 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   public void testNewProjectWithTvActivity() throws Exception {
-    checkCreateTemplate("activities", "AndroidTvActivity", true);
+    checkCreateTemplate("activities", "AndroidTVActivity", true);
   }
 
   // Non-activities
