@@ -33,7 +33,7 @@ import static com.android.tools.idea.uibuilder.scene.draw.DrawGuidelineCycle.PER
  * Encapsulate basic querys on a ConstraintLayout component
  * TODO: use this class everywhere for this type of queries and replace/update ConstraintTarget
  */
-public class ConstraintComponent {
+public class ConstraintComponentUtilities {
 
   protected static final HashMap<String, String> ourReciprocalAttributes;
   protected static final HashMap<String, String> ourMapMarginAttributes;
