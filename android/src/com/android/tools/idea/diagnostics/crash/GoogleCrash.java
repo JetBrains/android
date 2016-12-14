@@ -18,6 +18,7 @@ package com.android.tools.idea.diagnostics.crash;
 import com.android.tools.analytics.Anonymizer;
 import com.android.utils.NullLogger;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
@@ -45,8 +46,8 @@ import java.lang.management.MemoryUsage;
 import java.lang.management.RuntimeMXBean;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * {@link GoogleCrash} provides APIs to upload crash reports to Google crash reporting service.
@@ -64,12 +65,39 @@ public class GoogleCrash implements CrashReporter {
   private static final String ANONYMIZED_UID = getAnonymizedUid();
   private static final String LOCALE = Locale.getDefault() == null ? "unknown" : Locale.getDefault().toString();
 
+  private static final int REJECTED_UPLOAD_TRIGGER_COUNT = 20;
+  private static AtomicInteger ourRejectedExecutionCount = new AtomicInteger();
+
+  /**
+   * Executor to use when uploading crash events. Earlier versions relied on the ForkJoin pool, but this causes
+   * issues if we generate lots of exceptions within a short time - See https://code.google.com/p/android/issues/detail?id=230109.
+   * This executor is configured such that it only allows a maximum of 5 threads to ever be alive for the purpose of uploading events,
+   * with a backlog of 5 more in the queue. If the queue is full, then subsequent submissions to the queue are rejected.
+   */
+  private static final ExecutorService ourExecutor =
+    new ThreadPoolExecutor(1,
+                           5,
+                           1, TimeUnit.MINUTES,
+                           new LinkedBlockingDeque<>(5),
+                           new ThreadFactoryBuilder().setDaemon(true).setNameFormat("google-crash-pool-%d").build(),
+                           (r, executor) -> {
+                             ourRejectedExecutionCount.incrementAndGet();
+                             if (ourRejectedExecutionCount.compareAndSet(REJECTED_UPLOAD_TRIGGER_COUNT, 0)) {
+                               Logger.getInstance(GoogleCrash.class)
+                                 .info("Lost " + REJECTED_UPLOAD_TRIGGER_COUNT + " crash events due to full queue.");
+                             }
+                           });
+
   // The standard keys expected by crash backend. The product id and version are required, others are optional.
   static final String KEY_PRODUCT_ID = "productId";
   static final String KEY_VERSION = "version";
   static final String KEY_EXCEPTION_INFO = "exception_info";
 
+  // We allow reporting a max of 1 crash per 5 minutes
+  private static final double MAX_CRASHES_PER_SEC = 1.0d / (5 * 60d);
+
   private final String myCrashUrl;
+  private final UploadRateLimiter myRateLimiter;
 
   @Nullable
   private static String getAnonymizedUid() {
@@ -86,17 +114,32 @@ public class GoogleCrash implements CrashReporter {
   }
 
   GoogleCrash() {
-    this(CRASH_URL);
+    this(CRASH_URL, UploadRateLimiter.create(MAX_CRASHES_PER_SEC));
   }
 
   @VisibleForTesting
-  GoogleCrash(@NotNull String crashUrl) {
+  GoogleCrash(@NotNull String crashUrl, @NotNull UploadRateLimiter rateLimiter) {
     myCrashUrl = crashUrl;
+    myRateLimiter = rateLimiter;
   }
 
   @Override
   @NotNull
   public CompletableFuture<String> submit(@NotNull CrashReport report) {
+    return submit(report, false);
+  }
+
+  @Override
+  @NotNull
+  public CompletableFuture<String> submit(@NotNull CrashReport report, boolean userReported) {
+    if (!userReported) { // all non user reported crash events are rate limited on the client side
+      if (!myRateLimiter.tryAcquire()) {
+        CompletableFuture<String> f = new CompletableFuture<>();
+        f.completeExceptionally(new RuntimeException("Exceeded Quota of crashes that can be reported"));
+        return f;
+      }
+    }
+
     Map<String, String> parameters = getDefaultParameters();
     if (report.version != null) {
       parameters.put(KEY_VERSION, report.version);
@@ -120,43 +163,49 @@ public class GoogleCrash implements CrashReporter {
   @Override
   public CompletableFuture<String> submit(@NotNull final HttpEntity requestEntity) {
     CompletableFuture<String> future = new CompletableFuture<>();
-    ForkJoinPool.commonPool().submit(() -> {
-      try {
-        HttpClient client = HttpClients.createDefault();
 
-        HttpEntity entity = requestEntity;
-        if (!UNIT_TEST_MODE) {
-          // The test server used in testing doesn't handle gzip compression (netty requires jcraft jzlib for gzip decompression)
-          entity = new GzipCompressingEntity(requestEntity);
+    try {
+      ourExecutor.submit(() -> {
+        try {
+          HttpClient client = HttpClients.createDefault();
+
+          HttpEntity entity = requestEntity;
+          if (!UNIT_TEST_MODE) {
+            // The test server used in testing doesn't handle gzip compression (netty requires jcraft jzlib for gzip decompression)
+            entity = new GzipCompressingEntity(requestEntity);
+          }
+
+          HttpPost post = new HttpPost(myCrashUrl);
+          post.setEntity(entity);
+
+          HttpResponse response = client.execute(post);
+          StatusLine statusLine = response.getStatusLine();
+          if (statusLine.getStatusCode() >= 300) {
+            future.completeExceptionally(new HttpResponseException(statusLine.getStatusCode(), statusLine.getReasonPhrase()));
+            return;
+          }
+
+          entity = response.getEntity();
+          if (entity == null) {
+            future.completeExceptionally(new NullPointerException("Empty response entity"));
+            return;
+          }
+
+          String reportId = EntityUtils.toString(entity);
+          if (DEBUG_BUILD) {
+            //noinspection UseOfSystemOutOrSystemErr
+            System.out.println("Report submitted: http://go/crash-staging/" + reportId);
+          }
+          future.complete(reportId);
         }
-
-        HttpPost post = new HttpPost(myCrashUrl);
-        post.setEntity(entity);
-
-        HttpResponse response = client.execute(post);
-        StatusLine statusLine = response.getStatusLine();
-        if (statusLine.getStatusCode() >= 300) {
-          future.completeExceptionally(new HttpResponseException(statusLine.getStatusCode(), statusLine.getReasonPhrase()));
-          return;
+        catch (IOException e) {
+          future.completeExceptionally(e);
         }
+      });
+    } catch (RejectedExecutionException ignore) {
+      // handled by the rejected execution handler associated with ourExecutor
+    }
 
-        entity = response.getEntity();
-        if (entity == null) {
-          future.completeExceptionally(new NullPointerException("Empty response entity"));
-          return;
-        }
-
-        String reportId = EntityUtils.toString(entity);
-        if (DEBUG_BUILD) {
-          //noinspection UseOfSystemOutOrSystemErr
-          System.out.println("Report submitted: http://go/crash-staging/" + reportId);
-        }
-        future.complete(reportId);
-      }
-      catch (IOException e) {
-        future.completeExceptionally(e);
-      }
-    });
     return future;
   }
 
