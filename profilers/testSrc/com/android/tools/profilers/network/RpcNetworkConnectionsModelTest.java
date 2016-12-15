@@ -17,7 +17,7 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.TestGrpcChannel;
+import com.android.tools.profilers.FakeGrpcChannel;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf3jarjar.ByteString;
 import org.junit.Before;
@@ -38,13 +38,13 @@ public class RpcNetworkConnectionsModelTest {
       .add(FakeNetworkService.newHttpData(3, 8, 10, 12))
       .build();
 
-  @Rule public TestGrpcChannel myGrpcChannel =
-    new TestGrpcChannel("RpcNetworkConnectionsModelTest", FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
+  @Rule public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("RpcNetworkConnectionsModelTest", FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
   private NetworkConnectionsModel myModel;
 
   @Before
   public void setUp() {
-    StudioProfilers profilers = myGrpcChannel.getProfilers();
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient());
     myModel = new RpcNetworkConnectionsModel(profilers.getClient().getNetworkClient(), 12);
   }
 

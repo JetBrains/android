@@ -18,7 +18,7 @@ package com.android.tools.profilers.memory;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.TestGrpcChannel;
+import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.memory.adapters.ReferenceObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,14 +37,14 @@ import static org.junit.Assert.*;
 
 public class MemoryInstanceDetailsViewTest {
   @Rule
-  public TestGrpcChannel myGrpcChannel = new TestGrpcChannel("MEMORY_TEST_CHANNEL", new MemoryServiceMock());
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MEMORY_TEST_CHANNEL", new MemoryServiceMock());
 
   /**
    * Test that the component is visible based on whether the currently selected instance object has callstack/reference information.
    */
   @Test
   public void visibilityTest() throws Exception {
-    StudioProfilers profilers = myGrpcChannel.getProfilers();
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient());
     MemoryProfilerStage stage = new MemoryProfilerStage(profilers);
     MemoryInstanceDetailsView detailsView = new MemoryInstanceDetailsView(stage);
 
@@ -79,7 +79,7 @@ public class MemoryInstanceDetailsViewTest {
    */
   @Test
   public void buildTreeTest() throws Exception {
-    StudioProfilers profilers = myGrpcChannel.getProfilers();
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient());
     MemoryProfilerStage stage = new MemoryProfilerStage(profilers);
     MemoryInstanceDetailsView detailsView = new MemoryInstanceDetailsView(stage);
 

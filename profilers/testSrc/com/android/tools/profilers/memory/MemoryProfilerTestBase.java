@@ -15,10 +15,9 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.profiler.proto.*;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.TestGrpcChannel;
+import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.memory.adapters.*;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -46,7 +45,7 @@ public class MemoryProfilerTestBase {
   protected int myCurrentInstanceAspectCount;
 
   @Rule
-  public TestGrpcChannel myGrpcChannel = new TestGrpcChannel("MEMORY_TEST_CHANNEL", myService);
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MEMORY_TEST_CHANNEL", myService);
 
   @Before
   public void setup() {
