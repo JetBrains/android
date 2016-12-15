@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.android.tools.profilers.memory.adapters.ClassObject.InstanceAttribute.LABEL;
-import static com.android.tools.profilers.memory.adapters.ClassObject.InstanceAttribute.SHALLOW_SIZE;
+import static com.android.tools.profilers.memory.adapters.InstanceObject.InstanceAttribute.LABEL;
+import static com.android.tools.profilers.memory.adapters.InstanceObject.InstanceAttribute.SHALLOW_SIZE;
 
 final class AllocationsClassObject implements ClassObject {
   @NotNull private final MemoryProfiler.AllocatedClass myAllocatedClass;
@@ -56,7 +56,7 @@ final class AllocationsClassObject implements ClassObject {
 
   @NotNull
   @Override
-  public List<InstanceAttribute> getInstanceAttributes() {
+  public List<InstanceObject.InstanceAttribute> getInstanceAttributes() {
     return Arrays.asList(LABEL, SHALLOW_SIZE);
   }
 }

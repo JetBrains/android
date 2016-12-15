@@ -78,7 +78,7 @@ final class HeapDumpClassObject implements ClassObject {
 
   @NotNull
   @Override
-  public List<InstanceAttribute> getInstanceAttributes() {
-    return Arrays.asList(InstanceAttribute.LABEL, InstanceAttribute.DEPTH, InstanceAttribute.SHALLOW_SIZE, InstanceAttribute.RETAINED_SIZE);
+  public List<InstanceObject.InstanceAttribute> getInstanceAttributes() {
+    return Arrays.asList(InstanceObject.InstanceAttribute.LABEL, InstanceObject.InstanceAttribute.DEPTH, InstanceObject.InstanceAttribute.SHALLOW_SIZE, InstanceObject.InstanceAttribute.RETAINED_SIZE);
   }
 }
