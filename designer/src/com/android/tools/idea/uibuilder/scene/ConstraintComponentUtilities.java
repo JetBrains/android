@@ -19,8 +19,14 @@ import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -47,6 +53,7 @@ public class ConstraintComponentUtilities {
   protected static final ArrayList<String> ourMarginAttributes;
   protected static final ArrayList<String> ourHorizontalAttributes;
   protected static final ArrayList<String> ourVerticalAttributes;
+  protected static final ArrayList<String> ourCreatorAttributes;
 
   static {
     ourReciprocalAttributes = new HashMap<>();
@@ -128,6 +135,16 @@ public class ConstraintComponentUtilities {
     ourVerticalAttributes.add(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
     ourVerticalAttributes.add(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
     ourVerticalAttributes.add(SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
+
+    ourCreatorAttributes = new ArrayList<>();
+    ourCreatorAttributes.add(SdkConstants.ATTR_LAYOUT_LEFT_CREATOR);
+    ourCreatorAttributes.add(SdkConstants.ATTR_LAYOUT_TOP_CREATOR);
+    ourCreatorAttributes.add(SdkConstants.ATTR_LAYOUT_RIGHT_CREATOR);
+    ourCreatorAttributes.add(SdkConstants.ATTR_LAYOUT_BOTTOM_CREATOR);
+    ourCreatorAttributes.add(SdkConstants.ATTR_LAYOUT_BASELINE_CREATOR);
+    ourCreatorAttributes.add(SdkConstants.ATTR_LAYOUT_CENTER_CREATOR);
+    ourCreatorAttributes.add(SdkConstants.ATTR_LAYOUT_CENTER_X_CREATOR);
+    ourCreatorAttributes.add(SdkConstants.ATTR_LAYOUT_CENTER_Y_CREATOR);
   }
 
   /**
@@ -214,5 +231,51 @@ public class ConstraintComponentUtilities {
     } else {
       return PERCENT;
     }
+  }
+
+  public static void clearAttributes(SceneComponent component) {
+    AttributesTransaction transaction = component.getNlComponent().startAttributeTransaction();
+    clearAllAttributes(component, transaction);
+    transaction.apply();
+
+    NlModel nlModel = component.getNlComponent().getModel();
+    Project project = nlModel.getProject();
+    XmlFile file = nlModel.getFile();
+
+    String label = "Cleared all constraints";
+    WriteCommandAction action = new WriteCommandAction(project, label, file) {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        transaction.commit();
+      }
+    };
+    action.execute();
+  }
+
+  public static void setDpAttribute(String uri, String attribute, AttributesTransaction transaction, int value) {
+    String position = String.format(SdkConstants.VALUE_N_DP, value);
+    transaction.setAttribute(uri, attribute, position);
+  }
+
+  public static void clearAttributes(String uri, ArrayList<String> attributes, AttributesTransaction transaction) {
+    int count = attributes.size();
+    for (int i = 0; i < count; i++) {
+      String attribute = attributes.get(i);
+      transaction.setAttribute(uri, attribute, null);
+    }
+  }
+
+  private static void clearAllAttributes(SceneComponent component, AttributesTransaction transaction) {
+    clearAttributes(SdkConstants.SHERPA_URI, ourLeftAttributes, transaction);
+    clearAttributes(SdkConstants.SHERPA_URI, ourTopAttributes, transaction);
+    clearAttributes(SdkConstants.SHERPA_URI, ourRightAttributes, transaction);
+    clearAttributes(SdkConstants.SHERPA_URI, ourBottomAttributes, transaction);
+    clearAttributes(SdkConstants.TOOLS_URI, ourCreatorAttributes, transaction);
+    transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, null);
+    transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
+    transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null);
+    clearAttributes(SdkConstants.ANDROID_URI, ourMarginAttributes, transaction);
+    setDpAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, transaction, component.getOffsetParentX());
+    setDpAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, transaction, component.getOffsetParentY());
   }
 }
