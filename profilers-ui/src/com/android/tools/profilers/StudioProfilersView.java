@@ -58,7 +58,6 @@ public class StudioProfilersView {
     myBinder.bind(NetworkProfilerStage.class, NetworkProfilerStageView::new);
 
     myProfiler.addDependency()
-      .setExecutor(ApplicationManager.getApplication(), Application::invokeLater)
       .onChange(ProfilerAspect.STAGE, this::updateStageView);
   }
 

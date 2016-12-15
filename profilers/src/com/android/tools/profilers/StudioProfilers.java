@@ -29,6 +29,8 @@ import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
+import javax.swing.Timer;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -84,7 +86,8 @@ public final class StudioProfilers extends AspectModel<ProfilerAspect> {
     myDevice = null;
     myProcess = null;
 
-    new Thread(this::run, "Profiler poller").start();
+    // TODO: Use the time updater once is moved to the model.
+    new Timer(1000, e -> poll()).start();
   }
 
   public List<Profiler.Device> getDevices() {
@@ -99,64 +102,49 @@ public final class StudioProfilers extends AspectModel<ProfilerAspect> {
    * Polls the server for new devices/processes.
    * TODO: Investigate a streaming notification service.
    */
-  private void run() {
-    // TODO: Allow clean exit of this thread.
+  private void poll() {
     try {
-      while (true) {
-        try {
-          Profiler.GetDevicesResponse response = myClient.getProfilerClient().getDevices(Profiler.GetDevicesRequest.getDefaultInstance());
-          long nowNs = System.nanoTime();
-          if (!myConnected) {
-            // We were not connected to a service, we don't know yet whether there are devices available.
-            // TODO: modify get times to be on the selected device and separate
-            // device polling, from streaming mode.
-            Profiler.TimesResponse times = myClient.getProfilerClient().getTimes(Profiler.TimesRequest.getDefaultInstance());
-            long deviceNowNs = times.getTimestampNs();
-            myDeviceStartUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
-            myDeviceDeltaNs = deviceNowNs - nowNs;
-            myDataRangUs.set(myDeviceStartUs, myDeviceStartUs);
-            myTimeline.resetZoom();
-            myTimeline.setStreaming(true);
-            this.changed(ProfilerAspect.CONNECTION);
-          }
-          long deviceNowNs = nowNs + myDeviceDeltaNs;
-          long deviceNowUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
-          myDataRangUs.setMax(deviceNowUs);
+      Profiler.GetDevicesResponse response = myClient.getProfilerClient().getDevices(Profiler.GetDevicesRequest.getDefaultInstance());
+      long nowNs = System.nanoTime();
+      if (!myConnected) {
+        // We were not connected to a service, we don't know yet whether there are devices available.
+        // TODO: modify get times to be on the selected device and separate
+        // device polling, from streaming mode.
+        Profiler.TimesResponse times = myClient.getProfilerClient().getTimes(Profiler.TimesRequest.getDefaultInstance());
+        long deviceNowNs = times.getTimestampNs();
+        myDeviceStartUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
+        myDeviceDeltaNs = deviceNowNs - nowNs;
+        myDataRangUs.set(myDeviceStartUs, myDeviceStartUs);
+        myTimeline.resetZoom();
+        myTimeline.setStreaming(true);
+        this.changed(ProfilerAspect.CONNECTION);
+      }
+      long deviceNowNs = nowNs + myDeviceDeltaNs;
+      long deviceNowUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
+      myDataRangUs.setMax(deviceNowUs);
 
-          myConnected = true;
-          Set<Profiler.Device> devices = new HashSet<>(response.getDeviceList());
-          Map<Profiler.Device, List<Profiler.Process>> newProcesses = new HashMap<>();
-          for (Profiler.Device device : devices) {
-            Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder().setSerial(device.getSerial()).build();
-            Profiler.GetProcessesResponse processes = myClient.getProfilerClient().getProcesses(request);
-            newProcesses.put(device, processes.getProcessList());
-          }
-          if (!newProcesses.equals(myProcesses)) {
-            myProcesses = newProcesses;
-            // Attempt to choose the currently profiled device and process
-            setDevice(myDevice);
-            setProcess(null);
+      myConnected = true;
+      Set<Profiler.Device> devices = new HashSet<>(response.getDeviceList());
+      Map<Profiler.Device, List<Profiler.Process>> newProcesses = new HashMap<>();
+      for (Profiler.Device device : devices) {
+        Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder().setSerial(device.getSerial()).build();
+        Profiler.GetProcessesResponse processes = myClient.getProfilerClient().getProcesses(request);
+        newProcesses.put(device, processes.getProcessList());
+      }
+      if (!newProcesses.equals(myProcesses)) {
+        myProcesses = newProcesses;
+        // Attempt to choose the currently profiled device and process
+        setDevice(myDevice);
+        setProcess(null);
 
-            changed(ProfilerAspect.DEVICES);
-            changed(ProfilerAspect.PROCESSES);
-          }
-        }
-        catch (StatusRuntimeException e) {
-          myConnected = false;
-          this.changed(ProfilerAspect.CONNECTION);
-          System.err.println("Cannot find profiler service, retrying...");
-        }
-        try {
-          Thread.sleep(1000);
-        }
-        catch (InterruptedException e) {
-          e.printStackTrace();
-        }
+        changed(ProfilerAspect.DEVICES);
+        changed(ProfilerAspect.PROCESSES);
       }
     }
-    catch (Throwable t) {
-      System.err.println("Run is ending....");
-      throw t;
+    catch (StatusRuntimeException e) {
+      myConnected = false;
+      this.changed(ProfilerAspect.CONNECTION);
+      System.err.println("Cannot find profiler service, retrying...");
     }
   }
 

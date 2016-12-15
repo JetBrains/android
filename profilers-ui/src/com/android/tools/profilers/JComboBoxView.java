@@ -48,7 +48,6 @@ public class JComboBoxView<T, A extends Enum<A>> implements ItemListener {
   public void bind() {
     myCombo.addItemListener(this);
     myObject.addDependency()
-      .setExecutor(ApplicationManager.getApplication(), Application::invokeLater)
       .onChange(myAspect, this::changed);
     changed();
   }
