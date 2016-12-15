@@ -16,8 +16,6 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,7 +33,6 @@ public final class MemoryCaptureView {
   MemoryCaptureView(@NotNull MemoryProfilerStage stage) {
     myStage = stage;
     myStage.getAspect().addDependency()
-      .setExecutor(ApplicationManager.getApplication(), Application::invokeLater)
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::reset)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refresh);
     refresh();
