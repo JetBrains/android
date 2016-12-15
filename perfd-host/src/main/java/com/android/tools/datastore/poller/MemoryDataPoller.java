@@ -15,6 +15,7 @@
  */
 package com.android.tools.datastore.poller;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.DurationData;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.LegacyAllocationTrackingService;
@@ -35,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.RunnableFuture;
+import java.util.function.Consumer;
 
 import static com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse.Status.SUCCESS;
 
@@ -62,9 +64,17 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
   private HeapDumpSample myPendingHeapDumpSample = null;
 
   private int myProcessId = -1;
+  private Consumer<Runnable> myFetchExecutor;
+
+  @VisibleForTesting
+  // TODO Revisit fetch mechanism
+  public MemoryDataPoller(@NotNull DataStoreService dataStoreService, Consumer<Runnable> fetchExecutor) {
+    myLegacyAllocationTrackingService = new LegacyAllocationTrackingService(dataStoreService::getLegacyAllocationTracker);
+    myFetchExecutor = fetchExecutor;
+  }
 
   public MemoryDataPoller(@NotNull DataStoreService dataStoreService) {
-    myLegacyAllocationTrackingService = new LegacyAllocationTrackingService(dataStoreService::getLegacyAllocationTracker);
+    this(dataStoreService, r -> ApplicationManager.getApplication().executeOnPooledThread(r));
   }
 
   @Override
@@ -281,11 +291,7 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
             }
           }
         };
-        if (ApplicationManager.getApplication() != null ) {
-          ApplicationManager.getApplication().executeOnPooledThread(query);
-        } else { //Test Framework
-          query.run();
-        }
+        myFetchExecutor.accept(query);
       }
     }
     if (response.getEndTimestamp() > myDataRequestStartTimestampNs) {
