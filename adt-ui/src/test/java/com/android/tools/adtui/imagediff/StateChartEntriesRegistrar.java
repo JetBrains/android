@@ -18,6 +18,7 @@ package com.android.tools.adtui.imagediff;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.StateChartModel;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -120,6 +121,8 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
     StateChart<TestState> myStateChart;
 
+    private StateChartModel<TestState> myStateChartModel;
+
     private List<DefaultDataSeries<TestState>> myData;
 
     StateChartImageDiffEntry(String baselineFilename, float similarityThreshold) {
@@ -133,9 +136,10 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
     @Override
     protected void setUp() {
       myData = new ArrayList<>();
-      myStateChart = new StateChart<>(getTestStateColor());
+      myStateChartModel = new StateChartModel<TestState>();
+      myStateChart = new StateChart<>(myStateChartModel, getTestStateColor());
       myContentPane.add(myStateChart, BorderLayout.CENTER);
-      myComponents.add(myStateChart);
+      myComponents.add(myStateChartModel);
       myNewStateControlArrayIndex = 0;
       myValuesArrayIndex = 0;
     }
@@ -172,7 +176,7 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
       DefaultDataSeries<TestState> series = new DefaultDataSeries<>();
       RangedSeries<TestState> rangedSeries = new RangedSeries<>(myXRange, series);
       myData.add(series);
-      myStateChart.addSeries(rangedSeries);
+      myStateChartModel.addSeries(rangedSeries);
     }
   }
 }

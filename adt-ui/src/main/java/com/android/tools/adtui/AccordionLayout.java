@@ -16,6 +16,7 @@
 
 package com.android.tools.adtui;
 
+import com.android.tools.adtui.model.Updatable;
 import org.jetbrains.annotations.NotNull;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import java.awt.*;

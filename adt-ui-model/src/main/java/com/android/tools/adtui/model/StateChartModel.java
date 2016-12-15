@@ -13,33 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui;
+package com.android.tools.adtui.model;
 
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedTreeModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class RangedTree implements Updatable {
+import java.util.ArrayList;
+import java.util.List;
+
+public class StateChartModel<E> extends AspectModel<StateChartModel.Aspect> implements Updatable {
+
+  public enum Aspect {
+    STATE_CHART
+  }
 
   @NotNull
-  private final Range myRange;
-  @Nullable
-  private RangedTreeModel myModel;
+  private final List<RangedSeries<E>> mSeriesList;
 
-  public RangedTree(@NotNull Range range) {
-    myModel = null;
-    myRange = range;
+  public StateChartModel() {
+    mSeriesList = new ArrayList<>();
+  }
+
+  public List<RangedSeries<E>> getSeries() {
+    return mSeriesList;
   }
 
   @Override
   public void update(float elapsed) {
-    if (myModel != null) {
-      myModel.update(myRange);
-    }
+    changed(Aspect.STATE_CHART);
   }
 
-  public void setModel(@Nullable RangedTreeModel model) {
-    myModel = model;
+
+  public void addSeries(@NotNull RangedSeries<E> series) {
+    mSeriesList.add(series);
+    changed(Aspect.STATE_CHART);
   }
 }

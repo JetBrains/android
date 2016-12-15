@@ -15,10 +15,10 @@
  */
 package com.android.tools.adtui.imagediff;
 
-import com.android.tools.adtui.Updatable;
+import com.android.tools.adtui.model.Updatable;
 import com.android.tools.adtui.AnimatedRange;
-import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.FakeTimer;
+import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.Updater;
 
 import javax.swing.*;
 import java.awt.*;
@@ -66,9 +66,9 @@ abstract class AnimatedComponentImageDiffEntry extends ImageDiffEntry {
 
   protected List<Updatable> myComponents;
 
-  protected FakeTimer myChoreographerTimer;
+  protected FakeTimer myTimer;
 
-  protected Choreographer myChoreographer;
+  protected Updater myUpdater;
 
   AnimatedComponentImageDiffEntry(String baselineFilename, float similarityThreshold) {
     super(baselineFilename, similarityThreshold);
@@ -93,13 +93,13 @@ abstract class AnimatedComponentImageDiffEntry extends ImageDiffEntry {
     generateComponent();
 
     // Register the main component and its subcomponents in the choreographer
-    myChoreographer.register(myComponents);
+    myUpdater.register(myComponents);
 
     // Generate test data in case the component needs it.
     generateTestData();
 
-    // Step the choreographer once so the test data is reflected on the component.
-    myChoreographerTimer.step();
+    // Step the model once so the test data is reflected on the component.
+    myTimer.step();
 
     return ImageDiffUtil.getImageFromComponent(myContentPane);
   }
@@ -115,8 +115,8 @@ abstract class AnimatedComponentImageDiffEntry extends ImageDiffEntry {
     myRangeEndUs = myRangeStartUs + TOTAL_VALUES * TIME_DELTA_US;
     myXRange = new AnimatedRange(myRangeStartUs, myRangeEndUs);
     // We don't need to set a proper FPS to the choreographer, as we're interested in the final image only, not the animation.
-    myChoreographerTimer = new FakeTimer();
-    myChoreographer = new Choreographer(myChoreographerTimer, myContentPane);
+    myTimer = new FakeTimer();
+    myUpdater = new Updater(myTimer);
     myComponents = new ArrayList<>();
     myComponents.add(myXRange);
   }

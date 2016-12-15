@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package com.android.tools.adtui;
+package com.android.tools.adtui.model;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.tools.adtui.model.FpsTimer;
-import com.android.tools.adtui.model.StopwatchTimer;
-import com.android.tools.adtui.model.Updatable;
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.event.HierarchyListener;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -32,43 +28,20 @@ import java.util.List;
  * running at a specific frame rate. This ensures all UI components and model classes are reading
  * and displaying consistent information at any given time.
  */
-public class Choreographer implements StopwatchTimer.TickHandler {
+public class Updater implements StopwatchTimer.TickHandler {
 
   public static final float DEFAULT_LERP_FRACTION = 0.99f;
   public static final float DEFAULT_LERP_THRESHOLD_PERCENTAGE = 0.001f;
 
-  private final List<LegacyAnimatedComponent> mComponents;
-  private List<LegacyAnimatedComponent> mToRegister;
-  private List<LegacyAnimatedComponent> mToUnregister;
+  private final List<Updatable> mComponents;
+  private List<Updatable> mToRegister;
+  private List<Updatable> mToUnregister;
   private final StopwatchTimer mTimer;
   private boolean mReset;
 
-  /**
-   * At the end of each update loop, repaint is trigger on the parent container so that all its
-   * children are redrawn, displaying the updated data. This avoids having to trigger repaint on
-   * individual components registered to the Choreographer, which can result in redundant draw
-   * calls between loops if they overlap.
-   */
-  @NotNull
-  private final JComponent mParentContainer;
   private boolean mUpdating;
 
-  /**
-   * @param fps    The frame rate that this Choreographer should run at.
-   * @param parent The parent component that contains all {@link LegacyAnimatedComponent} registered
-   *               with the Choreographer.
-   */
-  public Choreographer(int fps, @NotNull JComponent parent) {
-    this(new FpsTimer(fps), parent);
-  }
-
-  public Choreographer(@NotNull JComponent parent) {
-    this(new FpsTimer(), parent);
-  }
-
-  @VisibleForTesting
-  public Choreographer(@NotNull StopwatchTimer timer, @NotNull JComponent parent) {
-    mParentContainer = parent;
+  public Updater(@NotNull StopwatchTimer timer) {
     mComponents = new LinkedList<>();
     mToRegister = new LinkedList<>();
     mToUnregister = new LinkedList<>();
@@ -78,17 +51,13 @@ public class Choreographer implements StopwatchTimer.TickHandler {
     mTimer.start();
   }
 
-  @VisibleForTesting
-  public Choreographer(@NotNull StopwatchTimer timer) {
-    this(timer, new JPanel());
-  }
 
   @VisibleForTesting
   public StopwatchTimer getTimer() {
     return mTimer;
   }
 
-  public void register(LegacyAnimatedComponent updatable) {
+  public void register(Updatable updatable) {
     if (mUpdating) {
       mToRegister.add(updatable);
     } else {
@@ -96,13 +65,13 @@ public class Choreographer implements StopwatchTimer.TickHandler {
     }
   }
 
-  public void register(@NotNull List<LegacyAnimatedComponent> updatables) {
-    for (LegacyAnimatedComponent updatable : updatables) {
+  public void register(@NotNull List<Updatable> updatables) {
+    for (Updatable updatable : updatables) {
       register(updatable);
     }
   }
 
-  public void unregister(@NotNull LegacyAnimatedComponent updatable) {
+  public void unregister(@NotNull Updatable updatable) {
     if (mUpdating) {
       mToUnregister.add(updatable);
     } else {
@@ -119,27 +88,6 @@ public class Choreographer implements StopwatchTimer.TickHandler {
   @Override
   public void onTick(float elapsed) {
     step(elapsed);
-  }
-
-  /**
-   * @deprecated Legacy method to animate components. Each component animates on its own and has a
-   * choreographer that is bound to that component's visibility. This can be safely removed once
-   * all the legacy AnimatedComponents in Studio has been replaced by the new UI.
-   */
-  @Deprecated
-  public static void animate(final LegacyAnimatedComponent component) {
-    final Choreographer choreographer = new Choreographer(30, component);
-    choreographer.register(component);
-    HierarchyListener listener = event -> {
-      if (choreographer.mTimer.isRunning() && !component.isShowing()) {
-        choreographer.mTimer.stop();
-      }
-      else if (!choreographer.mTimer.isRunning() && component.isShowing()) {
-        choreographer.mTimer.start();
-      }
-    };
-    listener.hierarchyChanged(null);
-    component.addHierarchyListener(listener);
   }
 
   public void reset() {
@@ -162,8 +110,6 @@ public class Choreographer implements StopwatchTimer.TickHandler {
 
     mToUnregister.clear();
     mToRegister.clear();
-
-    mParentContainer.repaint();
   }
 
   /**

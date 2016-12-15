@@ -16,15 +16,11 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.RangedTable;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.EnumColors;
-import com.android.tools.adtui.model.DefaultDataSeries;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.adtui.model.RangedTableModel;
+import com.android.tools.adtui.model.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ExpandedItemRendererComponentWrapper;
@@ -145,20 +141,17 @@ final class ConnectionsView {
 
   public ConnectionsView(@NotNull NetworkProfilerStageView stageView,
                          @NotNull DetailedViewListener detailedViewListener) {
-    this(stageView.getStage(), stageView.getChoreographer(), stageView.getTimeline().getSelectionRange(), detailedViewListener);
+    this(stageView.getStage(), stageView.getTimeline().getSelectionRange(), detailedViewListener);
   }
 
   @VisibleForTesting
   public ConnectionsView(@NotNull NetworkProfilerStage stage,
-                         @NotNull Choreographer choreographer,
                          @NotNull Range selectionRange,
                          @NotNull DetailedViewListener detailedViewListener) {
     myStage = stage;
     myDetailedViewListener = detailedViewListener;
-    myTableModel = new ConnectionsTableModel();
+    myTableModel = new ConnectionsTableModel(selectionRange);
     mySelectionRange = selectionRange;
-    RangedTable rangedTable = new RangedTable(mySelectionRange, myTableModel);
-    choreographer.register(rangedTable);
 
     myConnectionsTable = new ConnectionsTable(myTableModel);
     customizeConnectionsTable();
@@ -224,9 +217,16 @@ final class ConnectionsView {
     );
   }
 
-  private final class ConnectionsTableModel extends AbstractTableModel implements RangedTableModel {
+  private final class ConnectionsTableModel extends AbstractTableModel {
     @NotNull private List<HttpData> myDataList = new ArrayList<>();
     @NotNull private final Range myLastRange = new Range();
+    @NotNull private final Range myRange;
+
+    private ConnectionsTableModel(@NotNull Range range) {
+      myRange = range;
+      myRange.addDependency().onChange(Range.Aspect.RANGE, this::rangeChanged);
+      rangeChanged();
+    }
 
     @Override
     public int getRowCount() {
@@ -259,12 +259,11 @@ final class ConnectionsView {
       return myDataList.get(rowIndex);
     }
 
-    @Override
-    public void update(@NotNull Range range) {
-      if (myLastRange.getMin() != range.getMin() || myLastRange.getMax() != range.getMax()) {
-        myDataList = myStage.getConnectionsModel().getData(range);
+    public void rangeChanged() {
+      if (myLastRange.getMin() != myRange.getMin() || myLastRange.getMax() != myRange.getMax()) {
+        myDataList = myStage.getConnectionsModel().getData(myRange);
         fireTableDataChanged();
-        myLastRange.set(range);
+        myLastRange.set(myRange);
       }
     }
   }
@@ -348,11 +347,10 @@ final class ConnectionsView {
           series.add(data.getEndTimeUs(), NetworkState.NONE);
         }
 
-        StateChart<NetworkState> chart = new StateChart<>(NETWORK_STATE_COLORS);
+        StateChartModel<NetworkState> stateModel = new StateChartModel<>();
+        StateChart<NetworkState> chart = new StateChart<>(stateModel, NETWORK_STATE_COLORS);
         chart.setHeightGap(0.3f);
-        chart.addSeries(new RangedSeries<>(myRange, series));
-        // We just need to draw once, not animate. So, drawing it by animating once
-        chart.update(1);
+        stateModel.addSeries(new RangedSeries<>(myRange, series));
         myCharts.add(chart);
       }
     }

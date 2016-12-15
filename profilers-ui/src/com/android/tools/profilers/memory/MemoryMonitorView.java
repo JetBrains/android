@@ -15,16 +15,9 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.LegendComponent;
-import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
-import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
-import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitorView;
 import com.android.tools.profilers.StudioProfilersView;
@@ -35,62 +28,50 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Collections;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
-
-  private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 2, 5);
 
   public MemoryMonitorView(@NotNull StudioProfilersView profilersView, @NotNull MemoryMonitor monitor) {
     super(profilersView, monitor);
   }
 
   @Override
-  protected void populateUi(JPanel container, Choreographer choreographer) {
+  protected void populateUi(JPanel container) {
     container.setLayout(new TabularLayout("*", "*"));
-
-    Range viewRange = getMonitor().getTimeline().getViewRange();
-    Range dataRange = getMonitor().getTimeline().getDataRange();
 
     final JLabel label = new JLabel(getMonitor().getName());
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(JLabel.TOP);
 
-    Range leftYRange = new Range(0, 0);
     final JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
-    AxisComponent.Builder builder = new AxisComponent.Builder(leftYRange, MEMORY_AXIS_FORMATTER,
-                                                              AxisComponent.AxisOrientation.RIGHT)
-      .showAxisLine(false)
-      .showMax(true)
-      .showUnitAtMax(true)
-      .clampToMajorTicks(true)
-      .setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
-      .setMargins(0, Y_AXIS_TOP_MARGIN);
-    final AxisComponent leftAxis = builder.build();
+
+    final AxisComponent leftAxis = new AxisComponent(getMonitor().getYAxis());
+    leftAxis.setShowAxisLine(false);
+    leftAxis.setShowMax(true);
+    leftAxis.setShowUnitAtMax(true);
+    leftAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH);
+    leftAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(leftAxis, BorderLayout.WEST);
+
+    final LineChart lineChart = new LineChart(getMonitor().getTotalMemory());
 
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
     lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
-    final LineChart lineChart = new LineChart();
-    RangedContinuousSeries memSeries = new RangedContinuousSeries("Memory", viewRange, leftYRange, getMonitor().getTotalMemory());
-    lineChart.addLine(memSeries, new LineConfig(ProfilerColors.MEMORY_TOTAL).setFilled(true));
+    LineConfig memoryConfig = new LineConfig(ProfilerColors.MEMORY_TOTAL).setFilled(true);
+    lineChart.configure("Memory", memoryConfig);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
-    final LegendComponent legend = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, LEGEND_UPDATE_FREQUENCY_MS);
-    legend.setLegendData(Collections.singletonList(lineChart.createLegendRenderData(memSeries, MEMORY_AXIS_FORMATTER, dataRange)));
+    final LegendComponent legend = new LegendComponent(getMonitor().getMemoryLegend());
+    legend.configure("Memory", new LegendConfig(memoryConfig));
 
     final JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);
     legendPanel.add(label, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
-
-    choreographer.register(lineChart);
-    choreographer.register(leftAxis);
-    choreographer.register(legend);
 
     container.add(legendPanel, new TabularLayout.Constraint(0, 0));
     container.add(leftAxis, new TabularLayout.Constraint(0, 0));

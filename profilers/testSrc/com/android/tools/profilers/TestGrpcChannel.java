@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.model.FakeTimer;
 import io.grpc.BindableService;
 import io.grpc.Server;
 import io.grpc.inprocess.InProcessServerBuilder;
@@ -33,6 +34,7 @@ public final class TestGrpcChannel extends ExternalResource {
   private Server myServer;
   private ProfilerClient myClient;
   private StudioProfilers myProfilers;
+  private FakeTimer myTimer;
 
   public TestGrpcChannel(String name, BindableService... services) {
     myName = name;
@@ -48,12 +50,13 @@ public final class TestGrpcChannel extends ExternalResource {
     myServer = serverBuilder.build();
     myServer.start();
     myClient = new ProfilerClient(myName);
+    myTimer = new FakeTimer();
     myProfilers = new StudioProfilers(myClient, new IdeProfilerServices() {
       @Override
       public boolean navigateToStackTraceLine(@NotNull String line) {
         return false;
       }
-    });
+    }, myTimer);
   }
 
   @Override
@@ -67,5 +70,9 @@ public final class TestGrpcChannel extends ExternalResource {
 
   public StudioProfilers getProfilers() {
     return myProfilers;
+  }
+
+  public FakeTimer getTimer() {
+    return myTimer;
   }
 }

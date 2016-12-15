@@ -17,15 +17,11 @@
 package com.android.tools.adtui.chart.linechart;
 
 import com.android.tools.adtui.AnimatedComponent;
-import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.LegendRenderData;
-import com.android.tools.adtui.LineChartLegendRenderData;
+import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.common.datareducer.DataReducer;
-import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
-import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SeriesData;
-import com.intellij.util.containers.ImmutableList;
 import gnu.trove.TDoubleArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
@@ -40,12 +36,14 @@ import java.util.concurrent.TimeUnit;
 
 public class LineChart extends AnimatedComponent {
 
+  @NotNull final LineChartModel myModel;
+
   /**
    * Maps the series to their correspondent visual line configuration.
    * The keys insertion order is preserved.
    */
   @NotNull
-  private final Map<RangedContinuousSeries, LineConfig> myLinesConfig = new LinkedHashMap<>();
+  private final Map<String, LineConfig> myLinesConfig = new LinkedHashMap<>();
 
   @NotNull
   private final ArrayList<Path2D> myLinePaths;
@@ -62,15 +60,24 @@ public class LineChart extends AnimatedComponent {
    */
   private int mNextLineColorIndex;
 
+  private boolean myRedraw;
+
   @NotNull
   private DataReducer myReducer;
 
-  /**
-   * During the first update, skip the y range interpolation and snap to the initial max value.
-   */
-  private boolean myFirstUpdate = true;
+  // Debug draw counters. TODO: Move to a framework object
+  private long myRedraws;
+  private long myDraws;
+  private long myLastCount;
+  private long myLastDraws;
+  private long myLastRedraws;
 
+  @TestOnly
   public LineChart() {
+    this(new LineChartModel());
+  }
+
+  public LineChart(@NotNull LineChartModel model) {
     myLinePaths = new ArrayList<>();
     myLinePathConfigs = new ArrayList<>();
     // TODO: Replace with myReducer = new LineChartReducer
@@ -79,11 +86,15 @@ public class LineChart extends AnimatedComponent {
     // (For example, reducing points may make it harder to handle dealing with flickering when
     // endpoints go off screen). Therefore, we just create a passthru reducer for now.
     myReducer = (path, config) -> path;
+    myModel = model;
+    myRedraw = true;
+    myModel.addDependency()
+      .onChange(LineChartModel.Aspect.LINE_CHART, this::modelChanged);
   }
 
   @TestOnly
-  public LineChart(@NotNull DataReducer reducer) {
-    this();
+  public LineChart(@NotNull DataReducer reducer, @NotNull LineChartModel model) {
+    this(model);
     myReducer = reducer;
   }
 
@@ -91,36 +102,18 @@ public class LineChart extends AnimatedComponent {
    * Initialize a {@code LineChart} with a list of lines.
    */
   public LineChart(@NotNull List<RangedContinuousSeries> data) {
-    this();
-    addLines(data);
+    this(new LineChartModel());
+    myModel.addAll(data);
   }
 
   /**
-   * Add a line to the line chart.
-   * Note: The order of adding lines is important for stacked lines,
-   * i.e a stacked line is stacked on top of previous added stacked line.
+   * Configures a line in the chart.
    *
-   * @param series data of the line to be inserted
-   * @param config configuration of the line to be inserted
+   * @param name the name of the series to configure.
+   * @param config configuration of the line to be inserted.
    */
-  public void addLine(@NotNull RangedContinuousSeries series, @NotNull LineConfig config) {
-    myLinesConfig.put(series, config);
-  }
-
-  /**
-   * Add a line to the line chart with default configuration.
-   *
-   * @param series series data of the line to be inserted
-   */
-  public void addLine(@NotNull RangedContinuousSeries series) {
-    addLine(series, new LineConfig(LineConfig.getColor(mNextLineColorIndex++)));
-  }
-
-  /**
-   * Add multiple lines with default configuration.
-   */
-  public void addLines(@NotNull List<RangedContinuousSeries> data) {
-    data.forEach(this::addLine);
+  public void configure(@NotNull String name, @NotNull LineConfig config) {
+    myLinesConfig.put(name, config);
   }
 
   public void addCustomRenderer(@NotNull LineChartCustomRenderer renderer) {
@@ -129,7 +122,12 @@ public class LineChart extends AnimatedComponent {
 
   @NotNull
   public LineConfig getLineConfig(RangedContinuousSeries rangedContinuousSeries) {
-    return myLinesConfig.get(rangedContinuousSeries);
+    LineConfig config = myLinesConfig.get(rangedContinuousSeries.getName());
+    if (config == null) {
+      config = new LineConfig(LineConfig.getColor(mNextLineColorIndex++));
+      configure(rangedContinuousSeries.getName(), config);
+    }
+    return config;
   }
 
   /**
@@ -140,46 +138,8 @@ public class LineChart extends AnimatedComponent {
     myCustomRenderers.clear();
   }
 
-  @NotNull
-  public List<RangedContinuousSeries> getRangedContinuousSeries() {
-    return new ArrayList<>(myLinesConfig.keySet());
-  }
-
-  @Override
-  protected void updateData() {
-    Map<Range, Double> max = new HashMap<>();
-    // TODO Handle stacked configs
-    for (RangedContinuousSeries ranged : myLinesConfig.keySet()) {
-      Range range = ranged.getYRange();
-      double yMax = Double.MIN_VALUE;
-
-      ImmutableList<SeriesData<Long>> seriesList = ranged.getSeries();
-      for (int i = 0; i < seriesList.size(); i++) {
-        double value = seriesList.get(i).value;
-        if (yMax < value) {
-          yMax = value;
-        }
-      }
-
-      Double m = max.get(range);
-      max.put(range, m == null ? yMax : Math.max(yMax, m));
-    }
-
-    for (Map.Entry<Range, Double> entry : max.entrySet()) {
-      Range range = entry.getKey();
-      // Prevent the LineChart to update the range below its current max.
-      if (range.getMax() < entry.getValue()) {
-        float fraction = myFirstUpdate ? 1f : DEFAULT_LERP_FRACTION;
-        range.setMax(Choreographer.lerp(range.getMax(), entry.getValue(), fraction, mFrameLength,
-                                        (float)(entry.getValue() * DEFAULT_LERP_THRESHOLD_PERCENTAGE)));
-      }
-    }
-
-    myFirstUpdate = false;
-  }
-
   /**
-   * Creates a {@link LegendRenderData} instance. The configruation will be derived based on the {@link LineConfig} associated
+   * Creates a {@link LegendConfig} instance. The configuration will be derived based on the {@link LineConfig} associated
    * with the input series used in this {@link LineChart} instance. If the series is not part of the LineChart, defaults will be chosen.
    *
    * @param series    the RangedContinuousSeries which the legend will query data from.
@@ -189,31 +149,13 @@ public class LineChart extends AnimatedComponent {
    * the range inside RangedContinuousSeries (e.g. if the legend needs to show the most recent data, or some data at
    * a particular point in time)
    */
-  public LegendRenderData createLegendRenderData(@NotNull RangedContinuousSeries series,
-                                                 @NotNull BaseAxisFormatter formatter,
-                                                 @NotNull Range range) {
-    Color color;
-    LegendRenderData.IconType icon;
-    LineConfig config = myLinesConfig.get(series);
-    if (config != null) {
-      color = config.getColor();
-      icon = config.getLegendIconType();
-      // Use a default icon type for the line in case there is no icon set in line config.
-      // TODO: use LegendRenderData.IconType.DOTTED_LINE for dashed lines
-      if (icon == null) {
-        icon = config.isFilled() ? LegendRenderData.IconType.BOX : LegendRenderData.IconType.LINE;
-      }
-    }
-    else {
-      color = LineConfig.getColor(mNextLineColorIndex++);
-      icon = LegendRenderData.IconType.BOX;
-    }
 
-    return new LineChartLegendRenderData(icon, color, range, series, formatter);
+  private void modelChanged() {
+    myRedraw = true;
+    opaqueRepaint();
   }
 
-  @Override
-  public void postUpdate() {
+  private void redraw() {
     long duration = System.nanoTime();
     int p = 0;
 
@@ -224,9 +166,8 @@ public class LineChart extends AnimatedComponent {
     Deque<Path2D> orderedPaths = new ArrayDeque<>(myLinesConfig.size());
     Deque<LineConfig> orderedConfigs = new ArrayDeque<>(myLinesConfig.size());
 
-    for (Map.Entry<RangedContinuousSeries, LineConfig> lineConfig : myLinesConfig.entrySet()) {
-      final RangedContinuousSeries ranged = lineConfig.getKey();
-      final LineConfig config = lineConfig.getValue();
+    for (RangedContinuousSeries ranged : myModel.getSeries()) {
+      final LineConfig config = getLineConfig(ranged);
       // Stores the y coordinates of the current series in case it's used as a stacked series
       final TDoubleArrayList currentSeriesY = new TDoubleArrayList();
 
@@ -300,7 +241,6 @@ public class LineChart extends AnimatedComponent {
         orderedConfigs.addLast(config);
       }
 
-      addDebugInfo("Range[%d] Max: %.2f", p, xMax);
       p++;
     }
 
@@ -315,6 +255,25 @@ public class LineChart extends AnimatedComponent {
 
   @Override
   protected void draw(Graphics2D g2d, Dimension dim) {
+      long now = System.nanoTime();
+      if (now - myLastCount > 1000000000) {
+        myLastDraws = myDraws;
+        myLastRedraws = myRedraws;
+        myDraws = 0;
+        myRedraws = 0;
+        myLastCount = now;
+      }
+      myDraws++;
+    if (myRedraw) {
+      myRedraw = false;
+      redraw();
+      myRedraws++;
+    } else {
+      addDebugInfo("postAnimate time: 0 ms");
+    }
+    addDebugInfo("Draws in the last second %d", myLastDraws);
+    addDebugInfo("Redraws in the last second %d", myLastRedraws);
+
     if (myLinePaths.size() != myLinesConfig.size()) {
       // Early return if the cached paths have not been sync'd with the configs.
       // e.g. updateData/postAnimate has not been invoked before this draw call.

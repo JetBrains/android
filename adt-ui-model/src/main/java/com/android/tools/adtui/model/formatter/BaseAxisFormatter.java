@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.common.formatter;
+package com.android.tools.adtui.model.formatter;
 
 import gnu.trove.TIntArrayList;
 import org.jetbrains.annotations.NotNull;

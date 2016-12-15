@@ -16,14 +16,8 @@
 
 package com.android.tools.adtui.visualtests;
 
-import com.android.tools.adtui.Updatable;
-import com.android.tools.adtui.AnimatedComponent;
-import com.android.tools.adtui.AnimatedTimeRange;
-import com.android.tools.adtui.SelectionComponent;
-import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
-import com.android.tools.adtui.chart.linechart.LineChart;
-import com.android.tools.adtui.chart.linechart.LineConfig;
-import com.android.tools.adtui.chart.linechart.OverlayComponent;
+import com.android.tools.adtui.*;
+import com.android.tools.adtui.chart.linechart.*;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
 import com.intellij.util.containers.ImmutableList;
@@ -68,25 +62,26 @@ public class LineChartVisualTest extends VisualTest {
   private DurationDataRenderer<DefaultDurationData> mDurationRendererAttached;
 
   @Override
-  protected List<Updatable> createComponentsList() {
+  protected List<Updatable> createModelList() {
     mRangedData = new ArrayList<>();
     mData = new ArrayList<>();
 
     long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     Range timeGlobalRangeUs = new Range(nowUs, nowUs + TimeUnit.SECONDS.toMicros(60));
-    mLineChart = new LineChart();
+    LineChartModel model = new LineChartModel();
+    mLineChart = new LineChart(model);
     mAnimatedTimeRange = new AnimatedTimeRange(timeGlobalRangeUs, 0);
 
     List<Updatable> componentsList = new ArrayList<>();
 
-    mySelectionComponent = new SelectionComponent(new Range(0, 0), timeGlobalRangeUs);
+    SelectionModel selection =  new SelectionModel(new Range(0, 0), timeGlobalRangeUs);
+    mySelectionComponent = new SelectionComponent(selection);
     myOverlayComponent = new OverlayComponent(mySelectionComponent);
 
     // Add the scene components to the list
     componentsList.add(mAnimatedTimeRange);
-    componentsList.add(mLineChart);
-    componentsList.add(mySelectionComponent);
-
+    //componentsList.add(mLineChart);
+    componentsList.add(model);
 
     Range yRange = new Range(0.0, 100.0);
     for (int i = 0; i < 4; i++) {
@@ -99,20 +94,22 @@ public class LineChartVisualTest extends VisualTest {
       mRangedData.add(ranged);
       mData.add(series);
     }
-    mLineChart.addLines(mRangedData);
+    model.addAll(mRangedData);
 
     mDurationData1 = new DefaultDataSeries<>();
     mDurationData2 = new DefaultDataSeries<>();
     RangedSeries<DefaultDurationData> series1 = new RangedSeries<>(timeGlobalRangeUs, mDurationData1);
     RangedSeries<DefaultDurationData> series2 = new RangedSeries<>(timeGlobalRangeUs, mDurationData2);
-    mDurationRendererBlocking = new DurationDataRenderer.Builder(series1, Color.WHITE)
+    DurationDataModel<DefaultDurationData> model1 = new DurationDataModel<>(series1);
+    mDurationRendererBlocking = new DurationDataRenderer.Builder<>(model1, Color.WHITE)
       .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
       .setIsBlocking(true)
       .setIcon(UIManager.getIcon("Tree.leafIcon"))
       .setLabelProvider(durationdata -> "Blocking")
       .setClickHander(durationData -> mClickDisplayLabel.setText(durationData.toString())).build();
 
-    mDurationRendererAttached = new DurationDataRenderer.Builder(series2, Color.WHITE)
+    DurationDataModel<DefaultDurationData> model2 = new DurationDataModel<>(series2);
+    mDurationRendererAttached = new DurationDataRenderer.Builder<>(model2, Color.WHITE)
       .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
       .setIcon(UIManager.getIcon("Tree.leafIcon"))
       .setLabelProvider(durationdata -> "Attached")
@@ -122,9 +119,8 @@ public class LineChartVisualTest extends VisualTest {
     mLineChart.addCustomRenderer(mDurationRendererAttached);
     myOverlayComponent.addDurationDataRenderer(mDurationRendererBlocking);
     myOverlayComponent.addDurationDataRenderer(mDurationRendererAttached);
-    componentsList.add(mDurationRendererBlocking);
-    componentsList.add(mDurationRendererAttached);
-    componentsList.add(myOverlayComponent);
+    componentsList.add(model1);
+    componentsList.add(model2);
 
     return componentsList;
   }

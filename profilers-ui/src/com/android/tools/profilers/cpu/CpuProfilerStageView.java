@@ -21,17 +21,11 @@ import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
-import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.adtui.model.RangedListModel;
-import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.*;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
@@ -43,14 +37,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
-
-  private static final SingleUnitAxisFormatter CPU_USAGE_AXIS = new SingleUnitAxisFormatter(1, 5, 10, "%");
-  private static final SingleUnitAxisFormatter NUM_THREADS_AXIS = new SingleUnitAxisFormatter(1, 5, 1, "");
 
   private final CpuProfilerStage myStage;
 
@@ -85,51 +75,37 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
     // that attempts to read the same range instance.
-    ProfilerScrollbar scrollbar = new ProfilerScrollbar(getChoreographer(), timeline, details);
-    getChoreographer().register(scrollbar);
+    ProfilerScrollbar scrollbar = new ProfilerScrollbar(timeline, details);
 
-    CpuMonitor cpu = new CpuMonitor(profilers);
-    EventMonitor events = new EventMonitor(profilers);
-    EventMonitorView eventsView = new EventMonitorView(profilersView, events);
-    JComponent eventsComponent = eventsView.initialize(getChoreographer());
+    EventMonitorView eventsView = new EventMonitorView(profilersView, stage.getEventMonitor());
+    JComponent eventsComponent = eventsView.initialize();
 
-    Range leftYRange = new Range(0, 100);
-    Range rightYRange = new Range(0, 8);
     JPanel monitorPanel = new JBPanel(new TabularLayout("*", "*"));
     monitorPanel.setOpaque(false);
     monitorPanel.setBorder(MONITOR_BORDER);
 
-    RangedContinuousSeries thisCpuSeries =
-      new RangedContinuousSeries("App", viewRange, leftYRange, cpu.getThisProcessCpuUsage());
-    RangedContinuousSeries otherCpuSeries =
-      new RangedContinuousSeries("Others", viewRange, leftYRange, cpu.getOtherProcessesCpuUsage());
-    RangedContinuousSeries threadsCountSeries =
-      new RangedContinuousSeries("Threads", viewRange, rightYRange, cpu.getThreadsCount());
 
     final JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
-    AxisComponent.Builder leftAxisBuilder =
-      new AxisComponent.Builder(leftYRange, CPU_USAGE_AXIS, AxisComponent.AxisOrientation.RIGHT)
-        .showAxisLine(false)
-        .showMax(true)
-        .showUnitAtMax(true)
-        .setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
-        .clampToMajorTicks(true).setMargins(0, Y_AXIS_TOP_MARGIN);
-    final AxisComponent leftAxis = leftAxisBuilder.build();
+    final AxisComponent leftAxis = new AxisComponent(getStage().getCpuUsageAxis());
+    leftAxis.setShowAxisLine(false);
+    leftAxis.setShowMax(true);
+    leftAxis.setShowUnitAtMax(true);
+    leftAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH);
+    leftAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(leftAxis, BorderLayout.WEST);
 
-    AxisComponent.Builder rightAxisBuilder =
-      new AxisComponent.Builder(rightYRange, NUM_THREADS_AXIS, AxisComponent.AxisOrientation.LEFT)
-        .showAxisLine(false)
-        .showMax(true)
-        .showUnitAtMax(true)
-        .setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
-        .clampToMajorTicks(true).setMargins(0, Y_AXIS_TOP_MARGIN);
-    final AxisComponent rightAxis = rightAxisBuilder.build();
+    final AxisComponent rightAxis = new AxisComponent(getStage().getThreadCountAxis());
+    rightAxis.setShowAxisLine(false);
+    rightAxis.setShowMax(true);
+    rightAxis.setShowUnitAtMax(true);
+    rightAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH);
+    rightAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(rightAxis, BorderLayout.EAST);
     monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
 
-    SelectionComponent selection = new SelectionComponent(timeline.getSelectionRange(), timeline.getViewRange());
+    SelectionModel selectionModel = new SelectionModel(timeline.getSelectionRange(), timeline.getViewRange());
+    SelectionComponent selection = new SelectionComponent(selectionModel);
     final JPanel overlayPanel = new JBPanel(new BorderLayout());
     overlayPanel.setOpaque(false);
     overlayPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
@@ -141,22 +117,18 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
     lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
-    LineChart lineChart = new LineChart();
-    lineChart.addLine(thisCpuSeries, new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true).setStacked(true));
-    lineChart.addLine(otherCpuSeries, new LineConfig(ProfilerColors.CPU_OTHER_USAGE).setFilled(true).setStacked(true));
-    lineChart.addLine(threadsCountSeries, new LineConfig(ProfilerColors.THREADS_COUNT_COLOR)
+
+    LineChart lineChart = new LineChart(getStage().getCpuUsage());
+    lineChart.configure("App", new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true).setStacked(true));
+    lineChart.configure("Others", new LineConfig(ProfilerColors.CPU_OTHER_USAGE).setFilled(true).setStacked(true));
+    lineChart.configure("Threads", new LineConfig(ProfilerColors.THREADS_COUNT_COLOR)
       .setStepped(true).setStroke(LineConfig.DEFAULT_DASH_STROKE));
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
     monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
 
-    final LegendComponent legend = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, LEGEND_UPDATE_FREQUENCY_MS);
-    ArrayList<LegendRenderData> legendData = new ArrayList<>();
-    legendData.add(lineChart.createLegendRenderData(thisCpuSeries, CPU_USAGE_AXIS, dataRange));
-    legendData.add(lineChart.createLegendRenderData(otherCpuSeries, CPU_USAGE_AXIS, dataRange));
-    legendData.add(lineChart.createLegendRenderData(threadsCountSeries, NUM_THREADS_AXIS, dataRange));
-    legend.setLegendData(legendData);
+    final LegendComponent legend = new LegendComponent(getStage().getLegends());
 
-    final JLabel label = new JLabel(cpu.getName());
+    final JLabel label = new JLabel(getStage().getName());
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(SwingConstants.TOP);
 
@@ -166,9 +138,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     legendPanel.add(legend, BorderLayout.EAST);
     monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
 
-    // Create an event representing the traces within the range.
     DurationDataRenderer<CpuCapture> traceRenderer =
-      new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, myStage.getCpuTraceDataSeries()), ProfilerColors.CPU_CAPTURE_EVENT)
+      new DurationDataRenderer.Builder<>(getStage().getTraceDurations(), ProfilerColors.CPU_CAPTURE_EVENT)
         .setLabelProvider(this::formatCaptureLabel)
         .setStroke(new BasicStroke(1))
         .setLabelColors(new Color(0x70000000, true), Color.BLACK, Color.lightGray, Color.WHITE)
@@ -179,7 +150,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     lineChart.addCustomRenderer(traceRenderer);
     overlay.addDurationDataRenderer(traceRenderer);
 
-    RangedListModel<CpuThreadsModel.RangedCpuThread> model = myStage.getThreadStates();
+    CpuThreadsModel model = myStage.getThreadStates();
     myThreads = new JBList(model);
     myThreads.addListSelectionListener((e) -> {
       // TODO: support selecting multiple threads simultaneously.
@@ -192,29 +163,20 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     JScrollPane scrollingThreads = new JBScrollPane();
     scrollingThreads.setViewportView(myThreads);
 
-    myThreads.setCellRenderer(new ThreadCellRenderer(getChoreographer(), myThreads));
-    RangedList rangedList = new RangedList(getTimeline().getViewRange(), model);
+    myThreads.setCellRenderer(new ThreadCellRenderer(myThreads));
 
     details.add(eventsComponent, new TabularLayout.Constraint(0, 0));
 
     layout.setRowSizing(1, "4*");
     details.add(monitorPanel, new TabularLayout.Constraint(1, 0));
-    getChoreographer().register(lineChart);
-    getChoreographer().register(traceRenderer);
-    getChoreographer().register(leftAxis);
-    getChoreographer().register(rightAxis);
-    getChoreographer().register(selection);
-    getChoreographer().register(legend);
 
     layout.setRowSizing(2, "6*");
     details.add(scrollingThreads, new TabularLayout.Constraint(2, 0));
 
     details.add(scrollbar, new TabularLayout.Constraint(3, 0));
     AxisComponent timeAxis = buildTimeAxis(profilers);
-    getChoreographer().register(timeAxis);
 
     details.add(timeAxis, new TabularLayout.Constraint(4, 0));
-    getChoreographer().register(rangedList);
 
     mySplitter = new Splitter(true);
     mySplitter.setFirstComponent(details);
@@ -263,17 +225,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private void updateCapture() {
     CpuCapture capture = myStage.getCapture();
 
-    if (myCaptureView != null && myCaptureView.getCapture() != capture) {
-      myCaptureView.unregister(getChoreographer());
-    }
-
     if (capture == null) {
       mySplitter.setSecondComponent(null);
       myCaptureView = null;
     }
     else {
       myCaptureView = new CpuCaptureView(capture, this);
-      myCaptureView.register(getChoreographer());
       mySplitter.setSecondComponent(myCaptureView.getComponent());
     }
 
@@ -306,22 +263,20 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     private final JLabel myLabel;
 
-    private AnimatedListRenderer<CpuThreadsModel.RangedCpuThread, StateChart<CpuProfilerStage.ThreadState>> myStateCharts;
+    private final StateChart<CpuProfilerStage.ThreadState> myStateChart;
+
+    //private AnimatedListRenderer<CpuThreadsModel.RangedCpuThread, StateChart<CpuProfilerStage.ThreadState>> myStateCharts;
 
     /**
      * Keep the index of the item currently hovered.
      */
     private int myHoveredIndex = -1;
 
-    public ThreadCellRenderer(Choreographer choreographer, JList<CpuThreadsModel.RangedCpuThread> list) {
+    public ThreadCellRenderer(JList<CpuThreadsModel.RangedCpuThread> list) {
       myLabel = new JLabel();
       myLabel.setFont(myLabel.getFont().deriveFont(10.0f));
-      myStateCharts = new AnimatedListRenderer<>(choreographer, list, thread -> {
-        StateChart<CpuProfilerStage.ThreadState> chart = new StateChart<>(ProfilerColors.THREAD_STATES);
-        chart.setHeightGap(0.35f);
-        chart.addSeries(thread.getDataSeries());
-        return chart;
-      });
+      myStateChart = new StateChart<>(new StateChartModel<>(), ProfilerColors.THREAD_STATES);
+      myStateChart.setHeightGap(0.35f);
       list.addMouseMotionListener(new MouseAdapter() {
         @Override
         public void mouseMoved(MouseEvent e) {
@@ -350,7 +305,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       panel.setBackground(cellBackground);
 
       panel.add(myLabel, new TabularLayout.Constraint(0, 0));
-      panel.add(myStateCharts.get(index), new TabularLayout.Constraint(0, 0));
+      panel.add(myStateChart, new TabularLayout.Constraint(0, 0));
+      myStateChart.setModel(value.getModel());
       return panel;
     }
   }

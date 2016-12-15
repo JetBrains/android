@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui;
+package com.android.tools.adtui.model.formatter;
 
-import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import gnu.trove.TIntArrayList;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * A mock {@link BaseAxisFormatter} that works with length units.
- * e.g. mm, cm, m, km
- */
-public class MockAxisFormatter extends BaseAxisFormatter {
+public class EnergyAxisFormatter extends BaseAxisFormatter {
+  public static final EnergyAxisFormatter SIMPLE = new EnergyAxisFormatter(1, 5, 10);
+  public static final EnergyAxisFormatter DETAILED = new EnergyAxisFormatter(2, 5, 10);
 
-  private static final int[] MULTIPLIERS = new int[]{10, 100, 1000};   //
   private static final int BASE = 10;
-  private static final int MIN_INTERVAL = 1;
-  private static final String[] UNITS = new String[]{"mm", "cm", "m"};
-  private static final TIntArrayList BASE_FACTORS = new TIntArrayList(new int[]{10, 5, 1});
+  private static final int MULTIPLIER = 1000;
+  private static final int[] MIN_INTERVALS = new int[]{1, 1, 1};
+  private static String[] UNITS = new String[]{"uAh", "mAh", "Ah"};
+  private static final TIntArrayList BASE_FACTORS = new TIntArrayList(new int[]{1, 2, 5, 10});
 
-  public MockAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
+  private EnergyAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
     super(maxMinorTicks, maxMajorTicks, switchThreshold);
   }
 
@@ -40,8 +37,8 @@ public class MockAxisFormatter extends BaseAxisFormatter {
     return UNITS.length;
   }
 
-  @Override
   @NotNull
+  @Override
   protected String getUnit(int index) {
     return UNITS[index];
   }
@@ -53,27 +50,17 @@ public class MockAxisFormatter extends BaseAxisFormatter {
 
   @Override
   protected int getUnitMultiplier(int index) {
-    return MULTIPLIERS[index];
-  }
-
-  @Override
-  protected int getMultiplierIndex(double value, int threshold) {
-    return super.getMultiplierIndex(value, threshold);
+    return MULTIPLIER;
   }
 
   @Override
   protected int getUnitMinimalInterval(int index) {
-    return MIN_INTERVAL;
+    return MIN_INTERVALS[index];
   }
 
-  @Override
   @NotNull
+  @Override
   protected TIntArrayList getUnitBaseFactors(int index) {
     return BASE_FACTORS;
-  }
-
-  @Override
-  protected long getMultiplier() {
-    return super.getMultiplier();
   }
 }
