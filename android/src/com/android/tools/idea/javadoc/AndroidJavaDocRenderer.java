@@ -72,6 +72,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutionException;
 
 import static com.android.SdkConstants.DOT_PNG;
 import static com.android.SdkConstants.DOT_WEBP;
@@ -1098,7 +1099,14 @@ public class AndroidJavaDocRenderer {
           }
 
           renderTask.setOverrideRenderSize(width, height);
-          BufferedImage image = renderTask.renderDrawable(resolvedValue);
+          BufferedImage image = null;
+          try {
+            image = renderTask.renderDrawable(resolvedValue).get();
+          }
+          catch (InterruptedException | ExecutionException e) {
+            renderError(builder, e.toString());
+            return;
+          }
           if (image != null) {
             // Need to write it somewhere
             try {
