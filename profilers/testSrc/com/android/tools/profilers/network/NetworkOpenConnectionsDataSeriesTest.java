@@ -28,26 +28,26 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class NetworkOpenConnectionsDataSeriesTest {
   private static final ImmutableList<com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData> FAKE_DATA =
     new ImmutableList.Builder<com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData>()
-      .add(TestNetworkService.newConnectionData(0, 1))
-      .add(TestNetworkService.newConnectionData(2, 2))
-      .add(TestNetworkService.newConnectionData(4, 3))
-      .add(TestNetworkService.newConnectionData(8, 4))
-      .add(TestNetworkService.newConnectionData(16, 5))
+      .add(FakeNetworkService.newConnectionData(0, 1))
+      .add(FakeNetworkService.newConnectionData(2, 2))
+      .add(FakeNetworkService.newConnectionData(4, 3))
+      .add(FakeNetworkService.newConnectionData(8, 4))
+      .add(FakeNetworkService.newConnectionData(16, 5))
       .build();
 
-  @Rule public TestGrpcChannel<TestNetworkService> myGrpcChannel =
-    new TestGrpcChannel<>("NetworkOpenConnectionsDataSeriesTest", TestNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).build());
+  @Rule public TestGrpcChannel myGrpcChannel =
+    new TestGrpcChannel("NetworkOpenConnectionsDataSeriesTest", FakeNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).build());
   private NetworkOpenConnectionsDataSeries mySeries;
 
   @Before
   public void setUp() {
     StudioProfilers profiler = myGrpcChannel.getProfilers();
-    mySeries = new NetworkOpenConnectionsDataSeries(profiler.getClient().getNetworkClient(), TestNetworkService.FAKE_APP_ID);
+    mySeries = new NetworkOpenConnectionsDataSeries(profiler.getClient().getNetworkClient(), FakeNetworkService.FAKE_APP_ID);
   }
 
   @Test

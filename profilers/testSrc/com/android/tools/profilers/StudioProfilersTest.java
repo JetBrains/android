@@ -16,9 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
-import io.grpc.stub.StreamObserver;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -26,22 +24,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 final public class StudioProfilersTest {
-  private static final String FAKE_VERSION = "3141592";
-
-  @Rule public TestGrpcChannel myGrpcChannel =
-    new TestGrpcChannel<>("StudioProfilerTestChannel", new ProfilerServiceGrpc.ProfilerServiceImplBase() {
-      @Override
-      public void getVersion(Profiler.VersionRequest request, StreamObserver<Profiler.VersionResponse> responseObserver) {
-        responseObserver.onNext(Profiler.VersionResponse.newBuilder().setVersion(FAKE_VERSION).build());
-        responseObserver.onCompleted();
-      }
-    });
+  @Rule public TestGrpcChannel myGrpcChannel = new TestGrpcChannel("StudioProfilerTestChannel", new FakeProfilerService());
 
   @Test
   public void testVersion() throws Exception {
     Profiler.VersionResponse response =
       myGrpcChannel.getClient().getProfilerClient().getVersion(Profiler.VersionRequest.getDefaultInstance());
-    assertEquals(FAKE_VERSION, response.getVersion());
+    assertEquals(FakeProfilerService.VERSION, response.getVersion());
   }
 
   @Test

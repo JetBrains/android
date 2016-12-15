@@ -32,7 +32,7 @@ import static org.junit.Assert.*;
 
 public class CpuMonitorTest {
   @Rule
-  public TestGrpcChannel myGrpcChannel = new TestGrpcChannel<>("CpuMonitorTestChannel", new FakeCpuService());
+  public TestGrpcChannel myGrpcChannel = new TestGrpcChannel("CpuMonitorTestChannel", new FakeCpuService());
 
   private CpuMonitor myMonitor;
 

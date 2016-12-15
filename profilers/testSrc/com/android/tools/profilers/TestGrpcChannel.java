@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import io.grpc.BindableService;
 import io.grpc.Server;
 import io.grpc.inprocess.InProcessServerBuilder;
@@ -28,29 +27,23 @@ import org.junit.rules.ExternalResource;
  * down this connection automatically, it also creates a {@link StudioProfilers} instance, which is
  * a useful handle for many tests to read from the service.
  */
-public final class TestGrpcChannel<S extends BindableService> extends ExternalResource {
+public final class TestGrpcChannel extends ExternalResource {
   private final String myName;
-  private final S myService;
+  private final BindableService[] myServices;
   private Server myServer;
   private ProfilerClient myClient;
   private StudioProfilers myProfilers;
-  private ProfilerServiceGrpc.ProfilerServiceImplBase myProfilerService;
 
-  public TestGrpcChannel(String name, S service) {
+  public TestGrpcChannel(String name, BindableService... services) {
     myName = name;
-    myService = service;
-  }
-
-  public TestGrpcChannel(String name, S service, ProfilerServiceGrpc.ProfilerServiceImplBase profilerService) {
-    this(name, service);
-    myProfilerService = profilerService;
+    myServices = services;
   }
 
   @Override
   protected void before() throws Throwable {
-    InProcessServerBuilder serverBuilder = InProcessServerBuilder.forName(myName).addService(myService);
-    if (myProfilerService != null) {
-      serverBuilder.addService(myProfilerService);
+    InProcessServerBuilder serverBuilder = InProcessServerBuilder.forName(myName);
+    for (BindableService service : myServices) {
+      serverBuilder.addService(service);
     }
     myServer = serverBuilder.build();
     myServer.start();
@@ -70,10 +63,6 @@ public final class TestGrpcChannel<S extends BindableService> extends ExternalRe
 
   public ProfilerClient getClient() {
     return myClient;
-  }
-
-  public S getService() {
-    return myService;
   }
 
   public StudioProfilers getProfilers() {
