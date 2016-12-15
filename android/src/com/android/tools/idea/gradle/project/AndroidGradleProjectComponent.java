@@ -105,7 +105,8 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       ApplicationManager.getApplication().invokeLater(() -> {
         FileDocumentManager.getInstance().saveAllDocuments();
         SaveAndSyncHandler.getInstance().refreshOpenFiles();
-        VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
+        boolean asyncRefresh = !ApplicationManager.getApplication().isUnitTestMode();
+        VirtualFileManager.getInstance().refreshWithoutFileWatcher(asyncRefresh);
       });
     });
   }
