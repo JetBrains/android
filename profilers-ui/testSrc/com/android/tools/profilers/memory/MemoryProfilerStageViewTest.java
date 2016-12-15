@@ -36,14 +36,14 @@ import static org.junit.Assert.*;
 public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   private MemoryProfilerStageView myStageView;
 
+  private final FakeMemoryService myService = new FakeMemoryService();
   @Rule
-  public TestGrpcChannel<MemoryServiceMock> myGrpcChannel = new TestGrpcChannel<>("MEMORY_TEST_CHANNEL", new MemoryServiceMock());
+  public TestGrpcChannel myGrpcChannel = new TestGrpcChannel("MEMORY_TEST_CHANNEL", myService);
 
   @Override
   @Before
   public void setup() {
     myProfilers = myGrpcChannel.getProfilers();
-    myMockService = myGrpcChannel.getService();
     myStage = new MemoryProfilerStage(myProfilers, DUMMY_LOADER);
     StudioProfilersViewFake view = new StudioProfilersViewFake(myProfilers);
     view.bind(MemoryProfilerStage.class, MemoryProfilerStageViewFake::new);

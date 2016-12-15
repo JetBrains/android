@@ -34,12 +34,12 @@ import static org.junit.Assert.*;
 public class NetworkMonitorTest {
   private static final ImmutableList<NetworkProfilerData> FAKE_DATA =
     new ImmutableList.Builder<NetworkProfilerData>()
-      .add(TestNetworkService.newSpeedData(0, 1, 2))
-      .add(TestNetworkService.newConnectionData(2, 4))
+      .add(FakeNetworkService.newSpeedData(0, 1, 2))
+      .add(FakeNetworkService.newConnectionData(2, 4))
       .build();
 
-  @Rule public TestGrpcChannel<TestNetworkService> myGrpcChannel =
-    new TestGrpcChannel<>("NetworkMonitorTest", TestNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).build());
+  @Rule public TestGrpcChannel myGrpcChannel =
+    new TestGrpcChannel("NetworkMonitorTest", FakeNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).build());
   private NetworkMonitor myMonitor;
 
   @Before

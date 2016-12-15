@@ -35,7 +35,7 @@ import static org.junit.Assert.assertNotNull;
 public class CpuThreadsModelTest {
 
   @Rule
-  public TestGrpcChannel<FakeCpuService> myGrpcChannel = new TestGrpcChannel<>("CpuThreadsModelTest", new FakeCpuService());
+  public TestGrpcChannel myGrpcChannel = new TestGrpcChannel("CpuThreadsModelTest", new FakeCpuService());
 
   private CpuThreadsModel myThreadsModel;
 

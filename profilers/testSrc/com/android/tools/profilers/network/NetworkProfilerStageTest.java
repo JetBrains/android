@@ -39,17 +39,17 @@ import static org.mockito.Mockito.spy;
 public class NetworkProfilerStageTest {
   private static final ImmutableList<NetworkProfilerData> FAKE_RADIO_DATA =
     new ImmutableList.Builder<NetworkProfilerData>()
-      .add(TestNetworkService.newRadioData(5, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.ACTIVE))
+      .add(FakeNetworkService.newRadioData(5, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.ACTIVE))
       .build();
 
   private static final ImmutableList<HttpData> FAKE_HTTP_DATA =
     new ImmutableList.Builder<HttpData>()
-      .add(TestNetworkService.newHttpData(7, 0, 7, 14))
+      .add(FakeNetworkService.newHttpData(7, 0, 7, 14))
       .build();
 
-  @Rule public TestGrpcChannel<TestNetworkService> myGrpcChannel =
-    new TestGrpcChannel<>("NetworkProfilerStageTest",
-                          TestNetworkService.newBuilder().setNetworkDataList(FAKE_RADIO_DATA).setHttpDataList(FAKE_HTTP_DATA).build());
+  @Rule public TestGrpcChannel myGrpcChannel =
+    new TestGrpcChannel("NetworkProfilerStageTest",
+                          FakeNetworkService.newBuilder().setNetworkDataList(FAKE_RADIO_DATA).setHttpDataList(FAKE_HTTP_DATA).build());
 
   private NetworkProfilerStage myStage;
 
