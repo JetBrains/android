@@ -55,8 +55,7 @@ public class CpuTraceArt {
     node.setEnd((call.getExitTime(ClockType.GLOBAL, TimeUnit.MICROSECONDS) + data.getStartTimeUs()));
     node.setDepth(depth);
 
-    MethodModel method = new MethodModel();
-    method.setName(data.getMethod(call.getMethodId()).methodName);
+    MethodModel method = new MethodModel(data.getMethod(call.getMethodId()).methodName);
     method.setNamespace(data.getMethod(call.getMethodId()).className);
     node.setData(method);
 
