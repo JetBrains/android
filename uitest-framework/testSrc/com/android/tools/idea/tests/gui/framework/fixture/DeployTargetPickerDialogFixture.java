@@ -88,5 +88,8 @@ public class DeployTargetPickerDialogFixture extends ComponentFixture<DeployTarg
 
   public void clickOk() {
     findAndClickOkButton(this);
+    // Wait until the finish of background tasks.
+    // E.g., it is needed before activating Run tool window; otherwise Run tool window won't activate.
+    waitForBackgroundTasks(robot());
   }
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.emulator;
 
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -71,9 +72,9 @@ public class LaunchAndroidApplicationTest {
   }
 
   @RunIn(TestGroup.QA)
-  @Ignore("https://android-jenkins.corp.google.com/builders/studio-sanity_master-dev/builds/2122")
   @Test
   public void testRunOnEmulator() throws IOException, ClassNotFoundException {
+    InstantRunSettings.setShowStatusNotifications(false);
     guiTest.importSimpleApplication();
     createAVD();
 
