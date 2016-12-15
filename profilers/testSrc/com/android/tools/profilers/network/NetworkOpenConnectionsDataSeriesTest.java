@@ -18,7 +18,7 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.TestGrpcChannel;
+import com.android.tools.profilers.FakeGrpcChannel;
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Rule;
@@ -40,13 +40,13 @@ public class NetworkOpenConnectionsDataSeriesTest {
       .add(FakeNetworkService.newConnectionData(16, 5))
       .build();
 
-  @Rule public TestGrpcChannel myGrpcChannel =
-    new TestGrpcChannel("NetworkOpenConnectionsDataSeriesTest", FakeNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).build());
+  @Rule public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("NetworkOpenConnectionsDataSeriesTest", FakeNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).build());
   private NetworkOpenConnectionsDataSeries mySeries;
 
   @Before
   public void setUp() {
-    StudioProfilers profiler = myGrpcChannel.getProfilers();
+    StudioProfilers profiler = new StudioProfilers(myGrpcChannel.getClient());
     mySeries = new NetworkOpenConnectionsDataSeries(profiler.getClient().getNetworkClient(), FakeNetworkService.FAKE_APP_ID);
   }
 

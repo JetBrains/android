@@ -18,7 +18,7 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.TestGrpcChannel;
+import com.android.tools.profilers.FakeGrpcChannel;
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Rule;
@@ -38,14 +38,15 @@ public class NetworkMonitorTest {
       .add(FakeNetworkService.newConnectionData(2, 4))
       .build();
 
-  @Rule public TestGrpcChannel myGrpcChannel =
-    new TestGrpcChannel("NetworkMonitorTest", FakeNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).build());
+  @Rule public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("NetworkMonitorTest", FakeNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).build());
   private NetworkMonitor myMonitor;
+  private StudioProfilers myProfilers;
 
   @Before
   public void setUp() {
-    StudioProfilers profilers = myGrpcChannel.getProfilers();
-    myMonitor = new NetworkMonitor(profilers);
+    myProfilers = new StudioProfilers(myGrpcChannel.getClient());
+    myMonitor = new NetworkMonitor(myProfilers);
   }
 
   @Test
@@ -79,9 +80,8 @@ public class NetworkMonitorTest {
 
   @Test
   public void testExpand() {
-    StudioProfilers profilers = myGrpcChannel.getProfilers();
-    assertNull(profilers.getStage());
+    assertNull(myProfilers.getStage());
     myMonitor.expand();
-    assertThat(profilers.getStage(), instanceOf(NetworkProfilerStage.class));
+    assertThat(myProfilers.getStage(), instanceOf(NetworkProfilerStage.class));
   }
 }

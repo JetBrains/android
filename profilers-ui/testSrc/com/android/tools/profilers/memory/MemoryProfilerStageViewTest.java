@@ -15,14 +15,14 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.profilers.StudioProfilersViewFake;
-import com.android.tools.profilers.TestGrpcChannel;
+import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.HeapObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,32 +35,31 @@ import java.util.stream.IntStream;
 import static org.junit.Assert.*;
 
 public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
-  private MemoryProfilerStageView myStageView;
+  private StudioProfilersView myView;
 
   private final FakeMemoryService myService = new FakeMemoryService();
   @Rule
-  public TestGrpcChannel myGrpcChannel = new TestGrpcChannel("MEMORY_TEST_CHANNEL", myService);
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryProfilerStageViewTestChannel", myService);
 
   @Override
-  @Before
-  public void setup() {
-    myProfilers = myGrpcChannel.getProfilers();
-    myStage = new MemoryProfilerStage(myProfilers, DUMMY_LOADER);
-    StudioProfilersViewFake view = new StudioProfilersViewFake(myProfilers);
-    view.bind(MemoryProfilerStage.class, MemoryProfilerStageViewFake::new);
-    myProfilers.setStage(myStage);
-    myStageView = (MemoryProfilerStageView)view.getStageView();
+  protected FakeGrpcChannel getGrpcChannel() {
+    return myGrpcChannel;
+  }
 
-    super.setup();
+  @Override
+  protected void onProfilersCreated(StudioProfilers profilers) {
+    myView = new StudioProfilersView(profilers);
+    myView.bind(MemoryProfilerStage.class, MemoryProfilerStageViewFake::new);
   }
 
   @Test
   @Ignore
   public void testCaptureAndHeapView() throws Exception {
-    JComponent captureComponent = myStageView.getChartCaptureSplitter().getSecondComponent();
+    MemoryProfilerStageView stageView = (MemoryProfilerStageView)myView.getStageView();
+    JComponent captureComponent = stageView.getChartCaptureSplitter().getSecondComponent();
     assertTrue(captureComponent == null || !captureComponent.isVisible());
 
-    JComponent instanceComponent = myStageView.getMainSplitter().getSecondComponent();
+    JComponent instanceComponent = stageView.getMainSplitter().getSecondComponent();
     assertTrue(instanceComponent == null || !instanceComponent.isVisible());
 
     assertView(null, null, null, null);
@@ -69,7 +68,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertView(DUMMY_CAPTURE, DUMMY_HEAP_1, null, null);
     assertAndResetCounts(0, 1, 1, 1, 0, 0);
 
-    myStageView.getHeapView().getComponent().setSelectedItem(DUMMY_HEAP_2);
+    stageView.getHeapView().getComponent().setSelectedItem(DUMMY_HEAP_2);
     assertSelection(DUMMY_CAPTURE, DUMMY_HEAP_2, null, null);
     assertAndResetCounts(0, 0, 0, 1, 0, 0);
 
@@ -77,14 +76,14 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertView(DUMMY_CAPTURE, DUMMY_HEAP_2, DUMMY_CLASS_1, null);
     assertAndResetCounts(0, 0, 0, 0, 1, 0);
 
-    JTree classTree = myStageView.getClassView().getTree();
+    JTree classTree = stageView.getClassView().getTree();
     assertNotNull(classTree);
     Object classRoot = classTree.getModel().getRoot();
     assertTrue(classRoot instanceof MemoryObjectTreeNode);
     assertTrue(((MemoryObjectTreeNode)classRoot).getAdapter() instanceof ClassObject);
     //noinspection unchecked
     MemoryObjectTreeNode<ClassObject> memoryClassRoot = (MemoryObjectTreeNode<ClassObject>)classRoot;
-    myStageView.getClassView().getTree()
+    stageView.getClassView().getTree()
       .setSelectionPath(new TreePath(new Object[]{classTree.getModel().getRoot(), memoryClassRoot.getChildren().get(0)}));
     assertSelection(DUMMY_CAPTURE, DUMMY_HEAP_2, DUMMY_CLASS_2, null);
 
@@ -109,30 +108,32 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
                           @Nullable HeapObject expectedHeapObject,
                           @Nullable ClassObject expectedClassObject,
                           @Nullable InstanceObject expectedInstanceObject) {
-    ComboBoxModel<HeapObject> heapObjectComboBoxModel = myStageView.getHeapView().getComponent().getModel();
+    MemoryProfilerStageView stageView = (MemoryProfilerStageView)myView.getStageView();
+
+    ComboBoxModel<HeapObject> heapObjectComboBoxModel = stageView.getHeapView().getComponent().getModel();
 
     if (expectedCaptureObject == null) {
-      assertFalse(myStageView.getChartCaptureSplitter().getSecondComponent().isVisible());
-      assertEquals(MemoryCaptureView.ourLoadingText, myStageView.getCaptureView().getComponent().getText());
+      assertFalse(stageView.getChartCaptureSplitter().getSecondComponent().isVisible());
+      assertEquals(MemoryCaptureView.ourLoadingText, stageView.getCaptureView().getComponent().getText());
       assertEquals(heapObjectComboBoxModel.getSize(), 0);
-      assertNull(myStageView.getClassView().getTree());
-      assertFalse(myStageView.getInstanceView().getComponent().isVisible());
-      assertFalse(myStageView.getInstanceDetailsView().getComponent().isVisible());
+      assertNull(stageView.getClassView().getTree());
+      assertFalse(stageView.getInstanceView().getComponent().isVisible());
+      assertFalse(stageView.getInstanceDetailsView().getComponent().isVisible());
       return;
     }
 
-    assertTrue(myStageView.getChartCaptureSplitter().getSecondComponent().isVisible());
-    assertEquals(expectedCaptureObject.getLabel(), myStageView.getCaptureView().getComponent().getText());
+    assertTrue(stageView.getChartCaptureSplitter().getSecondComponent().isVisible());
+    assertEquals(expectedCaptureObject.getLabel(), stageView.getCaptureView().getComponent().getText());
     assertEquals(expectedCaptureObject.getHeaps(),
                  IntStream.range(0, heapObjectComboBoxModel.getSize()).mapToObj(heapObjectComboBoxModel::getElementAt)
                    .collect(Collectors.toList()));
     assertEquals(expectedHeapObject, heapObjectComboBoxModel.getSelectedItem());
     if (expectedHeapObject == null) {
-      assertNull(myStageView.getClassView().getTree());
+      assertNull(stageView.getClassView().getTree());
       return;
     }
 
-    JTree classTree = myStageView.getClassView().getTree();
+    JTree classTree = stageView.getClassView().getTree();
     assertNotNull(classTree);
     Object classTreeRoot = classTree.getModel().getRoot();
     assertTrue(classTreeRoot instanceof MemoryObjectTreeNode);
@@ -144,8 +145,8 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     if (expectedClassObject == null) {
       assertEquals(null, classTree.getLastSelectedPathComponent());
-      assertFalse(myStageView.getInstanceView().getComponent().isVisible());
-      assertFalse(myStageView.getInstanceDetailsView().getComponent().isVisible());
+      assertFalse(stageView.getInstanceView().getComponent().isVisible());
+      assertFalse(stageView.getInstanceDetailsView().getComponent().isVisible());
       return;
     }
 
@@ -156,13 +157,13 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     MemoryObjectTreeNode<ClassObject> selectedClassObject = (MemoryObjectTreeNode<ClassObject>)selectedClassNode;
     assertEquals(expectedClassObject, selectedClassObject.getAdapter());
 
-    assertTrue(myStageView.getInstanceView().getComponent().isVisible());
-    JTree instanceTree = myStageView.getInstanceView().getTree();
+    assertTrue(stageView.getInstanceView().getComponent().isVisible());
+    JTree instanceTree = stageView.getInstanceView().getTree();
     assertNotNull(instanceTree);
 
     if (expectedInstanceObject == null) {
       assertEquals(null, instanceTree.getLastSelectedPathComponent());
-      assertFalse(myStageView.getInstanceDetailsView().getComponent().isVisible());
+      assertFalse(stageView.getInstanceDetailsView().getComponent().isVisible());
       return;
     }
 
@@ -176,6 +177,6 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     boolean detailsViewVisible = (expectedInstanceObject.getCallStack() != null &&
                                   expectedInstanceObject.getCallStack().getStackFramesCount() > 0) ||
                                  !expectedInstanceObject.getReferences().isEmpty();
-    assertEquals(detailsViewVisible, myStageView.getInstanceDetailsView().getComponent().isVisible());
+    assertEquals(detailsViewVisible, stageView.getInstanceDetailsView().getComponent().isVisible());
   }
 }

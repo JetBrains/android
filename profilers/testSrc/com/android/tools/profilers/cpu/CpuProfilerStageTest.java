@@ -18,7 +18,8 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.profiler.proto.*;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.TestGrpcChannel;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.FakeGrpcChannel;
 import com.google.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
 import org.junit.Before;
@@ -38,8 +39,8 @@ public class CpuProfilerStageTest {
 
   private final FakeCpuService myCpuService = new FakeCpuService();
   @Rule
-  public TestGrpcChannel myGrpcChannel =
-    new TestGrpcChannel("CpuProfilerStageTestChannel", myCpuService, new FakeProfilerService());
+  public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("CpuProfilerStageTestChannel", myCpuService, new FakeProfilerService());
 
   private CpuProfilerStage myStage;
 
@@ -51,9 +52,10 @@ public class CpuProfilerStageTest {
 
   @Before
   public void setUp() throws Exception {
-    myStage = new CpuProfilerStage(myGrpcChannel.getProfilers());
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient());
+    myStage = new CpuProfilerStage(profilers);
     myGetProcessesLatch = new CountDownLatch(1);
-    myGrpcChannel.getProfilers().addDependency().onChange(ProfilerAspect.PROCESSES, myGetProcessesLatch::countDown);
+    profilers.addDependency().onChange(ProfilerAspect.PROCESSES, myGetProcessesLatch::countDown);
   }
 
   @Test
