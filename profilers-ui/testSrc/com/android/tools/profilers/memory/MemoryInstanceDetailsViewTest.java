@@ -37,8 +37,7 @@ import static org.junit.Assert.*;
 
 public class MemoryInstanceDetailsViewTest {
   @Rule
-  public TestGrpcChannel<MemoryServiceMock>
-    myGrpcChannel = new TestGrpcChannel<>("MEMORY_TEST_CHANNEL", new MemoryServiceMock());
+  public TestGrpcChannel myGrpcChannel = new TestGrpcChannel("MEMORY_TEST_CHANNEL", new MemoryServiceMock());
 
   /**
    * Test that the component is visible based on whether the currently selected instance object has callstack/reference information.
