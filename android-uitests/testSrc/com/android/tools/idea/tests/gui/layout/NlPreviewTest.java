@@ -31,8 +31,6 @@ import org.junit.runner.RunWith;
 
 import java.util.Collections;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_TEXT;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForBackgroundTasks;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
@@ -169,25 +167,25 @@ public class NlPreviewTest {
     assertFalse(preview.hasRenderErrors());
 
     NlComponentFixture string1 = preview.findView("TextView", 0);
-    string1.requireAttribute(ANDROID_URI, ATTR_TEXT, "@string/dynamic_string1");
-    string1.requireViewClass("android.support.v7.widget.AppCompatTextView");
-    string1.requireActualText("String 1 defined only by defaultConfig");
+    assertThat(string1.getTextAttribute()).isEqualTo("@string/dynamic_string1");
+    assertThat(string1.getViewObject().getClass().getName()).isEqualTo("android.support.v7.widget.AppCompatTextView");
+    assertThat(string1.getText()).isEqualTo("String 1 defined only by defaultConfig");
 
     NlComponentFixture string2 = preview.findView("TextView", 1);
-    string2.requireAttribute(ANDROID_URI, ATTR_TEXT, "@string/dynamic_string2");
-    string2.requireActualText("String 1 defined only by defaultConfig");
+    assertThat(string2.getTextAttribute()).isEqualTo("@string/dynamic_string2");
+    assertThat(string2.getText()).isEqualTo("String 1 defined only by defaultConfig");
 
     NlComponentFixture string3 = preview.findView("TextView", 2);
-    string3.requireAttribute(ANDROID_URI, ATTR_TEXT, "@string/dynamic_string3");
-    string3.requireActualText("String 3 defined by build type debug");
+    assertThat(string3.getTextAttribute()).isEqualTo("@string/dynamic_string3");
+    assertThat(string3.getText()).isEqualTo("String 3 defined by build type debug");
 
     NlComponentFixture string4 = preview.findView("TextView", 3);
-    string4.requireAttribute(ANDROID_URI, ATTR_TEXT, "@string/dynamic_string4");
-    string4.requireActualText("String 4 defined by flavor free");
+    assertThat(string4.getTextAttribute()).isEqualTo("@string/dynamic_string4");
+    assertThat(string4.getText()).isEqualTo("String 4 defined by flavor free");
 
     NlComponentFixture string5 = preview.findView("TextView", 4);
-    string5.requireAttribute(ANDROID_URI, ATTR_TEXT, "@string/dynamic_string5");
-    string5.requireActualText("String 5 defined by build type debug");
+    assertThat(string5.getTextAttribute()).isEqualTo("@string/dynamic_string5");
+    assertThat(string5.getText()).isEqualTo("String 5 defined by build type debug");
 
     // Ensure that all the references are properly resolved
     FileFixture file = guiTest.ideFrame().findExistingFileByRelativePath(layoutFilePath);
@@ -205,7 +203,7 @@ public class NlPreviewTest {
     preview.waitForRenderToFinish();
 
     string1 = preview.findView("TextView", 0);
-    string1.requireActualText("String 1 defined only by edited defaultConfig");
+    assertThat(string1.getText()).isEqualTo("String 1 defined only by edited defaultConfig");
 
     file.waitForCodeAnalysisHighlightCount(ERROR, 0);
   }
