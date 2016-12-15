@@ -289,6 +289,16 @@ public class Scene implements ModelListener, SelectionListener {
   /////////////////////////////////////////////////////////////////////////////
 
   /**
+   * Clear all constraints on a widget
+   */
+  public void clearAttributes() {
+    if (myRoot != null) {
+      myRoot.clearAttributes();
+    }
+    select(Collections.emptyList());
+  }
+
+  /**
    * Add the NlComponents contained in the given NlModel to the Scene
    *
    * @param model the NlModel to use
