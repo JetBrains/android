@@ -15,9 +15,9 @@
  */
 package com.android.tools.adtui;
 
-import com.android.annotations.NonNull;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,17 +25,23 @@ import java.awt.geom.AffineTransform;
 
 public class EventIconRenderer implements SimpleEventRenderer {
 
-  @NonNull private Icon myLightThemeIcon;
-  @NonNull private Icon myDarkThemeIcon;
-  @NonNull private int myIconWidth;
+  @NotNull private Icon myLightThemeIcon;
+  @NotNull private Icon myDarkThemeIcon;
+  @NotNull private int myIconWidth;
 
+  @NotNull
   private static Icon load(String path) {
     return IconLoader.getIcon(path, EventIconRenderer.class);
   }
 
   public EventIconRenderer(String lightTheme, String darkTheme) {
-    myDarkThemeIcon = load(darkTheme);
-    myLightThemeIcon = load(lightTheme);
+    this(load(lightTheme), load(darkTheme));
+  }
+
+  EventIconRenderer(@NotNull Icon lightIcon, @NotNull Icon darkIcon) {
+    myLightThemeIcon = lightIcon;
+    myDarkThemeIcon = darkIcon;
+    assert myLightThemeIcon.getIconWidth() == myDarkThemeIcon.getIconWidth() : "Icons of both themes should have the same width.";
     myIconWidth = myDarkThemeIcon.getIconWidth();
   }
 
