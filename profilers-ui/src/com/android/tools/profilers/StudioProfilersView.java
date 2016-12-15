@@ -23,14 +23,14 @@ import com.android.tools.profilers.memory.MemoryProfilerStageView;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.network.NetworkProfilerStageView;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 import java.util.function.BiFunction;
 
 public class StudioProfilersView {
@@ -61,13 +61,27 @@ public class StudioProfilersView {
       .onChange(ProfilerAspect.STAGE, this::updateStageView);
   }
 
+  /**
+   * Test-only constructor which stubs out IDE components
+   */
   @VisibleForTesting
-  <S extends Stage, T extends StageView> void bind(@NotNull Class<S> clazz, @NotNull BiFunction<StudioProfilersView, S, T> constructor) {
+  public StudioProfilersView(@NotNull StudioProfilers profiler) {
+    this(profiler, new IdeProfilerComponents() {
+      @Nullable
+      @Override
+      public JComponent getFileViewer(@Nullable File file) {
+        return null;
+      }
+    });
+  }
+
+  @VisibleForTesting
+  public <S extends Stage, T extends StageView> void bind(@NotNull Class<S> clazz, @NotNull BiFunction<StudioProfilersView, S, T> constructor) {
     myBinder.bind(clazz, constructor);
   }
 
   @VisibleForTesting
-  StageView getStageView() {
+  public StageView getStageView() {
     return myStageView;
   }
 

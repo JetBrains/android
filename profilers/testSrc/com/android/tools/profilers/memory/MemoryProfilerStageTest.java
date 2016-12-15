@@ -16,9 +16,7 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
-import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.FakeGrpcChannel;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -28,16 +26,11 @@ import static org.junit.Assert.assertNull;
 public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   private final FakeMemoryService myService = new FakeMemoryService();
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MEMORY_TEST_CHANNEL", myService);
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryProfilerStageTestChannel", myService);
 
   @Override
-  @Before
-  public void setup() {
-    myProfilers = new StudioProfilers(myGrpcChannel.getClient());
-    myStage = new MemoryProfilerStage(myProfilers, DUMMY_LOADER);
-    myProfilers.setStage(myStage);
-
-    super.setup();
+  protected FakeGrpcChannel getGrpcChannel() {
+    return myGrpcChannel;
   }
 
   @Test
