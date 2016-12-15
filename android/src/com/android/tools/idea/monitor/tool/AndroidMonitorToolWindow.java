@@ -52,7 +52,6 @@ public class AndroidMonitorToolWindow implements Disposable {
       myComponent = view.getComponent();
 
       myProfilers.addDependency()
-        .setExecutor(ApplicationManager.getApplication(), Application::invokeLater)
         .onChange(ProfilerAspect.MODE, this::updateToolWindow)
         .onChange(ProfilerAspect.STAGE, this::updateToolWindow);
     }

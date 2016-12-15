@@ -17,12 +17,9 @@ package com.android.tools.adtui.model;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 public class AspectModel<T extends Enum<T>> {
   private List<Dependency> myDependencies = new LinkedList<>();
@@ -41,23 +38,6 @@ public class AspectModel<T extends Enum<T>> {
   public class Dependency {
 
     private Multimap<T, Runnable> myListeners = HashMultimap.create();
-    private Consumer<Runnable> myExecutor = Runnable::run;
-
-    public Dependency setExecutor(Consumer<Runnable> executor) {
-      myExecutor = executor;
-      return this;
-    }
-
-    /**
-     * Sets an executor as an instance method of a target object.
-     * If the target is null the current executor is not changed.
-     */
-    public <E> Dependency setExecutor(@Nullable E target, BiConsumer<E, Runnable> executor) {
-      if (target != null) {
-        return setExecutor(r -> executor.accept(target, r));
-      }
-      return this;
-    }
 
     public Dependency onChange(T aspect, Runnable runnable) {
       myListeners.put(aspect, runnable);
@@ -65,7 +45,7 @@ public class AspectModel<T extends Enum<T>> {
     }
 
     public void changed(T aspect) {
-      myListeners.get(aspect).forEach(myExecutor);
+      myListeners.get(aspect).forEach(Runnable::run);
     }
   }
 }
