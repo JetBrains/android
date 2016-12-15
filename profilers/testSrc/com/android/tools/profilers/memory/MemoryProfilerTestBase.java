@@ -15,15 +15,15 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.profiler.proto.*;
+import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.TestGrpcChannel;
-import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.ClassObject;
-import com.android.tools.profilers.memory.adapters.HeapObject;
-import com.android.tools.profilers.memory.adapters.InstanceObject;
+import com.android.tools.profilers.memory.adapters.*;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Rule;
 
@@ -184,7 +184,7 @@ public class MemoryProfilerTestBase {
 
     @NotNull
     @Override
-    public List<InstanceAttribute> getInstanceAttributes() {
+    public List<InstanceObject.InstanceAttribute> getInstanceAttributes() {
       return Collections.emptyList();
     }
 
@@ -209,7 +209,7 @@ public class MemoryProfilerTestBase {
 
     @NotNull
     @Override
-    public List<InstanceAttribute> getInstanceAttributes() {
+    public List<InstanceObject.InstanceAttribute> getInstanceAttributes() {
       return Collections.emptyList();
     }
 
@@ -231,6 +231,14 @@ public class MemoryProfilerTestBase {
     @Override
     public String getName() {
       return "DUMMY_INSTANCE";
+    }
+
+    @Nullable
+    @Override
+    public MemoryProfiler.AllocationStack getCallStack() {
+      MemoryProfiler.AllocationStack stack = MemoryProfiler.AllocationStack.newBuilder()
+        .addStackFrames(MemoryProfiler.AllocationStack.StackFrame.newBuilder().build()).build();
+      return stack;
     }
   };
 }

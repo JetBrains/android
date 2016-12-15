@@ -19,23 +19,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public interface HeapObject extends MemoryObject {
-  // TODO move to ClassObject.
-  enum ClassAttribute {
-    LABEL,
-    CHILDREN_COUNT,
-    ELEMENT_SIZE,
-    DEPTH,
-    SHALLOW_SIZE,
-    RETAINED_SIZE
-  }
-
+/**
+ * A {@link MemoryObject} that describes an object instance having a reference to another.
+ */
+public interface ReferenceObject extends InstanceObject {
+  /**
+   * @return the names of the fields of this object instance that holds a reference to the referree.
+   * If this object is an array, then a list of indices pointing to the referree is returned.
+   */
   @NotNull
-  String getHeapName();
-
-  @NotNull
-  List<ClassObject> getClasses();
-
-  @NotNull
-  List<ClassAttribute> getClassAttributes();
+  List<String> getReferenceFieldNames();
 }
