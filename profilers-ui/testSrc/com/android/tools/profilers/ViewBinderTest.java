@@ -20,7 +20,6 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class ViewBinderTest {
-
   @Test
   public void test() {
     ViewBinder<TestParentView, TestModel, TestView> viewBinder = new ViewBinder<>();
