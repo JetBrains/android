@@ -46,7 +46,6 @@ public class CpuCapture implements DurationData {
   private final Range myRange;
 
   public CpuCapture(@NotNull ByteString bytes) {
-
     // TODO: Move file parsing/manipulation to another thread.
     // TODO: Remove layers, analyze whether we can keep the whole file in memory.
     try {
@@ -82,9 +81,10 @@ public class CpuCapture implements DurationData {
       }
       myRange.expand(entry.getValue().getStart(), entry.getValue().getEnd());
     }
-    if (main == null) {
-      throw new IllegalArgumentException("Invalid trace");
-    }
+    // If there is no thread named "main", the trace file is not valid.
+    // In this case, we would have caught a BufferUnderflowException from VmTraceParser above and rethrown it as IllegalStateException.
+    // If a thread named "main" is not required in the future, we need to double-check the object value for null here instead of asserting.
+    assert main != null;
     myMainThreadId = main.getKey().getId();
   }
 
