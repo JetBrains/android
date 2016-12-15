@@ -251,7 +251,7 @@ public class NlComponent implements NlAttributesHolder {
    *
    * @param px x coordinate
    * @param py y coordinate
-   * @return an immediate child of ours, or ourself (if we are under the coordinates), or null otherwise.
+   * @return an immediate child, this (if under the coordinates), or null otherwise
    */
   @Nullable
   public NlComponent findImmediateLeafAt(@AndroidCoordinate int px, @AndroidCoordinate int py) {
@@ -386,6 +386,7 @@ public class NlComponent implements NlAttributesHolder {
   /**
    * Ensure that there's a id, if not execute a write command to add
    * the id to the component.
+   *
    * @return
    */
   public String ensureLiveId() {
@@ -592,6 +593,20 @@ public class NlComponent implements NlAttributesHolder {
       }
     }
     return myPadding;
+  }
+
+  public boolean isGroup() {
+    if (isOrHasSuperclass(CLASS_VIEWGROUP)) {
+      return true;
+    }
+
+    switch (myTagName) {
+      case TAG_MENU:
+      case TAG_GROUP:
+        return true;
+      default:
+        return false;
+    }
   }
 
   /**
