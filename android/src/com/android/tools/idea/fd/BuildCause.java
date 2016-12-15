@@ -31,7 +31,8 @@ public enum BuildCause {
   FREEZE_SWAP_REQUIRES_API21(BuildMode.FULL),
 
   // reasons for forced cold swap build
-  USER_REQUESTED_COLDSWAP(BuildMode.COLD),
+  USER_REQUESTED_COLDSWAP(BuildMode.COLD), // User pressed Run, and only Run button was enabled (name not ideal, but matches existing proto)
+  USER_CHOSE_TO_COLDSWAP(BuildMode.COLD),  // Both Run and Hotswap were enabled, and user chose Run
   APP_NOT_RUNNING(BuildMode.COLD),
   APP_USES_MULTIPLE_PROCESSES(BuildMode.COLD),
   ANDROID_TV_UNSUPPORTED(BuildMode.COLD),

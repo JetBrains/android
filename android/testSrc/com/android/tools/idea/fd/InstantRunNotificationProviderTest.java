@@ -19,6 +19,8 @@ import com.google.wireless.android.sdk.stats.InstantRunStatus;
 import org.jetbrains.android.util.AndroidBundle;
 import org.junit.Test;
 
+import java.util.Arrays;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -33,10 +35,12 @@ public class InstantRunNotificationProviderTest {
 
   @Test
   public void userRequestedRunHasNoNotifications() {
-    BuildSelection buildSelection = new BuildSelection(BuildCause.USER_REQUESTED_COLDSWAP, false);
-    InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.SPLITAPK, "");
-    assertNull("No notifications should be shown when the user presses Run",
-               provider.getNotificationText());
+    for (BuildCause cause : Arrays.asList(BuildCause.USER_REQUESTED_COLDSWAP, BuildCause.USER_CHOSE_TO_COLDSWAP)) {
+      BuildSelection buildSelection = new BuildSelection(cause, false);
+      InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.SPLITAPK, "");
+      assertNull("No notifications should be shown when the user presses Run",
+                 provider.getNotificationText());
+    }
   }
 
   @Test
