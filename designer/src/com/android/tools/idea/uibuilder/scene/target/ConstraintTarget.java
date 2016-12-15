@@ -31,6 +31,7 @@ import java.util.HashMap;
 
 /**
  * Implements common checks on attributes of a ConstraintLayout child
+ * TODO: removes, switch to ConstraintComponentUtilities instead
  */
 public abstract class ConstraintTarget extends BaseTarget {
   protected static final HashMap<String, String> ourReciprocalAttributes;
@@ -196,19 +197,6 @@ public abstract class ConstraintTarget extends BaseTarget {
       String attribute = attributes.get(i);
       transaction.setAttribute(uri, attribute, null);
     }
-  }
-
-  protected void clearAllAttributes(AttributesTransaction transaction) {
-    clearAttributes(SdkConstants.SHERPA_URI, ourLeftAttributes, transaction);
-    clearAttributes(SdkConstants.SHERPA_URI, ourTopAttributes, transaction);
-    clearAttributes(SdkConstants.SHERPA_URI, ourRightAttributes, transaction);
-    clearAttributes(SdkConstants.SHERPA_URI, ourBottomAttributes, transaction);
-    transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, null);
-    transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
-    transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null);
-    clearAttributes(SdkConstants.ANDROID_URI, ourMarginAttributes, transaction);
-    setDpAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, transaction, myComponent.getOffsetParentX());
-    setDpAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, transaction, myComponent.getOffsetParentY());
   }
 
   protected boolean checkIsInChain() {
