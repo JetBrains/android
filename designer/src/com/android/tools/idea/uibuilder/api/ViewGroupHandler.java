@@ -223,4 +223,13 @@ public class ViewGroupHandler extends ViewHandler {
   public void addTargets(@NotNull SceneComponent component, boolean isParent) {
     // do nothing
   }
+
+  /**
+   * Let the ViewGroupHandler handle clearing attributes on a given component
+   *
+   * @param component
+   */
+  public void clearAttributes(SceneComponent component) {
+    // do nothing
+  }
 }
