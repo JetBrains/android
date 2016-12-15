@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
-import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.SdkConstants;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.model.Coordinates;
@@ -34,9 +34,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
-import static org.junit.Assert.*;
 
 /**
  * Represents a view in the layout editor
@@ -63,33 +60,19 @@ public class NlComponentFixture {
     return new Point(midX, midY);
   }
 
-  public void requireAttribute(@Nullable String namespace, @NotNull String attribute, @Nullable String value) {
-    String actualValue = myComponent.getAttribute(namespace, attribute);
-    assertEquals(value, actualValue);
+  public String getTextAttribute() {
+    return myComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
   }
 
-  public void requireViewClass(@NotNull String fqn) {
-    ViewInfo viewInfo = myComponent.viewInfo;
-    Object viewObject = viewInfo.getViewObject();
-    assertEquals(fqn, viewObject.getClass().getName());
+  public Object getViewObject() {
+    return myComponent.viewInfo.getViewObject();
   }
 
-  public void requireActualText(@NotNull String expectedText) {
-    ViewInfo viewInfo = myComponent.viewInfo;
-    Object viewObject = viewInfo.getViewObject();
+  public String getText() {
     try {
-      Method getText = viewObject.getClass().getMethod("getText");
-      String actualText = (String)getText.invoke(viewObject);
-      assertEquals(expectedText, actualText);
-    }
-    catch (NoSuchMethodException e) {
-      fail("No getText() method on " + viewObject.getClass().getName());
-    }
-    catch (InvocationTargetException e) {
-      fail("Can't invoke getText() method on " + viewObject.getClass().getName());
-    }
-    catch (IllegalAccessException e) {
-      fail("Can't access getText() method on " + viewObject.getClass().getName());
+      return (String)getViewObject().getClass().getMethod("getText").invoke(getViewObject());
+    } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+      throw new RuntimeException(e);
     }
   }
 
