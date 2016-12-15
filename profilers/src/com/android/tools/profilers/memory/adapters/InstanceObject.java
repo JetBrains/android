@@ -23,6 +23,14 @@ import java.util.Collections;
 import java.util.List;
 
 public interface InstanceObject extends MemoryObject {
+  enum InstanceAttribute {
+    LABEL,
+    ELEMENT_SIZE,
+    DEPTH,
+    SHALLOW_SIZE,
+    RETAINED_SIZE
+  }
+
   enum ValueType {
     NULL(false),
     BOOLEAN(true),
@@ -74,6 +82,11 @@ public interface InstanceObject extends MemoryObject {
   }
 
   @NotNull
+  default List<ReferenceObject> getReferences() {
+    return Collections.emptyList();
+  }
+
+  @NotNull
   default String getValueLabel() {
     return "";
   }
@@ -88,5 +101,13 @@ public interface InstanceObject extends MemoryObject {
 
   default boolean getIsPrimitive() {
     return false;
+  }
+
+  default boolean getIsRoot() {
+    return false;
+  }
+
+  default List<InstanceAttribute> getReferenceAttributes() {
+    return Collections.EMPTY_LIST;
   }
 }

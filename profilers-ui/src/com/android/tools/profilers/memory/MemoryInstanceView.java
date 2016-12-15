@@ -16,23 +16,18 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.memory.adapters.ClassObject;
-import com.android.tools.profilers.memory.adapters.ClassObject.InstanceAttribute;
 import com.android.tools.profilers.memory.adapters.FieldObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
+import com.android.tools.profilers.memory.adapters.InstanceObject.InstanceAttribute;
 import com.android.tools.profilers.memory.adapters.InstanceObject.ValueType;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.ui.Splitter;
-import com.intellij.ui.components.JBList;
-import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.PlatformIcons;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,11 +50,7 @@ final class MemoryInstanceView {
 
   @NotNull private final Map<InstanceAttribute, AttributeColumn> myAttributeColumns = new HashMap<>();
 
-  @NotNull private final Splitter mySplitter = new Splitter(true);
-
   @NotNull private final JPanel myInstancesPanel = new JPanel(new BorderLayout());
-
-  @NotNull private final JPanel myInstanceDetailPanel = new JPanel(new BorderLayout());
 
   @Nullable private JComponent myColumnTree;
 
@@ -82,35 +73,18 @@ final class MemoryInstanceView {
       .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::refreshInstance);
 
     myAttributeColumns.put(
-      InstanceAttribute.LABEL,
+      InstanceObject.InstanceAttribute.LABEL,
       new AttributeColumn(
         "Instance",
         () -> new DetailColumnRenderer(value -> ((InstanceObject)value.getAdapter()).getName(),
-                                       value -> {
-                                         MemoryObject node = value.getAdapter();
-                                         if (node instanceof FieldObject) {
-                                           FieldObject field = ((FieldObject)node);
-                                           if (field.getIsArray()) {
-                                             return AllIcons.Debugger.Db_array;
-                                           }
-                                           else if (field.getIsPrimitive()) {
-                                             return AllIcons.Debugger.Db_primitive;
-                                           }
-                                           else {
-                                             return PlatformIcons.FIELD_ICON;
-                                           }
-                                         }
-                                         else {
-                                           return PlatformIcons.INTERFACE_ICON;
-                                         }
-                                       },
+                                       value -> MemoryProfilerStageView.getInstanceObjectIcon((InstanceObject)value.getAdapter()),
                                        SwingConstants.LEFT),
         SwingConstants.LEFT,
         LABEL_COLUMN_WIDTH,
         SortOrder.ASCENDING,
         (o1, o2) -> ((InstanceObject)o1.getAdapter()).getName().compareTo(((InstanceObject)o2.getAdapter()).getName())));
     myAttributeColumns.put(
-      InstanceAttribute.DEPTH,
+      InstanceObject.InstanceAttribute.DEPTH,
       new AttributeColumn(
         "Depth",
         () -> new DetailColumnRenderer(value -> {
@@ -128,7 +102,7 @@ final class MemoryInstanceView {
         SortOrder.UNSORTED,
         (o1, o2) -> ((InstanceObject)o1.getAdapter()).getDepth() - ((InstanceObject)o2.getAdapter()).getDepth()));
     myAttributeColumns.put(
-      InstanceAttribute.SHALLOW_SIZE,
+      InstanceObject.InstanceAttribute.SHALLOW_SIZE,
       new AttributeColumn(
         "Shallow Size",
         () -> new DetailColumnRenderer(value -> Integer.toString(((InstanceObject)value.getAdapter()).getShallowSize()), value -> null,
@@ -138,7 +112,7 @@ final class MemoryInstanceView {
         SortOrder.UNSORTED,
         (o1, o2) -> ((InstanceObject)o1.getAdapter()).getShallowSize() - ((InstanceObject)o2.getAdapter()).getShallowSize()));
     myAttributeColumns.put(
-      InstanceAttribute.RETAINED_SIZE,
+      InstanceObject.InstanceAttribute.RETAINED_SIZE,
       new AttributeColumn(
         "Retained Size",
         () -> new DetailColumnRenderer(value -> {
@@ -160,10 +134,7 @@ final class MemoryInstanceView {
     headingPanel.add(close, BorderLayout.EAST);
 
     myInstancesPanel.add(headingPanel, BorderLayout.NORTH);
-    myInstanceDetailPanel.setVisible(false);
-    mySplitter.setFirstComponent(myInstancesPanel);
-    mySplitter.setSecondComponent(myInstanceDetailPanel);
-    mySplitter.setVisible(false);
+    myInstancesPanel.setVisible(false);
   }
 
   public void reset() {
@@ -176,14 +147,13 @@ final class MemoryInstanceView {
     myTreeModel = null;
     myClassObject = null;
     myInstanceObject = null;
-    myInstanceDetailPanel.setVisible(false);
-    mySplitter.setVisible(false);
+    myInstancesPanel.setVisible(false);
     myStage.selectInstance(null);
   }
 
   @NotNull
-  public Splitter getComponent() {
-    return mySplitter;
+  public JComponent getComponent() {
+    return myInstancesPanel;
   }
 
   @VisibleForTesting
@@ -307,7 +277,7 @@ final class MemoryInstanceView {
     }
 
     populateTreeContents();
-    mySplitter.setVisible(true);
+    myInstancesPanel.setVisible(true);
   }
 
   private void refreshInstance() {
@@ -318,8 +288,6 @@ final class MemoryInstanceView {
 
     if (instanceObject == null) {
       myInstanceObject = null;
-      myInstanceDetailPanel.removeAll();
-      myInstanceDetailPanel.setVisible(false);
       return;
     }
 
@@ -334,16 +302,5 @@ final class MemoryInstanceView {
         break;
       }
     }
-
-    AllocationStack callStack = myInstanceObject.getCallStack();
-    if (callStack == null || callStack.getStackFramesList().size() == 0) {
-      return;
-    }
-
-    DefaultListModel<StackTraceElement> model = new DefaultListModel<>();
-    callStack.getStackFramesList().forEach(frame -> model
-      .addElement(new StackTraceElement(frame.getClassName(), frame.getMethodName(), frame.getFileName(), frame.getLineNumber())));
-    myInstanceDetailPanel.add(new JBScrollPane(new JBList(model)));
-    myInstanceDetailPanel.setVisible(true);
   }
 }
