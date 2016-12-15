@@ -471,6 +471,20 @@ public class SceneComponent {
   //region Maintenance
   /////////////////////////////////////////////////////////////////////////////
 
+  /**
+   * Clear our attributes (delegating the action to our view handler)
+   */
+  public void clearAttributes() {
+    if (myViewGroupHandler != null) {
+      myViewGroupHandler.clearAttributes(this);
+    }
+    int count = myChildren.size();
+    for (int i = 0; i < count; i++) {
+      SceneComponent child = myChildren.get(i);
+      child.clearAttributes();
+    }
+  }
+
   @NotNull
   public Target addTarget(@NotNull Target target) {
     target.setComponent(this);
