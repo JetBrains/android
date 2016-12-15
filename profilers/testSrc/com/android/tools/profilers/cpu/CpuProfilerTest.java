@@ -22,7 +22,8 @@ import com.android.tools.profiler.proto.CpuProfiler.CpuStopResponse;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.ProfilerMonitor;
-import com.android.tools.profilers.TestGrpcChannel;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.FakeGrpcChannel;
 import io.grpc.stub.StreamObserver;
 import org.junit.Before;
 import org.junit.Rule;
@@ -39,13 +40,13 @@ public class CpuProfilerTest {
   private Profiler.Process FAKE_PROCESS = Profiler.Process.newBuilder().setPid(FAKE_PID).setName("FakeProcess").build();
 
   @Rule
-  public TestGrpcChannel myGrpcChannel = new TestGrpcChannel("CpuProfilerTest", myService);
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuProfilerTest", myService);
 
   private CpuProfiler myCpuProfiler;
 
   @Before
   public void setUp() throws Exception {
-    myCpuProfiler = new CpuProfiler(myGrpcChannel.getProfilers());
+    myCpuProfiler = new CpuProfiler(new StudioProfilers(myGrpcChannel.getClient()));
   }
 
   @Test

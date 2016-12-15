@@ -76,13 +76,26 @@ public final class StudioProfilers extends AspectModel<ProfilerAspect> implement
   private AxisComponentModel myViewAxis;
   private float myRefreshDevices;
 
-  public StudioProfilers(ProfilerClient service, @NotNull IdeProfilerServices ideServices) {
-    this(service, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE));
+  public StudioProfilers(ProfilerClient client, @NotNull IdeProfilerServices ideServices) {
+    this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE));
+  }
+
+  /**
+   * Test-only constructor that stubs out all services.
+   */
+  @VisibleForTesting
+  public StudioProfilers(ProfilerClient client) {
+    this(client, new IdeProfilerServices() {
+      @Override
+      public boolean navigateToStackTraceLine(@NotNull String line) {
+        return false;
+      }
+    });
   }
 
   @VisibleForTesting
-  public StudioProfilers(ProfilerClient service, @NotNull IdeProfilerServices ideServices, @NotNull StopwatchTimer timer) {
-    myClient = service;
+  public StudioProfilers(ProfilerClient client, @NotNull IdeProfilerServices ideServices, @NotNull StopwatchTimer timer) {
+    myClient = client;
     myIdeServices = ideServices;
     myPreferredProcessName = null;
     myStage = null;

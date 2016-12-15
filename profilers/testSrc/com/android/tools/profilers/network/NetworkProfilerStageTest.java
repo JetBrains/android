@@ -19,7 +19,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.TestGrpcChannel;
+import com.android.tools.profilers.FakeGrpcChannel;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf3jarjar.ByteString;
 import org.junit.Before;
@@ -47,15 +47,15 @@ public class NetworkProfilerStageTest {
       .add(FakeNetworkService.newHttpData(7, 0, 7, 14))
       .build();
 
-  @Rule public TestGrpcChannel myGrpcChannel =
-    new TestGrpcChannel("NetworkProfilerStageTest",
-                          FakeNetworkService.newBuilder().setNetworkDataList(FAKE_RADIO_DATA).setHttpDataList(FAKE_HTTP_DATA).build());
+  @Rule public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("NetworkProfilerStageTest",
+                        FakeNetworkService.newBuilder().setNetworkDataList(FAKE_RADIO_DATA).setHttpDataList(FAKE_HTTP_DATA).build());
 
   private NetworkProfilerStage myStage;
 
   @Before
   public void setUp() {
-    StudioProfilers profilers = myGrpcChannel.getProfilers();
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient());
     myStage = new NetworkProfilerStage(profilers);
   }
 

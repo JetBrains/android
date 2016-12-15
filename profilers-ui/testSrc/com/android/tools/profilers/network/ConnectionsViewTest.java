@@ -17,7 +17,7 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.TestGrpcChannel;
+import com.android.tools.profilers.FakeGrpcChannel;
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -42,15 +42,15 @@ public class ConnectionsViewTest {
       .add(FakeNetworkService.newHttpData(4, 21, 25, 34))
       .build();
 
-  @Rule public TestGrpcChannel myGrpcChannel =
-    new TestGrpcChannel("ConnectionsViewTest", FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
+  @Rule public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("ConnectionsViewTest", FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
   private NetworkProfilerStage myStage;
   //private FakeTimer myChoreographerTimer;
 //  private Choreographer myChoreographer;
 
   @Before
   public void setUp() {
-    StudioProfilers profilers = myGrpcChannel.getProfilers();
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient());
     myStage = new NetworkProfilerStage(profilers);
     //myChoreographerTimer = new FakeTimer();
     //myChoreographer = new Choreographer(myChoreographerTimer);

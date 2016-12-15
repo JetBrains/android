@@ -15,8 +15,9 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersViewFake;
-import com.android.tools.profilers.TestGrpcChannel;
+import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.HeapObject;
@@ -39,12 +40,12 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
   private final FakeMemoryService myService = new FakeMemoryService();
   @Rule
-  public TestGrpcChannel myGrpcChannel = new TestGrpcChannel("MEMORY_TEST_CHANNEL", myService);
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MEMORY_TEST_CHANNEL", myService);
 
   @Override
   @Before
   public void setup() {
-    myProfilers = myGrpcChannel.getProfilers();
+    myProfilers = new StudioProfilers(myGrpcChannel.getClient());
     myStage = new MemoryProfilerStage(myProfilers, DUMMY_LOADER);
     StudioProfilersViewFake view = new StudioProfilersViewFake(myProfilers);
     view.bind(MemoryProfilerStage.class, MemoryProfilerStageViewFake::new);

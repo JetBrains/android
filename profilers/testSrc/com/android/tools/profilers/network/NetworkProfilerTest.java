@@ -16,7 +16,8 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profilers.TestGrpcChannel;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.FakeGrpcChannel;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,14 +28,14 @@ public class NetworkProfilerTest {
   private static final int FAKE_PID = 111;
 
   private final FakeNetworkService myService = FakeNetworkService.newBuilder().build();
-  @Rule public TestGrpcChannel myGrpcChannel = new TestGrpcChannel("NetworkProfilerTest", myService);
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("NetworkProfilerTest", myService);
 
   private Profiler.Process FAKE_PROCESS = Profiler.Process.newBuilder().setPid(FAKE_PID).setName("FakeProcess").build();
   private NetworkProfiler myProfiler;
 
   @Before
   public void setUp() {
-    myProfiler = new NetworkProfiler(myGrpcChannel.getProfilers());
+    myProfiler = new NetworkProfiler(new StudioProfilers(myGrpcChannel.getClient()));
   }
 
   @Test
