@@ -79,14 +79,12 @@ public class NlComponentFixture {
   /** Click in the middle of the view (typically selects it) */
   public void click() {
     new ComponentDriver(myRobot).click(mySurface, getMidPoint());
-    myRobot.waitForIdle();
   }
 
   /** Right clicks s in the middle of the view */
   public void rightClick() {
     // Can't use ComponentDriver -- need to both set button and where
     myRobot.click(mySurface, getMidPoint(), MouseButton.RIGHT_BUTTON, 1);
-    myRobot.waitForIdle();
   }
 
   public void invokeContextMenuAction(@NotNull String actionLabel) {
