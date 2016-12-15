@@ -59,6 +59,7 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.util.PathUtil;
@@ -745,6 +746,9 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       // Keep requesting focus until it is obtained. Since there is no guarantee that the request focus will be granted,
       // keep asking until it is. This problem has appeared at least when not using a window manager when running tests.
       if (keyboardFocusManager.getFocusOwner() == null) {
+        if (SystemInfo.isMac) {
+          robot().click(target(), new Point(1, 1)); // Simulate title bar click
+        }
         execute(new GuiTask() {
           @Override
           protected void executeInEDT() throws Throwable {
