@@ -39,82 +39,82 @@ public class TopDownTreeModelTest {
     model.update(new Range(-Double.MAX_VALUE, Double.MAX_VALUE));
 
     TreeNode root = (TreeNode)model.getRoot();
-    assertEquals(":A:", getId(root));
-    assertEquals(ImmutableSet.of(":B:", ":C:"), getChildrenIds(root));
-    assertEquals(ImmutableSet.of(":D:", ":E:", ":G:"), getChildrenIds(getChild(root, ":B:")));
-    assertEquals(ImmutableSet.of(":F:"), getChildrenIds(getChild(root, ":C:")));
+    assertEquals(":A", getId(root));
+    assertEquals(ImmutableSet.of(":B", ":C"), getChildrenIds(root));
+    assertEquals(ImmutableSet.of(":D", ":E", ":G"), getChildrenIds(getChild(root, ":B")));
+    assertEquals(ImmutableSet.of(":F"), getChildrenIds(getChild(root, ":C")));
 
     // Test the total values
-    assertEquals(    30, getTotal(root, ":A:"), 0);
-    assertEquals( 8 + 7, getTotal(root, ":A:", ":B:"), 0);
-    assertEquals(     2, getTotal(root, ":A:", ":B:", ":D:"), 0);
-    assertEquals( 2 + 3, getTotal(root, ":A:", ":B:", ":E:"), 0);
-    assertEquals(     4, getTotal(root, ":A:", ":B:", ":G:"), 0);
-    assertEquals(     6, getTotal(root, ":A:", ":C:"), 0);
-    assertEquals(     2, getTotal(root, ":A:", ":C:", ":F:"), 0);
+    assertEquals(    30, getTotal(root, ":A"), 0);
+    assertEquals( 8 + 7, getTotal(root, ":A", ":B"), 0);
+    assertEquals(     2, getTotal(root, ":A", ":B", ":D"), 0);
+    assertEquals( 2 + 3, getTotal(root, ":A", ":B", ":E"), 0);
+    assertEquals(     4, getTotal(root, ":A", ":B", ":G"), 0);
+    assertEquals(     6, getTotal(root, ":A", ":C"), 0);
+    assertEquals(     2, getTotal(root, ":A", ":C", ":F"), 0);
 
     // Test the children total values
-    assertEquals(    21, getChildrenTotal(root, ":A:"), 0);
-    assertEquals(    11, getChildrenTotal(root, ":A:", ":B:"), 0);
-    assertEquals(     0, getChildrenTotal(root, ":A:", ":B:", ":D:"), 0);
-    assertEquals(     0, getChildrenTotal(root, ":A:", ":B:", ":E:"), 0);
-    assertEquals(     0, getChildrenTotal(root, ":A:", ":B:", ":G:"), 0);
-    assertEquals(     2, getChildrenTotal(root, ":A:", ":C:"), 0);
-    assertEquals(     0, getChildrenTotal(root, ":A:", ":C:", ":F:"), 0);
+    assertEquals(    21, getChildrenTotal(root, ":A"), 0);
+    assertEquals(    11, getChildrenTotal(root, ":A", ":B"), 0);
+    assertEquals(     0, getChildrenTotal(root, ":A", ":B", ":D"), 0);
+    assertEquals(     0, getChildrenTotal(root, ":A", ":B", ":E"), 0);
+    assertEquals(     0, getChildrenTotal(root, ":A", ":B", ":G"), 0);
+    assertEquals(     2, getChildrenTotal(root, ":A", ":C"), 0);
+    assertEquals(     0, getChildrenTotal(root, ":A", ":C", ":F"), 0);
 
     // Chop the tree to 0 - 10
     model.update(new Range(0, 10));
     root = (TreeNode)model.getRoot();
-    assertEquals(":A:", getId(root));
-    assertEquals(ImmutableSet.of(":B:"), getChildrenIds(root));
-    assertEquals(ImmutableSet.of(":D:", ":E:"), getChildrenIds(getChild(root, ":B:")));
+    assertEquals(":A", getId(root));
+    assertEquals(ImmutableSet.of(":B"), getChildrenIds(root));
+    assertEquals(ImmutableSet.of(":D", ":E"), getChildrenIds(getChild(root, ":B")));
 
     // Test the total values
-    assertEquals(    10, getTotal(root, ":A:"), 0);
-    assertEquals(     8, getTotal(root, ":A:", ":B:"), 0);
-    assertEquals(     2, getTotal(root, ":A:", ":B:", ":D:"), 0);
-    assertEquals(     2, getTotal(root, ":A:", ":B:", ":E:"), 0);
+    assertEquals(    10, getTotal(root, ":A"), 0);
+    assertEquals(     8, getTotal(root, ":A", ":B"), 0);
+    assertEquals(     2, getTotal(root, ":A", ":B", ":D"), 0);
+    assertEquals(     2, getTotal(root, ":A", ":B", ":E"), 0);
 
     // Test the children total values
-    assertEquals(     8, getChildrenTotal(root, ":A:"), 0);
-    assertEquals(     4, getChildrenTotal(root, ":A:", ":B:"), 0);
-    assertEquals(     0, getChildrenTotal(root, ":A:", ":B:", ":D:"), 0);
-    assertEquals(     0, getChildrenTotal(root, ":A:", ":B:", ":E:"), 0);
+    assertEquals(     8, getChildrenTotal(root, ":A"), 0);
+    assertEquals(     4, getChildrenTotal(root, ":A", ":B"), 0);
+    assertEquals(     0, getChildrenTotal(root, ":A", ":B", ":D"), 0);
+    assertEquals(     0, getChildrenTotal(root, ":A", ":B", ":E"), 0);
 
     // And now to 18, 25
     model.update(new Range(8, 25));
     root = (TreeNode)model.getRoot();
-    assertEquals(":A:", getId(root));
-    assertEquals(ImmutableSet.of(":B:", ":C:"), getChildrenIds(root));
-    assertEquals(ImmutableSet.of(":E:"), getChildrenIds(getChild(root, ":B:")));
-    assertEquals(ImmutableSet.of(":F:"), getChildrenIds(getChild(root, ":C:")));
+    assertEquals(":A", getId(root));
+    assertEquals(ImmutableSet.of(":B", ":C"), getChildrenIds(root));
+    assertEquals(ImmutableSet.of(":E"), getChildrenIds(getChild(root, ":B")));
+    assertEquals(ImmutableSet.of(":F"), getChildrenIds(getChild(root, ":C")));
 
     // Test the total values
-    assertEquals(    17, getTotal(root, ":A:"), 0);
-    assertEquals( 1 + 3, getTotal(root, ":A:", ":B:"), 0);
-    assertEquals( 1 + 3, getTotal(root, ":A:", ":B:", ":E:"), 0);
-    assertEquals(     6, getTotal(root, ":A:", ":C:"), 0);
-    assertEquals(     2, getTotal(root, ":A:", ":C:", ":F:"), 0);
+    assertEquals(    17, getTotal(root, ":A"), 0);
+    assertEquals( 1 + 3, getTotal(root, ":A", ":B"), 0);
+    assertEquals( 1 + 3, getTotal(root, ":A", ":B", ":E"), 0);
+    assertEquals(     6, getTotal(root, ":A", ":C"), 0);
+    assertEquals(     2, getTotal(root, ":A", ":C", ":F"), 0);
 
     // Test the children total values
-    assertEquals(    10, getChildrenTotal(root, ":A:"), 0);
-    assertEquals(     4, getChildrenTotal(root, ":A:", ":B:"), 0);
-    assertEquals(     0, getChildrenTotal(root, ":A:", ":B:", ":E:"), 0);
-    assertEquals(     2, getChildrenTotal(root, ":A:", ":C:"), 0);
-    assertEquals(     0, getChildrenTotal(root, ":A:", ":C:", ":F:"), 0);
+    assertEquals(    10, getChildrenTotal(root, ":A"), 0);
+    assertEquals(     4, getChildrenTotal(root, ":A", ":B"), 0);
+    assertEquals(     0, getChildrenTotal(root, ":A", ":B", ":E"), 0);
+    assertEquals(     2, getChildrenTotal(root, ":A", ":C"), 0);
+    assertEquals(     0, getChildrenTotal(root, ":A", ":C", ":F"), 0);
   }
 
-  private double getTotal(TreeNode node, String id, String... ids) {
+  private static double getTotal(TreeNode node, String id, String... ids) {
     node = getNode(node, id, ids);
     return getTotal(node);
   }
 
-  private double getChildrenTotal(TreeNode node, String id, String... ids) {
+  private static double getChildrenTotal(TreeNode node, String id, String... ids) {
     node = getNode(node, id, ids);
     return getChildrenTotal(node);
   }
 
-  private TreeNode getNode(TreeNode node, String id, String[] ids) {
+  private static TreeNode getNode(TreeNode node, String id, String[] ids) {
     assertEquals(id, getId(node));
     for (String s : ids) {
       node = getChild(node, s);
@@ -122,7 +122,7 @@ public class TopDownTreeModelTest {
     return node;
   }
 
-  private TreeNode getChild(TreeNode node, String id) {
+  private static TreeNode getChild(TreeNode node, String id) {
     for (int i = 0; i < node.getChildCount(); i++) {
       TreeNode child = node.getChildAt(i);
       if (getId(child).equals(id)) {
