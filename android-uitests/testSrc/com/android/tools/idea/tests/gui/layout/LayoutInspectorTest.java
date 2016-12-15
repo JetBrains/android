@@ -94,8 +94,8 @@ public class LayoutInspectorTest {
   public void launchLayoutInspector() throws Exception {
     InstantRunSettings.setInstantRunEnabled(false);
     guiTest.ideFrame().runApp("app").selectDevice(AVD_NAME).clickOk();
-    // wait for build to finish before requesting run tool window. otherwise run tool window won't activate.
-    guiTest.ideFrame().waitForBuildToFinish(BuildMode.ASSEMBLE);
+    // wait for background tasks to finish before requesting run tool window. otherwise run tool window won't activate.
+    guiTest.waitForBackgroundTasks();
     // look at the run tool window to determine when the app has started so we can select the process in android tool window
     guiTest.ideFrame()
       .getRunToolWindow()
