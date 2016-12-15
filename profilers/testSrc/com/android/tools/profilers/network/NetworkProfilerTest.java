@@ -15,22 +15,19 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.TestGrpcChannel;
-import io.grpc.stub.StreamObserver;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.android.tools.profiler.proto.NetworkProfiler.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class NetworkProfilerTest {
   private static final int FAKE_PID = 111;
 
-  private final FakeService myService = new FakeService();
-  @Rule public TestGrpcChannel<FakeService> myGrpcChannel = new TestGrpcChannel<>("NetworkProfilerTest", myService);
+  private final FakeNetworkService myService = FakeNetworkService.newBuilder().build();
+  @Rule public TestGrpcChannel myGrpcChannel = new TestGrpcChannel("NetworkProfilerTest", myService);
 
   private Profiler.Process FAKE_PROCESS = Profiler.Process.newBuilder().setPid(FAKE_PID).setName("FakeProcess").build();
   private NetworkProfiler myProfiler;
@@ -55,29 +52,5 @@ public class NetworkProfilerTest {
   public void stopMonitoring() {
     myProfiler.stopProfiling(FAKE_PROCESS);
     assertEquals(FAKE_PID, myService.getAppId());
-  }
-
-  private static class FakeService extends NetworkServiceGrpc.NetworkServiceImplBase {
-    private int myAppId;
-
-    @Override
-    public void startMonitoringApp(NetworkStartRequest request,
-                                   StreamObserver<NetworkStartResponse> responseObserver) {
-      myAppId = request.getAppId();
-      responseObserver.onNext(NetworkStartResponse.newBuilder().build());
-      responseObserver.onCompleted();
-    }
-
-    @Override
-    public void stopMonitoringApp(NetworkStopRequest request,
-                                  StreamObserver<NetworkStopResponse> responseObserver) {
-      myAppId = request.getAppId();
-      responseObserver.onNext(NetworkStopResponse.newBuilder().build());
-      responseObserver.onCompleted();
-    }
-
-    private int getAppId() {
-      return myAppId;
-    }
   }
 }

@@ -30,26 +30,26 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class NetworkRadioDataSeriesTest {
   private static final ImmutableList<NetworkProfiler.NetworkProfilerData> FAKE_DATA =
     new ImmutableList.Builder<NetworkProfiler.NetworkProfilerData>()
-      .add(TestNetworkService.newRadioData(0, ConnectivityData.NetworkType.WIFI, ConnectivityData.RadioState.UNSPECIFIED))
-      .add(TestNetworkService.newRadioData(5, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.ACTIVE))
-      .add(TestNetworkService.newRadioData(10, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.IDLE))
-      .add(TestNetworkService.newRadioData(15, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.SLEEPING))
-      .add(TestNetworkService.newRadioData(1000, ConnectivityData.NetworkType.INVALID, ConnectivityData.RadioState.SLEEPING))
-      .add(TestNetworkService.newRadioData(1005, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.UNSPECIFIED))
+      .add(FakeNetworkService.newRadioData(0, ConnectivityData.NetworkType.WIFI, ConnectivityData.RadioState.UNSPECIFIED))
+      .add(FakeNetworkService.newRadioData(5, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.ACTIVE))
+      .add(FakeNetworkService.newRadioData(10, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.IDLE))
+      .add(FakeNetworkService.newRadioData(15, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.SLEEPING))
+      .add(FakeNetworkService.newRadioData(1000, ConnectivityData.NetworkType.INVALID, ConnectivityData.RadioState.SLEEPING))
+      .add(FakeNetworkService.newRadioData(1005, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.UNSPECIFIED))
       .build();
-  @Rule public TestGrpcChannel<TestNetworkService> myGrpcChannel =
-    new TestGrpcChannel<>("NetworkRadioDataSeriesTest", TestNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).build());
+  @Rule public TestGrpcChannel myGrpcChannel =
+    new TestGrpcChannel("NetworkRadioDataSeriesTest", FakeNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).build());
   private NetworkRadioDataSeries mySeries;
 
   @Before
   public void setUp() {
     StudioProfilers profiler = myGrpcChannel.getProfilers();
-    mySeries = new NetworkRadioDataSeries(profiler.getClient().getNetworkClient(), TestNetworkService.FAKE_APP_ID);
+    mySeries = new NetworkRadioDataSeries(profiler.getClient().getNetworkClient(), FakeNetworkService.FAKE_APP_ID);
   }
 
   @Test

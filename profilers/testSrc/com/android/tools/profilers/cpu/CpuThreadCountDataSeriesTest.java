@@ -36,7 +36,7 @@ import static org.junit.Assert.assertEquals;
 public class CpuThreadCountDataSeriesTest {
 
   @Rule
-  public TestGrpcChannel<FakeCpuService> myGrpcChannel = new TestGrpcChannel<>("CpuThreadCountDataSeriesTest", new FakeCpuService());
+  public TestGrpcChannel myGrpcChannel = new TestGrpcChannel("CpuThreadCountDataSeriesTest", new FakeCpuService());
 
   private CpuThreadCountDataSeries myDataSeries;
 

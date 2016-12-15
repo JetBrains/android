@@ -35,9 +35,10 @@ import static org.junit.Assert.*;
 
 public class CpuProfilerStageTest {
 
+  private final FakeCpuService myCpuService = new FakeCpuService();
   @Rule
-  public TestGrpcChannel<FakeCpuService> myGrpcChannel =
-    new TestGrpcChannel<>("CpuProfilerStageTestChannel", new FakeCpuService(), new FakeProfilerService());
+  public TestGrpcChannel myGrpcChannel =
+    new TestGrpcChannel("CpuProfilerStageTestChannel", myCpuService, new FakeProfilerService());
 
   private CpuProfilerStage myStage;
 
@@ -70,12 +71,12 @@ public class CpuProfilerStageTest {
 
     myGetProcessesLatch.await();
     // Start a successful capture
-    myGrpcChannel.getService().setStartProfilingStatus(CpuProfilingAppStartResponse.Status.SUCCESS);
+    myCpuService.setStartProfilingStatus(CpuProfilingAppStartResponse.Status.SUCCESS);
     myStage.startCapturing();
     assertTrue(myStage.isCapturing());
 
     // Start a failing capture
-    myGrpcChannel.getService().setStartProfilingStatus(CpuProfilingAppStartResponse.Status.FAILURE);
+    myCpuService.setStartProfilingStatus(CpuProfilingAppStartResponse.Status.FAILURE);
     myStage.startCapturing();
     assertFalse(myStage.isCapturing());
   }
@@ -86,13 +87,13 @@ public class CpuProfilerStageTest {
 
     myGetProcessesLatch.await();
     // Start a successful capture
-    myGrpcChannel.getService().setStartProfilingStatus(CpuProfilingAppStartResponse.Status.SUCCESS);
+    myCpuService.setStartProfilingStatus(CpuProfilingAppStartResponse.Status.SUCCESS);
     myStage.startCapturing();
     assertTrue(myStage.isCapturing());
 
     // Stop capturing, but don't include a trace in the response.
-    myGrpcChannel.getService().setStopProfilingStatus(CpuProfilingAppStopResponse.Status.SUCCESS);
-    myGrpcChannel.getService().setValidTrace(false);
+    myCpuService.setStopProfilingStatus(CpuProfilingAppStopResponse.Status.SUCCESS);
+    myCpuService.setValidTrace(false);
     myStage.stopCapturing();
     assertFalse(myStage.isCapturing());
     // Capture was stopped successfully, but capture should still be null as the response has no valid trace
@@ -103,8 +104,8 @@ public class CpuProfilerStageTest {
     assertTrue(myStage.isCapturing());
 
     // Stop a capture unsuccessfully
-    myGrpcChannel.getService().setStopProfilingStatus(CpuProfilingAppStopResponse.Status.FAILURE);
-    myGrpcChannel.getService().setValidTrace(false);
+    myCpuService.setStopProfilingStatus(CpuProfilingAppStopResponse.Status.FAILURE);
+    myCpuService.setValidTrace(false);
     myStage.stopCapturing();
     assertFalse(myStage.isCapturing());
     assertNull(myStage.getCapture());
@@ -114,8 +115,8 @@ public class CpuProfilerStageTest {
     assertTrue(myStage.isCapturing());
 
     // Stop a capture unsuccessfully, but with a valid trace
-    myGrpcChannel.getService().setStopProfilingStatus(CpuProfilingAppStopResponse.Status.FAILURE);
-    myGrpcChannel.getService().setValidTrace(true);
+    myCpuService.setStopProfilingStatus(CpuProfilingAppStopResponse.Status.FAILURE);
+    myCpuService.setValidTrace(true);
     myStage.stopCapturing();
     assertFalse(myStage.isCapturing());
     // Despite the fact of having a valid trace, we first check for the response status.
@@ -127,8 +128,8 @@ public class CpuProfilerStageTest {
     assertTrue(myStage.isCapturing());
 
     // Stop a capture successfully with a valid trace
-    myGrpcChannel.getService().setStopProfilingStatus(CpuProfilingAppStopResponse.Status.SUCCESS);
-    myGrpcChannel.getService().setValidTrace(true);
+    myCpuService.setStopProfilingStatus(CpuProfilingAppStopResponse.Status.SUCCESS);
+    myCpuService.setValidTrace(true);
     myStage.stopCapturing();
     assertFalse(myStage.isCapturing());
     assertNotNull(myStage.getCapture());
