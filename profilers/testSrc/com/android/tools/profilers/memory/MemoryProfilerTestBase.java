@@ -16,15 +16,17 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.memory.adapters.*;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
+import com.android.tools.profilers.memory.adapters.ClassObject;
+import com.android.tools.profilers.memory.adapters.HeapObject;
+import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
-import org.junit.Rule;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,8 +34,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-public class MemoryProfilerTestBase {
-  private final FakeMemoryService myService = new FakeMemoryService();
+public abstract class MemoryProfilerTestBase {
   protected StudioProfilers myProfilers;
   protected MemoryProfilerStage myStage;
 
@@ -44,12 +45,14 @@ public class MemoryProfilerTestBase {
   protected int myCurrentClassAspectCount;
   protected int myCurrentInstanceAspectCount;
 
-  @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MEMORY_TEST_CHANNEL", myService);
-
   @Before
-  public void setup() {
+  public void setupBase() {
     resetCounts();
+
+    myProfilers = new StudioProfilers(getGrpcChannel().getClient());
+    onProfilersCreated(myProfilers);
+    myStage = new MemoryProfilerStage(myProfilers, DUMMY_LOADER);
+
     myStage.getAspect().addDependency()
       .onChange(MemoryProfilerAspect.LEGACY_ALLOCATION, () -> ++myLegacyAllocationAspectCount)
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, () -> ++myCurrentLoadedCaptureAspectCount)
@@ -57,7 +60,15 @@ public class MemoryProfilerTestBase {
       .onChange(MemoryProfilerAspect.CURRENT_HEAP, () -> ++myCurrentHeapAspectCount)
       .onChange(MemoryProfilerAspect.CURRENT_CLASS, () -> ++myCurrentClassAspectCount)
       .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, () -> ++myCurrentInstanceAspectCount);
+    myProfilers.setStage(myStage);
   }
+
+  /**
+   * Child classes are responsible for providing their own fake grpc channel
+   */
+  protected abstract FakeGrpcChannel getGrpcChannel();
+
+  protected void onProfilersCreated(StudioProfilers profilers) {}
 
   protected void assertAndResetCounts(int legacyAllocationAspect,
                                     int currentLoadingCaptureAspectCount,
