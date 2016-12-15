@@ -19,13 +19,13 @@ import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class NetworkProfilerStage extends Stage {
@@ -66,27 +66,26 @@ public class NetworkProfilerStage extends Stage {
    */
   public void setSelectedConnection(@Nullable HttpData data) {
     if (data != null && data.getResponsePayloadId() != null && data.getResponsePayloadFile() == null) {
-      ByteString payload = myConnectionsModel.requestResponsePayload(data);
-      File file = null;
+      ByteString payload = getConnectionsModel().requestResponsePayload(data);
       try {
-        String contentType = data.getResponseField(HttpData.FIELD_CONTENT_TYPE);
-        String extension = contentType == null ? "" : HttpData.guessFileExtensionFromContentType(contentType);
-        file = FileUtil.createTempFile(data.getResponsePayloadId(), extension);
-        FileOutputStream outputStream = new FileOutputStream(file);
-        payload.writeTo(outputStream);
+        File file = getConnectionPayload(payload, data);
+        data.setResponsePayloadFile(file);
       } catch (IOException e) {
         return;
-      } finally {
-        if (file != null) {
-          file.deleteOnExit();
-        }
       }
-      data.setResponsePayloadFile(file);
     }
-
     mySelectedConnection = data;
     getStudioProfilers().modeChanged();
     getAspect().changed(NetworkProfilerAspect.ACTIVE_CONNECTION);
+  }
+
+  @VisibleForTesting
+  File getConnectionPayload(@NotNull ByteString payload, @NotNull HttpData data) throws IOException {
+    String contentType = data.getResponseField(HttpData.FIELD_CONTENT_TYPE);
+    String extension = contentType == null ? "" : HttpData.guessFileExtensionFromContentType(contentType);
+    File file = FileUtil.createTempFile(data.getResponsePayloadId(), extension, true);
+    FileUtil.writeToFile(file, payload.toByteArray());
+    return file;
   }
 
   /**
