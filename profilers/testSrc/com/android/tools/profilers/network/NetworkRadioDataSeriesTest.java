@@ -20,7 +20,7 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkProfiler.ConnectivityData;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.TestGrpcChannel;
+import com.android.tools.profilers.FakeGrpcChannel;
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Rule;
@@ -42,13 +42,13 @@ public class NetworkRadioDataSeriesTest {
       .add(FakeNetworkService.newRadioData(1000, ConnectivityData.NetworkType.INVALID, ConnectivityData.RadioState.SLEEPING))
       .add(FakeNetworkService.newRadioData(1005, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.UNSPECIFIED))
       .build();
-  @Rule public TestGrpcChannel myGrpcChannel =
-    new TestGrpcChannel("NetworkRadioDataSeriesTest", FakeNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).build());
+  @Rule public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("NetworkRadioDataSeriesTest", FakeNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).build());
   private NetworkRadioDataSeries mySeries;
 
   @Before
   public void setUp() {
-    StudioProfilers profiler = myGrpcChannel.getProfilers();
+    StudioProfilers profiler = new StudioProfilers(myGrpcChannel.getClient());
     mySeries = new NetworkRadioDataSeries(profiler.getClient().getNetworkClient(), FakeNetworkService.FAKE_APP_ID);
   }
 

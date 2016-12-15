@@ -20,7 +20,7 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.TestGrpcChannel;
+import com.android.tools.profilers.FakeGrpcChannel;
 import com.intellij.util.containers.ImmutableList;
 import io.grpc.stub.StreamObserver;
 import org.junit.Before;
@@ -32,13 +32,15 @@ import static org.junit.Assert.*;
 
 public class CpuMonitorTest {
   @Rule
-  public TestGrpcChannel myGrpcChannel = new TestGrpcChannel("CpuMonitorTestChannel", new FakeCpuService());
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuMonitorTestChannel", new FakeCpuService());
 
+  private StudioProfilers myProfilers;
   private CpuMonitor myMonitor;
 
   @Before
   public void setUp() throws Exception {
-    myMonitor = new CpuMonitor(myGrpcChannel.getProfilers());
+    myProfilers = new StudioProfilers(myGrpcChannel.getClient());
+    myMonitor = new CpuMonitor(myProfilers);
   }
 
   @Test
@@ -84,10 +86,9 @@ public class CpuMonitorTest {
 
   @Test
   public void testExpand() {
-    StudioProfilers profilers = myGrpcChannel.getProfilers();
-    assertNull(profilers.getStage());
+    assertNull(myProfilers.getStage());
     myMonitor.expand();
-    assertThat(profilers.getStage(), instanceOf(CpuProfilerStage.class));
+    assertThat(myProfilers.getStage(), instanceOf(CpuProfilerStage.class));
   }
 
   private static class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {

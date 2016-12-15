@@ -15,28 +15,23 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.model.FakeTimer;
 import io.grpc.BindableService;
 import io.grpc.Server;
 import io.grpc.inprocess.InProcessServerBuilder;
-import org.jetbrains.annotations.NotNull;
 import org.junit.rules.ExternalResource;
 
 /**
  * JUnit rule for creating a light, in-process GRPC client / server connection that is initialized
- * with a single fake service which provides it test data. In addition to starting up / shutting
- * down this connection automatically, it also creates a {@link StudioProfilers} instance, which is
- * a useful handle for many tests to read from the service.
+ * with fake services which provides it test data. This class handles starting up / shutting down
+ * this connection automatically before / after each test.
  */
-public final class TestGrpcChannel extends ExternalResource {
+public final class FakeGrpcChannel extends ExternalResource {
   private final String myName;
   private final BindableService[] myServices;
   private Server myServer;
   private ProfilerClient myClient;
-  private StudioProfilers myProfilers;
-  private FakeTimer myTimer;
 
-  public TestGrpcChannel(String name, BindableService... services) {
+  public FakeGrpcChannel(String name, BindableService... services) {
     myName = name;
     myServices = services;
   }
@@ -50,13 +45,6 @@ public final class TestGrpcChannel extends ExternalResource {
     myServer = serverBuilder.build();
     myServer.start();
     myClient = new ProfilerClient(myName);
-    myTimer = new FakeTimer();
-    myProfilers = new StudioProfilers(myClient, new IdeProfilerServices() {
-      @Override
-      public boolean navigateToStackTraceLine(@NotNull String line) {
-        return false;
-      }
-    }, myTimer);
   }
 
   @Override
@@ -66,13 +54,5 @@ public final class TestGrpcChannel extends ExternalResource {
 
   public ProfilerClient getClient() {
     return myClient;
-  }
-
-  public StudioProfilers getProfilers() {
-    return myProfilers;
-  }
-
-  public FakeTimer getTimer() {
-    return myTimer;
   }
 }
