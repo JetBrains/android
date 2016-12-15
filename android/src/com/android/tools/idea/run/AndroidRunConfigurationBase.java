@@ -240,7 +240,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     assert facet != null : "Enforced by fatal validation check in checkConfiguration.";
 
     Project project = env.getProject();
+
     boolean forceColdswap = !InstantRunUtils.isInvokedViaHotswapAction(env);
+    boolean couldHaveHotswapped = false;
 
     boolean debug = false;
     if (executor instanceof DefaultDebugExecutor) {
@@ -279,6 +281,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       }
     }
     else if (info != null && forceColdswap) {
+      // the user could have invoked the hotswap action in this scenario, but they chose to force a coldswap (by pressing run)
+      couldHaveHotswapped = true;
+
       // forcibly kill app in case of run action (which forces a cold swap)
       // normally, installing the apk will force kill the app, but we need to forcibly kill it in the case that there were no changes
       killSession(info);
@@ -367,7 +372,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     runConfigContext.setSameExecutorAsPreviousSession(info != null && executor.getId().equals(info.getExecutorId()));
     runConfigContext.setCleanRerun(InstantRunUtils.isCleanReRun(env));
 
-    runConfigContext.setForceColdSwap(forceColdswap);
+    runConfigContext.setForceColdSwap(forceColdswap, couldHaveHotswapped);
 
     // Save the instant run context so that before-run task can access it
     env.putCopyableUserData(InstantRunContext.KEY, instantRunContext);
