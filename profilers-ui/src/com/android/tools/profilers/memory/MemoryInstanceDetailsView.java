@@ -60,7 +60,6 @@ final class MemoryInstanceDetailsView {
   public MemoryInstanceDetailsView(@NotNull MemoryProfilerStage stage) {
     myStage = stage;
     myStage.getAspect().addDependency()
-      .setExecutor(ApplicationManager.getApplication(), Application::invokeLater)
       .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::instanceChanged);
 
     // TODO fix tab styling. Currently tabs appear in the middle with too much padding.
