@@ -19,8 +19,6 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.profilers.ProfilerColors;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.ui.popup.IconButton;
 import com.intellij.ui.HyperlinkLabel;
@@ -28,19 +26,19 @@ import com.intellij.ui.InplaceButton;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
-import com.intellij.ui.components.labels.ActionLink;
 import com.intellij.ui.components.labels.BoldLabel;
+import com.intellij.ui.components.labels.SwingActionLink;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 
 /**
  * View to display a single network request and its response's detailed information.
  */
 public class ConnectionDetailsView extends JPanel {
-  private final JPanel myResponsePanel;
   private final JPanel myEditorPanel;
   private final JPanel myFieldsPanel;
   private final JPanel myCallStackView;
@@ -61,18 +59,18 @@ public class ConnectionDetailsView extends JPanel {
 
     JBTabbedPane tabPanel = new JBTabbedPane();
 
-    myResponsePanel = new JPanel(new BorderLayout());
+    JPanel responsePanel = new JPanel(new BorderLayout());
     myEditorPanel = new JPanel(new BorderLayout());
-    myResponsePanel.add(myEditorPanel, BorderLayout.CENTER);
+    responsePanel.add(myEditorPanel, BorderLayout.CENTER);
 
     myFieldsPanel = new JPanel(new TabularLayout("Fit,20px,*").setVGap(10));
     JBScrollPane scrollPane = new JBScrollPane(myFieldsPanel);
     scrollPane.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0));
-    myResponsePanel.add(scrollPane, BorderLayout.SOUTH);
+    responsePanel.add(scrollPane, BorderLayout.SOUTH);
 
     myCallStackView = new JPanel(new VerticalFlowLayout());
     myCallStackView.setBackground(ProfilerColors.MONITOR_BACKGROUND);
-    tabPanel.addTab("Response", myResponsePanel);
+    tabPanel.addTab("Response", responsePanel);
     tabPanel.addTab("Call Stack", new JBScrollPane(myCallStackView));
 
     IconButton closeIcon = new IconButton("Close", AllIcons.Actions.Close, AllIcons.Actions.CloseHovered);
@@ -128,10 +126,11 @@ public class ConnectionDetailsView extends JPanel {
         myFieldsPanel.add(new NoWrapBoldLabel("Content length"), new TabularLayout.Constraint(row, 0));
         myFieldsPanel.add(new JLabel(contentLength), new TabularLayout.Constraint(row, 2));
       }
+
       for (String line : httpData.getTrace().split("\\n")) {
-        JLabel label = new ActionLink(line, new AnAction() {
+        JLabel label = new SwingActionLink(new AbstractAction(line) {
           @Override
-          public void actionPerformed(AnActionEvent e) {
+          public void actionPerformed(ActionEvent e) {
             myStageView.getIdeServices().navigateToStackTraceLine(line);
           }
         });
