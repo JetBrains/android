@@ -17,13 +17,11 @@ package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
-import com.android.tools.adtui.model.DefaultDataSeries;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
+import com.android.tools.adtui.model.*;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.util.containers.ImmutableList;
@@ -48,6 +46,7 @@ public class DataReducerVisualTest extends VisualTest {
   private Range myYRange;
 
   private LineChart myLineChart;
+  private LineChartModel myLineChartModel;
   private LineChart myOptimizedLineChart;
   private AxisComponent myXAxis;
 
@@ -56,27 +55,34 @@ public class DataReducerVisualTest extends VisualTest {
   private int myVariance = 10;
   private int mySampleSize = 10;
   private SelectionComponent mySelection;
+  private LineChartModel myOptimizedLineChartModel;
+  private AxisComponentModel myXAxisModel;
 
   @Override
-  protected List<Updatable> createComponentsList() {
+  protected List<Updatable> createModelList() {
     myGlobalXRange = new Range(0, 0);
     myViewXRange = new AnimatedRange();
     mySelectionXRange = new AnimatedRange();
     myYRange = new Range(0, 0);
 
-    myLineChart = new LineChart((shape, config) -> shape);
-    myOptimizedLineChart = new LineChart();
+    myLineChartModel = new LineChartModel();
+    myLineChart = new LineChart((shape, config) -> shape, myLineChartModel);
+    myOptimizedLineChartModel = new LineChartModel();
+    myOptimizedLineChart = new LineChart(myOptimizedLineChartModel);
 
-    myXAxis = new AxisComponent.Builder(myViewXRange, new SingleUnitAxisFormatter(1, 5, 1, ""), AxisComponent.AxisOrientation.BOTTOM).build();
-    mySelection = new SelectionComponent(mySelectionXRange, myViewXRange);
+    myXAxisModel =
+      new AxisComponentModel(myViewXRange, new SingleUnitAxisFormatter(1, 5, 1, ""), AxisComponentModel.AxisOrientation.BOTTOM);
+    myXAxis = new AxisComponent(myXAxisModel);
+    SelectionModel selection = new SelectionModel(mySelectionXRange, myViewXRange);
+    mySelection = new SelectionComponent(selection);
 
     myData = new DefaultDataSeries<>();
     mySeries = new RangedContinuousSeries("Straight", myViewXRange, myYRange, myData);
 
-    myLineChart.addLine(mySeries, new LineConfig(JBColor.BLUE));
-    myOptimizedLineChart.addLine(mySeries, new LineConfig(JBColor.RED));
+    myLineChart.configure("Straight", new LineConfig(JBColor.BLUE));
+    myOptimizedLineChart.configure("Straight", new LineConfig(JBColor.RED));
 
-    return Arrays.asList(myViewXRange, mySelectionXRange, myLineChart, myOptimizedLineChart, myXAxis, mySelection);
+    return Arrays.asList(myViewXRange, mySelectionXRange, myLineChartModel, myOptimizedLineChartModel, myXAxisModel);
   }
 
   @Override

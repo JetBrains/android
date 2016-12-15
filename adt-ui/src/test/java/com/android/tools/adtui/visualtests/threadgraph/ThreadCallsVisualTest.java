@@ -17,16 +17,14 @@
 package com.android.tools.adtui.visualtests.threadgraph;
 
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.model.HNode;
+import com.android.tools.adtui.model.LineChartModel;
+import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.hchart.JavaMethodHRenderer;
 import com.android.tools.adtui.chart.hchart.Method;
 import com.android.tools.adtui.chart.linechart.LineChart;
-import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.visualtests.VisualTest;
-import com.android.tools.adtui.model.LongDataSeries;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
@@ -66,23 +64,28 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
   private LineChart mLineChart;
 
   @NotNull
+  private final LineChartModel mLineChartModel;
+
+  @NotNull
   private JScrollBar mScrollBar;
+  private final AxisComponentModel mAxisModel;
 
   public ThreadCallsVisualTest() {
     this.mTimeGlobalRangeUs = new Range(0, 0);
 
-    AxisComponent.Builder builder = new AxisComponent.Builder(mTimeGlobalRangeUs, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM);
-    this.mAxis = builder.build();
+    this.mAxisModel = new AxisComponentModel(mTimeGlobalRangeUs, TimeAxisFormatter.DEFAULT, AxisComponentModel.AxisOrientation.BOTTOM);
+    this.mAxis = new AxisComponent(mAxisModel);
 
     this.mTimeSelectionRangeUs = new Range(0, 0);
 
-    this.mChart = new HTreeChart<Method>();
+    this.mChart = new HTreeChart<Method>(mTimeSelectionRangeUs, HTreeChart.Orientation.BOTTOM_UP);
     this.mChart.setHRenderer(new JavaMethodHRenderer());
-    this.mChart.setXRange(mTimeSelectionRangeUs);
 
-    mLineChart = new LineChart();
+    mLineChartModel = new LineChartModel();
+    mLineChart = new LineChart(mLineChartModel);
 
-    this.mSelector = new SelectionComponent(mTimeSelectionRangeUs, mTimeGlobalRangeUs);
+    SelectionModel model = new SelectionModel(mTimeSelectionRangeUs, mTimeGlobalRangeUs);
+    mSelector = new SelectionComponent(model);
   }
 
   @Override
@@ -91,12 +94,10 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
   }
 
   @Override
-  protected List<Updatable> createComponentsList() {
+  protected List<Updatable> createModelList() {
     List<Updatable> list = new ArrayList<>();
-    list.add(mChart);
-    list.add(mSelector);
-    list.add(mAxis);
-    list.add(mLineChart);
+    list.add(mAxisModel);
+    list.add(mLineChartModel);
     return list;
   }
 
@@ -214,7 +215,7 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
         for (int i = 0; i < 100; i++) {
           series.add((long)(start + (end - start) / 100 * i), (long)r.nextInt(100));
         }
-        mLineChart.addLine(rangedSeries);
+        mLineChartModel.add(rangedSeries);
         mScrollBar.setValues(0, mChart.getHeight(), 0, mChart.getMaximumHeight());
       }
     }
@@ -240,32 +241,6 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
     timelinePane.add(mAxis);
     timelinePane.add(mLineChart);
     timelinePane.add(mSelector);
-    timelinePane.addComponentListener(new ComponentAdapter() {
-      @Override
-      public void componentResized(ComponentEvent e) {
-        JLayeredPane host = (JLayeredPane)e.getComponent();
-        if (host != null) {
-          Dimension dim = host.getSize();
-          for (Component c : host.getComponents()) {
-            if (c instanceof AxisComponent) {
-              AxisComponent axis = (AxisComponent)c;
-              switch (axis.getOrientation()) {
-                case LEFT:
-                case BOTTOM:
-                case RIGHT:
-                case TOP:
-                  axis.setBounds(AXIS_SIZE, dim.height - AXIS_SIZE, dim.width - AXIS_SIZE * 2, AXIS_SIZE);
-                  break;
-              }
-            }
-            else {
-              c.setBounds(AXIS_SIZE, AXIS_SIZE, dim.width - AXIS_SIZE * 2,
-                          dim.height - AXIS_SIZE * 2);
-            }
-          }
-        }
-      }
-    });
     timelinePane.setPreferredSize(new Dimension(Integer.MAX_VALUE, 100));
 
     return timelinePane;

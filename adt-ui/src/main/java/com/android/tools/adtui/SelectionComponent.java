@@ -16,16 +16,14 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.SelectionModel;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.event.ChangeEvent;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A component for performing/rendering selection.
@@ -42,12 +40,7 @@ public final class SelectionComponent extends AnimatedComponent {
 
   public static final int HANDLE_WIDTH = 5;
 
-  private final List<SelectionListener> myListeners = new ArrayList<>();
-
   private int myMousePressed;
-  private float myStartX;
-  private float myEndX;
-  private boolean myEmpty;
 
   private enum Mode {
     /** The default mode: nothing is happening */
@@ -68,29 +61,13 @@ public final class SelectionComponent extends AnimatedComponent {
    * The range being selected.
    */
   @NotNull
-  private final Range mySelectionRange;
+  private final SelectionModel myModel;
 
-  /**
-   * The reference range.
-   */
-  @NotNull
-  private final Range myRange;
-
-  public SelectionComponent(@NotNull Range selectionRange, @NotNull Range globalRange) {
-    myRange = globalRange;
-    mySelectionRange = selectionRange;
+  public SelectionComponent(@NotNull SelectionModel model) {
+    myModel = model;
     myMode = Mode.NONE;
     setFocusable(true);
     initListeners();
-  }
-
-  public void addChangeListener(final SelectionListener listener) {
-    myListeners.add(listener);
-  }
-
-  private void fireSelectionEvent() {
-    ChangeEvent e = new ChangeEvent(this);
-    myListeners.forEach(l -> l.selectionStateChanged(e));
   }
 
   private void initListeners() {
@@ -100,21 +77,23 @@ public final class SelectionComponent extends AnimatedComponent {
         requestFocusInWindow();
         Dimension size = getSize();
         int x = e.getX();
-        double start = size.getWidth() * myStartX;
-        double end = size.getWidth() * myEndX;
-        if (start - HANDLE_WIDTH < x && x < start) {
+
+        float myStartX = rangeToX(myModel.getSelectionRange().getMin());
+        float myEndX = rangeToX(myModel.getSelectionRange().getMax());
+        double startXPos = size.getWidth() * myStartX;
+        double endXPos = size.getWidth() * myEndX;
+        if (startXPos - HANDLE_WIDTH < x && x < startXPos) {
           myMode = Mode.ADJUST_MIN;
         }
-        else if (end < x && x < end + HANDLE_WIDTH) {
+        else if (endXPos < x && x < endXPos + HANDLE_WIDTH) {
           myMode = Mode.ADJUST_MAX;
         }
-        else if (start <= x && x <= end) {
+        else if (startXPos <= x && x <= endXPos) {
           myMode = Mode.MOVE;
         }
         else {
           double value = xToRange(x);
-          mySelectionRange.setMin(value);
-          mySelectionRange.setMax(value);
+          myModel.set(value, value);
           myMode = Mode.CREATE;
         }
         myMousePressed = e.getX();
@@ -123,7 +102,7 @@ public final class SelectionComponent extends AnimatedComponent {
       @Override
       public void mouseReleased(MouseEvent e) {
         if (myMode == Mode.CREATE) {
-          fireSelectionEvent();
+          myModel.fireSelectionEvent();
         }
         myMode = Mode.NONE;
       }
@@ -135,30 +114,30 @@ public final class SelectionComponent extends AnimatedComponent {
         double current = xToRange(e.getX());
         switch (myMode) {
           case ADJUST_MIN:
-            if (current > mySelectionRange.getMax()) {
-              mySelectionRange.setMax(current);
+            if (current > myModel.getSelectionRange().getMax()) {
+              myModel.getSelectionRange().setMax(current);
               myMode = Mode.ADJUST_MAX;
             }
-            mySelectionRange.setMin(current);
+            myModel.getSelectionRange().setMin(current);
             myMousePressed = e.getX();
             break;
           case ADJUST_MAX:
-            if (current < mySelectionRange.getMin()) {
-              mySelectionRange.setMin(current);
+            if (current < myModel.getSelectionRange().getMin()) {
+              myModel.getSelectionRange().setMin(current);
               myMode = Mode.ADJUST_MIN;
             }
-            mySelectionRange.setMax(current);
+            myModel.getSelectionRange().setMax(current);
             myMousePressed = e.getX();
             break;
           case MOVE:
             double rangeDelta = current - pressed;
-            mySelectionRange.setMax(mySelectionRange.getMax() + rangeDelta);
-            mySelectionRange.setMin(mySelectionRange.getMin() + rangeDelta);
+            myModel.getSelectionRange().setMax(myModel.getSelectionRange().getMax() + rangeDelta);
+            myModel.getSelectionRange().setMin(myModel.getSelectionRange().getMin() + rangeDelta);
             myMousePressed = e.getX();
             break;
           case CREATE:
-            mySelectionRange.setMin(pressed < current ? pressed : current);
-            mySelectionRange.setMax(pressed < current ? current : pressed);
+            myModel.getSelectionRange().setMin(pressed < current ? pressed : current);
+            myModel.getSelectionRange().setMax(pressed < current ? current : pressed);
             break;
           case NONE:
             break;
@@ -169,10 +148,10 @@ public final class SelectionComponent extends AnimatedComponent {
       @Override
       public void keyPressed(KeyEvent e) {
         if (e.getExtendedKeyCode() == KeyEvent.VK_ESCAPE) {
-          if (!mySelectionRange.isEmpty()) {
-            mySelectionRange.clear();
+          if (!myModel.getSelectionRange().isEmpty()) {
+            myModel.getSelectionRange().clear();
             e.consume();
-            fireSelectionEvent();
+            myModel.fireSelectionEvent();
           }
         }
       }
@@ -180,28 +159,26 @@ public final class SelectionComponent extends AnimatedComponent {
   }
 
   private double xToRange(int x) {
-    return x / getSize().getWidth() * myRange.getLength() + myRange.getMin();
+    Range range = myModel.getRange();
+    return x / getSize().getWidth() * range.getLength() + range.getMin();
   }
 
-  @Override
-  protected void updateData() {
-    myEmpty = mySelectionRange.isEmpty();
-    myStartX = (float)((mySelectionRange.getMin() - myRange.getMin()) / (myRange.getMax() - myRange.getMin()));
-    myEndX = (float)((mySelectionRange.getMax() - myRange.getMin()) / (myRange.getMax() - myRange.getMin()));
+  private float rangeToX(double value) {
+    Range range = myModel.getRange();
+    return (float)((value - range.getMin()) / (range.getMax() - range.getMin()));
   }
-
 
   @Override
   protected void draw(Graphics2D g, Dimension dim) {
-    if (myEmpty) {
+    if (myModel.getSelectionRange().isEmpty()) {
       return;
     }
-
-    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
+    float myStartX = rangeToX(myModel.getSelectionRange().getMin());
+    float myEndX = rangeToX(myModel.getSelectionRange().getMax());
     float startXPos = (float)(myStartX * dim.getWidth());
     float endXPos = (float)(myEndX * dim.getWidth());
 
+    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     g.setColor(DEFAULT_SELECTION_COLOR);
     Rectangle2D.Float rect = new Rectangle2D.Float(startXPos, 0, endXPos - startXPos, dim.height);
     g.fill(rect);

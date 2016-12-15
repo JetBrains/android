@@ -18,6 +18,7 @@ package com.android.tools.adtui.imagediff;
 import com.android.tools.adtui.AnimatedRange;
 import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
@@ -139,6 +140,8 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
     private LineChart myLineChart;
 
+    private LineChartModel myLineChartModel;
+
     private List<DefaultDataSeries<Long>> myData;
 
     private LineChartImageDiffEntry(String baselineFilename) {
@@ -147,11 +150,12 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
     @Override
     protected void setUp() {
-      myLineChart = new LineChart();
+      myLineChartModel = new LineChartModel();
+      myLineChart = new LineChart(myLineChartModel);
       myLineChart.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
       myData = new ArrayList<>();
       myContentPane.add(myLineChart, BorderLayout.CENTER);
-      myComponents.add(myLineChart);
+      myComponents.add(myLineChartModel);
       myVarianceArrayIndex = 0;
     }
 
@@ -177,17 +181,19 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
       DefaultDataSeries<Long> series = new DefaultDataSeries<>();
       RangedContinuousSeries rangedSeries = new RangedContinuousSeries(seriesLabel, myXRange, yRange, series);
       myData.add(series);
-      myLineChart.addLine(rangedSeries, lineConfig);
+      myLineChartModel.add(rangedSeries);
+      myLineChart.configure(rangedSeries.getName(), lineConfig);
     }
 
     protected void addEvent(Color eventColor, boolean isFilledEvent, boolean isBlockingEvent) {
       DefaultDataSeries<DefaultDurationData> eventData = new DefaultDataSeries<>();
       RangedSeries<DefaultDurationData> eventSeries = new RangedSeries<>(myXRange, eventData);
-      DurationDataRenderer<DefaultDurationData> durationRenderer = new DurationDataRenderer.Builder<>(eventSeries, eventColor)
+      DurationDataModel<DefaultDurationData> durationModel = new DurationDataModel<>(eventSeries);
+      DurationDataRenderer<DefaultDurationData> durationRenderer = new DurationDataRenderer.Builder<>(durationModel, eventColor)
         .setLabelProvider(durationData -> "Test Event")
         .setIcon(UIManager.getIcon("Tree.leafIcon")).build();
       myLineChart.addCustomRenderer(durationRenderer);
-      myComponents.add(durationRenderer);
+      myComponents.add(durationModel);
 
       // Set event duration and start time. Add it to eventData afterwards.
       long eventDuration = EVENT_DURATION_MULTIPLIER * TIME_DELTA_US;

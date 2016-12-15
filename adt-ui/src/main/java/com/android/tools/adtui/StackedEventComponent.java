@@ -18,9 +18,8 @@ package com.android.tools.adtui;
 
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.EventAction;
-import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
-import com.google.common.primitives.Ints;
+import com.android.tools.adtui.model.StackedEventModel;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +44,7 @@ public class StackedEventComponent extends AnimatedComponent {
   private static final int SEGMENT_SPACING = 5;
 
   @NotNull
-  private final RangedSeries<EventAction<EventAction.ActivityAction, String>> mData;
+  private final StackedEventModel myModel;
 
   private float myLineThickness = 6.0f;
 
@@ -55,19 +54,23 @@ public class StackedEventComponent extends AnimatedComponent {
    */
   private HashMap<EventAction<EventAction.ActivityAction, String>, EventRenderData> myActionToDrawLocationMap = new HashMap<>();
   private List<EventRenderData> myActivities = new ArrayList<>();
+  private boolean myRender;
 
-  /**
-   * @param data The state chart data.
-   */
-  public StackedEventComponent(@NotNull RangedSeries<EventAction<EventAction.ActivityAction, String>> data) {
-    mData = data;
+  public StackedEventComponent(@NotNull StackedEventModel model) {
+    myModel = model;
     setFont(AdtUiUtils.DEFAULT_FONT);
+    myModel.addDependency().onChange(StackedEventModel.Aspect.STACKED_EVENT, this::modelChanged);
+    myRender = true;
   }
 
-  @Override
-  protected void updateData() {
-    double min = mData.getXRange().getMin();
-    double max = mData.getXRange().getMax();
+  private void modelChanged() {
+    myRender = true;
+    opaqueRepaint();
+  }
+
+  protected void render() {
+    double min = myModel.getRangedSeries().getXRange().getMin();
+    double max = myModel.getRangedSeries().getXRange().getMax();
 
     // A map of EventAction started events to their start time, so we can correlate these to
     // EventAction competed events with the EventAction start events. This is done this way as
@@ -77,7 +80,7 @@ public class StackedEventComponent extends AnimatedComponent {
 
     myActivities.clear();
     myActionToDrawLocationMap.clear();
-    ImmutableList<SeriesData<EventAction<EventAction.ActivityAction, String>>> series = mData.getSeries();
+    ImmutableList<SeriesData<EventAction<EventAction.ActivityAction, String>>> series = myModel.getRangedSeries().getSeries();
     int size = series.size();
 
     // Loop through the data series looking at all of the start events, and stop events.
@@ -114,9 +117,14 @@ public class StackedEventComponent extends AnimatedComponent {
 
   @Override
   protected void draw(Graphics2D g2d, Dimension dim) {
+    if (myRender) {
+      render();
+      myRender = false;
+    }
+
     int scaleFactor = dim.width;
-    double min = mData.getXRange().getMin();
-    double max = mData.getXRange().getMax();
+    double min = myModel.getRangedSeries().getXRange().getMin();
+    double max = myModel.getRangedSeries().getXRange().getMax();
     FontMetrics metrics = g2d.getFontMetrics();
     Stroke current = g2d.getStroke();
     BasicStroke str = new BasicStroke(myLineThickness);
@@ -172,11 +180,6 @@ public class StackedEventComponent extends AnimatedComponent {
       }
       g2d.drawString(text, startPosition, (myLineThickness + SEGMENT_SPACING));
     }
-  }
-
-  @Override
-  protected void debugDraw(Graphics2D g) {
-    super.debugDraw(g);
   }
 
   public void setLineThickness(float lineThickness) {

@@ -110,10 +110,6 @@ public class StudioProfilersView {
       return;
     }
 
-    if (myStageView != null) {
-      myStageView.exit();
-    }
-
     myStageView = myBinder.build(this, stage);
     Component prev = myLayout.getLayoutComponent(BorderLayout.CENTER);
     if (prev != null) {

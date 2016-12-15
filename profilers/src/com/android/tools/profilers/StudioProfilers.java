@@ -15,13 +15,14 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.model.AspectModel;
-import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.cpu.CpuProfiler;
 import com.android.tools.profilers.event.EventProfiler;
 import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.network.NetworkProfiler;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -29,7 +30,6 @@ import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import javax.swing.Timer;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -38,9 +38,14 @@ import java.util.concurrent.TimeUnit;
  * The suite of profilers inside Android Studio. This object is responsible for maintaining the information
  * global across all the profilers, device management, process management, current state of the tool etc.
  */
-public final class StudioProfilers extends AspectModel<ProfilerAspect> {
+public final class StudioProfilers extends AspectModel<ProfilerAspect> implements Updatable {
 
   public static final int INVALID_PROCESS_ID = -1;
+
+  /**
+   * The number of updates per second our simulated object models receive.
+   */
+  public static final int PROFILERS_UPDATE_RATE = 60;
 
   private final ProfilerClient myClient;
   @Nullable
@@ -67,11 +72,21 @@ public final class StudioProfilers extends AspectModel<ProfilerAspect> {
   @NotNull
   private final IdeProfilerServices myIdeServices;
 
+  private Updater myUpdater;
+  private AxisComponentModel myViewAxis;
+  private float myRefreshDevices;
+
   public StudioProfilers(ProfilerClient service, @NotNull IdeProfilerServices ideServices) {
+    this(service, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE));
+  }
+
+  @VisibleForTesting
+  public StudioProfilers(ProfilerClient service, @NotNull IdeProfilerServices ideServices, @NotNull StopwatchTimer timer) {
     myClient = service;
     myIdeServices = ideServices;
     myPreferredProcessName = null;
     myStage = null;
+    myUpdater = new Updater(timer);
     myProfilers = ImmutableList.of(
       new EventProfiler(this),
       new CpuProfiler(this),
@@ -86,8 +101,15 @@ public final class StudioProfilers extends AspectModel<ProfilerAspect> {
     myDevice = null;
     myProcess = null;
 
-    // TODO: Use the time updater once is moved to the model.
-    new Timer(1000, e -> poll()).start();
+    myViewAxis = new AxisComponentModel(myTimeline.getViewRange(),
+                                        TimeAxisFormatter.DEFAULT,
+                                        AxisComponentModel.AxisOrientation.BOTTOM);
+    myViewAxis.setGlobalRange(myTimeline.getDataRange());
+    myViewAxis.setOffset(getDeviceStartUs());
+
+    myUpdater.register(this);
+    myUpdater.register(myTimeline);
+    myUpdater.register(myViewAxis);
   }
 
   public List<Profiler.Device> getDevices() {
@@ -98,11 +120,15 @@ public final class StudioProfilers extends AspectModel<ProfilerAspect> {
     myPreferredProcessName = name;
   }
 
-  /**
-   * Polls the server for new devices/processes.
-   * TODO: Investigate a streaming notification service.
-   */
-  private void poll() {
+
+  @Override
+  public void update(float elapsed) {
+    myRefreshDevices += elapsed;
+    if (myRefreshDevices < 1.0f) {
+      return;
+    }
+    myRefreshDevices = 0.0f;
+
     try {
       Profiler.GetDevicesResponse response = myClient.getProfilerClient().getDevices(Profiler.GetDevicesRequest.getDefaultInstance());
       long nowNs = System.nanoTime();
@@ -254,11 +280,13 @@ public final class StudioProfilers extends AspectModel<ProfilerAspect> {
     this.changed(ProfilerAspect.STAGE);
   }
 
-  @NotNull public ProfilerTimeline getTimeline() {
+  @NotNull
+  public ProfilerTimeline getTimeline() {
     return myTimeline;
   }
 
-  @NotNull public Range getDataRange() {
+  @NotNull
+  public Range getDataRange() {
     return myDataRangUs;
   }
 
@@ -305,5 +333,13 @@ public final class StudioProfilers extends AspectModel<ProfilerAspect> {
   @NotNull
   public IdeProfilerServices getIdeServices() {
     return myIdeServices;
+  }
+
+  public Updater getUpdater() {
+    return myUpdater;
+  }
+
+  public AxisComponentModel getViewAxis() {
+    return myViewAxis;
   }
 }

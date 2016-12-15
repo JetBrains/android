@@ -15,13 +15,25 @@
  */
 package com.android.tools.adtui.model;
 
-import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
-import javax.swing.table.TableModel;
+import java.util.concurrent.CountDownLatch;
 
-public interface RangedTableModel extends TableModel {
-  /**
-   * Updates the model to the given range.
-   */
-  void update(@NotNull Range range);
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+public class FpsTimerTest {
+
+  @Test
+  public void test() throws InterruptedException {
+    FpsTimer timer = new FpsTimer();
+    // Assert handler is invoked through adding a versatile latch to count down to zero.
+    CountDownLatch latch = new CountDownLatch(1);
+    timer.setHandler(elapsed -> latch.countDown());
+    timer.start();
+    assertTrue(timer.isRunning());
+    latch.await();
+    timer.stop();
+    assertFalse(timer.isRunning());
+  }
 }

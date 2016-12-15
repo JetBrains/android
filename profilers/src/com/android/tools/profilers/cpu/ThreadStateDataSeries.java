@@ -118,6 +118,8 @@ public final class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.
         return captured ? CpuProfilerStage.ThreadState.DEAD_CAPTURED : CpuProfilerStage.ThreadState.DEAD;
       case SLEEPING:
         return captured ? CpuProfilerStage.ThreadState.SLEEPING_CAPTURED : CpuProfilerStage.ThreadState.SLEEPING;
+      case WAITING:
+        return captured ? CpuProfilerStage.ThreadState.WAITING_CAPTURED : CpuProfilerStage.ThreadState.WAITING;
       default:
         return CpuProfilerStage.ThreadState.UNKNOWN;
     }

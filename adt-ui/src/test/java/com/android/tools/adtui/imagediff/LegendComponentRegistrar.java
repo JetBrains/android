@@ -17,20 +17,20 @@ package com.android.tools.adtui.imagediff;
 
 import com.android.tools.adtui.AnimatedRange;
 import com.android.tools.adtui.LegendComponent;
-import com.android.tools.adtui.LegendRenderData;
+import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
-import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
-import com.android.tools.adtui.common.formatter.NetworkTrafficFormatter;
+import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
+import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
+import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter;
 import com.android.tools.adtui.model.*;
 import com.intellij.util.containers.ImmutableList;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
@@ -48,7 +48,7 @@ class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
         // Create a simple line chart and register the components to the choreographer. Add thick lines to generate relevant images.
         addLine(0.0, 50.0, "Left Series", new LineConfig(Color.BLUE).setStroke(new BasicStroke(25)), MEMORY_AXIS_FORMATTER);
         addLine(0.0, 200.0, "Right Series", new LineConfig(Color.RED).setStroke(new BasicStroke(25)).setLegendIconType(
-          LegendRenderData.IconType.BOX), NETWORK_AXIS_FORMATTER);
+          LegendConfig.IconType.BOX), NETWORK_AXIS_FORMATTER);
       }
     });
   }
@@ -68,11 +68,15 @@ class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
 
     private LineChart myLineChart;
 
+    private LineChartModel myLineChartModel;
+
     private LegendComponent myLegend;
 
     private List<DefaultDataSeries<Long>> myData;
 
-    private List<LegendRenderData> myRenderData = new ArrayList<>();
+    private List<LegendData> myLegendData = new ArrayList<>();
+
+    private LegendComponentModel myLegendModel;
 
     private LegendComponentImageDiffEntry(String baselineFilename) {
       super(baselineFilename);
@@ -80,13 +84,15 @@ class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
 
     @Override
     protected void setUp() {
-      myLegend = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, LEGEND_UPDATE_FREQUENCY_MS);
-      myLineChart = new LineChart();
+      myLegendModel = new LegendComponentModel(LEGEND_UPDATE_FREQUENCY_MS);
+      myLegend = new LegendComponent(myLegendModel);
+      myLineChartModel = new LineChartModel();
+      myLineChart = new LineChart(myLineChartModel);
       myLineChart.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
       myData = new ArrayList<>();
       myContentPane.add(myLegend, BorderLayout.CENTER);
-      myComponents.add(myLineChart);
-      myComponents.add(myLegend);
+      myComponents.add(myLineChartModel);
+      myComponents.add(myLegendModel);
       myVarianceArrayIndex = 0;
     }
 
@@ -112,9 +118,12 @@ class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
       DefaultDataSeries<Long> series = new DefaultDataSeries<>();
       RangedContinuousSeries rangedSeries = new RangedContinuousSeries(seriesLabel, myXRange, yRange, series);
       myData.add(series);
-      myLineChart.addLine(rangedSeries, lineConfig);
-      myRenderData.add(myLineChart.createLegendRenderData(rangedSeries, formatter, myXRange));
-      myLegend.setLegendData(myRenderData);
+      myLineChartModel.add(rangedSeries);
+      myLineChart.configure(rangedSeries.getName(), lineConfig);
+
+      myLegendData.add(new LegendData(rangedSeries, formatter, myXRange));
+      myLegendModel.setLegendData(myLegendData);
+      myLegend.configure(rangedSeries.getName(), new LegendConfig(lineConfig));
     }
   }
 }

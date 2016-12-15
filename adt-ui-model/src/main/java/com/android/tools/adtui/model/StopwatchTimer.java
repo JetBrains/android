@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui;
+package com.android.tools.adtui.model;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,7 +41,7 @@ public abstract class StopwatchTimer {
   public abstract boolean isRunning();
   public abstract void stop();
 
-  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
+  @VisibleForTesting
   public final void tick(float elapsed) {
     if (myHandler != null) {
       myHandler.onTick(elapsed);

@@ -17,6 +17,7 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.Updatable;
 
 /**
  * An {@link Range} object that interpolates to its min/max values.
@@ -57,23 +58,22 @@ public class AnimatedRange extends Range implements Updatable {
   }
 
   @Override
-  public void setMin(double min) {
+  public void set(double min, double max) {
     myTargetMin = min;
-  }
-
-  @Override
-  public void setMax(double max) {
     myTargetMax = max;
   }
 
   @Override
   public void update(float elapsed) {
-    if (myMin != myTargetMin) {
-      myMin = Choreographer.lerp(myMin, myTargetMin, myLerpFraction, elapsed, myLerpThreshold);
+    double min = getMin();
+    double max = getMax();
+    if (min != myTargetMin) {
+      min = Choreographer.lerp(min, myTargetMin, myLerpFraction, elapsed, myLerpThreshold);
     }
 
-    if (myMax != myTargetMax) {
-      myMax = Choreographer.lerp(myMax, myTargetMax, myLerpFraction, elapsed, myLerpThreshold);
+    if (max != myTargetMax) {
+      max = Choreographer.lerp(max, myTargetMax, myLerpFraction, elapsed, myLerpThreshold);
     }
+    super.set(min, max);
   }
 }

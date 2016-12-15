@@ -15,6 +15,9 @@
  */
 package com.android.tools.profilers.event;
 
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.SimpleEventModel;
+import com.android.tools.adtui.model.StackedEventModel;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
@@ -22,8 +25,19 @@ import org.jetbrains.annotations.NotNull;
 
 public class EventMonitor extends ProfilerMonitor {
 
+  @NotNull
+  private final SimpleEventModel<EventActionType> mySimpleEvents;
+
+  @NotNull
+  private final StackedEventModel myActivityEvents;
+
   public EventMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
+    SimpleEventDataSeries events = new SimpleEventDataSeries(myProfilers.getClient(), myProfilers.getProcessId());
+    mySimpleEvents = new SimpleEventModel<>(new RangedSeries<>(getTimeline().getViewRange(), events));
+
+    ActivityEventDataSeries activities = new ActivityEventDataSeries(myProfilers.getClient(), myProfilers.getProcessId());
+    myActivityEvents = new StackedEventModel(new RangedSeries<>(getTimeline().getViewRange(), activities));
   }
 
   @Override
@@ -31,17 +45,29 @@ public class EventMonitor extends ProfilerMonitor {
     return "Events";
   }
 
-  @NotNull
-  public SimpleEventDataSeries getSimpleEvents() {
-    return new SimpleEventDataSeries(myProfilers.getClient(), myProfilers.getProcessId());
-  }
-
-  @NotNull
-  public ActivityEventDataSeries getActivityEvents() {
-    return new ActivityEventDataSeries(myProfilers.getClient(), myProfilers.getProcessId());
-  }
-
   public void expand() {
     myProfilers.setStage(new MemoryProfilerStage(myProfilers));
+  }
+
+  @Override
+  public void enter() {
+    myProfilers.getUpdater().register(mySimpleEvents);
+    myProfilers.getUpdater().register(myActivityEvents);
+  }
+
+  @Override
+  public void exit() {
+    myProfilers.getUpdater().unregister(mySimpleEvents);
+    myProfilers.getUpdater().unregister(myActivityEvents);
+  }
+
+  @NotNull
+  public SimpleEventModel<EventActionType> getSimpleEvents() {
+    return mySimpleEvents;
+  }
+
+  @NotNull
+  public StackedEventModel getActivityEvents() {
+    return myActivityEvents;
   }
 }
