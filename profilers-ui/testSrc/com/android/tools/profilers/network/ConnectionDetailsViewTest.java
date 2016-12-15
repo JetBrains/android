@@ -16,7 +16,9 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.profilers.IdeProfilerComponents;
+import com.android.tools.profilers.IdeProfilerServices;
 import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.components.labels.LinkLabel;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
@@ -25,12 +27,15 @@ import javax.swing.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
 public class ConnectionDetailsViewTest {
 
   @Mock private IdeProfilerComponents myIdeProfilerComponents;
+  @Mock private IdeProfilerServices myIdeServices;
   @Mock private HttpData myHttpData;
   private ConnectionDetailsView myView;
 
@@ -42,6 +47,7 @@ public class ConnectionDetailsViewTest {
 
     NetworkProfilerStageView view = Mockito.mock(NetworkProfilerStageView.class);
     when(view.getIdeComponents()).thenReturn(myIdeProfilerComponents);
+    when(view.getIdeServices()).thenReturn(myIdeServices);
     myView = new ConnectionDetailsView(view);
   }
 
@@ -154,5 +160,36 @@ public class ConnectionDetailsViewTest {
     assertEquals(1,  myView.getCallStackView().getComponentCount());
 
     assertEquals("dumbTrace", ((JLabel) myView.getCallStackView().getComponent(0)).getText());
+  }
+
+  @Test
+  public void callStackLineClick() {
+    when(myHttpData.getTrace()).thenReturn("line1\nline2\nline3");
+
+    final String[] lastLine = new String[1];
+
+    doAnswer(invocation -> {
+      lastLine[0] = (String)invocation.getArguments()[0];
+      return true;
+    }).when(myIdeServices).navigateToStackTraceLine(anyString());
+
+    myView.update(myHttpData);
+    assertEquals(3,  myView.getCallStackView().getComponentCount());
+
+    LinkLabel link1 = (LinkLabel)myView.getCallStackView().getComponent(0);
+    LinkLabel link2 = (LinkLabel)myView.getCallStackView().getComponent(1);
+    LinkLabel link3 = (LinkLabel)myView.getCallStackView().getComponent(2);
+
+    lastLine[0] = null;
+    link1.doClick();
+    assertEquals("line1", lastLine[0]);
+
+    lastLine[0] = null;
+    link2.doClick();
+    assertEquals("line2", lastLine[0]);
+
+    lastLine[0] = null;
+    link3.doClick();
+    assertEquals("line3", lastLine[0]);
   }
 }
