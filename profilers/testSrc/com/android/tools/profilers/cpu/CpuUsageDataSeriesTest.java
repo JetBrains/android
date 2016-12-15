@@ -19,7 +19,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.android.tools.profilers.TestGrpcChannel;
+import com.android.tools.profilers.FakeGrpcChannel;
 import com.intellij.util.containers.ImmutableList;
 import io.grpc.stub.StreamObserver;
 import org.junit.Rule;
@@ -38,7 +38,7 @@ public class CpuUsageDataSeriesTest {
   private final FakeCpuService myService = new FakeCpuService();
 
   @Rule
-  public TestGrpcChannel myGrpcChannel = new TestGrpcChannel("CpuUsageDataSeriesTest", myService);
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuUsageDataSeriesTest", myService);
 
   private CpuUsageDataSeries mySeries;
 

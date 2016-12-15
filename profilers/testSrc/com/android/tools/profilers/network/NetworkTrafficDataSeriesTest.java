@@ -19,7 +19,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.TestGrpcChannel;
+import com.android.tools.profilers.FakeGrpcChannel;
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Rule;
@@ -40,17 +40,17 @@ public class NetworkTrafficDataSeriesTest {
       .add(FakeNetworkService.newSpeedData(8, 4, 2))
       .add(FakeNetworkService.newSpeedData(16, 5, 1))
       .build();
-  @Rule public TestGrpcChannel myGrpcChannel =
-    new TestGrpcChannel("NetworkTrafficDataSeriesTest", FakeNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).build());
+  @Rule public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("NetworkTrafficDataSeriesTest", FakeNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).build());
   private NetworkTrafficDataSeries mySentSeries;
   private NetworkTrafficDataSeries myReceivedSeries;
 
   @Before
   public void setUp() {
-    StudioProfilers profiler = myGrpcChannel.getProfilers();
-    mySentSeries = new NetworkTrafficDataSeries(profiler.getClient().getNetworkClient(), FakeNetworkService.FAKE_APP_ID,
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient());
+    mySentSeries = new NetworkTrafficDataSeries(profilers.getClient().getNetworkClient(), FakeNetworkService.FAKE_APP_ID,
                                                 NetworkTrafficDataSeries.Type.BYTES_SENT);
-    myReceivedSeries = new NetworkTrafficDataSeries(profiler.getClient().getNetworkClient(), FakeNetworkService.FAKE_APP_ID,
+    myReceivedSeries = new NetworkTrafficDataSeries(profilers.getClient().getNetworkClient(), FakeNetworkService.FAKE_APP_ID,
                                                     NetworkTrafficDataSeries.Type.BYTES_RECEIVED);
   }
 

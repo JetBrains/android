@@ -18,7 +18,8 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.android.tools.profilers.TestGrpcChannel;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.FakeGrpcChannel;
 import com.google.common.collect.ImmutableList;
 import io.grpc.stub.StreamObserver;
 import org.junit.Before;
@@ -35,15 +36,16 @@ import static org.junit.Assert.assertNotNull;
 public class CpuThreadsModelTest {
 
   @Rule
-  public TestGrpcChannel myGrpcChannel = new TestGrpcChannel("CpuThreadsModelTest", new FakeCpuService());
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuThreadsModelTest", new FakeCpuService());
 
   private CpuThreadsModel myThreadsModel;
   private Range myRange;
 
   @Before
   public void setUp() {
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient());
     myRange = new Range();
-    myThreadsModel = new CpuThreadsModel(myRange, new CpuProfilerStage(myGrpcChannel.getProfilers()), 42 /* Any process id */);
+    myThreadsModel = new CpuThreadsModel(myRange, new CpuProfilerStage(profilers), 42 /* Any process id */);
   }
 
   @Test
