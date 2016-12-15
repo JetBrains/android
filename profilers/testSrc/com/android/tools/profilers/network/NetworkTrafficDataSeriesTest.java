@@ -17,6 +17,7 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.TestGrpcChannel;
 import com.google.common.collect.ImmutableList;
@@ -51,6 +52,19 @@ public class NetworkTrafficDataSeriesTest {
                                                 NetworkTrafficDataSeries.Type.BYTES_SENT);
     myReceivedSeries = new NetworkTrafficDataSeries(profiler.getClient().getNetworkClient(), FakeNetworkService.FAKE_APP_ID,
                                                     NetworkTrafficDataSeries.Type.BYTES_RECEIVED);
+  }
+
+  @Test
+  public void typeGetBytes() {
+    NetworkProfiler.SpeedData data = NetworkProfiler.SpeedData.newBuilder().setReceived(19).setSent(20).build();
+    assertEquals(19, NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getBytes(data));
+    assertEquals(20, NetworkTrafficDataSeries.Type.BYTES_SENT.getBytes(data));
+  }
+
+  @Test
+  public void typeGetLabel() {
+    assertEquals("Received", NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getLabel());
+    assertEquals("Sent", NetworkTrafficDataSeries.Type.BYTES_SENT.getLabel());
   }
 
   @Test
