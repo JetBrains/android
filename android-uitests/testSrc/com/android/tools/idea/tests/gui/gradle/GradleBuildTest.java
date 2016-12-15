@@ -79,7 +79,6 @@ public class GradleBuildTest {
    * <p>
    * This test does not try and run the project.
    */
-  @Ignore("https://code.google.com/p/android/issues/detail?id=226797")
   @RunIn(TestGroup.QA)
   @Test
   public void compileWithJack() throws IOException {
