@@ -114,21 +114,24 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       child.myCache.put(dirType, ConnectionType.SAME);
       return;
     }
-    if (id.equalsIgnoreCase("parent")) {
+    if (id.equalsIgnoreCase(SdkConstants.ATTR_PARENT)) {
+      child.myCache.put(dir, component);
+      child.myCache.put(dirType, type);
+      return;
+    }
+    String cleanId = NlComponent.extractId(id);
+    if (cleanId == null) {
+      child.myCache.put(dir, id);
+      child.myCache.put(dirType, ConnectionType.SAME);
+      return;
+    }
+    if (cleanId.equals(component.getId())) {
       child.myCache.put(dir, component);
       child.myCache.put(dirType, type);
       return;
     }
     for (SceneComponent con : component.getChildren()) {
-      int idx = id.indexOf("/");
-      if (idx == -1) {
-        continue;
-      }
-      String substring = id.substring(idx + 1);
-      if (substring == null) {
-        continue;
-      }
-      if (substring.equals(con.getId())) {
+      if (cleanId.equals(con.getId())) {
         child.myCache.put(dir, con);
         child.myCache.put(dirType, type);
         return;
