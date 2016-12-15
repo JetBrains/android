@@ -26,6 +26,7 @@ import com.android.tools.idea.monitor.actions.RecordingAction;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.JHandler;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.LHandler;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.MHandler;
+import com.android.tools.idea.monitor.gpu.gfxinfohandlers.NHandler;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.MonitorType;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -58,7 +59,7 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
                                                               "<a href='" + PROFILING_URL + "'>Learn more</a>.";
 
   @NotNull private final JPanel myPanel;
-  private int myApiLevel = MHandler.MIN_API_LEVEL;
+  private int myApiLevel = NHandler.MIN_API_LEVEL;
 
   public static final int EVENT_LAUNCH = 1;
   public static final int EVENT_TRACING = 2;
@@ -161,7 +162,6 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
         new TimelineComponent(data, myEvents, POST_M_TIMELINE_BUFFER_TIME, TIMELINE_INITIAL_MAX, POST_M_TIMELINE_ABSOLUTE_MAX,
                               TIMELINE_INITIAL_MARKER_SEPARATION);
       Choreographer.animate(myTimelineComponent);
-
 
       myTimelineComponent.configureUnits("ms");
       myTimelineComponent.configureStream(0, "VSync Delay", new JBColor(0x007c6d, 0x00695c));
