@@ -24,7 +24,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 final public class StudioProfilersTest {
-  @Rule public TestGrpcChannel myGrpcChannel = new TestGrpcChannel("StudioProfilerTestChannel", new FakeProfilerService());
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("StudioProfilerTestChannel", new FakeProfilerService());
 
   @Test
   public void testVersion() throws Exception {
@@ -35,7 +35,7 @@ final public class StudioProfilersTest {
 
   @Test
   public void testClearedOnMonitorStage() throws Exception {
-    StudioProfilers profilers = myGrpcChannel.getProfilers();
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient());
 
     assertTrue(profilers.getTimeline().getSelectionRange().isEmpty());
 

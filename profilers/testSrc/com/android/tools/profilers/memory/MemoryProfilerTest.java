@@ -16,7 +16,8 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.profiler.proto.*;
-import com.android.tools.profilers.TestGrpcChannel;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.FakeGrpcChannel;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,14 +28,14 @@ public class MemoryProfilerTest {
   private static final int FAKE_PID = 111;
 
   private final FakeMemoryService myService = new FakeMemoryService();
-  @Rule public TestGrpcChannel myGrpcChannel = new TestGrpcChannel("MemoryProfilerTest", myService);
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryProfilerTest", myService);
 
   private Profiler.Process FAKE_PROCESS = Profiler.Process.newBuilder().setPid(FAKE_PID).setName("FakeProcess").build();
   private MemoryProfiler myProfiler;
 
   @Before
   public void setUp() {
-    myProfiler = new MemoryProfiler(myGrpcChannel.getProfilers());
+    myProfiler = new MemoryProfiler(new StudioProfilers(myGrpcChannel.getClient()));
   }
 
   @Test
