@@ -18,7 +18,6 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.intellij.util.containers.ContainerUtil;
@@ -26,7 +25,6 @@ import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -35,13 +33,21 @@ import java.util.concurrent.TimeUnit;
  * {@link Type} passed into the constructor).
  *
  * It is responsible for making an RPC call to perfd/datastore and converting the resulting proto into UI data.
- *
- * TODO: This class needs tests.
  */
 public class NetworkTrafficDataSeries implements DataSeries<Long> {
   public enum Type {
-    BYTES_RECEIVED("Received"),
-    BYTES_SENT("Sent");
+    BYTES_RECEIVED("Received") {
+      @Override
+      long getBytes(@NotNull NetworkProfiler.SpeedData data) {
+        return data.getReceived();
+      }
+    },
+    BYTES_SENT("Sent") {
+      @Override
+      long getBytes(@NotNull NetworkProfiler.SpeedData data) {
+        return data.getSent();
+      }
+    };
 
     private final String myLabel;
 
@@ -53,6 +59,8 @@ public class NetworkTrafficDataSeries implements DataSeries<Long> {
     public String getLabel() {
       return myLabel;
     }
+
+    abstract long getBytes(@NotNull NetworkProfiler.SpeedData data);
   }
 
   @NotNull
@@ -81,16 +89,7 @@ public class NetworkTrafficDataSeries implements DataSeries<Long> {
     for (NetworkProfiler.NetworkProfilerData data : response.getDataList()) {
       long xTimestamp = TimeUnit.NANOSECONDS.toMicros(data.getBasicInfo().getEndTimestamp());
       NetworkProfiler.SpeedData speedData = data.getSpeedData();
-      switch (myType) {
-        case BYTES_RECEIVED:
-          seriesData.add(new SeriesData<>(xTimestamp, speedData.getReceived()));
-          break;
-        case BYTES_SENT:
-          seriesData.add(new SeriesData<>(xTimestamp, speedData.getSent()));
-          break;
-        default:
-          throw new IllegalStateException("Unexpected network traffic data series type: " + myType);
-      }
+      seriesData.add(new SeriesData<>(xTimestamp, myType.getBytes(speedData)));
     }
     return ContainerUtil.immutableList(seriesData);
   }
