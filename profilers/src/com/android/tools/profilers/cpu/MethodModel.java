@@ -16,24 +16,14 @@
 
 package com.android.tools.profilers.cpu;
 
-import com.google.common.annotations.VisibleForTesting;
-
 public class MethodModel {
 
   private String myNamespace;
-  private String myName;
-  private String mySignature;
-  private String myFilename;
-  private int myLineNumber;
+  private final String myName;
 
-  @VisibleForTesting
   public MethodModel(String name) {
-    myNamespace = "";
     myName = name;
-    mySignature = "";
-  }
-
-  public MethodModel() {
+    myNamespace = "";
   }
 
   public String getNameSpace() {
@@ -44,39 +34,11 @@ public class MethodModel {
     return myName;
   }
 
-  public void setName(String name) {
-    myName = name;
-  }
-
-  public String getSignature() {
-    return mySignature;
-  }
-
-  public void setSignature(String signature) {
-    mySignature = signature;
-  }
-
-  public String getFilename() {
-    return myFilename;
-  }
-
-  public void setFilename(String filename) {
-    myFilename = filename;
-  }
-
-  public int getLineNumber() {
-    return myLineNumber;
-  }
-
-  public void setLineNumber(int lineNumber) {
-    myLineNumber = lineNumber;
-  }
-
   public void setNamespace(String namespace) {
     myNamespace = namespace;
   }
 
   public String getId() {
-    return myNamespace + ":" + myName + ":" + mySignature;
+    return myNamespace + ":" + myName;
   }
 }
