@@ -37,6 +37,8 @@ public class DrawConnectionUtils {
   private static Polygon sBottomArrow;
 
   static Font sFont = new Font("Helvetica", Font.PLAIN, 12);
+  static Font sFontReference = new Font("Helvetica", Font.ITALIC | Font.BOLD, 12);
+
 
   private static Font sSmallFont = new Font("Helvetica", Font.PLAIN, 8);
 
@@ -134,7 +136,7 @@ public class DrawConnectionUtils {
    * @param x2   x2 coordinate
    * @param y    y coordinate
    */
-  public static void drawHorizontalMarginIndicator(Graphics2D g, String text, int x1, int x2,
+  public static void drawHorizontalMarginIndicator(Graphics2D g, String text, boolean isMarginReference, int x1, int x2,
                                                    int y) {
     if (x1 > x2) {
       int temp = x1;
@@ -152,8 +154,10 @@ public class DrawConnectionUtils {
     }
 
     Canvas c = new Canvas();
-    FontMetrics fm = c.getFontMetrics(sFont);
-    g.setFont(sFont);
+    Font previousFont = g.getFont();
+    Font font = isMarginReference ? sFontReference : sFont;
+    FontMetrics fm = c.getFontMetrics(font);
+    g.setFont(font);
     int padding = 4;
     Rectangle2D bounds = fm.getStringBounds(text, g);
     int th = (int)bounds.getHeight();
@@ -177,6 +181,7 @@ public class DrawConnectionUtils {
       g.drawLine(x2, y, x2 - CONNECTION_ARROW_SIZE, y - CONNECTION_ARROW_SIZE);
       g.drawLine(x2, y, x2 - CONNECTION_ARROW_SIZE, y + CONNECTION_ARROW_SIZE);
     }
+    g.setFont(previousFont);
   }
 
   /**
@@ -188,7 +193,7 @@ public class DrawConnectionUtils {
    * @param y1   y1 coordinate
    * @param y2   y2 coordinate
    */
-  public static void drawVerticalMarginIndicator(Graphics2D g, String text, int x, int y1, int y2) {
+  public static void drawVerticalMarginIndicator(Graphics2D g, String text, boolean isMarginReference, int x, int y1, int y2) {
     if (y1 > y2) {
       int temp = y1;
       y1 = y2;
@@ -203,8 +208,10 @@ public class DrawConnectionUtils {
       return;
     }
     Canvas c = new Canvas();
-    FontMetrics fm = c.getFontMetrics(sFont);
-    g.setFont(sFont);
+    Font previousFont = g.getFont();
+    Font font = isMarginReference ? sFontReference : sFont;
+    FontMetrics fm = c.getFontMetrics(font);
+    g.setFont(font);
     int padding = 4;
     Rectangle2D bounds = fm.getStringBounds(text, g);
     int th = (int)bounds.getHeight();
@@ -227,6 +234,7 @@ public class DrawConnectionUtils {
       g.drawLine(x, y2, x - CONNECTION_ARROW_SIZE, y2 - CONNECTION_ARROW_SIZE);
       g.drawLine(x, y2, x + CONNECTION_ARROW_SIZE, y2 - CONNECTION_ARROW_SIZE);
     }
+    g.setFont(previousFont);
   }
 
   /**
@@ -656,13 +664,18 @@ public class DrawConnectionUtils {
    * @param x2
    * @param y
    */
-  public static void drawHorizontalMargin(Graphics2D g, String string, int x1, int x2, int y) {
+  public static void drawHorizontalMargin(Graphics2D g, String string, boolean isReference, int x1, int x2, int y) {
+    Font previousFont = g.getFont();
     FontMetrics metrics = g.getFontMetrics();
     Rectangle2D rect = metrics.getStringBounds(string, g);
     float sx = (float)((x1 + x2) / 2 - rect.getWidth() / 2);
     float sy = (float)(y - MARGIN_SPACING - metrics.getDescent());
+    if (isReference) {
+      g.setFont(sFontReference);
+    }
     g.drawString(string, sx, sy);
     g.drawLine(x1, y, x2, y);
+    g.setFont(previousFont);
   }
 
   /**
@@ -673,12 +686,17 @@ public class DrawConnectionUtils {
    * @param y1
    * @param y2
    */
-  public static void drawVerticalMargin(Graphics2D g, String string, int x, int y1, int y2) {
+  public static void drawVerticalMargin(Graphics2D g, String string, boolean isReference, int x, int y1, int y2) {
+    Font previousFont = g.getFont();
     FontMetrics metrics = g.getFontMetrics();
     Rectangle2D rect = metrics.getStringBounds(string, g);
     g.drawLine(x, y1, x, y2);
     float sx = (float)(x + MARGIN_SPACING);
     float sy = (float)((y2 + y1) / 2 + rect.getHeight() / 2 - metrics.getDescent());
+    if (isReference) {
+      g.setFont(sFontReference);
+    }
     g.drawString(string, sx, sy);
+    g.setFont(previousFont);
   }
 }

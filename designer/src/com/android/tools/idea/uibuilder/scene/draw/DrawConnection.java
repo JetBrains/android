@@ -56,7 +56,9 @@ public class DrawConnection implements DrawCommand {
   boolean myShift;
   int myMargin;
   int myMarginDistance;
+  boolean myIsMarginReference;
   float myBias;
+
   static Stroke myBackgroundStroke = new BasicStroke(8);
   static Stroke myDashStroke = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{4, 6}, 0f);
   static Stroke mySpringStroke = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{4, 4}, 0f);
@@ -81,7 +83,8 @@ public class DrawConnection implements DrawCommand {
   public String serialize() {
     return "DrawConnection," + myConnectionType + "," + rectToString(mySource) + "," +
            mySourceDirection + "," + rectToString(myDest) + "," + myDestDirection + "," +
-           myDestType + "," + myShift + "," + myMargin + "," + myMarginDistance + "," + myBias;
+           myDestType + "," + myShift + "," + myMargin + "," + myMarginDistance + "," +
+           myIsMarginReference + "," + myBias;
   }
 
   private static String rectToString(Rectangle r) {
@@ -111,6 +114,7 @@ public class DrawConnection implements DrawCommand {
     myShift = Boolean.parseBoolean(sp[c++]);
     myMargin = Integer.parseInt(sp[c++]);
     myMarginDistance = Integer.parseInt(sp[c++]);
+    myIsMarginReference = Boolean.parseBoolean(sp[c++]);
     myBias = Float.parseFloat(sp[c++]);
   }
 
@@ -118,7 +122,7 @@ public class DrawConnection implements DrawCommand {
   public void paint(Graphics2D g, SceneContext sceneContext) {
     ColorSet color = sceneContext.getColorSet();
     g.setColor(color.getConstraints());
-    draw(g, color, myConnectionType, mySource, mySourceDirection, myDest, myDestDirection, myDestType, myMargin, myMarginDistance, myBias);
+    draw(g, color, myConnectionType, mySource, mySourceDirection, myDest, myDestDirection, myDestType, myMargin, myMarginDistance, myIsMarginReference, myBias);
   }
 
   public DrawConnection(int connectionType,
@@ -130,8 +134,9 @@ public class DrawConnection implements DrawCommand {
                         boolean shift,
                         int margin,
                         int marginDistance,
+                        boolean isMarginReference,
                         Float bias) {
-    config(connectionType, source, sourceDirection, dest, destDirection, destType, shift, margin, marginDistance, bias);
+    config(connectionType, source, sourceDirection, dest, destDirection, destType, shift, margin, marginDistance, isMarginReference, bias);
   }
 
   public static void buildDisplayList(DisplayList list,
@@ -144,9 +149,10 @@ public class DrawConnection implements DrawCommand {
                                       boolean shift,
                                       int margin,
                                       int marginDistance,
+                                      boolean isMarginReference,
                                       Float bias) {
     list
-      .add(new DrawConnection(connectionType, source, sourceDirection, dest, destDirection, destType, shift, margin, marginDistance, bias));
+      .add(new DrawConnection(connectionType, source, sourceDirection, dest, destDirection, destType, shift, margin, marginDistance, isMarginReference, bias));
   }
 
   public void config(int connectionType,
@@ -158,6 +164,7 @@ public class DrawConnection implements DrawCommand {
                      boolean shift,
                      int margin,
                      int marginDistance,
+                     boolean isMarginReference,
                      Float bias) {
     mySource.setBounds(source);
     myDest.setBounds(dest);
@@ -170,6 +177,7 @@ public class DrawConnection implements DrawCommand {
     myShift = shift;
     myMargin = margin;
     myMarginDistance = marginDistance;
+    myIsMarginReference = isMarginReference;
     myBias = bias;
   }
 
@@ -182,6 +190,7 @@ public class DrawConnection implements DrawCommand {
                           int myDestType,
                           int margin,
                           int marginDistance,
+                          boolean isMarginReference,
                           float bias) {
     if (connectionType == TYPE_BASELINE) {
       drawBaseLine(g, source, dest);
@@ -283,7 +292,7 @@ public class DrawConnection implements DrawCommand {
                 int arrow = ((endx > startx) ? 1 : -1) * DrawConnectionUtils.ARROW_SIDE;
                 g.setColor(color.getMargins());
                 DrawConnectionUtils
-                  .drawHorizontalMargin(g, marginString, marginX, endx - arrow, endy);
+                  .drawHorizontalMargin(g, marginString, isMarginReference, marginX, endx - arrow, endy);
                 springEndX = marginX;
               }
             }
@@ -294,7 +303,7 @@ public class DrawConnection implements DrawCommand {
                 int arrow = ((endy > starty) ? 1 : -1) * DrawConnectionUtils.ARROW_SIDE;
                 g.setColor(color.getMargins());
                 DrawConnectionUtils
-                  .drawVerticalMargin(g, marginString, endx, marginY, endy - arrow);
+                  .drawVerticalMargin(g, marginString, isMarginReference, endx, marginY, endy - arrow);
                 springEndY = marginY;
               }
             }
@@ -419,7 +428,7 @@ public class DrawConnection implements DrawCommand {
             boolean above = starty < endy;
             int line_y = starty + ((above) ? -(source.height) / 4 : (source.height) / 4);
             g.setColor(color.getMargins());
-            DrawConnectionUtils.drawHorizontalMarginIndicator(g, "" + margin, startx, endx, line_y);
+            DrawConnectionUtils.drawHorizontalMarginIndicator(g, "" + margin, isMarginReference, startx, endx, line_y);
             if (myDestType != DEST_PARENT || (line_y < dest.y || line_y > dest.y + dest.height)) {
               int constraintX = (destDirection == DIR_LEFT) ? dest.x : dest.x + dest.width;
               Stroke stroke = g.getStroke();
@@ -433,7 +442,7 @@ public class DrawConnection implements DrawCommand {
             boolean left = startx < endx;
             int line_x = startx + ((left) ? -(source.width) / 4 : (source.width) / 4);
             g.setColor(color.getMargins());
-            DrawConnectionUtils.drawVerticalMarginIndicator(g, "" + margin, line_x, starty, endy);
+            DrawConnectionUtils.drawVerticalMarginIndicator(g, "" + margin, isMarginReference, line_x, starty, endy);
             if (myDestType != DEST_PARENT || (line_x < dest.x || line_x > dest.x + dest.width)) {
               int constraint_y = (destDirection == DIR_TOP) ? dest.y : dest.y + dest.height;
               Stroke stroke = g.getStroke();

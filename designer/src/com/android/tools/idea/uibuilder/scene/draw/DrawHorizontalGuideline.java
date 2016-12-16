@@ -57,9 +57,9 @@ public class DrawHorizontalGuideline extends DrawRegion {
     g.drawLine(x, y, x + width, y);
     g.setStroke(stroke);
     if (myBegin != -1) {
-      DrawConnectionUtils.drawVerticalMarginIndicator(g, String.valueOf(myBegin), x + GAP, myOriginY, y);
+      DrawConnectionUtils.drawVerticalMarginIndicator(g, String.valueOf(myBegin), false, x + GAP, myOriginY, y);
     } else if (myEnd != -1) {
-      DrawConnectionUtils.drawVerticalMarginIndicator(g, String.valueOf(myEnd), x + GAP, y, myOriginY+myOriginHeight);
+      DrawConnectionUtils.drawVerticalMarginIndicator(g, String.valueOf(myEnd), false, x + GAP, y, myOriginY+myOriginHeight);
     } else {
 
     }
