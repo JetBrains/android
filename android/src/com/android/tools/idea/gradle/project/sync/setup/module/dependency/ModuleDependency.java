@@ -25,7 +25,7 @@ import com.intellij.openapi.roots.DependencyScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.util.Facets.findFacet;
+import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 /**

@@ -35,7 +35,7 @@ import org.mockito.Mock;
 
 import java.io.File;
 
-import static com.android.tools.idea.gradle.util.Facets.findFacet;
+import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static org.mockito.Mockito.when;
