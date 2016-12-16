@@ -22,7 +22,6 @@ import com.intellij.openapi.wm.ToolWindowFactory;
 import org.jetbrains.annotations.NotNull;
 
 public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFactory {
-  public static final String TOOL_WINDOW_ID = "Android Device Explorer";
 
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
