@@ -191,15 +191,27 @@ public class DragTarget extends ConstraintTarget {
     }
     else if (targetLeftComponent != null) {
       int dx = x - getLeftTargetOrigin(targetLeftComponent);
-      String marginX = String.format(SdkConstants.VALUE_N_DP, dx);
-      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, marginX);
-      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, marginX); // TODO: handles RTL correctly
+      applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, dx);
+      // TODO: handles RTL correctly
+      if (myComponent.getNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START) == null) {
+        // if start isn't defined, create it based on the margin left
+        attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START,
+                                myComponent.getNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT));
+      } else {
+        applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_START, dx);
+      }
     }
     else if (targetRightComponent != null) {
       int dx = getRightTargetOrigin(targetRightComponent) - (x + myComponent.getDrawWidth());
-      String marginX = String.format(SdkConstants.VALUE_N_DP, dx);
-      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, marginX);
-      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, marginX); // TODO: handles RTL correctly
+      applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, dx);
+      // TODO: handles RTL correctly
+      if (myComponent.getNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END) == null) {
+        // if end isn't defined, create it based on the margin right
+        attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END,
+                                myComponent.getNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT));
+      } else {
+        applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_END, dx);
+      }
     }
     else {
       int dx = x - myComponent.getParent().getDrawX();
@@ -235,18 +247,30 @@ public class DragTarget extends ConstraintTarget {
     }
     else if (targetTopComponent != null) {
       int dy = y - getTopTargetOrigin(targetTopComponent);
-      String marginY = String.format(SdkConstants.VALUE_N_DP, dy);
-      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, marginY);
+      applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, dy);
     }
     else if (targetBottomComponent != null) {
       int dy = getBottomTargetOrigin(targetBottomComponent) - (y + myComponent.getDrawHeight());
-      String marginY = String.format(SdkConstants.VALUE_N_DP, dy);
-      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, marginY);
+      applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, dy);
     }
     else {
       int dy = y - myComponent.getParent().getDrawY();
       String positionY = String.format(SdkConstants.VALUE_N_DP, dy);
       attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, positionY);
+    }
+  }
+
+  private void applyMargin(AttributesTransaction attributes, String attribute, int currentValue) {
+    String marginString = myComponent.getNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, attribute);
+    int marginValue = -1;
+    if (marginString != null) {
+      marginValue = getMarginValue(attribute);
+    }
+    if (marginValue != -1 && marginValue == currentValue) {
+      attributes.setAttribute(SdkConstants.ANDROID_URI, attribute, marginString);
+    } else {
+      String marginY = String.format(SdkConstants.VALUE_N_DP, currentValue);
+      attributes.setAttribute(SdkConstants.ANDROID_URI, attribute, marginY);
     }
   }
 
