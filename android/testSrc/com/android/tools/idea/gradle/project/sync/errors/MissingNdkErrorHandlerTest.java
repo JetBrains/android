@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.gradle.project.sync.hyperlink.InstallNdkHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
 import java.util.List;
@@ -26,9 +27,9 @@ import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import static com.google.common.truth.Truth.assertThat;
 
 /**
- * Tests for {@link NdkLocationNotFoundErrorHandler}.
+ * Tests for {@link MissingNdkErrorHandler}.
  */
-public class NdkLocationNotFoundErrorHandlerTest extends AndroidGradleTestCase {
+public class MissingNdkErrorHandlerTest extends AndroidGradleTestCase {
   private SyncMessagesStub mySyncMessagesStub;
 
   @Override
@@ -37,7 +38,23 @@ public class NdkLocationNotFoundErrorHandlerTest extends AndroidGradleTestCase {
     mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
   }
 
-  public void testHandleError() throws Exception {
+  public void testHandleErrorWithNdkNotConfigured() throws Exception {
+    registerSyncErrorToSimulate("NDK not configured. /some/path");
+
+    loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
+
+    SyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
+    assertNotNull(notificationUpdate);
+
+    assertEquals("NDK not configured.", notificationUpdate.getText());
+
+    // Verify hyperlinks are correct.
+    List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();
+    assertThat(quickFixes).hasSize(1);
+    assertThat(quickFixes.get(0)).isInstanceOf(InstallNdkHyperlink.class);
+  }
+
+  public void testHandleErrorWithNdkLocationNotFound() throws Exception {
     registerSyncErrorToSimulate("NDK location not found. Define location with ndk.dir in the local.properties file " +
                                 "or with an ANDROID_NDK_HOME environment variable.");
 
@@ -45,14 +62,12 @@ public class NdkLocationNotFoundErrorHandlerTest extends AndroidGradleTestCase {
 
     SyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
     assertNotNull(notificationUpdate);
-    assertThat(notificationUpdate.getText()).isEqualTo("Android NDK location is not specified.");
+
+    assertEquals("NDK not configured.", notificationUpdate.getText());
 
     // Verify hyperlinks are correct.
     List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();
     assertThat(quickFixes).hasSize(1);
-
-    NotificationHyperlink quickFix = quickFixes.get(0);
-    assertThat(quickFix).isInstanceOf(NotificationHyperlink.class);
-    assertThat(quickFix.getUrl()).isEqualTo("ndk.select");
+    assertThat(quickFixes.get(0)).isInstanceOf(InstallNdkHyperlink.class);
   }
 }
