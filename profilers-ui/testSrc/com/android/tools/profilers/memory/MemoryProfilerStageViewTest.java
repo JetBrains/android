@@ -22,6 +22,7 @@ import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.HeapObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
+import com.intellij.ui.components.JBLoadingPanel;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -53,7 +54,6 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  @Ignore
   public void testCaptureAndHeapView() throws Exception {
     MemoryProfilerStageView stageView = (MemoryProfilerStageView)myView.getStageView();
     JComponent captureComponent = stageView.getChartCaptureSplitter().getSecondComponent();
@@ -62,18 +62,28 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     JComponent instanceComponent = stageView.getMainSplitter().getSecondComponent();
     assertTrue(instanceComponent == null || !instanceComponent.isVisible());
 
-    assertView(null, null, null, null);
+    assertView(null, null, null, null, false);
 
     myStage.selectCapture(DUMMY_CAPTURE, null);
-    assertView(DUMMY_CAPTURE, DUMMY_HEAP_1, null, null);
-    assertAndResetCounts(0, 1, 1, 1, 0, 0);
+    assertView(DUMMY_CAPTURE, null, null, null, true);
+    assertAndResetCounts(0, 1, 0, 0, 0, 0);
+    myMockLoader.runTask();
+    assertView(DUMMY_CAPTURE, DUMMY_HEAP_1, null, null, false);
+    assertAndResetCounts(0, 0, 1, 1, 0, 0);
+
+    // Tests selecting a capture which loads immediately.
+    myMockLoader.setReturnImmediateFuture(true);
+    myStage.selectCapture(DUMMY_CAPTURE_2, null);
+    // 2 heap changes: 1 from changing the capture, the other from the auto-selection after the capture is loaded/
+    assertView(DUMMY_CAPTURE_2, DUMMY_HEAP_1, null, null, false);
+    assertAndResetCounts(0, 1, 1, 2, 0, 0);
 
     stageView.getHeapView().getComponent().setSelectedItem(DUMMY_HEAP_2);
-    assertSelection(DUMMY_CAPTURE, DUMMY_HEAP_2, null, null);
+    assertSelection(DUMMY_CAPTURE_2, DUMMY_HEAP_2, null, null);
     assertAndResetCounts(0, 0, 0, 1, 0, 0);
 
     myStage.selectClass(DUMMY_CLASS_1);
-    assertView(DUMMY_CAPTURE, DUMMY_HEAP_2, DUMMY_CLASS_1, null);
+    assertView(DUMMY_CAPTURE_2, DUMMY_HEAP_2, DUMMY_CLASS_1, null, false);
     assertAndResetCounts(0, 0, 0, 0, 1, 0);
 
     JTree classTree = stageView.getClassView().getTree();
@@ -85,13 +95,13 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     MemoryObjectTreeNode<ClassObject> memoryClassRoot = (MemoryObjectTreeNode<ClassObject>)classRoot;
     stageView.getClassView().getTree()
       .setSelectionPath(new TreePath(new Object[]{classTree.getModel().getRoot(), memoryClassRoot.getChildren().get(0)}));
-    assertSelection(DUMMY_CAPTURE, DUMMY_HEAP_2, DUMMY_CLASS_2, null);
+    assertSelection(DUMMY_CAPTURE_2, DUMMY_HEAP_2, DUMMY_CLASS_2, null);
 
     myStage.selectInstance(DUMMY_INSTANCE);
-    assertView(DUMMY_CAPTURE, DUMMY_HEAP_2, DUMMY_CLASS_2, DUMMY_INSTANCE);
+    assertView(DUMMY_CAPTURE_2, DUMMY_HEAP_2, DUMMY_CLASS_2, DUMMY_INSTANCE, false);
 
     myStage.selectCapture(null, null);
-    assertView(null, null, null, null);
+    assertView(null, null, null, null, false);
   }
 
   private void assertSelection(@Nullable CaptureObject expectedCaptureObject,
@@ -107,14 +117,15 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   private void assertView(@Nullable CaptureObject expectedCaptureObject,
                           @Nullable HeapObject expectedHeapObject,
                           @Nullable ClassObject expectedClassObject,
-                          @Nullable InstanceObject expectedInstanceObject) {
+                          @Nullable InstanceObject expectedInstanceObject,
+                          boolean isCaptureLoading) {
     MemoryProfilerStageView stageView = (MemoryProfilerStageView)myView.getStageView();
 
     ComboBoxModel<HeapObject> heapObjectComboBoxModel = stageView.getHeapView().getComponent().getModel();
 
     if (expectedCaptureObject == null) {
       assertFalse(stageView.getChartCaptureSplitter().getSecondComponent().isVisible());
-      assertEquals(MemoryCaptureView.ourLoadingText, stageView.getCaptureView().getComponent().getText());
+      assertEquals("", stageView.getCaptureView().getComponent().getText());
       assertEquals(heapObjectComboBoxModel.getSize(), 0);
       assertNull(stageView.getClassView().getTree());
       assertFalse(stageView.getInstanceView().getComponent().isVisible());
@@ -122,12 +133,22 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
       return;
     }
 
+
     assertTrue(stageView.getChartCaptureSplitter().getSecondComponent().isVisible());
-    assertEquals(expectedCaptureObject.getLabel(), stageView.getCaptureView().getComponent().getText());
-    assertEquals(expectedCaptureObject.getHeaps(),
-                 IntStream.range(0, heapObjectComboBoxModel.getSize()).mapToObj(heapObjectComboBoxModel::getElementAt)
-                   .collect(Collectors.toList()));
-    assertEquals(expectedHeapObject, heapObjectComboBoxModel.getSelectedItem());
+    if (isCaptureLoading) {
+      assertTrue(stageView.getChartCaptureSplitter().getSecondComponent() instanceof JBLoadingPanel);
+      assertEquals("", stageView.getCaptureView().getComponent().getText());
+      assertEquals(heapObjectComboBoxModel.getSize(), 0);
+    } else {
+      // TODO we cannot test this at the moment due to swing delay switching from the loading panel back to the capture panel.
+      //assertEquals(myStageView.getCapturePanel(), myStageView.getChartCaptureSplitter().getSecondComponent());
+      assertEquals(expectedCaptureObject.getLabel(), stageView.getCaptureView().getComponent().getText());
+      assertEquals(expectedCaptureObject.getHeaps(),
+                   IntStream.range(0, heapObjectComboBoxModel.getSize()).mapToObj(heapObjectComboBoxModel::getElementAt)
+                     .collect(Collectors.toList()));
+      assertEquals(expectedHeapObject, heapObjectComboBoxModel.getSelectedItem());
+    }
+
     if (expectedHeapObject == null) {
       assertNull(stageView.getClassView().getTree());
       return;

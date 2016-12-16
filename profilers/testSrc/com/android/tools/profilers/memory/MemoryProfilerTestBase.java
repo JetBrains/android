@@ -24,6 +24,7 @@ import com.android.tools.profilers.memory.adapters.HeapObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListenableFutureTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
@@ -37,6 +38,7 @@ import static org.junit.Assert.assertEquals;
 public abstract class MemoryProfilerTestBase {
   protected StudioProfilers myProfilers;
   protected MemoryProfilerStage myStage;
+  protected MockCaptureObjectLoader myMockLoader;
 
   protected int myLegacyAllocationAspectCount;
   protected int myCurrentLoadedCaptureAspectCount;
@@ -51,12 +53,13 @@ public abstract class MemoryProfilerTestBase {
 
     myProfilers = new StudioProfilers(getGrpcChannel().getClient());
     onProfilersCreated(myProfilers);
-    myStage = new MemoryProfilerStage(myProfilers, DUMMY_LOADER);
+    myMockLoader = new MockCaptureObjectLoader();
+    myStage = new MemoryProfilerStage(myProfilers, myMockLoader);
 
     myStage.getAspect().addDependency()
       .onChange(MemoryProfilerAspect.LEGACY_ALLOCATION, () -> ++myLegacyAllocationAspectCount)
-      .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, () -> ++myCurrentLoadedCaptureAspectCount)
-      .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, () -> ++myCurrentLoadingCaptureAspectCount)
+      .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, () -> ++myCurrentLoadingCaptureAspectCount)
+      .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, () -> ++myCurrentLoadedCaptureAspectCount)
       .onChange(MemoryProfilerAspect.CURRENT_HEAP, () -> ++myCurrentHeapAspectCount)
       .onChange(MemoryProfilerAspect.CURRENT_CLASS, () -> ++myCurrentClassAspectCount)
       .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, () -> ++myCurrentInstanceAspectCount);
@@ -71,11 +74,11 @@ public abstract class MemoryProfilerTestBase {
   protected void onProfilersCreated(StudioProfilers profilers) {}
 
   protected void assertAndResetCounts(int legacyAllocationAspect,
-                                    int currentLoadingCaptureAspectCount,
-                                    int currentLoadedCaptureAspect,
-                                    int currentHeapAspectCount,
-                                    int currentClassAspectCount,
-                                    int currentInstanceAspectCount) {
+                                      int currentLoadingCaptureAspectCount,
+                                      int currentLoadedCaptureAspect,
+                                      int currentHeapAspectCount,
+                                      int currentClassAspectCount,
+                                      int currentInstanceAspectCount) {
     assertEquals(legacyAllocationAspect, myLegacyAllocationAspectCount);
     assertEquals(currentLoadingCaptureAspectCount, myCurrentLoadingCaptureAspectCount);
     assertEquals(currentLoadedCaptureAspect, myCurrentLoadedCaptureAspectCount);
@@ -94,19 +97,84 @@ public abstract class MemoryProfilerTestBase {
     myCurrentInstanceAspectCount = 0;
   }
 
-  protected static final CaptureObjectLoader DUMMY_LOADER = new CaptureObjectLoader() {
+  protected static class MockCaptureObjectLoader extends CaptureObjectLoader {
+    @Nullable
+    private ListenableFutureTask<CaptureObject> myTask;
+    private boolean isReturnImmediateFuture;
+
     @NotNull
     @Override
     public ListenableFuture<CaptureObject> loadCapture(@NotNull CaptureObject captureObject) {
-      return Futures.immediateFuture(captureObject);
+      if (isReturnImmediateFuture) {
+        return Futures.immediateFuture(captureObject);
+      }
+      else {
+        myTask = ListenableFutureTask.create(() -> captureObject.load() ? captureObject : null);
+        return myTask;
+      }
     }
-  };
 
+    public void runTask() {
+      if (myTask != null) {
+        myTask.run();
+        myTask = null;
+      }
+    }
+
+    public void setReturnImmediateFuture(boolean val) {
+      isReturnImmediateFuture = val;
+    }
+  }
+
+  // TODO Use Mockito. Or define mock classes here and let tests instantiate their own objects.
   protected static final CaptureObject DUMMY_CAPTURE = new CaptureObject() {
     @NotNull
     @Override
     public String getLabel() {
       return "DUMMY_CAPTURE";
+    }
+
+    @NotNull
+    @Override
+    public List<HeapObject> getHeaps() {
+      return Arrays.asList(DUMMY_HEAP_1, DUMMY_HEAP_2);
+    }
+
+    @Override
+    public long getStartTimeNs() {
+      return 5;
+    }
+
+    @Override
+    public long getEndTimeNs() {
+      return 10;
+    }
+
+    @Override
+    public boolean load() {
+      return true;
+    }
+
+    @Override
+    public boolean isDoneLoading() {
+      return true;
+    }
+
+    @Override
+    public boolean isError() {
+      return false;
+    }
+
+    @Override
+    public void dispose() {
+    }
+  };
+
+  protected static final CaptureObject DUMMY_CAPTURE_2 = new CaptureObject() {
+    @NotNull
+    @Override
+    public String getLabel() {
+      return "DUMMY_CAPTURE_2";
     }
 
     @NotNull
