@@ -32,7 +32,7 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import java.io.File;
 import java.util.Collection;
 
-import static com.android.tools.idea.gradle.util.Facets.removeAllFacets;
+import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
 import static com.intellij.openapi.util.io.FileUtilRt.getRelativePath;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;

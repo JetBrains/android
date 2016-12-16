@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.PROJECT_STRUCTURE_ISSUES;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
-import static com.android.tools.idea.gradle.util.Facets.removeAllFacets;
+import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
 
 public class JavaModuleSetup {
   private final JavaModuleSetupStep[] mySetupSteps;

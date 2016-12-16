@@ -67,4 +67,11 @@ public class NdkModuleModelDataServiceTest extends IdeaTestCase {
 
     verify(myModuleSetup).setUpModule(appModule, myModelsProvider, model, null, null);
   }
+
+  public void testImportDataWithEmptyNodesToImport() {
+    Collection<DataNode<NdkModuleModel>> dataNodes = Collections.emptyList();
+    myDataService.importData(dataNodes, null, getProject(), myModelsProvider);
+
+    verify(myModuleSetup).setUpModule(myModule, myModelsProvider, null, null, null);
+  }
 }
