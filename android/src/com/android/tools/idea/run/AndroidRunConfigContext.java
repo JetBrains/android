@@ -28,7 +28,9 @@ public class AndroidRunConfigContext {
   // instant run specific context
   private boolean isSameExecutorAsPreviousSession;
   private boolean myCleanRerun;
+
   private boolean myForceColdswap;
+  private boolean myCouldHaveInvokedHotswap;
 
   @Nullable
   public DeviceFutures getTargetDevices() {
@@ -55,11 +57,16 @@ public class AndroidRunConfigContext {
     myCleanRerun = cleanRerun;
   }
 
-  public void setForceColdSwap(boolean forceColdswap) {
+  public void setForceColdSwap(boolean forceColdswap, boolean couldHaveInvokedHotswap) {
     myForceColdswap = forceColdswap;
+    myCouldHaveInvokedHotswap = couldHaveInvokedHotswap;
   }
 
   public boolean isForceColdswap() {
     return myForceColdswap;
+  }
+
+  public boolean couldHaveInvokedHotswap() {
+    return myCouldHaveInvokedHotswap;
   }
 }

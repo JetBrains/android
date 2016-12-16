@@ -420,12 +420,15 @@ public class InstantRunBuilderTest {
       myTaskRunner.getBuilds());
 
     // but a full apk is forced if this was launched from the new UI
-    myRunConfigContext.setForceColdSwap(true);
-    myTaskRunner = new RecordingTaskRunner();
-    myBuilder.build(myTaskRunner, Collections.emptyList());
-    assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
-      myTaskRunner.getBuilds());
+    boolean[] couldHaveInvokedHotswapValues = new boolean[] { true, false };
+    for (boolean couldHaveHotswaped: couldHaveInvokedHotswapValues) {
+      myRunConfigContext.setForceColdSwap(true, couldHaveHotswaped);
+      myTaskRunner = new RecordingTaskRunner();
+      myBuilder.build(myTaskRunner, Collections.emptyList());
+      assertEquals(
+        "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
+        myTaskRunner.getBuilds());
+    }
   }
 
   private void setUpDeviceForHotSwap() {
