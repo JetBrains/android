@@ -38,7 +38,6 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.Collections;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.listToString;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.tableToString;
@@ -228,7 +227,7 @@ public class ChooseResourceDialogTest {
     textView.click();
 
     // It should be selected now
-    layout.requireSelection(Collections.singletonList(textView));
+    assertThat(layout.getSelection()).containsExactly(textView.getComponent());
 
     // Get property sheet, find text property, open customizer
     layout.getPropertyInspector().findProperty("text").clickCustomizer();
@@ -284,7 +283,7 @@ public class ChooseResourceDialogTest {
     // Find and click the first text view
     NlComponentFixture imageView = layout.findView("ImageView", 0);
     imageView.click();
-    layout.requireSelection(Collections.singletonList(imageView));
+    assertThat(layout.getSelection()).containsExactly(imageView.getComponent());
 
     // Get property sheet, find srcCompat property, open customizer
     NlPropertyInspectorFixture fixture = layout.getPropertyInspector();

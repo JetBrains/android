@@ -27,8 +27,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Collections;
-
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
@@ -56,7 +54,7 @@ public class NlEditorTest {
     textView.click();
 
     // It should be selected now
-    layout.requireSelection(Collections.singletonList(textView));
+    assertThat(layout.getSelection()).containsExactly(textView.getComponent());
   }
 
   /**
@@ -106,11 +104,11 @@ public class NlEditorTest {
     textView.click();
 
     // It should be selected now
-    layout.requireSelection(Collections.singletonList(textView));
+    assertThat(layout.getSelection()).containsExactly(textView.getComponent());
     assertEquals(4, layout.getAllComponents().size()); // 4 = root layout + 3 widgets
 
     ideFrame.invokeMenuPath("Edit", "Cut");
-    layout.requireSelection(Collections.emptyList());
+    assertThat(layout.getSelection()).isEmpty();
     assertEquals(3, layout.getAllComponents().size());
 
     layout.findView("Button", 0).click();
