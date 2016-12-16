@@ -25,25 +25,11 @@ import static org.junit.Assert.*;
 public class ProfilerTimelineTest {
 
   @Test
-  public void constructor() throws Exception {
-    Range dataRange = new Range(0, TimeUnit.SECONDS.toMicros(60));
-    ProfilerTimeline timeline = new ProfilerTimeline(dataRange);
-
-    Range viewRange = timeline.getViewRange();
-    long buffer = timeline.getViewBuffer();
-
-    assertEquals(dataRange.getLength(), viewRange.getLength(), 0);
-    assertEquals(dataRange.getMin() - buffer, viewRange.getMin(), 0);
-    assertEquals(dataRange.getMax() - buffer, viewRange.getMax(), 0);
-    assertTrue(timeline.getSelectionRange().isEmpty());
-  }
-
-  @Test
   public void streaming() throws Exception {
-    Range dataRange = new Range(0, TimeUnit.SECONDS.toMicros(60));
-    ProfilerTimeline timeline = new ProfilerTimeline(dataRange);
-    long buffer = timeline.getViewBuffer();
+    ProfilerTimeline timeline = new ProfilerTimeline();
+    Range dataRange = timeline.getDataRange();
     Range viewRange = timeline.getViewRange();
+    dataRange.set(0, TimeUnit.SECONDS.toMicros(60));
     viewRange.set(0, 10);
 
     assertFalse(timeline.isStreaming());
@@ -62,37 +48,12 @@ public class ProfilerTimelineTest {
     timeline.setStreaming(true);
     assertTrue(timeline.canStream());
     assertTrue(timeline.isStreaming());
-    assertEquals(dataRange.getMax() - buffer, viewRange.getMax(), 0);
+    assertEquals(dataRange.getMax(), viewRange.getMax(), 0);
     assertEquals(10, viewRange.getLength(), 0);
 
     // Turn canStream off
     timeline.setCanStream(false);
     assertFalse(timeline.canStream());
     assertFalse(timeline.isStreaming());
-  }
-
-  @Test
-  public void clampToDataRange() throws Exception {
-    long maxUs = TimeUnit.SECONDS.toMicros(60);
-    Range dataRange = new Range(0, maxUs);
-    ProfilerTimeline timeline = new ProfilerTimeline(dataRange);
-    long buffer = timeline.getViewBuffer();
-    Range viewRange = timeline.getViewRange();
-
-    // Ensure that the min view range is respected as a valid min
-    assertEquals(-buffer, timeline.clampToDataRange(-buffer - 1), 0);
-
-    // Ensure that the max accounts for the buffer
-    assertEquals(maxUs - buffer, timeline.clampToDataRange(maxUs), 0);
-
-    // Ensure that if data's min is smaller than view range's min, data's min will be used instead.
-    viewRange.setMin(maxUs - buffer);
-    assertEquals(0, timeline.clampToDataRange(-1), 0);
-    dataRange.setMin(buffer);
-    assertEquals(buffer, timeline.clampToDataRange(-1), 0);
-
-    // Ensure that the max view range is not respected as a valid max
-    viewRange.setMax(maxUs + buffer * 2);
-    assertEquals(maxUs - buffer, timeline.clampToDataRange(maxUs), 0);
   }
 }

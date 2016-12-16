@@ -77,24 +77,24 @@ public final class AnimatedPan implements Updatable {
     }
 
     Range viewRange = myTimeline.getViewRange();
-    if (deltaUs < 0) {
-      // Moving left - clamp to data min and stops further animation.
-      double unclampedMin = viewRange.getMin() + deltaUs;
-      double minUs = myTimeline.clampToDataRange(unclampedMin);
-      deltaUs = minUs - viewRange.getMin();
-      if (unclampedMin < minUs - EPSILON) {
-        myRemainingDeltaUs = 0;
-      }
-    }
-    else {
-      // Moving right - clamp to data max and stops further animation.
-      double unclampedMax = viewRange.getMax() + deltaUs;
-      double maxUs = myTimeline.clampToDataRange(unclampedMax);
-      deltaUs = maxUs - viewRange.getMax();
-      if (unclampedMax > maxUs + EPSILON) {
-        myRemainingDeltaUs = 0;
-      }
-    }
+    //if (deltaUs < 0) {
+    //  // Moving left - clamp to data min and stops further animation.
+    //  double unclampedMin = viewRange.getMin() + deltaUs;
+    //  double minUs = myTimeline.clampToDataRange(unclampedMin);
+    //  deltaUs = minUs - viewRange.getMin();
+    //  if (unclampedMin < minUs - EPSILON) {
+    //    myRemainingDeltaUs = 0;
+    //  }
+    //}
+    //else {
+    //  // Moving right - clamp to data max and stops further animation.
+    //  double unclampedMax = viewRange.getMax() + deltaUs;
+    //  double maxUs = myTimeline.clampToDataRange(unclampedMax);
+    //  deltaUs = maxUs - viewRange.getMax();
+    //  if (unclampedMax > maxUs + EPSILON) {
+    //    myRemainingDeltaUs = 0;
+    //  }
+    //}
 
     viewRange.shift(deltaUs);
   }

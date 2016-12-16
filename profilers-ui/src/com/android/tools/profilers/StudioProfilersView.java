@@ -23,6 +23,7 @@ import com.android.tools.profilers.memory.MemoryProfilerStageView;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.network.NetworkProfilerStageView;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
@@ -89,7 +90,7 @@ public class StudioProfilersView {
     myLayout = new BorderLayout();
     myComponent = new JPanel(myLayout);
 
-    JComboBox<Profiler.Device> deviceCombo = new JComboBox<>();
+    JComboBox<Profiler.Device> deviceCombo = new ComboBox<>();
     JComboBoxView devices = new JComboBoxView<>(deviceCombo, myProfiler, ProfilerAspect.DEVICES,
                                                 myProfiler::getDevices,
                                                 myProfiler::getDevice,
@@ -97,7 +98,7 @@ public class StudioProfilersView {
     devices.bind();
     deviceCombo.setRenderer(new DeviceComboBoxRenderer());
 
-    JComboBox<Profiler.Process> processCombo = new JComboBox<>();
+    JComboBox<Profiler.Process> processCombo = new ComboBox<>();
     JComboBoxView processes = new JComboBoxView<>(processCombo, myProfiler, ProfilerAspect.PROCESSES,
                                                   myProfiler::getProcesses,
                                                   myProfiler::getProcess,

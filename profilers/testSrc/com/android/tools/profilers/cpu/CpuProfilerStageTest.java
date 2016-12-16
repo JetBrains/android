@@ -16,10 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.profiler.proto.*;
-import com.android.tools.profilers.ProfilerAspect;
-import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.*;
 import com.google.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
 import org.junit.Before;
@@ -52,7 +49,7 @@ public class CpuProfilerStageTest {
 
   @Before
   public void setUp() throws Exception {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient());
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
     myStage = new CpuProfilerStage(profilers);
     myGetProcessesLatch = new CountDownLatch(1);
     profilers.addDependency().onChange(ProfilerAspect.PROCESSES, myGetProcessesLatch::countDown);
