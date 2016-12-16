@@ -136,7 +136,7 @@ public class InstantRunBuildAnalyzer {
       return DeployType.SPLITAPK;
     }
 
-    if (myBuildInfo.hasOneOf(DEX, RESOURCES)) {
+    if (myBuildInfo.hasOneOf(RESOURCES)) {
       return DeployType.DEX;
     }
 
