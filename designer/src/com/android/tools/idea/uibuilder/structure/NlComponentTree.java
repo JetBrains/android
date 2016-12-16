@@ -94,19 +94,23 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     myCopyPasteManager = copyPasteManager;
     myUpdateQueue = new MergingUpdateQueue(
       "android.layout.structure-pane", UPDATE_DELAY_MSECS, true, null, null, null, SWING_THREAD);
+
     setModel(new NlComponentTreeModel());
-    getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
+
     setBorder(new EmptyBorder(INSETS));
+    setDesignSurface(designSurface);
+    setName("componentTree");
     setRootVisible(true);
     setShowsRootHandles(false);
     setToggleClickCount(2);
+
+    getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
     ToolTipManager.sharedInstance().registerComponent(this);
     TreeUtil.installActions(this);
     createCellRenderer();
     addTreeSelectionListener(new StructurePaneSelectionListener());
     new StructureSpeedSearch(this);
     enableDnD();
-    setDesignSurface(designSurface);
     addMouseListener(new StructurePaneMouseListener());
   }
 
@@ -596,7 +600,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
         return parent != null ? new InsertSpecification(parent, component.getNextSibling()) : null;
       }
     }
-    else{
+    else {
       if (myModel.getComponents().size() != 1) {
         return null;
       }
