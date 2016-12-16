@@ -586,26 +586,19 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture deleteGradleWrapper() {
-    deleteWrapper(getProjectPath());
+    deleteWrapper();
     return this;
   }
 
-  @NotNull
-  public IdeFrameFixture requireGradleWrapperSet() {
-    File wrapperDirPath = getGradleWrapperDirPath(getProjectPath());
-    assertAbout(file()).that(wrapperDirPath).named("Gradle wrapper").isDirectory();
-    return this;
-  }
-
-  public static void deleteWrapper(@NotNull File projectDirPath) {
-    File wrapperDirPath = getGradleWrapperDirPath(projectDirPath);
+  public void deleteWrapper() {
+    File wrapperDirPath = getGradleWrapperDirPath();
     delete(wrapperDirPath);
     assertAbout(file()).that(wrapperDirPath).named("Gradle wrapper").doesNotExist();
   }
 
   @NotNull
-  private static File getGradleWrapperDirPath(@NotNull File projectDirPath) {
-    return new File(projectDirPath, FD_GRADLE);
+  public File getGradleWrapperDirPath() {
+    return new File(getProjectPath(), FD_GRADLE);
   }
 
   @NotNull
