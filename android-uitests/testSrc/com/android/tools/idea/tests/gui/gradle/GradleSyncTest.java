@@ -251,7 +251,8 @@ public class GradleSyncTest {
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
     ideFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
 
-    ideFrame.waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish().requireGradleWrapperSet();
+    ideFrame.waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish();
+    assertAbout(file()).that(ideFrame.getGradleWrapperDirPath()).named("Gradle wrapper").isDirectory();
   }
 
   // See https://code.google.com/p/android/issues/detail?id=74259
