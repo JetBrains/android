@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.tests.gui.framework.matcher.FluentMatcher;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -522,12 +523,7 @@ public final class GuiTests {
   public static <T extends Component> T waitUntilShowing(@NotNull Robot robot,
                                                          @Nullable Container root,
                                                          @NotNull GenericTypeMatcher<T> matcher) {
-    return waitUntilFound(robot, root, new GenericTypeMatcher<T>(matcher.supportedType()) {
-      @Override
-      protected boolean isMatching(@NotNull T component) {
-        return component.isShowing() && matcher.matches(component);
-      }
-    });
+    return waitUntilFound(robot, root, FluentMatcher.wrap(matcher).andIsShowing());
   }
 
   /**
@@ -536,12 +532,7 @@ public final class GuiTests {
   @NotNull
   public static <T extends Component> T waitUntilShowingAndEnabled(
     @NotNull Robot robot, @Nullable Container root, @NotNull GenericTypeMatcher<T> matcher) {
-    return waitUntilShowing(robot, root, new GenericTypeMatcher<T>(matcher.supportedType()) {
-      @Override
-      protected boolean isMatching(@NotNull T component) {
-        return component.isEnabled() && matcher.matches(component);
-      }
-    });
+    return waitUntilShowing(robot, root, FluentMatcher.wrap(matcher).andIsEnabled());
   }
 
   /**
