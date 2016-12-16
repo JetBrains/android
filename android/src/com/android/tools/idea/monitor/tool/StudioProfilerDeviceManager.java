@@ -30,6 +30,7 @@ import com.google.common.base.Charsets;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -70,7 +71,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
     }
 
     //TODO: Spawn the datastore in the right place (service)?
-    myDataStoreService = new DataStoreService(DATASTORE_NAME);
+    myDataStoreService = new DataStoreService(DATASTORE_NAME, r -> ApplicationManager.getApplication().executeOnPooledThread(r));
 
     // The client is referenced in the update devices callback. As such the client needs to be set before we register
     // ourself as a listener for this callback. Otherwise we may get the callback before we are fully constructed
