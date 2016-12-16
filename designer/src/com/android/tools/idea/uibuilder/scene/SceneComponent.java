@@ -75,6 +75,7 @@ public class SceneComponent {
   private int myCurrentBottom = 0;
 
   private boolean myShowBaseline = false;
+  private final boolean myAllowsFixedPosition;
 
   boolean used = true;
 
@@ -99,6 +100,7 @@ public class SceneComponent {
     myScene.addComponent(this);
     myDecorator = SceneDecorator.get(component);
     myAllowsAutoconnect = !myNlComponent.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE);
+    myAllowsFixedPosition = !myNlComponent.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE);
   }
 
   //endregion
@@ -240,6 +242,10 @@ public class SceneComponent {
       parent = parent.getParent();
     }
     return false;
+  }
+
+  public boolean allowsFixedPosition() {
+    return myAllowsFixedPosition;
   }
 
   public boolean isSelected() {

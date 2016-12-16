@@ -188,6 +188,10 @@ public abstract class ConstraintTarget extends BaseTarget {
     else {
       transaction.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, null);
     }
+    if (!myComponent.allowsFixedPosition()) {
+      transaction.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, null);
+      transaction.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, null);
+    }
   }
 
   protected void clearAttributes(String uri, ArrayList<String> attributes, AttributesTransaction transaction) {
