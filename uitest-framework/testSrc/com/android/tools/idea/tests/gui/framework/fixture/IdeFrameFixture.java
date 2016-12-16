@@ -60,6 +60,7 @@ import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.util.PathUtil;
@@ -92,8 +93,6 @@ import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.reg
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.testing.FileSubject.file;
-import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static junit.framework.Assert.assertNotNull;
@@ -586,14 +585,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture deleteGradleWrapper() {
-    deleteWrapper();
+    FileUtil.delete(getGradleWrapperDirPath());
     return this;
-  }
-
-  public void deleteWrapper() {
-    File wrapperDirPath = getGradleWrapperDirPath();
-    delete(wrapperDirPath);
-    assertAbout(file()).that(wrapperDirPath).named("Gradle wrapper").doesNotExist();
   }
 
   @NotNull
