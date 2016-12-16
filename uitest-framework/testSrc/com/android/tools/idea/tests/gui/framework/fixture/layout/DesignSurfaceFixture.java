@@ -35,7 +35,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture, DesignSurface> {
@@ -156,24 +155,12 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
       .collect(Collectors.toList());
   }
 
-  /** Requires the selection to have the given number of selected widgets */
-  @NotNull
-  public DesignSurfaceFixture requireSelection(@NotNull List<NlComponentFixture> components) {
-    assertEquals(components, getSelection());
-    return this;
-  }
-
   /** Returns a list of the selected views */
   @NotNull
-  public List<NlComponentFixture> getSelection() {
-    ScreenView screenView = target().getCurrentScreenView();
-    if (screenView == null) {
-      return Collections.emptyList();
-    }
-
-    return screenView.getModel().getSelectionModel().getSelection().stream()
-      .map(this::createComponentFixture)
-      .collect(Collectors.toList());
+  public List<NlComponent> getSelection() {
+    return (target().getCurrentScreenView() == null)
+           ? Collections.emptyList()
+           : target().getCurrentScreenView().getModel().getSelectionModel().getSelection();
   }
 
   public boolean isInScreenMode(@NotNull DesignSurface.ScreenMode mode) {

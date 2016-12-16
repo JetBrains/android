@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.layout;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.openapi.actionSystem.ActionToolbar;
@@ -101,8 +102,8 @@ public class NlPreviewFixture extends ToolWindowFixture {
     return myDesignSurfaceFixture.findView(tag, occurrence);
   }
 
-  public void requireSelection(@NotNull List<NlComponentFixture> components) {
-    myDesignSurfaceFixture.requireSelection(components);
+  public List<NlComponent> getSelection() {
+    return myDesignSurfaceFixture.getSelection();
   }
 
   @NotNull
