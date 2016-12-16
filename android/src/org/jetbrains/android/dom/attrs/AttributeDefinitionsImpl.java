@@ -64,9 +64,9 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
 
   private void addAttrsFromFile(XmlFile file) {
     Map<StyleableDefinitionImpl, String[]> parentMap = new HashMap<>();
-    final XmlDocument document = file.getDocument();
+    XmlDocument document = file.getDocument();
     if (document == null) return;
-    final XmlTag rootTag = document.getRootTag();
+    XmlTag rootTag = document.getRootTag();
     if (rootTag == null || !TAG_RESOURCES.equals(rootTag.getName())) return;
 
     String attrGroup = null;
@@ -192,9 +192,9 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
   @Nullable
   private static List<AttributeFormat> parseAttrFormat(String formatString) {
     List<AttributeFormat> result = new ArrayList<>();
-    final String[] formats = formatString.split("\\|");
+    String[] formats = formatString.split("\\|");
     for (String format : formats) {
-      final AttributeFormat attributeFormat;
+      AttributeFormat attributeFormat;
       try {
         attributeFormat = AttributeFormat.valueOf(StringUtil.capitalize(format));
       }
@@ -208,7 +208,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
 
   private void parseAndAddValues(AttributeDefinition def, XmlTag[] values) {
     for (XmlTag value : values) {
-      final String valueName = value.getAttributeValue(ATTR_NAME);
+      String valueName = value.getAttributeValue(ATTR_NAME);
       if (valueName == null) {
         LOG.info("Unknown value for tag: " + value.getText());
         continue;
@@ -223,7 +223,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
         }
       }
 
-      final String strIntValue = value.getAttributeValue(ATTR_VALUE);
+      String strIntValue = value.getAttributeValue(ATTR_VALUE);
       if (strIntValue != null) {
         try {
           // Integer.decode cannot handle "ffffffff", see JDK issue 6624867
@@ -269,7 +269,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
       return;
     }
 
-    final AttributeDefinition attr = parseAttrTag(tag, def.getName());
+    AttributeDefinition attr = parseAttrTag(tag, def.getName());
     if (attr != null) {
       def.addAttribute(attr);
     }
