@@ -603,6 +603,8 @@ public class NlComponent implements NlAttributesHolder {
     switch (myTagName) {
       case TAG_MENU:
       case TAG_GROUP:
+      case PreferenceTags.PREFERENCE_SCREEN:
+      case PreferenceTags.PREFERENCE_CATEGORY:
         return true;
       default:
         return false;
