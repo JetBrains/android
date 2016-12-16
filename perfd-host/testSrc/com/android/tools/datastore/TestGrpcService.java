@@ -66,4 +66,8 @@ public final class TestGrpcService<S extends BindableService> extends ExternalRe
       .usePlaintext(true)
       .build();
   }
+
+  public S getService() {
+    return myService;
+  }
 }

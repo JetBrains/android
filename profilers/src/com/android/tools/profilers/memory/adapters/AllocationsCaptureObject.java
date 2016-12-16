@@ -17,7 +17,9 @@ package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf3jarjar.ByteString;
+import com.intellij.openapi.diagnostic.Logger;
 import gnu.trove.TIntHashSet;
 import gnu.trove.TIntObjectHashMap;
 import org.jetbrains.annotations.NotNull;
@@ -26,17 +28,24 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public final class AllocationsCaptureObject implements CaptureObject {
+  private static Logger getLogger() {
+    return Logger.getInstance(AllocationsCaptureObject.class);
+  }
+
   @NotNull private final MemoryServiceBlockingStub myClient;
   private final int myAppId;
-  private final long myStartTimeNs;
-  private final long myEndTimeNs;
+  private final int myInfoId;
+  private long myStartTimeNs;
+  private long myEndTimeNs;
   private volatile List<ClassObject> myClassObjs = null;
+  private volatile boolean myIsLoadingError;
 
-  public AllocationsCaptureObject(@NotNull MemoryServiceBlockingStub client, int appId, long startTimeNs, long endTimeNs) {
+  public AllocationsCaptureObject(@NotNull MemoryServiceBlockingStub client, int appId, @NotNull MemoryProfiler.AllocationsInfo info) {
     myClient = client;
     myAppId = appId;
-    myStartTimeNs = startTimeNs;
-    myEndTimeNs = endTimeNs;
+    myInfoId = info.getInfoId();
+    myStartTimeNs = info.getStartTime();
+    myEndTimeNs = info.getEndTime();
   }
 
   @Override
@@ -54,18 +63,12 @@ public final class AllocationsCaptureObject implements CaptureObject {
   public void dispose() {
   }
 
-  @Override
-  public String toString() {
-    // TODO refactor this
-    return "Allocations" +
-           (myStartTimeNs != Long.MAX_VALUE ? " from " + TimeUnit.NANOSECONDS.toMillis(myStartTimeNs) + "ms" : "") +
-           (myEndTimeNs != Long.MIN_VALUE ? " to " + TimeUnit.NANOSECONDS.toMillis(myEndTimeNs) + "ms" : "");
-  }
-
   @NotNull
   @Override
   public String getLabel() {
-    return "default";
+    return "Allocations" +
+           (myStartTimeNs != Long.MAX_VALUE ? " from " + TimeUnit.NANOSECONDS.toMillis(myStartTimeNs) + "ms" : "") +
+           (myEndTimeNs != Long.MIN_VALUE ? " to " + TimeUnit.NANOSECONDS.toMillis(myEndTimeNs) + "ms" : "");
   }
 
   @NotNull
@@ -86,8 +89,36 @@ public final class AllocationsCaptureObject implements CaptureObject {
     return myEndTimeNs;
   }
 
+  @VisibleForTesting
+  public int getInfoId() {
+    return myInfoId;
+  }
+
   @Override
   public boolean load() {
+    while (true) {
+      MemoryProfiler.GetAllocationsInfoStatusResponse response = myClient.getAllocationsInfoStatus(
+        MemoryProfiler.GetAllocationsInfoStatusRequest.newBuilder().setAppId(myAppId).setInfoId(myInfoId).build());
+
+      if (response.getStatus() == MemoryProfiler.AllocationsInfo.Status.COMPLETED) {
+        break;
+      }
+      else if(response.getStatus() == MemoryProfiler.AllocationsInfo.Status.FAILURE_UNKNOWN) {
+        myIsLoadingError = false;
+        return false;
+      }
+      else {
+        try {
+          Thread.sleep(50L);
+        }
+        catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          myIsLoadingError = true;
+          return false;
+        }
+      }
+    }
+
     // TODO add caching
     MemoryProfiler.AllocationContextsResponse contextsResponse = myClient.listAllocationContexts(
       MemoryProfiler.AllocationContextsRequest.newBuilder().setAppId(myAppId).setStartTime(myStartTimeNs).setEndTime(myEndTimeNs).build());
@@ -95,8 +126,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
     TIntObjectHashMap<AllocationsClassObject> classNodes = new TIntObjectHashMap<>();
     Map<ByteString, MemoryProfiler.AllocationStack> callStacks = new HashMap<>();
     contextsResponse.getAllocatedClassesList().forEach(className -> {
-      AllocationsClassObject
-        dupe = classNodes.put(className.getClassId(), new AllocationsClassObject(className));
+      AllocationsClassObject dupe = classNodes.put(className.getClassId(), new AllocationsClassObject(className));
       assert dupe == null;
     });
     contextsResponse.getAllocationStacksList().forEach(callStack -> callStacks.putIfAbsent(callStack.getStackId(), callStack));
@@ -104,6 +134,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
     MemoryProfiler.MemoryData response = myClient
       .getData(MemoryProfiler.MemoryRequest.newBuilder().setAppId(myAppId).setStartTime(myStartTimeNs).setEndTime(myEndTimeNs).build());
     TIntHashSet allocatedClasses = new TIntHashSet();
+
     // TODO make sure class IDs fall into a global pool
     for (MemoryProfiler.MemoryData.AllocationEvent event : response.getAllocationEventsList()) {
       assert classNodes.containsKey(event.getAllocatedClassId());
@@ -124,12 +155,12 @@ public final class AllocationsCaptureObject implements CaptureObject {
 
   @Override
   public boolean isDoneLoading() {
-    return myClassObjs != null;
+    return myClassObjs != null || myIsLoadingError;
   }
 
   @Override
   public boolean isError() {
-    return false;
+    return myIsLoadingError;
   }
 
   final class AllocationsHeapObject implements HeapObject {

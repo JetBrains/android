@@ -71,7 +71,7 @@ public class MemoryProfilerStage extends Stage {
   @NotNull
   private MemoryProfilerSelection mySelection;
 
-  private boolean myAllocationStatus;
+  private boolean myTrackingAllocations;
   private EventMonitor myEventMonitor;
 
   public MemoryProfilerStage(@NotNull StudioProfilers profilers) {
@@ -96,7 +96,7 @@ public class MemoryProfilerStage extends Stage {
     myAllocationDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, allocationSeries));
     mySelection = new MemoryProfilerSelection(this);
 
-    myAllocationStatus = false;
+    myTrackingAllocations = false; // TODO sync with current legacy allocation tracker status
 
     myMemoryYRange = new Range(0, 0);
     myObjectsYRange = new Range(0, 0);
@@ -182,6 +182,7 @@ public class MemoryProfilerStage extends Stage {
   }
 
   public void requestHeapDump() {
+    // TODO selects the capture object.
     myClient.triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.newBuilder().setAppId(myProcessId).build());
   }
 
@@ -190,19 +191,37 @@ public class MemoryProfilerStage extends Stage {
   }
 
   /**
+   * @param enabled    whether to enable or disable allocation tracking.
+   * @param loadJoiner if specified, the joiner executor will be passed down to {@link #selectCapture(CaptureObject, Executor)} so
+   *                   that the load operation of the CaptureObject will be joined and the CURRENT_LOAD_CAPTURE aspect would be
+   *                   fired via the desired executor.
    * @return the actual status, which may be different from the input
    */
-  public void trackAllocations(boolean enabled) {
+  public void trackAllocations(boolean enabled, @Nullable Executor loadJoiner) {
     TrackAllocationsResponse response = myClient.trackAllocations(
       MemoryProfiler.TrackAllocationsRequest.newBuilder().setAppId(myProcessId).setEnabled(enabled).build());
-    myAllocationStatus = enabled && (
-      response.getStatus() == TrackAllocationsResponse.Status.SUCCESS ||
-      response.getStatus() == TrackAllocationsResponse.Status.IN_PROGRESS);
+    switch (response.getStatus()) {
+      case SUCCESS:
+        myTrackingAllocations = enabled;
+        if (!myTrackingAllocations) {
+          selectCapture(new AllocationsCaptureObject(myClient, myProcessId, response.getInfo()), loadJoiner);
+        }
+        break;
+      case IN_PROGRESS:
+        myTrackingAllocations = true;
+        break;
+      case NOT_ENABLED:
+        myTrackingAllocations = false;
+        break;
+      case UNSPECIFIED:
+      case FAILURE_UNKNOWN:
+        break;
+    }
     myAspect.changed(MemoryProfilerAspect.LEGACY_ALLOCATION);
   }
 
   public boolean isTrackingAllocations() {
-    return myAllocationStatus;
+    return myTrackingAllocations;
   }
 
   @NotNull
@@ -258,8 +277,10 @@ public class MemoryProfilerStage extends Stage {
                            }
                            catch (InterruptedException ignored) {
                              Thread.currentThread().interrupt();
+                             selectCapture(null, null);
                            }
                            catch (ExecutionException | CancellationException ignored) {
+                             selectCapture(null, null);
                            }
                          },
                          joiner == null ? MoreExecutors.directExecutor() : joiner);

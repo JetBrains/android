@@ -16,19 +16,16 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.MemoryProfiler.*;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse.Status;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-
 class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
-  private static final long INDETERMINATE_END_TIMESTAMP = -1;
-
-  private MemoryProfiler.TrackAllocationsResponse.Status myExplicitStatus = null;
-  private ArrayList<MemoryProfiler.MemoryData.AllocationsInfo> myInfos = new ArrayList<>();
-  private long myStartTime = Long.MAX_VALUE;
+  private Status myExplicitStatus = null;
+  private AllocationsInfo myExplicitInfo = null;
   private long myCurrentTime = 0;
 
   private int myAppId;
@@ -57,33 +54,14 @@ class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   @Override
   public void trackAllocations(MemoryProfiler.TrackAllocationsRequest request,
                                StreamObserver<MemoryProfiler.TrackAllocationsResponse> response) {
-    MemoryProfiler.TrackAllocationsResponse.Builder builder = MemoryProfiler.TrackAllocationsResponse.newBuilder();
+    TrackAllocationsResponse.Builder builder = TrackAllocationsResponse.newBuilder();
     if (myExplicitStatus != null) {
-      builder.setStatus(myExplicitStatus).setTimestamp(myCurrentTime);
+      builder.setStatus(myExplicitStatus);
     }
-    else if (request.getEnabled()) {
-      if (myStartTime == Long.MAX_VALUE) {
-        builder.setStatus(MemoryProfiler.TrackAllocationsResponse.Status.SUCCESS).setTimestamp(myCurrentTime);
-        myStartTime = myCurrentTime;
-        myInfos.add(
-          MemoryProfiler.MemoryData.AllocationsInfo.newBuilder().setStartTime(myStartTime).setEndTime(INDETERMINATE_END_TIMESTAMP).build());
-      }
-      else {
-        builder.setStatus(MemoryProfiler.TrackAllocationsResponse.Status.IN_PROGRESS).setTimestamp(myCurrentTime);
-      }
+    if (myExplicitInfo != null) {
+      builder.setInfo(myExplicitInfo);
     }
-    else {
-      if (myStartTime == Long.MAX_VALUE) {
-        builder.setStatus(MemoryProfiler.TrackAllocationsResponse.Status.NOT_ENABLED).setTimestamp(myCurrentTime);
-      }
-      else {
-        builder.setStatus(MemoryProfiler.TrackAllocationsResponse.Status.SUCCESS).setTimestamp(myCurrentTime);
-        assert myInfos.size() > 0;
-        MemoryProfiler.MemoryData.AllocationsInfo lastInfo = myInfos.get(myInfos.size() - 1);
-        assert lastInfo.getEndTime() == INDETERMINATE_END_TIMESTAMP;
-        myInfos.set(myInfos.size() - 1, lastInfo.toBuilder().setEndTime(myCurrentTime).build());
-      }
-    }
+    builder.setTimestamp(myCurrentTime);
     response.onNext(builder.build());
     response.onCompleted();
   }
@@ -95,10 +73,26 @@ class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   }
 
   @Override
+  public void listAllocationContexts(AllocationContextsRequest request,
+                                     StreamObserver<AllocationContextsResponse> responseObserver) {
+    // TODO add test data.
+    responseObserver.onNext(AllocationContextsResponse.getDefaultInstance());
+    responseObserver.onCompleted();
+  }
+
+  @Override
   public void listHeapDumpInfos(MemoryProfiler.ListDumpInfosRequest request,
                                 StreamObserver<MemoryProfiler.ListHeapDumpInfosResponse> response) {
     response.onNext(MemoryProfiler.ListHeapDumpInfosResponse.newBuilder().build());
     response.onCompleted();
+  }
+
+  @Override
+  public void getAllocationsInfoStatus(GetAllocationsInfoStatusRequest request,
+                                       StreamObserver<GetAllocationsInfoStatusResponse> responseObserver) {
+    responseObserver.onNext(
+      GetAllocationsInfoStatusResponse.newBuilder().setInfoId(myExplicitInfo.getInfoId()).setStatus(myExplicitInfo.getStatus()).build());
+    responseObserver.onCompleted();
   }
 
   @NotNull
@@ -108,8 +102,15 @@ class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   }
 
   @NotNull
-  public FakeMemoryService setExplicitStatus(@Nullable MemoryProfiler.TrackAllocationsResponse.Status status) {
+  public FakeMemoryService setExplicitStatus(@Nullable Status status) {
     myExplicitStatus = status;
+    return this;
+  }
+
+  public FakeMemoryService setExplicitAllocationsInfo(int infoId, AllocationsInfo.Status infoStatus,
+                                                      long startTime, long endTime, boolean legacy) {
+    myExplicitInfo = AllocationsInfo.newBuilder().setInfoId(infoId).setStatus(infoStatus).setStartTime(startTime).setEndTime(endTime)
+      .setLegacyTracking(legacy).build();
     return this;
   }
 }

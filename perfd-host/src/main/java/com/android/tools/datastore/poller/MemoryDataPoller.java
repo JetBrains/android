@@ -22,12 +22,13 @@ import com.android.tools.datastore.LegacyAllocationTrackingService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.AllocationEvent;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.MemorySample;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.VmStatsSample;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
+import gnu.trove.TIntObjectHashMap;
 import io.grpc.ManagedChannel;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.StreamObserver;
@@ -35,12 +36,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.RunnableFuture;
 import java.util.function.Consumer;
 
+import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.COMPLETED;
+import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.POST_PROCESS;
 import static com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse.Status.SUCCESS;
 
 public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase implements ServicePassThrough, PollRunner.PollingCallback {
+
+  private static Logger getLogger() {
+    return Logger.getInstance(MemoryDataPoller.class);
+  }
+
   private final LegacyAllocationTrackingService myLegacyAllocationTrackingService;
 
   private long myDataRequestStartTimestampNs = Long.MIN_VALUE;
@@ -60,6 +69,16 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
 
   private final Object myUpdatingDataLock = new Object();
   private final Object myUpdatingAllocationsLock = new Object();
+
+  /**
+   * Legacy allocation tracking needs a post-process stage to wait and convert the jdwp data after stopping allocation tracking.
+   * However this step is done in perfd-host instead of perfd, so we take a shortcut to update the statuses in our cached
+   * {@link #myAllocationsInfos} directly (The current architecture does not query the same AllocationInfos sample from perfd after it has
+   * completed, so even if we update the status in perfd, the poller might not see it again).
+   *
+   * These latches ensure we see the samples in the cache first before trying to update their statuses.
+   */
+  private final TIntObjectHashMap<CountDownLatch> myLegacyAllocationsInfoLatches = new TIntObjectHashMap<>();
 
   private HeapDumpSample myPendingHeapDumpSample = null;
 
@@ -170,21 +189,75 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
   public void trackAllocations(TrackAllocationsRequest request,
                                StreamObserver<TrackAllocationsResponse> responseObserver) {
     synchronized (myUpdatingAllocationsLock) {
-      TrackAllocationsResponse response = myPollingService
-        .trackAllocations(TrackAllocationsRequest.newBuilder().setAppId(myProcessId).setEnabled(request.getEnabled()).build());
+      // TODO support non-legacy allocation tracking path.
+      TrackAllocationsResponse response = myPollingService.trackAllocations(TrackAllocationsRequest.newBuilder()
+                                                                              .setAppId(myProcessId)
+                                                                              .setEnabled(request.getEnabled())
+                                                                              .setLegacyTracking(true).build());
       if (response.getStatus() == SUCCESS) {
-        myLegacyAllocationTrackingService
-          .trackAllocations(myProcessId, response.getTimestamp(), request.getEnabled(), (classes, stacks, allocations) -> {
-            synchronized (myUpdatingDataLock) {
-              classes.forEach(allocatedClass -> myAllocatedClasses.putIfAbsent(allocatedClass.getClassName(), allocatedClass));
-              stacks.forEach(allocationStack -> myAllocationStacks.putIfAbsent(allocationStack.getStackId(), allocationStack));
-              allocations.forEach(myAllocationEvents::add);
-            }
-          });
+        int infoId = response.getInfo().getInfoId();
+        if (request.getEnabled()) {
+          myLegacyAllocationsInfoLatches.put(infoId, new CountDownLatch(1));
+          myLegacyAllocationTrackingService.trackAllocations(myProcessId, response.getTimestamp(), request.getEnabled(), null);
+        }
+        else {
+          myLegacyAllocationTrackingService
+            .trackAllocations(myProcessId, response.getTimestamp(), request.getEnabled(), (classes, stacks, allocations) -> {
+              synchronized (myUpdatingDataLock) {
+                classes.forEach(allocatedClass -> myAllocatedClasses.putIfAbsent(allocatedClass.getClassName(), allocatedClass));
+                stacks.forEach(allocationStack -> myAllocationStacks.putIfAbsent(allocationStack.getStackId(), allocationStack));
+                allocations.forEach(myAllocationEvents::add);
+              }
+
+              try {
+                // Wait until the AllocationsInfo sample is already in the cache.
+                assert myLegacyAllocationsInfoLatches.containsKey(infoId);
+                myLegacyAllocationsInfoLatches.get(infoId).await();
+                myLegacyAllocationsInfoLatches.remove(infoId);
+
+                // Find the cached AllocationInfo and update its status to COMPLETED.
+                synchronized (myUpdatingDataLock) {
+                  for (int i = myAllocationsInfos.size() - 1; i >= 0; i--) {
+                    AllocationsInfo info = myAllocationsInfos.get(i);
+                    if (info.getInfoId() == infoId) {
+                      assert info.getLegacyTracking();
+                      info = info.toBuilder().setStatus(COMPLETED).build();
+                      myAllocationsInfos.set(i, info);
+                      break;
+                    }
+                  }
+                }
+              }
+              catch (InterruptedException e) {
+                getLogger().debug("Exception while waiting on AllocationsInfo data.", e);
+              }
+            });
+        }
       }
       responseObserver.onNext(response);
       responseObserver.onCompleted();
     }
+  }
+
+  /**
+   * perfd-host only. This attempts to return the current status of an AllocationsInfo sample that is already in the cache.
+   * If it is not already in the cache, a default instance of an AllocationsInfoStatusResponse is returned.
+   */
+  @Override
+  public void getAllocationsInfoStatus(GetAllocationsInfoStatusRequest request,
+                                       StreamObserver<GetAllocationsInfoStatusResponse> responseObserver) {
+    GetAllocationsInfoStatusResponse response = null;
+    synchronized (myUpdatingDataLock) {
+      for (AllocationsInfo info : myAllocationsInfos) {
+        if (request.getInfoId() == info.getInfoId()) {
+          response = GetAllocationsInfoStatusResponse.newBuilder().setInfoId(info.getInfoId()).setStatus(info.getStatus()).build();
+          break;
+        }
+      }
+    }
+
+    responseObserver.onNext(response != null ? response : GetAllocationsInfoStatusResponse.getDefaultInstance());
+    responseObserver.onCompleted();
   }
 
   @Override
@@ -240,12 +313,17 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
         if (lastEntryIndex >= 0 && myAllocationsInfos.get(lastEntryIndex).getEndTime() == DurationData.UNSPECIFIED_DURATION) {
           AllocationsInfo lastOriginalEntry = myAllocationsInfos.get(lastEntryIndex);
           AllocationsInfo firstIncomingEntry = response.getAllocationsInfo(0);
+          assert response.getAllocationsInfo(0).getInfoId() == lastOriginalEntry.getInfoId();
           assert response.getAllocationsInfo(0).getStartTime() == lastOriginalEntry.getStartTime();
           myAllocationsInfos.set(lastEntryIndex, firstIncomingEntry);
           startAppendIndex = 1;
+
+          updateAllocationsInfoLatches(firstIncomingEntry);
         }
         for (int i = startAppendIndex; i < response.getAllocationsInfoCount(); i++) {
-          myAllocationsInfos.add(response.getAllocationsInfo(i));
+          AllocationsInfo info = response.getAllocationsInfo(i);
+          myAllocationsInfos.add(info);
+          updateAllocationsInfoLatches(info);
         }
       }
 
@@ -297,6 +375,16 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
     if (response.getEndTimestamp() > myDataRequestStartTimestampNs) {
       myDataRequestStartTimestampNs = response.getEndTimestamp();
     }
+  }
+
+  private void updateAllocationsInfoLatches(@NotNull AllocationsInfo info) {
+    if (info.getStatus() != POST_PROCESS) {
+      return;
+    }
+
+    assert info.getLegacyTracking();
+    assert myLegacyAllocationsInfoLatches.containsKey(info.getInfoId());
+    myLegacyAllocationsInfoLatches.get(info.getInfoId()).countDown();
   }
 
   private static int compareTimes(long left, long right) {
