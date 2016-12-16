@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
-import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,7 +29,7 @@ import java.io.IOException;
 import static com.android.tools.idea.tests.gui.layout.Assert.assertPathExists;
 
 @RunWith(GuiTestRunner.class)
-public final class DragMenuItemsFromPaletteToComponentTreeTest {
+public final class DragPreferencesFromPaletteToComponentTreeTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
 
@@ -39,23 +38,19 @@ public final class DragMenuItemsFromPaletteToComponentTreeTest {
     myGuiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
 
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
-    editor.open("app/src/main/res/menu/menu.xml");
+    editor.open("app/src/main/res/xml/preference_screen.xml");
 
     NlEditorFixture layoutEditor = editor.getLayoutEditor(false);
     layoutEditor.waitForRenderToFinish();
 
-    JListFixture paletteItemList = layoutEditor.getPaletteItemList(0);
     JTreeFixture componentTree = layoutEditor.getComponentTree();
 
-    paletteItemList.drag("Group");
-    componentTree.drop("menu");
+    layoutEditor.getPaletteItemList(1).drag("PreferenceCategory");
+    componentTree.drop("PreferenceScreen");
 
-    paletteItemList.drag("Menu Item");
-    componentTree.drop("menu/group");
+    layoutEditor.getPaletteItemList(0).drag("CheckBoxPreference");
+    componentTree.drop("PreferenceScreen/PreferenceCategory");
 
-    paletteItemList.drag("Menu");
-    componentTree.drop("menu/group/item");
-
-    assertPathExists(componentTree, "menu/group/item/menu");
+    assertPathExists(componentTree, "PreferenceScreen/PreferenceCategory/CheckBoxPreference");
   }
 }
