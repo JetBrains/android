@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
+import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -166,6 +167,11 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   @NotNull
   public NlPropertyEditors getPropertyEditors() {
     return myEditors;
+  }
+
+  @NotNull
+  public InspectorPanel getInspector() {
+    return myPropertiesPanel.getInspector();
   }
 
   @Nullable
