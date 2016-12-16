@@ -16,9 +16,10 @@
 package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.DataStorePollerTest;
-import com.android.tools.profiler.proto.*;
 import com.android.tools.datastore.TestGrpcService;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.NetworkProfiler;
+import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import io.grpc.stub.StreamObserver;
 import org.junit.Before;
 import org.junit.Rule;
@@ -26,15 +27,12 @@ import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 
 public class NetworkDataPollerTest extends DataStorePollerTest {
 
   private static final int TEST_APP_ID = 1234;
   private static final long BASE_TIME_NS = System.nanoTime();
-  private static final long ONE_SECOND_MS = TimeUnit.SECONDS.toMillis(1);
-  private static final long TEN_SECONDS_MS = TimeUnit.SECONDS.toMillis(10);
   private static final long SENT_VALUE = 1024;
   private static final long RECEIVED_VALUE = 2048;
   private static final int CONNECTION_COUNT = 4;
@@ -48,6 +46,11 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   private static final Common.CommonData DELAY_BASIC_INFO = Common.CommonData.newBuilder()
     .setAppId(TEST_APP_ID)
     .setEndTimestamp(BASE_TIME_NS + TimeUnit.SECONDS.toNanos(1))
+    .build();
+
+  private static final Common.CommonData GLOBAL_APP_INFO = Common.CommonData.newBuilder()
+    .setAppId(Common.AppId.ANY_VALUE)
+    .setEndTimestamp(BASE_TIME_NS)
     .build();
 
   private static final NetworkProfiler.HttpRangeResponse HTTP_RANGE_RESPONSE = NetworkProfiler.HttpRangeResponse.newBuilder()
@@ -80,7 +83,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
                .setConnectionData(NETWORK_CONNECTION_DATA)
                .build())
     .addData(NetworkProfiler.NetworkProfilerData.newBuilder()
-               .setBasicInfo(DELAY_BASIC_INFO)
+               .setBasicInfo(GLOBAL_APP_INFO)
                .setConnectivityData(NETWORK_CONNECTIVITY_DATA)
                .build())
     .build();
@@ -192,7 +195,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   public void testGetDataConnectivity() {
     NetworkProfiler.NetworkDataResponse expected = NetworkProfiler.NetworkDataResponse.newBuilder()
       .addData(NetworkProfiler.NetworkProfilerData.newBuilder()
-                 .setBasicInfo(DELAY_BASIC_INFO)
+                 .setBasicInfo(GLOBAL_APP_INFO)
                  .setConnectivityData(NETWORK_CONNECTIVITY_DATA)
                  .build())
       .build();
@@ -221,15 +224,29 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
       .setEndTimestamp(Long.MAX_VALUE)
       .setType(NetworkProfiler.NetworkDataRequest.Type.ALL)
       .build();
+
+    // Connectivity data is global to the entire phone and will be returned always, regardless of
+    // app ID (even invalid ones).
+    NetworkProfiler.NetworkDataResponse expected = NetworkProfiler.NetworkDataResponse.newBuilder()
+      .addData(NetworkProfiler.NetworkProfilerData.newBuilder()
+                 .setBasicInfo(GLOBAL_APP_INFO)
+                 .setConnectivityData(NETWORK_CONNECTIVITY_DATA)
+                 .build())
+      .build();
+
     StreamObserver<NetworkProfiler.NetworkDataResponse> observer = mock(StreamObserver.class);
     myNetworkDataPoller.getData(request, observer);
-    validateResponse(observer, NetworkProfiler.NetworkDataResponse.getDefaultInstance());
+    validateResponse(observer, expected);
   }
 
 
   private void getData(NetworkProfiler.NetworkDataRequest.Type type, NetworkProfiler.NetworkDataResponse expected) {
+    getData(TEST_APP_ID, type, expected);
+  }
+
+  private void getData(int appId, NetworkProfiler.NetworkDataRequest.Type type, NetworkProfiler.NetworkDataResponse expected) {
     NetworkProfiler.NetworkDataRequest request = NetworkProfiler.NetworkDataRequest.newBuilder()
-      .setAppId(TEST_APP_ID)
+      .setAppId(appId)
       .setStartTimestamp(0)
       .setEndTimestamp(Long.MAX_VALUE)
       .setType(type)
