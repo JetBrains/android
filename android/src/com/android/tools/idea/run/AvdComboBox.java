@@ -20,7 +20,6 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.IdDisplay;
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -47,6 +46,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
 
 public abstract class AvdComboBox extends ComboboxWithBrowseButton {
   private final boolean myAddEmptyElement;
@@ -136,7 +137,7 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
         newAvdList.add(IdDisplay.create("", ""));
       }
       for (AvdInfo avd : facet.getAllAvds()) {
-        String displayName = avd.getProperties().get(AvdManagerConnection.AVD_INI_DISPLAY_NAME);
+        String displayName = avd.getProperties().get(AVD_INI_DISPLAY_NAME);
         final String avdName = displayName == null || displayName.isEmpty() ? avd.getName() : displayName;
         if (!filteringSet.contains(avdName)) {
           newAvdList.add(IdDisplay.create(avd.getName(), avdName));

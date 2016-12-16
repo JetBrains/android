@@ -79,6 +79,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
 
@@ -95,7 +96,6 @@ public class AvdManagerConnection {
   private static final int LMP_MR1_API_LEVEL_22 = 22;
 
   public static final String AVD_INI_HW_LCD_DENSITY = "hw.lcd.density";
-  public static final String AVD_INI_DISPLAY_NAME = "avd.ini.displayname";
   public static final Revision TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("25.0.0 rc1");
   public static final Revision TOOLS_REVISION_25_0_2_RC3 = Revision.parseRevision("25.0.2 rc3");
   public static final Revision PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("23.1.0");
@@ -575,7 +575,8 @@ public class AvdManagerConnection {
                                    @Nullable String sdCard,
                                    @Nullable File skinFolder,
                                    @NotNull Map<String, String> hardwareProperties,
-                                   boolean createSnapshot) {
+                                   boolean createSnapshot,
+                                   boolean removePrevious) {
     if (!initIfNecessary()) {
       return null;
     }
@@ -610,7 +611,7 @@ public class AvdManagerConnection {
       hardwareProperties.put(HardwareProperties.HW_INITIAL_ORIENTATION,
                              ScreenOrientation.LANDSCAPE.getShortDisplayValue().toLowerCase(Locale.ROOT));
     }
-    if (currentInfo != null && !avdName.equals(currentInfo.getName())) {
+    if (currentInfo != null && !avdName.equals(currentInfo.getName()) && removePrevious) {
       boolean success = myAvdManager.moveAvd(currentInfo, avdName, currentInfo.getDataFolderPath(), SDK_LOG);
       if (!success) {
         return null;
@@ -627,7 +628,7 @@ public class AvdManagerConnection {
                                   device.getBootProps(),
                                   createSnapshot,
                                   false,
-                                  currentInfo != null,
+                                  removePrevious,
                                   SDK_LOG);
   }
 

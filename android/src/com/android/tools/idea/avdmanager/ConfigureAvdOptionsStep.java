@@ -572,6 +572,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myCheckSdForChanges = true;
   }
 
+  // TODO: jameskaye Add unit tests for these validators. (b.android.com/230192)
   private void addValidators() {
     myValidatorPanel.registerValidator(getModel().getAvdDeviceData().ramStorage(), new Validator<Storage>() {
       @NotNull
@@ -641,6 +642,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     });
 
+    myOriginalName = getModel().avdDisplayName().get();
+
     myValidatorPanel.registerValidator(getModel().avdDisplayName(), new Validator<String>() {
       @NotNull
       @Override
@@ -656,7 +659,9 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
           severity = Severity.ERROR;
           errorMessage = "The AVD name can contain only the characters " + AvdNameVerifier.humanReadableAllowedCharacters();
         }
-        else if (!getModel().isInEditMode().get() && AvdManagerConnection.getDefaultAvdManagerConnection().findAvdWithName(value)) {
+        else if ( !value.equals(myOriginalName) &&
+            AvdManagerConnection.getDefaultAvdManagerConnection().findAvdWithName(value)) {
+          // Another device with this name already exists
           severity = Severity.ERROR;
           errorMessage = String.format("An AVD with the name \"%1$s\" already exists.", getModel().avdDisplayName());
         }
