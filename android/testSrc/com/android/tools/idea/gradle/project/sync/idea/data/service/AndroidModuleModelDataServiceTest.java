@@ -81,12 +81,12 @@ public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
     Project project = getProject();
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(project);
 
+    Module module = createModule("app");
+
     myService.importData(Collections.emptyList(), mock(ProjectData.class), project, modelsProvider);
 
-    Module module = mock(Module.class);
-    AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
-    verify(myModuleSetup, never()).setUpModule(module, modelsProvider, androidModel, null, null);
-    verify(myValidator, never()).validate(module, androidModel);
+    verify(myModuleSetup).setUpModule(module, modelsProvider, null, null, null);
+    verify(myValidator, never()).validate(same(module), any());
     verify(myValidator, never()).fixAndReportFoundIssues();
   }
 }

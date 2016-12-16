@@ -30,7 +30,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
-import static com.android.tools.idea.gradle.util.Facets.removeAllFacets;
+import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
 
 /**
  * Applies Gradle settings to the modules of an Android project.

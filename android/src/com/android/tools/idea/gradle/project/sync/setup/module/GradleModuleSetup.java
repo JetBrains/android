@@ -32,7 +32,7 @@ import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 
 import java.io.File;
 
-import static com.android.tools.idea.gradle.util.Facets.findFacet;
+import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class GradleModuleSetup {
