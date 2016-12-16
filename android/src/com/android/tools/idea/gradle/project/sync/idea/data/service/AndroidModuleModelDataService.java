@@ -70,7 +70,9 @@ public class AndroidModuleModelDataService extends ModuleModelDataService<Androi
       setUpModule(module, moduleValidator, modelsProvider, androidModel);
     }
 
-    moduleValidator.fixAndReportFoundIssues();
+    if (!modelsByName.isEmpty()) {
+      moduleValidator.fixAndReportFoundIssues();
+    }
   }
 
   private void setUpModule(@NotNull Module module,

@@ -27,8 +27,8 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.util.Facets.findFacet;
-import static com.android.tools.idea.gradle.util.Facets.removeAllFacets;
+import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
+import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class NdkFacetModuleSetupStep extends NdkModuleSetupStep {
