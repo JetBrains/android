@@ -41,6 +41,12 @@ public abstract class StopwatchTimer {
   public abstract boolean isRunning();
   public abstract void stop();
 
+  /**
+   * Child classes are responsible for signaling when and how much time has elapsed.
+   *
+   * This class is marked public so tests can control it, but otherwise this method should be
+   * treated as only available to subclasses.
+   */
   @VisibleForTesting
   public final void tick(float elapsed) {
     if (myHandler != null) {
