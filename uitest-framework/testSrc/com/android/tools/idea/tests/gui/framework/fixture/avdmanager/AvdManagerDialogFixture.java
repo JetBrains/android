@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.table.TableView;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -82,12 +83,7 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
     });
 
     JPanel actionPanel = (JPanel)actionCellFixture.editor();
-    HyperlinkLabel editButtonLabel = robot().finder().find(actionPanel, new GenericTypeMatcher<HyperlinkLabel>(HyperlinkLabel.class) {
-      @Override
-      protected boolean isMatching(@NotNull HyperlinkLabel component) {
-        return "Edit this AVD".equals(component.getToolTipText());
-      }
-    });
+    HyperlinkLabel editButtonLabel = robot().finder().find(actionPanel, Matchers.byTooltip(HyperlinkLabel.class, "Edit this AVD"));
     robot().click(editButtonLabel);
     return AvdEditWizardFixture.find(robot());
   }
