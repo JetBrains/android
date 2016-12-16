@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
+import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
@@ -228,7 +229,9 @@ public class GradleSyncTest {
     guiTest.importSimpleApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
-    ideFrame.deleteGradleWrapper().useLocalGradleDistribution(unsupportedGradleHome).requestProjectSync();
+    File wrapperDirPath = new File(ideFrame.getProjectPath(), SdkConstants.FD_GRADLE);
+    delete(wrapperDirPath);
+    ideFrame.useLocalGradleDistribution(unsupportedGradleHome).requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "Cancel" to use local distribution.
     ideFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickCancel();
@@ -246,13 +249,15 @@ public class GradleSyncTest {
     guiTest.importMultiModule();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
-    ideFrame.deleteGradleWrapper().useLocalGradleDistribution(unsupportedGradleHome).requestProjectSync();
+    File wrapperDirPath = new File(ideFrame.getProjectPath(), SdkConstants.FD_GRADLE);
+    delete(wrapperDirPath);
+    ideFrame.useLocalGradleDistribution(unsupportedGradleHome).requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
     ideFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
 
     ideFrame.waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish();
-    assertAbout(file()).that(ideFrame.getGradleWrapperDirPath()).named("Gradle wrapper").isDirectory();
+    assertAbout(file()).that(wrapperDirPath).named("Gradle wrapper").isDirectory();
   }
 
   // See https://code.google.com/p/android/issues/detail?id=74259
