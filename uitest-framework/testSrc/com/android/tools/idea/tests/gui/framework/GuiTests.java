@@ -160,7 +160,6 @@ public final class GuiTests {
             () -> {
               System.out.println(String.format("Setting Android SDK: '%1$s'", androidSdkPath.getPath()));
               ideSdks.setAndroidSdkPath(androidSdkPath, null);
-              System.setProperty("ANDROID_HOME", androidSdkPath.getAbsolutePath()); // Needed when accessing SDK from LintClient
 
               ideSdks.setUseEmbeddedJdk();
               System.out.println(String.format("Setting JDK: '%1$s'", ideSdks.getJdkPath()));
