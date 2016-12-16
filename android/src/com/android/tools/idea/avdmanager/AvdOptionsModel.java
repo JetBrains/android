@@ -48,6 +48,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
 import static com.google.common.base.Strings.nullToEmpty;
 
 /**
@@ -96,6 +97,7 @@ public final class AvdOptionsModel extends WizardModel {
   private BoolProperty myEnableHardwareKeyboard = new BoolValueProperty(true);
 
   private BoolProperty myIsInEditMode = new BoolValueProperty();
+  private BoolProperty myRemovePreviousAvd = new BoolValueProperty(true); // Assume 'rename', not 'duplicate'
 
   private OptionalProperty<File> myBackupSkinFile = new OptionalValueProperty<>();
   private OptionalProperty<SystemImageDescription> mySystemImage = new OptionalValueProperty<>();
@@ -106,6 +108,13 @@ public final class AvdOptionsModel extends WizardModel {
 
   private AvdDeviceData myAvdDeviceData;
   private AvdInfo myCreatedAvd;
+
+  public void setAsCopy() {
+    // Copying this AVD. Adjust its name and don't
+    // remove the original version.
+    myAvdDisplayName.set("Copy_of_" + myAvdDisplayName.get());
+    myRemovePreviousAvd.set(false);
+  }
 
   public AvdOptionsModel(@Nullable AvdInfo avdInfo) {
     myAvdInfo = avdInfo;
@@ -206,7 +215,7 @@ public final class AvdOptionsModel extends WizardModel {
     if (avdInfo != null) {
       return avdInfo.getName();
     }
-    String candidateBase = hardwareProperties.get(AvdManagerConnection.AVD_INI_DISPLAY_NAME);
+    String candidateBase = hardwareProperties.get(AVD_INI_DISPLAY_NAME);
     if (candidateBase == null || candidateBase.isEmpty()) {
       String deviceName = device.getDisplayName().replace(' ', '_');
       String manufacturer = device.getManufacturer().replace(' ', '_');
@@ -738,7 +747,8 @@ public final class AvdOptionsModel extends WizardModel {
 
     AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
     myCreatedAvd = connection.createOrUpdateAvd(
-      myAvdInfo, avdName, device, systemImage, mySelectedAvdOrientation.get(), isCircular, sdCard, skinFile, hardwareProperties, false);
+      myAvdInfo, avdName, device, systemImage, mySelectedAvdOrientation.get(),
+      isCircular, sdCard, skinFile, hardwareProperties, false, myRemovePreviousAvd.get());
     if (myCreatedAvd == null) {
       ApplicationManager.getApplication().invokeAndWait(() -> Messages.showErrorDialog(
         (Project)null, "An error occurred while creating the AVD. See idea.log for details.", "Error Creating AVD"), ModalityState.any());
