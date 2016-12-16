@@ -490,7 +490,7 @@ public class Configuration implements Disposable, ModificationTracker {
                 // We get instead all the available folders and check that there is one compatible.
                 LocalResourceManager resourceManager = LocalResourceManager.getInstance(module);
                 if (resourceManager != null) {
-                  for (PsiFile resourceFile : resourceManager.findResourceFiles("values")) {
+                  for (PsiFile resourceFile : resourceManager.findResourceFiles(ResourceFolderType.VALUES)) {
                     if (myFile.equals(resourceFile.getVirtualFile()) && resourceFile.getParent() != null) {
                       FolderConfiguration folderConfiguration = FolderConfiguration.getConfigForFolder(resourceFile.getParent().getName());
                       if (currentConfig.isMatchFor(folderConfiguration)) {

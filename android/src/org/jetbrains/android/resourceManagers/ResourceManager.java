@@ -73,20 +73,12 @@ public abstract class ResourceManager {
   /** Returns true if the given directory is a resource directory in this module */
   public abstract boolean isResourceDir(@NotNull VirtualFile dir);
 
-  // TODO: Switch parameter type to ResourceFolderType to avoid mix & matching
-  // ResourceType and ResourceFolderType
-  public boolean processFileResources(@NotNull String resourceType, @NotNull FileResourceProcessor processor) {
-    return processFileResources(resourceType, processor, true);
+  public boolean processFileResources(@NotNull ResourceFolderType folderType, @NotNull FileResourceProcessor processor) {
+    return processFileResources(folderType, processor, true);
   }
 
-  // TODO: Switch parameter type to ResourceFolderType to avoid mix & matching
-  // ResourceType and ResourceFolderType
-  public boolean processFileResources(@NotNull String resourceType, @NotNull FileResourceProcessor processor,
+  public boolean processFileResources(@NotNull ResourceFolderType folderType, @NotNull FileResourceProcessor processor,
                                       boolean withDependencies) {
-    ResourceFolderType folderType = ResourceFolderType.getTypeByName(resourceType);
-    if (folderType == null) {
-      return true;
-    }
     return processFileResources(folderType, processor, withDependencies, true);
   }
 
@@ -135,15 +127,15 @@ public abstract class ResourceManager {
   }
 
   @NotNull
-  public List<PsiFile> findResourceFiles(@NotNull String resType,
+  public List<PsiFile> findResourceFiles(@NotNull ResourceFolderType resourceType,
                                          @Nullable String resName,
                                          boolean distinguishDelimetersInName,
                                          @NotNull String... extensions) {
-    return findResourceFiles(resType, resName, distinguishDelimetersInName, true, extensions);
+    return findResourceFiles(resourceType, resName, distinguishDelimetersInName, true, extensions);
   }
 
   @NotNull
-  public List<PsiFile> findResourceFiles(@NotNull String resType1,
+  public List<PsiFile> findResourceFiles(@NotNull ResourceFolderType resourceFolderType,
                                          @Nullable String resName1,
                                          boolean distinguishDelimetersInName,
                                          boolean withDependencies,
@@ -152,7 +144,7 @@ public abstract class ResourceManager {
     Set<String> extensionSet = new HashSet<>();
     addAll(extensionSet, extensions);
 
-    processFileResources(resType1, (resFile, resName) -> {
+    processFileResources(resourceFolderType, (resFile, resName) -> {
       String extension = resFile.getExtension();
 
       if ((extensions.length == 0 || extensionSet.contains(extension)) &&
@@ -168,8 +160,8 @@ public abstract class ResourceManager {
   }
 
   @NotNull
-  public List<PsiFile> findResourceFiles(@NotNull String resType) {
-    return findResourceFiles(resType, null, true);
+  public List<PsiFile> findResourceFiles(@NotNull ResourceFolderType resourceType) {
+    return findResourceFiles(resourceType, null, true);
   }
 
   protected List<Pair<Resources, VirtualFile>> getResourceElements(@Nullable Set<VirtualFile> files) {
@@ -261,10 +253,8 @@ public abstract class ResourceManager {
     return folderType == null ? null : folderType.getName();
   }
 
-  // TODO: Switch parameter type to ResourceFolderType to avoid mix & matching
-  // ResourceType and ResourceFolderType
   @NotNull
-  private Set<String> getFileResourcesNames(@NotNull String resourceType) {
+  private Set<String> getFileResourcesNames(@NotNull ResourceFolderType resourceType) {
     Set<String> result = new HashSet<>();
 
     processFileResources(resourceType, (resFile, resName) -> {
@@ -345,7 +335,7 @@ public abstract class ResourceManager {
     if (!folders.isEmpty()) {
       for (ResourceFolderType folderType : folders) {
         if (folderType != ResourceFolderType.VALUES) {
-          result.addAll(getFileResourcesNames(folderType.getName()));
+          result.addAll(getFileResourcesNames(folderType));
         }
       }
     }
@@ -481,8 +471,11 @@ public abstract class ResourceManager {
       elements.addAll(findIdDeclarations(resName));
     }
     if (elements.size() == 0) {
-      for (PsiFile file : findResourceFiles(resType, resName, false)) {
-        elements.add(new FileResourceElementWrapper(file));
+      ResourceFolderType folderType = ResourceFolderType.getTypeByName(resType);
+      if (folderType != null) {
+        for (PsiFile file : findResourceFiles(folderType, resName, false)) {
+          elements.add(new FileResourceElementWrapper(file));
+        }
       }
     }
   }
