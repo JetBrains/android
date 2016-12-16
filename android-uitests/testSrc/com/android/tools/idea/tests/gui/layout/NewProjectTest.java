@@ -92,16 +92,15 @@ public class NewProjectTest {
   @RunIn(TestGroup.QA)
   @Test
   public void testCreateNewMobileProject() {
-    newProject("Test Application").create();
-    EditorFixture editor = guiTest.ideFrame().getEditor();
-    editor.open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.EDITOR);
-
-    guiTest.ideFrame().requireModuleCount(2);
+    IdeFrameFixture ideFrame = newProject("Test Application").create();
+    assertThat(ideFrame.getModuleNames()).containsExactly("app", "TestApplication");
 
     // Make sure that the activity registration uses the relative syntax
     // (regression test for https://code.google.com/p/android/issues/detail?id=76716)
-    editor.open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR);
-    assertThat(editor.getCurrentFileContents()).contains("\".MainActivity\"");
+    String androidManifestContents = ideFrame.getEditor()
+      .open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR)
+      .getCurrentFileContents();
+    assertThat(androidManifestContents).contains("\".MainActivity\"");
   }
 
   @Test
