@@ -17,6 +17,7 @@
 package org.jetbrains.android.resourceManagers;
 
 import com.android.SdkConstants;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.intellij.openapi.application.ApplicationManager;
@@ -125,7 +126,7 @@ public class LocalResourceManager extends ResourceManager {
     if (myAttrDefs == null) {
       ApplicationManager.getApplication().runReadAction(() -> {
         List<XmlFile> xmlResFiles = new ArrayList<>();
-        for (PsiFile file : findResourceFiles("values")) {
+        for (PsiFile file : findResourceFiles(ResourceFolderType.VALUES)) {
           if (file instanceof XmlFile) {
             xmlResFiles.add((XmlFile)file);
           }
@@ -235,8 +236,11 @@ public class LocalResourceManager extends ResourceManager {
     if (resClassName.equals(ResourceType.ID.getName())) {
       targets.addAll(findIdDeclarations(fieldName));
     }
-    for (PsiFile file : findResourceFiles(resClassName, fieldName, false)) {
-      targets.add(file);
+    ResourceFolderType folderType = ResourceFolderType.getTypeByName(resClassName);
+    if (folderType != null) {
+      for (PsiFile file : findResourceFiles(folderType, fieldName, false)) {
+        targets.add(file);
+      }
     }
     for (ResourceElement element : findValueResources(resClassName, fieldName, false)) {
       targets.add(element.getName().getXmlAttributeValue());
