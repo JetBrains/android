@@ -209,13 +209,15 @@ class SceneMouseInteraction {
     dx = myLastX;
     dy = myLastY;
     SceneContext transform = SceneContext.get();
-    for (int i = 0; i < steps; i++) {
-      myScene.mouseDrag(transform, (int)dx, (int)dy);
-      myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
-      dx += deltaX;
-      dy += deltaY;
+    if (dx != 0 && dy != 0) {
+      for (int i = 0; i < steps; i++) {
+        myScene.mouseDrag(transform, (int)dx, (int)dy);
+        myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
+        dx += deltaX;
+        dy += deltaY;
+      }
+      myScene.mouseDrag(transform, (int)x, (int)y);
     }
-    myScene.mouseDrag(transform, (int)x, (int)y);
     myScene.mouseRelease(transform, (int)x, (int)y);
     repaint();
   }
