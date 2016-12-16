@@ -56,15 +56,7 @@ public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleM
                             @NotNull Map<String, NdkModuleModel> modelsByName) {
     for (Module module : modelsProvider.getModules()) {
       NdkModuleModel ndkModuleModel = modelsByName.get(module.getName());
-      if (ndkModuleModel != null) {
-        customizeModule(module, modelsProvider, ndkModuleModel);
-      }
+      myModuleSetup.setUpModule(module, modelsProvider, ndkModuleModel, null, null);
     }
-  }
-
-  private void customizeModule(@NotNull Module module,
-                               @NotNull IdeModifiableModelsProvider modelsProvider,
-                               @NotNull NdkModuleModel ndkModuleModel) {
-    myModuleSetup.setUpModule(module, modelsProvider, ndkModuleModel, null, null);
   }
 }

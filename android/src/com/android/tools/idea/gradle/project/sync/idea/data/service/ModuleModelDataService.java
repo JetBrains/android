@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,9 +41,6 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
                                @Nullable ProjectData projectData,
                                @NotNull Project project,
                                @NotNull IdeModifiableModelsProvider modelsProvider) {
-    if (toImport.isEmpty()) {
-      return;
-    }
     try {
       importData(toImport, project, modelsProvider);
     }
@@ -79,6 +77,9 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
 
   @NotNull
   private Map<String, T> indexByModuleName(@NotNull Collection<DataNode<T>> dataNodes) {
+    if (dataNodes.isEmpty()) {
+      return Collections.emptyMap();
+    }
     Map<String, T> index = new HashMap<>();
     for (DataNode<T> dataNode : dataNodes) {
       T model = dataNode.getData();

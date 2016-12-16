@@ -36,7 +36,7 @@ import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 import java.io.File;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
-import static com.android.tools.idea.gradle.util.Facets.removeAllFacets;
+import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 public class ModuleSetup {
