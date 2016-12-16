@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.Facets.findFacet;
+import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_6;
 
 public class JavaLanguageLevelModuleSetupStep extends JavaModuleSetupStep {

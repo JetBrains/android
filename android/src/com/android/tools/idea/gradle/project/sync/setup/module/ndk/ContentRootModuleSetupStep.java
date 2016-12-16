@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.project.sync.setup.module.common.ContentEntriesSetup.removeExistingContentEntries;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 
 public class ContentRootModuleSetupStep extends NdkModuleSetupStep {
@@ -44,9 +45,16 @@ public class ContentRootModuleSetupStep extends NdkModuleSetupStep {
     setup.execute(contentEntries);
   }
 
+  @Override
+  protected void gradleModelNotFound(@NotNull Module module, @NotNull IdeModifiableModelsProvider ideModelsProvider) {
+    ModifiableRootModel moduleModel = ideModelsProvider.getModifiableRootModel(module);
+    removeExistingContentEntries(moduleModel);
+  }
+
   @NotNull
   private static List<ContentEntry> findContentEntries(@NotNull ModifiableRootModel moduleModel,
                                                        @NotNull NdkModuleModel ndkModuleModel) {
+    removeExistingContentEntries(moduleModel);
     ContentEntry contentEntry = moduleModel.addContentEntry(pathToIdeaUrl(ndkModuleModel.getRootDirPath()));
     return Collections.singletonList(contentEntry);
   }
