@@ -22,7 +22,7 @@ import com.google.common.collect.Multimap;
 import com.intellij.ProjectTopics;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.ModuleAdapter;
+import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
@@ -83,9 +83,9 @@ public final class DeveloperServices {
     });
 
     MessageBusConnection connection = module.getMessageBus().connect(module);
-    connection.subscribe(ProjectTopics.MODULES, new ModuleAdapter() {
+    connection.subscribe(ProjectTopics.MODULES, new ModuleListener() {
       @Override
-      public void moduleRemoved(Project project, Module moduleRemoved) {
+      public void moduleRemoved(@NotNull Project project, @NotNull Module moduleRemoved) {
         if (module == moduleRemoved) {
           ourServices.removeAll(module);
         }
