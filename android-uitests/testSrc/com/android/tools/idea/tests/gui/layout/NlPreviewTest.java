@@ -29,8 +29,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Collections;
-
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForBackgroundTasks;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
@@ -226,7 +224,7 @@ public class NlPreviewTest {
     checkBox.click();
 
     // It should be selected now
-    layout.requireSelection(Collections.singletonList(checkBox));
+    assertThat(layout.getSelection()).containsExactly(checkBox.getComponent());
     assertEquals(4, layout.getAllComponents().size()); // 4 = root layout + 3 widgets
 
     ideFrame.invokeMenuPath("Edit", "Cut");

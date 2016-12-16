@@ -66,8 +66,8 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     return myDesignSurfaceFixture.findView(tag, occurrence);
   }
 
-  public void requireSelection(@NotNull List<NlComponentFixture> components) {
-    myDesignSurfaceFixture.requireSelection(components);
+  public List<NlComponent> getSelection() {
+    return myDesignSurfaceFixture.getSelection();
   }
 
   public boolean hasRenderErrors() {

@@ -22,14 +22,11 @@ import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.google.common.base.Objects;
-import com.intellij.psi.xml.XmlTag;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.ComponentDriver;
 import org.fest.swing.fixture.JMenuItemFixture;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -92,49 +89,7 @@ public class NlComponentFixture {
     new JMenuItemFixture(myRobot, GuiTests.waitUntilShowing(myRobot, Matchers.byText(JMenuItem.class, actionLabel))).click();
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    NlComponentFixture that = (NlComponentFixture)o;
-    if (!myComponent.equals(that.myComponent)) {
-      return false;
-    }
-
-    return true;
-  }
-
-  @Override
-  public int hashCode() {
-    return myComponent.hashCode();
-  }
-
-  @Override
-  public String toString() {
-    return describe(myComponent);
-  }
-
-  @NotNull
-  private static String describe(@NotNull NlComponent root) {
-    return Objects.toStringHelper(root).omitNullValues()
-      .add("tag", describe(root.getTag()))
-      .add("id", root.getId())
-      .add("bounds", "[" + root.x + "," + root.y + ":" + root.w + "x" + root.h)
-      .toString();
-  }
-
-  @NotNull
-  private static String describe(@Nullable XmlTag tag) {
-    if (tag == null) {
-      return "";
-    } else {
-      return '<' + tag.getName() + '>';
-    }
+  public NlComponent getComponent() {
+    return myComponent;
   }
 }
