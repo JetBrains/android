@@ -22,11 +22,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public final class MemoryCaptureView {
-  @NotNull static final String ourLoadingText = "Loading capture...";
-
   @NotNull private final MemoryProfilerStage myStage;
 
-  @NotNull private final JLabel myLabel = new JLabel(ourLoadingText);
+  @NotNull private final JLabel myLabel = new JLabel();
 
   @Nullable private CaptureObject myCaptureObject = null;
 
@@ -44,7 +42,7 @@ public final class MemoryCaptureView {
   }
 
   private void reset() {
-    myLabel.setText(ourLoadingText);
+    myLabel.setText("");
     myCaptureObject = myStage.getSelectedCapture();
   }
 

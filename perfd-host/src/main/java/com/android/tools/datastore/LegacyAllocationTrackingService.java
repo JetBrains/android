@@ -20,6 +20,7 @@ import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.AllocationEvent;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -37,17 +38,20 @@ public class LegacyAllocationTrackingService {
 
   private boolean myOngoingTracking = false;
 
+  private final ExecutorService myAllocationExecutorService =
+    Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("LegacyAllocationTrackingService").build());
+
   public LegacyAllocationTrackingService(@NotNull Supplier<LegacyAllocationTracker> trackerSupplier) {
     myTrackerSupplier = trackerSupplier;
   }
 
-  private final ExecutorService myAllocationExecutorService =
-    Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("LegacyAllocationTrackingService").build());
-
+  /**
+   * @return true if the AllocationTracking state has successfully changed to the specified state. False otherwise.
+   */
   public boolean trackAllocations(int processId,
                                   long time,
                                   boolean enabled,
-                                  @NotNull LegacyAllocationTrackingCallback allocationConsumer) {
+                                  @Nullable LegacyAllocationTrackingCallback allocationConsumer) {
     // TODO ensure only legacy or non-instrumented devices go through this path
     LegacyAllocationTracker tracker = myTrackerSupplier.get();
     if (tracker == null) {
@@ -55,7 +59,7 @@ public class LegacyAllocationTrackingService {
     }
 
     if (enabled == myOngoingTracking) {
-      return true;
+      return false;
     }
 
     myOngoingTracking = enabled;
@@ -63,6 +67,7 @@ public class LegacyAllocationTrackingService {
       // TODO fix this so this method is reentrant/locks
       tracker.getAllocationTrackingDump(processId, myAllocationExecutorService, data -> {
         if (data != null) {
+          assert allocationConsumer != null;
           LegacyAllocationConverter converter = tracker.parseDump(data);
           // timestamp of allocations is set to the end of allocation tracking
           allocationConsumer.accept(converter.getClassNames(), converter.getAllocationStacks(), converter.getAllocationEvents(time));
