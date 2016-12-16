@@ -15,15 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.scene.target;
 
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.draw.DrawAction;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.xml.XmlFile;
-import org.jetbrains.annotations.NotNull;
 
 public class ClearConstraintsTarget extends ActionTarget implements ActionTarget.Action {
 
@@ -35,21 +29,6 @@ public class ClearConstraintsTarget extends ActionTarget implements ActionTarget
 
   @Override
   public void apply(SceneComponent component) {
-    AttributesTransaction transaction = component.getNlComponent().startAttributeTransaction();
-    clearAllAttributes(transaction);
-    transaction.apply();
-
-    NlModel nlModel = component.getNlComponent().getModel();
-    Project project = nlModel.getProject();
-    XmlFile file = nlModel.getFile();
-
-    String label = "Cleared all constraints";
-    WriteCommandAction action = new WriteCommandAction(project, label, file) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        transaction.commit();
-      }
-    };
-    action.execute();
+    ConstraintComponentUtilities.clearAttributes(component);
   }
 }

@@ -452,6 +452,16 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   }
 
   /**
+   * Let the ViewGroupHandler handle clearing attributes on a given component
+   *
+   * @param component
+   */
+  @Override
+  public void clearAttributes(SceneComponent component) {
+    ConstraintComponentUtilities.clearAttributes(component);
+  }
+
+  /**
    * Return a drag handle to handle drag and drop interaction
    *
    * @param editor     the associated IDE editor
@@ -599,9 +609,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       }
       NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
         .logAction(LayoutEditorEvent.LayoutEditorEventType.CLEAR_ALL_CONSTRAINTS);
-      WidgetsScene scene = model.getScene();
-      scene.clearAllConstraints();
-      model.saveToXML(true);
+      ViewEditorImpl viewEditor = (ViewEditorImpl) editor;
+      Scene scene = viewEditor.getScreenView().getScene();
+      scene.clearAttributes();
     }
 
     @Override
