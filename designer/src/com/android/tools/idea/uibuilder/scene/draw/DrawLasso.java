@@ -42,9 +42,9 @@ public class DrawLasso extends DrawRegion {
     Color background = colorSet.getFrames();
     g.setColor(background);
     String valueWidth = String.valueOf(width);
-    DrawConnectionUtils.drawHorizontalMarginIndicator(g, valueWidth, x, x + width, y - GAP);
+    DrawConnectionUtils.drawHorizontalMarginIndicator(g, valueWidth, false, x, x + width, y - GAP);
     String valueHeight = String.valueOf(height);
-    DrawConnectionUtils.drawVerticalMarginIndicator(g, valueHeight, x - GAP, y, y + height);
+    DrawConnectionUtils.drawVerticalMarginIndicator(g, valueHeight, false, x - GAP, y, y + height);
     Stroke stroke = g.getStroke();
     g.setStroke(DrawConnectionUtils.sDashedStroke);
     g.drawRect(x, y, width, height);
