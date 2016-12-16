@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.explorer;
 
+import com.android.tools.idea.explorer.DeviceExplorer;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.DeviceExplorerToolWindowFixture;
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,16 +28,18 @@ import java.io.IOException;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-@RunWith(DeviceExplorerTestRunner.class)
+@RunWith(GuiTestRunner.class)
 public class DeviceExplorerTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
   public void testToolWindowShows() throws IOException {
+    DeviceExplorer.enableFeature(true);
     guiTest.importSimpleApplication();
     DeviceExplorerToolWindowFixture toolWindow = guiTest.ideFrame().getDeviceExplorerToolWindow();
     assertNotNull(toolWindow);
     assertTrue(toolWindow.getContentPanel().isVisible());
+    DeviceExplorer.enableFeature(false);
   }
 }
