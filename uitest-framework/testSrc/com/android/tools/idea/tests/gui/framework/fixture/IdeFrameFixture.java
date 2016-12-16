@@ -93,7 +93,6 @@ import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
-import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static junit.framework.Assert.assertNotNull;
@@ -156,13 +155,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       names.add(module.getName());
     }
     return names;
-  }
-
-  @NotNull
-  public IdeFrameFixture requireModuleCount(int expected) {
-    Module[] modules = getModuleManager().getModules();
-    assertThat(modules).named("Module count in project " + quote(getProject().getName())).asList().hasSize(expected);
-    return this;
   }
 
   @NotNull
