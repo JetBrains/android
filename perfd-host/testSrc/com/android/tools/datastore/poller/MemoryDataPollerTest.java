@@ -95,7 +95,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
   @Before
   public void setUp() throws Exception {
-    myDataStore = new DataStoreService("fake_service_name");
+    myDataStore = new DataStoreService("fake_service_name", Runnable::run);
     myDataStore.setLegacyAllocationTracker(new FakeLegacyAllocationTracker());
     // TODO: Abstract to TestGrpcService
     myMemoryDataPoller = new MemoryDataPoller(myDataStore, Runnable::run);

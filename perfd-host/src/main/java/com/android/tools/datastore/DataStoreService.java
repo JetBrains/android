@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.RunnableFuture;
+import java.util.function.Consumer;
 
 /**
  * Primary class that initializes the Datastore. This class currently manages connections to perfd and sets up the DataStore service.
@@ -43,9 +44,11 @@ public class DataStoreService {
   private Server myServer;
   private List<ServicePassThrough> myServices = new ArrayList<>();
   private LegacyAllocationTracker myLegacyAllocationTracker;
+  private Consumer<Runnable> myFetchExecutor;
 
-  public DataStoreService(String name) {
+  public DataStoreService(String name, Consumer<Runnable> fetchExecutor) {
     try {
+      myFetchExecutor = fetchExecutor;
       myServerBuilder = InProcessServerBuilder.forName(name);
       createPollers();
       myServer = myServerBuilder.build();
@@ -88,7 +91,7 @@ public class DataStoreService {
       service.connectService(myChannel);
       RunnableFuture<Void> runner = service.getRunner();
       if (runner != null) {
-        ApplicationManager.getApplication().executeOnPooledThread(runner);
+        myFetchExecutor.accept(runner);
       }
     }
   }
