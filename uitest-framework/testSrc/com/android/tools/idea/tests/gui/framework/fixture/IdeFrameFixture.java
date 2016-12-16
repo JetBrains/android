@@ -60,7 +60,6 @@ import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.util.PathUtil;
@@ -88,7 +87,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
-import static com.android.SdkConstants.FD_GRADLE;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
@@ -581,17 +579,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         ShowSettingsUtil.getInstance().showSettingsDialog(project, ShowSettingsUtilImpl.getConfigurableGroups(project, true));
       });
     return IdeSettingsDialogFixture.find(robot());
-  }
-
-  @NotNull
-  public IdeFrameFixture deleteGradleWrapper() {
-    FileUtil.delete(getGradleWrapperDirPath());
-    return this;
-  }
-
-  @NotNull
-  public File getGradleWrapperDirPath() {
-    return new File(getProjectPath(), FD_GRADLE);
   }
 
   @NotNull
