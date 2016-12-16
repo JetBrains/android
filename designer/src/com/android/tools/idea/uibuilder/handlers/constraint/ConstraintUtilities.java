@@ -798,7 +798,10 @@ public class ConstraintUtilities {
   static void setStartMargin(@Nullable String left, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
     if (left != null) {
       int margin = getMargin(component, SdkConstants.ATTR_LAYOUT_MARGIN_START);
-      widget.getAnchor(ConstraintAnchor.Type.LEFT).setMargin(margin);
+      ConstraintAnchor anchor = widget.getAnchor(ConstraintAnchor.Type.LEFT);
+      if (anchor != null) {
+        anchor.setMargin(margin);
+      }
     }
   }
 
@@ -812,7 +815,10 @@ public class ConstraintUtilities {
   static void setEndMargin(@Nullable String right, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
     if (right != null) {
       int margin = getMargin(component, SdkConstants.ATTR_LAYOUT_MARGIN_END);
-      widget.getAnchor(ConstraintAnchor.Type.RIGHT).setMargin(margin);
+      ConstraintAnchor anchor = widget.getAnchor(ConstraintAnchor.Type.RIGHT);
+      if (anchor != null) {
+        anchor.setMargin(margin);
+      }
     }
   }
 
@@ -826,7 +832,10 @@ public class ConstraintUtilities {
   static void setTopMargin(@Nullable String top, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
     if (top != null) {
       int margin = getMargin(component, SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
-      widget.getAnchor(ConstraintAnchor.Type.TOP).setMargin(margin);
+      ConstraintAnchor anchor = widget.getAnchor(ConstraintAnchor.Type.TOP);
+      if (anchor != null) {
+        anchor.setMargin(margin);
+      }
     }
   }
 
@@ -840,7 +849,10 @@ public class ConstraintUtilities {
   static void setBottomMargin(@Nullable String bottom, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
     if (bottom != null) {
       int margin = getMargin(component, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
-      widget.getAnchor(ConstraintAnchor.Type.BOTTOM).setMargin(margin);
+      ConstraintAnchor anchor = widget.getAnchor(ConstraintAnchor.Type.BOTTOM);
+      if (anchor != null) {
+        anchor.setMargin(margin);
+      }
     }
   }
 
