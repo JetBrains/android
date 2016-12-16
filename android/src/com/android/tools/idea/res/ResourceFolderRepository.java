@@ -83,7 +83,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   private final AndroidFacet myFacet;
   private final PsiListener myListener;
   private final VirtualFile myResourceDir;
-  private final String myLibraryName;
   private final Map<ResourceType, ListMultimap<String, ResourceItem>> myItems = Maps.newEnumMap(ResourceType.class);
   private final Map<VirtualFile, ResourceFile> myResourceFiles = Maps.newHashMap();
   // qualifiedName -> PsiResourceFile
@@ -96,13 +95,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   @VisibleForTesting
   static int ourFullRescans;
 
-  private ResourceFolderRepository(@NotNull AndroidFacet facet, @NotNull VirtualFile resourceDir, @Nullable String libraryName) {
+  private ResourceFolderRepository(@NotNull AndroidFacet facet, @NotNull VirtualFile resourceDir) {
     super(resourceDir.getName());
     myFacet = facet;
     myModule = facet.getModule();
     myListener = new PsiListener();
     myResourceDir = resourceDir;
-    myLibraryName = libraryName;
 
     ResourceMerger merger = loadPreviousStateIfExists();
     myInitialScanState = new InitialScanState(merger, VfsUtilCore.virtualToIoFile(myResourceDir));
@@ -129,10 +127,16 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     return myResourceDir;
   }
 
+  @Override
+  @Nullable
+  public String getLibraryName() {
+    return null;
+  }
+
   /** NOTE: You should normally use {@link ResourceFolderRegistry#get} rather than this method. */
   @NotNull
-  static ResourceFolderRepository create(@NotNull final AndroidFacet facet, @NotNull VirtualFile dir, @Nullable String libraryName) {
-    return new ResourceFolderRepository(facet, dir, libraryName);
+  static ResourceFolderRepository create(@NotNull final AndroidFacet facet, @NotNull VirtualFile dir) {
+    return new ResourceFolderRepository(facet, dir);
   }
 
   /**
@@ -239,7 +243,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
   private ResourceMerger createFreshResourceMerger() {
     ResourceMerger merger = new ResourceMerger(0 /* minSdk */);
-    ResourceSet myData = new ResourceSet(myResourceDir.getName(), myLibraryName, false /* validateEnabled */);
+    ResourceSet myData = new ResourceSet(myResourceDir.getName(), getLibraryName(), false /* validateEnabled */);
     File resourceDir = VfsUtilCore.virtualToIoFile(myResourceDir);
     myData.addSource(resourceDir);
     merger.addDataSet(myData);
@@ -546,7 +550,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       // We create the items without adding it to the resource set / resource merger.
       // No need to write these out to blob files, as the item is easily reconstructed from the filename.
       String name = ResourceHelper.getResourceName(file);
-      ResourceItem item = new ResourceItem(name, type, null, myLibraryName);
+      ResourceItem item = new ResourceItem(name, type, null, getLibraryName());
       map.put(name, item);
       resourceFile = new ResourceFile(VfsUtilCore.virtualToIoFile(file), item, qualifiers, folderConfiguration);
       item.setIgnoredFromDiskMerge(true);

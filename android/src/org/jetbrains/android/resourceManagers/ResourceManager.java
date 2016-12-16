@@ -19,6 +19,8 @@ import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
@@ -62,9 +64,12 @@ public abstract class ResourceManager {
     myProject = project;
   }
 
-  /** Returns all the resource directories for this module <b>and all of its module dependencies</b> */
+  /** Returns all the resource directories for this module <b>and all of its module dependencies</b>
+   *  grouped by library name. A <code>null</code> string is used for the library name for system, application
+   *  and folder resources.
+   */
   @NotNull
-  public abstract VirtualFile[] getAllResourceDirs();
+  public abstract Multimap<String, VirtualFile> getAllResourceDirs();
 
   /** Returns all the resource directories for this module only */
   @NotNull
@@ -84,26 +89,28 @@ public abstract class ResourceManager {
 
   public boolean processFileResources(@NotNull ResourceFolderType folderType, @NotNull FileResourceProcessor processor,
                                        boolean withDependencies, boolean publicOnly) {
-    VirtualFile[] resDirs;
+    Multimap<String, VirtualFile> resDirs;
     if (withDependencies) {
       resDirs = getAllResourceDirs();
     } else {
-      List<VirtualFile> resourceDirs = getResourceDirs();
-      resDirs = resourceDirs.toArray(new VirtualFile[resourceDirs.size()]);
+      resDirs = HashMultimap.create();
+      resDirs.putAll(null, getResourceDirs());
     }
 
-    for (VirtualFile resSubdir : AndroidResourceUtil.getResourceSubdirs(folderType, resDirs)) {
-      ResourceFolderType resType = ResourceFolderType.getFolderType(resSubdir.getName());
+    for (Map.Entry<String, Collection<VirtualFile>> entry : resDirs.asMap().entrySet()) {
+      for (VirtualFile resSubdir : AndroidResourceUtil.getResourceSubdirs(folderType,  entry.getValue())) {
+        ResourceFolderType resType = ResourceFolderType.getFolderType(resSubdir.getName());
 
-      if (resType != null) {
-        assert folderType.equals(resType);
-        String resTypeName = resType.getName();
-        for (VirtualFile resFile : resSubdir.getChildren()) {
-          String resName = AndroidCommonUtils.getResourceName(resTypeName, resFile.getName());
+        if (resType != null) {
+          assert folderType.equals(resType);
+          String resTypeName = resType.getName();
+          for (VirtualFile resFile : resSubdir.getChildren()) {
+            String resName = AndroidCommonUtils.getResourceName(resTypeName, resFile.getName());
 
-          if (!resFile.isDirectory() && (!publicOnly || isResourcePublic(resTypeName, resName))) {
-            if (!processor.process(resFile, resName)) {
-              return false;
+            if (!resFile.isDirectory() && (!publicOnly || isResourcePublic(resTypeName, resName))) {
+              if (!processor.process(resFile, resName, entry.getKey())) {
+                return false;
+              }
             }
           }
         }
@@ -123,7 +130,7 @@ public abstract class ResourceManager {
 
   @NotNull
   public List<VirtualFile> getResourceSubdirs(@NotNull ResourceFolderType resourceType) {
-    return AndroidResourceUtil.getResourceSubdirs(resourceType, getAllResourceDirs());
+    return AndroidResourceUtil.getResourceSubdirs(resourceType, getAllResourceDirs().values());
   }
 
   @NotNull
@@ -137,18 +144,18 @@ public abstract class ResourceManager {
   @NotNull
   public List<PsiFile> findResourceFiles(@NotNull ResourceFolderType resourceFolderType,
                                          @Nullable String resName1,
-                                         boolean distinguishDelimetersInName,
+                                         boolean distinguishDelimitersInName,
                                          boolean withDependencies,
                                          @NotNull String... extensions) {
     List<PsiFile> result = new ArrayList<>();
     Set<String> extensionSet = new HashSet<>();
     addAll(extensionSet, extensions);
 
-    processFileResources(resourceFolderType, (resFile, resName) -> {
+    processFileResources(resourceFolderType, (resFile, resName, libraryName) -> {
       String extension = resFile.getExtension();
 
       if ((extensions.length == 0 || extensionSet.contains(extension)) &&
-          (resName1 == null || AndroidUtils.equal(resName1, resName, distinguishDelimetersInName))) {
+          (resName1 == null || AndroidUtils.equal(resName1, resName, distinguishDelimitersInName))) {
         PsiFile file = AndroidPsiUtils.getPsiFileSafely(myProject, resFile);
         if (file != null) {
           result.add(file);
@@ -156,6 +163,22 @@ public abstract class ResourceManager {
       }
       return true;
     }, withDependencies);
+    return result;
+  }
+
+  @NotNull
+  public <T> Multimap<String, T> findResourceFilesByLibraryName(@NotNull ResourceFolderType folderType, @NotNull Class<T> fileClass) {
+    Multimap<String, T> result = HashMultimap.create();
+    processFileResources(
+      folderType,
+      (resFile, resName, libraryName) -> {
+        PsiFile file = AndroidPsiUtils.getPsiFileSafely(myProject, resFile);
+        if (file != null && fileClass.isInstance(file)) {
+          result.put(libraryName, fileClass.cast(file));
+        }
+        return true;
+      },
+      true);
     return result;
   }
 
@@ -257,7 +280,7 @@ public abstract class ResourceManager {
   private Set<String> getFileResourcesNames(@NotNull ResourceFolderType resourceType) {
     Set<String> result = new HashSet<>();
 
-    processFileResources(resourceType, (resFile, resName) -> {
+    processFileResources(resourceType, (resFile, resName, libraryName) -> {
       result.add(resName);
       return true;
     });

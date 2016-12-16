@@ -167,6 +167,11 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     return myDisplayName;
   }
 
+  @Nullable
+  public String getLibraryName() {
+    return null;
+  }
+
   @Override
   public void dispose() {
   }

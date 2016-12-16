@@ -26,9 +26,12 @@ import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.util.Pair;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.vfs.VirtualFile;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TObjectIntHashMap;
 import org.gradle.tooling.model.UnsupportedMethodException;
@@ -63,6 +66,13 @@ public class AppResourceRepository extends MultiResourceRepository {
    */
   private final LinkedList<FileResourceRepository> myAarLibraries = Lists.newLinkedList();
   private Set<String> myIds;
+
+  /**
+   * Map from library name to resource dirs.
+   * The key library name may be null.
+   */
+  private final Object RESOURCE_MAP_LOCK = new Object();
+  @Nullable private Multimap<String, VirtualFile> myResourceDirMap;
 
   @Nullable
   public static AppResourceRepository getOrCreateInstance(@NotNull Module module) {
@@ -100,6 +110,18 @@ public class AppResourceRepository extends MultiResourceRepository {
     ProjectResourceRepositoryRootListener.ensureSubscribed(facet.getModule().getProject());
 
     return repository;
+  }
+
+  public Multimap<String, VirtualFile> getAllResourceDirs() {
+    synchronized (RESOURCE_MAP_LOCK) {
+      if (myResourceDirMap == null) {
+        myResourceDirMap = HashMultimap.create();
+        for (LocalResourceRepository resourceRepository : getChildren()) {
+          myResourceDirMap.putAll(resourceRepository.getLibraryName(), resourceRepository.getResourceDirs());
+        }
+      }
+      return myResourceDirMap;
+    }
   }
 
   private static List<LocalResourceRepository> computeRepositories(@NotNull AndroidFacet facet,
@@ -344,6 +366,9 @@ public class AppResourceRepository extends MultiResourceRepository {
   void updateRoots(List<LocalResourceRepository> resources, List<FileResourceRepository> libraries) {
     myResourceVisibility = null;
     myResourceVisibilityProvider = null;
+    synchronized (RESOURCE_MAP_LOCK) {
+      myResourceDirMap = null;
+    }
     invalidateResourceDirs();
 
     if (resources.equals(myChildren)) {
