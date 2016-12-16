@@ -176,7 +176,7 @@ public class NlDropListener extends DropTargetAdapter {
   }
 
   /**
-   * @return True of the receiver can be safely morphed into a viewgroup
+   * @return true if the receiver can be safely morphed into a view group
    */
   private static boolean isMorphableToViewGroup(@NotNull NlComponent receiver) {
     return VIEW.equals(receiver.getTagName()) && receiver.getAttribute(TOOLS_URI, ATTR_MOCKUP) != null;
@@ -258,9 +258,8 @@ public class NlDropListener extends DropTargetAdapter {
     myTree.skipNextUpdateDelay();
     NlModel model = myTree.getDesignerModel();
     assert model != null;
-    // If the receiver is already a ViewGroup, use the default DnD behavior
-    if (myDragReceiver.isOrHasSuperclass(CLASS_VIEWGROUP)
-        && model.canAddComponents(myDragged, myDragReceiver, myDragReceiver.getChild(0))) {
+
+    if (myDragReceiver.isGroup() && model.canAddComponents(myDragged, myDragReceiver, myDragReceiver.getChild(0))) {
       performNormalDrop(event, insertType, model);
     }
     else if (!myDragReceiver.isRoot()
@@ -300,7 +299,7 @@ public class NlDropListener extends DropTargetAdapter {
   /**
    * Morph the receiver into a constraint layout and add the dragged component to it.
    *
-   * @param model      {@link NlComponentTree#getDesignerModel()}
+   * @param model {@link NlComponentTree#getDesignerModel()}
    */
   private void morphReceiverIntoViewGroup(@NotNull NlModel model) {
 

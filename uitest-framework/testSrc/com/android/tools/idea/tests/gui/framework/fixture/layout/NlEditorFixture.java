@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
+import com.android.tools.adtui.treegrid.TreeGrid;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.uibuilder.editor.NlEditorPanel;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.Coordinates;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid;
+import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.ActionToolbar;
@@ -32,6 +34,7 @@ import org.fest.swing.core.ComponentDragAndDrop;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
+import org.fest.swing.fixture.JTreeFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -81,6 +84,25 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   }
 
   @NotNull
+  public JListFixture getPaletteItemList(int i) {
+    Robot robot = robot();
+
+    @SuppressWarnings("unchecked")
+    TreeGrid<Palette.Item> grid = (TreeGrid<Palette.Item>)robot.finder().findByName(target(), "itemTreeGrid");
+
+    JListFixture fixture = new JListFixture(robot, grid.getLists().get(i));
+    fixture.replaceCellReader((list, listIndex) -> ((Palette.Item)list.getModel().getElementAt(listIndex)).getTitle());
+
+    return fixture;
+  }
+
+  @NotNull
+  public NlConfigurationToolbarFixture getConfigToolbar() {
+    ActionToolbar toolbar = robot().finder().findByName(target(), "NlConfigToolbar", ActionToolbarImpl.class);
+    return new NlConfigurationToolbarFixture(robot(), myDesignSurfaceFixture.target(), toolbar);
+  }
+
+  @NotNull
   public NlPropertyInspectorFixture getPropertyInspector() {
     if (myPropertyFixture == null) {
       myPropertyFixture = new NlPropertyInspectorFixture(robot(), NlPropertyInspectorFixture.create(robot()));
@@ -89,9 +111,21 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   }
 
   @NotNull
+  public JTreeFixture getComponentTree() {
+    JTreeFixture fixture = new JTreeFixture(robot(), (JTree)robot().finder().findByName(target(), "componentTree"));
+
+    fixture.replaceCellReader((tree, value) -> {
+      assert value != null;
+      return ((NlComponent)value).getTagName();
+    });
+
+    return fixture;
+  }
+
+  @NotNull
   public NlEditorFixture dragComponentToSurface(@NotNull String group, @NotNull String item) {
     NlPaletteTreeGrid treeGrid = robot().finder().findByType(NlPaletteTreeGrid.class, true);
-    new JListFixture(robot(), (JList)treeGrid.getCategoryList()).selectItem(group);
+    new JListFixture(robot(), treeGrid.getCategoryList()).selectItem(group);
 
     // Wait until the list has been expanded in UI (eliminating flakiness).
     JList list = GuiTests.waitUntilShowing(robot(), treeGrid, Matchers.byName(JList.class, group));
@@ -110,6 +144,8 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   public NlEditorFixture startResizeInteraction() {
     DesignSurface surface = myDesignSurfaceFixture.target();
     ScreenView screenView = surface.getCurrentScreenView();
+    assert screenView != null;
+
     Dimension size = screenView.getSize();
     robot().pressMouse(surface, new Point(screenView.getX() + size.width + 24, screenView.getY() + size.height + 24));
     return this;
@@ -124,6 +160,8 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   public NlEditorFixture resizeToAndroidSize(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height) {
     DesignSurface surface = myDesignSurfaceFixture.target();
     ScreenView screenView = surface.getCurrentScreenView();
+    assert screenView != null;
+
     robot().moveMouse(surface, Coordinates.getSwingXDip(screenView, width), Coordinates.getSwingYDip(screenView, height));
     return this;
   }
@@ -148,12 +186,6 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
       getConfigToolbar().showDesign();
     }
     return this;
-  }
-
-  @NotNull
-  public NlConfigurationToolbarFixture getConfigToolbar() {
-    ActionToolbar toolbar = robot().finder().findByName(target(), "NlConfigToolbar", ActionToolbarImpl.class);
-    return new NlConfigurationToolbarFixture(robot(), myDesignSurfaceFixture.target(), toolbar);
   }
 
   @NotNull

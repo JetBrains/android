@@ -76,7 +76,8 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     mySurface = designSurface;
     myMode = PaletteMode.ICON_AND_NAME;
     myIconPreviewFactory = iconFactory;
-    myTree = new TreeGrid<>();
+    myTree = createItemTreeGrid();
+
     //noinspection unchecked
     myCategoryList = new JBList();
     myCategoryList.setBackground(UIUtil.getPanelBackground());
@@ -107,6 +108,13 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     add(palette, BorderLayout.CENTER);
     setFocusCycleRoot(true);
     setFocusTraversalPolicy(new MyFocusTraversalPolicy(myCategoryList, myTree));
+  }
+
+  private static TreeGrid<Palette.Item> createItemTreeGrid() {
+    TreeGrid<Palette.Item> grid = new TreeGrid<>();
+    grid.setName("itemTreeGrid");
+
+    return grid;
   }
 
   @Override
@@ -186,7 +194,7 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     return myFilter.getPattern();
   }
 
-  private void categorySelectionChanged(@NotNull ListSelectionEvent event) {
+  private void categorySelectionChanged(@Nullable @SuppressWarnings("unused") ListSelectionEvent event) {
     myTree.setVisibleSection(myCategoryList.getSelectedValue());
     if (!myFilter.getPattern().isEmpty()) {
       setFilter(myFilter.getPattern());
