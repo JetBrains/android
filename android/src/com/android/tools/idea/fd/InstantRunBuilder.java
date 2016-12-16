@@ -176,7 +176,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     }
 
     if (myRunContext.isForceColdswap()) {
-      return BuildCause.USER_REQUESTED_COLDSWAP;
+      return myRunContext.couldHaveInvokedHotswap() ? BuildCause.USER_CHOSE_TO_COLDSWAP : BuildCause.USER_REQUESTED_COLDSWAP;
     }
 
     if (!isAppRunning(device)) {

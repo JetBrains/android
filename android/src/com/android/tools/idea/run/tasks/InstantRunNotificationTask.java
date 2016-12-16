@@ -121,7 +121,7 @@ public class InstantRunNotificationTask implements LaunchTask {
     }
 
     @Language("HTML")
-    String message = AndroidBundle.message("instant.run.notification.template", notificationText);
+    String message = String.format("<html>%1$s<br>(<a href=\"mute\">Don't show again</a>)</html>", notificationText);
 
     NotificationListener l = (notification, event) -> {
       if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
