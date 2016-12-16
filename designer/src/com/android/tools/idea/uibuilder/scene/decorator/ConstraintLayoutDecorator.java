@@ -250,6 +250,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         }
         int margin = 0;
         int marginDistance = 0;
+        boolean isMarginReference = false;
         float bias = 0.5f;
         String marginString = child.getNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, MARGIN_ATTR[i]);
         if (marginString==null) {
@@ -260,6 +261,9 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
           }
         }
         if (marginString != null) {
+          if (marginString.startsWith("@")) {
+            isMarginReference = true;
+          }
           margin = ConstraintUtilities.getDpValue(child.getNlComponent(), marginString);
           marginDistance = sceneContext.getSwingDimension(margin);
         }
@@ -279,7 +283,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
           connect = ourOppositeDirection[i];
         }
         DrawConnection
-          .buildDisplayList(list, connectType, source_rect, i, dest_rect, connect, destType, shift, margin, marginDistance, bias);
+          .buildDisplayList(list, connectType, source_rect, i, dest_rect, connect, destType, shift, margin, marginDistance, isMarginReference, bias);
       }
     }
 
@@ -294,7 +298,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       dest_rect.y += dest_offset;
       dest_rect.height = 0;
       DrawConnection
-        .buildDisplayList(list, DrawConnection.TYPE_BASELINE, source_rect, 5, dest_rect, 5, DrawConnection.DEST_NORMAL, false, 0, 0, 0f);
+        .buildDisplayList(list, DrawConnection.TYPE_BASELINE, source_rect, 5, dest_rect, 5, DrawConnection.DEST_NORMAL, false, 0, 0, false, 0f);
     }
   }
 }
