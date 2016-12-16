@@ -20,10 +20,10 @@ import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AppResourceRepository;
+import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
@@ -60,15 +60,10 @@ public class LocalResourceManager extends ResourceManager {
     return myFacet;
   }
 
-  /**
-   * Gets all resource directories reachable from the facet (modules and libraries).
-   * @return resource directories
-   */
   @NotNull
   @Override
-  public VirtualFile[] getAllResourceDirs() {
-    Set<VirtualFile> result = AppResourceRepository.getOrCreateInstance(myFacet).getResourceDirs();
-    return VfsUtilCore.toVirtualFileArray(result);
+  public Multimap<String, VirtualFile> getAllResourceDirs() {
+    return AppResourceRepository.getOrCreateInstance(myFacet).getAllResourceDirs();
   }
 
   @Override
@@ -125,13 +120,7 @@ public class LocalResourceManager extends ResourceManager {
   public AttributeDefinitions getAttributeDefinitions() {
     if (myAttrDefs == null) {
       ApplicationManager.getApplication().runReadAction(() -> {
-        List<XmlFile> xmlResFiles = new ArrayList<>();
-        for (PsiFile file : findResourceFiles(ResourceFolderType.VALUES)) {
-          if (file instanceof XmlFile) {
-            xmlResFiles.add((XmlFile)file);
-          }
-        }
-        myAttrDefs = new AttributeDefinitionsImpl(xmlResFiles.toArray(new XmlFile[xmlResFiles.size()]));
+        myAttrDefs = new AttributeDefinitionsImpl(findResourceFilesByLibraryName(ResourceFolderType.VALUES, XmlFile.class));
       });
     }
     return myAttrDefs;

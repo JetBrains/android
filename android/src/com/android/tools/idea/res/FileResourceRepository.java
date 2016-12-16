@@ -19,7 +19,6 @@ import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.res2.*;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.rendering.LogWrapper;
 import com.android.utils.ILogger;
 import com.google.common.collect.ArrayListMultimap;
@@ -60,14 +59,16 @@ public class FileResourceRepository extends LocalResourceRepository {
    */
   protected Collection<String> myAarDeclaredIds;
   private final File myFile;
+  private final String myLibraryName;
   /** R.txt file associated with the repository. This is only available for aars. */
   @Nullable private File myResourceTextFile;
 
   private final static SoftValueHashMap<File, FileResourceRepository> ourCache = new SoftValueHashMap<>();
 
-  private FileResourceRepository(@NotNull File file) {
+  private FileResourceRepository(@NotNull File file, @Nullable String libraryName) {
     super(file.getName());
     myFile = file;
+    myLibraryName = libraryName;
   }
 
   @NotNull
@@ -89,7 +90,7 @@ public class FileResourceRepository extends LocalResourceRepository {
 
   @NotNull
   private static FileResourceRepository create(@NotNull final File file, @Nullable String libraryName) {
-    final FileResourceRepository repository = new FileResourceRepository(file);
+    final FileResourceRepository repository = new FileResourceRepository(file, libraryName);
     try {
       ResourceMerger resourceMerger = createResourceMerger(file, libraryName);
       resourceMerger.mergeData(repository.createMergeConsumer(), true);
@@ -119,8 +120,15 @@ public class FileResourceRepository extends LocalResourceRepository {
     ourCache.clear();
   }
 
+  @NotNull
   public File getResourceDirectory() {
     return myFile;
+  }
+
+  @Override
+  @Nullable
+  public String getLibraryName() {
+    return myLibraryName;
   }
 
   private static ResourceMerger createResourceMerger(File file, String libraryName) {

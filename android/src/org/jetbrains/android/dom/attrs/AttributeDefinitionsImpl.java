@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom.attrs;
 
+import com.google.common.collect.Multimap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
@@ -58,11 +59,17 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
 
   public AttributeDefinitionsImpl(@NotNull XmlFile... files) {
     for (XmlFile file : files) {
-      addAttrsFromFile(file);
+      addAttrsFromFile(file, null);
     }
   }
 
-  private void addAttrsFromFile(XmlFile file) {
+  public AttributeDefinitionsImpl(@NotNull Multimap<String, XmlFile> files) {
+    for (Map.Entry<String, XmlFile> file : files.entries()) {
+      addAttrsFromFile(file.getValue(), file.getKey());
+    }
+  }
+
+  private void addAttrsFromFile(@NotNull XmlFile file, @Nullable String libraryName) {
     Map<StyleableDefinitionImpl, String[]> parentMap = new HashMap<>();
     XmlDocument document = file.getDocument();
     if (document == null) return;
@@ -73,7 +80,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
     for (XmlTag tag : rootTag.getSubTags()) {
       String tagName = tag.getName();
       if (TAG_ATTR.equals(tagName)) {
-        AttributeDefinition def = parseAttrTag(tag, null);
+        AttributeDefinition def = parseAttrTag(tag, null, libraryName);
 
         // Sets group for attribute, for example: sets "Button Styles" group for "buttonStyleSmall" attribute
         if (def != null) {
@@ -81,7 +88,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
         }
       }
       else if (TAG_DECLARE_STYLEABLE.equals(tagName)) {
-        StyleableDefinitionImpl def = parseDeclareStyleableTag(tag, parentMap);
+        StyleableDefinitionImpl def = parseDeclareStyleableTag(tag, parentMap, libraryName);
         // Only "Theme" Styleable has attribute groups
         if (def != null && def.getName().equals("Theme")) {
           parseAndAddAttrGroups(tag);
@@ -124,7 +131,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
   }
 
   @Nullable
-  private AttributeDefinition parseAttrTag(XmlTag tag, @Nullable String parentStyleable) {
+  private AttributeDefinition parseAttrTag(XmlTag tag, @Nullable String parentStyleable, @Nullable String libraryName) {
     String name = tag.getAttributeValue(ATTR_NAME);
     if (name == null) {
       LOG.info("Found attr tag with no name: " + tag.getText());
@@ -149,7 +156,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
     }
     AttributeDefinition def = myAttrs.get(name);
     if (def == null) {
-      def = new AttributeDefinition(name, parentStyleable, Collections.emptySet());
+      def = new AttributeDefinition(name, libraryName, parentStyleable, Collections.emptySet());
       myAttrs.put(def.getName(), def);
     }
     def.addFormats(formats);
@@ -242,7 +249,9 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
     }
   }
 
-  private StyleableDefinitionImpl parseDeclareStyleableTag(XmlTag tag, Map<StyleableDefinitionImpl, String[]> parentMap) {
+  private StyleableDefinitionImpl parseDeclareStyleableTag(@NotNull XmlTag tag,
+                                                           @NotNull Map<StyleableDefinitionImpl, String[]> parentMap,
+                                                           @Nullable String libraryName) {
     String name = tag.getAttributeValue(ATTR_NAME);
     if (name == null) {
       LOG.info("Found declare-styleable tag with no name: " + tag.getText());
@@ -257,19 +266,19 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
     myStyleables.put(name, def);
 
     for (XmlTag subTag : tag.findSubTags(TAG_ATTR)) {
-      parseStyleableAttr(def, subTag);
+      parseStyleableAttr(def, subTag, libraryName);
     }
     return def;
   }
 
-  private void parseStyleableAttr(StyleableDefinitionImpl def, XmlTag tag) {
+  private void parseStyleableAttr(@NotNull StyleableDefinitionImpl def, @NotNull XmlTag tag, @Nullable String libraryName) {
     String name = tag.getAttributeValue(ATTR_NAME);
     if (name == null) {
       LOG.info("Found attr tag with no name: " + tag.getText());
       return;
     }
 
-    AttributeDefinition attr = parseAttrTag(tag, def.getName());
+    AttributeDefinition attr = parseAttrTag(tag, def.getName(), libraryName);
     if (attr != null) {
       def.addAttribute(attr);
     }

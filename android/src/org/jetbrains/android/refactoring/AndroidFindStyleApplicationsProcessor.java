@@ -201,7 +201,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
       }
     }
     final List<VirtualFile> subdirs = AndroidResourceUtil.getResourceSubdirs(
-      ResourceFolderType.LAYOUT, resDirs.toArray(new VirtualFile[resDirs.size()]));
+      ResourceFolderType.LAYOUT, resDirs);
 
     List<VirtualFile> filesToProcess = new ArrayList<VirtualFile>();
 
