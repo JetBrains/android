@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.*;
+import static com.android.sdklib.internal.avd.AvdManager.*;
 import static com.android.sdklib.repository.targets.SystemImage.*;
 
 /**
@@ -99,8 +100,7 @@ public class AvdWizardUtils {
   public static final String BACKUP_SKIN_FILE_KEY = AvdManager.AVD_INI_BACKUP_SKIN_PATH;
   public static final String DEVICE_FRAME_KEY = "showDeviceFrame";
 
-  public static final String DISPLAY_NAME_KEY = AvdManagerConnection.AVD_INI_DISPLAY_NAME;
-  public static final String AVD_INI_AVD_ID = "AvdId";
+  public static final String DISPLAY_NAME_KEY = AVD_INI_DISPLAY_NAME;
   public static final String AVD_ID_KEY = AVD_INI_AVD_ID;
 
   public static final String CPU_CORES_KEY = AvdManager.AVD_INI_CPU_CORES;
@@ -406,4 +406,20 @@ public class AvdWizardUtils {
     builder.setMinimumSize(AVD_WIZARD_SIZE);
     return builder.setHelpUrl(WizardUtils.toUrl(AVD_WIZARD_HELP_URL)).build();
   }
+
+  /**
+   * Creates a {@link ModelWizardDialog} containing all the steps needed to duplicate
+   * an existing AVD
+   */
+  public static ModelWizardDialog createAvdWizardForDuplication(@Nullable Component parent,
+                                                                @Nullable Project project,
+                                                                @NotNull  AvdInfo avdInfo) {
+    AvdOptionsModel avdOptions = new AvdOptionsModel(avdInfo);
+
+    // Set this AVD as a copy
+    avdOptions.setAsCopy();
+
+    return createAvdWizard(parent, project, avdOptions);
+  }
+
 }
