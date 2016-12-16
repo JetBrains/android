@@ -350,6 +350,11 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     }
   }
 
+  @NotNull
+  public InspectorPanel getInspector() {
+    return myInspectorPanel;
+  }
+
   // ---- Implements DataProvider ----
 
   @Override

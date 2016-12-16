@@ -133,6 +133,11 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     ApplicationManager.getApplication().invokeLater(this::updateAfterFilterChange);
   }
 
+  @NotNull
+  public String getFilter() {
+    return myFilter;
+  }
+
   public void enterInFilter(@NotNull KeyEvent event) {
     if (myFilter.isEmpty()) {
       return;
@@ -180,6 +185,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
       group.setExpanded(group.isExpanded(), false);
     }
     toShow.forEach(component -> component.setVisible(true));
+    myInspectors.forEach(InspectorComponent::updateVisibility);
   }
 
   private boolean isMatch(@NotNull JLabel label) {
@@ -251,7 +257,9 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
 
     // These are both important to render the controls correctly the first time:
     ApplicationManager.getApplication().invokeLater(() -> {
-      updateAfterFilterChange();
+      if (!myFilter.isEmpty()) {
+        applyFilter();
+      }
       if (myActivateEditorAfterLoad) {
         activatePreferredEditor(myPropertyNameForActivation);
       }
