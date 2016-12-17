@@ -39,8 +39,7 @@ public class NetworkMonitor extends ProfilerMonitor {
     Range dataRange = getTimeline().getDataRange();
 
     Range trafficSpeedRange = new Range(0, 4); // TODO: Why 4?
-    myTrafficAxis = new AxisComponentModel(trafficSpeedRange, BANDWIDTH_AXIS_FORMATTER_L1,
-                                           AxisComponentModel.AxisOrientation.RIGHT);
+    myTrafficAxis = new AxisComponentModel(trafficSpeedRange, BANDWIDTH_AXIS_FORMATTER_L1);
     myTrafficAxis.clampToMajorTicks(true);
 
 

@@ -45,7 +45,7 @@ public class CpuMonitor extends ProfilerMonitor {
     RangedContinuousSeries cpuSeries = new RangedContinuousSeries("CPU", viewRange, leftYRange, getThisProcessCpuUsageSeries());
     myThisProcessCpuUsage.add(cpuSeries);
 
-    myCpuUsageAxis = new AxisComponentModel(leftYRange, CPU_USAGE_FORMATTER, AxisComponentModel.AxisOrientation.RIGHT);
+    myCpuUsageAxis = new AxisComponentModel(leftYRange, CPU_USAGE_FORMATTER);
     myCpuUsageAxis.clampToMajorTicks(true);
 
     myLegends = new LegendComponentModel(100);

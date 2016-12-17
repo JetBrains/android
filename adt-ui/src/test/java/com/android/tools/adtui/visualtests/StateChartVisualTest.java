@@ -298,7 +298,7 @@ public class StateChartVisualTest extends VisualTest {
           for (Component c : host.getComponents()) {
             if (c instanceof AxisComponent) {
               AxisComponent axis = (AxisComponent)c;
-              switch (axis.getModel().getOrientation()) {
+              switch (axis.getOrientation()) {
                 case LEFT:
                   axis.setBounds(0, 0, AXIS_SIZE, dim.height);
                   break;

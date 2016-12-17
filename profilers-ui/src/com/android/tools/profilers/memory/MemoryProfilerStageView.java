@@ -257,7 +257,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     final JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
-    final AxisComponent memoryAxis = new AxisComponent(getStage().getMemoryAxis());
+    final AxisComponent memoryAxis = new AxisComponent(getStage().getMemoryAxis(), AxisComponent.AxisOrientation.RIGHT);
     memoryAxis.setShowAxisLine(false);
     memoryAxis.setShowMax(true);
     memoryAxis.setShowUnitAtMax(true);
@@ -265,7 +265,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     memoryAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(memoryAxis, BorderLayout.WEST);
 
-    final AxisComponent rightAxis = new AxisComponent(getStage().getObjectsAxis());
+    final AxisComponent rightAxis = new AxisComponent(getStage().getObjectsAxis(), AxisComponent.AxisOrientation.LEFT);
     rightAxis.setShowAxisLine(false);
     rightAxis.setShowMax(true);
     rightAxis.setShowUnitAtMax(true);

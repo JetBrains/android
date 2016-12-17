@@ -121,10 +121,10 @@ public class MemoryProfilerStage extends Stage {
     myMemorySeries.add(totalSeries);
     myMemorySeries.add(objectSeries);
 
-    myMemoryAxis = new AxisComponentModel(myMemoryYRange, MEMORY_AXIS_FORMATTER, AxisComponentModel.AxisOrientation.RIGHT);
+    myMemoryAxis = new AxisComponentModel(myMemoryYRange, MEMORY_AXIS_FORMATTER);
     myMemoryAxis.clampToMajorTicks(true);
 
-    myObjectsAxis = new AxisComponentModel(myObjectsYRange, OBJECT_COUNT_AXIS_FORMATTER, AxisComponentModel.AxisOrientation.LEFT);
+    myObjectsAxis = new AxisComponentModel(myObjectsYRange, OBJECT_COUNT_AXIS_FORMATTER);
     myObjectsAxis.clampToMajorTicks(true);
 
     myLegends = new LegendComponentModel(100);

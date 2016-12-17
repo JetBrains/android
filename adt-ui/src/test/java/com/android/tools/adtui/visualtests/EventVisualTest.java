@@ -91,8 +91,8 @@ public class EventVisualTest extends VisualTest {
     myOpenActivities = new ArrayList<>();
 
     // add horizontal time axis
-    myTimeAxisModel = new AxisComponentModel(xTimelineRange, TimeAxisFormatter.DEFAULT, AxisComponentModel.AxisOrientation.BOTTOM);
-    myTimeAxis = new AxisComponent(myTimeAxisModel);
+    myTimeAxisModel = new AxisComponentModel(xTimelineRange, TimeAxisFormatter.DEFAULT);
+    myTimeAxis = new AxisComponent(myTimeAxisModel, AxisComponent.AxisOrientation.BOTTOM);
     List<Updatable> componentsList = new ArrayList<>();
     // Add the scene components to the list
     componentsList.add(xRange);
@@ -198,7 +198,7 @@ public class EventVisualTest extends VisualTest {
           for (Component c : host.getComponents()) {
             if (c instanceof AxisComponent) {
               AxisComponent axis = (AxisComponent)c;
-              switch (axis.getModel().getOrientation()) {
+              switch (axis.getOrientation()) {
                 case LEFT:
                   axis.setBounds(0, 0, AXIS_SIZE, dim.height);
                   break;
