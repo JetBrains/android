@@ -16,6 +16,7 @@
 package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.ServicePassThrough;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import io.grpc.ManagedChannel;
@@ -24,7 +25,10 @@ import io.grpc.stub.StreamObserver;
 import net.jcip.annotations.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.RunnableFuture;
 
 // TODO: Implement a storage container that can read/write data to disk
@@ -75,7 +79,7 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
       long endTime = request.getEndTimestamp();
 
       for (NetworkProfiler.NetworkProfilerData data : myData) {
-        if (data.getBasicInfo().getAppId() != request.getAppId()) {
+        if (data.getBasicInfo().getAppId() != Common.AppId.ANY_VALUE && data.getBasicInfo().getAppId() != request.getAppId()) {
           continue;
         }
 
