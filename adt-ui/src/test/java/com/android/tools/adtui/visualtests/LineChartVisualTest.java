@@ -80,7 +80,6 @@ public class LineChartVisualTest extends VisualTest {
 
     // Add the scene components to the list
     componentsList.add(mAnimatedTimeRange);
-    //componentsList.add(mLineChart);
     componentsList.add(model);
 
     Range yRange = new Range(0.0, 100.0);
@@ -90,7 +89,7 @@ public class LineChartVisualTest extends VisualTest {
       }
       DefaultDataSeries<Long> series = new DefaultDataSeries<>();
       RangedContinuousSeries ranged =
-        new RangedContinuousSeries("Widgets", timeGlobalRangeUs, yRange, series);
+        new RangedContinuousSeries("Widgets #" + i, timeGlobalRangeUs, yRange, series);
       mRangedData.add(ranged);
       mData.add(series);
     }
