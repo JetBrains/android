@@ -91,17 +91,17 @@ public class AxisLineChartVisualTest extends VisualTest {
     mScrollbar = new RangeScrollbar(mTimeGlobalRangeUs, timeCurrentRangeUs);
 
     // add horizontal time axis
-    mTimeAxisModel = new AxisComponentModel(timeCurrentRangeUs, TimeAxisFormatter.DEFAULT, AxisComponentModel.AxisOrientation.BOTTOM);
+    mTimeAxisModel = new AxisComponentModel(timeCurrentRangeUs, TimeAxisFormatter.DEFAULT);
     mTimeAxisModel.setGlobalRange(mTimeGlobalRangeUs);
 
-    mTimeAxis = new AxisComponent(mTimeAxisModel);
+    mTimeAxis = new AxisComponent(mTimeAxisModel, AxisComponent.AxisOrientation.BOTTOM);
     mTimeAxis.setMargins(AXIS_SIZE, AXIS_SIZE);
 
     // left memory data + axis
     Range yRange1Animatable = new Range(0, 100);
-    mMemoryAxisModel1 = new AxisComponentModel(yRange1Animatable, MemoryAxisFormatter.DEFAULT, AxisComponentModel.AxisOrientation.LEFT);
+    mMemoryAxisModel1 = new AxisComponentModel(yRange1Animatable, MemoryAxisFormatter.DEFAULT);
     mMemoryAxisModel1.setLabel(SERIES1_LABEL);
-    mMemoryAxis1 = new AxisComponent(mMemoryAxisModel1);
+    mMemoryAxis1 = new AxisComponent(mMemoryAxisModel1, AxisComponent.AxisOrientation.LEFT);
     mMemoryAxis1.setShowMax(true);
     mMemoryAxis1.setShowUnitAtMax(true);
     mMemoryAxis1.setMargins(AXIS_SIZE, AXIS_SIZE);
@@ -113,9 +113,9 @@ public class AxisLineChartVisualTest extends VisualTest {
 
     // right memory data + axis
     Range yRange2Animatable = new Range(0, 100);
-    mMemoryAxisModel2 = new AxisComponentModel(yRange2Animatable, MemoryAxisFormatter.DEFAULT, AxisComponentModel.AxisOrientation.RIGHT);
+    mMemoryAxisModel2 = new AxisComponentModel(yRange2Animatable, MemoryAxisFormatter.DEFAULT);
     mMemoryAxisModel2.setLabel(SERIES2_LABEL);
-    mMemoryAxis2 = new AxisComponent(mMemoryAxisModel2);
+    mMemoryAxis2 = new AxisComponent(mMemoryAxisModel2, AxisComponent.AxisOrientation.RIGHT);
     mMemoryAxis2.setShowMax(true);
     mMemoryAxis2.setShowUnitAtMax(true);
     mMemoryAxis2.setMargins(AXIS_SIZE, AXIS_SIZE);
@@ -252,7 +252,7 @@ public class AxisLineChartVisualTest extends VisualTest {
           for (Component c : host.getComponents()) {
             if (c instanceof AxisComponent) {
               AxisComponent axis = (AxisComponent)c;
-              switch (axis.getModel().getOrientation()) {
+              switch (axis.getOrientation()) {
                 case LEFT:
                   axis.setBounds(0, 0, AXIS_SIZE, dim.height);
                   break;

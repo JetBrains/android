@@ -70,8 +70,8 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
   public FlameGraphVisualTest() {
     this.mTimeGlobalRangeUs = new Range(0, 0);
 
-    mAxisModel = new AxisComponentModel(mTimeGlobalRangeUs, TimeAxisFormatter.DEFAULT, AxisComponentModel.AxisOrientation.BOTTOM);
-    this.mAxis = new AxisComponent(mAxisModel);
+    mAxisModel = new AxisComponentModel(mTimeGlobalRangeUs, TimeAxisFormatter.DEFAULT);
+    this.mAxis = new AxisComponent(mAxisModel, AxisComponent.AxisOrientation.BOTTOM);
 
     this.mTimeSelectionRangeUs = new Range(0, 0);
 
@@ -252,7 +252,7 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
           for (Component c : host.getComponents()) {
             if (c instanceof AxisComponent) {
               AxisComponent axis = (AxisComponent)c;
-              switch (axis.getModel().getOrientation()) {
+              switch (axis.getOrientation()) {
                 case LEFT:
                 case BOTTOM:
                 case RIGHT:

@@ -35,7 +35,7 @@ public class AxisComponentModelTest {
     FakeTimer t = new FakeTimer();
     Updater choreographer = new Updater(t);
 
-    AxisComponentModel model = new AxisComponentModel(range, formatter, AxisComponentModel.AxisOrientation.LEFT).clampToMajorTicks(true);
+    AxisComponentModel model = new AxisComponentModel(range, formatter).clampToMajorTicks(true);
     choreographer.register(model);
 
     assertEquals(model.getRange().getMax(), 5.0, 0.0);  // before update.
