@@ -17,24 +17,15 @@ package com.android.tools.idea.gradle.project.sync.setup.post.cleanup;
 
 import com.android.tools.idea.gradle.project.sync.setup.module.SyncLibraryRegistry;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanupStep;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.util.Set;
-
-import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
-import static com.android.tools.idea.gradle.util.FilePaths.pathToUrl;
-import static com.android.tools.idea.gradle.util.GradleUtil.findSourceJarForLibrary;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 
 public class LibraryCleanupStep extends ProjectCleanupStep {
   @Override
@@ -59,39 +50,5 @@ public class LibraryCleanupStep extends ProjectCleanupStep {
     }
 
     Disposer.dispose(libraryRegistry);
-
-    attachSourcesToLibraries(ideModelsProvider);
-  }
-
-  private static void attachSourcesToLibraries(@NotNull IdeModifiableModelsProvider ideModelsProvider) {
-    for (Library library : ideModelsProvider.getAllLibraries()) {
-      Set<String> sourcePaths = Sets.newHashSet();
-
-      for (VirtualFile file : library.getFiles(SOURCES)) {
-        sourcePaths.add(file.getUrl());
-      }
-
-      Library.ModifiableModel libraryModel = ideModelsProvider.getModifiableLibraryModel(library);
-
-      // Find the source attachment based on the location of the library jar file.
-      for (VirtualFile classFile : library.getFiles(CLASSES)) {
-        VirtualFile sourceJar = findSourceJarForJar(classFile);
-        if (sourceJar != null) {
-          String url = pathToUrl(sourceJar.getPath());
-          if (!sourcePaths.contains(url)) {
-            libraryModel.addRoot(url, SOURCES);
-            sourcePaths.add(url);
-          }
-        }
-      }
-    }
-  }
-
-  @Nullable
-  private static VirtualFile findSourceJarForJar(@NotNull VirtualFile jarFile) {
-    // We need to get the real jar file. The one that we received is just a wrapper around a URL. Getting the parent from this file returns
-    // null.
-    File jarFilePath = getJarFromJarUrl(jarFile.getUrl());
-    return jarFilePath != null ? findSourceJarForLibrary(jarFilePath) : null;
   }
 }
