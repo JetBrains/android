@@ -22,7 +22,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.roots.DependencyScope;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,15 +30,16 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.tools.idea.gradle.Artifacts.findSourceJarPathForLibrary;
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.SOURCE;
-import static com.android.tools.idea.gradle.util.GradleUtil.*;
+import static com.android.tools.idea.gradle.util.GradleUtil.androidModelSupportsInstantApps;
+import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
@@ -260,10 +260,9 @@ public abstract class Dependency {
       dependency.addPath(BINARY, localJar);
     }
 
-    VirtualFile sourceJar = findSourceJarForLibrary(library.getBundle());
-    if (sourceJar != null) {
-      File sourceJarFile = virtualToIoFile(sourceJar);
-      dependency.addPath(SOURCE, sourceJarFile);
+    File sourceJarPath = findSourceJarPathForLibrary(library.getBundle());
+    if (sourceJarPath != null) {
+      dependency.addPath(SOURCE, sourceJarPath);
     }
 
     return dependency;
