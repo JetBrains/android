@@ -33,7 +33,6 @@ import com.google.common.base.CharMatcher;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
-import com.intellij.jarFinder.InternetAttachSourceProvider;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.impl.ApplicationImpl;
@@ -77,7 +76,8 @@ import static com.intellij.notification.NotificationType.WARNING;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
 import static com.intellij.openapi.ui.Messages.getQuestionIcon;
-import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -650,6 +650,7 @@ public final class GradleUtil {
 
   private static String getDependencyVersion(@NonNull AndroidLibrary library, @NonNull String artifact, boolean transitively) {
     MavenCoordinates resolvedCoordinates = library.getResolvedCoordinates();
+    //noinspection ConstantConditions
     if (resolvedCoordinates != null) {
       if (artifact.endsWith(resolvedCoordinates.getArtifactId()) &&
           artifact.equals(resolvedCoordinates.getGroupId() + ':' + resolvedCoordinates.getArtifactId())) {
@@ -688,74 +689,6 @@ public final class GradleUtil {
     return new File(homePath, join(DOT_GRADLE, FN_GRADLE_PROPERTIES));
   }
 
-  /**
-   * Indicates whether <a href="https://code.google.com/p/android/issues/detail?id=170841">a known layout rendering issue</a> is present in
-   * the given model.
-   *
-   * @param model the given model.
-   * @return {@true} if the model has the layout rendering issue; {@code false} otherwise.
-   */
-  public static boolean hasLayoutRenderingIssue(@NotNull AndroidProject model) {
-    String modelVersion = model.getModelVersion();
-    return modelVersion.startsWith("1.2.0") || modelVersion.equals("1.2.1") || modelVersion.equals("1.2.2");
-  }
-
-  @Nullable
-  public static VirtualFile findSourceJarForLibrary(@NotNull File libraryFilePath) {
-    return findArtifactFileInRepository(libraryFilePath, "-sources.jar", true);
-  }
-
-  @Nullable
-  public static VirtualFile findPomForLibrary(@NotNull File libraryFilePath) {
-    return findArtifactFileInRepository(libraryFilePath, ".pom", false);
-  }
-
-  @Nullable
-  private static VirtualFile findArtifactFileInRepository(@NotNull File libraryFilePath,
-                                                          @NotNull String fileNameSuffix,
-                                                          boolean searchInIdeCache) {
-    VirtualFile realJarFile = findFileByIoFile(libraryFilePath, true);
-
-    if (realJarFile == null) {
-      // Unlikely to happen. At this point the jar file should exist.
-      return null;
-    }
-
-    VirtualFile parent = realJarFile.getParent();
-    String name = getNameWithoutExtension(libraryFilePath);
-    String sourceFileName = name + fileNameSuffix;
-    if (parent != null) {
-
-      // Try finding sources in the same folder as the jar file. This is the layout of Maven repositories.
-      VirtualFile sourceJar = parent.findChild(sourceFileName);
-      if (sourceJar != null) {
-        return sourceJar;
-      }
-
-      // Try the parent's parent. This is the layout of the repository cache in .gradle folder.
-      parent = parent.getParent();
-      if (parent != null) {
-        for (VirtualFile child : parent.getChildren()) {
-          if (!child.isDirectory()) {
-            continue;
-          }
-          sourceJar = child.findChild(sourceFileName);
-          if (sourceJar != null) {
-            return sourceJar;
-          }
-        }
-      }
-    }
-
-    if (searchInIdeCache) {
-      // Try IDEA's own cache.
-      File librarySourceDirPath = InternetAttachSourceProvider.getLibrarySourceDir();
-      File sourceJar = new File(librarySourceDirPath, sourceFileName);
-      return findFileByIoFile(sourceJar, true);
-    }
-    return null;
-  }
-
   public static void setBuildToolsVersion(@NotNull Project project, @NotNull String version) {
     List<GradleBuildModel> modelsToUpdate = Lists.newArrayList();
 
@@ -765,7 +698,7 @@ public final class GradleUtil {
         GradleBuildModel buildModel = GradleBuildModel.get(module);
         if (buildModel != null) {
           AndroidModel android = buildModel.android();
-          if (android != null && !version.equals(android.buildToolsVersion())) {
+          if (android != null && !version.equals(android.buildToolsVersion().value())) {
             android.setBuildToolsVersion(version);
             modelsToUpdate.add(buildModel);
           }
