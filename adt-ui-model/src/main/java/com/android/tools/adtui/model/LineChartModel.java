@@ -74,10 +74,13 @@ public class LineChartModel extends AspectModel<LineChartModel.Aspect> implement
   }
 
   public void addAll(List<RangedContinuousSeries> series) {
-    mySeries.addAll(series);
+    series.forEach(this::add);
   }
 
   public void add(RangedContinuousSeries series) {
+    if (getSeries(series.getName()) != null) {
+      throw new IllegalArgumentException("Series called \"" + series.getName() + "\" already exists.");
+    }
     mySeries.add(series);
   }
 

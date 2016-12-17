@@ -58,14 +58,6 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
   private SelectionComponent mSelector;
   private AxisComponent mAxis;
 
-  private final static int AXIS_SIZE = 20;
-
-  @NotNull
-  private LineChart mLineChart;
-
-  @NotNull
-  private final LineChartModel mLineChartModel;
-
   @NotNull
   private JScrollBar mScrollBar;
   private final AxisComponentModel mAxisModel;
@@ -81,9 +73,6 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
     this.mChart = new HTreeChart<Method>(mTimeSelectionRangeUs, HTreeChart.Orientation.BOTTOM_UP);
     this.mChart.setHRenderer(new JavaMethodHRenderer());
 
-    mLineChartModel = new LineChartModel();
-    mLineChart = new LineChart(mLineChartModel);
-
     SelectionModel model = new SelectionModel(mTimeSelectionRangeUs, mTimeGlobalRangeUs);
     mSelector = new SelectionComponent(model);
   }
@@ -97,13 +86,12 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
   protected List<Updatable> createModelList() {
     List<Updatable> list = new ArrayList<>();
     list.add(mAxisModel);
-    list.add(mLineChartModel);
     return list;
   }
 
   @Override
   protected List<AnimatedComponent> getDebugInfoComponents() {
-    return Arrays.asList(mChart, mSelector, mAxis, mLineChart);
+    return Arrays.asList(mChart, mSelector, mAxis);
   }
 
   @Override
@@ -206,16 +194,6 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
         mTimeSelectionRangeUs.setMin(start);
         mTimeSelectionRangeUs.setMax(end);
 
-        // Generate dummy values to simulate CPU Load.
-        LongDataSeries series = new LongDataSeries();
-        RangedContinuousSeries rangedSeries = new RangedContinuousSeries("Threads", mTimeGlobalRangeUs,
-                                                                         new Range(0.0, 200.0),
-                                                                         series);
-        Random r = new Random(System.currentTimeMillis());
-        for (int i = 0; i < 100; i++) {
-          series.add((long)(start + (end - start) / 100 * i), (long)r.nextInt(100));
-        }
-        mLineChartModel.add(rangedSeries);
         mScrollBar.setValues(0, mChart.getHeight(), 0, mChart.getMaximumHeight());
       }
     }
@@ -239,7 +217,6 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
       }
     };
     timelinePane.add(mAxis);
-    timelinePane.add(mLineChart);
     timelinePane.add(mSelector);
     timelinePane.setPreferredSize(new Dimension(Integer.MAX_VALUE, 100));
 
