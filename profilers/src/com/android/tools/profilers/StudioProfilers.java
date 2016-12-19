@@ -30,7 +30,6 @@ import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.Timer;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -47,19 +46,19 @@ public final class StudioProfilers extends AspectModel<ProfilerAspect> implement
    */
   public static final int PROFILERS_UPDATE_RATE = 60;
 
+  @VisibleForTesting
+  public static final int TIMELINE_BUFFER = 1;
+
   private final ProfilerClient myClient;
   @Nullable
   private String myPreferredProcessName;
 
-  private final Range myDataRangUs;
   private final ProfilerTimeline myTimeline;
   private final List<StudioProfiler> myProfilers;
 
   private Map<Profiler.Device, List<Profiler.Process>> myProcesses;
 
   private Profiler.Device myDevice;
-  private long myDeviceDeltaNs;
-  private long myDeviceStartUs;
 
   @Nullable
   private Profiler.Process myProcess;
@@ -80,19 +79,6 @@ public final class StudioProfilers extends AspectModel<ProfilerAspect> implement
     this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE));
   }
 
-  /**
-   * Test-only constructor that stubs out all services.
-   */
-  @VisibleForTesting
-  public StudioProfilers(ProfilerClient client) {
-    this(client, new IdeProfilerServices() {
-      @Override
-      public boolean navigateToStackTraceLine(@NotNull String line) {
-        return false;
-      }
-    });
-  }
-
   @VisibleForTesting
   public StudioProfilers(ProfilerClient client, @NotNull IdeProfilerServices ideServices, @NotNull StopwatchTimer timer) {
     myClient = client;
@@ -106,8 +92,7 @@ public final class StudioProfilers extends AspectModel<ProfilerAspect> implement
       new MemoryProfiler(this),
       new NetworkProfiler(this));
 
-    myDataRangUs = new Range(0, 0);
-    myTimeline = new ProfilerTimeline(myDataRangUs);
+    myTimeline = new ProfilerTimeline();
 
     myProcesses = Maps.newHashMap();
     myConnected = false;
@@ -118,11 +103,10 @@ public final class StudioProfilers extends AspectModel<ProfilerAspect> implement
                                         TimeAxisFormatter.DEFAULT,
                                         AxisComponentModel.AxisOrientation.BOTTOM);
     myViewAxis.setGlobalRange(myTimeline.getDataRange());
-    myViewAxis.setOffset(getDeviceStartUs());
 
-    myUpdater.register(this);
     myUpdater.register(myTimeline);
     myUpdater.register(myViewAxis);
+    myUpdater.register(this);
   }
 
   public List<Profiler.Device> getDevices() {
@@ -144,23 +128,9 @@ public final class StudioProfilers extends AspectModel<ProfilerAspect> implement
 
     try {
       Profiler.GetDevicesResponse response = myClient.getProfilerClient().getDevices(Profiler.GetDevicesRequest.getDefaultInstance());
-      long nowNs = System.nanoTime();
       if (!myConnected) {
-        // We were not connected to a service, we don't know yet whether there are devices available.
-        // TODO: modify get times to be on the selected device and separate
-        // device polling, from streaming mode.
-        Profiler.TimesResponse times = myClient.getProfilerClient().getTimes(Profiler.TimesRequest.getDefaultInstance());
-        long deviceNowNs = times.getTimestampNs();
-        myDeviceStartUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
-        myDeviceDeltaNs = deviceNowNs - nowNs;
-        myDataRangUs.set(myDeviceStartUs, myDeviceStartUs);
-        myTimeline.resetZoom();
-        myTimeline.setStreaming(true);
         this.changed(ProfilerAspect.CONNECTION);
       }
-      long deviceNowNs = nowNs + myDeviceDeltaNs;
-      long deviceNowUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
-      myDataRangUs.setMax(deviceNowUs);
 
       myConnected = true;
       Set<Profiler.Device> devices = new HashSet<>(response.getDeviceList());
@@ -200,6 +170,13 @@ public final class StudioProfilers extends AspectModel<ProfilerAspect> implement
     if (!Objects.equals(device, myDevice)) {
       myDevice = device;
       changed(ProfilerAspect.DEVICES);
+
+      if (myDevice != null) {
+        // TODO: getTimes should take the device
+        Profiler.TimesResponse times = myClient.getProfilerClient().getTimes(Profiler.TimesRequest.getDefaultInstance());
+        myTimeline.reset(times.getTimestampNs() - TimeUnit.SECONDS.toNanos(TIMELINE_BUFFER));
+        myTimeline.setStreaming(true);
+      }
 
       // The device has changed, reset the process
       setProcess(null);
@@ -296,19 +273,6 @@ public final class StudioProfilers extends AspectModel<ProfilerAspect> implement
   @NotNull
   public ProfilerTimeline getTimeline() {
     return myTimeline;
-  }
-
-  @NotNull
-  public Range getDataRange() {
-    return myDataRangUs;
-  }
-
-  public long getDeviceStartUs() {
-    return myDeviceStartUs;
-  }
-
-  public long getCurrentDeviceTime() {
-    return myDeviceDeltaNs + System.nanoTime();
   }
 
   public Profiler.Device getDevice() {

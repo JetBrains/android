@@ -23,6 +23,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   public static final String VERSION = "3141592";
   private final Profiler.Device myDevice = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
   private final Profiler.Process myProcess = Profiler.Process.newBuilder().setPid(20).setName("FakeProcess").build();
+  private long myTimestampNs;
 
   public Profiler.Device getDevice() {
     return myDevice;
@@ -30,6 +31,10 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
 
   public Profiler.Process getProcess() {
     return myProcess;
+  }
+
+  public void setTimestampNs(long timestamp) {
+    myTimestampNs = timestamp;
   }
 
   @Override
@@ -59,7 +64,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   @Override
   public void getTimes(Profiler.TimesRequest request, StreamObserver<Profiler.TimesResponse> responseObserver) {
     Profiler.TimesResponse.Builder response = Profiler.TimesResponse.newBuilder();
-
+    response.setTimestampNs(myTimestampNs);
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
   }

@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
+import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.intellij.util.containers.ImmutableList;
@@ -39,7 +40,7 @@ public class CpuMonitorTest {
 
   @Before
   public void setUp() throws Exception {
-    myProfilers = new StudioProfilers(myGrpcChannel.getClient());
+    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
     myMonitor = new CpuMonitor(myProfilers);
   }
 
