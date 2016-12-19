@@ -15,28 +15,21 @@
  */
 package com.android.tools.adtui.treegrid;
 
-import com.intellij.ide.DataManager;
+import com.android.tools.adtui.workbench.FrameworkRule;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ide.util.treeView.NodeDescriptor;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
@@ -45,13 +38,12 @@ import java.util.List;
 import static com.google.common.truth.Truth.assertThat;
 import static java.awt.event.KeyEvent.*;
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
 
 @RunWith(JUnit4.class)
 public class TreeGridTest {
-  private Disposable myDisposable;
+  @Rule
+  public FrameworkRule myFrameworkRule = new FrameworkRule();
+
   private TreeGrid<String> myGrid;
   private JList<String> myGroup1;
   private JList<String> myGroup2;
@@ -59,14 +51,6 @@ public class TreeGridTest {
 
   @Before
   public void setUp() {
-    myDisposable = Disposer.newDisposable();
-    Application application = mock(Application.class);
-    DataManager dataManager = mock(DataManager.class);
-    DataContext dataContext = mock(DataContext.class);
-    ApplicationManager.setApplication(application, myDisposable);
-    when(application.getAnyModalityState()).thenReturn(ModalityState.NON_MODAL);
-    when(application.getComponent(eq(DataManager.class))).thenReturn(dataManager);
-    when(dataManager.getDataContext(any(Component.class))).thenReturn(dataContext);
     myGrid = new TreeGrid<>();
     myGrid.setSize(140, 800);
     myGrid.setModel(createTree());
@@ -81,11 +65,6 @@ public class TreeGridTest {
     myGroup1 = lists.get(0);
     myGroup2 = lists.get(1);
     myGroup3 = lists.get(2);
-  }
-
-  @After
-  public void tearDown() {
-    Disposer.dispose(myDisposable);
   }
 
   @Test
