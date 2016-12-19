@@ -31,6 +31,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -255,5 +256,20 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     writeToFile(settingsFilePath, " ");
     assertAbout(file()).that(settingsFilePath).isFile();
     LocalFileSystem.getInstance().refresh(false /* synchronous */);
+  }
+
+  public void testSourceAttachmentsForJavaLibraries() throws Exception {
+    loadSimpleApplication();
+
+    Library guava = null;
+    for (Library library : ProjectLibraryTable.getInstance(getProject()).getLibraries()) {
+      if (library.getName().contains("guava")) {
+        guava = library;
+      }
+    }
+    assertNotNull(guava);
+
+    String[] sources = guava.getUrls(SOURCES);
+    assertThat(sources).isNotEmpty();
   }
 }
