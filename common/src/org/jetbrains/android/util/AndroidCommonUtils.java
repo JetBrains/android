@@ -97,7 +97,7 @@ public class AndroidCommonUtils {
   @NonNls public static final String TARGET_FILE_NAME_ATTRIBUTE = "targetFileName";
 
   private static final String[] TEST_CONFIGURATION_TYPE_IDS =
-    {"JUnit", "TestNG", "ScalaTestRunConfiguration", "SpecsRunConfiguration", "Specs2RunConfiguration"};
+    {"AndroidJUnit", "JUnit", "TestNG", "ScalaTestRunConfiguration", "SpecsRunConfiguration", "Specs2RunConfiguration"};
   @NonNls public static final String ANNOTATIONS_JAR_RELATIVE_PATH = "/tools/support/annotations.jar";
 
   @NonNls public static final String PACKAGE_MANIFEST_ATTRIBUTE = "package";
