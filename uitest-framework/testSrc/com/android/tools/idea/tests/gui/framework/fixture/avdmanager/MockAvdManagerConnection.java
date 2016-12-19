@@ -50,6 +50,12 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
     return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_PLATFORM_TOOLS_FOLDER, SdkConstants.FN_ADB));
   }
 
+  @Override
+  public boolean deleteAvd(@NotNull String avdName) {
+    // We need to delete the AVD ID. We get it by converting spaces to underscores.
+    return super.deleteAvd(avdName.replace(' ', '_'));
+  }
+
   public void stopRunningAvd() {
     String command = getAdbBinary().getPath() + " emu kill";
     try {
