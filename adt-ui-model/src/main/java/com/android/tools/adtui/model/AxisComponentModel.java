@@ -29,13 +29,6 @@ public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> i
     myClampToMajorTicks = clampToMajorTicks;
   }
 
-  public enum AxisOrientation {
-    LEFT,
-    BOTTOM,
-    RIGHT,
-    TOP
-  }
-
   public enum Aspect {
     AXIS
   }
@@ -43,7 +36,6 @@ public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> i
 
   @NotNull private final Range myRange;
   @NotNull private final BaseAxisFormatter myFormatter;
-  @NotNull private final AxisOrientation myOrientation;
   @Nullable private Range myGlobalRange;
 
   private boolean myClampToMajorTicks = false;
@@ -59,23 +51,15 @@ public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> i
   /**
    * @param range       a Range object this AxisComponent listens to for the min/max values.
    * @param formatter   formatter used for determining the tick marker and labels that need to be rendered.
-   * @param orientation the orientation of the axis.
    */
-  // TODO: MOVE ORIENTATION TO THE UI
-  public AxisComponentModel(@NotNull Range range, @NotNull BaseAxisFormatter formatter, @NotNull AxisOrientation orientation) {
+  public AxisComponentModel(@NotNull Range range, @NotNull BaseAxisFormatter formatter) {
     myRange = range;
     myFormatter = formatter;
-    myOrientation = orientation;
   }
 
   @NotNull
   public String getLabel() {
     return myLabel;
-  }
-
-  @NotNull
-  public AxisOrientation getOrientation() {
-    return myOrientation;
   }
 
   @NotNull

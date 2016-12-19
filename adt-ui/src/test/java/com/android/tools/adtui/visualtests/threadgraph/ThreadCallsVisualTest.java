@@ -73,8 +73,8 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
   public ThreadCallsVisualTest() {
     this.mTimeGlobalRangeUs = new Range(0, 0);
 
-    this.mAxisModel = new AxisComponentModel(mTimeGlobalRangeUs, TimeAxisFormatter.DEFAULT, AxisComponentModel.AxisOrientation.BOTTOM);
-    this.mAxis = new AxisComponent(mAxisModel);
+    this.mAxisModel = new AxisComponentModel(mTimeGlobalRangeUs, TimeAxisFormatter.DEFAULT);
+    this.mAxis = new AxisComponent(mAxisModel, AxisComponent.AxisOrientation.BOTTOM);
 
     this.mTimeSelectionRangeUs = new Range(0, 0);
 

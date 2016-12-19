@@ -99,9 +99,7 @@ public final class StudioProfilers extends AspectModel<ProfilerAspect> implement
     myDevice = null;
     myProcess = null;
 
-    myViewAxis = new AxisComponentModel(myTimeline.getViewRange(),
-                                        TimeAxisFormatter.DEFAULT,
-                                        AxisComponentModel.AxisOrientation.BOTTOM);
+    myViewAxis = new AxisComponentModel(myTimeline.getViewRange(), TimeAxisFormatter.DEFAULT);
     myViewAxis.setGlobalRange(myTimeline.getDataRange());
 
     myUpdater.register(myTimeline);

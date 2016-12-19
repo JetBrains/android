@@ -111,7 +111,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
     final JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
-    final AxisComponent leftAxis = new AxisComponent(getStage().getTrafficAxis());
+    final AxisComponent leftAxis = new AxisComponent(getStage().getTrafficAxis(), AxisComponent.AxisOrientation.RIGHT);
     leftAxis.setShowAxisLine(false);
     leftAxis.setShowMax(true);
     leftAxis.setShowUnitAtMax(true);
@@ -119,7 +119,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     leftAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(leftAxis, BorderLayout.WEST);
 
-    final AxisComponent rightAxis = new AxisComponent(getStage().getConnectionsAxis());
+    final AxisComponent rightAxis = new AxisComponent(getStage().getConnectionsAxis(), AxisComponent.AxisOrientation.LEFT);
     rightAxis.setShowAxisLine(false);
     rightAxis.setShowMax(true);
     rightAxis.setShowUnitAtMax(true);

@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.RotatedLabel;
 import com.android.tools.adtui.model.AxisComponentModel;
@@ -36,6 +37,13 @@ import java.util.List;
  * A component that draws an axis based on data from a {@link Range} object.
  */
 public final class AxisComponent extends AnimatedComponent {
+
+  public enum AxisOrientation {
+    LEFT,
+    BOTTOM,
+    RIGHT,
+    TOP
+  }
 
   private static final BasicStroke DEFAULT_AXIS_STROKE = new BasicStroke(1);
   private static final int MARKER_LABEL_OFFSET_PX = 3;
@@ -92,6 +100,8 @@ public final class AxisComponent extends AnimatedComponent {
 
   private AxisComponentModel myModel;
 
+  @NotNull private final AxisOrientation myOrientation;
+
   private boolean myRender;
 
   private int myMajorMarkerLength = DEFAULT_MAJOR_MARKER_LENGTH;
@@ -106,15 +116,16 @@ public final class AxisComponent extends AnimatedComponent {
 
 
 
-  public AxisComponent(@NotNull AxisComponentModel model) {
+  public AxisComponent(@NotNull AxisComponentModel model, AxisOrientation orientation) {
     myModel = model;
     myMajorMarkerPositions = new TFloatArrayList();
     myMinorMarkerPositions = new TFloatArrayList();
     myMarkerLabels = new ArrayList<>();
+    myOrientation = orientation;
 
     // Only construct and show the axis label if it is set.
     if (!myModel.getLabel().isEmpty()) {
-      switch (myModel.getOrientation()) {
+      switch (myOrientation) {
         case LEFT:
         case RIGHT:
           myLabel = new RotatedLabel(myModel.getLabel());
@@ -147,13 +158,19 @@ public final class AxisComponent extends AnimatedComponent {
     return myMajorMarkerPositions;
   }
 
+  @NotNull
+  @VisibleForTesting
+  public AxisOrientation getOrientation() {
+    return myOrientation;
+  }
+
   /**
    * Returns the position where a value would appear on this axis.
    */
   public float getPositionAtValue(double value) {
     float offset = (float)(myMinorScale * ((value - myModel.getZero()) - myCurrentMinValueRelative) / myMinorInterval);
     float ret = 0;
-    switch (myModel.getOrientation()) {
+    switch (myOrientation) {
       case LEFT:
       case RIGHT:
         // Vertical axes are drawn from bottom to top so reverse the offset.
@@ -173,7 +190,7 @@ public final class AxisComponent extends AnimatedComponent {
    */
   public double getValueAtPosition(int position) {
     float offset = 0;
-    switch (myModel.getOrientation()) {
+    switch (myOrientation) {
       case LEFT:
       case RIGHT:
         // Vertical axes are drawn from bottom to top so reverse the position.
@@ -254,7 +271,7 @@ public final class AxisComponent extends AnimatedComponent {
     Point startPoint = new Point();
     Point endPoint = new Point();
     Point labelPoint = new Point();
-    switch (myModel.getOrientation()) {
+    switch (myOrientation) {
       case LEFT:
         startPoint.x = endPoint.x = dim.width - 1;
         startPoint.y = dim.height - myStartMargin - 1;
@@ -347,7 +364,7 @@ public final class AxisComponent extends AnimatedComponent {
   private void drawMarkerLine(Graphics2D g2d, Line2D.Float line, float markerOffset,
                               Point origin, int markerLength) {
     float markerStartX = 0, markerStartY = 0, markerEndX = 0, markerEndY = 0;
-    switch (myModel.getOrientation()) {
+    switch (myOrientation) {
       case LEFT:
         markerStartX = origin.x - markerLength;
         markerStartY = markerEndY = origin.y - markerOffset;
@@ -384,7 +401,7 @@ public final class AxisComponent extends AnimatedComponent {
     // The offset amount is specified by MARKER_LABEL_OFFSET_PX in both cases.
     float labelX, labelY;
     float reserved; // reserved space for min/max labels.
-    switch (myModel.getOrientation()) {
+    switch (myOrientation) {
       case LEFT:
         labelX = origin.x - (myMajorMarkerLength + stringLength + MARKER_LABEL_OFFSET_PX);
         labelY = origin.y - markerOffset + stringAscent * 0.5f;
@@ -406,7 +423,7 @@ public final class AxisComponent extends AnimatedComponent {
         reserved = stringLength;
         break;
       default:
-        throw new AssertionError("Unexpected orientation: " + myModel.getOrientation());
+        throw new AssertionError("Unexpected orientation: " + myOrientation);
     }
 
     if (alwaysRender || (markerOffset - reserved > 0 && markerOffset + reserved < myAxisLength)) {
@@ -419,7 +436,7 @@ public final class AxisComponent extends AnimatedComponent {
   public Dimension getPreferredSize() {
     int width = Math.max(myMajorMarkerLength, myMinorMarkerLength) + MARKER_LABEL_OFFSET_PX + MAXIMUM_LABEL_WIDTH;
     int height = 1;
-    return (myModel.getOrientation() == AxisComponentModel.AxisOrientation.LEFT || myModel.getOrientation() == AxisComponentModel.AxisOrientation.RIGHT) ?
+    return (myOrientation == AxisOrientation.LEFT || myOrientation == AxisOrientation.RIGHT) ?
            new Dimension(width, height) : new Dimension(height, width);
   }
 

@@ -67,9 +67,7 @@ public abstract class StageView<T extends Stage> {
 
   @NotNull
   protected AxisComponent buildTimeAxis(StudioProfilers profilers) {
-    AxisComponentModel axisModel = profilers.getViewAxis();
-
-    AxisComponent timeAxis = new AxisComponent(axisModel);
+    AxisComponent timeAxis = new AxisComponent(profilers.getViewAxis(), AxisComponent.AxisOrientation.BOTTOM);
     timeAxis.setShowAxisLine(false);
     timeAxis.setMinimumSize(new Dimension(0, ProfilerLayout.TIME_AXIS_HEIGHT));
     timeAxis.setPreferredSize(new Dimension(Integer.MAX_VALUE, ProfilerLayout.TIME_AXIS_HEIGHT));

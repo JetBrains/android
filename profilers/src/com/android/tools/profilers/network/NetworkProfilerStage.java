@@ -90,10 +90,10 @@ public class NetworkProfilerStage extends Stage {
     myNetworkData.add(sentSeries);
     myNetworkData.add(connectionSeries);
 
-    myTrafficAxis = new AxisComponentModel(trafficRange, TRAFFIC_AXIS_FORMATTER, AxisComponentModel.AxisOrientation.RIGHT);
+    myTrafficAxis = new AxisComponentModel(trafficRange, TRAFFIC_AXIS_FORMATTER);
     myTrafficAxis.clampToMajorTicks(true);
 
-    myConnectionsAxis = new AxisComponentModel(connectionsRange, CONNECTIONS_AXIS_FORMATTER, AxisComponentModel.AxisOrientation.LEFT);
+    myConnectionsAxis = new AxisComponentModel(connectionsRange, CONNECTIONS_AXIS_FORMATTER);
     myConnectionsAxis.clampToMajorTicks(true);
 
     myLegends = new LegendComponentModel(100);
