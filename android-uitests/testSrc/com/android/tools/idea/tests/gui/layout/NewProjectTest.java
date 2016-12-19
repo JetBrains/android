@@ -247,7 +247,8 @@ public class NewProjectTest {
 
   @Test // http://b.android.com/227918
   public void scrollingActivityFollowedByBasicActivity() throws Exception {
-    WelcomeFrameFixture.find(guiTest.robot()).createNewProject();
+    guiTest.welcomeFrame()
+      .createNewProject();
 
     NewProjectWizardFixture newProjectWizard = NewProjectWizardFixture.find(guiTest.robot());
 
@@ -352,7 +353,8 @@ public class NewProjectTest {
      * Creates a project fixture for this description
      */
     IdeFrameFixture create() {
-      WelcomeFrameFixture.find(guiTest.robot()).createNewProject();
+      guiTest.welcomeFrame()
+        .createNewProject();
 
       NewProjectWizardFixture newProjectWizard = NewProjectWizardFixture.find(guiTest.robot());
 
