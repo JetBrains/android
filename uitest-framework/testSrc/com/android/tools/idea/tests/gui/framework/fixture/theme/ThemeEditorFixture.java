@@ -81,7 +81,7 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
   }
 
   public void waitForThemeSelection(@NotNull final String themeName) {
-    Wait.seconds(1).expecting(themeName + " to be selected").until(() -> themeName.equals(myThemesComboBox.selectedItem()));
+    Wait.seconds(5).expecting(themeName + " to be selected").until(() -> themeName.equals(myThemesComboBox.selectedItem()));
   }
 
   @NotNull
