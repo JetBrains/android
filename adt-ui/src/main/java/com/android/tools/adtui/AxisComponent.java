@@ -151,7 +151,7 @@ public final class AxisComponent extends AnimatedComponent {
    * Returns the position where a value would appear on this axis.
    */
   public float getPositionAtValue(double value) {
-    float offset = (float)(myMinorScale * ((value - myModel.getOffset()) - myCurrentMinValueRelative) / myMinorInterval);
+    float offset = (float)(myMinorScale * ((value - myModel.getZero()) - myCurrentMinValueRelative) / myMinorInterval);
     float ret = 0;
     switch (myModel.getOrientation()) {
       case LEFT:
@@ -186,16 +186,16 @@ public final class AxisComponent extends AnimatedComponent {
     }
 
     float normalizedOffset = offset / myAxisLength;
-    return myModel.getOffset() + myCurrentMinValueRelative + myMinorInterval * normalizedOffset / myMinorScale;
+    return myModel.getZero() + myCurrentMinValueRelative + myMinorInterval * normalizedOffset / myMinorScale;
   }
 
   public void render() {
     myMarkerLabels.clear();
     myMajorMarkerPositions.reset();
     myMinorMarkerPositions.reset();
-    myCurrentMinValueRelative = myModel.getRange().getMin() - myModel.getOffset();
+    myCurrentMinValueRelative = myModel.getRange().getMin() - myModel.getZero();
 
-    double currentMaxValueRelative = myModel.getRange().getMax() - myModel.getOffset();
+    double currentMaxValueRelative = myModel.getRange().getMax() - myModel.getZero();
     double range = myModel.getRange().getLength();
     double labelRange = myModel.getGlobalRange() == null ? range : myModel.getGlobalRange().getLength();
 

@@ -85,7 +85,7 @@ public final class AnimatedZoom implements Updatable {
     Range viewRange = myTimeline.getViewRange();
     double minDeltaUs = deltaUs * myAnchor;
     double maxDeltaUs = deltaUs - minDeltaUs;
-    viewRange.set(myTimeline.clampToDataRange(viewRange.getMin() - minDeltaUs),
-                  myTimeline.clampToDataRange(viewRange.getMax() + maxDeltaUs));
+    //viewRange.set(myTimeline.clampToDataRange(viewRange.getMin() - minDeltaUs),
+    //              myTimeline.clampToDataRange(viewRange.getMax() + maxDeltaUs));
   }
 }

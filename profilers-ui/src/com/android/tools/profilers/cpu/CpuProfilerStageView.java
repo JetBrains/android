@@ -192,9 +192,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   @Override
   public JComponent getToolbar() {
     JPanel panel = new JPanel(new BorderLayout());
-
     JPanel toolbar = new JPanel();
-
     JButton button = new JButton();
     button.setIcon(AllIcons.Actions.Back);
     button.addActionListener(action -> myStage.getStudioProfilers().setMonitoringStage());

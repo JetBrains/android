@@ -15,16 +15,20 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.concurrent.TimeUnit;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 final public class StudioProfilersTest {
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("StudioProfilerTestChannel", new FakeProfilerService());
+  private final FakeProfilerService myService = new FakeProfilerService();
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("StudioProfilerTestChannel", myService);
 
   @Test
   public void testVersion() throws Exception {
@@ -35,7 +39,7 @@ final public class StudioProfilersTest {
 
   @Test
   public void testClearedOnMonitorStage() throws Exception {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient());
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
 
     assertTrue(profilers.getTimeline().getSelectionRange().isEmpty());
 
@@ -44,5 +48,21 @@ final public class StudioProfilersTest {
     profilers.setMonitoringStage();
 
     assertTrue(profilers.getTimeline().getSelectionRange().isEmpty());
+  }
+
+  @Test
+  public void testTimeResetOnConnectedDevice() throws Exception {
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
+    int now = 42;
+    myService.setTimestampNs(TimeUnit.SECONDS.toNanos(now));
+    timer.tick(1);
+    // TODO: The model still uses real time as time, we need to allow mocking it for testing
+    //int dataNow = now - StudioProfilers.TIMELINE_BUFFER;
+    //assertEquals(TimeUnit.SECONDS.toMicros(dataNow), profilers.getTimeline().getDataRange().getMin(), 0.001);
+    //assertEquals(TimeUnit.SECONDS.toMicros(dataNow), profilers.getTimeline().getDataRange().getMax(), 0.001);
+    //timer.tick(10); // Ten seconds
+    //assertEquals(TimeUnit.SECONDS.toMicros(dataNow), profilers.getTimeline().getDataRange().getMin(), 0.001);
+    //assertEquals(TimeUnit.SECONDS.toMicros(dataNow + 10), profilers.getTimeline().getDataRange().getMax(), 0.001);
   }
 }

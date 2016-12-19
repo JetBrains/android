@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.ClassObject;
@@ -51,7 +52,7 @@ public abstract class MemoryProfilerTestBase {
   public void setupBase() {
     resetCounts();
 
-    myProfilers = new StudioProfilers(getGrpcChannel().getClient());
+    myProfilers = new StudioProfilers(getGrpcChannel().getClient(), new FakeIdeProfilerServices());
     onProfilersCreated(myProfilers);
     myMockLoader = new MockCaptureObjectLoader();
     myStage = new MemoryProfilerStage(myProfilers, myMockLoader);
