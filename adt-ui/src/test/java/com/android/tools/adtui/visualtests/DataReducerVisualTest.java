@@ -71,8 +71,8 @@ public class DataReducerVisualTest extends VisualTest {
     myOptimizedLineChart = new LineChart(myOptimizedLineChartModel);
 
     myXAxisModel =
-      new AxisComponentModel(myViewXRange, new SingleUnitAxisFormatter(1, 5, 1, ""), AxisComponentModel.AxisOrientation.BOTTOM);
-    myXAxis = new AxisComponent(myXAxisModel);
+      new AxisComponentModel(myViewXRange, new SingleUnitAxisFormatter(1, 5, 1, ""));
+    myXAxis = new AxisComponent(myXAxisModel, AxisComponent.AxisOrientation.BOTTOM);
     SelectionModel selection = new SelectionModel(mySelectionXRange, myViewXRange);
     mySelection = new SelectionComponent(selection);
 

@@ -121,20 +121,11 @@ public final class ProfilerScrollbar extends JBScrollBar {
   private void modelChanged() {
     Range dataRangeUs = myTimeline.getDataRange();
     Range viewRangeUs = myTimeline.getViewRange();
-    int dataExtentMs = (int)((dataRangeUs.getLength() - myTimeline.getViewBuffer()) / MS_TO_US);
+    int dataExtentMs = (int)((dataRangeUs.getLength()) / MS_TO_US);
     int viewExtentMs = Math.min(dataExtentMs, (int)(viewRangeUs.getLength() / MS_TO_US));
     int viewRelativeMinMs = Math.max(0, (int)((viewRangeUs.getMin() - dataRangeUs.getMin()) / MS_TO_US));
 
-    // TODO: We cannot change the model in a model callback
-    //if (myScrolling) {
-    //  int valueMs = getValue();
-    //  setValues(valueMs, viewExtentMs, 0, dataExtentMs);
-    //  double deltaUs = (valueMs - viewRelativeMinMs) * MS_TO_US;
-    //  viewRangeUs.shift(deltaUs);
-    //}
-    //else {
-    //  setValues(viewRelativeMinMs, viewExtentMs, 0, dataExtentMs);
-    //}
+    setValues(viewRelativeMinMs, viewExtentMs, 0, dataExtentMs);
   }
 
   @Override
