@@ -299,7 +299,7 @@ public class AndroidStudioInitializer implements Runnable {
     ExtensionPoint<ConfigurationType> configurationTypeExtensionPoint =
       Extensions.getRootArea().getExtensionPoint(ConfigurationType.CONFIGURATION_TYPE_EP);
     for (ConfigurationType configurationType : configurationTypeExtensionPoint.getExtensions()) {
-      if (configurationType instanceof JUnitConfigurationType) {
+      if (configurationType instanceof JUnitConfigurationType && !(configurationType instanceof AndroidJUnitConfigurationType)) {
         // In Android Studio the user is forced to use AndroidJUnitConfigurationType instead of JUnitConfigurationType
         configurationTypeExtensionPoint.unregisterExtension(configurationType);
       }
