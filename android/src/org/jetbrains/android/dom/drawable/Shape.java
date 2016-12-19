@@ -24,7 +24,7 @@ import java.util.List;
 @Styleable("GradientDrawable")
 public interface Shape extends DrawableDomElement {
   @Styleable("DrawableCorners")
-  List<DrawableDomElement> getCornerss();
+  List<DrawableDomElement> getCornerses();
 
   @Styleable("GradientDrawableGradient")
   List<DrawableDomElement> getGradients();
