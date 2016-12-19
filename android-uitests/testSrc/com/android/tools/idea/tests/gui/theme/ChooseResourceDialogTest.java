@@ -75,6 +75,7 @@ public class ChooseResourceDialogTest {
     resourceComponent.getSwatchButton().click();
 
     final ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
+    assertThat(dialog.getTitle()).isEqualTo("Select Resource for android:textColorPrimary");
 
     StateListPickerFixture stateListPicker = dialog.getStateListPicker();
     java.util.List<StateListComponentFixture> states = stateListPicker.getStateComponents();
