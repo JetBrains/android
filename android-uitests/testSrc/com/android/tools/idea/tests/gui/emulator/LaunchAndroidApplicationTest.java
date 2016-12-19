@@ -28,7 +28,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWiza
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.BrowseSamplesWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.After;
@@ -38,6 +37,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
@@ -140,18 +140,15 @@ public class LaunchAndroidApplicationTest {
   @RunIn(TestGroup.QA)
   @Test
   public void testCppDebugOnEmulatorWithBreakpoint() throws Exception {
-    guiTest.welcomeFrame()
+    BrowseSamplesWizardFixture samplesWizard = guiTest.welcomeFrame()
       .importCodeSample();
+    File location = samplesWizard.selectSample("Ndk/Teapot")
+      .clickNext()
+      .getConfigureFormFactorStep()
+      .enterApplicationName("TeapotTest")
+      .getLocationInFileSystem();
 
-    BrowseSamplesWizardFixture samplesWizard = BrowseSamplesWizardFixture.find(guiTest.robot());
-    samplesWizard
-      .selectSample("Ndk/Teapot")
-      .clickNext();
-
-    ConfigureAndroidProjectStepFixture configStep = samplesWizard.getConfigureFormFactorStep();
-    configStep.enterApplicationName("TeapotTest");
-
-    guiTest.setProjectPath(configStep.getLocationInFileSystem());
+    guiTest.setProjectPath(location);
 
     samplesWizard.clickFinish();
 
