@@ -247,10 +247,8 @@ public class NewProjectTest {
 
   @Test // http://b.android.com/227918
   public void scrollingActivityFollowedByBasicActivity() throws Exception {
-    guiTest.welcomeFrame()
+    NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
       .createNewProject();
-
-    NewProjectWizardFixture newProjectWizard = NewProjectWizardFixture.find(guiTest.robot());
 
     File projectPath = newProjectWizard
       .getConfigureAndroidProjectStep()
@@ -353,10 +351,8 @@ public class NewProjectTest {
      * Creates a project fixture for this description
      */
     IdeFrameFixture create() {
-      guiTest.welcomeFrame()
+      NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
         .createNewProject();
-
-      NewProjectWizardFixture newProjectWizard = NewProjectWizardFixture.find(guiTest.robot());
 
       ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard.getConfigureAndroidProjectStep();
       configureAndroidProjectStep.enterApplicationName(myName).enterCompanyDomain(myDomain).enterPackageName(myPkg);
