@@ -46,8 +46,7 @@ public class MemoryMonitor extends ProfilerMonitor {
     myClient = profilers.getClient().getMemoryClient();
 
     myYRange = new Range(0, 0);
-    myYAxis = new AxisComponentModel(myYRange, MEMORY_AXIS_FORMATTER,
-                                     AxisComponentModel.AxisOrientation.RIGHT);
+    myYAxis = new AxisComponentModel(myYRange, MEMORY_AXIS_FORMATTER);
     myYAxis.setClampToMajorTicks(true);
 
     myTotalMemory = new LineChartModel();

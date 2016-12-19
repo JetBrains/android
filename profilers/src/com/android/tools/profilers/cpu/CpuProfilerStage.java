@@ -108,10 +108,10 @@ public class CpuProfilerStage extends Stage {
     myCpuUsage.add(otherCpuSeries);
     myCpuUsage.add(threadsCountSeries);
 
-    myCpuUsageAxis = new AxisComponentModel(cpuUsageYRange, CPU_USAGE_FORMATTER, AxisComponentModel.AxisOrientation.RIGHT);
+    myCpuUsageAxis = new AxisComponentModel(cpuUsageYRange, CPU_USAGE_FORMATTER);
     myCpuUsageAxis.clampToMajorTicks(true);
 
-    myThreadCountAxis = new AxisComponentModel(threadYRange, NUM_THREADS_AXIS, AxisComponentModel.AxisOrientation.LEFT);
+    myThreadCountAxis = new AxisComponentModel(threadYRange, NUM_THREADS_AXIS);
     myThreadCountAxis.clampToMajorTicks(true);
 
 
