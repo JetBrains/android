@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.BrowseSamplesWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.wm.impl.welcomeScreen.FlatWelcomeFrame;
 import org.fest.swing.core.Robot;
@@ -50,9 +51,9 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
   }
 
   @NotNull
-  public WelcomeFrameFixture importCodeSample() {
+  public BrowseSamplesWizardFixture importCodeSample() {
     findActionLinkByActionId("WelcomeScreen.GoogleCloudTools.SampleImport").click();
-    return this;
+    return BrowseSamplesWizardFixture.find(robot());
   }
 
   @NotNull
