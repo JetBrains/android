@@ -387,6 +387,11 @@ public class GuiTestRule implements TestRule {
   }
 
   @NotNull
+  public WelcomeFrameFixture welcomeFrame() {
+    return WelcomeFrameFixture.find(robot());
+  }
+
+  @NotNull
   public IdeFrameFixture ideFrame() {
     if (myIdeFrameFixture == null || myIdeFrameFixture.isClosed()) {
       // This call to find() creates a new IdeFrameFixture object every time. Each of these Objects creates a new gradleProjectEventListener
