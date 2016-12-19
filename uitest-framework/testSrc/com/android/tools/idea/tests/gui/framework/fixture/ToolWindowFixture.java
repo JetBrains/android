@@ -115,18 +115,18 @@ public abstract class ToolWindowFixture {
   }
 
   public void activate() {
-    if (isActive()) {
-      return;
-    }
-
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        myToolWindow.activate(null);
+    Wait.seconds(SECONDS_TO_WAIT).expecting("ToolWindow '" + myToolWindowId + "' to be activated").until(() -> {
+      boolean isActive = isActive();
+      if (!isActive) {
+        execute(new GuiTask() {
+          @Override
+          protected void executeInEDT() throws Throwable {
+            myToolWindow.activate(null);
+          }
+        });
       }
+      return isActive;
     });
-
-    Wait.seconds(SECONDS_TO_WAIT).expecting("ToolWindow '" + myToolWindowId + "' to be activated").until(this::isActive);
   }
 
   protected void waitUntilIsVisible() {
