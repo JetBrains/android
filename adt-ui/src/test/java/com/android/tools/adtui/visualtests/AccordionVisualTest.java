@@ -90,7 +90,7 @@ public class AccordionVisualTest extends VisualTest {
         yRange = new Range(0.0, 100.0);
       }
       LongDataSeries series = new LongDataSeries();
-      RangedContinuousSeries ranged = new RangedContinuousSeries("Widgets", timeGlobalRangeUs, yRange, series);
+      RangedContinuousSeries ranged = new RangedContinuousSeries("Widgets #" + i, timeGlobalRangeUs, yRange, series);
       mRangedData.add(ranged);
       mData.add(series);
     }
