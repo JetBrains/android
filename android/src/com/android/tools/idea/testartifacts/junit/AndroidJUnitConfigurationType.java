@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.junit;
 import com.android.tools.idea.IdeInfo;
 import com.intellij.execution.configuration.ConfigurationFactoryEx;
 import com.intellij.execution.configurations.*;
+import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.LayeredIcon;
@@ -27,9 +28,9 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 /**
- * Android implementation of {@link ConfigurationType} for running local unit tests. Dual test scopes is supported.
+ * Android implementation of {@link JUnitConfigurationType} for running local unit tests. Dual test scopes is supported.
  */
-public class AndroidJUnitConfigurationType implements ConfigurationType {
+public class AndroidJUnitConfigurationType extends JUnitConfigurationType {
   private static final Icon ANDROID_TEST_ICON;
   private static final String ANDROID_JUNIT_DESCRIPTION = "Android JUnit test configuration";
   private static final String ANDROID_JUNIT_NAME = "Android JUnit";
