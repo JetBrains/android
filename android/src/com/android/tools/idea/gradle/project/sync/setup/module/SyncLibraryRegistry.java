@@ -19,7 +19,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
@@ -80,9 +79,8 @@ public class SyncLibraryRegistry implements Disposable {
    *
    * @param library        the library that is being used by the project.
    * @param newBinaryPaths the library's binary paths. They may be different that the existing ones.
-   * @return {@code true} if the library was found in the registry; {@code false otherwise}.
    */
-  public boolean markAsUsed(@NotNull Library library, @NotNull Collection<String> newBinaryPaths) {
+  public void markAsUsed(@NotNull Library library, @NotNull Collection<String> newBinaryPaths) {
     checkNotDisposed();
     String name = library.getName();
     if (name != null) {
@@ -103,17 +101,8 @@ public class SyncLibraryRegistry implements Disposable {
           LibraryToUpdate libraryToUpdate = new LibraryToUpdate(used, newBinaryUrls);
           myLibrariesToUpdate.add(libraryToUpdate);
         }
-        return true;
       }
-      // This library is supposed to be used, but somehow we didn't find it.
-      getLog().info("Failed to mark library '" + name + "' as \"used\". It is supposed to exist, but was not found");
     }
-    return false;
-  }
-
-  @NotNull
-  private static Logger getLog() {
-    return Logger.getInstance(SyncLibraryRegistry.class);
   }
 
   @NotNull
