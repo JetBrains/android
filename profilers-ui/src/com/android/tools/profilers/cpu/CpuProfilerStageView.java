@@ -87,7 +87,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     final JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
-    final AxisComponent leftAxis = new AxisComponent(getStage().getCpuUsageAxis());
+    final AxisComponent leftAxis = new AxisComponent(getStage().getCpuUsageAxis(), AxisComponent.AxisOrientation.RIGHT);
     leftAxis.setShowAxisLine(false);
     leftAxis.setShowMax(true);
     leftAxis.setShowUnitAtMax(true);
@@ -95,7 +95,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     leftAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(leftAxis, BorderLayout.WEST);
 
-    final AxisComponent rightAxis = new AxisComponent(getStage().getThreadCountAxis());
+    final AxisComponent rightAxis = new AxisComponent(getStage().getThreadCountAxis(), AxisComponent.AxisOrientation.LEFT);
     rightAxis.setShowAxisLine(false);
     rightAxis.setShowMax(true);
     rightAxis.setShowUnitAtMax(true);
@@ -192,9 +192,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   @Override
   public JComponent getToolbar() {
     JPanel panel = new JPanel(new BorderLayout());
-
     JPanel toolbar = new JPanel();
-
     JButton button = new JButton();
     button.setIcon(AllIcons.Actions.Back);
     button.addActionListener(action -> myStage.getStudioProfilers().setMonitoringStage());

@@ -17,6 +17,7 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.Updatable;
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
@@ -26,27 +27,21 @@ import java.util.concurrent.TimeUnit;
  */
 public final class ProfilerTimeline implements Updatable {
 
-  private static final long DEFAULT_VIEW_LENGTH_US = TimeUnit.SECONDS.toMicros(30);
-  private static final long DEFAULT_BUFFER_US = TimeUnit.SECONDS.toMicros(1);
+  @VisibleForTesting
+  public static final long DEFAULT_VIEW_LENGTH_US = TimeUnit.SECONDS.toMicros(30);
 
   @NotNull private final Range myDataRangeUs;
   @NotNull private final Range myViewRangeUs;
   @NotNull private final Range mySelectionRangeUs;
-  private long myBufferUs;
   private boolean myStreaming;
   private boolean myCanStream = true;
+  private long myDeviceStartNs;
+  private long myHostStartNs;
 
-  public ProfilerTimeline(@NotNull Range dataRangeUs) {
-    myBufferUs = DEFAULT_BUFFER_US;
-    myDataRangeUs = dataRangeUs;
-    myViewRangeUs = new Range(myDataRangeUs.getMin(), myDataRangeUs.getMax());
-    myViewRangeUs.shift(-myBufferUs);
+  public ProfilerTimeline() {
+    myDataRangeUs = new Range(0, 0);
+    myViewRangeUs = new Range(0, 0);
     mySelectionRangeUs = new Range(); // Empty range
-  }
-
-  public void resetZoom() {
-    double currentMax = myViewRangeUs.getMax();
-    myViewRangeUs.set(currentMax - DEFAULT_VIEW_LENGTH_US, currentMax);
   }
 
   /**
@@ -61,14 +56,11 @@ public final class ProfilerTimeline implements Updatable {
     if (myStreaming == isStreaming) {
       return;
     }
-
     assert myCanStream || !isStreaming;
 
     myStreaming = isStreaming;
-    if (myStreaming) {
-      double deltaUs = (myDataRangeUs.getMax() - myBufferUs) - myViewRangeUs.getMax();
-      myViewRangeUs.shift(deltaUs);
-    }
+    // Update the ranges as if no time has passed.
+    update(0);
   }
 
   public boolean isStreaming() {
@@ -90,10 +82,6 @@ public final class ProfilerTimeline implements Updatable {
     return myCanStream;
   }
 
-  public long getViewBuffer() {
-    return myBufferUs;
-  }
-
   @NotNull
   public Range getDataRange() {
     return myDataRangeUs;
@@ -104,44 +92,36 @@ public final class ProfilerTimeline implements Updatable {
     return myViewRangeUs;
   }
 
-  /**
-   * Clamps and return the input time to be within the data range, accounting for the head buffer and the edge case where the view range
-   * is before data range's min at the default zoom level when the timeline first started.
-   */
-  public double clampToDataRange(double timeUs) {
-    double globalMin = Math.min(myViewRangeUs.getMin(), myDataRangeUs.getMin());
-    double globalMax = Math.max(globalMin, myDataRangeUs.getMax() - myBufferUs);
-    return Math.min(globalMax, Math.max(globalMin, timeUs));
-  }
-
   public Range getSelectionRange() {
     return mySelectionRangeUs;
   }
 
-  public void selectAll() {
-    mySelectionRangeUs.set(myViewRangeUs);
-  }
-
   @Override
   public void update(float elapsed) {
-    if (!myStreaming) {
-      return;
-    }
 
-    // Advances time by frameLength (up to current data max - buffer)
-    float frameLengthUs = elapsed * TimeUnit.SECONDS.toMicros(1);
-    double viewMaxUs = myViewRangeUs.getMax();
-    double deltaUs = clampToDataRange(viewMaxUs + frameLengthUs) - viewMaxUs;
-    myViewRangeUs.shift(deltaUs);
+    long lengthNs = System.nanoTime() - myHostStartNs;
+    long deviceNowNs = myDeviceStartNs + lengthNs;
+    long deviceNowUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
+    myDataRangeUs.setMax(deviceNowUs);
+    if (myStreaming) {
+      double viewUs = myViewRangeUs.getLength();
+      myViewRangeUs.set(deviceNowUs - viewUs, deviceNowUs);
+    }
   }
 
   public void zoom(double deltaUs, double anchor) {
-//    AnimatedZoom zoom = new AnimatedZoom(choreographer, myTimeline, deltaUs, anchor);
-    // DO NOT SUBMIT TODO: ZOOM
+    // TODO: ZOOM
   }
 
   public void pan(double us) {
-//    AnimatedPan pan = new AnimatedPan(choreographer, myTimeline, deltaUs);
-    // DO NOT SUBMIT TODO: PAN
+    // TODO: PAN
+  }
+
+  public void reset(long ns) {
+    myDeviceStartNs = ns;
+    myHostStartNs = System.nanoTime();
+    double us = TimeUnit.NANOSECONDS.toMicros(ns);
+    myDataRangeUs.set(us, us);
+    myViewRangeUs.set(us - DEFAULT_VIEW_LENGTH_US, us);
   }
 }

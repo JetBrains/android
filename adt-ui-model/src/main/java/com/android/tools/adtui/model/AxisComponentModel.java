@@ -17,6 +17,7 @@ package com.android.tools.adtui.model;
 
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> implements Updatable  {
 
@@ -28,13 +29,6 @@ public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> i
     myClampToMajorTicks = clampToMajorTicks;
   }
 
-  public enum AxisOrientation {
-    LEFT,
-    BOTTOM,
-    RIGHT,
-    TOP
-  }
-
   public enum Aspect {
     AXIS
   }
@@ -42,16 +36,10 @@ public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> i
 
   @NotNull private final Range myRange;
   @NotNull private final BaseAxisFormatter myFormatter;
-  @NotNull private final AxisOrientation myOrientation;
-  private Range myGlobalRange;
+  @Nullable private Range myGlobalRange;
+
   private boolean myClampToMajorTicks = false;
 
-  /**
-   * There are cases when we display axis values relative to the Data.
-   * For example, when we use axis to display time information by setting {@code myOffset}
-   * it will display the time passed since {@code myOffset} instead of current time.
-   */
-  private double myOffset = 0;
   @NotNull private String myLabel = "";
 
   /**
@@ -63,27 +51,15 @@ public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> i
   /**
    * @param range       a Range object this AxisComponent listens to for the min/max values.
    * @param formatter   formatter used for determining the tick marker and labels that need to be rendered.
-   * @param orientation the orientation of the axis.
    */
-  // TODO: MOVE ORIENTATION TO THE UI
-  public AxisComponentModel(@NotNull Range range, @NotNull BaseAxisFormatter formatter, @NotNull AxisOrientation orientation) {
+  public AxisComponentModel(@NotNull Range range, @NotNull BaseAxisFormatter formatter) {
     myRange = range;
     myFormatter = formatter;
-    myOrientation = orientation;
   }
 
   @NotNull
   public String getLabel() {
     return myLabel;
-  }
-
-  @NotNull
-  public AxisOrientation getOrientation() {
-    return myOrientation;
-  }
-
-  public double getOffset() {
-    return myOffset;
   }
 
   @NotNull
@@ -96,9 +72,13 @@ public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> i
     return myFormatter;
   }
 
+  public double getZero() {
+    return myGlobalRange != null ? myGlobalRange.getMin() : myRange.getMin();
+  }
+
   @Override
   public void update(float elapsed) {
-    double maxTarget = myRange.getMax() - myOffset;
+    double maxTarget = myRange.getMax() - getZero();
     double rangeTarget = myRange.getLength();
     double clampedMaxTarget;
 
@@ -110,7 +90,7 @@ public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> i
     float majorNumTicksTarget = myClampToMajorTicks ? (float)Math.ceil(maxTarget / majorInterval) : (float)(maxTarget / majorInterval);
     clampedMaxTarget = majorNumTicksTarget * majorInterval;
 
-    clampedMaxTarget += myOffset;
+    clampedMaxTarget += getZero();
     float fraction = myFirstUpdate ? 1f : Updater.DEFAULT_LERP_FRACTION;
     myRange.setMax(Updater.lerp(myRange.getMax(), clampedMaxTarget, fraction, elapsed,
                                 (float)(clampedMaxTarget * Updater.DEFAULT_LERP_THRESHOLD_PERCENTAGE)));
@@ -121,10 +101,7 @@ public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> i
   }
 
   /**
-   * @param globalRange sets the global range on the AxisComponent
-   *                    TODO this is only needed in the case of time axis, where the users can zoom in to a particular current range, but the Axis still
-   *                    wants to use the global range as context when generating the marker labels. It would be nice if we can get rid of this extra
-   *                    dependency.
+   * @param globalRange sets the global range on the AxisComponent. The global range also sets the relative zero point.
    */
   public AxisComponentModel setGlobalRange(@NotNull Range globalRange) {
     myGlobalRange = globalRange;
@@ -136,15 +113,6 @@ public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> i
    */
   public AxisComponentModel setLabel(@NotNull String label) {
     myLabel = label;
-    return this;
-  }
-
-  /**
-   * Sets the offset to be used, by default offset is zero.
-   * {@link AxisComponent#myOffset}
-   */
-  public AxisComponentModel setOffset(double offset) {
-    myOffset = offset;
     return this;
   }
 
