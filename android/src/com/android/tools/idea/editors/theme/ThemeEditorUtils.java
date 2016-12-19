@@ -696,6 +696,7 @@ public class ThemeEditorUtils {
       .build();
 
     dialog.setUseGlobalUndo(true);
+    dialog.setTitle("Select Resource for " + item.getQualifiedName());
 
     return dialog;
   }
