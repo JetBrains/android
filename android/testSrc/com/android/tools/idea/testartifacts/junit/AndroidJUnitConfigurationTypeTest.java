@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.junit;
 
+import com.intellij.execution.junit.JUnitConfigurationType;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.util.AndroidCommonUtils;
 
@@ -25,5 +26,12 @@ public class AndroidJUnitConfigurationTypeTest extends AndroidTestCase {
 
   public void testConfigurationTypeIdRegistered() {
     assertTrue(AndroidCommonUtils.isTestConfiguration(AndroidJUnitConfigurationType.getInstance().getId()));
+  }
+
+  // Since JUnitConfigurationType is disabled in AndroidStudioInitializer, and AndroidJUnitConfigurationType
+  // is registered as child, it should be returned when getInstance() of the parent is called
+  public void testJUnitConfigurationTypeGetInstance() {
+    JUnitConfigurationType configurationType = JUnitConfigurationType.getInstance();
+    assertInstanceOf(configurationType, AndroidJUnitConfigurationType.class);
   }
 }
