@@ -109,7 +109,7 @@ public class ApkParser {
   @NotNull
   public synchronized ListenableFuture<Long> getCompressedFullApkSize() {
     if (myCompressedFullApkSize == null) {
-      myCompressedFullApkSize = ourExecutorService.submit(() -> getApkServedByPlay(myApk).length());
+      myCompressedFullApkSize = ourExecutorService.submit(() -> getSizeOfApkServedByPlay(myApk));
     }
 
     return myCompressedFullApkSize;
@@ -230,33 +230,25 @@ public class ApkParser {
   }
 
   /**
-   * @return the input file compressed using "gzip -9" and saved in a temporary location
+   * @return the size of the APK compressed using "gzip -9"
    */
-  private static File getApkServedByPlay(@NotNull File apk) {
-    File compressedFile;
-    try {
-      compressedFile =
-        FileUtil.createTempFile("compressed", SdkConstants.DOT_ANDROID_PACKAGE, true);
-    }
-    catch (IOException e) {
-      Logger.getInstance(ApkParser.class).warn(e);
-      return apk;
-    }
+  private static long getSizeOfApkServedByPlay(@NotNull File apk) {
+    ByteCountingOutputStream out = new ByteCountingOutputStream();
 
     // There is a difference between uncompressing the apk, and then compressing again using gzip -9, versus just compressing the apk
     // itself using gzip -9. But the difference seems to be negligible, and we are only aiming at an estimate of what Play provides, so
     // this should suffice. This also seems to be the same approach taken by https://github.com/googlesamples/apk-patch-size-estimator
 
-    try (GZIPOutputStream zos = new MaxGzipOutputStream(new FileOutputStream(compressedFile))) {
+    try (GZIPOutputStream zos = new MaxGzipOutputStream(out)) {
       Files.copy(apk.toPath(), zos);
       zos.flush();
     }
     catch (IOException e) {
       Logger.getInstance(ApkParser.class).warn(e);
-      return apk;
+      return apk.length();
     }
 
-    return compressedFile;
+    return out.getLength();
   }
 
   /**
@@ -313,6 +305,29 @@ public class ApkParser {
     public MaxZipOutputStream(OutputStream out) throws IOException {
       super(out);
       def.setLevel(Deflater.BEST_COMPRESSION);
+    }
+  }
+
+  private static class ByteCountingOutputStream extends OutputStream {
+    private long myLength;
+
+    public long getLength() {
+      return myLength;
+    }
+
+    @Override
+    public void write(int b) throws IOException {
+      myLength++;
+    }
+
+    @Override
+    public void write(@NotNull byte[] b) throws IOException {
+      myLength += b.length;
+    }
+
+    @Override
+    public void write(@NotNull byte[] b, int off, int len) throws IOException {
+      myLength += len;
     }
   }
 }
