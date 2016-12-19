@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
-import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.util.ui.UIUtil;
@@ -61,7 +60,7 @@ public class GuiTestRuleTest {
   @Test
   public void createNewProjectDialogLeftShowing() throws Exception {
     exception.expectMessage("Create New Project");
-    WelcomeFrameFixture.find(guiTest.robot()).createNewProject();
+    guiTest.welcomeFrame().createNewProject();
   }
 
   @Test

@@ -24,7 +24,6 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
@@ -141,8 +140,8 @@ public class LaunchAndroidApplicationTest {
   @RunIn(TestGroup.QA)
   @Test
   public void testCppDebugOnEmulatorWithBreakpoint() throws Exception {
-    WelcomeFrameFixture welcomeFrame =  WelcomeFrameFixture.find(guiTest.robot());
-    welcomeFrame.importCodeSample();
+    guiTest.welcomeFrame()
+      .importCodeSample();
 
     BrowseSamplesWizardFixture samplesWizard = BrowseSamplesWizardFixture.find(guiTest.robot());
     samplesWizard
