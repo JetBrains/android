@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
@@ -34,7 +35,7 @@ import java.awt.*;
 import java.io.File;
 import java.util.function.BiFunction;
 
-public class StudioProfilersView {
+public class StudioProfilersView extends AspectObserver {
   private final StudioProfilers myProfiler;
   private final ViewBinder<StudioProfilersView, Stage, StageView> myBinder;
   private StageView myStageView;
@@ -58,8 +59,7 @@ public class StudioProfilersView {
     myBinder.bind(MemoryProfilerStage.class, MemoryProfilerStageView::new);
     myBinder.bind(NetworkProfilerStage.class, NetworkProfilerStageView::new);
 
-    myProfiler.addDependency()
-      .onChange(ProfilerAspect.STAGE, this::updateStageView);
+    myProfiler.addDependency(this).onChange(ProfilerAspect.STAGE, this::updateStageView);
   }
 
   /**
@@ -142,6 +142,10 @@ public class StudioProfilersView {
 
   public JPanel getComponent() {
     return myComponent;
+  }
+
+  public ViewBinder<StudioProfilersView, Stage, StageView> getBinder() {
+    return myBinder;
   }
 
   private static class DeviceComboBoxRenderer extends ColoredListCellRenderer<Profiler.Device> {

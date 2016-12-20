@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.monitor.tool;
 
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.ProfilerAspect;
+import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.StudioProfilersView;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.annotations.NotNull;
@@ -32,10 +35,10 @@ import javax.swing.*;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
-public class AndroidMonitorToolWindow implements Disposable {
+public class AndroidMonitorToolWindow extends AspectObserver implements Disposable {
 
   @NotNull
-  private final JPanel myComponent;
+  private final StudioProfilersView myView;
   @NotNull
   private final StudioProfilers myProfilers;
   @NotNull
@@ -44,14 +47,14 @@ public class AndroidMonitorToolWindow implements Disposable {
   public AndroidMonitorToolWindow(@NotNull final Project project) {
     try {
       myProject = project;
+      Disposer.register(project, this);
       StudioProfilerDeviceManager manager = new StudioProfilerDeviceManager(project);
       myProfilers = new StudioProfilers(manager.getClient(), new IntellijProfilerServices(myProject));
 
       myProfilers.setPreferredProcessName(getPreferredProcessName(project));
-      StudioProfilersView view = new StudioProfilersView(myProfilers, new IntellijProfilerComponents(myProject));
-      myComponent = view.getComponent();
+      myView = new StudioProfilersView(myProfilers, new IntellijProfilerComponents(myProject));
 
-      myProfilers.addDependency()
+      myProfilers.addDependency(this)
         .onChange(ProfilerAspect.MODE, this::updateToolWindow)
         .onChange(ProfilerAspect.STAGE, this::updateToolWindow);
     }
@@ -74,7 +77,7 @@ public class AndroidMonitorToolWindow implements Disposable {
   }
 
   public JComponent getComponent() {
-    return myComponent;
+    return myView.getComponent();
   }
 
   @Nullable

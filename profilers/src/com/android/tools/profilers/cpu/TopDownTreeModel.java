@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,12 +30,14 @@ class TopDownTreeModel extends DefaultTreeModel {
 
   private final Range myRange;
   private final Range myCurrentRange;
+  private final AspectObserver myAspectObserver;
 
   public TopDownTreeModel(@NotNull Range range, @NotNull TopDownNode node) {
     super(new DefaultMutableTreeNode(node));
     myRange = range;
     myCurrentRange = new Range();
-    myRange.addDependency().onChange(Range.Aspect.RANGE, this::rangeChanged);
+    myAspectObserver = new AspectObserver();
+    myRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::rangeChanged);
     rangeChanged();
   }
 

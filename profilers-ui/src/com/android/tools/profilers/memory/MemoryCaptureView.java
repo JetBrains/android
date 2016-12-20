@@ -15,13 +15,14 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public final class MemoryCaptureView {
+public final class MemoryCaptureView extends AspectObserver {
   @NotNull private final MemoryProfilerStage myStage;
 
   @NotNull private final JLabel myLabel = new JLabel();
@@ -30,7 +31,7 @@ public final class MemoryCaptureView {
 
   MemoryCaptureView(@NotNull MemoryProfilerStage stage) {
     myStage = stage;
-    myStage.getAspect().addDependency()
+    myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::reset)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refresh);
     refresh();

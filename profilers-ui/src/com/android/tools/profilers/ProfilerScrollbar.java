@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.Choreographer;
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.Updatable;
 import com.intellij.ui.components.JBScrollBar;
@@ -53,6 +54,7 @@ public final class ProfilerScrollbar extends JBScrollBar {
   private static final float STREAMING_POSITION_THRESHOLD_PX = 10;
 
   @NotNull private final ProfilerTimeline myTimeline;
+  private final AspectObserver myAspectObserver;
 
   private boolean myUpdating;
   private boolean myCheckStream;
@@ -61,9 +63,9 @@ public final class ProfilerScrollbar extends JBScrollBar {
                            @NotNull JComponent zoomPanComponent) {
     super(HORIZONTAL);
 
+    myAspectObserver = new AspectObserver();
     myTimeline = timeline;
-    myTimeline.getViewRange().addDependency().onChange(Range.Aspect.RANGE, this::modelChanged);
-    myTimeline.getDataRange().addDependency().onChange(Range.Aspect.RANGE, this::modelChanged);
+    myTimeline.getViewRange().addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::modelChanged);
 
     setUI(new ButtonlessScrollBarUI() {
       /**

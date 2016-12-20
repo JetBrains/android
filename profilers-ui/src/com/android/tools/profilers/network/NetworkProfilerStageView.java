@@ -41,7 +41,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   public NetworkProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull NetworkProfilerStage stage) {
     super(profilersView, stage);
 
-    getStage().getAspect().addDependency()
+    getStage().getAspect().addDependency(this)
       .onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, this::updateConnectionDetailsView);
 
     myConnectionDetails = new ConnectionDetailsView(this);
