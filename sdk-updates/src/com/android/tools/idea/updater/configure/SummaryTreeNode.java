@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.updater.configure;
 
+import com.android.annotations.NonNull;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.google.common.collect.Sets;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * Tree node representing all packages corresponding to a specified AndroidVersion. The checked state and the effect of
@@ -40,10 +44,9 @@ class SummaryTreeNode extends UpdaterTreeNode {
    *
    * @param version The AndroidVersion of this node
    * @param children The nodes represented by this summary node.
-   * @param versionName The version name to be shown in the UI.
    * @return A new SummaryTreeNode, or null if none of the children are actually included.
    */
-  public static SummaryTreeNode createNode(AndroidVersion version, Set<UpdaterTreeNode> children) {
+  public static SummaryTreeNode createNode(@NotNull AndroidVersion version, @NotNull Set<UpdaterTreeNode> children) {
     Set<UpdaterTreeNode> includedChildren = Sets.newHashSet();
     UpdaterTreeNode primaryChild = null;
     for (UpdaterTreeNode child : children) {
@@ -61,44 +64,42 @@ class SummaryTreeNode extends UpdaterTreeNode {
     return null;
   }
 
-  protected SummaryTreeNode(AndroidVersion version, Set<UpdaterTreeNode> children, Set<UpdaterTreeNode> includedChildren,
-                            UpdaterTreeNode primaryChild) {
+  protected SummaryTreeNode(@NotNull AndroidVersion version, @NotNull Set<UpdaterTreeNode> children,
+                            @NotNull Set<UpdaterTreeNode> includedChildren, @Nullable UpdaterTreeNode primaryChild) {
     myVersion = version;
     myAllChildren = children;
     myIncludedChildren = includedChildren;
     myPrimaryChild = primaryChild;
   }
 
+  @NonNull
+  private PackageNodeModel.SelectedState getState(@NotNull Function<UpdaterTreeNode, PackageNodeModel.SelectedState> childStateGetter) {
+    boolean hasNeedsUpdate = false;
+    for (UpdaterTreeNode summaryNode : myIncludedChildren) {
+      if (childStateGetter.apply(summaryNode) == PackageNodeModel.SelectedState.NOT_INSTALLED) {
+        return PackageNodeModel.SelectedState.NOT_INSTALLED;
+      }
+      if (childStateGetter.apply(summaryNode) == PackageNodeModel.SelectedState.MIXED) {
+        hasNeedsUpdate = true;
+      }
+    }
+    return hasNeedsUpdate ? PackageNodeModel.SelectedState.MIXED : PackageNodeModel.SelectedState.INSTALLED;
+  }
+
   @Override
+  @NotNull
   public PackageNodeModel.SelectedState getInitialState() {
-    boolean hasNeedsUpdate = false;
-    for (UpdaterTreeNode summaryNode : myIncludedChildren) {
-      if (summaryNode.getInitialState() == PackageNodeModel.SelectedState.NOT_INSTALLED) {
-        return PackageNodeModel.SelectedState.NOT_INSTALLED;
-      }
-      if (summaryNode.getInitialState() == PackageNodeModel.SelectedState.MIXED) {
-        hasNeedsUpdate = true;
-      }
-    }
-    return hasNeedsUpdate ? PackageNodeModel.SelectedState.MIXED : PackageNodeModel.SelectedState.INSTALLED;
+    return getState(UpdaterTreeNode::getInitialState);
   }
 
   @Override
+  @NonNull
   public PackageNodeModel.SelectedState getCurrentState() {
-    boolean hasNeedsUpdate = false;
-    for (UpdaterTreeNode summaryNode : myIncludedChildren) {
-      if (summaryNode.getCurrentState() == PackageNodeModel.SelectedState.NOT_INSTALLED) {
-        return PackageNodeModel.SelectedState.NOT_INSTALLED;
-      }
-      if (summaryNode.getCurrentState() == PackageNodeModel.SelectedState.MIXED) {
-        hasNeedsUpdate = true;
-      }
-    }
-    return hasNeedsUpdate ? PackageNodeModel.SelectedState.MIXED : PackageNodeModel.SelectedState.INSTALLED;
+    return getState(UpdaterTreeNode::getCurrentState);
   }
 
   @Override
-  public int compareTo(UpdaterTreeNode o) {
+  public int compareTo(@NotNull UpdaterTreeNode o) {
     if (!(o instanceof SummaryTreeNode)) {
       return super.compareTo(o);
     }
@@ -164,6 +165,7 @@ class SummaryTreeNode extends UpdaterTreeNode {
   }
 
   @Override
+  @NotNull
   public String getStatusString() {
     boolean foundSources = false;
     boolean foundPlatform = false;
@@ -194,6 +196,7 @@ class SummaryTreeNode extends UpdaterTreeNode {
     return "Not installed";
   }
 
+  @Nullable
   public UpdaterTreeNode getPrimaryChild() {
     return myPrimaryChild;
   }
