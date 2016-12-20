@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.fd;
 
+import com.google.common.truth.Truth;
 import com.google.wireless.android.sdk.stats.InstantRunStatus;
 import org.jetbrains.android.util.AndroidBundle;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -99,9 +101,15 @@ public class InstantRunNotificationProviderTest {
             InstantRunStatus.VerifierStatus.JAVA_RESOURCES_CHANGED.toString());
     assertEquals("Instant Run re-installed and restarted the app. Java Resources Changed.", provider.getNotificationText());
 
+    buildSelection = new BuildSelection(BuildCause.MISMATCHING_TIMESTAMPS, false);
+    provider = new InstantRunNotificationProvider(buildSelection, DeployType.FULLAPK, "");
+    assertEquals(
+      "Instant Run performed a full build and install since<br>the installation on the device does not match the local build on disk.",
+      provider.getNotificationText());
+
+    // some full build causes shouldn't be shown though..
     buildSelection = new BuildSelection(BuildCause.NO_DEVICE, false);
     provider = new InstantRunNotificationProvider(buildSelection, DeployType.FULLAPK, "");
-    assertEquals("Instant Run re-installed and restarted the app. BuildCause: NO_DEVICE, BuildMode: FULL.", provider.getNotificationText());
-
+    Truth.assertThat(provider.getNotificationText()).isNull();
   }
 }
