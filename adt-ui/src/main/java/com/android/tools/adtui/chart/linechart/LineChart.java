@@ -88,7 +88,7 @@ public class LineChart extends AnimatedComponent {
     myReducer = (path, config) -> path;
     myModel = model;
     myRedraw = true;
-    myModel.addDependency()
+    myModel.addDependency(myAspectObserver)
       .onChange(LineChartModel.Aspect.LINE_CHART, this::modelChanged);
   }
 

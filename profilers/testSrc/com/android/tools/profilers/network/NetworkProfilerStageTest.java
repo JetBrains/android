@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.FakeIdeProfilerServices;
@@ -37,7 +38,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 
-public class NetworkProfilerStageTest {
+public class NetworkProfilerStageTest extends AspectObserver {
   private static final ImmutableList<NetworkProfilerData> FAKE_RADIO_DATA =
     new ImmutableList.Builder<NetworkProfilerData>()
       .add(FakeNetworkService.newRadioData(5, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.ACTIVE))
@@ -93,7 +94,7 @@ public class NetworkProfilerStageTest {
     HttpData data = builder.build();
 
     final boolean[] connectionChanged = {false};
-    myStage.getAspect().addDependency().onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, () ->
+    myStage.getAspect().addDependency(this).onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, () ->
       connectionChanged[0] = true
     );
 
@@ -113,7 +114,7 @@ public class NetworkProfilerStageTest {
     NetworkProfilerStage spyStage = spy(myStage);
 
     final boolean[] connectionChanged = {false};
-    spyStage.getAspect().addDependency().onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, () ->
+    spyStage.getAspect().addDependency(this).onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, () ->
       connectionChanged[0] = true
     );
 

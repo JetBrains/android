@@ -59,7 +59,7 @@ public class StackedEventComponent extends AnimatedComponent {
   public StackedEventComponent(@NotNull StackedEventModel model) {
     myModel = model;
     setFont(AdtUiUtils.DEFAULT_FONT);
-    myModel.addDependency().onChange(StackedEventModel.Aspect.STACKED_EVENT, this::modelChanged);
+    myModel.addDependency(myAspectObserver).onChange(StackedEventModel.Aspect.STACKED_EVENT, this::modelChanged);
     myRender = true;
   }
 

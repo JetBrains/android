@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.*;
 import com.android.tools.profilers.*;
 import com.google.protobuf3jarjar.ByteString;
@@ -32,7 +33,7 @@ import static com.android.tools.profilers.cpu.CpuCaptureTest.traceFileToByteStri
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.*;
 
-public class CpuProfilerStageTest {
+public class CpuProfilerStageTest extends AspectObserver {
 
   private final FakeCpuService myCpuService = new FakeCpuService();
   @Rule
@@ -52,7 +53,7 @@ public class CpuProfilerStageTest {
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
     myStage = new CpuProfilerStage(profilers);
     myGetProcessesLatch = new CountDownLatch(1);
-    profilers.addDependency().onChange(ProfilerAspect.PROCESSES, myGetProcessesLatch::countDown);
+    profilers.addDependency(this).onChange(ProfilerAspect.PROCESSES, myGetProcessesLatch::countDown);
   }
 
   @Test

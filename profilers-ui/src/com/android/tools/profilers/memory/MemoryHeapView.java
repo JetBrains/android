@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.HeapObject;
 import com.intellij.openapi.ui.ComboBox;
@@ -24,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.List;
 
-public class MemoryHeapView {
+public class MemoryHeapView extends AspectObserver {
   @NotNull private final MemoryProfilerStage myStage;
 
   @NotNull private ComboBox<HeapObject> myComboBox = new ComboBox<>();
@@ -34,7 +35,7 @@ public class MemoryHeapView {
   MemoryHeapView(@NotNull MemoryProfilerStage stage) {
     myStage = stage;
 
-    myStage.getAspect().addDependency()
+    myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::setNewCapture)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::updateCaptureState)
       .onChange(MemoryProfilerAspect.CURRENT_HEAP, this::refreshHeap);

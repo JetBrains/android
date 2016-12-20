@@ -91,7 +91,7 @@ public class LegendComponent extends AnimatedComponent {
     myModel = model;
     myConfigs = new HashMap<>();
     myOrientation = Orientation.HORIZONTAL;
-    myModel.addDependency()
+    myModel.addDependency(myAspectObserver)
       .onChange(LegendComponentModel.Aspect.LEGEND, this::modelChanged);
     modelChanged();
   }

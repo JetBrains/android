@@ -16,6 +16,7 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.model.AspectObserver;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -38,6 +39,8 @@ public abstract class AnimatedComponent extends JComponent {
 
   protected final FontMetrics mDefaultFontMetrics;
 
+  protected final AspectObserver myAspectObserver;
+
   @NotNull
   private final List<String> mDebugInfo;
 
@@ -46,6 +49,7 @@ public abstract class AnimatedComponent extends JComponent {
   public AnimatedComponent() {
     mDebugInfo = new LinkedList<>();
     mDefaultFontMetrics = getFontMetrics(AdtUiUtils.DEFAULT_FONT);
+    myAspectObserver = new AspectObserver();
   }
 
   public final boolean isDrawDebugInfo() {

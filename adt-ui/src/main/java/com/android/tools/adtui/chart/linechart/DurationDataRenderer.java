@@ -38,7 +38,7 @@ import static com.android.tools.adtui.model.DurationData.UNSPECIFIED_DURATION;
 /**
  * A custom renderer to support drawing {@link DurationData} over line charts
  */
-public final class DurationDataRenderer<E extends DurationData> implements LineChartCustomRenderer {
+public final class DurationDataRenderer<E extends DurationData> extends AspectObserver implements LineChartCustomRenderer {
   /**
    * Percentage of screen dimension the icon+label for the DurationData will be offset.
    */
@@ -89,7 +89,7 @@ public final class DurationDataRenderer<E extends DurationData> implements LineC
     myLabelClickedBgColor = builder.myLabelClickedBgColor;
     myLabelTextColor = builder.myLabelTextColor;
 
-    myModel.addDependency().onChange(DurationDataModel.Aspect.DURATION_DATA, this::modelChanged);
+    myModel.addDependency(this).onChange(DurationDataModel.Aspect.DURATION_DATA, this::modelChanged);
   }
 
   private void modelChanged() {
