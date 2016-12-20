@@ -79,6 +79,12 @@ public class ResourceNameValidatorTest extends AndroidTestCase {
                  ResourceNameValidator.create(false, ResourceFolderType.DRAWABLE).getErrorText("foo.xml"));
     assertEquals("'.' is not a valid resource name character",
                  ResourceNameValidator.create(false, ResourceFolderType.DRAWABLE).getErrorText("foo.1.2"));
+
+    // build system does NOT allow, so we must also now allow this
+    assertEquals("'-' is not a valid resource name character",
+                 ResourceNameValidator.create(false, Collections.emptySet(), ResourceType.STYLE).getErrorText("style-name"));
+    assertEquals("':' is not a valid resource name character",
+                 ResourceNameValidator.create(false, Collections.emptySet(), ResourceType.STYLE).getErrorText("style:name"));
   }
 
   public void testIds() throws Exception {
@@ -97,8 +103,6 @@ public class ResourceNameValidatorTest extends AndroidTestCase {
     multimap.put("foo3", new ResourceItem("foo3", ResourceType.ID, null, null));
     multimap.put("foo.4", new ResourceItem("foo.4", ResourceType.ID, null, null));
     multimap.put("foo_5", new ResourceItem("foo_5", ResourceType.ID, null, null));
-    multimap.put("foo-6", new ResourceItem("foo-6", ResourceType.ID, null, null));
-    multimap.put("foo:7", new ResourceItem("foo:7", ResourceType.ID, null, null));
     LocalResourceRepository resources = new LocalResourceRepository("unit test") {
       @NonNull
       @Override
@@ -124,24 +128,9 @@ public class ResourceNameValidatorTest extends AndroidTestCase {
     assertEquals("foo3 already exists", validator.getErrorText("foo3"));
 
     assertEquals("foo_4 already exists", validator.getErrorText("foo.4"));
-    assertEquals("foo_4 already exists", validator.getErrorText("foo:4"));
-    assertEquals("foo_4 already exists", validator.getErrorText("foo-4"));
     assertEquals("foo_4 already exists", validator.getErrorText("foo_4"));
-
     assertEquals("foo_5 already exists", validator.getErrorText("foo.5"));
-    assertEquals("foo_5 already exists", validator.getErrorText("foo:5"));
-    assertEquals("foo_5 already exists", validator.getErrorText("foo-5"));
     assertEquals("foo_5 already exists", validator.getErrorText("foo_5"));
-
-    assertEquals("foo_6 already exists", validator.getErrorText("foo.6"));
-    assertEquals("foo_6 already exists", validator.getErrorText("foo:6"));
-    assertEquals("foo_6 already exists", validator.getErrorText("foo-6"));
-    assertEquals("foo_6 already exists", validator.getErrorText("foo_6"));
-
-    assertEquals("foo_7 already exists", validator.getErrorText("foo.7"));
-    assertEquals("foo_7 already exists", validator.getErrorText("foo:7"));
-    assertEquals("foo_7 already exists", validator.getErrorText("foo-7"));
-    assertEquals("foo_7 already exists", validator.getErrorText("foo_7"));
   }
 
   public void testUniqueOrExists() throws Exception {
@@ -169,7 +158,5 @@ public class ResourceNameValidatorTest extends AndroidTestCase {
     assertNull(validator.getErrorText("foo3"));
     assertNull(validator.getErrorText("foo_4"));
     assertNull(validator.getErrorText("foo.4"));
-    assertNull(validator.getErrorText("foo:4"));
-    assertNull(validator.getErrorText("foo-4"));
   }
 }
