@@ -29,5 +29,6 @@ iml_module(
         "//tools/base/repository:studio.repository[module, test]",
         "//tools/base/sdklib:studio.sdklib[module, test]",
         "//tools/adt/idea/android[module, test]",
+        "//tools/idea/.idea/libraries:mockito[test]",
     ],
 )
