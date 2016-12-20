@@ -33,8 +33,6 @@ import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.HtmlBuilderHelper;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.rendering.webp.WebpImageReaderSpi;
-import com.android.tools.idea.rendering.webp.WebpMetadata;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
@@ -43,9 +41,12 @@ import com.android.tools.idea.ui.SearchField;
 import com.android.tools.lint.checks.IconDetector;
 import com.android.tools.swing.ui.SwatchComponent;
 import com.android.utils.HtmlBuilder;
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
@@ -1093,39 +1094,35 @@ public class ChooseResourceDialog extends DialogWrapper {
   }
 
   @Nullable
-  Icon getIcon(@NotNull ResourceChooserItem item, int size, int checkerboardSize) {
-    Icon icon = item.getIcon();
-    if (icon != null && (size == icon.getIconWidth())) {
-      return icon;
+  Icon getIcon(@NotNull ResourceChooserItem item, int size, int checkerboardSize, @Nullable Runnable onLoadComplete) {
+    Icon cachedIcon = item.getIcon(size);
+    if (cachedIcon != null) {
+      return cachedIcon;
     }
 
     switch (item.getType()) {
       case COLOR:
       case DRAWABLE:
-      case MIPMAP:
-        icon = createIcon(size, checkerboardSize, true, item.getPath(), item.getResourceValue(), item.getType());
-        if (icon == null) {
-          //noinspection UndesirableClassUsage
-          icon = new ImageIcon(new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB));
-        }
-        break;
+      case MIPMAP:;
+        AsyncIcon futureIcon =
+          new AsyncIcon(createIcon(size, checkerboardSize, true, item.getPath(), item.getResourceValue(), item.getType()),
+                        EmptyIcon.create(size), onLoadComplete);
+        item.setIcon(futureIcon);
+
+        return futureIcon;
       default:
-        icon = null;
     }
 
-    // Cache for next time
-    item.setIcon(icon);
-
-    return icon;
+    return null;
   }
 
-  @Nullable
-  Icon createIcon(int size,
-                  int checkerboardSize,
-                  boolean interpolate,
-                  @Nullable String path,
-                  @NotNull ResourceValue resourceValue,
-                  @NotNull ResourceType type) {
+  @NotNull
+  ListenableFuture<Icon> createIcon(int size,
+                                    int checkerboardSize,
+                                    boolean interpolate,
+                                    @Nullable String path,
+                                    @NotNull ResourceValue resourceValue,
+                                    @NotNull ResourceType type) {
     if (path != null && IconDetector.isDrawableFile(path)
         && !path.endsWith(DOT_XML)) {
       // WebP images for unknown reasons don't load via ImageIcon(path)
@@ -1133,13 +1130,13 @@ public class ChooseResourceDialog extends DialogWrapper {
         try {
           BufferedImage image = ImageIO.read(new File(path));
           if (image != null) {
-            return new ResourceChooserIcon(size, image, checkerboardSize, interpolate);
+            return Futures.immediateFuture(new ResourceChooserIcon(size, image, checkerboardSize, interpolate));
           }
         } catch (IOException ignore) {
         }
       }
 
-      return new ResourceChooserIcon(size, new ImageIcon(path).getImage(), checkerboardSize, interpolate);
+      return Futures.immediateFuture(new ResourceChooserIcon(size, new ImageIcon(path).getImage(), checkerboardSize, interpolate));
     }
     else if (type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP) {
       // TODO: Attempt to guess size for XML drawables since at least for vectors, we have attributes
@@ -1153,21 +1150,24 @@ public class ChooseResourceDialog extends DialogWrapper {
       RenderTask renderTask = getRenderTask();
       renderTask.setOverrideRenderSize(width, height);
       renderTask.setMaxRenderSize(width, height);
-      BufferedImage image = renderTask.renderDrawable(resourceValue);
-      if (image != null) {
-        return new ResourceChooserIcon(size, image, checkerboardSize, interpolate);
-      }
+      return Futures.transform(renderTask.renderDrawable(resourceValue), (Function<BufferedImage, ResourceChooserIcon>)drawable -> {
+        if (drawable != null) {
+          return new ResourceChooserIcon(size, drawable, checkerboardSize, interpolate);
+        }
+
+        return null;
+      });
       // TODO maybe have a different icon for state list drawable
     }
     else if (type == ResourceType.COLOR) {
       Color color = ResourceHelper.resolveColor(getResourceResolver(), resourceValue, myModule.getProject());
       if (color != null) { // maybe null for invalid color
-        return new ColorIcon(size, color);
+        return Futures.immediateFuture(new ColorIcon(size, color));
       }
       // TODO maybe have a different icon when the resource points to more then 1 color
     }
 
-    return null;
+    return Futures.immediateFuture(null);
   }
 
   @NotNull
@@ -1966,7 +1966,8 @@ public class ChooseResourceDialog extends DialogWrapper {
 
             // TODO show deprecated resources with a strikeout
             ResourceChooserItem rItem = (ResourceChooserItem) value;
-            setIcon(ChooseResourceDialog.this.getIcon(rItem, GRID_ICON_SIZE, GRID_CHECK_SIZE));
+            setIcon(ChooseResourceDialog.this.getIcon(rItem, GRID_ICON_SIZE, GRID_CHECK_SIZE, myList::repaint));
+
             String name = rItem.getName();
 
             String filter = mySearchField.getText();
@@ -2072,7 +2073,8 @@ public class ChooseResourceDialog extends DialogWrapper {
 
             // TODO: show deprecated resources with a strikeout
             // TODO: show private resources in a different way (and offer copy to project)
-            setIcon(ChooseResourceDialog.this.getIcon(value, LIST_ICON_SIZE, LIST_CHECK_SIZE));
+            final ResourceChooserItem finalValue = value;
+            setIcon(ChooseResourceDialog.this.getIcon(value, LIST_ICON_SIZE, LIST_CHECK_SIZE, myList::repaint));
 
             String string = value.toString();
             String filter = mySearchField.getText();
