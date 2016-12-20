@@ -109,12 +109,31 @@ public final class ProfilerTimeline implements Updatable {
     }
   }
 
-  public void zoom(double deltaUs, double anchor) {
-    // TODO: ZOOM
+  public void zoom(double deltaUs, double percent) {
+    setStreaming(false);
+    double minUs = myViewRangeUs.getMin() - deltaUs * percent;
+    double maxUs = myViewRangeUs.getMax() + deltaUs * (1 - percent);
+    if (minUs < myDataRangeUs.getMin()) {
+      maxUs += myDataRangeUs.getMin() - minUs;
+      minUs = myDataRangeUs.getMin();
+    }
+    if (maxUs > myDataRangeUs.getMax()) {
+      minUs -= maxUs - myDataRangeUs.getMax();
+      maxUs = myDataRangeUs.getMax();
+    }
+    // minUs could have gone past again.
+    minUs = Math.max(minUs, myDataRangeUs.getMin());
+    myViewRangeUs.set(minUs, maxUs);
   }
 
-  public void pan(double us) {
-    // TODO: PAN
+  public void pan(double deltaUs) {
+    setStreaming(false);
+    if (myViewRangeUs.getMin() + deltaUs < myDataRangeUs.getMin()) {
+      deltaUs = myDataRangeUs.getMin() - myViewRangeUs.getMin();
+    } else if (myViewRangeUs.getMax() + deltaUs > myDataRangeUs.getMax()) {
+      deltaUs = myDataRangeUs.getMax() - myViewRangeUs.getMax();
+    }
+    myViewRangeUs.shift(deltaUs);
   }
 
   public void reset(long ns) {
