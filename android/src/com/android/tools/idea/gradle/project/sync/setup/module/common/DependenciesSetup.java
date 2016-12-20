@@ -48,9 +48,11 @@ public class DependenciesSetup {
                                      @NotNull Collection<String> binaryPaths,
                                      @NotNull Collection<String> sourcePaths,
                                      @NotNull Collection<String> documentationPaths) {
+    boolean newLibrary = false;
     Library library = modelsProvider.getLibraryByName(libraryName);
     if (library == null) {
       // Create library.
+      newLibrary = true;
       library = modelsProvider.createLibrary(libraryName);
       updateLibraryBinaryPaths(library, binaryPaths, modelsProvider);
     }
@@ -59,37 +61,39 @@ public class DependenciesSetup {
       registry.markAsUsed(library, binaryPaths);
     }
 
-    // It is common that the same dependency is used by more than one module. Here we update the "sources" and "documentation" paths if they
-    // were not set before.
+    if (newLibrary) {
+      // It is common that the same dependency is used by more than one module. Here we update the "sources" and "documentation" paths if they
+      // were not set before.
 
-    // Example:
-    // In a multi-project project, there are 2 modules: 'app'' (an Android app) and 'util' (a Java lib.) Both of them depend on Guava. Since
-    // Android artifacts do not support source attachments, the 'app' module may not indicate where to find the sources for Guava, but the
-    // 'util' method can, since it is a plain Java module.
-    // If the 'Guava' library was already defined when setting up 'app', it won't have source attachments. When setting up 'util' we may
-    // have source attachments, but the library may have been already created. Here we just add the "source" paths if they were not already
-    // set.
-    updateLibrarySourcesIfAbsent(library, sourcePaths, SOURCES, modelsProvider);
-    updateLibrarySourcesIfAbsent(library, documentationPaths, JavadocOrderRootType.getInstance(), modelsProvider);
+      // Example:
+      // In a multi-project project, there are 2 modules: 'app'' (an Android app) and 'util' (a Java lib.) Both of them depend on Guava. Since
+      // Android artifacts do not support source attachments, the 'app' module may not indicate where to find the sources for Guava, but the
+      // 'util' method can, since it is a plain Java module.
+      // If the 'Guava' library was already defined when setting up 'app', it won't have source attachments. When setting up 'util' we may
+      // have source attachments, but the library may have been already created. Here we just add the "source" paths if they were not already
+      // set.
+      updateLibrarySourcesIfAbsent(library, sourcePaths, SOURCES, modelsProvider);
+      updateLibrarySourcesIfAbsent(library, documentationPaths, JavadocOrderRootType.getInstance(), modelsProvider);
 
-    // Add external annotations.
-    // TODO: Add this to the model instead!
-    for (String binaryPath : binaryPaths) {
-      if (binaryPath.endsWith(FD_RES) && binaryPath.length() > FD_RES.length() &&
-          binaryPath.charAt(binaryPath.length() - FD_RES.length() - 1) == separatorChar) {
-        File annotations = new File(binaryPath.substring(0, binaryPath.length() - FD_RES.length()), FN_ANNOTATIONS_ZIP);
-        if (annotations.isFile()) {
-          updateLibrarySourcesIfAbsent(library, annotations, AnnotationOrderRootType.getInstance(), modelsProvider);
+      // Add external annotations.
+      // TODO: Add this to the model instead!
+      for (String binaryPath : binaryPaths) {
+        if (binaryPath.endsWith(FD_RES) && binaryPath.length() > FD_RES.length() &&
+            binaryPath.charAt(binaryPath.length() - FD_RES.length() - 1) == separatorChar) {
+          File annotations = new File(binaryPath.substring(0, binaryPath.length() - FD_RES.length()), FN_ANNOTATIONS_ZIP);
+          if (annotations.isFile()) {
+            updateLibrarySourcesIfAbsent(library, annotations, AnnotationOrderRootType.getInstance(), modelsProvider);
+          }
         }
-      }
-      else if (libraryName.startsWith("support-annotations-") && binaryPath.endsWith(DOT_JAR)) {
-        // The support annotations is a Java library, not an Android library, so it's not distributed as an AAR
-        // with its own external annotations. However, there are a few that we want to make available in the
-        // IDE (for example, code completion on @VisibleForTesting(otherwise = |), so we bundle these in the
-        // platform annotations zip file instead. We'll also need to add this as a root here.
-        File annotations = new File(binaryPath.substring(0, binaryPath.length() - DOT_JAR.length()) + "-" + FN_ANNOTATIONS_ZIP);
-        if (annotations.isFile()) {
-          updateLibrarySourcesIfAbsent(library, annotations, AnnotationOrderRootType.getInstance(), modelsProvider);
+        else if (libraryName.startsWith("support-annotations-") && binaryPath.endsWith(DOT_JAR)) {
+          // The support annotations is a Java library, not an Android library, so it's not distributed as an AAR
+          // with its own external annotations. However, there are a few that we want to make available in the
+          // IDE (for example, code completion on @VisibleForTesting(otherwise = |), so we bundle these in the
+          // platform annotations zip file instead. We'll also need to add this as a root here.
+          File annotations = new File(binaryPath.substring(0, binaryPath.length() - DOT_JAR.length()) + "-" + FN_ANNOTATIONS_ZIP);
+          if (annotations.isFile()) {
+            updateLibrarySourcesIfAbsent(library, annotations, AnnotationOrderRootType.getInstance(), modelsProvider);
+          }
         }
       }
     }
