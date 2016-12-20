@@ -213,6 +213,7 @@ public class AddGradleDependencyTest {
     verifyUndo(editor, 6);
   }
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testAddJetbrainsAnnotationDependency() throws IOException {
     guiTest.importSimpleApplication();
