@@ -115,7 +115,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     toolBar.add(myAllocationButton);
 
     JButton triggerHeapDumpButton = new JButton("Heap Dump");
-    triggerHeapDumpButton.addActionListener(e -> getStage().requestHeapDump());
+    triggerHeapDumpButton.addActionListener(e -> getStage().requestHeapDump(SwingUtilities::invokeLater));
     toolBar.add(triggerHeapDumpButton);
 
     return toolBar;

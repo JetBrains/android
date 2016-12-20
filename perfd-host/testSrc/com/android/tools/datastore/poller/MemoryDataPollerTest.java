@@ -103,36 +103,19 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     myMemoryDataPoller.connectService(myGrpcService.getChannel());
     myMemoryDataPoller
       .startMonitoringApp(MemoryProfiler.MemoryStartRequest.newBuilder().setAppId(TEST_APP_ID).build(), mock(StreamObserver.class));
+
+    // First trigger heap dumps on the MemoryDataPoller to create the latching mechanism which both GetData and GetHeapDump depend on.
+    myMemoryService.setTriggerHeapDumpInfo(DEFAULT_DUMP_INFO);
+    myMemoryDataPoller.triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.getDefaultInstance(), mock(StreamObserver.class));
+    myMemoryService.setTriggerHeapDumpInfo(ERROR_DUMP_INFO);
+    myMemoryDataPoller.triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.getDefaultInstance(), mock(StreamObserver.class));
+    myMemoryService.setTriggerHeapDumpInfo(NOT_READY_DUMP_INFO);
+    myMemoryDataPoller.triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.getDefaultInstance(), mock(StreamObserver.class));
   }
 
   @After
   public void tearDown() throws Exception {
     myDataStore.shutdown();
-  }
-
-  @Test
-  public void testGetHeapDumpNotFound() throws Exception {
-    getHeapDumpError(0, MemoryProfiler.DumpDataResponse.Status.NOT_FOUND);
-  }
-
-  @Test
-  public void testGetHeapDumpNotReady() throws Exception {
-    myMemoryService.addHeapDumpInfos(MemoryProfiler.HeapDumpInfo.newBuilder()
-                                       .setDumpId(NOT_READY_TEST_DUMP_ID)
-                                       .setEndTime(DurationData.UNSPECIFIED_DURATION)
-                                       .build());
-    myMemoryDataPoller.poll();
-    getHeapDumpError(NOT_READY_TEST_DUMP_ID, MemoryProfiler.DumpDataResponse.Status.NOT_READY);
-  }
-
-  @Test
-  public void testGetHeapDumpUnknown() throws Exception {
-    myMemoryService.addHeapDumpInfos(MemoryProfiler.HeapDumpInfo.newBuilder()
-                                       .setDumpId(ERROR_TEST_DUMP_ID)
-                                       .setEndTime(BASE_TIME_NS + TimeUnit.SECONDS.toNanos(1))
-                                       .build());
-    myMemoryDataPoller.poll();
-    getHeapDumpError(ERROR_TEST_DUMP_ID, MemoryProfiler.DumpDataResponse.Status.FAILURE_UNKNOWN);
   }
 
   @Test
@@ -239,7 +222,6 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     myMemoryDataPoller.getAllocationsInfoStatus(getRequest, getObserver);
     validateResponse(getObserver, MemoryProfiler.GetAllocationsInfoStatusResponse.getDefaultInstance());
   }
-
 
   /**
    * Tests the legacy allocation tracking workflow where the poller asynchronously updates the
@@ -348,7 +330,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
   @Test
   @Ignore
-  public void testListHeapDumpInfosInvlaidAppId() throws Exception {
+  public void testListHeapDumpInfosInvalidAppId() throws Exception {
     MemoryProfiler.ListDumpInfosRequest request = MemoryProfiler.ListDumpInfosRequest.newBuilder()
       .setAppId(0)
       .setStartTime(0)
@@ -361,7 +343,27 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   }
 
   @Test
+  public void testGetHeapDumpNotFound() throws Exception {
+    getHeapDumpError(0, MemoryProfiler.DumpDataResponse.Status.NOT_FOUND);
+  }
+
+  @Test
+  public void testGetHeapDumpNotReady() throws Exception {
+    myMemoryService.addHeapDumpInfos(NOT_READY_DUMP_INFO);
+    myMemoryDataPoller.poll();
+    getHeapDumpError(NOT_READY_TEST_DUMP_ID, MemoryProfiler.DumpDataResponse.Status.NOT_READY);
+  }
+
+  @Test
+  public void testGetHeapDumpUnknown() throws Exception {
+    myMemoryService.addHeapDumpInfos(ERROR_DUMP_INFO);
+    myMemoryDataPoller.poll();
+    getHeapDumpError(ERROR_TEST_DUMP_ID, MemoryProfiler.DumpDataResponse.Status.FAILURE_UNKNOWN);
+  }
+
+  @Test
   public void testGetHeapDump() throws Exception {
+    // First adds and polls the HeapDumpInfo sample we are testing, which counts down the latch
     myMemoryService.addHeapDumpInfos(DEFAULT_DUMP_INFO);
     myMemoryDataPoller.poll();
 
@@ -413,6 +415,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   private static class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     private MemoryProfiler.MemoryData.Builder myResponseBuilder = MemoryProfiler.MemoryData.newBuilder();
     private MemoryProfiler.AllocationsInfo myAllocationsInfo;
+    private MemoryProfiler.HeapDumpInfo myTriggerHeapDumpInfo;
 
     @Override
     public void startMonitoringApp(MemoryProfiler.MemoryStartRequest request,
@@ -436,7 +439,13 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     @Override
     public void triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest request,
                                 StreamObserver<MemoryProfiler.TriggerHeapDumpResponse> responseObserver) {
-      super.triggerHeapDump(request, responseObserver);
+      MemoryProfiler.TriggerHeapDumpResponse.Builder builder = MemoryProfiler.TriggerHeapDumpResponse.newBuilder();
+      builder.setStatus(MemoryProfiler.TriggerHeapDumpResponse.Status.SUCCESS);
+      if (myTriggerHeapDumpInfo != null) {
+        builder.setInfo(myTriggerHeapDumpInfo);
+      }
+      responseObserver.onNext(builder.build());
+      responseObserver.onCompleted();
     }
 
     @Override
@@ -448,7 +457,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
           response.setStatus(MemoryProfiler.DumpDataResponse.Status.SUCCESS);
           break;
         case NOT_READY_TEST_DUMP_ID:
-          response.setStatus(MemoryProfiler.DumpDataResponse.Status.SUCCESS);
+          response.setStatus(MemoryProfiler.DumpDataResponse.Status.NOT_READY);
           break;
         case ERROR_TEST_DUMP_ID:
           response.setStatus(MemoryProfiler.DumpDataResponse.Status.FAILURE_UNKNOWN);
@@ -505,6 +514,10 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
     public void setTrackAllocationsInfo(@Nullable MemoryProfiler.AllocationsInfo info) {
       myAllocationsInfo = info;
+    }
+
+    public void setTriggerHeapDumpInfo(@Nullable MemoryProfiler.HeapDumpInfo info) {
+      myTriggerHeapDumpInfo = info;
     }
 
     public void resetGetDataResponse() {
