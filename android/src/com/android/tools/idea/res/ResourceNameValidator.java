@@ -20,7 +20,6 @@ import com.android.resources.ResourceType;
 import com.android.utils.SdkUtils;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.InputValidatorEx;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -117,7 +116,7 @@ public class ResourceNameValidator implements InputValidatorEx {
       }
 
       if (!myIsFileType) {
-        inputString = AndroidResourceUtil.getFieldNameByResourceName(inputString);
+        inputString = normaliseResourceName(inputString);
       }
 
       if (myAllowXmlExtension) {
@@ -181,6 +180,14 @@ public class ResourceNameValidator implements InputValidatorEx {
       LOG.error("Validation failed: " + e.toString(), e);
       return "";
     }
+  }
+
+  /**
+   * Only dots are allowed for value resources.
+   * @see com.android.ide.common.res2.ValueResourceNameValidator
+   */
+  public static String normaliseResourceName(String input) {
+    return input.replace('.', '_');
   }
 
   public boolean doesResourceExist(@NotNull final String resourceName) {
@@ -249,7 +256,7 @@ public class ResourceNameValidator implements InputValidatorEx {
       existing = new HashSet<String>();
       Collection<String> items = appResources.getItemsOfType(type);
       for (String resourceName : items) {
-        existing.add(AndroidResourceUtil.getFieldNameByResourceName(resourceName));
+        existing.add(normaliseResourceName(resourceName));
       }
     }
 
