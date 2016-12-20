@@ -63,14 +63,6 @@ public class DependencyManager {
     return myMissingLibraries.contains(item.getGradleCoordinateId());
   }
 
-  public boolean ensureLibraryIsIncluded(@NotNull Palette.Item item) {
-    String coordinateId = item.getGradleCoordinateId();
-    assert coordinateId != null;
-    assert myModule != null;
-    GradleDependencyManager manager = GradleDependencyManager.getInstance(myProject);
-    return manager.ensureLibraryIsIncluded(myModule, toGradleCoordinatesFromIds(Collections.singletonList(coordinateId)), null);
-  }
-
   @NotNull
   public Icon createItemIcon(@NotNull Palette.Item item, @NotNull Component componentContext) {
     return createItemIcon(item, item.getIcon(), AndroidIcons.NeleIcons.Download, componentContext);
