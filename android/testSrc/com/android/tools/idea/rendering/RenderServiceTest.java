@@ -16,7 +16,12 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.google.common.util.concurrent.ListenableFuture;
 import junit.framework.TestCase;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class RenderServiceTest extends TestCase {
   public void testGetSafeBounds() {
@@ -57,5 +62,21 @@ public class RenderServiceTest extends TestCase {
 
     invalid = new ViewInfo("", "", 0, 0, 0, +(1 << 27));
     assertNotSame(invalid, RenderService.getSafeBounds(invalid));
+  }
+
+  public void testAsyncRenderAction() throws ExecutionException, InterruptedException {
+    AtomicBoolean called = new AtomicBoolean(false);
+    CountDownLatch countDownLatch = new CountDownLatch(1);
+    ListenableFuture<Void> future = RenderService.runAsyncRenderAction(() -> {
+      countDownLatch.await();
+      called.set(true);
+
+      return null;
+    });
+
+    assertFalse(called.get());
+    countDownLatch.countDown();
+    future.get();
+    assertTrue(called.get());
   }
 }

@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.CrashReport;
 import com.android.tools.idea.diagnostics.crash.CrashReporter;
 import com.intellij.openapi.vfs.VirtualFile;
+
+import java.awt.*;
+import java.awt.image.BufferedImage;
 
 import static org.mockito.Mockito.*;
 
@@ -37,5 +42,31 @@ public class RenderTaskTest extends RenderTestBase {
     verify(mockCrashReporter, times(1)).submit(isNotNull(CrashReport.class));
   }
 
+
+  public void testDrawableRender() throws Exception {
+    VirtualFile drawableFile = myFixture.addFileToProject("res/drawable/test.xml",
+                               "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                                        "<shape xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                                        "    android:shape=\"rectangle\"\n" +
+                                                        "    android:tint=\"#FF0000\">\n" +
+                                                        "</shape>").getVirtualFile();
+    Configuration configuration = getConfiguration(drawableFile, DEFAULT_DEVICE_ID);
+    RenderLogger logger = mock(RenderLogger.class);
+
+    RenderTask task = createRenderTask(drawableFile, configuration, logger);
+    // Workaround for a bug in layoutlib that will only fully initialize the static state if a render() call is made.
+    task.render();
+    BufferedImage result = task.renderDrawable(new ResourceValue(ResourceType.DRAWABLE, "test", "@drawable/test", false)).get();
+
+    assertNotNull(result);
+    BufferedImage goldenImage = new BufferedImage(result.getWidth(), result.getHeight(), result.getType());
+    Graphics2D g = goldenImage.createGraphics();
+    try {
+      g.setColor(Color.RED);
+      g.fillRect(0, 0, result.getWidth(), result.getHeight());
+    } finally {
+      g.dispose();
+    }
+  }
 
 }

@@ -38,6 +38,8 @@ import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListenableFutureTask;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -427,6 +429,21 @@ public class RenderService implements Disposable {
       throw timeoutException;
     }
   }
+
+  /**
+   * Runs an action that requires the rendering lock. Layoutlib is not thread safe so any rendering actions should be called using this
+   * method.
+   * <p/>
+   * This method will run the passed action asynchronously and return a {@link ListenableFuture}
+   */
+  @NotNull
+  public static <T> ListenableFuture<T> runAsyncRenderAction(@NotNull Callable<T> callable) {
+    ListenableFutureTask<T> future = ListenableFutureTask.create(callable);
+    ourRenderingExecutor.submit(future);
+
+    return future;
+  }
+
 
   /**
    * Given a {@link ViewInfo} from a layoutlib rendering, checks that the view info provides

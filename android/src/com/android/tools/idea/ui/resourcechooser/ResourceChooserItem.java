@@ -20,6 +20,7 @@ import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.Pair;
 import org.jetbrains.annotations.NotNull;
@@ -27,10 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.SdkConstants.*;
 
@@ -39,7 +37,7 @@ abstract class ResourceChooserItem {
 
   @NotNull protected final ResourceType myType;
   @NotNull protected final String myName;
-  @Nullable private Icon myIcon;
+  private final HashMap<Integer, Icon> myIcons = Maps.newHashMapWithExpectedSize(2);
 
   public ResourceChooserItem(@NotNull ResourceType type, @NotNull String name) {
     myType = type;
@@ -95,12 +93,13 @@ abstract class ResourceChooserItem {
   }
 
   @Nullable
-  public Icon getIcon() {
-    return myIcon;
+  public Icon getIcon(int iconSize) {
+    return myIcons.get(iconSize);
   }
 
-  public void setIcon(@Nullable Icon icon) {
-    myIcon = icon;
+  public void setIcon(@NotNull Icon icon) {
+    assert icon.getIconWidth() == icon.getIconHeight();
+    myIcons.put(icon.getIconWidth(), icon);
   }
 
   public abstract boolean isFramework();
