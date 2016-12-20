@@ -92,8 +92,8 @@ public class LegendComponent extends AnimatedComponent {
     myConfigs = new HashMap<>();
     myOrientation = Orientation.HORIZONTAL;
     myModel.addDependency()
-      .onChange(LegendComponentModel.Aspect.VALUES, this::valuesChanged)
-      .onChange(LegendComponentModel.Aspect.LEGENDS, this::legendsChanged);
+      .onChange(LegendComponentModel.Aspect.LEGEND, this::valuesChanged)
+      .onChange(LegendComponentModel.Aspect.LEGEND, this::legendsChanged);
     legendsChanged();
     valuesChanged();
   }
@@ -113,9 +113,9 @@ public class LegendComponent extends AnimatedComponent {
 
   private void valuesChanged() {
     Dimension oldSize = getPreferredSize();
-    for (int i = 0; i < myModel.getLegends().size(); i++) {
+    for (int i = 0; i < myModel.getValues().size(); i++) {
       JLabel label = mLabelsToDraw.get(i);
-      label.setText(myModel.getLegends().get(i));
+      label.setText(myModel.getValues().get(i));
 
       Dimension preferredSize = label.getPreferredSize();
       if (preferredSize.getWidth() < LABEL_MIN_WIDTH_PX) {

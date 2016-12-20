@@ -36,11 +36,10 @@ public class CpuProfilerStage extends Stage {
 
   private static final SingleUnitAxisFormatter CPU_USAGE_FORMATTER = new SingleUnitAxisFormatter(1, 5, 10, "%");
   private static final SingleUnitAxisFormatter NUM_THREADS_AXIS = new SingleUnitAxisFormatter(1, 5, 1, "");
-  private final CpuMonitor myMonitor;
   private final CpuThreadsModel myThreadsStates;
   private final AxisComponentModel myCpuUsageAxis;
   private final AxisComponentModel myThreadCountAxis;
-  private final LineChartModel myCpuUsage;
+  private final DetailedCpuUsage myCpuUsage;
   private final LegendComponentModel myLegends;
   private final DurationDataModel<CpuCapture> myTraceDurations;
   private final EventMonitor myEventMonitor;
@@ -95,32 +94,19 @@ public class CpuProfilerStage extends Stage {
 
     Range viewRange = getStudioProfilers().getTimeline().getViewRange();
     Range dataRange = getStudioProfilers().getTimeline().getDataRange();
-    Range cpuUsageYRange = new Range(0, 100);
-    Range threadYRange = new Range(0, 8);
 
-    //TODO, enter exit ->
-    myMonitor = new CpuMonitor(profilers);
-    RangedContinuousSeries thisCpuSeries = new RangedContinuousSeries("App", viewRange, cpuUsageYRange, myMonitor.getThisProcessCpuUsageSeries());
-    RangedContinuousSeries otherCpuSeries = new RangedContinuousSeries("Others", viewRange, cpuUsageYRange, myMonitor.getOtherProcessesCpuUsage());
-    RangedContinuousSeries threadsCountSeries = new RangedContinuousSeries("Threads", viewRange, threadYRange, myMonitor.getThreadsCount());
-    myCpuUsage = new LineChartModel();
-    myCpuUsage.add(thisCpuSeries);
-    myCpuUsage.add(otherCpuSeries);
-    myCpuUsage.add(threadsCountSeries);
+    myCpuUsage = new DetailedCpuUsage(profilers);
 
-    myCpuUsageAxis = new AxisComponentModel(cpuUsageYRange, CPU_USAGE_FORMATTER);
+    myCpuUsageAxis = new AxisComponentModel(myCpuUsage.getCpuRange(), CPU_USAGE_FORMATTER);
     myCpuUsageAxis.clampToMajorTicks(true);
 
-    myThreadCountAxis = new AxisComponentModel(threadYRange, NUM_THREADS_AXIS);
+    myThreadCountAxis = new AxisComponentModel(myCpuUsage.getThreadRange(), NUM_THREADS_AXIS);
     myThreadCountAxis.clampToMajorTicks(true);
 
-
     myLegends = new LegendComponentModel(100);
-    ArrayList<LegendData> legends = new ArrayList<>();
-    legends.add(new LegendData(thisCpuSeries, CPU_USAGE_FORMATTER, dataRange));
-    legends.add(new LegendData(otherCpuSeries, CPU_USAGE_FORMATTER, dataRange));
-    legends.add(new LegendData(threadsCountSeries, NUM_THREADS_AXIS, dataRange));
-    myLegends.setLegendData(legends);
+    myLegends.add(new LegendData(myCpuUsage.getCpuSeries(), CPU_USAGE_FORMATTER, dataRange));
+    myLegends.add(new LegendData(myCpuUsage.getOtherCpuSeries(), CPU_USAGE_FORMATTER, dataRange));
+    myLegends.add(new LegendData(myCpuUsage.getThreadsCountSeries(), NUM_THREADS_AXIS, dataRange));
 
     // Create an event representing the traces within the range.
     myTraceDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, getCpuTraceDataSeries()));
@@ -137,7 +123,7 @@ public class CpuProfilerStage extends Stage {
     return myThreadCountAxis;
   }
 
-  public LineChartModel getCpuUsage() {
+  public DetailedCpuUsage getCpuUsage() {
     return myCpuUsage;
   }
 
@@ -150,7 +136,7 @@ public class CpuProfilerStage extends Stage {
   }
 
   public String getName() {
-    return myMonitor.getName();
+    return "CPU";
   }
 
   public EventMonitor getEventMonitor() {
@@ -159,7 +145,6 @@ public class CpuProfilerStage extends Stage {
 
   @Override
   public void enter() {
-    myMonitor.enter();
     myEventMonitor.enter();
     getStudioProfilers().getUpdater().register(myCpuUsage);
     getStudioProfilers().getUpdater().register(myTraceDurations);
@@ -171,7 +156,6 @@ public class CpuProfilerStage extends Stage {
 
   @Override
   public void exit() {
-    myMonitor.exit();
     myEventMonitor.exit();
     getStudioProfilers().getUpdater().unregister(myCpuUsage);
     getStudioProfilers().getUpdater().unregister(myTraceDurations);
