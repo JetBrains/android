@@ -33,6 +33,7 @@ import java.util.Set;
 public class InstantRunNotificationProvider {
   private static final Set<BuildCause> ourCausesThatDontNeedNotifications = ImmutableSet.of(
     BuildCause.FIRST_INSTALLATION_TO_DEVICE,
+    BuildCause.NO_DEVICE,
     BuildCause.APP_NOT_INSTALLED,
     BuildCause.USER_REQUESTED_COLDSWAP,
     BuildCause.USER_CHOSE_TO_COLDSWAP
