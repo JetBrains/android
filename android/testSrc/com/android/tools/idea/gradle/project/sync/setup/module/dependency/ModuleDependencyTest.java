@@ -16,13 +16,19 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
 import com.intellij.openapi.roots.DependencyScope;
-import junit.framework.TestCase;
+import org.junit.Test;
+
+import java.io.File;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 
 /**
  * Tests for {@link ModuleDependency}.
  */
-public class ModuleDependencyTest extends TestCase {
-  public void testConstructorWithGradlePath() {
+public class ModuleDependencyTest {
+  @Test
+  public void constructorWithGradlePath() {
     String projectName = "module1";
     String gradlePath = "abc:xyz:" + projectName;
     ModuleDependency dependency = new ModuleDependency(gradlePath, DependencyScope.TEST);
@@ -30,17 +36,19 @@ public class ModuleDependencyTest extends TestCase {
     assertEquals(DependencyScope.TEST, dependency.getScope());
   }
 
-  public void testSetBackupDependency() {
+  @Test
+  public void setBackupDependency() {
     ModuleDependency dependency = new ModuleDependency("abc:module1", DependencyScope.COMPILE);
-    LibraryDependency backup = new LibraryDependency("guava-11.0.2", DependencyScope.TEST);
+    LibraryDependency backup = new LibraryDependency(new File("guava-11.0.2.jar"), "guava-11.0.2", DependencyScope.TEST);
     dependency.setBackupDependency(backup);
     assertSame(backup, dependency.getBackupDependency());
     assertEquals(DependencyScope.COMPILE, backup.getScope());
   }
 
-  public void testSetScope() {
+  @Test
+  public void setScope() {
     ModuleDependency dependency = new ModuleDependency("abc:module1", DependencyScope.COMPILE);
-    LibraryDependency backup = new LibraryDependency("guava-11.0.2", DependencyScope.COMPILE);
+    LibraryDependency backup = new LibraryDependency(new File("guava-11.0.2.jar"), "guava-11.0.2", DependencyScope.COMPILE);
     dependency.setBackupDependency(backup);
     dependency.setScope(DependencyScope.TEST);
     assertEquals(DependencyScope.TEST, dependency.getScope());

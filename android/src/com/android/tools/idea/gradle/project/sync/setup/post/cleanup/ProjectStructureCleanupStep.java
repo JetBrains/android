@@ -20,10 +20,7 @@ import com.android.builder.model.NativeAndroidProject;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesModuleSetupStep;
-import com.android.tools.idea.gradle.project.sync.setup.module.dependency.Dependency;
-import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
-import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
-import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
+import com.android.tools.idea.gradle.project.sync.setup.module.dependency.*;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanupStep;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -46,16 +43,20 @@ import static com.android.tools.idea.gradle.util.Projects.getModuleCompiledArtif
 
 public class ProjectStructureCleanupStep extends ProjectCleanupStep {
   @NotNull private final AndroidSdks myAndroidSdks;
+  @NotNull private final DependenciesExtractor myDependenciesExtractor;
   @NotNull private final DependenciesModuleSetupStep myDependenciesModuleSetupStep;
 
   @SuppressWarnings("unused") // Instantiated by IDEA
-  public ProjectStructureCleanupStep(@NotNull AndroidSdks androidSdks) {
-    this(androidSdks, DependenciesModuleSetupStep.getInstance());
+  public ProjectStructureCleanupStep(@NotNull AndroidSdks androidSdks, @NotNull DependenciesExtractor dependenciesExtractor) {
+    this(androidSdks, dependenciesExtractor, DependenciesModuleSetupStep.getInstance());
   }
 
   @VisibleForTesting
-  ProjectStructureCleanupStep(@NotNull AndroidSdks androidSdks, @NotNull DependenciesModuleSetupStep dependenciesModuleSetupStep) {
+  ProjectStructureCleanupStep(@NotNull AndroidSdks androidSdks,
+                              @NotNull DependenciesExtractor dependenciesExtractor,
+                              @NotNull DependenciesModuleSetupStep dependenciesModuleSetupStep) {
     myAndroidSdks = androidSdks;
+    myDependenciesExtractor = dependenciesExtractor;
     myDependenciesModuleSetupStep = dependenciesModuleSetupStep;
   }
 
@@ -135,7 +136,7 @@ public class ProjectStructureCleanupStep extends ProjectCleanupStep {
     if (dependencyAndroidProject != null) {
       AndroidModuleModel androidModel = AndroidModuleModel.get(dependency);
       if (androidModel != null) {
-        DependencySet dependencies = Dependency.extractFrom(androidModel);
+        DependencySet dependencies = myDependenciesExtractor.extractFrom(androidModel);
 
         for (LibraryDependency libraryDependency : dependencies.onLibraries()) {
           myDependenciesModuleSetupStep.updateLibraryDependency(module, ideModifiableModelsProvider, libraryDependency,

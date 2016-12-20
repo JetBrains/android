@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
 import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep;
-import com.android.tools.idea.gradle.project.sync.setup.module.common.DependenciesSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -36,27 +35,25 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.sanitizeFileName;
-import static java.util.Collections.singletonList;
 
 public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
   private static final DependencyScope DEFAULT_DEPENDENCY_SCOPE = COMPILE;
 
-  @NotNull private final DependenciesSetup myDependenciesSetup;
+  @NotNull private final JavaModuleDependenciesSetup myDependenciesSetup;
 
   @SuppressWarnings("unused") // Instantiated by IDEA
   public DependenciesModuleSetupStep() {
-    this(new DependenciesSetup());
+    this(new JavaModuleDependenciesSetup());
   }
 
   @VisibleForTesting
-  DependenciesModuleSetupStep(@NotNull DependenciesSetup dependenciesSetup) {
+  DependenciesModuleSetupStep(@NotNull JavaModuleDependenciesSetup dependenciesSetup) {
     myDependenciesSetup = dependenciesSetup;
   }
 
@@ -126,15 +123,8 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
     // Gradle API doesn't provide library name at the moment.
     String name = binaryPath.isFile() ? getNameWithoutExtension(binaryPath) : sanitizeFileName(binaryPath.getPath());
 
-    List<String> binaries = singletonList(binaryPath.getPath());
-    List<String> sources = asPaths(dependency.getSourcePath());
-    List<String> javadocs = asPaths(dependency.getJavadocPath());
-    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, name, scope, binaries, sources, javadocs);
-  }
-
-  @NotNull
-  private static List<String> asPaths(@Nullable File file) {
-    return file == null ? Collections.emptyList() : singletonList(file.getPath());
+    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, name, scope, binaryPath, dependency.getSourcePath(),
+                                               dependency.getJavadocPath());
   }
 
   @NotNull

@@ -20,7 +20,7 @@ import com.android.builder.model.SourceProvider;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.setup.module.dependency.Dependency;
+import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
 import com.intellij.openapi.Disposable;
@@ -306,7 +306,7 @@ public final class TestArtifactSearchScopes implements Disposable {
   private static DependencySet extractDependencies(@NotNull DependencyScope scope,
                                                    @Nullable BaseArtifact artifact,
                                                    @Nullable GradleVersion modelVersion) {
-    return artifact != null ? Dependency.extractFrom(artifact, scope, modelVersion) : DependencySet.EMPTY;
+    return artifact != null ? DependenciesExtractor.getInstance().extractFrom(artifact, scope, modelVersion) : DependencySet.EMPTY;
   }
 
   @Nullable
