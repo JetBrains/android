@@ -64,7 +64,7 @@ public final class HeapDumpCaptureObject implements CaptureObject {
     }
 
     HeapDumpCaptureObject other = (HeapDumpCaptureObject)obj;
-    return other.myAppId == myAppId && other.myIsLoadingError != myIsLoadingError && other.myHeapDumpInfo == myHeapDumpInfo;
+    return other.myAppId == myAppId && other.myIsLoadingError == myIsLoadingError && other.myHeapDumpInfo == myHeapDumpInfo;
   }
 
   @Override
@@ -90,6 +90,11 @@ public final class HeapDumpCaptureObject implements CaptureObject {
       return Collections.emptyList();
     }
     return snapshot.getHeaps().stream().map(HeapDumpHeapObject::new).collect(Collectors.toList());
+  }
+
+  @VisibleForTesting
+  public int getDumpId() {
+    return myHeapDumpInfo.getDumpId();
   }
 
   @Override
