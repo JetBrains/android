@@ -263,7 +263,7 @@ class RangeEntriesRegistrar extends ImageDiffEntriesRegistrar {
       RangedContinuousSeries rangedSeries = new RangedContinuousSeries("Series #" + myData.size(), xRange, myYRange, series);
       myData.add(series);
       myLineChartModel.add(rangedSeries);
-      myLineChart.configure(rangedSeries.getName(), lineConfig);
+      myLineChart.configure(rangedSeries, lineConfig);
     }
 
     protected void addLine(LineConfig lineConfig) {

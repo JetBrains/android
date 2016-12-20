@@ -17,10 +17,7 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
-import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.chart.linechart.LineConfig;
-import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
-import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitorView;
 import com.android.tools.profilers.StudioProfilersView;
@@ -31,7 +28,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
@@ -63,11 +59,12 @@ public class NetworkMonitorView extends ProfilerMonitorView<NetworkMonitor> {
     lineChartPanel.setOpaque(false);
     lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
 
-    final LineChart lineChart = new LineChart(getMonitor().getTrafficData());
+    NetworkUsage usage = getMonitor().getNetworkUsage();
+    final LineChart lineChart = new LineChart(usage);
     LineConfig receivedConfig = new LineConfig(ProfilerColors.NETWORK_RECEIVING_COLOR);
-    lineChart.configure(NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getLabel(), receivedConfig);
+    lineChart.configure(usage.getRxSeries(), receivedConfig);
     LineConfig sentConfig = new LineConfig(ProfilerColors.NETWORK_SENDING_COLOR);
-    lineChart.configure(NetworkTrafficDataSeries.Type.BYTES_SENT.getLabel(), sentConfig);
+    lineChart.configure(usage.getTxSeries(), sentConfig);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
     LegendComponent legend = new LegendComponent(getMonitor().getLegends());

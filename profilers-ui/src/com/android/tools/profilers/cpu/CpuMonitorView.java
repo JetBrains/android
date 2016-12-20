@@ -61,11 +61,13 @@ public class CpuMonitorView extends ProfilerMonitorView<CpuMonitor> {
     lineChartPanel.setOpaque(false);
     lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
 
-    final LineChart lineChart = new LineChart(getMonitor().getThisProcessCpuUsage());
-    lineChart.configure("CPU", new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true));
+    CpuUsage cpuUsage = getMonitor().getThisProcessCpuUsage();
+    final LineChart lineChart = new LineChart(cpuUsage);
+    lineChart.configure(cpuUsage.getCpuSeries(), new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true));
+    LegendComponent legend = new LegendComponent(getMonitor().getLegends());
+
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
-    LegendComponent legend = new LegendComponent(getMonitor().getLegends());
     JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);
     legendPanel.add(label, BorderLayout.WEST);

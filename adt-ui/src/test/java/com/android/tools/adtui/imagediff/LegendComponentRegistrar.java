@@ -74,8 +74,6 @@ class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
 
     private List<DefaultDataSeries<Long>> myData;
 
-    private List<LegendData> myLegendData = new ArrayList<>();
-
     private LegendComponentModel myLegendModel;
 
     private LegendComponentImageDiffEntry(String baselineFilename) {
@@ -119,10 +117,9 @@ class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
       RangedContinuousSeries rangedSeries = new RangedContinuousSeries(seriesLabel, myXRange, yRange, series);
       myData.add(series);
       myLineChartModel.add(rangedSeries);
-      myLineChart.configure(rangedSeries.getName(), lineConfig);
+      myLineChart.configure(rangedSeries, lineConfig);
 
-      myLegendData.add(new LegendData(rangedSeries, formatter, myXRange));
-      myLegendModel.setLegendData(myLegendData);
+      myLegendModel.add(new LegendData(rangedSeries, formatter, myXRange));
       myLegend.configure(rangedSeries.getName(), new LegendConfig(lineConfig));
     }
   }

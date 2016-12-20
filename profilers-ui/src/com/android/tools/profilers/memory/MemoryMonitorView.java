@@ -48,7 +48,7 @@ public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
     final JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
 
-    final AxisComponent leftAxis = new AxisComponent(getMonitor().getYAxis(), AxisComponent.AxisOrientation.RIGHT);
+    final AxisComponent leftAxis = new AxisComponent(getMonitor().getMemoryAxis(), AxisComponent.AxisOrientation.RIGHT);
     leftAxis.setShowAxisLine(false);
     leftAxis.setShowMax(true);
     leftAxis.setShowUnitAtMax(true);
@@ -56,13 +56,14 @@ public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
     leftAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(leftAxis, BorderLayout.WEST);
 
-    final LineChart lineChart = new LineChart(getMonitor().getTotalMemory());
+    MemoryUsage usage = getMonitor().getMemoryUsage();
+    final LineChart lineChart = new LineChart(usage);
 
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
     lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
     LineConfig memoryConfig = new LineConfig(ProfilerColors.MEMORY_TOTAL).setFilled(true);
-    lineChart.configure("Memory", memoryConfig);
+    lineChart.configure(usage.getTotalMemorySeries(), memoryConfig);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
     final LegendComponent legend = new LegendComponent(getMonitor().getMemoryLegend());
