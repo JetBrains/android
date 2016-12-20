@@ -68,6 +68,7 @@ public class NlPropertyEditors implements PTableCellEditorProvider, ProjectCompo
     }
   }
 
+  @NotNull
   public NlComponentEditor create(@NotNull NlProperty property) {
     switch (getEditorType(property)) {
       case BOOLEAN:
