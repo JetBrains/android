@@ -29,9 +29,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
+import java.io.File;
 import java.util.*;
 
-import static com.android.tools.idea.gradle.util.FilePaths.pathToUrl;
+import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 
 /**
@@ -47,6 +48,11 @@ public class SyncLibraryRegistry implements Disposable {
 
   @NotNull private final Map<String, Library> myProjectLibrariesByName = new HashMap<>();
   @NotNull private final Set<LibraryToUpdate> myLibrariesToUpdate = new HashSet<>();
+
+  @TestOnly
+  public static void replaceForTesting(@NotNull Project project, @Nullable SyncLibraryRegistry libraryRegistry) {
+    project.putUserData(KEY, libraryRegistry);
+  }
 
   @NotNull
   public static SyncLibraryRegistry getInstance(@NotNull Project project) {
@@ -80,18 +86,18 @@ public class SyncLibraryRegistry implements Disposable {
    * @param library        the library that is being used by the project.
    * @param newBinaryPaths the library's binary paths. They may be different that the existing ones.
    */
-  public void markAsUsed(@NotNull Library library, @NotNull Collection<String> newBinaryPaths) {
+  public void markAsUsed(@NotNull Library library, @NotNull File... newBinaryPaths) {
     checkNotDisposed();
     String name = library.getName();
     if (name != null) {
       Library used = myProjectLibrariesByName.remove(name);
       if (used != null) {
         List<String> existingBinaryUrls = Lists.newArrayList(used.getUrls(CLASSES));
-        boolean urlCountChanged = newBinaryPaths.size() != existingBinaryUrls.size();
+        boolean urlCountChanged = newBinaryPaths.length != existingBinaryUrls.size();
 
         List<String> newBinaryUrls = new ArrayList<>();
-        for (String newBinaryPath : newBinaryPaths) {
-          String newBinaryUrl = pathToUrl(newBinaryPath);
+        for (File newBinaryPath : newBinaryPaths) {
+          String newBinaryUrl = pathToIdeaUrl(newBinaryPath);
           existingBinaryUrls.remove(newBinaryUrl);
           newBinaryUrls.add(newBinaryUrl);
         }

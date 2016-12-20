@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.pom;
 
+import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
@@ -27,7 +28,6 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.Artifacts.findPomPathForLibrary;
 import static com.intellij.openapi.util.JDOMUtil.loadDocument;
 import static com.intellij.openapi.util.text.StringUtil.*;
 
@@ -39,7 +39,7 @@ public class MavenPoms {
 
   @NotNull
   public static List<PsArtifactDependencySpec> findDependenciesInPomFile(@NotNull File libraryPath) {
-    File pomFilePath = findPomPathForLibrary(libraryPath);
+    File pomFilePath = LibraryFilePaths.getInstance().findPomPathForLibrary(libraryPath);
     if (pomFilePath == null) {
       return Collections.emptyList();
     }

@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
-import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.ExpectedModuleDependency;
-import com.android.tools.idea.gradle.project.sync.setup.module.common.DependenciesSetup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -40,7 +39,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Tests for {@link DependenciesModuleSetupStep}.
  */
 public class DependenciesModuleSetupStepTest extends IdeaTestCase {
-  @Mock private DependenciesSetup myDependenciesSetup;
+  @Mock private JavaModuleDependenciesSetup myDependenciesSetup;
   @Mock private JavaModuleModel myJavaModuleModel;
 
   private IdeModifiableModelsProvider myModelsProvider;

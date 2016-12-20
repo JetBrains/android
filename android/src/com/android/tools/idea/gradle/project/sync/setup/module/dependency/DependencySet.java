@@ -20,10 +20,12 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.Dependency.SUPPORTED_SCOPES;
+import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
 
 /**
  * Collection of an IDEA module's dependencies.
@@ -96,9 +98,7 @@ public class DependencySet {
   }
 
   private static boolean areSameArtifact(@NotNull LibraryDependency d1, @NotNull LibraryDependency d2) {
-    Collection<String> binaryPaths1 = d1.getPaths(LibraryDependency.PathType.BINARY);
-    Collection<String> binaryPaths2 = d2.getPaths(LibraryDependency.PathType.BINARY);
-    return binaryPaths1.equals(binaryPaths2);
+    return Arrays.equals(d1.getPaths(BINARY), d2.getPaths(BINARY));
   }
 
   /**
