@@ -44,7 +44,10 @@ import com.android.tools.idea.res.AssetRepositoryImpl;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.swing.layoutlib.FakeImageFactory;
+import com.google.common.base.Function;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -832,16 +835,16 @@ public class RenderTask implements IImageFactory {
   }
 
   /**
-   * Renders the given resource value (which should refer to a drawable) and returns it
-   * as an image
+   * Asynchronously renders the given resource value (which should refer to a drawable)
+   * and returns it as an image.
    *
    * @param drawableResourceValue the drawable resource value to be rendered, or null
-   * @return the image, or null if something went wrong
+   * @return a {@link ListenableFuture} with the BufferedImage of the passed drawable.
    */
-  @Nullable
-  public BufferedImage renderDrawable(ResourceValue drawableResourceValue) {
+  @NotNull
+  public ListenableFuture<BufferedImage> renderDrawable(ResourceValue drawableResourceValue) {
     if (drawableResourceValue == null) {
-      return null;
+      return Futures.immediateFuture(null);
     }
 
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
@@ -853,26 +856,17 @@ public class RenderTask implements IImageFactory {
     params.setForceNoDecor();
     params.setAssetRepository(myAssetRepository);
 
-    try {
-      Result result = RenderService.runRenderAction(new Callable<Result>() {
-        @Override
-        public Result call() throws Exception {
-          return myLayoutLib.renderDrawable(params);
-        }
-      });
-
+    ListenableFuture<Result> futureResult = RenderService.runAsyncRenderAction(() -> myLayoutLib.renderDrawable(params));
+    return Futures.transform(futureResult, (Function<Result, BufferedImage>)result -> {
       if (result != null && result.isSuccess()) {
         Object data = result.getData();
         if (data instanceof BufferedImage) {
           return (BufferedImage)data;
         }
       }
-    }
-    catch (final Exception e) {
-      // ignore
-    }
 
-    return null;
+      return null;
+    });
   }
 
   /**
