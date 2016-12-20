@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
-import com.android.tools.idea.gradle.project.sync.setup.module.common.DependenciesSetup;
+import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor;
+import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -34,7 +34,8 @@ import org.mockito.Mock;
 import java.io.File;
 import java.io.IOException;
 
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.*;
+import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
+import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.DOCUMENTATION;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.mockito.Mockito.*;
@@ -44,7 +45,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Tests for {@link DependenciesModuleSetupStep}.
  */
 public class DependenciesModuleSetupStepTest extends IdeaTestCase {
-  @Mock private DependenciesSetup myDependenciesSetup;
+  @Mock private DependenciesExtractor myDependenciesExtractor;
+  @Mock private AndroidModuleDependenciesSetup myDependenciesSetup;
 
   private DependenciesModuleSetupStep mySetupStep;
 
@@ -52,7 +54,7 @@ public class DependenciesModuleSetupStepTest extends IdeaTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    mySetupStep = new DependenciesModuleSetupStep(myDependenciesSetup);
+    mySetupStep = new DependenciesModuleSetupStep(myDependenciesExtractor, myDependenciesSetup);
   }
 
   public void testGetInstance() {
@@ -97,8 +99,8 @@ public class DependenciesModuleSetupStepTest extends IdeaTestCase {
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
 
     // Make sure DependenciesSetup#setUpLibraryDependency was invoked.
-    verify(myDependenciesSetup).setUpLibraryDependency(module, modelsProvider, "myLibrary", COMPILE, dependency.getPaths(BINARY),
-                                                       dependency.getPaths(SOURCE), dependency.getPaths(DOCUMENTATION));
+    verify(myDependenciesSetup).setUpLibraryDependency(module, modelsProvider, "myLibrary", COMPILE, dependency.getArtifactPath(),
+                                                       dependency.getPaths(BINARY), dependency.getPaths(DOCUMENTATION));
   }
 
   private static void createContentRoot(@NotNull Module module) {
@@ -121,7 +123,6 @@ public class DependenciesModuleSetupStepTest extends IdeaTestCase {
   @NotNull
   private static LibraryDependency createFakeLibraryDependency(@NotNull File jarsFolderPath) {
     LibraryDependency dependency = new LibraryDependency(new File(jarsFolderPath, "myLibrary.jar"), COMPILE);
-    dependency.addPath(SOURCE, new File(jarsFolderPath, "myLibrary-src.jar"));
     dependency.addPath(DOCUMENTATION, new File(jarsFolderPath, "myLibrary-javadoc.jar"));
     return dependency;
   }
