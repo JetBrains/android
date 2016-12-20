@@ -51,7 +51,6 @@ public class NlPreviewImagePanelTest extends LayoutTestCase {
 
   private DesignSurface mySurface;
   private NlPreviewImagePanel myPanel;
-  private DependencyManager myDependencyManager;
   private RepaintManager myRepaintManager;
   private VirtualFile myFile;
   private NlModel myModel;
@@ -63,14 +62,14 @@ public class NlPreviewImagePanelTest extends LayoutTestCase {
     myModel = createModel();
     mySurface = new DesignSurface(getProject(), false);
     mySurface.setModel(myModel);
-    myDependencyManager = mock(DependencyManager.class);
+    DependencyManager dependencyManager = mock(DependencyManager.class);
     IconPreviewFactory iconPreviewFactory = mock(IconPreviewFactory.class);
     Runnable closeToolWindowCallback = mock(Runnable.class);
     //noinspection UndesirableClassUsage
     BufferedImage image = new BufferedImage(250, 50, TYPE_INT_ARGB);
-    when(myDependencyManager.getProject()).thenReturn(getProject());
+    when(dependencyManager.getProject()).thenReturn(getProject());
     when(iconPreviewFactory.renderDragImage(any(Palette.Item.class), any(ScreenView.class))).thenReturn(image);
-    myPanel = new NlPreviewImagePanel(iconPreviewFactory, myDependencyManager, closeToolWindowCallback);
+    myPanel = new NlPreviewImagePanel(iconPreviewFactory, dependencyManager, closeToolWindowCallback);
     myPanel.setDesignSurface(mySurface);
     myPanel.setItem(PaletteTestCase.findItem(NlPaletteModel.get(getProject()).getPalette(LAYOUT), BUTTON));
     myPanel.setSize(WIDTH, HEIGHT);
@@ -121,15 +120,6 @@ public class NlPreviewImagePanelTest extends LayoutTestCase {
     myPanel.setTransferHandler(handler);
     mousePressed();
     verify(handler).exportAsDrag(eq(myPanel), any(), anyInt());
-  }
-
-  public void testClickOnItemWithMissingDependency() {
-    Palette.Item item = PaletteTestCase.findItem(NlPaletteModel.get(getProject()).getPalette(LAYOUT), BUTTON);
-    myPanel.setItem(item);
-    when(myDependencyManager.needsLibraryLoad(eq(item))).thenReturn(true);
-
-    mousePressed();
-    verify(myDependencyManager).ensureLibraryIsIncluded(eq(item));
   }
 
   private void updateBackgroundColor(@NotNull VirtualFile file) {
