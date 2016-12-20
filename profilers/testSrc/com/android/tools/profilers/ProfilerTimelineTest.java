@@ -24,6 +24,8 @@ import static org.junit.Assert.*;
 
 public class ProfilerTimelineTest {
 
+  public static final double DELTA = 0.001;
+
   @Test
   public void streaming() throws Exception {
     ProfilerTimeline timeline = new ProfilerTimeline();
@@ -55,5 +57,88 @@ public class ProfilerTimelineTest {
     timeline.setCanStream(false);
     assertFalse(timeline.canStream());
     assertFalse(timeline.isStreaming());
+  }
+
+  @Test
+  public void testZoomIn() throws Exception {
+    ProfilerTimeline timeline = new ProfilerTimeline();
+    Range dataRange = timeline.getDataRange();
+    Range viewRange = timeline.getViewRange();
+    dataRange.set(0, 100);
+    viewRange.set(10, 90);
+
+    timeline.zoom(-10, .5);
+    assertEquals(15, viewRange.getMin(), DELTA);
+    assertEquals(85, viewRange.getMax(), DELTA);
+
+    timeline.zoom(-10, .1);
+    assertEquals(16, viewRange.getMin(), DELTA);
+    assertEquals(76, viewRange.getMax(), DELTA);
+
+    timeline.zoom(-10, 0);
+    assertEquals(16, viewRange.getMin(), DELTA);
+    assertEquals(66, viewRange.getMax(), DELTA);
+
+    timeline.zoom(-10, 1);
+    assertEquals(26, viewRange.getMin(), DELTA);
+    assertEquals(66, viewRange.getMax(), DELTA);
+  }
+
+  @Test
+  public void testZoomOut() throws Exception {
+    ProfilerTimeline timeline = new ProfilerTimeline();
+    Range dataRange = timeline.getDataRange();
+    Range viewRange = timeline.getViewRange();
+    dataRange.set(0, 100);
+    viewRange.set(70, 70);
+
+    // Not blocked
+    timeline.zoom(40, .5);
+    assertEquals(50, viewRange.getMin(), DELTA);
+    assertEquals(90, viewRange.getMax(), DELTA);
+
+    // Blocked to the right, use all the remaining offset to the left
+    timeline.zoom(40, .5);
+    assertEquals(20, viewRange.getMin(), DELTA);
+    assertEquals(100, viewRange.getMax(), DELTA);
+
+    // Expands to cover all the data range, with more space on the left
+    viewRange.set(50, 95);
+    timeline.zoom(60, .9);
+    assertEquals(0, viewRange.getMin(), DELTA);
+    assertEquals(100, viewRange.getMax(), DELTA);
+
+    // Expands to cover all the data range, with more space on the right
+    viewRange.set(5, 55);
+    timeline.zoom(60, .1);
+    assertEquals(0, viewRange.getMin(), DELTA);
+    assertEquals(100, viewRange.getMax(), DELTA);
+
+    // Blocked to the left, use all the remaining offset to the right
+    viewRange.set(5, 15);
+    timeline.zoom(60, .1);
+    assertEquals(0, viewRange.getMin(), DELTA);
+    assertEquals(70, viewRange.getMax(), DELTA);
+  }
+
+  @Test
+  public void testPan() throws Exception {
+    ProfilerTimeline timeline = new ProfilerTimeline();
+    Range dataRange = timeline.getDataRange();
+    Range viewRange = timeline.getViewRange();
+    dataRange.set(0, 100);
+    viewRange.set(20, 30);
+
+    timeline.pan(10);
+    assertEquals(30, viewRange.getMin(), DELTA);
+    assertEquals(40, viewRange.getMax(), DELTA);
+
+    timeline.pan(-40);
+    assertEquals(0, viewRange.getMin(), DELTA);
+    assertEquals(10, viewRange.getMax(), DELTA);
+
+    timeline.pan(140);
+    assertEquals(90, viewRange.getMin(), DELTA);
+    assertEquals(100, viewRange.getMax(), DELTA);
   }
 }
