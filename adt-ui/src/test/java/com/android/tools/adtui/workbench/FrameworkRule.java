@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.DumbService;
@@ -104,6 +105,9 @@ public class FrameworkRule implements TestRule {
       when(myApplication.getComponent(ActionManager.class)).thenReturn(myActionManager);
       when(myApplication.getComponent(DataManager.class)).thenReturn(myDataManager);
       when(myApplication.getPicoContainer()).thenReturn(myPicoContainer);
+      when(myApplication.getAnyModalityState()).thenReturn(ModalityState.NON_MODAL);
+      when(myApplication.isDisposed()).thenReturn(false);
+
       when(myPicoContainer.getComponentInstance(UISettings.class.getName())).thenReturn(myUISettings);
       when(myPicoContainer.getComponentInstance(TransactionGuard.class.getName())).thenReturn(myTransactionGuard);
       when(myPicoContainer.getComponentInstance(WorkBenchManager.class.getName())).thenReturn(myWorkBenchManager);
@@ -113,6 +117,8 @@ public class FrameworkRule implements TestRule {
       when(myProject.getComponent(FloatingToolWindowManager.class)).thenReturn(myFloatingToolWindowManager);
       when(myProject.getComponent(FileEditorManager.class)).thenReturn(myFileEditorManager);
       when(myProject.getComponent(ToolWindowManager.class)).thenReturn(myToolWindowManager);
+      when(myProject.isDisposed()).thenReturn(false);
+
       when(myProjectPicoContainer.getComponentInstance(DumbService.class.getName())).thenReturn(myDumbService);
       when(myProjectPicoContainer.getComponentInstance(StartupManager.class.getName())).thenReturn(myStartupManager);
 
@@ -141,6 +147,7 @@ public class FrameworkRule implements TestRule {
 
     private void after() {
       Disposer.dispose(myDisposable);
+      TestAppManager.tearDown();
     }
   }
 
@@ -151,6 +158,13 @@ public class FrameworkRule implements TestRule {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
+    }
+  }
+
+  private static class TestAppManager extends ApplicationManager {
+
+    private static void tearDown() {
+      ourApplication = null;
     }
   }
 }
