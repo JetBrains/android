@@ -183,7 +183,6 @@ public class NewProjectTest {
     return sb.toString();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testRenderResourceInitialization() throws IOException {
     // Regression test for https://code.google.com/p/android/issues/detail?id=76966
@@ -220,7 +219,6 @@ public class NewProjectTest {
     }
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testStillBuildingMessage() throws Exception {
     // Create a new project and open a layout file.
