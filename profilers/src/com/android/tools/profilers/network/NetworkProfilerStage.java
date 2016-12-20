@@ -19,6 +19,8 @@ import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
+import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
@@ -51,7 +53,7 @@ public class NetworkProfilerStage extends Stage {
   private final NetworkRadioDataSeries myRadioDataSeries =
     new NetworkRadioDataSeries(getStudioProfilers().getClient().getNetworkClient(), getStudioProfilers().getProcessId());
   private final DetailedNetworkUsage myDetailedNetworkUsage;
-  private final LegendComponentModel myLegends;
+  private final NetworkStageLegends myLegends;
   private final AxisComponentModel myTrafficAxis;
   private final AxisComponentModel myConnectionsAxis;
   private final EventMonitor myEventMonitor;
@@ -62,8 +64,6 @@ public class NetworkProfilerStage extends Stage {
     myRadioState = new StateChartModel<>();
     myRadioState.addSeries(new RangedSeries<>(getStudioProfilers().getTimeline().getViewRange(), getRadioDataSeries()));
 
-    Range dataRange = profilers.getTimeline().getDataRange();
-
     myDetailedNetworkUsage = new DetailedNetworkUsage(profilers);
 
     myTrafficAxis = new AxisComponentModel(myDetailedNetworkUsage.getTrafficRange(), TRAFFIC_AXIS_FORMATTER);
@@ -72,12 +72,39 @@ public class NetworkProfilerStage extends Stage {
     myConnectionsAxis = new AxisComponentModel(myDetailedNetworkUsage.getConnectionsRange(), CONNECTIONS_AXIS_FORMATTER);
     myConnectionsAxis.clampToMajorTicks(true);
 
-    myLegends = new LegendComponentModel(100);
-    myLegends.add(new LegendData(myDetailedNetworkUsage.getRxSeries(), TRAFFIC_AXIS_FORMATTER, dataRange));
-    myLegends.add(new LegendData(myDetailedNetworkUsage.getTxSeries(), TRAFFIC_AXIS_FORMATTER, dataRange));
-    myLegends.add(new LegendData(myDetailedNetworkUsage.getConnectionSeries(), CONNECTIONS_AXIS_FORMATTER, dataRange));
+    myLegends = new NetworkStageLegends(myDetailedNetworkUsage, profilers.getTimeline().getDataRange());
 
     myEventMonitor = new EventMonitor(profilers);
+  }
+
+
+  public static class NetworkStageLegends extends LegendComponentModel {
+
+    private final SeriesLegend myRxLegend;
+    private final SeriesLegend myTxLegend;
+    private final SeriesLegend myConnectionLegend;
+
+    public NetworkStageLegends(DetailedNetworkUsage usage, Range range) {
+      myRxLegend = new SeriesLegend(usage.getRxSeries(), TRAFFIC_AXIS_FORMATTER, range);
+      myTxLegend = new SeriesLegend(usage.getTxSeries(), TRAFFIC_AXIS_FORMATTER, range);
+      myConnectionLegend = new SeriesLegend(usage.getConnectionSeries(), CONNECTIONS_AXIS_FORMATTER, range);
+
+      add(myRxLegend);
+      add(myTxLegend);
+      add(myConnectionLegend);
+    }
+
+    public SeriesLegend getRxLegend() {
+      return myRxLegend;
+    }
+
+    public SeriesLegend getTxLegend() {
+      return myTxLegend;
+    }
+
+    public SeriesLegend getConnectionLegend() {
+      return myConnectionLegend;
+    }
   }
 
   @Override
@@ -176,7 +203,7 @@ public class NetworkProfilerStage extends Stage {
     return myConnectionsAxis;
   }
 
-  public LegendComponentModel getLegends() {
+  public NetworkStageLegends getLegends() {
     return myLegends;
   }
 

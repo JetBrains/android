@@ -67,7 +67,10 @@ public class NetworkMonitorView extends ProfilerMonitorView<NetworkMonitor> {
     lineChart.configure(usage.getTxSeries(), sentConfig);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
-    LegendComponent legend = new LegendComponent(getMonitor().getLegends());
+    NetworkMonitor.NetworkLegends legends = getMonitor().getLegends();
+    LegendComponent legend = new LegendComponent(legends);
+    legend.configure(legends.getRxLegend(), new LegendConfig(lineChart.getLineConfig(usage.getRxSeries())));
+    legend.configure(legends.getTxLegend(), new LegendConfig(lineChart.getLineConfig(usage.getTxSeries())));
 
     final JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);

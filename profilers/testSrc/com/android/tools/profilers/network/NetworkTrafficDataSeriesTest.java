@@ -63,12 +63,6 @@ public class NetworkTrafficDataSeriesTest {
   }
 
   @Test
-  public void typeGetLabel() {
-    assertEquals("Received", NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getLabel());
-    assertEquals("Sent", NetworkTrafficDataSeries.Type.BYTES_SENT.getLabel());
-  }
-
-  @Test
   public void sentDataAllInclusive() {
     List<SeriesData<Long>> expected = new ImmutableList.Builder<SeriesData<Long>>()
       .add(new SeriesData<>(0, 1L))

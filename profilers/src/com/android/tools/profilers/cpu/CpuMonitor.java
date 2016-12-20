@@ -17,6 +17,8 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
+import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
@@ -27,20 +29,17 @@ public class CpuMonitor extends ProfilerMonitor {
 
   private final CpuUsage myThisProcessCpuUsage;
   private final AxisComponentModel myCpuUsageAxis;
-  private final LegendComponentModel myLegends;
+  private final CpuMonitorLegends myLegends;
 
   public CpuMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
-
-    Range dataRange = profilers.getTimeline().getDataRange();
 
     myThisProcessCpuUsage = new CpuUsage(profilers);
 
     myCpuUsageAxis = new AxisComponentModel(myThisProcessCpuUsage.getCpuRange(), CPU_USAGE_FORMATTER);
     myCpuUsageAxis.clampToMajorTicks(true);
 
-    myLegends = new LegendComponentModel(100);
-    myLegends.add(new LegendData(myThisProcessCpuUsage.getCpuSeries(), CPU_USAGE_FORMATTER, dataRange));
+    myLegends = new CpuMonitorLegends(myThisProcessCpuUsage, profilers.getTimeline().getDataRange());
   }
 
   @Override
@@ -70,11 +69,27 @@ public class CpuMonitor extends ProfilerMonitor {
     return myCpuUsageAxis;
   }
 
-  public LegendComponentModel getLegends() {
+  public CpuMonitorLegends getLegends() {
     return myLegends;
   }
 
   public CpuUsage getThisProcessCpuUsage() {
     return myThisProcessCpuUsage;
+  }
+
+  public static class CpuMonitorLegends extends LegendComponentModel {
+
+    @NotNull
+    private final SeriesLegend myCpuLegend;
+
+    public CpuMonitorLegends(@NotNull CpuUsage usage, @NotNull Range range) {
+      myCpuLegend = new SeriesLegend(usage.getCpuSeries(), CPU_USAGE_FORMATTER, range);
+      add(myCpuLegend);
+    }
+
+    @NotNull
+    public SeriesLegend getCpuLegend() {
+      return myCpuLegend;
+    }
   }
 }

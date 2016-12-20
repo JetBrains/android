@@ -18,6 +18,8 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
+import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.*;
@@ -40,7 +42,7 @@ public class CpuProfilerStage extends Stage {
   private final AxisComponentModel myCpuUsageAxis;
   private final AxisComponentModel myThreadCountAxis;
   private final DetailedCpuUsage myCpuUsage;
-  private final LegendComponentModel myLegends;
+  private final CpuStageLegends myLegends;
   private final DurationDataModel<CpuCapture> myTraceDurations;
   private final EventMonitor myEventMonitor;
 
@@ -103,10 +105,7 @@ public class CpuProfilerStage extends Stage {
     myThreadCountAxis = new AxisComponentModel(myCpuUsage.getThreadRange(), NUM_THREADS_AXIS);
     myThreadCountAxis.clampToMajorTicks(true);
 
-    myLegends = new LegendComponentModel(100);
-    myLegends.add(new LegendData(myCpuUsage.getCpuSeries(), CPU_USAGE_FORMATTER, dataRange));
-    myLegends.add(new LegendData(myCpuUsage.getOtherCpuSeries(), CPU_USAGE_FORMATTER, dataRange));
-    myLegends.add(new LegendData(myCpuUsage.getThreadsCountSeries(), NUM_THREADS_AXIS, dataRange));
+    myLegends = new CpuStageLegends(myCpuUsage, dataRange);
 
     // Create an event representing the traces within the range.
     myTraceDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, getCpuTraceDataSeries()));
@@ -127,7 +126,7 @@ public class CpuProfilerStage extends Stage {
     return myCpuUsage;
   }
 
-  public LegendComponentModel getLegends() {
+  public CpuStageLegends getLegends() {
     return myLegends;
   }
 
@@ -299,6 +298,37 @@ public class CpuProfilerStage extends Stage {
         seriesData.add(new SeriesData<>((long)range.getMin(), capture));
       }
       return ContainerUtil.immutableList(seriesData);
+    }
+  }
+
+  public static class CpuStageLegends extends LegendComponentModel {
+
+    @NotNull private final SeriesLegend myCpuLegend;
+    @NotNull private final SeriesLegend myOthersLegend;
+    @NotNull private final SeriesLegend myThreadsLegend;
+
+    public CpuStageLegends(@NotNull DetailedCpuUsage cpuUsage, @NotNull Range dataRange) {
+      myCpuLegend = new SeriesLegend(cpuUsage.getCpuSeries(), CPU_USAGE_FORMATTER, dataRange);
+      myOthersLegend = new SeriesLegend(cpuUsage.getOtherCpuSeries(), CPU_USAGE_FORMATTER, dataRange);
+      myThreadsLegend = new SeriesLegend(cpuUsage.getThreadsCountSeries(), NUM_THREADS_AXIS, dataRange);
+      add(myCpuLegend);
+      add(myOthersLegend);
+      add(myThreadsLegend);
+    }
+
+    @NotNull
+    public SeriesLegend getCpuLegend() {
+      return myCpuLegend;
+    }
+
+    @NotNull
+    public SeriesLegend getOthersLegend() {
+      return myOthersLegend;
+    }
+
+    @NotNull
+    public SeriesLegend getThreadsLegend() {
+      return myThreadsLegend;
     }
   }
 }
