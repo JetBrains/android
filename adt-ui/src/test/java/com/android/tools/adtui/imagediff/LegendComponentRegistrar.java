@@ -26,6 +26,8 @@ import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter;
 import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.intellij.util.containers.ImmutableList;
 
 import javax.swing.*;
@@ -57,8 +59,6 @@ class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
 
     private static final int LINE_CHART_INITIAL_VALUE = 20;
 
-    private static final int LEGEND_UPDATE_FREQUENCY_MS = 100;
-
     /**
      * Array of integers used to represent the delta between the current and the new values of the line chart.
      */
@@ -82,7 +82,7 @@ class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
 
     @Override
     protected void setUp() {
-      myLegendModel = new LegendComponentModel(LEGEND_UPDATE_FREQUENCY_MS);
+      myLegendModel = new LegendComponentModel();
       myLegend = new LegendComponent(myLegendModel);
       myLineChartModel = new LineChartModel();
       myLineChart = new LineChart(myLineChartModel);
@@ -119,8 +119,9 @@ class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
       myLineChartModel.add(rangedSeries);
       myLineChart.configure(rangedSeries, lineConfig);
 
-      myLegendModel.add(new LegendData(rangedSeries, formatter, myXRange));
-      myLegend.configure(rangedSeries.getName(), new LegendConfig(lineConfig));
+      SeriesLegend legend = new SeriesLegend(rangedSeries, formatter, myXRange);
+      myLegendModel.add(legend);
+      myLegend.configure(legend, new LegendConfig(lineConfig));
     }
   }
 }

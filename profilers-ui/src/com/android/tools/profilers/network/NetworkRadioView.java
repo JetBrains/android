@@ -19,7 +19,9 @@ import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.LegendComponentModel;
+import com.android.tools.adtui.model.legend.FixedLegend;
+import com.android.tools.adtui.model.legend.Legend;
+import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profilers.ProfilerColors;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.util.ui.JBUI;
@@ -27,9 +29,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.List;
 
 import static com.android.tools.profilers.ProfilerLayout.MONITOR_BORDER;
 import static com.android.tools.profilers.network.NetworkRadioDataSeries.RadioState;
@@ -74,11 +74,18 @@ public class NetworkRadioView {
     JLabel label = new JLabel(LABEL);
     label.setVerticalAlignment(SwingConstants.TOP);
 
-    LegendComponentModel legendModel = new LegendComponentModel(Integer.MAX_VALUE);
+    LegendComponentModel legendModel = new LegendComponentModel();
+    Legend wifiLegend = new FixedLegend(RadioState.WIFI.toString());
+    Legend highLegend = new FixedLegend(RadioState.HIGH.toString());
+    Legend lowLegend = new FixedLegend(RadioState.LOW.toString());
+    legendModel.add(wifiLegend);
+    legendModel.add(highLegend);
+    legendModel.add(lowLegend);
+
     LegendComponent legend = new LegendComponent(legendModel);
-    // TODO: Fix these legends
-    //legendModel.setLegendData(getLegendData());
-    // As legend doesn't change over time, it doesn't need to be in {@code Choreographer}}, so draw it by animating once.
+    legend.configure(wifiLegend, new LegendConfig(LegendConfig.IconType.LINE, RADIO_STATE_COLOR.get(RadioState.WIFI)));
+    legend.configure(highLegend, new LegendConfig(LegendConfig.IconType.LINE, RADIO_STATE_COLOR.get(RadioState.HIGH)));
+    legend.configure(lowLegend, new LegendConfig(LegendConfig.IconType.LINE, RADIO_STATE_COLOR.get(RadioState.LOW)));
     legendModel.update(1);
 
     JPanel topPane = new JPanel(new BorderLayout());
@@ -89,23 +96,5 @@ public class NetworkRadioView {
     panel.setLayout(new VerticalFlowLayout(true, true));
     panel.add(topPane);
     panel.add(myRadioChart);
-  }
-
-  @NotNull
-  private static List<LegendConfig> getLegendData() {
-    List<LegendConfig> legendConfig = new ArrayList<>();
-    for (RadioState state : RadioState.values()) {
-      if (state == RadioState.NONE) {
-        continue;
-      }
-      else if (state == RadioState.LOW) {
-        // TODO: perfd currently doesn't return this state. Investigate getting it to work or
-        // consider removing this state entirely.
-        continue;
-      }
-      LegendConfig renderData = new LegendConfig(LegendConfig.IconType.LINE, RADIO_STATE_COLOR.get(state), state.toString());
-      legendConfig.add(renderData);
-    }
-    return legendConfig;
   }
 }

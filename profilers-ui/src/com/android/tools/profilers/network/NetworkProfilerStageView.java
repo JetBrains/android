@@ -15,10 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.LegendComponent;
-import com.android.tools.adtui.SelectionComponent;
-import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.model.SelectionModel;
@@ -127,7 +124,11 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     rightAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(rightAxis, BorderLayout.EAST);
 
-    LegendComponent legend = new LegendComponent(getStage().getLegends());
+    NetworkProfilerStage.NetworkStageLegends legends = getStage().getLegends();
+    LegendComponent legend = new LegendComponent(legends);
+    legend.configure(legends.getRxLegend(), new LegendConfig(lineChart.getLineConfig(usage.getRxSeries())));
+    legend.configure(legends.getTxLegend(), new LegendConfig(lineChart.getLineConfig(usage.getTxSeries())));
+    legend.configure(legends.getConnectionLegend(), new LegendConfig(lineChart.getLineConfig(usage.getConnectionSeries())));
 
     final JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);

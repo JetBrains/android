@@ -23,6 +23,8 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.containers.ImmutableList;
@@ -127,10 +129,11 @@ public class AxisLineChartVisualTest extends VisualTest {
 
     mLineChartModel.addAll(mRangedData);
 
-    mLegendComponentModel = new LegendComponentModel(LABEL_UPDATE_MILLIS);
-    mLegendComponentModel.add(new LegendData(mRangedData.get(0), MemoryAxisFormatter.DEFAULT, mTimeGlobalRangeUs));
+    mLegendComponentModel = new LegendComponentModel();
+    SeriesLegend legend = new SeriesLegend(mRangedData.get(0), MemoryAxisFormatter.DEFAULT, mTimeGlobalRangeUs);
+    mLegendComponentModel.add(legend);
     mLegendComponent = new LegendComponent(mLegendComponentModel);
-    mLegendComponent.configure(SERIES2_LABEL, new LegendConfig(LegendConfig.IconType.LINE, LineConfig.getColor(1), SERIES2_LABEL));
+    mLegendComponent.configure(legend, new LegendConfig(LegendConfig.IconType.LINE, LineConfig.getColor(1)));
 
     final AnimatedRange timeSelectionRangeUs = new AnimatedRange();
     SelectionModel selection = new SelectionModel(timeSelectionRangeUs, timeCurrentRangeUs);
