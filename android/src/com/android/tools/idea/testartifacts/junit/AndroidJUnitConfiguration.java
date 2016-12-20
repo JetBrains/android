@@ -15,23 +15,23 @@
  */
 package com.android.tools.idea.testartifacts.junit;
 
-import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
 import com.intellij.diagnostic.logging.LogConfigurationPanel;
-import com.intellij.execution.ExecutionBundle;
-import com.intellij.execution.Executor;
-import com.intellij.execution.JavaRunConfigurationExtensionManager;
+import com.intellij.execution.*;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.junit.JUnitConfiguration;
-import com.intellij.execution.testframework.SourceScope;
+import com.intellij.execution.executors.DefaultRunExecutor;
+import com.intellij.execution.junit.*;
+import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.testframework.TestSearchScope;
 import com.intellij.execution.testframework.sm.runner.SMTRunnerConsoleProperties;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.options.SettingsEditorGroup;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
 
 /**
  * Android implementation of {@link JUnitConfiguration} so some behaviors can be overridden.
@@ -42,38 +42,18 @@ public class AndroidJUnitConfiguration extends JUnitConfiguration {
                                    @NotNull ConfigurationFactory configurationFactory) {
     super(name, project, new JUnitConfiguration.Data() {
       @Override
-      public TestSearchScope getScope() {
-        TestSearchScope original = super.getScope();
-        return configuration -> new SourceScope() {
-          @Override
-          public GlobalSearchScope getGlobalSearchScope() {
-            GlobalSearchScope originalScope = original.getSourceScope(configuration).getGlobalSearchScope();
-            for (Module module : configuration.getModules()) {
-              TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(module);
-              if (scopes != null) {
-                originalScope = originalScope.intersectWith(scopes.getAndroidTestExcludeScope());
-              }
-            }
-            return originalScope;
-          }
-
-          @Override
-          public Project getProject() {
-            return original.getSourceScope(configuration).getProject();
-          }
-
-          @Override
-          public GlobalSearchScope getLibrariesScope() {
-            return original.getSourceScope(configuration).getLibrariesScope();
-          }
-
-          @Override
-          public Module[] getModulesToCompile() {
-            return original.getSourceScope(configuration).getModulesToCompile();
-          }
-        };
+      public TestObject getTestObject(@NotNull JUnitConfiguration configuration) {
+        AndroidTestObject testObject = fromString(TEST_OBJECT, configuration, ExecutionEnvironmentBuilder.create(
+          DefaultRunExecutor.getRunExecutorInstance(), configuration).build());
+        return testObject != null ? testObject : super.getTestObject(configuration);
       }
     }, configurationFactory);
+  }
+
+  @Override
+  public TestObject getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
+    AndroidTestObject testObject = fromString(getPersistentData().TEST_OBJECT, this, env);
+    return testObject != null ? testObject : super.getState(executor, env);
   }
 
   @Override
@@ -89,5 +69,26 @@ public class AndroidJUnitConfiguration extends JUnitConfiguration {
     JavaRunConfigurationExtensionManager.getInstance().appendEditors(this, group);
     group.addEditor(ExecutionBundle.message("logs.tab.title"), new LogConfigurationPanel<>());
     return group;
+  }
+
+  @NotNull
+  public Module[] getModulesToCompile() {
+    if (TEST_PACKAGE.equals(getPersistentData().TEST_OBJECT) && (getPersistentData().getScope() == TestSearchScope.WHOLE_PROJECT)) {
+      Collection<Module> modules = getAllModules();
+      return modules.toArray(new Module[modules.size()]);
+    }
+    return getModules();
+  }
+
+  private static AndroidTestObject fromString(String id,
+                                              @NotNull JUnitConfiguration configuration,
+                                              @NotNull ExecutionEnvironment environment) {
+    if (JUnitConfiguration.TEST_PACKAGE.equals(id)) {
+      return new AndroidTestObject(new AndroidTestPackage(configuration, environment));
+    }
+    if (JUnitConfiguration.TEST_PATTERN.equals(id)) {
+      return new AndroidTestObject(new AndroidTestsPattern(configuration, environment));
+    }
+    return null;
   }
 }

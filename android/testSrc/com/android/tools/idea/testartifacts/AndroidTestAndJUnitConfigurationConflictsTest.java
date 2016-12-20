@@ -19,14 +19,16 @@ import com.android.tools.idea.testartifacts.instrumented.AndroidTestConsolePrope
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
+import com.android.tools.idea.testartifacts.junit.AndroidTestPackage;
 import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.intellij.execution.CantRunException;
 import com.intellij.execution.ConfigurationUtil;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.junit.JUnitConfiguration;
-import com.intellij.execution.junit.TestClassFilter;
+import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.testframework.TestSearchScope;
 import com.intellij.execution.testframework.sm.runner.SMTRunnerConsoleProperties;
 import com.intellij.openapi.module.Module;
@@ -87,20 +89,32 @@ public class AndroidTestAndJUnitConfigurationConflictsTest extends AndroidGradle
     assertNotSame(jUnitClasses[0], aTestClasses[0]);
   }
 
-  public void testCorrectJUnitConfigurationAllInPackage() throws Exception {
-    loadSimpleApplication();
+  private void checkClassesInAllInPackage(TestSearchScope type) throws CantRunException {
     Module module = ModuleManager.getInstance(myFixture.getProject()).findModuleByName("app");
     assertNotNull(module);
 
     AndroidJUnitConfiguration configuration = createConfiguration(getProject(), "google.simpleapplication", module);
+    configuration.getPersistentData().setScope(type);
+
+    AndroidTestPackage testPackage = new AndroidTestPackage(configuration, ExecutionEnvironmentBuilder.create(
+      DefaultRunExecutor.getRunExecutorInstance(), configuration).build());
     Set<PsiClass> myClasses = new HashSet<>();
-    ConfigurationUtil.findAllTestClasses(
-      TestClassFilter.create(configuration.getPersistentData().getScope().getSourceScope(configuration), module), myClasses);
+    ConfigurationUtil.findAllTestClasses(testPackage.getClassFilter(configuration.getPersistentData()), myClasses);
 
     assertSize(1, myClasses);
     TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(module);
     assertNotNull(scopes);
     assertTrue(scopes.isUnitTestSource(myClasses.iterator().next().getContainingFile().getVirtualFile()));
+  }
+
+  public void testCorrectJUnitConfigurationAllInPackageModule() throws Exception {
+    loadSimpleApplication();
+    checkClassesInAllInPackage(TestSearchScope.SINGLE_MODULE);
+  }
+
+  public void testCorrectJUnitConfigurationAllInPackageProject() throws Exception {
+    loadSimpleApplication();
+    checkClassesInAllInPackage(TestSearchScope.WHOLE_PROJECT);
   }
 
   private static AndroidJUnitConfiguration createConfiguration(@NotNull Project project,
