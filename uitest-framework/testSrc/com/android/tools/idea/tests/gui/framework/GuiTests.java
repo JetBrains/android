@@ -81,7 +81,8 @@ import static org.fest.swing.finder.WindowFinder.findFrame;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.jetbrains.android.AndroidPlugin.setGuiTestingMode;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public final class GuiTests {
 
@@ -581,12 +582,23 @@ public final class GuiTests {
 
   /**
    * Waits until no components match the given criteria under the given root
+   * Usage of this method is discouraged. Please use the version with default timeout, unless you really need greater values.
+   */
+  public static <T extends Component> void waitUntilGone(@NotNull Robot robot,
+                                                         @NotNull Container root,
+                                                         @NotNull GenericTypeMatcher<T> matcher,
+                                                         int seconds) {
+    String typeName = matcher.supportedType().getSimpleName();
+    Wait.seconds(seconds).expecting("absence of matching " + typeName).until(() -> robot.finder().findAll(root, matcher).isEmpty());
+  }
+
+  /**
+   * Waits until no components match the given criteria under the given root
    */
   public static <T extends Component> void waitUntilGone(@NotNull Robot robot,
                                                          @NotNull Container root,
                                                          @NotNull GenericTypeMatcher<T> matcher) {
-    String typeName = matcher.supportedType().getSimpleName();
-    Wait.seconds(1).expecting("absence of matching " + typeName).until(() -> robot.finder().findAll(root, matcher).isEmpty());
+    waitUntilGone(robot, root, matcher, 1);
   }
 
   public static void waitForBackgroundTasks(Robot robot) {
