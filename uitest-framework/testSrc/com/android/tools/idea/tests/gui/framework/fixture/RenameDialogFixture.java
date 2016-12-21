@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.base.Strings;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.util.Ref;
@@ -64,22 +65,14 @@ public class RenameDialogFixture extends IdeaDialogFixture<RenameDialog> {
     //noinspection SSBasedInspection
     SwingUtilities.invokeLater(
       () -> handler.invoke(element.getProject(), new PsiElement[] { element }, SimpleDataContext.getProjectContext(element.getProject())));
-    final Ref<RenameDialog> ref = new Ref<>();
-    JDialog dialog = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
-      @Override
-      protected boolean isMatching(@NotNull JDialog dialog) {
-        if (!RefactoringBundle.message("rename.title").equals(dialog.getTitle())) {
-          return false;
+    JDialog dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog.class, RefactoringBundle.message("rename.title")).and(
+      new GenericTypeMatcher<JDialog>(JDialog.class) {
+        @Override
+        protected boolean isMatching(@NotNull JDialog dialog) {
+          return getDialogWrapperFrom(dialog, RenameDialog.class) != null;
         }
-        RenameDialog renameDialog = getDialogWrapperFrom(dialog, RenameDialog.class);
-        if (renameDialog == null) {
-          return false;
-        }
-        ref.set(renameDialog);
-        return true;
-      }
-    });
-    return new RenameDialogFixture(robot, dialog, ref.get());
+      }));
+    return new RenameDialogFixture(robot, dialog, getDialogWrapperFrom(dialog, RenameDialog.class));
   }
 
   @NotNull

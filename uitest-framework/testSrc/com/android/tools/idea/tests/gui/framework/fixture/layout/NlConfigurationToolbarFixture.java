@@ -19,6 +19,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
@@ -124,12 +125,7 @@ public class NlConfigurationToolbarFixture {
 
   @NotNull
   private JButton findToolbarButton(@NotNull final String tooltip) {
-    return waitUntilShowing(myRobot, new GenericTypeMatcher<JButton>(JButton.class) {
-      @Override
-      protected boolean isMatching(@NotNull JButton button) {
-        return tooltip.equals(button.getToolTipText());
-      }
-    });
+    return waitUntilShowing(myRobot, Matchers.byTooltip(JButton.class, tooltip));
   }
 
   private static class DeviceNamePredicate implements Predicate<String> {

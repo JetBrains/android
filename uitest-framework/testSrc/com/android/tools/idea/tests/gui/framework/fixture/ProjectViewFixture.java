@@ -108,12 +108,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
   }
 
   private void changePane(@NotNull String paneName) {
-    Component projectDropDown = GuiTests.waitUntilFound(myRobot, new GenericTypeMatcher<BaseLabel>(BaseLabel.class) {
-      @Override
-      protected boolean isMatching(@NotNull BaseLabel component) {
-        return "Project:".equals(component.getText());
-      }
-    });
+    Component projectDropDown = GuiTests.waitUntilFound(myRobot, Matchers.byText(BaseLabel.class, "Project:"));
 
     myRobot.click(projectDropDown.getParent());
     GuiTests.clickPopupMenuItem(paneName, projectDropDown, myRobot);
