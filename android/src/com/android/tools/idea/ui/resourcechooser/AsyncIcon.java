@@ -29,7 +29,6 @@ import java.awt.*;
  * Icon that loads asynchronously from a given {@link ListenableFuture}
  */
 public class AsyncIcon implements Icon {
-  private final Object myIconLock = new Object();
   @NotNull private Icon myIcon;
   private final int myW;
   private final int myH;
@@ -53,9 +52,7 @@ public class AsyncIcon implements Icon {
       @Override
       public void onSuccess(@Nullable Icon result) {
         if (result != null) {
-          synchronized (myIconLock) {
-            myIcon = result;
-          }
+          myIcon = result;
         }
 
         if (onIconLoad != null) {
@@ -72,10 +69,7 @@ public class AsyncIcon implements Icon {
 
   @Override
   public void paintIcon(Component c, Graphics g, int x, int y) {
-    Icon icon;
-    synchronized (myIconLock) {
-      icon = myIcon;
-    }
+    Icon icon = myIcon;
 
     assert icon.getIconWidth() == myW && icon.getIconHeight() == myH;
     icon.paintIcon(c, g, x, y);
