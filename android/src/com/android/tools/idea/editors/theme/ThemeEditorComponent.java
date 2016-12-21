@@ -409,6 +409,13 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     }));
     myPanel.setThemeNamePopupMenu(themeNamePopupMenu);
 
+    myPanel.setSelectActivityForTheme(e -> {
+      ConfiguredThemeEditorStyle theme = getSelectedTheme();
+      assert theme != null;
+      String themeUrl = ResolutionUtils.getStyleResourceUrl(theme.getQualifiedName());
+      ThemeEditorUtils.quickfixThemeToActivity(myThemeEditorContext.getCurrentContextModule(), themeUrl);
+    });
+
     // Set an initial state in case that the editor didn't have a previously saved state
     // TODO: Try to be smarter about this and get the ThemeEditor to set a default state where there is no previous state
     reload(null);

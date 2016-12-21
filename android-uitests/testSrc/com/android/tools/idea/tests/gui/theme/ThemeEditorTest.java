@@ -19,10 +19,16 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.HyperlinkLabelFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.theme.ActivityChooserFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.theme.NewStyleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.intellij.notification.EventLog;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
+import org.fest.swing.fixture.JComboBoxFixture;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -107,5 +113,35 @@ public class ThemeEditorTest {
     clickPopupMenuItem("Nexus 6P", "Nexus 6P", deviceButton, guiTest.robot());
 
     themeEditor.getPreviewComponent().requireApi(21).requireDevice("Nexus 6P");
+  }
+
+  @Test
+  public void testSetThemeOnActivity() throws IOException {
+    // Test that we can open the simple application and the theme editor opens correctly
+    guiTest.importSimpleApplication();
+
+    IdeFrameFixture projectFrame = guiTest.ideFrame();
+    EditorFixture editor = projectFrame.getEditor().open("app/src/main/AndroidManifest.xml");
+    String addedText = "        <activity\n" +
+                       "            android:name=\".MyActivity\"\n" +
+                       "            android:label=\"@string/app_name\"\n" +
+                       "            android:theme=\"@style/MyNewTheme\">\n";
+    assertThat(editor.getCurrentFileContents()).doesNotContain(addedText);
+
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
+    // create a new theme
+    themeEditor.getThemesComboBox().selectItem("Create New Theme");
+    NewStyleDialogFixture newStyleDialog = NewStyleDialogFixture.find(guiTest.robot());
+    newStyleDialog.getNewNameTextField().setText("MyNewTheme");
+    newStyleDialog.clickOk();
+    // make this the theme for the default activity
+    HyperlinkLabelFixture label = themeEditor.getThemeWarningLabel();
+    assertThat(label.getText()).isEqualTo("Theme is not used anywhere fix");
+    label.clickLink("fix");
+
+    ActivityChooserFixture.find(guiTest.robot()).clickOk();
+
+    editor.open("app/src/main/AndroidManifest.xml");
+    assertThat(editor.getCurrentFileContents()).contains(addedText);
   }
 }
