@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.run.*;
+import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
@@ -57,10 +58,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -384,6 +382,11 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @NotNull
   private static Module[] getModules(@NotNull Project project, @Nullable DataContext context, @Nullable RunConfiguration configuration) {
     if (configuration instanceof ModuleRunProfile) {
+      // If running JUnit tests for "whole project", all the modules should be compiled, but getModules() return an empty array.
+      // See http://b.android.com/230678
+      if (configuration instanceof AndroidJUnitConfiguration) {
+        return ((AndroidJUnitConfiguration)configuration).getModulesToCompile();
+      }
       // ModuleBasedConfiguration includes Android and JUnit run configurations, including "JUnit: Rerun Failed Tests",
       // which is AbstractRerunFailedTestsAction.MyRunProfile.
       return ((ModuleRunProfile)configuration).getModules();
