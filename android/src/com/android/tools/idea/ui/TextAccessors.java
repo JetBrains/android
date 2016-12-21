@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.ui;
 
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.ui.TextAccessor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +41,13 @@ public final class TextAccessors {
       return new JTextComponentTextAccessor(component);
     }
     else if (component instanceof JLabel) {
-      return new JLabelTextAccessor(component);
+      return new JLabelTextAccessor((JLabel)component);
+    }
+    else if (component instanceof AbstractButton) {
+      return new AbstractButtonTextAccessor((AbstractButton)component);
+    }
+    else if (component instanceof ActionButton) {
+      return new ActionButtonTextAccessor((ActionButton)component);
     }
     else {
       return null;
@@ -65,20 +73,56 @@ public final class TextAccessors {
   }
 
   private static class JLabelTextAccessor implements TextAccessor {
-    private final JComponent myComponent;
+    private final JLabel myComponent;
 
-    public JLabelTextAccessor(JComponent component) {
+    public JLabelTextAccessor(JLabel component) {
       myComponent = component;
     }
 
     @Override
     public String getText() {
-      return ((JLabel)myComponent).getText();
+      return myComponent.getText();
     }
 
     @Override
     public void setText(String text) {
-      ((JLabel)myComponent).setText(text);
+      myComponent.setText(text);
+    }
+  }
+
+  private static class AbstractButtonTextAccessor implements TextAccessor {
+    private final AbstractButton myComponent;
+
+    public AbstractButtonTextAccessor(AbstractButton component) {
+      myComponent = component;
+    }
+
+    @Override
+    public String getText() {
+      return myComponent.getText();
+    }
+
+    @Override
+    public void setText(String text) {
+      myComponent.setText(text);
+    }
+  }
+
+  private static class ActionButtonTextAccessor implements TextAccessor {
+    private final ActionButton myComponent;
+
+    public ActionButtonTextAccessor(ActionButton component) {
+      myComponent = component;
+    }
+
+    @Override
+    public String getText() {
+      return myComponent.getAction().getTemplatePresentation().getText();
+    }
+
+    @Override
+    public void setText(String text) {
+      myComponent.getAction().getTemplatePresentation().setText(text);
     }
   }
 }

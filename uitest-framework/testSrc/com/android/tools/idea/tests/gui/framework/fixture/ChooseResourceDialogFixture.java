@@ -18,12 +18,12 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.EditReferenceFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.StateListPickerFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.ui.SearchField;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.ui.resourcechooser.ColorPicker;
 import com.android.tools.idea.ui.resourcechooser.StateListPicker;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.JBUI;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -81,21 +81,12 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
 
   @NotNull
   public JLabel waitForErrorLabel() {
-    return GuiTests.waitUntilShowing(robot(), new GenericTypeMatcher<JLabel>(JLabel.class) {
-      @Override
-      protected boolean isMatching(@NotNull JLabel component) {
-        return !StringUtil.isEmpty(component.getText()) && component.getIcon() == AllIcons.General.Error;
-      }
-    });
+    return GuiTests.waitUntilShowing(
+      robot(), Matchers.byIcon(JLabel.class, AllIcons.General.Error).and(Matchers.byText(JLabel.class, "").negate()));
   }
 
   public void requireNoError() {
-    GuiTests.waitUntilGone(robot(), target(), new GenericTypeMatcher<JLabel>(JLabel.class) {
-      @Override
-      protected boolean isMatching(@NotNull JLabel component) {
-        return component.isShowing() && component.getIcon() == AllIcons.General.Error;
-      }
-    });
+    GuiTests.waitUntilGone(robot(), target(), Matchers.byIcon(JLabel.class, AllIcons.General.Error).andIsShowing());
   }
 
   @NotNull

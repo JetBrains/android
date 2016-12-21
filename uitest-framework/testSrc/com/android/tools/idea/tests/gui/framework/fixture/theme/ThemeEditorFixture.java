@@ -20,6 +20,7 @@ import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.editors.theme.preview.ThemePreviewComponent;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SearchTextFieldFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ui.SearchTextField;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -86,12 +87,7 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
 
   @NotNull
   public JButton findToolbarButton(@NotNull final String tooltip) {
-    return waitUntilFound(robot(), new GenericTypeMatcher<JButton>(JButton.class) {
-      @Override
-      protected boolean isMatching(@NotNull JButton button) {
-        return tooltip.equals(button.getToolTipText());
-      }
-    });
+    return waitUntilFound(robot(), Matchers.byTooltip(JButton.class, tooltip));
   }
 
   @NotNull
