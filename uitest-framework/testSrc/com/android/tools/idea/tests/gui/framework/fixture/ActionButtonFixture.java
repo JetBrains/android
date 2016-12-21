@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
@@ -76,13 +77,7 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
 
   @NotNull
   public static ActionButtonFixture findByText(@NotNull final String text, @NotNull Robot robot, @NotNull Container container) {
-    final ActionButton button = robot.finder().find(container, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
-      @Override
-      protected boolean isMatching(@NotNull ActionButton button) {
-        AnAction action = button.getAction();
-        return text.equals(action.getTemplatePresentation().getText());
-      }
-    });
+    final ActionButton button = robot.finder().find(container, Matchers.byText(ActionButton.class, text));
     return new ActionButtonFixture(robot, button);
   }
 
