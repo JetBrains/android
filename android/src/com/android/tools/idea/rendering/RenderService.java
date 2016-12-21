@@ -464,6 +464,16 @@ public class RenderService extends AndroidFacetScopedService {
     return future;
   }
 
+  /**
+   * Runs an action that requires the rendering lock. Layoutlib is not thread safe so any rendering actions should be called using this
+   * method.
+   * <p/>
+   * This method will run the passed action asynchronously
+   */
+  public static void runAsyncRenderAction(@NotNull Runnable runnable) {
+    ourRenderingExecutor.submit(runnable);
+  }
+
 
   /**
    * Given a {@link ViewInfo} from a layoutlib rendering, checks that the view info provides
