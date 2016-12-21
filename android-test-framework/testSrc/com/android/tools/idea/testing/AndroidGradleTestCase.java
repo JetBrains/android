@@ -32,12 +32,20 @@ import com.android.tools.idea.sdk.Jdks;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
+import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
+import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.idea.IdeaTestApplication;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.impl.EditorImpl;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.EmptyModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -52,6 +60,7 @@ import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.PlatformTestCase;
@@ -59,6 +68,7 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import com.intellij.util.Consumer;
 import com.intellij.util.SmartList;
 import org.jetbrains.android.AndroidTestBase;
@@ -71,8 +81,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
 import static com.android.testutils.TestUtils.getSdk;
@@ -84,11 +96,13 @@ import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
+import static com.intellij.util.ArrayUtilRt.EMPTY_INT_ARRAY;
 import static com.intellij.util.lang.CompoundRuntimeException.throwIfNotEmpty;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
@@ -443,6 +457,39 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       contents = contents.substring(0, matcher.start(1)) + value + contents.substring(matcher.end(1));
     }
     return contents;
+  }
+
+  /**
+   * Return a List of all the HighlightInfos in a file filtered by the given predicate (the predicate does not need to check for null as
+   * this method does that).
+   */
+  @NotNull
+  protected List<HighlightInfo> getHighlightInfos(@NotNull File pathInProject, @NotNull Predicate<HighlightInfo> filter)
+    throws InterruptedException {
+    Project project = getProject();
+
+    VirtualFile rootDirectory = project.getBaseDir();
+    VirtualFile file = rootDirectory.findFileByRelativePath(pathInProject.getPath());
+    assertNotNull(file);
+
+    Editor editor = FileEditorManager.getInstance(project).openTextEditor(new OpenFileDescriptor(project, file, 0), false);
+    assertNotNull(editor);
+    ((EditorImpl)editor).setCaretActive();
+
+    Document document = FileDocumentManager.getInstance().getDocument(file);
+    assertNotNull(document);
+    PsiFile psiFile = PsiDocumentManager.getInstance(project).getPsiFile(document);
+    assertNotNull(psiFile);
+    DaemonCodeAnalyzer.getInstance(project).restart(psiFile);
+    List<HighlightInfo> highlightInfos = CodeInsightTestFixtureImpl.instantiateAndRun(psiFile, editor, EMPTY_INT_ARRAY, true);
+    return highlightInfos.stream().filter(info -> info != null).filter(filter).collect(Collectors.toList());
+  }
+
+  /**
+   * Checks that a file has no highlights with a severity higher than a warning.
+   */
+  protected void assertFileHasNoErrors(File pathInProject) throws InterruptedException {
+    assertThat(getHighlightInfos(pathInProject, highlight -> highlight.getSeverity().compareTo(WARNING) > 0)).isEmpty();
   }
 
   private void updateLocalProperties() throws IOException {
