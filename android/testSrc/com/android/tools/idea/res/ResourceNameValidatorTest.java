@@ -131,6 +131,13 @@ public class ResourceNameValidatorTest extends AndroidTestCase {
     assertEquals("foo_4 already exists", validator.getErrorText("foo_4"));
     assertEquals("foo_5 already exists", validator.getErrorText("foo.5"));
     assertEquals("foo_5 already exists", validator.getErrorText("foo_5"));
+
+    assertTrue(validator.doesResourceExist("foo1"));
+    assertTrue(validator.doesResourceExist("foo.4"));
+    assertTrue(validator.doesResourceExist("foo_4"));
+    assertTrue(validator.doesResourceExist("foo.5"));
+    assertTrue(validator.doesResourceExist("foo_5"));
+    assertFalse(validator.doesResourceExist("foo_no"));
   }
 
   public void testUniqueOrExists() throws Exception {
