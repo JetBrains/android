@@ -259,12 +259,7 @@ public abstract class Dependency {
     for (File localJar : library.getLocalJars()) {
       dependency.addPath(BINARY, localJar);
     }
-
-    File sourceJarPath = findSourceJarPathForLibrary(library.getBundle());
-    if (sourceJarPath != null) {
-      dependency.addPath(SOURCE, sourceJarPath);
-    }
-
+    attachSourcesIfFound(dependency, library.getBundle());
     return dependency;
   }
 
@@ -283,6 +278,16 @@ public abstract class Dependency {
 
   @NotNull
   private static LibraryDependency createLibraryDependencyFromJavaLibrary(@NotNull JavaLibrary library, @NotNull DependencyScope scope) {
-    return new LibraryDependency(library.getJarFile(), scope);
+    File jarFilePath = library.getJarFile();
+    LibraryDependency dependency = new LibraryDependency(jarFilePath, scope);
+    attachSourcesIfFound(dependency, jarFilePath);
+    return dependency;
+  }
+
+  private static void attachSourcesIfFound(@NotNull LibraryDependency dependency, @NotNull File artifactPath) {
+    File sourceJarPath = findSourceJarPathForLibrary(artifactPath);
+    if (sourceJarPath != null) {
+      dependency.addPath(SOURCE, sourceJarPath);
+    }
   }
 }
