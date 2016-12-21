@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
+import com.android.SdkConstants;
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.wireless.android.sdk.stats.*;
@@ -67,7 +69,7 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
     assertEquals(AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS, usage.getStudioEvent().getKind());
     assertEquals(GradleBuildDetails.newBuilder()
                    .setAndroidPluginVersion("2.3.0-dev")
-                   .setGradleVersion("3.2")
+                   .setGradleVersion(GradleVersions.removeTimestampFromGradleVersion(SdkConstants.GRADLE_LATEST_VERSION))
                    .setUserEnabledIr(true)
                    .setModelSupportsIr(true)
                    .setVariantSupportsIr(true)
