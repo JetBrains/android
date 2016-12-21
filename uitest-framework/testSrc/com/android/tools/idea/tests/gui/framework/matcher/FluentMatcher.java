@@ -42,15 +42,18 @@ public abstract class FluentMatcher<T extends Component> extends GenericTypeMatc
     return new FluentMatcher<T>(supportedType()) {
       @Override
       protected boolean isMatching(@NotNull T component) {
-        return FluentMatcher.this.matches(component) && other.matches(component);
+        return FluentMatcher.this.isMatching(component) && other.matches(component);
       }
     };
   }
 
-  public FluentMatcher<T> negate() {
-    return new FluentMatcher<T>(supportedType()) {
+  /**
+   * Negate has to return a Component-typed Matcher, since otherwise it's possible to get the inverse of the target of the original
+   */
+  public FluentMatcher<Component> negate() {
+    return new FluentMatcher<Component>(Component.class) {
       @Override
-      protected boolean isMatching(@NotNull T component) {
+      protected boolean isMatching(@NotNull Component component) {
         return !FluentMatcher.this.matches(component);
       }
     };

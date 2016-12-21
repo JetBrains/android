@@ -92,7 +92,7 @@ public class ColorPickerFixture extends JPanelFixture {
 
   @NotNull
   public SlideFixture getAlphaSlide() {
-    return new SlideFixture(robot(), robot().finder().find(
-      this.target(), Matchers.byType(ColorPicker.SlideComponent.class).and(Matchers.byType(ColorPicker.HueSlideComponent.class).negate())));
+    return new SlideFixture(robot(), (ColorPicker.SlideComponent)robot().finder().find(
+      this.target(), Matchers.byType(ColorPicker.HueSlideComponent.class).negate().and(Matchers.byType(ColorPicker.SlideComponent.class))));
   }
 }

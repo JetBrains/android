@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.matcher;
 
+import com.intellij.openapi.ui.FixedSizeButton;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -34,5 +35,9 @@ public class FluentMatcherTest {
     assertFalse(Matchers.byName(JButton.class, "fooName").and(Matchers.byText(JButton.class, "bar")).matches(foo));
     assertFalse(Matchers.byName(JButton.class, "fooName").negate().matches(foo));
     assertFalse(Matchers.byName(JButton.class, "fooName").andIsShowing().matches(foo));
+
+    assertFalse(Matchers.byType(AbstractButton.class).negate().matches(foo));
+    assertTrue(Matchers.byType(FixedSizeButton.class).negate().matches(foo));
+    assertTrue(Matchers.byType(FixedSizeButton.class).negate().and(Matchers.byType(JButton.class)).matches(foo));
   }
 }
