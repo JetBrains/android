@@ -15,14 +15,11 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.FakeGrpcChannel;
-import com.intellij.util.containers.ImmutableList;
 import io.grpc.stub.StreamObserver;
 import org.junit.Before;
 import org.junit.Rule;
@@ -42,42 +39,6 @@ public class CpuMonitorTest {
   public void setUp() throws Exception {
     myProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
     myMonitor = new CpuMonitor(myProfilers);
-  }
-
-  @Test
-  public void testThisProcessCpuUsage() {
-    CpuUsageDataSeries series = myMonitor.getThisProcessCpuUsageSeries();
-    ImmutableList<SeriesData<Long>> seriesDataList = series.getDataForXRange(new Range());
-    assertEquals(1, seriesDataList.size()); // Only current process information.
-    SeriesData<Long> seriesData = seriesDataList.get(0);
-    assertNotNull(seriesData);
-    assertEquals(20, (long)seriesData.value);
-  }
-
-  @Test
-  public void testOtherProcessesCpuUsage() {
-    CpuUsageDataSeries series = myMonitor.getOtherProcessesCpuUsage();
-    ImmutableList<SeriesData<Long>> seriesDataList = series.getDataForXRange(new Range());
-    assertEquals(1, seriesDataList.size()); // Only other processes information.
-    SeriesData<Long> seriesData = seriesDataList.get(0);
-    assertNotNull(seriesData);
-    assertEquals(40, (long)seriesData.value);
-  }
-
-  @Test
-  public void testGetThreadsCount() {
-    CpuThreadCountDataSeries series = myMonitor.getThreadsCount();
-    ImmutableList<SeriesData<Long>> seriesDataList = series.getDataForXRange(new Range());
-    assertEquals(2, seriesDataList.size());
-    // When no threads are find within the requested range, we add the threads count (0)
-    // to both range's min and max
-    SeriesData<Long> seriesData = seriesDataList.get(0);
-    assertNotNull(seriesData);
-    assertEquals(0, (long)seriesData.value);
-
-    seriesData = seriesDataList.get(1);
-    assertNotNull(seriesData);
-    assertEquals(0, (long)seriesData.value);
   }
 
   @Test
