@@ -121,7 +121,8 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     assertEquals("Failed to resolve: com.android.support:appcompat-v7:100.0.0", text[0]);
   }
 
-  public void testWithLocalAarsAsModules() throws Exception {
+  // http://b.android.com/230792
+  public void skip_testWithLocalAarsAsModules() throws Exception {
     loadProject(LOCAL_AARS_AS_MODULES);
 
     Module localAarModule = myModules.getModule("library-debug");
@@ -149,8 +150,8 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
     assertAbout(libraryDependencies()).that(localJarModule).contains("localJarAsModule.local");
   }
-
-  public void testWithInterModuleDependencies() throws Exception {
+  // http://b.android.com/230792
+  public void skip_testWithInterModuleDependencies() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
 
     Module appModule = myModules.getAppModule();
@@ -178,7 +179,8 @@ public class DependencySetupTest extends AndroidGradleTestCase {
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=212557
-  public void testTransitiveAndroidModuleDependency() throws Exception {
+  // http://b.android.com/230792
+  public void skip_testTransitiveAndroidModuleDependency() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module appModule = myModules.getAppModule();
 
@@ -203,7 +205,8 @@ public class DependencySetupTest extends AndroidGradleTestCase {
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=213627
-  public void testJarsInLibsFolder() throws Exception {
+  // http://b.android.com/230792
+  public void skip_testJarsInLibsFolder() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
 
     // 'fakelib' is in 'libs' directory in 'library2' module.

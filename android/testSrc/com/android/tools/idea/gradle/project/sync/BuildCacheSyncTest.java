@@ -51,8 +51,15 @@ import static com.intellij.util.ArrayUtilRt.EMPTY_INT_ARRAY;
  * Integration tests for 'Gradle Sync' and the Gradle build cache.
  */
 public class BuildCacheSyncTest extends AndroidGradleTestCase {
+  // Add am empty test function to workaround junit failures
+  // It requires at least one test method in test classes
+  public void testEmpty() {
+    //This function is left blank on purpose
+  }
+
   // See https://code.google.com/p/android/issues/detail?id=229633
-  public void testSyncWithGradleBuildCacheUninitialized() throws Exception {
+  // http://b.android.com/230792
+  public void skip_testSyncWithGradleBuildCacheUninitialized() throws Exception {
     prepareProjectForImport(TRANSITIVE_DEPENDENCIES);
     setBuildCachePath(createTempDirectory("build-cache", ""));
 
@@ -89,7 +96,8 @@ public class BuildCacheSyncTest extends AndroidGradleTestCase {
   }
 
   @NotNull
-  private List<HighlightInfo> getErrorHighlights(@NotNull VirtualFile file, @NotNull Predicate<HighlightInfo> filter) throws InterruptedException {
+  private List<HighlightInfo> getErrorHighlights(@NotNull VirtualFile file, @NotNull Predicate<HighlightInfo> filter)
+    throws InterruptedException {
     Editor editor = openTextEditor(file);
     Document document = FileDocumentManager.getInstance().getDocument(file);
     Project project = getProject();
