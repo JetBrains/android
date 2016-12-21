@@ -23,7 +23,6 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.model.SelectionModel;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
@@ -99,13 +98,14 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
     lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
-    final LineChart lineChart = new LineChart(getStage().getNetworkData());
+    DetailedNetworkUsage usage = getStage().getDetailedNetworkUsage();
+    final LineChart lineChart = new LineChart(usage);
     LineConfig receivedConfig = new LineConfig(ProfilerColors.NETWORK_RECEIVING_COLOR);
-    lineChart.configure(NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getLabel(), receivedConfig);
+    lineChart.configure(usage.getRxSeries(), receivedConfig);
     LineConfig sentConfig = new LineConfig(ProfilerColors.NETWORK_SENDING_COLOR);
-    lineChart.configure(NetworkTrafficDataSeries.Type.BYTES_SENT.getLabel(), sentConfig);
+    lineChart.configure(usage.getTxSeries(), sentConfig);
     LineConfig connectionConfig = new LineConfig(ProfilerColors.NETWORK_CONNECTIONS_COLOR).setStroke(LineConfig.DEFAULT_DASH_STROKE);
-    lineChart.configure("Connections", connectionConfig);
+    lineChart.configure(usage.getConnectionSeries(), connectionConfig);
 
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 

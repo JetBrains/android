@@ -24,12 +24,10 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.model.DurationData;
-import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SelectionModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.memory.adapters.*;
 import com.google.common.annotations.VisibleForTesting;
@@ -189,11 +187,10 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     EventMonitorView eventsView = new EventMonitorView(getProfilersView(), getStage().getEventMonitor());
     panel.add(eventsView.initialize(), new TabularLayout.Constraint(0, 0));
 
-    MemoryMonitor monitor = new MemoryMonitor(profilers);
     JPanel monitorPanel = new JBPanel(new TabularLayout("*", "*"));
     monitorPanel.setOpaque(false);
     monitorPanel.setBorder(MONITOR_BORDER);
-    final JLabel label = new JLabel(monitor.getName());
+    final JLabel label = new JLabel(getStage().getName());
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(SwingConstants.TOP);
 
@@ -201,17 +198,16 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     lineChartPanel.setOpaque(false);
     lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
 
-
-    LineChartModel memorySeries = getStage().getMemorySeries();
-    final LineChart lineChart = new LineChart(memorySeries);
-    lineChart.configure("Java", new LineConfig(ProfilerColors.MEMORY_JAVA).setFilled(true).setStacked(true));
-    lineChart.configure("Native", new LineConfig(ProfilerColors.MEMORY_NATIVE).setFilled(true).setStacked(true));
-    lineChart.configure("Graphics", new LineConfig(ProfilerColors.MEMORY_GRAPHCIS).setFilled(true).setStacked(true));
-    lineChart.configure("Stack", new LineConfig(ProfilerColors.MEMORY_STACK).setFilled(true).setStacked(true));
-    lineChart.configure("Code", new LineConfig(ProfilerColors.MEMORY_CODE).setFilled(true).setStacked(true));
-    lineChart.configure("Others", new LineConfig(ProfilerColors.MEMORY_OTHERS).setFilled(true).setStacked(true));
-    lineChart.configure("Total", new LineConfig(ProfilerColors.MEMORY_TOTAL).setFilled(true));
-    lineChart.configure("Allocated", new LineConfig(ProfilerColors.MEMORY_OBJECTS).setStroke(LineConfig.DEFAULT_DASH_STROKE));
+    DetailedMemoryUsage memoryUsage = getStage().getDetailedMemoryUsage();
+    final LineChart lineChart = new LineChart(memoryUsage);
+    lineChart.configure(memoryUsage.getJavaSeries(), new LineConfig(ProfilerColors.MEMORY_JAVA).setFilled(true).setStacked(true));
+    lineChart.configure(memoryUsage.getNativeSeries(), new LineConfig(ProfilerColors.MEMORY_NATIVE).setFilled(true).setStacked(true));
+    lineChart.configure(memoryUsage.getGraphicsSeries(), new LineConfig(ProfilerColors.MEMORY_GRAPHCIS).setFilled(true).setStacked(true));
+    lineChart.configure(memoryUsage.getStackSeries(), new LineConfig(ProfilerColors.MEMORY_STACK).setFilled(true).setStacked(true));
+    lineChart.configure(memoryUsage.getCodeSeries(), new LineConfig(ProfilerColors.MEMORY_CODE).setFilled(true).setStacked(true));
+    lineChart.configure(memoryUsage.getOtherSeries(), new LineConfig(ProfilerColors.MEMORY_OTHERS).setFilled(true).setStacked(true));
+    lineChart.configure(memoryUsage.getTotalMemorySeries(), new LineConfig(ProfilerColors.MEMORY_TOTAL));
+    lineChart.configure(memoryUsage.getObjectsSeries(), new LineConfig(ProfilerColors.MEMORY_OBJECTS).setStroke(LineConfig.DEFAULT_DASH_STROKE));
 
     // TODO set proper colors / icons
     DurationDataRenderer<CaptureDurationData<HeapDumpCaptureObject>> heapDumpRenderer =
@@ -233,9 +229,9 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
                                             TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
         .setClickHander(data -> getStage().selectCapture(data.getCaptureObject(), SwingUtilities::invokeLater))
         .build();
-    DurationDataRenderer<GcDurationData> gcRenderer = new DurationDataRenderer.Builder<>(monitor.getGcCount(), Color.BLACK)
+    DurationDataRenderer<GcDurationData> gcRenderer = new DurationDataRenderer.Builder<>(getStage().getGcCount(), Color.BLACK)
       .setIcon(myGcIcon)
-      .setAttachLineSeries(memorySeries.getSeries("Allocated"))
+      .setAttachLineSeries(memoryUsage.getObjectsSeries())
       .build();
 
     lineChart.addCustomRenderer(heapDumpRenderer);
