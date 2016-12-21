@@ -20,6 +20,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.ComboboxSpeedSearch;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBLabel;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.event.HyperlinkListener;
 import java.awt.*;
 import java.awt.event.ActionListener;
 
@@ -57,7 +59,7 @@ public class AttributesPanel {
   private JComboBox myModuleCombo;
   private JBLabel myThemeLabel;
   private JBLabel myModuleLabel;
-  private JLabel myThemeWarning;
+  private HyperlinkLabel myThemeWarning;
 
   public AttributesPanel() {
     myThemeCombo.setMinimumSize(ThemeEditorConstants.ATTRIBUTES_PANEL_COMBO_MIN_SIZE);
@@ -124,6 +126,11 @@ public class AttributesPanel {
     myAttributesScrollPane.getVerticalScrollBar().setBlockIncrement(AndroidPreviewPanel.VERTICAL_SCROLLING_BLOCK_INCREMENT);
 
     myThemeWarning.setIcon(AllIcons.General.BalloonWarning);
+    myThemeWarning.setHyperlinkText("Theme is not used anywhere ", "fix", "");
+  }
+
+  public void setSelectActivityForTheme(HyperlinkListener action) {
+    myThemeWarning.addHyperlinkListener(action);
   }
 
   public void setThemeNamePopupMenu(@Nullable JPopupMenu popup) {

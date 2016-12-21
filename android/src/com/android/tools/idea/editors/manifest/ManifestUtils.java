@@ -58,6 +58,21 @@ public class ManifestUtils {
   private ManifestUtils() {
   }
 
+  @Nullable/*activity does not exist in any project manifests*/
+  public static SourceFilePosition getSourceFilePosition(@NotNull Module module, @NotNull String activityName) {
+    // we need to look in the merged manifest for the activity as we may be using placeholders for the name
+    MergedManifest mergedManifest = MergedManifest.get(module);
+    Element item = mergedManifest.findActivity(activityName);
+    if (item == null) {
+      return null;
+    }
+    List<? extends Actions.Record> records = getRecords(mergedManifest, item);
+    if (records.isEmpty()) {
+      return null;
+    }
+    return getActionLocation(module, records.get(0));
+  }
+
   @NotNull
   static List<? extends Actions.Record> getRecords(@NotNull MergedManifest manifest, @NotNull Node item) {
     Actions actions = manifest.getActions();

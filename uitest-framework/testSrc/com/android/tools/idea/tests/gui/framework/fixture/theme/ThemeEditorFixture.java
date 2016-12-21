@@ -19,9 +19,11 @@ import com.android.tools.idea.editors.theme.AttributesPanel;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.editors.theme.preview.ThemePreviewComponent;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.HyperlinkLabelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SearchTextFieldFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.SearchTextField;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -34,6 +36,7 @@ import javax.swing.*;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
 
 public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, ThemeEditorComponent> {
   private final JComboBoxFixture myThemesComboBox;
@@ -101,5 +104,10 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
 
     Wait.seconds(1).expecting("UI update").until(() -> expectedLabel.equals(button.getText()));
   }
-}
 
+  public HyperlinkLabelFixture getThemeWarningLabel() {
+    // we wait here as the label only shows up when the IDE goes out of dumb mode.
+    HyperlinkLabel label = waitUntilShowingAndEnabled(robot(), target(), Matchers.byType(HyperlinkLabel.class));
+    return new HyperlinkLabelFixture(robot(), label);
+  }
+}
