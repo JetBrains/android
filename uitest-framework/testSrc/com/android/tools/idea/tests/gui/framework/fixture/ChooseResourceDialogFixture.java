@@ -81,8 +81,8 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
 
   @NotNull
   public JLabel waitForErrorLabel() {
-    return GuiTests.waitUntilShowing(
-      robot(), Matchers.byIcon(JLabel.class, AllIcons.General.Error).and(Matchers.byText(JLabel.class, "").negate()));
+    return (JLabel)GuiTests.waitUntilShowing(
+      robot(), Matchers.byText(JLabel.class, "").negate().and(Matchers.byIcon(JLabel.class, AllIcons.General.Error)));
   }
 
   public void requireNoError() {
