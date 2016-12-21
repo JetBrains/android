@@ -23,44 +23,26 @@ import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-
 public class NetworkMonitor extends ProfilerMonitor {
 
   private static final BaseAxisFormatter BANDWIDTH_AXIS_FORMATTER_L1 = new NetworkTrafficFormatter(1, 2, 5);
-  private final LineChartModel myTrafficData;
+  private final NetworkUsage myNetworkUsage;
   private final LegendComponentModel myLegends;
   private final AxisComponentModel myTrafficAxis;
 
   public NetworkMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
 
-    Range viewRange = getTimeline().getViewRange();
     Range dataRange = getTimeline().getDataRange();
 
-    Range trafficSpeedRange = new Range(0, 4); // TODO: Why 4?
-    myTrafficAxis = new AxisComponentModel(trafficSpeedRange, BANDWIDTH_AXIS_FORMATTER_L1);
+    myNetworkUsage = new NetworkUsage(profilers);
+
+    myTrafficAxis = new AxisComponentModel(myNetworkUsage.getTrafficRange(), BANDWIDTH_AXIS_FORMATTER_L1);
     myTrafficAxis.clampToMajorTicks(true);
 
-
-    RangedContinuousSeries rxSeries = new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getLabel(),
-                                                                 viewRange,
-                                                                 trafficSpeedRange,
-                                                                 getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED));
-    RangedContinuousSeries txSeries = new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_SENT.getLabel(),
-                                                                 viewRange,
-                                                                 trafficSpeedRange,
-                                                                 getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_SENT));
-    myTrafficData = new LineChartModel();
-    myTrafficData.add(rxSeries);
-    myTrafficData.add(txSeries);
-
     myLegends = new LegendComponentModel(100);
-    ArrayList<LegendData> legendData = new ArrayList<>();
-    legendData.add(new LegendData(rxSeries, BANDWIDTH_AXIS_FORMATTER_L1, dataRange));
-    legendData.add(new LegendData(txSeries, BANDWIDTH_AXIS_FORMATTER_L1, dataRange));
-    myLegends.setLegendData(legendData);
-
+    myLegends.add(new LegendData(myNetworkUsage.getRxSeries(), BANDWIDTH_AXIS_FORMATTER_L1, dataRange));
+    myLegends.add(new LegendData(myNetworkUsage.getTxSeries(), BANDWIDTH_AXIS_FORMATTER_L1, dataRange));
   }
 
   @NotNull
@@ -83,14 +65,14 @@ public class NetworkMonitor extends ProfilerMonitor {
 
   @Override
   public void exit() {
-    myProfilers.getUpdater().unregister(myTrafficData);
+    myProfilers.getUpdater().unregister(myNetworkUsage);
     myProfilers.getUpdater().unregister(myTrafficAxis);
     myProfilers.getUpdater().unregister(myLegends);
   }
 
   @Override
   public void enter() {
-    myProfilers.getUpdater().register(myTrafficData);
+    myProfilers.getUpdater().register(myNetworkUsage);
     myProfilers.getUpdater().register(myTrafficAxis);
     myProfilers.getUpdater().register(myLegends);
   }
@@ -103,8 +85,8 @@ public class NetworkMonitor extends ProfilerMonitor {
     return myTrafficAxis;
   }
 
-  public LineChartModel getTrafficData() {
-    return myTrafficData;
+  public NetworkUsage getNetworkUsage() {
+    return myNetworkUsage;
   }
 
   public LegendComponentModel getLegends() {

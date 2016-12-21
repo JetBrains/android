@@ -34,7 +34,6 @@ import com.google.common.util.concurrent.MoreExecutors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -44,14 +43,13 @@ public class MemoryProfilerStage extends Stage {
   private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 5, 5);
   private static final BaseAxisFormatter OBJECT_COUNT_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 5, "");
 
-  private final LineChartModel myMemorySeries;
-  private final Range myMemoryYRange;
-  private final Range myObjectsYRange;
+  private final DetailedMemoryUsage myDetailedMemoryUsage;
   private final AxisComponentModel myMemoryAxis;
   private final AxisComponentModel myObjectsAxis;
   private final LegendComponentModel myLegends;
 
   private final int myProcessId;
+  private DurationDataModel<GcDurationData> myGcCount;
 
   @NotNull
   private AspectModel<MemoryProfilerAspect> myAspect = new AspectModel<>();
@@ -98,75 +96,56 @@ public class MemoryProfilerStage extends Stage {
 
     myTrackingAllocations = false; // TODO sync with current legacy allocation tracker status
 
-    myMemoryYRange = new Range(0, 0);
-    myObjectsYRange = new Range(0, 0);
+    myDetailedMemoryUsage = new DetailedMemoryUsage(profilers);
 
-    MemoryMonitor monitor = new MemoryMonitor(profilers);
-    RangedContinuousSeries javaSeries = new RangedContinuousSeries("Java", viewRange, myMemoryYRange, monitor.getJavaMemory());
-    RangedContinuousSeries nativeSeries = new RangedContinuousSeries("Native", viewRange, myMemoryYRange, monitor.getNativeMemory());
-    RangedContinuousSeries graphcisSeries = new RangedContinuousSeries("Graphics", viewRange, myMemoryYRange, monitor.getGraphicsMemory());
-    RangedContinuousSeries stackSeries = new RangedContinuousSeries("Stack", viewRange, myMemoryYRange, monitor.getStackMemory());
-    RangedContinuousSeries codeSeries = new RangedContinuousSeries("Code", viewRange, myMemoryYRange, monitor.getCodeMemory());
-    RangedContinuousSeries otherSeries = new RangedContinuousSeries("Others", viewRange, myMemoryYRange, monitor.getOthersMemory());
-    RangedContinuousSeries totalSeries = new RangedContinuousSeries("Total", viewRange, myMemoryYRange, monitor.getTotalMemorySeries());
-    RangedContinuousSeries objectSeries = new RangedContinuousSeries("Allocated", viewRange, myObjectsYRange, monitor.getObjectCount());
-
-    myMemorySeries = new LineChartModel();
-    myMemorySeries.add(javaSeries);
-    myMemorySeries.add(nativeSeries);
-    myMemorySeries.add(graphcisSeries);
-    myMemorySeries.add(stackSeries);
-    myMemorySeries.add(codeSeries);
-    myMemorySeries.add(otherSeries);
-    myMemorySeries.add(totalSeries);
-    myMemorySeries.add(objectSeries);
-
-    myMemoryAxis = new AxisComponentModel(myMemoryYRange, MEMORY_AXIS_FORMATTER);
+    myMemoryAxis = new AxisComponentModel(myDetailedMemoryUsage.getMemoryRange(), MEMORY_AXIS_FORMATTER);
     myMemoryAxis.clampToMajorTicks(true);
 
-    myObjectsAxis = new AxisComponentModel(myObjectsYRange, OBJECT_COUNT_AXIS_FORMATTER);
+    myObjectsAxis = new AxisComponentModel(myDetailedMemoryUsage.getObjectsRange(), OBJECT_COUNT_AXIS_FORMATTER);
     myObjectsAxis.clampToMajorTicks(true);
 
     myLegends = new LegendComponentModel(100);
-    ArrayList<LegendData> legendData = new ArrayList<>();
-    legendData.add(new LegendData(javaSeries, MEMORY_AXIS_FORMATTER, dataRange));
-    legendData.add(new LegendData(nativeSeries, MEMORY_AXIS_FORMATTER, dataRange));
-    legendData.add(new LegendData(graphcisSeries, MEMORY_AXIS_FORMATTER, dataRange));
-    legendData.add(new LegendData(stackSeries, MEMORY_AXIS_FORMATTER, dataRange));
-    legendData.add(new LegendData(codeSeries, MEMORY_AXIS_FORMATTER, dataRange));
-    legendData.add(new LegendData(otherSeries, MEMORY_AXIS_FORMATTER, dataRange));
-    legendData.add(new LegendData(totalSeries, MEMORY_AXIS_FORMATTER, dataRange));
-    legendData.add(new LegendData(objectSeries, OBJECT_COUNT_AXIS_FORMATTER, dataRange));
-    myLegends.setLegendData(legendData);
+    myLegends.add(new LegendData(myDetailedMemoryUsage.getJavaSeries(), MEMORY_AXIS_FORMATTER, dataRange));
+    myLegends.add(new LegendData(myDetailedMemoryUsage.getNativeSeries(), MEMORY_AXIS_FORMATTER, dataRange));
+    myLegends.add(new LegendData(myDetailedMemoryUsage.getGraphicsSeries(), MEMORY_AXIS_FORMATTER, dataRange));
+    myLegends.add(new LegendData(myDetailedMemoryUsage.getStackSeries(), MEMORY_AXIS_FORMATTER, dataRange));
+    myLegends.add(new LegendData(myDetailedMemoryUsage.getCodeSeries(), MEMORY_AXIS_FORMATTER, dataRange));
+    myLegends.add(new LegendData(myDetailedMemoryUsage.getOtherSeries(), MEMORY_AXIS_FORMATTER, dataRange));
+    myLegends.add(new LegendData(myDetailedMemoryUsage.getTotalMemorySeries(), MEMORY_AXIS_FORMATTER, dataRange));
+    myLegends.add(new LegendData(myDetailedMemoryUsage.getObjectsSeries(), OBJECT_COUNT_AXIS_FORMATTER, dataRange));
+
+    myGcCount = new DurationDataModel<>(new RangedSeries<>(viewRange, new GcStatsDataSeries(myClient, myProcessId)));
 
     myEventMonitor = new EventMonitor(profilers);
   }
 
-  public LineChartModel getMemorySeries() {
-    return myMemorySeries;
+  public DetailedMemoryUsage getDetailedMemoryUsage() {
+    return myDetailedMemoryUsage;
   }
 
   @Override
   public void enter() {
     myLoader.start();
     myEventMonitor.enter();
-    getStudioProfilers().getUpdater().register(myMemorySeries);
+    getStudioProfilers().getUpdater().register(myDetailedMemoryUsage);
     getStudioProfilers().getUpdater().register(myHeapDumpDurations);
     getStudioProfilers().getUpdater().register(myAllocationDurations);
     getStudioProfilers().getUpdater().register(myMemoryAxis);
     getStudioProfilers().getUpdater().register(myObjectsAxis);
     getStudioProfilers().getUpdater().register(myLegends);
+    getStudioProfilers().getUpdater().register(myGcCount);
   }
 
   @Override
   public void exit() {
     myEventMonitor.exit();
-    getStudioProfilers().getUpdater().unregister(myMemorySeries);
+    getStudioProfilers().getUpdater().unregister(myDetailedMemoryUsage);
     getStudioProfilers().getUpdater().unregister(myHeapDumpDurations);
     getStudioProfilers().getUpdater().unregister(myAllocationDurations);
     getStudioProfilers().getUpdater().unregister(myMemoryAxis);
     getStudioProfilers().getUpdater().unregister(myObjectsAxis);
     getStudioProfilers().getUpdater().unregister(myLegends);
+    getStudioProfilers().getUpdater().unregister(myGcCount);
     selectCapture(null, null);
     myLoader.stop();
   }
@@ -309,5 +288,13 @@ public class MemoryProfilerStage extends Stage {
 
   public EventMonitor getEventMonitor() {
     return myEventMonitor;
+  }
+
+  public DurationDataModel<GcDurationData> getGcCount() {
+    return myGcCount;
+  }
+
+  public String getName() {
+    return "Memory";
   }
 }

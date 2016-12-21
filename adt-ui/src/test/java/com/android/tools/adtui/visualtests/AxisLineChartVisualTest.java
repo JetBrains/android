@@ -126,14 +126,9 @@ public class AxisLineChartVisualTest extends VisualTest {
     mData.add(series2);
 
     mLineChartModel.addAll(mRangedData);
-    List<LegendData> legendRenderInfo = new ArrayList<>();
-
-    //Test the populated series case
-    legendRenderInfo.add(new LegendData(mRangedData.get(0), MemoryAxisFormatter.DEFAULT, mTimeGlobalRangeUs));
-    //TODO Test the null series case
 
     mLegendComponentModel = new LegendComponentModel(LABEL_UPDATE_MILLIS);
-    mLegendComponentModel.setLegendData(legendRenderInfo);
+    mLegendComponentModel.add(new LegendData(mRangedData.get(0), MemoryAxisFormatter.DEFAULT, mTimeGlobalRangeUs));
     mLegendComponent = new LegendComponent(mLegendComponentModel);
     mLegendComponent.configure(SERIES2_LABEL, new LegendConfig(LegendConfig.IconType.LINE, LineConfig.getColor(1), SERIES2_LABEL));
 

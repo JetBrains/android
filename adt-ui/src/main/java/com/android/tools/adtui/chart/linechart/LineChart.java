@@ -43,7 +43,7 @@ public class LineChart extends AnimatedComponent {
    * The keys insertion order is preserved.
    */
   @NotNull
-  private final Map<String, LineConfig> myLinesConfig = new LinkedHashMap<>();
+  private final Map<RangedContinuousSeries, LineConfig> myLinesConfig = new LinkedHashMap<>();
 
   @NotNull
   private final ArrayList<Path2D> myLinePaths;
@@ -109,11 +109,11 @@ public class LineChart extends AnimatedComponent {
   /**
    * Configures a line in the chart.
    *
-   * @param name the name of the series to configure.
+   * @param series the ranged series to configure.
    * @param config configuration of the line to be inserted.
    */
-  public void configure(@NotNull String name, @NotNull LineConfig config) {
-    myLinesConfig.put(name, config);
+  public void configure(@NotNull RangedContinuousSeries series, @NotNull LineConfig config) {
+    myLinesConfig.put(series, config);
   }
 
   public void addCustomRenderer(@NotNull LineChartCustomRenderer renderer) {
@@ -122,10 +122,10 @@ public class LineChart extends AnimatedComponent {
 
   @NotNull
   public LineConfig getLineConfig(RangedContinuousSeries rangedContinuousSeries) {
-    LineConfig config = myLinesConfig.get(rangedContinuousSeries.getName());
+    LineConfig config = myLinesConfig.get(rangedContinuousSeries);
     if (config == null) {
       config = new LineConfig(LineConfig.getColor(mNextLineColorIndex++));
-      configure(rangedContinuousSeries.getName(), config);
+      configure(rangedContinuousSeries, config);
     }
     return config;
   }
