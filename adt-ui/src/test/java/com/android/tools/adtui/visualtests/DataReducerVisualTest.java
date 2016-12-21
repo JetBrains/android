@@ -79,8 +79,8 @@ public class DataReducerVisualTest extends VisualTest {
     myData = new DefaultDataSeries<>();
     mySeries = new RangedContinuousSeries("Straight", myViewXRange, myYRange, myData);
 
-    myLineChart.configure("Straight", new LineConfig(JBColor.BLUE));
-    myOptimizedLineChart.configure("Straight", new LineConfig(JBColor.RED));
+    myLineChart.configure(mySeries, new LineConfig(JBColor.BLUE));
+    myOptimizedLineChart.configure(mySeries, new LineConfig(JBColor.RED));
 
     return Arrays.asList(myViewXRange, mySelectionXRange, myLineChartModel, myOptimizedLineChartModel, myXAxisModel);
   }

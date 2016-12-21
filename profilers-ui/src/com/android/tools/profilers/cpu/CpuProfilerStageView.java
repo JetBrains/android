@@ -23,7 +23,6 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.model.*;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
@@ -118,10 +117,11 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     lineChartPanel.setOpaque(false);
     lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
 
-    LineChart lineChart = new LineChart(getStage().getCpuUsage());
-    lineChart.configure("App", new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true).setStacked(true));
-    lineChart.configure("Others", new LineConfig(ProfilerColors.CPU_OTHER_USAGE).setFilled(true).setStacked(true));
-    lineChart.configure("Threads", new LineConfig(ProfilerColors.THREADS_COUNT_COLOR)
+    DetailedCpuUsage cpuUsage = getStage().getCpuUsage();
+    LineChart lineChart = new LineChart(cpuUsage);
+    lineChart.configure(cpuUsage.getCpuSeries(), new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true).setStacked(true));
+    lineChart.configure(cpuUsage.getOtherCpuSeries(), new LineConfig(ProfilerColors.CPU_OTHER_USAGE).setFilled(true).setStacked(true));
+    lineChart.configure(cpuUsage.getThreadsCountSeries(), new LineConfig(ProfilerColors.THREADS_COUNT_COLOR)
       .setStepped(true).setStroke(LineConfig.DEFAULT_DASH_STROKE));
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
     monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
