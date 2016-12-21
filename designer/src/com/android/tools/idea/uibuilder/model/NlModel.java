@@ -55,6 +55,7 @@ import com.android.util.PropertiesMap;
 import com.android.utils.XmlUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.*;
+import com.google.common.util.concurrent.Futures;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -101,6 +102,7 @@ import java.awt.dnd.InvalidDnDOperationException;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
@@ -572,7 +574,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
     synchronized (RENDERING_LOCK) {
       if (myRenderTask != null) {
-        RenderResult result = myRenderTask.render();
+        RenderResult result = Futures.getUnchecked(myRenderTask.render());
         // When the layout was inflated in this same call, we do not have to update the hierarchy again
         if (!inflated) {
           updateHierarchy(result);
@@ -631,23 +633,18 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   public void requestLayout(boolean animate) {
     if (myRenderTask != null) {
       synchronized (RENDERING_LOCK) {
-        RenderResult result = myRenderTask.layout();
-        if (result != null) {
-          updateHierarchy(result);
-          notifyListenersModelLayoutComplete(animate);
-        }
-      }
-    }
-  }
+        RenderResult result = null;
+        try {
+          result = myRenderTask.layout().get();
 
-  /**
-   * Method that paints the current layout to the given {@link Graphics2D} object.
-   */
-  @SuppressWarnings("unused")
-  public void paint(@NotNull Graphics2D graphics) {
-    synchronized (RENDERING_LOCK) {
-      if (myRenderTask != null) {
-        myRenderTask.render(graphics);
+          if (result != null) {
+            updateHierarchy(result);
+            notifyListenersModelLayoutComplete(animate);
+          }
+        }
+        catch (InterruptedException | ExecutionException e) {
+          LOG.warn("Unable to run layout()", e);
+        }
       }
     }
   }
