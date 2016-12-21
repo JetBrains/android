@@ -37,7 +37,7 @@ public class ResourceNameValidator implements InputValidatorEx {
   private static final Logger LOG = Logger.getInstance(ResourceNameValidator.class);
 
   /**
-   * Set of existing names to check for conflicts with
+   * Set of existing NORMALISED names to check for conflicts with
    */
   private Set<String> myExisting;
 
@@ -191,7 +191,7 @@ public class ResourceNameValidator implements InputValidatorEx {
   }
 
   public boolean doesResourceExist(@NotNull final String resourceName) {
-    return myExisting != null && myExisting.contains(resourceName);
+    return myExisting != null && myExisting.contains(normaliseResourceName(resourceName));
   }
 
   /**
