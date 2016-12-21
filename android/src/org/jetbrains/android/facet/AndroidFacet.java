@@ -165,7 +165,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @Nullable
   public static AndroidFacet getInstance(@NotNull Module module) {
-    return FacetManager.getInstance(module).getFacetByType(ID);
+    return !module.isDisposed() ? FacetManager.getInstance(module).getFacetByType(ID) : null;
   }
 
   @Nullable
@@ -177,7 +177,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @Nullable
   public static AndroidFacet getInstance(@NotNull PsiElement element) {
     Module module = getModuleSafely(element);
-    return module != null && !module.isDisposed() ? getInstance(module) : null;
+    return module != null ? getInstance(module) : null;
   }
 
   @Nullable
