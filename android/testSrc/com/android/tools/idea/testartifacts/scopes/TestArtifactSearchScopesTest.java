@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.utils.FileUtils;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -152,7 +153,8 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
   public void testProjectWithSharedTestFolder() throws Exception {
     loadProject(SHARED_TEST_FOLDER);
-    TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(myFixture.getModule());
+    Module module = ModuleManager.getInstance(myFixture.getProject()).findModuleByName("app");
+    TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(module);
     assertNotNull(scopes);
 
     File file = new File(myFixture.getProject().getBasePath(), join("app", "src", "share", "java"));
