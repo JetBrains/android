@@ -48,7 +48,6 @@ import static org.junit.Assert.*;
 public class ThemeEditorTableTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final ScreenshotsDuringTest screenshotsDuringTest = new ScreenshotsDuringTest();
 
   @Test
   public void testParentValueCell() throws IOException {

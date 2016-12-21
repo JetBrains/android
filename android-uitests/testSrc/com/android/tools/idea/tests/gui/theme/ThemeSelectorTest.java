@@ -44,7 +44,6 @@ import static org.junit.Assert.*;
 public class ThemeSelectorTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final ScreenshotsDuringTest screenshotsDuringTest = new ScreenshotsDuringTest();
 
   /**
    * Tests the theme renaming functionality of the theme selector
