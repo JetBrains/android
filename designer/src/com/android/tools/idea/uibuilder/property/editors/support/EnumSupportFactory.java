@@ -62,7 +62,7 @@ public class EnumSupportFactory {
         if (property.getName().endsWith(TEXT_APPEARANCE_SUFFIX)) {
           return true;
         }
-        if (AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(property.getName()) == ResourceType.ID) {
+        if (AndroidDomUtil.getSpecialResourceTypes(property.getName()).contains(ResourceType.ID)) {
           return true;
         }
         AttributeDefinition definition = property.getDefinition();
@@ -96,7 +96,7 @@ public class EnumSupportFactory {
         if (property.getName().endsWith(TEXT_APPEARANCE_SUFFIX)) {
           return new TextAppearanceEnumSupport(property);
         }
-        else if (AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(property.getName()) == ResourceType.ID) {
+        else if (AndroidDomUtil.getSpecialResourceTypes(property.getName()).contains(ResourceType.ID)) {
           return new IdEnumSupport(property);
         }
         else {
