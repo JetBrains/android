@@ -24,8 +24,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -56,7 +54,8 @@ public final class ProfilerScrollbar extends JBScrollBar {
 
   @NotNull private final ProfilerTimeline myTimeline;
 
-  private boolean myScrolling;
+  private boolean myUpdating;
+  private boolean myCheckStream;
 
   public ProfilerScrollbar(@NotNull ProfilerTimeline timeline,
                            @NotNull JComponent zoomPanComponent) {
@@ -79,46 +78,33 @@ public final class ProfilerScrollbar extends JBScrollBar {
       }
     });
 
-    // We cannot simply use an AdjustmentListener as the values can be changed in multiple scenarios.
-    // e.g. streaming vs scrolling vs viewing back in time
-    // Here we simply keep track of the state and let the animate loop handles everything.
-    addMouseListener(new MouseAdapter() {
-      @Override
-      public void mousePressed(MouseEvent e) {
-        if (!isScrollable()) {
-          return;
+    addAdjustmentListener(e -> {
+      if (!myUpdating) {
+        updateModel();
+        if (!e.getValueIsAdjusting()) {
+          myCheckStream = true;
         }
-
-        myTimeline.setStreaming(false);
-        myTimeline.setCanStream(false);
-        myScrolling = true;
-      }
-
-      @Override
-      public void mouseReleased(MouseEvent e) {
-        if (!isScrollable()) {
-          return;
-        }
-
-        myScrolling = false;
-        myTimeline.setCanStream(true);
       }
     });
-
     zoomPanComponent.addMouseWheelListener(e -> {
-      int count = e.getWheelRotation();
-      double deltaUs = myTimeline.getViewRange().getLength() * VIEW_PERCENTAGE_PER_MOUSEHWEEL_FACTOR * count;
-      if (e.isAltDown()) {
-        double anchor = ((float)e.getX() / e.getComponent().getWidth());
-        myTimeline.zoom(deltaUs, anchor);
-      }
-      else {
-        myTimeline.pan(deltaUs);
+      if (isScrollable()) {
+        int count = e.getWheelRotation();
+        double deltaUs = myTimeline.getViewRange().getLength() * VIEW_PERCENTAGE_PER_MOUSEHWEEL_FACTOR * count;
+        if (e.isAltDown()) {
+          double anchor = ((float)e.getX() / e.getComponent().getWidth());
+          myTimeline.zoom(deltaUs, anchor);
+          myCheckStream = deltaUs > 0;
+        }
+        else {
+          myTimeline.pan(deltaUs);
+        }
+        myCheckStream = deltaUs > 0;
       }
     });
   }
 
   private void modelChanged() {
+    myUpdating = true;
     Range dataRangeUs = myTimeline.getDataRange();
     Range viewRangeUs = myTimeline.getViewRange();
     int dataExtentMs = (int)((dataRangeUs.getLength()) / MS_TO_US);
@@ -126,6 +112,17 @@ public final class ProfilerScrollbar extends JBScrollBar {
     int viewRelativeMinMs = Math.max(0, (int)((viewRangeUs.getMin() - dataRangeUs.getMin()) / MS_TO_US));
 
     setValues(viewRelativeMinMs, viewExtentMs, 0, dataExtentMs);
+    myUpdating = false;
+  }
+
+  private void updateModel() {
+    myTimeline.setStreaming(false);
+    Range dataRangeUs = myTimeline.getDataRange();
+    Range viewRangeUs = myTimeline.getViewRange();
+    int valueMs = getValue();
+    int viewRelativeMinMs = Math.max(0, (int)((viewRangeUs.getMin() - dataRangeUs.getMin()) / MS_TO_US));
+    double deltaUs = (valueMs - viewRelativeMinMs) * MS_TO_US;
+    viewRangeUs.shift(deltaUs);
   }
 
   @Override
@@ -135,9 +132,12 @@ public final class ProfilerScrollbar extends JBScrollBar {
     // Change back to streaming mode as needed
     // Note: isCloseToMax() checks for pixel proximity which relies on the scrollbar's dimension, which is why this code snippet
     // is here instead of animate/postAnimate - we wouldn't get the most current size in those places.
-    if (!myTimeline.isStreaming() && isCloseToMax() && myTimeline.canStream()) {
-      myTimeline.setStreaming(true);
+    if (myCheckStream) {
+      if (!myTimeline.isStreaming() && isCloseToMax() && myTimeline.canStream()) {
+        myTimeline.setStreaming(true);
+      }
     }
+    myCheckStream = false;
   }
 
   private boolean isScrollable() {
