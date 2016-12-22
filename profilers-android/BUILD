@@ -1,0 +1,24 @@
+load("//tools/base/bazel:bazel.bzl", "iml_module")
+
+iml_module(
+    name = "profilers-android",
+    srcs = ["src"],
+    tags = ["managed"],
+    test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//tools/idea/platform/core-api[module]",
+        "//tools/idea/platform/platform-api[module]",
+        "//tools/adt/idea/profilers-ui[module]",
+        "//tools/adt/idea/profilers[module]",
+        "//tools/adt/idea/adt-ui-model[module]",
+        "//tools/adt/idea/perfd-host[module]",
+        "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
+        "//tools/idea:platform-impl_and_others[module]",
+        "//tools/idea/.idea/libraries:Guava",
+        "//tools/idea/java/java-psi-api[module]",
+        "//tools/adt/idea/android[module]",
+        "//tools/idea/.idea/libraries:mockito[test]",
+    ],
+)

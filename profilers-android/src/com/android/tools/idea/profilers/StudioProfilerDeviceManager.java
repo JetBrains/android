@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.monitor.tool;
+package com.android.tools.idea.profilers;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ddmlib.*;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.LegacyAllocationConverter.CallStack;
-import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.datastore.LegacyAllocationConverter;
 import com.android.tools.datastore.LegacyAllocationTracker;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profilers.ProfilerClient;
 import com.google.common.base.Charsets;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
