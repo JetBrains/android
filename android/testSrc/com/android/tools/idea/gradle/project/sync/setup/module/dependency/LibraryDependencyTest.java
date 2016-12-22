@@ -16,23 +16,25 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
 import com.intellij.openapi.roots.DependencyScope;
-import com.intellij.util.containers.ContainerUtil;
-import junit.framework.TestCase;
+import org.junit.Test;
 
 import java.io.File;
-import java.util.Collection;
+
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests for {@link LibraryDependency}.
  */
-public class LibraryDependencyTest extends TestCase {
-  public void testConstructorWithJar() {
+public class LibraryDependencyTest {
+  @Test
+  public void constructorWithJar() {
     File jarFile = new File("~/repo/guava/guava-11.0.2.jar");
     LibraryDependency dependency = new LibraryDependency(jarFile, DependencyScope.TEST);
     assertEquals("guava-11.0.2", dependency.getName());
-    Collection<String> binaryPaths = dependency.getPaths(LibraryDependency.PathType.BINARY);
-    assertEquals(1, binaryPaths.size());
-    assertEquals(jarFile.getPath(), ContainerUtil.getFirstItem(binaryPaths));
+    File[] binaryPaths = dependency.getPaths(LibraryDependency.PathType.BINARY);
+    assertThat(binaryPaths).hasLength(1);
+    assertEquals(jarFile, binaryPaths[0]);
     assertEquals(DependencyScope.TEST, dependency.getScope());
   }
 }
