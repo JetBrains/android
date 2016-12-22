@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.SyncLibraryRegistry;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -34,7 +33,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.SdkConstants.DOT_JAR;
-import static com.android.tools.idea.gradle.util.FilePaths.pathToUrl;
+import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
@@ -70,16 +69,15 @@ public class ArtifactsByConfigurationModuleSetupStep extends JavaModuleSetupStep
           }
           String libraryName = module.getName() + "." + artifactName;
           Library library = ideModelsProvider.getLibraryByName(libraryName);
-          String artifactPath = artifact.getPath();
           if (library == null) {
             // Create library.
             library = ideModelsProvider.createLibrary(libraryName);
             Library.ModifiableModel libraryModel = ideModelsProvider.getModifiableLibraryModel(library);
-            String url = pathToUrl(artifactPath);
+            String url = pathToIdeaUrl(artifact);
             libraryModel.addRoot(url, CLASSES);
           }
           else {
-            SyncLibraryRegistry.getInstance(module.getProject()).markAsUsed(library, Lists.newArrayList(artifactPath));
+            SyncLibraryRegistry.getInstance(module.getProject()).markAsUsed(library, artifact);
           }
           LibraryOrderEntry orderEntry = moduleModel.addLibraryEntry(library);
           orderEntry.setScope(COMPILE);
