@@ -100,12 +100,15 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
     myReducer = reducer;
     myRender = true;
     setFont(AdtUiUtils.DEFAULT_FONT);
-    myModel = model;
-    myModel.addDependency(myAspectObserver).onChange(StateChartModel.Aspect.STATE_CHART, this::modelChanged);
+    setModel(model);
   }
 
   public void setModel(@NotNull StateChartModel<E> model) {
+    if (myModel != null) {
+      myModel.removeDependencies(myAspectObserver);
+    }
     myModel = model;
+    myModel.addDependency(myAspectObserver).onChange(StateChartModel.Aspect.STATE_CHART, this::modelChanged);
     modelChanged();
   }
 

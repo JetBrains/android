@@ -67,10 +67,10 @@ public class NetworkProfilerStage extends Stage {
     myDetailedNetworkUsage = new DetailedNetworkUsage(profilers);
 
     myTrafficAxis = new AxisComponentModel(myDetailedNetworkUsage.getTrafficRange(), TRAFFIC_AXIS_FORMATTER);
-    myTrafficAxis.clampToMajorTicks(true);
+    myTrafficAxis.setClampToMajorTicks(true);
 
     myConnectionsAxis = new AxisComponentModel(myDetailedNetworkUsage.getConnectionsRange(), CONNECTIONS_AXIS_FORMATTER);
-    myConnectionsAxis.clampToMajorTicks(true);
+    myConnectionsAxis.setClampToMajorTicks(true);
 
     myLegends = new NetworkStageLegends(myDetailedNetworkUsage, profilers.getTimeline().getDataRange());
 

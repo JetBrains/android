@@ -19,20 +19,11 @@ import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> implements Updatable  {
-
-  public Range getGlobalRange() {
-    return myGlobalRange;
-  }
-
-  public void setClampToMajorTicks(boolean clampToMajorTicks) {
-    myClampToMajorTicks = clampToMajorTicks;
-  }
+public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> implements Updatable {
 
   public enum Aspect {
     AXIS
   }
-
 
   @NotNull private final Range myRange;
   @NotNull private final BaseAxisFormatter myFormatter;
@@ -47,33 +38,13 @@ public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> i
    */
   private boolean myFirstUpdate = true;
 
-
   /**
-   * @param range       a Range object this AxisComponent listens to for the min/max values.
-   * @param formatter   formatter used for determining the tick marker and labels that need to be rendered.
+   * @param range     a Range object this AxisComponent listens to for the min/max values.
+   * @param formatter formatter used for determining the tick marker and labels that need to be rendered.
    */
   public AxisComponentModel(@NotNull Range range, @NotNull BaseAxisFormatter formatter) {
     myRange = range;
     myFormatter = formatter;
-  }
-
-  @NotNull
-  public String getLabel() {
-    return myLabel;
-  }
-
-  @NotNull
-  public Range getRange() {
-    return myRange;
-  }
-
-  @NotNull
-  public BaseAxisFormatter getFormatter() {
-    return myFormatter;
-  }
-
-  public double getZero() {
-    return myGlobalRange != null ? myGlobalRange.getMin() : myRange.getMin();
   }
 
   @Override
@@ -103,24 +74,44 @@ public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> i
   /**
    * @param globalRange sets the global range on the AxisComponent. The global range also sets the relative zero point.
    */
-  public AxisComponentModel setGlobalRange(@NotNull Range globalRange) {
+  public void setGlobalRange(@NotNull Range globalRange) {
     myGlobalRange = globalRange;
-    return this;
   }
 
   /**
    * Sets the content of the axis' label.
    */
-  public AxisComponentModel setLabel(@NotNull String label) {
+  public void setLabel(@NotNull String label) {
     myLabel = label;
-    return this;
   }
 
   /**
    * @param clampToMajorTicks if true, the AxisComponent will extend itself to the next major tick based on the current max value.
    */
-  public AxisComponentModel clampToMajorTicks(boolean clampToMajorTicks) {
+  public void setClampToMajorTicks(boolean clampToMajorTicks) {
     myClampToMajorTicks = clampToMajorTicks;
-    return this;
+  }
+
+  @NotNull
+  public String getLabel() {
+    return myLabel;
+  }
+
+  @NotNull
+  public Range getRange() {
+    return myRange;
+  }
+
+  public Range getGlobalRange() {
+    return myGlobalRange;
+  }
+
+  @NotNull
+  public BaseAxisFormatter getFormatter() {
+    return myFormatter;
+  }
+
+  public double getZero() {
+    return myGlobalRange != null ? myGlobalRange.getMin() : myRange.getMin();
   }
 }

@@ -265,8 +265,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     private final StateChart<CpuProfilerStage.ThreadState> myStateChart;
 
-    //private AnimatedListRenderer<CpuThreadsModel.RangedCpuThread, StateChart<CpuProfilerStage.ThreadState>> myStateCharts;
-
     /**
      * Keep the index of the item currently hovered.
      */

@@ -55,7 +55,7 @@ public final class EnumColors<E extends Enum<E>> {
   public Color getColor(@NotNull E type) {
     List<Color> colorList = myColors.get(type);
     if (colorList == null) {
-      System.err.println("No colors for value " + type);
+      throw new IllegalStateException("No colors for value " + type);
     }
     return colorList.get(myColorIndex % colorList.size());
   }

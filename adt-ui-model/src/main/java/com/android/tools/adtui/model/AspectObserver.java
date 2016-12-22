@@ -29,4 +29,8 @@ public class AspectObserver {
   public void addDependency(AspectModel<?>.Dependency dependency) {
     myDependencies.add(dependency);
   }
+
+  public List<AspectModel<?>.Dependency> getDependencies() {
+    return myDependencies;
+  }
 }
