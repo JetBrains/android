@@ -68,6 +68,12 @@ public final class SelectionComponent extends AnimatedComponent {
     myMode = Mode.NONE;
     setFocusable(true);
     initListeners();
+
+    myModel.addDependency(myAspectObserver).onChange(SelectionModel.Aspect.SELECTION, this::modelChanged);
+  }
+
+  private void modelChanged() {
+    opaqueRepaint();
   }
 
   private void initListeners() {

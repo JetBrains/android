@@ -46,15 +46,11 @@ public class ConnectionsViewTest {
   @Rule public FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("ConnectionsViewTest", FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
   private NetworkProfilerStage myStage;
-  //private FakeTimer myChoreographerTimer;
-//  private Choreographer myChoreographer;
 
   @Before
   public void setUp() {
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
     myStage = new NetworkProfilerStage(profilers);
-    //myChoreographerTimer = new FakeTimer();
-    //myChoreographer = new Choreographer(myChoreographerTimer);
   }
 
   @Test
@@ -123,7 +119,6 @@ public class ConnectionsViewTest {
     table.getRowSorter().toggleSortOrder(ConnectionsView.Column.TIME.ordinal());
     table.getRowSorter().toggleSortOrder(ConnectionsView.Column.TIME.ordinal());
 
-    //myChoreographerTimer.step();
     // After reverse sorting, data should be backwards
     assertThat(table.getRowCount(), is(4));
     assertThat(table.convertRowIndexToView(0), is(3));
@@ -132,13 +127,11 @@ public class ConnectionsViewTest {
     assertThat(table.convertRowIndexToView(3), is(0));
 
     dataRange.set(0, 0);
-    //myChoreographerTimer.step();
     assertThat(table.getRowCount(), is(0));
 
     // Include middle two requests: 3->5 (time = 2), and 8->13 (time=5)
     // This should still be shown in reverse sorted over
     dataRange.set(TimeUnit.SECONDS.toMicros(3), TimeUnit.SECONDS.toMicros(10));
-    //myChoreographerTimer.step();
     assertThat(table.getRowCount(), is(2));
     assertThat(table.convertRowIndexToView(0), is(1));
     assertThat(table.convertRowIndexToView(1), is(0));

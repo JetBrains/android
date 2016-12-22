@@ -29,10 +29,11 @@ public class AspectModelTest {
 
     private final Runnable myRunnable;
     public int changes;
+    private AspectModel<Aspect> myModel;
 
     public Observer(AspectModel<Aspect> model, Runnable run) {
-      model.addDependency(this).onChange(Aspect.ASPECT, this::changed);
       myRunnable = run;
+      setModel(model);
     }
 
     public Observer(AspectModel<Aspect> model) {
@@ -44,6 +45,14 @@ public class AspectModelTest {
       if (myRunnable != null) {
         myRunnable.run();
       }
+    }
+
+    public void setModel(AspectModel<Aspect> model) {
+      if (myModel != null) {
+        myModel.removeDependencies(this);
+      }
+      myModel = model;
+      myModel.addDependency(this).onChange(Aspect.ASPECT, this::changed);
     }
   }
 
@@ -78,6 +87,27 @@ public class AspectModelTest {
     assertEquals(0, observer.changes);
     model.changed(Aspect.ASPECT);
     model.changed(Aspect.ASPECT);
+    assertEquals(2, observer.changes);
+  }
+
+  @Test
+  public void testRemoveDependencies() {
+    AspectModel<Aspect> model1 = new AspectModel<>();
+    AspectModel<Aspect> model2 = new AspectModel<>();
+    Observer observer = new Observer(model1);
+
+    assertEquals(0, observer.changes);
+    model1.changed(Aspect.ASPECT);
+    assertEquals(1, observer.changes);
+    model2.changed(Aspect.ASPECT);
+    assertEquals(1, observer.changes);
+
+    observer.setModel(model2);
+
+    assertEquals(1, observer.changes);
+    model1.changed(Aspect.ASPECT);
+    assertEquals(1, observer.changes);
+    model2.changed(Aspect.ASPECT);
     assertEquals(2, observer.changes);
   }
 }

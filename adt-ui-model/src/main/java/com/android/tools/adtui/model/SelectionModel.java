@@ -21,7 +21,11 @@ import javax.swing.event.ChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SelectionModel {
+public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
+
+  public enum Aspect {
+    SELECTION,
+  }
 
   /**
    * The range being selected.
@@ -41,6 +45,13 @@ public class SelectionModel {
   public SelectionModel(@NotNull Range selectionRange, @NotNull Range globalRange) {
     myRange = globalRange;
     mySelectionRange = selectionRange;
+
+    myRange.addDependency(this).onChange(Range.Aspect.RANGE, this::rangesChanged);
+    mySelectionRange.addDependency(this).onChange(Range.Aspect.RANGE, this::rangesChanged);
+  }
+
+  private void rangesChanged() {
+    changed(Aspect.SELECTION);
   }
 
   public void addChangeListener(final SelectionListener listener) {
