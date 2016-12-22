@@ -34,7 +34,9 @@ public final class Matchers {
       @Override
       protected boolean isMatching(@NotNull T component) {
         // Appearance of MNEMONIC can be platform-dependent, so be careful modifying this.
-        return text.equals(TextAccessors.getTextAccessor(component).getText().replaceAll(Character.toString(BundleBase.MNEMONIC), ""));
+        String componentText = TextAccessors.getTextAccessor(component).getText();
+        componentText = componentText == null ? "" : componentText.replaceAll(Character.toString(BundleBase.MNEMONIC), "");
+        return text.equals(componentText);
       }
     };
   }
