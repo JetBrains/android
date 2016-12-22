@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.model;
+package com.android.tools.adtui.model.legend;
 
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
@@ -26,19 +30,21 @@ import java.util.concurrent.TimeUnit;
  * Render data used for displaying LineChart data. In particular, it will show the most recent data in the RangedContinuousSeries
  * based on the max value of the input range.
  */
-public final class LegendData {
+public final class SeriesLegend implements Legend {
 
   @NotNull private final Range myRange;
   @NotNull private final RangedContinuousSeries mySeries;
   @NotNull private final BaseAxisFormatter myFormatter;
 
-  public LegendData(@NotNull RangedContinuousSeries series, @NotNull BaseAxisFormatter formatter, @NotNull Range range) {
+  public SeriesLegend(@NotNull RangedContinuousSeries series, @NotNull BaseAxisFormatter formatter, @NotNull Range range) {
     myRange = range;
     mySeries = series;
     myFormatter = formatter;
   }
 
-  public String getFormattedData() {
+  @Nullable
+  @Override
+  public String getValue() {
     double time = myRange.getMax();
     ImmutableList<SeriesData<Long>> data = mySeries.getDataSeries().getDataForXRange(new Range(time, time));
     if (data.isEmpty()) {
@@ -56,15 +62,8 @@ public final class LegendData {
     return myFormatter.getFormattedString(mySeries.getYRange().getLength(), data.get(index).value, true);
   }
 
-  public String get() {
-    //if (data.hasData()) {
-      return String.format("%s: %s", getName(), getFormattedData());
-    //}
-    //else {
-    //  myLegends.add(data.getLabel());
-    //}
-  }
-
+  @Override
+  @NotNull
   public String getName() {
     return mySeries.getName();
   }

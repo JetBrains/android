@@ -40,12 +40,10 @@ public class LegendConfig {
 
   /**
    * Render data to be used when rendering the legend.
-   *
    * @param icon   The icon type to be displayed
    * @param color  The color of the icon to be associated with the elements in the chart.
-   * @param label  The label to be drawn.
    */
-  public LegendConfig(@NotNull IconType icon, @NotNull Color color, @NotNull String label) {
+  public LegendConfig(@NotNull IconType icon, @NotNull Color color) {
     mColor = color;
     mIcon = icon;
   }
