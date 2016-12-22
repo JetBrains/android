@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle;
 
 import com.intellij.jarFinder.InternetAttachSourceProvider;
+import com.intellij.openapi.components.ServiceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,31 +25,33 @@ import java.io.File;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 
-public final class Artifacts {
-  private Artifacts() {
+public class LibraryFilePaths {
+  @NotNull
+  public static LibraryFilePaths getInstance() {
+    return ServiceManager.getService(LibraryFilePaths.class);
   }
 
   @Nullable
-  public static File findSourceJarPathForLibrary(@NotNull File libraryFilePath) {
-    return findArtifactFilePathInRepository(libraryFilePath, "-sources.jar", true);
+  public File findSourceJarPath(@NotNull File libraryPath) {
+    return findArtifactFilePathInRepository(libraryPath, "-sources.jar", true);
   }
 
   @Nullable
-  public static File findPomPathForLibrary(@NotNull File libraryFilePath) {
-    return findArtifactFilePathInRepository(libraryFilePath, ".pom", false);
+  public File findPomPathForLibrary(@NotNull File libraryPath) {
+    return findArtifactFilePathInRepository(libraryPath, ".pom", false);
   }
 
   @Nullable
-  private static File findArtifactFilePathInRepository(@NotNull File libraryFilePath,
+  private static File findArtifactFilePathInRepository(@NotNull File libraryPath,
                                                        @NotNull String fileNameSuffix,
                                                        boolean searchInIdeCache) {
-    if (!libraryFilePath.isFile()) {
+    if (!libraryPath.isFile()) {
       // Unlikely to happen. At this point the jar file should exist.
       return null;
     }
 
-    File parentPath = libraryFilePath.getParentFile();
-    String name = getNameWithoutExtension(libraryFilePath);
+    File parentPath = libraryPath.getParentFile();
+    String name = getNameWithoutExtension(libraryPath);
     String sourceFileName = name + fileNameSuffix;
     if (parentPath != null) {
 

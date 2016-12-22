@@ -20,57 +20,69 @@ import com.intellij.openapi.roots.DependencyScope;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.HashSet;
+import java.util.Map;
 
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
+import static com.intellij.util.ArrayUtilRt.EMPTY_FILE_ARRAY;
 
 /**
  * An IDEA module's dependency on a library (e.g. a jar file.)
  */
 public class LibraryDependency extends Dependency {
-  @NotNull private final Map<PathType, Collection<String>> myPathsByType = new EnumMap<>(PathType.class);
+  @NotNull private final Map<PathType, Collection<File>> myPathsByType = new EnumMap<>(PathType.class);
+  @NotNull private final File myArtifactPath;
 
   private String myName;
 
   /**
    * Creates a new {@link LibraryDependency}.
    *
-   * @param binaryPath the path, in the file system, of the binary file that represents the library to depend on.
-   * @param scope      the scope of the dependency. Supported values are {@link DependencyScope#COMPILE} and {@link DependencyScope#TEST}.
+   * @param artifactPath the path, in the file system, of the binary file that represents the library to depend on.
+   * @param scope        the scope of the dependency. Supported values are {@link DependencyScope#COMPILE} and {@link DependencyScope#TEST}.
    * @throws IllegalArgumentException if the given scope is not supported.
    */
   @VisibleForTesting
-  public LibraryDependency(@NotNull File binaryPath, @NotNull DependencyScope scope) {
-    this(getNameWithoutExtension(binaryPath), scope);
-    addPath(PathType.BINARY, binaryPath);
+  public LibraryDependency(@NotNull File artifactPath, @NotNull DependencyScope scope) {
+    this(artifactPath, getNameWithoutExtension(artifactPath), scope);
+    addPath(PathType.BINARY, artifactPath);
   }
 
   /**
    * Creates a new {@link LibraryDependency}.
    *
+   * @param artifactPath the path, in the file system, of the binary file that represents the library to depend on.
    * @param name  the name of the library to depend on.
    * @param scope the scope of the dependency. Supported values are {@link DependencyScope#COMPILE} and {@link DependencyScope#TEST}.
    * @throws IllegalArgumentException if the given scope is not supported.
    */
-  LibraryDependency(@NotNull String name, @NotNull DependencyScope scope) {
+  LibraryDependency(@NotNull File artifactPath, @NotNull String name, @NotNull DependencyScope scope) {
     super(scope);
+    myArtifactPath = artifactPath;
     setName(name);
   }
 
   @VisibleForTesting
   public void addPath(@NotNull PathType type, @NotNull File path) {
-    Collection<String> paths = myPathsByType.get(type);
+    Collection<File> paths = myPathsByType.get(type);
     if (paths == null) {
       paths = new HashSet<>();
       myPathsByType.put(type, paths);
     }
-    paths.add(path.getPath());
+    paths.add(path);
   }
 
   @NotNull
-  public Collection<String> getPaths(@NotNull PathType type) {
-    Collection<String> paths = myPathsByType.get(type);
-    return paths == null ? Collections.emptyList() : paths;
+  public File[] getPaths(@NotNull PathType type) {
+    Collection<File> paths = myPathsByType.get(type);
+    return paths == null || paths.isEmpty() ? EMPTY_FILE_ARRAY : paths.toArray(new File[paths.size()]);
+  }
+
+  @NotNull
+  public File getArtifactPath() {
+    return myArtifactPath;
   }
 
   @NotNull
@@ -92,6 +104,6 @@ public class LibraryDependency extends Dependency {
   }
 
   public enum PathType {
-    BINARY, SOURCE, DOCUMENTATION
+    BINARY, DOCUMENTATION
   }
 }

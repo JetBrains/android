@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import com.android.tools.idea.gradle.project.sync.setup.module.SyncLibraryRegistry.LibraryToUpdate;
 import com.android.tools.idea.testing.IdeComponents;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
@@ -28,11 +27,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
+import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToUrl;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.ArrayUtil.EMPTY_STRING_ARRAY;
+import static com.intellij.util.ArrayUtilRt.EMPTY_FILE_ARRAY;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -96,7 +99,7 @@ public class SyncLibraryRegistryTest extends IdeaTestCase {
     List<Library> libraries = simulateProjectHasLibraries(2);
 
     SyncLibraryRegistry libraryRegistry = SyncLibraryRegistry.getInstance(getProject());
-    libraryRegistry.markAsUsed(libraries.get(0), Collections.emptyList());
+    libraryRegistry.markAsUsed(libraries.get(0), EMPTY_FILE_ARRAY);
 
     assertThat(libraryRegistry.getProjectLibrariesByName().values()).containsExactly(libraries.get(1));
   }
@@ -109,7 +112,7 @@ public class SyncLibraryRegistryTest extends IdeaTestCase {
     Library library = mock(Library.class);
     when(library.getName()).thenReturn("notExisting");
 
-    libraryRegistry.markAsUsed(library, Collections.emptyList());
+    libraryRegistry.markAsUsed(library, EMPTY_FILE_ARRAY);
 
     assertThat(libraryRegistry.getProjectLibrariesByName().values()).containsAllIn(libraries);
   }
@@ -120,7 +123,7 @@ public class SyncLibraryRegistryTest extends IdeaTestCase {
 
     Library library = mock(Library.class);
     try {
-      libraryRegistry.markAsUsed(library, Collections.emptyList());
+      libraryRegistry.markAsUsed(library, EMPTY_FILE_ARRAY);
       fail("Expecting error due to disposed instance");
     }
     catch (IllegalStateException ignored) {
@@ -132,7 +135,7 @@ public class SyncLibraryRegistryTest extends IdeaTestCase {
     List<Library> libraries = simulateProjectHasLibraries(2);
 
     SyncLibraryRegistry libraryRegistry = SyncLibraryRegistry.getInstance(getProject());
-    libraryRegistry.markAsUsed(libraries.get(0), Collections.emptyList());
+    libraryRegistry.markAsUsed(libraries.get(0), EMPTY_FILE_ARRAY);
 
     assertThat(libraryRegistry.getLibrariesToRemove()).containsExactly(libraries.get(1));
   }
@@ -155,7 +158,7 @@ public class SyncLibraryRegistryTest extends IdeaTestCase {
     Library library = simulateProjectHasLibrary(fakeJarPath);
 
     SyncLibraryRegistry libraryRegistry = SyncLibraryRegistry.getInstance(getProject());
-    libraryRegistry.markAsUsed(library, Collections.singletonList(fakeJarPath.getPath()));
+    libraryRegistry.markAsUsed(library, fakeJarPath);
 
     assertThat(libraryRegistry.getLibrariesToUpdate()).isEmpty();
   }
@@ -167,7 +170,7 @@ public class SyncLibraryRegistryTest extends IdeaTestCase {
     File newJarPath = createTempFile("fake2.jar", null);
 
     SyncLibraryRegistry libraryRegistry = SyncLibraryRegistry.getInstance(getProject());
-    libraryRegistry.markAsUsed(library, Collections.singletonList(newJarPath.getPath()));
+    libraryRegistry.markAsUsed(library, newJarPath);
 
     List<LibraryToUpdate> librariesToUpdate = libraryRegistry.getLibrariesToUpdate();
     assertThat(librariesToUpdate).hasSize(1);
@@ -184,14 +187,14 @@ public class SyncLibraryRegistryTest extends IdeaTestCase {
     File newJarPath = createTempFile("fake2.jar", null);
 
     SyncLibraryRegistry libraryRegistry = SyncLibraryRegistry.getInstance(getProject());
-    libraryRegistry.markAsUsed(library, Lists.newArrayList(fakeJarPath.getPath(), newJarPath.getPath()));
+    libraryRegistry.markAsUsed(library, fakeJarPath, newJarPath);
 
     List<LibraryToUpdate> librariesToUpdate = libraryRegistry.getLibrariesToUpdate();
     assertThat(librariesToUpdate).hasSize(1);
 
     LibraryToUpdate libraryToUpdate = librariesToUpdate.get(0);
     assertSame(library, libraryToUpdate.getLibrary());
-    assertThat(libraryToUpdate.getNewBinaryUrls()).containsExactly(pathToUrl(fakeJarPath.getPath()), pathToUrl(newJarPath.getPath()));
+    assertThat(libraryToUpdate.getNewBinaryUrls()).containsExactly(pathToIdeaUrl(fakeJarPath), pathToIdeaUrl(newJarPath));
   }
 
   public void testGetLibrariesToUpdateWhenUrlsWereRemoved() throws IOException {
@@ -200,7 +203,7 @@ public class SyncLibraryRegistryTest extends IdeaTestCase {
     Library library = simulateProjectHasLibrary(jarPath1, jarPath2);
 
     SyncLibraryRegistry libraryRegistry = SyncLibraryRegistry.getInstance(getProject());
-    libraryRegistry.markAsUsed(library, Lists.newArrayList(jarPath1.getPath()));
+    libraryRegistry.markAsUsed(library, jarPath1);
 
     List<LibraryToUpdate> librariesToUpdate = libraryRegistry.getLibrariesToUpdate();
     assertThat(librariesToUpdate).hasSize(1);

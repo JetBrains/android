@@ -17,17 +17,17 @@ package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SyncIssue;
+import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.setup.module.dependency.Dependency;
-import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
-import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
-import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
-import com.android.tools.idea.gradle.project.sync.setup.module.common.DependenciesSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
+import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor;
+import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
+import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
+import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -47,11 +47,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Set;
 
 import static com.android.SdkConstants.FD_JARS;
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.*;
+import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
+import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.DOCUMENTATION;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.Projects.setModuleCompiledArtifact;
@@ -62,7 +62,8 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class DependenciesModuleSetupStep extends AndroidModuleSetupStep {
-  @NotNull private final DependenciesSetup myDependenciesSetup;
+  @NotNull private final DependenciesExtractor myDependenciesExtractor;
+  @NotNull private final AndroidModuleDependenciesSetup myDependenciesSetup;
 
   @NotNull
   public static DependenciesModuleSetupStep getInstance() {
@@ -75,12 +76,13 @@ public class DependenciesModuleSetupStep extends AndroidModuleSetupStep {
   }
 
   @SuppressWarnings("unused") // Instantiated by IDEA
-  public DependenciesModuleSetupStep() {
-    this(new DependenciesSetup());
+  public DependenciesModuleSetupStep(@NotNull DependenciesExtractor dependenciesExtractor, @NotNull LibraryFilePaths libraryFilePaths) {
+    this(dependenciesExtractor, new AndroidModuleDependenciesSetup(libraryFilePaths));
   }
 
   @VisibleForTesting
-  DependenciesModuleSetupStep(@NotNull DependenciesSetup dependenciesSetup) {
+  DependenciesModuleSetupStep(@NotNull DependenciesExtractor dependenciesExtractor, @NotNull AndroidModuleDependenciesSetup dependenciesSetup) {
+    myDependenciesExtractor = dependenciesExtractor;
     myDependenciesSetup = dependenciesSetup;
   }
 
@@ -92,7 +94,7 @@ public class DependenciesModuleSetupStep extends AndroidModuleSetupStep {
                                @Nullable ProgressIndicator indicator) {
     AndroidProject androidProject = androidModel.getAndroidProject();
 
-    DependencySet dependencies = Dependency.extractFrom(androidModel);
+    DependencySet dependencies = myDependenciesExtractor.extractFrom(androidModel);
     for (LibraryDependency dependency : dependencies.onLibraries()) {
       updateLibraryDependency(module, ideModelsProvider, dependency, androidProject);
     }
@@ -147,8 +149,8 @@ public class DependenciesModuleSetupStep extends AndroidModuleSetupStep {
                                       @NotNull AndroidProject androidProject) {
     String name = dependency.getName();
     DependencyScope scope = dependency.getScope();
-    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, name, scope, dependency.getPaths(BINARY),
-                                               dependency.getPaths(SOURCE), dependency.getPaths(DOCUMENTATION));
+    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, name, scope, dependency.getArtifactPath(),
+                                               dependency.getPaths(BINARY), dependency.getPaths(DOCUMENTATION));
 
     File buildFolder = androidProject.getBuildFolder();
 
@@ -156,8 +158,8 @@ public class DependenciesModuleSetupStep extends AndroidModuleSetupStep {
     // see https://code.google.com/p/android/issues/detail?id=123788
     ContentEntry[] contentEntries = modelsProvider.getModifiableRootModel(module).getContentEntries();
     if (contentEntries.length > 0) {
-      for (String binaryPath : dependency.getPaths(BINARY)) {
-        File parent = new File(binaryPath).getParentFile();
+      for (File binaryPath : dependency.getPaths(BINARY)) {
+        File parent = binaryPath.getParentFile();
         if (parent != null && FD_JARS.equals(parent.getName()) && isAncestor(buildFolder, parent, true)) {
           ContentEntry parentContentEntry = findParentContentEntry(parent, contentEntries);
           if (parentContentEntry != null) {
@@ -213,7 +215,7 @@ public class DependenciesModuleSetupStep extends AndroidModuleSetupStep {
         // Include compile target as part of the name, to ensure the library name is unique to this Android platform.
 
         name = name + "-" + suffix; // e.g. maps-android-23, effects-android-23 (it follows the library naming convention: library-version
-        myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, name, COMPILE, Collections.singletonList(library));
+        myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, name, COMPILE, binaryPath);
       }
     }
   }

@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.SyncLibraryRegistry;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -128,7 +127,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
     assertJarIsLibrary(jarFilePath);
 
     // This is an existing library, it should be marked as "used".
-    verify(myLibraryRegistry, times(1)).markAsUsed(library, Lists.newArrayList(jarFilePath.getPath()));
+    verify(myLibraryRegistry, times(1)).markAsUsed(library, jarFilePath);
   }
 
   private Library createLibrary(@NotNull File jarFilePath) {
