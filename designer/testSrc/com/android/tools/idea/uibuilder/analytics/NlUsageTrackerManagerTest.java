@@ -35,7 +35,9 @@ import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.google.wireless.android.sdk.stats.LayoutEditorState;
 import com.intellij.mock.MockModule;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
+import com.intellij.util.ui.UIUtil;
 
 import java.util.LinkedList;
 import java.util.concurrent.Executor;
@@ -100,7 +102,7 @@ public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
     LayoutEditorState state = studioEvent.getLayoutEditorEvent().getState();
     assertEquals(LayoutEditorState.Type.LAYOUT, state.getType());
     assertEquals(LayoutEditorState.Surfaces.BOTH, state.getSurfaces());
-    assertEquals(50, state.getConfigZoomLevel());
+    assertEquals(SystemInfo.isMac && UIUtil.isRetina() ? 100 : 50, state.getConfigZoomLevel());
     assertEquals("mock", state.getConfigApiLevel());
     assertEquals(LayoutEditorState.Orientation.PORTRAIT, state.getConfigOrientation());
     logCalls.clear();
