@@ -18,6 +18,8 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter;
+import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
@@ -27,22 +29,18 @@ public class NetworkMonitor extends ProfilerMonitor {
 
   private static final BaseAxisFormatter BANDWIDTH_AXIS_FORMATTER_L1 = new NetworkTrafficFormatter(1, 2, 5);
   private final NetworkUsage myNetworkUsage;
-  private final LegendComponentModel myLegends;
+  private final NetworkLegends myLegends;
   private final AxisComponentModel myTrafficAxis;
 
   public NetworkMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
-
-    Range dataRange = getTimeline().getDataRange();
 
     myNetworkUsage = new NetworkUsage(profilers);
 
     myTrafficAxis = new AxisComponentModel(myNetworkUsage.getTrafficRange(), BANDWIDTH_AXIS_FORMATTER_L1);
     myTrafficAxis.clampToMajorTicks(true);
 
-    myLegends = new LegendComponentModel(100);
-    myLegends.add(new LegendData(myNetworkUsage.getRxSeries(), BANDWIDTH_AXIS_FORMATTER_L1, dataRange));
-    myLegends.add(new LegendData(myNetworkUsage.getTxSeries(), BANDWIDTH_AXIS_FORMATTER_L1, dataRange));
+    myLegends = new NetworkLegends(myNetworkUsage, getTimeline().getDataRange());
   }
 
   @NotNull
@@ -89,7 +87,30 @@ public class NetworkMonitor extends ProfilerMonitor {
     return myNetworkUsage;
   }
 
-  public LegendComponentModel getLegends() {
+  public NetworkLegends getLegends() {
     return myLegends;
+  }
+
+  public static class NetworkLegends extends LegendComponentModel {
+
+    @NotNull private final SeriesLegend myRxLegend;
+    @NotNull private final SeriesLegend myTxLegend;
+
+    public NetworkLegends(@NotNull NetworkUsage usage, @NotNull Range range) {
+      myTxLegend = new SeriesLegend(usage.getTxSeries(), BANDWIDTH_AXIS_FORMATTER_L1, range);
+      myRxLegend = new SeriesLegend(usage.getRxSeries(), BANDWIDTH_AXIS_FORMATTER_L1, range);
+      add(myTxLegend);
+      add(myRxLegend);
+    }
+
+    @NotNull
+    public SeriesLegend getRxLegend() {
+      return myRxLegend;
+    }
+
+    @NotNull
+    public SeriesLegend getTxLegend() {
+      return myTxLegend;
+    }
   }
 }

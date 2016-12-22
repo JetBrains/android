@@ -41,14 +41,14 @@ public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
   protected void populateUi(JPanel container) {
     container.setLayout(new TabularLayout("*", "*"));
 
-    final JLabel label = new JLabel(getMonitor().getName());
+    JLabel label = new JLabel(getMonitor().getName());
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(JLabel.TOP);
 
-    final JPanel axisPanel = new JBPanel(new BorderLayout());
+    JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
 
-    final AxisComponent leftAxis = new AxisComponent(getMonitor().getMemoryAxis(), AxisComponent.AxisOrientation.RIGHT);
+    AxisComponent leftAxis = new AxisComponent(getMonitor().getMemoryAxis(), AxisComponent.AxisOrientation.RIGHT);
     leftAxis.setShowAxisLine(false);
     leftAxis.setShowMax(true);
     leftAxis.setShowUnitAtMax(true);
@@ -57,19 +57,20 @@ public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
     axisPanel.add(leftAxis, BorderLayout.WEST);
 
     MemoryUsage usage = getMonitor().getMemoryUsage();
-    final LineChart lineChart = new LineChart(usage);
+    LineChart lineChart = new LineChart(usage);
 
-    final JPanel lineChartPanel = new JBPanel(new BorderLayout());
+    JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
     lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
     LineConfig memoryConfig = new LineConfig(ProfilerColors.MEMORY_TOTAL).setFilled(true);
     lineChart.configure(usage.getTotalMemorySeries(), memoryConfig);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
-    final LegendComponent legend = new LegendComponent(getMonitor().getMemoryLegend());
-    legend.configure("Memory", new LegendConfig(memoryConfig));
+    MemoryMonitor.MemoryLegend legends = getMonitor().getMemoryLegend();
+    LegendComponent legend = new LegendComponent(legends);
+    legend.configure(legends.getTotalLegend(), new LegendConfig(memoryConfig));
 
-    final JPanel legendPanel = new JBPanel(new BorderLayout());
+    JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);
     legendPanel.add(label, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
