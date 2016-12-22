@@ -18,6 +18,9 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
+import com.android.tools.adtui.model.legend.Legend;
+import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +32,7 @@ public class MemoryMonitor extends ProfilerMonitor {
 
   private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 2, 5);
   private final MemoryUsage myMemoryUsage;
-  private final LegendComponentModel myMemoryLegend;
+  private final MemoryLegend myMemoryLegend;
 
   public MemoryMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
@@ -38,11 +41,8 @@ public class MemoryMonitor extends ProfilerMonitor {
     myMemoryAxis = new AxisComponentModel(myMemoryUsage.getMemoryRange(), MEMORY_AXIS_FORMATTER);
     myMemoryAxis.setClampToMajorTicks(true);
 
-    // Only update these values every 0.1s
-    myMemoryLegend = new LegendComponentModel(100);
-    myMemoryLegend.add(new LegendData(myMemoryUsage.getTotalMemorySeries(), MEMORY_AXIS_FORMATTER, getTimeline().getDataRange()));
+    myMemoryLegend = new MemoryLegend(myMemoryUsage, getTimeline().getDataRange());
   }
-
 
   @Override
   public String getName() {
@@ -76,7 +76,23 @@ public class MemoryMonitor extends ProfilerMonitor {
     return myMemoryUsage;
   }
 
-  public LegendComponentModel getMemoryLegend() {
+  public MemoryLegend getMemoryLegend() {
     return myMemoryLegend;
+  }
+
+  public static class MemoryLegend extends LegendComponentModel {
+
+    @NotNull
+    private final SeriesLegend myTotalLegend;
+
+    public MemoryLegend(@NotNull MemoryUsage usage, @NotNull Range range) {
+      myTotalLegend = new SeriesLegend(usage.getTotalMemorySeries(), MEMORY_AXIS_FORMATTER, range);
+      add(myTotalLegend);
+    }
+
+    @NotNull
+    public Legend getTotalLegend() {
+      return myTotalLegend;
+    }
   }
 }

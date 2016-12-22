@@ -36,13 +36,13 @@ import java.util.concurrent.TimeUnit;
  */
 public class NetworkTrafficDataSeries implements DataSeries<Long> {
   public enum Type {
-    BYTES_RECEIVED("Received") {
+    BYTES_RECEIVED("Receiving") {
       @Override
       long getBytes(@NotNull NetworkProfiler.SpeedData data) {
         return data.getReceived();
       }
     },
-    BYTES_SENT("Sent") {
+    BYTES_SENT("Sending") {
       @Override
       long getBytes(@NotNull NetworkProfiler.SpeedData data) {
         return data.getSent();

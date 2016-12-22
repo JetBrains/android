@@ -17,8 +17,8 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.LegendComponentModel;
-import com.android.tools.adtui.model.LegendData;
+import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.adtui.model.legend.Legend;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
@@ -73,10 +73,10 @@ public class LegendComponent extends AnimatedComponent {
   /**
    * The visual configuration of the legends
    */
-  private final Map<String, LegendConfig> myConfigs;
+  private final Map<Legend, LegendConfig> myConfigs;
 
   @NotNull
-  private List<JLabel> mLabelsToDraw = new ArrayList<>();
+  private List<JLabel> myLabelsToDraw = new ArrayList<>();
 
   @NotNull
   private Orientation myOrientation;
@@ -92,30 +92,35 @@ public class LegendComponent extends AnimatedComponent {
     myConfigs = new HashMap<>();
     myOrientation = Orientation.HORIZONTAL;
     myModel.addDependency()
-      .onChange(LegendComponentModel.Aspect.LEGEND, this::valuesChanged)
-      .onChange(LegendComponentModel.Aspect.LEGEND, this::legendsChanged);
-    legendsChanged();
-    valuesChanged();
+      .onChange(LegendComponentModel.Aspect.LEGEND, this::modelChanged);
+    modelChanged();
   }
 
-  public void configure(String name, LegendConfig config) {
-    myConfigs.put(name, config);
+  public void configure(Legend legend, LegendConfig config) {
+    myConfigs.put(legend, config);
   }
 
-  private void legendsChanged() {
-    mLabelsToDraw.clear();
-    for (LegendData data : myModel.getLegendData()) {
+  private void modelChanged() {
+    int labels = myModel.getValues().size();
+    for (int i = myLabelsToDraw.size(); i < labels; i++) {
       JBLabel label = new JBLabel();
       label.setFont(AdtUiUtils.DEFAULT_FONT);
-      mLabelsToDraw.add(label);
+      myLabelsToDraw.add(label);
     }
-  }
+    if (myLabelsToDraw.size() > labels) {
+      myLabelsToDraw.subList(labels, myLabelsToDraw.size()).clear();
+    }
 
-  private void valuesChanged() {
     Dimension oldSize = getPreferredSize();
     for (int i = 0; i < myModel.getValues().size(); i++) {
-      JLabel label = mLabelsToDraw.get(i);
-      label.setText(myModel.getValues().get(i));
+      JLabel label = myLabelsToDraw.get(i);
+      Legend legend = myModel.getLegends().get(i);
+      String text = legend.getName();
+      String value = legend.getValue();
+      if (value != null) {
+        text += ": " + value;
+      }
+      label.setText(text);
 
       Dimension preferredSize = label.getPreferredSize();
       if (preferredSize.getWidth() < LABEL_MIN_WIDTH_PX) {
@@ -133,10 +138,10 @@ public class LegendComponent extends AnimatedComponent {
   protected void draw(Graphics2D g2d, Dimension dim) {
     // TODO: revisit this method and try to simplify it using JBPanels and a LayoutManager.
     Stroke defaultStroke = g2d.getStroke();
-    for (int i = 0; i < myModel.getLegendData().size(); ++i) {
-      LegendData data = myModel.getLegendData().get(i);
+    for (int i = 0; i < myModel.getLegends().size(); ++i) {
+      Legend data = myModel.getLegends().get(i);
       LegendConfig config = getConfig(data);
-      JLabel label = mLabelsToDraw.get(i);
+      JLabel label = myLabelsToDraw.get(i);
       Dimension labelPreferredSize = label.getPreferredSize();
       int xOffset = 0;
 
@@ -183,11 +188,11 @@ public class LegendComponent extends AnimatedComponent {
     }
   }
 
-  private LegendConfig getConfig(LegendData data) {
-    LegendConfig config = myConfigs.get(data.getName());
+  private LegendConfig getConfig(Legend data) {
+    LegendConfig config = myConfigs.get(data);
     if (config == null) {
-      config = new LegendConfig(LegendConfig.IconType.BOX, Color.RED, "Unknown");
-      myConfigs.put(data.getName(), config);
+      config = new LegendConfig(LegendConfig.IconType.BOX, Color.RED);
+      myConfigs.put(data, config);
     }
     return config;
   }
@@ -199,7 +204,7 @@ public class LegendComponent extends AnimatedComponent {
     // Using line icon (vs box icon) because it's wider. Extra space is better than lack of space.
     int iconPaddedSize = ICON_WIDTH_PX + ICON_MARGIN_PX + LEGEND_MARGIN_PX;
     // Calculate total size of all icons + labels.
-    for (JLabel label : mLabelsToDraw) {
+    for (JLabel label : myLabelsToDraw) {
       Dimension size = label.getPreferredSize();
       if (myOrientation == Orientation.HORIZONTAL) {
         totalWidth += iconPaddedSize + size.width;
@@ -217,7 +222,7 @@ public class LegendComponent extends AnimatedComponent {
     int heightPadding = 2 * LEGEND_VERTICAL_PADDING_PX;
     // In the case of vertical legends, we have vertical padding for all the legends
     if (myOrientation == Orientation.VERTICAL) {
-      heightPadding *= myModel.getLegendData().size();
+      heightPadding *= myModel.getLegends().size();
     }
     return new Dimension(totalWidth, totalHeight + heightPadding);
   }

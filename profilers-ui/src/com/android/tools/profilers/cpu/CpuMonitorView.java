@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.LegendComponent;
+import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
@@ -63,10 +64,13 @@ public class CpuMonitorView extends ProfilerMonitorView<CpuMonitor> {
 
     CpuUsage cpuUsage = getMonitor().getThisProcessCpuUsage();
     final LineChart lineChart = new LineChart(cpuUsage);
-    lineChart.configure(cpuUsage.getCpuSeries(), new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true));
-    LegendComponent legend = new LegendComponent(getMonitor().getLegends());
-
+    LineConfig config = new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true);
+    lineChart.configure(cpuUsage.getCpuSeries(), config);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
+
+    CpuMonitor.CpuMonitorLegends legends = getMonitor().getLegends();
+    LegendComponent legend = new LegendComponent(legends);
+    legend.configure(legends.getCpuLegend(), new LegendConfig(config));
 
     JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);
