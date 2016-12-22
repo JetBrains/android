@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.model;
+package com.android.tools.adtui.model.legend;
 
+import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.Updatable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class LegendComponentModel extends AspectModel<LegendComponentModel.Aspect> implements Updatable {
+
+  private static final int DEFAULT_UPDATE_FREQUENCY_MS = 100;
 
   public enum Aspect {
     LEGEND,
@@ -31,23 +35,25 @@ public class LegendComponentModel extends AspectModel<LegendComponentModel.Aspec
   private long mLastUpdate;
 
   @NotNull
-  private List<LegendData> myLegendData;
+  private List<Legend> myLegends;
 
-  private ArrayList<String> myLegends;
+  @NotNull
+  private final ArrayList<String> myCurrentLegendValues;
 
-  public LegendComponentModel(int frequencyMillis) {
-    mFrequencyMillis = frequencyMillis;
+  public LegendComponentModel() {
+    mFrequencyMillis = DEFAULT_UPDATE_FREQUENCY_MS;
     mLastUpdate = 0;
+    myCurrentLegendValues = new ArrayList<>();
     myLegends = new ArrayList<>();
-    myLegendData = new ArrayList<>();
   }
 
   public ArrayList<String> getValues() {
-    return myLegends;
+    return myCurrentLegendValues;
   }
 
-  public List<LegendData> getLegendData() {
-    return myLegendData;
+  @NotNull
+  public List<Legend> getLegends() {
+    return myLegends;
   }
 
   @Override
@@ -55,16 +61,16 @@ public class LegendComponentModel extends AspectModel<LegendComponentModel.Aspec
       long now = System.currentTimeMillis();
       if (now - mLastUpdate > mFrequencyMillis) {
         mLastUpdate = now;
-        myLegends.clear();
-        for (LegendData data : myLegendData) {
-          myLegends.add(data.get());
+        myCurrentLegendValues.clear();
+        for (Legend data : myLegends) {
+          myCurrentLegendValues.add(data.getName());
         }
         changed(Aspect.LEGEND);
       }
   }
 
-  public void add(LegendData legend) {
-    myLegendData.add(legend);
+  public void add(@NotNull Legend legend) {
+    myLegends.add(legend);
     changed(Aspect.LEGEND);
   }
 }

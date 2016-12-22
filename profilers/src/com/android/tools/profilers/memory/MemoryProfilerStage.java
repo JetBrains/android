@@ -19,6 +19,8 @@ import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
+import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
@@ -46,7 +48,7 @@ public class MemoryProfilerStage extends Stage {
   private final DetailedMemoryUsage myDetailedMemoryUsage;
   private final AxisComponentModel myMemoryAxis;
   private final AxisComponentModel myObjectsAxis;
-  private final LegendComponentModel myLegends;
+  private final MemoryStageLegends myLegends;
 
   private final int myProcessId;
   private DurationDataModel<GcDurationData> myGcCount;
@@ -88,7 +90,6 @@ public class MemoryProfilerStage extends Stage {
     myLoader = loader;
 
     Range viewRange = profilers.getTimeline().getViewRange();
-    Range dataRange = profilers.getTimeline().getDataRange();
 
     myHeapDumpDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, heapDumpSeries));
     myAllocationDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, allocationSeries));
@@ -104,15 +105,7 @@ public class MemoryProfilerStage extends Stage {
     myObjectsAxis = new AxisComponentModel(myDetailedMemoryUsage.getObjectsRange(), OBJECT_COUNT_AXIS_FORMATTER);
     myObjectsAxis.clampToMajorTicks(true);
 
-    myLegends = new LegendComponentModel(100);
-    myLegends.add(new LegendData(myDetailedMemoryUsage.getJavaSeries(), MEMORY_AXIS_FORMATTER, dataRange));
-    myLegends.add(new LegendData(myDetailedMemoryUsage.getNativeSeries(), MEMORY_AXIS_FORMATTER, dataRange));
-    myLegends.add(new LegendData(myDetailedMemoryUsage.getGraphicsSeries(), MEMORY_AXIS_FORMATTER, dataRange));
-    myLegends.add(new LegendData(myDetailedMemoryUsage.getStackSeries(), MEMORY_AXIS_FORMATTER, dataRange));
-    myLegends.add(new LegendData(myDetailedMemoryUsage.getCodeSeries(), MEMORY_AXIS_FORMATTER, dataRange));
-    myLegends.add(new LegendData(myDetailedMemoryUsage.getOtherSeries(), MEMORY_AXIS_FORMATTER, dataRange));
-    myLegends.add(new LegendData(myDetailedMemoryUsage.getTotalMemorySeries(), MEMORY_AXIS_FORMATTER, dataRange));
-    myLegends.add(new LegendData(myDetailedMemoryUsage.getObjectsSeries(), OBJECT_COUNT_AXIS_FORMATTER, dataRange));
+    myLegends = new MemoryStageLegends(myDetailedMemoryUsage, profilers.getTimeline().getDataRange());
 
     myGcCount = new DurationDataModel<>(new RangedSeries<>(viewRange, new GcStatsDataSeries(myClient, myProcessId)));
 
@@ -282,7 +275,7 @@ public class MemoryProfilerStage extends Stage {
     return myObjectsAxis;
   }
 
-  public LegendComponentModel getLegends() {
+  public MemoryStageLegends getLegends() {
     return myLegends;
   }
 
@@ -296,5 +289,76 @@ public class MemoryProfilerStage extends Stage {
 
   public String getName() {
     return "Memory";
+  }
+  public static class MemoryStageLegends extends LegendComponentModel {
+
+    @NotNull private final SeriesLegend myJavaLegend;
+    @NotNull private final SeriesLegend myNativeLegend;
+    @NotNull private final SeriesLegend myGraphicsLegend;
+    @NotNull private final SeriesLegend myStackLegend;
+    @NotNull private final SeriesLegend myCodeLegend;
+    @NotNull private final SeriesLegend myOtherLegend;
+    @NotNull private final SeriesLegend myTotalLegend;
+    @NotNull private final SeriesLegend myObjectsLegend;
+
+    public MemoryStageLegends(@NotNull DetailedMemoryUsage usage, @NotNull Range range) {
+      myJavaLegend = new SeriesLegend(usage.getJavaSeries(), MEMORY_AXIS_FORMATTER, range);
+      myNativeLegend = new SeriesLegend(usage.getNativeSeries(), MEMORY_AXIS_FORMATTER, range);
+      myGraphicsLegend = new SeriesLegend(usage.getGraphicsSeries(), MEMORY_AXIS_FORMATTER, range);
+      myStackLegend = new SeriesLegend(usage.getStackSeries(), MEMORY_AXIS_FORMATTER, range);
+      myCodeLegend = new SeriesLegend(usage.getCodeSeries(), MEMORY_AXIS_FORMATTER, range);
+      myOtherLegend = new SeriesLegend(usage.getOtherSeries(), MEMORY_AXIS_FORMATTER, range);
+      myTotalLegend = new SeriesLegend(usage.getTotalMemorySeries(), MEMORY_AXIS_FORMATTER, range);
+      myObjectsLegend = new SeriesLegend(usage.getObjectsSeries(), OBJECT_COUNT_AXIS_FORMATTER, range);
+
+      add(myJavaLegend);
+      add(myNativeLegend);
+      add(myGraphicsLegend);
+      add(myStackLegend);
+      add(myCodeLegend);
+      add(myOtherLegend);
+      add(myTotalLegend);
+      add(myObjectsLegend);
+    }
+
+    @NotNull
+    public SeriesLegend getJavaLegend() {
+      return myJavaLegend;
+    }
+
+    @NotNull
+    public SeriesLegend getNativeLegend() {
+      return myNativeLegend;
+    }
+
+    @NotNull
+    public SeriesLegend getGraphicsLegend() {
+      return myGraphicsLegend;
+    }
+
+    @NotNull
+    public SeriesLegend getStackLegend() {
+      return myStackLegend;
+    }
+
+    @NotNull
+    public SeriesLegend getCodeLegend() {
+      return myCodeLegend;
+    }
+
+    @NotNull
+    public SeriesLegend getOtherLegend() {
+      return myOtherLegend;
+    }
+
+    @NotNull
+    public SeriesLegend getTotalLegend() {
+      return myTotalLegend;
+    }
+
+    @NotNull
+    public SeriesLegend getObjectsLegend() {
+      return myObjectsLegend;
+    }
   }
 }
