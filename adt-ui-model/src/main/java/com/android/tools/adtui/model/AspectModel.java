@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class AspectModel<T extends Enum<T>> {
+public class AspectModel<T extends Enum<T>> extends AspectObserver {
   private Collection<Dependency> myDependencies = Collections.newSetFromMap(new WeakHashMap<Dependency, Boolean>());
 
   public void changed(T aspect) {
@@ -38,6 +38,10 @@ public class AspectModel<T extends Enum<T>> {
     observer.addDependency(dependency);
     myDependencies.add(dependency);
     return dependency;
+  }
+
+  public void removeDependencies(AspectObserver observer) {
+    myDependencies.removeAll(observer.getDependencies());
   }
 
   public class Dependency {

@@ -47,9 +47,12 @@ public class Range extends AspectModel<Range.Aspect> {
   }
 
   public void set(double min, double max) {
-    myMin = min;
-    myMax = max;
-    changed(Aspect.RANGE);
+    // We use exact comparison to avoid firing when a range is set to itself.
+    if (min != myMin || max != myMax) {
+      myMin = min;
+      myMax = max;
+      changed(Aspect.RANGE);
+    }
   }
 
   public void set(Range other) {

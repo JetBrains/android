@@ -32,7 +32,8 @@ public class NetworkUsage extends LineChartModel {
 
     Range viewRange = profilers.getTimeline().getViewRange();
 
-    myTrafficRange = new Range(0, 4); // TODO: Why 4?
+    // We use 4 as a reasonable initial default for number of connections.
+    myTrafficRange = new Range(0, 4);
 
     myRxSeries = new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getLabel(),
                                             viewRange,

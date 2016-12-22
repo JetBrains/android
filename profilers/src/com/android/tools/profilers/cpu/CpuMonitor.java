@@ -27,9 +27,9 @@ public class CpuMonitor extends ProfilerMonitor {
 
   private static final SingleUnitAxisFormatter CPU_USAGE_FORMATTER = new SingleUnitAxisFormatter(1, 2, 10, "%");
 
-  private final CpuUsage myThisProcessCpuUsage;
-  private final AxisComponentModel myCpuUsageAxis;
-  private final CpuMonitorLegends myLegends;
+  @NotNull private final CpuUsage myThisProcessCpuUsage;
+  @NotNull private final AxisComponentModel myCpuUsageAxis;
+  @NotNull private final CpuMonitorLegends myLegends;
 
   public CpuMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
@@ -37,7 +37,7 @@ public class CpuMonitor extends ProfilerMonitor {
     myThisProcessCpuUsage = new CpuUsage(profilers);
 
     myCpuUsageAxis = new AxisComponentModel(myThisProcessCpuUsage.getCpuRange(), CPU_USAGE_FORMATTER);
-    myCpuUsageAxis.clampToMajorTicks(true);
+    myCpuUsageAxis.setClampToMajorTicks(true);
 
     myLegends = new CpuMonitorLegends(myThisProcessCpuUsage, profilers.getTimeline().getDataRange());
   }
@@ -65,14 +65,17 @@ public class CpuMonitor extends ProfilerMonitor {
     myProfilers.setStage(new CpuProfilerStage(myProfilers));
   }
 
+  @NotNull
   public AxisComponentModel getCpuUsageAxis() {
     return myCpuUsageAxis;
   }
 
+  @NotNull
   public CpuMonitorLegends getLegends() {
     return myLegends;
   }
 
+  @NotNull
   public CpuUsage getThisProcessCpuUsage() {
     return myThisProcessCpuUsage;
   }

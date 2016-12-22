@@ -51,7 +51,6 @@ public class MemoryMonitor extends ProfilerMonitor {
 
   @Override
   public void enter() {
-    // TODO: NOT ALL MONITORS HAVE ENTER AND EXIT
     myProfilers.getUpdater().register(myMemoryUsage);
     myProfilers.getUpdater().register(myMemoryAxis);
     myProfilers.getUpdater().register(myMemoryLegend);
