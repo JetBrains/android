@@ -16,14 +16,14 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.model.AxisComponentModel;
+import com.android.tools.adtui.model.AspectObserver;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 
-public abstract class StageView<T extends Stage> {
+public abstract class StageView<T extends Stage> extends AspectObserver {
   private final T myStage;
   private final JPanel myComponent;
   private final StudioProfilersView myProfilersView;

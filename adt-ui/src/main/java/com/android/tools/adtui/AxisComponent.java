@@ -139,7 +139,7 @@ public final class AxisComponent extends AnimatedComponent {
       }
       myLabel.setFont(AdtUiUtils.DEFAULT_FONT);
     }
-    myModel.addDependency()
+    myModel.addDependency(myAspectObserver)
       .onChange(AxisComponentModel.Aspect.AXIS, this::modelChanged);
   }
 

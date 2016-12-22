@@ -50,7 +50,7 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
     mRenderers = renderers;
     mIconsToDraw = new ArrayList<>();
     myRender = true;
-    myModel.addDependency().onChange(SimpleEventModel.Aspect.SIMPLE_EVENT, this::modelChanged);
+    myModel.addDependency(myAspectObserver).onChange(SimpleEventModel.Aspect.SIMPLE_EVENT, this::modelChanged);
   }
 
   private void modelChanged() {
