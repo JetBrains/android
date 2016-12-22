@@ -220,7 +220,6 @@ final class ConnectionsView {
   private final class ConnectionsTableModel extends AbstractTableModel {
     private final AspectObserver myAspectObserver;
     @NotNull private List<HttpData> myDataList = new ArrayList<>();
-    @NotNull private final Range myLastRange = new Range();
     @NotNull private final Range myRange;
 
     private ConnectionsTableModel(@NotNull Range range) {
@@ -262,11 +261,8 @@ final class ConnectionsView {
     }
 
     public void rangeChanged() {
-      if (myLastRange.getMin() != myRange.getMin() || myLastRange.getMax() != myRange.getMax()) {
-        myDataList = myStage.getConnectionsModel().getData(myRange);
-        fireTableDataChanged();
-        myLastRange.set(myRange);
-      }
+      myDataList = myStage.getConnectionsModel().getData(myRange);
+      fireTableDataChanged();
     }
   }
 

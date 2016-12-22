@@ -103,6 +103,8 @@ public abstract class AnimatedComponent extends JComponent {
   protected void debugDraw(Graphics2D g) {}
 
   protected void opaqueRepaint() {
+    // TODO: In theory swing should handle transparent repaints correctly, but
+    // for now this works-around the issue of multiple repaints.
     Container c = this;
     while (c.getParent() != null && !c.isOpaque()) {
       c = c.getParent();

@@ -26,7 +26,10 @@ import java.awt.geom.Path2D;
  * At a minimum, child classes should override {@link #updateData()} and {@link
  * #draw(Graphics2D)}, as well as pay attention to the field {@link #mFrameLength} as it controls
  * the behavior of timed animations.
+ *
+ * Deprecated. See {@link AnimatedComponent}.
  */
+@Deprecated
 public abstract class LegacyAnimatedComponent extends AnimatedComponent implements Updatable {
 
   /**

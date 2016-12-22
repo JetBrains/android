@@ -105,10 +105,10 @@ public class MemoryProfilerStage extends Stage {
     myDetailedMemoryUsage = new DetailedMemoryUsage(profilers);
 
     myMemoryAxis = new AxisComponentModel(myDetailedMemoryUsage.getMemoryRange(), MEMORY_AXIS_FORMATTER);
-    myMemoryAxis.clampToMajorTicks(true);
+    myMemoryAxis.setClampToMajorTicks(true);
 
     myObjectsAxis = new AxisComponentModel(myDetailedMemoryUsage.getObjectsRange(), OBJECT_COUNT_AXIS_FORMATTER);
-    myObjectsAxis.clampToMajorTicks(true);
+    myObjectsAxis.setClampToMajorTicks(true);
 
     myLegends = new MemoryStageLegends(myDetailedMemoryUsage, profilers.getTimeline().getDataRange());
 

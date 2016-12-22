@@ -100,10 +100,10 @@ public class CpuProfilerStage extends Stage {
     myCpuUsage = new DetailedCpuUsage(profilers);
 
     myCpuUsageAxis = new AxisComponentModel(myCpuUsage.getCpuRange(), CPU_USAGE_FORMATTER);
-    myCpuUsageAxis.clampToMajorTicks(true);
+    myCpuUsageAxis.setClampToMajorTicks(true);
 
     myThreadCountAxis = new AxisComponentModel(myCpuUsage.getThreadRange(), NUM_THREADS_AXIS);
-    myThreadCountAxis.clampToMajorTicks(true);
+    myThreadCountAxis.setClampToMajorTicks(true);
 
     myLegends = new CpuStageLegends(myCpuUsage, dataRange);
 
