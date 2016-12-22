@@ -38,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.RunnableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.COMPLETED;
@@ -79,6 +80,11 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
    * These latches ensure we see the samples in the cache first before trying to update their statuses.
    */
   private final TIntObjectHashMap<CountDownLatch> myLegacyAllocationsInfoLatches = new TIntObjectHashMap<>();
+
+  /**
+   * Latches to track completion of the retrieval of dump data associated with each HeapDumpInfo.
+   */
+  private final TIntObjectHashMap<CountDownLatch> myHeapDumpDataLatches = new TIntObjectHashMap<>();
 
   private HeapDumpSample myPendingHeapDumpSample = null;
 
@@ -132,33 +138,42 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
 
   @Override
   public void triggerHeapDump(TriggerHeapDumpRequest request, StreamObserver<TriggerHeapDumpResponse> responseObserver) {
-    responseObserver.onNext(myPollingService.triggerHeapDump(request));
-    responseObserver.onCompleted();
+    synchronized (myUpdatingDataLock) {
+      TriggerHeapDumpResponse response = myPollingService.triggerHeapDump(request);
+      if (response.getStatus() == TriggerHeapDumpResponse.Status.SUCCESS) {
+        assert response.getInfo() != null;
+        myHeapDumpDataLatches.put(response.getInfo().getDumpId(), new CountDownLatch(1));
+      }
+
+      responseObserver.onNext(response);
+      responseObserver.onCompleted();
+    }
   }
 
   @Override
   public void getHeapDump(HeapDumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
     DumpDataResponse.Builder responseBuilder = DumpDataResponse.newBuilder();
     synchronized (myUpdatingDataLock) {
-      int index = Collections
-        .binarySearch(myHeapData, new HeapDumpSample(request.getDumpId()), (o1, o2) -> o1.myInfo.getDumpId() - o2.myInfo.getDumpId());
-      if (index < 0) {
+      if (!myHeapDumpDataLatches.containsKey(request.getDumpId())) {
         responseBuilder.setStatus(DumpDataResponse.Status.NOT_FOUND);
       }
       else {
-        HeapDumpSample dump = myHeapData.get(index);
-        if (dump.isError) {
-          responseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
-        }
-        else {
-          ByteString data = dump.myData;
-          if (data == null) {
-            responseBuilder.setStatus(DumpDataResponse.Status.NOT_READY);
+        if (myHeapDumpDataLatches.get(request.getDumpId()).getCount() <= 0) {
+          int index = Collections
+            .binarySearch(myHeapData, new HeapDumpSample(request.getDumpId()), (o1, o2) -> o1.myInfo.getDumpId() - o2.myInfo.getDumpId());
+          assert index >= 0;
+          HeapDumpSample dump = myHeapData.get(index);
+          if (dump.isError) {
+            responseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
           }
           else {
+            assert dump.myData != null;
             responseBuilder.setStatus(DumpDataResponse.Status.SUCCESS);
-            responseBuilder.setData(data);
+            responseBuilder.setData(dump.myData);
           }
+        }
+        else {
+          responseBuilder.setStatus(DumpDataResponse.Status.NOT_READY);
         }
       }
     }
@@ -366,6 +381,9 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
               else {
                 sample.isError = true;
               }
+
+              assert myHeapDumpDataLatches.containsKey(sample.myInfo.getDumpId());
+              myHeapDumpDataLatches.get(sample.myInfo.getDumpId()).countDown();
             }
           }
         };
