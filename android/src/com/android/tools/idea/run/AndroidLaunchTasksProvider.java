@@ -131,7 +131,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     }
 
     if (myFacet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
-      return ImmutableList.of(new DeployIapkTask(myApkProvider.getApks(device)));
+      return ImmutableList.of(new DeployInstantAppTask(myApkProvider.getApks(device)));
     }
 
     InstantRunManager.LOG.info("Using legacy/main APK deploy task");
