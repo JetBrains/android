@@ -33,6 +33,7 @@ import com.android.tools.profilers.memory.adapters.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,6 +43,10 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 public class MemoryProfilerStage extends Stage {
+  private static Logger getLogger() {
+    return Logger.getInstance(MemoryProfilerStage.class);
+  }
+
   private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 5, 5);
   private static final BaseAxisFormatter OBJECT_COUNT_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 5, "");
 
@@ -153,9 +158,25 @@ public class MemoryProfilerStage extends Stage {
     return myAspect;
   }
 
-  public void requestHeapDump() {
-    // TODO selects the capture object.
-    myClient.triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.newBuilder().setAppId(myProcessId).build());
+  /**
+   * @param loadJoiner if specified, the joiner executor will be passed down to {@link #selectCapture(CaptureObject, Executor)} so
+   *                   that the load operation of the CaptureObject will be joined and the CURRENT_LOAD_CAPTURE aspect would be
+   *                   fired via the desired executor.
+   */
+  public void requestHeapDump(@Nullable Executor loadJoiner) {
+    MemoryProfiler.TriggerHeapDumpResponse response =
+      myClient.triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.newBuilder().setAppId(myProcessId).build());
+    switch (response.getStatus()) {
+      case SUCCESS:
+        selectCapture(new HeapDumpCaptureObject(myClient, myProcessId, response.getInfo(), null), loadJoiner);
+        break;
+      case IN_PROGRESS:
+        getLogger().debug(String.format("A heap dump for %d is already in progress.", myProcessId));
+        break;
+      case UNSPECIFIED:
+      case FAILURE_UNKNOWN:
+        break;
+    }
   }
 
   public DurationDataModel<CaptureDurationData<HeapDumpCaptureObject>> getHeapDumpSampleDurations() {
