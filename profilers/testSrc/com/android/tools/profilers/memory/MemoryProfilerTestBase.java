@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
@@ -36,7 +37,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-public abstract class MemoryProfilerTestBase {
+public abstract class MemoryProfilerTestBase extends AspectObserver {
   protected StudioProfilers myProfilers;
   protected MemoryProfilerStage myStage;
   protected MockCaptureObjectLoader myMockLoader;
@@ -57,7 +58,7 @@ public abstract class MemoryProfilerTestBase {
     myMockLoader = new MockCaptureObjectLoader();
     myStage = new MemoryProfilerStage(myProfilers, myMockLoader);
 
-    myStage.getAspect().addDependency()
+    myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.LEGACY_ALLOCATION, () -> ++myLegacyAllocationAspectCount)
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, () -> ++myCurrentLoadingCaptureAspectCount)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, () -> ++myCurrentLoadedCaptureAspectCount)

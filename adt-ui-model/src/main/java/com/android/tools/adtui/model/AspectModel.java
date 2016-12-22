@@ -17,20 +17,25 @@ package com.android.tools.adtui.model;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class AspectModel<T extends Enum<T>> {
-  private List<Dependency> myDependencies = new LinkedList<>();
-
+  private Collection<Dependency> myDependencies = Collections.newSetFromMap(new WeakHashMap<Dependency, Boolean>());
 
   public void changed(T aspect) {
     myDependencies.forEach(dependency -> dependency.changed(aspect));
   }
 
-  public Dependency addDependency() {
+  /**
+   * {@link Dependency}s are added as weak references. These {@link Dependency}s are owned by {@link AspectObserver}s.
+   * When an {@link AspectObserver} object is collected, all its {@link Dependency}s are collected,
+   * and are removed from the {@link AspectModel}
+   */
+  public Dependency addDependency(@NotNull AspectObserver observer) {
     Dependency dependency = new Dependency();
+    observer.addDependency(dependency);
     myDependencies.add(dependency);
     return dependency;
   }
@@ -44,7 +49,7 @@ public class AspectModel<T extends Enum<T>> {
       return this;
     }
 
-    public void changed(T aspect) {
+    private void changed(T aspect) {
       myListeners.get(aspect).forEach(Runnable::run);
     }
   }

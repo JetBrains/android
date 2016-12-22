@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.FieldObject;
@@ -25,8 +26,6 @@ import com.android.tools.profilers.memory.adapters.InstanceObject.ValueType;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +41,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
-final class MemoryInstanceView {
+final class MemoryInstanceView extends AspectObserver {
   private static final int LABEL_COLUMN_WIDTH = 500;
   private static final int DEFAULT_COLUMN_WIDTH = 80;
 
@@ -67,7 +66,7 @@ final class MemoryInstanceView {
   public MemoryInstanceView(@NotNull MemoryProfilerStage stage) {
     myStage = stage;
 
-    myStage.getAspect().addDependency()
+    myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::refreshClass)
       .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::refreshInstance);
 

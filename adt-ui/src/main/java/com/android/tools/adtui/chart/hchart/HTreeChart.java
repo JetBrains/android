@@ -66,7 +66,7 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
     addMouseListener(this);
     initializeInputMap();
 
-    xRange.addDependency().onChange(Range.Aspect.RANGE, this::rangeChanged);
+    xRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::rangeChanged);
   }
 
   private void rangeChanged() {

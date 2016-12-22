@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
@@ -23,8 +24,6 @@ import com.android.tools.profilers.memory.adapters.InstanceObject.InstanceAttrib
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.android.tools.profilers.memory.adapters.ReferenceObject;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
@@ -47,7 +46,7 @@ import java.util.Map;
  * information is available. If no detailed information can be obtained from the InstanceObject, this UI is responsible
  * for automatically hiding itself.
  */
-final class MemoryInstanceDetailsView {
+final class MemoryInstanceDetailsView extends AspectObserver {
   private static final int LABEL_COLUMN_WIDTH = 500;
   private static final int DEFAULT_COLUMN_WIDTH = 80;
 
@@ -59,7 +58,7 @@ final class MemoryInstanceDetailsView {
 
   public MemoryInstanceDetailsView(@NotNull MemoryProfilerStage stage) {
     myStage = stage;
-    myStage.getAspect().addDependency()
+    myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::instanceChanged);
 
     // TODO fix tab styling. Currently tabs appear in the middle with too much padding.

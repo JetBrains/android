@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.HeapObject;
@@ -37,7 +38,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
-final class MemoryClassView {
+final class MemoryClassView extends AspectObserver {
   private static final int LABEL_COLUMN_WIDTH = 800;
   private static final int DEFAULT_COLUMN_WIDTH = 80;
 
@@ -62,7 +63,7 @@ final class MemoryClassView {
   public MemoryClassView(@NotNull MemoryProfilerStage stage) {
     myStage = stage;
 
-    myStage.getAspect().addDependency()
+    myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_HEAP, this::refreshHeap)
       .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::refreshClass);
 

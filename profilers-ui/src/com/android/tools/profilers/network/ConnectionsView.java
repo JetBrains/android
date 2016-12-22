@@ -218,13 +218,15 @@ final class ConnectionsView {
   }
 
   private final class ConnectionsTableModel extends AbstractTableModel {
+    private final AspectObserver myAspectObserver;
     @NotNull private List<HttpData> myDataList = new ArrayList<>();
     @NotNull private final Range myLastRange = new Range();
     @NotNull private final Range myRange;
 
     private ConnectionsTableModel(@NotNull Range range) {
       myRange = range;
-      myRange.addDependency().onChange(Range.Aspect.RANGE, this::rangeChanged);
+      myAspectObserver = new AspectObserver();
+      myRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::rangeChanged);
       rangeChanged();
     }
 

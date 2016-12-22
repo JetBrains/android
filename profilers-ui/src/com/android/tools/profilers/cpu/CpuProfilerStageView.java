@@ -59,14 +59,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     super(profilersView, stage);
     myStage = stage;
 
-    stage.getAspect().addDependency()
+    stage.getAspect().addDependency(this)
       .onChange(CpuProfilerAspect.CAPTURE, this::updateCapture)
       .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection);
 
     StudioProfilers profilers = stage.getStudioProfilers();
     ProfilerTimeline timeline = profilers.getTimeline();
-    Range viewRange = timeline.getViewRange();
-    Range dataRange = timeline.getDataRange();
 
     TabularLayout layout = new TabularLayout("*");
     JPanel details = new JPanel(layout);

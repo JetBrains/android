@@ -15,10 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.adtui.model.StateChartModel;
-import com.android.tools.adtui.model.Updatable;
+import com.android.tools.adtui.model.*;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import org.jetbrains.annotations.NotNull;
@@ -37,12 +34,15 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
 
   private final Range myRange;
 
+  private final AspectObserver myAspectObserver;
+
   public CpuThreadsModel(@NotNull Range range, @NotNull CpuProfilerStage stage, int id) {
     myRange = range;
     myStage = stage;
     myProcessId = id;
+    myAspectObserver = new AspectObserver();
 
-    myRange.addDependency().onChange(Range.Aspect.RANGE, this::rangeChanged);
+    myRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::rangeChanged);
   }
 
   public void rangeChanged() {
