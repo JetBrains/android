@@ -24,8 +24,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
-  private Status myExplicitStatus = null;
-  private AllocationsInfo myExplicitInfo = null;
+  private Status myExplicitAllocationsStatus = null;
+  private AllocationsInfo myExplicitAllocationsInfo = null;
+  private TriggerHeapDumpResponse.Status myExplicitHeapDumpStatus = null;
+  private HeapDumpInfo myExplicitHeapDumpInfo = null;
   private long myCurrentTime = 0;
 
   private int myAppId;
@@ -55,11 +57,11 @@ class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   public void trackAllocations(MemoryProfiler.TrackAllocationsRequest request,
                                StreamObserver<MemoryProfiler.TrackAllocationsResponse> response) {
     TrackAllocationsResponse.Builder builder = TrackAllocationsResponse.newBuilder();
-    if (myExplicitStatus != null) {
-      builder.setStatus(myExplicitStatus);
+    if (myExplicitAllocationsStatus != null) {
+      builder.setStatus(myExplicitAllocationsStatus);
     }
-    if (myExplicitInfo != null) {
-      builder.setInfo(myExplicitInfo);
+    if (myExplicitAllocationsInfo != null) {
+      builder.setInfo(myExplicitAllocationsInfo);
     }
     builder.setTimestamp(myCurrentTime);
     response.onNext(builder.build());
@@ -91,7 +93,22 @@ class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   public void getAllocationsInfoStatus(GetAllocationsInfoStatusRequest request,
                                        StreamObserver<GetAllocationsInfoStatusResponse> responseObserver) {
     responseObserver.onNext(
-      GetAllocationsInfoStatusResponse.newBuilder().setInfoId(myExplicitInfo.getInfoId()).setStatus(myExplicitInfo.getStatus()).build());
+      GetAllocationsInfoStatusResponse.newBuilder().setInfoId(myExplicitAllocationsInfo.getInfoId())
+        .setStatus(myExplicitAllocationsInfo.getStatus()).build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void triggerHeapDump(TriggerHeapDumpRequest request,
+                              StreamObserver<TriggerHeapDumpResponse> responseObserver) {
+    TriggerHeapDumpResponse.Builder builder = TriggerHeapDumpResponse.newBuilder();
+    if (myExplicitHeapDumpStatus != null) {
+      builder.setStatus(myExplicitHeapDumpStatus);
+    }
+    if (myExplicitHeapDumpInfo != null) {
+      builder.setInfo(myExplicitHeapDumpInfo);
+    }
+    responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
   }
 
@@ -102,15 +119,26 @@ class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   }
 
   @NotNull
-  public FakeMemoryService setExplicitStatus(@Nullable Status status) {
-    myExplicitStatus = status;
+  public FakeMemoryService setExplicitAllocationsStatus(@Nullable Status status) {
+    myExplicitAllocationsStatus = status;
     return this;
   }
 
   public FakeMemoryService setExplicitAllocationsInfo(int infoId, AllocationsInfo.Status infoStatus,
                                                       long startTime, long endTime, boolean legacy) {
-    myExplicitInfo = AllocationsInfo.newBuilder().setInfoId(infoId).setStatus(infoStatus).setStartTime(startTime).setEndTime(endTime)
-      .setLegacyTracking(legacy).build();
+    myExplicitAllocationsInfo =
+      AllocationsInfo.newBuilder().setInfoId(infoId).setStatus(infoStatus).setStartTime(startTime).setEndTime(endTime)
+        .setLegacyTracking(legacy).build();
+    return this;
+  }
+
+  public FakeMemoryService setExplicitHeapDumpStatus(@Nullable TriggerHeapDumpResponse.Status status) {
+    myExplicitHeapDumpStatus = status;
+    return this;
+  }
+
+  public FakeMemoryService setExplicitHeapDumpInfo(int dumpId, long startTime, long endTime) {
+    myExplicitHeapDumpInfo = HeapDumpInfo.newBuilder().setDumpId(dumpId).setStartTime(startTime).setEndTime(endTime).build();
     return this;
   }
 }
