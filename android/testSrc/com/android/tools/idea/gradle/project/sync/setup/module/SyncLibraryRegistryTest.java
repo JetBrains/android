@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
-import static com.android.tools.idea.gradle.util.FilePaths.pathToUrl;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.ArrayUtil.EMPTY_STRING_ARRAY;
 import static com.intellij.util.ArrayUtilRt.EMPTY_FILE_ARRAY;
@@ -177,7 +176,7 @@ public class SyncLibraryRegistryTest extends IdeaTestCase {
 
     LibraryToUpdate libraryToUpdate = librariesToUpdate.get(0);
     assertSame(library, libraryToUpdate.getLibrary());
-    assertThat(libraryToUpdate.getNewBinaryUrls()).containsExactly(pathToUrl(newJarPath.getPath()));
+    assertThat(libraryToUpdate.getNewBinaryUrls()).containsExactly(pathToIdeaUrl(newJarPath));
   }
 
   public void testGetLibrariesToUpdateWhenUrlsWereAdded() throws IOException {
@@ -210,7 +209,7 @@ public class SyncLibraryRegistryTest extends IdeaTestCase {
 
     LibraryToUpdate libraryToUpdate = librariesToUpdate.get(0);
     assertSame(library, libraryToUpdate.getLibrary());
-    assertThat(libraryToUpdate.getNewBinaryUrls()).containsExactly(pathToUrl(jarPath1.getPath()));
+    assertThat(libraryToUpdate.getNewBinaryUrls()).containsExactly(pathToIdeaUrl(jarPath1));
   }
 
   public void testGetLibrariesToUpdate() {
@@ -245,7 +244,7 @@ public class SyncLibraryRegistryTest extends IdeaTestCase {
     int binaryPathCount = binaryPaths.length;
     String[] binaryUrls = new String[binaryPathCount];
     for (int i = 0; i < binaryPathCount; i++) {
-      binaryUrls[i] = pathToUrl(binaryPaths[i].getPath());
+      binaryUrls[i] = pathToIdeaUrl(binaryPaths[i]);
     }
     when(library.getUrls(OrderRootType.CLASSES)).thenReturn(binaryUrls);
 

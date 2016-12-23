@@ -26,6 +26,7 @@ import java.util.Collection;
 import static com.android.SdkConstants.EXT_JAR;
 import static com.android.SdkConstants.EXT_ZIP;
 import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.StandardFileSystems.*;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
@@ -81,24 +82,11 @@ public final class FilePaths {
    */
   @NotNull
   public static String pathToIdeaUrl(@NotNull File path) {
-    return pathToUrl(toSystemIndependentName(path.getPath()));
-  }
-
-  /**
-   * Converts the given path to an URL. It handles both "file" and "jar" file systems.
-   *
-   * @param path the given path.
-   * @return the created URL.
-   */
-  @NotNull
-  public static String pathToUrl(@NotNull String path) {
-    File file = new File(path);
-
-    String name = file.getName();
+    String name = path.getName();
     boolean isJarFile = extensionEquals(name, EXT_JAR) || extensionEquals(name, EXT_ZIP);
     // .jar files require an URL with "jar" protocol.
     String protocol = isJarFile ? JAR_PROTOCOL : FILE_PROTOCOL;
-    String url = constructUrl(protocol, toSystemIndependentName(file.getPath()));
+    String url = constructUrl(protocol, toSystemIndependentName(path.getPath()));
     if (isJarFile) {
       url += JAR_SEPARATOR;
     }
