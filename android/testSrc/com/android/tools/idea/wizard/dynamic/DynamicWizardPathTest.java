@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.wizard.dynamic;
 
-import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
-import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
-import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
-import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,10 +35,6 @@ public class DynamicWizardPathTest extends AndroidTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
-      IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
-    myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
-    myFixture.setUp();
     myWizard = new DummyDynamicWizard();
     myPath = new DummyDynamicWizardPath("TestPath");
     myStep1 = new DummyDynamicWizardStep("TestStep1");
@@ -51,9 +43,8 @@ public class DynamicWizardPathTest extends AndroidTestBase {
 
   @Override
   public void tearDown() throws Exception {
-    super.tearDown();
-    myFixture.tearDown();
     myWizard.doCancelAction();
+    super.tearDown();
   }
 
   public void testAddStep() throws Exception {
