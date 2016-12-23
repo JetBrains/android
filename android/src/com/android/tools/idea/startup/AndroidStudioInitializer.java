@@ -17,8 +17,6 @@ package com.android.tools.idea.startup;
 
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
-import com.android.tools.idea.monitor.tool.AndroidMonitorToolWindowFactory;
-import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.testartifacts.junit.*;
 import com.google.common.annotations.VisibleForTesting;
@@ -47,12 +45,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerAdapter;
 import com.intellij.openapi.roots.OrderEnumerationHandler;
-import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowAnchor;
-import com.intellij.openapi.wm.ToolWindowManager;
-import icons.AndroidIcons;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.execution.GradleOrderEnumeratorHandler;
@@ -93,7 +86,6 @@ public class AndroidStudioInitializer implements Runnable {
     setUpMakeActions();
     disableGroovyLanguageInjection();
     setUpNewProjectActions();
-    setUpExperimentalFeatures();
     setupAnalytics();
     disableGradleOrderEnumeratorHandler();
     disableIdeaJUnitConfigurations();
@@ -119,26 +111,6 @@ public class AndroidStudioInitializer implements Runnable {
    */
   private static void setupAnalytics() {
     AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
-  }
-
-  private static void setUpExperimentalFeatures() {
-    if (ProfilerState.EXPERIMENTAL_PROFILING_FLAG_ENABLED) {
-      ProjectManager.getInstance().addProjectManagerListener(new ProjectManagerAdapter() {
-        @Override
-        public void projectOpened(final Project project) {
-          StartupManager.getInstance(project).runWhenProjectIsInitialized(
-            () -> {
-              ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
-              ToolWindow toolWindow =
-                toolWindowManager.registerToolWindow(AndroidMonitorToolWindowFactory.ID, false, ToolWindowAnchor.BOTTOM, project, true);
-              toolWindow.setIcon(AndroidIcons.AndroidToolWindow);
-              new AndroidMonitorToolWindowFactory().createToolWindowContent(project, toolWindow);
-              toolWindow.show(null);
-            }
-          );
-        }
-      });
-    }
   }
 
   private static void checkInstallation() {
