@@ -226,7 +226,9 @@ final class ConnectionsView {
       myRange = range;
       myAspectObserver = new AspectObserver();
       myRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::rangeChanged);
-      rangeChanged();
+      if (!myRange.isEmpty()) {
+        rangeChanged();
+      }
     }
 
     @Override
