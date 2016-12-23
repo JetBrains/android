@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.monitor.tool;
+package com.android.tools.idea.profilers;
 
 import com.intellij.openapi.project.Project;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class CallStackLineTest {
   private CallStackLine myStackLine;
