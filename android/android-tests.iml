@@ -100,11 +100,8 @@
     </orderEntry>
     <orderEntry type="module" module-name="properties-psi-impl" scope="TEST" />
     <orderEntry type="module" module-name="compiler-impl" scope="TEST" />
-    <orderEntry type="module" module-name="perfd-host" scope="TEST" />
     <orderEntry type="module" module-name="junit" scope="TEST" />
     <orderEntry type="module" module-name="execution-impl" scope="TEST" />
-    <orderEntry type="module" module-name="profilers" scope="TEST" />
-    <orderEntry type="module" module-name="profilers-ui" scope="TEST" />
     <orderEntry type="module" module-name="android-test-framework" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="jsr305" level="project" />
     <orderEntry type="module" module-name="analytics-shared" scope="TEST" />
