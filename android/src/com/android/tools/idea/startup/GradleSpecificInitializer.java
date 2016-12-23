@@ -18,15 +18,12 @@ package com.android.tools.idea.startup;
 import com.android.SdkConstants;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.actions.*;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.sdklib.repository.legacy.LegacyRemoteRepoLoader;
-import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
@@ -140,7 +137,7 @@ public class GradleSpecificInitializer implements Runnable {
     if (PathManager.getHomePath().contains("!")) {
       final Application app = ApplicationManager.getApplication();
 
-      app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
+      app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
         @Override
         public void appStarting(Project project) {
           app.invokeLater(new Runnable() {
@@ -252,7 +249,7 @@ public class GradleSpecificInitializer implements Runnable {
   private static void addStartupWarning(@NotNull final String message, @Nullable final NotificationListener listener) {
     final Application app = ApplicationManager.getApplication();
 
-    app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
+    app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
       @Override
       public void appStarting(Project project) {
         app.invokeLater(new Runnable() {
@@ -437,7 +434,7 @@ public class GradleSpecificInitializer implements Runnable {
   private static void registerAppClosing() {
     Application app = ApplicationManager.getApplication();
     MessageBusConnection connection = app.getMessageBus().connect(app);
-    connection.subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
+    connection.subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
       @Override
       public void appClosing() {
         try {
