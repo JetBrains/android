@@ -84,6 +84,7 @@ public final class ModulesListModelTest extends AndroidTestCase {
         return null;
       }
     });
+    myModel = null;
     super.tearDown();
   }
 
