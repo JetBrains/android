@@ -463,7 +463,7 @@ public class AndroidStudioSystemHealthMonitor {
     trackCrashes(StudioCrashDetection.reapCrashDescriptions());
     RecordingManager.init();
 
-    application.getMessageBus().connect(application).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
+    application.getMessageBus().connect(application).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
       @Override
       public void appClosing() {
         myProperties.setValue(STUDIO_ACTIVITY_COUNT, Long.toString(ourStudioActionCount.get()));
