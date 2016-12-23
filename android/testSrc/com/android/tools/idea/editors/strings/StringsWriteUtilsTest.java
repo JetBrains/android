@@ -44,6 +44,13 @@ public final class StringsWriteUtilsTest extends AndroidTestCase {
     myResourceRepository = ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(myResourceDirectory));
   }
 
+  @Override
+  public void tearDown() throws Exception {
+    myProject = null;
+    myResourceRepository = null;
+    super.tearDown();
+  }
+
   public void testSetItemText() {
     StringsWriteUtils.setItemText(myProject, getResourceItem("key2", Locale.create("fr")), "L'Étranger");
     assertEquals("L\\'Étranger", getText("values-fr/strings.xml", "key2"));
