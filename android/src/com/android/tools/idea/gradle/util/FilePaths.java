@@ -15,60 +15,23 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.intellij.openapi.roots.ContentEntry;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collection;
 
 import static com.android.SdkConstants.EXT_JAR;
 import static com.android.SdkConstants.EXT_ZIP;
-import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.io.FileUtil.extensionEquals;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.StandardFileSystems.*;
-import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.openapi.vfs.VirtualFileManager.constructUrl;
 import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 
 public final class FilePaths {
   private FilePaths() {
-  }
-
-  @Nullable
-  public static ContentEntry findParentContentEntry(@NotNull File path, @NotNull ContentEntry[] contentEntries) {
-    for (ContentEntry contentEntry : contentEntries) {
-      if (isPathInContentEntry(path, contentEntry)) {
-        return contentEntry;
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  public static ContentEntry findParentContentEntry(@NotNull File path, @NotNull Collection<ContentEntry> contentEntries) {
-    for (ContentEntry contentEntry : contentEntries) {
-      if (isPathInContentEntry(path, contentEntry)) {
-        return contentEntry;
-      }
-    }
-    return null;
-  }
-
-  public static boolean isPathInContentEntry(@NotNull File path, @NotNull ContentEntry contentEntry) {
-    VirtualFile rootFile = contentEntry.getFile();
-    File rootFilePath;
-    if (rootFile == null) {
-      String s = urlToPath(contentEntry.getUrl());
-      rootFilePath = new File(s);
-    }
-    else {
-      rootFilePath = virtualToIoFile(rootFile);
-    }
-    return isAncestor(rootFilePath, path, false);
   }
 
   /**

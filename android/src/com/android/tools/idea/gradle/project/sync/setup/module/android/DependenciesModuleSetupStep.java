@@ -46,13 +46,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
 import static com.android.SdkConstants.FD_JARS;
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.DOCUMENTATION;
-import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
+import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.Projects.setModuleCompiledArtifact;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
@@ -161,7 +162,7 @@ public class DependenciesModuleSetupStep extends AndroidModuleSetupStep {
       for (File binaryPath : dependency.getPaths(BINARY)) {
         File parent = binaryPath.getParentFile();
         if (parent != null && FD_JARS.equals(parent.getName()) && isAncestor(buildFolder, parent, true)) {
-          ContentEntry parentContentEntry = findParentContentEntry(parent, contentEntries);
+          ContentEntry parentContentEntry = findParentContentEntry(parent, Arrays.stream(contentEntries));
           if (parentContentEntry != null) {
             parentContentEntry.addExcludeFolder(pathToIdeaUrl(parent));
           }

@@ -30,7 +30,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.FilePaths.*;
+import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
+import static com.android.tools.idea.gradle.util.ContentEntries.isPathInContentEntry;
+import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 
 public abstract class ContentEntriesSetup {
   @NotNull private final ModifiableRootModel myModuleModel;
@@ -52,7 +54,7 @@ public abstract class ContentEntriesSetup {
                                  @NotNull Collection<ContentEntry> contentEntries,
                                  @NotNull JpsModuleSourceRootType type,
                                  boolean generated) {
-    ContentEntry parent = findParentContentEntry(folderPath, contentEntries);
+    ContentEntry parent = findParentContentEntry(folderPath, contentEntries.stream());
     if (parent == null) {
       myOrphans.add(new RootSourceFolder(folderPath, type, generated));
       return;
