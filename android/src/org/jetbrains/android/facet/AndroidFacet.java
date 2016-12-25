@@ -26,12 +26,13 @@ import com.android.sdklib.ISystemImage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.apk.AndroidApkFacet;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.databinding.LightBrClass;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -94,7 +95,6 @@ import java.util.*;
 import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.AndroidPsiUtils.getModuleSafely;
-import static com.android.tools.idea.apk.ApkProjects.isApkProject;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.vfs.JarFileSystem.JAR_SEPARATOR;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -202,7 +202,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    * @return {@code true} if the project has a {@code AndroidProject}; {@code false} otherwise.
    */
   public boolean requiresAndroidModel() {
-    return !getProperties().ALLOW_USER_CONFIGURATION && !isApkProject(getModule());
+    return !getProperties().ALLOW_USER_CONFIGURATION && AndroidApkFacet.getInstance(getModule()) == null;
   }
 
   /**
