@@ -30,7 +30,7 @@ import java.util.List;
 
 import static com.android.builder.model.AndroidProject.FD_GENERATED;
 import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.getTestArtifacts;
-import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
+import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGeneratedSourceFolders;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static org.jetbrains.jps.model.java.JavaResourceRootType.RESOURCE;
@@ -193,7 +193,7 @@ class AndroidContentEntriesSetup extends ContentEntriesSetup {
 
   private void addExcludedOutputFolders(@NotNull List<ContentEntry> contentEntries) {
     File buildFolderPath = getAndroidProject().getBuildFolder();
-    ContentEntry parentContentEntry = findParentContentEntry(buildFolderPath, contentEntries);
+    ContentEntry parentContentEntry = findParentContentEntry(buildFolderPath, contentEntries.stream());
     if (parentContentEntry != null) {
       List<File> excludedFolderPaths = myAndroidModel.getExcludedFolderPaths();
       for (File folderPath : excludedFolderPaths) {
