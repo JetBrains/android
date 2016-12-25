@@ -17,16 +17,12 @@ package com.android.tools.idea.apk;
 
 import com.intellij.facet.*;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Android-APK facet.
- *
- * </p>This facet is set to IDEA modules that have been imported from an APK project so that the IDE could identify them.
+ * Facet applied to modules in a project created by importing an APK file.
  */
 public class AndroidApkFacet extends Facet<AndroidApkFacetConfiguration> {
   @NotNull public static final FacetTypeId<AndroidApkFacet> TYPE_ID = new FacetTypeId<>("android-apk");
@@ -53,16 +49,5 @@ public class AndroidApkFacet extends Facet<AndroidApkFacetConfiguration> {
       return null;
     }
     return FacetManager.getInstance(module).getFacetByType(TYPE_ID);
-  }
-
-  @Nullable
-  public static AndroidApkFacet getInstance(@NotNull Project project) {
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    // Only 1 module existed for Apk project
-    Module[] modules = moduleManager.getModules();
-    if (modules.length == 1) {
-      return getInstance(modules[0]);
-    }
-    return null;
   }
 }

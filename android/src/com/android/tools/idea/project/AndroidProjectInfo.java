@@ -16,6 +16,7 @@
 package com.android.tools.idea.project;
 
 import com.android.builder.model.AndroidProject;
+import com.android.tools.idea.apk.AndroidApkFacet;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
@@ -47,6 +48,17 @@ public class AndroidProjectInfo {
     for (Module module : moduleManager.getModules()) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet != null && androidFacet.requiresAndroidModel()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean isApkProject() {
+    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+    // TODO revisit the self-imposed limitation of having only one module in a APK project.
+    for (Module module : moduleManager.getModules()) {
+      if (AndroidApkFacet.getInstance(module) != null) {
         return true;
       }
     }
