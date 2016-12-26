@@ -93,7 +93,7 @@ public class DataBindingUtil {
       if (tracker instanceof PsiModificationTrackerImpl) {
         ((PsiModificationTrackerImpl) tracker).incCounter();
       }
-      FileContentUtil.reparseFiles(project, Collections.EMPTY_LIST, true);
+      FileContentUtil.reparseFiles(project, Collections.emptyList(), true);
 
     }
     ourDataBindingEnabledModificationCount.incrementAndGet();
@@ -134,9 +134,7 @@ public class DataBindingUtil {
     boolean oldValue = ourCreateInMemoryClasses.getAndSet(newValue);
     if (newValue != oldValue) {
       LOG.debug("Data binding in memory completion value change. (old, new)", oldValue, newValue);
-      ApplicationManager.getApplication().invokeLater(() -> {
-        ApplicationManager.getApplication().runWriteAction(DataBindingUtil::invalidateJavaCodeOnOpenDataBindingProjects);
-      });
+      ApplicationManager.getApplication().invokeLater(() -> ApplicationManager.getApplication().runWriteAction(DataBindingUtil::invalidateJavaCodeOnOpenDataBindingProjects));
     }
   }
 
@@ -152,14 +150,17 @@ public class DataBindingUtil {
    * @return The LightBRClass that belongs to the given AndroidFacet
    */
   static LightBrClass getOrCreateBrClassFor(AndroidFacet facet) {
-    LightBrClass existing = facet.getLightBrClass();
+    ModuleDataBinding dataBinding = ModuleDataBinding.get(facet);
+    assert dataBinding != null;
+
+    LightBrClass existing = dataBinding.getLightBrClass();
     if (existing == null) {
       //noinspection SynchronizationOnLocalVariableOrMethodParameter
       synchronized (facet) {
-        existing = facet.getLightBrClass();
+        existing = dataBinding.getLightBrClass();
         if (existing == null) {
           existing = new LightBrClass(PsiManager.getInstance(facet.getModule().getProject()), facet);
-          facet.setLightBrClass(existing);
+          dataBinding.setLightBrClass(existing);
         }
       }
     }
@@ -342,13 +343,13 @@ public class DataBindingUtil {
    *
    * @param facet the {@linkplain AndroidFacet} whose IdeaProject is just set.
    */
-  public static void onIdeaProjectSet(AndroidFacet facet) {
+  public static void refreshDataBindingStatus(@NotNull AndroidFacet facet) {
     AndroidModel androidModel = facet.getAndroidModel();
     if (androidModel != null) {
-      boolean wasEnabled = facet.isDataBindingEnabled();
+      boolean wasEnabled = ModuleDataBinding.isEnabled(facet);
       boolean enabled = androidModel.getDataBindingEnabled();
       if (enabled != wasEnabled) {
-        facet.setDataBindingEnabled(enabled);
+        ModuleDataBinding.setEnabled(facet, enabled);
         ourDataBindingEnabledModificationCount.incrementAndGet();
       }
     }
