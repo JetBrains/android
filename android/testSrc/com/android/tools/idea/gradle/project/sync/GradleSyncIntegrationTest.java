@@ -38,6 +38,8 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.pom.java.LanguageLevel;
+import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
@@ -279,7 +281,8 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
 
     Library guava = null;
     for (Library library : ProjectLibraryTable.getInstance(getProject()).getLibraries()) {
-      if (library.getName().contains("guava")) {
+      String name = library.getName();
+      if (name != null && name.contains("guava")) {
         guava = library;
       }
     }
@@ -287,5 +290,16 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
 
     String[] sources = guava.getUrls(SOURCES);
     assertThat(sources).isNotEmpty();
+  }
+
+  public void testLegacySourceGenerationIsDisabled() throws Exception {
+    loadSimpleApplication();
+
+    Module appModule = myModules.getAppModule();
+    AndroidFacet facet = AndroidFacet.getInstance(appModule);
+    assertNotNull(facet);
+
+    ModuleSourceAutogenerating autogenerating = ModuleSourceAutogenerating.get(facet);
+    assertNull(autogenerating);
   }
 }
