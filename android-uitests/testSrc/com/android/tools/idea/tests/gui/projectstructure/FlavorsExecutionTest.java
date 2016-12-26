@@ -49,7 +49,7 @@ public class FlavorsExecutionTest {
   @Before
   public void setUp() throws Exception {
     MockAvdManagerConnection.inject();
-    getEmulatorConnection().deleteAvd(AVD_NAME.replace(' ', '_'));
+    getEmulatorConnection().deleteAvd(AVD_NAME);
     getEmulatorConnection().stopRunningAvd();
 
     guiTest.importSimpleApplication();
@@ -75,7 +75,7 @@ public class FlavorsExecutionTest {
   @After
   public void tearDown() throws Exception {
     getEmulatorConnection().stopRunningAvd();
-    getEmulatorConnection().deleteAvd(AVD_NAME.replace(' ', '_'));
+    getEmulatorConnection().deleteAvd(AVD_NAME);
   }
 
   /***
