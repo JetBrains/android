@@ -29,8 +29,6 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.apk.AndroidApkFacet;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -43,7 +41,6 @@ import com.android.utils.ILogger;
 import com.intellij.CommonBundle;
 import com.intellij.ProjectTopics;
 import com.intellij.facet.*;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -811,17 +808,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     JpsAndroidModuleProperties state = getConfiguration().getState();
     assert state != null;
     return state;
-  }
-
-  /**
-   * Adds a new {@link GradleSyncListener}. If you need to remove the listener, the  returned {@link Disposable}
-   * can be used to remove it by using the {@link Disposer}.
-   *
-   * @return A {@link Disposable} that can be used to remove the listener if needed.
-   */
-  @NotNull
-  public Disposable addListener(@NotNull GradleSyncListener listener) {
-    return GradleSyncState.subscribe(getProject(), listener, getModule());
   }
 
   @NotNull
