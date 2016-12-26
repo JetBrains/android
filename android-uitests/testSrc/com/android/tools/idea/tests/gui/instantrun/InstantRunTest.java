@@ -67,7 +67,7 @@ public class InstantRunTest {
   @Before
   public void setUp() throws Exception {
     MockAvdManagerConnection.inject();
-    getEmulatorConnection().deleteAvd(AVD_NAME.replace(' ', '_'));
+    getEmulatorConnection().deleteAvd(AVD_NAME);
   }
 
   @After
