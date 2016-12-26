@@ -16,6 +16,7 @@
 package org.jetbrains.android.databinding;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.intellij.psi.*;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -44,7 +45,7 @@ public class AndroidDataBindingTest extends AndroidTestCase {
   public void testResolveSimpleVariable() {
     copyLayout("basic_binding");
     copyClass(DUMMY_CLASS_QNAME);
-    myFacet.setDataBindingEnabled(true);
+    ModuleDataBinding.setEnabled(myFacet, true);
     myFacet.getModuleResources(true);
 
     PsiClass aClass = myFixture.findClass("p1.p2.databinding.BasicBindingBinding");
@@ -57,7 +58,7 @@ public class AndroidDataBindingTest extends AndroidTestCase {
   public void testResolveImport() {
     copyLayout("import_variable");
     copyClass(DUMMY_CLASS_QNAME);
-    myFacet.setDataBindingEnabled(true);
+    ModuleDataBinding.setEnabled(myFacet, true);
     myFacet.getModuleResources(true);
 
     PsiClass aClass = myFixture.findClass("p1.p2.databinding.ImportVariableBinding");
@@ -82,7 +83,7 @@ public class AndroidDataBindingTest extends AndroidTestCase {
   public void testResolveImportAlias() {
     copyLayout("import_via_alias");
     copyClass(DUMMY_CLASS_QNAME);
-    myFacet.setDataBindingEnabled(true);
+    ModuleDataBinding.setEnabled(myFacet, true);
     myFacet.getModuleResources(true);
 
     PsiClass aClass = myFixture.findClass("p1.p2.databinding.ImportViaAliasBinding");
