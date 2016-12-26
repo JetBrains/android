@@ -23,15 +23,18 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,7 +54,9 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
     super("Gradle Dynamic");
     myFacet = facet;
     assert facet.requiresAndroidModel();
-    Disposer.register(this, facet.addListener(this));
+    Module module = facet.getModule();
+    MessageBusConnection parent = GradleSyncState.subscribe(module.getProject(), this, module);
+    Disposer.register(parent, this);
     BuildVariantView.getInstance(myFacet.getModule().getProject()).addListener(this);
   }
 
