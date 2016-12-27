@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.layout;
 
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.fd.InstantRunSettings;
-import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -50,7 +49,7 @@ public class LayoutInspectorTest {
   public void setUp() throws Exception {
     MockAvdManagerConnection.inject();
     MockAvdManagerConnection mockAvdManagerConnection = (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
-    mockAvdManagerConnection.deleteAvd(AVD_NAME);
+    mockAvdManagerConnection.deleteAvdByDisplayName(AVD_NAME);
     mockAvdManagerConnection.stopRunningAvd(); // make sure the emulator is not under connected devices from a previous run
 
     AvdManagerDialogFixture avdManagerDialog = guiTest.importSimpleApplication().invokeAvdManager();
@@ -73,7 +72,7 @@ public class LayoutInspectorTest {
     // because default stopAVD implementation (i.e., 'kill pid') cannot close a no-window emulator.
     MockAvdManagerConnection mockAvdManagerConnection = (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
     mockAvdManagerConnection.stopRunningAvd();
-    mockAvdManagerConnection.deleteAvd(AVD_NAME);
+    mockAvdManagerConnection.deleteAvdByDisplayName(AVD_NAME);
   }
 
   /**
