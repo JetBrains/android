@@ -88,6 +88,13 @@ public class BaseArtifactStub implements BaseArtifact {
     return myDependencies;
   }
 
+  @Override
+  @NotNull
+  @Deprecated
+  public DependenciesStub getCompileDependencies() {
+    return getDependencies();
+  }
+
   @NonNull
   @Override
   public DependencyGraphs getDependencyGraphs() {
