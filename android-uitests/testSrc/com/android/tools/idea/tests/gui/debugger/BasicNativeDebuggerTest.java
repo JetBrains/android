@@ -54,13 +54,13 @@ public class BasicNativeDebuggerTest {
   @Before
   public void setUp() throws Exception {
     MockAvdManagerConnection.inject();
-    getEmulatorConnection().deleteAvd(AVD_NAME);
+    getEmulatorConnection().deleteAvdByDisplayName(AVD_NAME);
   }
 
   @After
   public void tearDown() throws Exception {
     getEmulatorConnection().stopRunningAvd();
-    getEmulatorConnection().deleteAvd(AVD_NAME);
+    getEmulatorConnection().deleteAvdByDisplayName(AVD_NAME);
   }
 
   @NotNull
