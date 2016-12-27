@@ -31,6 +31,7 @@ import javax.swing.tree.TreePath;
 import java.util.Iterator;
 
 import static com.android.SdkConstants.*;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -52,6 +53,12 @@ public class NlComponentTreeTest extends LayoutTestCase {
     when(mySurface.getCurrentScreenView()).thenReturn(myScreen);
     when(mySurface.getProject()).thenReturn(getProject());
     myTree = new NlComponentTree(mySurface);
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    reset(myScreen, mySurface);
+    super.tearDown();
   }
 
   public void testTreeStructure() {
