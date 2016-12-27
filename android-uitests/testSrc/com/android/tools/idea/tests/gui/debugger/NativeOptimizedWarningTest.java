@@ -28,7 +28,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWiza
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
 import com.intellij.openapi.fileEditor.impl.EditorsSplitters;
-import com.intellij.xdebugger.impl.frame.XDebuggerFramesList;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.util.PatternTextMatcher;
@@ -62,13 +61,13 @@ public class NativeOptimizedWarningTest {
   @Before
   public void setUp() throws Exception {
     MockAvdManagerConnection.inject();
-    getEmulatorConnection().deleteAvd(AVD_NAME);
+    getEmulatorConnection().deleteAvdByDisplayName(AVD_NAME);
   }
 
   @After
   public void tearDown() throws Exception {
     getEmulatorConnection().stopRunningAvd();
-    getEmulatorConnection().deleteAvd(AVD_NAME);
+    getEmulatorConnection().deleteAvdByDisplayName(AVD_NAME);
   }
 
   @NotNull

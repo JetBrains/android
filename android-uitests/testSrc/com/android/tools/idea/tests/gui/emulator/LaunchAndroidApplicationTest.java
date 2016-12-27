@@ -59,7 +59,7 @@ public class LaunchAndroidApplicationTest {
   @Before
   public void setUp() throws Exception {
     MockAvdManagerConnection.inject();
-    getEmulatorConnection().deleteAvd(AVD_NAME);
+    getEmulatorConnection().deleteAvdByDisplayName(AVD_NAME);
   }
 
   @After
@@ -67,7 +67,7 @@ public class LaunchAndroidApplicationTest {
     // Close a no-window emulator by calling 'adb emu kill'
     // because default stopAVD implementation (i.e., 'kill pid') cannot close a no-window emulator.
     getEmulatorConnection().stopRunningAvd();
-    getEmulatorConnection().deleteAvd(AVD_NAME);
+    getEmulatorConnection().deleteAvdByDisplayName(AVD_NAME);
   }
 
   @RunIn(TestGroup.QA)
