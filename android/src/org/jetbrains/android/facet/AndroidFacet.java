@@ -87,6 +87,7 @@ import static com.android.tools.idea.databinding.DataBindingUtil.refreshDataBind
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.vfs.JarFileSystem.JAR_SEPARATOR;
 import static com.intellij.util.ArrayUtilRt.find;
+import static org.jetbrains.android.facet.LayoutViewClassUtils.getTagNamesByClass;
 import static org.jetbrains.android.util.AndroidCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 import static org.jetbrains.android.util.AndroidUtils.loadDomElement;
@@ -127,7 +128,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   private SourceProvider myMainSourceSet;
   private IdeaSourceProvider myMainIdeaSourceSet;
-  private final AndroidModuleInfo myAndroidModuleInfo = AndroidModuleInfo.create(this);
 
   @Nullable
   public static AndroidFacet getInstance(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
@@ -141,26 +141,28 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   @Nullable
-  public static AndroidFacet getInstance(@NotNull Module module) {
-    return !module.isDisposed() ? FacetManager.getInstance(module).getFacetByType(ID) : null;
-  }
-
-  @Nullable
   public static AndroidFacet getInstance(@NotNull ConvertContext context) {
-    Module module = context.getModule();
-    return module != null ? getInstance(module) : null;
+    return findAndroidFacet(context.getModule());
   }
 
   @Nullable
   public static AndroidFacet getInstance(@NotNull PsiElement element) {
-    Module module = getModuleSafely(element);
-    return module != null ? getInstance(module) : null;
+    return findAndroidFacet(getModuleSafely(element));
   }
 
   @Nullable
   public static AndroidFacet getInstance(@NotNull DomElement element) {
-    Module module = element.getModule();
-    return module != null ? getInstance(module) : null;
+    return findAndroidFacet(element.getModule());
+  }
+
+  @Nullable
+  private static AndroidFacet findAndroidFacet(@Nullable Module module) {
+    return module != null? getInstance(module) : null;
+  }
+
+  @Nullable
+  public static AndroidFacet getInstance(@NotNull Module module) {
+    return !module.isDisposed() ? FacetManager.getInstance(module).getFacetByType(ID) : null;
   }
 
   public AndroidFacet(@NotNull Module module, String name, @NotNull AndroidFacetConfiguration configuration) {
@@ -653,7 +655,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     if (aClass == null) {
       return false;
     }
-    String[] tagNames = LayoutViewClassUtils.getTagNamesByClass(aClass, -1);
+    String[] tagNames = getTagNamesByClass(aClass, -1);
     return find(tagNames, tagName) >= 0;
   }
 
@@ -690,8 +692,9 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       }
       return aClass;
     });
+    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.get(this);
     if (baseClass != null) {
-      String[] baseClassTagNames = LayoutViewClassUtils.getTagNamesByClass(baseClass, getModuleMinApi());
+      String[] baseClassTagNames = getTagNamesByClass(baseClass, androidModuleInfo.getModuleMinApi());
       for (String tagName : baseClassTagNames) {
         map.put(tagName, baseClass);
       }
@@ -700,7 +703,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
           if (libClassesOnly && c.getManager().isInProject(c)) {
             return true;
           }
-          String[] tagNames = LayoutViewClassUtils.getTagNamesByClass(c, getModuleMinApi());
+          String[] tagNames = getTagNamesByClass(c, androidModuleInfo.getModuleMinApi());
           for (String tagName : tagNames) {
             map.put(tagName, c);
           }
@@ -713,13 +716,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       }
     }
     return map.size() > 0;
-  }
-
-  /**
-   * Returns minimum SDK version for current Android module
-   */
-  public int getModuleMinApi() {
-    return getAndroidModuleInfo().getMinSdkVersion().getApiLevel();
   }
 
   @NotNull
@@ -810,10 +806,5 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @NotNull
   private Project getProject() {
     return getModule().getProject();
-  }
-
-  @NotNull
-  public AndroidModuleInfo getAndroidModuleInfo() {
-    return myAndroidModuleInfo;
   }
 }
