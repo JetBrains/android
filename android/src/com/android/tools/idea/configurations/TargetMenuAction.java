@@ -19,6 +19,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.ResourceHelper;
@@ -97,7 +98,7 @@ public class TargetMenuAction extends FlatComboAction {
       if (module != null) {
         AndroidFacet facet = AndroidFacet.getInstance(module);
         if (facet != null) {
-          return facet.getAndroidModuleInfo().getMinSdkVersion().getFeatureLevel();
+          return AndroidModuleInfo.get(facet).getMinSdkVersion().getFeatureLevel();
         }
       }
     }
@@ -116,7 +117,7 @@ public class TargetMenuAction extends FlatComboAction {
     int minApi = Math.max(getMinSdkVersion(), SHOW_FROM_API_LEVEL);
     for (int apiLevel = highestApiLevel; apiLevel >= minApi; apiLevel--) {
       IAndroidTarget target = new CompatibilityRenderTarget(highestTarget, apiLevel, null);
-      boolean isSelected = target.getVersion().equals(currentTarget.getVersion());
+      boolean isSelected = currentTarget != null && target.getVersion().equals(currentTarget.getVersion());
       group.add(new SetTargetAction(myRenderContext, target.getVersionName(), target, isSelected));
     }
   }

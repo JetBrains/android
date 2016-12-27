@@ -122,7 +122,7 @@ public class RenderService implements Disposable {
   }
 
   /**
-   * Returns the {@linkplain RenderService} for the given facet
+   * @return the {@linkplain RenderService} for the given facet.
    */
   @NotNull
   public static RenderService get(@NotNull AndroidFacet facet) {
