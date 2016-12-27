@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="test.pkg">
+  <uses-feature android:name="android.hardware.type.watch"/>
+
+  <application android:allowBackup="false">
+      <meta-data
+          android:name="com.google.android.wearable.standalone"
+          android:value="<warning descr="Expecting a boolean value for attribute `android:value`">@string/in<caret>validattr</warning>" />
+  </application>
+
+</manifest>
