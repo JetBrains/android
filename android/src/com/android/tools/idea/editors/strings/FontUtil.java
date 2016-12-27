@@ -38,7 +38,7 @@ public class FontUtil {
     FontPreferences fontPreferences = EditorColorsManager.getInstance().getGlobalScheme().getFontPreferences();
     for (int i = 0; i < s.length(); i++) {
       if (s.charAt(i) > 255) {
-        fonts.add(ComplementaryFontsRegistry.getFontAbleToDisplay(s.charAt(i), Font.PLAIN, fontPreferences).getFont());
+        fonts.add(ComplementaryFontsRegistry.getFontAbleToDisplay(s.charAt(i), Font.PLAIN, fontPreferences, null).getFont());
       }
     }
 
