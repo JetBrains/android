@@ -18,6 +18,7 @@ package org.jetbrains.android.databinding;
 import com.android.SdkConstants;
 import com.android.builder.model.AndroidLibrary;
 import com.android.ide.common.blame.Message;
+import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -82,7 +83,7 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
 
     GradleSyncState syncState = GradleSyncState.getInstance(getProject());
     assertFalse(syncState.isSyncNeeded().toBoolean());
-    assertTrue(myAndroidFacet.isDataBindingEnabled());
+    assertTrue(ModuleDataBinding.isEnabled(myAndroidFacet));
 
 
     // trigger initialization
