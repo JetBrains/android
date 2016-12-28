@@ -389,7 +389,7 @@ public class RenderErrorContributor {
       List<XmlTag> missing = fix.findViewsMissingSizes();
 
       // See whether we should offer match_parent instead of fill_parent
-      AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(module);
+      AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(module);
       final String fill = moduleInfo == null
                           || moduleInfo.getBuildSdkVersion() == null
                           || moduleInfo.getBuildSdkVersion().getApiLevel() >= 8

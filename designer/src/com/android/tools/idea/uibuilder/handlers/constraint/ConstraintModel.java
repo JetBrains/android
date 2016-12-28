@@ -877,7 +877,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
         }
         XmlFile xmlFile = myNlModel.getFile();
         AndroidFacet facet = myNlModel.getFacet();
-        RenderService renderService = RenderService.get(facet);
+        RenderService renderService = RenderService.getInstance(facet);
         RenderLogger logger = renderService.createLogger();
         final RenderTask task = renderService.createTask(xmlFile, myNlModel.getConfiguration(), logger, null);
         if (task != null) {

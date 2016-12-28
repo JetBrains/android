@@ -614,7 +614,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
         templateValues.put(ATTR_BUILD_API_STRING, getBuildApiString(platform.getTarget().getVersion()));
       }
 
-      AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(myFacet);
+      AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(myFacet);
       AndroidVersion minSdkVersion = moduleInfo.getMinSdkVersion();
       String minSdkName = minSdkVersion.getApiString();
 

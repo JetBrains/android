@@ -17,7 +17,6 @@ package com.android.tools.idea.databinding;
 
 import com.android.tools.idea.testing.Facets;
 import com.intellij.testFramework.IdeaTestCase;
-import junit.framework.TestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
 /**
@@ -33,23 +32,23 @@ public class ModuleDataBindingTest extends IdeaTestCase {
   }
 
   public void testIsAndSetEnabled() {
-    assertNull(ModuleDataBinding.get(myFacet));
+    assertNull(ModuleDataBinding.getInstance(myFacet));
     assertFalse(ModuleDataBinding.isEnabled(myFacet));
 
     // Enable data binding.
-    ModuleDataBinding.setEnabled(myFacet, true);
-    ModuleDataBinding dataBinding = ModuleDataBinding.get(myFacet);
+    ModuleDataBinding.enable(myFacet);
+    ModuleDataBinding dataBinding = ModuleDataBinding.getInstance(myFacet);
     assertNotNull(dataBinding);
     assertTrue(ModuleDataBinding.isEnabled(myFacet));
 
     // Try to enable data binding again.
-    ModuleDataBinding.setEnabled(myFacet, true);
+    ModuleDataBinding.enable(myFacet);
     // Should not create another ModuleDataBinding.
-    assertSame(dataBinding, ModuleDataBinding.get(myFacet));
+    assertSame(dataBinding, ModuleDataBinding.getInstance(myFacet));
 
     // Disable data binding.
-    ModuleDataBinding.setEnabled(myFacet, false);
-    assertNull(ModuleDataBinding.get(myFacet));
+    ModuleDataBinding.disable(myFacet);
+    assertNull(ModuleDataBinding.getInstance(myFacet));
     assertFalse(ModuleDataBinding.isEnabled(myFacet));
   }
 }

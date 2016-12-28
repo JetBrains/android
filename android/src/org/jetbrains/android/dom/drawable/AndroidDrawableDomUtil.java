@@ -52,7 +52,7 @@ public class AndroidDrawableDomUtil {
   }
 
   public static List<String> getPossibleRoots(AndroidFacet facet) {
-    AndroidVersion sdkVersion = AndroidModuleInfo.get(facet).getBuildSdkVersion();
+    AndroidVersion sdkVersion = AndroidModuleInfo.getInstance(facet).getBuildSdkVersion();
     List<String> result = Lists.newArrayListWithExpectedSize(DRAWABLE_ROOTS_V1.length + DRAWABLE_ROOTS_V21.length);
     Collections.addAll(result, DRAWABLE_ROOTS_V1);
     if (sdkVersion == null || sdkVersion.getFeatureLevel() >= 21 ||
