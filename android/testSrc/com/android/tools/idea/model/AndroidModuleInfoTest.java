@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.model;
 
-import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.run.activity.ActivityLocatorUtils;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
@@ -36,13 +33,14 @@ import com.intellij.util.ui.UIUtil;
 import junit.framework.AssertionFailedError;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
+import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_COMPILE_VERSION;
 import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -50,35 +48,38 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   public void testManifestOnly() throws Exception {
     loadProject(MODULE_INFO_MANIFEST_ONLY);
     assertNotNull(myAndroidFacet);
-    assertEquals(7, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel());
-    assertEquals(18, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
-    //noinspection SpellCheckingInspection
-    assertEquals("com.example.unittest", myAndroidFacet.getAndroidModuleInfo().getPackage());
+    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.get(myAndroidFacet);
+    assertEquals(7, androidModuleInfo.getMinSdkVersion().getApiLevel());
+    assertEquals(18, androidModuleInfo.getTargetSdkVersion().getApiLevel());
+    assertEquals("com.example.unittest", androidModuleInfo.getPackage());
   }
 
   public void testGradleOnly() throws Exception {
     loadProject(MODULE_INFO_GRADLE_ONLY);
     assertNotNull(myAndroidFacet);
-    assertEquals(9, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel());
-    assertEquals(GradleImport.CURRENT_COMPILE_VERSION, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
-    assertEquals("from.gradle", myAndroidFacet.getAndroidModuleInfo().getPackage());
+    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.get(myAndroidFacet);
+    assertEquals(9, androidModuleInfo.getMinSdkVersion().getApiLevel());
+    assertEquals(CURRENT_COMPILE_VERSION, androidModuleInfo.getTargetSdkVersion().getApiLevel());
+    assertEquals("from.gradle", androidModuleInfo.getPackage());
   }
 
   public void testBoth() throws Exception {
     loadProject(MODULE_INFO_BOTH);
     assertNotNull(myAndroidFacet);
-    assertEquals(9, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel());
-    assertEquals(GradleImport.CURRENT_COMPILE_VERSION, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
-    assertEquals("from.gradle", myAndroidFacet.getAndroidModuleInfo().getPackage());
+    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.get(myAndroidFacet);
+    assertEquals(9, androidModuleInfo.getMinSdkVersion().getApiLevel());
+    assertEquals(CURRENT_COMPILE_VERSION, androidModuleInfo.getTargetSdkVersion().getApiLevel());
+    assertEquals("from.gradle", androidModuleInfo.getPackage());
   }
 
   public void testFlavors() throws Exception {
     loadProject(MODULE_INFO_FLAVORS);
     assertNotNull(myAndroidFacet);
 
-    assertEquals(14, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel());
-    assertEquals(GradleImport.CURRENT_COMPILE_VERSION, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
-    assertEquals("com.example.free.debug", myAndroidFacet.getAndroidModuleInfo().getPackage());
+    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.get(myAndroidFacet);
+    assertEquals(14, androidModuleInfo.getMinSdkVersion().getApiLevel());
+    assertEquals(CURRENT_COMPILE_VERSION, androidModuleInfo.getTargetSdkVersion().getApiLevel());
+    assertEquals("com.example.free.debug", androidModuleInfo.getPackage());
   }
 
   public void testMerge() throws Exception {
@@ -166,13 +167,12 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
       protected void run() throws Throwable {
         assertNotNull(myAndroidFacet.getManifest());
         XmlTag manifestTag = myAndroidFacet.getManifest().getXmlTag();
-        XmlTag applicationTag = Iterables.find(Arrays.asList(manifestTag.getSubTags()), new Predicate<XmlTag>() {
-          @Override
-          public boolean apply(@Nullable XmlTag input) {
-            assertNotNull(input);
-            return "application".equals(input.getName());
-          }
-        });
+        Optional<XmlTag> optional = Arrays.stream(manifestTag.getSubTags()).filter(tag -> {
+          assertNotNull(tag);
+          return "application".equals(tag.getName());
+        }).findFirst();
+        assert optional.isPresent();
+        XmlTag applicationTag = optional.get();
         XmlTag activityTag = applicationTag.createChildTag("activity", "", null, false);
         activityTag.setAttribute("android:name", ".AddedActivity");
         applicationTag.addSubTag(activityTag, false);
@@ -196,14 +196,11 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     // make a change to the psi
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     final Document document = documentManager.getDocument(psiFile);
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        assertNotNull(document);
-        int index = document.getText().indexOf("</application>");
-        document.insertString(index, "<activity android:name=\".AddedActivity2\" />\n");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      assertNotNull(document);
+      int index = document.getText().indexOf("</application>");
+      document.insertString(index, "<activity android:name=\".AddedActivity2\" />\n");
+      documentManager.commitDocument(document);
     });
     UIUtil.dispatchAllInvocationEvents();
 
