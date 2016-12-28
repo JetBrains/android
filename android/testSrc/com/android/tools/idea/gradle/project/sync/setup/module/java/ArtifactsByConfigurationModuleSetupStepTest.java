@@ -38,7 +38,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.project.sync.LibraryDependenciesSubject.libraryDependencies;
-import static com.android.tools.idea.gradle.util.FilePaths.pathToUrl;
+import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
@@ -137,7 +137,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
       public Library compute() {
         Library library1 = libraryTable.createLibrary(createLibraryName(jarFilePath));
         Library.ModifiableModel libraryModel = library1.getModifiableModel();
-        String url = pathToUrl(jarFilePath.getPath());
+        String url = pathToIdeaUrl(jarFilePath);
         libraryModel.addRoot(url, CLASSES);
         libraryModel.commit();
         return library1;
@@ -157,7 +157,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
 
     String[] urls = library.getUrls(CLASSES);
     assertThat(urls).hasLength(1);
-    assertEquals(pathToUrl(jarFilePath.getPath()), urls[0]);
+    assertEquals(pathToIdeaUrl(jarFilePath), urls[0]);
 
     assertAbout(libraryDependencies()).that(getModule()).contains(libraryName);
   }

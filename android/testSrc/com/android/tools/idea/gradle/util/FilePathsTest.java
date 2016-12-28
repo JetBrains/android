@@ -17,30 +17,32 @@ package com.android.tools.idea.gradle.util;
 
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import java.io.File;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests for {@link FilePaths}.
  */
 public class FilePathsTest {
   @Test
-  public void pathToUrlWithRegularFile() {
-    String path = "Users/foo/myFolder/file.txt";
-    String url = FilePaths.pathToUrl(path);
+  public void pathToIdeaUrlWithRegularFile() {
+    File path = new File("Users/foo/myFolder/file.txt");
+    String url = FilePaths.pathToIdeaUrl(path);
     assertEquals("file://Users/foo/myFolder/file.txt", url);
   }
 
   @Test
-  public void pathToUrlWithJarFile() {
-    String path = "Users/foo/myFolder/file.jar";
-    String url = FilePaths.pathToUrl(path);
+  public void pathToIdeaUrlWithJarFile() {
+    File path = new File("Users/foo/myFolder/file.jar");
+    String url = FilePaths.pathToIdeaUrl(path);
     assertEquals("jar://Users/foo/myFolder/file.jar!/", url);
   }
 
   @Test
-  public void pathToUrlWithZipFile() {
-    String path = "Users/foo/myFolder/file.zip";
-    String url = FilePaths.pathToUrl(path);
+  public void pathToIdeaUrlWithZipFile() {
+    File path = new File("Users/foo/myFolder/file.zip");
+    String url = FilePaths.pathToIdeaUrl(path);
     assertEquals("jar://Users/foo/myFolder/file.zip!/", url);
   }
 }
