@@ -18,7 +18,7 @@ package com.android.tools.idea.refactoring.rtl;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
-import com.android.xml.AndroidManifest;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -111,7 +111,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
     if (!myProperties.hasSomethingToDo()) {
       return UsageInfo.EMPTY_ARRAY;
     }
-    final List<UsageInfo> list = new ArrayList<UsageInfo>();
+    final List<UsageInfo> list = new ArrayList<>();
 
     if (myProperties.updateAndroidManifest) {
       addManifestRefactoring(list);
@@ -177,7 +177,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
             assert applicationNodes.length == 1;
 
             XmlTag applicationTag = applicationNodes[0];
-            XmlAttribute supportsRtlAttribute = applicationTag.getAttribute(AndroidManifest.ATTRIBUTE_SUPPORTS_RTL, ANDROID_URI);
+            XmlAttribute supportsRtlAttribute = applicationTag.getAttribute(ATTRIBUTE_SUPPORTS_RTL, ANDROID_URI);
             if (supportsRtlAttribute == null || VALUE_FALSE.equals(supportsRtlAttribute.getValue())) {
               final int startOffset;
               final int endOffset;
@@ -294,7 +294,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null && facet.isAppProject()) {
-        int minSdk = facet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel();
+        int minSdk = AndroidModuleInfo.get(facet).getMinSdkVersion().getApiLevel();
 
         if (myProperties.generateV17resourcesOption) {
           // First get all the "res" directories
