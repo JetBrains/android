@@ -30,7 +30,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.xml.*;
-import com.intellij.util.Consumer;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.*;
 import com.intellij.util.xml.converters.DelimitedListConverter;
@@ -81,8 +80,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
       return false;
     }
     else if (LayoutDomFileDescription.isLayoutFile(xmlFile)) {
-      final Map<String,PsiClass> classMap = facet.getClassMap(
-        AndroidUtils.VIEW_CLASS_NAME);
+      final Map<String,PsiClass> classMap = ClassMaps.get(facet).getClassMap(AndroidUtils.VIEW_CLASS_NAME);
 
       for (String rootTag : AndroidLayoutUtil.getPossibleRoots(facet)) {
         final PsiClass aClass = classMap.get(rootTag);
@@ -299,38 +297,35 @@ public class AndroidCompletionContributor extends CompletionContributor {
     else {
       localNameCompletion = false;
     }
-    final Map<String, String> prefix2ns = new HashMap<String, String>();
+    final Map<String, String> prefix2ns = new HashMap<>();
 
-    resultSet.runRemainingContributors(parameters, new Consumer<CompletionResult>() {
-      @Override
-      public void consume(CompletionResult result) {
-        LookupElement lookupElement = result.getLookupElement();
-        final Object obj = lookupElement.getObject();
+    resultSet.runRemainingContributors(parameters, result -> {
+      LookupElement lookupElement = result.getLookupElement();
+      final Object obj = lookupElement.getObject();
 
-        if (obj instanceof String) {
-          final String s = (String)obj;
-          final int index = s.indexOf(':');
+      if (obj instanceof String) {
+        final String s = (String)obj;
+        final int index = s.indexOf(':');
 
-          final String attributeName = s.substring(index + 1);
-          if (index > 0) {
-            final String prefix = s.substring(0, index);
-            String ns = prefix2ns.get(prefix);
+        final String attributeName = s.substring(index + 1);
+        if (index > 0) {
+          final String prefix = s.substring(0, index);
+          String ns = prefix2ns.get(prefix);
 
-            if (ns == null) {
-              ns = tag.getNamespaceByPrefix(prefix);
-              prefix2ns.put(prefix, ns);
-            }
-            if (SdkConstants.NS_RESOURCES.equals(ns)) {
-              final boolean deprecated = isFrameworkAttributeDeprecated(facet, attribute, attributeName);
-              result = customizeLayoutAttributeLookupElement(lookupElement, result, attributeName, deprecated);
-            }
+          if (ns == null) {
+            ns = tag.getNamespaceByPrefix(prefix);
+            prefix2ns.put(prefix, ns);
           }
-          else if (localNameCompletion) {
-            result = customizeLayoutAttributeLookupElement(lookupElement, result, attributeName, false);
+          if (SdkConstants.NS_RESOURCES.equals(ns)) {
+            final boolean deprecated = isFrameworkAttributeDeprecated(facet, attribute, attributeName);
+            result = customizeLayoutAttributeLookupElement(lookupElement, result, attributeName, deprecated);
           }
         }
-        resultSet.passResult(result);
+        else if (localNameCompletion) {
+          result = customizeLayoutAttributeLookupElement(lookupElement, result, attributeName, false);
+        }
       }
+      resultSet.passResult(result);
     });
   }
 
@@ -368,7 +363,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
     final String localSuffix = localName.substring(LAYOUT_ATTRIBUTE_PREFIX.length());
 
     if (localSuffix.length() > 0) {
-      final HashSet<String> lookupStrings = new HashSet<String>(lookupElement.getAllLookupStrings());
+      final HashSet<String> lookupStrings = new HashSet<>(lookupElement.getAllLookupStrings());
       lookupStrings.add(localSuffix);
 
       lookupElement = new LookupElementDecorator<LookupElement>(lookupElement) {
@@ -432,7 +427,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
         final String prefix = resultSet.getPrefixMatcher().getPrefix();
 
         if (valueSet.contains(prefix)) {
-          final ArrayList<String> filteredValues = new ArrayList<String>(valueSet);
+          final ArrayList<String> filteredValues = new ArrayList<>(valueSet);
           //noinspection unchecked
           DelimitedListConverter.filterVariants(filteredValues, domValue);
 
