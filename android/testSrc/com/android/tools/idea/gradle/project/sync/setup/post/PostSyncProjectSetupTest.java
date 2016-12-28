@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibi
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.intellij.execution.BeforeRunTask;
@@ -85,7 +86,8 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
     mySetup.setUpProject(request, myProgressIndicator);
     ConfigurationFactory configurationFactory = AndroidJUnitConfigurationType.getInstance().getConfigurationFactories()[0];
-    AndroidJUnitConfiguration jUnitConfiguration = new AndroidJUnitConfiguration("", getProject(), configurationFactory);
+    Project project = getProject();
+    AndroidJUnitConfiguration jUnitConfiguration = new AndroidJUnitConfiguration("", project, configurationFactory);
     myRunManager.addConfiguration(myRunManager.createConfiguration(jUnitConfiguration, configurationFactory), true);
 
     RunConfiguration[] junitRunConfigurations = myRunManager.getConfigurations(AndroidJUnitConfigurationType.getInstance());
@@ -96,7 +98,8 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     RunConfiguration runConfiguration = junitRunConfigurations[0];
     List<BeforeRunTask> tasks = new LinkedList<>(myRunManager.getBeforeRunTasks(runConfiguration));
-    BeforeRunTask newTask = new MakeBeforeRunTaskProvider(getProject()).createTask(runConfiguration);
+
+    BeforeRunTask newTask = new MakeBeforeRunTaskProvider(project, AndroidProjectInfo.getInstance(project)).createTask(runConfiguration);
     newTask.setEnabled(true);
     tasks.add(newTask);
     myRunManager.setBeforeRunTasks(runConfiguration, tasks, false);
