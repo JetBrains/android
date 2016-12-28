@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
-import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.ContentEntriesSetup;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -27,7 +27,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
+import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.Projects.isGradleProjectModule;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static org.jetbrains.jps.model.java.JavaResourceRootType.RESOURCE;
@@ -62,7 +62,7 @@ class JavaContentEntriesSetup extends ContentEntriesSetup {
       addSourceFolders(contentRoot.getTestResourceDirPaths(), contentEntries, TEST_RESOURCE, false);
 
       for (File excluded : contentRoot.getExcludeDirPaths()) {
-        ContentEntry contentEntry = findParentContentEntry(excluded, contentEntries);
+        ContentEntry contentEntry = findParentContentEntry(excluded, contentEntries.stream());
         if (contentEntry != null) {
           if (isTopLevelJavaModule && buildFolderExcluded) {
             // We need to "undo" the implicit exclusion of "build" folder for top-level module.

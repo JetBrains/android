@@ -77,6 +77,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -86,7 +87,7 @@ import java.util.zip.ZipOutputStream;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
-import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
+import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
@@ -283,7 +284,7 @@ public class GradleSyncTest {
         ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
         try {
           ContentEntry[] contentEntries = rootModel.getContentEntries();
-          ContentEntry parent = findParentContentEntry(centralBuildDirPath, contentEntries);
+          ContentEntry parent = findParentContentEntry(centralBuildDirPath, Arrays.stream(contentEntries));
 
           List<File> paths = Lists.newArrayList();
 
