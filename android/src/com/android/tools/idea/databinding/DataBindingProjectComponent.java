@@ -29,7 +29,6 @@ import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +54,7 @@ public class DataBindingProjectComponent implements ProjectComponent, Modificati
         if (facet == null) {
           continue;
         }
-        if (facet.isDataBindingEnabled()) {
+        if (ModuleDataBinding.isEnabled(facet)) {
           facets.add(facet);
         }
       }
