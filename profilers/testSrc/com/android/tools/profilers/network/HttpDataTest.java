@@ -150,6 +150,7 @@ public class HttpDataTest {
 
   @Test
   public void guessFileExtensionFromContentType() {
+    assertEquals(".html", HttpData.guessFileExtensionFromContentType("text/html"));
     assertEquals(".jpg", HttpData.guessFileExtensionFromContentType("image/jpeg"));
     assertEquals(".json", HttpData.guessFileExtensionFromContentType("application/json"));
     assertEquals(".xml", HttpData.guessFileExtensionFromContentType("application/xml"));
