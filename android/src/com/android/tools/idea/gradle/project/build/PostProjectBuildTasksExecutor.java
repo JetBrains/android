@@ -54,14 +54,11 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import static com.android.tools.idea.gradle.util.BuildMode.DEFAULT_BUILD_MODE;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
-import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
+import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
@@ -266,7 +263,7 @@ public class PostProjectBuildTasksExecutor {
 
     try {
       ContentEntry[] contentEntries = rootModel.getContentEntries();
-      ContentEntry parent = findParentContentEntry(buildFolderPath, contentEntries);
+      ContentEntry parent = findParentContentEntry(buildFolderPath, Arrays.stream(contentEntries));
       if (parent == null) {
         rootModel.dispose();
         return;
