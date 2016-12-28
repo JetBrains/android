@@ -48,12 +48,28 @@ public abstract class FluentMatcher<T extends Component> extends GenericTypeMatc
   }
 
   /**
-   * Negate has to return a Component-typed Matcher, since otherwise it's possible to get the inverse of the target of the original
+   * By default, negate() has to return a Component-typed Matcher, since the check that the component type maches the given type is done
+   * before isMatching is even called, and so it's impossible to reverse it.
    */
   public FluentMatcher<Component> negate() {
     return new FluentMatcher<Component>(Component.class) {
       @Override
       protected boolean isMatching(@NotNull Component component) {
+        return !FluentMatcher.this.matches(component);
+      }
+    };
+  }
+
+  /**
+   * Inverts this condition, returning a matcher of the given type.
+
+   * @param type The type of component matched by the resulting Matcher
+   * @return In effect a matcher for components of type {@code R} that {@code this} does not match (including the type check for {@code T}).
+   */
+  public <R extends Component> FluentMatcher<R> negate(Class<R> type) {
+    return new FluentMatcher<R>(type) {
+      @Override
+      protected boolean isMatching(@NotNull R component) {
         return !FluentMatcher.this.matches(component);
       }
     };
