@@ -16,7 +16,6 @@
 package org.jetbrains.android.facet;
 
 import com.android.annotations.NonNull;
-import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
 import com.android.prefs.AndroidLocation;
@@ -32,7 +31,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.*;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -130,7 +128,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private SourceProvider myMainSourceSet;
   private IdeaSourceProvider myMainIdeaSourceSet;
   private final AndroidModuleInfo myAndroidModuleInfo = AndroidModuleInfo.create(this);
-  private RenderService myRenderService;
 
   @Nullable
   public static AndroidFacet getInstance(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
@@ -818,18 +815,5 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @NotNull
   public AndroidModuleInfo getAndroidModuleInfo() {
     return myAndroidModuleInfo;
-  }
-
-  @NotNull
-  public RenderService getRenderService() {
-    if (myRenderService == null) {
-      myRenderService = new RenderService(this);
-    }
-    return myRenderService;
-  }
-
-  @VisibleForTesting
-  public void setRenderService(@Nullable RenderService renderService) {
-    myRenderService = renderService;
   }
 }
