@@ -444,7 +444,10 @@ public class AndroidCompileUtil {
     final AndroidFacet facet = AndroidFacet.getInstance(module);
 
     if (facet != null) {
-      facet.scheduleSourceRegenerating(mode);
+      ModuleSourceAutogenerating autogenerating = ModuleSourceAutogenerating.get(facet);
+      if (autogenerating != null) {
+        autogenerating.scheduleSourceRegenerating(mode);
+      }
     }
   }
 
