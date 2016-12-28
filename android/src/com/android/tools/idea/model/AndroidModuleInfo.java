@@ -16,14 +16,15 @@
 package com.android.tools.idea.model;
 
 import com.android.sdklib.AndroidVersion;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.concurrent.GuardedBy;
 
 /**
  * Android information about a module, such as its application package, its minSdkVersion, and so on. This
@@ -34,30 +35,35 @@ import org.jetbrains.annotations.Nullable;
  * either obtain it from {@link AndroidModuleInfo} if the information is also available in the gradle model
  * (e.g. minSdk, targetSdk, packageName, etc), or use {@link MergedManifest#get(Module)}.
  */
-public class AndroidModuleInfo implements Disposable {
+public class AndroidModuleInfo extends AndroidFacetScopedService {
+  private static final Object KEY_LOCK = new Object();
+
+  @GuardedBy("KEY_LOCK")
   private static final Key<AndroidModuleInfo> KEY = Key.create(AndroidModuleInfo.class.getName());
 
-  private AndroidFacet myFacet;
-
-  private AndroidModuleInfo(@NotNull AndroidFacet facet) {
-    myFacet = facet;
-    Disposer.register(facet, this);
-  }
-
   @NotNull
-  public static AndroidModuleInfo get(@NotNull AndroidFacet facet) {
-    AndroidModuleInfo androidModuleInfo = facet.getUserData(KEY);
+  public static AndroidModuleInfo getInstance(@NotNull AndroidFacet facet) {
+    AndroidModuleInfo androidModuleInfo;
+    synchronized (KEY_LOCK) {
+      androidModuleInfo = facet.getUserData(KEY);
+    }
     if (androidModuleInfo == null) {
       androidModuleInfo = new AndroidModuleInfo(facet);
-      facet.putUserData(KEY, androidModuleInfo);
+      synchronized (KEY_LOCK) {
+        facet.putUserData(KEY, androidModuleInfo);
+      }
     }
     return androidModuleInfo;
   }
 
   @Nullable
-  public static AndroidModuleInfo get(@NotNull Module module) {
+  public static AndroidModuleInfo getInstance(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    return facet != null ? get(facet) : null;
+    return facet != null ? getInstance(facet) : null;
+  }
+
+  private AndroidModuleInfo(@NotNull AndroidFacet facet) {
+    super(facet);
   }
 
   /**
@@ -73,13 +79,14 @@ public class AndroidModuleInfo implements Disposable {
    */
   @Nullable
   public String getPackage() {
-    AndroidModel androidModel = myFacet.getAndroidModel();
+    AndroidFacet facet = getFacet();
+    AndroidModel androidModel = facet.getAndroidModel();
     if (androidModel != null) {
       return androidModel.getApplicationId();
     }
 
     // Read from the manifest: Not overridden in the configuration
-    return MergedManifest.get(myFacet).getApplicationId();
+    return MergedManifest.get(facet).getApplicationId();
   }
 
   /**
@@ -90,7 +97,8 @@ public class AndroidModuleInfo implements Disposable {
    */
   @NotNull
   public AndroidVersion getRuntimeMinSdkVersion() {
-    AndroidModel androidModel = myFacet.getAndroidModel();
+    AndroidFacet facet = getFacet();
+    AndroidModel androidModel = facet.getAndroidModel();
     if (androidModel != null) {
       AndroidVersion minSdkVersion = androidModel.getRuntimeMinSdkVersion();
       if (minSdkVersion != null) {
@@ -99,12 +107,13 @@ public class AndroidModuleInfo implements Disposable {
       // Else: not specified in gradle files; fall back to manifest
     }
 
-    return MergedManifest.get(myFacet).getMinSdkVersion();
+    return MergedManifest.get(facet).getMinSdkVersion();
   }
 
   @NotNull
   public AndroidVersion getMinSdkVersion() {
-    AndroidModel androidModel = myFacet.getAndroidModel();
+    AndroidFacet facet = getFacet();
+    AndroidModel androidModel = facet.getAndroidModel();
     if (androidModel != null) {
       AndroidVersion minSdkVersion = androidModel.getMinSdkVersion();
       if (minSdkVersion != null) {
@@ -113,12 +122,13 @@ public class AndroidModuleInfo implements Disposable {
       // Else: not specified in gradle files; fall back to manifest
     }
 
-    return MergedManifest.get(myFacet).getMinSdkVersion();
+    return MergedManifest.get(facet).getMinSdkVersion();
   }
 
   @NotNull
   public AndroidVersion getTargetSdkVersion() {
-    AndroidModel androidModel = myFacet.getAndroidModel();
+    AndroidFacet facet = getFacet();
+    AndroidModel androidModel = facet.getAndroidModel();
     if (androidModel != null) {
       AndroidVersion targetSdkVersion = androidModel.getTargetSdkVersion();
       if (targetSdkVersion != null) {
@@ -127,14 +137,14 @@ public class AndroidModuleInfo implements Disposable {
       // Else: not specified in gradle files; fall back to manifest
     }
 
-    return MergedManifest.get(myFacet).getTargetSdkVersion();
+    return MergedManifest.get(facet).getTargetSdkVersion();
   }
 
   @Nullable
   public AndroidVersion getBuildSdkVersion() {
     // TODO: Get this from the model! For now, we take advantage of the fact that
     // the model should have synced the right type of Android SDK to the IntelliJ facet.
-    AndroidPlatform platform = AndroidPlatform.getInstance(myFacet.getModule());
+    AndroidPlatform platform = AndroidPlatform.getInstance(getModule());
     if (platform != null) {
       return platform.getApiVersion();
     }
@@ -148,7 +158,8 @@ public class AndroidModuleInfo implements Disposable {
    */
   @Nullable
   public Boolean isDebuggable() {
-    AndroidModel androidModel = myFacet.getAndroidModel();
+    AndroidFacet facet = getFacet();
+    AndroidModel androidModel = facet.getAndroidModel();
     if (androidModel != null) {
       Boolean debuggable = androidModel.isDebuggable();
       if (debuggable != null) {
@@ -156,7 +167,7 @@ public class AndroidModuleInfo implements Disposable {
       }
     }
 
-    return MergedManifest.get(myFacet).getApplicationDebuggable();
+    return MergedManifest.get(facet).getApplicationDebuggable();
   }
 
   @NotNull
@@ -164,7 +175,7 @@ public class AndroidModuleInfo implements Disposable {
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        AndroidModuleInfo moduleInfo = get(facet.getModule());
+        AndroidModuleInfo moduleInfo = getInstance(facet.getModule());
         if (moduleInfo != null) {
           return moduleInfo.getTargetSdkVersion();
         }
@@ -179,7 +190,7 @@ public class AndroidModuleInfo implements Disposable {
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        AndroidModuleInfo moduleInfo = get(facet.getModule());
+        AndroidModuleInfo moduleInfo = getInstance(facet.getModule());
         if (moduleInfo != null) {
           return moduleInfo.getMinSdkVersion();
         }
@@ -190,8 +201,10 @@ public class AndroidModuleInfo implements Disposable {
   }
 
   @Override
-  public void dispose() {
-    myFacet.putUserData(KEY, null);
-    myFacet = null;
+  protected void onServiceDisposal(@NotNull AndroidFacet facet) {
+    synchronized (KEY_LOCK) {
+      facet.putUserData(KEY, null);
+    }
+
   }
 }

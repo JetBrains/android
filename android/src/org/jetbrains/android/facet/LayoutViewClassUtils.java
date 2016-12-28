@@ -66,7 +66,7 @@ public class LayoutViewClassUtils {
 
     if (!name.contains(".")) {
       final PsiClass[] classes = PsiShortNamesCache.getInstance(project).getClassesByName(name, module.getModuleWithLibrariesScope());
-      final int apiLevel = AndroidModuleInfo.get(facet).getModuleMinApi();
+      final int apiLevel = AndroidModuleInfo.getInstance(facet).getModuleMinApi();
 
       for (PsiClass aClass : classes) {
         final String qualifiedName = aClass.getQualifiedName();

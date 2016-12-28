@@ -236,7 +236,7 @@ public class MergedManifest {
     int targetSdk;
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assert facet != null;
-    AndroidModuleInfo info = AndroidModuleInfo.get(facet);
+    AndroidModuleInfo info = AndroidModuleInfo.getInstance(facet);
     targetSdk = info.getTargetSdkVersion().getApiLevel();
 
     int renderingTargetSdk = targetSdk;
@@ -753,7 +753,7 @@ public class MergedManifest {
     @NotNull
     @Override
     public AndroidVersion getMinSdkVersion() {
-      AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.get(myModule);
+      AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(myModule);
       return androidModuleInfo != null ?
              androidModuleInfo.getMinSdkVersion() : MergedManifest.this.getMinSdkVersion();
     }
@@ -761,7 +761,7 @@ public class MergedManifest {
     @NotNull
     @Override
     public AndroidVersion getTargetSdkVersion() {
-      AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.get(myModule);
+      AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(myModule);
       return androidModuleInfo != null ?
              androidModuleInfo.getTargetSdkVersion() : MergedManifest.this.getTargetSdkVersion();
     }

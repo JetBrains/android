@@ -83,7 +83,7 @@ public class AndroidMonitorToolWindow extends AspectObserver implements Disposab
   @Nullable
   private String getPreferredProcessName(Project project) {
     for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(module);
+      AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(module);
       if (moduleInfo != null) {
         String pkg = moduleInfo.getPackage();
         if (pkg != null) {

@@ -391,7 +391,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     }
 
     // Application ID
-    AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(myFacet);
+    AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(myFacet);
     String appId = moduleInfo.getPackage();
     if (appId != null) {
       sb.append("&appId=");

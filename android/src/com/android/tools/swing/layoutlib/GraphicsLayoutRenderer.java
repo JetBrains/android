@@ -115,7 +115,7 @@ public class GraphicsLayoutRenderer {
                                                  @Nullable Color backgroundColor,
                                                  @NotNull SessionParams.RenderingMode renderingMode,
                                                  boolean useSecurityManager) throws InitializationException {
-    AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
+    AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(facet);
     LayoutLibrary layoutLib;
     try {
       IAndroidTarget latestTarget = configuration.getConfigurationManager().getHighestApiTarget();

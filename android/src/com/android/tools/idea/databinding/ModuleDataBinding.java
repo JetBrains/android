@@ -15,38 +15,63 @@
  */
 package com.android.tools.idea.databinding;
 
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ModuleDataBinding implements Disposable {
+import javax.annotation.concurrent.GuardedBy;
+
+public class ModuleDataBinding extends AndroidFacetScopedService {
+  private static final Object KEY_LOCK = new Object();
+
+  @GuardedBy("KEY_LOCK")
   private static final Key<ModuleDataBinding> KEY = Key.create("com.android.tools.idea.databinding.ModuleDataBinding");
 
   @Nullable private LightBrClass myLightBrClass;
-  private AndroidFacet myFacet;
 
-  public static synchronized boolean isEnabled(@NotNull AndroidFacet facet) {
-    return get(facet) != null;
+  public static void enable(@NotNull AndroidFacet facet) {
+    setEnabled(facet, true);
   }
 
-  public static synchronized void setEnabled(@NotNull AndroidFacet facet, boolean enabled) {
+  public static void disable(@NotNull AndroidFacet facet) {
+    setEnabled(facet, false);
+  }
+
+  private static void setEnabled(@NotNull AndroidFacet facet, boolean enabled) {
     if (isEnabled(facet) != enabled) {
       ModuleDataBinding dataBinding = enabled ? new ModuleDataBinding(facet) : null;
+      store(facet, dataBinding);
+    }
+  }
+
+  private static void store(@NotNull AndroidFacet facet, @Nullable ModuleDataBinding dataBinding) {
+    synchronized (KEY_LOCK) {
       facet.putUserData(KEY, dataBinding);
     }
   }
 
+  public static boolean isEnabled(@NotNull AndroidFacet facet) {
+    return getInstance(facet) != null;
+  }
+
   @Nullable
-  public static synchronized ModuleDataBinding get(@NotNull AndroidFacet facet) {
-    return facet.getUserData(KEY);
+  public static ModuleDataBinding getInstance(@NotNull AndroidFacet facet) {
+    synchronized (KEY_LOCK) {
+      return facet.getUserData(KEY);
+    }
   }
 
   private ModuleDataBinding(@NotNull AndroidFacet facet) {
-    myFacet = facet;
-    Disposer.register(facet, this);
+    super(facet);
+  }
+
+  @Override
+  protected void onServiceDisposal(@NotNull AndroidFacet facet) {
+    synchronized (KEY_LOCK) {
+      facet.putUserData(KEY, null);
+    }
   }
 
   /**
@@ -68,11 +93,5 @@ public class ModuleDataBinding implements Disposable {
   @Nullable
   LightBrClass getLightBrClass() {
     return myLightBrClass;
-  }
-
-  @Override
-  public void dispose() {
-    myFacet.putUserData(KEY, null);
-    myFacet = null;
   }
 }
