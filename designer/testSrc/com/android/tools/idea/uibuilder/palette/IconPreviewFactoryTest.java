@@ -60,13 +60,13 @@ public class IconPreviewFactoryTest extends LayoutTestCase {
     NlModel model = createModel();
     myScreenView = surface().screen(model).getScreen();
     myFactory = new IconPreviewFactory();
-    myFacet.setRenderService(new MyRenderService(myFacet));
+    RenderService.setForTesting(myFacet, new MyRenderService(myFacet));
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
-      myFacet.setRenderService(null);
+      RenderService.setForTesting(myFacet, null);
       Disposer.dispose(myFactory);
     }
     finally {

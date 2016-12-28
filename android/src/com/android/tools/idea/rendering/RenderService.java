@@ -46,6 +46,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.ShutDownTracker;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlTag;
@@ -58,6 +59,7 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.io.IOException;
 import java.util.List;
@@ -96,6 +98,8 @@ public class RenderService implements Disposable {
                                                                                      });
   private static final AtomicInteger ourTimeoutExceptionCounter = new AtomicInteger(0);
 
+  private static final Key<RenderService> KEY = Key.create(RenderService.class.getName());
+
   static {
     // Register the executor to be shutdown on close
     ShutDownTracker.getInstance().registerShutdownTask(() -> {
@@ -106,8 +110,7 @@ public class RenderService implements Disposable {
 
   private static final String JDK_INSTALL_URL = "https://developer.android.com/preview/setup-sdk.html#java8";
 
-  @NotNull
-  private final AndroidFacet myFacet;
+  private AndroidFacet myFacet;
 
   private final Object myCredential = new Object();
 
@@ -123,7 +126,17 @@ public class RenderService implements Disposable {
    */
   @NotNull
   public static RenderService get(@NotNull AndroidFacet facet) {
-    return facet.getRenderService();
+    RenderService renderService = facet.getUserData(KEY);
+    if (renderService == null) {
+      renderService = new RenderService(facet);
+      facet.putUserData(KEY, renderService);
+    }
+    return renderService;
+  }
+
+  @TestOnly
+  public static void setForTesting(@NotNull AndroidFacet facet, @Nullable RenderService renderService) {
+    facet.putUserData(KEY, renderService);
   }
 
   @Nullable
@@ -526,5 +539,7 @@ public class RenderService implements Disposable {
   @Override
   public void dispose() {
     myImagePool.dispose();
+    myFacet.putUserData(KEY, null);
+    myFacet = null;
   }
 }
