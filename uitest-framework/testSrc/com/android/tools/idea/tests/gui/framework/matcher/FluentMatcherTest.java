@@ -39,5 +39,9 @@ public class FluentMatcherTest {
     assertFalse(Matchers.byType(AbstractButton.class).negate().matches(foo));
     assertTrue(Matchers.byType(FixedSizeButton.class).negate().matches(foo));
     assertTrue(Matchers.byType(FixedSizeButton.class).negate().and(Matchers.byType(JButton.class)).matches(foo));
+
+    assertFalse(Matchers.byType(AbstractButton.class).negate(JButton.class).matches(foo));
+    assertTrue(Matchers.byType(FixedSizeButton.class).negate(JButton.class).matches(foo));
+    assertTrue(Matchers.byType(FixedSizeButton.class).negate(JButton.class).and(Matchers.byType(JButton.class)).matches(foo));
   }
 }
