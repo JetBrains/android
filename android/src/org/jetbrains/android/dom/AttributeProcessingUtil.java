@@ -33,6 +33,7 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.ResolvingConverter;
 import com.intellij.util.xml.XmlName;
 import com.intellij.util.xml.reflect.DomExtension;
+import org.jetbrains.android.ClassMaps;
 import org.jetbrains.android.dom.animation.InterpolatorElement;
 import org.jetbrains.android.dom.animation.fileDescriptions.InterpolatorDomFileDescription;
 import org.jetbrains.android.dom.attrs.*;
@@ -53,7 +54,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.LayoutViewClassUtils;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.SystemResourceManager;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,6 +62,7 @@ import java.util.*;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.rendering.RenderService.MOCKUP_EDITOR_ENABLED;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
+import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
 
 /**
  * Utility functions for enumerating available children attribute types in the context of a given XML tag.
@@ -288,7 +289,7 @@ public class AttributeProcessingUtil {
     // register attributes by widget
     String widgetClassName = AndroidTextUtils.trimEndOrNullize(prefClassName, PREFERENCE_TAG_NAME);
     if (widgetClassName != null) {
-      PsiClass widgetClass = LayoutViewClassUtils.findClassByTagName(facet, widgetClassName, AndroidUtils.VIEW_CLASS_NAME);
+      PsiClass widgetClass = LayoutViewClassUtils.findClassByTagName(facet, widgetClassName, VIEW_CLASS_NAME);
       registerAttributesForClassAndSuperclasses(facet, element, widgetClass, callback, skipAttrNames);
     }
   }
@@ -298,14 +299,14 @@ public class AttributeProcessingUtil {
     if (DumbService.isDumb(facet.getModule().getProject())) {
       return Collections.emptyMap();
     }
-    return facet.getClassMap(CLASS_PREFERENCE);
+    return ClassMaps.get(facet).getClassMap(CLASS_PREFERENCE);
   }
 
   public static Map<String, PsiClass> getViewClassMap(@NotNull AndroidFacet facet) {
     if (DumbService.isDumb(facet.getModule().getProject())) {
       return Collections.emptyMap();
     }
-    return facet.getClassMap(AndroidUtils.VIEW_CLASS_NAME);
+    return ClassMaps.get(facet).getClassMap(VIEW_CLASS_NAME);
   }
 
   private static void registerAttributesFromSuffixedStyleables(@NotNull AndroidFacet facet,
