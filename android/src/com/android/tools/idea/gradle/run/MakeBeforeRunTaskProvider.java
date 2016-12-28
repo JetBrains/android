@@ -66,7 +66,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static com.android.builder.model.AndroidProject.*;
-import static com.android.tools.idea.apk.ApkProjects.isApkProject;
 import static com.android.tools.idea.gradle.util.Projects.getModulesToBuildFromSelection;
 import static com.android.tools.idea.gradle.util.Projects.isDirectGradleInvocationEnabled;
 import static com.android.tools.idea.run.editor.ProfilerState.EXPERIMENTAL_PROFILING_FLAG_ENABLED;
@@ -88,9 +87,11 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   public static final String TASK_NAME = "Gradle-aware Make";
 
   @NotNull private final Project myProject;
+  @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
 
-  public MakeBeforeRunTaskProvider(@NotNull Project project) {
+  public MakeBeforeRunTaskProvider(@NotNull Project project, @NotNull AndroidProjectInfo androidProjectInfo) {
     myProject = project;
+    myAndroidProjectInfo = androidProjectInfo;
   }
 
   @Override
@@ -147,8 +148,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     }
   }
 
-  private static boolean configurationTypeIsSupported(@NotNull RunConfiguration runConfiguration) {
-    if (isApkProject(runConfiguration.getProject())) {
+  private boolean configurationTypeIsSupported(@NotNull RunConfiguration runConfiguration) {
+    if (myAndroidProjectInfo.isApkProject()) {
       return false;
     }
     return runConfiguration instanceof PreferGradleMake || isUnitTestConfiguration(runConfiguration);

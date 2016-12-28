@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
@@ -61,7 +62,6 @@ import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfig
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.idea.apk.ApkProjects.isApkProject;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.stats.AndroidStudioUsageTracker.anonymizeUtf8;
@@ -70,6 +70,8 @@ import static com.intellij.openapi.util.text.StringUtil.join;
 
 public class AndroidGradleProjectComponent extends AbstractProjectComponent {
   @NonNls private static final String SHOW_MIGRATE_TO_GRADLE_POPUP = "show.migrate.to.gradle.popup";
+
+  @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
 
   @Nullable private Disposable myDisposable;
 
@@ -80,8 +82,9 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     return component;
   }
 
-  public AndroidGradleProjectComponent(@NotNull Project project) {
+  public AndroidGradleProjectComponent(@NotNull Project project, @NotNull AndroidProjectInfo androidProjectInfo) {
     super(project);
+    myAndroidProjectInfo = androidProjectInfo;
 
     // Register a task that gets notified when a Gradle-based Android project is compiled via JPS.
     CompilerManager.getInstance(myProject).addAfterTask(context -> {
@@ -123,7 +126,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       // button and editor notifications.
       syncState.notifyStateChanged();
     }
-    if (IdeInfo.getInstance().isAndroidStudio() && isLegacyIdeaAndroidProject(myProject) && !isApkProject(myProject)) {
+    if (IdeInfo.getInstance().isAndroidStudio() && isLegacyIdeaAndroidProject(myProject) && !myAndroidProjectInfo.isApkProject()) {
       trackLegacyIdeaAndroidProject();
       if (shouldShowMigrateToGradleNotification()) {
         // Suggest that Android Studio users use Gradle instead of IDEA project builder.
