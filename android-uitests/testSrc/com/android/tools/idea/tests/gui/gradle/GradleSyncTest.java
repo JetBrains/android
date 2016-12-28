@@ -69,7 +69,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -88,7 +87,7 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
-import static com.android.tools.idea.gradle.util.FilePaths.pathToUrl;
+import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.testing.FileSubject.file;
@@ -433,7 +432,7 @@ public class GradleSyncTest {
 
     guiTest.waitForBackgroundTasks();
 
-    String javadocJarUrl = pathToUrl(javadocJarPath.getPath());
+    String javadocJarUrl = pathToIdeaUrl(javadocJarPath);
 
     // Verify that the library has the Javadoc attachment we just added.
     LibraryFixture library = propertiesDialog.getLibrary();

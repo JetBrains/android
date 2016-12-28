@@ -51,7 +51,7 @@ import java.util.*;
 import static com.android.SdkConstants.*;
 import static com.android.sdklib.IAndroidTarget.RESOURCES;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToFile;
-import static com.android.tools.idea.gradle.util.FilePaths.pathToUrl;
+import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createUniqueSdkName;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
@@ -170,7 +170,7 @@ public class AndroidSdks {
       }
     }
 
-    String javaDocUrl = javaDocPath == null ? DEFAULT_EXTERNAL_DOCUMENTATION_URL : pathToUrl(javaDocPath.getPath());
+    String javaDocUrl = javaDocPath == null ? DEFAULT_EXTERNAL_DOCUMENTATION_URL : pathToIdeaUrl(javaDocPath);
     for (String rootUrl : sdk.getRootProvider().getUrls(JavadocOrderRootType.getInstance())) {
       // We can't tell if Urls that don't match are valid or not, all we can check is whether there is at least one valid link to
       // the documentation we know about.
