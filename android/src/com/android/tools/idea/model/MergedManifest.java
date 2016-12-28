@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.model;
 
-import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.manifmerger.Actions;
@@ -237,7 +236,7 @@ public class MergedManifest {
     int targetSdk;
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assert facet != null;
-    AndroidModuleInfo info = facet.getAndroidModuleInfo();
+    AndroidModuleInfo info = AndroidModuleInfo.get(facet);
     targetSdk = info.getTargetSdkVersion().getApiLevel();
 
     int renderingTargetSdk = targetSdk;
@@ -350,12 +349,7 @@ public class MergedManifest {
 
     // Ensure that two simultaneous sync requests from different threads don't interfere with each other.
     synchronized (this) {
-      ApplicationManager.getApplication().runReadAction(new Runnable() {
-        @Override
-        public void run() {
-          syncWithReadPermission();
-        }
-      });
+      ApplicationManager.getApplication().runReadAction(this::syncWithReadPermission);
     }
   }
 
@@ -380,7 +374,7 @@ public class MergedManifest {
       return;
     }
 
-    myActivityAttributesMap = new HashMap<String, ActivityAttributes>();
+    myActivityAttributesMap = new HashMap<>();
     myManifestTheme = null;
     myTargetSdk = AndroidVersion.DEFAULT;
     myMinSdk = AndroidVersion.DEFAULT;
@@ -416,7 +410,7 @@ public class MergedManifest {
       Manifest manifest = facet.getManifest();
       myPackage = manifest == null ? myApplicationId : manifest.getPackage().getValue();
 
-      String versionCode = getAttributeValue(root, ANDROID_URI, SdkConstants.ATTR_VERSION_CODE);
+      String versionCode = getAttributeValue(root, ANDROID_URI, ATTR_VERSION_CODE);
       try {
         myVersionCode = Integer.valueOf(versionCode);
       }
@@ -555,7 +549,7 @@ public class MergedManifest {
   @NotNull
   public ImmutableList<MergingReport.Record> getLoggingRecords() {
     sync();
-    return myManifestFile == null ? ImmutableList.<MergingReport.Record>of() : myManifestFile.getLoggingRecords();
+    return myManifestFile == null ? ImmutableList.of() : myManifestFile.getLoggingRecords();
   }
 
   @Nullable
