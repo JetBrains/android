@@ -147,7 +147,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     }
 
     try {
-      ResourcePreprocessor preprocessor = new NoOpResourcePreprocessor();
+      ResourcePreprocessor preprocessor = NoOpResourcePreprocessor.INSTANCE;
       File tempDirectory = FileUtil.createTempDirectory("resource", "tmp", false);
       try {
         MergeConsumer<ResourceItem> consumer = MergedResourceWriter.createWriterWithoutPngCruncher(
