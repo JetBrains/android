@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.Reason;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion;
@@ -84,29 +85,23 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
           "</resources>";
     myFixture.addFileToProject("res/values/colors.xml", xml);
 
-    final Configuration configuration1 = myFacet.getConfigurationManager().getConfiguration(layout1.getVirtualFile());
+    final Configuration configuration1 = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout1.getVirtualFile());
     final ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
 
     // Listener 1: Listens for changes in layout 1
     final Ref<Boolean> called1 = new Ref<>(false);
     final Ref<Set<Reason>> calledValue1 = new Ref<>();
-    ResourceChangeListener listener1 = new ResourceChangeListener() {
-      @Override
-      public void resourcesChanged(@NotNull Set<Reason> reason) {
-        called1.set(true);
-        calledValue1.set(reason);
-      }
+    ResourceChangeListener listener1 = reason -> {
+      called1.set(true);
+      calledValue1.set(reason);
     };
 
     // Listener 2: Only listens for general changes in the module
     final Ref<Boolean> called2 = new Ref<>(false);
     final Ref<Set<Reason>> calledValue2 = new Ref<>();
-    ResourceChangeListener listener2 = new ResourceChangeListener() {
-      @Override
-      public void resourcesChanged(@NotNull Set<Reason> reason) {
-        called2.set(true);
-        calledValue2.set(reason);
-      }
+    ResourceChangeListener listener2 = reason -> {
+      called2.set(true);
+      calledValue2.set(reason);
     };
 
     manager.addListener(listener1, myFacet, layout1, configuration1);
@@ -130,12 +125,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     @SuppressWarnings("ConstantConditions")
     final XmlTag tag = values1.getDocument().getRootTag().getSubTags()[1].getSubTags()[0];
     assertEquals("item", tag.getName());
-    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
-      @Override
-      public void run() {
-        tag.getValue().setEscapedText("@color/color2");
-      }
-    });
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> tag.getValue().setEscapedText("@color/color2"));
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
 
     // First check: Modify the layout by changing @string/hello to @string/hello_world
@@ -254,28 +244,25 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     assertNotNull(document);
 
     // Insert a comment at the beginning
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        final String documentText = document.getText();
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final String documentText = document.getText();
 
-        int delta = location.indexOf('^');
-        assertTrue("Missing ^ describing caret offset in text window " + location, delta != -1);
-        String target = location.substring(0, delta) + location.substring(delta + 1);
-        int offset = documentText.indexOf(target);
-        assertTrue("Could not find " + target + " in " + documentText, offset != -1);
+      int delta = location.indexOf('^');
+      assertTrue("Missing ^ describing caret offset in text window " + location, delta != -1);
+      String target = location.substring(0, delta) + location.substring(delta + 1);
+      int offset = documentText.indexOf(target);
+      assertTrue("Could not find " + target + " in " + documentText, offset != -1);
 
-        if (text != null) {
-          if (length == 0) {
-            document.insertString(offset + delta, text);
-          } else {
-            document.replaceString(offset + delta, offset + delta + length, text);
-          }
+      if (text != null) {
+        if (length == 0) {
+          document.insertString(offset + delta, text);
         } else {
-          document.deleteString(offset + delta, offset + delta + length);
+          document.replaceString(offset + delta, offset + delta + length, text);
         }
-        documentManager.commitDocument(document);
+      } else {
+        document.deleteString(offset + delta, offset + delta + length);
       }
+      documentManager.commitDocument(document);
     });
   }
 }

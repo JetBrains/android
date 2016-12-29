@@ -28,7 +28,6 @@ import com.android.tools.idea.editors.theme.preview.ThemePreviewComponent;
 import com.android.tools.idea.editors.theme.qualifiers.RestrictedConfiguration;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.ResourceHelper;
-import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
@@ -200,7 +199,7 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
     }
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
-    ConfigurationManager manager = facet.getConfigurationManager();
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(module);
 
     List<VirtualFile> variations = ResourceHelper.getResourceVariations(virtualFile, false /*includeSelf*/);
     if (variations.isEmpty()) {
@@ -208,13 +207,9 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
     }
 
     // There is more than one resource folder available so make sure we select a configuration that only matches the current file.
-    Collection<FolderConfiguration> incompatible = Collections2.transform(variations, new Function<VirtualFile, FolderConfiguration>() {
-      @Nullable
-      @Override
-      public FolderConfiguration apply(VirtualFile input) {
-        assert input != null;
-        return ResourceHelper.getFolderConfiguration(input);
-      }
+    Collection<FolderConfiguration> incompatible = Collections2.transform(variations, input -> {
+      assert input != null;
+      return ResourceHelper.getFolderConfiguration(input);
     });
 
     FolderConfiguration selectedFileFolderConfiguration = ResourceHelper.getFolderConfiguration(psiFile);
@@ -393,12 +388,7 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
 
     @Override
     public void fileClosed(@NonNull FileEditorManager source, @NonNull VirtualFile file) {
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          processFileEditorChange();
-        }
-      }, myProject.getDisposed());
+      ApplicationManager.getApplication().invokeLater(AndroidThemePreviewToolWindowManager.this::processFileEditorChange, myProject.getDisposed());
     }
 
     @Override

@@ -27,6 +27,7 @@ import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
@@ -253,7 +254,7 @@ public class AndroidColorAnnotator implements Annotator {
       layout = virtualFile;
     }
 
-    return facet.getConfigurationManager().getConfiguration(layout);
+    return ConfigurationManager.getOrCreateInstance(module).getConfiguration(layout);
   }
 
   /** Annotates the given element with the resolved value of the given {@link ResourceValue} */
@@ -507,16 +508,13 @@ public class AndroidColorAnnotator implements Annotator {
             //  ColorChooser.chooseColor(editor.getComponent(), AndroidBundle.message("android.choose.color"), getCurrentColor());
             final Color color = ColorPicker.showDialog(editor.getComponent(), "Choose Color", getCurrentColor(), true, null, false);
             if (color != null) {
-              ApplicationManager.getApplication().runWriteAction(new Runnable() {
-                @Override
-                public void run() {
-                  if (myElement instanceof XmlTag) {
-                    ((XmlTag)myElement).getValue().setText(ResourceHelper.colorToString(color));
-                  } else if (myElement instanceof XmlAttributeValue) {
-                    XmlAttribute attribute = PsiTreeUtil.getParentOfType(myElement, XmlAttribute.class);
-                    if (attribute != null) {
-                      attribute.setValue(ResourceHelper.colorToString(color));
-                    }
+              ApplicationManager.getApplication().runWriteAction(() -> {
+                if (myElement instanceof XmlTag) {
+                  ((XmlTag)myElement).getValue().setText(ResourceHelper.colorToString(color));
+                } else if (myElement instanceof XmlAttributeValue) {
+                  XmlAttribute attribute = PsiTreeUtil.getParentOfType(myElement, XmlAttribute.class);
+                  if (attribute != null) {
+                    attribute.setValue(ResourceHelper.colorToString(color));
                   }
                 }
               });

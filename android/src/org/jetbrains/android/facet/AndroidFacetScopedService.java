@@ -38,11 +38,15 @@ public abstract class AndroidFacetScopedService implements Disposable {
 
   @Override
   public final void dispose() {
+    onDispose();
     synchronized (myLock) {
       onServiceDisposal(myFacet);
       myFacet = null;
       myDisposed = true;
     }
+  }
+
+  protected void onDispose() {
   }
 
   public final boolean isDisposed() {
