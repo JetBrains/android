@@ -48,7 +48,7 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
     assertNotNull(psiFile2);
     final PsiFile psiFile3 = PsiManager.getInstance(project).findFile(file3);
     assertNotNull(psiFile3);
-    ConfigurationManager configurationManager = facet.getConfigurationManager();
+    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
     assertNotNull(configurationManager);
     final Configuration configuration1 = configurationManager.getConfiguration(file1);
     Configuration configuration2 = configurationManager.getConfiguration(file2);
@@ -74,23 +74,17 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
     final LocalResourceRepository resources = myFacet.getModuleResources(true);
     assertNotNull(resources); final long generation = resources.getModificationCount();
     assertEquals("Cancel", configuration1.getResourceResolver().findResValue("@string/cancel", false).getValue());
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        //noinspection ConstantConditions
-        XmlTagValue value = ((XmlFile)psiFile3).getRootTag().getSubTags()[1].getValue();
-        assertEquals("Cancel", value.getTrimmedText());
-        value.setText("\"FooBar\"");
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      //noinspection ConstantConditions
+      XmlTagValue value = ((XmlFile)psiFile3).getRootTag().getSubTags()[1].getValue();
+      assertEquals("Cancel", value.getTrimmedText());
+      value.setText("\"FooBar\"");
     });
     assertTrue(resources.isScanPending(psiFile3));
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        assertTrue(generation < resources.getModificationCount());
-        assertNotSame(resolver1b, configuration1.getResourceResolver());
-        assertEquals("FooBar", configuration1.getResourceResolver().findResValue("@string/cancel", false).getValue());
-      }
+    ApplicationManager.getApplication().invokeLater(() -> {
+      assertTrue(generation < resources.getModificationCount());
+      assertNotSame(resolver1b, configuration1.getResourceResolver());
+      assertEquals("FooBar", configuration1.getResourceResolver().findResValue("@string/cancel", false).getValue());
     });
 
     ResourceResolverCache cache = configuration1.getConfigurationManager().getResolverCache();

@@ -35,9 +35,9 @@ public class VaryingConfigurationTest extends AndroidTestCase {
     VirtualFile file = myFixture.copyFileToProject(TEST_FILE, "res/layout/layout1.xml");
     final AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assertNotNull(facet);
-    ConfigurationManager manager = facet.getConfigurationManager();
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
     assertNotNull(manager);
-    assertSame(manager, facet.getConfigurationManager());
+    assertSame(manager, ConfigurationManager.getOrCreateInstance(myModule));
 
     Configuration parent = Configuration.create(manager, file, new FolderConfiguration());
     assertNotNull(parent);

@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.palette;
 import com.android.SdkConstants;
 import com.android.tools.adtui.treegrid.TreeGrid;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.openapi.util.Disposer;
@@ -58,7 +59,7 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
     myIconPreviewFactory = new IconPreviewFactory();
     myPanel = new NlPaletteTreeGrid(getProject(), myDependencyManager, closeToolWindowCallback, mySurface, myIconPreviewFactory);
     PsiFile file = myFixture.configureByText("res/layout/mine.xml", "<LinearLayout/>");
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(file.getVirtualFile());
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file.getVirtualFile());
     when(mySurface.getConfiguration()).thenReturn(configuration);
   }
 

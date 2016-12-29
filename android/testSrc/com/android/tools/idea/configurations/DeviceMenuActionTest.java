@@ -35,7 +35,7 @@ public class DeviceMenuActionTest extends AndroidTestCase {
     ConfigurationHolder holder = mock(ConfigurationHolder.class);
     Configuration configuration = mock(Configuration.class);
     when(holder.getConfiguration()).thenReturn(configuration);
-    when(configuration.getConfigurationManager()).thenReturn(myFacet.getConfigurationManager());
+    when(configuration.getConfigurationManager()).thenReturn(ConfigurationManager.getOrCreateInstance(myModule));
 
     DefaultActionGroup actions = new DeviceMenuAction(holder).createPopupActionGroup();
     StringBuilder sb = new StringBuilder();

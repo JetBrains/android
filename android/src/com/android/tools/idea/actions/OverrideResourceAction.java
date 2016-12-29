@@ -236,7 +236,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
                                           boolean open) {
     final String filename = file.getName();
     final List<String> dirNames = Collections.singletonList(resourceSubdir.getName());
-    final AtomicReference<PsiElement> openAfter = new AtomicReference<PsiElement>();
+    final AtomicReference<PsiElement> openAfter = new AtomicReference<>();
     final WriteCommandAction<Void> action = new WriteCommandAction<Void>(project,
                                                                    "Override Resource " + resName, file) {
       @Override
@@ -326,7 +326,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     Configuration configuration = null;
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      configuration = facet.getConfigurationManager().getConfiguration(file);
+      configuration = ConfigurationManager.getOrCreateInstance(module).getConfiguration(file);
     }
 
     forkResourceFile(module.getProject(), folderType, file, xmlFile, myNewFolder, configuration, open);
@@ -516,7 +516,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     }
   }
 
-  /** Create a lint quickfix which overrides the resource at the given {@link com.intellij.psi.PsiElement} */
+  /** Create a lint quickfix which overrides the resource at the given {@link PsiElement} */
   public static AndroidLintQuickFix createFix(@Nullable String folder) {
     return new OverrideElementFix(folder);
   }

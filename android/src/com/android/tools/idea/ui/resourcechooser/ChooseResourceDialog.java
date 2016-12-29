@@ -33,10 +33,7 @@ import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.HtmlBuilderHelper;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.res.ProjectResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.res.ResourceNameValidator;
+import com.android.tools.idea.res.*;
 import com.android.tools.idea.ui.SearchField;
 import com.android.tools.lint.checks.IconDetector;
 import com.android.tools.swing.ui.SwatchComponent;
@@ -257,7 +254,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
       if (configuration == null) {
         if (myFile != null && myFile.getVirtualFile() != null) {
-          ConfigurationManager configurationManager = facet.getConfigurationManager();
+          ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
           configuration = configurationManager.getConfiguration(myFile.getVirtualFile());
         }
 
