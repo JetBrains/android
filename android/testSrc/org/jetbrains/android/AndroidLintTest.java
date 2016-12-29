@@ -944,6 +944,12 @@ public class AndroidLintTest extends AndroidTestCase {
                   "Extend AppCompat widget instead", "/src/p1/p2/MyButton.java", "java");
   }
 
+  public void testExif() throws Exception {
+    doTestWithFix(new AndroidLintExifInterfaceInspection(),
+                  "Update all references in this file",
+                  "/src/test/pkg/ExifUsage.java", "java");
+  }
+
   private void doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection) {
     doGlobalInspectionTest(inspection, getGlobalTestDir(), new AnalysisScope(myModule));
   }
