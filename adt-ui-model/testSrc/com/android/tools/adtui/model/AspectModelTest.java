@@ -15,36 +15,43 @@
  */
 package com.android.tools.adtui.model;
 
+import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class AspectModelTest {
 
   enum Aspect {
-    ASPECT
+    ASPECT,
+    ANOTHER_ASPECT,
   }
 
   static class Observer extends AspectObserver {
 
-    private final Runnable myRunnable;
+    private final Collection<Aspect> myObserved;
     public int changes;
+    @Nullable public Aspect lastAspect;
     private AspectModel<Aspect> myModel;
 
-    public Observer(AspectModel<Aspect> model, Runnable run) {
-      myRunnable = run;
+    public Observer(AspectModel<Aspect> model, Aspect... observedAspects) {
+      if (observedAspects.length > 0) {
+        myObserved = Arrays.asList(observedAspects);
+      }
+      else {
+        myObserved = Collections.singletonList(Aspect.ASPECT);
+      }
       setModel(model);
     }
 
-    public Observer(AspectModel<Aspect> model) {
-      this(model, null);
-    }
-
-    private void changed() {
+    private void changed(Aspect aspect) {
       changes++;
-      if (myRunnable != null) {
-        myRunnable.run();
-      }
+      lastAspect = aspect;
     }
 
     public void setModel(AspectModel<Aspect> model) {
@@ -52,7 +59,10 @@ public class AspectModelTest {
         myModel.removeDependencies(this);
       }
       myModel = model;
-      myModel.addDependency(this).onChange(Aspect.ASPECT, this::changed);
+      AspectModel<Aspect>.Dependency dependency = myModel.addDependency(this);
+      for (Aspect aspect : myObserved) {
+        dependency.onChange(aspect, () -> changed(aspect));
+      }
     }
   }
 
@@ -88,6 +98,37 @@ public class AspectModelTest {
     model.changed(Aspect.ASPECT);
     model.changed(Aspect.ASPECT);
     assertEquals(2, observer.changes);
+  }
+
+  @Test
+  public void testMultipleAspects() {
+    AspectModel<Aspect> model = new AspectModel<>();
+    Observer observer1 = new Observer(model, Aspect.ASPECT);
+    Observer observer2 = new Observer(model, Aspect.ANOTHER_ASPECT);
+    Observer observerBoth = new Observer(model, Aspect.ASPECT, Aspect.ANOTHER_ASPECT);
+
+    assertEquals(0, observer1.changes);
+    assertNull(observer1.lastAspect);
+    assertEquals(0, observer2.changes);
+    assertNull(observer2.lastAspect);
+    assertEquals(0, observerBoth.changes);
+    assertNull(observerBoth.lastAspect);
+
+    model.changed(Aspect.ASPECT);
+    assertEquals(1, observer1.changes);
+    assertEquals(Aspect.ASPECT, observer1.lastAspect);
+    assertEquals(0, observer2.changes);
+    assertNull(observer2.lastAspect);
+    assertEquals(1, observerBoth.changes);
+    assertEquals(Aspect.ASPECT, observerBoth.lastAspect);
+
+    model.changed(Aspect.ANOTHER_ASPECT);
+    assertEquals(1, observer1.changes);
+    assertEquals(Aspect.ASPECT, observer1.lastAspect);
+    assertEquals(1, observer2.changes);
+    assertEquals(Aspect.ANOTHER_ASPECT, observer2.lastAspect);
+    assertEquals(2, observerBoth.changes);
+    assertEquals(Aspect.ANOTHER_ASPECT, observerBoth.lastAspect);
   }
 
   @Test
