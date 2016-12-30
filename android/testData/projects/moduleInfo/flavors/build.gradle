@@ -32,7 +32,7 @@ android {
     }
   }
 
-  flavorDimensions 'foo'
+  flavorDimensions 'version'
   productFlavors {
     pro {
       applicationId "com.example.pro"
