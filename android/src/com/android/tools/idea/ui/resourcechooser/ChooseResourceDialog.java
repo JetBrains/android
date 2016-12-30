@@ -1127,13 +1127,13 @@ public class ChooseResourceDialog extends DialogWrapper {
         try {
           BufferedImage image = ImageIO.read(new File(path));
           if (image != null) {
-            return Futures.immediateFuture(new ResourceChooserIcon(size, image, checkerboardSize, interpolate));
+            return Futures.immediateFuture(new ResourceChooserImageIcon(size, image, checkerboardSize, interpolate));
           }
         } catch (IOException ignore) {
         }
       }
 
-      return Futures.immediateFuture(new ResourceChooserIcon(size, new ImageIcon(path).getImage(), checkerboardSize, interpolate));
+      return Futures.immediateFuture(new ResourceChooserImageIcon(size, new ImageIcon(path).getImage(), checkerboardSize, interpolate));
     }
     else if (type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP) {
       // TODO: Attempt to guess size for XML drawables since at least for vectors, we have attributes
@@ -1147,9 +1147,9 @@ public class ChooseResourceDialog extends DialogWrapper {
       RenderTask renderTask = getRenderTask();
       renderTask.setOverrideRenderSize(width, height);
       renderTask.setMaxRenderSize(width, height);
-      return Futures.transform(renderTask.renderDrawable(resourceValue), (Function<BufferedImage, ResourceChooserIcon>)drawable -> {
+      return Futures.transform(renderTask.renderDrawable(resourceValue), (Function<BufferedImage, ResourceChooserImageIcon>)drawable -> {
         if (drawable != null) {
-          return new ResourceChooserIcon(size, drawable, checkerboardSize, interpolate);
+          return new ResourceChooserImageIcon(size, drawable, checkerboardSize, interpolate);
         }
 
         return null;
@@ -1157,11 +1157,21 @@ public class ChooseResourceDialog extends DialogWrapper {
       // TODO maybe have a different icon for state list drawable
     }
     else if (type == ResourceType.COLOR) {
-      Color color = ResourceHelper.resolveColor(getResourceResolver(), resourceValue, myModule.getProject());
-      if (color != null) { // maybe null for invalid color
-        return Futures.immediateFuture(new ColorIcon(size, color));
+      List<Color> colors = ResourceHelper.resolveMultipleColors(getResourceResolver(), resourceValue, myModule.getProject());
+      if (colors.size() == 1) {
+        return Futures.immediateFuture(new ResourceChooserColorIcon(size, colors.get(0), checkerboardSize));
       }
-      // TODO maybe have a different icon when the resource points to more then 1 color
+      if (colors.size() > 1) {
+        ResourceChooserColorIcon[] colorIcons = new ResourceChooserColorIcon[colors.size()];
+        for (int i = 0; i < colors.size(); i++) {
+          int sectionSize = size / colors.size();
+          if (i == colors.size() - 1) {
+            sectionSize = size - sectionSize * (colors.size() - 1);
+          }
+          colorIcons[i] = new ResourceChooserColorIcon(sectionSize, size, colors.get(i), checkerboardSize);
+        }
+        return Futures.immediateFuture(new RowIcon(colorIcons));
+      }
     }
 
     return Futures.immediateFuture(null);
