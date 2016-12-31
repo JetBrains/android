@@ -79,7 +79,7 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     assertTrue(found);
 
     // @formatter:off
-    List<ResourceItem> items = AppResourceRepository.getAppResources(myAndroidFacet, true)
+    List<ResourceItem> items = AppResourceRepository.getOrCreateInstance(myAndroidFacet)
                                                     .getResourceItem(ResourceType.DECLARE_STYLEABLE, "RecyclerView");
     // @formatter:on
     assertThat(items).isNotEmpty();

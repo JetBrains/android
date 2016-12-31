@@ -95,7 +95,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public static final FacetTypeId<AndroidFacet> ID = new FacetTypeId<>("android");
   public static final String NAME = "Android";
 
-  private static final Object APP_RESOURCES_LOCK = new Object();
   private static final Object PROJECT_RESOURCES_LOCK = new Object();
   private static final Object MODULE_RESOURCES_LOCK = new Object();
   private static boolean ourDynamicTemplateMenuCreated;
@@ -109,7 +108,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private LocalResourceManager myLocalResourceManager;
 
   private LocalResourceRepository myModuleResources;
-  private AppResourceRepository myAppResources;
   private ProjectResourceRepository myProjectResources;
   private AndroidModel myAndroidModel;
   private final ResourceFolderManager myFolderManager = new ResourceFolderManager(this);
@@ -576,18 +574,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @Contract("true -> !null")
   @Nullable
-  public AppResourceRepository getAppResources(boolean createIfNecessary) {
-    synchronized (APP_RESOURCES_LOCK) {
-      if (myAppResources == null && createIfNecessary) {
-        myAppResources = AppResourceRepository.create(this);
-        Disposer.register(this, myAppResources);
-      }
-      return myAppResources;
-    }
-  }
-
-  @Contract("true -> !null")
-  @Nullable
   public ProjectResourceRepository getProjectResources(boolean createIfNecessary) {
     synchronized (PROJECT_RESOURCES_LOCK) {
       if (myProjectResources == null && createIfNecessary) {
@@ -625,12 +611,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       }
     }
 
-    synchronized (APP_RESOURCES_LOCK) {
-      if (myAppResources != null) {
-        Disposer.dispose(myAppResources);
-        myAppResources = null;
-      }
-    }
+    AppResourceRepository.refreshResources(this);
     ConfigurationManager.getOrCreateInstance(getModule()).getResolverCache().reset();
     ResourceFolderRegistry.reset();
     FileResourceRepository.reset();

@@ -102,7 +102,7 @@ public class GradleInstantRunContext implements InstantRunContext {
 
     final Hasher hasher = Hashing.goodFastHash(32).newHasher();
     SortedSet<ResourceUrl> appResourceReferences = getAppResourceReferences(manifest.getDocumentElement());
-    AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
+    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(facet);
 
     // read action needed when reading the values for app resources
     ApplicationManager.getApplication().runReadAction(() -> {

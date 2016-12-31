@@ -78,7 +78,7 @@ public class ProjectResourceRepositoryRootListener {
       if (projectResources != null) {
         projectResources.updateRoots();
 
-        AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, false);
+        AppResourceRepository appResources = AppResourceRepository.findExistingInstance(facet);
         if (appResources != null) {
           appResources.invalidateCache(projectResources);
           appResources.updateRoots();

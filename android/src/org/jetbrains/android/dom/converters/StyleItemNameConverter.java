@@ -83,7 +83,7 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
       // Try to find the parents of the styles where this item is defined and add to the suggestion every non-framework attribute that has been used.
       // This is helpful in themes like AppCompat where there is not only a framework attribute defined but also a custom attribute. This
       // will show both in the completion list.
-      AppResourceRepository appResourceRepository = AppResourceRepository.getAppResources(context.getModule(), true);
+      AppResourceRepository appResourceRepository = AppResourceRepository.getOrCreateInstance(context.getModule());
       XmlTag styleTag = context.getTag().getParentTag();
       String parent = getParentNameFromTag(styleTag);
       List<ResourceItem> parentDefinitions =

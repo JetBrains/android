@@ -175,7 +175,7 @@ public class RenderTask implements IImageFactory {
 
     myHardwareConfigHelper.setOrientation(configuration.getFullConfig().getScreenOrientationQualifier().getValue());
     myLayoutLib = layoutLib;
-    AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
+    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(facet);
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
     myLayoutlibCallback = new LayoutlibCallbackImpl(this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler);
     myLayoutlibCallback.loadAndParseRClass();

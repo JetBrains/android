@@ -254,7 +254,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   @NotNull
   public static Set<ResourceType> getResourceTypesInCurrentModule(@NotNull AndroidFacet facet) {
     Set<ResourceType> result = EnumSet.noneOf(ResourceType.class);
-    AppResourceRepository resourceRepository = facet.getAppResources(true);
+    AppResourceRepository resourceRepository = AppResourceRepository.getOrCreateInstance(facet);
     for (ResourceType type : ResourceType.values()) {
       if (resourceRepository.hasResourcesOfType(type)) {
         if (type == ResourceType.DECLARE_STYLEABLE) {

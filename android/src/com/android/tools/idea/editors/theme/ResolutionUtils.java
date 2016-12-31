@@ -322,7 +322,7 @@ public class ResolutionUtils {
       configurables = resourceItem.getSourceFileList();
     }
     else {
-      AppResourceRepository appResourceRepository = facet.getAppResources(true);
+      AppResourceRepository appResourceRepository = AppResourceRepository.getOrCreateInstance(facet);
       configurables = appResourceRepository.getResourceItem(resolvedValue.getResourceType(), resolvedValue.getName());
     }
     Configurable configurable = configuration.findMatchingConfigurable(configurables);
