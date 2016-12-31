@@ -140,7 +140,7 @@ public final class AssetStudioUtils {
    * fallback if information about the current paths is not known.
    */
   public static boolean resourceExists(@NotNull AndroidFacet facet, @NotNull ResourceType resourceType, @NotNull String name) {
-    AppResourceRepository repository = facet.getAppResources(true);
+    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(facet);
     return repository.hasResourceItem(resourceType, name);
   }
 

@@ -66,7 +66,7 @@ public class LocalResourceManager extends ResourceManager {
   @NotNull
   @Override
   public VirtualFile[] getAllResourceDirs() {
-    Set<VirtualFile> result = AppResourceRepository.getAppResources(myFacet, true).getResourceDirs();
+    Set<VirtualFile> result = AppResourceRepository.getOrCreateInstance(myFacet).getResourceDirs();
     return VfsUtilCore.toVirtualFileArray(result);
   }
 
@@ -264,7 +264,7 @@ public class LocalResourceManager extends ResourceManager {
   @Override
   @NotNull
   public Collection<String> getResourceNames(@NotNull ResourceType resourceType, boolean publicOnly) {
-    AppResourceRepository appResources = AppResourceRepository.getAppResources(myFacet, true);
+    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(myFacet);
     Collection<String> resourceNames;
     if (resourceType == ResourceType.STYLEABLE) {
       // Convert from the tag-oriented types that appResource hold to the inner-class oriented type.

@@ -133,7 +133,7 @@ public class ResourceNotificationManager implements ProjectComponent {
 
   @NotNull
   public ResourceVersion getCurrentVersion(@NotNull AndroidFacet facet, @Nullable PsiFile file, @Nullable Configuration configuration) {
-    AppResourceRepository repository = AppResourceRepository.getAppResources(facet, true);
+    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(facet);
     if (file != null) {
       long fileStamp = file.getModificationStamp();
       if (configuration != null) {
@@ -342,7 +342,7 @@ public class ResourceNotificationManager implements ProjectComponent {
 
     private ModuleEventObserver(@NotNull AndroidFacet facet) {
       myFacet = facet;
-      myGeneration = AppResourceRepository.getAppResources(facet, true).getModificationCount();
+      myGeneration = AppResourceRepository.getOrCreateInstance(facet).getModificationCount();
     }
 
     @Override
@@ -383,7 +383,7 @@ public class ResourceNotificationManager implements ProjectComponent {
     }
 
     private void notifyListeners(@NonNull EnumSet<Reason> reason) {
-      long generation = myFacet.getAppResources(true).getModificationCount();
+      long generation = AppResourceRepository.getOrCreateInstance(myFacet).getModificationCount();
       if (reason.size() == 1 && reason.contains(Reason.RESOURCE_EDIT) && generation == myGeneration) {
         // Notified of an edit in some file that could potentially affect the resources, but
         // it didn't cause the modification stamp to increase: ignore. (If there are other reasons,

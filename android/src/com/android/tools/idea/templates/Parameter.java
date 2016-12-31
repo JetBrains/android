@@ -516,7 +516,7 @@ public final class Parameter {
     }
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      AppResourceRepository repository = facet.getAppResources(true);
+      AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(facet);
       return repository.hasResourceItem(resourceType, name);
     }
     return false;

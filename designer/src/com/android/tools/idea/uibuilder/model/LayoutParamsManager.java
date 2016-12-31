@@ -385,7 +385,7 @@ public class LayoutParamsManager {
         }
 
         if (resourceValue.getResourceType() == ID) {
-          Integer resolvedId = AppResourceRepository.getAppResources(model.getFacet(), true).getResourceId(ID, resourceValue.getName());
+          Integer resolvedId = AppResourceRepository.getOrCreateInstance(model.getFacet()).getResourceId(ID, resourceValue.getName());
           // TODO: Remove this wrapping/unwrapping
           value = resolvedId.toString();
         }

@@ -582,7 +582,7 @@ public class AndroidJavaDocRenderer {
     @Nullable
     public AppResourceRepository getAppResources() {
       if (myAppResources == null) {
-        myAppResources = AppResourceRepository.getAppResources(myModule, true);
+        myAppResources = AppResourceRepository.getOrCreateInstance(myModule);
       }
 
       return myAppResources;

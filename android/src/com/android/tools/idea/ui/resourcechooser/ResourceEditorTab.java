@@ -85,7 +85,7 @@ public abstract class ResourceEditorTab {
     NewResourceCreationHandler newResourceHandler = NewResourceCreationHandler.getInstance(module.getProject());
     Function<Module, ResourceNameValidator> nameValidatorFactory =
       selectedModule -> ResourceNameValidator
-        .create(allowXmlFile, AppResourceRepository.getAppResources(selectedModule, true), resourceType, allowXmlFile);
+        .create(allowXmlFile, AppResourceRepository.getOrCreateInstance(selectedModule), resourceType, allowXmlFile);
     // There is no need to choose the resource name or value here (controlled by parent).
     myLocationSettings = newResourceHandler.createNewResourceValuePanel(module, resourceType, folderType, "", "",
                                                                         false /* chooseName */, false /* chooseValue */,

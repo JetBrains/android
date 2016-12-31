@@ -58,7 +58,7 @@ public class CreateXmlResourceDialog extends DialogWrapper {
 
     NewResourceCreationHandler newResourceHandler = NewResourceCreationHandler.getInstance(module.getProject());
     Function<Module, ResourceNameValidator> nameValidatorFactory =
-      selectedModule -> ResourceNameValidator.create(true, AppResourceRepository.getAppResources(selectedModule, true), resourceType);
+      selectedModule -> ResourceNameValidator.create(true, AppResourceRepository.getOrCreateInstance(selectedModule), resourceType);
     myPanel = newResourceHandler.createNewResourceValuePanel(module, resourceType, ResourceFolderType.VALUES,
                                                              predefinedName, predefinedValue, chooseName, true, true, defaultFile,
                                                              contextFile, nameValidatorFactory);
