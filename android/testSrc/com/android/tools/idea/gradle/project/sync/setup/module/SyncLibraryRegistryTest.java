@@ -96,18 +96,22 @@ public class SyncLibraryRegistryTest extends IdeaTestCase {
     List<Library> libraries = simulateProjectHasLibraries(2);
 
     SyncLibraryRegistry libraryRegistry = SyncLibraryRegistry.getInstance(getProject());
-    assertTrue(libraryRegistry.markAsUsed(libraries.get(0), Collections.emptyList()));
+    libraryRegistry.markAsUsed(libraries.get(0), Collections.emptyList());
 
     assertThat(libraryRegistry.getProjectLibrariesByName().values()).containsExactly(libraries.get(1));
   }
 
   public void testMarkAsUsedWithLibraryNotInRegistry() {
+    List<Library> libraries = simulateProjectHasLibraries(2);
+
     SyncLibraryRegistry libraryRegistry = SyncLibraryRegistry.getInstance(getProject());
 
     Library library = mock(Library.class);
-    when(library.getName()).thenReturn("dummy");
+    when(library.getName()).thenReturn("notExisting");
 
-    assertFalse(libraryRegistry.markAsUsed(library, Collections.emptyList()));
+    libraryRegistry.markAsUsed(library, Collections.emptyList());
+
+    assertThat(libraryRegistry.getProjectLibrariesByName().values()).containsAllIn(libraries);
   }
 
   public void testMarkAsUsedWhenDisposed() {
@@ -128,7 +132,7 @@ public class SyncLibraryRegistryTest extends IdeaTestCase {
     List<Library> libraries = simulateProjectHasLibraries(2);
 
     SyncLibraryRegistry libraryRegistry = SyncLibraryRegistry.getInstance(getProject());
-    assertTrue(libraryRegistry.markAsUsed(libraries.get(0), Collections.emptyList()));
+    libraryRegistry.markAsUsed(libraries.get(0), Collections.emptyList());
 
     assertThat(libraryRegistry.getLibrariesToRemove()).containsExactly(libraries.get(1));
   }
