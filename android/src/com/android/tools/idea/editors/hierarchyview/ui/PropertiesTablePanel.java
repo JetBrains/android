@@ -20,10 +20,15 @@ import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.editors.hierarchyview.LayoutInspectorContext;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
+import javax.swing.table.TableRowSorter;
 
 public class PropertiesTablePanel extends JScrollPane implements ToolContent<LayoutInspectorContext> {
+  private JBTable myTable;
+  private TableRowSorter<ViewNodeTableModel> mySorter;
+
   @Override
   public void dispose() {
 
@@ -31,14 +36,31 @@ public class PropertiesTablePanel extends JScrollPane implements ToolContent<Lay
 
   @Override
   public void setToolContext(@Nullable LayoutInspectorContext toolContext) {
-    if (toolContext != null) {
-      this.setViewportView(toolContext.getPropertiesTable());
-    }
+    myTable = toolContext.getPropertiesTable();
+    mySorter = new TableRowSorter<>((ViewNodeTableModel)myTable.getModel());
+    myTable.setRowSorter(mySorter);
+    setViewportView(myTable);
+  }
+
+  @NotNull
+  @TestOnly
+  JBTable getTable() {
+    return myTable;
   }
 
   @Override
   @NotNull
   public JComponent getComponent() {
     return this;
+  }
+
+  @Override
+  public boolean supportsFiltering() {
+    return true;
+  }
+
+  @Override
+  public void setFilter(@NotNull String filter) {
+    mySorter.setRowFilter(RowFilter.regexFilter(filter));
   }
 }
