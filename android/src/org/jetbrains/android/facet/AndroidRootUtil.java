@@ -149,7 +149,7 @@ public class AndroidRootUtil {
 
   @Nullable
   public static VirtualFile getFileByRelativeModulePath(Module module, String relativePath, boolean lookInContentRoot) {
-    if (relativePath == null || relativePath.length() == 0) {
+    if (module.isDisposed() || relativePath == null || relativePath.length() == 0) {
       return null;
     }
 
