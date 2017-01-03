@@ -299,14 +299,14 @@ public class AttributeProcessingUtil {
     if (DumbService.isDumb(facet.getModule().getProject())) {
       return Collections.emptyMap();
     }
-    return ClassMaps.get(facet).getClassMap(CLASS_PREFERENCE);
+    return ClassMaps.getInstance(facet).getClassMap(CLASS_PREFERENCE);
   }
 
   public static Map<String, PsiClass> getViewClassMap(@NotNull AndroidFacet facet) {
     if (DumbService.isDumb(facet.getModule().getProject())) {
       return Collections.emptyMap();
     }
-    return ClassMaps.get(facet).getClassMap(VIEW_CLASS_NAME);
+    return ClassMaps.getInstance(facet).getClassMap(VIEW_CLASS_NAME);
   }
 
   private static void registerAttributesFromSuffixedStyleables(@NotNull AndroidFacet facet,

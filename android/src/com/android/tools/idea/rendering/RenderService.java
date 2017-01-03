@@ -37,15 +37,14 @@ import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.ShutDownTracker;
 import com.intellij.psi.PsiFile;
@@ -53,6 +52,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -61,6 +61,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
+import javax.annotation.concurrent.GuardedBy;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.*;
@@ -72,10 +73,9 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
- * The {@link RenderService} provides rendering and layout information for
- * Android layouts. This is a wrapper around the layout library.
+ * The {@link RenderService} provides rendering and layout information for Android layouts. This is a wrapper around the layout library.
  */
-public class RenderService implements Disposable {
+public class RenderService extends AndroidFacetScopedService {
   public static final boolean NELE_ENABLED = true;
   public static final boolean MOCKUP_EDITOR_ENABLED = false;
 
@@ -98,6 +98,9 @@ public class RenderService implements Disposable {
                                                                                      });
   private static final AtomicInteger ourTimeoutExceptionCounter = new AtomicInteger(0);
 
+  private static final Object KEY_LOCK = new Object();
+
+  @GuardedBy("KEY_LOCK")
   private static final Key<RenderService> KEY = Key.create(RenderService.class.getName());
 
   static {
@@ -110,33 +113,38 @@ public class RenderService implements Disposable {
 
   private static final String JDK_INSTALL_URL = "https://developer.android.com/preview/setup-sdk.html#java8";
 
-  private AndroidFacet myFacet;
-
   private final Object myCredential = new Object();
 
   private final ImagePool myImagePool = new ImagePool();
-
-  public RenderService(@NotNull AndroidFacet facet) {
-    myFacet = facet;
-    Disposer.register(facet, this);
-  }
 
   /**
    * @return the {@linkplain RenderService} for the given facet.
    */
   @NotNull
-  public static RenderService get(@NotNull AndroidFacet facet) {
-    RenderService renderService = facet.getUserData(KEY);
+  public static RenderService getInstance(@NotNull AndroidFacet facet) {
+    RenderService renderService;
+    synchronized (KEY_LOCK) {
+      renderService = facet.getUserData(KEY);
+    }
     if (renderService == null) {
       renderService = new RenderService(facet);
-      facet.putUserData(KEY, renderService);
+      synchronized (KEY_LOCK) {
+        facet.putUserData(KEY, renderService);
+      }
     }
     return renderService;
   }
 
   @TestOnly
   public static void setForTesting(@NotNull AndroidFacet facet, @Nullable RenderService renderService) {
-    facet.putUserData(KEY, renderService);
+    synchronized (KEY_LOCK) {
+      facet.putUserData(KEY, renderService);
+    }
+  }
+
+  @VisibleForTesting
+  protected RenderService(@NotNull AndroidFacet facet) {
+    super(facet);
   }
 
   @Nullable
@@ -196,8 +204,7 @@ public class RenderService implements Disposable {
                                @NotNull final Configuration configuration,
                                @NotNull final RenderLogger logger,
                                @Nullable final EditorDesignSurface surface) {
-    Module module = myFacet.getModule();
-    final Project project = module.getProject();
+    Module module = getModule();
     AndroidPlatform platform = getPlatform(module, logger);
     if (platform == null) {
       return null;
@@ -213,7 +220,7 @@ public class RenderService implements Disposable {
 
     LayoutLibrary layoutLib;
     try {
-      layoutLib = platform.getSdkData().getTargetData(target).getLayoutLibrary(project);
+      layoutLib = platform.getSdkData().getTargetData(target).getLayoutLibrary(getProject());
       if (layoutLib == null) {
         String message = AndroidBundle.message("android.layout.preview.cannot.load.library.error");
         logger.addMessage(RenderProblem.createPlain(ERROR, message));
@@ -268,21 +275,21 @@ public class RenderService implements Disposable {
       return task;
     } catch (IncorrectOperationException | AssertionError e) {
       // We can get this exception if the module/project is closed while we are updating the model. Ignore it.
-      assert myFacet.isDisposed();
+      assert getFacet().isDisposed();
     }
 
     return null;
   }
 
+  @Override
+  protected void onServiceDisposal(@NotNull AndroidFacet facet) {
+    synchronized (KEY_LOCK) {
+      facet.putUserData(KEY, null);
+    }
+    myImagePool.dispose();
+  }
+
   @NotNull
-  public AndroidFacet getFacet() {
-    return myFacet;
-  }
-
-  public Module getModule() {
-    return myFacet.getModule();
-  }
-
   public Project getProject() {
     return getModule().getProject();
   }
@@ -535,11 +542,4 @@ public class RenderService implements Disposable {
    * quite a long way compared to the current relevant screen pixel ranges.
    */
   private static final int MAX_MAGNITUDE = 1 << (MEASURE_SPEC_MODE_SHIFT - 5);
-
-  @Override
-  public void dispose() {
-    myImagePool.dispose();
-    myFacet.putUserData(KEY, null);
-    myFacet = null;
-  }
 }

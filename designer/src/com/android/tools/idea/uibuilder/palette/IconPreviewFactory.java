@@ -112,7 +112,7 @@ public class IconPreviewFactory implements Disposable {
       if (facet == null) {
         return null;
       }
-      RenderService renderService = RenderService.get(facet);
+      RenderService renderService = RenderService.getInstance(facet);
       RenderLogger logger = renderService.createLogger();
       myRenderTask = renderService.createTask(null, configuration, logger, null);
     }

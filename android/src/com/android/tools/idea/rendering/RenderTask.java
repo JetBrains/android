@@ -38,7 +38,6 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
-import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.AssetRepositoryImpl;
 import com.android.tools.idea.res.ResourceHelper;
@@ -72,11 +71,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
-import static com.android.SdkConstants.HORIZONTAL_SCROLL_VIEW;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 /**
@@ -154,7 +151,7 @@ public class RenderTask implements IImageFactory {
   private CrashReporter myCrashReporter;
 
   /**
-   * Don't create this task directly; obtain via {@link com.android.tools.idea.rendering.RenderService}
+   * Don't create this task directly; obtain via {@link RenderService}
    */
   RenderTask(@NotNull RenderService renderService,
              @NotNull Configuration configuration,
@@ -182,7 +179,7 @@ public class RenderTask implements IImageFactory {
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
     myLayoutlibCallback = new LayoutlibCallbackImpl(this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler);
     myLayoutlibCallback.loadAndParseRClass();
-    AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
+    AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(facet);
     myMinSdkVersion = moduleInfo.getMinSdkVersion();
     myTargetSdkVersion = moduleInfo.getTargetSdkVersion();
     myLocale = configuration.getLocale();
@@ -194,11 +191,8 @@ public class RenderTask implements IImageFactory {
     }
     myPsiFile = (XmlFile)psiFile;
 
-    ApplicationManager.getApplication().runReadAction(new Runnable() {
-      @Override
-      public void run() {
-        myFolderType = ResourceHelper.getFolderType(myPsiFile);
-      }
+    ApplicationManager.getApplication().runReadAction(() -> {
+      myFolderType = ResourceHelper.getFolderType(myPsiFile);
     });
   }
 
@@ -234,7 +228,7 @@ public class RenderTask implements IImageFactory {
 
   @NotNull
   public Module getModule() {
-    return myRenderService.getModule();
+    return myRenderService.getFacet().getModule();
   }
 
   @NotNull
@@ -278,8 +272,7 @@ public class RenderTask implements IImageFactory {
 
   /**
    * Overrides the width and height to be used during rendering (which might be adjusted if
-   * the {@link #setRenderingMode(com.android.ide.common.rendering.api.SessionParams.RenderingMode)} is
-   * {@link com.android.ide.common.rendering.api.SessionParams.RenderingMode#FULL_EXPAND}.
+   * the {@link #setRenderingMode(SessionParams.RenderingMode)} is {@link SessionParams.RenderingMode#FULL_EXPAND}.
    * <p/>
    * A value of -1 will make the rendering use the normal width and height coming from the
    * {@link Configuration#getDevice()} object.
@@ -295,8 +288,7 @@ public class RenderTask implements IImageFactory {
 
   /**
    * Sets the max width and height to be used during rendering (which might be adjusted if
-   * the {@link #setRenderingMode(com.android.ide.common.rendering.api.SessionParams.RenderingMode)} is
-   * {@link com.android.ide.common.rendering.api.SessionParams.RenderingMode#FULL_EXPAND}.
+   * the {@link #setRenderingMode(SessionParams.RenderingMode)} is {@link SessionParams.RenderingMode#FULL_EXPAND}.
    * <p/>
    * A value of -1 will make the rendering use the normal width and height coming from the
    * {@link Configuration#getDevice()} object.
@@ -311,8 +303,8 @@ public class RenderTask implements IImageFactory {
   }
 
   /**
-   * Sets the {@link com.android.ide.common.rendering.api.SessionParams.RenderingMode} to be used during rendering. If none is specified,
-   * the default is {@link com.android.ide.common.rendering.api.SessionParams.RenderingMode#NORMAL}.
+   * Sets the {@link SessionParams.RenderingMode} to be used during rendering. If none is specified, the default is
+   * {@link SessionParams.RenderingMode#NORMAL}.
    *
    * @param renderingMode the rendering mode to be used
    * @return this (such that chains of setters can be stringed together)
@@ -431,7 +423,7 @@ public class RenderTask implements IImageFactory {
   }
 
   /**
-   * Renders the model and returns the result as a {@link com.android.ide.common.rendering.api.RenderSession}.
+   * Renders the model and returns the result as a {@link RenderSession}.
    *
    * @param factory Factory for images which would be used to render layouts to.
    * @return the {@link RenderResult resulting from rendering the current model
@@ -471,7 +463,7 @@ public class RenderTask implements IImageFactory {
     IAndroidTarget target = myConfiguration.getTarget();
     int simulatedPlatform = target instanceof CompatibilityRenderTarget ? target.getVersion().getApiLevel() : 0;
 
-    Module module = myRenderService.getModule();
+    Module module = myRenderService.getFacet().getModule();
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
     final SessionParams params =
       new SessionParams(modelParser, myRenderingMode, module /* projectKey */, hardwareConfig, resolver,
@@ -555,7 +547,7 @@ public class RenderTask implements IImageFactory {
         @NotNull
         @Override
         public RenderResult compute() {
-          Module module = myRenderService.getModule();
+          Module module = myRenderService.getFacet().getModule();
           RenderSecurityManager securityManager =
             isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module, getPlatform()) : null;
           if (securityManager != null) {
@@ -621,7 +613,7 @@ public class RenderTask implements IImageFactory {
     // Code to support editing included layout
     if (myIncludedWithin == null) {
       String layout = IncludeReference.getIncludingLayout(myPsiFile);
-      Module module = myRenderService.getModule();
+      Module module = myRenderService.getFacet().getModule();
       myIncludedWithin = layout != null ? IncludeReference.get(module, myPsiFile, resolver) : IncludeReference.NONE;
     }
     if (myIncludedWithin != IncludeReference.NONE) {
@@ -849,7 +841,7 @@ public class RenderTask implements IImageFactory {
 
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
-    Module module = myRenderService.getModule();
+    Module module = myRenderService.getFacet().getModule();
     final DrawableParams params =
       new DrawableParams(drawableResourceValue, module, hardwareConfig, getResourceResolver(), myLayoutlibCallback,
                          myMinSdkVersion.getApiLevel(), myTargetSdkVersion.getApiLevel(), myLogger);
@@ -885,7 +877,7 @@ public class RenderTask implements IImageFactory {
 
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
-    Module module = myRenderService.getModule();
+    Module module = myRenderService.getFacet().getModule();
     final DrawableParams params =
       new DrawableParams(drawableResourceValue, module, hardwareConfig, getResourceResolver(), myLayoutlibCallback,
                          myMinSdkVersion.getApiLevel(), myTargetSdkVersion.getApiLevel(), myLogger);
@@ -897,12 +889,7 @@ public class RenderTask implements IImageFactory {
     }
 
     try {
-      Result result = RenderService.runRenderAction(new Callable<Result>() {
-        @Override
-        public Result call() throws Exception {
-          return myLayoutLib.renderDrawable(params);
-        }
-      });
+      Result result = RenderService.runRenderAction(() -> myLayoutLib.renderDrawable(params));
 
       if (result != null && result.isSuccess()) {
         Object data = result.getData();
@@ -1086,7 +1073,7 @@ public class RenderTask implements IImageFactory {
     myLayoutlibCallback.reset();
 
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
-    Module module = myRenderService.getModule();
+    Module module = myRenderService.getFacet().getModule();
     final SessionParams params = new SessionParams(
       parser,
       RenderingMode.NORMAL,

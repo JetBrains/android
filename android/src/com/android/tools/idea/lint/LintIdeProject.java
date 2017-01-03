@@ -697,7 +697,7 @@ public class LintIdeProject extends Project {
     @Override
     public AndroidVersion getMinSdkVersion() {
       if (myMinSdkVersion == null) {
-        myMinSdkVersion = AndroidModuleInfo.get(myFacet).getMinSdkVersion();
+        myMinSdkVersion = AndroidModuleInfo.getInstance(myFacet).getMinSdkVersion();
       }
       return myMinSdkVersion;
     }
@@ -706,7 +706,7 @@ public class LintIdeProject extends Project {
     @Override
     public AndroidVersion getTargetSdkVersion() {
       if (myTargetSdkVersion == null) {
-        myTargetSdkVersion = AndroidModuleInfo.get(myFacet).getTargetSdkVersion();
+        myTargetSdkVersion = AndroidModuleInfo.getInstance(myFacet).getTargetSdkVersion();
       }
 
       return myTargetSdkVersion;

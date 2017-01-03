@@ -608,7 +608,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
 
     AndroidFacet facet = AndroidFacet.getInstance(methodCall);
     assert facet != null; // already checked early on in the inspection visitor
-    AndroidVersion minSdkVersion = AndroidModuleInfo.get(facet).getMinSdkVersion();
+    AndroidVersion minSdkVersion = AndroidModuleInfo.getInstance(facet).getMinSdkVersion();
 
     PsiAnnotationMemberValue apiValue = annotation.findAttributeValue(ATTR_VALUE);
     if (apiValue == null || (int)getLongValue(apiValue, 1) == 1) {
@@ -1004,7 +1004,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           fixes = list.toArray(new LocalQuickFix[list.size()]);
         }
         registerProblem(holder, MISSING_PERMISSION, methodCall, message, fixes);
-      } else if (requirement.isRevocable(lookup) && AndroidModuleInfo.get(facet).getTargetSdkVersion().getFeatureLevel() >= 23
+      } else if (requirement.isRevocable(lookup) && AndroidModuleInfo.getInstance(facet).getTargetSdkVersion().getFeatureLevel() >= 23
           && requirement.getLastApplicableApi() >= 23) {
         JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
         PsiClass securityException = psiFacade.findClass("java.lang.SecurityException", GlobalSearchScope.allScope(project));
@@ -1170,7 +1170,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         // the MANAGE_ACCOUNTS permission is only needed pre Marshmallow. In that
         // case set a maxSdkVersion attribute on the uses-permission element.
         if (myRequirement.getLastApplicableApi() != Integer.MAX_VALUE
-            && myRequirement.getLastApplicableApi() >= AndroidModuleInfo.get(myFacet).getMinSdkVersion().getApiLevel()) {
+            && myRequirement.getLastApplicableApi() >= AndroidModuleInfo.getInstance(myFacet).getMinSdkVersion().getApiLevel()) {
           permissionTag.setAttribute("maxSdkVersion", ANDROID_URI, Integer.toString(myRequirement.getLastApplicableApi()));
         }
 

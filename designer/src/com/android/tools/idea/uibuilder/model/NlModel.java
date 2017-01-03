@@ -28,6 +28,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.avdmanager.AvdScreenData;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ConfigurationMatcher;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -169,7 +170,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     mySurface = surface;
     myFacet = facet;
     myFile = file;
-    myConfiguration = facet.getConfigurationManager().getConfiguration(myFile.getVirtualFile());
+    myConfiguration = ConfigurationManager.getOrCreateInstance(facet.getModule()).getConfiguration(myFile.getVirtualFile());
     myConfigurationModificationCount = myConfiguration.getModificationCount();
     mySelectionModel = new SelectionModel();
     myId = System.nanoTime() ^ file.getName().hashCode();
@@ -366,7 +367,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       // external changes
       myRenderedVersion = resourceNotificationManager.getCurrentVersion(myFacet, myFile, myConfiguration);
 
-      RenderService renderService = RenderService.get(myFacet);
+      RenderService renderService = RenderService.getInstance(myFacet);
       RenderLogger logger = renderService.createLogger();
       if (myRenderTask != null) {
         myRenderTask.dispose();
@@ -845,7 +846,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
       AndroidFacet facet = AndroidFacet.getInstance(myConfiguration.getModule());
       assert facet != null;
-      Configuration configuration = facet.getConfigurationManager().getConfiguration(better);
+      Configuration configuration = ConfigurationManager.getOrCreateInstance(facet.getModule()).getConfiguration(better);
       configuration.setEffectiveDevice(device, newState);
     }
     else {

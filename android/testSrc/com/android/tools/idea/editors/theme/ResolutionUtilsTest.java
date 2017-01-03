@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
@@ -67,7 +68,7 @@ public class ResolutionUtilsTest extends AndroidTestCase {
 
   public void testFrameworkStyleRead() {
     VirtualFile myLayout = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout1.xml");
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myLayout);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myLayout);
 
     assertNotNull(ResolutionUtils.getStyle(configuration, "android:TextAppearance", null));
 
@@ -117,7 +118,7 @@ public class ResolutionUtilsTest extends AndroidTestCase {
    */
   public void testGetParentQualifiedName() {
     VirtualFile file = myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles.xml", "res/values/styles.xml");
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(file);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file);
     ResourceResolver resolver = configuration.getResourceResolver();
     assertNotNull(resolver);
     StyleResourceValue style;

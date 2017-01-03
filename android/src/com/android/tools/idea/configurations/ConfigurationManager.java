@@ -39,17 +39,22 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.SoftValueHashMap;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.*;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidTargetData;
+import org.jetbrains.android.sdk.MessageBuildingSdkLog;
 import org.jetbrains.android.uipreview.UserDeviceManager;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.concurrent.GuardedBy;
 import java.util.*;
-import java.util.function.Predicate;
 
 import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
 import static com.android.tools.idea.configurations.ConfigurationListener.*;
@@ -66,11 +71,16 @@ import static com.android.tools.idea.configurations.ConfigurationListener.*;
  * the saved configuration state for a given file.
  */
 public class ConfigurationManager implements Disposable {
-  @NotNull private final Module myModule;
+  private static final Object KEY_LOCK = new Object();
+
+  @GuardedBy("KEY_LOCK")
+  private static final Key<ConfigurationManager> KEY = Key.create(ConfigurationManager.class.getName());
+
+  private Module myModule;
   private List<Device> myDevices;
   private Map<String,Device> myDeviceMap;
   private final UserDeviceManager myUserDeviceManager;
-  private final SoftValueHashMap<VirtualFile, Configuration> myCache = new SoftValueHashMap<VirtualFile, Configuration>();
+  private final SoftValueHashMap<VirtualFile, Configuration> myCache = new SoftValueHashMap<>();
   private List<Locale> myLocales;
   private Device myDefaultDevice;
   private Locale myLocale;
@@ -78,6 +88,37 @@ public class ConfigurationManager implements Disposable {
   private int myStateVersion;
   private ResourceResolverCache myResolverCache;
   private long myLocaleCacheStamp;
+
+  @NotNull
+  public static ConfigurationManager getOrCreateInstance(@NotNull Module module) {
+    return findConfigurationManager(module, true /* create if necessary */);
+  }
+
+  @Nullable
+  public static ConfigurationManager findExistingInstance(@NotNull Module module) {
+    return findConfigurationManager(module, false /* do not create if not found */);
+  }
+
+  @Contract("_, true -> !null")
+  @Nullable
+  private static ConfigurationManager findConfigurationManager(@NotNull Module module, boolean createIfNecessary) {
+    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+    if (androidFacet == null) {
+      throw new IllegalArgumentException("Module '" + module.getName() + "' is not an Android module");
+    }
+
+    ConfigurationManager configurationManager;
+    synchronized (KEY_LOCK) {
+      configurationManager = module.getUserData(KEY);
+    }
+    if (configurationManager == null && createIfNecessary) {
+      configurationManager = create(module);
+      synchronized (KEY_LOCK) {
+        module.putUserData(KEY, configurationManager);
+      }
+    }
+    return configurationManager;
+  }
 
   private ConfigurationManager(@NotNull Module module) {
     myModule = module;
@@ -186,7 +227,9 @@ public class ConfigurationManager implements Disposable {
    */
   @NotNull
   public static ConfigurationManager create(@NotNull Module module) {
-    return new ConfigurationManager(module);
+    ConfigurationManager configurationManager = new ConfigurationManager(module);
+    Disposer.register(module, configurationManager);
+    return configurationManager;
   }
 
   /** Returns the list of available devices for the current platform, if any */
@@ -198,7 +241,7 @@ public class ConfigurationManager implements Disposable {
       AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
       if (platform != null) {
         final AndroidSdkData sdkData = platform.getSdkData();
-        devices = new ArrayList<Device>();
+        devices = new ArrayList<>();
         DeviceManager deviceManager = sdkData.getDeviceManager();
         devices.addAll(deviceManager.getDevices(EnumSet.of(DeviceManager.DeviceFilter.DEFAULT, DeviceManager.DeviceFilter.VENDOR)));
         devices.addAll(myUserDeviceManager.parseUserDevices(new MessageBuildingSdkLog()));
@@ -352,6 +395,11 @@ public class ConfigurationManager implements Disposable {
 
   @Override
   public void dispose() {
+    Module module = myModule;
+    synchronized (KEY_LOCK) {
+      module.putUserData(KEY, null);
+    }
+    myModule = null;
   }
 
   @Nullable
@@ -397,7 +445,7 @@ public class ConfigurationManager implements Disposable {
       myLocales = null;
     }
     if (myLocales == null) {
-      List<Locale> locales = new ArrayList<Locale>();
+      List<Locale> locales = new ArrayList<>();
       for (LocaleQualifier locale : projectResources.getLocales()) {
         locales.add(Locale.create(locale));
       }
@@ -577,12 +625,7 @@ public class ConfigurationManager implements Disposable {
     final boolean includeSelf,
     boolean async) {
     if (async) {
-      ApplicationManager.getApplication().runReadAction(new Runnable() {
-        @Override
-        public void run() {
-          doSyncToVariations(flags, updatedFile, includeSelf, base);
-        }
-      });
+      ApplicationManager.getApplication().runReadAction(() -> doSyncToVariations(flags, updatedFile, includeSelf, base));
     } else {
       doSyncToVariations(flags, updatedFile, includeSelf, base);
     }

@@ -511,7 +511,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         topLevel.add(ThemeCategory.PROJECT);
       }
 
-      AndroidModuleInfo info = AndroidModuleInfo.get(myConfiguration.getConfigurationManager().getModule());
+      AndroidModuleInfo info = AndroidModuleInfo.getInstance(myConfiguration.getConfigurationManager().getModule());
       if (info != null && info.getBuildSdkVersion() != null && info.getBuildSdkVersion().getFeatureLevel() >= 21) {
         topLevel.add(ThemeCategory.MATERIAL);
         topLevel.add(ThemeCategory.MATERIAL_LIGHT);

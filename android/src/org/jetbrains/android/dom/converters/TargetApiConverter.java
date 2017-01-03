@@ -17,6 +17,7 @@ package org.jetbrains.android.dom.converters;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.base.Strings;
 import com.google.common.collect.ContiguousSet;
 import com.google.common.collect.DiscreteDomain;
@@ -137,7 +138,7 @@ public class TargetApiConverter extends ResolvingConverter<Integer> {
       return HIGHEST_KNOWN_API;
     }
 
-    IAndroidTarget apiTarget = facet.getConfigurationManager().getHighestApiTarget();
+    IAndroidTarget apiTarget = ConfigurationManager.getOrCreateInstance(module).getHighestApiTarget();
     if (apiTarget == null) {
       return HIGHEST_KNOWN_API;
     }
