@@ -31,7 +31,6 @@ import com.android.tools.idea.rendering.LogWrapper;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.ILogger;
 import com.google.common.collect.*;
-import com.intellij.debugger.settings.DataBinding;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -40,7 +39,6 @@ import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -354,9 +352,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     if (!myResourceDir.isValid()) {
       return;
     }
-    ApplicationManager.getApplication().runReadAction(() -> {
-      getPsiDirsForListener(myResourceDir);
-    });
+    ApplicationManager.getApplication().runReadAction(() -> getPsiDirsForListener(myResourceDir));
     scanResFolder(myResourceDir);
     ApplicationManager.getApplication().runReadAction(this::scanQueuedPsiResources);
   }
@@ -458,7 +454,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       if (file.isValid() && !file.isDirectory()) {
         FileType fileType = file.getFileType();
         boolean idGeneratingFile = idGeneratingFolder && fileType == StdFileTypes.XML;
-        if (PsiProjectListener.isRelevantFileType(fileType) || folderType == ResourceFolderType.RAW) {
+        if (PsiProjectListener.isRelevantFileType(fileType) || folderType == RAW) {
           scanFileResourceFile(qualifiers, folderType, folderConfiguration, type, idGeneratingFile, map, file);
         } // TODO: Else warn about files that aren't expected to be found here?
       }
@@ -880,7 +876,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           }
         }
 
-        PsiResourceFile resourceFile = new PsiResourceFile(file, items, qualifiers, ResourceFolderType.VALUES, folderConfiguration);
+        PsiResourceFile resourceFile = new PsiResourceFile(file, items, qualifiers, VALUES, folderConfiguration);
         myResourceFiles.put(file.getVirtualFile(), resourceFile);
       }
     }
@@ -966,33 +962,25 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       }
       myPendingScans.add(psiFile);
     }
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          @Override
-          public void run() {
-            boolean rescan;
-            synchronized (SCAN_LOCK) {
-              // Handled by {@link #sync()} after the {@link #rescan} call and before invokeLater ?
-              rescan = myPendingScans != null && myPendingScans.contains(psiFile);
-            }
-            if (rescan) {
-              rescanImmediately(psiFile, folderType);
-              synchronized (SCAN_LOCK) {
-                // myPendingScans can't be null here because the only method which clears it
-                // is sync() which also requires a write lock, and we've held the write lock
-                // since null checking it above
-                myPendingScans.remove(psiFile);
-                if (myPendingScans.isEmpty()) {
-                  myPendingScans = null;
-                }
-              }
-            }
-          }
-        });
+    ApplicationManager.getApplication().invokeLater(() -> ApplicationManager.getApplication().runWriteAction(() -> {
+      boolean rescan;
+      synchronized (SCAN_LOCK) {
+        // Handled by {@link #sync()} after the {@link #rescan} call and before invokeLater ?
+        rescan = myPendingScans != null && myPendingScans.contains(psiFile);
       }
-    });
+      if (rescan) {
+        rescanImmediately(psiFile, folderType);
+        synchronized (SCAN_LOCK) {
+          // myPendingScans can't be null here because the only method which clears it
+          // is sync() which also requires a write lock, and we've held the write lock
+          // since null checking it above
+          myPendingScans.remove(psiFile);
+          if (myPendingScans.isEmpty()) {
+            myPendingScans = null;
+          }
+        }
+      }
+    }));
   }
 
   @Override
@@ -1004,18 +992,15 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       if (myPendingScans == null || myPendingScans.isEmpty()) {
         return;
       }
-      files = new ArrayList<PsiFile>(myPendingScans);
+      files = new ArrayList<>(myPendingScans);
     }
 
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        for (PsiFile file : files) {
-          if (file.isValid()) {
-            ResourceFolderType folderType = ResourceHelper.getFolderType(file);
-            if (folderType != null) {
-              rescanImmediately(file, folderType);
-            }
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      for (PsiFile file : files) {
+        if (file.isValid()) {
+          ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+          if (folderType != null) {
+            rescanImmediately(file, folderType);
           }
         }
       }
@@ -1028,12 +1013,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
   private void rescanImmediately(@NonNull final PsiFile psiFile, final @NonNull ResourceFolderType folderType) {
     if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-      ApplicationManager.getApplication().runReadAction(new Runnable() {
-        @Override
-        public void run() {
-          rescanImmediately(psiFile, folderType);
-        }
-      });
+      ApplicationManager.getApplication().runReadAction(() -> rescanImmediately(psiFile, folderType));
       return;
     }
 
@@ -1215,11 +1195,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
    * image held by layout lib.
    */
   private void bitmapUpdated() {
-    ConfigurationManager configurationManager = myFacet.getConfigurationManager(false);
+    Module module = myFacet.getModule();
+    ConfigurationManager configurationManager = ConfigurationManager.findExistingInstance(module);
     if (configurationManager != null) {
       IAndroidTarget target = configurationManager.getTarget();
       if (target != null) {
-        Module module = myFacet.getModule();
         AndroidTargetData targetData = AndroidTargetData.getTargetData(target, module);
         if (targetData != null) {
           targetData.clearLayoutBitmapCache(module);
@@ -1267,7 +1247,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         if (folderType != null && isResourceFile(psiFile)) {
           PsiElement child = event.getChild();
           PsiElement parent = event.getParent();
-          if (folderType == ResourceFolderType.VALUES) {
+          if (folderType == VALUES) {
             if (child instanceof XmlTag) {
               XmlTag tag = (XmlTag)child;
 
@@ -1398,7 +1378,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           // We can't iterate the children here because the dir is already empty.
           // Instead, try to locate the files
           String dirName = ((PsiDirectory)child).getName();
-          ResourceFolderType folderType = ResourceFolderType.getFolderType(dirName);
+          ResourceFolderType folderType = getFolderType(dirName);
 
           if (folderType != null) {
             // Make sure it's really a resource folder. We can't look at the directory
@@ -1422,7 +1402,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
             }
 
             // Copy file map so we can delete while iterating
-            Collection<ResourceFile> resourceFiles = new ArrayList<ResourceFile>(myResourceFiles.values());
+            Collection<ResourceFile> resourceFiles = new ArrayList<>(myResourceFiles.values());
             for (ResourceFile file : resourceFiles) {
               ResourceFolderType resFolderType = ResourceHelper.getFolderType(file);
               if (folderType == resFolderType && qualifiers.equals(file.getQualifiers())) {
@@ -1441,7 +1421,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           PsiElement child = event.getChild();
           PsiElement parent = event.getParent();
 
-          if (folderType == ResourceFolderType.VALUES) {
+          if (folderType == VALUES) {
             if (child instanceof XmlTag) {
               XmlTag tag = (XmlTag)child;
 
@@ -2219,7 +2199,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       qualifiers = dirName.substring(index + 1);
       folderTypeName = dirName.substring(0, index);
     }
-    ResourceFolderType folderType = ResourceFolderType.getTypeByName(folderTypeName);
+    ResourceFolderType folderType = getTypeByName(folderTypeName);
 
     for (ResourceFile resourceFile : myResourceFiles.values()) {
       String name = resourceFile.getFile().getName();
@@ -2359,54 +2339,51 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           return false;
         }
         final ResourceItem item = itemEntry.getValue();
-        if (!ContainerUtil.exists(otherItemsList, new Condition<ResourceItem>() {
-          @Override
-          public boolean value(ResourceItem resourceItem) {
-            // Use #compareTo instead of #equals because #equals compares pointers of mSource.
-            if (resourceItem.compareTo(item) != 0) {
-              return false;
+        if (!ContainerUtil.exists(otherItemsList, resourceItem -> {
+          // Use #compareTo instead of #equals because #equals compares pointers of mSource.
+          if (resourceItem.compareTo(item) != 0) {
+            return false;
+          }
+          // #compareTo doesn't check the ResourceValue. At least check that getValue is equivalent (getRawXmlText may be different).
+          // Skip ID type resources, where the ResourceValues are not important and where blob writing doesn't preserve the value.
+          if (item.getType() != ResourceType.ID) {
+            ResourceValue resValue = item.getResourceValue(false);
+            ResourceValue otherResValue = resourceItem.getResourceValue(false);
+            if (resValue == null || otherResValue == null) {
+              if (resValue != otherResValue) {
+                return false;
+              }
             }
-            // #compareTo doesn't check the ResourceValue. At least check that getValue is equivalent (getRawXmlText may be different).
-            // Skip ID type resources, where the ResourceValues are not important and where blob writing doesn't preserve the value.
-            if (item.getType() != ResourceType.ID) {
-              ResourceValue resValue = item.getResourceValue(false);
-              ResourceValue otherResValue = resourceItem.getResourceValue(false);
-              if (resValue == null || otherResValue == null) {
-                if (resValue != otherResValue) {
+            else {
+              String resValueStr = resValue.getValue();
+              String otherResValueStr = otherResValue.getValue();
+              if (resValueStr == null || otherResValueStr == null) {
+                if (resValueStr != otherResValueStr) {
                   return false;
                 }
               }
               else {
-                String resValueStr = resValue.getValue();
-                String otherResValueStr = otherResValue.getValue();
-                if (resValueStr == null || otherResValueStr == null) {
-                  if (resValueStr != otherResValueStr) {
-                    return false;
-                  }
-                }
-                else {
-                  if (!resValueStr.equals(otherResValueStr)) {
-                    return false;
-                  }
+                if (!resValueStr.equals(otherResValueStr)) {
+                  return false;
                 }
               }
             }
-            // We can only compareValueWith (compare equivalence of XML nodes) for VALUE items.
-            // For others, the XML node may be different before and after serialization.
-            ResourceFile source = item.getSource();
-            ResourceFile otherSource = resourceItem.getSource();
-            if (source != null && otherSource != null) {
-              ResourceFolderType ownFolderType = ResourceHelper.getFolderType(source);
-              ResourceFolderType otherFolderType = ResourceHelper.getFolderType(otherSource);
-              if (otherFolderType != ownFolderType) {
-                return false;
-              }
-              if (otherFolderType == VALUES) {
-                return resourceItem.compareValueWith(item);
-              }
-            }
-            return true;
           }
+          // We can only compareValueWith (compare equivalence of XML nodes) for VALUE items.
+          // For others, the XML node may be different before and after serialization.
+          ResourceFile source = item.getSource();
+          ResourceFile otherSource = resourceItem.getSource();
+          if (source != null && otherSource != null) {
+            ResourceFolderType ownFolderType = ResourceHelper.getFolderType(source);
+            ResourceFolderType otherFolderType = ResourceHelper.getFolderType(otherSource);
+            if (otherFolderType != ownFolderType) {
+              return false;
+            }
+            if (otherFolderType == VALUES) {
+              return resourceItem.compareValueWith(item);
+            }
+          }
+          return true;
         })) {
           return false;
         }

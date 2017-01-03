@@ -16,14 +16,14 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
-import com.google.common.base.Function;
+import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.google.common.collect.Collections2;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -52,28 +52,23 @@ public class MultipleModulesTest extends AndroidTestCase {
                                 getAdditionalModulePath(USEDLIBRARY) + "/res/values/themes.xml");
 
     // Main theme module
-    final Configuration configuration1 = myFacet.getConfigurationManager().getConfiguration(appThemes);
+    final Configuration configuration1 = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(appThemes);
     final ThemeResolver resolver1 = new ThemeResolver(configuration1);
     // Available themes should contain from used library, but, more importantly, shouldn't contain themes from unused library (not a dependency)
     assertContainsElements(themeNames(resolver1.getLocalThemes()), "AppTheme", "LibraryDependentTheme", "UsedLibraryTheme");
 
     // Used library module
-    final Configuration configuration2 = AndroidFacet.getInstance(myAdditionalModules.get(0)).getConfigurationManager().getConfiguration(appThemes);
+    final Configuration configuration2 = ConfigurationManager.getOrCreateInstance(myAdditionalModules.get(0)).getConfiguration(appThemes);
     final ThemeResolver resolver2 = new ThemeResolver(configuration2);
     assertContainsElements(themeNames(resolver2.getLocalThemes()), "UsedLibraryTheme");
 
     // Unused library module
-    final Configuration configuration3 = AndroidFacet.getInstance(myAdditionalModules.get(1)).getConfigurationManager().getConfiguration(appThemes);
+    final Configuration configuration3 = ConfigurationManager.getOrCreateInstance(myAdditionalModules.get(1)).getConfiguration(appThemes);
     final ThemeResolver resolver3 = new ThemeResolver(configuration3);
     assertContainsElements(themeNames(resolver3.getLocalThemes()), "UnusedLibraryTheme");
   }
 
   private static Collection<String> themeNames(Collection<ConfiguredThemeEditorStyle> styles) {
-    return Collections2.transform(styles, new Function<ConfiguredThemeEditorStyle, String>() {
-      @Override
-      public String apply(ConfiguredThemeEditorStyle input) {
-        return input.getName();
-      }
-    });
+    return Collections2.transform(styles, ThemeEditorStyle::getName);
   }
 }

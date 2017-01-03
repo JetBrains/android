@@ -294,7 +294,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null && facet.isAppProject()) {
-        int minSdk = AndroidModuleInfo.get(facet).getMinSdkVersion().getApiLevel();
+        int minSdk = AndroidModuleInfo.getInstance(facet).getMinSdkVersion().getApiLevel();
 
         if (myProperties.generateV17resourcesOption) {
           // First get all the "res" directories

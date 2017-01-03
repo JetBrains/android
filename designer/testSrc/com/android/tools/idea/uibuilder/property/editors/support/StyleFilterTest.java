@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.text.StringUtil;
@@ -48,7 +49,7 @@ public class StyleFilterTest extends AndroidGradleTestCase {
     generateSources();
 
     VirtualFile file = getProject().getBaseDir().findFileByRelativePath("app/src/main/res/layout/activity_main.xml");
-    Configuration configuration = myAndroidFacet.getConfigurationManager().getConfiguration(file);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myAndroidFacet.getModule()).getConfiguration(file);
     myResolver = configuration.getResourceResolver();
     assertNotNull(myResolver);
     myFilter = new StyleFilter(getProject(), myResolver);

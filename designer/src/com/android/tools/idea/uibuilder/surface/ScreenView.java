@@ -22,6 +22,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.model.*;
@@ -61,19 +62,14 @@ public class ScreenView {
       myScene = Scene.createScene(myModel, this);
     }
 
-    myModel.getSelectionModel().addListener(new SelectionListener() {
+    myModel.getSelectionModel().addListener((model1, selection) -> ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
-      public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            if (mySurface!=null) {
-              mySurface.repaint();
-            }
-          }
-        });
+      public void run() {
+        if (mySurface!=null) {
+          mySurface.repaint();
+        }
       }
-    });
+    }));
   }
 
   @Nullable
@@ -157,7 +153,7 @@ public class ScreenView {
   }
 
   public void switchDevice() {
-    List<Device> devices = myModel.getFacet().getConfigurationManager().getDevices();
+    List<Device> devices = ConfigurationManager.getOrCreateInstance(myModel.getModule()).getDevices();
     List<Device> applicable = Lists.newArrayList();
     for (Device device : devices) {
       if (HardwareConfigHelper.isNexus(device)) {

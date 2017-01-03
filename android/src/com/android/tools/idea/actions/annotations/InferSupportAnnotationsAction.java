@@ -224,7 +224,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
     Set<Module> modulesWithoutAnnotations = new HashSet<>();
     Set<Module> modulesWithLowVersion = new HashSet<>();
     for (Module module : modules.keySet()) {
-      AndroidModuleInfo info = AndroidModuleInfo.get(module);
+      AndroidModuleInfo info = AndroidModuleInfo.getInstance(module);
       if (info != null && info.getBuildSdkVersion() != null && info.getBuildSdkVersion().getFeatureLevel() < MIN_SDK_WITH_NULLABLE) {
         modulesWithLowVersion.add(module);
       }

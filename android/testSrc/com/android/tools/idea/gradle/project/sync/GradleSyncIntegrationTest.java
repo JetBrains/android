@@ -299,7 +299,7 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     AndroidFacet facet = AndroidFacet.getInstance(appModule);
     assertNotNull(facet);
 
-    ModuleSourceAutogenerating autogenerating = ModuleSourceAutogenerating.get(facet);
+    ModuleSourceAutogenerating autogenerating = ModuleSourceAutogenerating.getInstance(facet);
     assertNull(autogenerating);
   }
 }

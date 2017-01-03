@@ -62,7 +62,7 @@ public abstract class RenderTestBase extends AndroidTestCase {
   protected Configuration getConfiguration(VirtualFile file, String deviceId) {
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assertNotNull(facet);
-    ConfigurationManager configurationManager = facet.getConfigurationManager();
+    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
     assertNotNull(configurationManager);
     Configuration configuration = configurationManager.getConfiguration(file);
     configuration.setDevice(findDeviceById(configurationManager, deviceId), false);
@@ -81,7 +81,7 @@ public abstract class RenderTestBase extends AndroidTestCase {
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
     assertNotNull(psiFile);
     assertNotNull(facet);
-    RenderService renderService = RenderService.get(facet);
+    RenderService renderService = RenderService.getInstance(facet);
     final RenderTask task = renderService.createTask(psiFile, configuration, logger, null);
     assertNotNull(task);
     task.disableSecurityManager();
@@ -90,7 +90,7 @@ public abstract class RenderTestBase extends AndroidTestCase {
 
   protected RenderTask createRenderTask(VirtualFile file, Configuration configuration) throws IOException {
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    return createRenderTask(file, configuration, RenderService.get(facet).createLogger());
+    return createRenderTask(file, configuration, RenderService.getInstance(facet).createLogger());
   }
 
     protected void checkRendering(RenderTask task, String thumbnailPath) throws IOException {

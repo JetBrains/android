@@ -96,7 +96,8 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
               pickedBetterMatch(matchingFiles.get(0), file);
               AndroidFacet facet = AndroidFacet.getInstance(module);
               assert facet != null;
-              updateConfiguration(facet.getConfigurationManager().getConfiguration(matchingFiles.get(0)), true /*commit*/);
+              ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(module);
+              updateConfiguration(configurationManager.getConfiguration(matchingFiles.get(0)), true /*commit*/);
               return;
             }
           }

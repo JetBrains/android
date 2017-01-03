@@ -78,19 +78,19 @@ public class ViewEditorImpl extends ViewEditor {
   @Nullable
   @Override
   public AndroidVersion getCompileSdkVersion() {
-    return AndroidModuleInfo.get(myScreen.getModel().getFacet()).getBuildSdkVersion();
+    return AndroidModuleInfo.getInstance(myScreen.getModel().getFacet()).getBuildSdkVersion();
   }
 
   @NotNull
   @Override
   public AndroidVersion getMinSdkVersion() {
-    return AndroidModuleInfo.get(myScreen.getModel().getFacet()).getMinSdkVersion();
+    return AndroidModuleInfo.getInstance(myScreen.getModel().getFacet()).getMinSdkVersion();
   }
 
   @NotNull
   @Override
   public AndroidVersion getTargetSdkVersion() {
-    return AndroidModuleInfo.get(myScreen.getModel().getFacet()).getTargetSdkVersion();
+    return AndroidModuleInfo.getInstance(myScreen.getModel().getFacet()).getTargetSdkVersion();
   }
 
   @NotNull
@@ -201,7 +201,7 @@ public class ViewEditorImpl extends ViewEditor {
       NlModel model = myScreen.getModel();
       XmlFile xmlFile = model.getFile();
       AndroidFacet facet = model.getFacet();
-      RenderService renderService = RenderService.get(facet);
+      RenderService renderService = RenderService.getInstance(facet);
       RenderLogger logger = renderService.createLogger();
       final RenderTask task = renderService.createTask(xmlFile, getConfiguration(), logger, null);
       if (task == null) {

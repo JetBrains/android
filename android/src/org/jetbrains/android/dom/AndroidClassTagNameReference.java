@@ -42,7 +42,7 @@ public class AndroidClassTagNameReference extends TagNameReference {
     assert tagElement != null;
 
     AndroidFacet facet = AndroidFacet.getInstance(element);
-    int minimumApi = facet == null ? -1 : AndroidModuleInfo.get(facet).getModuleMinApi();
+    int minimumApi = facet == null ? -1 : AndroidModuleInfo.getInstance(facet).getModuleMinApi();
     String tagName = ArrayUtil.getFirstElement(LayoutViewClassUtils.getTagNamesByClass((PsiClass)element, minimumApi));
 
     return tagElement.setName(tagName != null ? tagName : "");

@@ -191,7 +191,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
   }
 
   @Nullable
-  private IAndroidTarget getTestTarget(@NotNull ConfigurationManager configurationManager) {
+  private static IAndroidTarget getTestTarget(@NotNull ConfigurationManager configurationManager) {
     String platformDir = TestUtils.getLatestAndroidPlatform();
     for (IAndroidTarget target : configurationManager.getTargets()) {
       if (!ConfigurationManager.isLayoutLibTarget(target)) {
@@ -216,7 +216,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
     assertNotNull(psiFile);
     assertNotNull(facet);
-    ConfigurationManager configurationManager = facet.getConfigurationManager();
+    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
     assertNotNull(configurationManager);
     IAndroidTarget target = getTestTarget(configurationManager);
     assertNotNull(target);
@@ -230,7 +230,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       configuration.setTheme("android:Theme.Material");
     }
 
-    RenderService renderService = RenderService.get(facet);
+    RenderService renderService = RenderService.getInstance(facet);
     RenderLogger logger = renderService.createLogger();
     final RenderTask task = renderService.createTask(psiFile, configuration, logger, null);
     assertNotNull(task);

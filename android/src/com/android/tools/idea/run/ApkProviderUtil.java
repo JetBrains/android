@@ -104,7 +104,7 @@ public class ApkProviderUtil {
       }
     }
     else {
-      String pkg = AndroidModuleInfo.get(facet).getPackage();
+      String pkg = AndroidModuleInfo.getInstance(facet).getPackage();
       if (pkg == null || pkg.isEmpty()) {
         throw new ApkProvisionException("[" + facet.getModule().getName() + "] Unable to obtain main package from manifest.");
       }
