@@ -52,7 +52,7 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
   }
 
   public static LaunchCompatibilityChecker create(@NotNull AndroidFacet facet) {
-    AndroidVersion minSdkVersion = AndroidModuleInfo.get(facet).getRuntimeMinSdkVersion();
+    AndroidVersion minSdkVersion = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersion();
 
     AndroidPlatform platform = facet.getConfiguration().getAndroidPlatform();
     if (platform == null) {

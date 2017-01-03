@@ -366,7 +366,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       // external changes
       myRenderedVersion = resourceNotificationManager.getCurrentVersion(myFacet, myFile, myConfiguration);
 
-      RenderService renderService = RenderService.get(myFacet);
+      RenderService renderService = RenderService.getInstance(myFacet);
       RenderLogger logger = renderService.createLogger();
       if (myRenderTask != null) {
         myRenderTask.dispose();

@@ -710,7 +710,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
   @Nullable
   private String getPackage() {
-    AndroidModuleInfo info = AndroidModuleInfo.get(myModule);
+    AndroidModuleInfo info = AndroidModuleInfo.getInstance(myModule);
     return info == null ? null : info.getPackage();
   }
 

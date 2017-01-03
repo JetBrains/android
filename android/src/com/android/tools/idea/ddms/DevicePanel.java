@@ -122,7 +122,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   @Nullable
   private String getApplicationName() {
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(module);
+      AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(module);
       if (moduleInfo != null) {
         String pkg = moduleInfo.getPackage();
         if (pkg != null) {

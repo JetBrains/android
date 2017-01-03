@@ -80,7 +80,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
     }
     int minSdkVersion = Integer.MAX_VALUE;
     if (module != null) {
-      AndroidModuleInfo info = AndroidModuleInfo.get(module);
+      AndroidModuleInfo info = AndroidModuleInfo.getInstance(module);
       if (info != null) {
         minSdkVersion = Math.min(minSdkVersion, info.getMinSdkVersion().getFeatureLevel());
       }
@@ -89,7 +89,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
       Module[] modules = e.getData(LangDataKeys.MODULE_CONTEXT_ARRAY);
       if (modules != null) {
         for (Module m : modules) {
-          AndroidModuleInfo info = AndroidModuleInfo.get(m);
+          AndroidModuleInfo info = AndroidModuleInfo.getInstance(m);
           if (info != null) {
             minSdkVersion = Math.min(minSdkVersion, info.getMinSdkVersion().getFeatureLevel());
           }

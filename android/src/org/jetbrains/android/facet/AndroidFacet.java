@@ -279,7 +279,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     myAvdManager = null;
     myLocalResourceManager = null;
     myPublicSystemResourceManager = null;
-    ClassMaps.get(this).clear();
+    ClassMaps.getInstance(this).clear();
   }
 
   @NotNull
@@ -321,7 +321,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @NotNull
   private AvdInfo[] addCompatibleAvds(@NotNull List<AvdInfo> to, @NotNull AvdInfo[] from) {
-    AndroidVersion minSdk = AndroidModuleInfo.get(this).getRuntimeMinSdkVersion();
+    AndroidVersion minSdk = AndroidModuleInfo.getInstance(this).getRuntimeMinSdkVersion();
     AndroidPlatform platform = getConfiguration().getAndroidPlatform();
     if (platform == null) {
       LOG.error("Android Platform not set for module: " + getModule().getName());
@@ -415,7 +415,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
           if (newSdk != null && newSdk.getSdkType() instanceof AndroidSdkType && !newSdk.equals(myPrevSdk)) {
             androidPlatformChanged();
 
-            ModuleSourceAutogenerating autogenerating = ModuleSourceAutogenerating.get(AndroidFacet.this);
+            ModuleSourceAutogenerating autogenerating = ModuleSourceAutogenerating.getInstance(AndroidFacet.this);
             if (autogenerating != null) {
               autogenerating.resetRegeneratingState();
             }
@@ -423,7 +423,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
           else {
             // When roots change, we need to rebuild the class inheritance map to make sure new dependencies
             // from libraries are added
-            ClassMaps.get(AndroidFacet.this).clear();
+            ClassMaps.getInstance(AndroidFacet.this).clear();
           }
           myPrevSdk = newSdk;
 

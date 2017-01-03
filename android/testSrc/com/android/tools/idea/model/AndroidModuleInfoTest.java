@@ -48,7 +48,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   public void testManifestOnly() throws Exception {
     loadProject(MODULE_INFO_MANIFEST_ONLY);
     assertNotNull(myAndroidFacet);
-    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.get(myAndroidFacet);
+    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(myAndroidFacet);
     assertEquals(7, androidModuleInfo.getMinSdkVersion().getApiLevel());
     assertEquals(18, androidModuleInfo.getTargetSdkVersion().getApiLevel());
     assertEquals("com.example.unittest", androidModuleInfo.getPackage());
@@ -57,7 +57,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   public void testGradleOnly() throws Exception {
     loadProject(MODULE_INFO_GRADLE_ONLY);
     assertNotNull(myAndroidFacet);
-    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.get(myAndroidFacet);
+    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(myAndroidFacet);
     assertEquals(9, androidModuleInfo.getMinSdkVersion().getApiLevel());
     assertEquals(CURRENT_COMPILE_VERSION, androidModuleInfo.getTargetSdkVersion().getApiLevel());
     assertEquals("from.gradle", androidModuleInfo.getPackage());
@@ -66,7 +66,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   public void testBoth() throws Exception {
     loadProject(MODULE_INFO_BOTH);
     assertNotNull(myAndroidFacet);
-    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.get(myAndroidFacet);
+    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(myAndroidFacet);
     assertEquals(9, androidModuleInfo.getMinSdkVersion().getApiLevel());
     assertEquals(CURRENT_COMPILE_VERSION, androidModuleInfo.getTargetSdkVersion().getApiLevel());
     assertEquals("from.gradle", androidModuleInfo.getPackage());
@@ -76,7 +76,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     loadProject(MODULE_INFO_FLAVORS);
     assertNotNull(myAndroidFacet);
 
-    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.get(myAndroidFacet);
+    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(myAndroidFacet);
     assertEquals(14, androidModuleInfo.getMinSdkVersion().getApiLevel());
     assertEquals(CURRENT_COMPILE_VERSION, androidModuleInfo.getTargetSdkVersion().getApiLevel());
     assertEquals("com.example.free.debug", androidModuleInfo.getPackage());

@@ -150,7 +150,7 @@ public class DataBindingUtil {
    * @return The LightBRClass that belongs to the given AndroidFacet
    */
   static LightBrClass getOrCreateBrClassFor(AndroidFacet facet) {
-    ModuleDataBinding dataBinding = ModuleDataBinding.get(facet);
+    ModuleDataBinding dataBinding = ModuleDataBinding.getInstance(facet);
     assert dataBinding != null;
 
     LightBrClass existing = dataBinding.getLightBrClass();
@@ -349,7 +349,12 @@ public class DataBindingUtil {
       boolean wasEnabled = ModuleDataBinding.isEnabled(facet);
       boolean enabled = androidModel.getDataBindingEnabled();
       if (enabled != wasEnabled) {
-        ModuleDataBinding.setEnabled(facet, enabled);
+        if (enabled) {
+          ModuleDataBinding.enable(facet);
+        }
+        else {
+          ModuleDataBinding.disable(facet);
+        }
         ourDataBindingEnabledModificationCount.incrementAndGet();
       }
     }

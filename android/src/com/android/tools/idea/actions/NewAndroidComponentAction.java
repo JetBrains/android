@@ -75,7 +75,7 @@ public class NewAndroidComponentAction extends AnAction {
     if (module == null) {
       return;
     }
-    AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(module);
+    AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(module);
     if (moduleInfo == null) {
       return;
     }
