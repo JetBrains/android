@@ -47,9 +47,9 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
     myRenderErrorPanel = robot.finder().findByName(target(), "Layout Editor Error Panel", RenderErrorPanel.class, false);
   }
 
-  public void waitForRenderToFinish() {
-    Wait.seconds(5).expecting("render to finish").until(() -> !myProgressPanel.isVisible());
-    Wait.seconds(5).expecting("render to finish").until(() -> {
+  public void waitForRenderToFinish(@NotNull Wait waitForRender) {
+    waitForRender.expecting("render to finish").until(() -> !myProgressPanel.isVisible());
+    waitForRender.expecting("render to finish").until(() -> {
       ScreenView screenView = target().getCurrentScreenView();
       if (screenView == null) {
         return false;
@@ -102,7 +102,7 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
    */
   @NotNull
   public NlComponentFixture findView(@NotNull final String tag, int occurrence) {
-    waitForRenderToFinish();
+    waitForRenderToFinish(Wait.seconds(5));
     final NlModel model = target().getCurrentScreenView().getModel();
     final java.util.List<NlComponent> components = Lists.newArrayList();
 

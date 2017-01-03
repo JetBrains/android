@@ -85,7 +85,7 @@ public class NlPreviewFixture extends ToolWindowFixture {
 
   public NlPreviewFixture waitForRenderToFinish() {
     waitUntilIsVisible();
-    myDesignSurfaceFixture.waitForRenderToFinish();
+    myDesignSurfaceFixture.waitForRenderToFinish(Wait.seconds(5));
     return this;
   }
 
