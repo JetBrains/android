@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.ddmlib.Client;
-import com.android.tools.idea.editors.hierarchyview.ui.ViewNodeActiveDisplay;
 import com.android.tools.idea.monitor.AndroidToolWindowFactory;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.project.Project;
@@ -83,8 +82,7 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
     JPanel infoPanel = myRobot.finder().findByType(InfoAndProgressPanel.class);
     JProgressBar progressBar = myRobot.finder().findByType(infoPanel, JProgressBar.class);
     Wait.seconds(120).expecting("Progress bar to hide").until(() -> !progressBar.isShowing());
-    ViewNodeActiveDisplay viewNodeActiveDisplay = myRobot.finder().findByType(ViewNodeActiveDisplay.class);
-    return new LayoutInspectorFixture(myRobot, viewNodeActiveDisplay.getParent());
+    return new LayoutInspectorFixture(myRobot);
   }
 
   private void selectTab(@NotNull final String tabName) {
