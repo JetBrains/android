@@ -147,6 +147,9 @@ public class NetworkProfilerStage extends Stage {
     String extension = contentType == null ? "" : HttpData.guessFileExtensionFromContentType(contentType);
     File file = FileUtil.createTempFile(data.getResponsePayloadId(), extension, true);
     FileUtil.writeToFile(file, payload.toByteArray());
+    // We don't expect the following call to fail but don't care if it does
+    //noinspection ResultOfMethodCallIgnored
+    file.setReadOnly();
     return file;
   }
 
