@@ -20,18 +20,12 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.npw.ThemeHelper;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectLocator;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import freemarker.template.TemplateMethodModelEx;
 import freemarker.template.TemplateModelException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -62,7 +56,7 @@ public class FmGetApplicationThemeMethod implements TemplateMethodModelEx {
     if (projectFile == null) {
       return null;
     }
-    ConfigurationManager manager = facet.getConfigurationManager();
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(module);
     Configuration configuration = manager.getConfiguration(projectFile);
 
     String themeName = helper.getAppThemeName();

@@ -20,13 +20,13 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
+import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.utils.SdkUtils;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.SystemInfo;
@@ -36,13 +36,14 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PathUtil;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.android.AndroidTestCase;
-import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -103,7 +104,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values/styles.xml");
     myFixture.copyFileToProject("themeEditor/attrs.xml", "res/values/attrs.xml");
 
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myFile);
 
     IAndroidTarget androidTarget = configuration.getTarget();
     assertNotNull(androidTarget);
@@ -133,7 +134,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values/styles.xml");
     myFixture.copyFileToProject("themeEditor/attrs.xml", "res/values/attrs.xml");
 
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myFile);
 
     ThemeResolver themeResolver = new ThemeResolver(configuration);
     ConfiguredThemeEditorStyle theme = themeResolver.getTheme("AppTheme");
@@ -215,15 +216,9 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
     final AtomicInteger visitedRepos = new AtomicInteger(0);
     // With only one source set, this should be called just once.
-    ThemeEditorUtils.acceptResourceResolverVisitor(myFacet, new ThemeEditorUtils.ResourceFolderVisitor() {
-      @Override
-      public void visitResourceFolder(@NotNull LocalResourceRepository resources,
-                                      String moduleName,
-                                      @NotNull String variantName,
-                                      boolean isSelected) {
-        assertEquals("main", variantName);
-        visitedRepos.incrementAndGet();
-      }
+    ThemeEditorUtils.acceptResourceResolverVisitor(myFacet, (resources, moduleName, variantName, isSelected) -> {
+      assertEquals("main", variantName);
+      visitedRepos.incrementAndGet();
     });
     assertEquals(1, visitedRepos.get());
     // TODO: Test variants
@@ -231,13 +226,10 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
   @NotNull
   private static EditedStyleItem findAttribute(@NotNull final String name, @NotNull Collection<EditedStyleItem> attributes) {
-    EditedStyleItem item = Iterables.find(attributes, new Predicate<EditedStyleItem>() {
-      @Override
-      public boolean apply(@Nullable EditedStyleItem input) {
-        assert input != null;
-        return name.equals(input.getQualifiedName());
-      }
-    });
+    EditedStyleItem item = attributes.stream().filter(input -> {
+      assert input != null;
+      return name.equals(input.getQualifiedName());
+    }).findFirst().get();
     assertNotNull(item);
 
     return item;
@@ -245,7 +237,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
   public void testSimplifyName() {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_2.xml", "res/values/styles.xml");
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myFile);
     ThemeResolver res = new ThemeResolver(configuration);
     assertEquals("X Light", ThemeEditorUtils.simplifyThemeName(res.getTheme("Theme.X.Light.Y")));
     assertEquals("X Dark", ThemeEditorUtils.simplifyThemeName(res.getTheme("Theme.X.Dark.Y")));
@@ -255,7 +247,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
   }
 
   public void testGenerateWordEnumeration() {
-    assertEquals("", ThemeEditorUtils.generateWordEnumeration(Collections.<String>emptyList()));
+    assertEquals("", ThemeEditorUtils.generateWordEnumeration(Collections.emptyList()));
     assertEquals("one", ThemeEditorUtils.generateWordEnumeration(Collections.singletonList("one")));
     assertEquals("one and two", ThemeEditorUtils.generateWordEnumeration(Arrays.asList("one", "two")));
     assertEquals("one, two and Three", ThemeEditorUtils.generateWordEnumeration(Arrays.asList("one", "two", "Three")));

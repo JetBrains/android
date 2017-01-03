@@ -108,7 +108,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private SystemResourceManager myFullSystemResourceManager;
   private LocalResourceManager myLocalResourceManager;
 
-  private ConfigurationManager myConfigurationManager;
   private LocalResourceRepository myModuleResources;
   private AppResourceRepository myAppResources;
   private ProjectResourceRepository myProjectResources;
@@ -154,7 +153,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return !module.isDisposed() ? FacetManager.getInstance(module).getFacetByType(ID) : null;
   }
 
-  public AndroidFacet(@NotNull Module module, String name, @NotNull AndroidFacetConfiguration configuration) {
+  public AndroidFacet(@NotNull Module module, @NotNull String name, @NotNull AndroidFacetConfiguration configuration) {
     super(getFacetType(), module, name, configuration, null);
     configuration.setFacet(this);
   }
@@ -273,7 +272,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
     return null;
   }
-
 
   public void androidPlatformChanged() {
     myAvdManager = null;
@@ -487,9 +485,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @Override
   public void disposeFacet() {
-    if (myConfigurationManager != null) {
-      Disposer.dispose(myConfigurationManager);
-    }
     myAndroidModel = null;
   }
 
@@ -579,22 +574,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return (AndroidFacetType)FacetTypeRegistry.getInstance().findFacetType(ID);
   }
 
-  @NotNull
-  public ConfigurationManager getConfigurationManager() {
-    return getConfigurationManager(true);
-  }
-
-  @Contract("true -> !null")
-  @Nullable
-  public ConfigurationManager getConfigurationManager(boolean createIfNecessary) {
-    if (myConfigurationManager == null && createIfNecessary) {
-      myConfigurationManager = ConfigurationManager.create(getModule());
-      Disposer.register(this, myConfigurationManager);
-    }
-
-    return myConfigurationManager;
-  }
-
   @Contract("true -> !null")
   @Nullable
   public AppResourceRepository getAppResources(boolean createIfNecessary) {
@@ -652,7 +631,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
         myAppResources = null;
       }
     }
-    myConfigurationManager.getResolverCache().reset();
+    ConfigurationManager.getOrCreateInstance(getModule()).getResolverCache().reset();
     ResourceFolderRegistry.reset();
     FileResourceRepository.reset();
   }
