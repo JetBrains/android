@@ -29,10 +29,8 @@ public class LayoutTreePanel extends JScrollPane implements ToolContent<LayoutIn
   }
 
   @Override
-  public void setToolContext(@Nullable LayoutInspectorContext toolContext) {
-    if (toolContext != null) {
-      this.setViewportView(toolContext.getNodeTree());
-    }
+  public void setToolContext(@NotNull LayoutInspectorContext toolContext) {
+    this.setViewportView(toolContext.getNodeTree());
   }
 
   @NotNull
