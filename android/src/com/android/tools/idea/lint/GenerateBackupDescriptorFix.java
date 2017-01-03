@@ -119,7 +119,7 @@ class GenerateBackupDescriptorFix implements AndroidLintQuickFix {
                               @NotNull PsiElement endElement,
                               @NotNull AndroidQuickfixContexts.ContextType contextType) {
     AndroidFacet facet = AndroidFacet.getInstance(startElement);
-    AppResourceRepository appResources = facet == null ? null : facet.getAppResources(true);
+    AppResourceRepository appResources = facet == null ? null : AppResourceRepository.getOrCreateInstance(facet);
     return appResources == null || !appResources.getItemsOfType(ResourceType.XML).contains(myUrl.name);
   }
 

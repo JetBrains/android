@@ -170,7 +170,7 @@ public class ConfigurationManager implements Disposable {
       config = new FolderConfiguration();
     }
     Configuration configuration = Configuration.create(this, file, fileState, config);
-    LocalResourceRepository resources = AppResourceRepository.getAppResources(myModule, true);
+    LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(myModule);
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, resources, file);
     if (fileState != null) {
       matcher.adaptConfigSelection(true);
@@ -206,7 +206,7 @@ public class ConfigurationManager implements Disposable {
     if (baseConfig != null) {
       configuration.setEffectiveDevice(baseConfig.getDevice(), baseConfig.getDeviceState());
     }
-    LocalResourceRepository resources = AppResourceRepository.getAppResources(myModule, true);
+    LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(myModule);
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, resources, file);
     matcher.adaptConfigSelection(true /*needBestMatch*/);
     myCache.put(file, configuration);

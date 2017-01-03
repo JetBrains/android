@@ -1143,7 +1143,7 @@ public class ResourceHelper {
       types.add(ResourceType.COLOR);
     }
 
-    AppResourceRepository repository = AppResourceRepository.getAppResources(facet, true);
+    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(facet);
     ResourceVisibilityLookup lookup = repository.getResourceVisibility(facet);
     AndroidPlatform androidPlatform = AndroidPlatform.getInstance(facet.getModule());
     FrameworkResources frameworkResources = null;

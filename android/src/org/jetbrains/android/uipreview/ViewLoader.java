@@ -547,7 +547,7 @@ public class ViewLoader {
   @VisibleForTesting
   void loadAndParseRClass(@NotNull String className) throws ClassNotFoundException, InconvertibleClassError {
     Class<?> aClass = myLoadedClasses.get(className);
-    AppResourceRepository appResources = AppResourceRepository.getAppResources(myModule, true);
+    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(myModule);
     if (aClass == null) {
       final ModuleClassLoader moduleClassLoader = getModuleClassLoader();
       final boolean isClassLoaded = moduleClassLoader.isClassLoaded(className);

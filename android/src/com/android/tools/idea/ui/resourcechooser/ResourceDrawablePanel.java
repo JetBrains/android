@@ -169,7 +169,7 @@ public class ResourceDrawablePanel extends JBScrollPane implements ActionListene
     Configuration configuration = myDialog.getConfiguration();
     ResourceRepository frameworkResources = configuration.getFrameworkResources();
     if (frameworkResources != null) {
-      AppResourceRepository appResources = AppResourceRepository.getAppResources(myDialog.geFacet(), true);
+      AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(myDialog.getFacet());
       ResourceItemResolver resolver = new ResourceItemResolver(configuration.getFullConfig(), frameworkResources, appResources, null);
       List<ResourceValue> lookupChain = Lists.newArrayList();
       lookupChain.add(resourceValue);

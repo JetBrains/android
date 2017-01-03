@@ -45,7 +45,6 @@ import static com.android.tools.idea.folding.InlinedResource.NONE;
 
 public class ResourceFoldingBuilder extends FoldingBuilderEx {
   private static final String ANDROID_RESOURCE_INT = "android.annotation.ResourceInt";
-  private static final boolean FORCE_PROJECT_RESOURCE_LOADING = true;
   private static final boolean ONLY_FOLD_ANNOTATED_METHODS = false;
   private static final boolean UNIT_TEST_MODE =  ApplicationManager.getApplication().isUnitTestMode();
   public static final String DIMEN_PREFIX = "@dimen/";
@@ -230,7 +229,7 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
       return null;
     }
 
-    return AppResourceRepository.getAppResources(module, FORCE_PROJECT_RESOURCE_LOADING);
+    return AppResourceRepository.getOrCreateInstance(module);
   }
 
   private static InlinedResource createdInlinedResource(@NotNull ResourceType type, @NotNull String name,

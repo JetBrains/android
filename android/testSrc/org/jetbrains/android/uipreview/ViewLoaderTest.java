@@ -83,10 +83,10 @@ public class ViewLoaderTest extends RenderTestBase {
     ViewLoader viewLoader = new ViewLoader(myLayoutLib, myFacet, logger, null);
 
     // No AppResourceRepository exists prior to calling loadAndParseRClass. It will get created during the call.
-    assertNull(AppResourceRepository.getAppResources(myModule, false));
+    assertNull(AppResourceRepository.findExistingInstance(myModule));
     viewLoader.loadAndParseRClass("org.jetbrains.android.uipreview.ViewLoaderTest$R");
 
-    AppResourceRepository appResources = AppResourceRepository.getAppResources(myModule, false);
+    AppResourceRepository appResources = AppResourceRepository.findExistingInstance(myModule);
     assertNotNull(appResources);
 
     assertEquals(0x7f0a000e, appResources.getResourceId(ResourceType.STRING, "app_name").intValue());

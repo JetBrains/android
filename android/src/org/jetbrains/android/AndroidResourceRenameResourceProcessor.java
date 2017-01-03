@@ -182,7 +182,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
   }
 
   private static void prepareCustomViewRenaming(PsiClass cls, String newName, Map<PsiElement, String> allRenames, AndroidFacet facet) {
-    AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
+    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(facet);
     String oldName = cls.getName();
     if (appResources.hasResourceItem(DECLARE_STYLEABLE, oldName)) {
       LocalResourceManager manager = facet.getLocalResourceManager();
@@ -527,7 +527,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
       // before checking if it is already used.
       newName = AndroidCommonUtils.getResourceName(type.getName(), newName);
     }
-    AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
+    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(facet);
     if (appResources.hasResourceItem(type, newName)) {
       boolean foundElements = false;
       PsiField[] resourceFields = AndroidResourceUtil.findResourceFields(facet, type.getName(), newName, true);

@@ -456,7 +456,7 @@ public class NlComponent implements NlAttributesHolder {
    */
   public static Collection<String> getIds(@NotNull NlModel model) {
     AndroidFacet facet = model.getFacet();
-    AppResourceRepository resources = AppResourceRepository.getAppResources(facet, true);
+    AppResourceRepository resources = AppResourceRepository.getOrCreateInstance(facet);
     Collection<String> ids = resources.getItemsOfType(ResourceType.ID);
     Set<String> pendingIds = model.getPendingIds();
     if (!pendingIds.isEmpty()) {

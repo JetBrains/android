@@ -110,7 +110,7 @@ public class ThemeResolver {
    */
   @NotNull
   private List<StyleResourceValue> resolveNonFrameworkThemes() {
-    LocalResourceRepository repository = AppResourceRepository.getAppResources(myConfiguration.getModule(), true);
+    LocalResourceRepository repository = AppResourceRepository.getOrCreateInstance(myConfiguration.getModule());
     if (repository == null) {
       return Collections.emptyList();
     }

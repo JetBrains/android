@@ -348,7 +348,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   }
 
   @NotNull
-  public AndroidFacet geFacet() {
+  public AndroidFacet getFacet() {
     return myFacet;
   }
 
@@ -1911,7 +1911,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     @Nullable
     private ResourceItem setupVariants() {
       List<ResourceItem> resources =
-        AppResourceRepository.getAppResources(myFacet, true).getResourceItem(myType, myEditorPanel.getResourceName());
+        AppResourceRepository.getOrCreateInstance(myFacet).getResourceItem(myType, myEditorPanel.getResourceName());
       assert resources != null;
       ResourceItem defaultValue = getConfiguration().getFullConfig().findMatchingConfigurable(resources);
       if (defaultValue == null && !resources.isEmpty()) {

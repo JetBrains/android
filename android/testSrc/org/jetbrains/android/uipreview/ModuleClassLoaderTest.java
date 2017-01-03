@@ -113,7 +113,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
 
     generateRClass("test", new File(outputDir, "R.class"));
 
-    AppResourceRepository appResources = AppResourceRepository.getAppResources(module, true);
+    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
     ResourceClassRegistry rClassRegistry = ResourceClassRegistry.get(module.getProject());
     rClassRegistry.addLibrary(appResources, "test");
 

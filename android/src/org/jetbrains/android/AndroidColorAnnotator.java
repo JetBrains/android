@@ -302,7 +302,7 @@ public class AndroidColorAnnotator implements Annotator {
         String attribute = null;
         if ("vector".equals(tag)) {
           // Take a look and see if we have a bitmap we can fall back to
-          AppResourceRepository resourceRepository = AppResourceRepository.getAppResources(facet, true);
+          AppResourceRepository resourceRepository = AppResourceRepository.getOrCreateInstance(facet);
           List<com.android.ide.common.res2.ResourceItem> items =
             resourceRepository.getResourceItem(resourceValue.getResourceType(), resourceValue.getName());
           if (items != null) {
@@ -452,7 +452,7 @@ public class AndroidColorAnnotator implements Annotator {
       ResourceItem item = frameworkResources.getResourceItem(type, name);
       return item.getResourceValue(type, configuration.getFullConfig(), false);
     } else {
-      LocalResourceRepository appResources = AppResourceRepository.getAppResources(module, true);
+      LocalResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
       if (appResources == null) {
         return null;
       }
