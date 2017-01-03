@@ -33,11 +33,7 @@ public class HierarchyViewCaptureType extends FileCaptureType {
   @NotNull
   @Override
   public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
-    try {
-      return new HierarchyViewEditor(project, file);
-    } catch (IOException e) {
-      throw new IllegalArgumentException(e);
-    }
+    return new HierarchyViewEditor(project, file);
   }
 
   @Override
