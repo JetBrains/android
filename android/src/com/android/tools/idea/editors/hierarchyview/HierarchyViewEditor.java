@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.editors.hierarchyview;
 
-import com.android.tools.idea.editors.hierarchyview.model.ViewNode;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
@@ -28,61 +26,39 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
-import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeListener;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 
 public class HierarchyViewEditor extends UserDataHolderBase implements FileEditor {
   private final VirtualFile myVirtualFile;
+  private final Project myProject;
+  private HierarchyViewEditorPanel myPanel;
 
-  private HierarchyViewer myViewer;
-
-  public HierarchyViewEditor(@NotNull Project project, @NotNull VirtualFile file) throws IOException {
+  public HierarchyViewEditor(@NotNull Project project, @NotNull VirtualFile file) {
     myVirtualFile = file;
-
-    byte[] previewBytes;
-    ViewNode node;
-
-    ObjectInputStream input = new ObjectInputStream(new ByteArrayInputStream(file.contentsToByteArray()));
-
-    try {
-      // Parse options
-      HierarchyViewCaptureOptions options = new HierarchyViewCaptureOptions();
-      options.parse(input.readUTF());
-
-      // Parse view node
-      byte[] nodeBytes = new byte[input.readInt()];
-      input.readFully(nodeBytes);
-      node = ViewNode.parseFlatString(nodeBytes);
-      if (node == null) {
-        throw new IOException("Error parsing view node");
-      }
-
-      // Preview image
-      previewBytes = new byte[input.readInt()];
-      input.readFully(previewBytes);
-    }
-    finally {
-      input.close();
-    }
-
-    BufferedImage preview = ImageIO.read(new ByteArrayInputStream(previewBytes));
-    myViewer = new HierarchyViewer(node, preview, PropertiesComponent.getInstance(project), this);
+    myProject = project;
   }
 
   @NotNull
   @Override
   public JComponent getComponent() {
-    return myViewer.getRootComponent();
+    if (myPanel == null) {
+      LayoutInspectorContext context;
+      try {
+        context = new LayoutInspectorContext(new LayoutFileData(myVirtualFile));
+      }
+      catch (IOException e) {
+        return new JLabel(e.getLocalizedMessage(), SwingConstants.CENTER);
+      }
+      myPanel = new HierarchyViewEditorPanel(this, myProject, context);
+    }
+
+    return myPanel;
   }
 
   @Override
   public void dispose() {
-    myViewer = null;
   }
 
   @NotNull
