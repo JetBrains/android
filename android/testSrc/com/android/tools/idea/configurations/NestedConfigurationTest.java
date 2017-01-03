@@ -27,7 +27,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
-import static com.android.tools.idea.configurations.ConfigurationListener.*;
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_LOCALE;
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_UI_MODE;
 
 public class NestedConfigurationTest extends AndroidTestCase {
   // The specific file doesn't matter; we're only using the destination folder
@@ -40,9 +41,9 @@ public class NestedConfigurationTest extends AndroidTestCase {
     VirtualFile file = myFixture.copyFileToProject(TEST_FILE, "res/layout/layout1.xml");
     final AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assertNotNull(facet);
-    ConfigurationManager manager = facet.getConfigurationManager();
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
     assertNotNull(manager);
-    assertSame(manager, facet.getConfigurationManager());
+    assertSame(manager, ConfigurationManager.getOrCreateInstance(myModule));
 
     Configuration parent = Configuration.create(manager, file, new FolderConfiguration());
     assertNotNull(parent);
@@ -132,9 +133,9 @@ public class NestedConfigurationTest extends AndroidTestCase {
   public void testListener() throws Exception {
     final AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assertNotNull(facet);
-    ConfigurationManager manager = facet.getConfigurationManager();
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
     assertNotNull(manager);
-    assertSame(manager, facet.getConfigurationManager());
+    assertSame(manager, ConfigurationManager.getOrCreateInstance(myModule));
 
     Configuration parent = Configuration.create(manager, null, new FolderConfiguration());
     assertNotNull(parent);
@@ -142,13 +143,10 @@ public class NestedConfigurationTest extends AndroidTestCase {
     NestedConfiguration configuration = NestedConfiguration.create(parent);
     assertNotNull(configuration);
 
-    ConfigurationListener listener = new ConfigurationListener() {
-      @Override
-      public boolean changed(int flags) {
-        myFlags = flags;
-        myChangeCount++;
-        return true;
-      }
+    ConfigurationListener listener = flags -> {
+      myFlags = flags;
+      myChangeCount++;
+      return true;
     };
     configuration.addListener(listener);
     myChangeCount = 0;

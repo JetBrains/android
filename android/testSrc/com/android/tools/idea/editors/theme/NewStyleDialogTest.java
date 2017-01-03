@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -42,7 +43,7 @@ public class NewStyleDialogTest extends AndroidTestCase {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values/styles.xml");
     myFixture.copyFileToProject("themeEditor/attrs.xml", "res/values/attrs.xml");
 
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myFile);
     ThemeEditorContext context = new ThemeEditorContext(configuration);
     String styleName = "android:TextAppearance.Medium";
 

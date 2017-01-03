@@ -61,7 +61,7 @@ public class IncludeReferenceTest extends AndroidTestCase {
 
     assertEquals("@layout/includer", IncludeReference.getIncludingLayout(psiFile));
 
-    ConfigurationManager manager = myFacet.getConfigurationManager();
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
     Configuration configuration = manager.getConfiguration(included);
     ResourceResolver resourceResolver = configuration.getResourceResolver();
     assertNotNull(resourceResolver);

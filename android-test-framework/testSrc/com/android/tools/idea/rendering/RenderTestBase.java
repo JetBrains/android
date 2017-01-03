@@ -62,7 +62,7 @@ public abstract class RenderTestBase extends AndroidTestCase {
   protected Configuration getConfiguration(VirtualFile file, String deviceId) {
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assertNotNull(facet);
-    ConfigurationManager configurationManager = facet.getConfigurationManager();
+    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
     assertNotNull(configurationManager);
     Configuration configuration = configurationManager.getConfiguration(file);
     configuration.setDevice(findDeviceById(configurationManager, deviceId), false);

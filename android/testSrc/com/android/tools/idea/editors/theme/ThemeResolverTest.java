@@ -35,7 +35,7 @@ public class ThemeResolverTest extends AndroidTestCase {
 
   public void testFrameworkThemeRead() {
     VirtualFile myLayout = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout/layout1.xml");
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myLayout);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myLayout);
     ThemeResolver themeResolver = new ThemeResolver(configuration);
 
     assertNull(themeResolver.getTheme("Theme.Holo.Light")); // It's system theme and we're not specifying namespace so it will fail.
@@ -53,7 +53,7 @@ public class ThemeResolverTest extends AndroidTestCase {
     VirtualFile myLayout = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout.xml");
     VirtualFile myStyleFile = myFixture.copyFileToProject("themeEditor/styles.xml", "res/values/styles.xml");
 
-    ConfigurationManager configurationManager = myFacet.getConfigurationManager();
+    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
     Configuration configuration = configurationManager.getConfiguration(myLayout);
     ThemeResolver themeResolver = new ThemeResolver(configuration);
 
@@ -91,7 +91,7 @@ public class ThemeResolverTest extends AndroidTestCase {
     myFixture.copyFileToProject("themeEditor/attributeResolution/styles-v19.xml", "res/values-v19/styles.xml");
     VirtualFile file = myFixture.copyFileToProject("themeEditor/attributeResolution/styles-v20.xml", "res/values-v20/styles.xml");
 
-    ConfigurationManager configurationManager = myFacet.getConfigurationManager();
+    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
     Configuration configuration = configurationManager.getConfiguration(file);
 
     ThemeEditorContext context = new ThemeEditorContext(configuration);

@@ -33,6 +33,7 @@ import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.attributes.editors.DrawableRendererEditor;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -43,8 +44,6 @@ import com.android.utils.SdkUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -262,7 +261,7 @@ public class AndroidJavaDocRenderer {
         return null;
       }
 
-      IAndroidTarget target = facet.getConfigurationManager().getDefaultTarget();
+      IAndroidTarget target = ConfigurationManager.getOrCreateInstance(module).getDefaultTarget();
       if (target == null) {
         return null;
       }
@@ -299,7 +298,7 @@ public class AndroidJavaDocRenderer {
       boolean framework = url.framework;
 
       if (framework) {
-        List<ItemInfo> results = Lists.newArrayList();
+        List<ItemInfo> results = new ArrayList<>();
         addItemsFromFramework(null, MASK_NORMAL, 0, type, resourceName, results);
         return results;
       }
@@ -309,7 +308,7 @@ public class AndroidJavaDocRenderer {
         return null;
       }
 
-      List<ItemInfo> results = Lists.newArrayList();
+      List<ItemInfo> results = new ArrayList<>();
 
       AppResourceRepository resources = getAppResources();
 
@@ -326,7 +325,7 @@ public class AndroidJavaDocRenderer {
           assert reachableFacet.requiresAndroidModel();
           AndroidProject androidProject = androidModel.getAndroidProject();
           Variant selectedVariant = androidModel.getSelectedVariant();
-          Set<SourceProvider> selectedProviders = Sets.newHashSet();
+          Set<SourceProvider> selectedProviders = new HashSet<>();
 
           BuildTypeContainer buildType = androidModel.findBuildType(selectedVariant.getBuildType());
           assert buildType != null;
@@ -546,7 +545,7 @@ public class AndroidJavaDocRenderer {
     @NotNull
     protected ResourceItemResolver createResolver(@Nullable ResourceValue value, @NotNull FolderConfiguration configuration) {
       ResourceItemResolver resolver = new ResourceItemResolver(configuration, this, null);
-      List<ResourceValue> lookupChain = Lists.newArrayList();
+      List<ResourceValue> lookupChain = new ArrayList<>();
       lookupChain.add(value);
       resolver.setLookupChainList(lookupChain);
       return resolver;
@@ -604,7 +603,7 @@ public class AndroidJavaDocRenderer {
         if (facet != null) {
           VirtualFile layout = AndroidColorAnnotator.pickLayoutFile(myModule, facet);
           if (layout != null) {
-            Configuration configuration = facet.getConfigurationManager().getConfiguration(layout);
+            Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout);
             myResourceResolver = configuration.getResourceResolver();
           }
         }
@@ -631,7 +630,7 @@ public class AndroidJavaDocRenderer {
   }
 
   private static void markHidden(List<ItemInfo> items) {
-    Set<String> hiddenQualifiers = Sets.newHashSet();
+    Set<String> hiddenQualifiers = new HashSet<>();
     for (ItemInfo info : items) {
       String folder = info.folder;
 
@@ -664,7 +663,7 @@ public class AndroidJavaDocRenderer {
     @Nullable
     private static String resolveStringValue(@NotNull ResourceItemResolver resolver, @Nullable ResourceValue itemValue, @NotNull ResourceUrl url) {
       assert resolver.getLookupChain() != null;
-      resolver.setLookupChainList(Lists.<ResourceValue>newArrayList());
+      resolver.setLookupChainList(new ArrayList<>());
 
       if (itemValue != null) {
         String value = itemValue.getValue();
@@ -723,7 +722,7 @@ public class AndroidJavaDocRenderer {
               renderer.renderToHtml(builder, item, url, false, resolved);
               builder.newline();
             }
-          } else if (value.endsWith(SdkConstants.DOT_PNG)) {
+          } else if (value.endsWith(DOT_PNG)) {
             File f = new File(value);
             if (f.exists()) {
               found = true;
@@ -788,7 +787,7 @@ public class AndroidJavaDocRenderer {
       builder.addHtml("<hr>");
       builder.addBold(styleValue.getName()).add(":").newline();
 
-      Set<String> masked = Sets.newHashSet();
+      Set<String> masked = new HashSet<>();
       while (styleValue != null) {
         for (ItemResourceValue itemResourceValue : styleValue.getValues()) {
           String name = itemResourceValue.getName();
@@ -879,7 +878,7 @@ public class AndroidJavaDocRenderer {
     private static ResourceValue resolveValue(@NotNull ResourceItemResolver resolver, @Nullable ResourceValue value) {
       if (value != null) {
         assert resolver.getLookupChain() != null;
-        resolver.setLookupChainList(Lists.<ResourceValue>newArrayList());
+        resolver.setLookupChainList(new ArrayList<>());
         return resolver.resolveResValue(value);
       }
       return null;
@@ -920,7 +919,7 @@ public class AndroidJavaDocRenderer {
     @Nullable
     private static ResourceValue resolveValue(@NotNull ResourceItemResolver resolver, @Nullable ResourceValue value) {
       assert resolver.getLookupChain() != null;
-      resolver.setLookupChainList(Lists.<ResourceValue>newArrayList());
+      resolver.setLookupChainList(new ArrayList<>());
       if (value != null) {
         value = resolver.resolveResValue(value);
       }
@@ -948,7 +947,7 @@ public class AndroidJavaDocRenderer {
 
       resourceValue = resolveValue(resolver, resourceValue);
       assert resolver.getLookupChain() != null;
-      List<ResourceValue> lookupChain = new ArrayList<ResourceValue>(resolver.getLookupChain());
+      List<ResourceValue> lookupChain = new ArrayList<>(resolver.getLookupChain());
 
       if (resourceValue != null) {
         renderDrawableToHtml(resolver, builder, resourceValue, showResolution, configuration, 0);
@@ -1099,7 +1098,7 @@ public class AndroidJavaDocRenderer {
           }
 
           renderTask.setOverrideRenderSize(width, height);
-          BufferedImage image = null;
+          BufferedImage image;
           try {
             image = renderTask.renderDrawable(resolvedValue).get();
           }
@@ -1153,7 +1152,7 @@ public class AndroidJavaDocRenderer {
     @Nullable
     private static ResourceValue resolveValue(@NotNull ResourceItemResolver resolver, @Nullable ResourceValue value) {
       assert resolver.getLookupChain() != null;
-      resolver.setLookupChainList(Lists.<ResourceValue>newArrayList());
+      resolver.setLookupChainList(new ArrayList<>());
       if (value != null) {
         value = resolver.resolveResValue(value);
       }
@@ -1181,7 +1180,7 @@ public class AndroidJavaDocRenderer {
 
       resourceValue = resolveValue(resolver, resourceValue);
       assert resolver.getLookupChain() != null;
-      List<ResourceValue> lookupChain = new ArrayList<ResourceValue>(resolver.getLookupChain());
+      List<ResourceValue> lookupChain = new ArrayList<>(resolver.getLookupChain());
 
       if (resourceValue != null) {
         renderColorToHtml(resolver, builder, resourceValue, showResolution, 1, 0);
@@ -1225,7 +1224,7 @@ public class AndroidJavaDocRenderer {
             if (resolvedStateResource != null) {
               resolvedStateResource = resolveValue(resolver, resolvedStateResource);
               assert resolver.getLookupChain() != null;
-              lookupChain = showResolution ? new ArrayList<ResourceValue>(resolver.getLookupChain()) : null;
+              lookupChain = showResolution ? new ArrayList<>(resolver.getLookupChain()) : null;
             }
             if (resolvedStateResource != null) {
               renderColorToHtml(resolver, builder, resolvedStateResource, showResolution, stateAlpha, depth + 1);
