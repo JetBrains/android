@@ -149,7 +149,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
       String packageText = myPackageField.getText();
       if (!myInputValidator.checkInput(nameText)) {
         String errorText = LangBundle.message("incorrect.name");
-        String message = myInputValidator.getErrorText(nameText);
+        String message = myInputValidator.getNameErrorText(nameText);
         if (message != null) {
           errorText = message;
         }
@@ -159,14 +159,22 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
 
       if (!superclassAsString.isEmpty()) {
         Type superclassAsType = Type.newType(superclassAsString, myProject);
-        if (mySuperclassField.isVisible() && (!superclassAsType.canUseAsClass() || !myInputValidator.checkSuperclass(superclassAsString))) {
-          return new ValidationInfo(myInputValidator.getSuperclassErrorText(superclassAsString), mySuperclassField);
+        if (mySuperclassField.isVisible()) {
+          if (!superclassAsType.canUseAsClass()) {
+            return new ValidationInfo(myInputValidator.getNotAClassErrorText(superclassAsString), mySuperclassField);
+          }
+          else if (!myInputValidator.checkSuperclass(superclassAsString)) {
+            return new ValidationInfo(myInputValidator.getSuperclassErrorText(superclassAsString), mySuperclassField);
+          }
         }
       }
 
       for (String interfaceAsString : Splitter.on(',').trimResults().omitEmptyStrings().split(getInterfaces())) {
         Type interfaceAsType = Type.newType(interfaceAsString, myProject);
-        if (!interfaceAsType.canUseAsInterface() || !myInputValidator.checkInterface(interfaceAsString)) {
+        if (!interfaceAsType.canUseAsInterface()) {
+          return new ValidationInfo(myInputValidator.getNotAnInterfaceErrorText(interfaceAsString), myInterfacesField);
+        }
+        else if (!myInputValidator.checkInterface(interfaceAsString)) {
           return new ValidationInfo(myInputValidator.getInterfacesErrorText(interfaceAsString), myInterfacesField);
         }
       }
