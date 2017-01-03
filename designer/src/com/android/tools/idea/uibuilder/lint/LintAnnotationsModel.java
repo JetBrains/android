@@ -80,7 +80,8 @@ public class LintAnnotationsModel {
                        @NotNull AndroidLintInspectionBase inspection,
                        @NotNull HighlightDisplayLevel level,
                        @NotNull PsiElement startElement,
-                       @NotNull PsiElement endElement) {
+                       @NotNull PsiElement endElement,
+                       @Nullable Object quickfixData) {
     // Constraint layout doesn't handle RTL issues yet; don't highlight these
     if (issue == RtlDetector.COMPAT) {
       return;
@@ -90,7 +91,7 @@ public class LintAnnotationsModel {
       myIssueList = Lists.newArrayList();
     }
 
-    IssueData data = new IssueData(component, inspection, issue, message, level, startElement, endElement);
+    IssueData data = new IssueData(component, inspection, issue, message, level, startElement, endElement, quickfixData);
     myIssues.put(component, data);
     myIssueList.add(data); // TODO: Derive from myIssues map when needed?
   }
@@ -112,6 +113,7 @@ public class LintAnnotationsModel {
     @NotNull public final PsiElement endElement;
     @NotNull public final PsiElement startElement;
     @NotNull public final NlComponent component;
+    @Nullable public final Object quickfixData;
 
     private IssueData(@NotNull NlComponent component,
                       @NotNull AndroidLintInspectionBase inspection,
@@ -119,7 +121,8 @@ public class LintAnnotationsModel {
                       @NotNull String message,
                       @NotNull HighlightDisplayLevel level,
                       @NotNull PsiElement startElement,
-                      @NotNull PsiElement endElement) {
+                      @NotNull PsiElement endElement,
+                      @Nullable Object quickfixData) {
       this.component = component;
       this.inspection = inspection;
       this.issue = issue;
@@ -127,6 +130,7 @@ public class LintAnnotationsModel {
       this.level = level;
       this.startElement = startElement;
       this.endElement = endElement;
+      this.quickfixData = quickfixData;
     }
   }
 }

@@ -14,12 +14,15 @@ public class ProblemData {
   private final String myMessage;
   private final TextRange myTextRange;
   private final Severity myConfiguredSeverity;
+  private Object myQuickfixData;
 
-  public ProblemData(@NotNull Issue issue, @NotNull String message, @NotNull TextRange textRange, @Nullable Severity configuredSeverity) {
+  public ProblemData(@NotNull Issue issue, @NotNull String message, @NotNull TextRange textRange, @Nullable Severity configuredSeverity,
+                     @Nullable Object quickfixData) {
     myIssue = issue;
     myTextRange = textRange;
     myMessage = message;
     myConfiguredSeverity = configuredSeverity;
+    myQuickfixData = quickfixData;
   }
 
   @NotNull
@@ -40,5 +43,10 @@ public class ProblemData {
   @Nullable
   public Severity getConfiguredSeverity() {
     return myConfiguredSeverity;
+  }
+
+  @Nullable
+  public Object getQuickfixData() {
+    return myQuickfixData;
   }
 }

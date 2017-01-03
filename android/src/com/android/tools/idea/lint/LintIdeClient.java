@@ -215,7 +215,8 @@ public class LintIdeClient extends LintClient implements Disposable {
                      @NonNull Severity severity,
                      @NonNull Location location,
                      @NonNull String message,
-                     @NonNull TextFormat format) {
+                     @NonNull TextFormat format,
+                     @Nullable Object extraData) {
     assert false : message;
   }
 
@@ -234,7 +235,7 @@ public class LintIdeClient extends LintClient implements Disposable {
    * problem for each location associated with the lint error.
    */
   protected void reportSecondary(@NonNull Context context, @NonNull Issue issue, @NonNull Severity severity, @NonNull Location location,
-                                 @NonNull String message, @NonNull TextFormat format) {
+                                 @NonNull String message, @NonNull TextFormat format, @Nullable Object extraData) {
     Location secondary = location.getSecondary();
     if (secondary != null && secondary.isVisible()) {
       String secondaryMessage = secondary.getMessage();
@@ -246,7 +247,7 @@ public class LintIdeClient extends LintClient implements Disposable {
           message = message + " (" + secondaryMessage + ")";
         }
       }
-      report(context, issue, severity, secondary, message, format);
+      report(context, issue, severity, secondary, message, format, extraData);
     }
   }
 
@@ -281,7 +282,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Nullable
   @Override
   public JavaParser getJavaParser(@Nullable com.android.tools.lint.detector.api.Project project) {
-    return new LintIdeJavaParser(this, myProject);
+    return new LintIdeJavaParser(this, myProject, project);
   }
 
   @NonNull
@@ -558,7 +559,8 @@ public class LintIdeClient extends LintClient implements Disposable {
                        @NonNull Severity severity,
                        @NonNull Location location,
                        @NonNull String message,
-                       @NonNull TextFormat format) {
+                       @NonNull TextFormat format,
+                       @Nullable Object quickfixData) {
       if (location != null) {
         final File file = location.getFile();
         final VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
@@ -581,12 +583,13 @@ public class LintIdeClient extends LintClient implements Disposable {
 
           Severity configuredSeverity = severity != issue.getDefaultSeverity() ? severity : null;
           message = format.convertTo(message, RAW);
-          myState.getProblems().add(new ProblemData(issue, message, textRange, configuredSeverity));
+          myState.getProblems().add(new ProblemData(issue, message, textRange, configuredSeverity, quickfixData));
         }
 
         Location secondary = location.getSecondary();
         if (secondary != null && myState.getMainFile().equals(LocalFileSystem.getInstance().findFileByIoFile(secondary.getFile()))) {
-          reportSecondary(context, issue, severity, location, message, format);
+          reportSecondary(context, issue, severity, location, message, format, quickfixData);
+
         }
       }
     }
@@ -712,7 +715,8 @@ public class LintIdeClient extends LintClient implements Disposable {
                        @NonNull Severity severity,
                        @NonNull Location location,
                        @NonNull String message,
-                       @NonNull TextFormat format) {
+                       @NonNull TextFormat format,
+                       @Nullable Object quickfixData) {
       VirtualFile vFile = null;
       File file = null;
 
@@ -785,10 +789,10 @@ public class LintIdeClient extends LintClient implements Disposable {
         }
         Severity configuredSeverity = severity != issue.getDefaultSeverity() ? severity : null;
         message = format.convertTo(message, RAW);
-        problemList.add(new ProblemData(issue, message, textRange, configuredSeverity));
+        problemList.add(new ProblemData(issue, message, textRange, configuredSeverity, quickfixData));
 
         if (location != null && location.getSecondary() != null) {
-          reportSecondary(context, issue, severity, location, message, format);
+          reportSecondary(context, issue, severity, location, message, format, quickfixData);
         }
       }
     }
