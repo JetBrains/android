@@ -68,7 +68,6 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   protected AndroidDomElementDescriptorProvider myDescriptorProvider;
   protected Map<String, NlComponent> myComponentMap;
   protected PropertiesComponent myPropertiesComponent;
-  protected PropertiesComponent myOldPropertiesComponent;
 
   @Override
   public void setUp() throws Exception {
@@ -94,13 +93,12 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     myPropertiesManager = new NlPropertiesManager(getProject(), null);
     myDescriptorProvider = new AndroidDomElementDescriptorProvider();
     myPropertiesComponent = new PropertiesComponentMock();
-    myOldPropertiesComponent = registerApplicationComponent(PropertiesComponent.class, myPropertiesComponent);
+    registerApplicationComponent(PropertiesComponent.class, myPropertiesComponent);
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
-      registerApplicationComponent(PropertiesComponent.class, myOldPropertiesComponent);
       Disposer.dispose(myModel);
       Disposer.dispose(myPropertiesManager);
     }
