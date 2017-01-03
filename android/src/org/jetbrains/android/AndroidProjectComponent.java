@@ -102,11 +102,11 @@ public class AndroidProjectComponent extends AbstractProjectComponent {
         for (Module module : modulesCopy) {
           final AndroidFacet facet = AndroidFacet.getInstance(module);
 
-          if (facet != null && ModuleSourceAutogenerating.get(facet) != null) {
+          if (facet != null && ModuleSourceAutogenerating.getInstance(facet) != null) {
             final Set<AndroidAutogeneratorMode> modes = EnumSet.noneOf(AndroidAutogeneratorMode.class);
 
             for (AndroidAutogeneratorMode mode : AndroidAutogeneratorMode.values()) {
-              ModuleSourceAutogenerating autogenerating = ModuleSourceAutogenerating.get(facet);
+              ModuleSourceAutogenerating autogenerating = ModuleSourceAutogenerating.getInstance(facet);
               if (autogenerating != null && (autogenerating.cleanRegeneratingState(mode) || autogenerating.isGeneratedFileRemoved(mode))) {
                 modes.add(mode);
               }

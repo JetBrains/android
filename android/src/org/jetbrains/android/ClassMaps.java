@@ -15,16 +15,12 @@
  */
 package org.jetbrains.android;
 
-import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -38,8 +34,10 @@ import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiModificationTracker;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.concurrent.GuardedBy;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,31 +45,37 @@ import java.util.Map;
 import static com.intellij.util.ArrayUtilRt.find;
 import static org.jetbrains.android.facet.LayoutViewClassUtils.getTagNamesByClass;
 
-public class ClassMaps implements Disposable {
-  private static final Key<ClassMaps> KEY = Key.create(ClassMaps.class.getName());
+public class ClassMaps extends AndroidFacetScopedService {
+  private static final Object KEY_LOCK = new Object();
 
-  private AndroidFacet myFacet;
+  @GuardedBy("KEY_LOCK")
+  private static final Key<ClassMaps> KEY = Key.create(ClassMaps.class.getName());
 
   private final Object myClassMapLock = new Object();
 
   @GuardedBy("myClassMapLock")
   private final Map<String, Map<String, SmartPsiElementPointer<PsiClass>>> myInitialClassMaps = new HashMap<>();
+
   @GuardedBy("myClassMapLock")
   private final Map<String, CachedValue<Map<String, PsiClass>>> myClassMaps = new HashMap<>();
 
   @NotNull
-  public static ClassMaps get(@NotNull AndroidFacet facet) {
-    ClassMaps classMaps = facet.getUserData(KEY);
+  public static ClassMaps getInstance(@NotNull AndroidFacet facet) {
+    ClassMaps classMaps;
+    synchronized (KEY_LOCK) {
+      classMaps = facet.getUserData(KEY);
+    }
     if (classMaps == null) {
       classMaps = new ClassMaps(facet);
-      facet.putUserData(KEY, classMaps);
+      synchronized (KEY_LOCK) {
+        facet.putUserData(KEY, classMaps);
+      }
     }
     return classMaps;
   }
 
   private ClassMaps(@NotNull AndroidFacet facet) {
-    myFacet = facet;
-    Disposer.register(facet, this);
+    super(facet);
   }
 
   // TODO: correctly support classes from external non-platform jars
@@ -182,7 +186,7 @@ public class ClassMaps implements Disposable {
       }
       return aClass;
     });
-    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.get(myFacet);
+    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(getFacet());
     if (baseClass != null) {
       String[] baseClassTagNames = getTagNamesByClass(baseClass, androidModuleInfo.getModuleMinApi());
       for (String tagName : baseClassTagNames) {
@@ -213,11 +217,6 @@ public class ClassMaps implements Disposable {
     return getModule().getProject();
   }
 
-  @NotNull
-  private Module getModule() {
-    return myFacet.getModule();
-  }
-
   public void clear() {
     synchronized (myClassMapLock) {
       myInitialClassMaps.clear();
@@ -225,8 +224,9 @@ public class ClassMaps implements Disposable {
   }
 
   @Override
-  public void dispose() {
-    myFacet.putUserData(KEY, null);
-    myFacet = null;
+  protected void onServiceDisposal(@NotNull AndroidFacet facet) {
+    synchronized (KEY_LOCK) {
+      facet.putUserData(KEY, null);
+    }
   }
 }

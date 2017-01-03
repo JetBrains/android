@@ -601,7 +601,7 @@ public class AppBarConfigurationDialog extends JDialog {
 
   private BufferedImage renderImage(@NotNull PsiFile xmlFile) {
     AndroidFacet facet = myEditor.getModel().getFacet();
-    RenderService renderService = RenderService.get(facet);
+    RenderService renderService = RenderService.getInstance(facet);
     RenderLogger logger = renderService.createLogger();
     final RenderTask task = renderService.createTask(xmlFile, myEditor.getConfiguration(), logger, null);
     RenderResult result = null;

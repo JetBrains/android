@@ -55,14 +55,14 @@ public class ViewLoaderTest extends RenderTestBase {
   }
 
   public void testMissingClass() throws Exception {
-    RenderLogger logger = RenderService.get(myFacet).createLogger();
+    RenderLogger logger = RenderService.getInstance(myFacet).createLogger();
     ViewLoader viewLoader = new ViewLoader(myLayoutLib, myFacet, logger, null);
 
     assertNull(viewLoader.loadClass("broken.brokenclass", true));
     assertTrue(logger.hasErrors());
     assertThat(logger.getMissingClasses(), hasItem("broken.brokenclass"));
 
-    logger = RenderService.get(myFacet).createLogger();
+    logger = RenderService.getInstance(myFacet).createLogger();
     viewLoader = new ViewLoader(myLayoutLib, myFacet, logger, null);
 
     try {
@@ -72,14 +72,14 @@ public class ViewLoaderTest extends RenderTestBase {
     catch (ClassNotFoundException ignored) {
     }
 
-    logger = RenderService.get(myFacet).createLogger();
+    logger = RenderService.getInstance(myFacet).createLogger();
     viewLoader = new ViewLoader(myLayoutLib, myFacet, logger, null);
     assertNull(viewLoader.loadClass("broken.brokenclass", false));
     assertFalse(logger.hasErrors());
   }
 
   public void testRClassLoad() throws ClassNotFoundException {
-    RenderLogger logger = RenderService.get(myFacet).createLogger();
+    RenderLogger logger = RenderService.getInstance(myFacet).createLogger();
     ViewLoader viewLoader = new ViewLoader(myLayoutLib, myFacet, logger, null);
 
     // No AppResourceRepository exists prior to calling loadAndParseRClass. It will get created during the call.

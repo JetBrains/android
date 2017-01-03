@@ -319,7 +319,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       myState.put(KEY_BUILD_SDK, platform.getTarget().getVersion().getFeatureLevel());
     }
 
-    AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
+    AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(facet);
     AndroidVersion minSdkVersion = moduleInfo.getMinSdkVersion();
 
     myState.put(KEY_MIN_SDK, minSdkVersion);
@@ -515,7 +515,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       templateParameters.put(ATTR_BUILD_API_STRING, getBuildApiString(platform.getTarget().getVersion()));
     }
     // Read minSdkVersion and package from manifest and/or build.gradle files
-    AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
+    AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(facet);
     AndroidModel androidModel = facet.getAndroidModel();
 
     SourceProvider sourceProvider1 = myState.get(KEY_SOURCE_PROVIDER);

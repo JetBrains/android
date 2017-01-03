@@ -1615,15 +1615,15 @@ public class ConstraintUtilities {
   }
 
   static AndroidVersion getCompileSdkVersion(@NotNull NlModel model) {
-    return AndroidModuleInfo.get(model.getFacet()).getBuildSdkVersion();
+    return AndroidModuleInfo.getInstance(model.getFacet()).getBuildSdkVersion();
   }
 
   static AndroidVersion getMinSdkVersion(@NotNull NlModel model) {
-    return AndroidModuleInfo.get(model.getFacet()).getMinSdkVersion();
+    return AndroidModuleInfo.getInstance(model.getFacet()).getMinSdkVersion();
   }
 
   static AndroidVersion getTargetSdkVersion(@NotNull NlModel model) {
-    return AndroidModuleInfo.get(model.getFacet()).getTargetSdkVersion();
+    return AndroidModuleInfo.getInstance(model.getFacet()).getTargetSdkVersion();
   }
 
   static boolean supportsStartEnd(ConstraintAnchor anchor, @NotNull NlModel model) {

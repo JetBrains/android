@@ -260,7 +260,7 @@ public class ThemeEditorUtils {
     if (facet == null) {
       return 1;
     }
-    AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
+    AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(facet);
     return moduleInfo.getMinSdkVersion().getApiLevel();
   }
 

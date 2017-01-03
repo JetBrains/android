@@ -83,7 +83,7 @@ public class AndroidAutogenerator {
                          @NotNull AndroidFacet facet,
                          @NotNull CompileContext context,
                          boolean force) {
-    ModuleSourceAutogenerating autogenerating = ModuleSourceAutogenerating.get(facet);
+    ModuleSourceAutogenerating autogenerating = ModuleSourceAutogenerating.getInstance(facet);
     if (!toRun(mode, facet, autogenerating, force)) {
       return;
     }

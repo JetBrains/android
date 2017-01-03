@@ -230,7 +230,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       configuration.setTheme("android:Theme.Material");
     }
 
-    RenderService renderService = RenderService.get(facet);
+    RenderService renderService = RenderService.getInstance(facet);
     RenderLogger logger = renderService.createLogger();
     final RenderTask task = renderService.createTask(psiFile, configuration, logger, null);
     assertNotNull(task);
