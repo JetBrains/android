@@ -31,6 +31,7 @@ import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtilBase;
 import com.intellij.util.IncorrectOperationException;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.annotations.NonNls;
@@ -66,6 +67,11 @@ public class AddTargetVersionCheckQuickFix implements AndroidLintQuickFix {
   public boolean isApplicable(@NotNull PsiElement startElement,
                               @NotNull PsiElement endElement,
                               @NotNull AndroidQuickfixContexts.ContextType contextType) {
+    // Don't offer this unless we're in an Android module
+    if (AndroidFacet.getInstance(endElement) == null) {
+      return false;
+    }
+
     PsiExpression expression = PsiTreeUtil.getParentOfType(startElement, PsiExpression.class, false);
     return expression != null;
   }
