@@ -918,6 +918,12 @@ public class AndroidLintTest extends AndroidTestCase {
                   "res/xml/network-config.xml", "xml");
   }
 
+  public void testResourceTypes() throws Exception {
+    createManifest();
+    doTestNoFix(new AndroidLintResourceTypeInspection(),
+                "/src/p1/p2/ResourceTypes.java", "java");
+  }
+
   public void testMissingSuperCall() throws Exception {
     // Regression test for https://code.google.com/p/android/issues/detail?id=222249
     doTestNoFix(new AndroidLintMissingSuperCallInspection(),

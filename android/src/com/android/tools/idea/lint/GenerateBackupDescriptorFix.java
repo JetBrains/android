@@ -164,7 +164,7 @@ class GenerateBackupDescriptorFix implements AndroidLintQuickFix {
                 // advantage that it can also resolve complex expressions used as the
                 // getString argument.
                 ResourceUrl resource = ResourceEvaluator.getResource(
-                  new LintIdeJavaParser.LintPsiJavaEvaluator(expression.getProject()),
+                  new LintIdeJavaParser.LintPsiJavaEvaluator(expression.getProject(), null),
                   expressions[0]);
 
                 if (resource == null || resource.framework || resource.type != ResourceType.STRING) {

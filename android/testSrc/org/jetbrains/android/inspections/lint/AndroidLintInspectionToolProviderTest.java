@@ -372,9 +372,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
     // Supported more directly by other IntelliJ checks(?)
     if (issue == NamespaceDetector.UNUSED ||                // IDEA already does full validation
         issue == ManifestTypoDetector.ISSUE ||              // IDEA already does full validation
-        issue == ManifestDetector.WRONG_PARENT ||           // IDEA checks for this in Java code
-        // Reimplemented by ResourceTypeInspection
-        issue.getImplementation().getDetectorClass() == SupportAnnotationDetector.class) {
+        issue == ManifestDetector.WRONG_PARENT) {           // IDEA checks for this in Java code
       return false;
     }
 
