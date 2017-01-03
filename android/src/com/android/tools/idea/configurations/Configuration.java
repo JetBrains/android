@@ -78,7 +78,7 @@ public class Configuration implements Disposable, ModificationTracker {
   @Nullable private PsiFile myPsiFile;
 
   /**
-   * The {@link com.android.ide.common.resources.configuration.FolderConfiguration} representing the state of the UI controls
+   * The {@link FolderConfiguration} representing the state of the UI controls
    */
   @NotNull
   protected final FolderConfiguration myFullConfig = new FolderConfiguration();
@@ -88,7 +88,7 @@ public class Configuration implements Disposable, ModificationTracker {
   protected final ConfigurationManager myManager;
 
   /**
-   * The {@link com.android.ide.common.resources.configuration.FolderConfiguration} being edited.
+   * The {@link FolderConfiguration} being edited.
    */
   @NotNull
   protected final FolderConfiguration myEditedConfig;
@@ -128,7 +128,7 @@ public class Configuration implements Disposable, ModificationTracker {
    * The device state to use. Used to update {@link #getDeviceState()} such that it returns a state
    * suitable with whatever {@link #getDevice()} returns, since {@link #getDevice()} updates dynamically,
    * and the specific {@link State} instances are tied to actual devices (through the
-   * {@link com.android.sdklib.devices.State#getHardware()} accessor).
+   * {@link State#getHardware()} accessor).
    */
   @Nullable
   private String myStateName;
@@ -237,7 +237,7 @@ public class Configuration implements Disposable, ModificationTracker {
     // TODO: Figure out whether we need this, or if it should be replaced by
     // a call to ConfigurationManager#createSimilar()
     Configuration configuration = base.clone();
-    LocalResourceRepository resources = AppResourceRepository.getAppResources(base.getModule(), true);
+    LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(base.getModule());
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, resources, file);
     configuration.getEditedConfig().set(FolderConfiguration.getConfigForFolder(file.getParent().getName()));
     matcher.adaptConfigSelection(true /*needBestMatch*/);
@@ -331,7 +331,7 @@ public class Configuration implements Disposable, ModificationTracker {
     destination.myTheme = source.getTheme();
     //destination.myDisplayName = source.getDisplayName();
 
-    LocalResourceRepository resources = AppResourceRepository.getAppResources(source.myManager.getModule(), true);
+    LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(source.myManager.getModule());
     ConfigurationMatcher matcher = new ConfigurationMatcher(destination, resources, destination.myFile);
     //if (!matcher.isCurrentFileBestMatchFor(editedConfig)) {
       matcher.adaptConfigSelection(true /*needBestMatch*/);
@@ -481,7 +481,7 @@ public class Configuration implements Disposable, ModificationTracker {
       FolderConfiguration currentConfig = getFolderConfig(module, selectedState, getLocale(), getTarget());
       if (currentConfig != null) {
         if (myEditedConfig.isMatchFor(currentConfig)) {
-          LocalResourceRepository resources = AppResourceRepository.getAppResources(module, true);
+          LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(module);
           if (resources != null && myFile != null) {
             ResourceFolderType folderType = ResourceHelper.getFolderType(myFile);
             if (folderType != null) {
@@ -664,7 +664,7 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   /**
-   * Returns the full, complete {@link com.android.ide.common.resources.configuration.FolderConfiguration}
+   * Returns the full, complete {@link FolderConfiguration}
    *
    * @return the full configuration
    */
@@ -678,19 +678,17 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   /**
-   * Copies the full, complete {@link com.android.ide.common.resources.configuration.FolderConfiguration} into the given
-   * folder config instance.
+   * Copies the full, complete {@link FolderConfiguration} into the given folder config instance.
    *
-   * @param dest the {@link com.android.ide.common.resources.configuration.FolderConfiguration} instance to copy into
+   * @param dest the {@link FolderConfiguration} instance to copy into
    */
   public void copyFullConfig(FolderConfiguration dest) {
     dest.set(myFullConfig);
   }
 
   /**
-   * Returns the edited {@link com.android.ide.common.resources.configuration.FolderConfiguration} (this is not a full
-   * configuration, so you can think of it as the "constraints" used by the
-   * {@link ConfigurationMatcher} to produce a full configuration.
+   * Returns the edited {@link FolderConfiguration} (this is not a full configuration, so you can think of it as the "constraints" used by
+   * the {@link ConfigurationMatcher} to produce a full configuration.
    *
    * @return the constraints configuration
    */
@@ -1048,7 +1046,7 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   /**
-   * Returns the currently selected {@link com.android.resources.Density}. This is guaranteed to be non null.
+   * Returns the currently selected {@link Density}. This is guaranteed to be non null.
    *
    * @return the density
    */
@@ -1253,7 +1251,7 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   public boolean isBestMatchFor(VirtualFile file, FolderConfiguration config) {
-    LocalResourceRepository resources = AppResourceRepository.getAppResources(getModule(), true);
+    LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(getModule());
     return new ConfigurationMatcher(this, resources, file).isCurrentFileBestMatchFor(config);
   }
 

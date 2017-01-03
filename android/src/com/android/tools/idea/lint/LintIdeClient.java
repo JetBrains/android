@@ -27,7 +27,6 @@ import com.android.repository.Revision;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -659,7 +658,7 @@ public class LintIdeClient extends LintClient implements Disposable {
     @Override
     public List<File> getJavaSourceFolders(@NonNull com.android.tools.lint.detector.api.Project project) {
       final VirtualFile[] sourceRoots = ModuleRootManager.getInstance(myState.getModule()).getSourceRoots(false);
-      final List<File> result = new ArrayList<File>(sourceRoots.length);
+      final List<File> result = new ArrayList<>(sourceRoots.length);
 
       for (VirtualFile root : sourceRoots) {
         result.add(new File(root.getPath()));
@@ -764,13 +763,13 @@ public class LintIdeClient extends LintClient implements Disposable {
 
         Map<File, List<ProblemData>> file2ProblemList = myProblemMap.get(issue);
         if (file2ProblemList == null) {
-          file2ProblemList = new HashMap<File, List<ProblemData>>();
+          file2ProblemList = new HashMap<>();
           myProblemMap.put(issue, file2ProblemList);
         }
 
         List<ProblemData> problemList = file2ProblemList.get(file);
         if (problemList == null) {
-          problemList = new ArrayList<ProblemData>();
+          problemList = new ArrayList<>();
           file2ProblemList.put(file, problemList);
         }
 
@@ -802,7 +801,7 @@ public class LintIdeClient extends LintClient implements Disposable {
         return Collections.emptyList();
       }
       final VirtualFile[] sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots(false);
-      final List<File> result = new ArrayList<File>(sourceRoots.length);
+      final List<File> result = new ArrayList<>(sourceRoots.length);
 
       for (VirtualFile root : sourceRoots) {
         result.add(new File(root.getPath()));
@@ -844,7 +843,7 @@ public class LintIdeClient extends LintClient implements Disposable {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
         if (includeLibraries) {
-          return facet.getAppResources(true);
+          return AppResourceRepository.getOrCreateInstance(facet);
         } else if (includeModuleDependencies) {
           return facet.getProjectResources(true);
         } else {
@@ -884,7 +883,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
     Module module = getModule();
     if (module != null) {
-      AppResourceRepository appResources = AppResourceRepository.getAppResources(module, true);
+      AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
       if (appResources != null) {
         ResourceVisibilityLookup.Provider provider = appResources.getResourceVisibilityProvider();
         if (provider != null) {

@@ -78,7 +78,7 @@ class ResourceChooserGroup {
         addFrameworkItems(ResourceType.MIPMAP, includeFileResources, frameworkResources);
       }
     } else {
-      AppResourceRepository repository = AppResourceRepository.getAppResources(facet, true);
+      AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(facet);
 
       //noinspection ConstantConditions
       ResourceVisibilityLookup lookup = FILTER_OUT_PRIVATE ? repository.getResourceVisibility(facet) : null;
@@ -97,7 +97,7 @@ class ResourceChooserGroup {
     myType = type;
     myLabel = label;
 
-    AppResourceRepository repository = AppResourceRepository.getAppResources(facet, true);
+    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(facet);
     //noinspection ConstantConditions
     ResourceVisibilityLookup lookup = FILTER_OUT_PRIVATE ? repository.getResourceVisibility(facet) : null;
 

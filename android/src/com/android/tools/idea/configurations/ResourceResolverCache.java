@@ -99,7 +99,7 @@ public class ResourceResolverCache {
                                               @NotNull String themeStyle,
                                               @NotNull final FolderConfiguration fullConfiguration) {
     // Are caches up to date?
-    final LocalResourceRepository resources = AppResourceRepository.getAppResources(myManager.getModule(), true);
+    final LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(myManager.getModule());
     if (resources == null) {
       return ResourceResolver.create(Collections.emptyMap(), Collections.emptyMap(), null, false);
     }

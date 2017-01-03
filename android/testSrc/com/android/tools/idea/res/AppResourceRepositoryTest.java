@@ -57,8 +57,8 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
   }
 
   public void testStable() {
-    assertSame(AppResourceRepository.getAppResources(myFacet, true), AppResourceRepository.getAppResources(myFacet, true));
-    assertSame(AppResourceRepository.getAppResources(myFacet, true), AppResourceRepository.getAppResources(myModule, true));
+    assertSame(AppResourceRepository.getOrCreateInstance(myFacet), AppResourceRepository.getOrCreateInstance(myFacet));
+    assertSame(AppResourceRepository.getOrCreateInstance(myFacet), AppResourceRepository.getOrCreateInstance(myModule));
   }
 
   public void testMerging() {
@@ -79,10 +79,10 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     // res3 is not used as an overlay here; instead we use it to simulate an AAR library below
     final ModuleResourceRepository moduleRepository = ModuleResourceRepository.createForTest(myFacet, Arrays.asList(res1, res2));
     final ProjectResourceRepository projectResources = ProjectResourceRepository.createForTest(
-      myFacet, Collections.<LocalResourceRepository>singletonList(moduleRepository));
+      myFacet, Collections.singletonList(moduleRepository));
 
     final AppResourceRepository appResources = AppResourceRepository.createForTest(
-      myFacet, Collections.<LocalResourceRepository>singletonList(projectResources), Collections.<FileResourceRepository>emptyList());
+      myFacet, Collections.singletonList(projectResources), Collections.emptyList());
 
     assertTrue(appResources.hasResourceItem(ResourceType.STRING, "title_card_flip"));
     assertFalse(appResources.hasResourceItem(ResourceType.STRING, "non_existent_title_card_flip"));
@@ -115,32 +115,26 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     final Document document = documentManager.getDocument(layoutPsiFile);
     assertNotNull(document);
-    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
-      @Override
-      public void run() {
-        String string = "<ImageView style=\"@style/TitleBarSeparator\" />";
-        int offset = document.getText().indexOf(string);
-        document.deleteString(offset, offset + string.length());
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      String string = "<ImageView style=\"@style/TitleBarSeparator\" />";
+      int offset = document.getText().indexOf(string);
+      document.deleteString(offset, offset + string.length());
+      documentManager.commitDocument(document);
     });
 
     assertTrue(moduleRepository.isScanPending(layoutPsiFile));
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        assertTrue(generation < moduleRepository.getModificationCount());
-        assertTrue(projectGeneration < projectResources.getModificationCount());
-        assertTrue(appGeneration < appResources.getModificationCount());
-        // Should still be defined:
-        assertTrue(moduleRepository.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
-        assertTrue(appResources.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
-        assertTrue(projectResources.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
-        ResourceItem newItem = ModuleResourceRepositoryTest.getFirstItem(appResources, ResourceType.ID, "btn_title_refresh");
-        assertNotNull(newItem.getSource());
-        // However, should be a different item
-        assertNotSame(item, newItem);
-      }
+    ApplicationManager.getApplication().invokeLater(() -> {
+      assertTrue(generation < moduleRepository.getModificationCount());
+      assertTrue(projectGeneration < projectResources.getModificationCount());
+      assertTrue(appGeneration < appResources.getModificationCount());
+      // Should still be defined:
+      assertTrue(moduleRepository.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
+      assertTrue(appResources.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
+      assertTrue(projectResources.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
+      ResourceItem newItem = ModuleResourceRepositoryTest.getFirstItem(appResources, ResourceType.ID, "btn_title_refresh");
+      assertNotNull(newItem.getSource());
+      // However, should be a different item
+      assertNotSame(item, newItem);
     });
   }
 
@@ -174,10 +168,10 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     final ModuleResourceRepository moduleRepository = ModuleResourceRepository.createForTest(
       myFacet, Collections.singletonList(res1));
     final ProjectResourceRepository projectResources = ProjectResourceRepository.createForTest(
-      myFacet, Collections.<LocalResourceRepository>singletonList(moduleRepository));
+      myFacet, Collections.singletonList(moduleRepository));
 
     final AppResourceRepository appResources = AppResourceRepository.createForTest(
-      myFacet, Collections.<LocalResourceRepository>singletonList(projectResources), Collections.<FileResourceRepository>emptyList());
+      myFacet, Collections.singletonList(projectResources), Collections.emptyList());
 
     Set<VirtualFile> folders = appResources.getResourceDirs();
     assertSameElements(folders, res1);
@@ -211,7 +205,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
 
   @SuppressWarnings("deprecation")  // For Pair
   public void testDynamicIds() {
-    AppResourceRepository repository = AppResourceRepository.getAppResources(myFacet, true);
+    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(myFacet);
     Integer stringId = repository.getResourceId(ResourceType.STRING, "string");
     assertNotNull(stringId);
     Integer styleId = repository.getResourceId(ResourceType.STYLE, "style");
@@ -227,7 +221,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
   }
 
   public void testResetDynamicIds() {
-    AppResourceRepository repository = AppResourceRepository.getAppResources(myFacet, true);
+    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(myFacet);
     Integer stringId = repository.getResourceId(ResourceType.STRING, "string");
     Integer styleId = repository.getResourceId(ResourceType.STYLE, "style");
     Integer layoutId = repository.getResourceId(ResourceType.LAYOUT, "layout");
@@ -244,12 +238,12 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
 
   @SuppressWarnings("deprecation")  // For Pair
   public void testSetCompiledResources() {
-    AppResourceRepository repository = AppResourceRepository.getAppResources(myFacet, true);
+    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(myFacet);
     Integer stringId = repository.getResourceId(ResourceType.STRING, "string");
     Integer styleId = repository.getResourceId(ResourceType.STYLE, "style");
     Integer layoutId = repository.getResourceId(ResourceType.LAYOUT, "layout");
 
-    TIntObjectHashMap<Pair<ResourceType, String>> id2res = new TIntObjectHashMap<Pair<ResourceType, String>>();
+    TIntObjectHashMap<Pair<ResourceType, String>> id2res = new TIntObjectHashMap<>();
     id2res.put(0x7F000000, Pair.of(ResourceType.STRING, "string"));
     id2res.put(0x7F010000, Pair.of(ResourceType.STYLE, "style"));
     id2res.put(0x7F020000, Pair.of(ResourceType.LAYOUT, "layout"));
@@ -288,12 +282,12 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
   }
 
   static AppResourceRepository createTestAppResourceRepository(AndroidFacet facet) throws IOException {
-    final ModuleResourceRepository moduleRepository = ModuleResourceRepository.createForTest(facet, Collections.<VirtualFile>emptyList());
+    final ModuleResourceRepository moduleRepository = ModuleResourceRepository.createForTest(facet, Collections.emptyList());
     final ProjectResourceRepository projectResources = ProjectResourceRepository.createForTest(
-      facet, Collections.<LocalResourceRepository>singletonList(moduleRepository));
+      facet, Collections.singletonList(moduleRepository));
 
     final AppResourceRepository appResources = AppResourceRepository.createForTest(
-      facet, Collections.<LocalResourceRepository>singletonList(projectResources), Collections.<FileResourceRepository>emptyList());
+      facet, Collections.singletonList(projectResources), Collections.emptyList());
     FileResourceRepository aar = FileResourceRepositoryTest.getTestRepository();
     appResources.updateRoots(Arrays.asList(projectResources, aar), Collections.singletonList(aar));
     return appResources;

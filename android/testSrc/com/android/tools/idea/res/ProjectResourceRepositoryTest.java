@@ -165,12 +165,12 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
       assertNotNull(moduleRepository);
       LocalResourceRepository moduleSetRepository = facet.getProjectResources(true);
       assertNotNull(moduleSetRepository);
-      LocalResourceRepository librarySetRepository = facet.getAppResources(true);
+      LocalResourceRepository librarySetRepository = AppResourceRepository.getOrCreateInstance(facet);
       assertNotNull(librarySetRepository);
     }
     myFacet.getModuleResources(true);
     myFacet.getProjectResources(true);
-    myFacet.getAppResources(true);
+    AppResourceRepository.getOrCreateInstance(myFacet);
   }
 
   public void testGetResourceDirsAndUpdateRoots() {
@@ -379,8 +379,8 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertNotNull(sharedLibValues);
     assertNotNull(lib2Values);
 
-    final AppResourceRepository lib1Resources = lib1Facet.getAppResources(true);
-    final AppResourceRepository lib2Resources = lib2Facet.getAppResources(true);
+    final AppResourceRepository lib1Resources = AppResourceRepository.getOrCreateInstance(lib1Facet);
+    final AppResourceRepository lib2Resources = AppResourceRepository.getOrCreateInstance(lib2Facet);
     assertNotNull(lib1Resources);
     assertNotNull(lib2Resources);
     assertNotSame(lib1Resources, lib2Resources);

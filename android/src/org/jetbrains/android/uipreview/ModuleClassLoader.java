@@ -83,7 +83,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
         final Module module = myModuleReference.get();
         if (module != null) {
           if (isResourceClassName(name)) {
-            AppResourceRepository appResources = AppResourceRepository.getAppResources(module, false);
+            AppResourceRepository appResources = AppResourceRepository.findExistingInstance(module);
             if (appResources != null) {
               byte[] data = ResourceClassRegistry.get(module.getProject()).findClassDefinition(name, appResources);
               if (data != null) {
@@ -339,7 +339,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
                   aarDir = aarDir.getParentFile();
                 }
               }
-              AppResourceRepository appResources = AppResourceRepository.getAppResources(module, true);
+              AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
               if (appResources != null) {
                 ResourceClassRegistry.get(module.getProject()).addAarLibrary(appResources, aarDir);
               }
@@ -349,7 +349,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
               if (parentFile != null) {
                 File manifest = new File(parentFile, ANDROID_MANIFEST_XML);
                 if (manifest.exists()) {
-                  AppResourceRepository appResources = AppResourceRepository.getAppResources(module, true);
+                  AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
                   if (appResources != null) {
                     FileResourceRepository repository = appResources.findRepositoryFor(parentFile);
                     if (repository != null) {

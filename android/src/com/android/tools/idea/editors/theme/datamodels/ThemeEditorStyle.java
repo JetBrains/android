@@ -148,7 +148,7 @@ public class ThemeEditorStyle {
       resultItems = ImmutableList.copyOf(resourceItems.values());
     }
     else {
-      LocalResourceRepository resourceRepository = AppResourceRepository.getAppResources(module, true);
+      LocalResourceRepository resourceRepository = AppResourceRepository.getOrCreateInstance(module);
       assert resourceRepository != null;
       List<ResourceItem> items = resourceRepository.getResourceItem(ResourceType.STYLE, myQualifiedName);
       if (items != null) {
