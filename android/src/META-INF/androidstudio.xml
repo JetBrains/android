@@ -31,6 +31,9 @@
 
     <welcomeScreen implementation="com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider"/>
     <applicationService serviceImplementation="com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData" />
+    <applicationService serviceImplementation="com.android.tools.idea.welcome.whatsnew.WhatsNew$WhatsNewService"/>
+    <postStartupActivity implementation="com.android.tools.idea.welcome.whatsnew.WhatsNew"
+                         order="before TipOfTheDayManager"/>
   </extensions>
 
   <actions>
