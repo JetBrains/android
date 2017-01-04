@@ -19,14 +19,12 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
 import com.android.tools.idea.tests.gui.framework.ndk.MiscUtils;
+import com.android.tools.idea.tests.util.NotMatchingPatternMatcher;
 import com.google.common.collect.Lists;
 import com.intellij.util.containers.HashMap;
 import com.intellij.xdebugger.impl.ui.tree.nodes.XDebuggerTreeNode;
@@ -50,6 +48,7 @@ public class BasicNativeDebuggerTest {
 
   private static final String DEBUG_CONFIG_NAME = "app";
   private static final String AVD_NAME = "debugger_test_avd";
+  private static final Pattern DEBUGGER_ATTACHED_PATTERN = Pattern.compile(".*Debugger attached to process.*", Pattern.DOTALL);
 
   @Before
   public void setUp() throws Exception {
@@ -66,6 +65,38 @@ public class BasicNativeDebuggerTest {
   @NotNull
   private static MockAvdManagerConnection getEmulatorConnection() {
     return (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
+  }
+
+  @Test
+  public void testSessionRestart() throws IOException, ClassNotFoundException {
+    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicJniApp");
+    createAVD();
+    final IdeFrameFixture projectFrame = guiTest.ideFrame();
+
+    // Setup breakpoints
+    final String[] breakPoints = {
+      "return (*env)->NewStringUTF(env, message);",
+    };
+    openAndToggleBreakPoints("app/src/main/jni/multifunction-jni.c", breakPoints);
+
+    projectFrame.debugApp(DEBUG_CONFIG_NAME)
+      .selectDevice(AVD_NAME)
+      .clickOk();
+
+    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
+    waitForSessionStart(debugToolWindowFixture);
+
+    projectFrame.findDebugApplicationButton().click();
+
+    MessagesFixture errorMessage = MessagesFixture.findByTitle(guiTest.robot(), "Launching " + DEBUG_CONFIG_NAME);
+    errorMessage.requireMessageContains("Restart App").click("Restart " + DEBUG_CONFIG_NAME);
+
+    DeployTargetPickerDialogFixture deployTargetPicker = DeployTargetPickerDialogFixture.find(guiTest.robot());
+    deployTargetPicker.selectDevice(AVD_NAME).clickOk();
+
+    waitUntilDebugConsoleCleared(debugToolWindowFixture);
+    waitForSessionStart(debugToolWindowFixture);
+    stopDebugSession(debugToolWindowFixture);
   }
 
   @Test
@@ -126,12 +157,8 @@ public class BasicNativeDebuggerTest {
       .selectDevice(AVD_NAME)
       .clickOk();
 
-    // Wait for "Debugger attached to process.*" to be printed on the app-native debug console.
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
-    {
-      final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
-      contentFixture.waitForOutput(new PatternTextMatcher(Pattern.compile(".*Debugger attached to process.*", Pattern.DOTALL)), 50);
-    }
+    waitForSessionStart(debugToolWindowFixture);
 
     // Loop through all the breakpoints and match the strings printed in the Variables pane with the expected patterns setup in
     // breakpointToExpectedPatterns.
@@ -144,12 +171,24 @@ public class BasicNativeDebuggerTest {
         .until(() -> verifyVariablesAtBreakpoint(expectedPatterns, DEBUG_CONFIG_NAME));
     }
 
-    {
-      // We cannot reuse the context fixture we got above, as its windows could have been repurposed for other things.
-      final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
-      contentFixture.stop();
-      contentFixture.waitForExecutionToFinish();
-    }
+    stopDebugSession(debugToolWindowFixture);
+  }
+
+  private void stopDebugSession(DebugToolWindowFixture debugToolWindowFixture) {
+    final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
+    contentFixture.stop();
+    contentFixture.waitForExecutionToFinish();
+  }
+
+  private void waitForSessionStart(DebugToolWindowFixture debugToolWindowFixture) {
+    // Wait for "Debugger attached to process.*" to be printed on the app-native debug console.
+    final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
+    contentFixture.waitForOutput(new PatternTextMatcher(DEBUGGER_ATTACHED_PATTERN), 50);
+  }
+
+  private void waitUntilDebugConsoleCleared(DebugToolWindowFixture debugToolWindowFixture) {
+    final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
+    contentFixture.waitForOutput(new NotMatchingPatternMatcher(DEBUGGER_ATTACHED_PATTERN), 10);
   }
 
   /////////////////////////////////////////////////////////////////
