@@ -20,8 +20,10 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgradeStep;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 
@@ -50,12 +52,20 @@ public class RecommendedPluginVersionUpgradeStep extends PluginVersionUpgradeSte
   }
 
   private static boolean shouldRecommendUpgrade(@NotNull AndroidPluginInfo androidPluginInfo) {
-    return shouldRecommendUpgradeBasedOnPluginVersion(androidPluginInfo);
+    GradleVersion current = androidPluginInfo.getPluginVersion();
+    GradleVersion recommended = GradleVersion.parse(androidPluginInfo.getPluginGeneration().getLatestKnownVersion());
+    return shouldRecommendUpgrade(recommended, current);
   }
 
-  private static boolean shouldRecommendUpgradeBasedOnPluginVersion(@NotNull AndroidPluginInfo androidPluginInfo) {
-    GradleVersion current = androidPluginInfo.getPluginVersion();
-    String recommended = androidPluginInfo.getPluginGeneration().getLatestKnownVersion();
-    return current != null && current.compareTo(recommended) < 0;
+  @VisibleForTesting
+  static boolean shouldRecommendUpgrade(@NotNull GradleVersion recommended, @Nullable GradleVersion current) {
+    if (current != null) {
+      if (recommended.isSnapshot() && current.getPreviewType() != null && current.compareIgnoringQualifiers(recommended) == 0) {
+        // e.g recommended: 2.3.0-dev and current: 2.3.0-alpha1
+        return false;
+      }
+      return current.compareTo(recommended) < 0;
+    }
+    return false;
   }
 }
