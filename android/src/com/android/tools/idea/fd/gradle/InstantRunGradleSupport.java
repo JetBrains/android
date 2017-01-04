@@ -63,6 +63,12 @@ public enum InstantRunGradleSupport {
   }
 
   public static InstantRunGradleSupport fromModel(@NotNull AndroidModuleModel model) throws UnsupportedOperationException {
+    // Regardless of whether Gradle supports IR or not, we need to make sure it is of a minimum version.
+    boolean modelSupportsInstantRun = InstantRunGradleUtils.modelSupportsInstantRun(model);
+    if (!modelSupportsInstantRun) {
+      return GRADLE_PLUGIN_TOO_OLD;
+    }
+
     int modelStatus;
     try {
       modelStatus = model.getSelectedVariant().getMainArtifact().getInstantRun().getSupportStatus();
