@@ -28,6 +28,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -99,7 +100,9 @@ public class NetworkProfilerStageTest extends AspectObserver {
     );
 
     myStage.setSelectedConnection(data);
-    assertNotNull(data.getResponsePayloadFile());
+    File payloadFile = data.getResponsePayloadFile();
+    assertNotNull(payloadFile);
+    assertFalse(payloadFile.canWrite());
     assertEquals(data, myStage.getSelectedConnection());
     assertEquals(true, connectionChanged[0]);
   }
