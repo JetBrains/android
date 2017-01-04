@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
@@ -697,7 +698,11 @@ public class LintIdeProject extends Project {
     @Override
     public AndroidVersion getMinSdkVersion() {
       if (myMinSdkVersion == null) {
-        myMinSdkVersion = AndroidModuleInfo.getInstance(myFacet).getMinSdkVersion();
+        if (!myFacet.isDisposed()) {
+          myMinSdkVersion = AndroidModuleInfo.getInstance(myFacet).getMinSdkVersion();
+        } else {
+          myMinSdkVersion = AndroidVersion.DEFAULT;
+        }
       }
       return myMinSdkVersion;
     }
@@ -706,7 +711,11 @@ public class LintIdeProject extends Project {
     @Override
     public AndroidVersion getTargetSdkVersion() {
       if (myTargetSdkVersion == null) {
-        myTargetSdkVersion = AndroidModuleInfo.getInstance(myFacet).getTargetSdkVersion();
+        if (!myFacet.isDisposed()) {
+          myTargetSdkVersion = AndroidModuleInfo.getInstance(myFacet).getTargetSdkVersion();
+        } else {
+          myTargetSdkVersion = new AndroidVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, null);
+        }
       }
 
       return myTargetSdkVersion;
