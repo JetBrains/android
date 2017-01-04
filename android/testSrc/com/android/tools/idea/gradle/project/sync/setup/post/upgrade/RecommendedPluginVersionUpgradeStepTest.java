@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,24 +24,21 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.Collection;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
- * Tests for {@link ForcedPluginPreviewVersionUpgradeStep}.
+ * Tests for {@link RecommendedPluginVersionUpgradeStep}.
  */
 @RunWith(Parameterized.class)
-public class ForcedPluginPreviewVersionUpgradeStepTest {
+public class RecommendedPluginVersionUpgradeStepTest {
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
       {"2.0.0-alpha9", "2.0.0-alpha9", false},
-      {"2.0.0-alpha9", "2.0.0-alpha10", true},
+      {"1.1", "2.0.0", true},
       {"2.0.0-alpha9", "2.0.0-beta1", true},
       {"2.0.0-alpha9", "2.0.0", true},
-      {"2.0.0", "2.0.1", false},
-      {"2.0.0", "3.0.0", false},
       {"1.5.0-beta1", "2.0.0-alpha10", true},
-      {"1.5.0", "2.0.0-alpha10", false},
       {"2.3.0-alpha1", "2.3.0-dev", false},
     });
   }
@@ -49,17 +46,17 @@ public class ForcedPluginPreviewVersionUpgradeStepTest {
   @NotNull private final GradleVersion myCurrent;
   @NotNull private final GradleVersion myRecommended;
 
-  private final boolean myForceUpgrade;
+  private final boolean myRecommendUpgrade;
 
-  public ForcedPluginPreviewVersionUpgradeStepTest(@NotNull String current, @NotNull String recommended, boolean forceUpgrade) {
+  public RecommendedPluginVersionUpgradeStepTest(@NotNull String current, @NotNull String recommended, boolean recommendUpgrade) {
     myCurrent = GradleVersion.parse(current);
     myRecommended = GradleVersion.parse(recommended);
-    myForceUpgrade = forceUpgrade;
+    myRecommendUpgrade = recommendUpgrade;
   }
 
   @Test
   public void shouldPreviewBeForcedToUpgradePluginVersion() {
-    boolean forced = ForcedPluginPreviewVersionUpgradeStep.shouldPreviewBeForcedToUpgradePluginVersion(myRecommended, myCurrent);
-    assertEquals(myForceUpgrade, forced);
+    boolean recommended = RecommendedPluginVersionUpgradeStep.shouldRecommendUpgrade(myRecommended, myCurrent);
+    assertEquals(myRecommendUpgrade, recommended);
   }
 }
