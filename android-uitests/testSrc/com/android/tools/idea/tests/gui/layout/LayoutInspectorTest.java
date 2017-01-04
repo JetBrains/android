@@ -102,8 +102,8 @@ public class LayoutInspectorTest {
       .waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
     List<String> layoutElements = guiTest.ideFrame()
       .getAndroidToolWindow()
-      .selectProcess(PROCESS_NAME)
       .selectDevicesTab()
+      .selectProcess(PROCESS_NAME)
       .clickLayoutInspector()
       .getLayoutElements();
     assertThat(layoutElements).contains("android.widget.RelativeLayout");
