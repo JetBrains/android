@@ -40,7 +40,7 @@ public class ForcedPluginPreviewVersionUpgradeStep extends PluginVersionUpgradeS
     AndroidPluginGeneration pluginGeneration = pluginInfo.getPluginGeneration();
     GradleVersion recommended = GradleVersion.parse(pluginGeneration.getLatestKnownVersion());
 
-    if (!shouldPreviewBeForcedToUpgradePluginVersion(recommended.toString(), pluginInfo.getPluginVersion())) {
+    if (!shouldPreviewBeForcedToUpgradePluginVersion(recommended, pluginInfo.getPluginVersion())) {
       return false;
     }
     GradleSyncState syncState = GradleSyncState.getInstance(project);
@@ -69,10 +69,16 @@ public class ForcedPluginPreviewVersionUpgradeStep extends PluginVersionUpgradeS
   }
 
   @VisibleForTesting
-  static boolean shouldPreviewBeForcedToUpgradePluginVersion(@NotNull String recommended, @Nullable GradleVersion current) {
-    if (current != null && current.getPreviewType() != null) {
-      // current is a "preview" (alpha, beta, etc.)
-      return current.compareTo(recommended) < 0;
+  static boolean shouldPreviewBeForcedToUpgradePluginVersion(@NotNull GradleVersion recommended, @Nullable GradleVersion current) {
+    if (current != null) {
+      if (current.getPreviewType() != null) {
+        if (recommended.isSnapshot() && current.compareIgnoringQualifiers(recommended) == 0) {
+          // e.g recommended: 2.3.0-dev and current: 2.3.0-alpha1
+          return false;
+        }
+        // current is a "preview" (alpha, beta, etc.)
+        return current.compareTo(recommended) < 0;
+      }
     }
     return false;
   }
