@@ -38,6 +38,7 @@ public class HttpData {
   // TODO: Way more robust handling of different types. See also:
   // http://www.iana.org/assignments/media-types/media-types.xhtml
   private static final Map<String, String> CONTENT_EXTENSIONS_MAP = new ImmutableMap.Builder<String, String>()
+    .put("/html", ".html")
     .put("/jpeg", ".jpg")
     .put("/json", ".json")
     .put("/xml", ".xml")
