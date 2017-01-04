@@ -35,6 +35,7 @@ import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTreeFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,7 +58,11 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   }
 
   public NlEditorFixture waitForRenderToFinish() {
-    myDesignSurfaceFixture.waitForRenderToFinish();
+    return waitForRenderToFinish(Wait.seconds(5));
+  }
+
+  public NlEditorFixture waitForRenderToFinish(@NotNull Wait waitForRender) {
+    myDesignSurfaceFixture.waitForRenderToFinish(waitForRender);
     return this;
   }
 
