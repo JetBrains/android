@@ -16,7 +16,9 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.profiler.proto.*;
+import com.android.tools.profiler.proto.CpuServiceGrpc;
+import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profilers.*;
 import com.google.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
@@ -50,7 +52,7 @@ public class CpuProfilerStageTest extends AspectObserver {
 
   @Before
   public void setUp() throws Exception {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub());
     myStage = new CpuProfilerStage(profilers);
     myGetProcessesLatch = new CountDownLatch(1);
     profilers.addDependency(this).onChange(ProfilerAspect.PROCESSES, myGetProcessesLatch::countDown);

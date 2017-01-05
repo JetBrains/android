@@ -21,7 +21,7 @@ import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.IdeProfilerServicesStub;
 import com.android.tools.profilers.StudioProfilers;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.util.containers.ImmutableList;
@@ -47,7 +47,7 @@ public class CpuTraceDataSeriesTest {
 
   @Before
   public void setUp() throws Exception {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub());
     CpuProfilerStage stage = new CpuProfilerStage(profilers);
     mySeries = stage.getCpuTraceDataSeries();
   }
