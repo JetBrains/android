@@ -25,6 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -100,7 +101,7 @@ public class NlPreviewTest {
       .getEditor()
       .open("app/src/main/res/layout/layout1.xml", EditorFixture.Tab.EDITOR);
     NlPreviewFixture preview = editor.getLayoutPreview(false);
-    preview.waitForRenderToFinish();
+    preview.waitForRenderToFinish(Wait.seconds(10));
 
     assertTrue(preview.hasRenderErrors());
     preview.waitForErrorPanelToContain("The following classes could not be found");
