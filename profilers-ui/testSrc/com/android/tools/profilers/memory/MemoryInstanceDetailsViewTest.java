@@ -17,7 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.IdeProfilerServicesStub;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.memory.adapters.ReferenceObject;
@@ -45,7 +45,7 @@ public class MemoryInstanceDetailsViewTest {
    */
   @Test
   public void visibilityTest() throws Exception {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub());
     MemoryProfilerStage stage = new MemoryProfilerStage(profilers);
     MemoryInstanceDetailsView detailsView = new MemoryInstanceDetailsView(stage);
 
@@ -80,7 +80,7 @@ public class MemoryInstanceDetailsViewTest {
    */
   @Test
   public void buildTreeTest() throws Exception {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub());
     MemoryProfilerStage stage = new MemoryProfilerStage(profilers);
     MemoryInstanceDetailsView detailsView = new MemoryInstanceDetailsView(stage);
 
