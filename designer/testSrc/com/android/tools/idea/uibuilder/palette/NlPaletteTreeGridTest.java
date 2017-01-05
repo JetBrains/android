@@ -105,8 +105,8 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
     TreeGrid<Palette.Item> grid = myPanel.getComponentTree();
     grid.getLists().forEach(list -> {
       assertThat(list.getLayoutOrientation()).isEqualTo(JList.HORIZONTAL_WRAP);
-      assertThat(list.getFixedCellWidth()).isEqualTo(36);
-      assertThat(list.getFixedCellHeight()).isEqualTo(36);
+      assertThat(list.getFixedCellWidth()).isEqualTo(32);
+      assertThat(list.getFixedCellHeight()).isEqualTo(32);
     });
     assertThat(myPanel.getMode()).isEqualTo(PaletteMode.LARGE_ICONS);
   }
@@ -118,8 +118,8 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
     TreeGrid<Palette.Item> grid = myPanel.getComponentTree();
     grid.getLists().forEach(list -> {
       assertThat(list.getLayoutOrientation()).isEqualTo(JList.HORIZONTAL_WRAP);
-      assertThat(list.getFixedCellWidth()).isEqualTo(24);
-      assertThat(list.getFixedCellHeight()).isEqualTo(24);
+      assertThat(list.getFixedCellWidth()).isEqualTo(22);
+      assertThat(list.getFixedCellHeight()).isEqualTo(22);
     });
     assertThat(myPanel.getMode()).isEqualTo(PaletteMode.SMALL_ICONS);
   }
