@@ -114,8 +114,6 @@ public final class AxisComponent extends AnimatedComponent {
   private boolean myShowUnitAtMax;
   private boolean myShowAxisLine = true;
 
-
-
   public AxisComponent(@NotNull AxisComponentModel model, AxisOrientation orientation) {
     myModel = model;
     myMajorMarkerPositions = new TFloatArrayList();
@@ -154,56 +152,9 @@ public final class AxisComponent extends AnimatedComponent {
   }
 
   @NotNull
-  public TFloatArrayList getMajorMarkerPositions() {
-    return myMajorMarkerPositions;
-  }
-
-  @NotNull
   @VisibleForTesting
   public AxisOrientation getOrientation() {
     return myOrientation;
-  }
-
-  /**
-   * Returns the position where a value would appear on this axis.
-   */
-  public float getPositionAtValue(double value) {
-    float offset = (float)(myMinorScale * ((value - myModel.getZero()) - myCurrentMinValueRelative) / myMinorInterval);
-    float ret = 0;
-    switch (myOrientation) {
-      case LEFT:
-      case RIGHT:
-        // Vertical axes are drawn from bottom to top so reverse the offset.
-        ret = 1 - offset;
-        break;
-      case TOP:
-      case BOTTOM:
-        ret = offset;
-        break;
-    }
-
-    return ret * myAxisLength;
-  }
-
-  /**
-   * Returns the value corresponding to a pixel position on the axis.
-   */
-  public double getValueAtPosition(int position) {
-    float offset = 0;
-    switch (myOrientation) {
-      case LEFT:
-      case RIGHT:
-        // Vertical axes are drawn from bottom to top so reverse the position.
-        offset = myAxisLength - position;
-        break;
-      case TOP:
-      case BOTTOM:
-        offset = position;
-        break;
-    }
-
-    float normalizedOffset = offset / myAxisLength;
-    return myModel.getZero() + myCurrentMinValueRelative + myMinorInterval * normalizedOffset / myMinorScale;
   }
 
   public void render() {
@@ -449,6 +400,10 @@ public final class AxisComponent extends AnimatedComponent {
     myShowAxisLine = showAxisLine;
   }
 
+  public void setShowMin(boolean showMin) {
+    myShowMin  = showMin;
+  }
+
   public void setShowMax(boolean showMax) {
     myShowMax = showMax;
   }
@@ -465,5 +420,15 @@ public final class AxisComponent extends AnimatedComponent {
   public void setMargins(int startMargin, int endMargin) {
     myStartMargin = startMargin;
     myEndMargin = endMargin;
+  }
+
+  @VisibleForTesting
+  String getMinLabel() {
+    return myMinLabel;
+  }
+
+  @VisibleForTesting
+  String getMaxLabel() {
+    return myMaxLabel;
   }
 }
