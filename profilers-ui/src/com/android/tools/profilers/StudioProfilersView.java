@@ -62,20 +62,6 @@ public class StudioProfilersView extends AspectObserver {
     myProfiler.addDependency(this).onChange(ProfilerAspect.STAGE, this::updateStageView);
   }
 
-  /**
-   * Test-only constructor which stubs out IDE components
-   */
-  @VisibleForTesting
-  public StudioProfilersView(@NotNull StudioProfilers profiler) {
-    this(profiler, new IdeProfilerComponents() {
-      @Nullable
-      @Override
-      public JComponent getFileViewer(@Nullable File file) {
-        return null;
-      }
-    });
-  }
-
   @VisibleForTesting
   public <S extends Stage, T extends StageView> void bind(@NotNull Class<S> clazz, @NotNull BiFunction<StudioProfilersView, S, T> constructor) {
     myBinder.bind(clazz, constructor);
