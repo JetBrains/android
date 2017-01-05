@@ -17,7 +17,7 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.IdeProfilerServicesStub;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.google.common.collect.ImmutableList;
@@ -46,7 +46,7 @@ public class NetworkMonitorTest {
 
   @Before
   public void setUp() {
-    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
+    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub());
     myMonitor = new NetworkMonitor(myProfilers);
   }
 
