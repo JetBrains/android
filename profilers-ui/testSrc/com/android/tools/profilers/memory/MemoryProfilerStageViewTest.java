@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.IdeProfilerComponentsStub;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
@@ -49,7 +50,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
   @Override
   protected void onProfilersCreated(StudioProfilers profilers) {
-    myView = new StudioProfilersView(profilers);
+    myView = new StudioProfilersView(profilers, new IdeProfilerComponentsStub());
     myView.bind(MemoryProfilerStage.class, MemoryProfilerStageViewFake::new);
   }
 
