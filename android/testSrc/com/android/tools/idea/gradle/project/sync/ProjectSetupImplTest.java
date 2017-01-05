@@ -83,10 +83,10 @@ public class ProjectSetupImplTest extends AndroidGradleTestCase {
     Project project = getProject();
 
     // Sync with Gradle.
-    NewGradleSync gradleSync = new NewGradleSync();
+    NewGradleSync gradleSync = new NewGradleSync(project);
 
     CountDownLatch latch = new CountDownLatch(1);
-    NewGradleSync.Callback sync = gradleSync.sync(project);
+    NewGradleSync.Callback sync = gradleSync.sync();
     sync.doWhenRejected(() -> {
       latch.countDown();
       Throwable error = sync.getSyncError();
