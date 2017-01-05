@@ -39,7 +39,7 @@ final public class StudioProfilersTest {
 
   @Test
   public void testClearedOnMonitorStage() throws Exception {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub());
 
     assertTrue(profilers.getTimeline().getSelectionRange().isEmpty());
 
@@ -53,7 +53,7 @@ final public class StudioProfilersTest {
   @Test
   public void testTimeResetOnConnectedDevice() throws Exception {
     FakeTimer timer = new FakeTimer();
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub(), timer);
     int now = 42;
     myService.setTimestampNs(TimeUnit.SECONDS.toNanos(now));
     timer.tick(1);
