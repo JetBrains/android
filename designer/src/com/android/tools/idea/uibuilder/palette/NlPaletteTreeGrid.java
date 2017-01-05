@@ -132,17 +132,17 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     myMode = mode;
     int fixedCellWidth = -1;
     int fixedCellHeight = -1;
-    int border = mode.getBorder();
+    int border = JBUI.scale(mode.getBorder());
     int orientation = JList.HORIZONTAL_WRAP;
     switch (mode) {
       case ICON_AND_NAME:
         orientation = JList.VERTICAL;
         break;
       case LARGE_ICONS:
-        fixedCellWidth = fixedCellHeight = border + 24 + border;
+        fixedCellWidth = fixedCellHeight = border + JBUI.scale(24) + border;
         break;
       case SMALL_ICONS:
-        fixedCellWidth = fixedCellHeight = border + 16 + border;
+        fixedCellWidth = fixedCellHeight = border + JBUI.scale(16) + border;
         break;
     }
     myTree.setFixedCellWidth(fixedCellWidth);
