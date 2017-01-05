@@ -1,0 +1,16 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion "25.0.0"
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 24
+    }
+}
+
+dependencies {
+    compile project(":feature1lib")
+    compile project(":feature2lib")
+}

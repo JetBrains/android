@@ -23,6 +23,7 @@ public final class TestProjectPaths {
   public static final String MODULE_INFO_MANIFEST_MERGER = "projects/moduleInfo/manifestMerger";
   public static final String MODULE_INFO_MANIFEST_ONLY = "projects/moduleInfo/manifestOnly";
   public static final String MODULE_INFO_MERGE = "projects/moduleInfo/merge";
+  public static final String MULTI_ATOM = "projects/multiAtom";
   public static final String NAVIGATION_EDITOR = "projects/navigationEditor";
   public static final String NAVIGATOR = "projects/navigator";
   public static final String NESTED_MODULE = "projects/nestedModule";

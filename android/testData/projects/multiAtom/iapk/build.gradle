@@ -1,0 +1,16 @@
+apply plugin: 'com.android.instantapp'
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion "25.0.0"
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 24
+    }
+}
+
+dependencies {
+    compile project(":feature1atom")
+    compile project(":feature2atom")
+}
