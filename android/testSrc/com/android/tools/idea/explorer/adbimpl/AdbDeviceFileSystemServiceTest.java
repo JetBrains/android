@@ -17,17 +17,15 @@ package com.android.tools.idea.explorer.adbimpl;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.ddms.adb.AdbService;
+import com.android.tools.idea.explorer.FutureUtils;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.ide.IdeEventQueue;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.roots.ProjectRootManager;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.ide.PooledThreadExecutor;
 
-import java.awt.*;
 import java.util.List;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -87,39 +85,7 @@ public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
     assertNotNull(devices);
   }
 
-  /**
-   * Waits on the dispatch thread for a {@link ListenableFuture} to complete.
-   * Calling this method instead of {@link ListenableFuture#get} is required for
-   * {@link ListenableFuture} that have callbacks executing on the
-   * {@link EdtExecutor#INSTANCE}.
-   */
-  public <V> V pumpEventsAndWaitForFuture(ListenableFuture<V> future) throws InterruptedException, ExecutionException, TimeoutException {
-    return pumpEventsAndWaitForFuture(future, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
-  }
-
-  public <V> V pumpEventsAndWaitForFuture(ListenableFuture<V> future, long timeout, TimeUnit unit)
-    throws ExecutionException, InterruptedException, TimeoutException {
-
-    assert Toolkit.getDefaultToolkit().getSystemEventQueue() instanceof IdeEventQueue;
-    assert EventQueue.isDispatchThread();
-
-    long nano = unit.toNanos(timeout);
-    long startNano = System.nanoTime();
-    long endNano = startNano + nano;
-
-    while (System.nanoTime() <= endNano) {
-      IdeEventQueue.getInstance().flushQueue();
-      try {
-        future.get(50, TimeUnit.MILLISECONDS);
-        if (future.isDone()) {
-          return future.get();
-        }
-      }
-      catch (InterruptedException | ExecutionException | TimeoutException | CancellationException e) {
-        // Ignore exceptions since we will retry (or rethrow) later on
-      }
-    }
-
-    throw new TimeoutException();
+  private static <V> V pumpEventsAndWaitForFuture(ListenableFuture<V> future) throws InterruptedException, ExecutionException, TimeoutException {
+    return FutureUtils.pumpEventsAndWaitForFuture(future, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
   }
 }

@@ -57,12 +57,12 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
   }
 
   @NotNull
-  public FutureCallbackExecutor getEdtExecutor() {
+  FutureCallbackExecutor getEdtExecutor() {
     return myService.getEdtExecutor();
   }
 
   @NotNull
-  public FutureCallbackExecutor getTaskExecutor() {
+  FutureCallbackExecutor getTaskExecutor() {
     return myService.getTaskExecutor();
   }
 
