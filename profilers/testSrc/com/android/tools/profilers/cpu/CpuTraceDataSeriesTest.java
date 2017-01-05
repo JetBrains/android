@@ -19,14 +19,10 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.IdeProfilerServicesStub;
 import com.android.tools.profilers.StudioProfilers;
-import com.google.protobuf3jarjar.ByteString;
 import com.intellij.util.containers.ImmutableList;
-import io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -102,63 +98,4 @@ public class CpuTraceDataSeriesTest {
     assertEquals(expectedCapture.getRange().getMin(), capture.getRange().getMin(), 0);
     assertEquals(expectedCapture.getRange().getMax(), capture.getRange().getMax(), 0);
   }
-
-  private static class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
-
-    private static final int FAKE_TRACE_ID = 6;
-
-    /**
-     * Whether there is a valid trace in the getTraceInfo response.
-     */
-    private boolean myValidTrace;
-
-    @Nullable
-    private ByteString myTrace;
-
-    private CpuCapture myCapture;
-
-    private CpuProfiler.GetTraceResponse.Status myGetTraceResponseStatus;
-
-    @Override
-    public void getTraceInfo(CpuProfiler.GetTraceInfoRequest request, StreamObserver<CpuProfiler.GetTraceInfoResponse> responseObserver) {
-      CpuProfiler.GetTraceInfoResponse.Builder response = CpuProfiler.GetTraceInfoResponse.newBuilder();
-      if (myValidTrace) {
-        response.addTraceInfo(CpuProfiler.TraceInfo.newBuilder().setTraceId(FAKE_TRACE_ID));
-      }
-
-      responseObserver.onNext(response.build());
-      responseObserver.onCompleted();
-    }
-
-    @Override
-    public void getTrace(CpuProfiler.GetTraceRequest request, StreamObserver<CpuProfiler.GetTraceResponse> responseObserver) {
-      CpuProfiler.GetTraceResponse.Builder response = CpuProfiler.GetTraceResponse.newBuilder();
-      response.setStatus(myGetTraceResponseStatus);
-      if (myTrace != null) {
-        response.setData(myTrace);
-      }
-
-      responseObserver.onNext(response.build());
-      responseObserver.onCompleted();
-    }
-
-    private void setValidTrace(boolean hasValidTrace) {
-      myValidTrace = hasValidTrace;
-    }
-
-    private CpuCapture parseTraceFile() throws IOException {
-      if (myTrace == null) {
-        myTrace = CpuCaptureTest.readValidTrace();
-      }
-      if (myCapture == null) {
-        myCapture = new CpuCapture(myTrace);
-      }
-      return myCapture;
-    }
-
-    private void setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status getTraceResponseStatus) {
-      myGetTraceResponseStatus = getTraceResponseStatus;
-    }
-  }
-
 }

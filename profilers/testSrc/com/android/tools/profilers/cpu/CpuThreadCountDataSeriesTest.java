@@ -17,16 +17,11 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.FakeGrpcChannel;
-import com.google.common.collect.ImmutableList;
-import io.grpc.stub.StreamObserver;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -139,63 +134,5 @@ public class CpuThreadCountDataSeriesTest {
     assertNotNull(seriesData);
     assertEquals(range.getMax(), seriesData.x, 0);
     assertEquals(0, (long)seriesData.value); // thread2 is still dead
-  }
-
-
-  private static class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
-
-    @Override
-    public void getThreads(CpuProfiler.GetThreadsRequest request, StreamObserver<CpuProfiler.GetThreadsResponse> responseObserver) {
-      CpuProfiler.GetThreadsResponse.Builder response = CpuProfiler.GetThreadsResponse.newBuilder();
-      response.addAllThreads(buildThreads(request.getStartTimestamp(), request.getEndTimestamp()));
-
-      responseObserver.onNext(response.build());
-      responseObserver.onCompleted();
-    }
-
-    /**
-     * Create two threads that overlap for certain amount of time.
-     * They are referred as thread1 and thread2 in the comments present in the tests.
-     *
-     * Thread1 is alive from 1s to 8s, while thread2 is alive from 6s to 15s.
-     */
-    private static ImmutableList<CpuProfiler.GetThreadsResponse.Thread> buildThreads(long start, long end) {
-      ImmutableList.Builder<CpuProfiler.GetThreadsResponse.Thread> threads = new ImmutableList.Builder<>();
-
-      Range requestRange = new Range(start, end);
-
-      Range thread1Range = new Range(TimeUnit.SECONDS.toNanos(1), TimeUnit.SECONDS.toNanos(8));
-      if (!thread1Range.getIntersection(requestRange).isEmpty()) {
-        List<CpuProfiler.GetThreadsResponse.ThreadActivity> activitiesThread1 = new ArrayList<>();
-        activitiesThread1.add(newActivity(TimeUnit.SECONDS.toNanos(1), CpuProfiler.GetThreadsResponse.State.RUNNING));
-        activitiesThread1.add(newActivity(TimeUnit.SECONDS.toNanos(8), CpuProfiler.GetThreadsResponse.State.DEAD));
-        threads.add(newThread(activitiesThread1));
-      }
-
-      Range thread2Range = new Range(TimeUnit.SECONDS.toNanos(6), TimeUnit.SECONDS.toNanos(15));
-      if (!thread2Range.getIntersection(requestRange).isEmpty()) {
-        List<CpuProfiler.GetThreadsResponse.ThreadActivity> activitiesThread2 = new ArrayList<>();
-        activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(6), CpuProfiler.GetThreadsResponse.State.RUNNING));
-        activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(10), CpuProfiler.GetThreadsResponse.State.WAITING));
-        activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(15), CpuProfiler.GetThreadsResponse.State.DEAD));
-        threads.add(newThread(activitiesThread2));
-      }
-
-      return threads.build();
-    }
-
-    private static CpuProfiler.GetThreadsResponse.ThreadActivity newActivity(long timestampNs, CpuProfiler.GetThreadsResponse.State state) {
-      CpuProfiler.GetThreadsResponse.ThreadActivity.Builder activity = CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder();
-      activity.setNewState(state);
-      activity.setTimestamp(timestampNs);
-      return activity.build();
-    }
-
-    private static CpuProfiler.GetThreadsResponse.Thread newThread(List<CpuProfiler.GetThreadsResponse.ThreadActivity> activities) {
-      CpuProfiler.GetThreadsResponse.Thread.Builder thread = CpuProfiler.GetThreadsResponse.Thread.newBuilder();
-      thread.addAllActivities(activities);
-      return thread.build();
-    }
-
   }
 }
