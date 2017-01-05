@@ -194,8 +194,8 @@ public class GradleSyncInvoker {
     }
     myPreSyncProjectCleanUp.cleanUp(project);
 
-    GradleSync gradleSync = useNewGradleSync ? new NewGradleSync() : new IdeaGradleSync();
-    gradleSync.sync(project, request, listener);
+    GradleSync gradleSync = useNewGradleSync ? new NewGradleSync(project) : new IdeaGradleSync(project);
+    gradleSync.sync(request, listener);
   }
 
   private static void handlePreSyncCheckFailure(@NotNull Project project,
