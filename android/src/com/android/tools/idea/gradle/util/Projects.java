@@ -82,7 +82,6 @@ import static java.lang.Boolean.TRUE;
  */
 public final class Projects {
   private static final Key<LibraryDependency> MODULE_COMPILED_ARTIFACT = Key.create("module.compiled.artifact");
-  private static final Key<Collection<Module>> MODULES_TO_DISPOSE_POST_SYNC = Key.create("project.modules.to.dispose.post.sync");
   private static final Key<Boolean> SYNC_REQUESTED_DURING_BUILD = Key.create("project.sync.requested.during.build");
   private static final Key<Map<String, GradleVersion>> PLUGIN_VERSIONS_BY_MODULE = Key.create("project.plugin.versions.by.module");
 
@@ -428,15 +427,6 @@ public final class Projects {
     }
     // For non-Android project modules, the top-level one is the one without an "Android-Gradle" facet.
     return !isBuildWithGradle(module);
-  }
-
-  @Nullable
-  public static Collection<Module> getModulesToDisposePostSync(@NotNull Project project) {
-    return project.getUserData(MODULES_TO_DISPOSE_POST_SYNC);
-  }
-
-  public static void setModulesToDisposePostSync(@NotNull Project project, @Nullable Collection<Module> modules) {
-    project.putUserData(MODULES_TO_DISPOSE_POST_SYNC, modules);
   }
 
   /**

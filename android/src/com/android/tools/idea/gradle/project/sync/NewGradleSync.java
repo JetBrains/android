@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
+import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
@@ -54,40 +55,42 @@ import static org.gradle.tooling.GradleConnector.newCancellationTokenSource;
 import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
 public class NewGradleSync implements GradleSync {
+  @NotNull private final Project myProject;
   @NotNull private final CommandLineArgs myCommandLineArgs;
   @NotNull private final ProjectSetup.Factory myProjectSetupFactory;
 
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
 
-  NewGradleSync() {
-    this(new CommandLineArgs(true /* create classpath init script */), new ProjectSetup.Factory());
+  NewGradleSync(@NotNull Project project) {
+    this(project, new CommandLineArgs(true /* create classpath init script */), new ProjectSetup.Factory());
   }
 
   @VisibleForTesting
-  NewGradleSync(@NotNull CommandLineArgs commandLineArgs, @NotNull ProjectSetup.Factory projectSetupFactory) {
+  NewGradleSync(@NotNull Project project, @NotNull CommandLineArgs commandLineArgs, @NotNull ProjectSetup.Factory projectSetupFactory) {
+    myProject = project;
     myCommandLineArgs = commandLineArgs;
     myProjectSetupFactory = projectSetupFactory;
   }
 
   @Override
-  public void sync(@NotNull Project project, @NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
-    String title = String.format("Syncing project '%1$s' with Gradle", project.getName());
+  public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
+    String title = String.format("Syncing project '%1$s' with Gradle", myProject.getName());
     Task task;
     ProgressExecutionMode executionMode = request.getProgressExecutionMode();
     switch (executionMode) {
       case MODAL_SYNC:
-        task = new Task.Modal(project, title, true) {
+        task = new Task.Modal(myProject, title, true) {
           @Override
           public void run(@NotNull ProgressIndicator indicator) {
-            sync(project, indicator, listener);
+            sync(indicator, listener);
           }
         };
         break;
       case IN_BACKGROUND_ASYNC:
-        task = new Task.Backgroundable(project, title, true) {
+        task = new Task.Backgroundable(myProject, title, true) {
           @Override
           public void run(@NotNull ProgressIndicator indicator) {
-            sync(project, indicator, listener);
+            sync(indicator, listener);
           }
         };
         break;
@@ -97,27 +100,27 @@ public class NewGradleSync implements GradleSync {
     invokeAndWaitIfNeeded((Runnable)task::queue);
   }
 
-  private void sync(@NotNull Project project, @NotNull ProgressIndicator indicator, @Nullable GradleSyncListener syncListener) {
-    Callback callback = sync(project);
+  private void sync(@NotNull ProgressIndicator indicator, @Nullable GradleSyncListener syncListener) {
+    Callback callback = sync();
     // @formatter:off
-    callback.doWhenDone(() -> onSyncFinished(project, callback, indicator, syncListener))
-            .doWhenRejected(() -> onSyncFailed(project, callback, syncListener));
+    callback.doWhenDone(() -> onSyncFinished(callback, indicator, syncListener))
+            .doWhenRejected(() -> onSyncFailed(callback, syncListener));
     // @formatter:on
   }
 
   @VisibleForTesting
   @NotNull
-  Callback sync(@NotNull Project project) {
+  Callback sync() {
     Callback callback = new Callback();
 
-    if (project.isDisposed()) {
-      callback.reject(String.format("Project '%1$s' is already disposed", project.getName()));
+    if (myProject.isDisposed()) {
+      callback.reject(String.format("Project '%1$s' is already disposed", myProject.getName()));
     }
 
     // TODO: Handle sync cancellation.
     // TODO: Show Gradle output.
 
-    GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(project, useEmbeddedGradle());
+    GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(myProject, useEmbeddedGradle());
 
     Function<ProjectConnection, Void> syncFunction = connection -> {
       //noinspection deprecation
@@ -132,12 +135,12 @@ public class NewGradleSync implements GradleSync {
       ExternalSystemTaskNotificationListener listener = new ExternalSystemTaskNotificationListenerAdapter() {
         // TODO: implement
       };
-      List<String> commandLineArgs = myCommandLineArgs.get(project  /* include classpath init script */);
+      List<String> commandLineArgs = myCommandLineArgs.get(myProject);
 
       // We try to avoid passing JVM arguments, to share Gradle daemons between Gradle sync and Gradle build.
       // If JVM arguments from Gradle sync are different than the ones from Gradle build, Gradle won't reuse daemons. This is bad because
       // daemons are expensive (memory-wise) and slow to start.
-      ExternalSystemTaskId id = createId(project);
+      ExternalSystemTaskId id = createId(myProject);
       prepare(executor, id, executionSettings, listener, Collections.emptyList() /* JVM args */, commandLineArgs, connection);
 
       CancellationTokenSource cancellationTokenSource = newCancellationTokenSource();
@@ -154,7 +157,7 @@ public class NewGradleSync implements GradleSync {
       return null;
     };
 
-    myHelper.execute(getBaseDirPath(project).getPath(), executionSettings, syncFunction);
+    myHelper.execute(getBaseDirPath(myProject).getPath(), executionSettings, syncFunction);
     return callback;
   }
 
@@ -168,30 +171,28 @@ public class NewGradleSync implements GradleSync {
     return false;
   }
 
-  private void onSyncFinished(@NotNull Project project,
-                              @NotNull Callback callback,
-                              @NotNull ProgressIndicator indicator,
-                              @Nullable GradleSyncListener syncListener) {
+  private void onSyncFinished(@NotNull Callback callback, @NotNull ProgressIndicator indicator, @Nullable GradleSyncListener syncListener) {
     SyncAction.ProjectModels models = callback.getModels();
     if (models != null) {
       try {
-        ProjectSetup projectSetup = myProjectSetupFactory.create(project);
+        ProjectSetup projectSetup = myProjectSetupFactory.create(myProject);
         projectSetup.setUpProject(models, indicator);
         projectSetup.commit(true /* synchronous */);
 
         if (syncListener != null) {
-          syncListener.syncSucceeded(project);
+          syncListener.syncSucceeded(myProject);
         }
 
-        GradleSyncState.getInstance(project).syncEnded();
+        PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
+        PostSyncProjectSetup.getInstance(myProject).setUpProject(request, indicator);
       }
       catch (Throwable e) {
-        notifyAndLogSyncError(project, nullToUnknownErrorCause(getRootCauseMessage(e)), syncListener);
+        notifyAndLogSyncError(myProject, nullToUnknownErrorCause(getRootCauseMessage(e)), syncListener);
       }
     }
     else {
       // SyncAction.ProjectModels should not be null. Something went wrong.
-      notifyAndLogSyncError(project, "Gradle did not return any project models", syncListener);
+      notifyAndLogSyncError(myProject, "Gradle did not return any project models", syncListener);
     }
   }
 
@@ -204,17 +205,17 @@ public class NewGradleSync implements GradleSync {
     logSyncFailure(errorMessage);
   }
 
-  private static void onSyncFailed(@NotNull Project project, @NotNull Callback callback, @Nullable GradleSyncListener syncListener) {
+  private void onSyncFailed(@NotNull Callback callback, @Nullable GradleSyncListener syncListener) {
     Throwable error = callback.getSyncError();
     //noinspection ThrowableResultOfMethodCallIgnored
     String errorMessage = error != null ? getRootCauseMessage(error) : callback.getError();
     errorMessage = nullToUnknownErrorCause(errorMessage);
 
     if (syncListener != null) {
-      syncListener.syncFailed(project, errorMessage);
+      syncListener.syncFailed(myProject, errorMessage);
     }
 
-    GradleSyncState.getInstance(project).syncFailed(errorMessage);
+    GradleSyncState.getInstance(myProject).syncFailed(errorMessage);
 
     if (error != null) {
       getLog().warn("Gradle sync failed", error);
