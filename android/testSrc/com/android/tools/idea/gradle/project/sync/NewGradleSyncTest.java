@@ -55,7 +55,7 @@ public class NewGradleSyncTest extends AndroidGradleTestCase {
 
     when(myProjectSetupFactory.create(getProject())).thenReturn(myProjectSetup);
 
-    myGradleSync = new NewGradleSync(myCommandLineArgs, myProjectSetupFactory);
+    myGradleSync = new NewGradleSync(getProject(), myCommandLineArgs, myProjectSetupFactory);
   }
 
   public void testDummy() {
@@ -70,7 +70,7 @@ public class NewGradleSyncTest extends AndroidGradleTestCase {
 
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
     request.setGenerateSourcesOnSuccess(false);
-    myGradleSync.sync(getProject(), request, listener);
+    myGradleSync.sync(request, listener);
     listener.await();
 
     assertFalse(listener.success);
@@ -96,7 +96,7 @@ public class NewGradleSyncTest extends AndroidGradleTestCase {
 
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
     request.setGenerateSourcesOnSuccess(false);
-    myGradleSync.sync(getProject(), request, listener);
+    myGradleSync.sync(request, listener);
 
     listener.await();
 

@@ -38,18 +38,24 @@ public class IdeaGradleSync implements GradleSync {
   private static final boolean SYNC_WITH_CACHED_MODEL_ONLY =
     SystemProperties.getBooleanProperty("studio.sync.with.cached.model.only", false);
 
+  @NotNull private final Project myProject;
+
+  public IdeaGradleSync(@NotNull Project project) {
+
+    myProject = project;
+  }
+
   @Override
-  public void sync(@NotNull Project project,
-                   @NotNull GradleSyncInvoker.Request request,
+  public void sync(@NotNull GradleSyncInvoker.Request request,
                    @Nullable GradleSyncListener listener) {
     // Prevent IDEA from syncing with Gradle. We want to have full control of syncing.
-    project.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, true);
+    myProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, true);
     boolean newProject = request.isNewProject();
 
     if (SYNC_WITH_CACHED_MODEL_ONLY || request.isUseCachedGradleModels()) {
-      GradleProjectSyncData syncData = GradleProjectSyncData.getInstance((project));
+      GradleProjectSyncData syncData = GradleProjectSyncData.getInstance((myProject));
       if (syncData != null && syncData.canUseCachedProjectData()) {
-        DataNodeCaches dataNodeCaches = DataNodeCaches.getInstance(project);
+        DataNodeCaches dataNodeCaches = DataNodeCaches.getInstance(myProject);
         DataNode<ProjectData> cache = dataNodeCaches.getCachedProjectData();
         if (cache != null && !dataNodeCaches.isCacheMissingModels(cache)) {
           PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
@@ -60,7 +66,7 @@ public class IdeaGradleSync implements GradleSync {
                       .setLastSyncTimestamp(syncData.getLastGradleSyncTimestamp());
           // @formatter:on
 
-          ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, setupRequest, listener, newProject, true /* select modules */, true);
+          ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener, newProject, true /* select modules */, true);
           setUpTask.onSuccess(cache);
           return;
         }
@@ -74,12 +80,12 @@ public class IdeaGradleSync implements GradleSync {
                 .setCleanProjectAfterSync(request.isCleanProject());
     // @formatter:on
 
-    String externalProjectPath = getBaseDirPath(project).getPath();
+    String externalProjectPath = getBaseDirPath(myProject).getPath();
 
-    ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, setupRequest, listener, newProject,
+    ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener, newProject,
                                                       newProject /* select modules if it's a new project */, false);
     ProgressExecutionMode executionMode = request.getProgressExecutionMode();
-    refreshProject(project, GRADLE_SYSTEM_ID, externalProjectPath, setUpTask, false /* resolve dependencies */,
+    refreshProject(myProject, GRADLE_SYSTEM_ID, externalProjectPath, setUpTask, false /* resolve dependencies */,
                    executionMode, true /* always report import errors */);
   }
 }
