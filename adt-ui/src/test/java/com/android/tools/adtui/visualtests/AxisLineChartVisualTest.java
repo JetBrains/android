@@ -45,8 +45,6 @@ public class AxisLineChartVisualTest extends VisualTest {
 
   private static final int AXIS_SIZE = 100;
 
-  private static final int LABEL_UPDATE_MILLIS = 100;
-
   private static final String SERIES1_LABEL = "Memory1";
   private static final String SERIES2_LABEL = "Memory2";
 
@@ -135,7 +133,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     mLegendComponent = new LegendComponent(mLegendComponentModel);
     mLegendComponent.configure(legend, new LegendConfig(LegendConfig.IconType.LINE, LineConfig.getColor(1)));
 
-    final AnimatedRange timeSelectionRangeUs = new AnimatedRange();
+    final Range timeSelectionRangeUs = new Range();
     SelectionModel selection = new SelectionModel(timeSelectionRangeUs, timeCurrentRangeUs);
     mSelection = new SelectionComponent(selection);
 
@@ -148,7 +146,6 @@ public class AxisLineChartVisualTest extends VisualTest {
                          mMemoryAxisModel1, // Clamp/interpolate ranges to major ticks if enabled.
                          mMemoryAxisModel2, // Sync with mMemoryAxis1 if enabled.
                          mTimeAxisModel, // Read ranges.
-                         timeSelectionRangeUs,
                          mLegendComponentModel); // Reset flags.
   }
 
