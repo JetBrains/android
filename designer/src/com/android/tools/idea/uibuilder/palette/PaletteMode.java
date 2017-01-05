@@ -19,8 +19,8 @@ import org.jetbrains.annotations.NotNull;
 
 public enum PaletteMode {
   ICON_AND_NAME("Icon and Name", 0),
-  LARGE_ICONS("Large Icons", 6),
-  SMALL_ICONS("Small Icons", 4);
+  LARGE_ICONS("Large Icons", 4),
+  SMALL_ICONS("Small Icons", 3);
 
   PaletteMode(@NotNull String title, int border) {
     myMenuTitle = title;
