@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Multi-Atom Sample App</string>
+
+    <!-- Resources used in any AndroidManifest.xml must be defined in the base atom. -->
+    <string name="feature1_activity_name">Feature1 Activity</string>
+    <string name="feature2_activity_name">Feature2 Activity</string>
+</resources>
+
