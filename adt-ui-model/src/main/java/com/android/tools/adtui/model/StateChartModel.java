@@ -42,7 +42,6 @@ public class StateChartModel<E> extends AspectModel<StateChartModel.Aspect> impl
     changed(Aspect.STATE_CHART);
   }
 
-
   public void addSeries(@NotNull RangedSeries<E> series) {
     mSeriesList.add(series);
     changed(Aspect.STATE_CHART);
