@@ -15,42 +15,63 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.profilers.memory.adapters.InstanceObject.InstanceAttribute;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
 
-public interface ClassObject extends MemoryObject {
+public abstract class ClassObject extends NamespaceObject {
   @NotNull
-  default String getName() {
-    return "";
-  }
+  private final String myPackageName;
 
-  default int getChildrenCount() {
-    return 0;
-  }
+  @NotNull
+  private final String myClassName;
 
-  default int getElementSize() {
-    return 0;
-  }
+  public ClassObject(@NotNull String fullyQualifiedClassName) {
+    super(fullyQualifiedClassName);
 
-  default int getDepth() {
-    return 0;
-  }
-
-  default int getShallowSize() {
-    return 0;
-  }
-
-  default long getRetainedSize() {
-    return 0;
+    int lastIndexOfDot = fullyQualifiedClassName.lastIndexOf('.');
+    myPackageName = lastIndexOfDot > 0 ? fullyQualifiedClassName.substring(0, lastIndexOfDot) : "";
+    myClassName = fullyQualifiedClassName.substring(lastIndexOfDot + 1);
   }
 
   @NotNull
-  default List<InstanceObject> getInstances() {
+  public String getClassName() {
+    return myClassName;
+  }
+
+  @NotNull
+  public String[] getSplitPackageName() {
+    //noinspection SSBasedInspection
+    return myPackageName.isEmpty() ? new String[0] : myPackageName.split("\\.");
+  }
+
+  public int getChildrenCount() {
+    return -1;
+  }
+
+  public int getElementSize() {
+    return -1;
+  }
+
+  public int getDepth() {
+    return -1;
+  }
+
+  public int getShallowSize() {
+    return -1;
+  }
+
+  public long getRetainedSize() {
+    return -1;
+  }
+
+  @NotNull
+  public List<InstanceObject> getInstances() {
     return Collections.emptyList();
   }
 
   @NotNull
-  List<InstanceObject.InstanceAttribute> getInstanceAttributes();
+  public abstract List<InstanceAttribute> getInstanceAttributes();
 }

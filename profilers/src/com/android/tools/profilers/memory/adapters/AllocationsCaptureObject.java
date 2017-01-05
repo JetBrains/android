@@ -19,7 +19,6 @@ import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf3jarjar.ByteString;
-import com.intellij.openapi.diagnostic.Logger;
 import gnu.trove.TIntHashSet;
 import gnu.trove.TIntObjectHashMap;
 import org.jetbrains.annotations.NotNull;
@@ -28,10 +27,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public final class AllocationsCaptureObject implements CaptureObject {
-  private static Logger getLogger() {
-    return Logger.getInstance(AllocationsCaptureObject.class);
-  }
-
   @NotNull private final MemoryServiceBlockingStub myClient;
   private final int myAppId;
   private final int myInfoId;
@@ -103,7 +98,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
       if (response.getStatus() == MemoryProfiler.AllocationsInfo.Status.COMPLETED) {
         break;
       }
-      else if(response.getStatus() == MemoryProfiler.AllocationsInfo.Status.FAILURE_UNKNOWN) {
+      else if (response.getStatus() == MemoryProfiler.AllocationsInfo.Status.FAILURE_UNKNOWN) {
         myIsLoadingError = false;
         return false;
       }

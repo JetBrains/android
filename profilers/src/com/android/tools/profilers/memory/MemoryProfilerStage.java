@@ -61,23 +61,14 @@ public class MemoryProfilerStage extends Stage {
   @NotNull
   private AspectModel<MemoryProfilerAspect> myAspect = new AspectModel<>();
 
-  @NotNull
   private final MemoryServiceBlockingStub myClient;
-
-  @NotNull
   private final DurationDataModel<CaptureDurationData<HeapDumpCaptureObject>> myHeapDumpDurations;
-
-  @NotNull
   private final DurationDataModel<CaptureDurationData<AllocationsCaptureObject>> myAllocationDurations;
-
-  @NotNull
   private final CaptureObjectLoader myLoader;
-
-  @NotNull
-  private MemoryProfilerSelection mySelection;
-
+  private final MemoryProfilerSelection mySelection;
+  private final MemoryProfilerConfiguration myConfiguration;
+  private final EventMonitor myEventMonitor;
   private boolean myTrackingAllocations;
-  private EventMonitor myEventMonitor;
 
   public MemoryProfilerStage(@NotNull StudioProfilers profilers) {
     this(profilers, new CaptureObjectLoader());
@@ -99,6 +90,7 @@ public class MemoryProfilerStage extends Stage {
     myHeapDumpDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, heapDumpSeries));
     myAllocationDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, allocationSeries));
     mySelection = new MemoryProfilerSelection(this);
+    myConfiguration = new MemoryProfilerConfiguration(this);
 
     myTrackingAllocations = false; // TODO sync with current legacy allocation tracker status
 
@@ -175,6 +167,7 @@ public class MemoryProfilerStage extends Stage {
         break;
       case UNSPECIFIED:
       case FAILURE_UNKNOWN:
+      case UNRECOGNIZED:
         break;
     }
   }
@@ -208,6 +201,7 @@ public class MemoryProfilerStage extends Stage {
         break;
       case UNSPECIFIED:
       case FAILURE_UNKNOWN:
+      case UNRECOGNIZED:
         break;
     }
     myAspect.changed(MemoryProfilerAspect.LEGACY_ALLOCATION);
@@ -288,6 +282,11 @@ public class MemoryProfilerStage extends Stage {
     return mySelection.getCaptureObject();
   }
 
+  @NotNull
+  public MemoryProfilerConfiguration getConfiguration() {
+    return myConfiguration;
+  }
+
   public AxisComponentModel getMemoryAxis() {
     return myMemoryAxis;
   }
@@ -311,6 +310,7 @@ public class MemoryProfilerStage extends Stage {
   public String getName() {
     return "Memory";
   }
+
   public static class MemoryStageLegends extends LegendComponentModel {
 
     @NotNull private final SeriesLegend myJavaLegend;
