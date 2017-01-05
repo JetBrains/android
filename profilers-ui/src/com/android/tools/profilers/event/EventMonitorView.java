@@ -35,7 +35,7 @@ public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
   }
 
   public EventMonitorView(@NotNull StudioProfilersView profilersView, @NotNull EventMonitor monitor) {
-    super(profilersView, monitor);
+    super(monitor);
   }
 
   @Override

@@ -69,10 +69,5 @@ public class ProfilerClient {
   public EventServiceGrpc.EventServiceBlockingStub getEventClient() {
     return myEventClient;
   }
-
-  @NotNull
-  public EnergyServiceGrpc.EnergyServiceBlockingStub getEnergyClient() {
-    return myEnergyClient;
-  }
 }
 

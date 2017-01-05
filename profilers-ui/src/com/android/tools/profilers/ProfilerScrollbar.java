@@ -19,6 +19,7 @@ import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.Updatable;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.util.ui.ButtonlessScrollBarUI;
 import org.jetbrains.annotations.NotNull;
@@ -91,7 +92,7 @@ public final class ProfilerScrollbar extends JBScrollBar {
     zoomPanComponent.addMouseWheelListener(e -> {
       if (isScrollable()) {
         int count = e.getWheelRotation();
-        double deltaUs = myTimeline.getViewRange().getLength() * VIEW_PERCENTAGE_PER_MOUSEHWEEL_FACTOR * count;
+        double deltaUs = getWheelDelta() * count;
         if (e.isAltDown()) {
           double anchor = ((float)e.getX() / e.getComponent().getWidth());
           myTimeline.zoom(deltaUs, anchor);
@@ -103,6 +104,11 @@ public final class ProfilerScrollbar extends JBScrollBar {
         myCheckStream = deltaUs > 0;
       }
     });
+  }
+
+  @VisibleForTesting
+  public double getWheelDelta() {
+    return myTimeline.getViewRange().getLength() * VIEW_PERCENTAGE_PER_MOUSEHWEEL_FACTOR;
   }
 
   private void modelChanged() {
