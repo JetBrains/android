@@ -37,7 +37,7 @@ import static com.android.tools.profilers.ProfilerLayout.*;
 public class CpuMonitorView extends ProfilerMonitorView<CpuMonitor> {
 
   public CpuMonitorView(@NotNull StudioProfilersView profilersView, @NotNull CpuMonitor monitor) {
-    super(profilersView, monitor);
+    super(monitor);
   }
 
   @Override
