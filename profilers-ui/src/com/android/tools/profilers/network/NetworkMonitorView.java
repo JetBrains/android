@@ -34,7 +34,7 @@ import static com.android.tools.profilers.ProfilerLayout.*;
 public class NetworkMonitorView extends ProfilerMonitorView<NetworkMonitor> {
 
   public NetworkMonitorView(@NotNull StudioProfilersView profilersView, @NotNull NetworkMonitor monitor) {
-    super(profilersView, monitor);
+    super(monitor);
   }
 
   @Override
