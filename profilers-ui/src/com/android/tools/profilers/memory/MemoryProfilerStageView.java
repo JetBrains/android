@@ -49,9 +49,9 @@ import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
-  @NotNull private final Icon myGcIcon = UIUtil.isUnderDarcula() ?
-                                         IconLoader.findIcon("/icons/garbage-event_dark.png", MemoryProfilerStageView.class) :
-                                         IconLoader.findIcon("/icons/garbage-event.png", MemoryProfilerStageView.class);
+  @NotNull private final Icon myGcIcon =
+    IconLoader
+      .findIcon(UIUtil.isUnderDarcula() ? "/icons/garbage-event_dark.png" : "/icons/garbage-event.png", MemoryProfilerStageView.class);
 
   @NotNull private final ExecutorService myExecutorService =
     Executors.newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat("profiler-memory-profiler-stage-view").build());
@@ -59,6 +59,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private final MemoryCaptureView myCaptureView = new MemoryCaptureView(getStage());
   @NotNull private final MemoryHeapView myHeapView = new MemoryHeapView(getStage());
   @NotNull private final MemoryClassView myClassView = new MemoryClassView(getStage());
+  @NotNull private final MemoryClassGrouping myClassGrouping = new MemoryClassGrouping(getStage());
   @NotNull private final MemoryInstanceView myInstanceView = new MemoryInstanceView(getStage());
   @NotNull private final MemoryInstanceDetailsView myInstanceDetailsView = new MemoryInstanceDetailsView(getStage());
 
@@ -142,6 +143,12 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   @VisibleForTesting
   @NotNull
+  MemoryClassGrouping getClassGrouping() {
+    return myClassGrouping;
+  }
+
+  @VisibleForTesting
+  @NotNull
   MemoryClassView getClassView() {
     return myClassView;
   }
@@ -204,7 +211,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     lineChart.configure(memoryUsage.getCodeSeries(), new LineConfig(ProfilerColors.MEMORY_CODE).setFilled(true).setStacked(true));
     lineChart.configure(memoryUsage.getOtherSeries(), new LineConfig(ProfilerColors.MEMORY_OTHERS).setFilled(true).setStacked(true));
     lineChart.configure(memoryUsage.getTotalMemorySeries(), new LineConfig(ProfilerColors.MEMORY_TOTAL));
-    lineChart.configure(memoryUsage.getObjectsSeries(), new LineConfig(ProfilerColors.MEMORY_OBJECTS).setStroke(LineConfig.DEFAULT_DASH_STROKE));
+    lineChart
+      .configure(memoryUsage.getObjectsSeries(), new LineConfig(ProfilerColors.MEMORY_OBJECTS).setStroke(LineConfig.DEFAULT_DASH_STROKE));
 
     // TODO set proper colors / icons
     DurationDataRenderer<CaptureDurationData<HeapDumpCaptureObject>> heapDumpRenderer =
@@ -305,6 +313,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     JToolBar toolBar = new JToolBar();
     toolBar.setFloatable(false);
     toolBar.add(myHeapView.getComponent());
+    toolBar.add(myClassGrouping.getComponent());
     headingPanel.add(toolBar);
 
     myCapturePanel.add(headingPanel, BorderLayout.PAGE_START);

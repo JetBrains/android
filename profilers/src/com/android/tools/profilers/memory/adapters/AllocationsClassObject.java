@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocatedClass;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -25,18 +25,13 @@ import java.util.List;
 import static com.android.tools.profilers.memory.adapters.InstanceObject.InstanceAttribute.LABEL;
 import static com.android.tools.profilers.memory.adapters.InstanceObject.InstanceAttribute.SHALLOW_SIZE;
 
-final class AllocationsClassObject implements ClassObject {
-  @NotNull private final MemoryProfiler.AllocatedClass myAllocatedClass;
+final class AllocationsClassObject extends ClassObject {
+  @NotNull private final AllocatedClass myAllocatedClass;
   @NotNull private final List<InstanceObject> myInstanceNodes = new ArrayList<>();
 
-  public AllocationsClassObject(@NotNull MemoryProfiler.AllocatedClass allocatedClass) {
+  public AllocationsClassObject(@NotNull AllocatedClass allocatedClass) {
+    super(allocatedClass.getClassName());
     myAllocatedClass = allocatedClass;
-  }
-
-  @NotNull
-  @Override
-  public String getName() {
-    return myAllocatedClass.getClassName();
   }
 
   public void addInstance(@NotNull AllocationsInstanceObject node) {
