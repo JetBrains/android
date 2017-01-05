@@ -25,6 +25,9 @@ import java.util.Map;
 
 public class ProfilerColors {
 
+  // Collections of constant, do not instantiate.
+  private ProfilerColors() {}
+
   public static final Color CPU_USAGE = new JBColor(0x62C88E, 0x44B67F);
 
   public static final Color CPU_OTHER_USAGE = new JBColor(0xDFE6EE, 0x34383D);
