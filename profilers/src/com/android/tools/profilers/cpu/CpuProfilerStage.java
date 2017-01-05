@@ -22,8 +22,12 @@ import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.ProfilerTimeline;
+import com.android.tools.profilers.Stage;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.event.EventMonitor;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashMap;
@@ -31,7 +35,9 @@ import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class CpuProfilerStage extends Stage {
@@ -253,7 +259,8 @@ public class CpuProfilerStage extends Stage {
     return myCapturing;
   }
 
-  public DataSeries<CpuCapture> getCpuTraceDataSeries() {
+  @NotNull
+  public CpuTraceDataSeries getCpuTraceDataSeries() {
     return myCpuTraceDataSeries;
   }
 
@@ -278,8 +285,8 @@ public class CpuProfilerStage extends Stage {
     return capture;
   }
 
-  // TODO: add tests for CpuTraceDataSeries. Consider moving it to its own class as the others CPU-related DataSeries.
-  private class CpuTraceDataSeries implements DataSeries<CpuCapture> {
+  @VisibleForTesting
+  class CpuTraceDataSeries implements DataSeries<CpuCapture> {
     @Override
     public ImmutableList<SeriesData<CpuCapture>> getDataForXRange(Range xRange) {
       long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
@@ -293,9 +300,10 @@ public class CpuProfilerStage extends Stage {
       List<SeriesData<CpuCapture>> seriesData = new ArrayList<>();
       for (CpuProfiler.TraceInfo traceInfo : response.getTraceInfoList()) {
         CpuCapture capture = getCapture(traceInfo.getTraceId());
-        Range range = capture.getRange();
-
-        seriesData.add(new SeriesData<>((long)range.getMin(), capture));
+        if (capture != null) {
+          Range range = capture.getRange();
+          seriesData.add(new SeriesData<>((long)range.getMin(), capture));
+        }
       }
       return ContainerUtil.immutableList(seriesData);
     }
