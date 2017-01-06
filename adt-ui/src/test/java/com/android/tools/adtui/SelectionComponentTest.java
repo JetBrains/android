@@ -17,175 +17,140 @@ package com.android.tools.adtui;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SelectionModel;
+import com.android.tools.adtui.swing.FakeInputDevices;
+import com.android.tools.adtui.swing.FakeKeyboard;
+import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mockito;
-
-import javax.swing.*;
-import java.awt.event.*;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertTrue;
 
 public class SelectionComponentTest {
+
+  @Rule
+  public FakeInputDevices myInputDevices = new FakeInputDevices();
 
   private static final double DELTA = 1e-3;
 
   @Test
-  public void testMousePressToSelectRange() {
-    SelectionModel model = new SelectionModel(new Range(0, 0), new Range(0, 100));
+  public void clickingInViewRangeCreatesPointSelectionRange() {
+    SelectionModel model = new SelectionModel(new Range(), new Range(0, 100));
     SelectionComponent component = new SelectionComponent(model);
     component.setSize(100, 100);
-    assertEquals(0, model.getSelectionRange().getMin(), DELTA);
-    assertEquals(0, model.getSelectionRange().getMax(), DELTA);
-    mousePress(component, getEventAtX(20));
+    assertTrue(model.getSelectionRange().isEmpty());
+    myInputDevices.mouse.click(component, 20, 0);
     assertEquals(20, model.getSelectionRange().getMin(), DELTA);
     assertEquals(20, model.getSelectionRange().getMax(), DELTA);
   }
 
   @Test
-  public void testMousePressWithNonZeroStartX() {
+  public void clickingOutsideOfSelectionCreatesNewSelection() {
     SelectionModel model = new SelectionModel(new Range(20, 40), new Range(20, 120));
     SelectionComponent component = new SelectionComponent(model);
     component.setSize(100, 100);
     assertEquals(20, model.getSelectionRange().getMin(), DELTA);
     assertEquals(40, model.getSelectionRange().getMax(), DELTA);
-    mousePress(component, getEventAtX(60));
+    myInputDevices.mouse.click(component, 60, 0);
     assertEquals(80, model.getSelectionRange().getMin(), DELTA);
     assertEquals(80, model.getSelectionRange().getMax(), DELTA);
   }
 
   @Test
-  public void testKeyPressClearSelection() {
+  public void pressingEscapeClearsSelection() {
     SelectionModel model = new SelectionModel(new Range(40, 60), new Range(20, 120));
     SelectionComponent component = new SelectionComponent(model);
     component.setSize(100, 100);
     assertEquals(40, model.getSelectionRange().getMin(), DELTA);
     assertEquals(60, model.getSelectionRange().getMax(), DELTA);
-    keyPress(component, getEventForExtendedKeyCode(KeyEvent.VK_ESCAPE));
-    assertNotEquals(40, model.getSelectionRange().getMin(), DELTA);
-    assertNotEquals(60, model.getSelectionRange().getMax(), DELTA);
+    myInputDevices.keyboard.setFocus(component);
+    myInputDevices.keyboard.press(FakeKeyboard.Key.ESC);
+    assertTrue(model.getSelectionRange().isEmpty());
   }
 
   @Test
-  public void testMouseReleaseToFireEventInModel() {
+  public void selectionModelReceivesMouseClick() {
     int[] event = new int[1];
     SelectionModel model = new SelectionModel(new Range(40, 60), new Range(20, 120));
     model.addChangeListener(e -> event[0] = 1);
     SelectionComponent component = new SelectionComponent(model);
     component.setSize(100, 100);
 
-    mousePress(component, getEventAtX(50));
+    myInputDevices.mouse.press(component, 50, 0);
     assertEquals(0, event[0]);
-    mouseRelease(component, getEventAtX(50));
+    myInputDevices.mouse.release();
     assertEquals(1, event[0]);
   }
 
   @Test
-  public void testMouseDragToAdjustMin() {
+  public void canDragMinHandleToLowerValue() {
     SelectionModel model = new SelectionModel(new Range(10, 20), new Range(0, 100));
     SelectionComponent component = new SelectionComponent(model);
     component.setSize(100, 100);
-    mousePress(component, getEventAtX(getAdjustMinX(10)));
+    myInputDevices.mouse.press(component, getMinHandleX(model), 0);
     assertEquals(10, model.getSelectionRange().getMin(), DELTA);
     assertEquals(20, model.getSelectionRange().getMax(), DELTA);
-    mouseDrag(component, getEventAtX(5));
+    myInputDevices.mouse.dragDelta(-5, 0);
     assertEquals(5, model.getSelectionRange().getMin(), DELTA);
     assertEquals(20, model.getSelectionRange().getMax(), DELTA);
   }
 
   @Test
-  public void testMouseDragToAdjustMax() {
+  public void canDragMaxHandleToHigherValue() {
     SelectionModel model = new SelectionModel(new Range(10, 20), new Range(0, 100));
     SelectionComponent component = new SelectionComponent(model);
     component.setSize(100, 100);
-    mousePress(component, getEventAtX(getAdjustMaxX(20)));
+    myInputDevices.mouse.press(component, getMaxHandleX(model), 0);
     assertEquals(10, model.getSelectionRange().getMin(), DELTA);
     assertEquals(20, model.getSelectionRange().getMax(), DELTA);
-    mouseDrag(component, getEventAtX(40));
+    myInputDevices.mouse.dragDelta(20, 0);
     assertEquals(10, model.getSelectionRange().getMin(), DELTA);
     assertEquals(40, model.getSelectionRange().getMax(), DELTA);
   }
 
   @Test
-  public void testMove() {
+  public void canDragSelectionToPan() {
     SelectionModel model = new SelectionModel(new Range(40, 50), new Range(0, 100));
     SelectionComponent component = new SelectionComponent(model);
     component.setSize(100, 100);
-    mousePress(component, getEventAtX(45));
+    myInputDevices.mouse.press(component, 45, 0);
     assertEquals(40, model.getSelectionRange().getMin(), DELTA);
     assertEquals(50, model.getSelectionRange().getMax(), DELTA);
-    mouseDrag(component, getEventAtX(85));
+    myInputDevices.mouse.dragDelta(40, 0);
     assertEquals(80, model.getSelectionRange().getMin(), DELTA);
     assertEquals(90, model.getSelectionRange().getMax(), DELTA);
   }
 
   @Test
-  public void testDragToMaximumAfterAdjustMin() {
+  public void draggingMinHandleAboveMaxHandleSwapsThem() {
     SelectionModel model = new SelectionModel(new Range(10, 20), new Range(0, 100));
     SelectionComponent component = new SelectionComponent(model);
     component.setSize(100, 100);
-    mousePress(component, getEventAtX(getAdjustMinX(10)));
+    myInputDevices.mouse.press(component, getMinHandleX(model), 0);
     assertEquals(10, model.getSelectionRange().getMin(), DELTA);
     assertEquals(20, model.getSelectionRange().getMax(), DELTA);
-    mouseDrag(component, getEventAtX(100));
-    assertEquals(100, model.getSelectionRange().getMin(), DELTA);
+    myInputDevices.mouse.dragDelta(90, 0);
+    assertEquals(20, model.getSelectionRange().getMin(), DELTA);
     assertEquals(100, model.getSelectionRange().getMax(), DELTA);
   }
 
   @Test
-  public void testDragToMinimumAfterAdjustMax() {
+  public void draggingMaxHandleBelowMinHandleSwapsThem() {
     SelectionModel model = new SelectionModel(new Range(10, 20), new Range(0, 100));
     SelectionComponent component = new SelectionComponent(model);
     component.setSize(100, 100);
-    mousePress(component, getEventAtX(getAdjustMaxX(20)));
+    myInputDevices.mouse.press(component, getMaxHandleX(model), 0);
     assertEquals(10, model.getSelectionRange().getMin(), DELTA);
     assertEquals(20, model.getSelectionRange().getMax(), DELTA);
-    mouseDrag(component, getEventAtX(0));
+    myInputDevices.mouse.dragDelta(-20, 0);
     assertEquals(0, model.getSelectionRange().getMin(), DELTA);
-    assertEquals(0, model.getSelectionRange().getMax(), DELTA);
+    assertEquals(10, model.getSelectionRange().getMax(), DELTA);
   }
 
-  private static MouseEvent getEventAtX(int x) {
-    return new MouseEvent(new JPanel(), 0, 0, 0, x, 0, 1, false, 0);
+  private static int getMinHandleX(SelectionModel model) {
+    return (int)model.getSelectionRange().getMin() - (SelectionComponent.HANDLE_WIDTH / 2);
   }
 
-  // No public API to set extended key, so use mock.
-  private static KeyEvent getEventForExtendedKeyCode(int code) {
-    KeyEvent e = Mockito.mock(KeyEvent.class);
-    when(e.getExtendedKeyCode()).thenReturn(code);
-    return e;
-  }
-
-  private static void mousePress(SelectionComponent component, MouseEvent e) {
-    for (MouseListener listener : component.getMouseListeners()) {
-      listener.mousePressed(e);
-    }
-  }
-
-  private static void mouseRelease(SelectionComponent component, MouseEvent e) {
-    for (MouseListener listener : component.getMouseListeners()) {
-      listener.mouseReleased(e);
-    }
-  }
-
-  private static void mouseDrag(SelectionComponent component, MouseEvent e) {
-    for (MouseMotionListener listener : component.getMouseMotionListeners()) {
-      listener.mouseDragged(e);
-    }
-  }
-
-  private static void keyPress(SelectionComponent component, KeyEvent e) {
-    for (KeyListener listener : component.getKeyListeners()) {
-      listener.keyPressed(e);
-    }
-  }
-
-  private static int getAdjustMinX(int selectionMin) {
-    return selectionMin - SelectionComponent.HANDLE_WIDTH + 1;
-  }
-
-  private static int getAdjustMaxX(int selectionMax) {
-    return selectionMax + SelectionComponent.HANDLE_WIDTH - 1;
+  private static int getMaxHandleX(SelectionModel model) {
+    return (int)model.getSelectionRange().getMax() + (SelectionComponent.HANDLE_WIDTH / 2);
   }
 }
