@@ -16,9 +16,9 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -64,7 +64,6 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  @Ignore // TODO: Currently gets stuck
   public void testStartCapturing() throws InterruptedException {
     assertFalse(myStage.isCapturing());
 
@@ -81,7 +80,6 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  @Ignore
   public void testStopCapturing() throws InterruptedException {
     assertFalse(myStage.isCapturing());
     myGetProcessesLatch.await();
@@ -116,6 +114,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Stop a capture unsuccessfully, but with a valid trace
     myCpuService.setStopProfilingStatus(CpuProfilingAppStopResponse.Status.FAILURE);
     myCpuService.setValidTrace(true);
+    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
     myStage.stopCapturing();
     assertFalse(myStage.isCapturing());
     // Despite the fact of having a valid trace, we first check for the response status.
@@ -129,6 +128,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Stop a capture successfully with a valid trace
     myCpuService.setStopProfilingStatus(CpuProfilingAppStopResponse.Status.SUCCESS);
     myCpuService.setValidTrace(true);
+    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
     myStage.stopCapturing();
     assertFalse(myStage.isCapturing());
     assertNotNull(myStage.getCapture());
