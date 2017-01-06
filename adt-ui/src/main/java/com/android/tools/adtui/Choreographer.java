@@ -31,7 +31,10 @@ import java.util.List;
  * An auxiliary object that synchronizes a group of {@link Updatable} via a simple update loop
  * running at a specific frame rate. This ensures all UI components and model classes are reading
  * and displaying consistent information at any given time.
+ *
+ * Deprecated. Please use {@link com.android.tools.adtui.model.Updater} instead.
  */
+@Deprecated
 public class Choreographer implements StopwatchTimer.TickHandler {
 
   public static final float DEFAULT_LERP_FRACTION = 0.99f;
@@ -91,7 +94,8 @@ public class Choreographer implements StopwatchTimer.TickHandler {
   public void register(LegacyAnimatedComponent updatable) {
     if (mUpdating) {
       mToRegister.add(updatable);
-    } else {
+    }
+    else {
       mComponents.add(updatable);
     }
   }
@@ -105,7 +109,8 @@ public class Choreographer implements StopwatchTimer.TickHandler {
   public void unregister(@NotNull LegacyAnimatedComponent updatable) {
     if (mUpdating) {
       mToUnregister.add(updatable);
-    } else {
+    }
+    else {
       mComponents.remove(updatable);
     }
   }

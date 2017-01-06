@@ -63,7 +63,7 @@ public abstract class VisualTest {
    * The {@code Animatable} components should be created in this method.
    *
    * @return An ordered {@code List} containing the Animatables which should be added to the
-   * {@link Choreographer} of this {@link VisualTest}.
+   * {@link Updater} of this {@link VisualTest}.
    */
   protected abstract List<Updatable> createModelList();
 

@@ -15,10 +15,8 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.Updatable;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.util.ui.ButtonlessScrollBarUI;
@@ -30,12 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * A custom toolbar that synchronizes with the data+view ranges from the {@link ProfilerTimeline}.
- *
  * This control sets the timeline into streaming mode if users drags the thumb all the way to the right.
- * Also, any updates back to the timeline object are handled inside {@link #update(float)} so that
- * view range is synchronized with the {@link Choreographer}. This also means that this control should be
- * registered before/after all {@link Updatable} to ensure the view range does not change in the middle of
- * the animation loop.
  */
 public final class ProfilerScrollbar extends JBScrollBar {
   /**
