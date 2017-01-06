@@ -118,25 +118,33 @@ public final class SelectionComponent extends AnimatedComponent {
       public void mouseDragged(MouseEvent e) {
         double pressed = xToRange(myMousePressed);
         double current = xToRange(e.getX());
+        double rangeDelta = current - pressed;
         switch (myMode) {
           case ADJUST_MIN:
             if (current > myModel.getSelectionRange().getMax()) {
-              myModel.getSelectionRange().setMax(current);
+              double oldMin = myModel.getSelectionRange().getMin();
+              myModel.getSelectionRange().setMin(myModel.getSelectionRange().getMax());
+              myModel.getSelectionRange().setMax(oldMin + rangeDelta);
               myMode = Mode.ADJUST_MAX;
             }
-            myModel.getSelectionRange().setMin(current);
+            else {
+              myModel.getSelectionRange().setMin(myModel.getSelectionRange().getMin() + rangeDelta);
+            }
             myMousePressed = e.getX();
             break;
           case ADJUST_MAX:
             if (current < myModel.getSelectionRange().getMin()) {
-              myModel.getSelectionRange().setMin(current);
+              double oldMax = myModel.getSelectionRange().getMax();
+              myModel.getSelectionRange().setMax(myModel.getSelectionRange().getMin());
+              myModel.getSelectionRange().setMin(oldMax + rangeDelta);
               myMode = Mode.ADJUST_MIN;
             }
-            myModel.getSelectionRange().setMax(current);
+            else {
+              myModel.getSelectionRange().setMax(myModel.getSelectionRange().getMax() + rangeDelta);
+            }
             myMousePressed = e.getX();
             break;
           case MOVE:
-            double rangeDelta = current - pressed;
             myModel.getSelectionRange().setMax(myModel.getSelectionRange().getMax() + rangeDelta);
             myModel.getSelectionRange().setMin(myModel.getSelectionRange().getMin() + rangeDelta);
             myMousePressed = e.getX();
@@ -153,7 +161,7 @@ public final class SelectionComponent extends AnimatedComponent {
     addKeyListener(new KeyAdapter() {
       @Override
       public void keyPressed(KeyEvent e) {
-        if (e.getExtendedKeyCode() == KeyEvent.VK_ESCAPE) {
+        if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
           if (!myModel.getSelectionRange().isEmpty()) {
             myModel.getSelectionRange().clear();
             e.consume();
