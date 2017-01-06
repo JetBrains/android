@@ -20,10 +20,7 @@ import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.IdeProfilerServicesStub;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.ClassObject;
-import com.android.tools.profilers.memory.adapters.HeapObject;
-import com.android.tools.profilers.memory.adapters.InstanceObject;
+import com.android.tools.profilers.memory.adapters.*;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
@@ -31,11 +28,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public abstract class MemoryProfilerTestBase extends AspectObserver {
   protected StudioProfilers myProfilers;
@@ -73,7 +71,8 @@ public abstract class MemoryProfilerTestBase extends AspectObserver {
    */
   protected abstract FakeGrpcChannel getGrpcChannel();
 
-  protected void onProfilersCreated(StudioProfilers profilers) {}
+  protected void onProfilersCreated(StudioProfilers profilers) {
+  }
 
   protected void assertAndResetCounts(int legacyAllocationAspect,
                                       int currentLoadingCaptureAspectCount,
@@ -128,197 +127,57 @@ public abstract class MemoryProfilerTestBase extends AspectObserver {
     }
   }
 
-  // TODO Use Mockito. Or define mock classes here and let tests instantiate their own objects.
-  protected static final CaptureObject DUMMY_CAPTURE = new CaptureObject() {
-    @NotNull
-    @Override
-    public String getLabel() {
-      return "DUMMY_CAPTURE";
-    }
+  @NotNull
+  static CaptureObject mockCaptureObject(@NotNull String name, long startTimeNs, long endTimeNs,
+                                         @NotNull List<HeapObject> heaps) {
+    CaptureObject object = mock(CaptureObject.class);
+    when(object.getLabel()).thenReturn(name);
+    when(object.getStartTimeNs()).thenReturn(startTimeNs);
+    when(object.getEndTimeNs()).thenReturn(endTimeNs);
+    when(object.getHeaps()).thenReturn(heaps);
+    when(object.load()).thenReturn(true);
+    when(object.isDoneLoading()).thenReturn(true);
+    when(object.isError()).thenReturn(false);
+    return object;
+  }
 
-    @NotNull
-    @Override
-    public List<HeapObject> getHeaps() {
-      return Arrays.asList(DUMMY_HEAP_1, DUMMY_HEAP_2);
-    }
+  @NotNull
+  static HeapObject mockHeapObject(@NotNull String name, @NotNull List<ClassObject> klasses) {
+    HeapObject object = mock(HeapObject.class);
+    when(object.getHeapName()).thenReturn(name);
+    when(object.getClasses()).thenReturn(klasses);
+    when(object.getClassAttributes()).thenReturn(Collections.emptyList());
+    return object;
+  }
 
-    @Override
-    public long getStartTimeNs() {
-      return 5;
-    }
+  @NotNull
+  static ClassObject mockClassObject(@NotNull String name, @NotNull List<InstanceObject> instances) {
+    ClassObject object = mock(ClassObject.class);
+    when(object.getName()).thenReturn(name);
+    when(object.getChildrenCount()).thenReturn(instances.size());
+    when(object.getInstances()).thenReturn(instances);
+    when(object.getInstanceAttributes()).thenReturn(Collections.emptyList());
+    return object;
+  }
 
-    @Override
-    public long getEndTimeNs() {
-      return 10;
-    }
+  @NotNull
+  static InstanceObject mockInstanceObject(@NotNull String name) {
+    InstanceObject object = mock(InstanceObject.class);
+    when(object.getName()).thenReturn(name);
+    when(object.getCallStack()).thenReturn(MemoryProfiler.AllocationStack.newBuilder()
+                                             .addStackFrames(MemoryProfiler.AllocationStack.StackFrame.newBuilder().build()).build());
+    return object;
+  }
 
-    @Override
-    public boolean load() {
-      return true;
-    }
-
-    @Override
-    public boolean isDoneLoading() {
-      return true;
-    }
-
-    @Override
-    public boolean isError() {
-      return false;
-    }
-
-    @Override
-    public void dispose() {
-    }
-  };
-
-  protected static final CaptureObject DUMMY_CAPTURE_2 = new CaptureObject() {
-    @NotNull
-    @Override
-    public String getLabel() {
-      return "DUMMY_CAPTURE_2";
-    }
-
-    @NotNull
-    @Override
-    public List<HeapObject> getHeaps() {
-      return Arrays.asList(DUMMY_HEAP_1, DUMMY_HEAP_2);
-    }
-
-    @Override
-    public long getStartTimeNs() {
-      return 5;
-    }
-
-    @Override
-    public long getEndTimeNs() {
-      return 10;
-    }
-
-    @Override
-    public boolean load() {
-      return true;
-    }
-
-    @Override
-    public boolean isDoneLoading() {
-      return true;
-    }
-
-    @Override
-    public boolean isError() {
-      return false;
-    }
-
-    @Override
-    public void dispose() {
-    }
-  };
-
-  protected static final HeapObject DUMMY_HEAP_1 = new HeapObject() {
-    @NotNull
-    @Override
-    public String getHeapName() {
-      return "DUMMY_HEAP_1";
-    }
-
-    @NotNull
-    @Override
-    public List<ClassObject> getClasses() {
-      return Arrays.asList(DUMMY_CLASS_1, DUMMY_CLASS_2);
-    }
-
-    @NotNull
-    @Override
-    public List<ClassAttribute> getClassAttributes() {
-      return Collections.emptyList();
-    }
-  };
-
-  protected static final HeapObject DUMMY_HEAP_2 = new HeapObject() {
-    @NotNull
-    @Override
-    public String getHeapName() {
-      return "DUMMY_HEAP_2";
-    }
-
-    @NotNull
-    @Override
-    public List<ClassObject> getClasses() {
-      return Arrays.asList(DUMMY_CLASS_2, DUMMY_CLASS_1);
-    }
-
-    @NotNull
-    @Override
-    public List<ClassAttribute> getClassAttributes() {
-      return Collections.emptyList();
-    }
-  };
-
-  protected static final ClassObject DUMMY_CLASS_1 = new ClassObject() {
-    @NotNull
-    @Override
-    public String getName() {
-      return "DUMMY_CLASS_1";
-    }
-
-    @NotNull
-    @Override
-    public List<InstanceObject.InstanceAttribute> getInstanceAttributes() {
-      return Collections.emptyList();
-    }
-
-    @Override
-    public int getChildrenCount() {
-      return 1;
-    }
-
-    @NotNull
-    @Override
-    public List<InstanceObject> getInstances() {
-      return Collections.singletonList(DUMMY_INSTANCE);
-    }
-  };
-
-  protected static final ClassObject DUMMY_CLASS_2 = new ClassObject() {
-    @NotNull
-    @Override
-    public String getName() {
-      return "DUMMY_CLASS_2";
-    }
-
-    @NotNull
-    @Override
-    public List<InstanceObject.InstanceAttribute> getInstanceAttributes() {
-      return Collections.emptyList();
-    }
-
-    @Override
-    public int getChildrenCount() {
-      return 1;
-    }
-
-    @NotNull
-    @Override
-    public List<InstanceObject> getInstances() {
-      return Collections.singletonList(DUMMY_INSTANCE);
-    }
-  };
-
-  @SuppressWarnings("Convert2Lambda")
-  protected static final InstanceObject DUMMY_INSTANCE = new InstanceObject() {
-    @NotNull
-    @Override
-    public String getName() {
-      return "DUMMY_INSTANCE";
-    }
-
-    @Nullable
-    @Override
-    public MemoryProfiler.AllocationStack getCallStack() {
-      MemoryProfiler.AllocationStack stack = MemoryProfiler.AllocationStack.newBuilder()
-        .addStackFrames(MemoryProfiler.AllocationStack.StackFrame.newBuilder().build()).build();
-      return stack;
-    }
-  };
+  @NotNull
+  static ReferenceObject mockReferenceObject(@NotNull String name,
+                                             @NotNull List<ReferenceObject> referrers,
+                                             @Nullable MemoryProfiler.AllocationStack stack) {
+    ReferenceObject object = mock(ReferenceObject.class);
+    when(object.getName()).thenReturn(name);
+    when(object.getReferences()).thenReturn(referrers);
+    when(object.getReferenceFieldNames()).thenReturn(Collections.EMPTY_LIST);
+    when(object.getCallStack()).thenReturn(stack == null ? MemoryProfiler.AllocationStack.newBuilder().build() : stack);
+    return object;
+  }
 }
