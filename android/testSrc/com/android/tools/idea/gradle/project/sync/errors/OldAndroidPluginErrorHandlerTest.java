@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePlug
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.List;
@@ -42,6 +43,12 @@ public class OldAndroidPluginErrorHandlerTest extends AndroidGradleTestCase {
     mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
   }
 
+  public void testIsMatching() {
+    // See https://code.google.com/p/android/issues/detail?id=231559
+    String text = "The android gradle plugin version 2.3.0-alpha1 is too old, please update to the latest version.";
+    assertTrue(OldAndroidPluginErrorHandler.isMatching(text));
+  }
+
   public void testHandleError() throws Exception {
     runTestOnProject(SIMPLE_APPLICATION, new File(getProjectFolderPath(), FN_BUILD_GRADLE));
   }
@@ -50,14 +57,13 @@ public class OldAndroidPluginErrorHandlerTest extends AndroidGradleTestCase {
     runTestOnProject(PLUGIN_IN_APP, new File(new File(getProjectFolderPath(), "app"), FN_BUILD_GRADLE));
   }
 
-  void runTestOnProject(String projectPath, File expectedHyperlinkValue) throws Exception {
+  private void runTestOnProject(@NotNull String projectPath, @NotNull File expectedHyperlinkValue) throws Exception {
     loadProject(projectPath);
 
     String expectedNotificationMessage = "Plugin is too old, please update to a more recent version";
     registerSyncErrorToSimulate(expectedNotificationMessage);
 
     requestSyncAndGetExpectedFailure();
-
 
     SyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
     assertNotNull(notificationUpdate);
