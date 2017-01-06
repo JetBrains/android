@@ -17,6 +17,7 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.model.Updatable;
+import com.android.tools.adtui.model.Updater;
 import org.jetbrains.annotations.NotNull;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import java.awt.*;
@@ -425,11 +426,11 @@ public class AccordionLayout implements LayoutManager2, Updatable {
       }
 
       if (info.currentSize != targetSize) {
-        info.currentSize = Choreographer.lerp(info.currentSize, targetSize, mLerpFraction, elapsed, mLerpThreshold);
+        info.currentSize = Updater.lerp(info.currentSize, targetSize, mLerpFraction, elapsed, mLerpThreshold);
       }
 
       if (currentSize != minSize) {
-        currentSize = Choreographer.lerp(currentSize, minSize, mLerpFraction, elapsed, mLerpThreshold);
+        currentSize = Updater.lerp(currentSize, minSize, mLerpFraction, elapsed, mLerpThreshold);
       }
 
       switch (info.state) {

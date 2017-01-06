@@ -42,7 +42,6 @@ public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
   public float getVerticalWeight() {
     /**
      * This forces the monitor to use its specified minimum size
-     * Also see {@link ProfilerMonitorView#initialize(Choreographer)}.
      */
     return 0;
   }
