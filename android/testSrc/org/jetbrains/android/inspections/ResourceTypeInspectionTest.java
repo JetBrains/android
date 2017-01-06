@@ -1652,6 +1652,22 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "}\n");
   }
 
+  public void testCalendarGet() throws Exception {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=230099
+    //noinspection all // Sample code
+    doCheck("import java.util.Calendar;\n" +
+            "\n" +
+            "@SuppressWarnings({\"unused\", \"StatementWithEmptyBody\"})\n" +
+            "public class X  {\n" +
+            "    private void check(Calendar lhsCal, Calendar rhsCal) {\n" +
+            "        if( lhsCal.get(Calendar.DAY_OF_YEAR) == rhsCal.get(Calendar.DAY_OF_YEAR)+1){\n" +
+            "        }\n" +
+            "        if( lhsCal.get(Calendar.DAY_OF_YEAR) == 200){\n" +
+            "        }\n" +
+            "    }\n" +
+            "}\n");
+  }
+
   public void testSuppressNames() throws Exception {
     doCheck("package test.pkg;\n" +
             "\n" +
