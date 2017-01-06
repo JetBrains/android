@@ -66,7 +66,8 @@ public class PNameRenderer implements TableCellRenderer {
     myPanel.setBackground(isSelected ? UIUtil.getTableSelectionBackground() : table.getBackground());
 
     SimpleTextAttributes attr = SimpleTextAttributes.REGULAR_ATTRIBUTES;
-    SearchUtil.appendFragments(((PTable)table).getSpeedSearch().getEnteredPrefix(), item.getName(), attr.getStyle(), attr.getFgColor(),
+    String label = item.getParent() != null ? item.getParent().getChildLabel(item) : item.getName();
+    SearchUtil.appendFragments(((PTable)table).getSpeedSearch().getEnteredPrefix(), label, attr.getStyle(), attr.getFgColor(),
                                attr.getBgColor(), myRenderer);
 
     myRenderer.setToolTipText(item.getTooltipText());
