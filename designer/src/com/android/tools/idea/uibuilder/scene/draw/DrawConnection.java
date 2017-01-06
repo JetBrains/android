@@ -31,8 +31,9 @@ public class DrawConnection implements DrawCommand {
   public static final int TYPE_NORMAL = 1; // normal connections
   public static final int TYPE_SPRING = 2; // connected on both sides
   public static final int TYPE_CHAIN = 3;  // connected such that anchor connects back
-  public static final int TYPE_CENTER = 4; // connected on both sides to the same point
+  public static final int TYPE_CENTER = 4; // connected on both sides to the same anchor
   public static final int TYPE_BASELINE = 5;  // connected such that anchor connects back
+  public static final int TYPE_CENTER_WIDGET = 6; // connected on both sides to same widget different anchors
 
   public static final int DIR_LEFT = 0;
   public static final int DIR_RIGHT = 1;
@@ -343,6 +344,7 @@ public class DrawConnection implements DrawCommand {
         }
         break;
       case TYPE_CENTER:
+      case TYPE_CENTER_WIDGET:
         int dir0_x = 0, dir0_y = 0; // direction of the start
         int dir1_x = 0, dir1_y = 0; // direction the arch must go
         int dir2_x = 0, dir2_y = 0;
@@ -401,8 +403,9 @@ public class DrawConnection implements DrawCommand {
             g.setStroke(stroke);
           }
         }
-        int[] px = new int[6];
-        int[] py = new int[6];
+        int len = 6;
+        int[] px = new int[len];
+        int[] py = new int[len];
         px[0] = startx;
         py[0] = starty;
         px[1] = startx + dir0_x * GAP;
@@ -417,7 +420,10 @@ public class DrawConnection implements DrawCommand {
         py[5] = endy;
 
         g.setColor(color.getConstraints());
-        DrawConnectionUtils.drawRound(ourPath, px, py, 6, GAP);
+        if (TYPE_CENTER_WIDGET == connectionType) {
+          len = DrawConnectionUtils.removeZigZag(px, py, len, 50);
+        }
+        DrawConnectionUtils.drawRound(ourPath, px, py, len, GAP);
         DrawConnectionUtils.getArrow(dir, endx, endy, xPoints, yPoints);
         g.fillPolygon(xPoints, yPoints, 3);
         g.draw(ourPath);
