@@ -41,9 +41,8 @@ public class DataReducerVisualTest extends VisualTest {
   private static final int AXIS_SIZE = 80;
 
   private Range myGlobalXRange;
-  private AnimatedRange myViewXRange;
-  private AnimatedRange mySelectionXRange;
-  private Range myYRange;
+  private Range myViewXRange;
+  private Range mySelectionXRange;
 
   private LineChart myLineChart;
   private LineChartModel myLineChartModel;
@@ -52,6 +51,7 @@ public class DataReducerVisualTest extends VisualTest {
 
   private DefaultDataSeries<Long> myData;
   private RangedContinuousSeries mySeries;
+  private RangedContinuousSeries myOptimizedSeries;
   private int myVariance = 10;
   private int mySampleSize = 10;
   private SelectionComponent mySelection;
@@ -61,9 +61,8 @@ public class DataReducerVisualTest extends VisualTest {
   @Override
   protected List<Updatable> createModelList() {
     myGlobalXRange = new Range(0, 0);
-    myViewXRange = new AnimatedRange();
-    mySelectionXRange = new AnimatedRange();
-    myYRange = new Range(0, 0);
+    myViewXRange = new Range(0, 0);
+    mySelectionXRange = new Range();
 
     myLineChartModel = new LineChartModel();
     myLineChart = new LineChart((shape, config) -> shape, myLineChartModel);
@@ -77,12 +76,14 @@ public class DataReducerVisualTest extends VisualTest {
     mySelection = new SelectionComponent(selection);
 
     myData = new DefaultDataSeries<>();
-    mySeries = new RangedContinuousSeries("Straight", myViewXRange, myYRange, myData);
-
+    mySeries = new RangedContinuousSeries("Original", myViewXRange, new Range(0, 0), myData);
+    myOptimizedSeries = new RangedContinuousSeries("Reduced", myViewXRange, new Range(0, 0), myData);
+    myLineChartModel.add(mySeries);
+    myOptimizedLineChartModel.add(myOptimizedSeries);
     myLineChart.configure(mySeries, new LineConfig(JBColor.BLUE));
-    myOptimizedLineChart.configure(mySeries, new LineConfig(JBColor.RED));
+    myOptimizedLineChart.configure(myOptimizedSeries, new LineConfig(JBColor.RED));
 
-    return Arrays.asList(myViewXRange, mySelectionXRange, myLineChartModel, myOptimizedLineChartModel, myXAxisModel);
+    return Arrays.asList(myLineChartModel, myOptimizedLineChartModel, myXAxisModel);
   }
 
   @Override
@@ -169,13 +170,13 @@ public class DataReducerVisualTest extends VisualTest {
     controls.add(VisualTest.createCheckbox("Filled line", itemEvent -> {
       boolean isFilled = itemEvent.getStateChange() == ItemEvent.SELECTED;
       myLineChart.getLineConfig(mySeries).setFilled(isFilled);
-      myOptimizedLineChart.getLineConfig(mySeries).setFilled(isFilled);
+      myOptimizedLineChart.getLineConfig(myOptimizedSeries).setFilled(isFilled);
     }));
 
     controls.add(VisualTest.createCheckbox("Stepped line", itemEvent -> {
       boolean isStepped = itemEvent.getStateChange() == ItemEvent.SELECTED;
       myLineChart.getLineConfig(mySeries).setStepped(isStepped);
-      myOptimizedLineChart.getLineConfig(mySeries).setStepped(isStepped);
+      myOptimizedLineChart.getLineConfig(myOptimizedSeries).setStepped(isStepped);
     }));
 
 
