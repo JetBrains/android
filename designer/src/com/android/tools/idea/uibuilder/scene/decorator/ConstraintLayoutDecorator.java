@@ -234,7 +234,11 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         if (connectionTo[ourOppositeDirection[i]] != null) { // opposite side is connected
           connectType = DrawConnection.TYPE_SPRING;
           if (connectionTo[ourOppositeDirection[i]] == sc && destType != DrawConnection.DEST_PARENT) { // center
-            connectType = DrawConnection.TYPE_CENTER;
+            if (connectionTypes[ourOppositeDirection[i]]!=type) {
+              connectType = DrawConnection.TYPE_CENTER;
+            } else {
+              connectType = DrawConnection.TYPE_CENTER_WIDGET;
+            }
           }
         }
         SceneComponent toComponentsTo = (SceneComponent)sc.myCache.get(ourDirections[connect]);
