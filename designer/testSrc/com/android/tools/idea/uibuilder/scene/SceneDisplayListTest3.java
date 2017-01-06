@@ -80,8 +80,8 @@ public class SceneDisplayListTest3 extends SceneTest {
                         "DrawComponentBackground,450,490,100,20,1\n" +
                         "DrawTextRegion,450,490,100,20,0,false,false,5,5,\"\"\n" +
                         "DrawComponentFrame,450,490,100,20,1\n" +
-                        "DrawConnection,4,450x490x100x20,0,450x490x100x20,0,0,true,0,0,false,0.5\n" +
-                        "DrawConnection,4,450x490x100x20,1,450x490x100x20,1,0,true,0,0,false,0.5\n" +
+                        "DrawConnection,6,450x490x100x20,0,450x490x100x20,0,0,true,0,0,false,0.5\n" +
+                        "DrawConnection,6,450x490x100x20,1,450x490x100x20,1,0,true,0,0,false,0.5\n" +
                         "DrawConnection,2,450x490x100x20,2,450x490x100x20,3,0,true,0,0,false,0.5\n" +
                         "DrawConnection,2,450x490x100x20,3,0x0x1000x1000,3,1,false,0,0,false,0.5\n" +
                         "UNClip\n";
