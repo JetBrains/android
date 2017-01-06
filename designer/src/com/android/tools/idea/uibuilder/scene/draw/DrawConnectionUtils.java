@@ -299,6 +299,59 @@ public class DrawConnectionUtils {
   }
 
   /**
+   * removes a zigzag (veering to right and left alternately.) from the list of points.
+   * the point are modified and the shortened length is returned
+   *
+   * @param xPoints the x coordinates
+   * @param yPoints the y coordinates
+   * @param length the number of element in xPoints and yPoints
+   * @param distance maximum distance to be considered a zigzag
+   * @return the new length
+   */
+  static int removeZigZag(int[] xPoints, int[] yPoints, int length, int distance) {
+    int dir1 = -1;
+    int dir2 = -1;
+    int dir3 = -1;
+    int dir4 = -1;
+    int len2 = distance;
+    int len3 = distance;
+    int remove = -1;
+    for (int i = 0; i <length-1; i++) {
+      int dx = xPoints[i+1] - xPoints[i];
+      int dy = xPoints[i+1] - xPoints[i];
+      if (dx == 0) {
+        dir4 =  (dy>0)? 0:2;
+      } else {
+        dir4 =  (dx>0)? 1:3;
+      }
+      int len4 = (dx==0)?dy:dx;
+      if (dir1 >= 0) {
+        if (dir1 == dir3 && dir2 == dir4 && distance > len2) { // if we move in the same direction
+          remove = i-2;
+          if (dir1 == 0 || dir1 == 2) {
+            yPoints[i - 2] = yPoints[i];
+          } else {
+            xPoints[i-2] = xPoints[i];
+          }
+          for (int j = i+1; j < length; j++) {
+            xPoints[j-2] = xPoints[j];
+            yPoints[j-2] = yPoints[j];
+          }
+          return length -2;
+        }
+      }
+
+      dir1= dir2;
+      dir2 = dir3;
+      dir3 = dir4;
+      len2 = len3;
+      len3 = len4;
+    }
+    return length;
+  }
+
+
+  /**
    * This will generate a rounded path for a path described by xPoints and yPoints.
    * This will only work if the path consist of only vertical or horizontal lines.
    * it assumes the path has already been moved to the start point
