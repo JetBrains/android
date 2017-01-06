@@ -761,7 +761,7 @@ public class RenderTask implements IImageFactory {
       if (message == null) {
         message = e.toString();
       }
-      myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myRenderService.getProject(), myLogger.getLinkManager(), e));
+      myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), e));
       return RenderResult.createSessionInitializationError(this, myPsiFile, myLogger);
     }
   }
