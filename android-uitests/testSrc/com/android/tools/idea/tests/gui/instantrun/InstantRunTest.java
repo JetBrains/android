@@ -16,37 +16,25 @@
 package com.android.tools.idea.tests.gui.instantrun;
 
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
-import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
-import com.google.common.io.Files;
-import com.intellij.notification.EventLog;
-import com.intellij.notification.Notification;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.*;
 import org.junit.runner.RunWith;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
-import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertThat;
 
-@Ignore("https://android-jenkins.corp.google.com/builders/studio-sanity_master-dev/builds/1548")
 @RunWith(GuiTestRunner.class)
 public class InstantRunTest {
 
@@ -54,15 +42,10 @@ public class InstantRunTest {
 
   private static final String APP_NAME = "app";
   private static final String AVD_NAME = "device under test";
-  private static final String TARGET_GRADLE_PLUGIN_VERSION = "2.3.0-dev";
   private static final Pattern RUN_OUTPUT =
-    Pattern.compile(".*adb shell am start .*google\\.simpleapplication.*Connected to process.*", Pattern.DOTALL);
+    Pattern.compile(".*adb shell am start .*google\\.simpleapplication.*Connected to process (\\d+) .*", Pattern.DOTALL);
   private static final Pattern HOT_SWAP_OUTPUT =
     Pattern.compile(".*Hot swapped changes, activity restarted.*", Pattern.DOTALL);
-  private static final Pattern COLD_SWAP_OUTPUT =
-    Pattern.compile(".*Cold swapped changes.*", Pattern.DOTALL);
-  private static final String INSTANT_RUN_NOTIFICATION_REGEX =
-    ".*Instant Run re-installed and restarted the app.*";
 
   @Before
   public void setUp() throws Exception {
@@ -102,7 +85,6 @@ public class InstantRunTest {
   @Test
   public void hotSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-    updateGradleVersion(guiTest.getProjectPath());
     createAVD();
 
     ideFrameFixture
@@ -110,22 +92,24 @@ public class InstantRunTest {
       .selectDevice(AVD_NAME)
       .clickOk();
 
-    ideFrameFixture
-      .getRunToolWindow()
-      .findContent(APP_NAME)
-      .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+    ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
+    contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+    String pid = extractPidFromOutput(contentFixture.getOutput());
 
     ideFrameFixture
       .getEditor()
       .open("app/src/main/java/google/simpleapplication/MyActivity.java")
       .enterText(Strings.repeat("\n", 10));
 
-    ideFrameFixture.waitForGradleProjectSyncToFinish().findRunApplicationButton().click();
-
     ideFrameFixture
-      .getRunToolWindow()
-      .findContent(APP_NAME)
-      .waitForOutput(new PatternTextMatcher(HOT_SWAP_OUTPUT), 120);
+      .waitForGradleProjectSyncToFinish()
+      .findApplyChangesButton()
+      .click();
+
+    contentFixture.waitForOutput(new PatternTextMatcher(HOT_SWAP_OUTPUT), 120);
+    String newPid = extractPidFromOutput(contentFixture.getOutput());
+    // (Hot swap) Verify the equality of PIDs before and after IR.
+    assertThat(pid).isEqualTo(newPid);
   }
 
   /**
@@ -154,7 +138,6 @@ public class InstantRunTest {
   @Test
   public void coldSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-    updateGradleVersion(guiTest.getProjectPath());
     createAVD();
 
     ideFrameFixture
@@ -162,10 +145,10 @@ public class InstantRunTest {
       .selectDevice(AVD_NAME)
       .clickOk();
 
-    ideFrameFixture
-      .getRunToolWindow()
-      .findContent(APP_NAME)
-      .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+    ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
+    contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+    String output = contentFixture.getOutput();
+    String pid = extractPidFromOutput(output);
 
     ideFrameFixture
       .getEditor()
@@ -174,12 +157,17 @@ public class InstantRunTest {
       .dragComponentToSurface("Widgets", "TextView")
       .waitForRenderToFinish();
 
-    ideFrameFixture.waitForGradleProjectSyncToFinish().findRunApplicationButton().click();
-
     ideFrameFixture
-      .getRunToolWindow()
-      .findContent(APP_NAME)
-      .waitForOutput(new PatternTextMatcher(COLD_SWAP_OUTPUT), 120);
+      .waitForGradleProjectSyncToFinish()
+      .findApplyChangesButton()
+      .click();
+
+    // Studio takes a few seconds to reset Run tool window contents.
+    Wait.seconds(10).expecting("Run tool window output has been reset").until(() -> !contentFixture.getOutput().contains(output));
+    contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+    String newPid = extractPidFromOutput(contentFixture.getOutput());
+    // (Cold swap) Verify the inequality of PIDs before and after IR
+    assertThat(pid).isNotEqualTo(newPid);
   }
 
   /**
@@ -208,7 +196,6 @@ public class InstantRunTest {
   @Test
   public void changeManifest() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-    updateGradleVersion(guiTest.getProjectPath());
     createAVD();
 
     ideFrameFixture
@@ -216,10 +203,10 @@ public class InstantRunTest {
       .selectDevice(AVD_NAME)
       .clickOk();
 
-    ideFrameFixture
-      .getRunToolWindow()
-      .findContent(APP_NAME)
-      .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+    ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
+    contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+    String output = contentFixture.getOutput();
+    String pid = extractPidFromOutput(contentFixture.getOutput());
 
     ideFrameFixture
       .getEditor()
@@ -227,45 +214,17 @@ public class InstantRunTest {
       .moveBetween("", "<application")
       .enterText("<uses-permission android:name=\"android.permission.INTERNET\" /\n");
 
-    ideFrameFixture.waitForGradleProjectSyncToFinish().findRunApplicationButton().click();
-
     ideFrameFixture
-      .getRunToolWindow()
-      .findContent(APP_NAME)
-      .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+      .waitForGradleProjectSyncToFinish()
+      .findApplyChangesButton()
+      .click();
 
-    Wait.seconds(1).expecting("The notification is showing").until(() -> {
-      try {
-        Notification notification = Iterables.getLast(EventLog.getLogModel(ideFrameFixture.getProject()).getNotifications());
-        assertThat(notification.getContent()).matches(INSTANT_RUN_NOTIFICATION_REGEX);
-        return true;
-      } catch (Exception e) {
-        System.out.println(e.getClass().toString());
-        return false;
-      }
-    });
-  }
-
-  private void updateGradleVersion(@NotNull File file) throws IOException {
-    if (GRADLE_PLUGIN_RECOMMENDED_VERSION.equals(TARGET_GRADLE_PLUGIN_VERSION)) {
-      return;
-    }
-
-    File projectGradleFile = new File(file, "build.gradle");
-    String contents = Files.toString(projectGradleFile, Charsets.UTF_8);
-
-    Pattern pattern = Pattern.compile("classpath ['\"]com.android.tools.build:gradle:(.+)['\"]");
-    Matcher matcher = pattern.matcher(contents);
-    if (matcher.find()) {
-      contents = contents.substring(0, matcher.start(1)) + TARGET_GRADLE_PLUGIN_VERSION +
-                 contents.substring(matcher.end(1));
-
-      if (TARGET_GRADLE_PLUGIN_VERSION.endsWith("dev")) {
-        contents = contents.replace("MAVEN_URL", "LOCAL_MAVEN_URL");
-      }
-
-      write(contents, projectGradleFile, Charsets.UTF_8);
-    }
+    // Studio takes a few seconds to reset Run tool window contents.
+    Wait.seconds(10).expecting("Run tool window output has been reset").until(() -> !contentFixture.getOutput().contains(output));
+    contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+    String newPid = extractPidFromOutput(contentFixture.getOutput());
+    // (Cold swap) Verify the inequality of PIDs before and after IR
+    assertThat(pid).isNotEqualTo(newPid);
   }
 
   private void createAVD() {
@@ -278,7 +237,7 @@ public class InstantRunTest {
 
     avdEditWizard.getChooseSystemImageStep()
       .selectTab("x86 Images")
-      .selectSystemImage("Marshmallow", "23", "x86", "Android 6.0");
+      .selectSystemImage("Nougat", "24", "x86", "Android 7.0");
     avdEditWizard.clickNext();
 
     avdEditWizard.getConfigureAvdOptionsStep()
@@ -291,5 +250,15 @@ public class InstantRunTest {
   @NotNull
   private static MockAvdManagerConnection getEmulatorConnection() {
     return (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
+  }
+
+  @NotNull
+  private static String extractPidFromOutput(@NotNull String output) {
+    Matcher m = RUN_OUTPUT.matcher(output);
+    String pid = null;
+    if (m.find()) {
+      pid = m.group(1);
+    }
+    return pid;
   }
 }
