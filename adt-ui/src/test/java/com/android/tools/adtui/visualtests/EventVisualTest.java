@@ -30,10 +30,6 @@ import java.util.concurrent.TimeUnit;
 
 public class EventVisualTest extends VisualTest {
 
-  private static final int IMAGE_WIDTH = 16;
-
-  private static final int IMAGE_HEIGHT = 16;
-
   private static final String[] ACTIVITY_NAMES = {
     "SignInActivity",
     "GameModeActivity",
@@ -77,8 +73,8 @@ public class EventVisualTest extends VisualTest {
   @Override
   protected List<Updatable> createModelList() {
     long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-    AnimatedRange xRange = new AnimatedRange(nowUs, nowUs + TimeUnit.SECONDS.toMicros(60));
-    AnimatedRange xTimelineRange = new AnimatedRange(0, 0);
+    Range xRange = new Range(nowUs, nowUs + TimeUnit.SECONDS.toMicros(60));
+    Range xTimelineRange = new Range(0, 0);
 
     myData = new DefaultDataSeries<>();
     myActivityData = new DefaultDataSeries<>();
@@ -95,8 +91,6 @@ public class EventVisualTest extends VisualTest {
     myTimeAxis = new AxisComponent(myTimeAxisModel, AxisComponent.AxisOrientation.BOTTOM);
     List<Updatable> componentsList = new ArrayList<>();
     // Add the scene components to the list
-    componentsList.add(xRange);
-    componentsList.add(xTimelineRange);
     componentsList.add(myAnimatedRange);
     componentsList.add(myTimelineRange);
     componentsList.add(myTimeAxisModel);
