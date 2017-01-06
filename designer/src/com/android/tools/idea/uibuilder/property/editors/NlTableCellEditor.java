@@ -49,6 +49,13 @@ public class NlTableCellEditor extends PTableCellEditor implements NlEditingList
   }
 
   @Override
+  public boolean stopCellEditing() {
+    // Bug: 231647 Move focus back to table before hiding the editor
+    myTable.requestFocus();
+    return super.stopCellEditing();
+  }
+
+  @Override
   public boolean isBooleanEditor() {
     return myEditor instanceof NlBooleanEditor;
   }
