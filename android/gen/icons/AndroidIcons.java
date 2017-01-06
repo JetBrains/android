@@ -198,8 +198,6 @@ public class AndroidIcons {
     public static final Icon VirtualDevice = load("/icons/nele/virtualdevice.png"); // 16x16
     public static final Icon UiMode = load("/icons/nele/uimode.png"); // 16x16
     public static final Icon Pan = load("/icons/nele/pantool.png"); // 16x16
-    public static final Icon Download = load("/icons/nele/download.png"); // 16x16
-    public static final Icon DownloadLarge = load("/icons/nele/download-large.png"); // 24x24
 
     public static final Icon ToggleProperties = load("/icons/nele/toggle_props.png"); // 16x16
     public static final Icon DesignProperty = load("/icons/nele/design-property.png");  // 12x12
@@ -325,6 +323,9 @@ public class AndroidIcons {
   }
 
   public static class Views {
+    public static final Icon DownloadOverlay = load("/icons/palette/download-overlay.png"); // 16x16
+    public static final Icon DownloadOverlayLarge = load("/icons/palette/download-overlay_large.png"); // 24x24
+
     // This section are the icons used for preferences (some icons may overlap with other views)
     public static final Icon CheckBoxPreference = load("/icons/palette/checkbox.png"); // 16x16
     public static final Icon CheckBoxPreferenceLarge = load("/icons/palette/checkbox_large.png"); // 24x24
