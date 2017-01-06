@@ -98,6 +98,7 @@ final class FormFactorSdkControls {
     }
 
     myMinSdkCombobox.setName(myFormFactor.id + ".minSdk");
+    myInstantAppCheckbox.setName(myFormFactor.id + ".instantApp");
     myStatsLoadFailedLabel.setForeground(JBColor.GRAY);
   }
 
