@@ -82,6 +82,16 @@
                         serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettings"
                         overrides="true"/>
     <welcomeFrameProvider implementation="com.android.tools.idea.welcome.wizard.FirstRunWizardFrameProvider" order="FIRST"/>
+
+    <localInspection groupPath="Java" language="JAVA" shortName="TryWithIdenticalCatches" bundle="com.siyeh.InspectionGadgetsBundle"
+                     key="try.with.identical.catches.display.name" groupBundle="messages.InspectionsBundle"
+                     groupKey="group.names.language.level.specific.issues.and.migration.aids" enabledByDefault="true" level="WARNING"
+                     implementationClass="org.jetbrains.android.inspections.AndroidTryWithIdenticalCatchesInspection"/>
+
+    <localInspection groupPath="Java" language="JAVA" suppressId="deprecation" shortName="Deprecation" displayName="Deprecated API usage"
+                     groupKey="group.names.code.maturity.issues" groupBundle="messages.InspectionsBundle"
+                     enabledByDefault="true" level="WARNING"
+                     implementationClass="org.jetbrains.android.inspections.AndroidDeprecationInspection"/>
   </extensions>
 
 </idea-plugin>
