@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.hyperlink;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
@@ -24,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 
 public class FixAndroidGradlePluginVersionHyperlink extends NotificationHyperlink {
   @NotNull private final GradleVersion myPluginVersion;
@@ -35,7 +35,7 @@ public class FixAndroidGradlePluginVersionHyperlink extends NotificationHyperlin
    * {@link SdkConstants#GRADLE_PLUGIN_RECOMMENDED_VERSION} and Gradle to the version in {@link SdkConstants#GRADLE_LATEST_VERSION}.
    */
   public FixAndroidGradlePluginVersionHyperlink() {
-    this(GradleVersion.parse(GRADLE_PLUGIN_RECOMMENDED_VERSION), GradleVersion.parse(GRADLE_LATEST_VERSION));
+    this(GradleVersion.parse(AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion()), GradleVersion.parse(GRADLE_LATEST_VERSION));
   }
 
   /**
@@ -45,7 +45,7 @@ public class FixAndroidGradlePluginVersionHyperlink extends NotificationHyperlin
    * @param gradleVersion the version of Gradle to update to. This can be {@code null} if only the model version needs to be updated.
    */
   public FixAndroidGradlePluginVersionHyperlink(@NotNull GradleVersion pluginVersion, @Nullable GradleVersion gradleVersion) {
-    this("Fix plugin version and sync project", pluginVersion, gradleVersion);
+    this("Upgrade plugin to version " + pluginVersion + " and sync project", pluginVersion, gradleVersion);
   }
 
   /**
