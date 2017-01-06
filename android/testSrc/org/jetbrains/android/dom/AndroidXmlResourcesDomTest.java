@@ -212,6 +212,11 @@ public class AndroidXmlResourcesDomTest extends AndroidDomTestCase {
     doTestHighlighting();
   }
 
+  public void testContentUrlHighlighting() throws Throwable {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=230194
+    doTestHighlighting();
+  }
+
   public void testCustomXmlFileCompletion2() throws Throwable {
     VirtualFile file = copyFileToProject(getTestName(true) + ".xml");
     myFixture.configureFromExistingVirtualFile(file);
