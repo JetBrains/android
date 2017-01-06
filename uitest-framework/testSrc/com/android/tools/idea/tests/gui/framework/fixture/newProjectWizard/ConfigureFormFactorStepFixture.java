@@ -34,7 +34,7 @@ public class ConfigureFormFactorStepFixture extends AbstractWizardStepFixture<Co
   }
 
   @NotNull
-  public ConfigureFormFactorStepFixture selectMinimumSdkApi(@NotNull final FormFactor formFactor, @NotNull final String api) {
+  public ConfigureFormFactorStepFixture selectMinimumSdkApi(@NotNull FormFactor formFactor, @NotNull String api) {
     JCheckBox checkBox = robot().finder().find(target(), new GenericTypeMatcher<JCheckBox>(JCheckBox.class) {
       @Override
       protected boolean isMatching(@NotNull JCheckBox checkBox) {
@@ -47,7 +47,7 @@ public class ConfigureFormFactorStepFixture extends AbstractWizardStepFixture<Co
     buttonDriver.requireEnabled(checkBox);
     buttonDriver.select(checkBox);
 
-    final JComboBox comboBox = robot().finder().findByName(target(), formFactor.id + ".minSdk", JComboBox.class);
+    JComboBox comboBox = robot().finder().findByName(target(), formFactor.id + ".minSdk", JComboBox.class);
     int itemIndex = GuiQuery.getNonNull(
       () -> {
         BasicJComboBoxCellReader cellReader = new BasicJComboBoxCellReader();
@@ -69,7 +69,25 @@ public class ConfigureFormFactorStepFixture extends AbstractWizardStepFixture<Co
   }
 
   @NotNull
-  public JCheckBoxFixture findInstantAppCheckbox(@NotNull final FormFactor formFactor) {
+  public ConfigureFormFactorStepFixture selectInstantAppSupport(@NotNull FormFactor formFactor) {
+    findInstantAppCheckbox(formFactor).select();
+    return this;
+  }
+
+  public ConfigureFormFactorStepFixture requireErrorMessage(@NotNull String errorMessage) {
+    robot().finder().find(target(), new GenericTypeMatcher<JLabel>(JLabel.class) {
+      @Override
+      protected boolean isMatching(@NotNull JLabel label) {
+        String text = label.getText();
+        return text != null && text.contains(errorMessage);
+      }
+    });
+    return this;
+  }
+
+  @NotNull
+  public JCheckBoxFixture findInstantAppCheckbox(@NotNull FormFactor formFactor) {
     return new JCheckBoxFixture(robot(), robot().finder().findByName(target(), formFactor.id + ".instantApp", JCheckBox.class, false));
   }
+
 }
