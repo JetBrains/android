@@ -17,12 +17,12 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.IdeProfilerServicesStub;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.memory.adapters.ReferenceObject;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -30,9 +30,8 @@ import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -40,35 +39,56 @@ public class MemoryInstanceDetailsViewTest {
   @Rule
   public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MEMORY_TEST_CHANNEL", new MemoryServiceMock());
 
-  /**
-   * Test that the component is visible based on whether the currently selected instance object has callstack/reference information.
-   */
+  @NotNull private StudioProfilers myProfilers;
+  @NotNull private MemoryProfilerStage myStage;
+  @NotNull private MemoryInstanceDetailsView myDetailsView;
+
+  @Before
+  public void setup() {
+    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub());
+    myStage = new MemoryProfilerStage(myProfilers);
+    myDetailsView = new MemoryInstanceDetailsView(myStage);
+  }
+
   @Test
-  public void visibilityTest() throws Exception {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub());
-    MemoryProfilerStage stage = new MemoryProfilerStage(profilers);
-    MemoryInstanceDetailsView detailsView = new MemoryInstanceDetailsView(stage);
-
+  public void NullSelectionVisibilityTest() throws Exception {
     // Null selection
-    Component component = detailsView.getComponent();
-    assertNull(stage.getSelectedInstance());
+    Component component = myDetailsView.getComponent();
+    assertNull(myStage.getSelectedInstance());
     assertFalse(component.isVisible());
+  }
 
+  @Test
+  public void NoCallstackOrReferenceVisibilityTest() throws Exception {
     // Selection with no callstack / reference information
-    MockReferenceObject mockInstance = new MockReferenceObject("MockInstance");
-    stage.selectInstance(mockInstance);
+    Component component = myDetailsView.getComponent();
+    ReferenceObject mockInstance = MemoryProfilerTestBase.mockReferenceObject("MockInstance", Collections.emptyList(), null);
+    myStage.selectInstance(mockInstance);
     assertFalse(component.isVisible());
+  }
 
+
+  @Test
+  public void SelectionWithReferenceVisibilityTest() throws Exception {
     // Selection with reference information
-    mockInstance = new MockReferenceObject("MockInstanceWithRef");
-    mockInstance.addReference(new MockReferenceObject("MockReference"));
-    stage.selectInstance(mockInstance);
+    Component component = myDetailsView.getComponent();
+    ReferenceObject mockRef = MemoryProfilerTestBase.mockReferenceObject("MockReference", Collections.emptyList(), null);
+    ReferenceObject mockInstance =
+      MemoryProfilerTestBase.mockReferenceObject("MockInstanceWithRef", Collections.singletonList(mockRef), null);
+    myStage.selectInstance(mockInstance);
     assertTrue(component.isVisible());
+  }
 
+
+  @Test
+  public void SelectionWithCallstackVisibilityTest() throws Exception {
     // Selection with callstack information
-    mockInstance = new MockReferenceObject("MockInstanceWithCallstack");
-    mockInstance.addStack("MockClass", "MockMethod", 1);
-    stage.selectInstance(mockInstance);
+    Component component = myDetailsView.getComponent();
+    MemoryProfiler.AllocationStack stack = MemoryProfiler.AllocationStack.newBuilder().addStackFrames(
+      MemoryProfiler.AllocationStack.StackFrame.newBuilder().setClassName("MockClass").setMethodName("MockMethod").setLineNumber(1))
+      .build();
+    ReferenceObject mockInstance = MemoryProfilerTestBase.mockReferenceObject("MockInstanceWithCallstack", Collections.emptyList(), stack);
+    myStage.selectInstance(mockInstance);
     assertTrue(component.isVisible());
   }
 
@@ -80,10 +100,6 @@ public class MemoryInstanceDetailsViewTest {
    */
   @Test
   public void buildTreeTest() throws Exception {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub());
-    MemoryProfilerStage stage = new MemoryProfilerStage(profilers);
-    MemoryInstanceDetailsView detailsView = new MemoryInstanceDetailsView(stage);
-
     // Setup mock reference hierarchy:
     // MockRoot
     // -> Ref1
@@ -91,19 +107,14 @@ public class MemoryInstanceDetailsViewTest {
     // --> Ref3
     // ---> Ref4
     // -> Ref5
-    MockReferenceObject mockRootObject = new MockReferenceObject("MockRoot");
-    MockReferenceObject mockRef1 = new MockReferenceObject("Ref1");
-    MockReferenceObject mockRef2 = new MockReferenceObject("Ref2");
-    MockReferenceObject mockRef3 = new MockReferenceObject("Ref3");
-    MockReferenceObject mockRef4 = new MockReferenceObject("Ref4");
-    MockReferenceObject mockRef5 = new MockReferenceObject("Ref5");
-    mockRootObject.addReference(mockRef1);
-    mockRootObject.addReference(mockRef5);
-    mockRef1.addReference(mockRef2);
-    mockRef1.addReference(mockRef3);
-    mockRef3.addReference(mockRef4);
+    ReferenceObject mockRef2 = MemoryProfilerTestBase.mockReferenceObject("Ref2", Collections.emptyList(), null);
+    ReferenceObject mockRef4 = MemoryProfilerTestBase.mockReferenceObject("Ref4", Collections.emptyList(), null);
+    ReferenceObject mockRef5 = MemoryProfilerTestBase.mockReferenceObject("Ref5", Collections.emptyList(), null);
+    ReferenceObject mockRef3 = MemoryProfilerTestBase.mockReferenceObject("Ref3", Collections.singletonList(mockRef4), null);
+    ReferenceObject mockRef1 = MemoryProfilerTestBase.mockReferenceObject("Ref1", Arrays.asList(mockRef2, mockRef3), null);
+    ReferenceObject mockRootObject = MemoryProfilerTestBase.mockReferenceObject("MockRoot", Arrays.asList(mockRef1, mockRef5), null);
 
-    JTree tree = detailsView.buildTree(mockRootObject);
+    JTree tree = myDetailsView.buildTree(mockRootObject);
     DefaultTreeModel treeModel = (DefaultTreeModel)tree.getModel();
     assertNotNull(treeModel);
     MemoryObjectTreeNode treeRoot = (MemoryObjectTreeNode)treeModel.getRoot();
@@ -133,50 +144,6 @@ public class MemoryInstanceDetailsViewTest {
     assertEquals(0, ref2Child.getChildCount());
     assertEquals(1, ref3Child.getChildCount());
     assertEquals(mockRef4, ((MemoryObjectTreeNode)ref3Child.getChildAt(0)).getAdapter());
-  }
-
-  private static class MockReferenceObject implements ReferenceObject {
-    @NotNull private final List<ReferenceObject> myReferrers = new ArrayList<>();
-    @NotNull private final String myName;
-    @NotNull private MemoryProfiler.AllocationStack myStack;
-
-    public MockReferenceObject(@NotNull String name) {
-      myName = name;
-      myStack = MemoryProfiler.AllocationStack.newBuilder().build();
-    }
-
-    @NotNull
-    @Override
-    public String getName() {
-      return myName;
-    }
-
-    @Nullable
-    @Override
-    public MemoryProfiler.AllocationStack getCallStack() {
-      return myStack;
-    }
-
-    @NotNull
-    @Override
-    public List<ReferenceObject> getReferences() {
-      return myReferrers;
-    }
-
-    @NotNull
-    @Override
-    public List<String> getReferenceFieldNames() {
-      return Collections.EMPTY_LIST;
-    }
-
-    public void addReference(@NotNull ReferenceObject referrer) {
-      myReferrers.add(referrer);
-    }
-
-    public void addStack(@NotNull String className, @NotNull String methodName, int lineNumber) {
-      myStack = myStack.toBuilder().addStackFrames(MemoryProfiler.AllocationStack.StackFrame.newBuilder()
-                                                     .setClassName(className).setMethodName(methodName).setLineNumber(lineNumber)).build();
-    }
   }
 
   private static class MemoryServiceMock extends MemoryServiceGrpc.MemoryServiceImplBase {

@@ -24,22 +24,24 @@ import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.HeapObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.intellij.ui.components.JBLoadingPanel;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
 import javax.swing.*;
 import javax.swing.tree.TreePath;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.junit.Assert.*;
 
 public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
-  private StudioProfilersView myView;
+  @NotNull private StudioProfilersView myView;
+  @NotNull private final FakeMemoryService myService = new FakeMemoryService();
 
-  private final FakeMemoryService myService = new FakeMemoryService();
   @Rule
   public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryProfilerStageViewTestChannel", myService);
 
@@ -56,6 +58,14 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
   @Test
   public void testCaptureAndHeapView() throws Exception {
+    InstanceObject mockInstance = mockInstanceObject("DUMMY_INSTANCE");
+    ClassObject mockKlass1 = mockClassObject("DUMMY_CLASS1", Collections.singletonList(mockInstance));
+    ClassObject mockKlass2 = mockClassObject("DUMMY_CLASS2", Collections.singletonList(mockInstance));
+    HeapObject mockHeap1 = mockHeapObject("DUMMY_HEAP1", Arrays.asList(mockKlass1, mockKlass2));
+    HeapObject mockHeap2 = mockHeapObject("DUMMY_HEAP2", Arrays.asList(mockKlass2, mockKlass1));
+    CaptureObject mockCapture1 = mockCaptureObject("DUMMY_CAPTURE1", 5, 10, Arrays.asList(mockHeap1, mockHeap2));
+    CaptureObject mockCapture2 = mockCaptureObject("DUMMY_CAPTURE2", 5, 10, Arrays.asList(mockHeap2, mockHeap1));
+
     MemoryProfilerStageView stageView = (MemoryProfilerStageView)myView.getStageView();
     JComponent captureComponent = stageView.getChartCaptureSplitter().getSecondComponent();
     assertTrue(captureComponent == null || !captureComponent.isVisible());
@@ -65,26 +75,26 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     assertView(null, null, null, null, false);
 
-    myStage.selectCapture(DUMMY_CAPTURE, null);
-    assertView(DUMMY_CAPTURE, null, null, null, true);
+    myStage.selectCapture(mockCapture1, null);
+    assertView(mockCapture1, null, null, null, true);
     assertAndResetCounts(0, 1, 0, 0, 0, 0);
     myMockLoader.runTask();
-    assertView(DUMMY_CAPTURE, DUMMY_HEAP_1, null, null, false);
+    assertView(mockCapture1, mockHeap1, null, null, false);
     assertAndResetCounts(0, 0, 1, 1, 0, 0);
 
     // Tests selecting a capture which loads immediately.
     myMockLoader.setReturnImmediateFuture(true);
-    myStage.selectCapture(DUMMY_CAPTURE_2, null);
+    myStage.selectCapture(mockCapture2, null);
     // 2 heap changes: 1 from changing the capture, the other from the auto-selection after the capture is loaded/
-    assertView(DUMMY_CAPTURE_2, DUMMY_HEAP_1, null, null, false);
+    assertView(mockCapture2, mockHeap2, null, null, false);
     assertAndResetCounts(0, 1, 1, 2, 0, 0);
 
-    stageView.getHeapView().getComponent().setSelectedItem(DUMMY_HEAP_2);
-    assertSelection(DUMMY_CAPTURE_2, DUMMY_HEAP_2, null, null);
+    stageView.getHeapView().getComponent().setSelectedItem(mockHeap1);
+    assertSelection(mockCapture2, mockHeap1, null, null);
     assertAndResetCounts(0, 0, 0, 1, 0, 0);
 
-    myStage.selectClass(DUMMY_CLASS_1);
-    assertView(DUMMY_CAPTURE_2, DUMMY_HEAP_2, DUMMY_CLASS_1, null, false);
+    myStage.selectClass(mockKlass1);
+    assertView(mockCapture2, mockHeap1, mockKlass1, null, false);
     assertAndResetCounts(0, 0, 0, 0, 1, 0);
 
     JTree classTree = stageView.getClassView().getTree();
@@ -95,11 +105,11 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     //noinspection unchecked
     MemoryObjectTreeNode<ClassObject> memoryClassRoot = (MemoryObjectTreeNode<ClassObject>)classRoot;
     stageView.getClassView().getTree()
-      .setSelectionPath(new TreePath(new Object[]{classTree.getModel().getRoot(), memoryClassRoot.getChildren().get(0)}));
-    assertSelection(DUMMY_CAPTURE_2, DUMMY_HEAP_2, DUMMY_CLASS_2, null);
+      .setSelectionPath(new TreePath(new Object[]{classTree.getModel().getRoot(), memoryClassRoot.getChildren().get(1)}));
+    assertSelection(mockCapture2, mockHeap1, mockKlass2, null);
 
-    myStage.selectInstance(DUMMY_INSTANCE);
-    assertView(DUMMY_CAPTURE_2, DUMMY_HEAP_2, DUMMY_CLASS_2, DUMMY_INSTANCE, false);
+    myStage.selectInstance(mockInstance);
+    assertSelection(mockCapture2, mockHeap1, mockKlass2, mockInstance);
 
     myStage.selectCapture(null, null);
     assertView(null, null, null, null, false);
@@ -140,7 +150,8 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
       assertTrue(stageView.getChartCaptureSplitter().getSecondComponent() instanceof JBLoadingPanel);
       assertEquals("", stageView.getCaptureView().getComponent().getText());
       assertEquals(heapObjectComboBoxModel.getSize(), 0);
-    } else {
+    }
+    else {
       // TODO we cannot test this at the moment due to swing delay switching from the loading panel back to the capture panel.
       //assertEquals(myStageView.getCapturePanel(), myStageView.getChartCaptureSplitter().getSecondComponent());
       assertEquals(expectedCaptureObject.getLabel(), stageView.getCaptureView().getComponent().getText());

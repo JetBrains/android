@@ -19,17 +19,24 @@ import com.android.tools.adtui.model.DurationData;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.memory.adapters.AllocationsCaptureObject;
-import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
+import com.android.tools.profilers.memory.adapters.*;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.*;
 
 public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
-  private final FakeMemoryService myService = new FakeMemoryService();
+  @NotNull private final FakeMemoryService myService = new FakeMemoryService();
+  @NotNull private CaptureObject myMockCapture;
+  @NotNull private HeapObject myMockHeap;
+  @NotNull private ClassObject myMockKlass;
+  @NotNull private InstanceObject myMockInstance;
 
   @Rule
   public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryProfilerStageTestChannel", myService);
@@ -37,6 +44,14 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   @Override
   protected FakeGrpcChannel getGrpcChannel() {
     return myGrpcChannel;
+  };
+
+  @Before
+  public void setup() {
+    myMockInstance = mockInstanceObject("DUMMY_INSTANCE");
+    myMockKlass = mockClassObject("DUMMY_CLASS1", Collections.singletonList(myMockInstance));
+    myMockHeap = mockHeapObject("DUMMY_HEAP1", Arrays.asList(myMockKlass));
+    myMockCapture = mockCaptureObject("DUMMY_CAPTURE1", 5, 10, Arrays.asList(myMockHeap));
   }
 
   @Test
@@ -143,8 +158,8 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testMemoryObjectSelection() {
-    myStage.selectCapture(DUMMY_CAPTURE, null);
-    assertEquals(DUMMY_CAPTURE, myStage.getSelectedCapture());
+    myStage.selectCapture(myMockCapture, null);
+    assertEquals(myMockCapture, myStage.getSelectedCapture());
     assertNull(myStage.getSelectedHeap());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
@@ -153,66 +168,66 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertAndResetCounts(0, 0, 1, 0, 0, 0);
 
     // Make sure the same capture selected shouldn't result in aspects getting raised again.
-    myStage.selectCapture(DUMMY_CAPTURE, null);
-    assertEquals(DUMMY_CAPTURE, myStage.getSelectedCapture());
+    myStage.selectCapture(myMockCapture, null);
+    assertEquals(myMockCapture, myStage.getSelectedCapture());
     assertNull(myStage.getSelectedHeap());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
     assertAndResetCounts(0, 0, 0, 0, 0, 0);
 
-    myStage.selectHeap(DUMMY_HEAP_1);
-    assertEquals(DUMMY_CAPTURE, myStage.getSelectedCapture());
-    assertEquals(DUMMY_HEAP_1, myStage.getSelectedHeap());
+    myStage.selectHeap(myMockHeap);
+    assertEquals(myMockCapture, myStage.getSelectedCapture());
+    assertEquals(myMockHeap, myStage.getSelectedHeap());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
     assertAndResetCounts(0, 0, 0, 1, 0, 0);
 
-    myStage.selectHeap(DUMMY_HEAP_1);
-    assertEquals(DUMMY_CAPTURE, myStage.getSelectedCapture());
-    assertEquals(DUMMY_HEAP_1, myStage.getSelectedHeap());
+    myStage.selectHeap(myMockHeap);
+    assertEquals(myMockCapture, myStage.getSelectedCapture());
+    assertEquals(myMockHeap, myStage.getSelectedHeap());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
     assertAndResetCounts(0, 0, 0, 0, 0, 0);
 
-    myStage.selectClass(DUMMY_CLASS_1);
-    assertEquals(DUMMY_CAPTURE, myStage.getSelectedCapture());
-    assertEquals(DUMMY_HEAP_1, myStage.getSelectedHeap());
-    assertEquals(DUMMY_CLASS_1, myStage.getSelectedClass());
+    myStage.selectClass(myMockKlass);
+    assertEquals(myMockCapture, myStage.getSelectedCapture());
+    assertEquals(myMockHeap, myStage.getSelectedHeap());
+    assertEquals(myMockKlass, myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
     assertAndResetCounts(0, 0, 0, 0, 1, 0);
 
-    myStage.selectClass(DUMMY_CLASS_1);
-    assertEquals(DUMMY_CAPTURE, myStage.getSelectedCapture());
-    assertEquals(DUMMY_HEAP_1, myStage.getSelectedHeap());
-    assertEquals(DUMMY_CLASS_1, myStage.getSelectedClass());
+    myStage.selectClass(myMockKlass);
+    assertEquals(myMockCapture, myStage.getSelectedCapture());
+    assertEquals(myMockHeap, myStage.getSelectedHeap());
+    assertEquals(myMockKlass, myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
     assertAndResetCounts(0, 0, 0, 0, 0, 0);
 
-    myStage.selectInstance(DUMMY_INSTANCE);
-    assertEquals(DUMMY_CAPTURE, myStage.getSelectedCapture());
-    assertEquals(DUMMY_HEAP_1, myStage.getSelectedHeap());
-    assertEquals(DUMMY_CLASS_1, myStage.getSelectedClass());
-    assertEquals(DUMMY_INSTANCE, myStage.getSelectedInstance());
+    myStage.selectInstance(myMockInstance);
+    assertEquals(myMockCapture, myStage.getSelectedCapture());
+    assertEquals(myMockHeap, myStage.getSelectedHeap());
+    assertEquals(myMockKlass, myStage.getSelectedClass());
+    assertEquals(myMockInstance, myStage.getSelectedInstance());
     assertAndResetCounts(0, 0, 0, 0, 0, 1);
 
-    myStage.selectInstance(DUMMY_INSTANCE);
-    assertEquals(DUMMY_CAPTURE, myStage.getSelectedCapture());
-    assertEquals(DUMMY_HEAP_1, myStage.getSelectedHeap());
-    assertEquals(DUMMY_CLASS_1, myStage.getSelectedClass());
-    assertEquals(DUMMY_INSTANCE, myStage.getSelectedInstance());
+    myStage.selectInstance(myMockInstance);
+    assertEquals(myMockCapture, myStage.getSelectedCapture());
+    assertEquals(myMockHeap, myStage.getSelectedHeap());
+    assertEquals(myMockKlass, myStage.getSelectedClass());
+    assertEquals(myMockInstance, myStage.getSelectedInstance());
     assertAndResetCounts(0, 0, 0, 0, 0, 0);
 
     // Test the reverse direction, to make sure children MemoryObjects are nullified in the selection.
     myStage.selectClass(null);
-    assertEquals(DUMMY_CAPTURE, myStage.getSelectedCapture());
-    assertEquals(DUMMY_HEAP_1, myStage.getSelectedHeap());
+    assertEquals(myMockCapture, myStage.getSelectedCapture());
+    assertEquals(myMockHeap, myStage.getSelectedHeap());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
     assertAndResetCounts(0, 0, 0, 0, 1, 1);
 
     // However, if a selection didn't change (e.g. null => null), it shouldn't trigger an aspect change either.
     myStage.selectHeap(null);
-    assertEquals(DUMMY_CAPTURE, myStage.getSelectedCapture());
+    assertEquals(myMockCapture, myStage.getSelectedCapture());
     assertNull(myStage.getSelectedHeap());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
