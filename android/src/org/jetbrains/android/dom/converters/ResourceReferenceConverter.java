@@ -332,6 +332,11 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     if (parsed == null || !parsed.isReference()) {
       final ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
 
+      if (myResourceTypes.contains(ResourceType.STRING)) {
+        // Anything is allowed
+        return null;
+      }
+
       if (additionalConverter != null) {
         return additionalConverter.getErrorMessage(s, context);
       }
