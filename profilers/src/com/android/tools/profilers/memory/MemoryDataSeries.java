@@ -37,13 +37,13 @@ public final class MemoryDataSeries implements DataSeries<Long> {
   private final int myProcessId;
 
   @NotNull
-  private Function<MemorySample, Long> myFilter;
+  private Function<MemorySample, Long> mySampleTransformer;
 
   public MemoryDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, int id,
-                          @NotNull Function<MemorySample, Long> filter) {
+                          @NotNull Function<MemorySample, Long> transformer) {
     myClient = client;
     myProcessId = id;
-    myFilter = filter;
+    mySampleTransformer = transformer;
   }
 
   @Override
@@ -59,7 +59,7 @@ public final class MemoryDataSeries implements DataSeries<Long> {
     List<SeriesData<Long>> seriesData = new ArrayList<>();
     for (MemoryProfiler.MemoryData.MemorySample sample : response.getMemSamplesList()) {
       long dataTimestamp = TimeUnit.NANOSECONDS.toMicros(sample.getTimestamp());
-      seriesData.add(new SeriesData<>(dataTimestamp, myFilter.apply(sample)));
+      seriesData.add(new SeriesData<>(dataTimestamp, mySampleTransformer.apply(sample)));
     }
     return ContainerUtil.immutableList(seriesData);
   }
