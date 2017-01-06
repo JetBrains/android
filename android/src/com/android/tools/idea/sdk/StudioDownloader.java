@@ -26,6 +26,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 /**
  * A {@link Downloader} that uses Studio's {@link HttpRequests} to download files. Saves the file to a temp location and returns a
@@ -49,20 +52,14 @@ public class StudioDownloader implements Downloader {
   }
 
   @Override
+  @Nullable
   public InputStream downloadAndStream(@NotNull URL url, @NotNull ProgressIndicator indicator)
     throws IOException {
-    File file = downloadFully(url, indicator);
+    Path file = downloadFully(url, indicator);
     if (file == null) {
       return null;
     }
-    file.deleteOnExit();
-    return new FileInputStream(file) {
-      @Override
-      public void close() throws IOException {
-        super.close();
-        file.delete();
-      }
-    };
+    return Files.newInputStream(file, StandardOpenOption.DELETE_ON_CLOSE);
   }
 
   @Override
@@ -88,7 +85,7 @@ public class StudioDownloader implements Downloader {
 
   @Nullable
   @Override
-  public File downloadFully(@NotNull URL url,
+  public Path downloadFully(@NotNull URL url,
                             @NotNull ProgressIndicator indicator) throws IOException {
     // TODO: caching
     String suffix = url.getPath();
@@ -96,6 +93,6 @@ public class StudioDownloader implements Downloader {
     File tempFile = FileUtil.createTempFile("StudioDownloader", suffix, true);
     tempFile.deleteOnExit();
     downloadFully(url, tempFile, null, indicator);
-    return tempFile;
+    return tempFile.toPath();
   }
 }
