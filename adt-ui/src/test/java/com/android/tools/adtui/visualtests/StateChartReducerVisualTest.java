@@ -54,7 +54,7 @@ public class StateChartReducerVisualTest extends VisualTest {
 
   @Override
   protected List<Updatable> createModelList() {
-    myViewRange = new Range();
+    myViewRange = new Range(0, 0);
     myData = new DefaultDataSeries<>();
     RangedSeries<ColorState> series = new RangedSeries<>(myViewRange, myData);
     StateChartModel<ColorState> model = new StateChartModel();

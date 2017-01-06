@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.imagediff;
 
-import com.android.tools.adtui.AnimatedRange;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.chart.linechart.LineChart;
@@ -111,8 +110,7 @@ class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
     }
 
     protected void addLine(double rangeMin, double rangeMax, String seriesLabel, LineConfig lineConfig, BaseAxisFormatter formatter) {
-      AnimatedRange yRange = new AnimatedRange(rangeMin, rangeMax);
-      myComponents.add(yRange);
+      Range yRange = new Range(rangeMin, rangeMax);
       DefaultDataSeries<Long> series = new DefaultDataSeries<>();
       RangedContinuousSeries rangedSeries = new RangedContinuousSeries(seriesLabel, myXRange, yRange, series);
       myData.add(series);
