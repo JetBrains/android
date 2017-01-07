@@ -619,18 +619,6 @@ public class GradleSyncTest {
   }
 
   @Test
-  public void withPreReleasePlugin() throws IOException {
-    guiTest.importMultiModule();
-    guiTest.ideFrame().updateAndroidGradlePluginVersion("1.2.0-beta1").requestProjectSync().waitForGradleProjectSyncToFail();
-
-    ContentFixture syncMessages = guiTest.ideFrame().getMessagesToolWindow().getGradleSyncContent();
-    MessageFixture message =
-      syncMessages.findMessage(ERROR, firstLineStartingWith("Plugin is too old, please update to a more recent version"));
-    // Verify that the "quick fix" is added.
-    message.findHyperlink("Fix plugin version and sync project");
-  }
-
-  @Test
   public void syncDuringOfflineMode() throws IOException {
     String hyperlinkText = "Disable offline mode and sync project";
 
