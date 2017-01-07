@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
  * The suite of profilers inside Android Studio. This object is responsible for maintaining the information
  * global across all the profilers, device management, process management, current state of the tool etc.
  */
-public final class StudioProfilers extends AspectModel<ProfilerAspect> implements Updatable {
+public class StudioProfilers extends AspectModel<ProfilerAspect> implements Updatable {
 
   public static final int INVALID_PROCESS_ID = -1;
 
