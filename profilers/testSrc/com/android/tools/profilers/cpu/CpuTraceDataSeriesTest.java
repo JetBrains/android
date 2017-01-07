@@ -33,7 +33,6 @@ import org.junit.Test;
 
 import java.io.IOException;
 
-import static com.android.tools.profilers.cpu.CpuCaptureTest.traceFileToByteString;
 import static org.junit.Assert.*;
 
 public class CpuTraceDataSeriesTest {
@@ -149,7 +148,7 @@ public class CpuTraceDataSeriesTest {
 
     private CpuCapture parseTraceFile() throws IOException {
       if (myTrace == null) {
-        myTrace = traceFileToByteString("valid_trace.trace");
+        myTrace = CpuCaptureTest.readValidTrace();
       }
       if (myCapture == null) {
         myCapture = new CpuCapture(myTrace);

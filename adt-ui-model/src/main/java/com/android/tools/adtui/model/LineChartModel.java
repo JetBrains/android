@@ -38,7 +38,7 @@ public class LineChartModel extends AspectModel<LineChartModel.Aspect> implement
   private boolean myFirstUpdate = true;
 
   @Override
-  public void update(float elapsed) {
+  public void update(long elapsedNs) {
     Map<Range, Double> max = new HashMap<>();
     // TODO Handle stacked configs
     for (RangedContinuousSeries ranged : mySeries) {
@@ -62,8 +62,8 @@ public class LineChartModel extends AspectModel<LineChartModel.Aspect> implement
       // Prevent the LineChart to update the range below its current max.
       if (range.getMax() < entry.getValue()) {
         float fraction = myFirstUpdate ? 1f : Updater.DEFAULT_LERP_FRACTION;
-        range.setMax(Updater.lerp(range.getMax(), entry.getValue(), fraction, elapsed,
-                                        (float)(entry.getValue() * Updater.DEFAULT_LERP_THRESHOLD_PERCENTAGE)));
+        range.setMax(Updater.lerp(range.getMax(), entry.getValue(), fraction, elapsedNs,
+                                  (float)(entry.getValue() * Updater.DEFAULT_LERP_THRESHOLD_PERCENTAGE)));
       }
     }
 

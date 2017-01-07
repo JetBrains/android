@@ -37,7 +37,7 @@ public class SimpleEventModel<E extends Enum<E>> extends AspectModel<SimpleEvent
   }
 
   @Override
-  public void update(float elapsed) {
+  public void update(long elapsedNs) {
     changed(Aspect.SIMPLE_EVENT);
   }
 }

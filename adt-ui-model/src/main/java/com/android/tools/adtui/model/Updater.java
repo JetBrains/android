@@ -19,7 +19,6 @@ package com.android.tools.adtui.model;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -85,23 +84,19 @@ public class Updater implements StopwatchTimer.TickHandler {
     }
   }
 
-  @Override
-  public void onTick(float elapsed) {
-    step(elapsed);
-  }
-
   public void reset() {
     mReset = true;
   }
 
-  private void step(float frameLength) {
+  @Override
+  public void onTick(long elapsedNs) {
     mUpdating = true;
     if (mReset) {
       mComponents.forEach(Updatable::reset);
       mReset = false;
     }
 
-    mComponents.forEach(component -> component.update(frameLength));
+    mComponents.forEach(component -> component.update(elapsedNs));
     mComponents.forEach(Updatable::postUpdate);
     mUpdating = false;
 
@@ -120,35 +115,29 @@ public class Updater implements StopwatchTimer.TickHandler {
    * @param from        the value to interpolate from.
    * @param to          the target value.
    * @param fraction    the interpolation fraction.
-   * @param frameLength the frame length in seconds.
+   * @param frameLengthNs the frame length in nanoseconds.
    * @param threshold   the difference threshold that will cause the method to jump to the target value without lerp.
    * @return the interpolated value.
    */
-  public static float lerp(float from, float to, float fraction, float frameLength, float threshold) {
+  public static float lerp(float from, float to, float fraction, long frameLengthNs, float threshold) {
     if (Math.abs(to - from) < threshold) {
       return to;
     }
     else {
-      float q = (float)Math.pow(1.0f - fraction, frameLength);
+      double length = frameLengthNs / 1000000000.0;
+      float q = (float)Math.pow(1.0f - fraction, length);
       return from * q + to * (1.0f - q);
     }
   }
 
-  public static double lerp(double from, double to, float fraction, float frameLength, float threshold) {
+  public static double lerp(double from, double to, float fraction, long frameLengthNs, float threshold) {
     if (Math.abs(to - from) < threshold) {
       return to;
     }
     else {
-      double q = Math.pow(1.0f - fraction, frameLength);
+      double length = frameLengthNs / 1000000000.0;
+      double q = Math.pow(1.0f - fraction, length);
       return from * q + to * (1.0 - q);
     }
-  }
-
-  public static float lerp(float from, float to, float fraction, float frameLength) {
-    return lerp(from, to, fraction, frameLength, 0);
-  }
-
-  public static double lerp(double from, double to, float fraction, float frameLength) {
-    return lerp(from, to, fraction, frameLength, 0);
   }
 }

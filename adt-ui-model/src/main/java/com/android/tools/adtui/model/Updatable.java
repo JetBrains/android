@@ -28,8 +28,9 @@ public interface Updatable {
   /**
    * Triggered by the {@link Choreographer} to give an {@link Updatable} a chance to
    * update/interpolate any components or data based on the current frame rate.
+   * @param elapsedNs the time elapsed since the last update in nanoseconds.
    */
-  void update(float elapsed);
+  void update(long elapsedNs);
 
   /**
    * Triggered by the {@link Choreographer} after all components have finished animating.
