@@ -23,6 +23,7 @@ import com.intellij.util.ui.tree.WideSelectionTreeUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.TableColumnModelEvent;
@@ -262,12 +263,19 @@ public class ColumnTreeBuilder {
                                                   int row,
                                                   boolean hasFocus) {
       setFont(tree.getFont());
+      String toolTip = null;
       for (int i = 0; i < getComponentCount(); i++) {
         Component component = getComponent(i);
         if (component instanceof ColoredTreeCellRenderer) {
-          ((ColoredTreeCellRenderer)component).getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
+          Component c = ((ColoredTreeCellRenderer)component).getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
+          if (c instanceof JComponent) {
+            if (toolTip == null) {
+              toolTip = ((JComponent)c).getToolTipText();
+            }
+          }
         }
       }
+      setToolTipText(toolTip);
       return this;
     }
 
@@ -319,6 +327,7 @@ public class ColumnTreeBuilder {
     private String myName;
     private int myWidth;
     private int myHeaderAlignment;
+    private Border myHeaderBorder;
     private Comparator<?> myComparator;
     private ColoredTreeCellRenderer myRenderer;
     private SortOrder myInitialOrder = SortOrder.UNSORTED;
@@ -338,6 +347,11 @@ public class ColumnTreeBuilder {
       return this;
     }
 
+    public ColumnBuilder setHeaderBorder(Border border) {
+      myHeaderBorder = border;
+      return this;
+    }
+
     public void create(DefaultTableModel model) {
       model.addColumn(myName);
     }
@@ -354,6 +368,9 @@ public class ColumnTreeBuilder {
           Component component = tableCellRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
           if (component instanceof JLabel) {
             ((JLabel)component).setHorizontalAlignment(myHeaderAlignment);
+          }
+          if (component instanceof JComponent) {
+            ((JComponent)component).setBorder(myHeaderBorder);
           }
           return component;
         }
