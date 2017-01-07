@@ -15,11 +15,11 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.profilers.IdeProfilerComponents;
-import com.android.tools.profilers.IdeProfilerServices;
+import com.android.tools.profilers.*;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.labels.LinkLabel;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.*;
 
@@ -39,16 +39,22 @@ public class ConnectionDetailsViewTest {
   @Mock private HttpData myHttpData;
   private ConnectionDetailsView myView;
 
+  private final FakeProfilerService myService = new FakeProfilerService();
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("StudioProfilerTestChannel", myService);
+
   @Before
   public void before() {
     MockitoAnnotations.initMocks(this);
     when(myHttpData.getUrl()).thenReturn("dumbUrl");
     when(myHttpData.getTrace()).thenReturn("dumbTrace");
 
-    NetworkProfilerStageView view = Mockito.mock(NetworkProfilerStageView.class);
-    when(view.getIdeComponents()).thenReturn(myIdeProfilerComponents);
-    when(view.getIdeServices()).thenReturn(myIdeServices);
-    myView = new ConnectionDetailsView(view);
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myIdeServices);
+    NetworkProfilerStage stage = new NetworkProfilerStage(profilers);
+    StudioProfilersView view = new StudioProfilersView(profilers, myIdeProfilerComponents);
+    profilers.setStage(stage);
+
+    NetworkProfilerStageView networkView = (NetworkProfilerStageView)view.getStageView();
+    myView = new ConnectionDetailsView(networkView);
   }
 
   @Test

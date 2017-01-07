@@ -28,11 +28,9 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 import java.util.function.BiFunction;
 
 public class StudioProfilersView extends AspectObserver {
@@ -130,11 +128,8 @@ public class StudioProfilersView extends AspectObserver {
     return myComponent;
   }
 
-  public ViewBinder<StudioProfilersView, Stage, StageView> getBinder() {
-    return myBinder;
-  }
-
-  private static class DeviceComboBoxRenderer extends ColoredListCellRenderer<Profiler.Device> {
+  @VisibleForTesting
+  public static class DeviceComboBoxRenderer extends ColoredListCellRenderer<Profiler.Device> {
 
     @NotNull
     private final String myEmptyText = "No Connected Devices";
@@ -146,7 +141,7 @@ public class StudioProfilersView extends AspectObserver {
         renderDeviceName(value);
       }
       else {
-        append(myEmptyText, SimpleTextAttributes.ERROR_ATTRIBUTES);
+        append(getEmptyText(), SimpleTextAttributes.ERROR_ATTRIBUTES);
       }
     }
 
@@ -164,9 +159,16 @@ public class StudioProfilersView extends AspectObserver {
       append(model, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
       append(String.format(" (%1$s)", serial), SimpleTextAttributes.GRAY_ATTRIBUTES);
     }
+
+    @NotNull
+    @VisibleForTesting
+    public String getEmptyText() {
+      return myEmptyText;
+    }
   }
 
-  private static class ProcessComboBoxRenderer extends ColoredListCellRenderer<Profiler.Process> {
+  @VisibleForTesting
+  public static class ProcessComboBoxRenderer extends ColoredListCellRenderer<Profiler.Process> {
 
     @NotNull
     private final String myEmptyText = "No Debuggable Processes";
@@ -178,21 +180,24 @@ public class StudioProfilersView extends AspectObserver {
         renderProcessName(value);
       }
       else {
-        append(myEmptyText, SimpleTextAttributes.ERROR_ATTRIBUTES);
+        append(getEmptyText(), SimpleTextAttributes.ERROR_ATTRIBUTES);
       }
     }
 
     private void renderProcessName(@NotNull Profiler.Process process) {
       String name = process.getName();
-      if (name == null) {
-        return;
-      }
       // Highlight the last part of the process name.
       int index = name.lastIndexOf('.');
       append(name.substring(0, index + 1), SimpleTextAttributes.REGULAR_ATTRIBUTES);
       append(name.substring(index + 1), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
 
       append(String.format(" (%1$d)", process.getPid()), SimpleTextAttributes.GRAY_ATTRIBUTES);
+    }
+
+    @NotNull
+    @VisibleForTesting
+    public String getEmptyText() {
+      return myEmptyText;
     }
   }
 
