@@ -390,7 +390,7 @@ public class AccordionLayout implements LayoutManager2, Updatable {
   }
 
   @Override
-  public void update(float elapsed) {
+  public void update(long elapsedNs) {
     boolean hasMaximizedComponents = false;
     mPreferredTotal = 0;
     mMaxTotal = 0;
@@ -426,11 +426,11 @@ public class AccordionLayout implements LayoutManager2, Updatable {
       }
 
       if (info.currentSize != targetSize) {
-        info.currentSize = Updater.lerp(info.currentSize, targetSize, mLerpFraction, elapsed, mLerpThreshold);
+        info.currentSize = Updater.lerp(info.currentSize, targetSize, mLerpFraction, elapsedNs, mLerpThreshold);
       }
 
       if (currentSize != minSize) {
-        currentSize = Updater.lerp(currentSize, minSize, mLerpFraction, elapsed, mLerpThreshold);
+        currentSize = Updater.lerp(currentSize, minSize, mLerpFraction, elapsedNs, mLerpThreshold);
       }
 
       switch (info.state) {

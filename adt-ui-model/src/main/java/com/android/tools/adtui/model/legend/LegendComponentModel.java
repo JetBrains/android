@@ -57,7 +57,7 @@ public class LegendComponentModel extends AspectModel<LegendComponentModel.Aspec
   }
 
   @Override
-  public void update(float elapsed) {
+  public void update(long elapsedNs) {
       long now = System.currentTimeMillis();
       if (now - mLastUpdate > mFrequencyMillis) {
         mLastUpdate = now;

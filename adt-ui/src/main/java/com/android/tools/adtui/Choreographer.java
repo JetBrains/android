@@ -122,7 +122,7 @@ public class Choreographer implements StopwatchTimer.TickHandler {
   }
 
   @Override
-  public void onTick(float elapsed) {
+  public void onTick(long elapsed) {
     step(elapsed);
   }
 
@@ -151,7 +151,7 @@ public class Choreographer implements StopwatchTimer.TickHandler {
     mReset = true;
   }
 
-  private void step(float frameLength) {
+  private void step(long frameLength) {
     mUpdating = true;
     if (mReset) {
       mComponents.forEach(Updatable::reset);

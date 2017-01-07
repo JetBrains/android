@@ -16,7 +16,6 @@
 
 package com.android.tools.adtui.visualtests;
 
-import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.model.FpsTimer;
 import com.android.tools.adtui.model.StopwatchTimer;
 import com.android.tools.adtui.model.Updater;
@@ -92,7 +91,7 @@ public class VisualTestsDialog extends JDialog {
     darculaCheckbox = new JCheckBox("Darcula");
     darculaCheckbox.addActionListener(actionEvent -> setDarculaMode(darculaCheckbox.isSelected()));
 
-    stepButton = createButton("Step", actionEvent -> myUpdaters.forEach(c -> c.getTimer().tick(FpsTimer.ONE_FRAME_IN_60_FPS)));
+    stepButton = createButton("Step", actionEvent -> myUpdaters.forEach(c -> c.getTimer().tick(FpsTimer.ONE_FRAME_IN_NS)));
 
     updateCheckbox = new JCheckBox("Update");
     updateCheckbox.addActionListener(actionEvent -> setUpdateMode(updateCheckbox.isSelected()));

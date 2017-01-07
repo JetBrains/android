@@ -82,8 +82,8 @@ public abstract class LegacyAnimatedComponent extends AnimatedComponent implemen
   }
 
   @Override
-  public void update(float elapsed) {
-    mFrameLength = elapsed;
+  public void update(long elapsedNs) {
+    mFrameLength = elapsedNs;
 
     mUpdateStartTime = System.nanoTime();
     this.updateData();

@@ -54,7 +54,7 @@ public class StudioProfilersViewTest {
     myTimer = new FakeTimer();
     myProfilers = new StudioProfilers(myGrpcChannel.getClient(), ide, myTimer);
     // Make sure a process is selected
-    myTimer.tick(10);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myView = new StudioProfilersView(myProfilers, new IdeProfilerComponentsStub());
     myView.bind(FakeStage.class, FakeView::new);
   }

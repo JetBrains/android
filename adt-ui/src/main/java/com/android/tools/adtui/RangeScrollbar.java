@@ -130,7 +130,7 @@ public final class RangeScrollbar extends JBScrollBar implements Updatable {
   }
 
   @Override
-  public void update(float elapsed) {
+  public void update(long elapsedNs) {
     if (mScrollingMode == ScrollingMode.STREAMING) {
       double globalMax = mGlobalRange.getMax();
       // TODO reinvestigate how to quit streaming mode.

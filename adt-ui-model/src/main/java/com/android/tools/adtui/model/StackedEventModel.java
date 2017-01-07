@@ -31,7 +31,7 @@ public class StackedEventModel extends AspectModel<StackedEventModel.Aspect> imp
   }
 
   @Override
-  public void update(float elapsed) {
+  public void update(long elapsedNs) {
     // TODO: Depend on the other things.
     changed(Aspect.STACKED_EVENT);
   }
