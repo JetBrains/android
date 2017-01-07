@@ -15,13 +15,15 @@
  */
 package com.android.tools.adtui.model;
 
-import com.android.tools.adtui.model.FpsTimer;
-import com.android.tools.adtui.model.StopwatchTimer;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Timer that is manually controlled, using {@link #step()}, which is useful for tests.
  */
 public final class FakeTimer extends StopwatchTimer {
+
+  public static long ONE_SECOND_IN_NS = TimeUnit.SECONDS.toNanos(1);
+
   private boolean myRunning;
 
   @Override
@@ -43,7 +45,7 @@ public final class FakeTimer extends StopwatchTimer {
     if (!isRunning()) {
       return false;
     }
-    tick(FpsTimer.ONE_FRAME_IN_60_FPS);
+    tick(FpsTimer.ONE_FRAME_IN_NS);
     return true;
   }
 }

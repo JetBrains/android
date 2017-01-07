@@ -36,7 +36,7 @@ public final class ProfilerTimeline implements Updatable {
   private boolean myStreaming;
   private boolean myCanStream = true;
   private long myDeviceStartNs;
-  private long myHostStartNs;
+  private long myLengthNs;
 
   public ProfilerTimeline() {
     myDataRangeUs = new Range(0, 0);
@@ -97,10 +97,9 @@ public final class ProfilerTimeline implements Updatable {
   }
 
   @Override
-  public void update(float elapsed) {
-
-    long lengthNs = System.nanoTime() - myHostStartNs;
-    long deviceNowNs = myDeviceStartNs + lengthNs;
+  public void update(long elapsedNs) {
+    myLengthNs += elapsedNs;
+    long deviceNowNs = myDeviceStartNs + myLengthNs;
     long deviceNowUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
     myDataRangeUs.setMax(deviceNowUs);
     if (myStreaming) {
@@ -138,7 +137,7 @@ public final class ProfilerTimeline implements Updatable {
 
   public void reset(long ns) {
     myDeviceStartNs = ns;
-    myHostStartNs = System.nanoTime();
+    myLengthNs = 0;
     double us = TimeUnit.NANOSECONDS.toMicros(ns);
     myDataRangeUs.set(us, us);
     myViewRangeUs.set(us - DEFAULT_VIEW_LENGTH_US, us);

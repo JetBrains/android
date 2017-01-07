@@ -23,11 +23,12 @@ import org.jetbrains.annotations.Nullable;
  * Base class for a timer that can be started and stopped. While running, it regularly fires a tick
  * event which can be listened to by a {@link TickHandler}.
  *
- * Child classes are responsible for calling {@link #tick(float)} to drive the timer.
+ * Child classes are responsible for calling {@link #tick(long)} to drive the timer.
  */
 public abstract class StopwatchTimer {
+
   public interface TickHandler {
-    void onTick(float elapsed);
+    void onTick(long elapsed);
   }
 
   @Nullable
@@ -48,9 +49,9 @@ public abstract class StopwatchTimer {
    * treated as only available to subclasses.
    */
   @VisibleForTesting
-  public final void tick(float elapsed) {
+  public final void tick(long elapsedNs) {
     if (myHandler != null) {
-      myHandler.onTick(elapsed);
+      myHandler.onTick(elapsedNs);
     }
   }
 }

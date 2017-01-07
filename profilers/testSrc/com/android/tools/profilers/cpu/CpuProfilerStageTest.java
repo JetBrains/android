@@ -31,7 +31,7 @@ import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
 import static com.android.tools.profiler.proto.CpuProfiler.*;
-import static com.android.tools.profilers.cpu.CpuCaptureTest.traceFileToByteString;
+import static com.android.tools.profilers.cpu.CpuCaptureTest.readValidTrace;
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.*;
 
@@ -212,7 +212,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     private static ByteString getTrace() {
       try {
         if (ourTrace == null) {
-          ourTrace = traceFileToByteString("valid_trace.trace");
+          ourTrace = readValidTrace();
         }
       } catch (IOException e) {
         fail("Unable to get a response trace file");
