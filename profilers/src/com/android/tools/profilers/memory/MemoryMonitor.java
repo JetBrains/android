@@ -44,7 +44,6 @@ public class MemoryMonitor extends ProfilerMonitor {
     myMemoryLegend = new MemoryLegend(myMemoryUsage, getTimeline().getDataRange());
   }
 
-  @Override
   public String getName() {
     return "Memory";
   }

@@ -56,7 +56,6 @@ public class NetworkMonitor extends ProfilerMonitor {
   }
 
   @NotNull
-  @Override
   public String getName() {
     return "Network";
   }

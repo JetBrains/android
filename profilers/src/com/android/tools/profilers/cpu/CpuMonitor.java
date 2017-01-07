@@ -42,7 +42,6 @@ public class CpuMonitor extends ProfilerMonitor {
     myLegends = new CpuMonitorLegends(myThisProcessCpuUsage, profilers.getTimeline().getDataRange());
   }
 
-  @Override
   public String getName() {
     return "CPU";
   }
