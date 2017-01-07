@@ -48,7 +48,7 @@ public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> i
   }
 
   @Override
-  public void update(float elapsed) {
+  public void update(long elapsedNs) {
     double maxTarget = myRange.getMax() - getZero();
     double rangeTarget = myRange.getLength();
     double clampedMaxTarget;
@@ -63,7 +63,7 @@ public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> i
 
     clampedMaxTarget += getZero();
     float fraction = myFirstUpdate ? 1f : Updater.DEFAULT_LERP_FRACTION;
-    myRange.setMax(Updater.lerp(myRange.getMax(), clampedMaxTarget, fraction, elapsed,
+    myRange.setMax(Updater.lerp(myRange.getMax(), clampedMaxTarget, fraction, elapsedNs,
                                 (float)(clampedMaxTarget * Updater.DEFAULT_LERP_THRESHOLD_PERCENTAGE)));
     myFirstUpdate = false;
 

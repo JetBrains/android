@@ -38,7 +38,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.profilers.cpu.CpuCaptureTest.traceFileToByteString;
 import static org.junit.Assert.*;
 
 public class ThreadStateDataSeriesTest {
@@ -277,7 +276,7 @@ public class ThreadStateDataSeriesTest {
 
     private CpuCapture parseTraceFile() throws IOException {
       if (myTrace == null) {
-        myTrace = traceFileToByteString("valid_trace.trace");
+        myTrace = CpuCaptureTest.readValidTrace();
       }
       if (myCapture == null) {
         myCapture = new CpuCapture(myTrace);

@@ -38,7 +38,7 @@ public class StateChartModel<E> extends AspectModel<StateChartModel.Aspect> impl
   }
 
   @Override
-  public void update(float elapsed) {
+  public void update(long elapsedNs) {
     changed(Aspect.STATE_CHART);
   }
 
