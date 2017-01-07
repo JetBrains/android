@@ -22,12 +22,12 @@ import io.grpc.stub.StreamObserver;
 
 import java.util.Map;
 
-public final class TestEventService extends EventServiceGrpc.EventServiceImplBase {
+public final class FakeEventService extends EventServiceGrpc.EventServiceImplBase {
   public static final int FAKE_APP_ID = 1111;
   Map<Long, EventProfiler.SystemData> myEventData = new HashMap<>();
   Map<Long, EventProfiler.ActivityData> myActivityData = new HashMap<>();
 
-  public TestEventService() {
+  public FakeEventService() {
   }
 
   public void addSystemEvent(EventProfiler.SystemData data) {
@@ -54,6 +54,13 @@ public final class TestEventService extends EventServiceGrpc.EventServiceImplBas
       .addAllData(myEventData.values())
       .build();
     responseObserver.onNext(response);
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void startMonitoringApp(EventProfiler.EventStartRequest request,
+                                 StreamObserver<EventProfiler.EventStartResponse> responseObserver) {
+    responseObserver.onNext(EventProfiler.EventStartResponse.newBuilder().build());
     responseObserver.onCompleted();
   }
 }

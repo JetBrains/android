@@ -45,7 +45,7 @@ public class DurationDataModel<E extends DurationData> extends AspectModel<Durat
   }
 
   @Override
-  public void update(float elapsed) {
+  public void update(long elapsedNs) {
     // TODO: perhaps only update on model change
     changed(Aspect.DURATION_DATA);
   }

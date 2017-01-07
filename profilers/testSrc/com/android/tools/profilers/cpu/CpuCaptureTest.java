@@ -39,8 +39,7 @@ public class CpuCaptureTest {
 
   @Test
   public void validCapture() throws IOException {
-    ByteString validTrace = traceFileToByteString("valid_trace.trace");
-    CpuCapture capture = new CpuCapture(validTrace);
+    CpuCapture capture = new CpuCapture(readValidTrace());
     assertNotNull(capture);
 
     Range captureRange = capture.getRange();
@@ -65,6 +64,11 @@ public class CpuCaptureTest {
     int inexistentThreadId = -1;
     assertFalse(capture.containsThread(inexistentThreadId));
     assertNull(capture.getCaptureNode(inexistentThreadId));
+  }
+
+  @NotNull
+  public static ByteString readValidTrace() throws IOException {
+    return traceFileToByteString("valid_trace.trace");
   }
 
   @Test
@@ -100,8 +104,7 @@ public class CpuCaptureTest {
     assertNull(capture);
   }
 
-  @VisibleForTesting
-  static ByteString traceFileToByteString(@NotNull String filename) throws IOException {
+  private static ByteString traceFileToByteString(@NotNull String filename) throws IOException {
     File traceFile = TestUtils.getWorkspaceFile(CPU_TRACES_DIR + filename);
     return ByteString.copyFrom(Files.readAllBytes(traceFile.toPath()));
   }
