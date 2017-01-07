@@ -318,6 +318,7 @@ final class ConnectionsView {
       myTable = table;
       myRange = range;
       myTable.getModel().addTableModelListener(this);
+      tableChanged(new TableModelEvent(myTable.getModel()));
     }
 
     @Override
