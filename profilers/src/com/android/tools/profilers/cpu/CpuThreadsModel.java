@@ -79,7 +79,7 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
   }
 
   @Override
-  public void update(float elapsed) {
+  public void update(long elapsedNs) {
     fireContentsChanged(this, 0, size());
   }
 

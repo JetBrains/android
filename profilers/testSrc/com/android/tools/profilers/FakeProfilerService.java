@@ -17,20 +17,46 @@ package com.android.tools.profilers;
 
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
+import com.intellij.util.containers.MultiMap;
 import io.grpc.stub.StreamObserver;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
   public static final String VERSION = "3141592";
-  private final Profiler.Device myDevice = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
-  private final Profiler.Process myProcess = Profiler.Process.newBuilder().setPid(20).setName("FakeProcess").build();
+  private final Map<String, Profiler.Device> myDevices;
+  private final MultiMap<Profiler.Device, Profiler.Process> myProcesses;
   private long myTimestampNs;
+  private boolean myThrowErrorOnGetDevices;
 
-  public Profiler.Device getDevice() {
-    return myDevice;
+  public FakeProfilerService() {
+    this(true);
   }
 
-  public Profiler.Process getProcess() {
-    return myProcess;
+  /**
+   * Creates a fake profiler service. If connected is true there will be a device with a process already present.
+   */
+  public FakeProfilerService(boolean connected) {
+    myDevices = new HashMap<>();
+    myProcesses = MultiMap.create();
+    if (connected) {
+      Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
+      Profiler.Process process = Profiler.Process.newBuilder().setPid(20).setName("FakeProcess").build();
+      addDevice(device);
+      addProcess("FakeDevice", process);
+    }
+  }
+
+  public void addProcess(String serial, Profiler.Process process) {
+    if (!myDevices.containsKey(serial)) {
+      throw new IllegalArgumentException("Invalid device serial: " + serial);
+    }
+    myProcesses.putValue(myDevices.get(serial), process);
+  }
+
+  public void addDevice(Profiler.Device device) {
+    myDevices.put(device.getSerial(), device);
   }
 
   public void setTimestampNs(long timestamp) {
@@ -45,8 +71,14 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
 
   @Override
   public void getDevices(Profiler.GetDevicesRequest request, StreamObserver<Profiler.GetDevicesResponse> responseObserver) {
+    if (myThrowErrorOnGetDevices) {
+      responseObserver.onError(new RuntimeException("Server error"));
+      return;
+    }
     Profiler.GetDevicesResponse.Builder response = Profiler.GetDevicesResponse.newBuilder();
-    response.addDevice(myDevice);
+    for (Profiler.Device device : myDevices.values()) {
+      response.addDevice(device);
+    }
 
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
@@ -55,8 +87,13 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   @Override
   public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> responseObserver) {
     Profiler.GetProcessesResponse.Builder response = Profiler.GetProcessesResponse.newBuilder();
-    response.addProcess(myProcess);
-
+    String serial = request.getSerial();
+    Profiler.Device device = myDevices.get(serial);
+    if (device != null) {
+      for (Profiler.Process process : myProcesses.get(device)) {
+        response.addProcess(process);
+      }
+    }
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
   }
@@ -67,5 +104,9 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     response.setTimestampNs(myTimestampNs);
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
+  }
+
+  public void setThrowErrorOnGetDevices(boolean throwErrorOnGetDevices) {
+    myThrowErrorOnGetDevices = throwErrorOnGetDevices;
   }
 }

@@ -45,7 +45,7 @@ public class AnimatedTimeRange implements Updatable {
   }
 
   @Override
-  public void update(float elapsed) {
+  public void update(long elapsedNs) {
     long now = TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - mOffsetUs;
     double min = mRange.getMin();
     double max = mRange.getMax();

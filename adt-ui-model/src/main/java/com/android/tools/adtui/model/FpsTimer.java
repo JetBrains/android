@@ -24,16 +24,15 @@ import java.awt.event.ActionListener;
  * much time has passed since the last tick.
  */
 public final class FpsTimer extends StopwatchTimer implements ActionListener {
-  public static final float ONE_FRAME_IN_60_FPS = 1.0f / FpsTimer.DEFAULT_FPS;
+  public static final long ONE_FRAME_IN_NS = 1000000000 / FpsTimer.DEFAULT_FPS;
 
   private static final int DEFAULT_FPS = 60;
-  private static final float NANOSECONDS_IN_SECOND = 1000000000.0f;
 
-  private final Timer mTimer;
-  private float mFrameTime;
+  private final Timer myTimer;
+  private long myFrameTime;
 
   public FpsTimer(int fps) {
-    mTimer = new Timer(1000 / fps, this);
+    myTimer = new Timer(1000 / fps, this);
   }
 
   public FpsTimer() {
@@ -43,28 +42,28 @@ public final class FpsTimer extends StopwatchTimer implements ActionListener {
   @Override
   public void start() {
     if (!isRunning()) {
-      mFrameTime = System.nanoTime();
-      mTimer.start();
+      myFrameTime = System.nanoTime();
+      myTimer.start();
     }
   }
 
   @Override
   public boolean isRunning() {
-    return mTimer.isRunning();
+    return myTimer.isRunning();
   }
 
   @Override
   public void stop() {
     if (isRunning()) {
-      mTimer.stop();
+      myTimer.stop();
     }
   }
 
   @Override
   public void actionPerformed(ActionEvent e) {
     long now = System.nanoTime();
-    float frame = (now - mFrameTime) / NANOSECONDS_IN_SECOND;
-    mFrameTime = now;
+    long frame = now - myFrameTime;
+    myFrameTime = now;
 
     tick(frame);
   }

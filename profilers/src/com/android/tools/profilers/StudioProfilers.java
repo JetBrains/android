@@ -73,7 +73,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private Updater myUpdater;
   private AxisComponentModel myViewAxis;
-  private float myRefreshDevices;
+  private long myRefreshDevices;
 
   public StudioProfilers(ProfilerClient client, @NotNull IdeProfilerServices ideServices) {
     this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE));
@@ -117,12 +117,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
 
   @Override
-  public void update(float elapsed) {
-    myRefreshDevices += elapsed;
-    if (myRefreshDevices < 1.0f) {
+  public void update(long elapsedNs) {
+    myRefreshDevices += elapsedNs;
+    if (myRefreshDevices < TimeUnit.SECONDS.toNanos(1)) {
       return;
     }
-    myRefreshDevices = 0.0f;
+    myRefreshDevices = 0;
 
     try {
       Profiler.GetDevicesResponse response = myClient.getProfilerClient().getDevices(Profiler.GetDevicesRequest.getDefaultInstance());
@@ -238,10 +238,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return processes.get(0);
   }
 
-  public boolean isConnected() {
-    return myConnected;
-  }
-
   public List<Profiler.Process> getProcesses() {
     List<Profiler.Process> processes = myProcesses.get(myDevice);
     return processes == null ? ImmutableList.of() : processes;
@@ -283,15 +279,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   public List<StudioProfiler> getProfilers() {
     return myProfilers;
-  }
-
-  public <T extends StudioProfiler> T getProfiler(Class<T> clazz) {
-    for (StudioProfiler profiler : myProfilers) {
-      if (clazz.isInstance(profiler)) {
-        return clazz.cast(profiler);
-      }
-    }
-    return null;
   }
 
   public ProfilerMode getMode() {

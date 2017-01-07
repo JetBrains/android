@@ -17,10 +17,8 @@ package com.android.tools.profilers.event;
   import com.android.tools.adtui.model.EventAction;
   import com.android.tools.adtui.model.Range;
   import com.android.tools.adtui.model.SeriesData;
-  import com.android.tools.profiler.proto.*;
   import com.android.tools.profiler.proto.EventProfiler;
   import com.android.tools.profilers.FakeGrpcChannel;
-  import com.android.tools.profilers.StudioProfilers;
   import org.junit.Before;
   import org.junit.Rule;
   import org.junit.Test;
@@ -35,13 +33,13 @@ public class SimpleEventDataSeriesTest {
   private static final long TEST_START_TIME_NS = System.nanoTime();
   private static final long TEST_END_TIME_NS = TEST_START_TIME_NS + TimeUnit.SECONDS.toNanos(1);
 
-  TestEventService myEventService = new TestEventService();
+  FakeEventService myEventService = new FakeEventService();
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel(getClass().getName(), myEventService);
   private SimpleEventDataSeries mySeries;
 
   @Before
   public void setUp() {
-    mySeries = new SimpleEventDataSeries(myGrpcChannel.getClient(), TestEventService.FAKE_APP_ID);
+    mySeries = new SimpleEventDataSeries(myGrpcChannel.getClient(), FakeEventService.FAKE_APP_ID);
   }
 
   @Test
@@ -95,7 +93,7 @@ public class SimpleEventDataSeriesTest {
   private EventProfiler.SystemData buildTouchEvent(int eventId) {
    return EventProfiler.SystemData.newBuilder()
      .setEventId(eventId)
-     .setAppId(TestEventService.FAKE_APP_ID)
+     .setAppId(FakeEventService.FAKE_APP_ID)
      .setStartTimestamp(TEST_START_TIME_NS)
      .setEndTimestamp(TEST_END_TIME_NS)
      .setType(EventProfiler.SystemData.SystemEventType.TOUCH)
@@ -104,7 +102,7 @@ public class SimpleEventDataSeriesTest {
   private EventProfiler.SystemData buildRotationEvent(int eventId) {
     return EventProfiler.SystemData.newBuilder()
       .setEventId(eventId)
-      .setAppId(TestEventService.FAKE_APP_ID)
+      .setAppId(FakeEventService.FAKE_APP_ID)
       .setStartTimestamp(TEST_START_TIME_NS)
       .setEndTimestamp(TEST_START_TIME_NS)
       .setType(EventProfiler.SystemData.SystemEventType.ROTATION)

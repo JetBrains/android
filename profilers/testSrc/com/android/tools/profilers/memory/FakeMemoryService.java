@@ -23,7 +23,7 @@ import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
+public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   private Status myExplicitAllocationsStatus = null;
   private AllocationsInfo myExplicitAllocationsInfo = null;
   private TriggerHeapDumpResponse.Status myExplicitHeapDumpStatus = null;
