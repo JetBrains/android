@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.network.NetworkProfilerStage;
@@ -26,12 +27,15 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import javax.swing.*;
+import java.awt.*;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.Predicate;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
 
@@ -53,6 +57,68 @@ public class StudioProfilersViewTest {
     myTimer.tick(10);
     myView = new StudioProfilersView(myProfilers, new IdeProfilerComponentsStub());
     myView.bind(FakeStage.class, FakeView::new);
+  }
+
+  @Test
+  public void testSameStageTransition() {
+    FakeStage stage = new FakeStage(myProfilers);
+    myProfilers.setStage(stage);
+    StageView view = myView.getStageView();
+
+    myProfilers.setStage(stage);
+    assertEquals(view, myView.getStageView());
+  }
+
+  @Test
+  public void testDeviceRendering() throws IOException {
+    StudioProfilersView.DeviceComboBoxRenderer renderer = new StudioProfilersView.DeviceComboBoxRenderer();
+    JList<Profiler.Device> list = new JList<>();
+    // Null device
+    Profiler.Device device = null;
+    Component component = renderer.getListCellRendererComponent(list, device, 0, false, false);
+    assertEquals(renderer.getEmptyText(), component.toString());
+
+    // Standard case
+    device = Profiler.Device.newBuilder()
+      .setModel("Model")
+      .setSerial("1234")
+      .build();
+    component = renderer.getListCellRendererComponent(list, device, 0, false, false);
+    assertEquals("Model (1234)", component.toString());
+
+    // Suffix not serial
+    device = Profiler.Device.newBuilder()
+      .setModel("Model-9999")
+      .setSerial("1234")
+      .build();
+    component = renderer.getListCellRendererComponent(list, device, 0, false, false);
+    assertEquals("Model-9999 (1234)", component.toString());
+
+    // Suffix serial
+    device = Profiler.Device.newBuilder()
+      .setModel("Model-1234")
+      .setSerial("1234")
+      .build();
+    component = renderer.getListCellRendererComponent(list, device, 0, false, false);
+    assertEquals("Model (1234)", component.toString());
+  }
+
+  @Test
+  public void testProcessRendering() throws IOException {
+    StudioProfilersView.ProcessComboBoxRenderer renderer = new StudioProfilersView.ProcessComboBoxRenderer();
+    JList<Profiler.Process> list = new JList<>();
+    // Null process
+    Profiler.Process process = null;
+    Component component = renderer.getListCellRendererComponent(list, process, 0, false, false);
+    assertEquals(renderer.getEmptyText(), component.toString());
+
+    // Process
+    process = Profiler.Process.newBuilder()
+      .setName("MyProcessName")
+      .setPid(1234)
+      .build();
+    component = renderer.getListCellRendererComponent(list, process, 0, false, false);
+    assertEquals("MyProcessName (1234)", component.toString());
   }
 
   @Test
