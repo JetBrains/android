@@ -21,7 +21,6 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -65,7 +64,6 @@ public class ConnectionsViewTest {
   }
 
   @Test
-  @Ignore
   public void dataRangeControlsVisibleConnections() throws Exception {
     Range dataRange = new Range();
     ConnectionsView view = new ConnectionsView(myStage, dataRange, data -> {});
@@ -81,7 +79,6 @@ public class ConnectionsViewTest {
   }
 
   @Test
-  @Ignore
   public void activeConnectionIsAutoFocusedByTable() throws Exception {
     Range dataRange = new Range();
     ConnectionsView view = new ConnectionsView(myStage, dataRange, data -> {});
@@ -107,7 +104,6 @@ public class ConnectionsViewTest {
   }
 
   @Test
-  @Ignore
   public void tableCanBeSorted() throws Exception {
     Range dataRange = new Range(0, TimeUnit.SECONDS.toMicros(100));
     ConnectionsView view = new ConnectionsView(myStage, dataRange, data -> {});
@@ -138,7 +134,6 @@ public class ConnectionsViewTest {
   }
 
   @Test
-  @Ignore
   public void testTableRowHighlight() {
     Range dataRange = new Range(0, TimeUnit.SECONDS.toMicros(100));
     ConnectionsView view = new ConnectionsView(myStage, dataRange, data -> {});
