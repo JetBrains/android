@@ -68,12 +68,16 @@ public class NlTableCellEditor extends PTableCellEditor implements NlEditingList
 
   @Override
   public boolean stopCellEditing() {
-    if (!super.stopCellEditing()) {
-      return false;
+    if (myTable != null) {
+      // Bug: 231647 Move focus back to table before hiding the editor
+      myTable.requestFocus();
+      if (!super.stopCellEditing()) {
+        return false;
+      }
+      myTable = null;
+      myRow = -1;
+      myEditor.setProperty(EmptyProperty.INSTANCE);
     }
-    myTable = null;
-    myRow = -1;
-    myEditor.setProperty(EmptyProperty.INSTANCE);
     return true;
   }
 
