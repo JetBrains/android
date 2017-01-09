@@ -1056,7 +1056,7 @@ public class Configuration implements Disposable, ModificationTracker {
     if (qualifier != null) {
       // just a sanity check
       Density d = qualifier.getValue();
-      if (d.isValidValueForDevice()) {
+      if (d != null && d.isValidValueForDevice()) {
         return d;
       }
     }
