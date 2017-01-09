@@ -118,7 +118,7 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
 
     @NotNull
     public ProcessListFixture waitForProcess(@NotNull final String packageName) {
-      Wait.seconds(1).expecting("the process list to show the package name").until(() -> GuiQuery.getNonNull(() -> {
+      Wait.seconds(5).expecting("the process list to show the package name").until(() -> GuiQuery.getNonNull(() -> {
         ComboBoxModel model = target().getModel();
         int size = model.getSize();
         for (int i = 0; i < size; ++i) {
