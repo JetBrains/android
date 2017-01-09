@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.TreeWalker;
 import com.google.common.base.Strings;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
@@ -24,9 +25,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.HierarchyEvent;
-import java.awt.event.HierarchyListener;
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Iterator;
+import java.util.Optional;
 
 /**
  * A label which automatically listens to all focus events whenever it is part of the current UI
@@ -43,32 +44,26 @@ import java.beans.PropertyChangeListener;
 public final class TooltipLabel extends JBLabel {
 
   private static final String PROPERTY_FOCUS_OWNER = "focusOwner";
-  @Nullable private Component myRootComponent;
+  @Nullable private Container myScope;
 
   public TooltipLabel() {
-    final PropertyChangeListener focusListener = new PropertyChangeListener() {
-      @Override
-      public void propertyChange(PropertyChangeEvent evt) {
-        if ((evt.getNewValue() instanceof Component)) {
-          Component component = (Component)evt.getNewValue();
-          TooltipLabel.super.setText(Strings.nullToEmpty(getTooltip(component)));
-        }
+    final PropertyChangeListener focusListener = evt -> {
+      if ((evt.getNewValue() instanceof Component)) {
+        Component component = (Component)evt.getNewValue();
+        super.setText(Strings.nullToEmpty(getTooltip(component)));
       }
     };
 
-    addHierarchyListener(new HierarchyListener() {
-      @Override
-      public void hierarchyChanged(HierarchyEvent e) {
-        if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) == 0) {
-          return;
-        }
+    addHierarchyListener(e -> {
+      if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) == 0) {
+        return;
+      }
 
-        if (isShowing()) {
-          KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(PROPERTY_FOCUS_OWNER, focusListener);
-        }
-        else {
-          KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener(PROPERTY_FOCUS_OWNER, focusListener);
-        }
+      if (isShowing()) {
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(PROPERTY_FOCUS_OWNER, focusListener);
+      }
+      else {
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener(PROPERTY_FOCUS_OWNER, focusListener);
       }
     });
   }
@@ -82,24 +77,16 @@ public final class TooltipLabel extends JBLabel {
    * Set a parent container which acts as a scope that prevent this class from crawling anywhere
    * outside of it.
    */
-  public void setScope(@Nullable Component rootComponent) {
-    myRootComponent = rootComponent;
+  public void setScope(@Nullable Container scope) {
+    myScope = scope;
   }
 
   private boolean isInScope(@NotNull Component component) {
-    if (myRootComponent == null) {
+    if (myScope == null) {
       return true;
     }
 
-    @Nullable Component currComponent = component;
-    while (currComponent != null) {
-      if (currComponent == myRootComponent) {
-        return true;
-      }
-      currComponent = currComponent.getParent();
-    }
-
-    return false;
+    return TreeWalker.isAncestor(myScope, component);
   }
 
   @VisibleForTesting // Unit testing Swing focus is not trivial, test this directly instead
@@ -109,17 +96,19 @@ public final class TooltipLabel extends JBLabel {
       return null;
     }
 
-    @Nullable Component currComponent = component;
     String tooltip = null;
-    while (tooltip == null && currComponent != null) {
-      if (currComponent instanceof JComponent) {
-        tooltip = ((JComponent)currComponent).getToolTipText();
+    TreeWalker treeWalker = new TreeWalker(component);
+    for (Component c : treeWalker.ancestors()) {
+      if (c instanceof JComponent) {
+        JComponent jc = (JComponent)c;
+        tooltip = jc.getToolTipText();
       }
-      if (currComponent == myRootComponent) {
+
+      if (c == myScope || tooltip != null) {
         break;
       }
-      currComponent = currComponent.getParent();
     }
+
     return tooltip;
   }
 }
