@@ -29,7 +29,6 @@ import java.awt.event.KeyEvent;
 import java.util.regex.Pattern;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 
 public class SearchTextFieldDriver extends JComponentDriver implements TextDisplayDriver<SearchTextField> {
   public SearchTextFieldDriver(@NotNull Robot robot) {
@@ -64,12 +63,7 @@ public class SearchTextFieldDriver extends JComponentDriver implements TextDispl
   @RunsInEDT
   public void deleteText(SearchTextField textBox) {
     focusAndWaitForFocusGain(textBox.getTextEditor());
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        textBox.getTextEditor().selectAll();
-      }
-    });
+    GuiTask.execute(() -> textBox.getTextEditor().selectAll());
     robot.pressAndReleaseKey(KeyEvent.VK_DELETE);
   }
 }
