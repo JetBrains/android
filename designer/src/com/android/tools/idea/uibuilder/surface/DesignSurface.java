@@ -1055,7 +1055,7 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
 
     @Override
     public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
-      // Do nothing
+      repaint();
     }
   };
 
