@@ -37,6 +37,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +55,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   @NotNull private JComboBox myDeviceCombo;
   @NotNull private JComboBox myClientCombo;
   @Nullable private String myCandidateClientName;
+  @NotNull private DeviceRenderer.DeviceComboBoxRenderer myDeviceRenderer;
 
   public DevicePanel(@NotNull Project project, @NotNull DeviceContext context) {
     myProject = project;
@@ -68,7 +70,6 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     AndroidDebugBridge.addDeviceChangeListener(this);
     AndroidDebugBridge.addClientChangeListener(this);
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
-
   }
 
   private void initializeDeviceCombo() {
@@ -85,7 +86,14 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
       }
     });
 
-    myDeviceCombo.setRenderer(new DeviceRenderer.DeviceComboBoxRenderer("No Connected Devices"));
+    boolean showSerial = false;
+    if (myBridge != null) {
+      showSerial = DeviceRenderer
+        .shouldShowSerialNumbers(Arrays.asList(myBridge.getDevices()));
+    }
+
+    myDeviceRenderer = new DeviceRenderer.DeviceComboBoxRenderer("No Connected Devices", showSerial);
+    myDeviceCombo.setRenderer(myDeviceRenderer);
     Dimension size = myDeviceCombo.getMinimumSize();
     myDeviceCombo.setMinimumSize(new Dimension(200, size.height));
   }
@@ -217,7 +225,12 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     myDeviceCombo.removeAllItems();
     boolean shouldAddSelected = true;
     if (myBridge != null) {
-      for (IDevice device : myBridge.getDevices()) {
+      IDevice[] devices = myBridge.getDevices();
+
+      // determine if there are duplicate devices, if so, show serial number
+      myDeviceRenderer.setShowSerial(DeviceRenderer.shouldShowSerialNumbers(Arrays.asList(devices)));
+
+      for (IDevice device : devices) {
         myDeviceCombo.addItem(device);
         // If we reattach an actual device into Studio, "device" will be the connected IDevice and "selected" will be the disconnected one.
         boolean isSelectedReattached =
