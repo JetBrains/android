@@ -867,13 +867,13 @@ public class ConstraintUtilities {
    * @return the margin in dp or 0 if it cannot be found
    */
   static int getMargin(@NotNull NlComponent component, @NotNull String attr) {
-    String margin = component.getAttribute(SdkConstants.NS_RESOURCES, attr);
+    String margin = component.getLiveAttribute(SdkConstants.NS_RESOURCES, attr);
     if (margin == null) {
       if (attr == SdkConstants.ATTR_LAYOUT_MARGIN_START) {
-        margin = component.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
+        margin = component.getLiveAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
       }
       else if (attr == SdkConstants.ATTR_LAYOUT_MARGIN_END) {
-        margin = component.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
+        margin = component.getLiveAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
       }
     }
     if (margin != null) {
