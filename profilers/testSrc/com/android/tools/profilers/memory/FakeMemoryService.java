@@ -30,6 +30,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   private HeapDumpInfo myExplicitHeapDumpInfo = null;
   private long myCurrentTime = 0;
   private MemoryData myMemoryData = null;
+  private ListHeapDumpInfosResponse.Builder myHeapDumpInfoBuilder = ListHeapDumpInfosResponse.newBuilder();
 
   private int myAppId;
 
@@ -87,7 +88,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   @Override
   public void listHeapDumpInfos(MemoryProfiler.ListDumpInfosRequest request,
                                 StreamObserver<MemoryProfiler.ListHeapDumpInfosResponse> response) {
-    response.onNext(MemoryProfiler.ListHeapDumpInfosResponse.newBuilder().build());
+    response.onNext(myHeapDumpInfoBuilder.build());
     response.onCompleted();
   }
 
@@ -146,6 +147,11 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
   public FakeMemoryService setMemoryData(@Nullable MemoryData data) {
     myMemoryData = data;
+    return this;
+  }
+
+  public FakeMemoryService addExplicitHeapDumpInfo(@NotNull HeapDumpInfo info) {
+    myHeapDumpInfoBuilder.addInfos(info);
     return this;
   }
 }

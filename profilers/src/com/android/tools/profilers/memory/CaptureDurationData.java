@@ -31,12 +31,4 @@ public class CaptureDurationData <T extends CaptureObject> extends DefaultDurati
   public T getCaptureObject() {
     return myCaptureObject;
   }
-
-  public long getStartTimeNs() {
-    return myCaptureObject.getStartTimeNs();
-  }
-
-  public long getEndTimeNs() {
-    return myCaptureObject.getEndTimeNs();
-  }
 }

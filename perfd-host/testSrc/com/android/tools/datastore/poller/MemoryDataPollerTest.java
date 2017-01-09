@@ -42,7 +42,6 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   private static final int FINISHED_ALLOC_INFO_ID = 1;
   private static final int POST_PROCESS_ALLOC_INFO_ID = 2;
   private static final long BASE_TIME_NS = System.nanoTime();
-  private static final long DELAY_TIME_NS = BASE_TIME_NS + TimeUnit.SECONDS.toNanos(1);
   private static final ByteString DUMP_DATA = ByteString.copyFrom("Test Data", Charset.defaultCharset());
 
   private static final MemoryProfiler.MemoryData.MemorySample DEFAULT_MEMORY_SAMPLE = MemoryProfiler.MemoryData.MemorySample.newBuilder()
@@ -63,27 +62,30 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   private static final MemoryProfiler.AllocationsInfo FINISHED_ALLOCATION_INFO = MemoryProfiler.AllocationsInfo.newBuilder()
     .setInfoId(FINISHED_ALLOC_INFO_ID)
     .setStartTime(BASE_TIME_NS)
-    .setEndTime(DELAY_TIME_NS)
+    .setEndTime(delayTimeFromBase(1))
     .build();
 
   private static final MemoryProfiler.AllocationsInfo POST_PROCESS_ALLOCATION_INFO = MemoryProfiler.AllocationsInfo.newBuilder()
     .setInfoId(POST_PROCESS_ALLOC_INFO_ID)
-    .setStartTime(DELAY_TIME_NS)
+    .setStartTime(delayTimeFromBase(1))
     .setEndTime(DurationData.UNSPECIFIED_DURATION)
     .build();
 
   private static final MemoryProfiler.HeapDumpInfo DEFAULT_DUMP_INFO = MemoryProfiler.HeapDumpInfo.newBuilder()
     .setDumpId(TEST_DUMP_ID)
-    .setEndTime(DELAY_TIME_NS)
+    .setStartTime(BASE_TIME_NS)
+    .setEndTime(delayTimeFromBase(1))
     .build();
 
   private static final MemoryProfiler.HeapDumpInfo ERROR_DUMP_INFO = MemoryProfiler.HeapDumpInfo.newBuilder()
     .setDumpId(ERROR_TEST_DUMP_ID)
-    .setEndTime(DELAY_TIME_NS)
+    .setStartTime(delayTimeFromBase(1))
+    .setEndTime(delayTimeFromBase(2))
     .build();
 
   private static final MemoryProfiler.HeapDumpInfo NOT_READY_DUMP_INFO = MemoryProfiler.HeapDumpInfo.newBuilder()
     .setDumpId(NOT_READY_TEST_DUMP_ID)
+    .setStartTime(delayTimeFromBase(2))
     .setEndTime(DurationData.UNSPECIFIED_DURATION)
     .build();
 
@@ -143,6 +145,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       .addAllocationsInfo(POST_PROCESS_ALLOCATION_INFO)
       .addHeapDumpInfos(DEFAULT_DUMP_INFO)
       .addHeapDumpInfos(ERROR_DUMP_INFO)
+      .addHeapDumpInfos(NOT_READY_DUMP_INFO)
       .build();
     StreamObserver<MemoryProfiler.MemoryData> observer = mock(StreamObserver.class);
     myMemoryDataPoller.getData(request, observer);
@@ -163,7 +166,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
     MemoryProfiler.MemoryRequest request = MemoryProfiler.MemoryRequest.newBuilder()
       .setAppId(0)
-      .setStartTime(DELAY_TIME_NS)
+      .setStartTime(delayTimeFromBase(2))
       .setEndTime(Long.MAX_VALUE)
       .build();
     MemoryProfiler.MemoryData expected = MemoryProfiler.MemoryData.getDefaultInstance();
@@ -295,20 +298,43 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     MemoryProfiler.ListDumpInfosRequest request = MemoryProfiler.ListDumpInfosRequest.newBuilder()
       .setAppId(TEST_APP_ID)
       .setStartTime(0)
-      .setEndTime(Long.MAX_VALUE)
+      .setEndTime(BASE_TIME_NS)
       .build();
     MemoryProfiler.ListHeapDumpInfosResponse expected = MemoryProfiler.ListHeapDumpInfosResponse.newBuilder()
       .addInfos(DEFAULT_DUMP_INFO)
+      .build();
+    StreamObserver<MemoryProfiler.ListHeapDumpInfosResponse> observer = mock(StreamObserver.class);
+    myMemoryDataPoller.listHeapDumpInfos(request, observer);
+    validateResponse(observer, expected);
+
+    request = MemoryProfiler.ListDumpInfosRequest.newBuilder()
+      .setAppId(TEST_APP_ID)
+      .setStartTime(BASE_TIME_NS)
+      .setEndTime(delayTimeFromBase(1))
+      .build();
+    expected = MemoryProfiler.ListHeapDumpInfosResponse.newBuilder()
+      .addInfos(DEFAULT_DUMP_INFO)
+      .addInfos(ERROR_DUMP_INFO)
+      .build();
+    observer = mock(StreamObserver.class);
+    myMemoryDataPoller.listHeapDumpInfos(request, observer);
+    validateResponse(observer, expected);
+
+    request = MemoryProfiler.ListDumpInfosRequest.newBuilder()
+      .setAppId(TEST_APP_ID)
+      .setStartTime(delayTimeFromBase(1))
+      .setEndTime(delayTimeFromBase(2))
+      .build();
+    expected = MemoryProfiler.ListHeapDumpInfosResponse.newBuilder()
       .addInfos(ERROR_DUMP_INFO)
       .addInfos(NOT_READY_DUMP_INFO)
       .build();
-    StreamObserver<MemoryProfiler.ListHeapDumpInfosResponse> observer = mock(StreamObserver.class);
+    observer = mock(StreamObserver.class);
     myMemoryDataPoller.listHeapDumpInfos(request, observer);
     validateResponse(observer, expected);
   }
 
   @Test
-  @Ignore
   public void testListHeapDumpInfosOutOfRange() throws Exception {
     myMemoryService.addHeapDumpInfos(DEFAULT_DUMP_INFO);
     myMemoryService.addHeapDumpInfos(ERROR_DUMP_INFO);
@@ -317,26 +343,12 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
     MemoryProfiler.ListDumpInfosRequest request = MemoryProfiler.ListDumpInfosRequest.newBuilder()
       .setAppId(TEST_APP_ID)
-      .setStartTime(DELAY_TIME_NS)
+      .setStartTime(delayTimeFromBase(2))
       .setEndTime(Long.MAX_VALUE)
       .build();
     MemoryProfiler.ListHeapDumpInfosResponse expected = MemoryProfiler.ListHeapDumpInfosResponse.newBuilder()
       .addInfos(NOT_READY_DUMP_INFO)
       .build();
-    StreamObserver<MemoryProfiler.ListHeapDumpInfosResponse> observer = mock(StreamObserver.class);
-    myMemoryDataPoller.listHeapDumpInfos(request, observer);
-    validateResponse(observer, expected);
-  }
-
-  @Test
-  @Ignore
-  public void testListHeapDumpInfosInvalidAppId() throws Exception {
-    MemoryProfiler.ListDumpInfosRequest request = MemoryProfiler.ListDumpInfosRequest.newBuilder()
-      .setAppId(0)
-      .setStartTime(0)
-      .setEndTime(Long.MAX_VALUE)
-      .build();
-    MemoryProfiler.ListHeapDumpInfosResponse expected = MemoryProfiler.ListHeapDumpInfosResponse.getDefaultInstance();
     StreamObserver<MemoryProfiler.ListHeapDumpInfosResponse> observer = mock(StreamObserver.class);
     myMemoryDataPoller.listHeapDumpInfos(request, observer);
     validateResponse(observer, expected);
@@ -391,6 +403,10 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     StreamObserver<MemoryProfiler.DumpDataResponse> observer = mock(StreamObserver.class);
     myMemoryDataPoller.getHeapDump(request, observer);
     validateResponse(observer, expected);
+  }
+
+  private static long delayTimeFromBase(int numSec) {
+    return BASE_TIME_NS + TimeUnit.SECONDS.toNanos(numSec);
   }
 
   private static class FakeLegacyAllocationTracker implements LegacyAllocationTracker {
