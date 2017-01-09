@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
@@ -34,7 +33,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.ThreeState;
@@ -45,24 +43,16 @@ import net.jcip.annotations.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-
-import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.gradle.util.Projects.*;
+import static com.android.tools.idea.gradle.util.Projects.requiredAndroidModelMissing;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.*;
 import static com.intellij.openapi.ui.MessageType.ERROR;
 import static com.intellij.openapi.ui.MessageType.INFO;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 
 public class GradleSyncState {
-  public static final Key<Boolean> PROJECT_EXTERNAL_BUILD_FILES_CHANGED = Key.create("android.gradle.project.external.build.files.changed");
-
   private static final Logger LOG = Logger.getInstance(GradleSyncState.class);
   private static final NotificationGroup LOGGING_NOTIFICATION = NotificationGroup.logOnlyGroup("Gradle sync");
 
@@ -74,6 +64,7 @@ public class GradleSyncState {
   @NotNull private final MessageBus myMessageBus;
   @NotNull private final StateChangeNotification myChangeNotification;
   @NotNull private final GradleSyncSummary mySummary;
+  @NotNull private final GradleFiles myGradleFiles;
 
   private final Object myLock = new Object();
 
@@ -102,8 +93,12 @@ public class GradleSyncState {
     return ServiceManager.getService(project, GradleSyncState.class);
   }
 
-  public GradleSyncState(@NotNull Project project, @NotNull GradleProjectInfo gradleProjectInfo, @NotNull MessageBus messageBus) {
-    this(project, gradleProjectInfo, messageBus, new StateChangeNotification(project), new GradleSyncSummary(project));
+  public GradleSyncState(@NotNull Project project,
+                         @NotNull GradleProjectInfo gradleProjectInfo,
+                         @NotNull MessageBus messageBus,
+                         @NotNull FileDocumentManager documentManager) {
+    this(project, gradleProjectInfo, messageBus, new StateChangeNotification(project), new GradleSyncSummary(project),
+         new GradleFiles(project, documentManager));
   }
 
   @VisibleForTesting
@@ -111,12 +106,14 @@ public class GradleSyncState {
                   @NotNull GradleProjectInfo gradleProjectInfo,
                   @NotNull MessageBus messageBus,
                   @NotNull StateChangeNotification changeNotification,
-                  @NotNull GradleSyncSummary summary) {
+                  @NotNull GradleSyncSummary summary,
+                  @NotNull GradleFiles gradleFiles) {
     myProject = project;
     myGradleProjectInfo = gradleProjectInfo;
     myMessageBus = messageBus;
     myChangeNotification = changeNotification;
     mySummary = summary;
+    myGradleFiles = gradleFiles;
   }
 
   public boolean areSyncNotificationsEnabled() {
@@ -310,65 +307,11 @@ public class GradleSyncState {
       // Previous sync may have failed. We don't know if a sync is needed or not. Let client code decide.
       return ThreeState.UNSURE;
     }
-    return isSyncNeeded(lastSync) ? ThreeState.YES : ThreeState.NO;
+    return myGradleFiles.areGradleFilesModified(lastSync) ? ThreeState.YES : ThreeState.NO;
   }
 
-  /**
-   * Indicates whether a project sync with Gradle is needed if changes to build.gradle or settings.gradle files were made after the given
-   * time.
-   *
-   * @param referenceTimeInMillis the given time, in milliseconds.
-   * @return {@code true} if a sync with Gradle is needed, {@code false} otherwise.
-   * @throws AssertionError if the given time is less than or equal to zero.
-   */
-  private boolean isSyncNeeded(long referenceTimeInMillis) {
-    myProject.putUserData(PROJECT_EXTERNAL_BUILD_FILES_CHANGED, null);
-
-    assert referenceTimeInMillis > 0;
-    if (isSyncInProgress()) {
-      return false;
-    }
-
-    FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
-    File settingsFilePath = new File(getBaseDirPath(myProject), FN_SETTINGS_GRADLE);
-    if (settingsFilePath.exists()) {
-      VirtualFile settingsFile = findFileByIoFile(settingsFilePath, true);
-      if (settingsFile != null && fileDocumentManager.isFileModified(settingsFile)) {
-        return true;
-      }
-      if (settingsFilePath.lastModified() > referenceTimeInMillis) {
-        return true;
-      }
-    }
-
-    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    for (Module module : moduleManager.getModules()) {
-      VirtualFile buildFile = getGradleBuildFile(module);
-      if (buildFile != null) {
-        if (fileDocumentManager.isFileModified(buildFile)) {
-          return true;
-        }
-
-        File buildFilePath = virtualToIoFile(buildFile);
-        if (buildFilePath.lastModified() > referenceTimeInMillis) {
-          return true;
-        }
-      }
-
-      NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
-      if (ndkModuleModel != null) {
-        for (File externalBuildFile : ndkModuleModel.getAndroidProject().getBuildFiles()) {
-          VirtualFile virtualFile = findFileByIoFile(externalBuildFile, true);
-          if ((virtualFile != null && fileDocumentManager.isFileModified(virtualFile)) ||
-              externalBuildFile.lastModified() > referenceTimeInMillis) {
-            myProject.putUserData(PROJECT_EXTERNAL_BUILD_FILES_CHANGED, true);
-            return true;
-          }
-        }
-      }
-    }
-
-    return false;
+  public boolean areExternalBuildFilesModified() {
+    return myGradleFiles.areExternalBuildFilesModified();
   }
 
   @NotNull
