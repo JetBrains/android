@@ -40,11 +40,6 @@ public class NetworkProfilerTest {
   }
 
   @Test
-  public void newMonitor() {
-    assertEquals("Network", myProfiler.newMonitor().getName());
-  }
-
-  @Test
   public void startMonitoring() {
     myProfiler.startProfiling(FAKE_PROCESS);
     assertEquals(FAKE_PID, myService.getAppId());
