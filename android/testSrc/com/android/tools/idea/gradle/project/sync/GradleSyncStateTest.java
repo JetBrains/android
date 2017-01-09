@@ -18,32 +18,33 @@ package com.android.tools.idea.gradle.project.sync;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.messages.MessageBus;
+import org.mockito.Mock;
 
 import static com.android.tools.idea.gradle.project.sync.GradleSyncState.GRADLE_SYNC_TOPIC;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link GradleSyncState}.
  */
 public class GradleSyncStateTest extends IdeaTestCase {
-  private GradleSyncListener mySyncListener;
-  private GradleSyncState.StateChangeNotification myChangeNotification;
-  private GradleSyncSummary mySummary;
+  @Mock private GradleSyncListener mySyncListener;
+  @Mock private GradleSyncState.StateChangeNotification myChangeNotification;
+  @Mock private GradleSyncSummary mySummary;
+  @Mock private GradleFiles myGradleFiles;
 
   private GradleSyncState mySyncState;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-
-    mySyncListener = mock(GradleSyncListener.class);
-    myChangeNotification = mock(GradleSyncState.StateChangeNotification.class);
-    mySummary = mock(GradleSyncSummary.class);
+    initMocks(this);
 
     MessageBus messageBus = mock(MessageBus.class);
 
-    mySyncState = new GradleSyncState(myProject, GradleProjectInfo.getInstance(getProject()), messageBus, myChangeNotification, mySummary);
+    mySyncState = new GradleSyncState(myProject, GradleProjectInfo.getInstance(getProject()), messageBus, myChangeNotification, mySummary,
+                                      myGradleFiles);
 
     when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(mySyncListener);
   }
