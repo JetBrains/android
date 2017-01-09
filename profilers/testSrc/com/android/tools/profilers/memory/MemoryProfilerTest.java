@@ -40,11 +40,6 @@ public class MemoryProfilerTest {
   }
 
   @Test
-  public void newMonitor() {
-    assertEquals("Memory", myProfiler.newMonitor().getName());
-  }
-
-  @Test
   public void startMonitoring() {
     myProfiler.startProfiling(FAKE_PROCESS);
     assertEquals(FAKE_PID, myService.getAppId());

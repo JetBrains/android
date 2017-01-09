@@ -34,8 +34,6 @@ public abstract class ProfilerMonitor {
     return myProfilers.getTimeline();
   }
 
-  abstract public String getName();
-
   public abstract void exit();
 
   public abstract void enter();
