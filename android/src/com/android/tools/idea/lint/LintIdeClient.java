@@ -39,6 +39,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.client.api.*;
 import com.android.tools.lint.detector.api.*;
+import com.android.tools.lint.helpers.DefaultUastParser;
 import com.android.utils.Pair;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
@@ -290,6 +291,12 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Override
   public JavaParser getJavaParser(@Nullable com.android.tools.lint.detector.api.Project project) {
     return new LintIdeJavaParser(this, myProject, project);
+  }
+
+  @Nullable
+  @Override
+  public UastParser getUastParser(@Nullable com.android.tools.lint.detector.api.Project project) {
+    return new DefaultUastParser(project, myProject);
   }
 
   @NonNull
