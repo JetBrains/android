@@ -60,6 +60,7 @@ import javax.swing.tree.TreePath;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -72,6 +73,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
   private final Project myProject;
   private final boolean myShowDebuggerSelection;
+  private final MyProcessTreeCellRenderer myCellRenderer;
   private JPanel myContentPanel;
   private Tree myProcessTree;
   private JBCheckBox myShowAllProcessesCheckBox;
@@ -161,7 +163,8 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       }
     };
 
-    myProcessTree.setCellRenderer(new MyProcessTreeCellRenderer(treeSpeedSearch));
+    myCellRenderer = new MyProcessTreeCellRenderer(treeSpeedSearch, DeviceRenderer.shouldShowSerialNumbers(getDeviceList()));
+    myProcessTree.setCellRenderer(myCellRenderer);
 
     new DoubleClickListener() {
       @Override
@@ -196,7 +199,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     AndroidDebugger selectedDebugger = null;
     AndroidDebugger defaultDebugger = null;
     List<AndroidDebugger> androidDebuggers = Lists.newLinkedList();
-    for (AndroidDebugger androidDebugger: AndroidDebugger.EP_NAME.getExtensions()) {
+    for (AndroidDebugger androidDebugger : AndroidDebugger.EP_NAME.getExtensions()) {
       if (androidDebugger.supportsProject(myProject)) {
         androidDebuggers.add(androidDebugger);
         if (selectedDebugger == null &&
@@ -270,6 +273,14 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     });
   }
 
+  private List<IDevice> getDeviceList() {
+    final AndroidDebugBridge debugBridge = AndroidSdkUtils.getDebugBridge(myProject);
+    if (debugBridge == null) {
+      return Collections.EMPTY_LIST;
+    }
+    return Arrays.asList(debugBridge.getDevices());
+  }
+
   private void doUpdateTree(boolean showAllProcesses) {
     final AndroidDebugBridge debugBridge = AndroidSdkUtils.getDebugBridge(myProject);
 
@@ -334,6 +345,9 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     else {
       pathToSelect = firstTreePath;
     }
+
+    assert (myCellRenderer != null);
+    myCellRenderer.setShowSerial(DeviceRenderer.shouldShowSerialNumbers(Arrays.asList(devices)));
 
     UIUtil.invokeLaterIfNeeded(() -> {
       myProcessTree.setModel(model);
@@ -436,7 +450,9 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     super.doOKAction();
   }
 
-  /** Returns the client that was selected if OK was pressed, null otherwise. */
+  /**
+   * Returns the client that was selected if OK was pressed, null otherwise.
+   */
   @Nullable
   public Client getClient() {
     return mySelectedClient;
@@ -479,9 +495,15 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
   private static class MyProcessTreeCellRenderer extends ColoredTreeCellRenderer {
     private final TreeSpeedSearch mySpeedSearch;
+    private boolean myShowSerial;
 
-    public MyProcessTreeCellRenderer(@NotNull TreeSpeedSearch treeSpeedSearch) {
+    public MyProcessTreeCellRenderer(@NotNull TreeSpeedSearch treeSpeedSearch, boolean showSerial) {
       mySpeedSearch = treeSpeedSearch;
+      myShowSerial = showSerial;
+    }
+
+    public void setShowSerial(boolean showSerial) {
+      myShowSerial = showSerial;
     }
 
     @Override
@@ -498,7 +520,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
       final Object userObject = ((DefaultMutableTreeNode)value).getUserObject();
       if (userObject instanceof IDevice) {
-        DeviceRenderer.renderDeviceName((IDevice)userObject, this);
+        DeviceRenderer.renderDeviceName((IDevice)userObject, this, myShowSerial);
       }
       else if (userObject instanceof Client) {
         final ClientData clientData = ((Client)userObject).getClientData();
