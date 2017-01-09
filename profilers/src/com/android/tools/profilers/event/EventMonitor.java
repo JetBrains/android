@@ -20,7 +20,6 @@ import com.android.tools.adtui.model.SimpleEventModel;
 import com.android.tools.adtui.model.StackedEventModel;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.memory.MemoryProfilerStage;
 import org.jetbrains.annotations.NotNull;
 
 public class EventMonitor extends ProfilerMonitor {
@@ -38,15 +37,6 @@ public class EventMonitor extends ProfilerMonitor {
 
     ActivityEventDataSeries activities = new ActivityEventDataSeries(myProfilers.getClient(), myProfilers.getProcessId());
     myActivityEvents = new StackedEventModel(new RangedSeries<>(getTimeline().getViewRange(), activities));
-  }
-
-  @Override
-  public String getName() {
-    return "Events";
-  }
-
-  public void expand() {
-    myProfilers.setStage(new MemoryProfilerStage(myProfilers));
   }
 
   @Override
