@@ -55,6 +55,7 @@ public class CpuTraceTreeSorter implements ColumnTreeBuilder.TreeSorter<DefaultM
       myModel.reload();
     }
   }
+
   private void sortTree(@NotNull DefaultMutableTreeNode parent) {
     if (parent.isLeaf()) {
       return;
