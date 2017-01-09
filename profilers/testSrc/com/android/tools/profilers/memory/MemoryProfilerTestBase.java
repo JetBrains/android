@@ -46,6 +46,7 @@ public abstract class MemoryProfilerTestBase extends AspectObserver {
   protected int myCurrentHeapAspectCount;
   protected int myCurrentClassAspectCount;
   protected int myCurrentInstanceAspectCount;
+  protected int myCurrentGroupingAspectCount;
 
   @Before
   public void setupBase() {
@@ -60,6 +61,7 @@ public abstract class MemoryProfilerTestBase extends AspectObserver {
       .onChange(MemoryProfilerAspect.LEGACY_ALLOCATION, () -> ++myLegacyAllocationAspectCount)
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, () -> ++myCurrentLoadingCaptureAspectCount)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, () -> ++myCurrentLoadedCaptureAspectCount)
+      .onChange(MemoryProfilerAspect.CLASS_GROUPING, () -> ++myCurrentGroupingAspectCount)
       .onChange(MemoryProfilerAspect.CURRENT_HEAP, () -> ++myCurrentHeapAspectCount)
       .onChange(MemoryProfilerAspect.CURRENT_CLASS, () -> ++myCurrentClassAspectCount)
       .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, () -> ++myCurrentInstanceAspectCount);
@@ -77,12 +79,14 @@ public abstract class MemoryProfilerTestBase extends AspectObserver {
   protected void assertAndResetCounts(int legacyAllocationAspect,
                                       int currentLoadingCaptureAspectCount,
                                       int currentLoadedCaptureAspect,
+                                      int currentGroupingAspectCount,
                                       int currentHeapAspectCount,
                                       int currentClassAspectCount,
                                       int currentInstanceAspectCount) {
     assertEquals(legacyAllocationAspect, myLegacyAllocationAspectCount);
     assertEquals(currentLoadingCaptureAspectCount, myCurrentLoadingCaptureAspectCount);
     assertEquals(currentLoadedCaptureAspect, myCurrentLoadedCaptureAspectCount);
+    assertEquals(currentGroupingAspectCount, myCurrentGroupingAspectCount);
     assertEquals(currentHeapAspectCount, myCurrentHeapAspectCount);
     assertEquals(currentClassAspectCount, myCurrentClassAspectCount);
     assertEquals(currentInstanceAspectCount, myCurrentInstanceAspectCount);
@@ -93,6 +97,7 @@ public abstract class MemoryProfilerTestBase extends AspectObserver {
     myLegacyAllocationAspectCount = 0;
     myCurrentLoadingCaptureAspectCount = 0;
     myCurrentLoadedCaptureAspectCount = 0;
+    myCurrentGroupingAspectCount = 0;
     myCurrentHeapAspectCount = 0;
     myCurrentClassAspectCount = 0;
     myCurrentInstanceAspectCount = 0;
@@ -142,6 +147,13 @@ public abstract class MemoryProfilerTestBase extends AspectObserver {
   }
 
   @NotNull
+  static NamespaceObject mockPackageObject(@NotNull String name) {
+    NamespaceObject object = mock(NamespaceObject.class);
+    when(object.getName()).thenReturn(name);
+    return object;
+  }
+
+  @NotNull
   static HeapObject mockHeapObject(@NotNull String name, @NotNull List<ClassObject> klasses) {
     HeapObject object = mock(HeapObject.class);
     when(object.getHeapName()).thenReturn(name);
@@ -154,6 +166,9 @@ public abstract class MemoryProfilerTestBase extends AspectObserver {
   static ClassObject mockClassObject(@NotNull String name, @NotNull List<InstanceObject> instances) {
     ClassObject object = mock(ClassObject.class);
     when(object.getName()).thenReturn(name);
+    int lastDotIndex = name.lastIndexOf('.');
+    when(object.getClassName()).thenReturn(name.substring(lastDotIndex + 1));
+    when(object.getSplitPackageName()).thenReturn(lastDotIndex > 0 ? name.substring(0, lastDotIndex).split("\\.") : new String[0]);
     when(object.getChildrenCount()).thenReturn(instances.size());
     when(object.getInstances()).thenReturn(instances);
     when(object.getInstanceAttributes()).thenReturn(Collections.emptyList());
@@ -176,7 +191,7 @@ public abstract class MemoryProfilerTestBase extends AspectObserver {
     ReferenceObject object = mock(ReferenceObject.class);
     when(object.getName()).thenReturn(name);
     when(object.getReferences()).thenReturn(referrers);
-    when(object.getReferenceFieldNames()).thenReturn(Collections.EMPTY_LIST);
+    when(object.getReferenceFieldNames()).thenReturn(Collections.emptyList());
     when(object.getCallStack()).thenReturn(stack == null ? MemoryProfiler.AllocationStack.newBuilder().build() : stack);
     return object;
   }

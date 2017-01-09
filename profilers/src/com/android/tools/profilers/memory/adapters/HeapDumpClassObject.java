@@ -25,29 +25,12 @@ import java.util.stream.Collectors;
 /**
  * A UI representation of a {@link ClassObj}.
  */
-final class HeapDumpClassObject implements ClassObject {
+final class HeapDumpClassObject extends ClassObject {
   private final ClassObj myClassObj;
 
-  @NotNull
-  private String myMemoizedName;
-
   public HeapDumpClassObject(@NotNull ClassObj classObj) {
+    super(classObj.getClassName());
     myClassObj = classObj;
-
-    String className = myClassObj.getClassName();
-    String packageName = null;
-    int i = className.lastIndexOf(".");
-    if (i != -1) {
-      packageName = className.substring(0, i);
-      className = className.substring(i + 1);
-    }
-    myMemoizedName = packageName == null ? className : String.format("%s (%s)", className, packageName);
-  }
-
-  @NotNull
-  @Override
-  public String getName() {
-    return myMemoizedName;
   }
 
   @Override
