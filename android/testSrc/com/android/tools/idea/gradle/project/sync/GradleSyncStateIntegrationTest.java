@@ -17,35 +17,36 @@ package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.Modules;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBus;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.mockito.Mock;
 
 import static com.android.tools.idea.gradle.project.sync.GradleSyncState.GRADLE_SYNC_TOPIC;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
 import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link GradleSyncState}.
  */
 public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
-  private Modules myModules;
-  private GradleSyncListener mySyncListener;
+  @Mock private GradleSyncListener mySyncListener;
+
   private GradleSyncState mySyncState;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    initMocks(this);
     Project project = getProject();
-    myModules = new Modules(project);
-    mySyncListener = mock(GradleSyncListener.class);
 
     MessageBus messageBus = mock(MessageBus.class);
     when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(mySyncListener);
 
-    mySyncState = new GradleSyncState(project, GradleProjectInfo.getInstance(project), messageBus);
+    mySyncState = new GradleSyncState(project, GradleProjectInfo.getInstance(project), messageBus, FileDocumentManager.getInstance());
   }
 
   public void testInvalidateLastSync() throws Exception {
