@@ -191,7 +191,9 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       assert tree.getModel() instanceof DefaultTreeModel;
       DefaultTreeModel treeModel = (DefaultTreeModel)tree.getModel();
       assert treeModel.getRoot() instanceof MemoryObjectTreeNode;
-      MemoryObjectTreeNode root = (MemoryObjectTreeNode)treeModel.getRoot();
+      assert ((MemoryObjectTreeNode)treeModel.getRoot()).getAdapter() instanceof InstanceObject;
+      //noinspection unchecked
+      MemoryObjectTreeNode<InstanceObject> root = (MemoryObjectTreeNode<InstanceObject>)treeModel.getRoot();
       root.sort(comparator);
       treeModel.nodeStructureChanged(root);
     });
@@ -202,7 +204,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
   @VisibleForTesting
   @NotNull
   JTree buildTree(@NotNull InstanceObject instance) {
-    final MemoryObjectTreeNode<InstanceObject> treeRoot = new MemoryObjectTreeNode(instance);
+    final MemoryObjectTreeNode<InstanceObject> treeRoot = new MemoryObjectTreeNode<>(instance);
     populateReferenceNodesRecursive(treeRoot, instance, 2);
     final DefaultTreeModel treeModel = new DefaultTreeModel(treeRoot);
     final JTree tree = new Tree(treeModel);

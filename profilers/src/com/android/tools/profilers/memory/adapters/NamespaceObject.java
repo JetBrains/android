@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.memory;
+package com.android.tools.profilers.memory.adapters;
 
-public enum MemoryProfilerAspect {
-  LEGACY_ALLOCATION,
-  CLASS_GROUPING,
-  CURRENT_LOADING_CAPTURE,
-  CURRENT_LOADED_CAPTURE,
-  CURRENT_HEAP,
-  CURRENT_CLASS,
-  CURRENT_INSTANCE
+import org.jetbrains.annotations.NotNull;
+
+public class NamespaceObject implements MemoryObject {
+  protected final String myName;
+
+  public NamespaceObject(@NotNull String name) {
+    myName = name;
+  }
+
+  @NotNull
+  public String getName() {
+    return myName;
+  }
 }

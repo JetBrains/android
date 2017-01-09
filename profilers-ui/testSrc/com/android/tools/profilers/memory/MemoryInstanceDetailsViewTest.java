@@ -16,12 +16,10 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.IdeProfilerServicesStub;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.adapters.ReferenceObject;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,20 +31,19 @@ import java.awt.*;
 import java.util.Arrays;
 import java.util.Collections;
 
+import static com.android.tools.profilers.memory.MemoryProfilerTestBase.mockReferenceObject;
 import static org.junit.Assert.*;
 
 public class MemoryInstanceDetailsViewTest {
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MEMORY_TEST_CHANNEL", new MemoryServiceMock());
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MEMORY_TEST_CHANNEL", new FakeMemoryService());
 
-  @NotNull private StudioProfilers myProfilers;
-  @NotNull private MemoryProfilerStage myStage;
-  @NotNull private MemoryInstanceDetailsView myDetailsView;
+  private MemoryProfilerStage myStage;
+  private MemoryInstanceDetailsView myDetailsView;
 
   @Before
   public void setup() {
-    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub());
-    myStage = new MemoryProfilerStage(myProfilers);
+    myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub()));
     myDetailsView = new MemoryInstanceDetailsView(myStage);
   }
 
@@ -62,7 +59,7 @@ public class MemoryInstanceDetailsViewTest {
   public void NoCallstackOrReferenceVisibilityTest() throws Exception {
     // Selection with no callstack / reference information
     Component component = myDetailsView.getComponent();
-    ReferenceObject mockInstance = MemoryProfilerTestBase.mockReferenceObject("MockInstance", Collections.emptyList(), null);
+    ReferenceObject mockInstance = mockReferenceObject("MockInstance", Collections.emptyList(), null);
     myStage.selectInstance(mockInstance);
     assertFalse(component.isVisible());
   }
@@ -72,9 +69,9 @@ public class MemoryInstanceDetailsViewTest {
   public void SelectionWithReferenceVisibilityTest() throws Exception {
     // Selection with reference information
     Component component = myDetailsView.getComponent();
-    ReferenceObject mockRef = MemoryProfilerTestBase.mockReferenceObject("MockReference", Collections.emptyList(), null);
+    ReferenceObject mockRef = mockReferenceObject("MockReference", Collections.emptyList(), null);
     ReferenceObject mockInstance =
-      MemoryProfilerTestBase.mockReferenceObject("MockInstanceWithRef", Collections.singletonList(mockRef), null);
+      mockReferenceObject("MockInstanceWithRef", Collections.singletonList(mockRef), null);
     myStage.selectInstance(mockInstance);
     assertTrue(component.isVisible());
   }
@@ -87,13 +84,13 @@ public class MemoryInstanceDetailsViewTest {
     MemoryProfiler.AllocationStack stack = MemoryProfiler.AllocationStack.newBuilder().addStackFrames(
       MemoryProfiler.AllocationStack.StackFrame.newBuilder().setClassName("MockClass").setMethodName("MockMethod").setLineNumber(1))
       .build();
-    ReferenceObject mockInstance = MemoryProfilerTestBase.mockReferenceObject("MockInstanceWithCallstack", Collections.emptyList(), stack);
+    ReferenceObject mockInstance = mockReferenceObject("MockInstanceWithCallstack", Collections.emptyList(), stack);
     myStage.selectInstance(mockInstance);
     assertTrue(component.isVisible());
   }
 
   /**
-   * Test that the component generates the JTree model accurately based on the reference hierarchy
+   * Test that the component generates the instances JTree model accurately based on the reference hierarchy
    * of an InstanceObject. We currently only populate up to two levels of children at a time to avoid
    * building a unnecessarily large tree at the beginning - descendants are further populated upon expansion.
    * This test ensures such behavior as well.
@@ -107,12 +104,12 @@ public class MemoryInstanceDetailsViewTest {
     // --> Ref3
     // ---> Ref4
     // -> Ref5
-    ReferenceObject mockRef2 = MemoryProfilerTestBase.mockReferenceObject("Ref2", Collections.emptyList(), null);
-    ReferenceObject mockRef4 = MemoryProfilerTestBase.mockReferenceObject("Ref4", Collections.emptyList(), null);
-    ReferenceObject mockRef5 = MemoryProfilerTestBase.mockReferenceObject("Ref5", Collections.emptyList(), null);
-    ReferenceObject mockRef3 = MemoryProfilerTestBase.mockReferenceObject("Ref3", Collections.singletonList(mockRef4), null);
-    ReferenceObject mockRef1 = MemoryProfilerTestBase.mockReferenceObject("Ref1", Arrays.asList(mockRef2, mockRef3), null);
-    ReferenceObject mockRootObject = MemoryProfilerTestBase.mockReferenceObject("MockRoot", Arrays.asList(mockRef1, mockRef5), null);
+    ReferenceObject mockRef2 = mockReferenceObject("Ref2", Collections.emptyList(), null);
+    ReferenceObject mockRef4 = mockReferenceObject("Ref4", Collections.emptyList(), null);
+    ReferenceObject mockRef5 = mockReferenceObject("Ref5", Collections.emptyList(), null);
+    ReferenceObject mockRef3 = mockReferenceObject("Ref3", Collections.singletonList(mockRef4), null);
+    ReferenceObject mockRef1 = mockReferenceObject("Ref1", Arrays.asList(mockRef2, mockRef3), null);
+    ReferenceObject mockRootObject = mockReferenceObject("MockRoot", Arrays.asList(mockRef1, mockRef5), null);
 
     JTree tree = myDetailsView.buildTree(mockRootObject);
     DefaultTreeModel treeModel = (DefaultTreeModel)tree.getModel();
@@ -144,8 +141,5 @@ public class MemoryInstanceDetailsViewTest {
     assertEquals(0, ref2Child.getChildCount());
     assertEquals(1, ref3Child.getChildCount());
     assertEquals(mockRef4, ((MemoryObjectTreeNode)ref3Child.getChildAt(0)).getAdapter());
-  }
-
-  private static class MemoryServiceMock extends MemoryServiceGrpc.MemoryServiceImplBase {
   }
 }
