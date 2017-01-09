@@ -21,7 +21,7 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.HeapObject;
 import com.android.tools.profilers.memory.adapters.HeapObject.ClassAttribute;
-import com.android.tools.profilers.memory.adapters.InstanceObject;
+import com.android.tools.profilers.memory.adapters.NamespaceObject;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
@@ -33,10 +33,13 @@ import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.GROUP_BY_PACKAGE;
 
 final class MemoryClassView extends AspectObserver {
   private static final int LABEL_COLUMN_WIDTH = 800;
@@ -58,72 +61,83 @@ final class MemoryClassView extends AspectObserver {
 
   @Nullable private DefaultTreeModel myTreeModel;
 
-  @Nullable private MemoryObjectTreeNode<ClassObject> myTreeRoot;
+  @Nullable private MemoryObjectTreeNode<NamespaceObject> myTreeRoot;
 
   public MemoryClassView(@NotNull MemoryProfilerStage stage) {
     myStage = stage;
 
     myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_HEAP, this::refreshHeap)
-      .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::refreshClass);
+      .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::refreshClass)
+      .onChange(MemoryProfilerAspect.CLASS_GROUPING, this::refreshGrouping);
 
     myAttributeColumns.put(
       ClassAttribute.LABEL,
       new AttributeColumn(
         "Class Name",
-        () -> new DetailColumnRenderer(value -> ((ClassObject)value.getAdapter()).getName(),
-                                       value -> PlatformIcons.CLASS_ICON, SwingConstants.LEFT),
+        () -> new DetailColumnRenderer(
+          value -> {
+            if (value.getAdapter() instanceof ClassObject && myStage.getConfiguration().getClassGrouping() == GROUP_BY_PACKAGE) {
+              return ((ClassObject)value.getAdapter()).getClassName();
+            }
+            else {
+              return ((NamespaceObject)value.getAdapter()).getName();
+            }
+          },
+          value -> value.getAdapter() instanceof ClassObject ? PlatformIcons.CLASS_ICON : PlatformIcons.PACKAGE_ICON,
+          SwingConstants.LEFT),
         SwingConstants.LEFT,
         LABEL_COLUMN_WIDTH,
         SortOrder.ASCENDING,
-        (o1, o2) -> ((ClassObject)o1.getAdapter()).getName().compareTo(((ClassObject)o2.getAdapter()).getName())));
+        createTreeNodeComparator((o1, o2) -> o1.getName().compareTo(o2.getName()),
+                                 (o1, o2) -> o1.getClassName().compareTo(o2.getClassName()))));
     myAttributeColumns.put(
       ClassAttribute.CHILDREN_COUNT,
       new AttributeColumn(
         "Count",
         () -> new DetailColumnRenderer(
-          value -> Integer.toString(((ClassObject)value.getAdapter()).getChildrenCount()),
+          value -> value.getAdapter() instanceof ClassObject && ((ClassObject)value.getAdapter()).getChildrenCount() >= 0 ? Integer
+            .toString(((ClassObject)value.getAdapter()).getChildrenCount()) : "",
           value -> null,
           SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
-        (o1, o2) -> ((ClassObject)o1.getAdapter()).getChildrenCount() - ((ClassObject)o2.getAdapter()).getChildrenCount()));
+        createTreeNodeComparator((o1, o2) -> o1.getChildrenCount() - o2.getChildrenCount())));
     myAttributeColumns.put(
       ClassAttribute.ELEMENT_SIZE,
       new AttributeColumn(
         "Size",
         () -> new DetailColumnRenderer(
-          value -> Integer.toString(((ClassObject)value.getAdapter()).getElementSize()), value -> null, SwingConstants.RIGHT),
+          value -> value.getAdapter() instanceof ClassObject && ((ClassObject)value.getAdapter()).getElementSize() >= 0 ? Integer
+            .toString(((ClassObject)value.getAdapter()).getElementSize()) : "", value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
-        (o1, o2) -> ((ClassObject)o1.getAdapter()).getElementSize() - ((ClassObject)o2.getAdapter()).getElementSize()));
+        createTreeNodeComparator((o1, o2) -> o1.getElementSize() - o2.getElementSize())));
     myAttributeColumns.put(
       ClassAttribute.SHALLOW_SIZE,
       new AttributeColumn(
         "Shallow Size",
         () -> new DetailColumnRenderer(
-          value -> Integer.toString(((ClassObject)value.getAdapter()).getShallowSize()),
+          value -> value.getAdapter() instanceof ClassObject && ((ClassObject)value.getAdapter()).getShallowSize() >= 0 ? Integer
+            .toString(((ClassObject)value.getAdapter()).getShallowSize()) : "",
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
-        (o1, o2) -> ((ClassObject)o1.getAdapter()).getShallowSize() - ((ClassObject)o2.getAdapter()).getShallowSize()));
+        createTreeNodeComparator((o1, o2) -> o1.getShallowSize() - o2.getShallowSize())));
     myAttributeColumns.put(
       ClassAttribute.RETAINED_SIZE,
       new AttributeColumn(
         "Retained Size",
-        () -> new DetailColumnRenderer(value -> Long.toString(((ClassObject)value.getAdapter()).getRetainedSize()),
-                                       value -> null,
-                                       SwingConstants.RIGHT),
+        () -> new DetailColumnRenderer(
+          value -> value.getAdapter() instanceof ClassObject && ((ClassObject)value.getAdapter()).getRetainedSize() >= 0 ? Long
+            .toString(((ClassObject)value.getAdapter()).getRetainedSize()) : "", value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
-        (o1, o2) -> {
-          long diff = ((ClassObject)o1.getAdapter()).getRetainedSize() - ((ClassObject)o2.getAdapter()).getRetainedSize();
-          return diff > 0 ? 1 : (diff < 0 ? -1 : 0);
-        }));
+        createTreeNodeComparator((o1, o2) -> Long.compare(o1.getRetainedSize(), o2.getRetainedSize()))));
   }
 
   @NotNull
@@ -154,15 +168,7 @@ final class MemoryClassView extends AspectObserver {
   private void initializeTree() {
     assert myColumnTree == null && myTreeModel == null && myTreeRoot == null && myTree == null;
 
-    //noinspection Convert2Lambda
-    myTreeRoot = new MemoryObjectTreeNode<>(new ClassObject() {
-      @NotNull
-      @Override
-      public List<InstanceObject.InstanceAttribute> getInstanceAttributes() {
-        return Collections.emptyList();
-      }
-    });
-
+    myTreeRoot = new MemoryObjectTreeNode<>(new NamespaceObject("-invalid-"));
     myTreeModel = new DefaultTreeModel(myTreeRoot);
     myTree = new Tree(myTreeModel);
     myTree.setRootVisible(false);
@@ -174,9 +180,11 @@ final class MemoryClassView extends AspectObserver {
       }
 
       assert path.getLastPathComponent() instanceof MemoryObjectTreeNode;
-      MemoryObjectTreeNode classObject = (MemoryObjectTreeNode)path.getLastPathComponent();
-      assert classObject.getAdapter() instanceof ClassObject;
-      myStage.selectClass((ClassObject)classObject.getAdapter());
+      MemoryObjectTreeNode packageNode = (MemoryObjectTreeNode)path.getLastPathComponent();
+      assert packageNode.getAdapter() instanceof NamespaceObject;
+      if (packageNode.getAdapter() instanceof ClassObject) {
+        myStage.selectClass((ClassObject)packageNode.getAdapter());
+      }
     });
 
     assert myHeapObject != null;
@@ -185,7 +193,7 @@ final class MemoryClassView extends AspectObserver {
     for (ClassAttribute attribute : attributes) {
       builder.addColumn(myAttributeColumns.get(attribute).getBuilder());
     }
-    builder.setTreeSorter((Comparator<MemoryObjectTreeNode<ClassObject>> comparator, SortOrder sortOrder) -> {
+    builder.setTreeSorter((Comparator<MemoryObjectTreeNode<NamespaceObject>> comparator, SortOrder sortOrder) -> {
       myTreeRoot.sort(comparator);
       myTreeModel.nodeStructureChanged(myTreeRoot);
     });
@@ -194,15 +202,96 @@ final class MemoryClassView extends AspectObserver {
     myPanel.add(myColumnTree, BorderLayout.CENTER);
   }
 
-  private void populateTreeContents() {
-    assert myHeapObject != null && myTreeRoot != null && myTreeModel != null;
-    myTreeRoot.removeAll();
-    for (ClassObject classObject : myHeapObject.getClasses()) {
-      // TODO handle package view
-      myTreeRoot.add(new MemoryObjectTreeNode<>(classObject));
+  private void refreshGrouping() {
+    assert myTreeRoot != null && myTreeModel != null && myTree != null;
+    if (myHeapObject == null) {
+      return;
     }
+
+    TreePath oldSelectionPath = myTree.getSelectionPath();
+    Object lastSelected = oldSelectionPath == null ? null : oldSelectionPath.getLastPathComponent();
+    ClassObject lastSelectedClassObject = lastSelected instanceof MemoryObjectTreeNode &&
+                                          ((MemoryObjectTreeNode)lastSelected).getAdapter() instanceof ClassObject
+                                          ? ((MemoryObjectTreeNode<ClassObject>)lastSelected).getAdapter()
+                                          : null;
+    myTreeRoot.removeAll();
+
+    PackageClassificationIndex rootIndex = new PackageClassificationIndex(myTreeRoot);
+    switch (myStage.getConfiguration().getClassGrouping()) {
+      case NO_GROUPING:
+        for (ClassObject classObject : myHeapObject.getClasses()) {
+          // TODO handle package view
+          myTreeRoot.add(new MemoryObjectTreeNode<>(classObject));
+        }
+        break;
+      case GROUP_BY_PACKAGE:
+        for (ClassObject classObject : myHeapObject.getClasses()) {
+          String[] splitPackages = classObject.getSplitPackageName();
+          PackageClassificationIndex currentIndex = rootIndex;
+          for (String packageName : splitPackages) {
+            if (!currentIndex.myChildPackages.containsKey(packageName)) {
+              PackageClassificationIndex nextIndex = new PackageClassificationIndex(packageName);
+              currentIndex.myChildPackages.put(packageName, nextIndex);
+              currentIndex.myPackageNode.add(nextIndex.myPackageNode);
+              currentIndex = nextIndex;
+            }
+            else {
+              currentIndex = currentIndex.myChildPackages.get(packageName);
+            }
+          }
+          currentIndex.myPackageNode.add(new MemoryObjectTreeNode<>(classObject));
+        }
+        break;
+      default:
+        throw new RuntimeException("Unimplemented grouping!");
+    }
+
     myTreeModel.nodeChanged(myTreeRoot);
     myTreeModel.reload();
+
+    if (lastSelectedClassObject == null) {
+      return;
+    }
+
+    // Find the path to the last selected object before the grouping changed.
+    TreePath selectionPath = null;
+    switch (myStage.getConfiguration().getClassGrouping()) {
+      case NO_GROUPING:
+        for (MemoryObjectTreeNode<NamespaceObject> child : myTreeRoot.getChildren()) {
+          if (child.getAdapter() == lastSelectedClassObject) {
+            selectionPath = new TreePath(new Object[]{myTreeRoot, child});
+            break;
+          }
+        }
+        break;
+      case GROUP_BY_PACKAGE:
+        String[] splitPackages = lastSelectedClassObject.getSplitPackageName();
+        PackageClassificationIndex currentIndex = rootIndex;
+        List<MemoryObjectTreeNode<NamespaceObject>> path = new ArrayList<>();
+        path.add(myTreeRoot);
+        for (String packageName : splitPackages) {
+          if (!currentIndex.myChildPackages.containsKey(packageName)) {
+            break;
+          }
+          currentIndex = currentIndex.myChildPackages.get(packageName);
+          path.add(currentIndex.myPackageNode);
+        }
+        List<MemoryObjectTreeNode<NamespaceObject>> filteredClasses = currentIndex.myPackageNode.getChildren().stream()
+          .filter((packageNode) -> packageNode.getAdapter() instanceof ClassObject && packageNode.getAdapter() == lastSelectedClassObject)
+          .collect(Collectors.toList());
+        if (filteredClasses.size() > 0) {
+          path.add(filteredClasses.get(0));
+          selectionPath = new TreePath(path.toArray());
+        }
+        break;
+    }
+
+    // Reselect the last selected object prior to the grouping change, if it's valid.
+    if (selectionPath != null) {
+      assert myTree != null;
+      myTree.setSelectionPath(selectionPath);
+      myTree.scrollPathToVisible(selectionPath);
+    }
   }
 
   private void refreshHeap() {
@@ -224,7 +313,7 @@ final class MemoryClassView extends AspectObserver {
       myHeapObject = heapObject;
     }
 
-    populateTreeContents();
+    refreshGrouping();
   }
 
   private void refreshClass() {
@@ -233,11 +322,68 @@ final class MemoryClassView extends AspectObserver {
     }
 
     myClassObject = myStage.getSelectedClass();
-    for (MemoryObjectTreeNode<ClassObject> node : myTreeRoot.getChildren()) {
+    for (MemoryObjectTreeNode<NamespaceObject> node : myTreeRoot.getChildren()) {
       if (node.getAdapter() == myClassObject) {
         myTree.setSelectionPath(new TreePath(myTreeModel.getPathToRoot(node)));
         break;
       }
+    }
+  }
+
+  /**
+   * Creates a comparator function for the given {@link NamespaceObject}-specific and {@link ClassObject}-specific comparators.
+   *
+   * @param packageObjectComparator is a comparator for {@link NamespaceObject} objects, and not {@link ClassObject}
+   * @return a {@link Comparator} that order all non-{@link ClassObject}s before {@link ClassObject}s, and orders according to the given
+   * two params when the base class is the same
+   */
+  @VisibleForTesting
+  static Comparator<MemoryObjectTreeNode> createTreeNodeComparator(@NotNull Comparator<NamespaceObject> packageObjectComparator,
+                                                                   @NotNull Comparator<ClassObject> classObjectComparator) {
+    return (o1, o2) -> {
+      int compareResult;
+      NamespaceObject firstArg = (NamespaceObject)o1.getAdapter();
+      NamespaceObject secondArg = (NamespaceObject)o2.getAdapter();
+      if (firstArg instanceof ClassObject && secondArg instanceof ClassObject) {
+        compareResult = classObjectComparator.compare((ClassObject)firstArg, (ClassObject)secondArg);
+      }
+      else if (firstArg instanceof ClassObject) {
+        compareResult = 1;
+      }
+      else if (secondArg instanceof ClassObject) {
+        compareResult = -1;
+      }
+      else {
+        compareResult = packageObjectComparator.compare(firstArg, secondArg);
+      }
+      return compareResult;
+    };
+  }
+
+  /**
+   * Convenience method for {@link #createTreeNodeComparator(Comparator, Comparator)}.
+   */
+  @VisibleForTesting
+  static Comparator<MemoryObjectTreeNode> createTreeNodeComparator(@NotNull Comparator<ClassObject> classObjectComparator) {
+    return createTreeNodeComparator((o1, o2) -> o1.getName().compareTo(o2.getName()), classObjectComparator);
+  }
+
+  /**
+   * A simple class that emulates a tree structure, but contains additional tracking data to allow for node lookup by name via a hashmap.
+   */
+  private static class PackageClassificationIndex {
+    @NotNull
+    private final MemoryObjectTreeNode<NamespaceObject> myPackageNode;
+
+    @NotNull
+    private final Map<String, PackageClassificationIndex> myChildPackages = new HashMap<>();
+
+    private PackageClassificationIndex(@NotNull String packageName) {
+      myPackageNode = new MemoryObjectTreeNode<>(new NamespaceObject(packageName));
+    }
+
+    private PackageClassificationIndex(@NotNull MemoryObjectTreeNode<NamespaceObject> packageNode) {
+      myPackageNode = packageNode;
     }
   }
 }
