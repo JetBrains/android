@@ -29,6 +29,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.GROUP_BY_PACKAGE;
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.NO_GROUPING;
 import static org.junit.Assert.*;
 
 public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
@@ -62,15 +64,15 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     // Test the no-action cases
     myStage.trackAllocations(false, null);
     assertEquals(false, myStage.isTrackingAllocations());
-    assertAndResetCounts(1, 0, 0, 0, 0, 0);
+    assertAndResetCounts(1, 0, 0, 0, 0, 0, 0);
     myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.NOT_ENABLED);
     myStage.trackAllocations(false, null);
     assertEquals(false, myStage.isTrackingAllocations());
-    assertAndResetCounts(1, 0, 0, 0, 0, 0);
+    assertAndResetCounts(1, 0, 0, 0, 0, 0, 0);
     myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.FAILURE_UNKNOWN);
     myStage.trackAllocations(false, null);
     assertEquals(false, myStage.isTrackingAllocations());
-    assertAndResetCounts(1, 0, 0, 0, 0, 0);
+    assertAndResetCounts(1, 0, 0, 0, 0, 0, 0);
 
     // Starting a tracking session
     int infoId = 1;
@@ -83,13 +85,13 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.trackAllocations(true, null);
     assertEquals(true, myStage.isTrackingAllocations());
     assertEquals(null, myStage.getSelectedCapture());
-    assertAndResetCounts(1, 0, 0, 0, 0, 0);
+    assertAndResetCounts(1, 0, 0, 0, 0, 0, 0);
 
     // Attempting to start a in-progress session
     myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.IN_PROGRESS);
     myStage.trackAllocations(true, null);
     assertEquals(true, myStage.isTrackingAllocations());
-    assertAndResetCounts(1, 0, 0, 0, 0, 0);
+    assertAndResetCounts(1, 0, 0, 0, 0, 0, 0);
 
     // Spawn a different thread to stopping a tracking session
     // This will start loading the CaptureObject but it will loop until the AllocationsInfo returns a COMPLETED status.
@@ -107,7 +109,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
       assertEquals(infoEnd, capture.getEndTimeNs());
       assertFalse(capture.isDoneLoading());
       assertFalse(capture.isError());
-      assertAndResetCounts(1, 1, 0, 0, 0, 0);
+      assertAndResetCounts(1, 1, 0, 0, 0, 0, 0);
       waitLatch.countDown();
     }).run();
 
@@ -126,7 +128,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myMockLoader.runTask();
     assertTrue(capture.isDoneLoading());
     assertFalse(capture.isError());
-    assertAndResetCounts(0, 0, 1, 0, 0, 0);
+    assertAndResetCounts(0, 0, 1, 0, 0, 0, 0);
   }
 
   @Test
@@ -161,76 +163,95 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.selectCapture(myMockCapture, null);
     assertEquals(myMockCapture, myStage.getSelectedCapture());
     assertNull(myStage.getSelectedHeap());
+    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
-    assertAndResetCounts(0, 1, 0, 0, 0, 0);
+    assertAndResetCounts(0, 1, 0, 0, 0, 0, 0);
     myMockLoader.runTask();
-    assertAndResetCounts(0, 0, 1, 0, 0, 0);
+    assertAndResetCounts(0, 0, 1, 0, 0, 0, 0);
 
     // Make sure the same capture selected shouldn't result in aspects getting raised again.
     myStage.selectCapture(myMockCapture, null);
     assertEquals(myMockCapture, myStage.getSelectedCapture());
     assertNull(myStage.getSelectedHeap());
+    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
-    assertAndResetCounts(0, 0, 0, 0, 0, 0);
+    assertAndResetCounts(0, 0, 0, 0, 0, 0, 0);
 
     myStage.selectHeap(myMockHeap);
     assertEquals(myMockCapture, myStage.getSelectedCapture());
     assertEquals(myMockHeap, myStage.getSelectedHeap());
+    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
-    assertAndResetCounts(0, 0, 0, 1, 0, 0);
+    assertAndResetCounts(0, 0, 0, 0, 1, 0, 0);
 
     myStage.selectHeap(myMockHeap);
     assertEquals(myMockCapture, myStage.getSelectedCapture());
     assertEquals(myMockHeap, myStage.getSelectedHeap());
+    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
-    assertAndResetCounts(0, 0, 0, 0, 0, 0);
+    assertAndResetCounts(0, 0, 0, 0, 0, 0, 0);
+
+    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
+    myStage.getConfiguration().setClassGrouping(GROUP_BY_PACKAGE);
+    assertEquals(GROUP_BY_PACKAGE, myStage.getConfiguration().getClassGrouping());
+    assertAndResetCounts(0, 0, 0, 1, 0, 0, 0);
+
+    myStage.getConfiguration().setClassGrouping(NO_GROUPING);
+    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
+    assertAndResetCounts(0, 0, 0, 1, 0, 0, 0);
 
     myStage.selectClass(myMockKlass);
     assertEquals(myMockCapture, myStage.getSelectedCapture());
     assertEquals(myMockHeap, myStage.getSelectedHeap());
+    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
     assertEquals(myMockKlass, myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
-    assertAndResetCounts(0, 0, 0, 0, 1, 0);
+    assertAndResetCounts(0, 0, 0, 0, 0, 1, 0);
 
     myStage.selectClass(myMockKlass);
     assertEquals(myMockCapture, myStage.getSelectedCapture());
     assertEquals(myMockHeap, myStage.getSelectedHeap());
+    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
     assertEquals(myMockKlass, myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
-    assertAndResetCounts(0, 0, 0, 0, 0, 0);
+    assertAndResetCounts(0, 0, 0, 0, 0, 0, 0);
 
     myStage.selectInstance(myMockInstance);
     assertEquals(myMockCapture, myStage.getSelectedCapture());
     assertEquals(myMockHeap, myStage.getSelectedHeap());
+    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
     assertEquals(myMockKlass, myStage.getSelectedClass());
     assertEquals(myMockInstance, myStage.getSelectedInstance());
-    assertAndResetCounts(0, 0, 0, 0, 0, 1);
+    assertAndResetCounts(0, 0, 0, 0, 0, 0, 1);
 
     myStage.selectInstance(myMockInstance);
     assertEquals(myMockCapture, myStage.getSelectedCapture());
     assertEquals(myMockHeap, myStage.getSelectedHeap());
+    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
     assertEquals(myMockKlass, myStage.getSelectedClass());
     assertEquals(myMockInstance, myStage.getSelectedInstance());
-    assertAndResetCounts(0, 0, 0, 0, 0, 0);
+    assertAndResetCounts(0, 0, 0, 0, 0, 0, 0);
 
     // Test the reverse direction, to make sure children MemoryObjects are nullified in the selection.
     myStage.selectClass(null);
     assertEquals(myMockCapture, myStage.getSelectedCapture());
     assertEquals(myMockHeap, myStage.getSelectedHeap());
+    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
-    assertAndResetCounts(0, 0, 0, 0, 1, 1);
+    assertAndResetCounts(0, 0, 0, 0, 0, 1, 1);
 
     // However, if a selection didn't change (e.g. null => null), it shouldn't trigger an aspect change either.
     myStage.selectHeap(null);
     assertEquals(myMockCapture, myStage.getSelectedCapture());
     assertNull(myStage.getSelectedHeap());
+    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
-    assertAndResetCounts(0, 0, 0, 1, 0, 0);
+    assertAndResetCounts(0, 0, 0, 0, 1, 0, 0);
   }
 }

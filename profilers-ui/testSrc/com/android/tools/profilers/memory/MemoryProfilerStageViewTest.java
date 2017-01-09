@@ -19,10 +19,7 @@ import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.IdeProfilerComponentsStub;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
-import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.ClassObject;
-import com.android.tools.profilers.memory.adapters.HeapObject;
-import com.android.tools.profilers.memory.adapters.InstanceObject;
+import com.android.tools.profilers.memory.adapters.*;
 import com.intellij.ui.components.JBLoadingPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,6 +33,8 @@ import java.util.Collections;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.GROUP_BY_PACKAGE;
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.NO_GROUPING;
 import static org.junit.Assert.*;
 
 public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
@@ -77,33 +76,38 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     myStage.selectCapture(mockCapture1, null);
     assertView(mockCapture1, null, null, null, true);
-    assertAndResetCounts(0, 1, 0, 0, 0, 0);
+    assertAndResetCounts(0, 1, 0, 0, 0, 0, 0);
     myMockLoader.runTask();
     assertView(mockCapture1, mockHeap1, null, null, false);
-    assertAndResetCounts(0, 0, 1, 1, 0, 0);
+    assertAndResetCounts(0, 0, 1, 0, 1, 0, 0);
 
     // Tests selecting a capture which loads immediately.
     myMockLoader.setReturnImmediateFuture(true);
     myStage.selectCapture(mockCapture2, null);
     // 2 heap changes: 1 from changing the capture, the other from the auto-selection after the capture is loaded/
     assertView(mockCapture2, mockHeap2, null, null, false);
-    assertAndResetCounts(0, 1, 1, 2, 0, 0);
+    assertAndResetCounts(0, 1, 1, 0, 2, 0, 0);
 
     stageView.getHeapView().getComponent().setSelectedItem(mockHeap1);
     assertSelection(mockCapture2, mockHeap1, null, null);
-    assertAndResetCounts(0, 0, 0, 1, 0, 0);
+    assertAndResetCounts(0, 0, 0, 0, 1, 0, 0);
 
     myStage.selectClass(mockKlass1);
     assertView(mockCapture2, mockHeap1, mockKlass1, null, false);
-    assertAndResetCounts(0, 0, 0, 0, 1, 0);
+    assertAndResetCounts(0, 0, 0, 0, 0, 1, 0);
+
+    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
+    myStage.getConfiguration().setClassGrouping(GROUP_BY_PACKAGE);
+    assertEquals(GROUP_BY_PACKAGE, ((MemoryProfilerStageView)myView.getStageView()).getClassGrouping().getComponent().getSelectedItem());
+    assertAndResetCounts(0, 0, 0, 1, 0, 0, 0);
 
     JTree classTree = stageView.getClassView().getTree();
     assertNotNull(classTree);
     Object classRoot = classTree.getModel().getRoot();
     assertTrue(classRoot instanceof MemoryObjectTreeNode);
-    assertTrue(((MemoryObjectTreeNode)classRoot).getAdapter() instanceof ClassObject);
+    assertTrue(((MemoryObjectTreeNode)classRoot).getAdapter() instanceof NamespaceObject);
     //noinspection unchecked
-    MemoryObjectTreeNode<ClassObject> memoryClassRoot = (MemoryObjectTreeNode<ClassObject>)classRoot;
+    MemoryObjectTreeNode<NamespaceObject> memoryClassRoot = (MemoryObjectTreeNode<NamespaceObject>)classRoot;
     stageView.getClassView().getTree()
       .setSelectionPath(new TreePath(new Object[]{classTree.getModel().getRoot(), memoryClassRoot.getChildren().get(1)}));
     assertSelection(mockCapture2, mockHeap1, mockKlass2, null);
@@ -170,9 +174,9 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertNotNull(classTree);
     Object classTreeRoot = classTree.getModel().getRoot();
     assertTrue(classTreeRoot instanceof MemoryObjectTreeNode);
-    assertTrue(((MemoryObjectTreeNode)classTreeRoot).getAdapter() instanceof ClassObject);
+    assertTrue(((MemoryObjectTreeNode)classTreeRoot).getAdapter() instanceof NamespaceObject);
     //noinspection unchecked
-    MemoryObjectTreeNode<ClassObject> memoryClassTreeRoot = (MemoryObjectTreeNode<ClassObject>)classTreeRoot;
+    MemoryObjectTreeNode<NamespaceObject> memoryClassTreeRoot = (MemoryObjectTreeNode<NamespaceObject>)classTreeRoot;
     assertEquals(expectedHeapObject.getClasses(),
                  memoryClassTreeRoot.getChildren().stream().map(MemoryObjectTreeNode::getAdapter).collect(Collectors.toList()));
 
