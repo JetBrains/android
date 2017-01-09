@@ -30,7 +30,7 @@ public class ScreenRecorderAction extends AbstractDeviceAction {
     super(context,
           AndroidBundle.message("android.ddms.actions.screenrecord"),
           AndroidBundle.message("android.ddms.actions.screenrecord.description"),
-          AndroidIcons.Views.VideoView);
+          AndroidIcons.Ddms.ScreenRecorder);
 
     myProject = project;
   }
