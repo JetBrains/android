@@ -19,12 +19,13 @@ package com.android.tools.idea.rendering;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ShowExceptionFix implements Runnable {
-  @NotNull private final Project myProject;
+  @Nullable private final Project myProject;
   @NotNull private final Throwable myThrowable;
 
-  public ShowExceptionFix(@NotNull Project project, @NotNull Throwable throwable) {
+  public ShowExceptionFix(@Nullable Project project, @NotNull Throwable throwable) {
     myProject = project;
     myThrowable = throwable;
   }

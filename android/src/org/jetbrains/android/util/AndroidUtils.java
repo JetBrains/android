@@ -639,7 +639,7 @@ public class AndroidUtils {
     }
   }
 
-  public static void showStackStace(@NotNull final Project project, @NotNull Throwable[] throwables) {
+  public static void showStackStace(@Nullable final Project project, @NotNull Throwable[] throwables) {
     final StringBuilder messageBuilder = new StringBuilder();
 
     for (Throwable t : throwables) {
