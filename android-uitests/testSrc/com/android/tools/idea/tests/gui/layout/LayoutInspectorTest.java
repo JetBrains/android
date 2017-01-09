@@ -91,7 +91,6 @@ public class LayoutInspectorTest {
   @Test
   @RunIn(TestGroup.QA)
   public void launchLayoutInspector() throws Exception {
-    InstantRunSettings.setInstantRunEnabled(false);
     guiTest.ideFrame().runApp("app").selectDevice(AVD_NAME).clickOk();
     // wait for background tasks to finish before requesting run tool window. otherwise run tool window won't activate.
     guiTest.waitForBackgroundTasks();
