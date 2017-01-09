@@ -17,6 +17,8 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.SdkConstants;
 import com.android.builder.model.SourceProvider;
+import com.android.ide.common.blame.SourceFilePosition;
+import com.android.ide.common.blame.SourcePosition;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
@@ -33,6 +35,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ResourceResolverCache;
 import com.android.tools.idea.configurations.ThemeSelectionPanel;
+import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -49,19 +52,25 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
@@ -782,5 +791,64 @@ public class ThemeEditorUtils {
         setInheritsPopupMenuRecursive((JComponent)child);
       }
     }
+  }
+
+  public static void quickfixThemeToActivity(@NotNull Module module, @NotNull String themeUrl) {
+    ActivityChooser chooser = new ActivityChooser(module);
+
+    if (chooser.showAndGet()) {
+      String activity = chooser.getActivity();
+      // use merged manifest look up to find selected activity source location
+      SourceFilePosition sourceFilePosition = ManifestUtils.getSourceFilePosition(module, activity);
+      if (sourceFilePosition == null) {
+        Messages.showErrorDialog(module.getProject(), "Not a Project Activity", "Set Theme Error");
+        // TODO if no location is found, it must be a lib, so just add a new Activity that overrides the theme
+        return;
+      }
+
+      File ioFile = sourceFilePosition.getFile().getSourceFile();
+      assert ioFile != null;
+      VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(ioFile);
+      assert file != null;
+      XmlFile psiFile = (XmlFile)PsiManager.getInstance(module.getProject()).findFile(file);
+      assert psiFile != null;
+
+      new WriteCommandAction.Simple(module.getProject(), "Set Theme for Activity", psiFile) {
+        @Override
+        protected void run() throws Throwable {
+          SourcePosition sourcePosition = sourceFilePosition.getPosition();
+          XmlTag activityTag = getXmlTag(psiFile, sourcePosition.getStartLine(), sourcePosition.getStartColumn());
+          assert activityTag != null;
+          activityTag.setAttribute(SdkConstants.ATTR_THEME, SdkConstants.ANDROID_URI, themeUrl);
+        }
+      }.execute();
+    }
+  }
+
+  /**
+   * @param line Line number starting from 0!
+   * @param col Column number starting from 0!
+   */
+  @Nullable/*could not find tag at that location*/
+  public static XmlTag getXmlTag(@NotNull XmlFile file, int line, int col) {
+    XmlElement element = getXmlElement(file, line, col);
+    return element instanceof XmlTag ? (XmlTag)element : null;
+  }
+
+  /**
+   * @param line Line number starting from 0!
+   * @param col Column number starting from 0!
+   */
+  @Nullable/*could not find xml element at that location*/
+  public static XmlElement getXmlElement(@NotNull XmlFile file, int line, int col) {
+    if (line < 0 || col < 0) {
+      throw new IllegalArgumentException();
+    }
+    Document doc = PsiDocumentManager.getInstance(file.getProject()).getDocument(file);
+    assert doc != null;
+    int offset = doc.getLineStartOffset(line) + col;
+    PsiElement psiElement = file.findElementAt(offset);
+    PsiElement parent = psiElement == null ? null : psiElement.getParent();
+    return parent instanceof XmlElement ? (XmlElement)parent : null;
   }
 }
