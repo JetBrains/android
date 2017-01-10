@@ -50,8 +50,6 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import static org.junit.Assume.assumeTrue;
-
 public class InstantRunBuilderTest {
   private static final String APPLICATION_ID = "instant.run";
   private static final List<String> ASSEMBLE_TASKS = ImmutableList.of(":app:assemble");
@@ -179,7 +177,7 @@ public class InstantRunBuilderTest {
 
   @After
   public void tearDown() throws Exception {
-    myApk.delete();
+    FileUtil.delete(myApk);
   }
 
   @Test
@@ -400,7 +398,7 @@ public class InstantRunBuilderTest {
     builder.build(myTaskRunner, Arrays.asList("-Pdevice.api=14", "-Pprofiling=on"));
     assertEquals(
       "gradlew -Pdevice.api=14 -Pprofiling=on -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK"
-      + " --info :app:assemble",
+      + " --info --full-stacktrace :app:assemble",
       myTaskRunner.getBuilds());
   }
 
