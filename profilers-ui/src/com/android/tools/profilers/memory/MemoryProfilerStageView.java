@@ -64,12 +64,12 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private final MemoryInstanceDetailsView myInstanceDetailsView = new MemoryInstanceDetailsView(getStage());
 
   @Nullable private CaptureObject myCaptureObject = null;
-  @Nullable private CountDownLatch myCaptureLoadingLatch = null;
 
-  @NotNull private Splitter myMainSplitter = new Splitter(false);
-  @NotNull private Splitter myChartCaptureSplitter = new Splitter(true);
-  @NotNull private JPanel myCapturePanel = new JPanel(new BorderLayout());
-  @NotNull private Splitter myInstanceDetailsSplitter = new Splitter(true);
+  @NotNull private final Splitter myMainSplitter = new Splitter(false);
+  @NotNull private final Splitter myChartCaptureSplitter = new Splitter(true);
+  @NotNull private final JPanel myCapturePanel;
+  private JBLoadingPanel myCaptureLoadingPanel;
+  @NotNull private final Splitter myInstanceDetailsSplitter = new Splitter(true);
 
   @NotNull private JButton myAllocationButton;
 
@@ -77,7 +77,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     super(profilersView, stage);
 
     myChartCaptureSplitter.setFirstComponent(buildMonitorUi());
-    myChartCaptureSplitter.setSecondComponent(buildCaptureUi());
+    myCapturePanel = buildCaptureUi();
     myInstanceDetailsSplitter.setFirstComponent(myInstanceView.getComponent());
     myInstanceDetailsSplitter.setSecondComponent(myInstanceDetailsView.getComponent());
     myMainSplitter.setFirstComponent(myChartCaptureSplitter);
@@ -127,6 +127,12 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull
   public Splitter getChartCaptureSplitter() {
     return myChartCaptureSplitter;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public JPanel getCapturePanel() {
+    return myCapturePanel;
   }
 
   @VisibleForTesting
@@ -306,7 +312,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   }
 
   @NotNull
-  private JComponent buildCaptureUi() {
+  private JPanel buildCaptureUi() {
     JPanel headingPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
     headingPanel.add(myCaptureView.getComponent());
 
@@ -316,51 +322,44 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     toolBar.add(myClassGrouping.getComponent());
     headingPanel.add(toolBar);
 
-    myCapturePanel.add(headingPanel, BorderLayout.PAGE_START);
-    myCapturePanel.add(myClassView.getComponent(), BorderLayout.CENTER);
-    return myCapturePanel;
+    JPanel capturePanel = new JPanel(new BorderLayout());
+    capturePanel.add(headingPanel, BorderLayout.PAGE_START);
+    capturePanel.add(myClassView.getComponent(), BorderLayout.CENTER);
+    return capturePanel;
   }
 
   private void captureObjectChanged() {
+    // Forcefully ends the previous loading operation if it is still ongoing.
+    stopLoadingUi();
     myCaptureObject = getStage().getSelectedCapture();
-    myCapturePanel.setVisible(myCaptureObject != null);
-
     if (myCaptureObject == null) {
+      myChartCaptureSplitter.setSecondComponent(null);
       return;
     }
 
-    if (myCaptureLoadingLatch != null) {
-      myCaptureLoadingLatch.countDown();
-    }
-
-    CountDownLatch latch = new CountDownLatch(1);
-    myCaptureLoadingLatch = latch;
-
-    final JBLoadingPanel loadingPanel = new JBLoadingPanel(new BorderLayout(), myCaptureObject);
-    loadingPanel.setLoadingText("Fetching results");
-    loadingPanel.startLoading();
-    myChartCaptureSplitter.setSecondComponent(loadingPanel);
-    myExecutorService.submit(() -> {
-      // TODO update loading progress?
-      try {
-        latch.await();
-      }
-      catch (InterruptedException ignored) {
-      }
-
-      SwingUtilities.invokeLater(() -> {
-        loadingPanel.stopLoading();
-        myChartCaptureSplitter.setSecondComponent(myCapturePanel);
-      });
-    });
+    myCaptureLoadingPanel = new JBLoadingPanel(new BorderLayout(), myCaptureObject);
+    myCaptureLoadingPanel.setLoadingText("Fetching results");
+    myCaptureLoadingPanel.startLoading();
+    myChartCaptureSplitter.setSecondComponent(myCaptureLoadingPanel);
   }
 
   private void captureObjectFinishedLoading() {
-    if (myCaptureObject == getStage().getSelectedCapture() && myCaptureObject != null) {
-      assert myCaptureLoadingLatch != null;
-      myCaptureLoadingLatch.countDown();
-      myCaptureLoadingLatch = null;
+    if (myCaptureObject != getStage().getSelectedCapture()) {
+      return;
     }
+
+    stopLoadingUi();
+    myChartCaptureSplitter.setSecondComponent(myCapturePanel);
+  }
+
+  private void stopLoadingUi() {
+    if (myCaptureObject == null || myCaptureLoadingPanel == null) {
+      return;
+    }
+
+    myCaptureLoadingPanel.stopLoading();
+    myCaptureLoadingPanel = null;
+    myChartCaptureSplitter.setSecondComponent(null);
   }
 
   /**
