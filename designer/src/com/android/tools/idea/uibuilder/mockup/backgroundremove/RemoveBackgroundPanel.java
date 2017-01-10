@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.mockup.backgroundremove;
 
-import com.android.tools.idea.ui.resourcechooser.ResourceChooserIcon;
+import com.android.tools.idea.ui.resourcechooser.ResourceChooserImageIcon;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -47,8 +47,8 @@ public class RemoveBackgroundPanel extends JPanel implements MouseMotionListener
    * Distance in pixel of the dragging distance to set the Threshold to its maximum value
    */
   private static final int MAX_DRAG_DIST = 300;
-  public static final ResourceChooserIcon.CheckerboardPaint CHECKERBOARD_PAINT
-    = new ResourceChooserIcon.CheckerboardPaint(10);
+  public static final ResourceChooserImageIcon.CheckerboardPaint CHECKERBOARD_PAINT
+    = new ResourceChooserImageIcon.CheckerboardPaint(10);
   private final HistoryManager<BufferedImage> myImageHistoryManager;
   AffineTransform myAffineTransform;
   @Nullable private BufferedImage myImage;
