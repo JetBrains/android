@@ -115,6 +115,7 @@ public abstract class MemoryProfilerTestBase extends AspectObserver {
         return Futures.immediateFuture(captureObject);
       }
       else {
+        cancelTask();
         myTask = ListenableFutureTask.create(() -> captureObject.load() ? captureObject : null);
         return myTask;
       }
@@ -127,8 +128,16 @@ public abstract class MemoryProfilerTestBase extends AspectObserver {
       }
     }
 
+    public void cancelTask() {
+      if (myTask != null) {
+        myTask.cancel(true);
+        myTask = null;
+      }
+    }
+
     public void setReturnImmediateFuture(boolean val) {
       isReturnImmediateFuture = val;
+      cancelTask();
     }
   }
 
