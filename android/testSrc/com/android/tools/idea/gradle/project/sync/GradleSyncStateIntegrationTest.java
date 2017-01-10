@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
@@ -46,7 +47,8 @@ public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
     MessageBus messageBus = mock(MessageBus.class);
     when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(mySyncListener);
 
-    mySyncState = new GradleSyncState(project, GradleProjectInfo.getInstance(project), messageBus, FileDocumentManager.getInstance());
+    mySyncState = new GradleSyncState(project, AndroidProjectInfo.getInstance(project), GradleProjectInfo.getInstance(project), messageBus,
+                                      FileDocumentManager.getInstance());
   }
 
   public void testInvalidateLastSync() throws Exception {
