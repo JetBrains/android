@@ -41,7 +41,7 @@ class AllocationInfosDataSeries implements DataSeries<CaptureDurationData<Alloca
   }
 
   @NotNull
-  public List<MemoryProfiler.AllocationsInfo> getDataForXRange(long rangeMinNs, long rangeMaxNs) {
+  private List<MemoryProfiler.AllocationsInfo> getDataForXRange(long rangeMinNs, long rangeMaxNs) {
     MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()
       .setAppId(myProcessId)
       .setStartTime(rangeMinNs)
@@ -59,10 +59,6 @@ class AllocationInfosDataSeries implements DataSeries<CaptureDurationData<Alloca
     List<MemoryProfiler.AllocationsInfo> infos = getDataForXRange(rangeMin, rangeMax);
 
     List<SeriesData<CaptureDurationData<AllocationsCaptureObject>>> seriesData = new ArrayList<>();
-    if (infos.size() == 0) {
-      return ContainerUtil.immutableList(seriesData);
-    }
-
     for (MemoryProfiler.AllocationsInfo info : infos) {
       long startTimeNs = info.getStartTime();
       long endTimeNs = info.getEndTime();

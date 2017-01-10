@@ -187,11 +187,12 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
     HeapDumpSample key = new HeapDumpSample(HeapDumpInfo.newBuilder().setEndTime(request.getStartTime()).build());
     int index =
       Collections.binarySearch(myHeapData, key, (left, right) -> compareTimes(left.myInfo.getEndTime(), right.myInfo.getEndTime()));
-    index = index < 0 ? -(index + 1) : index;
+    // If there is an exact match, move on to the next index as start time is treated as exclusive.
+    index = index < 0 ? -(index + 1) : index + 1;
     ListHeapDumpInfosResponse.Builder responseBuilder = ListHeapDumpInfosResponse.newBuilder();
     for (int i = index; i < myHeapData.size(); i++) {
       HeapDumpSample sample = myHeapData.get(i);
-      assert sample.myInfo.getEndTime() == DurationData.UNSPECIFIED_DURATION || request.getStartTime() <= sample.myInfo.getEndTime();
+      assert sample.myInfo.getEndTime() == DurationData.UNSPECIFIED_DURATION || request.getStartTime() < sample.myInfo.getEndTime();
       if (sample.myInfo.getStartTime() <= request.getEndTime()) {
         responseBuilder.addInfos(sample.myInfo);
       }
