@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Table;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.util.xml.XmlName;
 import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor;
 import com.intellij.xml.XmlAttributeDescriptor;
 import com.intellij.xml.XmlElementDescriptor;
@@ -258,9 +259,18 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     XmlAttributeDescriptor descriptor = getDescriptor(component, attributeName);
     assertThat(descriptor).isNotNull();
     AttributeDefinition definition = getDefinition(component, descriptor);
-    String namespace = getNamespace(component, descriptor);
 
-    return NlPropertyItem.create(components, descriptor, namespace, definition);
+    return NlPropertyItem.create(getXmlName(component, descriptor), definition, components, myPropertiesManager);
+  }
+
+  @NotNull
+  protected NlPropertyItem createFrom(@NotNull String attributeName, @NotNull NlComponent... componentArray) {
+    List<NlComponent> components = Arrays.asList(componentArray);
+    XmlAttributeDescriptor descriptor = getDescriptor(components.get(0), attributeName);
+    assertThat(descriptor).isNotNull();
+    AttributeDefinition definition = getDefinition(components.get(0), descriptor);
+
+    return NlPropertyItem.create(getXmlName(components.get(0), descriptor), definition, components, myPropertiesManager);
   }
 
   @Nullable
@@ -285,27 +295,29 @@ public abstract class PropertyTestCase extends LayoutTestCase {
 
     AttributeDefinitions localAttrDefs = localResourceManager.getAttributeDefinitions();
     AttributeDefinitions systemAttrDefs = systemResourceManager.getAttributeDefinitions();
+    XmlName name = getXmlName(component, descriptor);
 
-    AttributeDefinitions attrDefs = NS_RESOURCES.equals(getNamespace(component, descriptor)) ? systemAttrDefs : localAttrDefs;
+    AttributeDefinitions attrDefs = NS_RESOURCES.equals(name.getNamespaceKey()) ? systemAttrDefs : localAttrDefs;
     return attrDefs == null ? null : attrDefs.getAttrDefByName(descriptor.getName());
   }
 
-  @Nullable
-  private static String getNamespace(@NotNull NlComponent component, @NotNull XmlAttributeDescriptor descriptor) {
+  @NotNull
+  private static XmlName getXmlName(@NotNull NlComponent component, @NotNull XmlAttributeDescriptor descriptor) {
+    String namespace = null;
     if (descriptor instanceof NamespaceAwareXmlAttributeDescriptor) {
-      return ((NamespaceAwareXmlAttributeDescriptor)descriptor).getNamespace(component.getTag());
+      namespace = ((NamespaceAwareXmlAttributeDescriptor)descriptor).getNamespace(component.getTag());
     }
-    return null;
+    return new XmlName(descriptor.getName(), namespace);
   }
 
   @NotNull
-  protected static Table<String, String, NlPropertyItem> getPropertyTable(@NotNull List<NlComponent> components) {
+  protected Table<String, String, NlPropertyItem> getPropertyTable(@NotNull List<NlComponent> components) {
     NlProperties propertiesProvider = NlProperties.getInstance();
-    return propertiesProvider.getProperties(components);
+    return propertiesProvider.getProperties(myPropertiesManager, components);
   }
 
   @NotNull
-  protected static Map<String, NlProperty> getPropertyMap(@NotNull List<NlComponent> components) {
+  protected Map<String, NlProperty> getPropertyMap(@NotNull List<NlComponent> components) {
     if (components.isEmpty()) {
       return Collections.emptyMap();
     }
@@ -322,14 +334,14 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     }
     // Add access to known design properties
     NlDesignProperties designProperties = new NlDesignProperties();
-    for (NlProperty property : designProperties.getKnownProperties(components)) {
+    for (NlProperty property : designProperties.getKnownProperties(components, myPropertiesManager)) {
       propertiesByName.putIfAbsent(property.getName(), property);
     }
     return propertiesByName;
   }
 
   @NotNull
-  protected static NlProperty getProperty(@NotNull NlComponent component, @NotNull String propertyName) {
+  protected NlProperty getProperty(@NotNull NlComponent component, @NotNull String propertyName) {
     Map<String, NlProperty> properties = getPropertyMap(ImmutableList.of(component));
     NlProperty property = properties.get(propertyName);
     assert property != null;
@@ -337,9 +349,9 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   }
 
   @NotNull
-  protected static NlProperty getPropertyWithDefaultValue(@NotNull NlComponent component,
-                                                          @NotNull String propertyName,
-                                                          @NotNull String resource) {
+  protected NlProperty getPropertyWithDefaultValue(@NotNull NlComponent component,
+                                                   @NotNull String propertyName,
+                                                   @NotNull String resource) {
     NlPropertyItem property = (NlPropertyItem)getProperty(component, propertyName);
     property.setDefaultValue(new PropertiesMap.Property(resource, null));
     return property;
