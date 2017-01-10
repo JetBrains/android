@@ -456,14 +456,14 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       assertHtmlEquals(
         "java.lang.ArithmeticException: / by zero<BR/>" +
         "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>(<A HREF=\"open:com.example.myapplication574.MyCustomView#<init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>" +
-        "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance(<A HREF=\"file://$SDK_HOME/sources/android-18/java/lang/reflect/Constructor.java:513\">Constructor.java:513</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate_Original(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:755\">LayoutInflater.java:755</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.LayoutInflater_Delegate.rInflate(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/LayoutInflater_Delegate.java:64\">LayoutInflater_Delegate.java:64</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:727\">LayoutInflater.java:727</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:492\">LayoutInflater.java:492</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:373\">LayoutInflater.java:373</A>)<BR/>" +
-        "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/><BR/>" +
-        "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
+        "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance(Constructor.java:513)<BR/>" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate_Original(LayoutInflater.java:755)<BR/>" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater_Delegate.rInflate(LayoutInflater_Delegate.java:64)<BR/>" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate(LayoutInflater.java:727)<BR/>" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:492)<BR/>" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:373)<BR/>" +
+        "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/>" +
+        "<BR/>Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
     }
     else {
       assertHtmlEquals(
@@ -685,25 +685,26 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "Read access not allowed during rendering (/)<BR/>" +
         "&nbsp;&nbsp;at com.android.ide.common.rendering.RenderSecurityException.create(RenderSecurityException.java:52)<BR/>" +
         "&nbsp;&nbsp;at com.android.ide.common.rendering.RenderSecurityManager.checkRead(RenderSecurityManager.java:204)<BR/>" +
-        "&nbsp;&nbsp;at java.io.File.list(<A HREF=\"file://$SDK_HOME/sources/android-18/java/io/File.java:971\">File.java:971</A>)<BR/>" +
-        "&nbsp;&nbsp;at java.io.File.listFiles(<A HREF=\"file://$SDK_HOME/sources/android-18/java/io/File.java:1051\">File.java:1051</A>)<BR/>" +
+        "&nbsp;&nbsp;at java.io.File.list(File.java:971)<BR/>" +
+        "&nbsp;&nbsp;at java.io.File.listFiles(File.java:1051)<BR/>" +
         "&nbsp;&nbsp;at com.example.app.MyButton.onDraw(<A HREF=\"open:com.example.app.MyButton#onDraw;MyButton.java:70\">MyButton.java:70</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/View.java:14433\">View.java:14433</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/ViewGroup.java:3103\">ViewGroup.java:3103</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/ViewGroup.java:2940\">ViewGroup.java:2940</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/ViewGroup.java:3103\">ViewGroup.java:3103</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/ViewGroup.java:2940\">ViewGroup.java:2940</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/ViewGroup.java:3103\">ViewGroup.java:3103</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/ViewGroup.java:2940\">ViewGroup.java:2940</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/ViewGroup.java:3103\">ViewGroup.java:3103</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/ViewGroup.java:2940\">ViewGroup.java:2940</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
-        "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/><BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-25/android/view/View.java:14433\">View.java:14433</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-25/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-25/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-25/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-25/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-25/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-25/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
+        "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/>" +
+        "<BR/>" +
         "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
     }
     else {
