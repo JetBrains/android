@@ -59,7 +59,7 @@ public class InteractionManager {
 
   /** The canvas which owns this {@linkplain InteractionManager}. */
   @NotNull
-  private final DesignSurface mySurface;
+  private final NlDesignSurface mySurface;
 
   /** The currently executing {@link Interaction}, or null. */
   @Nullable
@@ -125,12 +125,12 @@ public class InteractionManager {
 
   /**
    * Constructs a new {@link InteractionManager} for the given
-   * {@link DesignSurface}.
+   * {@link NlDesignSurface}.
    *
    * @param surface The surface which controls this {@link InteractionManager}
    */
   public InteractionManager(@NotNull DesignSurface surface) {
-    mySurface = surface;
+    mySurface = (NlDesignSurface)surface;
 
     myHoverTimer = new Timer(HOVER_DELAY_MS, null);
     myHoverTimer.setRepeats(false);
@@ -150,7 +150,7 @@ public class InteractionManager {
   /**
    * Returns the canvas associated with this {@linkplain InteractionManager}.
    *
-   * @return The {@link DesignSurface} associated with this {@linkplain InteractionManager}.
+   * @return The {@link NlDesignSurface} associated with this {@linkplain InteractionManager}.
    *         Never null.
    */
   @NotNull
@@ -778,7 +778,7 @@ public class InteractionManager {
         // Refresh layout
         RefreshRenderAction.clearCache(mySurface);
       } else if (keyChar == 'b') {
-        DesignSurface.ScreenMode nextMode = mySurface.getScreenMode().next();
+        NlDesignSurface.ScreenMode nextMode = mySurface.getScreenMode().next();
         mySurface.setScreenMode(nextMode, true);
       } else if (keyChar == '0') {
         mySurface.zoomToFit();

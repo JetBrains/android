@@ -27,10 +27,7 @@ import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.idea.uibuilder.surface.ZoomType;
+import com.android.tools.idea.uibuilder.surface.*;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
@@ -50,13 +47,13 @@ import java.util.List;
  * parents (and if no selection, the root layout)
  */
 public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
-  private final DesignSurface mySurface;
+  private final NlDesignSurface mySurface;
   private NlModel myModel;
   private JComponent myToolbarComponent;
   private final DefaultActionGroup myDynamicGroup = new DefaultActionGroup();
   private ActionToolbar myActionToolbar;
 
-  public NlActionsToolbar(@NotNull DesignSurface surface) {
+  public NlActionsToolbar(@NotNull NlDesignSurface surface) {
     mySurface = surface;
   }
 
@@ -111,7 +108,7 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
     return panel;
   }
 
-  private static ActionGroup getRhsActions(DesignSurface surface) {
+  private static ActionGroup getRhsActions(NlDesignSurface surface) {
     DefaultActionGroup group = new DefaultActionGroup();
 
     group.add(new SetZoomAction(surface, ZoomType.OUT));
@@ -125,7 +122,7 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
     return group;
   }
 
-  private static DefaultActionGroup createConfigActions(ConfigurationHolder configurationHolder, DesignSurface surface) {
+  private static DefaultActionGroup createConfigActions(ConfigurationHolder configurationHolder, NlDesignSurface surface) {
     DefaultActionGroup group = new DefaultActionGroup();
 
     group.add(new DesignModeAction(surface));
@@ -167,7 +164,8 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
           // If you select a root layout, offer selection actions on it as well
           return selected;
         }
-      } else if (parent != selected.getParent()) {
+      }
+      else if (parent != selected.getParent()) {
         parent = null;
         break;
       }
@@ -184,7 +182,8 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
         List<NlComponent> roots = view.getModel().getComponents();
         if (roots.size() == 1) {
           selection = Collections.singletonList(roots.get(0));
-        } else {
+        }
+        else {
           // Model not yet rendered: when it's done, update. Listener is removed as soon as palette fires from listener callback.
           myModel.addListener(this);
           return;
@@ -221,7 +220,8 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
     assert surface == mySurface;
     if (!newSelection.isEmpty()) {
       updateViewActions(newSelection);
-    } else {
+    }
+    else {
       updateViewActions();
     }
   }

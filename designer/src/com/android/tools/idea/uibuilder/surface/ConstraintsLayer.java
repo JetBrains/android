@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -26,14 +27,14 @@ import java.awt.geom.Rectangle2D;
 
 public class ConstraintsLayer extends Layer {
   private final ScreenView myScreenView;
-  private final DesignSurface myDesignSurface;
+  private final NlDesignSurface myDesignSurface;
 
   private Dimension myScreenViewSize = new Dimension();
   private Rectangle mySizeRectangle = new Rectangle();
   private final boolean showOnSelection;
   private boolean myShowOnHover = false;
 
-  public ConstraintsLayer(DesignSurface designSurface, @NotNull ScreenView screenView, boolean showOnSelection) {
+  public ConstraintsLayer(NlDesignSurface designSurface, @NotNull ScreenView screenView, boolean showOnSelection) {
     myDesignSurface = designSurface;
     myScreenView = screenView;
     this.showOnSelection = showOnSelection;
@@ -131,5 +132,18 @@ public class ConstraintsLayer extends Layer {
       needsRepaint |= drawComponent(gc, child, parentHandlesPainting);
     }
     return needsRepaint;
+  }
+
+  @Override
+  public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
+    // For constraint layer, set show on hover if they are above their screen view
+    boolean show = false;
+    if (getScreenView() == myDesignSurface.getHoverScreenView(x, y)) {
+      show = true;
+    }
+    if (isShowOnHover() != show) {
+      setShowOnHover(show);
+      myDesignSurface.repaint();
+    }
   }
 }

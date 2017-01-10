@@ -20,7 +20,7 @@ import com.android.tools.idea.rendering.errors.ui.RenderErrorPanel;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import org.fest.swing.core.Robot;
@@ -37,11 +37,11 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertTrue;
 
-public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture, DesignSurface> {
+public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture, NlDesignSurface> {
   private final JPanel myProgressPanel;
   private final RenderErrorPanel myRenderErrorPanel;
 
-  public DesignSurfaceFixture(@NotNull Robot robot, @NotNull DesignSurface designSurface) {
+  public DesignSurfaceFixture(@NotNull Robot robot, @NotNull NlDesignSurface designSurface) {
     super(DesignSurfaceFixture.class, robot, designSurface);
     myProgressPanel = robot.finder().findByName(target(), "Layout Editor Progress Panel", JPanel.class, false);
     myRenderErrorPanel = robot.finder().findByName(target(), "Layout Editor Error Panel", RenderErrorPanel.class, false);
@@ -163,7 +163,7 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
            : target().getCurrentScreenView().getModel().getSelectionModel().getSelection();
   }
 
-  public boolean isInScreenMode(@NotNull DesignSurface.ScreenMode mode) {
+  public boolean isInScreenMode(@NotNull NlDesignSurface.ScreenMode mode) {
     return target().getScreenMode() == mode;
   }
 }

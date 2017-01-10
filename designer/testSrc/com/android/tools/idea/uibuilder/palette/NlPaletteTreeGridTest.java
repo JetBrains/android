@@ -20,7 +20,7 @@ import com.android.tools.adtui.treegrid.TreeGrid;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
@@ -49,7 +49,7 @@ import static java.awt.event.MouseEvent.*;
 import static org.mockito.Mockito.*;
 
 public class NlPaletteTreeGridTest extends AndroidTestCase {
-  private DesignSurface mySurface;
+  private NlDesignSurface mySurface;
   private DependencyManager myDependencyManager;
   private NlPaletteTreeGrid myPanel;
   private IconPreviewFactory myIconPreviewFactory;
@@ -59,7 +59,7 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     myDependencyManager = mock(DependencyManager.class);
-    mySurface = mock(DesignSurface.class);
+    mySurface = mock(NlDesignSurface.class);
     myJavaDocViewer = mock(NlPaletteTreeGrid.JavaDocViewer.class);
     Runnable closeToolWindowCallback = mock(Runnable.class);
     myIconPreviewFactory = new IconPreviewFactory();

@@ -68,7 +68,7 @@ public class CanvasResizeInteraction extends Interaction {
    */
   private static final String[] DEVICES_TO_SHOW = {"Nexus 5", "Nexus 6P", "Nexus 7", "Nexus 9", "Nexus 10"};
 
-  private final DesignSurface myDesignSurface;
+  private final NlDesignSurface myDesignSurface;
   private final boolean isPreviewSurface;
   private final List<FolderConfiguration> myFolderConfigurations;
   private final UnavailableSizesLayer myUnavailableLayer = new UnavailableSizesLayer();
@@ -82,7 +82,7 @@ public class CanvasResizeInteraction extends Interaction {
   private int myCurrentX;
   private int myCurrentY;
 
-  public CanvasResizeInteraction(DesignSurface designSurface) {
+  public CanvasResizeInteraction(NlDesignSurface designSurface) {
     myDesignSurface = designSurface;
     isPreviewSurface = designSurface.isPreviewSurface();
     myOrientationLayer = new OrientationLayer(myDesignSurface);
@@ -526,12 +526,12 @@ public class CanvasResizeInteraction extends Interaction {
 
   private static class DeviceLayer extends Layer {
     private final String myName;
-    private final DesignSurface myDesignSurface;
+    private final NlDesignSurface myDesignSurface;
     private final int myNameWidth;
     private int myBigDimension;
     private int mySmallDimension;
 
-    public DeviceLayer(@NotNull DesignSurface designSurface, int pxWidth, int pxHeight, @NotNull String name) {
+    public DeviceLayer(@NotNull NlDesignSurface designSurface, int pxWidth, int pxHeight, @NotNull String name) {
       myDesignSurface = designSurface;
       myBigDimension = Math.max(pxWidth, pxHeight);
       mySmallDimension = Math.min(pxWidth, pxHeight);
@@ -569,11 +569,11 @@ public class CanvasResizeInteraction extends Interaction {
     private final Polygon myOrientationPolygon = new Polygon();
     private final double myPortraitWidth;
     private final double myLandscapeWidth;
-    private final DesignSurface myDesignSurface;
+    private final NlDesignSurface myDesignSurface;
     private BufferedImage myOrientationImage;
     private ScreenOrientation myLastOrientation;
 
-    public OrientationLayer(@NotNull DesignSurface designSurface) {
+    public OrientationLayer(@NotNull NlDesignSurface designSurface) {
       myDesignSurface = designSurface;
       FontMetrics fontMetrics = myDesignSurface.getFontMetrics(myDesignSurface.getFont());
       myPortraitWidth = fontMetrics.getStringBounds("Portrait", null).getWidth();

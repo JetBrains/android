@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableTable;
@@ -47,7 +48,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSurfaceListener, ModelListener {
+public class NlPropertiesManager implements ToolContent<NlDesignSurface>, DesignSurfaceListener, ModelListener {
   public final static int UPDATE_DELAY_MSECS = 250;
 
   private final Project myProject;
@@ -55,14 +56,14 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   private final NlPropertiesPanel myPropertiesPanel;
   private final NlPropertyEditors myEditors;
 
-  @Nullable private DesignSurface mySurface;
+  @Nullable private NlDesignSurface mySurface;
   @Nullable private ScreenView myScreenView;
 
   private MergingUpdateQueue myUpdateQueue;
   private boolean myFirstLoad = true;
   private boolean myLoading;
 
-  public NlPropertiesManager(@NotNull Project project, @Nullable DesignSurface designSurface) {
+  public NlPropertiesManager(@NotNull Project project, @Nullable NlDesignSurface designSurface) {
     myProject = project;
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), project, 20);
     myEditors = NlPropertyEditors.getInstance(project);
@@ -82,7 +83,7 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   }
 
   @Override
-  public void setToolContext(@Nullable DesignSurface designSurface) {
+  public void setToolContext(@Nullable NlDesignSurface designSurface) {
     if (designSurface == mySurface) {
       return;
     }
@@ -140,7 +141,7 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   }
 
   @Nullable
-  public DesignSurface getDesignSurface() {
+  public NlDesignSurface getDesignSurface() {
     return mySurface;
   }
 

@@ -19,7 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.splitter.ComponentsSplitter;
 import com.android.tools.adtui.treegrid.TreeGrid;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.ide.actions.ExternalJavaDocAction;
@@ -50,7 +50,9 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import java.awt.*;
 import java.awt.datatransfer.Transferable;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -75,13 +77,13 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
   private final IconPreviewFactory myIconPreviewFactory;
   private PaletteMode myMode;
   private SelectionListener myListener;
-  private DesignSurface mySurface;
+  private NlDesignSurface mySurface;
   private Palette myPalette;
 
   public NlPaletteTreeGrid(@NotNull Project project,
                            @NotNull DependencyManager dependencyManager,
                            @NotNull Runnable closeAutoHideCallback,
-                           @Nullable DesignSurface designSurface,
+                           @Nullable NlDesignSurface designSurface,
                            @NotNull IconPreviewFactory iconFactory) {
     this(project, dependencyManager, closeAutoHideCallback, designSurface, iconFactory, null);
   }
@@ -90,7 +92,7 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
   NlPaletteTreeGrid(@NotNull Project project,
                     @NotNull DependencyManager dependencyManager,
                     @NotNull Runnable closeAutoHideCallback,
-                    @Nullable DesignSurface designSurface,
+                    @Nullable NlDesignSurface designSurface,
                     @NotNull IconPreviewFactory iconFactory,
                     @Nullable JavaDocViewer javaDocViewer) {
     myProject = project;
@@ -176,7 +178,7 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     myTree.setCellRenderer(new MyCellRenderer(myDependencyManager, mode));
   }
 
-  public void populateUiModel(@NotNull Palette palette, @NotNull DesignSurface designSurface) {
+  public void populateUiModel(@NotNull Palette palette, @NotNull NlDesignSurface designSurface) {
     mySurface = designSurface;
     myPalette = palette;
     myCategoryList.setModel(new TreeCategoryProvider(palette));
@@ -257,7 +259,7 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
 
   private class MyItemTransferHandler extends ItemTransferHandler {
 
-    public MyItemTransferHandler(@NotNull DesignSurface designSurface,
+    public MyItemTransferHandler(@NotNull NlDesignSurface designSurface,
                                  @NotNull DependencyManager dependencyManager,
                                  @NotNull Supplier<Palette.Item> itemSupplier,
                                  @NotNull IconPreviewFactory iconPreviewFactory) {
