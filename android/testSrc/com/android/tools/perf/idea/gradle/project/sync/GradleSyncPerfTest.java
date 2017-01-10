@@ -94,7 +94,7 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
   }
 
   @Override
-  protected void updateVersionAndDependencies(File file) throws IOException {
+  protected void updateVersionAndDependencies(@NotNull File file) throws IOException {
     if (file.isDirectory()) {
       File[] files = file.listFiles();
       if (files != null) {
