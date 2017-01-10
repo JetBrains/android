@@ -99,7 +99,6 @@ public class FlavorsExecutionTest {
    *   2. Verify in Android Run tool window for the launch of F2_Main_Activity
    * </pre>
    */
-  @Ignore("https://android-jenkins.corp.google.com/builders/studio-sanity_master-dev/builds/2550")
   @RunIn(TestGroup.QA)
   @Test
   public void runBuildFlavors() throws Exception {
