@@ -257,7 +257,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
 
   @NotNull
   private List<String> getFlightRecorderArguments() {
-    return myFlightRecorderEnabled ? ImmutableList.of("--info") : ImmutableList.of();
+    return myFlightRecorderEnabled ? ImmutableList.of("--info", "--full-stacktrace") : ImmutableList.of();
   }
 
   /**
