@@ -15,7 +15,9 @@
  */
 package com.android.tools.adtui;
 
+import com.intellij.util.Function;
 import com.intellij.util.containers.Queue;
+import com.intellij.util.containers.Stack;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -69,7 +71,7 @@ public final class TreeWalker {
   }
 
   /**
-   * Return a stream of components, starting from the current root up until no more parents can be
+   * Return a stream of ancestors, starting from the current root up until no more parents can be
    * found.
    */
   public Stream<Component> ancestorStream() {
@@ -77,7 +79,7 @@ public final class TreeWalker {
   }
 
   /**
-   * Return components so they can be iterated over.
+   * Return ancestors so they can be iterated over.
    */
   public Iterable<Component> ancestors() {
     return new Iterable<Component>() {
@@ -89,24 +91,53 @@ public final class TreeWalker {
   }
 
   /**
-   * Return a stream of components, starting from the current root and walking breadth-first until
-   * all children are visited (e.g. all in first generation, then second generation, etc.)
+   * Return a stream of descendants, starting from the current root and walking down until
+   * all children are visited.
+   *
+   * @param order Whether the order should be depth first or breadth first
    */
-  public Stream<Component> descendantStream() {
-    return streamFromIterator(new DescendantIterator(myRoot));
+  public Stream<Component> descendantStream(DescendantOrder order) {
+    return streamFromIterator(order.createIterator.fun(myRoot));
   }
 
 
   /**
-   * Return components so they can be iterated over.
+   * Return descendants so they can be iterated over.
+   *
+   * @param order Whether the order should be depth first or breadth first
    */
-  public Iterable<Component> descendants() {
+  public Iterable<Component> descendants(DescendantOrder order) {
     return new Iterable<Component>() {
       @Override
       public Iterator<Component> iterator() {
-        return new DescendantIterator(myRoot);
+        return order.createIterator.fun(myRoot);
       }
     };
+  }
+
+  /**
+   * Returns a descendant stream in breadth-first order.
+   */
+  public Stream<Component> descendantStream() {
+    return descendantStream(DescendantOrder.BREADTH_FIRST);
+  }
+
+  /**
+   * Return descendants so they can be iterated over in breadth-first order.
+   */
+  public Iterable<Component> descendants() {
+    return descendants(DescendantOrder.BREADTH_FIRST);
+  }
+
+  public enum DescendantOrder {
+    BREADTH_FIRST(BfsDescendantIterator::new),
+    DEPTH_FIRST(DfsDescendantIterator::new);
+
+    final Function<Component, Iterator<Component>> createIterator;
+
+    DescendantOrder(Function<Component, Iterator<Component>> createIterator) {
+      this.createIterator = createIterator;
+    }
   }
 
   private static final class AncestorIterator implements Iterator<Component> {
@@ -129,10 +160,10 @@ public final class TreeWalker {
     }
   }
 
-  private static final class DescendantIterator implements Iterator<Component> {
+  private static final class BfsDescendantIterator implements Iterator<Component> {
     private final Queue<Component> myDescendants = new Queue<>(10);
 
-    public DescendantIterator(Component root) {
+    public BfsDescendantIterator(Component root) {
       myDescendants.addLast(root);
     }
 
@@ -149,6 +180,34 @@ public final class TreeWalker {
       if (c instanceof Container) {
         for (Component child : ((Container)c).getComponents()) {
           myDescendants.addLast(child);
+        }
+      }
+
+      return c;
+    }
+  }
+
+  private static final class DfsDescendantIterator implements Iterator<Component> {
+    private final Stack<Component> myDescendants = new Stack<>();
+
+    public DfsDescendantIterator(Component root) {
+      myDescendants.push(root);
+    }
+
+    @Override
+    public boolean hasNext() {
+      return !myDescendants.isEmpty();
+    }
+
+    @Override
+    public Component next() {
+      Component c = myDescendants.pop();
+      // When we visit a component, enqueue any children it may have, so that if the iterator
+      // continues to run, we'll visit its children later, in a depth-first manner.
+      if (c instanceof Container) {
+        for (int i = ((Container)c).getComponentCount() - 1; i >= 0; i--) {
+          Component child = ((Container)c).getComponent(i);
+          myDescendants.push(child);
         }
       }
 
