@@ -286,7 +286,6 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     private boolean myIsBlocking = false;
     @Nullable private Icon myIcon = null;
     @Nullable private Stroke myStroke = null;
-    @Nullable private RangedContinuousSeries myAttachedLineSeries = null;
     @Nullable private Function<E, String> myTooltipProvider = null;
     @Nullable private Function<E, String> myLabelProvider = null;
     @Nullable private Consumer<E> myClickHandler = null;
@@ -321,15 +320,6 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
      */
     public Builder<E> setStroke(@NotNull Stroke stroke) {
       myStroke = stroke;
-      return this;
-    }
-
-    /**
-     * If set the renderer will attach the content (e.g. icon/text) of the DurationData on top of the closest point of the corresponding
-     * line series.
-     */
-    public Builder<E> setAttachLineSeries(@NotNull RangedContinuousSeries series) {
-      myAttachedLineSeries = series;
       return this;
     }
 
