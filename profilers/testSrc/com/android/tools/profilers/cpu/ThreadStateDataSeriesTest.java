@@ -79,13 +79,14 @@ public class ThreadStateDataSeriesTest {
     myService.setValidTrace(false);
     ImmutableList<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForXRange(range);
     assertNotNull(dataSeries);
-    assertEquals(4, dataSeries.size()); // thread2 state changes are RUNNING, STOPPED, SLEEPING and DEAD
+    assertEquals(5, dataSeries.size()); // thread2 state changes are RUNNING, STOPPED, SLEEPING and DEAD
 
     assertEquals(CpuProfilerStage.ThreadState.RUNNING, dataSeries.get(0).value);
-    // Any state different than RUNNING, SLEEPING or DEAD (expected states) is mapped to UNKNOWN
+    // Any state different than RUNNING, SLEEPING, WAITING or DEAD (expected states) is mapped to UNKNOWN
     assertEquals(CpuProfilerStage.ThreadState.UNKNOWN, dataSeries.get(1).value);
     assertEquals(CpuProfilerStage.ThreadState.SLEEPING, dataSeries.get(2).value);
-    assertEquals(CpuProfilerStage.ThreadState.DEAD, dataSeries.get(3).value);
+    assertEquals(CpuProfilerStage.ThreadState.WAITING, dataSeries.get(3).value);
+    assertEquals(CpuProfilerStage.ThreadState.DEAD, dataSeries.get(4).value);
   }
 
   @Test
@@ -117,6 +118,8 @@ public class ThreadStateDataSeriesTest {
     ThreadStateDataSeries series = createThreadSeries(capture.getRange(), FakeCpuService.TRACE_TID);
     // We want the data series to consider the trace.
     myService.setValidTrace(true);
+    // Start the capture 2 seconds before the first thread activity
+    myService.setTraceThreadActivityBuffer(-2);
     myService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
     ImmutableList<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForXRange(capture.getRange());
     assertNotNull(dataSeries);
@@ -127,6 +130,28 @@ public class ThreadStateDataSeriesTest {
     assertEquals(CpuProfilerStage.ThreadState.RUNNING_CAPTURED, dataSeries.get(1).value);
     assertEquals(CpuProfilerStage.ThreadState.SLEEPING_CAPTURED, dataSeries.get(2).value);
     assertEquals(CpuProfilerStage.ThreadState.SLEEPING, dataSeries.get(3).value);
+  }
+
+  @Test
+  public void captureBeforeFirstActivity() throws IOException {
+    CpuCapture capture = myService.parseTraceFile();
+    assertNotNull(capture);
+    // Create a series with trace file's main thread tid and the capture range
+    ThreadStateDataSeries series = createThreadSeries(capture.getRange(), FakeCpuService.TRACE_TID);
+    // We want the data series to consider the trace.
+    myService.setValidTrace(true);
+    // Start the capture 1 second after the first thread activity
+    myService.setTraceThreadActivityBuffer(1);
+    myService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
+    ImmutableList<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForXRange(capture.getRange());
+    assertNotNull(dataSeries);
+
+    // We expect the portions of the thread activities that are within the capture range to be duplicated with a "_CAPTURED" suffix.
+    // The first activity happens inside the capture, therefore it has only the "_CAPTURED" state.
+    assertEquals(3, dataSeries.size());
+    assertEquals(CpuProfilerStage.ThreadState.RUNNING_CAPTURED, dataSeries.get(0).value);
+    assertEquals(CpuProfilerStage.ThreadState.SLEEPING_CAPTURED, dataSeries.get(1).value);
+    assertEquals(CpuProfilerStage.ThreadState.SLEEPING, dataSeries.get(2).value);
   }
 
   private ThreadStateDataSeries createThreadSeries(Range range, int tid) {
