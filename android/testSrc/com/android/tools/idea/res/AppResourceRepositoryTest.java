@@ -152,6 +152,12 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     Integer[] foundValues = appResources.getDeclaredArrayValues(attrList, "Styleable1");
     assertOrderedEquals(foundValues, 0x7f010000);
 
+    // Declared styleables mismatch
+    attrList = builder.add(
+      new AttrResourceValue(ResourceType.ATTR, "some-attr", false, null),
+      new AttrResourceValue(ResourceType.ATTR, "other-attr", false, null)).build();
+    assertNull(appResources.getDeclaredArrayValues(attrList, "Styleable1"));
+
     // slightly complex test.
     builder = ImmutableList.builder();
     attrList = builder
