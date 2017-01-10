@@ -61,6 +61,12 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   }
 
   @NotNull
+  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message,
+                                             @Nullable Object extraData) {
+    return getQuickFixes(startElement, endElement, message);
+  }
+
+  @NotNull
   public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
     return getQuickFixes(message);
   }
@@ -81,8 +87,9 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   }
 
   @NotNull
-  private LocalQuickFix[] getLocalQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-    final AndroidLintQuickFix[] fixes = getQuickFixes(startElement, endElement, message);
+  private LocalQuickFix[] getLocalQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message,
+                                             @Nullable Object extraData) {
+    final AndroidLintQuickFix[] fixes = getQuickFixes(startElement, endElement, message, extraData);
     final LocalQuickFix[] result = new LocalQuickFix[fixes.length];
 
     for (int i = 0; i < fixes.length; i++) {
@@ -163,6 +170,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       // Note that we also need to use HTML with unicode characters here, since the HTML display
       // in the inspections view does not appear to support numeric code character entities.
       String formattedMessage = HTML_START + RAW.convertTo(originalMessage, HTML_WITH_UNICODE) + HTML_END;
+      Object quickfixData = problemData.getQuickfixData();
 
       // The inspections UI does not correctly handle
 
@@ -171,11 +179,11 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       if (range.getStartOffset() == range.getEndOffset()) {
 
         if (psiFile instanceof PsiBinaryFile || psiFile instanceof PsiDirectory) {
-          final LocalQuickFix[] fixes = getLocalQuickFixes(psiFile, psiFile, originalMessage);
+          final LocalQuickFix[] fixes = getLocalQuickFixes(psiFile, psiFile, originalMessage, quickfixData);
           result.add(new NonTextFileProblemDescriptor((PsiFileSystemItem)psiFile, formattedMessage, fixes));
         } else if (!isSuppressedFor(psiFile)) {
           result.add(manager.createProblemDescriptor(psiFile, formattedMessage, false,
-                                                     getLocalQuickFixes(psiFile, psiFile, originalMessage),
+                                                     getLocalQuickFixes(psiFile, psiFile, originalMessage, quickfixData),
                                                      ProblemHighlightType.GENERIC_ERROR_OR_WARNING));
         }
       }
@@ -186,7 +194,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
         if (startElement != null && endElement != null && !isSuppressedFor(startElement)) {
           result.add(manager.createProblemDescriptor(startElement, endElement, formattedMessage,
                                                      ProblemHighlightType.GENERIC_ERROR_OR_WARNING, false,
-                                                     getLocalQuickFixes(startElement, endElement, originalMessage)));
+                                                     getLocalQuickFixes(startElement, endElement, originalMessage, quickfixData)));
         }
       }
     }

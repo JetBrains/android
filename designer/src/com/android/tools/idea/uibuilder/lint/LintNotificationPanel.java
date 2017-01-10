@@ -235,7 +235,8 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
 
       // Look for quick fixes
       AndroidLintInspectionBase inspection = selected.inspection;
-      AndroidLintQuickFix[] quickFixes = inspection.getQuickFixes(selected.startElement, selected.endElement, selected.message);
+      AndroidLintQuickFix[] quickFixes = inspection.getQuickFixes(selected.startElement, selected.endElement, selected.message,
+                                                                  selected.quickfixData);
       IntentionAction[] intentions = inspection.getIntentions(selected.startElement, selected.endElement);
       builder.addHeading("Suggested Fixes:", headerFontColor).newline();
       builder.beginList();
