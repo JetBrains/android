@@ -26,6 +26,7 @@ import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -35,6 +36,7 @@ import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
+  private final ConnectionsView myConnectionsView;
   private final ConnectionDetailsView myConnectionDetails;
   private final JBScrollPane myConnectionsScroller;
 
@@ -45,8 +47,8 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
       .onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, this::updateConnectionDetailsView);
 
     myConnectionDetails = new ConnectionDetailsView(this);
-    ConnectionsView connectionsView = new ConnectionsView(this, stage::setSelectedConnection);
-    myConnectionsScroller = new JBScrollPane(connectionsView.getComponent());
+    myConnectionsView = new ConnectionsView(this, stage::setSelectedConnection);
+    myConnectionsScroller = new JBScrollPane(myConnectionsView.getComponent());
     myConnectionsScroller.setVisible(false);
 
     Splitter leftSplitter = new Splitter(true);
@@ -60,6 +62,11 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     getComponent().add(splitter, BorderLayout.CENTER);
 
     updateConnectionDetailsView();
+  }
+
+  @TestOnly
+  public ConnectionsView getConnectionsView() {
+    return myConnectionsView;
   }
 
   @NotNull
