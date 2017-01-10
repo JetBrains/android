@@ -32,7 +32,7 @@ import com.android.tools.idea.uibuilder.scene.draw.ConstraintLayoutComponentNotc
 import com.android.tools.idea.uibuilder.scene.draw.ConstraintLayoutNotchProvider;
 import com.android.tools.idea.uibuilder.scene.draw.DrawAction;
 import com.android.tools.idea.uibuilder.scene.target.*;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.WidgetDraw;
@@ -940,7 +940,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       if (model == null) {
         return;
       }
-      NlDesignSurface surface = ((ViewEditorImpl)editor).getScreenView().getSurface();
+      DesignSurface surface = ((ViewEditorImpl)editor).getScreenView().getSurface();
       NlUsageTrackerManager.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEFAULT_MARGINS);
       RelativePoint relativePoint = new RelativePoint(surface, new Point(0, 0));
       JBPopupFactory.getInstance().createComponentPopupBuilder(myMarginPopup, myMarginPopup.getTextField())
