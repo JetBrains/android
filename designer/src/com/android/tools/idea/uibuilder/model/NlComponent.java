@@ -46,10 +46,9 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static com.android.SdkConstants.*;
@@ -80,6 +79,9 @@ public class NlComponent implements NlAttributesHolder {
   @NotNull private XmlTag myTag;
   @NotNull private String myTagName; // for non-read lock access elsewhere
   @Nullable private TagSnapshot mySnapshot;
+  HashMap<Object, Object> myClientProperties = new HashMap<>();;
+  private ArrayList<ChangeListener> myListeners = new ArrayList<ChangeListener>();
+  private ChangeEvent myChangeEvent = new ChangeEvent(this);
 
   /**
    * Current open attributes transaction or null if none is open
@@ -838,5 +840,51 @@ public class NlComponent implements NlAttributesHolder {
       return str.substring(index + 5);
     }
     return null;
+  }
+
+  /**
+   * A cache for use by system to reduce recalculating information
+   * The cache may be destroyed at any time as the system rebuilds the nlcomponents
+   * @param key
+   * @param value
+   */
+  public final void putClientProperty(Object key, Object value) {
+    myClientProperties.put(key, value);
+  }
+
+  /**
+   * A cache for use by system to reduce recalculating information
+   * The cache may be destroyed at any time as the system rebuilds the nlcomponents
+   * @param key
+   * @return
+   */
+  public final Object getClientProperty(Object key) {
+    return myClientProperties.get(key);
+  }
+
+  /**
+   * You can add listeners to track interactive updates
+   * Listeners should look at the liveUpdates for changes
+   * @param listener
+   */
+  public void addLiveChangeListener(ChangeListener listener){
+    if (!myListeners.contains(listener)) {
+      myListeners.add(listener);
+    }
+  }
+
+  /**
+   * remove a listener you have already added
+   * @param listener
+   */
+  public void removeLiveChangeListener(ChangeListener listener){
+    myListeners.remove(listener);
+  }
+
+  /**
+   * call to notify listeners you have made a "live" change
+   */
+  public void fireLiveChangeEvent() {
+    myListeners.forEach(listener -> listener.stateChanged(myChangeEvent));
   }
 }
