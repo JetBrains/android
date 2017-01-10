@@ -19,14 +19,12 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
 import icons.AndroidIcons;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.ArgumentCaptor;
 
 import javax.swing.*;
 import java.util.Arrays;
@@ -36,11 +34,9 @@ import java.util.stream.Collectors;
 import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 public class DependencyManagerTest extends AndroidTestCase {
-  private GradleDependencyManager myGradleDependencyManager;
   private GradleDependencyManager myOldGradleDependencyManager;
   private JComponent myPanel;
   private Disposable myDisposable;
@@ -50,13 +46,13 @@ public class DependencyManagerTest extends AndroidTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myGradleDependencyManager = mock(GradleDependencyManager.class);
-    myOldGradleDependencyManager = registerProjectComponent(GradleDependencyManager.class, myGradleDependencyManager);
+    GradleDependencyManager gradleDependencyManager = mock(GradleDependencyManager.class);
+    myOldGradleDependencyManager = registerProjectComponent(GradleDependencyManager.class, gradleDependencyManager);
     myPanel = mock(JComponent.class);
     myDisposable = mock(Disposable.class);
     myPalette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
     //noinspection ConstantConditions
-    when(myGradleDependencyManager.findMissingDependencies(any(Module.class), any()))
+    when(gradleDependencyManager.findMissingDependencies(any(Module.class), any()))
       .thenReturn(createDependencies(DESIGN_LIB_ARTIFACT, RECYCLER_VIEW_LIB_ARTIFACT, CARD_VIEW_LIB_ARTIFACT))
       .thenReturn(createDependencies(RECYCLER_VIEW_LIB_ARTIFACT))
       .thenThrow(new RuntimeException("Unexpected call to findDependencies"));
@@ -114,16 +110,6 @@ public class DependencyManagerTest extends AndroidTestCase {
     Disposer.dispose(myDisposable);
     GradleSyncState.getInstance(getProject()).syncEnded();
     // Expect: No exceptions from myGradleDependencyManager mock
-  }
-
-  public void testEnsureLibraryIsIncluded() {
-    myManager.ensureLibraryIsIncluded(PaletteTestCase.findItem(myPalette, FLOATING_ACTION_BUTTON));
-    @SuppressWarnings("unchecked")
-    ArgumentCaptor<Iterable<GradleCoordinate>> captor = ArgumentCaptor.forClass((Class)Iterable.class);
-    verify(myGradleDependencyManager).ensureLibraryIsIncluded(eq(myModule), captor.capture(), eq(null));
-    List<GradleCoordinate> imported = Lists.newArrayList(captor.getValue());
-    assertThat(imported.size()).isEqualTo(1);
-    assertThat(imported.get(0).getId()).isEqualTo(DESIGN_LIB_ARTIFACT);
   }
 
   @NotNull
