@@ -452,6 +452,10 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     doTestCompletionVariants("av12.xml", "@android:", "@anim/anim1", "@anim/anim2");
   }
 
+  public void testLocalResourceCompletion6() throws Throwable {
+    doTestCompletionVariants("av14.xml", "@android:", "@color/color0", "@color/color1", "@color/color2", "@drawable/cdrawable", "@drawable/picture1", "@drawable/picture2", "@drawable/picture3");
+  }
+
   public void testForceLocalResourceCompletion() throws Throwable {
     // No system colors are suggested as completion.
     doTestCompletionVariants("av13.xml", "@color/color0", "@color/color1", "@color/color2");
