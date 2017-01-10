@@ -34,8 +34,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor;
-import com.intellij.xml.XmlAttributeDescriptor;
+import com.intellij.util.xml.XmlName;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
@@ -56,6 +55,8 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
 
   @NotNull
   protected final List<NlComponent> myComponents;
+  @NotNull
+  protected final NlPropertiesManager myPropertiesManager;
   @Nullable
   protected final AttributeDefinition myDefinition;
   @NotNull
@@ -67,54 +68,39 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @NotNull
   private StarState myStarState;
 
-  public static NlPropertyItem create(@NotNull List<NlComponent> components,
-                                      @NotNull XmlAttributeDescriptor descriptor,
-                                      @Nullable String namespace,
-                                      @Nullable AttributeDefinition attributeDefinition) {
+  public static NlPropertyItem create(@NotNull XmlName name,
+                                      @Nullable AttributeDefinition attributeDefinition,
+                                      @NotNull List<NlComponent> components,
+                                      @NotNull NlPropertiesManager propertiesManager) {
     if (attributeDefinition != null && attributeDefinition.getFormats().contains(AttributeFormat.Flag)) {
-      return new NlFlagPropertyItem(components, descriptor, namespace, attributeDefinition);
+      return new NlFlagPropertyItem(name, attributeDefinition, components, propertiesManager);
     }
-    else if (descriptor.getName().equals(SdkConstants.ATTR_ID)) {
-      return new NlIdPropertyItem(components, descriptor, attributeDefinition);
+    else if (name.getLocalName().equals(SdkConstants.ATTR_ID)) {
+      return new NlIdPropertyItem(name, attributeDefinition, components, propertiesManager);
     }
     else {
-      return new NlPropertyItem(components, descriptor, namespace, attributeDefinition);
+      return new NlPropertyItem(name, attributeDefinition, components, propertiesManager);
     }
   }
 
-  protected NlPropertyItem(@NotNull List<NlComponent> components,
-                           @NotNull XmlAttributeDescriptor descriptor,
-                           @Nullable String namespace,
-                           @Nullable AttributeDefinition attributeDefinition) {
+  protected NlPropertyItem(@NotNull XmlName name,
+                           @Nullable AttributeDefinition attributeDefinition,
+                           @NotNull List<NlComponent> components,
+                           @NotNull NlPropertiesManager propertiesManager) {
     assert !components.isEmpty();
-    if (namespace == null) {
-      namespace = descriptor instanceof NamespaceAwareXmlAttributeDescriptor ?
-                  ((NamespaceAwareXmlAttributeDescriptor)descriptor).getNamespace(components.get(0).getTag()) : null;
-    }
     if (attributeDefinition == null &&
-        !ATTRS_WITHOUT_DEFINITIONS.contains(descriptor.getName()) &&
-        !SdkConstants.TOOLS_URI.equals(namespace)) {
-      throw new IllegalArgumentException("Missing attribute definition for " + descriptor.getName());
+        !ATTRS_WITHOUT_DEFINITIONS.contains(name.getLocalName()) &&
+        !SdkConstants.TOOLS_URI.equals(name.getNamespaceKey())) {
+      throw new IllegalArgumentException("Missing attribute definition for " + name.getLocalName());
     }
 
     // NOTE: we do not save any PSI data structures as fields as they could go out of date as the user edits the file.
     // Instead, we have a reference to the component, and query whatever information we need from the component, and expect
     // that the component can provide that information by having a shadow copy that is consistent with the rendering
     myComponents = components;
-    myName = descriptor.getName();
-    myNamespace = namespace;
-    myDefinition = attributeDefinition;
-    myStarState = StarState.STAR_ABLE;
-  }
-
-  public NlPropertyItem(@NotNull List<NlComponent> components,
-                        @NotNull String namespace,
-                        @Nullable AttributeDefinition attributeDefinition) {
-    assert !components.isEmpty();
-    assert attributeDefinition != null;
-    myComponents = components;
-    myName = attributeDefinition.getName();
-    myNamespace = namespace;
+    myPropertiesManager = propertiesManager;
+    myName = name.getLocalName();
+    myNamespace = name.getNamespaceKey();
     myDefinition = attributeDefinition;
     myStarState = StarState.STAR_ABLE;
   }
@@ -122,6 +108,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   protected NlPropertyItem(@NotNull NlPropertyItem property, @NotNull String namespace) {
     assert !property.myComponents.isEmpty();
     myComponents = property.myComponents;
+    myPropertiesManager = property.myPropertiesManager;
     myName = property.myName;
     myNamespace = namespace;
     myDefinition = property.myDefinition;

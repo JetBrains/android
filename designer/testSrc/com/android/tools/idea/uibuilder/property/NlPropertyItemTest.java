@@ -22,8 +22,8 @@ import com.android.tools.idea.uibuilder.property.ptable.PTableGroupItem;
 import com.android.tools.idea.uibuilder.property.ptable.StarState;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.xml.XmlName;
 import com.intellij.xml.XmlAttributeDescriptor;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
@@ -85,22 +85,12 @@ public class NlPropertyItemTest extends PropertyTestCase {
     assertThat(group.getChildren()).doesNotContain(design);
   }
 
-  public void testCreateWithoutSpecifyingNamespace() {
-    XmlAttributeDescriptor descriptor = getDescriptor(myTextView, ATTR_TEXT);
-    assertThat(descriptor).isNotNull();
-    NlPropertyItem item = NlPropertyItem.create(ImmutableList.of(myTextView), descriptor, null, getDefinition(myTextView, descriptor));
-    assertThat(item).isNotInstanceOf(NlFlagPropertyItem.class);
-    assertThat(item).isNotInstanceOf(NlIdPropertyItem.class);
-    assertThat(item.getName()).isEqualTo(ATTR_TEXT);
-    assertThat(item.getNamespace()).isEqualTo(ANDROID_URI);
-  }
-
   public void testCreateWithoutAttributeDefinition() {
     // It is an error not to specify an AttributeDefinition for normal attributes
     XmlAttributeDescriptor descriptor = getDescriptor(myTextView, ATTR_TEXT);
     assertThat(descriptor).isNotNull();
     try {
-      NlPropertyItem.create(ImmutableList.of(myTextView), descriptor, null, null);
+      NlPropertyItem.create(new XmlName(ATTR_TEXT, ANDROID_URI), null, ImmutableList.of(myTextView), myPropertiesManager);
       fail("An AttributeDefinition should exist for ATTR_TEXT");
     }
     catch (IllegalArgumentException ex) {
@@ -116,38 +106,41 @@ public class NlPropertyItemTest extends PropertyTestCase {
   }
 
   public void testCreateForToolAttributes() {
-    AttributeDefinition context = mock(AttributeDefinition.class);
-    when(context.getName()).thenReturn(ATTR_CONTEXT);
-    NlPropertyItem item = new NlPropertyItem(ImmutableList.of(myMerge), TOOLS_URI, context);
+    AttributeDefinition definition = mock(AttributeDefinition.class);
+    when(definition.getName()).thenReturn(ATTR_CONTEXT);
+    NlPropertyItem item =
+      NlPropertyItem.create(new XmlName(ATTR_CONTEXT, TOOLS_URI), definition, ImmutableList.of(myMerge), myPropertiesManager);
     assertThat(item).isNotInstanceOf(NlFlagPropertyItem.class);
     assertThat(item).isNotInstanceOf(NlIdPropertyItem.class);
     assertThat(item.getName()).isEqualTo(ATTR_CONTEXT);
     assertThat(item.getNamespace()).isEqualTo(TOOLS_URI);
-    assertThat(item.getDefinition()).isEqualTo(context);
+    assertThat(item.getDefinition()).isEqualTo(definition);
   }
 
   public void testSameDefinition() {
     NlPropertyItem text = createFrom(myTextView, ATTR_TEXT);
     NlPropertyItem gravity = createFrom(myTextView, ATTR_GRAVITY);
+    AttributeDefinition textDefinition = text.getDefinition();
+    assertThat(textDefinition).isNotNull();
+    AttributeDefinition gravityDefinition = gravity.getDefinition();
+    assertThat(gravityDefinition).isNotNull();
     XmlAttributeDescriptor gravityDescriptor = getDescriptor(myTextView, ATTR_GRAVITY);
     assertThat(gravityDescriptor).isNotNull();
 
     assertThat(text.sameDefinition(text)).isTrue();
-    assertThat(text.sameDefinition(new NlPropertyItem(ImmutableList.of(myTextView), ANDROID_URI, text.getDefinition()))).isTrue();
-    assertThat(text.sameDefinition(new NlPropertyItem(ImmutableList.of(myTextView), TOOLS_URI, text.getDefinition()))).isFalse();
-    assertThat(text.sameDefinition(new NlPropertyItem(ImmutableList.of(myTextView), ANDROID_URI, gravity.getDefinition()))).isFalse();
-    assertThat(text.sameDefinition(new NlPropertyItem(ImmutableList.of(myTextView), gravityDescriptor, TOOLS_URI, text.getDefinition())))
-      .isFalse();
+    assertThat(text.sameDefinition(createFrom(myTextView, ATTR_TEXT))).isTrue();
+    assertThat(text.sameDefinition(createFrom(myTextView, ATTR_TEXT).getDesignTimeProperty())).isFalse();
+    assertThat(text.sameDefinition(gravity)).isFalse();
+    assertThat(text.sameDefinition(gravity.getDesignTimeProperty())).isFalse();
   }
 
   public void testGetValue() {
-    NlPropertyItem text = createFrom(myTextView, ATTR_TEXT);
-    assertThat(new NlPropertyItem(ImmutableList.of(myTextView), ANDROID_URI, text.getDefinition()).getValue()).isEqualTo("SomeText");
-    assertThat(new NlPropertyItem(ImmutableList.of(myCheckBox1), ANDROID_URI, text.getDefinition()).getValue()).isEqualTo("Enable Wifi");
-    assertThat(new NlPropertyItem(ImmutableList.of(myCheckBox2), ANDROID_URI, text.getDefinition()).getValue()).isEqualTo("SomeText");
-    assertThat(new NlPropertyItem(ImmutableList.of(myCheckBox3), ANDROID_URI, text.getDefinition()).getValue()).isNull();
-    assertThat(new NlPropertyItem(ImmutableList.of(myCheckBox1, myCheckBox2), ANDROID_URI, text.getDefinition()).getValue()).isNull();
-    assertThat(new NlPropertyItem(ImmutableList.of(myTextView, myCheckBox2), ANDROID_URI, text.getDefinition()).getValue()).isEqualTo("SomeText");
+    assertThat(createFrom(myTextView, ATTR_TEXT).getValue()).isEqualTo("SomeText");
+    assertThat(createFrom(myCheckBox1, ATTR_TEXT).getValue()).isEqualTo("Enable Wifi");
+    assertThat(createFrom(myCheckBox2, ATTR_TEXT).getValue()).isEqualTo("SomeText");
+    assertThat(createFrom(myCheckBox3, ATTR_TEXT).getValue()).isNull();
+    assertThat(createFrom(ATTR_TEXT, myCheckBox1, myCheckBox2).getValue()).isNull();
+    assertThat(createFrom(ATTR_TEXT, myTextView, myCheckBox2).getValue()).isEqualTo("SomeText");
   }
 
   public void testIsDefaultValue() {
@@ -209,7 +202,8 @@ public class NlPropertyItemTest extends PropertyTestCase {
     assertThat(text.getTagName()).isEqualTo(TEXT_VIEW);
 
     // Multiple component does not give access to tag and tagName
-    NlPropertyItem text2 = new NlPropertyItem(ImmutableList.of(myTextView, myCheckBox1), ANDROID_URI, text.getDefinition());
+    NlPropertyItem text2 = NlPropertyItem.create(
+      new XmlName(ATTR_CONTEXT, ANDROID_URI), text.getDefinition(), ImmutableList.of(myTextView, myCheckBox1), myPropertiesManager);
     assertThat(text2.getTag()).isNull();
     assertThat(text2.getTagName()).isNull();
   }
@@ -241,7 +235,8 @@ public class NlPropertyItemTest extends PropertyTestCase {
     NlComponent fakeComponent = mock(NlComponent.class);
     when(fakeComponent.getModel()).thenReturn(fakeModel);
     when(fakeComponent.getTag()).thenThrow(new RuntimeException("setValue should bail out"));
-    NlPropertyItem fake = new NlPropertyItem(ImmutableList.of(fakeComponent), ANDROID_URI, text.getDefinition());
+    NlPropertyItem fake = NlPropertyItem.create(
+      new XmlName(ATTR_TEXT, ANDROID_URI), text.getDefinition(), ImmutableList.of(fakeComponent), myPropertiesManager);
     fake.setValue("stuff");
   }
 
