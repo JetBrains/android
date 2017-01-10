@@ -19,7 +19,7 @@ import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,7 +37,7 @@ public class ExtractIconCreator extends ImageViewCreator {
    *
    * @param mockup     the mockup to extract the information from
    * @param model      the model to insert the new component into
-   * @param screenView The currentScreen view displayed in the {@link DesignSurface}.
+   * @param screenView The currentScreen view displayed in the {@link NlDesignSurface}.
    */
   protected ExtractIconCreator(@NotNull Mockup mockup,
                                @NotNull NlModel model,

@@ -24,6 +24,7 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.PanZoomListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.Disposable;
@@ -49,7 +50,7 @@ public class NlPreviewImagePanel extends JComponent implements Disposable {
   private final ConfigurationListener myConfigurationListener;
   private final ResourceChangeListener myResourceChangeListener;
   private final PanZoomListener myZoomListener;
-  private DesignSurface myDesignSurface;
+  private NlDesignSurface myDesignSurface;
   private Palette.Item myItem;
   private BufferedImage myImage;
   private boolean myPreviewGenerationDone;
@@ -113,7 +114,7 @@ public class NlPreviewImagePanel extends JComponent implements Disposable {
     return myItem;
   }
 
-  public void setDesignSurface(@Nullable DesignSurface designSurface) {
+  public void setDesignSurface(@Nullable NlDesignSurface designSurface) {
     Module oldModule = null;
     Configuration oldConfiguration = myDesignSurface != null ? myDesignSurface.getConfiguration() : null;
     if (oldConfiguration != null) {

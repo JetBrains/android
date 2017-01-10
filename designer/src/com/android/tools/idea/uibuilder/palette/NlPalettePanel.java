@@ -23,7 +23,7 @@ import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.CopyProvider;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -47,7 +47,7 @@ import java.util.List;
 
 import static com.android.tools.adtui.splitter.SplitterUtil.setMinimumHeight;
 
-public class NlPalettePanel extends JPanel implements Disposable, DataProvider, ToolContent<DesignSurface> {
+public class NlPalettePanel extends JPanel implements Disposable, DataProvider, ToolContent<NlDesignSurface> {
   private final Project myProject;
   private final NlPreviewPanel myPreviewPane;
   private final CopyProvider myCopyProvider;
@@ -57,12 +57,12 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider, 
   private NlLayoutType myLayoutType;
   private Runnable myCloseAutoHideCallback;
 
-  public NlPalettePanel(@NotNull Project project, @Nullable DesignSurface designSurface) {
+  public NlPalettePanel(@NotNull Project project, @Nullable NlDesignSurface designSurface) {
     this(project, designSurface, CopyPasteManager.getInstance());
   }
 
   @VisibleForTesting
-  NlPalettePanel(@NotNull Project project, @Nullable DesignSurface designSurface, @NotNull CopyPasteManager copyPasteManager) {
+  NlPalettePanel(@NotNull Project project, @Nullable NlDesignSurface designSurface, @NotNull CopyPasteManager copyPasteManager) {
     myProject = project;
     myCopyPasteManager = copyPasteManager;
     IconPreviewFactory iconPreviewFactory = new IconPreviewFactory();
@@ -141,7 +141,7 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider, 
   }
 
   @Override
-  public void setToolContext(@Nullable DesignSurface designSurface) {
+  public void setToolContext(@Nullable NlDesignSurface designSurface) {
     myPreviewPane.setDesignSurface(designSurface);
     Module module = getModule(designSurface);
     if (designSurface != null && module != null && myLayoutType != designSurface.getLayoutType()) {
@@ -161,7 +161,7 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider, 
   }
 
   @Nullable
-  private static Module getModule(@Nullable DesignSurface designSurface) {
+  private static Module getModule(@Nullable NlDesignSurface designSurface) {
     Configuration configuration =
       designSurface != null && designSurface.getLayoutType().isSupportedByDesigner() ? designSurface.getConfiguration() : null;
     return configuration != null ? configuration.getModule() : null;

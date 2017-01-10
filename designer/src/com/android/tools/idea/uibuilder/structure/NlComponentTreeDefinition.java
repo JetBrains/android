@@ -19,11 +19,11 @@ import com.android.tools.adtui.workbench.AutoHide;
 import com.android.tools.adtui.workbench.Side;
 import com.android.tools.adtui.workbench.Split;
 import com.android.tools.adtui.workbench.ToolWindowDefinition;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.icons.AllIcons;
 import org.jetbrains.annotations.NotNull;
 
-public class NlComponentTreeDefinition extends ToolWindowDefinition<DesignSurface> {
+public class NlComponentTreeDefinition extends ToolWindowDefinition<NlDesignSurface> {
 
   public NlComponentTreeDefinition(@NotNull Side side,
                                    @NotNull Split split,

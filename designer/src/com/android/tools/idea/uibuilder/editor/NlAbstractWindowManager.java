@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.designer.LightToolWindow;
@@ -48,7 +48,7 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
   private ToolWindowType myPreviousWindowType;
   private ToolWindowAnchor myPreviousWindowAnchor;
   /** The design surface the tool window is attached to, if any */
-  private DesignSurface myDesignSurface;
+  private NlDesignSurface myDesignSurface;
 
   public NlAbstractWindowManager(@NotNull Project project, @NotNull FileEditorManager fileEditorManager) {
     super(project, fileEditorManager);
@@ -106,7 +106,7 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
   }
 
   @Nullable
-  protected static DesignSurface getDesignSurface(@NotNull DesignerEditorPanelFacade designer) {
+  protected static NlDesignSurface getDesignSurface(@NotNull DesignerEditorPanelFacade designer) {
     if (designer instanceof NlEditorPanel) {
       NlEditorPanel editor = (NlEditorPanel)designer;
       return editor.getSurface();
@@ -121,7 +121,7 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
 
   @NotNull
   protected static NlLayoutType getLayoutType(@NotNull DesignerEditorPanelFacade designer) {
-    DesignSurface designSurface = getDesignSurface(designer);
+    NlDesignSurface designSurface = getDesignSurface(designer);
     return designSurface != null ? designSurface.getLayoutType() : NlLayoutType.UNKNOWN;
   }
 

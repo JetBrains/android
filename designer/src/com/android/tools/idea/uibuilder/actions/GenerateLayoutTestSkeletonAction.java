@@ -22,7 +22,7 @@ import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import com.google.common.base.Splitter;
@@ -86,7 +86,7 @@ public class GenerateLayoutTestSkeletonAction extends AnAction {
     if (project == null) {
       return null;
     }
-    DesignSurface surface = getSurface(project);
+    NlDesignSurface surface = getSurface(project);
     if (surface == null) {
       return null;
     }
@@ -98,7 +98,7 @@ public class GenerateLayoutTestSkeletonAction extends AnAction {
   }
 
   @Nullable
-  private static DesignSurface getSurface(@NotNull Project project) {
+  private static NlDesignSurface getSurface(@NotNull Project project) {
     FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
     FileEditor[] editors = fileEditorManager.getSelectedEditors();
     for (FileEditor fileEditor : editors) {

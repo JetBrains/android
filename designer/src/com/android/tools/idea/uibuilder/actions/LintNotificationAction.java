@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.actions;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.lint.LintNotificationPanel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -34,10 +34,10 @@ import javax.swing.*;
  * and when clicked, shows them
  */
 public class LintNotificationAction extends AnAction {
-  private final DesignSurface mySurface;
+  private final NlDesignSurface mySurface;
   private int myCount = -1;
 
-  public LintNotificationAction(@NotNull DesignSurface surface) {
+  public LintNotificationAction(@NotNull NlDesignSurface surface) {
     mySurface = surface;
   }
 

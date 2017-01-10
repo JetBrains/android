@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.actions;
 
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.handlers.constraint.WidgetNavigatorPanel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.ToggleAction;
@@ -32,10 +32,10 @@ import java.util.Locale;
  */
 public class TogglePanningDialogAction extends ToggleAction {
 
-  private final DesignSurface mySurface;
+  private final NlDesignSurface mySurface;
   WeakReference<JBPopup> myPopupReference;
 
-  public TogglePanningDialogAction(DesignSurface surface) {
+  public TogglePanningDialogAction(NlDesignSurface surface) {
     mySurface = surface;
     String title = String.format(Locale.US, "%s %s", WidgetNavigatorPanel.TITLE, WidgetNavigatorPanel.HINT);
     getTemplatePresentation().setIcon(AndroidIcons.NeleIcons.Pan);

@@ -62,7 +62,7 @@ public class DragDropInteraction extends Interaction {
   /**
    * The surface associated with this interaction.
    */
-  private final DesignSurface myDesignSurface;
+  private final NlDesignSurface myDesignSurface;
 
   /**
    * The components being dragged
@@ -100,7 +100,7 @@ public class DragDropInteraction extends Interaction {
    */
   private DnDTransferItem myTransferItem;
 
-  public DragDropInteraction(@NotNull DesignSurface designSurface, @NotNull List<NlComponent> dragged) {
+  public DragDropInteraction(@NotNull NlDesignSurface designSurface, @NotNull List<NlComponent> dragged) {
     myDesignSurface = designSurface;
     myDraggedComponents = dragged;
   }

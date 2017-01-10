@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
-import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.intellij.lang.annotations.MagicConstant;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -84,7 +84,7 @@ public class DragFixture {
       myModifiers |= InputEvent.ALT_MASK;
     }
 
-    DesignSurface surface = myScreen.getSurface();
+    NlDesignSurface surface = myScreen.getSurface();
     KeyEvent event = new KeyEventBuilder(keyCode, keyChar).withSource(surface).build();
     myInteraction.keyPressed(event);
     return this;
@@ -103,7 +103,7 @@ public class DragFixture {
     if (keyCode == KeyEvent.VK_ALT) {
       myModifiers |= InputEvent.ALT_MASK;
     }
-    DesignSurface surface = myScreen.getSurface();
+    NlDesignSurface surface = myScreen.getSurface();
     KeyEvent event = new KeyEventBuilder(keyCode, keyChar).withSource(surface).build();
     myInteraction.keyReleased(event);
     return this;
