@@ -48,7 +48,7 @@ import com.android.tools.idea.uibuilder.editor.NlEditorProvider;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.surface.ZoomType;
 import com.android.util.PropertiesMap;
@@ -121,7 +121,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private static final int RENDER_DELAY_MS = 10;
   private final Set<String> myPendingIds = Sets.newHashSet();
 
-  @NotNull private final NlDesignSurface mySurface;
+  @NotNull private final DesignSurface mySurface;
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final ProjectResourceRepository myProjectResourceRepository;
   private final XmlFile myFile;
@@ -129,7 +129,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private final ConfigurationListener myConfigurationListener = new ConfigurationListener() {
     @Override
     public boolean changed(int flags) {
-      if ((flags & (CFG_DEVICE | CFG_DEVICE_STATE)) != 0 && !mySurface.isCanvasResizing()) {
+      if ((flags & (CFG_DEVICE | CFG_DEVICE_STATE)) != 0 && !mySurface.isLayoutDisabled()) {
         mySurface.zoom(ZoomType.FIT_INTO);
       }
 
@@ -162,7 +162,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private ChangeType myModificationTrigger;
 
   @NotNull
-  public static NlModel create(@NotNull NlDesignSurface surface,
+  public static NlModel create(@NotNull DesignSurface surface,
                                @Nullable Disposable parent,
                                @NotNull AndroidFacet facet,
                                @NotNull XmlFile file) {
@@ -170,7 +170,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @VisibleForTesting
-  protected NlModel(@NotNull NlDesignSurface surface, @Nullable Disposable parent, @NotNull AndroidFacet facet, @NotNull XmlFile file) {
+  protected NlModel(@NotNull DesignSurface surface, @Nullable Disposable parent, @NotNull AndroidFacet facet, @NotNull XmlFile file) {
     mySurface = surface;
     myFacet = facet;
     myFile = file;

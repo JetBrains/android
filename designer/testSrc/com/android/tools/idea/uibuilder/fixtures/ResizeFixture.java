@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.fixtures;
 
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ResizeInteraction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.intellij.lang.annotations.MagicConstant;
@@ -121,7 +121,7 @@ public class ResizeFixture {
     if (keyCode == KeyEvent.VK_ALT) {
       myModifiers |= InputEvent.ALT_MASK;
     }
-    NlDesignSurface surface = myScreen.getSurface();
+    DesignSurface surface = myScreen.getSurface();
     KeyEvent event = new KeyEventBuilder(keyCode, keyChar).withSource(surface).build();
     myInteraction.keyPressed(event);
     return this;
@@ -140,7 +140,7 @@ public class ResizeFixture {
     if (keyCode == KeyEvent.VK_ALT) {
       myModifiers |= InputEvent.ALT_MASK;
     }
-    NlDesignSurface surface = myScreen.getSurface();
+    DesignSurface surface = myScreen.getSurface();
     KeyEvent event = new KeyEventBuilder(keyCode, keyChar).withSource(surface).build();
     myInteraction.keyReleased(event);
     return this;
