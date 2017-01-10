@@ -16,32 +16,16 @@
 package com.android.tools.idea.npw.template;
 
 
-import com.android.SdkConstants;
-import com.android.ide.common.repository.GradleVersion;
-import com.android.repository.io.FileOpUtils;
-import com.android.sdklib.BuildToolInfo;
-import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
-import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.npw.ActivityGalleryStep;
-import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
-import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.templates.RepositoryUrlManager;
-import com.android.tools.idea.templates.SupportLibrary;
 import com.android.tools.idea.ui.ASGallery;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
-import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.android.tools.swing.util.FormScalingUtil;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
@@ -58,12 +42,10 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
 import java.util.List;
 
-import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 /**
  * This step allows the user to select which type of Activity they want to create.
@@ -80,8 +62,6 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
  * that renders "Gallery items"?
  */
 public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> {
-  private static final String AIA_SDK_ENV_VAR = "WH_SDK";
-
   private final RenderTemplateModel myRenderModel;
   private @NotNull TemplateHandle[] myTemplateList;
   private @NotNull List<AndroidSourceSet> mySourceSets;
@@ -199,83 +179,8 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
 
     getModel().getRenderTemplateValues().setValue(myRenderModel.getTemplateValues());
 
-    Map<String, Object> moduleTemplateValue = getModel().getTemplateValues();
-    initTemplateValues(moduleTemplateValue, getModel().getProject().getValueOrNull());
-
-    moduleTemplateValue.put(ATTR_APP_TITLE, getModel().applicationName().get());
-  }
-
-  private static void initTemplateValues(@NotNull Map<String, Object> templateValues, @Nullable Project project) {
-    templateValues.put(ATTR_GRADLE_PLUGIN_VERSION, determineGradlePluginVersion(project));
-    templateValues.put(ATTR_GRADLE_VERSION, SdkConstants.GRADLE_LATEST_VERSION);
-    templateValues.put(ATTR_IS_GRADLE, true);
-
-    // TODO: Check if this is used at all by the templates
-    templateValues.put("target.files", new HashSet<>());
-    templateValues.put("files.to.open", new ArrayList<>());
-
-    // TODO: Implement Instant App code
-    templateValues.put("aiaSdkEnabled", isNotEmpty(System.getenv(AIA_SDK_ENV_VAR)));
-    templateValues.put("alsoCreateIapk", false);
-    templateValues.put("isInstantApp", false);
-
-    // TODO: Check this one with Joe. It seems to be used by the old code on Import module, but can't find it on new code
-    templateValues.put(ATTR_CREATE_ACTIVITY, false);
-    templateValues.put(ATTR_PER_MODULE_REPOS, false);
-
-    // TODO: This seems project stuff
-    if (project != null) {
-      templateValues.put(ATTR_TOP_OUT, project.getBasePath());
-    }
-
-    String mavenUrl = System.getProperty(TemplateWizard.MAVEN_URL_PROPERTY);
-    if (mavenUrl != null) {
-      templateValues.put(ATTR_MAVEN_URL, mavenUrl);
-    }
-
-    final AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-    BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(ConfigureAndroidModuleStep.class), false);
-    if (buildTool != null) {
-      // If buildTool is null, the template will use buildApi instead, which might be good enough.
-      templateValues.put(ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
-    }
-
-    File sdkLocation = sdkHandler.getLocation();
-    if (sdkLocation != null) {
-      // Gradle expects a platform-neutral path
-      templateValues.put(ATTR_SDK_DIR, FileUtil.toSystemIndependentName(sdkLocation.getPath()));
-
-      String espressoVersion = RepositoryUrlManager.get().getLibraryRevision(SupportLibrary.ESPRESSO_CORE.getGroupId(),
-                                                                             SupportLibrary.ESPRESSO_CORE.getArtifactId(),
-                                                                             null, false, sdkLocation, FileOpUtils.create());
-
-      if (espressoVersion != null) {
-        // TODO: Is this something that should be on the template (TemplateMetadata.ATTR_)?
-        // Check with Jens, or at least send an email to verify template variables. We may also need to port some old dynamic step.
-        templateValues.put("espressoVersion", espressoVersion);
-      }
-    }
-  }
-
-  /**
-   * Find the most appropriated Gradle Plugin version for the specified project.
-   * @param project If {@code null} (ie we are creating a new project) returns the recommended gradle version.
-   */
-  @NotNull
-  private static String determineGradlePluginVersion(@Nullable Project project) {
-    String defaultGradleVersion = AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion();
-    if (project == null) {
-      return defaultGradleVersion;
-    }
-
-    GradleVersion versionInUse = GradleUtil.getAndroidGradleModelVersionInUse(project);
-    if (versionInUse != null) {
-      return versionInUse.toString();
-    }
-
-    AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.searchInBuildFilesOnly(project);
-    GradleVersion pluginVersion = (androidPluginInfo == null) ? null : androidPluginInfo.getPluginVersion();
-    return (pluginVersion == null) ? defaultGradleVersion : pluginVersion.toString();
+    new TemplateValueInjector(getModel().getTemplateValues())
+      .setProjectDefaults(getModel().getProject().getValueOrNull(), getModel().applicationName().get());
   }
 
   /**

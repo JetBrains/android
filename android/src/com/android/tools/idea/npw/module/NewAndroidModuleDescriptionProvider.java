@@ -145,7 +145,7 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
     @NotNull
     @Override
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
-      return new ConfigureAndroidModuleStep(model, myFormFactor, myMinSdkLevel, myName);
+      return new ConfigureAndroidModuleStep(model, myFormFactor, myMinSdkLevel, isLibrary(), myName);
     }
   }
 }
