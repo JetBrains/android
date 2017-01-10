@@ -39,6 +39,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.SdkConstants.RELATIVE_LAYOUT;
 import static java.io.File.separator;
@@ -60,6 +61,7 @@ public class IconPreviewFactoryTest extends LayoutTestCase {
     NlModel model = createModel();
     myScreenView = surface().screen(model).getScreen();
     myFactory = new IconPreviewFactory();
+    myFactory.myRenderTimeoutSeconds = Long.MAX_VALUE;
     RenderService.setForTesting(myFacet, new MyRenderService(myFacet));
   }
 
@@ -67,6 +69,7 @@ public class IconPreviewFactoryTest extends LayoutTestCase {
   public void tearDown() throws Exception {
     try {
       RenderService.setForTesting(myFacet, null);
+      myFactory.myExecutorService.awaitTermination(60L, TimeUnit.SECONDS);
       Disposer.dispose(myFactory);
     }
     finally {
@@ -82,6 +85,11 @@ public class IconPreviewFactoryTest extends LayoutTestCase {
       throw new RuntimeException(getTestDataPath());
     }
     ImageDiffUtil.assertImageSimilar("TextView.png", goldenImage, image, MAX_PERCENT_DIFFERENT);
+  }
+
+  public void testBug229723WorkAround() throws Exception {
+    myFactory.myRenderTimeoutSeconds = 0L;
+    assertNull(myFactory.renderDragImage(myItem, myScreenView));
   }
 
   private Palette loadPalette() throws Exception {
