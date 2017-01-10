@@ -72,6 +72,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
   @NonNls private static final String SHOW_MIGRATE_TO_GRADLE_POPUP = "show.migrate.to.gradle.popup";
 
   @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
+  @NotNull private final GradleProjectInfo myGradleProjectInfo;
 
   @Nullable private Disposable myDisposable;
 
@@ -82,13 +83,16 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     return component;
   }
 
-  public AndroidGradleProjectComponent(@NotNull Project project, @NotNull AndroidProjectInfo androidProjectInfo) {
+  public AndroidGradleProjectComponent(@NotNull Project project,
+                                       @NotNull AndroidProjectInfo androidProjectInfo,
+                                       @NotNull GradleProjectInfo gradleProjectInfo) {
     super(project);
     myAndroidProjectInfo = androidProjectInfo;
+    myGradleProjectInfo = gradleProjectInfo;
 
     // Register a task that gets notified when a Gradle-based Android project is compiled via JPS.
     CompilerManager.getInstance(myProject).addAfterTask(context -> {
-      if (isBuildWithGradle(myProject)) {
+      if (myGradleProjectInfo.isBuildWithGradle()) {
         PostProjectBuildTasksExecutor.getInstance(project).onBuildCompletion(context);
 
         JpsBuildContext newContext = new JpsBuildContext(context);
@@ -126,7 +130,9 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       // button and editor notifications.
       syncState.notifyStateChanged();
     }
-    if (IdeInfo.getInstance().isAndroidStudio() && isLegacyIdeaAndroidProject(myProject) && !myAndroidProjectInfo.isApkProject()) {
+    if (IdeInfo.getInstance().isAndroidStudio() &&
+        myAndroidProjectInfo.isLegacyIdeaAndroidProject() &&
+        !myAndroidProjectInfo.isApkProject()) {
       trackLegacyIdeaAndroidProject();
       if (shouldShowMigrateToGradleNotification()) {
         // Suggest that Android Studio users use Gradle instead of IDEA project builder.
@@ -135,11 +141,13 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       return;
     }
 
-    boolean isGradleProject = isBuildWithGradle(myProject);
+    boolean isGradleProject = myGradleProjectInfo.isBuildWithGradle();
     if (isGradleProject) {
       configureGradleProject();
     }
-    else if (IdeInfo.getInstance().isAndroidStudio() && myProject.getBaseDir() != null && canImportAsGradleProject(myProject.getBaseDir())) {
+    else if (IdeInfo.getInstance().isAndroidStudio() &&
+             myProject.getBaseDir() != null &&
+             canImportAsGradleProject(myProject.getBaseDir())) {
       GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null);
     }
   }
@@ -176,8 +184,8 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
         }
         if (packageName != null) {
           AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder().setCategory(EventCategory.GRADLE)
-                                                                            .setKind(EventKind.LEGACY_IDEA_ANDROID_PROJECT)
-                                                                            .setProjectId(anonymizeUtf8(packageName));
+            .setKind(EventKind.LEGACY_IDEA_ANDROID_PROJECT)
+            .setProjectId(anonymizeUtf8(packageName));
           UsageTracker.getInstance().log(event);
         }
       }
@@ -260,7 +268,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
    */
   public void checkForSupportedModules() {
     Module[] modules = ModuleManager.getInstance(myProject).getModules();
-    if (modules.length == 0 || !isBuildWithGradle(myProject)) {
+    if (modules.length == 0 || !myGradleProjectInfo.isBuildWithGradle()) {
       return;
     }
     List<Module> unsupportedModules = new ArrayList<>();

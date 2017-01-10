@@ -238,26 +238,6 @@ public final class Projects {
   }
 
   /**
-   * Indicates the given project requires an Android model, but the model is {@code null}. Possible causes for this scenario to happen are:
-   * <ul>
-   * <li>the last sync with Gradle failed</li>
-   * <li>Studio just started up and it has not synced the project yet</li>
-   * </ul>
-   *
-   * @param project the project.
-   * @return {@code true} if the project is a Gradle-based Android project that does not contain any Gradle model.
-   */
-  public static boolean requiredAndroidModelMissing(@NotNull Project project) {
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && facet.requiresAndroidModel() && facet.getAndroidModel() == null) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
    * Opens the given project in the IDE.
    *
    * @param project the project to open.
@@ -290,37 +270,6 @@ public final class Projects {
   public static AndroidModel getAndroidModel(@NotNull Module module) {
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
     return androidFacet != null ? androidFacet.getAndroidModel() : null;
-  }
-
-  /**
-   * Indicates whether the give project is a legacy IDEA Android project (which is deprecated in Android Studio.)
-   *
-   * @param project the given project.
-   * @return {@code true} if the given project is a legacy IDEA Android project; {@code false} otherwise.
-   */
-  public static boolean isLegacyIdeaAndroidProject(@NotNull Project project) {
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    for (Module module : moduleManager.getModules()) {
-      if (isLegacyIdeaAndroidModule(module)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Indicates whether the given module is a legacy IDEA Android module (which is deprecated in Android Studio.)
-   *
-   * @param module the given module.
-   * @return {@code true} if the given module is a legacy IDEA Android module; {@code false} otherwise.
-   */
-  public static boolean isLegacyIdeaAndroidModule(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null && !facet.requiresAndroidModel()) {
-      // If a module has the Android facet, but it does not require a model from the build system, it is a legacy IDEA project.
-      return true;
-    }
-    return false;
   }
 
   /**
@@ -445,12 +394,7 @@ public final class Projects {
   }
 
   public static boolean isSyncRequestedDuringBuild(@NotNull Project project) {
-    return getBoolean(project, SYNC_REQUESTED_DURING_BUILD);
-  }
-
-  private static boolean getBoolean(@NotNull Project project, @NotNull Key<Boolean> key) {
-    Boolean val = project.getUserData(key);
-    return val != null && val.booleanValue();
+    return SYNC_REQUESTED_DURING_BUILD.get(project, false);
   }
 
   public static void storePluginVersionsPerModule(@NotNull Project project) {
