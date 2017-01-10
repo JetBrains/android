@@ -82,15 +82,10 @@ public class NlPreviewImagePanel extends JComponent implements Disposable {
         if (myItem == null) {
           return;
         }
-        if (!myDependencyManager.needsLibraryLoad(myItem)) {
-          TransferHandler handler = getTransferHandler();
-          if (handler != null) {
-            myCloseAutoHideCallback.run();
-            handler.exportAsDrag(NlPreviewImagePanel.this, event, TransferHandler.COPY);
-          }
-        }
-        else {
-          myDependencyManager.ensureLibraryIsIncluded(myItem);
+        TransferHandler handler = getTransferHandler();
+        if (handler != null) {
+          myCloseAutoHideCallback.run();
+          handler.exportAsDrag(NlPreviewImagePanel.this, event, TransferHandler.COPY);
         }
       }
     });
@@ -151,7 +146,8 @@ public class NlPreviewImagePanel extends JComponent implements Disposable {
     }
     myImage = null;
     myPreviewGenerationDone = false;
-    setTransferHandler(designSurface != null ? new ItemTransferHandler(myDesignSurface, this::getItem, myIconPreviewFactory) : null);
+    setTransferHandler(
+      designSurface != null ? new ItemTransferHandler(myDesignSurface, myDependencyManager, this::getItem, myIconPreviewFactory) : null);
     invalidateUI();
   }
 
@@ -212,6 +208,9 @@ public class NlPreviewImagePanel extends JComponent implements Disposable {
     myLastWidth = getWidth();
     myPreviewGenerationDone = true;
     if (myItem == null || myDesignSurface == null) {
+      return null;
+    }
+    if (myDependencyManager.needsLibraryLoad(myItem)) {
       return null;
     }
     ScreenView screenView = myDesignSurface.getCurrentScreenView();

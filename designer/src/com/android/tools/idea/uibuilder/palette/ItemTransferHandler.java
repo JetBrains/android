@@ -34,13 +34,17 @@ import java.util.function.Supplier;
 
 public class ItemTransferHandler extends TransferHandler {
   private final DesignSurface myDesignSurface;
+  private final DependencyManager myDependencyManager;
   private final Supplier<Palette.Item> myItemSupplier;
   private final IconPreviewFactory myIconFactory;
 
+  // TODO: Look into combining DependencyManager and IconPreviewFactory into a PreviewProvider
   public ItemTransferHandler(@NotNull DesignSurface designSurface,
+                             @NotNull DependencyManager dependencyManager,
                              @NotNull Supplier<Palette.Item> itemSupplier,
                              @NotNull IconPreviewFactory iconFactory) {
     myDesignSurface = designSurface;
+    myDependencyManager = dependencyManager;
     myItemSupplier = itemSupplier;
     myIconFactory = iconFactory;
   }
@@ -64,7 +68,7 @@ public class ItemTransferHandler extends TransferHandler {
 
     @AndroidCoordinate
     Dimension size;
-    BufferedImage image = myIconFactory.renderDragImage(item, screenView);
+    BufferedImage image = myDependencyManager.needsLibraryLoad(item) ? null : myIconFactory.renderDragImage(item, screenView);
     if (image != null) {
       size = new Dimension(image.getWidth(), image.getHeight());
       double scale = myDesignSurface.getScale();

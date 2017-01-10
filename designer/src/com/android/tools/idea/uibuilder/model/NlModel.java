@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.model;
 
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceUrl;
@@ -30,6 +31,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ConfigurationMatcher;
+import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.rendering.*;
@@ -101,9 +103,11 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.api.PaletteComponentHandler.IN_PLATFORM;
 import static com.intellij.util.ui.update.Update.HIGH_PRIORITY;
 import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 
@@ -1615,14 +1619,49 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   /**
+   * Make sure the dependencies of the components being added are present in the module.
+   * If they are not: ask the user if they can be added now.
+   * Return true if the dependencies are present now (they may have just been added).
+   */
+  private boolean addDependencies(@Nullable List<NlComponent> toAdd, @NotNull InsertType insertType) {
+    if (toAdd == null || insertType.isMove()) {
+      return true;
+    }
+    Set<String> artifacts = new HashSet<>();
+    getDependencies(toAdd, artifacts);
+    List<GradleCoordinate> dependencies = artifacts.stream()
+      .map(artifact -> GradleCoordinate.parseCoordinateString(artifact + ":+"))
+      .filter(Objects::nonNull)
+      .collect(Collectors.toList());
+    GradleDependencyManager manager = GradleDependencyManager.getInstance(getProject());
+    return manager.ensureLibraryIsIncluded(getModule(), dependencies, null);
+  }
+
+  private void getDependencies(@NotNull List<NlComponent> toAdd, @NotNull Set<String> artifacts) {
+    for (NlComponent component : toAdd) {
+      ViewHandler handler = ViewHandlerManager.get(getProject()).getHandler(component);
+      if (handler != null) {
+        String artifactId = handler.getGradleCoordinateId(component.getTagName());
+        if (!artifactId.equals(IN_PLATFORM)) {
+          artifacts.add(artifactId);
+        }
+      }
+      getDependencies(component.getChildren(), artifacts);
+    }
+  }
+
+  /**
    * Adds components to the specified receiver before the given sibling.
    * If insertType is a move the components specified should be components from this model.
    */
-  public void addComponents(@Nullable final List<NlComponent> toAdd,
-                            @NotNull final NlComponent receiver,
-                            @Nullable final NlComponent before,
-                            @NotNull final InsertType insertType) {
+  public void addComponents(@Nullable List<NlComponent> toAdd,
+                            @NotNull NlComponent receiver,
+                            @Nullable NlComponent before,
+                            @NotNull InsertType insertType) {
     if (!canAddComponents(toAdd, receiver, before)) {
+      return;
+    }
+    if (!addDependencies(toAdd, insertType)) {
       return;
     }
     assert toAdd != null;

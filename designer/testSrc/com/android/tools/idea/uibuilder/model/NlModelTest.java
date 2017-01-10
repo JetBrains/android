@@ -16,10 +16,12 @@
 package com.android.tools.idea.uibuilder.model;
 
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.util.NlTreeDumper;
@@ -36,6 +38,9 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isNull;
+import static org.mockito.Mockito.*;
 
 /**
  * Model tests. This checks that when a model is updated, we correctly
@@ -322,6 +327,83 @@ public class NlModelTest extends LayoutTestCase {
     assertThat(model.canAddComponents(Collections.singletonList(linearLayout), linearLayout, null)).isFalse();
   }
 
+  public void testAddComponentsWithDependencyCheck() {
+    NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
+      .withBounds(0, 0, 1000, 1000)
+      .matchParentWidth()
+      .matchParentHeight()
+      .children(
+        component(FRAME_LAYOUT)
+          .withBounds(100, 100, 100, 100)
+          .width("100dp")
+          .height("100dp")
+      ))
+      .build();
+
+    NlComponent linearLayout = model.getComponents().get(0);
+    NlComponent frameLayout = linearLayout.getChild(0);
+    assertThat(frameLayout).isNotNull();
+
+    GradleDependencyManager gradleDependencyManager = mock(GradleDependencyManager.class);
+    GradleDependencyManager oldGradleDependencyManager = registerProjectComponent(GradleDependencyManager.class, gradleDependencyManager);
+    try {
+      NlComponent recyclerView = model.createComponent(
+        surface().screen(model).getScreen(), CLASS_RECYCLER_VIEW, null, null, InsertType.CREATE);
+      List<GradleCoordinate> expectedDependencies =
+        Collections.singletonList(GradleCoordinate.parseCoordinateString(RECYCLER_VIEW_LIB_ARTIFACT + ":+"));
+      when(gradleDependencyManager.ensureLibraryIsIncluded(eq(myModule), eq(expectedDependencies), isNull(Runnable.class)))
+        .thenReturn(true);
+
+      model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.CREATE);
+      verify(gradleDependencyManager).ensureLibraryIsIncluded(eq(myModule), eq(expectedDependencies), isNull(Runnable.class));
+
+      assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,150:768x1034, instance=0}\n" +
+                   "    NlComponent{tag=<FrameLayout>, bounds=[0,150:200x200, instance=1}\n" +
+                   "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,150:200x66, instance=2}",
+                   myTreeDumper.toTree(model.getComponents()));
+    }
+    finally {
+      registerProjectComponent(GradleDependencyManager.class, oldGradleDependencyManager);
+    }
+  }
+
+  public void testAddComponentsNoDependencyCheckOnMove() {
+    NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
+      .withBounds(0, 0, 1000, 1000)
+      .matchParentWidth()
+      .matchParentHeight()
+      .children(
+        component(FRAME_LAYOUT)
+          .withBounds(100, 100, 100, 100)
+          .width("100dp")
+          .height("100dp"),
+        component(RECYCLER_VIEW)
+          .withBounds(100, 200, 100, 100)
+          .width("100dp")
+          .height("100dp")
+      ))
+      .build();
+    NlComponent linearLayout = model.getComponents().get(0);
+    NlComponent frameLayout = linearLayout.getChild(0);
+    NlComponent recyclerView = linearLayout.getChild(1);
+    assertThat(frameLayout).isNotNull();
+
+    GradleDependencyManager gradleDependencyManager = mock(GradleDependencyManager.class);
+    GradleDependencyManager oldGradleDependencyManager = registerProjectComponent(GradleDependencyManager.class, gradleDependencyManager);
+    try {
+      model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.MOVE_INTO);
+      verifyZeroInteractions(gradleDependencyManager);
+
+      assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,150:768x1034, instance=0}\n" +
+                   "    NlComponent{tag=<FrameLayout>, bounds=[0,150:200x200, instance=1}\n" +
+                   "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,150:200x200, instance=2}",
+                   myTreeDumper.toTree(model.getComponents()));
+    }
+    finally {
+      registerProjectComponent(GradleDependencyManager.class, oldGradleDependencyManager);
+    }
+  }
+
   public void testMoveInHierarchyWithWrongXmlTags() throws Exception {
     ModelBuilder modelBuilder = model("linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
@@ -411,7 +493,7 @@ public class NlModelTest extends LayoutTestCase {
     myFixture.addFileToProject("res/values/styles.xml",
                                "<resources>" +
                                "  <style name=\"Theme.MyTheme\"></style>" +
-                               "<resources>");
+                               "</resources>");
     NlModel model = createDefaultModelBuilder(true)
       .build();
     Configuration configuration = model.getConfiguration();
