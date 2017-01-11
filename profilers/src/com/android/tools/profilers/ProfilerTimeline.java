@@ -126,7 +126,9 @@ public final class ProfilerTimeline implements Updatable {
   }
 
   public void pan(double deltaUs) {
-    setStreaming(false);
+    if (deltaUs < 0) {
+      setStreaming(false);
+    }
     if (myViewRangeUs.getMin() + deltaUs < myDataRangeUs.getMin()) {
       deltaUs = myDataRangeUs.getMin() - myViewRangeUs.getMin();
     } else if (myViewRangeUs.getMax() + deltaUs > myDataRangeUs.getMax()) {
