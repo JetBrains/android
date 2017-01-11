@@ -346,6 +346,10 @@ public class AndroidIcons {
     public static final Icon VerticalExpand = load("/icons/sherpa/expand-vertically_b.png");
     public static final Icon verticallyDistributeB = load("/icons/sherpa/distribute-vertically.png");
     public static final Icon verticallyDistribute = load("/icons/sherpa/distribute-vertically_b.png");
+    public static final Icon Chain = load("/icons/sherpa/chain.png");
+    public static final Icon ChainBlue = load("/icons/sherpa/chain-blue.png");
+    public static final Icon BaselineColor = load("/icons/sherpa/baseline-color.png");
+    public static final Icon BaselineBlue = load("/icons/sherpa/baseline-blue.png");
   }
 
   public static class Views {
