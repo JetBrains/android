@@ -12,7 +12,6 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -71,11 +70,5 @@ public class ResourceMergerTreeStructureProvider implements TreeStructureProvide
       result.add(node);
     }
     return result;
-  }
-
-  @Nullable
-  @Override
-  public Object getData(Collection<AbstractTreeNode> selected, String dataName) {
-    return null;  //To change body of implemented methods use File | Settings | File Templates.
   }
 }
