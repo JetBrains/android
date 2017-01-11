@@ -176,7 +176,8 @@ public class BasicNativeDebuggerTest {
 
   private void stopDebugSession(DebugToolWindowFixture debugToolWindowFixture) {
     final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
-    contentFixture.stop();
+    boolean stopClicked = contentFixture.stop();
+    System.out.println("stop button clicked : " + stopClicked);
     contentFixture.waitForExecutionToFinish();
   }
 
