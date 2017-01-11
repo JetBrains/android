@@ -61,7 +61,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-import javax.annotation.concurrent.GuardedBy;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.*;
@@ -98,9 +97,6 @@ public class RenderService extends AndroidFacetScopedService {
                                                                                      });
   private static final AtomicInteger ourTimeoutExceptionCounter = new AtomicInteger(0);
 
-  private static final Object KEY_LOCK = new Object();
-
-  @GuardedBy("KEY_LOCK")
   private static final Key<RenderService> KEY = Key.create(RenderService.class.getName());
 
   static {
@@ -122,24 +118,17 @@ public class RenderService extends AndroidFacetScopedService {
    */
   @NotNull
   public static RenderService getInstance(@NotNull AndroidFacet facet) {
-    RenderService renderService;
-    synchronized (KEY_LOCK) {
-      renderService = facet.getUserData(KEY);
-    }
+    RenderService renderService = facet.getUserData(KEY);
     if (renderService == null) {
       renderService = new RenderService(facet);
-      synchronized (KEY_LOCK) {
-        facet.putUserData(KEY, renderService);
-      }
+      facet.putUserData(KEY, renderService);
     }
     return renderService;
   }
 
   @TestOnly
   public static void setForTesting(@NotNull AndroidFacet facet, @Nullable RenderService renderService) {
-    synchronized (KEY_LOCK) {
-      facet.putUserData(KEY, renderService);
-    }
+    facet.putUserData(KEY, renderService);
   }
 
   @VisibleForTesting
@@ -283,9 +272,7 @@ public class RenderService extends AndroidFacetScopedService {
 
   @Override
   protected void onServiceDisposal(@NotNull AndroidFacet facet) {
-    synchronized (KEY_LOCK) {
-      facet.putUserData(KEY, null);
-    }
+    facet.putUserData(KEY, null);
     myImagePool.dispose();
   }
 

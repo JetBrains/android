@@ -116,7 +116,7 @@ public class LocaleMenuAction extends FlatComboAction {
    */
   @NotNull
   private List<Locale> getRelevantLocales() {
-    List<Locale> locales = new ArrayList<Locale>();
+    List<Locale> locales = new ArrayList<>();
 
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration == null) {
@@ -140,8 +140,8 @@ public class LocaleMenuAction extends FlatComboAction {
       }
     }
 
-    LocalResourceRepository projectResources = ProjectResourceRepository.getProjectResources(module, true);
-    Set<LocaleQualifier> languages = projectResources != null ? projectResources.getLocales() : Collections.<LocaleQualifier>emptySet();
+    LocalResourceRepository projectResources = ProjectResourceRepository.getOrCreateInstance(module);
+    Set<LocaleQualifier> languages = projectResources != null ? projectResources.getLocales() : Collections.emptySet();
     for (LocaleQualifier l : languages) {
       if (specificLocale != null && !specificLocale.isMatchFor(l)) {
         continue;
@@ -155,7 +155,7 @@ public class LocaleMenuAction extends FlatComboAction {
   @NotNull
   public static List<Locale> getAllLocales() {
     List<String> sorted = LocaleManager.getLanguageCodes(true);
-    List<Locale> locales = new ArrayList<Locale>(sorted.size());
+    List<Locale> locales = new ArrayList<>(sorted.size());
     for (String language : sorted) {
       LocaleQualifier qualifier = new LocaleQualifier(language.length() == 2 ? language : BCP_47_PREFIX + language,
                                                       language, null, null);

@@ -24,8 +24,6 @@ import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.concurrent.GuardedBy;
-
 /**
  * Android information about a module, such as its application package, its minSdkVersion, and so on. This
  * is derived by querying the gradle model, or the manifest file if the model doesn't exist (not constructed, or
@@ -36,22 +34,14 @@ import javax.annotation.concurrent.GuardedBy;
  * (e.g. minSdk, targetSdk, packageName, etc), or use {@link MergedManifest#get(Module)}.
  */
 public class AndroidModuleInfo extends AndroidFacetScopedService {
-  private static final Object KEY_LOCK = new Object();
-
-  @GuardedBy("KEY_LOCK")
   private static final Key<AndroidModuleInfo> KEY = Key.create(AndroidModuleInfo.class.getName());
 
   @NotNull
   public static AndroidModuleInfo getInstance(@NotNull AndroidFacet facet) {
-    AndroidModuleInfo androidModuleInfo;
-    synchronized (KEY_LOCK) {
-      androidModuleInfo = facet.getUserData(KEY);
-    }
+    AndroidModuleInfo androidModuleInfo = facet.getUserData(KEY);
     if (androidModuleInfo == null) {
       androidModuleInfo = new AndroidModuleInfo(facet);
-      synchronized (KEY_LOCK) {
-        facet.putUserData(KEY, androidModuleInfo);
-      }
+      facet.putUserData(KEY, androidModuleInfo);
     }
     return androidModuleInfo;
   }
@@ -202,9 +192,6 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
 
   @Override
   protected void onServiceDisposal(@NotNull AndroidFacet facet) {
-    synchronized (KEY_LOCK) {
-      facet.putUserData(KEY, null);
-    }
-
+    facet.putUserData(KEY, null);
   }
 }
