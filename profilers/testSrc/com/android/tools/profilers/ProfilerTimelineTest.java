@@ -140,5 +140,20 @@ public class ProfilerTimelineTest {
     timeline.pan(140);
     assertEquals(90, viewRange.getMin(), DELTA);
     assertEquals(100, viewRange.getMax(), DELTA);
+    assertFalse(timeline.isStreaming());
+
+    timeline.setStreaming(true);
+    assertTrue(timeline.isStreaming());
+    // Test moving to the left stops streaming
+    timeline.pan(-10);
+    assertFalse(timeline.isStreaming());
+
+    timeline.setStreaming(true);
+    assertTrue(timeline.isStreaming());
+    // Tests moving to the right doesn't stop streaming
+    timeline.pan(10);
+    assertTrue(timeline.isStreaming());
+    // Test moving past the end doesn't stop streaming either
+    timeline.pan(10);
   }
 }
