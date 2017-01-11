@@ -47,7 +47,7 @@ public class GradleBrokenPipeErrorHandler extends BaseSyncErrorHandler {
                                                               @NotNull String text) {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     hyperlinks.add(
-      new OpenUrlHyperlink("https://sites.google.com/a/android.com/tools/knownissues?pli=1#TOC-Gradle-Sync-Failed:-Broken-Pipe",
+      new OpenUrlHyperlink("https://developer.android.com/r/studio-ui/known-issues.html",
                            "More info (including workarounds)"));
     return hyperlinks;
   }
