@@ -604,6 +604,11 @@ public class MergedManifest {
     return null;
   }
 
+  @NotNull
+  public Module getModule() {
+    return myModule;
+  }
+
   public static class ActivityAttributes {
     @NotNull private final Element myElement;
     @Nullable private final String myIcon;

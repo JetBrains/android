@@ -25,25 +25,31 @@ import com.android.tools.lint.detector.api.Position;
 import com.android.tools.lint.detector.api.XmlContext;
 import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlFile;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Lint parser which reads in a DOM from a given file, by mapping to the underlying XML PSI structure
  */
 class DomPsiParser extends XmlParser {
-  private final LintClient myClient;
+  private final LintIdeClient myClient;
   private AccessToken myReadLock;
 
-  public DomPsiParser(LintClient client) {
+  public DomPsiParser(LintIdeClient client) {
     myClient = client;
   }
 
@@ -103,6 +109,36 @@ class DomPsiParser extends XmlParser {
     } catch (Throwable t) {
       myClient.log(t, "Failed converting PSI parse tree to DOM for file %1$s",
                    context.file.getPath());
+      return null;
+    }
+  }
+
+  @Override
+  @Nullable
+  public Document parseXml(@NonNull File file) {
+    // Should only be called from read thread
+    assert ApplicationManager.getApplication().isReadAccessAllowed();
+
+    Project project = myClient.getIdeProject();
+    if (project.isDisposed()) {
+      return null;
+    }
+
+    VirtualFile virtualFile = VfsUtil.findFileByIoFile(file, false);
+    if (virtualFile == null) {
+      return null;
+    }
+
+    PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, virtualFile);
+    if (!(psiFile instanceof XmlFile)) {
+      return null;
+    }
+    XmlFile xmlFile = (XmlFile)psiFile;
+
+    try {
+      return DomPsiConverter.convert(xmlFile);
+    } catch (Throwable t) {
+      myClient.log(t, null);
       return null;
     }
   }
