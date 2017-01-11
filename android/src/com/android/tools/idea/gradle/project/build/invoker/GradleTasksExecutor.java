@@ -330,7 +330,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
         GradleOutputForwarder output = new GradleOutputForwarder(consoleView);
 
-        BuildException buildError = null;
+        Throwable buildError = null;
         InstantRunBuildProgressListener instantRunProgressListener = null;
         ExternalSystemTaskId id = myRequest.getTaskId();
         CancellationTokenSource cancellationTokenSource = myBuildStopper.createAndRegisterTokenSource(id);
@@ -420,6 +420,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           buildError = e;
         }
         catch (Throwable e) {
+          buildError = e;
           handleTaskExecutionError(e);
         }
         finally {
@@ -460,7 +461,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
     private void showGradleOutput(@NotNull String gradleOutput,
                                   @NotNull GradleOutputForwarder output,
                                   @NotNull Stopwatch stopwatch,
-                                  @Nullable BuildException buildError) {
+                                  @Nullable Throwable buildError) {
       Application application = ApplicationManager.getApplication();
 
       List<Message> buildMessages = new ArrayList<>();
@@ -473,10 +474,10 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           }
         }
 
-        if (!hasError && myErrorCount == 0 && buildError != null && !hasCause(buildError, BuildCancelledException.class)) {
+        if (!hasError && myErrorCount == 0 && buildError != null && buildError instanceof BuildException) {
           // Gradle throws BuildCancelledException when we cancel task execution. We don't want to force showing 'Messages' tool
           // window for that situation though.
-          addBuildExceptionAsMessage(buildError, output.getStdErr(), buildMessages);
+          addBuildExceptionAsMessage((BuildException)buildError, output.getStdErr(), buildMessages);
         }
         output.close();
         stopwatch.stop();
@@ -499,8 +500,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           return;
         }
 
-        boolean buildSuccessful = buildError == null;
-        GradleInvocationResult result = new GradleInvocationResult(myRequest.getGradleTasks(), buildMessages, buildSuccessful);
+        GradleInvocationResult result = new GradleInvocationResult(myRequest.getGradleTasks(), buildMessages, buildError);
         for (AfterGradleInvocationTask task : GradleBuildInvoker.getInstance(getProject()).getAfterInvocationTasks()) {
           task.execute(result);
         }
