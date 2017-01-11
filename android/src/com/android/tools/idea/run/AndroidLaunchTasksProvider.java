@@ -85,6 +85,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       launchTasks.addAll(getDeployTasks(device));
 
       packageName = myApplicationIdProvider.getPackageName();
+
       // launch the contributors before launching the application in case
       // the contributors need to start listening on logcat for the application launch itself
       for (AndroidLaunchTaskContributor taskContributor : AndroidLaunchTaskContributor.EP_NAME.getExtensions()) {
@@ -92,6 +93,11 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           launchTasks.add(taskContributor.getTask(packageName));
         }
       }
+
+      if (myInstantRunBuildAnalyzer != null) {
+        launchTasks.add(new LaunchInstantRunServiceTask(packageName));
+      }
+
       LaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
                                                                       myLaunchOptions.isDebug(), launchStatus);
       if (appLaunchTask != null) {
@@ -102,10 +108,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       Logger.getInstance(AndroidLaunchTasksProvider.class).error(e);
       launchStatus.terminateLaunch("Unable to determine application id: " + e);
       return Collections.emptyList();
-    }
-
-    if (myInstantRunBuildAnalyzer != null) {
-      launchTasks.add(new LaunchInstantRunServiceTask(packageName));
     }
 
     if (!myLaunchOptions.isDebug() && myLaunchOptions.isOpenLogcatAutomatically()) {
