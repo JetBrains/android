@@ -45,7 +45,6 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static javax.swing.event.HyperlinkEvent.EventType.ACTIVATED;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.awt.AWT.visibleCenterOf;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.util.Strings.quote;
 import static org.junit.Assert.assertNotNull;
 
@@ -299,12 +298,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
 
     private void click(boolean synchronous) {
       if (synchronous) {
-        execute(new GuiTask() {
-          @Override
-          protected void executeInEDT() {
-            HyperlinkFixture.this.doClick();
-          }
-        });
+        GuiTask.execute(() -> HyperlinkFixture.this.doClick());
       }
       else {
         //noinspection SSBasedInspection
