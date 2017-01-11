@@ -23,7 +23,7 @@ import com.android.tools.idea.rendering.errors.ui.RenderErrorPanel;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
-import com.android.tools.idea.uibuilder.editor.NlActionManager;
+import com.android.tools.idea.uibuilder.editor.ActionManager;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.lint.LintNotificationPanel;
@@ -121,7 +121,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private final RenderErrorPanel myErrorPanel;
   protected List<DesignSurfaceListener> myListeners;
   private List<PanZoomListener> myZoomListeners;
-  private final NlActionManager myActionManager = new NlActionManager((NlDesignSurface)this);
+  private final ActionManager myActionManager;
   private float mySavedErrorPanelProportion;
   @NotNull private WeakReference<FileEditor> myFileEditorDelegate = new WeakReference<>(null);
 
@@ -211,9 +211,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     });
 
     myInteractionManager.registerListeners();
+    myActionManager = createActionManager();
     myActionManager.registerActions(myLayeredPane);
   }
 
+  protected abstract ActionManager createActionManager();
   protected abstract void layoutContent();
 
   private void updateErrorPanelSplitterUi(boolean isMinimized) {
@@ -245,7 +247,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   @NotNull
-  public NlActionManager getActionManager() {
+  public ActionManager getActionManager() {
     return myActionManager;
   }
 
