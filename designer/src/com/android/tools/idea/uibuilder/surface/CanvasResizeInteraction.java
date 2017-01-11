@@ -96,7 +96,7 @@ public class CanvasResizeInteraction extends Interaction {
     VirtualFile file = config.getFile();
     assert file != null;
     String layoutName = file.getNameWithoutExtension();
-    ProjectResourceRepository resourceRepository = ProjectResourceRepository.getProjectResources(config.getModule(), true);
+    ProjectResourceRepository resourceRepository = ProjectResourceRepository.getOrCreateInstance(config.getModule());
     assert resourceRepository != null;
 
     List<ResourceItem> layouts =
