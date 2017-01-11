@@ -115,9 +115,9 @@ public class WidgetNavigatorPanel extends JPanel
     if (myDesignSurface == null) {
       return;
     }
-    computeScale(myDesignSurface.getCurrentScreenView(), myDesignSurface.getSize(),
+    computeScale(myDesignSurface.getCurrentSceneView(), myDesignSurface.getSize(),
                  myDesignSurface.getContentSize(null));
-    computeOffsets(myDesignSurface.getCurrentScreenView());
+    computeOffsets(myDesignSurface.getCurrentSceneView());
   }
 
   /**
@@ -134,7 +134,7 @@ public class WidgetNavigatorPanel extends JPanel
       myComponent = myComponent.getRoot();
     }
     else if (myDesignSurface != null) {
-      final ScreenView currentScreenView = myDesignSurface.getCurrentScreenView();
+      final ScreenView currentScreenView = myDesignSurface.getCurrentSceneView();
       if (currentScreenView != null) {
         final List<NlComponent> components = currentScreenView.getModel().getComponents();
         myComponent = !components.isEmpty() ? components.get(0) : null;
@@ -151,11 +151,11 @@ public class WidgetNavigatorPanel extends JPanel
   }
 
   @Override
-  public void screenChanged(@NotNull DesignSurface surface, @Nullable ScreenView screenView) {
+  public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
     assert surface instanceof NlDesignSurface;
     setSurface((NlDesignSurface)surface);
     assert myDesignSurface != null;
-    computeOffsets(myDesignSurface.getCurrentScreenView());
+    computeOffsets(myDesignSurface.getCurrentSceneView());
     myMiniMap.repaint();
   }
 
@@ -173,7 +173,7 @@ public class WidgetNavigatorPanel extends JPanel
     // The model change can be triggered by a change of editor, in this case, we want to keep
     // the popup opened but we have to change the content, so we try to find the current selection
     // in the model or at least the component of the current model.
-    computeOffsets(surface.getCurrentScreenView());
+    computeOffsets(surface.getCurrentSceneView());
     if (model != null) {
       List<NlComponent> selection = model.getSelectionModel().getSelection();
       if (selection.isEmpty()) {
@@ -230,7 +230,7 @@ public class WidgetNavigatorPanel extends JPanel
       return;
     }
     final Point scrollPosition = myDesignSurface.getScrollPosition();
-    final ScreenView currentScreenView = myDesignSurface.getCurrentScreenView();
+    final ScreenView currentScreenView = myDesignSurface.getCurrentSceneView();
     if (currentScreenView != null) {
       myDesignSurfaceSize = myDesignSurface.getSize(myDesignSurfaceSize);
       final Dimension contentSize = myDesignSurface.getContentSize(null);
@@ -286,7 +286,7 @@ public class WidgetNavigatorPanel extends JPanel
       myDesignSurface.removeListener(this);
       myDesignSurface.removePanZoomListener(this);
       myDesignSurface.removeAncestorListener(myAncestorListener);
-      final ScreenView currentScreenView = myDesignSurface.getCurrentScreenView();
+      final ScreenView currentScreenView = myDesignSurface.getCurrentSceneView();
       if (currentScreenView != null) {
         currentScreenView.getModel().removeListener(this);
       }
@@ -300,7 +300,7 @@ public class WidgetNavigatorPanel extends JPanel
     myDesignSurface.addPanZoomListener(this);
     myDesignSurface.addAncestorListener(myAncestorListener);
 
-    final ScreenView currentScreenView = myDesignSurface.getCurrentScreenView();
+    final ScreenView currentScreenView = myDesignSurface.getCurrentSceneView();
     if (currentScreenView != null) {
       currentScreenView.getModel().addListener(this);
     }
@@ -385,7 +385,7 @@ public class WidgetNavigatorPanel extends JPanel
     public void mousePressed(MouseEvent e) {
       if (myDesignSurface != null && isInDesignSurfaceRectangle(e)) {
         // Init the value for the drag event
-        myCurrentScreenView = myDesignSurface.getCurrentScreenView();
+        myCurrentScreenView = myDesignSurface.getCurrentSceneView();
         if (myCurrentScreenView == null) {
           return;
         }
@@ -481,9 +481,9 @@ public class WidgetNavigatorPanel extends JPanel
    *
    * @param currentScreenView
    */
-  private void computeOffsets(@Nullable ScreenView currentScreenView) {
-    if (myDesignSurface != null && currentScreenView != null) {
-      myCurrentScreenViewSize = currentScreenView.getSize(myCurrentScreenViewSize);
+  private void computeOffsets(@Nullable SceneView currentSceneView) {
+    if (myDesignSurface != null && currentSceneView != null) {
+      myCurrentScreenViewSize = currentSceneView.getSize(myCurrentScreenViewSize);
 
       // If there is two ScreenViews displayed,
       // we compute the offset of the second ScreenView
@@ -512,7 +512,7 @@ public class WidgetNavigatorPanel extends JPanel
 
       if (myDesignSurface != null) {
 
-        final ScreenView currentScreenView = myDesignSurface.getCurrentScreenView();
+        final ScreenView currentScreenView = myDesignSurface.getCurrentSceneView();
         if (currentScreenView != null) {
 
           myDesignSurfaceSize = myDesignSurface.getSize(myDesignSurfaceSize);

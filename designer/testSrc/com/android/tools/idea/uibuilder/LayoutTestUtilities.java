@@ -153,7 +153,7 @@ public class LayoutTestUtilities {
     when(screenView.getX()).thenReturn(x);
     when(screenView.getY()).thenReturn(y);
 
-    when(surface.getScreenView(anyInt(), anyInt())).thenReturn(screenView);
+    when(surface.getSceneView(anyInt(), anyInt())).thenReturn(screenView);
     return screenView;
   }
 

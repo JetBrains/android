@@ -94,9 +94,16 @@ public class NlDesignSurface extends DesignSurface {
   private boolean myMockupVisible;
   private MockupEditor myMockupEditor;
   private boolean myCentered;
+  private ScreenView myScreenView;
+  private final boolean myInPreview;
 
   public NlDesignSurface(@NotNull Project project, boolean inPreview) {
-    super(project, inPreview);
+    super(project);
+    myInPreview = inPreview;
+  }
+
+  public boolean isPreviewSurface() {
+    return myInPreview;
   }
 
   /**
@@ -210,9 +217,15 @@ public class NlDesignSurface extends DesignSurface {
     }
   }
 
+  @Nullable
+  @Override
+  public ScreenView getCurrentSceneView() {
+    return myScreenView;
+  }
+
   @Override
   @Nullable
-  public ScreenView getScreenView(@SwingCoordinate int x, @SwingCoordinate int y) {
+  public SceneView getSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
     // Currently only a single screen view active in the canvas.
     if (myBlueprintView != null && x >= myBlueprintView.getX() && y >= myBlueprintView.getY()) {
       return myBlueprintView;
@@ -370,12 +383,6 @@ public class NlDesignSurface extends DesignSurface {
     return myStackVertically;
   }
 
-  public void toggleDeviceFrames() {
-    myDeviceFrames = !myDeviceFrames;
-    layoutContent();
-    repaint();
-  }
-
   @Override
   public void doSetModel(@Nullable NlModel model) {
     if (model == null && myScreenView == null) {
@@ -426,10 +433,10 @@ public class NlDesignSurface extends DesignSurface {
         );
       }
     }
-    else if (getCurrentScreenView() != null) {
+    else if (getCurrentSceneView() != null) {
       dimension.setSize(
-        getCurrentScreenView().getSize().getWidth(),
-        getCurrentScreenView().getSize().getHeight());
+        getCurrentSceneView().getSize().getWidth(),
+        getCurrentSceneView().getSize().getHeight());
     }
     return dimension;
   }

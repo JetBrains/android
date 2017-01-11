@@ -54,7 +54,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
 
   public NlEditorFixture(@NotNull Robot robot, @NotNull NlEditor editor) {
     super(NlEditorFixture.class, robot, editor.getComponent());
-    myDesignSurfaceFixture = new DesignSurfaceFixture(robot, editor.getComponent().getSurface());
+    myDesignSurfaceFixture = new DesignSurfaceFixture(robot, (NlDesignSurface)editor.getComponent().getSurface());
     myDragAndDrop = new ComponentDragAndDrop(robot);
   }
 
@@ -148,8 +148,8 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
    * @see #endResizeInteraction()
    */
   public NlEditorFixture startResizeInteraction() {
-    DesignSurface surface = myDesignSurfaceFixture.target();
-    ScreenView screenView = surface.getCurrentScreenView();
+    NlDesignSurface surface = myDesignSurfaceFixture.target();
+    ScreenView screenView = surface.getCurrentSceneView();
     assert screenView != null;
 
     Dimension size = screenView.getSize();
@@ -164,8 +164,8 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
    * @see #endResizeInteraction()
    */
   public NlEditorFixture resizeToAndroidSize(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height) {
-    DesignSurface surface = myDesignSurfaceFixture.target();
-    ScreenView screenView = surface.getCurrentScreenView();
+    NlDesignSurface surface = myDesignSurfaceFixture.target();
+    ScreenView screenView = surface.getCurrentSceneView();
     assert screenView != null;
 
     robot().moveMouse(surface, Coordinates.getSwingXDip(screenView, width), Coordinates.getSwingYDip(screenView, height));
@@ -188,7 +188,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
    * Only applicable if {@code target()} is a {@link NlDesignSurface}.
    */
   public NlEditorFixture showOnlyDesignView() {
-    NlDesignSurface surface = (NlDesignSurface)myDesignSurfaceFixture.target();
+    NlDesignSurface surface = myDesignSurfaceFixture.target();
     if (surface.getScreenMode() != NlDesignSurface.ScreenMode.SCREEN_ONLY) {
       getConfigToolbar().showDesign();
     }

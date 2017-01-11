@@ -37,6 +37,7 @@ import java.awt.*;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
+import java.util.List;
 
 /**
  * View of a {@link Scene} used in a {@link DesignSurface}.
@@ -113,8 +114,8 @@ public abstract class SceneView {
   abstract public Dimension getPreferredSize(@Nullable Dimension dimension);
 
   public void switchDevice() {
-    java.util.List<Device> devices = ConfigurationManager.getOrCreateInstance(myModel.getModule()).getDevices();
-    java.util.List<Device> applicable = Lists.newArrayList();
+    List<Device> devices = ConfigurationManager.getOrCreateInstance(myModel.getModule()).getDevices();
+    List<Device> applicable = Lists.newArrayList();
     for (Device device : devices) {
       if (HardwareConfigHelper.isNexus(device)) {
         applicable.add(device);
@@ -198,4 +199,15 @@ public abstract class SceneView {
   public double getScale() {
     return mySurface.getScale();
   }
+
+  @SwingCoordinate
+  public int getX() {
+    return 0;
+  }
+
+  @SwingCoordinate
+  public int getY() {
+    return 0;
+  }
+
 }

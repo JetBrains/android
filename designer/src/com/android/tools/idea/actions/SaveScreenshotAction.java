@@ -55,7 +55,7 @@ public class SaveScreenshotAction extends AnAction {
 
   @Nullable
   private BufferedImage getImage() {
-    ScreenView currentScreenView = mySurface.getCurrentScreenView();
+    ScreenView currentScreenView = mySurface.getCurrentSceneView();
     if (currentScreenView != null) {
       RenderResult result = currentScreenView.getResult();
       return result != null ? result.getRenderedImage().getCopy() : null;

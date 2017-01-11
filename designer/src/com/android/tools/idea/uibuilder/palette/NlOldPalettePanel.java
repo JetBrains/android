@@ -38,7 +38,7 @@ import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.CopyProvider;
@@ -651,8 +651,8 @@ public class NlOldPalettePanel extends JPanel
       Palette.Item item = (Palette.Item)content;
       Dimension size = null;
       if (myDesignSurface != null) {
-        ScreenView screenView = myDesignSurface.getCurrentScreenView();
-        BufferedImage image = screenView != null ? myIconFactory.renderDragImage(item, screenView) : null;
+        SceneView sceneView = myDesignSurface.getCurrentSceneView();
+        BufferedImage image = sceneView != null ? myIconFactory.renderDragImage(item, sceneView) : null;
         if (image != null) {
           size = new Dimension(image.getWidth(), image.getHeight());
           myLastDragImage = image;

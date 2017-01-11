@@ -61,9 +61,11 @@ public class NlActionManager extends ActionManager {
   private AnAction mySelectAllAction;
   private AnAction mySelectParent;
   private GotoComponentAction myGotoComponentAction;
+  private NlDesignSurface mySurface;
 
   public NlActionManager(@NotNull NlDesignSurface surface) {
     super(surface);
+    mySurface = surface;
   }
 
   @Override
@@ -138,10 +140,10 @@ public class NlActionManager extends ActionManager {
   @Override
   @NotNull
   protected DefaultActionGroup createPopupMenu(@NotNull com.intellij.openapi.actionSystem.ActionManager actionManager,
-                                             @Nullable ScreenView screenView,
                                              @Nullable NlComponent leafComponent) {
     DefaultActionGroup group = new DefaultActionGroup();
 
+    ScreenView screenView = mySurface.getCurrentSceneView();
     if (screenView != null) {
       if (leafComponent != null) {
         addViewHandlerActions(group, leafComponent, screenView.getSelectionModel().getSelection());
@@ -151,7 +153,7 @@ public class NlActionManager extends ActionManager {
       group.addSeparator();
     }
 
-    group.add(new MockupEditAction((NlDesignSurface)mySurface));
+    group.add(new MockupEditAction(mySurface));
     if(leafComponent != null && Mockup.hasMockupAttribute(leafComponent)) {
       group.add(new MockupDeleteAction(leafComponent));
     }
@@ -165,11 +167,11 @@ public class NlActionManager extends ActionManager {
     group.addSeparator();
     group.add(myGotoComponentAction);
     group.add(createRefactoringMenu());
-    group.add(new SaveScreenshotAction((NlDesignSurface)mySurface));
+    group.add(new SaveScreenshotAction(mySurface));
 
     if (ConvertToConstraintLayoutAction.ENABLED) {
       group.addSeparator();
-      group.add(new ConvertToConstraintLayoutAction((NlDesignSurface)mySurface));
+      group.add(new ConvertToConstraintLayoutAction(mySurface));
     }
 
     return group;
@@ -208,7 +210,7 @@ public class NlActionManager extends ActionManager {
   @Override
   public void addActions(@NotNull DefaultActionGroup group, @Nullable NlComponent component, @Nullable NlComponent parent,
                              @NotNull List<NlComponent> newSelection, boolean toolbar) {
-    ScreenView screenView = mySurface.getCurrentScreenView();
+    ScreenView screenView = mySurface.getCurrentSceneView();
     if (screenView == null || (parent == null && component == null)) {
       return;
     }
