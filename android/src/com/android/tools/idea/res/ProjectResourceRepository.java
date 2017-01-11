@@ -60,7 +60,7 @@ public final class ProjectResourceRepository extends MultiResourceRepository {
   }
 
   @NotNull
-  public static ProjectResourceRepository create(@NotNull final AndroidFacet facet) {
+  public static ProjectResourceRepository create(@NotNull AndroidFacet facet) {
     List<LocalResourceRepository> resources = computeRepositories(facet);
     final ProjectResourceRepository repository = new ProjectResourceRepository(facet, resources);
 
@@ -69,7 +69,7 @@ public final class ProjectResourceRepository extends MultiResourceRepository {
   }
 
   private static List<LocalResourceRepository> computeRepositories(@NotNull final AndroidFacet facet) {
-    LocalResourceRepository main = ModuleResourceRepository.getModuleResources(facet, true);
+    LocalResourceRepository main = ModuleResourceRepository.getOrCreateInstance(facet);
 
     // List of module facets the given module depends on
     List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
@@ -80,7 +80,7 @@ public final class ProjectResourceRepository extends MultiResourceRepository {
     List<LocalResourceRepository> resources = Lists.newArrayListWithExpectedSize(dependentFacets.size());
 
     for (AndroidFacet f : dependentFacets) {
-      LocalResourceRepository r = ModuleResourceRepository.getModuleResources(f, true);
+      LocalResourceRepository r = ModuleResourceRepository.getOrCreateInstance(f);
       resources.add(r);
     }
 
