@@ -20,11 +20,14 @@ import com.android.tools.adtui.workbench.Side;
 import com.android.tools.adtui.workbench.Split;
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.ModelListener;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -53,7 +56,7 @@ import java.util.List;
 public class NlPreviewForm implements Disposable, CaretListener {
   private final NlPreviewManager myManager;
   private final NlDesignSurface mySurface;
-  private final WorkBench<NlDesignSurface> myWorkBench;
+  private final WorkBench<DesignSurface> myWorkBench;
   private final MergingUpdateQueue myRenderingQueue =
     new MergingUpdateQueue("android.layout.preview.caret", 250/*ms*/, true, null, this, null, Alarm.ThreadToUse.SWING_THREAD);
   private boolean myUseInteractiveSelector = true;

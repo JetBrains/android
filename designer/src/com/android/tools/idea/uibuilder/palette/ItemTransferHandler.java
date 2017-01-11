@@ -20,7 +20,7 @@ import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,13 +33,13 @@ import java.awt.image.BufferedImage;
 import java.util.function.Supplier;
 
 public class ItemTransferHandler extends TransferHandler {
-  private final NlDesignSurface myDesignSurface;
+  private final DesignSurface myDesignSurface;
   private final DependencyManager myDependencyManager;
   private final Supplier<Palette.Item> myItemSupplier;
   private final IconPreviewFactory myIconFactory;
 
   // TODO: Look into combining DependencyManager and IconPreviewFactory into a PreviewProvider
-  public ItemTransferHandler(@NotNull NlDesignSurface designSurface,
+  public ItemTransferHandler(@NotNull DesignSurface designSurface,
                              @NotNull DependencyManager dependencyManager,
                              @NotNull Supplier<Palette.Item> itemSupplier,
                              @NotNull IconPreviewFactory iconFactory) {

@@ -36,6 +36,7 @@ import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeList
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
@@ -87,7 +88,7 @@ import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 public class NlOldPalettePanel extends JPanel
-  implements ToolContent<NlDesignSurface>, ConfigurationListener, ResourceChangeListener, LafManagerListener, DataProvider {
+  implements ToolContent<DesignSurface>, ConfigurationListener, ResourceChangeListener, LafManagerListener, DataProvider {
 
   private static final Insets INSETS = JBUI.insets(0, 6);
   private static final int ICON_SPACER = 4;
@@ -100,7 +101,7 @@ public class NlOldPalettePanel extends JPanel
   private final DnDManager myDndManager;
   private final DnDSource myDndSource;
 
-  private NlDesignSurface myDesignSurface;
+  private DesignSurface myDesignSurface;
   private Mode myMode;
   private BufferedImage myLastDragImage;
   private Configuration myConfiguration;
@@ -191,7 +192,7 @@ public class NlOldPalettePanel extends JPanel
   }
 
   @Override
-  public void setToolContext(@Nullable NlDesignSurface designSurface) {
+  public void setToolContext(@Nullable DesignSurface designSurface) {
     Module prevModule = null;
     if (myConfiguration != null) {
       prevModule = myConfiguration.getModule();
