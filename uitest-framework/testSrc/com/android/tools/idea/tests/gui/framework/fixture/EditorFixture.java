@@ -74,7 +74,6 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static org.fest.reflect.core.Reflection.method;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.util.Strings.quote;
 import static org.junit.Assert.*;
 
@@ -253,16 +252,14 @@ public class EditorFixture {
    * Closes the current editor
    */
   public EditorFixture close() {
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
+    GuiTask.execute(
+      () -> {
         VirtualFile currentFile = getCurrentFile();
         if (currentFile != null) {
           FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
           manager.closeFile(currentFile);
         }
-      }
-    });
+      });
     return this;
   }
 
@@ -274,9 +271,8 @@ public class EditorFixture {
    */
   public EditorFixture selectEditorTab(@NotNull final Tab tab) {
     String tabName = tab.myTabName;
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
+    GuiTask.execute(
+      () -> {
         VirtualFile currentFile = getCurrentFile();
         assertNotNull("Can't switch to tab " + tabName + " when no file is open in the editor", currentFile);
         FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
@@ -299,8 +295,7 @@ public class EditorFixture {
           tabNames.add(editor.getName());
         }
         fail("Could not find editor tab \"" + (tabName != null ? tabName : "<default>") + "\": Available tabs = " + tabNames);
-      }
-    });
+      });
     return this;
   }
 
@@ -312,9 +307,8 @@ public class EditorFixture {
    * @param tab which tab to open initially, if there are multiple editors
    */
   public EditorFixture open(@NotNull final VirtualFile file, @NotNull final Tab tab) {
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
+    GuiTask.execute(
+      () -> {
         // TODO: Use UI to navigate to the file instead
         Project project = myFrame.getProject();
         FileEditorManager manager = FileEditorManager.getInstance(project);
@@ -324,8 +318,7 @@ public class EditorFixture {
         else {
           manager.openFile(file, true);
         }
-      }
-    });
+      });
 
     selectEditorTab(tab);
 
