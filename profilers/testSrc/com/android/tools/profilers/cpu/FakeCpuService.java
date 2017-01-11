@@ -199,12 +199,18 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
   @Override
   public void getThreads(CpuProfiler.GetThreadsRequest request, StreamObserver<CpuProfiler.GetThreadsResponse> responseObserver) {
     CpuProfiler.GetThreadsResponse.Builder response = CpuProfiler.GetThreadsResponse.newBuilder();
+    List<CpuProfiler.GetThreadsResponse.Thread> threads;
     if (myValidTrace) {
-      response.addAllThreads(buildTraceThreads());
+      try {
+        threads = buildTraceThreads();
+      } catch (IOException e) {
+        threads = buildThreads(request.getStartTimestamp(), request.getEndTimestamp());
+      }
     } else {
-      response.addAllThreads(buildThreads(request.getStartTimestamp(), request.getEndTimestamp()));
+      threads = buildThreads(request.getStartTimestamp(), request.getEndTimestamp());
     }
 
+    response.addAllThreads(threads);
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
   }
@@ -258,7 +264,10 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
   /**
    * Create one thread with two activities: RUNNING (2 seconds before capture start) and SLEEPING (2 seconds after capture end).
    */
-  private List<CpuProfiler.GetThreadsResponse.Thread> buildTraceThreads() {
+  private List<CpuProfiler.GetThreadsResponse.Thread> buildTraceThreads() throws IOException {
+    if (myCapture == null) {
+      parseTraceFile();
+    }
     Range range = myCapture.getRange();
     long rangeMid = (long)(range.getMax() + range.getMin()) / 2;
 
