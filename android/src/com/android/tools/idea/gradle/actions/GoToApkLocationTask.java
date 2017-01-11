@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.google.common.collect.Lists;
 import com.intellij.ide.actions.RevealFileAction;
@@ -79,6 +80,9 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
           notification.showBalloon(myNotificationTitle, msg, INFORMATION);
         }
       }
+      else if(result.isBuildCancelled()){
+        notification.showBalloon(myNotificationTitle, "Build cancelled.", INFORMATION);
+      }
       else {
         String msg = "Errors while building APK. You can find the errors in the 'Messages' view.";
         notification.showBalloon(myNotificationTitle, msg, ERROR);
@@ -101,7 +105,9 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
     throw new IllegalArgumentException(msg);
   }
 
-  private static class GoToPathHyperlink extends NotificationHyperlink {
+
+  @VisibleForTesting
+  static class GoToPathHyperlink extends NotificationHyperlink {
     @NotNull private final File myDirPath;
 
     protected GoToPathHyperlink(@NotNull File dirPath) {
