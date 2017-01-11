@@ -31,7 +31,9 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.res.*;
+import com.android.tools.idea.res.FileResourceRepository;
+import com.android.tools.idea.res.ResourceFolderRegistry;
+import com.android.tools.idea.res.ResourceRepositories;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.templates.TemplateManager;
@@ -50,7 +52,6 @@ import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -67,7 +68,6 @@ import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.SystemResourceManager;
 import org.jetbrains.android.sdk.*;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
@@ -95,7 +95,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public static final FacetTypeId<AndroidFacet> ID = new FacetTypeId<>("android");
   public static final String NAME = "Android";
 
-  private static final Object MODULE_RESOURCES_LOCK = new Object();
   private static boolean ourDynamicTemplateMenuCreated;
 
   private AvdManager myAvdManager = null;
@@ -106,7 +105,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private SystemResourceManager myFullSystemResourceManager;
   private LocalResourceManager myLocalResourceManager;
 
-  private LocalResourceRepository myModuleResources;
   private AndroidModel myAndroidModel;
   private final ResourceFolderManager myFolderManager = new ResourceFolderManager(this);
 
@@ -572,26 +570,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return (AndroidFacetType)FacetTypeRegistry.getInstance().findFacetType(ID);
   }
 
-  @Contract("true -> !null")
-  @Nullable
-  public LocalResourceRepository getModuleResources(boolean createIfNecessary) {
-    synchronized (MODULE_RESOURCES_LOCK) {
-      if (myModuleResources == null && createIfNecessary) {
-        myModuleResources = ModuleResourceRepository.create(this);
-        Disposer.register(this, myModuleResources);
-      }
-      return myModuleResources;
-    }
-  }
-
   public void refreshResources() {
-    synchronized (MODULE_RESOURCES_LOCK) {
-      if (myModuleResources != null) {
-        Disposer.dispose(myModuleResources);
-        myModuleResources = null;
-      }
-    }
-
     ResourceRepositories.getOrCreateInstance(this).refreshResources();
     ConfigurationManager.getOrCreateInstance(getModule()).getResolverCache().reset();
     ResourceFolderRegistry.reset();
