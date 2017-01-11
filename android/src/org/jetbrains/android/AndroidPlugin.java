@@ -15,14 +15,13 @@
  */
 package org.jetbrains.android;
 
-import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * @author coyote
  */
-public class AndroidPlugin implements ApplicationComponent {
+public class AndroidPlugin {
   public static Key<Runnable> EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY = Key.create("gui.test.execute.before.build");
   public static Key<Runnable> EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY = Key.create("gui.test.execute.before.sync.task");
   public static Key<String> GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY = Key.create("gui.test.gradle.build.output");
@@ -30,20 +29,6 @@ public class AndroidPlugin implements ApplicationComponent {
 
   private static boolean ourGuiTestingMode;
   private static GuiTestSuiteState ourGuiTestSuiteState;
-
-  @Override
-  @NotNull
-  public String getComponentName() {
-    return "AndroidApplicationComponent";
-  }
-
-  @Override
-  public void initComponent() {
-  }
-
-  @Override
-  public void disposeComponent() {
-  }
 
   public static boolean isGuiTestingMode() {
     return ourGuiTestingMode;

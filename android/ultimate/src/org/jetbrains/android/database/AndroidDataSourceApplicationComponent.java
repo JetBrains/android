@@ -1,24 +1,13 @@
 package org.jetbrains.android.database;
 
-import com.intellij.openapi.components.ApplicationComponent;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.openapi.components.ApplicationComponentAdapter;
 
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidDataSourceApplicationComponent implements ApplicationComponent {
+public class AndroidDataSourceApplicationComponent implements ApplicationComponentAdapter {
   @Override
   public void initComponent() {
     AndroidRemoteDataBaseManager.getInstance().processRemovedProjects();
-  }
-
-  @Override
-  public void disposeComponent() {
-  }
-
-  @NotNull
-  @Override
-  public String getComponentName() {
-    return "AndroidDataSourceApplicationComponent";
   }
 }
