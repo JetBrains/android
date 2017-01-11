@@ -26,9 +26,7 @@ import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
-import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.surface.InteractionManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -47,14 +45,11 @@ import org.jetbrains.android.refactoring.AndroidExtractAsIncludeAction;
 import org.jetbrains.android.refactoring.AndroidExtractStyleAction;
 import org.jetbrains.android.refactoring.AndroidInlineIncludeAction;
 import org.jetbrains.android.refactoring.AndroidInlineStyleReferenceAction;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -62,16 +57,16 @@ import java.util.List;
 /**
  * Provides and handles actions in the layout editor
  */
-public class NlActionManager {
-  private final NlDesignSurface mySurface;
+public class NlActionManager extends ActionManager {
   private AnAction mySelectAllAction;
   private AnAction mySelectParent;
   private GotoComponentAction myGotoComponentAction;
 
   public NlActionManager(@NotNull NlDesignSurface surface) {
-    mySurface = surface;
+    super(surface);
   }
 
+  @Override
   public void registerActions(@NotNull JComponent component) {
     assert mySelectAllAction == null; // should only be called once!
     mySelectAllAction = new SelectAllAction(mySurface);
@@ -84,24 +79,16 @@ public class NlActionManager {
     mySelectParent.registerCustomShortcutSet(KeyEvent.VK_ESCAPE, 0, component);
   }
 
-  private static void registerAction(@NotNull AnAction action, @NonNls String actionId, @NotNull JComponent component) {
-    action.registerCustomShortcutSet(
-      ActionManager.getInstance().getAction(actionId).getShortcutSet(),
-      component
-    );
-  }
-
-  @NotNull
-  public JComponent createToolbar(@NotNull NlModel model) {
-    NlActionsToolbar actionsToolbar = new NlActionsToolbar(mySurface);
-    actionsToolbar.setModel(model);
-    return actionsToolbar.getToolbarComponent();
+  @Override
+  protected ActionsToolbar createActionsToolbar() {
+    return new NlActionsToolbar(mySurface);
   }
 
   @NotNull
   private static ActionGroup createRefactoringMenu() {
     DefaultActionGroup group = new DefaultActionGroup("_Refactor", true);
-    ActionManager manager = ActionManager.getInstance();
+    com.intellij.openapi.actionSystem.ActionManager manager =
+      com.intellij.openapi.actionSystem.ActionManager.getInstance();
 
     AnAction action = manager.getAction(AndroidExtractStyleAction.ACTION_ID);
     group.add(new AndroidRefactoringActionWrapper("_Extract Style...", action));
@@ -148,31 +135,9 @@ public class NlActionManager {
     }
   }
 
-  public void showPopup(@NotNull MouseEvent event) {
-    NlComponent component = null;
-    int x = event.getX();
-    int y = event.getY();
-    ScreenView screenView = mySurface.getScreenView(x, y);
-    if (screenView == null) {
-      screenView = mySurface.getCurrentScreenView();
-    }
-    if (screenView != null) {
-      component = Coordinates.findComponent(screenView, x, y);
-    }
-    showPopup(event, screenView, component);
-  }
-
-  public void showPopup(@NotNull MouseEvent event, @Nullable ScreenView screenView, @Nullable NlComponent leafComponent) {
-    ActionManager actionManager = ActionManager.getInstance();
-
-    DefaultActionGroup group = createPopupMenu(actionManager, screenView, leafComponent);
-    ActionPopupMenu popupMenu = actionManager.createActionPopupMenu("LayoutEditor", group);
-    Component invoker = event.getSource() instanceof Component ? (Component)event.getSource() : mySurface;
-    popupMenu.getComponent().show(invoker, event.getX(), event.getY());
-  }
-
+  @Override
   @NotNull
-  private DefaultActionGroup createPopupMenu(@NotNull ActionManager actionManager,
+  protected DefaultActionGroup createPopupMenu(@NotNull com.intellij.openapi.actionSystem.ActionManager actionManager,
                                              @Nullable ScreenView screenView,
                                              @Nullable NlComponent leafComponent) {
     DefaultActionGroup group = new DefaultActionGroup();
@@ -186,7 +151,7 @@ public class NlActionManager {
       group.addSeparator();
     }
 
-    group.add(new MockupEditAction(mySurface));
+    group.add(new MockupEditAction((NlDesignSurface)mySurface));
     if(leafComponent != null && Mockup.hasMockupAttribute(leafComponent)) {
       group.add(new MockupDeleteAction(leafComponent));
     }
@@ -200,11 +165,11 @@ public class NlActionManager {
     group.addSeparator();
     group.add(myGotoComponentAction);
     group.add(createRefactoringMenu());
-    group.add(new SaveScreenshotAction(mySurface));
+    group.add(new SaveScreenshotAction((NlDesignSurface)mySurface));
 
     if (ConvertToConstraintLayoutAction.ENABLED) {
       group.addSeparator();
-      group.add(new ConvertToConstraintLayoutAction(mySurface));
+      group.add(new ConvertToConstraintLayoutAction((NlDesignSurface)mySurface));
     }
 
     return group;
@@ -216,7 +181,7 @@ public class NlActionManager {
     // Look up view handlers
     int prevCount = group.getChildrenCount();
     NlComponent parent = !component.isRoot() ? component.getParent() : null;
-    addViewActions(group, component, parent, selection, false);
+    addActions(group, component, parent, selection, false);
     if (group.getChildrenCount() > prevCount) {
       group.addSeparator();
     }
@@ -240,7 +205,8 @@ public class NlActionManager {
     return group;
   }
 
-  public void addViewActions(@NotNull DefaultActionGroup group, @Nullable NlComponent component, @Nullable NlComponent parent,
+  @Override
+  public void addActions(@NotNull DefaultActionGroup group, @Nullable NlComponent component, @Nullable NlComponent parent,
                              @NotNull List<NlComponent> newSelection, boolean toolbar) {
     ScreenView screenView = mySurface.getCurrentScreenView();
     if (screenView == null || (parent == null && component == null)) {
@@ -286,9 +252,8 @@ public class NlActionManager {
 
     group.removeAll();
     List<AnAction> target = Lists.newArrayList();
-    NlActionManager actionManager = mySurface.getActionManager();
     for (ViewAction viewAction : viewActions) {
-      actionManager.addActions(target, toolbar, viewAction, mySurface.getProject(), editor, handler, component, newSelection);
+      addActions(target, toolbar, viewAction, mySurface.getProject(), editor, handler, component, newSelection);
     }
     boolean lastWasSeparator = false;
     for (AnAction action : target) {
@@ -721,7 +686,7 @@ public class NlActionManager {
         return super.createPopup(onDispose, context);
       }
 
-      ActionManager actionManager = ActionManager.getInstance();
+      com.intellij.openapi.actionSystem.ActionManager actionManager = com.intellij.openapi.actionSystem.ActionManager.getInstance();
       JPanel panel = new JPanel(new VerticalLayout(0));
       for (List<ViewAction> row : rows) {
         if (row.size() == 1 && row.get(0) instanceof ViewActionSeparator) {
