@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.idea.IdeaApplication;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ScrollPaneFactory;
 import org.jetbrains.annotations.NotNull;
@@ -37,9 +38,9 @@ import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 public class NlComponentTreePanel extends JPanel implements ToolContent<DesignSurface> {
   private final NlComponentTree myTree;
 
-  public NlComponentTreePanel() {
+  public NlComponentTreePanel(@NotNull Project project) {
     super(new BorderLayout());
-    myTree = new NlComponentTree(null);
+    myTree = new NlComponentTree(project, null);
     add(ScrollPaneFactory.createScrollPane(myTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER), BorderLayout.CENTER);
     Disposer.register(this, myTree);
   }
