@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.IdeProfilerServicesStub;
@@ -31,40 +30,22 @@ import org.junit.Before;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public abstract class MemoryProfilerTestBase extends AspectObserver {
+public abstract class MemoryProfilerTestBase {
   protected StudioProfilers myProfilers;
   protected MemoryProfilerStage myStage;
   protected MockCaptureObjectLoader myMockLoader;
-
-  protected int myLegacyAllocationAspectCount;
-  protected int myCurrentLoadedCaptureAspectCount;
-  protected int myCurrentLoadingCaptureAspectCount;
-  protected int myCurrentHeapAspectCount;
-  protected int myCurrentClassAspectCount;
-  protected int myCurrentInstanceAspectCount;
-  protected int myCurrentGroupingAspectCount;
+  protected MemoryAspectObserver myAspectObserver;
 
   @Before
   public void setupBase() {
-    resetCounts();
-
     myProfilers = new StudioProfilers(getGrpcChannel().getClient(), new IdeProfilerServicesStub());
     onProfilersCreated(myProfilers);
     myMockLoader = new MockCaptureObjectLoader();
     myStage = new MemoryProfilerStage(myProfilers, myMockLoader);
-
-    myStage.getAspect().addDependency(this)
-      .onChange(MemoryProfilerAspect.LEGACY_ALLOCATION, () -> ++myLegacyAllocationAspectCount)
-      .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, () -> ++myCurrentLoadingCaptureAspectCount)
-      .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, () -> ++myCurrentLoadedCaptureAspectCount)
-      .onChange(MemoryProfilerAspect.CLASS_GROUPING, () -> ++myCurrentGroupingAspectCount)
-      .onChange(MemoryProfilerAspect.CURRENT_HEAP, () -> ++myCurrentHeapAspectCount)
-      .onChange(MemoryProfilerAspect.CURRENT_CLASS, () -> ++myCurrentClassAspectCount)
-      .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, () -> ++myCurrentInstanceAspectCount);
+    myAspectObserver = new MemoryAspectObserver(myStage.getAspect());
     myProfilers.setStage(myStage);
   }
 
@@ -74,33 +55,6 @@ public abstract class MemoryProfilerTestBase extends AspectObserver {
   protected abstract FakeGrpcChannel getGrpcChannel();
 
   protected void onProfilersCreated(StudioProfilers profilers) {
-  }
-
-  protected void assertAndResetCounts(int legacyAllocationAspect,
-                                      int currentLoadingCaptureAspectCount,
-                                      int currentLoadedCaptureAspect,
-                                      int currentGroupingAspectCount,
-                                      int currentHeapAspectCount,
-                                      int currentClassAspectCount,
-                                      int currentInstanceAspectCount) {
-    assertEquals(legacyAllocationAspect, myLegacyAllocationAspectCount);
-    assertEquals(currentLoadingCaptureAspectCount, myCurrentLoadingCaptureAspectCount);
-    assertEquals(currentLoadedCaptureAspect, myCurrentLoadedCaptureAspectCount);
-    assertEquals(currentGroupingAspectCount, myCurrentGroupingAspectCount);
-    assertEquals(currentHeapAspectCount, myCurrentHeapAspectCount);
-    assertEquals(currentClassAspectCount, myCurrentClassAspectCount);
-    assertEquals(currentInstanceAspectCount, myCurrentInstanceAspectCount);
-    resetCounts();
-  }
-
-  protected void resetCounts() {
-    myLegacyAllocationAspectCount = 0;
-    myCurrentLoadingCaptureAspectCount = 0;
-    myCurrentLoadedCaptureAspectCount = 0;
-    myCurrentGroupingAspectCount = 0;
-    myCurrentHeapAspectCount = 0;
-    myCurrentClassAspectCount = 0;
-    myCurrentInstanceAspectCount = 0;
   }
 
   protected static class MockCaptureObjectLoader extends CaptureObjectLoader {
@@ -185,20 +139,21 @@ public abstract class MemoryProfilerTestBase extends AspectObserver {
   }
 
   @NotNull
-  static InstanceObject mockInstanceObject(@NotNull String name) {
+  static InstanceObject mockInstanceObject(@NotNull String className, @NotNull String label) {
     InstanceObject object = mock(InstanceObject.class);
-    when(object.getName()).thenReturn(name);
+    when(object.getClassName()).thenReturn(className);
+    when(object.getDisplayLabel()).thenReturn(label);
     when(object.getCallStack()).thenReturn(MemoryProfiler.AllocationStack.newBuilder()
                                              .addStackFrames(MemoryProfiler.AllocationStack.StackFrame.newBuilder().build()).build());
     return object;
   }
 
   @NotNull
-  static ReferenceObject mockReferenceObject(@NotNull String name,
+  static ReferenceObject mockReferenceObject(@NotNull String label,
                                              @NotNull List<ReferenceObject> referrers,
                                              @Nullable MemoryProfiler.AllocationStack stack) {
     ReferenceObject object = mock(ReferenceObject.class);
-    when(object.getName()).thenReturn(name);
+    when(object.getDisplayLabel()).thenReturn(label);
     when(object.getReferences()).thenReturn(referrers);
     when(object.getReferenceFieldNames()).thenReturn(Collections.emptyList());
     when(object.getCallStack()).thenReturn(stack == null ? MemoryProfiler.AllocationStack.newBuilder().build() : stack);

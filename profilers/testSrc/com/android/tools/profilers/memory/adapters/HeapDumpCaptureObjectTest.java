@@ -175,18 +175,18 @@ public class HeapDumpCaptureObjectTest {
   }
 
   private void verifyInstance(InstanceObject instance, String name, int depth, int fieldSize, int referenceSize) {
-    assertEquals(name, instance.getName());
+    assertEquals(name, instance.getDisplayLabel());
     assertEquals(depth, instance.getDepth());
     assertEquals(fieldSize, instance.getFields().size());
     assertEquals(referenceSize, instance.getReferences().size());
   }
 
   private void verifyField(FieldObject field, String name) {
-    assertEquals(name, field.getName());
+    assertEquals(name, field.getDisplayLabel());
   }
 
   private void verifyReference(ReferenceObject reference, String referrerName, List<String> referrerFieldNames) {
-    assertEquals(referrerName, reference.getName());
+    assertEquals(referrerName, reference.getDisplayLabel());
     assertEquals(referrerFieldNames, reference.getReferenceFieldNames());
   }
 }

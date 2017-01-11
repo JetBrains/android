@@ -18,6 +18,7 @@ package com.android.tools.profilers.memory.adapters;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
@@ -65,7 +66,13 @@ final class AllocationsInstanceObject implements InstanceObject {
 
   @NotNull
   @Override
-  public String getName() {
+  public String getDisplayLabel() {
+    return getClassName();
+  }
+
+  @Nullable
+  @Override
+  public String getClassName() {
     return myAllocationsClassObject.getName();
   }
 

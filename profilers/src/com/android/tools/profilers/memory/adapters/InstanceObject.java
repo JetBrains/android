@@ -57,7 +57,10 @@ public interface InstanceObject extends MemoryObject {
   }
 
   @NotNull
-  String getName();
+  String getDisplayLabel();
+
+  @Nullable
+  String getClassName();
 
   default int getDepth() {
     return INVALID_VALUE;
@@ -103,6 +106,6 @@ public interface InstanceObject extends MemoryObject {
   }
 
   default List<InstanceAttribute> getReferenceAttributes() {
-    return Collections.EMPTY_LIST;
+    return Collections.emptyList();
   }
 }

@@ -15,32 +15,52 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.IdeProfilerServicesStub;
-import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.HeapObject;
 import com.android.tools.profilers.memory.adapters.NamespaceObject;
+import com.android.tools.profilers.common.CodeLocation;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import javax.swing.*;
 import javax.swing.tree.TreePath;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.GROUP_BY_PACKAGE;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.NO_GROUPING;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 public class MemoryClassViewTest {
   @Rule
   public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MEMORY_TEST_CHANNEL", new FakeMemoryService());
+
+  private FakeIdeProfilerComponents myFakeIdeProfilerComponents;
+  private MemoryProfilerStage myStage;
+  private MemoryProfilerStageView myStageView;
+
+  @Before
+  public void before() {
+    IdeProfilerServicesStub profilerServices = new IdeProfilerServicesStub();
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), profilerServices);
+
+    myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
+    StudioProfilersView profilersView = new StudioProfilersView(profilers, myFakeIdeProfilerComponents);
+
+    myStage = spy(new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), profilerServices)));
+    myStageView = new MemoryProfilerStageView(profilersView, myStage);
+  }
 
   /**
    * Tests that the component generates the classes JTree model accurately based on the package hierarchy
@@ -48,9 +68,7 @@ public class MemoryClassViewTest {
    */
   @Test
   public void buildClassesTreeTest() {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub());
-    MemoryProfilerStage stage = new MemoryProfilerStage(profilers);
-    MemoryClassView classView = new MemoryClassView(stage);
+    MemoryClassView classView = new MemoryClassView(myStage, myFakeIdeProfilerComponents);
 
     // Setup fake package hierarchy
     ClassObject mockClass1 = MemoryProfilerTestBase.mockClassObject("int", Collections.emptyList());
@@ -61,14 +79,22 @@ public class MemoryClassViewTest {
     ClassObject mockClass6 = MemoryProfilerTestBase.mockClassObject("long", Collections.emptyList());
     List<ClassObject> fakeClassObjects = Arrays.asList(mockClass1, mockClass2, mockClass3, mockClass4, mockClass5, mockClass6);
     HeapObject mockHeap = MemoryProfilerTestBase.mockHeapObject("Test", fakeClassObjects);
-    stage.selectHeap(mockHeap);
+    myStage.selectHeap(mockHeap);
 
-    assertEquals(stage.getConfiguration().getClassGrouping(), NO_GROUPING);
-    // Check if group by package is grouping as expected.
-    stage.getConfiguration().setClassGrouping(GROUP_BY_PACKAGE);
+    assertEquals(myStage.getConfiguration().getClassGrouping(), NO_GROUPING);
     assertNotNull(classView.getTree());
-    Object root = classView.getTree().getModel().getRoot();
+    JTree classTree = classView.getTree();
+    Object root = classTree.getModel().getRoot();
     assertTrue(root instanceof MemoryObjectTreeNode);
+    //noinspection unchecked
+    classTree.setSelectionPath(new TreePath(new Object[]{root,
+      ((MemoryObjectTreeNode<NamespaceObject>)classTree.getModel().getRoot()).getChildren().get(0)}));
+
+    // Check if group by package is grouping as expected.
+    myStage.getConfiguration().setClassGrouping(GROUP_BY_PACKAGE);
+    assertTrue(classTree.getSelectionPath().getLastPathComponent() instanceof MemoryObjectTreeNode);
+    //noinspection unchecked
+    assertEquals(mockClass1, ((MemoryObjectTreeNode<ClassObject>)classTree.getSelectionPath().getLastPathComponent()).getAdapter());
     assertTrue(((MemoryObjectTreeNode)root).getAdapter() instanceof NamespaceObject);
     //noinspection unchecked
     ImmutableList<MemoryObjectTreeNode<NamespaceObject>> children = ((MemoryObjectTreeNode<NamespaceObject>)root).getChildren();
@@ -98,9 +124,8 @@ public class MemoryClassViewTest {
     assertEquals(mockClass4, androidPackage.getChildren().get(1).getAdapter());
 
     // Check if flat list is correct.
-    stage.getConfiguration().setClassGrouping(NO_GROUPING);
-    assertNotNull(classView.getTree());
-    root = classView.getTree().getModel().getRoot();
+    myStage.getConfiguration().setClassGrouping(NO_GROUPING);
+    root = classTree.getModel().getRoot();
     assertTrue(root instanceof MemoryObjectTreeNode);
     assertTrue(((MemoryObjectTreeNode)root).getAdapter() instanceof NamespaceObject);
     //noinspection unchecked
@@ -119,58 +144,83 @@ public class MemoryClassViewTest {
    */
   @Test
   public void classTreeSelectionTest() {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub());
-    MemoryProfilerStage stage = new MemoryProfilerStage(profilers);
-    MemoryClassView classView = new MemoryClassView(stage);
+    MemoryClassView classView = new MemoryClassView(myStage, myFakeIdeProfilerComponents);
 
     // Setup fake package hierarchy
     ClassObject fake1 = MemoryProfilerTestBase.mockClassObject("int", Collections.emptyList());
     ClassObject fake2 = MemoryProfilerTestBase.mockClassObject("com.Foo", Collections.emptyList());
     List<ClassObject> fakeClassObjects = Arrays.asList(fake1, fake2);
     HeapObject mockHeap = MemoryProfilerTestBase.mockHeapObject("Test", fakeClassObjects);
-    stage.selectHeap(mockHeap);
+    myStage.selectHeap(mockHeap);
 
-    assertEquals(stage.getConfiguration().getClassGrouping(), NO_GROUPING);
-    assertNull(stage.getSelectedClass());
+    assertEquals(myStage.getConfiguration().getClassGrouping(), NO_GROUPING);
+    assertNull(myStage.getSelectedClass());
     assertNotNull(classView.getTree());
-    Object root = classView.getTree().getModel().getRoot();
+    JTree classTree = classView.getTree();
+    Object root = classTree.getModel().getRoot();
     assertTrue(root instanceof MemoryObjectTreeNode);
     assertTrue(((MemoryObjectTreeNode)root).getAdapter() instanceof NamespaceObject);
     //noinspection unchecked
     ImmutableList<MemoryObjectTreeNode<NamespaceObject>> children = ((MemoryObjectTreeNode<NamespaceObject>)root).getChildren();
     assertEquals(2, children.size());
-    classView.getTree().setSelectionPath(new TreePath(new Object[]{root, children.get(0)}));
+    classTree.setSelectionPath(new TreePath(new Object[]{root, children.get(0)}));
     MemoryObjectTreeNode<NamespaceObject> selectedClassNode = children.get(0);
-    assertEquals(selectedClassNode.getAdapter(), stage.getSelectedClass());
-    assertEquals(selectedClassNode, classView.getTree().getSelectionPath().getLastPathComponent());
+    assertEquals(selectedClassNode.getAdapter(), myStage.getSelectedClass());
+    assertEquals(selectedClassNode, classTree.getSelectionPath().getLastPathComponent());
 
-    stage.getConfiguration().setClassGrouping(GROUP_BY_PACKAGE);
+    myStage.getConfiguration().setClassGrouping(GROUP_BY_PACKAGE);
     // Check that after changing to GROUP_BY_PACKAGE, the originally selected item is reselected.
-    Object reselected = classView.getTree().getSelectionPath().getLastPathComponent();
+    Object reselected = classTree.getSelectionPath().getLastPathComponent();
     assertNotNull(reselected);
     assertTrue(reselected instanceof MemoryObjectTreeNode && ((MemoryObjectTreeNode)reselected).getAdapter() instanceof ClassObject);
     assertEquals(selectedClassNode.getAdapter(), ((MemoryObjectTreeNode)reselected).getAdapter());
 
     // Try selecting a package -- this should not result in any changes to the state.
     MemoryObjectTreeNode<NamespaceObject> comPackage = getSingularInList(children, (child) -> child.getAdapter().getName().equals("com"));
-    ClassObject selectedClass = stage.getSelectedClass();
-    classView.getTree().setSelectionPath(new TreePath(new Object[]{root, comPackage}));
-    assertEquals(selectedClass, stage.getSelectedClass());
+    ClassObject selectedClass = myStage.getSelectedClass();
+    classTree.setSelectionPath(new TreePath(new Object[]{root, comPackage}));
+    assertEquals(selectedClass, myStage.getSelectedClass());
   }
 
   @Test
   public void classTreeNodeComparatorTest() {
     MemoryObjectTreeNode<NamespaceObject> package1 = new MemoryObjectTreeNode<>(MemoryProfilerTestBase.mockPackageObject("bar"));
     MemoryObjectTreeNode<NamespaceObject> package2 = new MemoryObjectTreeNode<>(MemoryProfilerTestBase.mockPackageObject("foo"));
-    MemoryObjectTreeNode<ClassObject> class1 = new MemoryObjectTreeNode<>(MemoryProfilerTestBase.mockClassObject("abar", Collections.emptyList()));
-    MemoryObjectTreeNode<ClassObject> class2 = new MemoryObjectTreeNode<>(MemoryProfilerTestBase.mockClassObject("zoo", Collections.emptyList()));
+    MemoryObjectTreeNode<ClassObject> class1 =
+      new MemoryObjectTreeNode<>(MemoryProfilerTestBase.mockClassObject("abar", Collections.emptyList()));
+    MemoryObjectTreeNode<ClassObject> class2 =
+      new MemoryObjectTreeNode<>(MemoryProfilerTestBase.mockClassObject("zoo", Collections.emptyList()));
 
     Comparator<MemoryObjectTreeNode> comparator =
-      MemoryClassView.createTreeNodeComparator((o1, o2) -> o1.getClassName().compareTo(o2.getClassName()));
+      MemoryClassView.createTreeNodeComparator(Comparator.comparing(ClassObject::getClassName));
     assertTrue(comparator.compare(package1, package2) < 0);
     assertTrue(comparator.compare(class1, class2) < 0);
     assertTrue(comparator.compare(package1, class1) < 0);
     assertTrue(comparator.compare(class1, package1) > 0);
+  }
+
+  @Test
+  public void navigationTest() {
+    final String testClassName = "com.Foo";
+    ClassObject mockClass = MemoryProfilerTestBase.mockClassObject(testClassName, Collections.emptyList());
+    HeapObject mockHeap = MemoryProfilerTestBase.mockHeapObject("Test", Collections.singletonList(mockClass));
+    myStage.selectHeap(mockHeap);
+    myStage.selectClass(mockClass);
+
+    JTree classTree = myStageView.getClassView().getTree();
+    assertNotNull(classTree);
+    Supplier<CodeLocation> codeLocationSupplier = myFakeIdeProfilerComponents.getCodeLocationSupplier(classTree);
+
+    assertNotNull(codeLocationSupplier);
+    CodeLocation codeLocation = codeLocationSupplier.get();
+    assertNotNull(codeLocation);
+    String codeLocationClassName = codeLocation.getClassName();
+    assertEquals(testClassName, codeLocationClassName);
+
+    Runnable preNavigate = myFakeIdeProfilerComponents.getPreNavigate(classTree);
+    assertNotNull(preNavigate);
+    preNavigate.run();
+    verify(myStage).setProfilerMode(ProfilerMode.NORMAL);
   }
 
   private static <T> T getSingularInList(@NotNull List<T> list, @NotNull Predicate<T> predicate) {

@@ -21,11 +21,9 @@ import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * A UI representation of a {@link Field}.
@@ -86,13 +84,19 @@ final class HeapDumpFieldObject implements FieldObject {
 
   @NotNull
   @Override
-  public String getName() {
+  public String getDisplayLabel() {
     if (myField.getValue() == null) {
       return myField.getField().getName() + "= {null}";
     }
     else {
       return myField.getField().getName() + "=" + myField.getValue().toString();
     }
+  }
+
+  @Nullable
+  @Override
+  public String getClassName() {
+    return null;
   }
 
   @Override

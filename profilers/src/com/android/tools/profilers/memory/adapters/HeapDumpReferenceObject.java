@@ -15,32 +15,39 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.perflib.heap.Instance;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 class HeapDumpReferenceObject implements ReferenceObject {
 
   @NotNull private final InstanceObject myReferrer;
 
-  @NotNull private final List<String> myReferrerFieldNames;
+  @NotNull private final List<String> myReferencingFieldNames;
 
-  public HeapDumpReferenceObject(@NotNull InstanceObject referrer, @NotNull List<String> referenceNames) {
+  public HeapDumpReferenceObject(@NotNull InstanceObject referrer, @NotNull List<String> referencingFieldNames) {
     myReferrer = referrer;
-    myReferrerFieldNames = new ArrayList<>(referenceNames);
+    myReferencingFieldNames = referencingFieldNames;
   }
 
   @NotNull
   @Override
-  public String getName() {
-    return myReferrer.getName();
+  public String getDisplayLabel() {
+    return myReferrer.getDisplayLabel();
+  }
+
+  @Nullable
+  @Override
+  public String getClassName() {
+    return myReferrer.getClassName();
   }
 
   @NotNull
   @Override
   public List<String> getReferenceFieldNames() {
-    return myReferrerFieldNames;
+    return myReferencingFieldNames;
   }
 
   @Override

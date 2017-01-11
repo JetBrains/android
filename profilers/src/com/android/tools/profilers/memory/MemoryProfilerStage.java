@@ -61,6 +61,9 @@ public class MemoryProfilerStage extends Stage {
   @NotNull
   private AspectModel<MemoryProfilerAspect> myAspect = new AspectModel<>();
 
+  @NotNull
+  private ProfilerMode myProfilerMode = ProfilerMode.NORMAL;
+
   private final MemoryServiceBlockingStub myClient;
   private final DurationDataModel<CaptureDurationData<HeapDumpCaptureObject>> myHeapDumpDurations;
   private final DurationDataModel<CaptureDurationData<AllocationsCaptureObject>> myAllocationDurations;
@@ -143,7 +146,14 @@ public class MemoryProfilerStage extends Stage {
 
   @Override
   public ProfilerMode getProfilerMode() {
-    return mySelection.getCaptureObject() == null ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED;
+    return myProfilerMode;
+  }
+
+  public void setProfilerMode(@NotNull ProfilerMode profilerMode) {
+    if (profilerMode != myProfilerMode) {
+      myProfilerMode = profilerMode;
+      getStudioProfilers().modeChanged();
+    }
   }
 
   @NotNull
@@ -249,7 +259,7 @@ public class MemoryProfilerStage extends Stage {
       return;
     }
 
-    getStudioProfilers().modeChanged();
+    setProfilerMode(ProfilerMode.EXPANDED);
 
     ProfilerTimeline timeline = getStudioProfilers().getTimeline();
     if (captureObject != null) {

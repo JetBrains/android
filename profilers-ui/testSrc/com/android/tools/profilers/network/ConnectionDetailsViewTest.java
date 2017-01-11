@@ -16,18 +16,21 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.common.CodeLocation;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.labels.LinkLabel;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.*;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import javax.swing.*;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
@@ -67,7 +70,7 @@ public class ConnectionDetailsViewTest {
   @Test
   public void viewIsNotVisibleWhenDataIsNull() {
     myView.setVisible(true);
-    myView.update((HttpData) null);
+    myView.update((HttpData)null);
     assertFalse(myView.isVisible());
   }
 
@@ -77,12 +80,12 @@ public class ConnectionDetailsViewTest {
     myView.update(myHttpData);
     assertNotNull(myView.getFileViewer());
     assertNotNull(myView.getFieldComponent(0));
-    assertEquals(1, myView.getCallStackView().getComponentCount());
+    assertEquals(1, myView.getStackView().getComponentCount());
 
-    myView.update((HttpData) null);
+    myView.update((HttpData)null);
     assertNull(myView.getFileViewer());
     assertNull(myView.getFieldComponent(0));
-    assertEquals(0, myView.getCallStackView().getComponentCount());
+    assertEquals(0, myView.getStackView().getComponentCount());
   }
 
   @Test
@@ -106,7 +109,7 @@ public class ConnectionDetailsViewTest {
     myView.update(myHttpData);
     int responseFieldIndex = myView.getFieldComponentIndex("Request");
     assertNotEquals(-1, responseFieldIndex);
-    JLabel value = (JLabel) myView.getFieldComponent(responseFieldIndex + 1);
+    JLabel value = (JLabel)myView.getFieldComponent(responseFieldIndex + 1);
     assertEquals("dumbUrl", value.getText());
   }
 
@@ -117,7 +120,7 @@ public class ConnectionDetailsViewTest {
     myView.update(myHttpData);
     int contentTypeFieldIndex = myView.getFieldComponentIndex("Content type");
     assertNotEquals(-1, contentTypeFieldIndex);
-    JLabel value = (JLabel) myView.getFieldComponent(contentTypeFieldIndex + 1);
+    JLabel value = (JLabel)myView.getFieldComponent(contentTypeFieldIndex + 1);
     assertEquals("testContentTypeValue", value.getText());
   }
 
@@ -134,7 +137,7 @@ public class ConnectionDetailsViewTest {
     myView.update(myHttpData);
     int urlFieldIndex = myView.getFieldComponentIndex("URL");
     assertNotEquals(-1, urlFieldIndex);
-    HyperlinkLabel value = (HyperlinkLabel) myView.getFieldComponent(urlFieldIndex + 1);
+    HyperlinkLabel value = (HyperlinkLabel)myView.getFieldComponent(urlFieldIndex + 1);
     // Testing hack: HyperLink label doesn't expose its text directly, but does for accessibility
     // readers, so we use that instead.
     assertTrue(value.getAccessibleContext().getAccessibleName().contains("dumbUrl"));
@@ -147,7 +150,7 @@ public class ConnectionDetailsViewTest {
     myView.update(myHttpData);
     int contentLengthFieldIndex = myView.getFieldComponentIndex("Content length");
     assertNotEquals(-1, contentLengthFieldIndex);
-    JLabel value = (JLabel) myView.getFieldComponent(contentLengthFieldIndex + 1);
+    JLabel value = (JLabel)myView.getFieldComponent(contentLengthFieldIndex + 1);
     assertEquals("testContentLengthValue", value.getText());
   }
 
@@ -160,42 +163,39 @@ public class ConnectionDetailsViewTest {
 
   @Test
   public void callstackViewHasProperValueFromData() {
-    assertEquals(0,  myView.getCallStackView().getComponentCount());
+    assertEquals(0, myView.getStackView().getComponentCount());
 
     myView.update(myHttpData);
-    assertEquals(1,  myView.getCallStackView().getComponentCount());
+    assertEquals(1, myView.getStackView().getComponentCount());
 
-    assertEquals("dumbTrace", ((JLabel) myView.getCallStackView().getComponent(0)).getText());
+    assertEquals("dumbTrace", ((JLabel)myView.getStackView().getComponent(0)).getText());
   }
 
   @Test
   public void callStackLineClick() {
-    when(myHttpData.getTrace()).thenReturn("line1\nline2\nline3");
+    List<String> classNames = Arrays.asList("java.lang.Integer.intValue()", "com.foo.Bar.method()", "int");
+    when(myHttpData.getTrace()).thenReturn(String.join("\n", classNames));
 
     final String[] lastLine = new String[1];
 
     doAnswer(invocation -> {
-      lastLine[0] = (String)invocation.getArguments()[0];
+      lastLine[0] = ((CodeLocation)invocation.getArguments()[0]).getClassName();
       return true;
-    }).when(myIdeServices).navigateToStackTraceLine(anyString());
+    }).when(myIdeServices).navigateToStackFrame(any());
 
     myView.update(myHttpData);
-    assertEquals(3,  myView.getCallStackView().getComponentCount());
+    assertEquals(3, myView.getStackView().getComponentCount());
 
-    LinkLabel link1 = (LinkLabel)myView.getCallStackView().getComponent(0);
-    LinkLabel link2 = (LinkLabel)myView.getCallStackView().getComponent(1);
-    LinkLabel link3 = (LinkLabel)myView.getCallStackView().getComponent(2);
+    LinkLabel link0 = (LinkLabel)myView.getStackView().getComponent(0);
+    LinkLabel link1 = (LinkLabel)myView.getStackView().getComponent(1);
+    assert myView.getStackView().getComponent(2) instanceof JLabel;
+
+    lastLine[0] = null;
+    link0.doClick();
+    assertEquals(classNames.get(0).substring(0, classNames.get(0).lastIndexOf('.')), lastLine[0]);
 
     lastLine[0] = null;
     link1.doClick();
-    assertEquals("line1", lastLine[0]);
-
-    lastLine[0] = null;
-    link2.doClick();
-    assertEquals("line2", lastLine[0]);
-
-    lastLine[0] = null;
-    link3.doClick();
-    assertEquals("line3", lastLine[0]);
+    assertEquals(classNames.get(1).substring(0, classNames.get(1).lastIndexOf('.')), lastLine[0]);
   }
 }
