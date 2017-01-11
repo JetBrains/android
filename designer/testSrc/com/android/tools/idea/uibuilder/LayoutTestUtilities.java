@@ -29,8 +29,14 @@ import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.InteractionManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.KeyboardShortcut;
+import com.intellij.openapi.actionSystem.Shortcut;
+import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -188,5 +194,19 @@ public class LayoutTestUtilities {
     View view = mock(View.class);
     when(view.getBaseline()).thenReturn(baseline);
     return view;
+  }
+
+  @Nullable
+  public static AnAction findActionForKey(@NotNull JComponent component, int keyCode, int modifiers) {
+    Shortcut shortcutToFind = new KeyboardShortcut(KeyStroke.getKeyStroke(keyCode, modifiers), null);
+    java.util.List<AnAction> actions = ActionUtil.getActions(component);
+    for (AnAction action : actions) {
+      for (Shortcut shortcut : action.getShortcutSet().getShortcuts()) {
+        if (shortcut.equals(shortcutToFind)) {
+          return action;
+        }
+      }
+    }
+    return null;
   }
 }

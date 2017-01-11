@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.structure;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.*;
@@ -31,6 +32,7 @@ import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColoredTreeCellRenderer;
@@ -56,6 +58,8 @@ import java.awt.*;
 import java.awt.Insets;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DropTarget;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -82,12 +86,14 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private InsertionPoint myInsertionPoint;
   private boolean mySkipWait;
 
-  public NlComponentTree(@Nullable NlDesignSurface designSurface) {
-    this(designSurface, CopyPasteManager.getInstance());
+  public NlComponentTree(@NotNull Project project, @Nullable NlDesignSurface designSurface) {
+    this(project, designSurface, CopyPasteManager.getInstance());
   }
 
   @VisibleForTesting
-  NlComponentTree(@Nullable NlDesignSurface designSurface, @NotNull CopyPasteManager copyPasteManager) {
+  NlComponentTree(@NotNull Project project,
+                  @Nullable NlDesignSurface designSurface,
+                  @NotNull CopyPasteManager copyPasteManager) {
     mySelectionIsUpdating = new AtomicBoolean(false);
     myCopyPasteManager = copyPasteManager;
     myUpdateQueue = new MergingUpdateQueue(
@@ -110,6 +116,12 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     new StructureSpeedSearch(this);
     enableDnD();
     addMouseListener(new StructurePaneMouseListener());
+
+    ComponentHelpAction help = new ComponentHelpAction(project, () -> {
+      List<NlComponent> components = getSelectedComponents();
+      return !components.isEmpty() ? components.get(0).getTagName() : null;
+    });
+    help.registerCustomShortcutSet(KeyEvent.VK_F1, InputEvent.SHIFT_MASK, this);
   }
 
   private void enableDnD() {
@@ -358,6 +370,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     super.clearToggledPaths();
   }
 
+  @NotNull
   public List<NlComponent> getSelectedComponents() {
     List<NlComponent> selected = new ArrayList<>();
     TreePath[] paths = getSelectionPaths();
