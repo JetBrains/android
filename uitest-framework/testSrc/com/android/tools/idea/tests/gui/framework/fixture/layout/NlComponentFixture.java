@@ -20,7 +20,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
@@ -38,11 +38,11 @@ import java.lang.reflect.InvocationTargetException;
 public class NlComponentFixture {
   private final Robot myRobot;
   private final NlComponent myComponent;
-  private final NlDesignSurface mySurface;
+  private final DesignSurface mySurface;
 
   public NlComponentFixture(@NotNull Robot robot,
                             @NotNull NlComponent component,
-                            @NotNull NlDesignSurface surface) {
+                            @NotNull DesignSurface surface) {
     myRobot = robot;
     myComponent = component;
     mySurface = surface;

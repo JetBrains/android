@@ -91,6 +91,7 @@ public class NlDesignSurface extends DesignSurface {
   private boolean myStackVertically;
   private boolean myMockupVisible;
   private MockupEditor myMockupEditor;
+  private boolean myCentered;
 
   public NlDesignSurface(@NotNull Project project, boolean inPreview) {
     super(project, inPreview);
@@ -276,6 +277,10 @@ public class NlDesignSurface extends DesignSurface {
       stackVertically = true;
     }
     return stackVertically;
+  }
+
+  public void setCentered(boolean centered) {
+    myCentered = centered;
   }
 
   @Override
