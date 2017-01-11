@@ -24,7 +24,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.apk.AndroidApkFacet;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -98,8 +97,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private static boolean ourDynamicTemplateMenuCreated;
 
   private AvdManager myAvdManager = null;
-  private AndroidSdkData mySdkData;
-  private AndroidSdkHandler myHandler;
 
   private SystemResourceManager myPublicSystemResourceManager;
   private SystemResourceManager myFullSystemResourceManager;
@@ -343,27 +340,10 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public AvdManager getAvdManager(ILogger log) throws AndroidLocation.AndroidLocationException {
     if (myAvdManager == null) {
       // ensure the handler is created
-      getSdkData();
-      myAvdManager = AvdManager.getInstance(myHandler, log);
+      AndroidSdkData.getSdkData(this);
+      myAvdManager = AvdManager.getInstance(AndroidSdkData.getSdkHolder(this), log);
     }
     return myAvdManager;
-  }
-
-  @Nullable
-  public AndroidSdkData getSdkData() {
-    if (mySdkData == null) {
-      AndroidPlatform platform = getConfiguration().getAndroidPlatform();
-      if (platform != null) {
-        mySdkData = platform.getSdkData();
-        myHandler = mySdkData.getSdkHandler();
-      }
-      else {
-        mySdkData = null;
-        myHandler = AndroidSdkHandler.getInstance(null);
-      }
-    }
-
-    return mySdkData;
   }
 
   private static void createDynamicTemplateMenu() {
