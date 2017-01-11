@@ -52,6 +52,11 @@ public abstract class PTableItem {
     return Collections.emptyList();
   }
 
+  @NotNull
+  public String getChildLabel(@NotNull PTableItem item) {
+    return item.getName();
+  }
+
   @Nullable
   public PTableItem getParent() {
     return myParent;

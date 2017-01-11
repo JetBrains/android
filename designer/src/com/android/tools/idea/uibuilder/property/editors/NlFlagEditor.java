@@ -79,7 +79,7 @@ public class NlFlagEditor extends NlBaseComponentEditor implements NlComponentEd
 
   @Override
   public void setProperty(@NotNull NlProperty property) {
-    assert property instanceof NlFlagPropertyItemValue;
+    assert property instanceof NlFlagPropertyItemValue || property == EmptyProperty.INSTANCE;
     if (property != myProperty) {
       myProperty = property;
       if (myIncludeLabel) {

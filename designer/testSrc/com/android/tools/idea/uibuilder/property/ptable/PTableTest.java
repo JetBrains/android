@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property.ptable;
 
+import com.android.tools.idea.uibuilder.property.ptable.simple.SimpleGroupItem;
+import com.android.tools.idea.uibuilder.property.ptable.simple.SimpleItem;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -34,7 +36,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -67,7 +68,7 @@ public class PTableTest extends AndroidTestCase {
     myItem1 = new SimpleItem("other1", "other");
     myItem2 = new SimpleItem("other2", null);
     myItem3 = new SimpleItem("other3", "something");
-    GroupItem groupItem = new GroupItem("group", ImmutableList.of(myItem1, myItem2, myItem3));
+    SimpleGroupItem groupItem = new SimpleGroupItem("group", ImmutableList.of(myItem1, myItem2, myItem3));
     PTableModel model = new PTableModel();
     model.setItems(ImmutableList.of(mySimpleItem, myEmptyItem, groupItem));
     myTable = new PTable(model, myCopyPasteManager);
@@ -274,71 +275,5 @@ public class PTableTest extends AndroidTestCase {
     assertThat(transferable).isNotNull();
     assertThat(transferable.isDataFlavorSupported(DataFlavor.stringFlavor)).isTrue();
     assertThat(transferable.getTransferData(DataFlavor.stringFlavor)).isEqualTo(value);
-  }
-
-  private static class SimpleItem extends PTableItem {
-    private String myName;
-    private String myValue;
-    private StarState myStarState;
-
-    private SimpleItem(@NotNull String name, @Nullable String value) {
-      myName = name;
-      myValue = value;
-      myStarState = StarState.STAR_ABLE;
-    }
-
-    @NotNull
-    @Override
-    public String getName() {
-      return myName;
-    }
-
-    @Nullable
-    @Override
-    public String getValue() {
-      return myValue;
-    }
-
-    @NotNull
-    @Override
-    public StarState getStarState() {
-      return myStarState;
-    }
-
-    @Override
-    public void setStarState(@NotNull StarState starState) {
-      myStarState = starState;
-    }
-
-    @Nullable
-    @Override
-    public String getResolvedValue() {
-      return myValue;
-    }
-
-    @Override
-    public boolean isDefaultValue(@Nullable String value) {
-      return value == null;
-    }
-
-    @Override
-    public void setValue(@Nullable Object value) {
-      myValue = (String)value;
-    }
-  }
-
-  private static class GroupItem extends PTableGroupItem {
-    private String myName;
-
-    private GroupItem(@NotNull String name, @NotNull List<PTableItem> children) {
-      myName = name;
-      setChildren(children);
-    }
-
-    @NotNull
-    @Override
-    public String getName() {
-      return myName;
-    }
   }
 }
