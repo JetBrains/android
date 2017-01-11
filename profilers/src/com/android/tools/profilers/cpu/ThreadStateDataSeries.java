@@ -98,7 +98,10 @@ public final class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.
             time = timestamp;
             i++;
           }
-          data.add(new SeriesData<>(time, getState(state, inCapture)));
+          // We shouldn't add an activity if capture has started before the first activity for the current thread.
+          if (state != CpuProfiler.GetThreadsResponse.State.UNSPECIFIED) {
+            data.add(new SeriesData<>(time, getState(state, inCapture)));
+          }
         }
         while (j < captureTimes.size()) {
           inCapture = !inCapture;

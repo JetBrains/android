@@ -70,6 +70,8 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   private boolean myEmptyUsageData;
 
+  private long myTraceThreadActivityBuffer;
+
   @Override
   public void startProfilingApp(CpuProfiler.CpuProfilingAppStartRequest request, StreamObserver<CpuProfiler.CpuProfilingAppStartResponse> responseObserver) {
     CpuProfiler.CpuProfilingAppStartResponse.Builder response = CpuProfiler.CpuProfilingAppStartResponse.newBuilder();
@@ -245,6 +247,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
       // Make sure we handle an unexpected state.
       activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(8), CpuProfiler.GetThreadsResponse.State.STOPPED));
       activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(10), CpuProfiler.GetThreadsResponse.State.SLEEPING));
+      activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(12), CpuProfiler.GetThreadsResponse.State.WAITING));
       activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(15), CpuProfiler.GetThreadsResponse.State.DEAD));
       threads.add(newThread(2, "Thread 2", activitiesThread2));
     }
@@ -258,11 +261,10 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
   private List<CpuProfiler.GetThreadsResponse.Thread> buildTraceThreads() {
     Range range = myCapture.getRange();
     long rangeMid = (long)(range.getMax() + range.getMin()) / 2;
-    long buffer = TimeUnit.SECONDS.toMicros(2);
 
     List<CpuProfiler.GetThreadsResponse.ThreadActivity> activities = new ArrayList<>();
-    activities.add(
-      newActivity(TimeUnit.MICROSECONDS.toNanos((long)range.getMin() - buffer), CpuProfiler.GetThreadsResponse.State.RUNNING));
+    activities.add(newActivity(TimeUnit.MICROSECONDS.toNanos(
+      (long)range.getMin() + myTraceThreadActivityBuffer), CpuProfiler.GetThreadsResponse.State.RUNNING));
     activities.add(newActivity(TimeUnit.MICROSECONDS.toNanos(rangeMid), CpuProfiler.GetThreadsResponse.State.SLEEPING));
 
     return Collections.singletonList(newThread(TRACE_TID, "Trace tid", activities));
@@ -282,6 +284,13 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     thread.setName(name);
     thread.addAllActivities(activities);
     return thread.build();
+  }
+
+  /**
+   * Sets difference, in seconds, between the first thread activity and the trace capture start time.
+   */
+  public void setTraceThreadActivityBuffer(int seconds) {
+    myTraceThreadActivityBuffer = TimeUnit.SECONDS.toMicros(seconds);
   }
 
   public void setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status getTraceResponseStatus) {
