@@ -17,11 +17,14 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.HeapObject;
 import com.android.tools.profilers.memory.adapters.HeapObject.ClassAttribute;
 import com.android.tools.profilers.memory.adapters.NamespaceObject;
+import com.android.tools.profilers.common.CodeLocation;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
@@ -47,6 +50,8 @@ final class MemoryClassView extends AspectObserver {
 
   @NotNull private final MemoryProfilerStage myStage;
 
+  @NotNull private final IdeProfilerComponents myIdeProfilerComponents;
+
   @NotNull private final Map<ClassAttribute, AttributeColumn> myAttributeColumns = new HashMap<>();
 
   @Nullable private HeapObject myHeapObject = null;
@@ -63,8 +68,9 @@ final class MemoryClassView extends AspectObserver {
 
   @Nullable private MemoryObjectTreeNode<NamespaceObject> myTreeRoot;
 
-  public MemoryClassView(@NotNull MemoryProfilerStage stage) {
+  public MemoryClassView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
+    myIdeProfilerComponents = ideProfilerComponents;
 
     myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_HEAP, this::refreshHeap)
@@ -89,8 +95,8 @@ final class MemoryClassView extends AspectObserver {
         SwingConstants.LEFT,
         LABEL_COLUMN_WIDTH,
         SortOrder.ASCENDING,
-        createTreeNodeComparator((o1, o2) -> o1.getName().compareTo(o2.getName()),
-                                 (o1, o2) -> o1.getClassName().compareTo(o2.getClassName()))));
+        createTreeNodeComparator(Comparator.comparing(NamespaceObject::getName),
+                                 Comparator.comparing(ClassObject::getClassName))));
     myAttributeColumns.put(
       ClassAttribute.CHILDREN_COUNT,
       new AttributeColumn(
@@ -103,7 +109,7 @@ final class MemoryClassView extends AspectObserver {
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
-        createTreeNodeComparator((o1, o2) -> o1.getChildrenCount() - o2.getChildrenCount())));
+        createTreeNodeComparator(Comparator.comparingInt(ClassObject::getChildrenCount))));
     myAttributeColumns.put(
       ClassAttribute.ELEMENT_SIZE,
       new AttributeColumn(
@@ -114,7 +120,7 @@ final class MemoryClassView extends AspectObserver {
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
-        createTreeNodeComparator((o1, o2) -> o1.getElementSize() - o2.getElementSize())));
+        createTreeNodeComparator(Comparator.comparingInt(ClassObject::getElementSize))));
     myAttributeColumns.put(
       ClassAttribute.SHALLOW_SIZE,
       new AttributeColumn(
@@ -126,7 +132,7 @@ final class MemoryClassView extends AspectObserver {
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
-        createTreeNodeComparator((o1, o2) -> o1.getShallowSize() - o2.getShallowSize())));
+        createTreeNodeComparator(Comparator.comparingInt(ClassObject::getShallowSize))));
     myAttributeColumns.put(
       ClassAttribute.RETAINED_SIZE,
       new AttributeColumn(
@@ -137,7 +143,7 @@ final class MemoryClassView extends AspectObserver {
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
-        createTreeNodeComparator((o1, o2) -> Long.compare(o1.getRetainedSize(), o2.getRetainedSize()))));
+        createTreeNodeComparator(Comparator.comparingLong(ClassObject::getRetainedSize))));
   }
 
   @NotNull
@@ -186,6 +192,18 @@ final class MemoryClassView extends AspectObserver {
         myStage.selectClass((ClassObject)packageNode.getAdapter());
       }
     });
+    myIdeProfilerComponents.installNavigationContextMenu(myTree, () -> {
+      TreePath selection = myTree.getSelectionPath();
+      if (selection == null || !(selection.getLastPathComponent() instanceof MemoryObjectTreeNode)) {
+        return null;
+      }
+
+      if (((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter() instanceof ClassObject) {
+        ClassObject classObject = (ClassObject)((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
+        return new CodeLocation(classObject.getName());
+      }
+      return null;
+    }, () -> myStage.setProfilerMode(ProfilerMode.NORMAL));
 
     assert myHeapObject != null;
     List<HeapObject.ClassAttribute> attributes = myHeapObject.getClassAttributes();
@@ -210,6 +228,7 @@ final class MemoryClassView extends AspectObserver {
 
     TreePath oldSelectionPath = myTree.getSelectionPath();
     Object lastSelected = oldSelectionPath == null ? null : oldSelectionPath.getLastPathComponent();
+    //noinspection unchecked
     ClassObject lastSelectedClassObject = lastSelected instanceof MemoryObjectTreeNode &&
                                           ((MemoryObjectTreeNode)lastSelected).getAdapter() instanceof ClassObject
                                           ? ((MemoryObjectTreeNode<ClassObject>)lastSelected).getAdapter()
@@ -365,7 +384,7 @@ final class MemoryClassView extends AspectObserver {
    */
   @VisibleForTesting
   static Comparator<MemoryObjectTreeNode> createTreeNodeComparator(@NotNull Comparator<ClassObject> classObjectComparator) {
-    return createTreeNodeComparator((o1, o2) -> o1.getName().compareTo(o2.getName()), classObjectComparator);
+    return createTreeNodeComparator(Comparator.comparing(NamespaceObject::getName), classObjectComparator);
   }
 
   /**

@@ -60,7 +60,7 @@ public class StudioProfilersViewTest {
     myTimer = new FakeTimer();
     myProfilers = new StudioProfilers(myGrpcChannel.getClient(), ide, myTimer);
     // Make sure a process is selected
-    myView = new StudioProfilersView(myProfilers, new IdeProfilerComponentsStub());
+    myView = new StudioProfilersView(myProfilers, new FakeIdeProfilerComponents());
     myView.bind(FakeStage.class, FakeView::new);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     JPanel component = myView.getComponent();
@@ -180,7 +180,7 @@ public class StudioProfilersViewTest {
 
   @Test
   public void testNoStage() throws Exception {
-    StudioProfilersView view = new StudioProfilersView(myProfilers, new IdeProfilerComponentsStub());
+    StudioProfilersView view = new StudioProfilersView(myProfilers, new FakeIdeProfilerComponents());
     JPanel component = view.getComponent();
     assertNotReachable(myProfilers, view, component);
   }

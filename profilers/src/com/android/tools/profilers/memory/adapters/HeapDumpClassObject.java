@@ -56,12 +56,14 @@ final class HeapDumpClassObject extends ClassObject {
   @NotNull
   @Override
   public List<InstanceObject> getInstances() {
-    return myClassObj.getInstancesList().stream().map(HeapDumpInstanceObject::new).collect(Collectors.toList());
+    return myClassObj.getInstancesList().stream().map(instance -> new HeapDumpInstanceObject(this, instance)).collect(Collectors.toList());
   }
 
   @NotNull
   @Override
   public List<InstanceObject.InstanceAttribute> getInstanceAttributes() {
-    return Arrays.asList(InstanceObject.InstanceAttribute.LABEL, InstanceObject.InstanceAttribute.DEPTH, InstanceObject.InstanceAttribute.SHALLOW_SIZE, InstanceObject.InstanceAttribute.RETAINED_SIZE);
+    return Arrays
+      .asList(InstanceObject.InstanceAttribute.LABEL, InstanceObject.InstanceAttribute.DEPTH, InstanceObject.InstanceAttribute.SHALLOW_SIZE,
+              InstanceObject.InstanceAttribute.RETAINED_SIZE);
   }
 }

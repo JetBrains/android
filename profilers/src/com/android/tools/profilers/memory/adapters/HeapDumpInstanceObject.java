@@ -26,8 +26,9 @@ import java.util.*;
  * A UI representation of a {@link ClassInstance}.
  */
 class HeapDumpInstanceObject implements InstanceObject {
-  private static final Comparator<Instance> DEPTH_COMPARATOR = (o1, o2) -> o1.getDistanceToGcRoot() - o2.getDistanceToGcRoot();
+  private static final Comparator<Instance> DEPTH_COMPARATOR = Comparator.comparingInt(Instance::getDistanceToGcRoot);
 
+  @Nullable private final ClassObject myClassObject;
   @NotNull private final Instance myInstance;
 
   @NotNull
@@ -62,12 +63,12 @@ class HeapDumpInstanceObject implements InstanceObject {
   public static List<ReferenceObject> extractReferences(@NotNull Instance instance) {
     // Sort hard referrers to appear first.
     List<Instance> sortedReferences = new ArrayList<>(instance.getHardReverseReferences());
-    Collections.sort(sortedReferences, DEPTH_COMPARATOR);
+    sortedReferences.sort(DEPTH_COMPARATOR);
 
-    // Soft soft referrers to appear second.
+    // Sort soft referrers to appear second.
     if (instance.getSoftReverseReferences() != null) {
       List<Instance> sortedSoftReferences = new ArrayList<>(instance.getSoftReverseReferences());
-      Collections.sort(sortedSoftReferences, DEPTH_COMPARATOR);
+      sortedSoftReferences.sort(DEPTH_COMPARATOR);
       sortedReferences.addAll(sortedSoftReferences);
     }
 
@@ -75,13 +76,13 @@ class HeapDumpInstanceObject implements InstanceObject {
 
     // Determine the type of references
     for (Instance reference : sortedReferences) {
-      List<String> referenceStrings = new ArrayList<>(3);
+      List<String> referencingFieldNames = new ArrayList<>(3);
       if (reference instanceof ClassInstance) {
         ClassInstance classInstance = (ClassInstance)reference;
         for (ClassInstance.FieldValue entry : classInstance.getValues()) {
           // This instance is referenced by a field of the referrer class
           if (entry.getField().getType() == Type.OBJECT && entry.getValue() == instance) {
-            referenceStrings.add(entry.getField().getName());
+            referencingFieldNames.add(entry.getField().getName());
           }
         }
       }
@@ -92,7 +93,7 @@ class HeapDumpInstanceObject implements InstanceObject {
         for (int i = 0; i < values.length; ++i) {
           // This instance is referenced by an array
           if (values[i] == instance) {
-            referenceStrings.add(String.valueOf(i));
+            referencingFieldNames.add(String.valueOf(i));
           }
         }
       }
@@ -102,26 +103,38 @@ class HeapDumpInstanceObject implements InstanceObject {
         for (Map.Entry<Field, Object> entry : staticValues.entrySet()) {
           // This instance is referenced by a static field of a Class object.
           if (entry.getKey().getType() == Type.OBJECT && entry.getValue() == instance) {
-            referenceStrings.add(entry.getKey().getName());
+            referencingFieldNames.add(entry.getKey().getName());
           }
         }
       }
 
-      referrers.add(new HeapDumpReferenceObject(new HeapDumpInstanceObject(reference), referenceStrings));
+      referrers.add(new HeapDumpReferenceObject(new HeapDumpInstanceObject(reference), referencingFieldNames));
     }
 
     return referrers;
   }
 
   public HeapDumpInstanceObject(@NotNull Instance instance) {
-    this.myInstance = instance;
+    myClassObject = null;
+    myInstance = instance;
+  }
+
+  public HeapDumpInstanceObject(@NotNull ClassObject classObject, @NotNull Instance instance) {
+    myClassObject = classObject;
+    myInstance = instance;
   }
 
   @NotNull
   @Override
-  public String getName() {
+  public String getDisplayLabel() {
     // TODO show length of array instance
     return String.format("@%d (0x%x)", myInstance.getUniqueId(), myInstance.getUniqueId());
+  }
+
+  @Nullable
+  @Override
+  public String getClassName() {
+    return myClassObject == null ? null : myClassObject.getName();
   }
 
   @Override

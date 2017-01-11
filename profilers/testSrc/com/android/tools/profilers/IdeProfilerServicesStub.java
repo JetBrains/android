@@ -15,11 +15,12 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.profilers.common.CodeLocation;
 import org.jetbrains.annotations.NotNull;
 
 public final class IdeProfilerServicesStub implements IdeProfilerServices {
   @Override
-  public boolean navigateToStackTraceLine(@NotNull String line) {
+  public boolean navigateToStackFrame(@NotNull CodeLocation line) {
     return false;
   }
 }

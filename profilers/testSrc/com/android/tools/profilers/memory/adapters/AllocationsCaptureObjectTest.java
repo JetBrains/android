@@ -188,7 +188,7 @@ public class AllocationsCaptureObjectTest {
   }
 
   private void verifyInstance(InstanceObject instance, String name, int depth, int fieldSize, int referenceSize, int frameCount) {
-    assertEquals(name, instance.getName());
+    assertEquals(name, instance.getDisplayLabel());
     assertEquals(depth, instance.getDepth());
     assertEquals(fieldSize, instance.getFields().size());
     assertEquals(referenceSize, instance.getReferences().size());
