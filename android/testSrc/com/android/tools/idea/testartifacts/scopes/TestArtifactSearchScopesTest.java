@@ -38,8 +38,7 @@ import java.io.File;
 import java.util.concurrent.CountDownLatch;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.testing.TestProjectPaths.SHARED_TEST_FOLDER;
-import static com.android.tools.idea.testing.TestProjectPaths.SYNC_MULTIPROJECT;
+import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static com.android.utils.FileUtils.join;
 import static com.android.utils.FileUtils.toSystemDependentPath;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -183,6 +182,15 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     TestArtifactSearchScopes testArtifactSearchScopes = TestArtifactSearchScopes.get(module1);
     assertNotNull(testArtifactSearchScopes);
     return testArtifactSearchScopes;
+  }
+
+  public void testMergeSubmoduleDependencies() throws Exception {
+    loadProject(TEST_ARTIFACTS_MULTIDEPENDENCIES);
+    Module module = ModuleManager.getInstance(myFixture.getProject()).findModuleByName("module1");
+    assertNotNull(module);
+    TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(module);
+    assertNotNull(scopes);
+    scopes.resolveDependencies();
   }
 
   private static void assertScopeContainsLibrary(@NotNull GlobalSearchScope scope, @Nullable Library library, boolean contains) {
