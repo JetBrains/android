@@ -77,7 +77,6 @@ import static com.google.common.io.Files.createTempDir;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.finder.WindowFinder.findFrame;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
@@ -152,9 +151,8 @@ public final class GuiTests {
   public static void setUpSdks() {
     File androidSdkPath = TestUtils.getSdk();
 
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
+    GuiTask.execute(
+      () -> {
         IdeSdks ideSdks = IdeSdks.getInstance();
         File currentAndroidSdkPath = ideSdks.getAndroidSdkPath();
         if (!filesEqual(androidSdkPath, currentAndroidSdkPath)) {
@@ -169,19 +167,11 @@ public final class GuiTests {
               System.out.println();
             });
         }
-      }
-    });
-
+      });
   }
 
   public static void refreshFiles() {
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        ApplicationManager.getApplication().runWriteAction(
-          () -> LocalFileSystem.getInstance().refresh(false /* synchronous */));
-      }
-    });
+    GuiTask.execute(() -> ApplicationManager.getApplication().runWriteAction(() -> LocalFileSystem.getInstance().refresh(false)));
   }
 
   /**
@@ -362,22 +352,16 @@ public final class GuiTests {
   public static void deleteFile(@Nullable VirtualFile file) {
     // File deletion must happen on UI thread under write lock
     if (file != null) {
-      execute(new GuiTask() {
-        @Override
-        protected void executeInEDT() throws Throwable {
-          ApplicationManager.getApplication().runWriteAction(new Runnable() {
-            @Override
-            public void run() {
-              try {
-                file.delete(this);
-              }
-              catch (IOException e) {
-                // ignored
-              }
-            }
-          });
+      GuiTask.execute(() -> ApplicationManager.getApplication().runWriteAction(
+        () -> {
+          try {
+            file.delete(GuiTests.class);
+          }
+          catch (IOException e) {
+            // ignored
+          }
         }
-      });
+      ));
     }
   }
 
