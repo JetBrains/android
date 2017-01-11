@@ -62,7 +62,7 @@ public class ProjectResourceIdResolver implements ResourceIdResolver {
       }
     }
 
-    AndroidSdkData sdkData = facet == null ? null : facet.getSdkData();
+    AndroidSdkData sdkData = facet == null ? null : AndroidSdkData.getSdkData(facet);
     if (sdkData == null) {
       return null;
     }
