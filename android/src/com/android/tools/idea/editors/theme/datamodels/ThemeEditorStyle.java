@@ -100,7 +100,7 @@ public class ThemeEditorStyle {
     if (isFramework()) {
       return false;
     }
-    ProjectResourceRepository repository = ProjectResourceRepository.getProjectResources(myManager.getModule(), true);
+    ProjectResourceRepository repository = ProjectResourceRepository.getOrCreateInstance(myManager.getModule());
     assert repository != null;
     return repository.hasResourceItem(ResourceType.STYLE, myQualifiedName);
   }
@@ -121,27 +121,21 @@ public class ThemeEditorStyle {
 
       // We need to keep a Set of ResourceItems to override them. The key is the folder configuration + the name
       final HashMap<String, ResourceItem> resourceItems = Maps.newHashMap();
-      ThemeEditorUtils.acceptResourceResolverVisitor(facet, new ThemeEditorUtils.ResourceFolderVisitor() {
-        @Override
-        public void visitResourceFolder(@NotNull LocalResourceRepository resources,
-                                        String moduleName,
-                                        @NotNull String variantName,
-                                        boolean isSourceSelected) {
-          if (!isSourceSelected) {
-            // Currently we ignore the source sets that are not active
-            // TODO: Process all source sets
-            return;
-          }
+      ThemeEditorUtils.acceptResourceResolverVisitor(facet, (resources, moduleName, variantName, isSourceSelected) -> {
+        if (!isSourceSelected) {
+          // Currently we ignore the source sets that are not active
+          // TODO: Process all source sets
+          return;
+        }
 
-          List<ResourceItem> items = resources.getResourceItem(ResourceType.STYLE, myQualifiedName);
-          if (items == null) {
-            return;
-          }
+        List<ResourceItem> items = resources.getResourceItem(ResourceType.STYLE, myQualifiedName);
+        if (items == null) {
+          return;
+        }
 
-          for (ResourceItem item : items) {
-            String key = item.getConfiguration().toShortDisplayString() + "/" + item.getName();
-            resourceItems.put(key, item);
-          }
+        for (ResourceItem item : items) {
+          String key = item.getConfiguration().toShortDisplayString() + "/" + item.getName();
+          resourceItems.put(key, item);
         }
       });
 
@@ -484,7 +478,7 @@ public class ThemeEditorStyle {
       return null;
     }
 
-    final Ref<XmlTag> resultXmlTag = new Ref<XmlTag>();
+    final Ref<XmlTag> resultXmlTag = new Ref<>();
     ApplicationManager.getApplication().assertReadAccessAllowed();
     sourceTag.acceptChildren(new PsiElementVisitor() {
       @Override
@@ -513,8 +507,8 @@ public class ThemeEditorStyle {
       throw new UnsupportedOperationException("Non project styles can not be modified");
     }
     final Project project = myManager.getProject();
-    Collection<PsiFile> toBeEdited = new HashSet<PsiFile>();
-    final Collection<XmlTag> toBeRemoved = new HashSet<XmlTag>();
+    Collection<PsiFile> toBeEdited = new HashSet<>();
+    final Collection<XmlTag> toBeRemoved = new HashSet<>();
     for (ResourceItem resourceItem : getStyleResourceItems()) {
       final XmlTag sourceXml = LocalResourceRepository.getItemTag(project, resourceItem);
       assert sourceXml != null;

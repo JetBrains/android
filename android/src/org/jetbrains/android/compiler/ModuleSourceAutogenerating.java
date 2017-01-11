@@ -32,9 +32,6 @@ import java.util.*;
 import static org.jetbrains.android.compiler.AndroidCompileUtil.generate;
 
 public class ModuleSourceAutogenerating extends AndroidFacetScopedService {
-  private static final Object KEY_LOCK = new Object();
-
-  @GuardedBy("KEY_LOCK")
   private static final Key<ModuleSourceAutogenerating> KEY = Key.create(ModuleSourceAutogenerating.class.getName());
 
   private final Set<AndroidAutogeneratorMode> myDirtyModes = EnumSet.noneOf(AndroidAutogeneratorMode.class);
@@ -44,9 +41,7 @@ public class ModuleSourceAutogenerating extends AndroidFacetScopedService {
 
   @Nullable
   public static ModuleSourceAutogenerating getInstance(@NotNull AndroidFacet facet) {
-    synchronized (KEY_LOCK) {
-      return facet.getUserData(KEY);
-    }
+    return facet.getUserData(KEY);
   }
 
   public static void initialize(@NotNull AndroidFacet facet) {
@@ -55,9 +50,7 @@ public class ModuleSourceAutogenerating extends AndroidFacetScopedService {
     }
 
     ModuleSourceAutogenerating autogenerating = new ModuleSourceAutogenerating(facet);
-    synchronized (KEY_LOCK) {
-      facet.putUserData(KEY, autogenerating);
-    }
+    facet.putUserData(KEY, autogenerating);
 
     Module module = facet.getModule();
     Project project = module.getProject();
@@ -145,8 +138,6 @@ public class ModuleSourceAutogenerating extends AndroidFacetScopedService {
 
   @Override
   protected void onServiceDisposal(@NotNull AndroidFacet facet) {
-    synchronized (KEY_LOCK) {
-      facet.putUserData(KEY, null);
-    }
+    facet.putUserData(KEY, null);
   }
 }

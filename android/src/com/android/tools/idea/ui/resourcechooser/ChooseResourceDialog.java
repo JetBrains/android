@@ -1688,7 +1688,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
       // Checking for is-framework isn't enough: we don't let you edit resources
       // from libraries (such as appcompat) either
-      ProjectResourceRepository repository = ProjectResourceRepository.getProjectResources(myModule, true);
+      ProjectResourceRepository repository = ProjectResourceRepository.getOrCreateInstance(myModule);
       assert repository != null;
       if (!repository.hasResourceItem(item.getType(), item.getName())) {
         return false;
@@ -1734,7 +1734,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
       if (allowEditor) {
         if ((myType == ResourceType.COLOR || myType == ResourceType.DRAWABLE || myType == ResourceType.MIPMAP) && element != null) {
-          ProjectResourceRepository repository = ProjectResourceRepository.getProjectResources(myModule, true);
+          ProjectResourceRepository repository = ProjectResourceRepository.getOrCreateInstance(myModule);
           assert repository != null;
           boolean inProject = repository.hasResourceItem(element.getType(), element.getName());
           if (inProject) {
