@@ -35,7 +35,7 @@ public class BlueprintModeAction extends AnAction {
 
   @Override
   public void update(AnActionEvent event) {
-    ScreenView screenView = mySurface.getCurrentScreenView();
+    ScreenView screenView = mySurface.getCurrentSceneView();
 
     if (screenView != null) {
       event.getPresentation().setEnabled(screenView.getModel().getType().isLayout());

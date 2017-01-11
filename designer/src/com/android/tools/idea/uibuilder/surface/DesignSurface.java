@@ -100,7 +100,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   private final Project myProject;
   private final JBSplitter myErrorPanelSplitter;
-  private final boolean myInPreview;
   private boolean myRenderHasProblems;
 
   private boolean myZoomFitted = true;
@@ -108,8 +107,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * {@link LintNotificationPanel} currently being displayed
    */
   private WeakReference<JBPopup> myLintTooltipPopup = new WeakReference<>(null);
-
-  @Nullable protected ScreenView myScreenView;
 
   protected double myScale = 1;
   @NotNull protected final JScrollPane myScrollPane;
@@ -125,10 +122,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private float mySavedErrorPanelProportion;
   @NotNull private WeakReference<FileEditor> myFileEditorDelegate = new WeakReference<>(null);
 
-  public DesignSurface(@NotNull Project project, boolean inPreview) {
+  public DesignSurface(@NotNull Project project) {
     super(new BorderLayout());
     myProject = project;
-    myInPreview = inPreview;
 
     setOpaque(true);
     setFocusable(true);
@@ -234,16 +230,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return myProject;
   }
 
-  public boolean isPreviewSurface() {
-    return myInPreview;
-  }
-
   @NotNull
   public NlLayoutType getLayoutType() {
-    if (myScreenView == null) {
+    if (getCurrentSceneView() == null) {
       return NlLayoutType.UNKNOWN;
     }
-    return NlLayoutType.typeOf(myScreenView.getModel().getFile());
+    return NlLayoutType.typeOf(getCurrentSceneView().getModel().getFile());
   }
 
   @NotNull
@@ -254,20 +246,20 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   protected abstract void doSetModel(@Nullable NlModel model);
 
   public void setModel(@Nullable NlModel model) {
-    if (model == null && myScreenView == null) {
+    SceneView sceneView = getCurrentSceneView();
+    if (model == null && sceneView == null) {
       return;
     }
 
     List<NlComponent> selectionBefore = Collections.emptyList();
     List<NlComponent> selectionAfter = Collections.emptyList();
 
-    if (myScreenView != null) {
-      myScreenView.getModel().removeListener(myModelListener);
+    if (sceneView != null) {
+      sceneView.getModel().removeListener(myModelListener);
 
-      SelectionModel selectionModel = myScreenView.getSelectionModel();
+      SelectionModel selectionModel = sceneView.getSelectionModel();
       selectionBefore = selectionModel.getSelection();
       selectionModel.removeListener(mySelectionListener);
-      myScreenView = null;
     }
 
     if (model != null) {
@@ -296,7 +288,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     if (!selectionBefore.equals(selectionAfter)) {
       notifySelectionListeners(selectionAfter);
     }
-    notifyScreenViewChanged();
+    notifySceneViewChanged();
   }
 
 
@@ -319,7 +311,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myLayeredPane.setBounds(0, 0, dimension.width, dimension.height);
     myLayeredPane.setPreferredSize(dimension);
     myScrollPane.revalidate();
-    myProgressPanel.setBounds(getContentOriginX(), getContentOriginY(), myScreenView.getSize().width, myScreenView.getSize().height);
+    SceneView view = getCurrentSceneView();
+    if (view != null) {
+      myProgressPanel.setBounds(getContentOriginX(), getContentOriginY(), view.getSize().width, view.getSize().height);
+    }
     return dimension;
   }
 
@@ -350,9 +345,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   @Nullable
-  public ScreenView getCurrentScreenView() {
-    return myScreenView;
-  }
+  public abstract SceneView getCurrentSceneView();
 
   /**
    * Gives us a chance to change layers behaviour upon drag and drop interaction starting
@@ -418,7 +411,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     // Currently, we use the hover action only to check whether we need to show a warning.
     if (AndroidEditorSettings.getInstance().getGlobalState().isShowLint()) {
-      ScreenView currentScreenView = getCurrentScreenView();
+      SceneView currentScreenView = getCurrentSceneView();
       LintAnnotationsModel lintModel = currentScreenView != null ? currentScreenView.getModel().getLintAnnotationsModel() : null;
       if (lintModel != null) {
         for (Layer layer : myLayers) {
@@ -427,9 +420,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
             JBPopup lintPopup = myLintTooltipPopup.get();
             if (lintPopup == null || !lintPopup.isVisible()) {
               NlUsageTrackerManager.getInstance(this).logAction(LayoutEditorEvent.LayoutEditorEventType.LINT_TOOLTIP);
-              LintNotificationPanel lintPanel = new LintNotificationPanel(getCurrentScreenView(), lintModel);
-              lintPanel.selectIssueAtPoint(Coordinates.getAndroidX(getCurrentScreenView(), x),
-                                           Coordinates.getAndroidY(getCurrentScreenView(), y));
+              LintNotificationPanel lintPanel = new LintNotificationPanel(getCurrentSceneView(), lintModel);
+              lintPanel.selectIssueAtPoint(Coordinates.getAndroidX(getCurrentSceneView(), x),
+                                           Coordinates.getAndroidY(getCurrentSceneView(), y));
 
               Point point = new Point(x, y);
               SwingUtilities.convertPointToScreen(point, this);
@@ -496,7 +489,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       case FIT:
       case FIT_INTO:
         myZoomFitted = true;
-        if (myScreenView == null) {
+        if (getCurrentSceneView() == null) {
           return;
         }
 
@@ -640,14 +633,14 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  private void notifyScreenViewChanged() {
-    ScreenView screenView = myScreenView;
-    NlModel model = myScreenView != null ? myScreenView.getModel() : null;
+  private void notifySceneViewChanged() {
+    SceneView screenView = getCurrentSceneView();
+    NlModel model = screenView != null ? screenView.getModel() : null;
     if (myListeners != null) {
       List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
       for (DesignSurfaceListener listener : listeners) {
         listener.modelChanged(this, model);
-        listener.screenChanged(this, screenView);
+        listener.sceneChanged(this, screenView);
       }
     }
   }
@@ -682,7 +675,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private final SelectionListener mySelectionListener = new SelectionListener() {
     @Override
     public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
-      if (myScreenView != null) {
+      if (getCurrentSceneView() != null) {
         notifySelectionListeners(selection);
       }
       else {
@@ -699,8 +692,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     @Override
     public void modelRendered(@NotNull NlModel model) {
-      if (myScreenView != null) {
-        updateErrorDisplay(myScreenView.getResult());
+      if (getCurrentSceneView() != null) {
+        updateErrorDisplay(getCurrentSceneView().getResult());
         repaint();
         layoutContent();
       }
@@ -732,14 +725,14 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * The editor has been activated
    */
   public void activate() {
-    if (myScreenView != null) {
-      myScreenView.getModel().activate();
+    if (getCurrentSceneView() != null) {
+      getCurrentSceneView().getModel().activate();
     }
   }
 
   public void deactivate() {
-    if (myScreenView != null) {
-      myScreenView.getModel().deactivate();
+    if (getCurrentSceneView() != null) {
+      getCurrentSceneView().getModel().deactivate();
     }
 
     myInteractionManager.cancelInteraction();
@@ -755,8 +748,14 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myFileEditorDelegate = new WeakReference<>(fileEditor);
   }
 
-  public ScreenView getScreenView(int x, int y) {
-    return getCurrentScreenView();
+  public SceneView getSceneView(int x, int y) {
+    return getCurrentSceneView();
+  }
+
+  public void toggleDeviceFrames() {
+    myDeviceFrames = !myDeviceFrames;
+    layoutContent();
+    repaint();
   }
 
   private static class MyScrollPane extends JBScrollPane {
@@ -848,7 +847,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
       paintBackground(g2d, tlx, tly);
 
-      if (myScreenView == null) {
+      if (getCurrentSceneView() == null) {
         return;
       }
 
@@ -884,8 +883,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @Override
     public Object getData(@NonNls String dataId) {
       if (CommonDataKeys.PSI_ELEMENT.is(dataId)) {
-        if (myScreenView != null) {
-          SelectionModel selectionModel = myScreenView.getSelectionModel();
+        if (getCurrentSceneView() != null) {
+          SelectionModel selectionModel = getCurrentSceneView().getSelectionModel();
           NlComponent primary = selectionModel.getPrimary();
           if (primary != null) {
             return primary.getTag();
@@ -893,8 +892,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         }
       }
       if (LangDataKeys.PSI_ELEMENT_ARRAY.is(dataId)) {
-        if (myScreenView != null) {
-          SelectionModel selectionModel = myScreenView.getSelectionModel();
+        if (getCurrentSceneView() != null) {
+          SelectionModel selectionModel = getCurrentSceneView().getSelectionModel();
           List<NlComponent> selection = selectionModel.getSelection();
           List<XmlTag> list = Lists.newArrayListWithCapacity(selection.size());
           for (NlComponent component : selection) {
@@ -947,7 +946,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       @Override
       public void run() {
         // Look up *current* result; a newer one could be available
-        final RenderResult result = myScreenView != null ? myScreenView.getResult() : null;
+        final RenderResult result = getCurrentSceneView() != null ? getCurrentSceneView().getResult() : null;
         if (result == null) {
           return;
         }
@@ -1082,7 +1081,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     public void showProgressIcon() {
       if (!myProgressVisible) {
-        boolean hasResult = myScreenView != null && myScreenView.getResult() != null;
+        boolean hasResult = getCurrentSceneView() != null && getCurrentSceneView().getResult() != null;
         setSmallIcon(hasResult);
         myProgressVisible = true;
         setVisible(true);
@@ -1167,7 +1166,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @Override
   public void requestRender(boolean invalidateModel) {
-    ScreenView screenView = getCurrentScreenView();
+    SceneView screenView = getCurrentSceneView();
     if (screenView != null) {
       if (invalidateModel) {
         // Invalidate the current model and request a render

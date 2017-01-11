@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.structure;
 import com.android.annotations.Nullable;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.idea.IdeaApplication;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -49,7 +50,7 @@ public class NlComponentTreePanel extends JPanel implements ToolContent<DesignSu
 
   @Override
   public void setToolContext(@Nullable DesignSurface designSurface) {
-    myTree.setDesignSurface(designSurface);
+    myTree.setDesignSurface((NlDesignSurface)designSurface);
   }
 
   @NotNull

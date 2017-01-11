@@ -124,14 +124,14 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     mySurface.setScreenMode(NlDesignSurface.ScreenMode.SCREEN_ONLY, false);
     mySurface.requestRender();
     assertTrue(model.getRenderResult().getRenderResult().isSuccess());
-    assertNotNull(mySurface.getCurrentScreenView());
+    assertNotNull(mySurface.getCurrentSceneView());
     assertNull(mySurface.getBlueprintView());
 
     mySurface.setScreenMode(NlDesignSurface.ScreenMode.BOTH, false);
     mySurface.requestRender();
     assertTrue(model.getRenderResult().getRenderResult().isSuccess());
 
-    ScreenView screenView = mySurface.getCurrentScreenView();
+    ScreenView screenView = mySurface.getCurrentSceneView();
     ScreenView blueprintView = mySurface.getBlueprintView();
     assertNotNull(screenView);
     assertNotNull(blueprintView);

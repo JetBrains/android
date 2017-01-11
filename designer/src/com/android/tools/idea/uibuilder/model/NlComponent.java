@@ -783,7 +783,7 @@ public class NlComponent implements NlAttributesHolder {
                                  @NotNull String fqcn,
                                  @Nullable NlComponent before,
                                  @NotNull InsertType insertType) {
-    return myModel.createComponent(((ViewEditorImpl)editor).getScreenView(), fqcn, this, before, insertType);
+    return myModel.createComponent(((ViewEditorImpl)editor).getSceneView(), fqcn, this, before, insertType);
   }
 
   /**

@@ -25,10 +25,7 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.*;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.CaretModel;
@@ -97,7 +94,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
       }
 
       @Override
-      public void screenChanged(@NotNull DesignSurface surface, @Nullable ScreenView screenView) {
+      public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
       }
 
       @Override
@@ -141,7 +138,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
   }
 
   private void selectComponent(@Nullable NlComponent component) {
-    ScreenView screenView = mySurface.getCurrentScreenView();
+    ScreenView screenView = mySurface.getCurrentSceneView();
     if (screenView == null) {
       return;
     }
@@ -165,7 +162,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
   private void updateCaret() {
     if (myCaretModel != null && !myIgnoreListener && myUseInteractiveSelector) {
-      ScreenView screenView = mySurface.getCurrentScreenView();
+      ScreenView screenView = mySurface.getCurrentSceneView();
       if (screenView != null) {
         int offset = myCaretModel.getOffset();
         if (offset != -1) {
@@ -303,7 +300,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
   public void setActiveModel(@Nullable NlModel model) {
     myPendingFile = null;
-    ScreenView currentScreenView = mySurface.getCurrentScreenView();
+    ScreenView currentScreenView = mySurface.getCurrentSceneView();
     if (currentScreenView != null) {
       currentScreenView.getModel().deactivate();
       Disposer.dispose(currentScreenView.getModel());

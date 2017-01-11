@@ -44,7 +44,6 @@ public class ExtractIconCreator extends ImageViewCreator {
                                @NotNull ScreenView screenView,
                                @NotNull Rectangle selection) {
     super(mockup, model, screenView, selection);
-
   }
 
   @Override
@@ -73,6 +72,4 @@ public class ExtractIconCreator extends ImageViewCreator {
   public JComponent getOptionsComponent(@NotNull DoneCallback doneCallback) {
     return super.getOptionsComponent(doneCallback);
   }
-
-
 }
