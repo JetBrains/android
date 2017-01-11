@@ -21,12 +21,7 @@ import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.concurrent.GuardedBy;
-
 public class ModuleDataBinding extends AndroidFacetScopedService {
-  private static final Object KEY_LOCK = new Object();
-
-  @GuardedBy("KEY_LOCK")
   private static final Key<ModuleDataBinding> KEY = Key.create("com.android.tools.idea.databinding.ModuleDataBinding");
 
   @Nullable private LightBrClass myLightBrClass;
@@ -42,12 +37,6 @@ public class ModuleDataBinding extends AndroidFacetScopedService {
   private static void setEnabled(@NotNull AndroidFacet facet, boolean enabled) {
     if (isEnabled(facet) != enabled) {
       ModuleDataBinding dataBinding = enabled ? new ModuleDataBinding(facet) : null;
-      store(facet, dataBinding);
-    }
-  }
-
-  private static void store(@NotNull AndroidFacet facet, @Nullable ModuleDataBinding dataBinding) {
-    synchronized (KEY_LOCK) {
       facet.putUserData(KEY, dataBinding);
     }
   }
@@ -58,9 +47,7 @@ public class ModuleDataBinding extends AndroidFacetScopedService {
 
   @Nullable
   public static ModuleDataBinding getInstance(@NotNull AndroidFacet facet) {
-    synchronized (KEY_LOCK) {
-      return facet.getUserData(KEY);
-    }
+    return facet.getUserData(KEY);
   }
 
   private ModuleDataBinding(@NotNull AndroidFacet facet) {
@@ -69,9 +56,7 @@ public class ModuleDataBinding extends AndroidFacetScopedService {
 
   @Override
   protected void onServiceDisposal(@NotNull AndroidFacet facet) {
-    synchronized (KEY_LOCK) {
-      facet.putUserData(KEY, null);
-    }
+    facet.putUserData(KEY, null);
   }
 
   /**

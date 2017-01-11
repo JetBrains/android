@@ -53,7 +53,6 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.concurrent.GuardedBy;
 import java.util.*;
 
 import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
@@ -71,9 +70,6 @@ import static com.android.tools.idea.configurations.ConfigurationListener.*;
  * the saved configuration state for a given file.
  */
 public class ConfigurationManager implements Disposable {
-  private static final Object KEY_LOCK = new Object();
-
-  @GuardedBy("KEY_LOCK")
   private static final Key<ConfigurationManager> KEY = Key.create(ConfigurationManager.class.getName());
 
   @NotNull private final Module myModule;
@@ -108,15 +104,10 @@ public class ConfigurationManager implements Disposable {
       throw new IllegalArgumentException("Module '" + module.getName() + "' is not an Android module");
     }
 
-    ConfigurationManager configurationManager;
-    synchronized (KEY_LOCK) {
-      configurationManager = module.getUserData(KEY);
-    }
+    ConfigurationManager configurationManager = module.getUserData(KEY);
     if (configurationManager == null && createIfNecessary) {
       configurationManager = create(module);
-      synchronized (KEY_LOCK) {
-        module.putUserData(KEY, configurationManager);
-      }
+      module.putUserData(KEY, configurationManager);
     }
     return configurationManager;
   }
@@ -396,10 +387,7 @@ public class ConfigurationManager implements Disposable {
 
   @Override
   public void dispose() {
-    Module module = getModule();
-    synchronized (KEY_LOCK) {
-      module.putUserData(KEY, null);
-    }
+    getModule().putUserData(KEY, null);
   }
 
   @Nullable
@@ -439,7 +427,7 @@ public class ConfigurationManager implements Disposable {
   @NotNull
   public List<Locale> getLocales() {
     // Get locales from modules, but not libraries!
-    LocalResourceRepository projectResources = ProjectResourceRepository.getProjectResources(getModule(), true);
+    LocalResourceRepository projectResources = ProjectResourceRepository.getOrCreateInstance(getModule());
     assert projectResources != null;
     if (projectResources.getModificationCount() != myLocaleCacheStamp) {
       myLocales = null;
