@@ -26,6 +26,7 @@ import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -119,7 +120,8 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Override
   public boolean moduleContainsResource(@NotNull ResourceType type, @NotNull String name) {
-    return myScreen.getModel().getFacet().getModuleResources(true).hasResourceItem(type, name);
+    AndroidFacet facet = myScreen.getModel().getFacet();
+    return ModuleResourceRepository.getOrCreateInstance(facet).hasResourceItem(type, name);
   }
 
   @Override

@@ -25,6 +25,7 @@ import com.android.tools.idea.lang.databinding.model.PsiModelMethod;
 import com.android.tools.idea.lang.databinding.psi.*;
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
@@ -63,7 +64,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null && ModuleDataBinding.isEnabled(facet)) {
-        LocalResourceRepository moduleResources = facet.getModuleResources(true);
+        LocalResourceRepository moduleResources = ModuleResourceRepository.getOrCreateInstance(facet);
         PsiFile topLevelFile = InjectedLanguageUtil.getTopLevelFile(element);
         if (topLevelFile != null) {
           String name = topLevelFile.getName();
@@ -93,7 +94,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
         if (module != null) {
           AndroidFacet facet = AndroidFacet.getInstance(module);
           if (facet != null && ModuleDataBinding.isEnabled(facet)) {
-            LocalResourceRepository moduleResources = facet.getModuleResources(true);
+            LocalResourceRepository moduleResources = ModuleResourceRepository.getOrCreateInstance(facet);
             PsiFile topLevelFile = InjectedLanguageUtil.getTopLevelFile(element);
             if (topLevelFile != null) {
               if (topLevelFile.getFileType() == DbFileType.INSTANCE) {

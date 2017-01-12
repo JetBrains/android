@@ -161,14 +161,14 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertTrue(items.isEmpty());
 
     for (AndroidFacet facet : libraries) {
-      LocalResourceRepository moduleRepository = facet.getModuleResources(true);
+      LocalResourceRepository moduleRepository = ModuleResourceRepository.getOrCreateInstance(facet);
       assertNotNull(moduleRepository);
       LocalResourceRepository moduleSetRepository = ProjectResourceRepository.getOrCreateInstance(facet);
       assertNotNull(moduleSetRepository);
       LocalResourceRepository librarySetRepository = AppResourceRepository.getOrCreateInstance(facet);
       assertNotNull(librarySetRepository);
     }
-    myFacet.getModuleResources(true);
+    ModuleResourceRepository.getOrCreateInstance(myFacet);
     ProjectResourceRepository.getOrCreateInstance(myFacet);
     AppResourceRepository.getOrCreateInstance(myFacet);
   }
