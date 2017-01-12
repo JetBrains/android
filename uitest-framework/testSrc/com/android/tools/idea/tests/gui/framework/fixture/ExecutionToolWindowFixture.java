@@ -70,13 +70,18 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
      * Note: This method may not terminate if the console view cannot be found.
      */
     public boolean outputMatches(@NotNull TextMatcher matcher) {
+      return matcher.isMatching(getOutput());
+    }
+
+    @NotNull
+    public String getOutput() {
       ConsoleViewImpl consoleView;
       while ((consoleView = findConsoleView()) == null || consoleView.getEditor() == null) {
         // If our handle has been replaced, find it again.
         JComponent consoleComponent = getTabComponent("Console");
         myRobot.click(consoleComponent);
       }
-      return matcher.isMatching(consoleView.getEditor().getDocument().getText());
+      return consoleView.getEditor().getDocument().getText();
     }
 
     // Returns the console or null if it is not found.
