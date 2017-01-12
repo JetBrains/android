@@ -18,8 +18,9 @@ package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -59,8 +60,8 @@ public class AndroidDomUtil {
 
 
   public static final StaticEnumConverter BOOLEAN_CONVERTER = new StaticEnumConverter(VALUE_TRUE, VALUE_FALSE);
-  // TODO: Make SPECIAL_RESOURCE_TYPES into an immutable map
-  public static final Map<String, ResourceType> SPECIAL_RESOURCE_TYPES = Maps.newHashMapWithExpectedSize(40);
+  // TODO: Make SPECIAL_RESOURCE_TYPES into an ImmutableMultimap
+  private static final Multimap<String, ResourceType> SPECIAL_RESOURCE_TYPES = ArrayListMultimap.create();
   private static final PackageClassConverter ACTIVITY_CONVERTER = new PackageClassConverter(AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
   private static final FragmentClassConverter FRAGMENT_CLASS_CONVERTER = new FragmentClassConverter();
 
@@ -77,7 +78,8 @@ public class AndroidDomUtil {
     // example, attrs_manifest.xml tells us that the android:icon attribute can be a reference, but not
     // that it's a reference to a drawable.
     addSpecialResourceType(ResourceType.STRING, ATTR_LABEL, "description", ATTR_TITLE);
-    addSpecialResourceType(ResourceType.DRAWABLE, ATTR_ICON);
+    addSpecialResourceType(ResourceType.DRAWABLE, ATTR_ICON, ATTR_SRC);
+    addSpecialResourceType(ResourceType.COLOR, ATTR_SRC);
     addSpecialResourceType(ResourceType.STYLE, ATTR_THEME, ATTR_STYLE);
     addSpecialResourceType(ResourceType.ANIM, "animation");
     addSpecialResourceType(ResourceType.ID, ATTR_ID, ATTR_LAYOUT_TO_RIGHT_OF, ATTR_LAYOUT_TO_LEFT_OF, ATTR_LAYOUT_ABOVE,
@@ -149,10 +151,7 @@ public class AndroidDomUtil {
         resourceTypes.add(type);
       }
     }
-    ResourceType specialResourceType = getSpecialResourceType(attr.getName());
-    if (specialResourceType != null) {
-      resourceTypes.add(specialResourceType);
-    }
+    resourceTypes.addAll(getSpecialResourceTypes(attr.getName()));
     if (containsReference) {
       if (resourceTypes.contains(ResourceType.COLOR)) {
         resourceTypes.add(ResourceType.DRAWABLE);
@@ -248,12 +247,12 @@ public class AndroidDomUtil {
 
   /** A "special" resource type is just additional information we've manually added about an attribute
    * name that augments what attrs.xml and attrs_manifest.xml tell us about the attributes */
-  @Nullable
-  public static ResourceType getSpecialResourceType(String attrName) {
-    ResourceType type = SPECIAL_RESOURCE_TYPES.get(attrName);
-    if (type != null) return type;
-    if (attrName.endsWith("Animation")) return ResourceType.ANIM;
-    return null;
+  @NotNull
+  public static Collection<ResourceType> getSpecialResourceTypes(String attrName) {
+    Collection<ResourceType> type = SPECIAL_RESOURCE_TYPES.get(attrName);
+    if (!type.isEmpty()) return type;
+    if (attrName.endsWith("Animation")) return ImmutableList.of(ResourceType.ANIM);
+    return ImmutableList.of();
   }
 
   // for special cases
