@@ -15,36 +15,22 @@
  */
 package com.android.tools.datastore.service;
 
-import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.DatastoreTable;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
-import com.google.common.collect.Maps;
 import io.grpc.ManagedChannel;
-import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.RunnableFuture;
 
 /**
  * This class hosts an EventService that will provide callers access to all cached EventData.
  * The data is populated from polling the service passed into the connectService function.
  */
-public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase implements ServicePassThrough  {
+public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase implements ServicePassThrough {
 
-  private final DataStoreService myService;
-  ProfilerServiceGrpc.ProfilerServiceBlockingStub myPollingService;
+  private ProfilerServiceGrpc.ProfilerServiceBlockingStub myPollingService;
 
-  List<Profiler.Device> myDevices = new LinkedList<>();
-  Map<String, List<Profiler.Process>> myProcesses = Maps.newHashMap();
-
-  public ProfilerService(@NotNull DataStoreService service) {
-    myService = service;
+  public ProfilerService() {
   }
 
   @Override
@@ -67,31 +53,10 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
 
   @Override
   public void getDevices(Profiler.GetDevicesRequest request, StreamObserver<Profiler.GetDevicesResponse> observer) {
-    Profiler.GetDevicesResponse response = Profiler.GetDevicesResponse.newBuilder().addAllDevice(myDevices).build();
-    observer.onNext(response);
-    observer.onCompleted();
-  }
+    if (myPollingService != null) {
+      observer.onNext(myPollingService.getDevices(request));
+    }
 
-  @Override
-  public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> observer) {
-    List<Profiler.Process> processes = myProcesses.get(request.getDeviceSerial());
-    Profiler.GetProcessesResponse response = Profiler.GetProcessesResponse.newBuilder().addAllProcess(processes).build();
-    observer.onNext(response);
-    observer.onCompleted();
-  }
-
-  @Override
-  public void connect(Profiler.ConnectRequest request, StreamObserver<Profiler.ConnectResponse> observer) {
-    // TODO: Add support for multiple connections
-    myService.connect(request.getPort());
-    observer.onNext(Profiler.ConnectResponse.getDefaultInstance());
-    observer.onCompleted();
-  }
-
-  @Override
-  public void disconnect(Profiler.DisconnectRequest request, StreamObserver<Profiler.DisconnectResponse> observer) {
-    myService.disconnect();
-    observer.onNext(Profiler.DisconnectResponse.getDefaultInstance());
     observer.onCompleted();
   }
 
@@ -104,16 +69,11 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   }
 
   @Override
-  public void setProcesses(Profiler.SetProcessesRequest request, StreamObserver<Profiler.SetProcessesResponse> observer) {
-    List<Profiler.DeviceProcesses> list = request.getDeviceProcessesList();
-    myProcesses.clear();
-    myDevices.clear();
-    for (Profiler.DeviceProcesses processes : list) {
-      myDevices.add(processes.getDevice());
-      myProcesses.put(processes.getDevice().getSerial(), processes.getProcessList());
+  public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> observer) {
+    if (myPollingService != null) {
+      observer.onNext(myPollingService.getProcesses(request));
     }
 
-    observer.onNext(Profiler.SetProcessesResponse.getDefaultInstance());
     observer.onCompleted();
   }
 
@@ -126,5 +86,4 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   public DatastoreTable getDatastoreTable() {
     return null;
   }
-
 }
