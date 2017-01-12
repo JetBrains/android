@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.TestCompileType;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -24,44 +26,54 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 
-import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class BuildApkAction extends DumbAwareAction {
+  private static final String ACTION_TEXT = "Build APK(s)";
+
   public BuildApkAction() {
-    super("Build APK");
+    super(ACTION_TEXT);
   }
 
   @Override
   public void update(AnActionEvent e) {
     Project project = e.getProject();
-    e.getPresentation().setEnabledAndVisible(project != null && isBuildWithGradle(project));
+    e.getPresentation().setEnabledAndVisible(project != null && GradleProjectInfo.getInstance(project).isBuildWithGradle());
   }
 
   @Override
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
-    if (project != null && isBuildWithGradle(project)) {
+    if (project != null && GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
       GoToApkLocationTask task = null;
 
-      Module[] modules = ModuleManager.getInstance(project).getModules();
+      List<Module> appModules = new ArrayList<>();
 
-      for (Module module : modules) {
+      for (Module module : ModuleManager.getInstance(project).getModules()) {
         AndroidFacet facet = AndroidFacet.getInstance(module);
         if (facet != null) {
-          String assembleTaskName = facet.getProperties().ASSEMBLE_TASK_NAME;
-          if (isNotEmpty(assembleTaskName)) {
-            task = new GoToApkLocationTask("Build APK", module, null);
-            break;
+          AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
+          if (androidModel != null && androidModel.getProjectType() == PROJECT_TYPE_APP) {
+            String assembleTaskName = facet.getProperties().ASSEMBLE_TASK_NAME;
+            if (isNotEmpty(assembleTaskName)) {
+              if (task == null) {
+                task = new GoToApkLocationTask(ACTION_TEXT, module, null);
+              }
+              appModules.add(module);
+            }
           }
         }
       }
 
-      GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
-      if (task != null) {
+      if (task != null && !appModules.isEmpty()) {
+        GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
         gradleBuildInvoker.add(task);
+        gradleBuildInvoker.assemble(appModules.toArray(new Module[appModules.size()]), TestCompileType.NONE);
       }
-      gradleBuildInvoker.assemble(modules, TestCompileType.NONE);
     }
   }
 }
