@@ -17,8 +17,6 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.AspectObserver;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 
 import javax.swing.*;
 import java.awt.event.ItemEvent;
