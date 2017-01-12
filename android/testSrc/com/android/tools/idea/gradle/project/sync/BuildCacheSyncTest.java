@@ -30,6 +30,7 @@ import java.util.function.Predicate;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
+import static com.android.tools.idea.testing.HighlightInfos.getHighlightInfos;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.createTempDirectory;
@@ -50,7 +51,7 @@ public class BuildCacheSyncTest extends AndroidGradleTestCase {
 
     assertNotNull(mainActivityFile);
     Predicate<HighlightInfo> matchByDescription = info -> "Cannot resolve symbol 'AppCompatActivity'".equals(info.getDescription());
-    List<HighlightInfo> highlights = getHighlightInfos(mainActivityFile, matchByDescription);
+    List<HighlightInfo> highlights = getHighlightInfos(project, mainActivityFile, matchByDescription);
     // It is expected that AppCompatActivity cannot be resolved yet, since AARs have not been exploded yet.
     assertThat(highlights).isNotEmpty();
 
@@ -58,7 +59,7 @@ public class BuildCacheSyncTest extends AndroidGradleTestCase {
     GradleInvocationResult result = generateSources();
     assertTrue(result.isBuildSuccessful());
 
-    highlights = getHighlightInfos(mainActivityFile, matchByDescription);
+    highlights = getHighlightInfos(project, mainActivityFile, matchByDescription);
     // AppCompatActivity should be resolved now.
     assertThat(highlights).isEmpty();
   }
