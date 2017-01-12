@@ -23,6 +23,7 @@ import org.fest.swing.driver.BasicJComboBoxCellReader;
 import org.fest.swing.driver.JComboBoxDriver;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.exception.LocationUnavailableException;
+import org.fest.swing.fixture.JCheckBoxFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -65,5 +66,10 @@ public class ConfigureFormFactorStepFixture extends AbstractWizardStepFixture<Co
     JComboBoxDriver comboBoxDriver = new JComboBoxDriver(robot());
     comboBoxDriver.selectItem(comboBox, itemIndex);
     return this;
+  }
+
+  @NotNull
+  public JCheckBoxFixture findInstantAppCheckbox(@NotNull final FormFactor formFactor) {
+    return new JCheckBoxFixture(robot(), robot().finder().findByName(target(), formFactor.id + ".instantApp", JCheckBox.class, false));
   }
 }
