@@ -44,6 +44,7 @@ public final class TestProjectPaths {
   public static final String SIMPLE_APPLICATION = "projects/simpleApplication";
   public static final String SPLIT_BUILD_FILES = "projects/splitBuildFiles";
   public static final String SYNC_MULTIPROJECT = "projects/sync/multiproject";
+  public static final String TEST_ARTIFACTS_MULTIDEPENDENCIES = "projects/testArtifacts/multidependencies";
   public static final String TEST_ARTIFACTS_MULTIPROJECT = "projects/testArtifacts/multiproject";
   public static final String TEST_ARTIFACTS_SAME_NAME_CLASSES = "projects/testArtifacts/sameNameClasses";
   public static final String TEST_ONLY_MODULE = "projects/testOnlyModule";
