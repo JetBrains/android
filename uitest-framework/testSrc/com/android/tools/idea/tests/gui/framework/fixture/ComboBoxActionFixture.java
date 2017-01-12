@@ -33,7 +33,6 @@ import javax.swing.*;
 import java.awt.*;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.*;
 
 public class ComboBoxActionFixture {
@@ -115,12 +114,7 @@ public class ComboBoxActionFixture {
       });
     assertThat(appIndex).isAtLeast(0);
 
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        list.setSelectedIndex(appIndex);
-      }
-    });
+    GuiTask.execute(() -> list.setSelectedIndex(appIndex));
     assertEquals(text, ((PopupFactoryImpl.ActionItem)list.getSelectedValue()).getText());
   }
 }

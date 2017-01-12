@@ -98,7 +98,6 @@ import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
@@ -182,9 +181,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     Module module = getModule(moduleName);
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
 
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
+    GuiTask.execute(
+      () -> {
         ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
         try {
           for (ContentEntry contentEntry : rootModel.getContentEntries()) {
@@ -201,8 +199,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         finally {
           rootModel.dispose();
         }
-      }
-    });
+      });
 
     return paths;
   }
@@ -675,14 +672,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture updateAndroidGradlePluginVersion(@NotNull String version) throws IOException {
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
+    GuiTask.execute(
+      () -> {
         AndroidPluginVersionUpdater versionUpdater = AndroidPluginVersionUpdater.getInstance(getProject());
         AndroidPluginVersionUpdater.UpdateResult result = versionUpdater.updatePluginVersion(GradleVersion.parse(version), null);
         assertTrue("Android Gradle plugin version was not updated", result.isPluginVersionUpdated());
-      }
-    });
+      });
     return this;
   }
 
@@ -727,12 +722,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         if (SystemInfo.isMac) {
           robot().click(target(), new Point(1, 1)); // Simulate title bar click
         }
-        execute(new GuiTask() {
-          @Override
-          protected void executeInEDT() throws Throwable {
-            target().requestFocus();
-          }
-        });
+        GuiTask.execute(() -> target().requestFocus());
         return false;
       }
       return true;
