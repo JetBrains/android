@@ -47,7 +47,7 @@ public class NlMarginPropertyAccumulator extends NlPropertyAccumulator {
                                      @NotNull String endMargin,
                                      @NotNull String topMargin,
                                      @NotNull String bottomMargin) {
-    super(groupName);
+    super(groupName, allMargin);
     myAllMargin = allMargin;
     myLeftMargin = leftMargin;
     myRightMargin = rightMargin;
@@ -65,8 +65,8 @@ public class NlMarginPropertyAccumulator extends NlPropertyAccumulator {
 
   @NotNull
   @Override
-  protected PTableGroupItem createGroupNode(@NotNull String groupName) {
-    return new MarginGroupNode();
+  protected PTableGroupItem createGroupNode(@NotNull String groupName, @NotNull String prefix) {
+    return new MarginGroupNode(groupName, prefix);
   }
 
   private static ColoredTableCellRenderer createTableCellRenderer() {
@@ -114,12 +114,10 @@ public class NlMarginPropertyAccumulator extends NlPropertyAccumulator {
     };
   }
 
-  private class MarginGroupNode extends PTableGroupItem {
+  private class MarginGroupNode extends AccumulatorGroupNode {
 
-    @NotNull
-    @Override
-    public String getName() {
-      return getGroupName();
+    private MarginGroupNode(@NotNull String name, @NotNull String prefix) {
+      super(name, prefix);
     }
 
     @NotNull
