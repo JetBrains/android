@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer;
+package com.android.tools.idea.explorer.actions;
 
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Condition;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.project.DumbAwareAction;
 
-public class DeviceExplorerViewCondition implements Condition<Project> {
+public class GotoSharedPrefsFolderAction extends DumbAwareAction {
   @Override
-  public boolean value(@NotNull Project project) {
-    return DeviceExplorer.isFeatureEnabled();
+  public void update(AnActionEvent e) {
+    e.getPresentation().setEnabled(false);
+  }
+
+  @Override
+  public void actionPerformed(AnActionEvent e) {
   }
 }
