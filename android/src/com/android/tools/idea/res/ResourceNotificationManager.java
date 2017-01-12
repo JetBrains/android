@@ -268,33 +268,27 @@ public class ResourceNotificationManager implements ProjectComponent {
       }
       myPendingNotify = true;
     }
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        synchronized (CHANGE_PENDING_LOCK) {
-          if (!myPendingNotify) {
-            return;
-          }
-          myPendingNotify = false;
+    ApplicationManager.getApplication().invokeLater(() -> {
+      synchronized (CHANGE_PENDING_LOCK) {
+        if (!myPendingNotify) {
+          return;
         }
-        // Ensure that the notify happens after all pending Swing Runnables
-        // have been processed, including any created *after* the initial notice()
-        // call which scheduled this runnable, since they could for example be
-        // ResourceFolderRepository#rescan() Runnables, and we want those to finish
-        // before the final notify. Notice how we clear the pending notify flag
-        // above though, such that if another event appears between the first
-        // invoke later and the second, it will schedule another complete notification
-        // event.
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            EnumSet<Reason> reason = myEvents;
-            myEvents = EnumSet.noneOf(Reason.class);
-            notifyListeners(reason);
-            myEvents.clear();
-          }
-        });
+        myPendingNotify = false;
       }
+      // Ensure that the notify happens after all pending Swing Runnables
+      // have been processed, including any created *after* the initial notice()
+      // call which scheduled this runnable, since they could for example be
+      // ResourceFolderRepository#rescan() Runnables, and we want those to finish
+      // before the final notify. Notice how we clear the pending notify flag
+      // above though, such that if another event appears between the first
+      // invoke later and the second, it will schedule another complete notification
+      // event.
+      ApplicationManager.getApplication().invokeLater(() -> {
+        EnumSet<Reason> reason1 = myEvents;
+        myEvents = EnumSet.noneOf(Reason.class);
+        notifyListeners(reason1);
+        myEvents.clear();
+      });
     });
   }
 
@@ -371,7 +365,7 @@ public class ResourceNotificationManager implements ProjectComponent {
         // we want it to add its own variant listeners before ours (such that
         // when the variant changes, the project resources get notified and updated
         // before our own update listener attempts a re-render)
-        ModuleResourceRepository.getModuleResources(myFacet, true /*createIfNecessary*/);
+        ModuleResourceRepository.getOrCreateInstance(myFacet);
         myFacet.getResourceFolderManager().addListener(this);
       }
     }
@@ -729,9 +723,7 @@ public class ResourceNotificationManager implements ProjectComponent {
                  ResourceFolderType.MIPMAP == resType;
         })
         .findAny()
-        .ifPresent((e) -> {
-          notice(Reason.IMAGE_RESOURCE_CHANGED);
-        });
+        .ifPresent((e) -> notice(Reason.IMAGE_RESOURCE_CHANGED));
     }
 
     private boolean hasListeners() {

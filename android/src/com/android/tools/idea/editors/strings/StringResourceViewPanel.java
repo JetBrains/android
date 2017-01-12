@@ -25,6 +25,7 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.Reason;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
@@ -422,7 +423,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     @Override
     public void run(@NotNull ProgressIndicator indicator) {
       indicator.setIndeterminate(true);
-      LocalResourceRepository moduleResources = myFacet.getModuleResources(true);
+      LocalResourceRepository moduleResources = ModuleResourceRepository.getOrCreateInstance(myFacet);
       myResourceRepositoryRef.set(moduleResources);
       myResourceDataRef.set(StringResourceParser.parse(myFacet, moduleResources));
     }

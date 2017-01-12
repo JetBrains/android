@@ -28,6 +28,7 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ModuleResourceRepository;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -102,7 +103,7 @@ public class DataBindingUtil {
   public static boolean invalidateAllSources(DataBindingProjectComponent component) {
     boolean invalidated = false;
     for (AndroidFacet facet : component.getDataBindingEnabledFacets()) {
-      LocalResourceRepository moduleResources = facet.getModuleResources(true);
+      LocalResourceRepository moduleResources = ModuleResourceRepository.getOrCreateInstance(facet);
       Map<String, DataBindingInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
       if (dataBindingResourceFiles == null) {
         continue;
@@ -232,7 +233,7 @@ public class DataBindingUtil {
     if (layout == null) {
       return null;
     }
-    LocalResourceRepository moduleResources = facet.getModuleResources(false);
+    LocalResourceRepository moduleResources = ModuleResourceRepository.findExistingInstance(facet);
     if (moduleResources == null) {
       return null;
     }

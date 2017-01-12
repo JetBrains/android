@@ -29,6 +29,7 @@ public class ResourceRepositories implements Disposable {
 
   private static final Object APP_RESOURCES_LOCK = new Object();
   private static final Object PROJECT_RESOURCES_LOCK = new Object();
+  private static final Object MODULE_RESOURCES_LOCK = new Object();
 
   private AndroidFacet myFacet;
 
@@ -37,6 +38,9 @@ public class ResourceRepositories implements Disposable {
 
   @GuardedBy("PROJECT_RESOURCES_LOCK")
   private ProjectResourceRepository myProjectResources;
+
+  @GuardedBy("MODULE_RESOURCES_LOCK")
+  private LocalResourceRepository myModuleResources;
 
   @NotNull
   public static ResourceRepositories getOrCreateInstance(@NotNull AndroidFacet facet) {
@@ -79,7 +83,27 @@ public class ResourceRepositories implements Disposable {
     }
   }
 
+  @Contract("true -> !null")
+  @Nullable
+  public LocalResourceRepository getModuleResources(boolean createIfNecessary) {
+    AndroidFacet facet = myFacet;
+    synchronized (MODULE_RESOURCES_LOCK) {
+      if (myModuleResources == null && createIfNecessary) {
+        myModuleResources = ModuleResourceRepository.create(facet);
+        Disposer.register(this, myModuleResources);
+      }
+      return myModuleResources;
+    }
+  }
+
   public void refreshResources() {
+    synchronized (MODULE_RESOURCES_LOCK) {
+      if (myModuleResources != null) {
+        Disposer.dispose(myModuleResources);
+        myModuleResources = null;
+      }
+    }
+
     synchronized (PROJECT_RESOURCES_LOCK) {
       if (myProjectResources != null) {
         Disposer.dispose(myProjectResources);
