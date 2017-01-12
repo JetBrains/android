@@ -262,12 +262,15 @@ public class MemoryProfilerStage extends Stage {
                                myAspect.changed(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE);
                              }
                            }
-                           catch (InterruptedException ignored) {
+                           catch (InterruptedException exception) {
                              Thread.currentThread().interrupt();
                              selectCapture(null, null);
                            }
-                           catch (ExecutionException | CancellationException ignored) {
+                           catch (ExecutionException exception) {
                              selectCapture(null, null);
+                           }
+                           catch (CancellationException ignored) {
+                             // No-op: a previous load-capture task is canceled due to another capture being selected and loaded.
                            }
                          },
                          joiner == null ? MoreExecutors.directExecutor() : joiner);
