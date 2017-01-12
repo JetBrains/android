@@ -25,7 +25,6 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
@@ -37,7 +36,6 @@ import java.io.IOException;
 import java.util.Map;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.fest.swing.timing.Pause.pause;
 
 @RunWith(GuiTestRunner.class)
 public class ConvertToWebpActionTest {
@@ -120,12 +118,7 @@ public class ConvertToWebpActionTest {
     DataContext context = SimpleDataContext.getSimpleContext(data, null);
     AnActionEvent actionEvent = new AnActionEvent(null, context, "test", new Presentation(), ActionManager.getInstance(), 0);
     ConvertToWebpAction action = new ConvertToWebpAction();
-    GuiActionRunner.execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        //noinspection SSBasedInspection
-        SwingUtilities.invokeLater(() -> action.actionPerformed(actionEvent));
-      }
-    });
+    //noinspection SSBasedInspection
+    GuiTask.execute(() -> SwingUtilities.invokeLater(() -> action.actionPerformed(actionEvent)));
   }
 }
