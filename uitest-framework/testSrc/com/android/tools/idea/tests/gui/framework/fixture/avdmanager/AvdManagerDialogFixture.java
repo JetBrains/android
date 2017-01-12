@@ -36,7 +36,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 
 /**
  * Controls the Avd Manager Dialog for GUI test cases
@@ -75,12 +74,7 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
 
     JTableCellFixture actionCellFixture = tableFixture.cell(actionCell);
 
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        tableView.editCellAt(actionCell.row, actionCell.column);
-      }
-    });
+    GuiTask.execute(() -> tableView.editCellAt(actionCell.row, actionCell.column));
 
     JPanel actionPanel = (JPanel)actionCellFixture.editor();
     HyperlinkLabel editButtonLabel = robot().finder().find(actionPanel, Matchers.byTooltip(HyperlinkLabel.class, "Edit this AVD"));
