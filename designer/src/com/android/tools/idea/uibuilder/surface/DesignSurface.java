@@ -34,6 +34,7 @@ import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.lint.LintNotificationPanel;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.surface.ScreenView.ScreenViewType;
 import com.android.utils.HtmlBuilder;
 import com.google.common.annotations.VisibleForTesting;
@@ -960,6 +961,14 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
         // left/right ordering
         myBlueprintView.setLocation(myScreenX + screenViewSize.width + SCREEN_DELTA, myScreenY);
       }
+    }
+    if (myScreenView != null && myScreenView.getScene() != null) {
+      Scene scene = myScreenView.getScene();
+      scene.needsRebuildList();
+    }
+    if (myBlueprintView != null && myBlueprintView.getScene() != null) {
+      Scene scene = myBlueprintView.getScene();
+      scene.needsRebuildList();
     }
   }
 
