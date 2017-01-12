@@ -118,7 +118,7 @@ public class NlLintHighlightingPass implements HighlightingPass {
       }
 
       lintModel.addIssue(component, issue, problemData.getMessage(), inspection, level,
-                         startElement, endElement);
+                         startElement, endElement, problemData.getQuickfixData());
     }
 
     return lintModel;

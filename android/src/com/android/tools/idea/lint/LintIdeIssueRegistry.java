@@ -76,9 +76,6 @@ public class LintIdeIssueRegistry extends BuiltinIssueRegistry {
           issue.setImplementation(LintIdeGradleDetector.IMPLEMENTATION);
         } else if (detectorClass == ViewTypeDetector.class) {
           issue.setImplementation(LintIdeViewTypeDetector.IMPLEMENTATION);
-        } else if (detectorClass == SupportAnnotationDetector.class) {
-          // Handled by the ResourceTypeInspection
-          continue;
         } else if (scope.contains(Scope.CLASS_FILE) ||
             scope.contains(Scope.ALL_CLASS_FILES) ||
             scope.contains(Scope.JAVA_LIBRARIES)) {
