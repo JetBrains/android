@@ -30,7 +30,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 import static org.fest.reflect.core.Reflection.field;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.util.Strings.quote;
 
 public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialogImpl> {
@@ -67,14 +66,7 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
     fileSystemTree.showHiddens(true); // Windows: Default temporary folder (../AppData/..) is hidden.
 
     final AtomicBoolean fileSelected = new AtomicBoolean();
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        fileSystemTree.select(file, () -> {
-          fileSelected.set(true);
-        });
-      }
-    });
+    GuiTask.execute(() -> fileSystemTree.select(file, () -> fileSelected.set(true)));
 
     Wait.seconds(5).expecting("file " + quote(file.getPath()) + " to be selected").until(fileSelected::get);
 
