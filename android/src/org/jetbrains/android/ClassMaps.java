@@ -46,9 +46,6 @@ import static com.intellij.util.ArrayUtilRt.find;
 import static org.jetbrains.android.facet.LayoutViewClassUtils.getTagNamesByClass;
 
 public class ClassMaps extends AndroidFacetScopedService {
-  private static final Object KEY_LOCK = new Object();
-
-  @GuardedBy("KEY_LOCK")
   private static final Key<ClassMaps> KEY = Key.create(ClassMaps.class.getName());
 
   private final Object myClassMapLock = new Object();
@@ -61,15 +58,10 @@ public class ClassMaps extends AndroidFacetScopedService {
 
   @NotNull
   public static ClassMaps getInstance(@NotNull AndroidFacet facet) {
-    ClassMaps classMaps;
-    synchronized (KEY_LOCK) {
-      classMaps = facet.getUserData(KEY);
-    }
+    ClassMaps classMaps = facet.getUserData(KEY);
     if (classMaps == null) {
       classMaps = new ClassMaps(facet);
-      synchronized (KEY_LOCK) {
-        facet.putUserData(KEY, classMaps);
-      }
+      facet.putUserData(KEY, classMaps);
     }
     return classMaps;
   }
@@ -225,8 +217,6 @@ public class ClassMaps extends AndroidFacetScopedService {
 
   @Override
   protected void onServiceDisposal(@NotNull AndroidFacet facet) {
-    synchronized (KEY_LOCK) {
-      facet.putUserData(KEY, null);
-    }
+    facet.putUserData(KEY, null);
   }
 }

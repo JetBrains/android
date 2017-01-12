@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.client.api.*;
@@ -849,7 +850,7 @@ public class LintIdeClient extends LintClient implements Disposable {
         if (includeLibraries) {
           return AppResourceRepository.getOrCreateInstance(facet);
         } else if (includeModuleDependencies) {
-          return facet.getProjectResources(true);
+          return ProjectResourceRepository.getOrCreateInstance(facet);
         } else {
           return facet.getModuleResources(true);
         }

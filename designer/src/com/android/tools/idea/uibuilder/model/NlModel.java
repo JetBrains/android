@@ -182,7 +182,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       Disposer.register(parent, this);
     }
     myType = NlLayoutType.typeOf(file);
-    myProjectResourceRepository = ProjectResourceRepository.getProjectResources(myFacet, true);
+    myProjectResourceRepository = ProjectResourceRepository.getOrCreateInstance(myFacet);
 
     updateTrackingConfiguration();
   }

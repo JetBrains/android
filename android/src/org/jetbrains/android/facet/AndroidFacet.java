@@ -95,7 +95,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public static final FacetTypeId<AndroidFacet> ID = new FacetTypeId<>("android");
   public static final String NAME = "Android";
 
-  private static final Object PROJECT_RESOURCES_LOCK = new Object();
   private static final Object MODULE_RESOURCES_LOCK = new Object();
   private static boolean ourDynamicTemplateMenuCreated;
 
@@ -108,7 +107,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private LocalResourceManager myLocalResourceManager;
 
   private LocalResourceRepository myModuleResources;
-  private ProjectResourceRepository myProjectResources;
   private AndroidModel myAndroidModel;
   private final ResourceFolderManager myFolderManager = new ResourceFolderManager(this);
 
@@ -386,6 +384,8 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @Override
   public void initFacet() {
+    ResourceRepositories.getOrCreateInstance(this);
+
     StartupManager.getInstance(getProject()).runWhenProjectIsInitialized(() -> {
       AndroidResourceFilesListener.notifyFacetInitialized(this);
       if (ApplicationManager.getApplication().isUnitTestMode()) {
@@ -574,18 +574,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @Contract("true -> !null")
   @Nullable
-  public ProjectResourceRepository getProjectResources(boolean createIfNecessary) {
-    synchronized (PROJECT_RESOURCES_LOCK) {
-      if (myProjectResources == null && createIfNecessary) {
-        myProjectResources = ProjectResourceRepository.create(this);
-        Disposer.register(this, myProjectResources);
-      }
-      return myProjectResources;
-    }
-  }
-
-  @Contract("true -> !null")
-  @Nullable
   public LocalResourceRepository getModuleResources(boolean createIfNecessary) {
     synchronized (MODULE_RESOURCES_LOCK) {
       if (myModuleResources == null && createIfNecessary) {
@@ -604,14 +592,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       }
     }
 
-    synchronized (PROJECT_RESOURCES_LOCK) {
-      if (myProjectResources != null) {
-        Disposer.dispose(myProjectResources);
-        myProjectResources = null;
-      }
-    }
-
-    AppResourceRepository.refreshResources(this);
+    ResourceRepositories.getOrCreateInstance(this).refreshResources();
     ConfigurationManager.getOrCreateInstance(getModule()).getResolverCache().reset();
     ResourceFolderRegistry.reset();
     FileResourceRepository.reset();
