@@ -28,6 +28,9 @@ import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFutureTask;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashMap;
@@ -38,6 +41,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class CpuProfilerStage extends Stage {
@@ -84,9 +89,14 @@ public class CpuProfilerStage extends Stage {
    * TODO: Timeouts. Also, capturing state should come from the device instead of being kept here.
    */
   private boolean myCapturing;
+
+  /**
+   * Whether the capture is being parsed.
+   */
+  private boolean myParsingCapture;
+
   /**
    * Id of the current selected thread.
-   * If this variable has a valid thread id, {@link #myCaptureNode} should store the value of the {@link HNode} correspondent to the thread.
    */
   private int mySelectedThread;
 
@@ -186,12 +196,14 @@ public class CpuProfilerStage extends Stage {
       .setMode(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED) // TODO: support instrumented mode
       .build();
 
+    // TODO: calls to start/stop freeze the UI for a noticeable amount of time. We need to fix it.
     CpuProfiler.CpuProfilingAppStartResponse response = myCpuService.startProfilingApp(request);
 
     if (!response.getStatus().equals(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS)) {
       LOG.warn("Unable to start tracing: " + response.getStatus());
       LOG.warn(response.getErrorMessage());
       myCapturing = false;
+      myParsingCapture = false;
     }
     else {
       myCapturing = true;
@@ -206,34 +218,31 @@ public class CpuProfilerStage extends Stage {
       .build();
 
     CpuProfiler.CpuProfilingAppStopResponse response = myCpuService.stopProfilingApp(request);
-    CpuCapture capture = null;
 
     if (!response.getStatus().equals(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS)) {
       LOG.warn("Unable to stop tracing: " + response.getStatus());
       LOG.warn(response.getErrorMessage());
     }
     else {
-      try {
-        capture = new CpuCapture(response.getTrace());
-        // Force parsing the capture. TODO: avoid parsing the capture twice.
-        getCapture(response.getTraceId());
-      } catch (IllegalStateException e) {
-        LOG.warn("Unable to parse capture: " + e.getMessage());
-      }
-    }
-    if (capture != null) {
-      setCapture(capture);
-      setSelectedThread(capture.getMainThreadId());
+      ListenableFutureTask<CpuCapture> task = ListenableFutureTask.create(() -> new CpuCapture(response.getTrace()));
+      Futures.addCallback(task, new CpuCaptureCallback(response.getTraceId()), getStudioProfilers().getIdeServices().getProfilerExecutor());
+      ExecutorService executor = Executors.newSingleThreadExecutor();
+      executor.submit(task);
+      executor.shutdown();
+      myParsingCapture = true;
     }
     myCapturing = false;
+    myAspect.changed(CpuProfilerAspect.CAPTURE);
   }
 
-  public void setCapture(@NotNull CpuCapture capture) {
+  public void setCapture(@Nullable CpuCapture capture) {
     myCapture = capture;
-    ProfilerTimeline timeline = getStudioProfilers().getTimeline();
-    timeline.setStreaming(false);
-    timeline.getSelectionRange().set(myCapture.getRange());
-    getStudioProfilers().modeChanged();
+    if (capture != null) {
+      ProfilerTimeline timeline = getStudioProfilers().getTimeline();
+      timeline.setStreaming(false);
+      timeline.getSelectionRange().set(myCapture.getRange());
+      getStudioProfilers().modeChanged();
+    }
     myAspect.changed(CpuProfilerAspect.CAPTURE);
   }
 
@@ -256,7 +265,12 @@ public class CpuProfilerStage extends Stage {
   }
 
   public boolean isCapturing() {
+    // TODO: get this information from perfd rather than keeping it in a flag
     return myCapturing;
+  }
+
+  public boolean isParsingCapture() {
+    return myParsingCapture;
   }
 
   @NotNull
@@ -278,8 +292,14 @@ public class CpuProfilerStage extends Stage {
         .build();
       CpuProfiler.GetTraceResponse trace = myCpuService.getTrace(request);
       if (trace.getStatus() == CpuProfiler.GetTraceResponse.Status.SUCCESS) {
-        capture = new CpuCapture(trace.getData());
+        // TODO: move this parsing to a separate thread
+        try {
+          capture = new CpuCapture(trace.getData());
+        } catch (IllegalStateException e) {
+          // Don't crash studio if parsing fails.
+        }
       }
+      // TODO: Limit how many captures we keep parsed in memory
       myTraceCaptures.put(traceId, capture);
     }
     return capture;
@@ -337,6 +357,36 @@ public class CpuProfilerStage extends Stage {
     @NotNull
     public SeriesLegend getThreadsLegend() {
       return myThreadsLegend;
+    }
+  }
+
+  private class CpuCaptureCallback implements FutureCallback<CpuCapture> {
+
+    private int myTraceId;
+
+    private CpuCaptureCallback(int traceId) {
+      myTraceId = traceId;
+    }
+
+    @Override
+    public void onSuccess(@Nullable CpuCapture capture) {
+      // If onSuccess is called, it means we successfully created a new CpuCapture.
+      // Therefore, the value shouldn't be null;
+      assert capture != null;
+
+      myTraceCaptures.put(myTraceId, capture);
+      myParsingCapture = false;
+      setCapture(capture);
+      setSelectedThread(capture.getMainThreadId());
+    }
+
+    @Override
+    public void onFailure(@NotNull Throwable e) {
+      LOG.warn("Unable to parse capture: " + e.getMessage());
+      myParsingCapture = false;
+      setCapture(null);
+      // Set an invalid thread id to clear the thread selection
+      setSelectedThread(-1);
     }
   }
 }

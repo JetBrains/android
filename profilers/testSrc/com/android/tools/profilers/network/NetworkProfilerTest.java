@@ -16,7 +16,7 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profilers.IdeProfilerServicesStub;
+import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.FakeGrpcChannel;
@@ -39,7 +39,7 @@ public class NetworkProfilerTest {
 
   @Before
   public void setUp() {
-    myProfiler = new NetworkProfiler(new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub()));
+    myProfiler = new NetworkProfiler(new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices()));
   }
 
   @Test

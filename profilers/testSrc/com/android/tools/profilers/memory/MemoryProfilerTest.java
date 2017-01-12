@@ -16,7 +16,7 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.profiler.proto.*;
-import com.android.tools.profilers.IdeProfilerServicesStub;
+import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.FakeGrpcChannel;
 import org.junit.Before;
@@ -36,7 +36,7 @@ public class MemoryProfilerTest {
 
   @Before
   public void setUp() {
-    myProfiler = new MemoryProfiler(new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub()));
+    myProfiler = new MemoryProfiler(new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices()));
   }
 
   @Test
