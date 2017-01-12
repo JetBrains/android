@@ -19,7 +19,6 @@ import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf3jarjar.ByteString;
-import gnu.trove.TIntHashSet;
 import gnu.trove.TIntObjectHashMap;
 import org.jetbrains.annotations.NotNull;
 
@@ -50,7 +49,6 @@ public final class AllocationsCaptureObject implements CaptureObject {
     }
 
     AllocationsCaptureObject other = (AllocationsCaptureObject)obj;
-
     return other.myAppId == myAppId && other.myStartTimeNs == myStartTimeNs && other.myEndTimeNs == myEndTimeNs;
   }
 
@@ -99,7 +97,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
         break;
       }
       else if (response.getStatus() == MemoryProfiler.AllocationsInfo.Status.FAILURE_UNKNOWN) {
-        myIsLoadingError = false;
+        myIsLoadingError = true;
         return false;
       }
       else {
@@ -128,7 +126,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
 
     MemoryProfiler.MemoryData response = myClient
       .getData(MemoryProfiler.MemoryRequest.newBuilder().setAppId(myAppId).setStartTime(myStartTimeNs).setEndTime(myEndTimeNs).build());
-    TIntHashSet allocatedClasses = new TIntHashSet();
+    LinkedHashSet<Integer> allocatedClasses = new LinkedHashSet();
 
     // TODO make sure class IDs fall into a global pool
     for (MemoryProfiler.MemoryData.AllocationEvent event : response.getAllocationEventsList()) {
@@ -140,10 +138,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
     }
 
     List<ClassObject> classes = new ArrayList<>(classNodes.size());
-    allocatedClasses.forEach(value -> {
-      classes.add(classNodes.get(value));
-      return true;
-    });
+    allocatedClasses.forEach(value -> classes.add(classNodes.get(value)));
     myClassObjs = classes;
     return true;
   }
