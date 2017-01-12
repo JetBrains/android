@@ -29,8 +29,6 @@ import com.android.util.Pair;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Key;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TObjectIntHashMap;
 import org.gradle.tooling.model.UnsupportedMethodException;
@@ -41,7 +39,6 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.concurrent.GuardedBy;
 import java.io.File;
 import java.util.*;
 
@@ -54,11 +51,6 @@ import static org.jetbrains.android.facet.ResourceFolderManager.addAarsFromModul
  * transitive dependencies of the given AndroidFacet / module.
  */
 public class AppResourceRepository extends MultiResourceRepository {
-  private static final Object KEY_LOCK = new Object();
-
-  @GuardedBy("KEY_LOCK")
-  private static final Key<AppResourceRepository> KEY = Key.create(AppResourceRepository.class.getName());
-
   private AndroidFacet myFacet;
   private List<FileResourceRepository> myLibraries;
   private long myIdsModificationCount;
@@ -71,13 +63,6 @@ public class AppResourceRepository extends MultiResourceRepository {
    */
   private final LinkedList<FileResourceRepository> myAarLibraries = Lists.newLinkedList();
   private Set<String> myIds;
-
-  public static void refreshResources(@NotNull AndroidFacet facet) {
-    AppResourceRepository repository = findExistingInstance(facet);
-    if (repository != null) {
-      Disposer.dispose(repository);
-    }
-  }
 
   @Nullable
   public static AppResourceRepository getOrCreateInstance(@NotNull Module module) {
@@ -104,21 +89,12 @@ public class AppResourceRepository extends MultiResourceRepository {
   @Contract("_, true -> !null")
   @Nullable
   private static AppResourceRepository findAppResources(@NotNull AndroidFacet facet, boolean createIfNecessary) {
-    AppResourceRepository repository;
-    synchronized (KEY_LOCK) {
-      repository = facet.getUserData(KEY);
-    }
-    if (repository == null && createIfNecessary) {
-      repository = create(facet);
-      synchronized (KEY_LOCK) {
-        facet.putUserData(KEY, repository);
-      }
-    }
-    return repository;
+    ResourceRepositories repositories = ResourceRepositories.getOrCreateInstance(facet);
+    return repositories.getAppResources(createIfNecessary);
   }
 
   @NotNull
-  private static AppResourceRepository create(@NotNull AndroidFacet facet) {
+  static AppResourceRepository create(@NotNull AndroidFacet facet) {
     AppResourceRepository repository = new AppResourceRepository(facet, computeRepositories(facet, computeLibraries(facet)),
                                                                  computeLibraries(facet));
     ProjectResourceRepositoryRootListener.ensureSubscribed(facet.getModule().getProject());
@@ -126,10 +102,10 @@ public class AppResourceRepository extends MultiResourceRepository {
     return repository;
   }
 
-  private static List<LocalResourceRepository> computeRepositories(@NotNull final AndroidFacet facet,
-                                                                 List<FileResourceRepository> libraries) {
+  private static List<LocalResourceRepository> computeRepositories(@NotNull AndroidFacet facet,
+                                                                   List<FileResourceRepository> libraries) {
     List<LocalResourceRepository> repositories = Lists.newArrayListWithExpectedSize(10);
-    LocalResourceRepository resources = ProjectResourceRepository.getProjectResources(facet, true);
+    LocalResourceRepository resources = ProjectResourceRepository.getOrCreateInstance(facet);
     repositories.addAll(libraries);
     repositories.add(resources);
     return repositories;
@@ -310,15 +286,13 @@ public class AppResourceRepository extends MultiResourceRepository {
 
   @Override
   public void dispose() {
-    AndroidFacet facet = myFacet;
-    synchronized (KEY_LOCK) {
-      facet.putUserData(KEY, null);
-    }
     myFacet = null;
     super.dispose();
   }
 
-  /** Returns the libraries among the app resources, if any */
+  /**
+   * Returns the libraries among the app resources, if any
+   */
   @NotNull
   public List<FileResourceRepository> getLibraries() {
     return myLibraries;
@@ -507,12 +481,18 @@ public class AppResourceRepository extends MultiResourceRepository {
   // which should be fine.
   private static final int DYNAMIC_ID_SEED_START = 0x7fff0000;
 
-  /** Map of (name, id) for resources of type {@link ResourceType#ID} coming from R.java */
+  /**
+   * Map of (name, id) for resources of type {@link ResourceType#ID} coming from R.java
+   */
   private Map<ResourceType, TObjectIntHashMap<String>> myResourceValueMap;
-  /** Map of (id, [name, resType]) for all resources coming from R.java */
+  /**
+   * Map of (id, [name, resType]) for all resources coming from R.java
+   */
   @SuppressWarnings("deprecation")  // For Pair
   private TIntObjectHashMap<Pair<ResourceType, String>> myResIdValueToNameMap;
-  /** Map of (int[], name) for styleable resources coming from R.java */
+  /**
+   * Map of (int[], name) for styleable resources coming from R.java
+   */
   private Map<IntArrayWrapper, String> myStyleableValueToNameMap;
 
   private final TObjectIntHashMap<TypedResourceName> myName2DynamicIdMap = new TObjectIntHashMap<>();

@@ -26,7 +26,6 @@ import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.HtmlBuilder;
-import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
@@ -73,7 +72,6 @@ import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ResourceManager;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -255,7 +253,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     if (newFieldName.indexOf('_') < 0) return newFieldName;
     if (oldResourceName.indexOf('_') < 0 && oldResourceName.indexOf('.') >= 0) {
       String suggestion = newFieldName.replace('_', '.');
-      newFieldName = Messages.showInputDialog(project, AndroidBundle.message("rename.resource.dialog.text", oldResourceName),
+      newFieldName = Messages.showInputDialog(project, message("rename.resource.dialog.text", oldResourceName),
                                               RefactoringBundle.message("rename.title"), Messages.getQuestionIcon(), suggestion, null);
     }
     return newFieldName;
@@ -372,12 +370,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
       }
       else {
         renameCandidates = Collections2.filter(manager.getResourceNames(resourceType),
-                                               new Predicate<String>() {
-                                                 @Override
-                                                 public boolean apply(String input) {
-                                                   return input.startsWith(stylePrefix);
-                                                 }
-                                               });
+                                               input -> input.startsWith(stylePrefix));
       }
 
       for (String resourceName : ORDER_BY_LENGTH.sortedCopy(renameCandidates)) {
@@ -451,7 +444,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     }
 
     List<PsiFile> resourceFiles = manager.findResourceFiles(type, AndroidCommonUtils.getResourceName(type, name), true, false);
-    List<PsiFile> alternativeResources = new ArrayList<PsiFile>();
+    List<PsiFile> alternativeResources = new ArrayList<>();
     for (PsiFile resourceFile : resourceFiles) {
       if (!resourceFile.getManager().areElementsEquivalent(file, resourceFile) && resourceFile.getName().equals(name)) {
         alternativeResources.add(resourceFile);
@@ -571,7 +564,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
       if (all == null) {
         all = Collections.emptyList();
       }
-      List<ResourceItem> local = ProjectResourceRepository.getProjectResources(facet, true).getResourceItem(type, name);
+      List<ResourceItem> local = ProjectResourceRepository.getOrCreateInstance(facet).getResourceItem(type, name);
       if (local == null) {
         local = Collections.emptyList();
       }

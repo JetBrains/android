@@ -74,7 +74,7 @@ public class ProjectResourceRepositoryRootListener {
         return;
       }
       facet.getResourceFolderManager().invalidate();
-      ProjectResourceRepository projectResources = ProjectResourceRepository.getProjectResources(facet, false);
+      ProjectResourceRepository projectResources = ProjectResourceRepository.findExistingInstance(facet);
       if (projectResources != null) {
         projectResources.updateRoots();
 

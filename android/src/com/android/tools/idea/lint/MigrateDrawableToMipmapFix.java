@@ -71,7 +71,7 @@ class MigrateDrawableToMipmapFix implements AndroidLintQuickFix {
     final Set<PsiElement> references = Sets.newHashSet();
 
     GlobalSearchScope useScope = GlobalSearchScope.projectScope(project);
-    ProjectResourceRepository projectResources = facet.getProjectResources(true);
+    ProjectResourceRepository projectResources = ProjectResourceRepository.getOrCreateInstance(facet);
     List<ResourceItem> resourceItems = projectResources.getResourceItem(myUrl.type, myUrl.name);
     if (resourceItems != null) {
       for (ResourceItem item : resourceItems) {
