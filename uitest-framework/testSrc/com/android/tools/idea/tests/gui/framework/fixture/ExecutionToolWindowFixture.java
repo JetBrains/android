@@ -32,7 +32,6 @@ import com.intellij.xdebugger.impl.ui.tree.XDebuggerTree;
 import com.intellij.xdebugger.impl.ui.tree.nodes.XDebuggerTreeNode;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JListFixture;
@@ -214,12 +213,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
           //noinspection ConstantConditions
           boolean enabled = method("isButtonEnabled").withReturnType(boolean.class).in(button).invoke();
           if (enabled) {
-            GuiActionRunner.execute(new GuiTask() {
-              @Override
-              protected void executeInEDT() throws Throwable {
-                button.click();
-              }
-            });
+            GuiTask.execute(() -> button.click());
             return true;
           }
           return false;

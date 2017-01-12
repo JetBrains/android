@@ -24,7 +24,6 @@ import com.intellij.ui.treeStructure.Tree;
 import org.fest.swing.annotation.RunsInEDT;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.fixture.JTreeFixture;
@@ -101,16 +100,14 @@ public class MergedManifestFixture extends ComponentFixture<MergedManifestFixtur
 
   @RunsInEDT
   public void checkAllRowsColored() {
-    GuiActionRunner.execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() {
+    GuiTask.execute(
+      () -> {
         Tree tree = (Tree)myTree.target();
         for (int row = 0; row < tree.getRowCount(); row++) {
           TreePath path = tree.getPathForRow(row);
           Color color = tree.getFileColorForPath(path);
           assertNotEquals(0, color.getAlpha());
         }
-      }
-    });
+      });
   }
 }
