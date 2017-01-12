@@ -17,6 +17,7 @@ package com.android.tools.idea.run.editor;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.tools.idea.avdmanager.ModuleAvds;
 import com.android.tools.idea.run.*;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -45,7 +46,7 @@ public class EmulatorTargetProvider extends DeployTargetProvider<EmulatorTargetP
         return ImmutableList.of();
       }
 
-      AvdManager avdManager = facet.getAvdManagerSilently();
+      AvdManager avdManager = ModuleAvds.getInstance(facet).getAvdManagerSilently();
       if (avdManager == null) {
         return ImmutableList.of(ValidationError.fatal(AndroidBundle.message("avd.cannot.be.loaded.error")));
       }
