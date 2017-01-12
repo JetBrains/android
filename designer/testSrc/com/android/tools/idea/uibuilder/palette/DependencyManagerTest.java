@@ -37,7 +37,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 public class DependencyManagerTest extends AndroidTestCase {
-  private GradleDependencyManager myOldGradleDependencyManager;
   private JComponent myPanel;
   private Disposable myDisposable;
   private Palette myPalette;
@@ -47,7 +46,7 @@ public class DependencyManagerTest extends AndroidTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     GradleDependencyManager gradleDependencyManager = mock(GradleDependencyManager.class);
-    myOldGradleDependencyManager = registerProjectComponent(GradleDependencyManager.class, gradleDependencyManager);
+    registerProjectComponent(GradleDependencyManager.class, gradleDependencyManager);
     myPanel = mock(JComponent.class);
     myDisposable = mock(Disposable.class);
     myPalette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
@@ -63,7 +62,6 @@ public class DependencyManagerTest extends AndroidTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
-      registerProjectComponent(GradleDependencyManager.class, myOldGradleDependencyManager);
       Disposer.dispose(myDisposable);
     }
     finally {
