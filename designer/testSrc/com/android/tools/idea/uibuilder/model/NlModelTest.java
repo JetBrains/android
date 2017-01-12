@@ -345,26 +345,21 @@ public class NlModelTest extends LayoutTestCase {
     assertThat(frameLayout).isNotNull();
 
     GradleDependencyManager gradleDependencyManager = mock(GradleDependencyManager.class);
-    GradleDependencyManager oldGradleDependencyManager = registerProjectComponent(GradleDependencyManager.class, gradleDependencyManager);
-    try {
-      NlComponent recyclerView = model.createComponent(
-        surface().screen(model).getScreen(), CLASS_RECYCLER_VIEW, null, null, InsertType.CREATE);
-      List<GradleCoordinate> expectedDependencies =
-        Collections.singletonList(GradleCoordinate.parseCoordinateString(RECYCLER_VIEW_LIB_ARTIFACT + ":+"));
-      when(gradleDependencyManager.ensureLibraryIsIncluded(eq(myModule), eq(expectedDependencies), isNull(Runnable.class)))
-        .thenReturn(true);
+    registerProjectComponent(GradleDependencyManager.class, gradleDependencyManager);
+    NlComponent recyclerView = model.createComponent(
+      surface().screen(model).getScreen(), CLASS_RECYCLER_VIEW, null, null, InsertType.CREATE);
+    List<GradleCoordinate> expectedDependencies =
+      Collections.singletonList(GradleCoordinate.parseCoordinateString(RECYCLER_VIEW_LIB_ARTIFACT + ":+"));
+    when(gradleDependencyManager.ensureLibraryIsIncluded(eq(myModule), eq(expectedDependencies), isNull(Runnable.class)))
+      .thenReturn(true);
 
-      model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.CREATE);
-      verify(gradleDependencyManager).ensureLibraryIsIncluded(eq(myModule), eq(expectedDependencies), isNull(Runnable.class));
+    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.CREATE);
+    verify(gradleDependencyManager).ensureLibraryIsIncluded(eq(myModule), eq(expectedDependencies), isNull(Runnable.class));
 
-      assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,150:768x1034, instance=0}\n" +
-                   "    NlComponent{tag=<FrameLayout>, bounds=[0,150:200x200, instance=1}\n" +
-                   "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,150:200x66, instance=2}",
-                   myTreeDumper.toTree(model.getComponents()));
-    }
-    finally {
-      registerProjectComponent(GradleDependencyManager.class, oldGradleDependencyManager);
-    }
+    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,150:768x1034, instance=0}\n" +
+                 "    NlComponent{tag=<FrameLayout>, bounds=[0,150:200x200, instance=1}\n" +
+                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,150:200x66, instance=2}",
+                 myTreeDumper.toTree(model.getComponents()));
   }
 
   public void testAddComponentsNoDependencyCheckOnMove() {
@@ -389,19 +384,13 @@ public class NlModelTest extends LayoutTestCase {
     assertThat(frameLayout).isNotNull();
 
     GradleDependencyManager gradleDependencyManager = mock(GradleDependencyManager.class);
-    GradleDependencyManager oldGradleDependencyManager = registerProjectComponent(GradleDependencyManager.class, gradleDependencyManager);
-    try {
-      model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.MOVE_INTO);
-      verifyZeroInteractions(gradleDependencyManager);
+    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.MOVE_INTO);
+    verifyZeroInteractions(gradleDependencyManager);
 
-      assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,150:768x1034, instance=0}\n" +
-                   "    NlComponent{tag=<FrameLayout>, bounds=[0,150:200x200, instance=1}\n" +
-                   "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,150:200x200, instance=2}",
-                   myTreeDumper.toTree(model.getComponents()));
-    }
-    finally {
-      registerProjectComponent(GradleDependencyManager.class, oldGradleDependencyManager);
-    }
+    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,150:768x1034, instance=0}\n" +
+                 "    NlComponent{tag=<FrameLayout>, bounds=[0,150:200x200, instance=1}\n" +
+                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,150:200x200, instance=2}",
+                 myTreeDumper.toTree(model.getComponents()));
   }
 
   public void testMoveInHierarchyWithWrongXmlTags() throws Exception {
