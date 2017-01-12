@@ -26,14 +26,14 @@ import java.awt.image.Raster;
 import java.awt.image.WritableRaster;
 import java.util.Arrays;
 
-public class ResourceChooserIcon implements Icon {
+public class ResourceChooserImageIcon implements Icon {
   private final int mySize;
   private final Image myImage;
   private final Paint myCheckerPaint;
   private boolean myInterpolate;
 
 
-  public ResourceChooserIcon(int size, Image image, int checkerboardSize, boolean interpolate) {
+  public ResourceChooserImageIcon(int size, Image image, int checkerboardSize, boolean interpolate) {
     mySize = size;
     myImage = image;
     myCheckerPaint = checkerboardSize > 0 ? new CheckerboardPaint(checkerboardSize) : null;
