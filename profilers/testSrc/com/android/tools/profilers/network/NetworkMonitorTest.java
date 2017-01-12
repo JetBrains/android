@@ -18,7 +18,7 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
-import com.android.tools.profilers.IdeProfilerServicesStub;
+import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.google.common.collect.ImmutableList;
@@ -49,7 +49,7 @@ public class NetworkMonitorTest {
   @Before
   public void setUp() {
     myTimer = new FakeTimer();
-    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub(), myTimer);
+    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
     myMonitor = new NetworkMonitor(myProfilers);
     myProfilers.getTimeline().getViewRange().set(0, TimeUnit.SECONDS.toMicros(10));
     myMonitor.enter();

@@ -53,7 +53,7 @@ public class MemoryClassViewTest {
 
   @Before
   public void before() {
-    IdeProfilerServicesStub profilerServices = new IdeProfilerServicesStub();
+    FakeIdeProfilerServices profilerServices = new FakeIdeProfilerServices();
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), profilerServices);
 
     myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();

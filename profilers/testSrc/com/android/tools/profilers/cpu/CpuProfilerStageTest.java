@@ -45,9 +45,12 @@ public class CpuProfilerStageTest extends AspectObserver {
    */
   private volatile CountDownLatch myGetProcessesLatch;
 
+  private FakeIdeProfilerServices myServices;
+
   @Before
   public void setUp() throws Exception {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub());
+    myServices = new FakeIdeProfilerServices();
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myServices);
     myStage = new CpuProfilerStage(profilers);
     myGetProcessesLatch = new CountDownLatch(1);
     profilers.addDependency(this).onChange(ProfilerAspect.PROCESSES, myGetProcessesLatch::countDown);
@@ -66,8 +69,8 @@ public class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void testStartCapturing() throws InterruptedException {
     assertFalse(myStage.isCapturing());
-
     myGetProcessesLatch.await();
+
     // Start a successful capture
     myCpuService.setStartProfilingStatus(CpuProfilingAppStartResponse.Status.SUCCESS);
     myStage.startCapturing();
@@ -80,21 +83,33 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void testStopCapturing() throws InterruptedException {
+  public void testStopCapturingInvalidTrace() throws InterruptedException {
     assertFalse(myStage.isCapturing());
     myGetProcessesLatch.await();
+
     // Start a successful capture
     myCpuService.setStartProfilingStatus(CpuProfilingAppStartResponse.Status.SUCCESS);
     myStage.startCapturing();
     assertTrue(myStage.isCapturing());
 
     // Stop capturing, but don't include a trace in the response.
+    CountDownLatch captureTreeLatch = new CountDownLatch(1);
+    myServices.setOnExecute(captureTreeLatch::countDown);
     myCpuService.setStopProfilingStatus(CpuProfilingAppStopResponse.Status.SUCCESS);
     myCpuService.setValidTrace(false);
     myStage.stopCapturing();
     assertFalse(myStage.isCapturing());
+    assertTrue(myStage.isParsingCapture());
+    captureTreeLatch.await();
+    assertFalse(myStage.isParsingCapture());
     // Capture was stopped successfully, but capture should still be null as the response has no valid trace
     assertNull(myStage.getCapture());
+  }
+
+  @Test
+  public void testStopCapturingInvalidTraceFailureStatus() throws InterruptedException {
+    assertFalse(myStage.isCapturing());
+    myGetProcessesLatch.await();
 
     // Start a successful capture
     myStage.startCapturing();
@@ -106,6 +121,12 @@ public class CpuProfilerStageTest extends AspectObserver {
     myStage.stopCapturing();
     assertFalse(myStage.isCapturing());
     assertNull(myStage.getCapture());
+  }
+
+  @Test
+  public void testStopCapturingValidTraceFailureStatus() throws InterruptedException {
+    assertFalse(myStage.isCapturing());
+    myGetProcessesLatch.await();
 
     // Start a successful capture
     myStage.startCapturing();
@@ -120,17 +141,28 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Despite the fact of having a valid trace, we first check for the response status.
     // As it wasn't SUCCESS, capture should not be set.
     assertNull(myStage.getCapture());
+  }
+
+  @Test
+  public void testStopCapturingSuccessfully() throws InterruptedException {
+    assertFalse(myStage.isCapturing());
+    myGetProcessesLatch.await();
 
     // Start a successful capture
     myStage.startCapturing();
     assertTrue(myStage.isCapturing());
 
     // Stop a capture successfully with a valid trace
+    CountDownLatch captureTreeLatch = new CountDownLatch(1);
+    myServices.setOnExecute(captureTreeLatch::countDown);
     myCpuService.setStopProfilingStatus(CpuProfilingAppStopResponse.Status.SUCCESS);
     myCpuService.setValidTrace(true);
     myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
     myStage.stopCapturing();
     assertFalse(myStage.isCapturing());
+    assertTrue(myStage.isParsingCapture());
+    captureTreeLatch.await();
+    assertFalse(myStage.isParsingCapture());
     assertNotNull(myStage.getCapture());
   }
 
