@@ -78,7 +78,6 @@ import static com.android.SdkConstants.*;
 import static com.android.testutils.TestUtils.getSdk;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.Projects.isLegacyIdeaAndroidProject;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.io.Files.write;
@@ -261,8 +260,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     Project project = getProject();
     importProject(project.getName(), getBaseDirPath(project), listener);
 
-    assertTrue(AndroidProjectInfo.getInstance(project).requiresAndroidModel());
-    assertFalse(isLegacyIdeaAndroidProject(project));
+    AndroidProjectInfo androidProjectInfo = AndroidProjectInfo.getInstance(project);
+    assertTrue(androidProjectInfo.requiresAndroidModel());
+    assertFalse(androidProjectInfo.isLegacyIdeaAndroidProject());
 
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     Module[] modules = moduleManager.getModules();

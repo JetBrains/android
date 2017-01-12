@@ -64,4 +64,53 @@ public class AndroidProjectInfo {
     }
     return false;
   }
+
+  /**
+   * Indicates whether the project requires an Android model, but the model is {@code null}. Possible causes for this scenario to happen are:
+   * <ul>
+   * <li>the last sync with the build system failed</li>
+   * <li>Studio just started up and it has not synced the project yet</li>
+   * </ul>
+   *
+   * @return {@code true} if the project is an Android project that does not contain any build system-based model.
+   */
+  public boolean requiredAndroidModelMissing() {
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null && facet.requiresAndroidModel() && facet.getAndroidModel() == null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Indicates whether the project is a legacy IDEA Android project (which is deprecated in Android Studio.)
+   *
+   * @return {@code true} if the given project is a legacy IDEA Android project; {@code false} otherwise.
+   */
+  public boolean isLegacyIdeaAndroidProject() {
+    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+    for (Module module : moduleManager.getModules()) {
+      if (isLegacyIdeaAndroidModule(module)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Indicates whether the given module is a legacy IDEA Android module (which is deprecated in Android Studio.)
+   *
+   * @param module the given module.
+   * @return {@code true} if the given module is a legacy IDEA Android module; {@code false} otherwise.
+   */
+  private static boolean isLegacyIdeaAndroidModule(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet != null && !facet.requiresAndroidModel()) {
+      // If a module has the Android facet, but it does not require a model from the build system, it is a legacy IDEA project.
+      return true;
+    }
+    return false;
+  }
 }
