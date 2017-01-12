@@ -131,7 +131,7 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
     myPanel.setSelectionListener(item -> lastSelectedItem.value = item);
 
     clickOnItem(2, 3);
-    assertThat(lastSelectedItem.value.toString()).isEqualTo("LinearLayout");
+    assertThat(lastSelectedItem.value.toString()).isEqualTo(SdkConstants.LINEAR_LAYOUT);
   }
 
   public void testClickOnItemMissingFromProject() {
@@ -140,7 +140,6 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
 
     myPanel.populateUiModel(palette, mySurface);
     when(myDependencyManager.needsLibraryLoad(eq(coordinatorLayout))).thenReturn(true);
-    when(myDependencyManager.ensureLibraryIsIncluded(coordinatorLayout)).thenReturn(true);
 
     Holder<Palette.Item> lastSelectedItem = new Holder<>();
     myPanel.setSelectionListener(item -> lastSelectedItem.value = item);
@@ -148,7 +147,6 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
     clickOnItem(9, 0);
 
     assertThat(lastSelectedItem.value.getTagName()).isEqualTo(SdkConstants.COORDINATOR_LAYOUT);
-    verify(myDependencyManager).ensureLibraryIsIncluded(eq(coordinatorLayout));
   }
 
   public void testFocusTraversalPolicy() {
