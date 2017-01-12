@@ -57,7 +57,7 @@ public class EditorTextFieldDriver extends JComponentDriver implements TextDispl
   @Nullable
   @Override
   public String textOf(@NotNull final EditorTextField component) {
-    return execute(GuiQuery.from(component::getText));
+    return GuiQuery.get(component::getText);
   }
 
   @RunsInEDT
