@@ -99,17 +99,22 @@ class RDotTxtParser {
             // line must be of the form "int[] styleable name { value1, value2, ..., valueN }"
             // extract " value1, value2, ..., valueN "
             String valuesList = line.substring(myArrayStart.length(), line.length() - 1);
-            myValuesList = new Integer[StringUtil.countChars(valuesList, ',') + 1];
-            myDeclaredAttrs = new String[myValuesList.length];
+            int valuesCount = StringUtil.countChars(valuesList, ',') + 1;
+
+            // The declared styleable doesn't match the size of this list of values so ignore this styleable declaration
+            if (valuesCount != attrs.size()) {
+              // Do not keep looking for the attr indexes
+              return false;
+            }
+            myValuesList = new Integer[valuesCount];
+            myDeclaredAttrs = new String[valuesCount];
             int idx = 0;
 
             for (String s : COMMA_SPLITTER.split(valuesList)) {
               myValuesList[idx++] = Integer.decode(s);
             }
             return true;
-          }
-
-          if (line.startsWith(myEntryStart)) {
+          } else if (line.startsWith(myEntryStart)) {
             assert myValuesList != null : "Entries for a declare-styleable should be after the array declaration.";
             // line must be of the form "int styleable name value"
             int lastSpace = line.lastIndexOf(' ');
@@ -127,7 +132,7 @@ class RDotTxtParser {
 
         @Override
         public Integer[] getResult() {
-          if (myValuesList == null) {
+          if (myValuesList == null || myDeclaredAttrs == null) {
             return null;
           }
           // The order of entries in a declare-styleable in the source xml and in R.txt may be different.
