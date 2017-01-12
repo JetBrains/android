@@ -31,6 +31,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public final class HeapDumpCaptureObject implements CaptureObject {
+
+  static final String LABEL_FORMATTER = "Heap Dump %d @ %d";
+
   @NotNull
   private final MemoryServiceBlockingStub myClient;
 
@@ -79,7 +82,7 @@ public final class HeapDumpCaptureObject implements CaptureObject {
   @NotNull
   @Override
   public String getLabel() {
-    return "Heap Dump " + myHeapDumpInfo.getDumpId() + " @" + myHeapDumpInfo.getStartTime();
+    return String.format(LABEL_FORMATTER, myHeapDumpInfo.getDumpId(), myHeapDumpInfo.getStartTime());
   }
 
   @NotNull
