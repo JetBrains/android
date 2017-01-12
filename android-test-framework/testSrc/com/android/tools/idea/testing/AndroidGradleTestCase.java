@@ -459,39 +459,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     return contents;
   }
 
-  /**
-   * Return a List of all the HighlightInfos in a file filtered by the given predicate (the predicate does not need to check for null as
-   * this method does that).
-   */
-  @NotNull
-  protected List<HighlightInfo> getHighlightInfos(@NotNull File pathInProject, @NotNull Predicate<HighlightInfo> filter)
-    throws InterruptedException {
-    Project project = getProject();
-
-    VirtualFile rootDirectory = project.getBaseDir();
-    VirtualFile file = rootDirectory.findFileByRelativePath(pathInProject.getPath());
-    assertNotNull(file);
-
-    Editor editor = FileEditorManager.getInstance(project).openTextEditor(new OpenFileDescriptor(project, file, 0), false);
-    assertNotNull(editor);
-    ((EditorImpl)editor).setCaretActive();
-
-    Document document = FileDocumentManager.getInstance().getDocument(file);
-    assertNotNull(document);
-    PsiFile psiFile = PsiDocumentManager.getInstance(project).getPsiFile(document);
-    assertNotNull(psiFile);
-    DaemonCodeAnalyzer.getInstance(project).restart(psiFile);
-    List<HighlightInfo> highlightInfos = CodeInsightTestFixtureImpl.instantiateAndRun(psiFile, editor, EMPTY_INT_ARRAY, true);
-    return highlightInfos.stream().filter(info -> info != null).filter(filter).collect(Collectors.toList());
-  }
-
-  /**
-   * Checks that a file has no highlights with a severity higher than a warning.
-   */
-  protected void assertFileHasNoErrors(File pathInProject) throws InterruptedException {
-    assertThat(getHighlightInfos(pathInProject, highlight -> highlight.getSeverity().compareTo(WARNING) > 0)).isEmpty();
-  }
-
   private void updateLocalProperties() throws IOException {
     LocalProperties localProperties = new LocalProperties(getProject());
     File sdkPath = findSdkPath();
