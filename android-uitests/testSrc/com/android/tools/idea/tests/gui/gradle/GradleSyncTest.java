@@ -110,7 +110,6 @@ import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.junit.Assert.*;
 
@@ -138,17 +137,12 @@ public class GradleSyncTest {
     Module appModule = guiTest.ideFrame().getModule("app");
 
     // Set a dependency on a module that does not exist.
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        runWriteCommandAction(
-          ideFrame.getProject(), () -> {
-            GradleBuildModel buildModel = GradleBuildModel.get(appModule);
-            buildModel.dependencies().addModule(ANDROID_TEST_COMPILE, ":library3");
-            buildModel.applyChanges();
-          });
-      }
-    });
+    GuiTask.execute(() -> runWriteCommandAction(
+      ideFrame.getProject(), () -> {
+        GradleBuildModel buildModel = GradleBuildModel.get(appModule);
+        buildModel.dependencies().addModule(ANDROID_TEST_COMPILE, ":library3");
+        buildModel.applyChanges();
+      }));
 
     ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
@@ -712,19 +706,14 @@ public class GradleSyncTest {
 
     Module appModule = ideFrame.getModule("app");
 
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        runWriteCommandAction(
-          project, () -> {
-            GradleBuildModel buildModel = GradleBuildModel.get(appModule);
+    GuiTask.execute(() -> runWriteCommandAction(
+      project, () -> {
+        GradleBuildModel buildModel = GradleBuildModel.get(appModule);
 
-            String newDependency = "com.mapbox.mapboxsdk:mapbox-android-sdk:0.7.4@aar";
-            buildModel.dependencies().addArtifact(COMPILE, newDependency);
-            buildModel.applyChanges();
-          });
-      }
-    });
+        String newDependency = "com.mapbox.mapboxsdk:mapbox-android-sdk:0.7.4@aar";
+        buildModel.dependencies().addArtifact(COMPILE, newDependency);
+        buildModel.applyChanges();
+      }));
 
     ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
@@ -747,13 +736,8 @@ public class GradleSyncTest {
     Module appModule = ideFrame.getModule("app");
     GradleBuildFile buildFile = GradleBuildFile.get(appModule);
 
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        runWriteCommandAction(
-          project, () -> buildFile.setValue(BuildFileKey.COMPILE_SDK_VERSION, "Google Inc.:Google APIs:24"));
-      }
-    });
+    GuiTask.execute(() -> runWriteCommandAction(
+      project, () -> buildFile.setValue(BuildFileKey.COMPILE_SDK_VERSION, "Google Inc.:Google APIs:24")));
 
     ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
@@ -782,9 +766,8 @@ public class GradleSyncTest {
     AtomicBoolean syncSkipped = new AtomicBoolean(false);
 
     // Reopen project and verify that sync was skipped (i.e. model loaded from cache)
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
+    GuiTask.execute(
+      () -> {
         ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
         Project project = projectManager.convertAndLoadProject(projectPath.getPath());
         GradleSyncState.subscribe(project, new GradleSyncListener.Adapter() {
@@ -794,8 +777,7 @@ public class GradleSyncTest {
           }
         });
         projectManager.openProject(project);
-      }
-    });
+      });
 
     Wait.seconds(5).expecting("sync to be skipped").until(syncSkipped::get);
   }
