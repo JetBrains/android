@@ -20,21 +20,15 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.IdeProfilerServicesStub;
 import com.android.tools.profilers.StudioProfilers;
-import com.google.protobuf3jarjar.ByteString;
 import com.intellij.util.containers.ImmutableList;
-import io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -82,7 +76,7 @@ public class ThreadStateDataSeriesTest {
     // Create a series with the range that contains both thread1 and thread2 and thread2 tid
     ThreadStateDataSeries series = createThreadSeries(range, 2);
     // We don't want to get thread information from the trace
-    myService.setAddTraceInfo(false);
+    myService.setValidTrace(false);
     ImmutableList<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForXRange(range);
     assertNotNull(dataSeries);
     assertEquals(4, dataSeries.size()); // thread2 state changes are RUNNING, STOPPED, SLEEPING and DEAD
@@ -101,7 +95,7 @@ public class ThreadStateDataSeriesTest {
     // Create a series with trace file's main thread tid and the capture range
     ThreadStateDataSeries series = createThreadSeries(capture.getRange(), FakeCpuService.TRACE_TID);
     // We want the data series to consider the trace.
-    myService.setAddTraceInfo(true);
+    myService.setValidTrace(true);
     myService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.FAILURE);
 
     ImmutableList<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForXRange(capture.getRange());
@@ -122,7 +116,7 @@ public class ThreadStateDataSeriesTest {
     // Create a series with trace file's main thread tid and the capture range
     ThreadStateDataSeries series = createThreadSeries(capture.getRange(), FakeCpuService.TRACE_TID);
     // We want the data series to consider the trace.
-    myService.setAddTraceInfo(true);
+    myService.setValidTrace(true);
     myService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
     ImmutableList<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForXRange(capture.getRange());
     assertNotNull(dataSeries);
@@ -145,143 +139,5 @@ public class ThreadStateDataSeriesTest {
     ThreadStateDataSeries threadSeries = (ThreadStateDataSeries)dataSeries;
     assertNotNull(threadSeries);
     return threadSeries;
-  }
-
-  private static class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
-
-    private static final int FAKE_TRACE_ID = 28;
-
-    /**
-     * Real tid of the main thread of the trace.
-     */
-    private static final int TRACE_TID = 516;
-
-    @Nullable
-    private ByteString myTrace;
-
-    private boolean myAddTraceInfo;
-
-    private CpuCapture myCapture;
-
-    private CpuProfiler.GetTraceResponse.Status myGetTraceResponseStatus;
-
-    @Override
-    public void getThreads(CpuProfiler.GetThreadsRequest request, StreamObserver<CpuProfiler.GetThreadsResponse> responseObserver) {
-      CpuProfiler.GetThreadsResponse.Builder response = CpuProfiler.GetThreadsResponse.newBuilder();
-      if (myAddTraceInfo) {
-        response.addAllThreads(buildTraceThreads());
-      } else {
-        response.addAllThreads(buildThreads(request.getStartTimestamp(), request.getEndTimestamp()));
-      }
-
-      responseObserver.onNext(response.build());
-      responseObserver.onCompleted();
-    }
-
-    @Override
-    public void getTrace(CpuProfiler.GetTraceRequest request, StreamObserver<CpuProfiler.GetTraceResponse> responseObserver) {
-      CpuProfiler.GetTraceResponse.Builder response = CpuProfiler.GetTraceResponse.newBuilder();
-      response.setStatus(myGetTraceResponseStatus);
-      if (myTrace != null) {
-        response.setData(myTrace);
-      }
-
-      responseObserver.onNext(response.build());
-      responseObserver.onCompleted();
-    }
-
-    @Override
-    public void getTraceInfo(CpuProfiler.GetTraceInfoRequest request, StreamObserver<CpuProfiler.GetTraceInfoResponse> responseObserver) {
-      CpuProfiler.GetTraceInfoResponse.Builder response = CpuProfiler.GetTraceInfoResponse.newBuilder();
-      if (myAddTraceInfo) {
-        response.addTraceInfo(CpuProfiler.TraceInfo.newBuilder().setTraceId(FAKE_TRACE_ID));
-      }
-
-      responseObserver.onNext(response.build());
-      responseObserver.onCompleted();
-    }
-
-    /**
-     * Create two threads that overlap for certain amount of time.
-     * They are referred as thread1 and thread2 in the comments present in the tests.
-     *
-     * Thread1 is alive from 1s to 8s, while thread2 is alive from 6s to 15s.
-     */
-    private static List<CpuProfiler.GetThreadsResponse.Thread> buildThreads(long start, long end) {
-      List<CpuProfiler.GetThreadsResponse.Thread> threads = new ArrayList<>();
-
-      Range requestRange = new Range(start, end);
-
-      Range thread1Range = new Range(TimeUnit.SECONDS.toNanos(1), TimeUnit.SECONDS.toNanos(8));
-      if (!thread1Range.getIntersection(requestRange).isEmpty()) {
-        List<CpuProfiler.GetThreadsResponse.ThreadActivity> activitiesThread1 = new ArrayList<>();
-        activitiesThread1.add(newActivity(TimeUnit.SECONDS.toNanos(1), CpuProfiler.GetThreadsResponse.State.RUNNING));
-        activitiesThread1.add(newActivity(TimeUnit.SECONDS.toNanos(8), CpuProfiler.GetThreadsResponse.State.DEAD));
-        threads.add(newThread(1, "Thread 1", activitiesThread1));
-      }
-
-      Range thread2Range = new Range(TimeUnit.SECONDS.toNanos(6), TimeUnit.SECONDS.toNanos(15));
-      if (!thread2Range.getIntersection(requestRange).isEmpty()) {
-        List<CpuProfiler.GetThreadsResponse.ThreadActivity> activitiesThread2 = new ArrayList<>();
-        activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(6), CpuProfiler.GetThreadsResponse.State.RUNNING));
-        // Make sure we handle an unexpected state.
-        activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(8), CpuProfiler.GetThreadsResponse.State.STOPPED));
-        activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(10), CpuProfiler.GetThreadsResponse.State.SLEEPING));
-        activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(15), CpuProfiler.GetThreadsResponse.State.DEAD));
-        threads.add(newThread(2, "Thread 2", activitiesThread2));
-      }
-
-      return threads;
-    }
-
-    /**
-     * Create one thread with two activities: RUNNING (2 seconds before capture start) and SLEEPING (2 seconds after capture end).
-     */
-    private List<CpuProfiler.GetThreadsResponse.Thread> buildTraceThreads() {
-      Range range = myCapture.getRange();
-      long rangeMid = (long)(range.getMax() + range.getMin()) / 2;
-      long buffer = TimeUnit.SECONDS.toMicros(2);
-
-      List<CpuProfiler.GetThreadsResponse.ThreadActivity> activities = new ArrayList<>();
-      activities.add(
-        newActivity(TimeUnit.MICROSECONDS.toNanos((long)range.getMin() - buffer), CpuProfiler.GetThreadsResponse.State.RUNNING));
-      activities.add(newActivity(TimeUnit.MICROSECONDS.toNanos(rangeMid), CpuProfiler.GetThreadsResponse.State.SLEEPING));
-
-      return Collections.singletonList(newThread(TRACE_TID, "Trace tid", activities));
-    }
-
-    private static CpuProfiler.GetThreadsResponse.ThreadActivity newActivity(long timestampNs, CpuProfiler.GetThreadsResponse.State state) {
-      CpuProfiler.GetThreadsResponse.ThreadActivity.Builder activity = CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder();
-      activity.setNewState(state);
-      activity.setTimestamp(timestampNs);
-      return activity.build();
-    }
-
-    private static CpuProfiler.GetThreadsResponse.Thread newThread(
-      int tid, String name, List<CpuProfiler.GetThreadsResponse.ThreadActivity> activities) {
-      CpuProfiler.GetThreadsResponse.Thread.Builder thread = CpuProfiler.GetThreadsResponse.Thread.newBuilder();
-      thread.setTid(tid);
-      thread.setName(name);
-      thread.addAllActivities(activities);
-      return thread.build();
-    }
-
-    private void setAddTraceInfo(boolean addTraceInfo) {
-      myAddTraceInfo = addTraceInfo;
-    }
-
-    private void setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status getTraceResponseStatus) {
-      myGetTraceResponseStatus = getTraceResponseStatus;
-    }
-
-    private CpuCapture parseTraceFile() throws IOException {
-      if (myTrace == null) {
-        myTrace = CpuCaptureTest.readValidTrace();
-      }
-      if (myCapture == null) {
-        myCapture = new CpuCapture(myTrace);
-      }
-      return myCapture;
-    }
   }
 }

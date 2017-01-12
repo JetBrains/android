@@ -15,17 +15,11 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.profiler.proto.CpuProfiler.CpuStartRequest;
-import com.android.tools.profiler.proto.CpuProfiler.CpuStartResponse;
-import com.android.tools.profiler.proto.CpuProfiler.CpuStopRequest;
-import com.android.tools.profiler.proto.CpuProfiler.CpuStopResponse;
-import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.IdeProfilerServicesStub;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.FakeGrpcChannel;
-import io.grpc.stub.StreamObserver;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -69,32 +63,5 @@ public class CpuProfilerTest {
     myCpuProfiler.stopProfiling(FAKE_PROCESS);
     // Make sure the pid of the service was set to FAKE_PID by the stop monitoring request
     assertEquals(FAKE_PID, myService.getAppId());
-  }
-
-  private static class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
-
-    private int myAppId;
-
-    @Override
-    public void startMonitoringApp(CpuStartRequest request, StreamObserver<CpuStartResponse> responseObserver) {
-      CpuStartResponse.Builder response = CpuStartResponse.newBuilder();
-      myAppId = request.getAppId();
-
-      responseObserver.onNext(response.build());
-      responseObserver.onCompleted();
-    }
-
-    @Override
-    public void stopMonitoringApp(CpuStopRequest request, StreamObserver<CpuStopResponse> responseObserver) {
-      CpuStopResponse.Builder response = CpuStopResponse.newBuilder();
-      myAppId = request.getAppId();
-
-      responseObserver.onNext(response.build());
-      responseObserver.onCompleted();
-    }
-
-    private int getAppId() {
-      return myAppId;
-    }
   }
 }
