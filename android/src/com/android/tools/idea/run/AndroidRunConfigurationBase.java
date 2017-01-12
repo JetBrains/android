@@ -26,6 +26,7 @@ import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.InstantRunNotificationTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
@@ -73,7 +74,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.*;
-import static com.android.tools.idea.gradle.util.Projects.requiredAndroidModelMissing;
 
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> implements PreferGradleMake {
   private static final Logger LOG = Logger.getInstance(AndroidRunConfigurationBase.class);
@@ -142,7 +142,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     final Project project = module.getProject();
-    if (requiredAndroidModelMissing(project)) {
+    if (AndroidProjectInfo.getInstance(project).requiredAndroidModelMissing()) {
       errors.add(ValidationError.fatal(GRADLE_SYNC_FAILED_ERR_MSG));
     }
 
@@ -202,7 +202,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @Override
   public Collection<Module> getValidModules() {
-    final List<Module> result = new ArrayList<Module>();
+    final List<Module> result = new ArrayList<>();
     Module[] modules = ModuleManager.getInstance(getProject()).getModules();
     for (Module module : modules) {
       if (AndroidFacet.getInstance(module) != null) {
@@ -500,7 +500,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (ourKillLaunchOption.isToBeShown()) {
       String msg, noText;
       if (previousExecutor.equals(currentExecutor)) {
-        msg = String.format("Restart App?\nThe app is already running. Would you like to kill it and restart the session?");
+        msg = "Restart App?\nThe app is already running. Would you like to kill it and restart the session?";
         noText = "Cancel";
       }
       else {
