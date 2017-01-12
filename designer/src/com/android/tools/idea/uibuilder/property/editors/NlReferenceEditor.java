@@ -46,11 +46,13 @@ import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import javax.swing.plaf.InsetsUIResource;
 import java.awt.*;
 import java.awt.event.*;
+import java.time.Clock;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Objects;
@@ -66,6 +68,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   private final TextEditor myTextFieldWithAutoCompletion;
   private final CompletionProvider myCompletionProvider;
   private final BrowsePanel myBrowsePanel;
+  private final boolean myIsInspector;
 
   private NlProperty myProperty;
   private boolean myPropertyHasSlider;
@@ -83,6 +86,13 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
 
   public static NlReferenceEditor createForInspector(@NotNull Project project, @NotNull NlEditingListener listener) {
     return new NlReferenceEditor(project, listener, null, true);
+  }
+
+  @TestOnly
+  public static NlReferenceEditor createForTableTesting(@NotNull Project project,
+                                                        @NotNull NlEditingListener listener,
+                                                        @NotNull BrowsePanel browsePanel) {
+    return new NlReferenceEditor(project, listener, browsePanel, false);
   }
 
   public static NlReferenceEditor createForInspectorWithBrowseButton(@NotNull Project project, @NotNull NlEditingListener listener) {
@@ -109,7 +119,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       }
     });
 
-    mySlider = new JSlider();
+    mySlider = new SliderWithTimeDelay();
     myPanel.add(mySlider, BorderLayout.LINE_START);
     mySlider.addChangeListener(event -> sliderChange());
     Dimension size = mySlider.getMinimumSize();
@@ -122,6 +132,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       myTextFieldWithAutoCompletion.setBorder(BorderFactory.createEmptyBorder(VERTICAL_SPACING, 0, VERTICAL_SPACING, 0));
     }
     myBrowsePanel = browsePanel;
+    myIsInspector = (browsePanel == null);
     myPanel.add(myTextFieldWithAutoCompletion, BorderLayout.CENTER);
     if (browsePanel != null) {
       myPanel.add(myBrowsePanel, BorderLayout.LINE_END);
@@ -135,25 +146,29 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     myTextFieldWithAutoCompletion.registerKeyboardAction(event -> stopEditing(getText()),
                                                          KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
                                                          JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-    myTextFieldWithAutoCompletion.registerKeyboardAction(event -> stopEditing(myProperty.getValue()),
+    myTextFieldWithAutoCompletion.registerKeyboardAction(event -> cancel(),
                                                          KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
                                                          JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
     myTextFieldWithAutoCompletion.addFocusListener(new FocusAdapter() {
       @Override
-      public void focusGained(FocusEvent focusEvent) {
-        if (!myCompletionsUpdated) {
-          myCompletionProvider.updateCompletions(myProperty);
-          myCompletionsUpdated = true;
+      public void focusGained(@NotNull FocusEvent event) {
+        if (event.getOppositeComponent() != mySlider) {
+          if (!myCompletionsUpdated) {
+            myCompletionProvider.updateCompletions(myProperty);
+            myCompletionsUpdated = true;
+          }
+          myTextFieldWithAutoCompletion.selectAll();
         }
-        myTextFieldWithAutoCompletion.selectAll();
       }
 
       @Override
-      public void focusLost(FocusEvent event) {
-        stopEditing(getText());
-        // Remove the selection after we lose focus for feedback on which editor is the active editor
-        myTextFieldWithAutoCompletion.removeSelection();
+      public void focusLost(@NotNull FocusEvent event) {
+        if (event.getOppositeComponent() != mySlider) {
+          stopEditing(getText());
+          // Remove the selection after we lose focus for feedback on which editor is the active editor
+          myTextFieldWithAutoCompletion.removeSelection();
+        }
       }
     });
     myProperty = EmptyProperty.INSTANCE;
@@ -201,6 +216,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       if (myPropertyHasSlider) {
         myPanel.remove(myIconLabel);
         myPanel.add(mySlider, BorderLayout.LINE_START);
+        updateSliderVisibility();
       }
       else {
         myPanel.remove(mySlider);
@@ -226,7 +242,8 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
 
   private void updateSliderVisibility() {
     if (myPropertyHasSlider) {
-      int widthForEditor = myPanel.getWidth() - mySlider.getPreferredSize().width - myBrowsePanel.getPreferredSize().width;
+      int widthBrowsePanel = myBrowsePanel != null ? myBrowsePanel.getPreferredSize().width : 0;
+      int widthForEditor = myPanel.getWidth() - mySlider.getPreferredSize().width - widthBrowsePanel;
       mySlider.setVisible(widthForEditor >= MIN_TEXT_WIDTH);
     }
   }
@@ -320,7 +337,12 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       return;
     }
     myTextFieldWithAutoCompletion.setText(getSliderValue());
-    if (!mySlider.getValueIsAdjusting()) {
+    if (myIsInspector && !mySlider.getValueIsAdjusting()) {
+      // For an editor in the inspector we want to update the value after the user
+      // stops dragging the slider knob.
+      // For an editor in the property table we don't want to update, since that
+      // would remove the cell editor. We will update when the user stops editing
+      // the cell.
       stopEditing(getText());
     }
   }
@@ -358,6 +380,13 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       myLastReadValue = null;
       super.stopEditing(newValue);
     }
+  }
+
+  private void cancel() {
+    // Update the selected value for immediate feedback from resource editor.
+    myTextFieldWithAutoCompletion.setText(myProperty.getValue());
+    myTextFieldWithAutoCompletion.selectAll();
+    cancelEditing();
   }
 
   private boolean hasFocus() {
@@ -472,6 +501,37 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       // No point sorting: TextFieldWithAutoCompletionListProvider performs its
       // own sorting afterwards (by calling compare() above)
       setItems(ResourceHelper.getCompletionFromTypes(facet, types, false));
+    }
+  }
+
+  // This is a workaround to avoid the problem where a click on an activate editor
+  // in a table also causes the slider to change value. The workaround is simply
+  // to delay all mouse events until a short time after the editor is created.
+  public static class SliderWithTimeDelay extends JSlider {
+    private long SHORT_WAIT_MILLIS = 300;
+    private Clock myClock;
+    private long myLastAddNotifyMillis;
+
+    private SliderWithTimeDelay() {
+      myClock = Clock.systemUTC();
+    }
+
+    @TestOnly
+    public void setClock(@NotNull Clock clock) {
+      myClock = clock;
+    }
+
+    @Override
+    public void addNotify() {
+      super.addNotify();
+      myLastAddNotifyMillis = myClock.millis();
+    }
+
+    @Override
+    protected void processMouseEvent(@NotNull MouseEvent event) {
+      if (myClock.millis() - myLastAddNotifyMillis > SHORT_WAIT_MILLIS) {
+        super.processMouseEvent(event);
+      }
     }
   }
 }
