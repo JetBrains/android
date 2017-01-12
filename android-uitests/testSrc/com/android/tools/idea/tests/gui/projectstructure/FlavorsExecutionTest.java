@@ -34,6 +34,7 @@ import java.util.regex.Pattern;
 public class FlavorsExecutionTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final ScreenshotsDuringTest screenshots = new ScreenshotsDuringTest();
 
   private static final String AVD_NAME = "device under test";
   private static final String PROCESS_NAME = "google.simpleapplication";
