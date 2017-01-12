@@ -24,8 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 
-import static org.fest.swing.edt.GuiActionRunner.execute;
-
 public class ThemeEditorTableCellWriter extends AbstractJTableCellWriter {
   public ThemeEditorTableCellWriter(@NotNull Robot robot) {
     super(robot);
@@ -39,12 +37,7 @@ public class ThemeEditorTableCellWriter extends AbstractJTableCellWriter {
   @Override
   public void startCellEditing(@NotNull final JTable table, final int row, final int column) {
     final JTableLocation location = location();
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        scrollToCell(table, row, column, location);
-      }
-    });
+    GuiTask.execute(() -> scrollToCell(table, row, column, location));
     Rectangle cellBounds = location.cellBounds(table, row, column);
     robot.click(table, cellBounds.getLocation());
   }
