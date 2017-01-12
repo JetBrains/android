@@ -31,14 +31,14 @@ import org.junit.Test;
 
 import java.util.Map;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 
 public class ProfilerServiceTest extends DataStorePollerTest {
 
   private static final String DEVICE_SERIAL = "SomeSerialId";
 
   private DataStoreService myDataStore = mock(DataStoreService.class);
-  private ProfilerService myProfilerService = new ProfilerService(myDataStore);
+  private ProfilerService myProfilerService = new ProfilerService();
 
   private static final String BYTES_ID_1 = "0123456789";
   private static final String BYTES_ID_2 = "9876543210";
@@ -80,7 +80,6 @@ public class ProfilerServiceTest extends DataStorePollerTest {
 
   @Test
   public void testGetDevices() throws Exception {
-    setProcesses();
     StreamObserver<Profiler.GetDevicesResponse> observer = mock(StreamObserver.class);
     Profiler.GetDevicesResponse expected = Profiler.GetDevicesResponse.newBuilder()
       .addDevice(Profiler.Device.newBuilder()
@@ -93,7 +92,6 @@ public class ProfilerServiceTest extends DataStorePollerTest {
 
   @Test
   public void testGetProcesses() throws Exception {
-    setProcesses();
     StreamObserver<Profiler.GetProcessesResponse> observer = mock(StreamObserver.class);
     Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder()
       .setDeviceSerial(DEVICE_SERIAL)
@@ -103,22 +101,6 @@ public class ProfilerServiceTest extends DataStorePollerTest {
       .build();
     myProfilerService.getProcesses(request, observer);
     validateResponse(observer, expected);
-  }
-
-  @Test
-  public void testConnect() throws Exception {
-    StreamObserver<Profiler.ConnectResponse> observer = mock(StreamObserver.class);
-    myProfilerService.connect(Profiler.ConnectRequest.newBuilder().setPort(1234).build(), observer);
-    verify(myDataStore, times(1)).connect(1234);
-    validateResponse(observer, Profiler.ConnectResponse.getDefaultInstance());
-  }
-
-  @Test
-  public void testDisconnect() throws Exception {
-    StreamObserver<Profiler.DisconnectResponse> observer = mock(StreamObserver.class);
-    myProfilerService.disconnect(Profiler.DisconnectRequest.getDefaultInstance(), observer);
-    verify(myDataStore, times(1)).disconnect();
-    validateResponse(observer, Profiler.DisconnectResponse.getDefaultInstance());
   }
 
   @Test
@@ -141,22 +123,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     Profiler.BytesResponse responseNoMatch = Profiler.BytesResponse.getDefaultInstance();
     myProfilerService.getBytes(requestBad, observerNoMatch);
     validateResponse(observerNoMatch, responseNoMatch);
-
   }
-
-  private void setProcesses() {
-    Profiler.SetProcessesRequest request = Profiler.SetProcessesRequest.newBuilder()
-      .addDeviceProcesses(Profiler.DeviceProcesses.newBuilder()
-                            .setDevice(Profiler.Device.newBuilder()
-                                         .setSerial(DEVICE_SERIAL)
-                                         .build())
-                            .addProcess(Profiler.Process.getDefaultInstance()))
-      .build();
-    StreamObserver<Profiler.SetProcessesResponse> observer = mock(StreamObserver.class);
-    myProfilerService.setProcesses(request, observer);
-    validateResponse(observer, Profiler.SetProcessesResponse.getDefaultInstance());
-  }
-
 
   private static class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
     @Override
@@ -179,6 +146,20 @@ public class ProfilerServiceTest extends DataStorePollerTest {
         builder.setContents(bytes);
       }
       responseObserver.onNext(builder.build());
+      responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getDevices(Profiler.GetDevicesRequest request, StreamObserver<Profiler.GetDevicesResponse> responseObserver) {
+      responseObserver.onNext(Profiler.GetDevicesResponse.newBuilder().addDevice(Profiler.Device.newBuilder()
+                                                                                   .setSerial(DEVICE_SERIAL)
+                                                                                   .build()).build());
+      responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> responseObserver) {
+      responseObserver.onNext(Profiler.GetProcessesResponse.newBuilder().addProcess(Profiler.Process.getDefaultInstance()).build());
       responseObserver.onCompleted();
     }
   }
