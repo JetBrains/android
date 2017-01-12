@@ -242,7 +242,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .build();
     DurationDataRenderer<GcDurationData> gcRenderer = new DurationDataRenderer.Builder<>(getStage().getGcCount(), Color.BLACK)
       .setIcon(myGcIcon)
-      .setAttachLineSeries(memoryUsage.getObjectsSeries())
       .build();
 
     lineChart.addCustomRenderer(heapDumpRenderer);

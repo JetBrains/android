@@ -15,13 +15,16 @@
  */
 package com.android.tools.adtui.imagediff;
 
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
-import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.util.containers.ImmutableList;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -34,9 +37,10 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
     registerStackedLineChart();
     registerSimpleLineChart();
     registerSteppedLineChart();
+    registerSimpleEventLineChart();
+    registerAttachedEventLineChart();
+    registerBlockingEventLineChart();
     // WIP DurationDataRenderer revamp - will re-enable after pixels are finalized.
-    //registerSimpleEventLineChart();
-    //registerBlockingEventLineChart();
     //registerFilledEventLineChart();
   }
 
@@ -83,7 +87,21 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
         addLine(0.0, 200.0, "Right Series", new LineConfig(Color.RED).setStroke(new BasicStroke(25)));
 
         // Add a simple event to the line chart
-        addEvent(Color.BLACK, false, false);
+        addEvent(Color.BLACK, null, false, false);
+      }
+    });
+  }
+
+  private void registerAttachedEventLineChart() {
+    register(new LineChartImageDiffEntry("attached_event_line_chart_baseline.png") {
+      @Override
+      protected void generateComponent() {
+        // Create a simple line chart and register the components to the choreographer. Add thick lines to generate relevant images.
+        addLine(0.0, 50.0, "Left Series", new LineConfig(Color.BLUE).setStroke(new BasicStroke(25)));
+        addLine(0.0, 200.0, "Right Series", new LineConfig(Color.RED).setStroke(new BasicStroke(25)));
+
+        // Add an attached event to the line chart
+        addEvent(Color.BLACK, myLineChartModel.getSeries().get(0), false, false);
       }
     });
   }
@@ -97,7 +115,7 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
         addLine(0.0, 200.0, "Right Series", new LineConfig(Color.RED).setStroke(new BasicStroke(25)));
 
         // Add a blocking event to the line chart
-        addEvent(Color.BLACK, false, true);
+        addEvent(Color.BLACK, null, false, true);
       }
     });
   }
@@ -111,7 +129,7 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
         addLine(0.0, 200.0, "Right Series", new LineConfig(Color.RED).setStroke(new BasicStroke(25)));
 
         // Add a filled event to the line chart
-        addEvent(Color.GREEN, true, false);
+        addEvent(Color.GREEN, null, true, false);
       }
     });
   }
@@ -137,11 +155,13 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
     private int myVarianceArrayIndex;
 
-    private LineChart myLineChart;
+    LineChart myLineChart;
 
-    private LineChartModel myLineChartModel;
+    LineChartModel myLineChartModel;
 
-    private List<DefaultDataSeries<Long>> myData;
+    List<DefaultDataSeries<Long>> myData;
+
+    OverlayComponent myOverlayComponent;
 
     private LineChartImageDiffEntry(String baselineFilename) {
       super(baselineFilename);
@@ -149,11 +169,21 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
     @Override
     protected void setUp() {
+      TabularLayout layout = new TabularLayout("*", "*");
+      myContentPane.setLayout(layout);
       myLineChartModel = new LineChartModel();
       myLineChart = new LineChart(myLineChartModel);
       myLineChart.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
+      myOverlayComponent = new OverlayComponent(myLineChart);
       myData = new ArrayList<>();
-      myContentPane.add(myLineChart, BorderLayout.CENTER);
+      JPanel lineChartPanel = new JPanel(new BorderLayout());
+      lineChartPanel.setOpaque(false);
+      JPanel overlayPanel = new JPanel(new BorderLayout());
+      overlayPanel.setOpaque(false);
+      lineChartPanel.add(myLineChart, BorderLayout.CENTER);
+      overlayPanel.add(myOverlayComponent, BorderLayout.CENTER);
+      myContentPane.add(overlayPanel, new TabularLayout.Constraint(0, 0));
+      myContentPane.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
       myComponents.add(myLineChartModel);
       myVarianceArrayIndex = 0;
     }
@@ -183,14 +213,18 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
       myLineChart.configure(rangedSeries, lineConfig);
     }
 
-    protected void addEvent(Color eventColor, boolean isFilledEvent, boolean isBlockingEvent) {
+    protected void addEvent(Color eventColor, RangedContinuousSeries attachedSeries, boolean isFilledEvent, boolean isBlockingEvent) {
       DefaultDataSeries<DefaultDurationData> eventData = new DefaultDataSeries<>();
       RangedSeries<DefaultDurationData> eventSeries = new RangedSeries<>(myXRange, eventData);
       DurationDataModel<DefaultDurationData> durationModel = new DurationDataModel<>(eventSeries);
+      durationModel.setAttachedSeries(attachedSeries);
       DurationDataRenderer<DefaultDurationData> durationRenderer = new DurationDataRenderer.Builder<>(durationModel, eventColor)
         .setLabelProvider(durationData -> "Test Event")
-        .setIcon(UIManager.getIcon("Tree.leafIcon")).build();
+        .setStroke(new BasicStroke(5))
+        .setLabelColors(Color.BLACK, Color.GRAY, Color.GRAY, Color.WHITE)
+        .setIsBlocking(isBlockingEvent).build();
       myLineChart.addCustomRenderer(durationRenderer);
+      myOverlayComponent.addDurationDataRenderer(durationRenderer);
       myComponents.add(durationModel);
 
       // Set event duration and start time. Add it to eventData afterwards.
