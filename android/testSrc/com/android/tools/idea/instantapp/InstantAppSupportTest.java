@@ -19,11 +19,13 @@ import com.android.builder.model.AndroidAtom;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 
 import java.io.File;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_ATOM;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.testing.HighlightInfos.assertFileHasNoErrors;
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
 
 public class InstantAppSupportTest extends AndroidGradleTestCase {
@@ -42,18 +44,20 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
     assertNotNull(baseAtom);
     assertEquals(BASE_ATOM_NAME, baseAtom.getAtomName());
 
-    Module baseatomModule = myModules.getModule(BASE_ATOM_NAME);
-    AndroidModuleModel baseatomModel = AndroidModuleModel.get(baseatomModule);
-    assertNotNull(baseatomModel);
-    assertEquals(PROJECT_TYPE_ATOM, baseatomModel.getProjectType());
+    Module baseAtomModule = myModules.getModule(BASE_ATOM_NAME);
+    AndroidModuleModel baseAtomModel = AndroidModuleModel.get(baseAtomModule);
+    assertNotNull(baseAtomModel);
+    assertEquals(PROJECT_TYPE_ATOM, baseAtomModel.getProjectType());
 
     generateSources();
 
-    assertFileHasNoErrors(new File("instant-app/src/main/AndroidManifest.xml"));
-    assertFileHasNoErrors(new File("baseatom/src/main/AndroidManifest.xml"));
+    Project project = getProject();
+    assertFileHasNoErrors(project, new File("instant-app/src/main/AndroidManifest.xml"));
+    assertFileHasNoErrors(project, new File("baseatom/src/main/AndroidManifest.xml"));
 
-    assertFileHasNoErrors(new File("baseatom/src/main/java/com/example/instantapp/MainActivity.java"));
-    assertFileHasNoErrors(new File("baseatom/src/androidTest/java/com/example/instantapp/ExampleInstrumentedTest.java"));
-    assertFileHasNoErrors(new File("baseatom/src/test/java/com/example/instantapp/ExampleUnitTest.java"));
+    assertFileHasNoErrors(project, new File("baseatom/src/main/java/com/example/instantapp/MainActivity.java"));
+    assertFileHasNoErrors(project, new File("baseatom/src/androidTest/java/com/example/instantapp/ExampleInstrumentedTest.java"));
+    assertFileHasNoErrors(project, new File("baseatom/src/test/java/com/example/instantapp/ExampleUnitTest.java"));
   }
+
 }
