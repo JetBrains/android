@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.datastore;
+package com.android.tools.idea.profilers;
 
 import com.android.tools.profiler.proto.MemoryProfiler.AllocatedClass;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.AllocationEvent;
 import com.google.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
 
@@ -128,9 +128,9 @@ public class LegacyAllocationConverter {
     }
 
     @NotNull
-    public AllocationEvent bindTimeToAllocationEvent(long time) {
+    public AllocationEvent bindAllocationEventInfos(int infoId, long time) {
       return AllocationEvent.newBuilder().setAllocatedClassId(myClassId).setSize(mySize).setThreadId(myThreadId).setTimestamp(time)
-        .setAllocationStackId(ByteString.copyFrom(myCallStackId)).build();
+        .setAllocationStackId(ByteString.copyFrom(myCallStackId)).setInfoId(infoId).build();
     }
   }
 
@@ -179,8 +179,8 @@ public class LegacyAllocationConverter {
     myAllocations.add(allocationInfo);
   }
 
-  public List<AllocationEvent> getAllocationEvents(long time) {
-    return myAllocations.stream().map(allocation -> allocation.bindTimeToAllocationEvent(time)).collect(Collectors.toList());
+  public List<AllocationEvent> getAllocationEvents(int infoId, long time) {
+    return myAllocations.stream().map(allocation -> allocation.bindAllocationEventInfos(infoId, time)).collect(Collectors.toList());
   }
 
   public List<AllocationStack> getAllocationStacks() {

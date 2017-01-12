@@ -40,7 +40,6 @@ public class DataStoreService {
   private ServerBuilder myServerBuilder;
   private Server myServer;
   private List<ServicePassThrough> myServices = new ArrayList<>();
-  private LegacyAllocationTracker myLegacyAllocationTracker;
   private Consumer<Runnable> myFetchExecutor;
   private ProfilerService myProfilerService;
 
@@ -72,7 +71,7 @@ public class DataStoreService {
     registerService(myProfilerService);
     registerService(new EventService(myFetchExecutor));
     registerService(new CpuService(myFetchExecutor));
-    registerService(new MemoryService(this, myFetchExecutor));
+    registerService(new MemoryService(myFetchExecutor));
     registerService(new NetworkService(myFetchExecutor));
   }
 
@@ -125,19 +124,6 @@ public class DataStoreService {
   public void shutdown() {
     myServer.shutdownNow();
     myDatabase.disconnect();
-  }
-
-  /**
-   * Since older releases of Android and uninstrumented apps will not have JVMTI allocation tracking, we therefore need to support the older
-   * JDWP allocation tracking functionality.
-   */
-  public void setLegacyAllocationTracker(@NotNull LegacyAllocationTracker legacyAllocationTracker) {
-    myLegacyAllocationTracker = legacyAllocationTracker;
-  }
-
-  @Nullable
-  public LegacyAllocationTracker getLegacyAllocationTracker() {
-    return myLegacyAllocationTracker;
   }
 
   @VisibleForTesting
