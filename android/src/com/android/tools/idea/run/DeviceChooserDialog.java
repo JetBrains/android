@@ -43,12 +43,7 @@ public class DeviceChooserDialog extends DialogWrapper {
 
     myDeviceChooser = new DeviceChooser(multipleSelection, getOKAction(), facet, projectTarget, filter);
     Disposer.register(myDisposable, myDeviceChooser);
-    myDeviceChooser.addListener(new DeviceChooserListener() {
-      @Override
-      public void selectedDevicesChanged() {
-        updateOkButton();
-      }
-    });
+    myDeviceChooser.addListener(this::updateOkButton);
 
     init();
     myDeviceChooser.init(selectedSerials);
