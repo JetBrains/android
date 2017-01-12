@@ -732,6 +732,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (profilersElement != null) {
       myProfilerState.readExternal(profilersElement);
     }
+
+    // check DEBUGGER_TYPE consistency
+    if (getAndroidDebugger() == null) {
+      DEBUGGER_TYPE = getDefaultAndroidDebuggerType();
+    }
   }
 
   @Override
