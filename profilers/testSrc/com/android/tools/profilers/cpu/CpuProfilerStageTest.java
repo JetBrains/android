@@ -16,12 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profilers.*;
-import com.google.protobuf3jarjar.ByteString;
-import io.grpc.stub.StreamObserver;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -30,8 +25,8 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
-import static com.android.tools.profiler.proto.CpuProfiler.*;
-import static com.android.tools.profilers.cpu.CpuCaptureTest.readValidTrace;
+import static com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartResponse;
+import static com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopResponse;
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.*;
 
@@ -146,111 +141,5 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     myStage.setSelectedThread(42);
     assertEquals(42, myStage.getSelectedThread());
-  }
-
-  private static class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
-
-    private CpuProfilingAppStartResponse.Status myStartProfilingStatus = CpuProfilingAppStartResponse.Status.SUCCESS;
-    private CpuProfilingAppStopResponse.Status myStopProfilingStatus = CpuProfilingAppStopResponse.Status.SUCCESS;
-
-    private static ByteString ourTrace;
-
-    /**
-     * Whether the stop profiling response should include a valid trace.
-     */
-    private boolean myValidTrace;
-
-    @Override
-    public void startProfilingApp(CpuProfilingAppStartRequest request, StreamObserver<CpuProfilingAppStartResponse> responseObserver) {
-      CpuProfilingAppStartResponse.Builder response = CpuProfilingAppStartResponse.newBuilder();
-      response.setStatus(myStartProfilingStatus);
-      if (!myStartProfilingStatus.equals(CpuProfilingAppStartResponse.Status.SUCCESS)) {
-        response.setErrorMessage("StartProfilingApp error");
-      }
-
-      responseObserver.onNext(response.build());
-      responseObserver.onCompleted();
-    }
-
-    @Override
-    public void stopProfilingApp(CpuProfilingAppStopRequest request, StreamObserver<CpuProfilingAppStopResponse> responseObserver) {
-      CpuProfilingAppStopResponse.Builder response = CpuProfilingAppStopResponse.newBuilder();
-      response.setStatus(myStopProfilingStatus);
-      if (!myStopProfilingStatus.equals(CpuProfilingAppStopResponse.Status.SUCCESS)) {
-        response.setErrorMessage("StopProfilingApp error");
-      }
-      if (myValidTrace) {
-        response.setTrace(getTrace());
-      }
-
-      responseObserver.onNext(response.build());
-      responseObserver.onCompleted();
-    }
-
-    @Override
-    public void getTrace(GetTraceRequest request, StreamObserver<GetTraceResponse> responseObserver) {
-      GetTraceResponse.Builder response = GetTraceResponse.newBuilder();
-      response.setStatus(GetTraceResponse.Status.SUCCESS);
-      response.setData(getTrace());
-
-      responseObserver.onNext(response.build());
-      responseObserver.onCompleted();
-    }
-
-    private void setStartProfilingStatus(CpuProfilingAppStartResponse.Status status) {
-      myStartProfilingStatus = status;
-    }
-
-    private void setStopProfilingStatus(CpuProfilingAppStopResponse.Status status) {
-      myStopProfilingStatus = status;
-    }
-
-    private void setValidTrace(boolean validTrace) {
-      myValidTrace = validTrace;
-    }
-
-    private static ByteString getTrace() {
-      try {
-        if (ourTrace == null) {
-          ourTrace = readValidTrace();
-        }
-      } catch (IOException e) {
-        fail("Unable to get a response trace file");
-      }
-      return ourTrace;
-    }
-  }
-
-  private static class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
-
-    private Profiler.Device myDevice = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
-
-    private Profiler.Process myProcess = Profiler.Process.newBuilder().setPid(20).setName("FakeProcess").build();
-
-    @Override
-    public void getDevices(Profiler.GetDevicesRequest request, StreamObserver<Profiler.GetDevicesResponse> responseObserver) {
-      Profiler.GetDevicesResponse.Builder response = Profiler.GetDevicesResponse.newBuilder();
-      response.addDevice(myDevice);
-
-      responseObserver.onNext(response.build());
-      responseObserver.onCompleted();
-    }
-
-    @Override
-    public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> responseObserver) {
-      Profiler.GetProcessesResponse.Builder response = Profiler.GetProcessesResponse.newBuilder();
-      response.addProcess(myProcess);
-
-      responseObserver.onNext(response.build());
-      responseObserver.onCompleted();
-    }
-
-    @Override
-    public void getTimes(Profiler.TimesRequest request, StreamObserver<Profiler.TimesResponse> responseObserver) {
-      Profiler.TimesResponse.Builder response = Profiler.TimesResponse.newBuilder();
-
-      responseObserver.onNext(response.build());
-      responseObserver.onCompleted();
-    }
   }
 }
