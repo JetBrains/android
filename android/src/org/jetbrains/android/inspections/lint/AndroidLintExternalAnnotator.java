@@ -1,6 +1,5 @@
 package org.jetbrains.android.inspections.lint;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.lint.*;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.res.PsiProjectListener;
@@ -218,6 +217,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
       final Issue issue = problemData.getIssue();
       final String message = problemData.getMessage();
       final TextRange range = problemData.getTextRange();
+      final Object quickfixData = problemData.getQuickfixData();
 
       if (range.getStartOffset() == range.getEndOffset()) {
         continue;
@@ -248,7 +248,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
             }
             final Annotation annotation = createAnnotation(holder, message, range, displayLevel, issue);
 
-            for (AndroidLintQuickFix fix : inspection.getQuickFixes(startElement, endElement, message)) {
+            for (AndroidLintQuickFix fix : inspection.getQuickFixes(startElement, endElement, message, quickfixData)) {
               if (fix.isApplicable(startElement, endElement, AndroidQuickfixContexts.EditorContext.TYPE)) {
                 annotation.registerFix(new MyFixingIntention(fix, startElement, endElement));
               }

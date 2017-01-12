@@ -18,6 +18,8 @@ package com.android.tools.idea.lint;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
+import com.android.builder.model.Dependencies;
+import com.android.builder.model.Variant;
 import com.android.tools.lint.client.api.JavaEvaluator;
 import com.android.tools.lint.client.api.JavaParser;
 import com.android.tools.lint.client.api.LintClient;
@@ -61,9 +63,9 @@ public class LintIdeJavaParser extends JavaParser {
   private final JavaEvaluator myJavaEvaluator;
   private AccessToken myLock;
 
-  public LintIdeJavaParser(LintClient client, Project project) {
+  public LintIdeJavaParser(LintClient client, Project project, com.android.tools.lint.detector.api.Project lintProject) {
     myClient = client;
-    myJavaEvaluator = new LintPsiJavaEvaluator(project);
+    myJavaEvaluator = new LintPsiJavaEvaluator(project, lintProject);
   }
 
   @Override
@@ -564,9 +566,11 @@ public class LintIdeJavaParser extends JavaParser {
 
   public static class LintPsiJavaEvaluator extends JavaEvaluator {
     private final Project myProject;
+    private final com.android.tools.lint.detector.api.Project myLintProject;
 
-    public LintPsiJavaEvaluator(Project project) {
+    public LintPsiJavaEvaluator(Project project, com.android.tools.lint.detector.api.Project lintProject) {
       myProject = project;
+      myLintProject = lintProject;
     }
 
     @Override
@@ -578,7 +582,7 @@ public class LintIdeJavaParser extends JavaParser {
     @Override
     public boolean implementsInterface(@NonNull PsiClass cls, @NonNull String interfaceName, boolean strict) {
       // TODO: This checks superclasses too. Let's find a cheaper method which only checks interfaces.
-      return false;
+      return InheritanceUtil.isInheritor(cls, strict, interfaceName);
     }
 
     @Override
@@ -600,8 +604,17 @@ public class LintIdeJavaParser extends JavaParser {
 
     @NonNull
     @Override
-    public PsiAnnotation[] getAllAnnotations(@NonNull PsiModifierListOwner owner, boolean inHierarchy) {
-      return AnnotationUtil.getAllAnnotations(owner, inHierarchy, null, true);
+    public PsiAnnotation[] getAllAnnotations(@NonNull PsiModifierListOwner element, boolean inHierarchy) {
+      //return AnnotationUtil.getAllAnnotations(element, inHierarchy, null, true);
+      if (inHierarchy) {
+        return CachedValuesManager.getCachedValue(element,
+                                                  () -> CachedValueProvider.Result.create(AnnotationUtil.getAllAnnotations(
+                                                    element, true, null), PsiModificationTracker.MODIFICATION_COUNT));
+      } else {
+        return CachedValuesManager.getCachedValue(element,
+                                                  () -> CachedValueProvider.Result.create(AnnotationUtil.getAllAnnotations(
+                                                    element, false, null), PsiModificationTracker.MODIFICATION_COUNT));
+      }
     }
 
     @Nullable
@@ -662,6 +675,18 @@ public class LintIdeJavaParser extends JavaParser {
 
     @Nullable
     @Override
+    public Dependencies getDependencies() {
+      if (myLintProject.isAndroidProject()) {
+        Variant variant = myLintProject.getCurrentVariant();
+        if (variant != null) {
+          return variant.getMainArtifact().getDependencies();
+        }
+      }
+      return null;
+    }
+
+    @Nullable
+    @Override
     public String getInternalName(@NonNull PsiClass psiClass) {
       String internalName = LintIdeUtils.getInternalName(psiClass);
       if (internalName != null) {
@@ -673,6 +698,11 @@ public class LintIdeJavaParser extends JavaParser {
     @Nullable
     @Override
     public String getInternalName(@NonNull PsiClassType psiClassType) {
+      PsiType erased = TypeConversionUtil.erasure(psiClassType);
+      if (erased instanceof PsiClassType) {
+        return super.getInternalName((PsiClassType) erased);
+      }
+
       return super.getInternalName(psiClassType);
     }
 
