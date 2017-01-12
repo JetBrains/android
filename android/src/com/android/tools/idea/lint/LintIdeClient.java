@@ -407,7 +407,7 @@ public class LintIdeClient extends LintClient implements Disposable {
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        AndroidSdkData sdkData = facet.getSdkData();
+        AndroidSdkData sdkData = AndroidSdkData.getSdkData(facet);
         if (sdkData != null) {
           return sdkData.getSdkHandler();
         }
