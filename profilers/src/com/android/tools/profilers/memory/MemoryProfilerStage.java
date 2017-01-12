@@ -43,6 +43,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.tools.profilers.StudioProfilers.TIMELINE_BUFFER;
+
 public class MemoryProfilerStage extends Stage {
   private static Logger getLogger() {
     return Logger.getInstance(MemoryProfilerStage.class);
@@ -86,9 +88,11 @@ public class MemoryProfilerStage extends Stage {
     mySessionData = profilers.getSession();
     myClient = profilers.getClient().getMemoryClient();
     HeapDumpSampleDataSeries heapDumpSeries =
-      new HeapDumpSampleDataSeries(profilers.getClient().getMemoryClient(), mySessionData, myProcessId, profilers.getRelativeTimeConverter());
+      new HeapDumpSampleDataSeries(profilers.getClient().getMemoryClient(), mySessionData, myProcessId,
+                                   profilers.getRelativeTimeConverter());
     AllocationInfosDataSeries allocationSeries =
-      new AllocationInfosDataSeries(profilers.getClient().getMemoryClient(), mySessionData, myProcessId, profilers.getRelativeTimeConverter());
+      new AllocationInfosDataSeries(profilers.getClient().getMemoryClient(), mySessionData, myProcessId,
+                                    profilers.getRelativeTimeConverter());
     myLoader = loader;
 
     Range viewRange = profilers.getTimeline().getViewRange();
@@ -172,7 +176,8 @@ public class MemoryProfilerStage extends Stage {
    */
   public void requestHeapDump(@Nullable Executor loadJoiner) {
     MemoryProfiler.TriggerHeapDumpResponse response =
-      myClient.triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.newBuilder().setSession(mySessionData).setProcessId(myProcessId).build());
+      myClient
+        .triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.newBuilder().setSession(mySessionData).setProcessId(myProcessId).build());
     switch (response.getStatus()) {
       case SUCCESS:
         selectCapture(new HeapDumpCaptureObject(myClient, mySessionData, myProcessId, response.getInfo(), null,
@@ -200,8 +205,12 @@ public class MemoryProfilerStage extends Stage {
    * @return the actual status, which may be different from the input
    */
   public void trackAllocations(boolean enabled, @Nullable Executor loadJoiner) {
+    // Allocation tracking can go through the legacy tracker which does not reach perfd, so we need to pass in the current device(data) time.
+    long timeNs = TimeUnit.MICROSECONDS.toNanos((long)getStudioProfilers().getTimeline().getDataRange().getMax()) +
+                  TimeUnit.SECONDS.toNanos(TIMELINE_BUFFER);
     TrackAllocationsResponse response = myClient.trackAllocations(
-      MemoryProfiler.TrackAllocationsRequest.newBuilder().setSession(mySessionData).setProcessId(myProcessId).setEnabled(enabled).build());
+      MemoryProfiler.TrackAllocationsRequest.newBuilder().setTimestamp(timeNs).setSession(mySessionData).setProcessId(myProcessId)
+        .setEnabled(enabled).build());
     switch (response.getStatus()) {
       case SUCCESS:
         myTrackingAllocations = enabled;

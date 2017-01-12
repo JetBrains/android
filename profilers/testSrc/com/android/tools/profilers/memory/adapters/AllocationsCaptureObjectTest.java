@@ -16,15 +16,21 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationEventsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.ProfilersTestData;
+import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.google.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -52,10 +58,11 @@ public class AllocationsCaptureObjectTest {
     int infoId = 1;
     long startTimeNs = TimeUnit.MILLISECONDS.toNanos(3);
     long endTimeNs = TimeUnit.MILLISECONDS.toNanos(8);
-    MemoryProfiler.AllocationsInfo testInfo =
-      MemoryProfiler.AllocationsInfo.newBuilder().setInfoId(infoId).setStartTime(startTimeNs).setEndTime(endTimeNs).build();
+
+    AllocationsInfo testInfo = AllocationsInfo.newBuilder().setInfoId(infoId).setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     AllocationsCaptureObject capture =
-      new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), appId, ProfilersTestData.SESSION_DATA, testInfo, myRelativeTimeConverter);
+      new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), appId, ProfilersTestData.SESSION_DATA, testInfo,
+                                   myRelativeTimeConverter);
 
     // Verify values associated with the AllocationsInfo object.
     assertEquals(infoId, capture.getInfoId());
@@ -65,7 +72,7 @@ public class AllocationsCaptureObjectTest {
 
     final CountDownLatch loadLatch = new CountDownLatch(1);
     final CountDownLatch doneLatch = new CountDownLatch(1);
-    myService.setExplicitAllocationsInfo(infoId, MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS, startTimeNs, endTimeNs, true);
+    myService.setExplicitAllocationEvents(MemoryProfiler.AllocationEventsResponse.Status.NOT_READY, Collections.emptyList());
     new Thread(() -> {
       loadLatch.countDown();
       capture.load();
@@ -73,22 +80,16 @@ public class AllocationsCaptureObjectTest {
     }).start();
 
     loadLatch.await();
+
+    ByteString stackId1 = ByteString.copyFrom(new byte[]{'a'});
+    ByteString stackId2 = ByteString.copyFrom(new byte[]{'b'});
     myService.addExplicitAllocationClass(0, "test.klass0");
     myService.addExplicitAllocationClass(1, "test.klass1");
-    myService.addExplicitAllocationStack("test.klass0", "testMethod0", 3, new byte[]{'a'});
-    myService.addExplicitAllocationStack("test.klass1", "testMethod1", 7, new byte[]{'b'});
-    MemoryProfiler.MemoryData data = MemoryProfiler.MemoryData.newBuilder()
-      .addAllocationEvents(MemoryProfiler.MemoryData.AllocationEvent.newBuilder()
-                             .setAllocatedClassId(0)
-                             .setAllocationStackId(ByteString.copyFrom(new byte[]{'b'}))
-                             .setSize(5).build())
-      .addAllocationEvents(MemoryProfiler.MemoryData.AllocationEvent.newBuilder()
-                             .setAllocatedClassId(1)
-                             .setAllocationStackId(ByteString.copyFrom(new byte[]{'a'}))
-                             .setSize(13).build())
-      .build();
-    myService.setMemoryData(data);
-    myService.setExplicitAllocationsInfo(infoId, MemoryProfiler.AllocationsInfo.Status.COMPLETED, startTimeNs, endTimeNs, true);
+    myService.addExplicitAllocationStack("test.klass0", "testMethod0", 3, stackId1);
+    myService.addExplicitAllocationStack("test.klass1", "testMethod1", 7, stackId2);
+    AllocationEvent event1 = AllocationEvent.newBuilder().setInfoId(infoId).setAllocatedClassId(0).setAllocationStackId(stackId2).build();
+    AllocationEvent event2 = AllocationEvent.newBuilder().setInfoId(infoId).setAllocatedClassId(1).setAllocationStackId(stackId1).build();
+    myService.setExplicitAllocationEvents(AllocationEventsResponse.Status.SUCCESS, Arrays.asList(event1, event2));
     doneLatch.await();
 
     assertTrue(capture.isDoneLoading());
@@ -112,8 +113,8 @@ public class AllocationsCaptureObjectTest {
     verifyInstance(instance0, "test.klass0", -1, 0, 0, 1);
     verifyInstance(instance1, "test.klass1", -1, 0, 0, 1);
 
-    MemoryProfiler.AllocationStack.StackFrame frame0 = instance0.getCallStack().getStackFramesList().get(0);
-    MemoryProfiler.AllocationStack.StackFrame frame1 = instance1.getCallStack().getStackFramesList().get(0);
+    AllocationStack.StackFrame frame0 = instance0.getCallStack().getStackFramesList().get(0);
+    AllocationStack.StackFrame frame1 = instance1.getCallStack().getStackFramesList().get(0);
     verifyStackFrame(frame0, "test.klass1", "testMethod1", 7);
     verifyStackFrame(frame1, "test.klass0", "testMethod0", 3);
   }
@@ -122,8 +123,8 @@ public class AllocationsCaptureObjectTest {
   public void testLoadingFailure() throws Exception {
     long startTimeNs = TimeUnit.MILLISECONDS.toNanos(3);
     long endTimeNs = TimeUnit.MILLISECONDS.toNanos(8);
-    MemoryProfiler.AllocationsInfo testInfo1 =
-      MemoryProfiler.AllocationsInfo.newBuilder().setInfoId(1).setStartTime(startTimeNs).setEndTime(endTimeNs).build();
+
+    AllocationsInfo testInfo1 = AllocationsInfo.newBuilder().setInfoId(1).setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     AllocationsCaptureObject capture =
       new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), -1, ProfilersTestData.SESSION_DATA, testInfo1,
                                    myRelativeTimeConverter);
@@ -131,7 +132,7 @@ public class AllocationsCaptureObjectTest {
     assertFalse(capture.isDoneLoading());
     assertFalse(capture.isError());
 
-    myService.setExplicitAllocationsInfo(1, MemoryProfiler.AllocationsInfo.Status.FAILURE_UNKNOWN, startTimeNs, endTimeNs, true);
+    myService.setExplicitAllocationEvents(AllocationEventsResponse.Status.FAILURE_UNKNOWN, Collections.emptyList());
     capture.load();
 
     assertTrue(capture.isDoneLoading());
@@ -158,23 +159,27 @@ public class AllocationsCaptureObjectTest {
     MemoryProfiler.AllocationsInfo testInfo2 =
       MemoryProfiler.AllocationsInfo.newBuilder().setInfoId(2).setStartTime(endTimeNs).setEndTime(endTimeNs2).build();
     AllocationsCaptureObject capture =
-      new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), -1, ProfilersTestData.SESSION_DATA, testInfo1, myRelativeTimeConverter);
+      new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), -1, ProfilersTestData.SESSION_DATA, testInfo1,
+                                   myRelativeTimeConverter);
 
     // Test inequality with different object type
     assertNotEquals(mock(CaptureObject.class), capture);
 
     AllocationsCaptureObject captureWithDifferentAppId =
-      new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), -2, ProfilersTestData.SESSION_DATA, testInfo1, myRelativeTimeConverter);
+      new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), -2, ProfilersTestData.SESSION_DATA, testInfo1,
+                                   myRelativeTimeConverter);
     // Test inequality with different app id
     assertNotEquals(captureWithDifferentAppId, capture);
 
     AllocationsCaptureObject captureWithDifferentTimes =
-      new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), -1, ProfilersTestData.SESSION_DATA, testInfo2, myRelativeTimeConverter);
+      new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), -1, ProfilersTestData.SESSION_DATA, testInfo2,
+                                   myRelativeTimeConverter);
     // Test inequality with different start/end times
     assertNotEquals(captureWithDifferentTimes, capture);
 
     AllocationsCaptureObject captureWithDifferentStatus =
-      new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), -1, ProfilersTestData.SESSION_DATA, testInfo1, myRelativeTimeConverter);
+      new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), -1, ProfilersTestData.SESSION_DATA, testInfo1,
+                                   myRelativeTimeConverter);
     // Test equality as long as appId + times are equal
     assertEquals(captureWithDifferentStatus, capture);
 
