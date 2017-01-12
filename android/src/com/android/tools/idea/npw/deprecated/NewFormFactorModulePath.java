@@ -37,6 +37,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.io.File;
 import java.io.IOException;
@@ -80,6 +81,8 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   private static final String RELATIVE_SRC_ROOT = FileUtil.join(TemplateWizard.MAIN_FLAVOR_SOURCE_PATH, TemplateWizard.JAVA_SOURCE_PATH);
   private static final String RELATIVE_TEST_ROOT = FileUtil.join(TemplateWizard.TEST_SOURCE_PATH, TemplateWizard.JAVA_SOURCE_PATH);
 
+  private static String WH_SDK_LOCATION = System.getenv(WH_SDK_ENV_VAR);
+
   private final FormFactor myFormFactor;
   private final File myTemplateFile;
   private final Disposable myDisposable;
@@ -88,6 +91,12 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   private TemplateParameterStep2 myParameterStep;
   private String myDefaultModuleName = null;
   private boolean myGradleSyncIfNecessary = true;
+
+  // Can't directly set environment variables in Java so need this for testing.
+  @TestOnly
+  public static void setWHSdkLocation(String value) {
+    WH_SDK_LOCATION = value;
+  }
 
   public static List<NewFormFactorModulePath> getAvailableFormFactorModulePaths(@NotNull Disposable disposable) {
     TemplateManager manager = TemplateManager.getInstance();
@@ -131,9 +140,8 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     myState.put(CREATE_ACTIVITY_KEY, false);
     myState.put(IS_INSTANT_APP_KEY, false);
 
-    String whSdkLocation = System.getenv(WH_SDK_ENV_VAR);
-    myState.put(WH_SDK_KEY, whSdkLocation + "/tools/resources/shared-libs");
-    myState.put(WH_SDK_ENABLED_KEY, isNotEmpty(whSdkLocation));
+    myState.put(WH_SDK_KEY, WH_SDK_LOCATION + "/tools/resources/shared-libs");
+    myState.put(WH_SDK_ENABLED_KEY, isNotEmpty(WH_SDK_LOCATION));
 
     addStep(new ConfigureAndroidModuleStepDynamic(myDisposable, myFormFactor));
     addStep(new ConfigureInstantModuleStep(myDisposable, myFormFactor));
