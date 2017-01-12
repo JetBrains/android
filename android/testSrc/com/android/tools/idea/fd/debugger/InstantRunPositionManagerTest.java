@@ -66,8 +66,7 @@ public class InstantRunPositionManagerTest extends AndroidTestCase {
     assertNull(myPositionManager.getApiSpecificPsi(project, file, new AndroidVersion(24, null)));
   }
 
-  // Disabled due to http://b.android.com/231888
-  public void ignoreTestGetSourceForPsiFileWithAndroidFile() {
+  public void testGetSourceForPsiFileWithAndroidFile() {
     Project project = getProject();
 
     // need to add the sdk to JdkTable for getSourceFolder(version) to return the source folder
