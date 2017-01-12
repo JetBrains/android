@@ -71,7 +71,7 @@ public class FileResourceRepository extends LocalResourceRepository {
   }
 
   @NotNull
-  static FileResourceRepository get(@NotNull final File file, @Nullable String libraryName) {
+  static synchronized FileResourceRepository get(@NotNull final File file, @Nullable String libraryName) {
     FileResourceRepository repository = ourCache.get(file);
     if (repository == null) {
       repository = create(file, libraryName);
@@ -83,7 +83,7 @@ public class FileResourceRepository extends LocalResourceRepository {
 
   @Nullable
   @VisibleForTesting
-  static FileResourceRepository getCached(@NotNull final File file) {
+  static synchronized FileResourceRepository getCached(@NotNull final File file) {
     return ourCache.get(file);
   }
 
@@ -115,7 +115,7 @@ public class FileResourceRepository extends LocalResourceRepository {
     return myResourceTextFile;
   }
 
-  public static void reset() {
+  public static synchronized void reset() {
     ourCache.clear();
   }
 
