@@ -330,6 +330,7 @@ public class DragTarget extends ConstraintTarget {
     updateAttributes(attributes, dx, dy);
     cleanup(attributes);
     attributes.apply();
+    component.fireLiveChangeEvent();
     myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
     myChangedComponent = true;
   }
