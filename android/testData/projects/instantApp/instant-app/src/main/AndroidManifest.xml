@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:instant="http://schemas.android.com/instantapps"
+    package="com.example.instantapp"
+    split="instant-app">
+
+
+</manifest>
