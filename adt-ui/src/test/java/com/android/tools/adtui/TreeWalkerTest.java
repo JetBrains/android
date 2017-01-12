@@ -113,6 +113,32 @@ public class TreeWalkerTest {
   }
 
   @Test
+  public void descendantsCanBeReturnedInDepthFirstSearchOrder() throws Exception {
+    JPanel panelRoot = new JPanel();
+    JPanel panel1 = new JPanel();
+    JPanel panel11 = new JPanel();
+    JPanel panel111 = new JPanel();
+    JPanel panel112 = new JPanel();
+    JPanel panel2 = new JPanel();
+    JPanel panel3 = new JPanel();
+    JPanel panel31 = new JPanel();
+    JPanel panel32 = new JPanel();
+
+    panelRoot.add(panel1);
+    panel1.add(panel11);
+    panel11.add(panel111);
+    panel11.add(panel112);
+    panelRoot.add(panel2);
+    panelRoot.add(panel3);
+    panel3.add(panel31);
+    panel3.add(panel32);
+
+    TreeWalker treeWalker = new TreeWalker(panelRoot);
+    assertThat(treeWalker.descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST).collect(Collectors.toList())).
+      containsExactly(panelRoot, panel1, panel11, panel111, panel112, panel2, panel3, panel31, panel32).inOrder();
+  }
+
+  @Test
   public void canStreamAncestors() throws Exception {
     JPanel panel1 = new JPanel();
     JPanel panel11 = new JPanel();
@@ -198,7 +224,5 @@ public class TreeWalkerTest {
     assertThat(TreeWalker.isAncestor(panel1, panel1)).isTrue();
     assertThat(TreeWalker.isAncestor(panel11, panel123)).isFalse();
     assertThat(TreeWalker.isAncestor(panel12, panel123)).isTrue();
-
   }
-
 }
