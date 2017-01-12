@@ -40,9 +40,6 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import java.awt.*;
 import java.awt.datatransfer.Transferable;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.function.Supplier;
 
 import static com.android.tools.adtui.splitter.SplitterUtil.setMinimumWidth;
@@ -164,10 +161,9 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
                                      ? new TreeProvider(myProject, myPalette)
                                      : new SingleListTreeProvider(myProject, myPalette);
     myTree.setModel(provider);
-    myTree.addMouseListener(createMouseListenerForLoadMissingDependency());
     myTree.addListSelectionListener(event -> fireSelectionChanged(myTree.getSelectedElement()));
     myTree.setVisibleSection(myCategoryList.getSelectedValue());
-    myTree.setTransferHandler(new MyItemTransferHandler(mySurface, this::getSelectedItem, myIconPreviewFactory));
+    myTree.setTransferHandler(new MyItemTransferHandler(mySurface, myDependencyManager, this::getSelectedItem, myIconPreviewFactory));
     setMode(myMode);
   }
 
@@ -201,21 +197,6 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     }
   }
 
-  @NotNull
-  protected MouseListener createMouseListenerForLoadMissingDependency() {
-    return new MouseAdapter() {
-      @Override
-      public void mousePressed(MouseEvent event) {
-        Palette.Item item = getSelectedItem();
-        if (item != null && myDependencyManager.needsLibraryLoad(item)) {
-          if (!myDependencyManager.ensureLibraryIsIncluded(item)) {
-            clearSelection();
-          }
-        }
-      }
-    };
-  }
-
   public void setSelectionListener(@NotNull SelectionListener listener) {
     myListener = listener;
   }
@@ -229,10 +210,6 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
   @Nullable
   public Palette.Item getSelectedItem() {
     return myTree.getSelectedElement();
-  }
-
-  private void clearSelection() {
-    myTree.setSelectedElement(null);
   }
 
   @TestOnly
@@ -254,9 +231,10 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
   private class MyItemTransferHandler extends ItemTransferHandler {
 
     public MyItemTransferHandler(@NotNull DesignSurface designSurface,
+                                 @NotNull DependencyManager dependencyManager,
                                  @NotNull Supplier<Palette.Item> itemSupplier,
                                  @NotNull IconPreviewFactory iconPreviewFactory) {
-      super(designSurface, itemSupplier, iconPreviewFactory);
+      super(designSurface, dependencyManager, itemSupplier, iconPreviewFactory);
     }
 
     @Override
