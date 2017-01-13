@@ -17,18 +17,14 @@ package com.android.tools.adtui;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SelectionModel;
-import com.android.tools.adtui.swing.FakeInputDevices;
+import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.adtui.swing.FakeKeyboard;
-import org.junit.Rule;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class SelectionComponentTest {
-
-  @Rule
-  public FakeInputDevices myInputDevices = new FakeInputDevices();
 
   private static final double DELTA = 1e-3;
 
@@ -38,7 +34,7 @@ public class SelectionComponentTest {
     SelectionComponent component = new SelectionComponent(model);
     component.setSize(100, 100);
     assertTrue(model.getSelectionRange().isEmpty());
-    myInputDevices.mouse.click(component, 20, 0);
+    new FakeUi(component).mouse.click(20, 0);
     assertEquals(20, model.getSelectionRange().getMin(), DELTA);
     assertEquals(20, model.getSelectionRange().getMax(), DELTA);
   }
@@ -50,7 +46,7 @@ public class SelectionComponentTest {
     component.setSize(100, 100);
     assertEquals(20, model.getSelectionRange().getMin(), DELTA);
     assertEquals(40, model.getSelectionRange().getMax(), DELTA);
-    myInputDevices.mouse.click(component, 60, 0);
+    new FakeUi(component).mouse.click(60, 0);
     assertEquals(80, model.getSelectionRange().getMin(), DELTA);
     assertEquals(80, model.getSelectionRange().getMax(), DELTA);
   }
@@ -62,8 +58,9 @@ public class SelectionComponentTest {
     component.setSize(100, 100);
     assertEquals(40, model.getSelectionRange().getMin(), DELTA);
     assertEquals(60, model.getSelectionRange().getMax(), DELTA);
-    myInputDevices.keyboard.setFocus(component);
-    myInputDevices.keyboard.press(FakeKeyboard.Key.ESC);
+    FakeUi ui = new FakeUi(component);
+    ui.keyboard.setFocus(component);
+    ui.keyboard.press(FakeKeyboard.Key.ESC);
     assertTrue(model.getSelectionRange().isEmpty());
   }
 
@@ -74,10 +71,10 @@ public class SelectionComponentTest {
     model.addChangeListener(e -> event[0] = 1);
     SelectionComponent component = new SelectionComponent(model);
     component.setSize(100, 100);
-
-    myInputDevices.mouse.press(component, 50, 0);
+    FakeUi ui = new FakeUi(component);
+    ui.mouse.press(50, 0);
     assertEquals(0, event[0]);
-    myInputDevices.mouse.release();
+    ui.mouse.release();
     assertEquals(1, event[0]);
   }
 
@@ -86,10 +83,11 @@ public class SelectionComponentTest {
     SelectionModel model = new SelectionModel(new Range(10, 20), new Range(0, 100));
     SelectionComponent component = new SelectionComponent(model);
     component.setSize(100, 100);
-    myInputDevices.mouse.press(component, getMinHandleX(model), 0);
+    FakeUi ui = new FakeUi(component);
+    ui.mouse.press(getMinHandleX(model), 0);
     assertEquals(10, model.getSelectionRange().getMin(), DELTA);
     assertEquals(20, model.getSelectionRange().getMax(), DELTA);
-    myInputDevices.mouse.dragDelta(-5, 0);
+    ui.mouse.dragDelta(-5, 0);
     assertEquals(5, model.getSelectionRange().getMin(), DELTA);
     assertEquals(20, model.getSelectionRange().getMax(), DELTA);
   }
@@ -99,10 +97,11 @@ public class SelectionComponentTest {
     SelectionModel model = new SelectionModel(new Range(10, 20), new Range(0, 100));
     SelectionComponent component = new SelectionComponent(model);
     component.setSize(100, 100);
-    myInputDevices.mouse.press(component, getMaxHandleX(model), 0);
+    FakeUi ui = new FakeUi(component);
+    ui.mouse.press(getMaxHandleX(model), 0);
     assertEquals(10, model.getSelectionRange().getMin(), DELTA);
     assertEquals(20, model.getSelectionRange().getMax(), DELTA);
-    myInputDevices.mouse.dragDelta(20, 0);
+    ui.mouse.dragDelta(20, 0);
     assertEquals(10, model.getSelectionRange().getMin(), DELTA);
     assertEquals(40, model.getSelectionRange().getMax(), DELTA);
   }
@@ -112,10 +111,11 @@ public class SelectionComponentTest {
     SelectionModel model = new SelectionModel(new Range(40, 50), new Range(0, 100));
     SelectionComponent component = new SelectionComponent(model);
     component.setSize(100, 100);
-    myInputDevices.mouse.press(component, 45, 0);
+    FakeUi ui = new FakeUi(component);
+    ui.mouse.press(45, 0);
     assertEquals(40, model.getSelectionRange().getMin(), DELTA);
     assertEquals(50, model.getSelectionRange().getMax(), DELTA);
-    myInputDevices.mouse.dragDelta(40, 0);
+    ui.mouse.dragDelta(40, 0);
     assertEquals(80, model.getSelectionRange().getMin(), DELTA);
     assertEquals(90, model.getSelectionRange().getMax(), DELTA);
   }
@@ -125,10 +125,11 @@ public class SelectionComponentTest {
     SelectionModel model = new SelectionModel(new Range(10, 20), new Range(0, 100));
     SelectionComponent component = new SelectionComponent(model);
     component.setSize(100, 100);
-    myInputDevices.mouse.press(component, getMinHandleX(model), 0);
+    FakeUi ui = new FakeUi(component);
+    ui.mouse.press(getMinHandleX(model), 0);
     assertEquals(10, model.getSelectionRange().getMin(), DELTA);
     assertEquals(20, model.getSelectionRange().getMax(), DELTA);
-    myInputDevices.mouse.dragDelta(90, 0);
+    ui.mouse.dragDelta(90, 0);
     assertEquals(20, model.getSelectionRange().getMin(), DELTA);
     assertEquals(100, model.getSelectionRange().getMax(), DELTA);
   }
@@ -138,10 +139,11 @@ public class SelectionComponentTest {
     SelectionModel model = new SelectionModel(new Range(10, 20), new Range(0, 100));
     SelectionComponent component = new SelectionComponent(model);
     component.setSize(100, 100);
-    myInputDevices.mouse.press(component, getMaxHandleX(model), 0);
+    FakeUi ui = new FakeUi(component);
+    ui.mouse.press(getMaxHandleX(model), 0);
     assertEquals(10, model.getSelectionRange().getMin(), DELTA);
     assertEquals(20, model.getSelectionRange().getMax(), DELTA);
-    myInputDevices.mouse.dragDelta(-20, 0);
+    ui.mouse.dragDelta(-20, 0);
     assertEquals(0, model.getSelectionRange().getMin(), DELTA);
     assertEquals(10, model.getSelectionRange().getMax(), DELTA);
   }
