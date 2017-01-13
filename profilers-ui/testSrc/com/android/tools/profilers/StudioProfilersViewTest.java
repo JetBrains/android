@@ -15,7 +15,10 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.TreeWalker;
+import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
@@ -33,20 +36,23 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 public class StudioProfilersViewTest {
 
   private final FakeProfilerService myService = new FakeProfilerService();
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("StudioProfilerTestChannel", myService);
+  @Rule public FakeGrpcServer myGrpcChannel = new FakeGrpcServer("StudioProfilerTestChannel", myService);
   private StudioProfilers myProfilers;
   private FakeTimer myTimer;
   private StudioProfilersView myView;
-
+  private FakeUi myUi;
 
   @Before
   public void setUp() throws Exception {
@@ -54,9 +60,12 @@ public class StudioProfilersViewTest {
     myTimer = new FakeTimer();
     myProfilers = new StudioProfilers(myGrpcChannel.getClient(), ide, myTimer);
     // Make sure a process is selected
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myView = new StudioProfilersView(myProfilers, new IdeProfilerComponentsStub());
     myView.bind(FakeStage.class, FakeView::new);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    JPanel component = myView.getComponent();
+    component.setSize(1024, 450);
+    myUi = new FakeUi(component);
   }
 
   @Test
@@ -67,6 +76,34 @@ public class StudioProfilersViewTest {
 
     myProfilers.setStage(stage);
     assertEquals(view, myView.getStageView());
+  }
+
+  @Test
+  public void testMonitorExpansion() throws IOException {
+    assertTrue(myProfilers.getStage() instanceof StudioMonitorStage);
+
+    List<Point> points = new TreeWalker(myView.getComponent()).descendantStream()
+      .filter(d -> d instanceof LineChart)
+      .map(c -> myUi.getPosition(c))
+      .collect(Collectors.toList());
+    // Test that we have three monitors
+    assertEquals(3, points.size());
+
+    // Test the first monitor goes to cpu profiling
+    myUi.mouse.click(points.get(0).x + 1, points.get(0).y + 1);
+    assertTrue(myProfilers.getStage() instanceof CpuProfilerStage);
+    myProfilers.setMonitoringStage();
+
+    myUi.layout();
+    // Test the second monitor goes to memory profiling
+    myUi.mouse.click(points.get(1).x + 1, points.get(1).y + 1);
+    assertTrue(myProfilers.getStage() instanceof MemoryProfilerStage);
+    myProfilers.setMonitoringStage();
+
+    myUi.layout();
+    // Test the third monitor goes to network profiling
+    myUi.mouse.click(points.get(2).x + 1, points.get(2).y + 1);
+    assertTrue(myProfilers.getStage() instanceof NetworkProfilerStage);
   }
 
   @Test
