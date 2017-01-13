@@ -30,6 +30,7 @@ import org.junit.runner.RunWith;
 
 import java.util.regex.Pattern;
 
+@Ignore("https://code.google.com/p/android/issues/detail?id=231853")
 @RunWith(GuiTestRunner.class)
 public class FlavorsExecutionTest {
 
