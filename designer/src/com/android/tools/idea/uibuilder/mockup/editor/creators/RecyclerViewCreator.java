@@ -40,9 +40,7 @@ public class RecyclerViewCreator extends SimpleViewCreator {
    *                   Used to convert the size of component from the mockup to the Android coordinates.
    * @param selection  The selection made in the {@link MockupEditor}
    */
-  public RecyclerViewCreator(@NotNull Mockup mockup,
-                             @NotNull NlModel model,
-                             @NotNull ScreenView screenView, @NotNull Rectangle selection) {
+  public RecyclerViewCreator(@NotNull Mockup mockup, @NotNull NlModel model, @NotNull ScreenView screenView, @NotNull Rectangle selection) {
     super(mockup, model, screenView, selection);
   }
 

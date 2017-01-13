@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.mockup.editor.creators.WidgetCreatorFact
 import com.android.tools.idea.uibuilder.mockup.editor.creators.forms.ToolRootPanel;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.*;
@@ -214,7 +215,7 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
       @Override
       public void actionPerformed(AnActionEvent e) {
         Mockup mockup = myMockupEditor.getMockup();
-        ScreenView currentScreenView = mySurface.getCurrentScreenView();
+        ScreenView currentScreenView = mySurface.getCurrentSceneView();
         if (mockup == null) {
           myMockupEditor.showError("Cannot create a widget from an empty mockup");
           LOGGER.warn("MockupEditor has no associated mockup");

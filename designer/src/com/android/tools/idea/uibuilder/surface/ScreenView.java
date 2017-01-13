@@ -89,11 +89,13 @@ public class ScreenView extends SceneView {
     y = screenY;
   }
 
+  @Override
   @SwingCoordinate
   public int getX() {
     return x;
   }
 
+  @Override
   @SwingCoordinate
   public int getY() {
     return y;

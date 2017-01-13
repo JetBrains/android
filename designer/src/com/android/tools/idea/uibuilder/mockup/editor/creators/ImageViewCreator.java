@@ -60,9 +60,7 @@ public class ImageViewCreator extends SimpleViewCreator {
    *                   Used to convert the size of component from the mockup to the Android coordinates.
    * @param selection  The selection made in the {@link MockupEditor}
    */
-  public ImageViewCreator(@NotNull Mockup mockup,
-                          @NotNull NlModel model,
-                          @NotNull ScreenView screenView, @NotNull Rectangle selection) {
+  public ImageViewCreator(@NotNull Mockup mockup, @NotNull NlModel model, @NotNull ScreenView screenView, @NotNull Rectangle selection) {
     super(mockup, model, screenView, selection);
     mySelection = selection;
     myRemoveBackgroundPanel = new RemoveBackgroundPanel();
