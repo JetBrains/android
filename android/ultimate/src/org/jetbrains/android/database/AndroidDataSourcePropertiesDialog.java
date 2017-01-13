@@ -6,6 +6,7 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.MultiLineReceiver;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.intellij.database.dataSource.AbstractDataSourceConfigurable;
+import com.intellij.database.dataSource.DataSourceNameComponent;
 import com.intellij.database.util.DbImplUtil;
 import com.intellij.database.view.ui.DsUiDefaults;
 import com.intellij.facet.ProjectFacetManager;
@@ -17,8 +18,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.FieldPanel;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.ContainerUtil;
@@ -49,14 +48,15 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.database.AndroidDataSourcePropertiesDialog");
   private static final String[] DEFAULT_EXTERNAL_DB_PATTERNS = new String[]{"files/"};
 
-  private DefaultComboBoxModel myDeviceComboBoxModel = new DefaultComboBoxModel();
+  private DefaultComboBoxModel<Object> myDeviceComboBoxModel = new DefaultComboBoxModel<>();
   private String myMissingDeviceIds;
+
+  private DataSourceNameComponent myNameComponent;
 
   private ComboBox myDeviceComboBox;
   private ComboBox myPackageNameComboBox;
   private ComboBox myDataBaseComboBox;
   private JPanel myPanel;
-  private FieldPanel myNameField;
   private JPanel myConfigurationPanel;
   private JBRadioButton myExternalStorageRadioButton;
   private JBRadioButton myInternalStorageRadioButton;
@@ -69,27 +69,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
 
   protected AndroidDataSourcePropertiesDialog(@NotNull AndroidDbManager manager, @NotNull Project project, @NotNull AndroidDataSource dataSource) {
     super(manager, dataSource, project);
-
-    myPanel.setBorder(DsUiDefaults.DEFAULT_PANEL_BORDER);
     myTempDataSource = dataSource.copy();
-
-    myConfigurationPanel.setBorder(IdeBorderFactory.createEmptyBorder(10, 0, 0, 0));
-    myNameField.setLabelText("Name:");
-    myNameField.createComponent();
-
-    myDeviceComboBox.setRenderer(new DeviceRenderer.DeviceComboBoxRenderer() {
-      @Override
-      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
-        if (value instanceof String) {
-          append(AndroidDbUtil.getPresentableNameFromDeviceId((String)value));
-        }
-        else {
-          super.customizeCellRenderer(list, value, index, selected, hasFocus);
-        }
-      }
-    });
-    myDeviceComboBox.setPreferredSize(new Dimension(JBUI.scale(300), myDeviceComboBox.getPreferredSize().height));
-
     myDeviceListener = new AndroidDebugBridge.IDeviceChangeListener() {
       @Override
       public void deviceConnected(IDevice device) {
@@ -107,7 +87,27 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
         }
       }
     };
+  }
 
+  @Nullable
+  @Override
+  public JComponent createComponent() {
+    myNameComponent = new DataSourceNameComponent(this, myController);
+    myPanel.add(myNameComponent.getComponent(), BorderLayout.NORTH);
+    myConfigurationPanel.setBorder(DsUiDefaults.DEFAULT_PANEL_BORDER);
+
+    myDeviceComboBox.setRenderer(new DeviceRenderer.DeviceComboBoxRenderer() {
+      @Override
+      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
+        if (value instanceof String) {
+          append(AndroidDbUtil.getPresentableNameFromDeviceId((String)value));
+        }
+        else {
+          super.customizeCellRenderer(list, value, index, selected, hasFocus);
+        }
+      }
+    });
+    myDeviceComboBox.setPreferredSize(new Dimension(JBUI.scale(300), myDeviceComboBox.getPreferredSize().height));
     myDeviceComboBox.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -134,6 +134,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
         registerDeviceListener();
       }
     });
+    return myPanel;
   }
 
   @NotNull
@@ -176,7 +177,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     final AndroidDebugBridge bridge = AndroidSdkUtils.getDebugBridge(myProject);
     final IDevice[] devices = bridge != null ? getDevicesWithValidDeviceId(bridge) : new IDevice[0];
     final String deviceId = myDataSource.getState().deviceId;
-    final DefaultComboBoxModel model = new DefaultComboBoxModel(devices);
+    final DefaultComboBoxModel<Object> model = new DefaultComboBoxModel<>(devices);
     Object selectedItem = null;
 
     if (deviceId != null && deviceId.length() > 0) {
@@ -334,14 +335,8 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     return deviceId != null ? deviceId : "";
   }
 
-  @Nullable
-  @Override
-  public JComponent createComponent() {
-    return myPanel;
-  }
-
   public void saveData(@NotNull AndroidDataSource dataSource) {
-    dataSource.setName(getNameValue());
+    dataSource.setName(myNameComponent.getNameValue());
     AndroidDataSource.State state = dataSource.getState();
     state.deviceId = getSelectedDeviceId();
     state.packageName = getSelectedPackage();
@@ -364,9 +359,9 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   }
 
   @Override
-  public void reset() {
-    AndroidDataSource.State state = myDataSource.getState();
-    myNameField.setText(StringUtil.notNullize(myDataSource.getName()));
+  protected void reset(@NotNull AndroidDataSource o) {
+    AndroidDataSource.State state = o.getState();
+    myNameComponent.setNameValue(StringUtil.notNullize(o.getName()));
 
     myInternalStorageRadioButton.setSelected(!state.external);
     myExternalStorageRadioButton.setSelected(state.external);
@@ -397,17 +392,13 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   @Nullable
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myNameField;
+    return myNameComponent.getPreferredFocusedComponent();
   }
 
   @Nls
   @Override
   public String getDisplayName() {
-    return getNameValue();
-  }
-
-  private String getNameValue() {
-    return myNameField.getText().trim();
+    return myNameComponent.getNameValue();
   }
 
   @Nullable
