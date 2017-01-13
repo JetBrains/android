@@ -100,7 +100,7 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
       myState.put(COMPANY_DOMAIN_KEY, savedCompanyDomain);
     }
 
-    if (template.getFormFactor() == FormFactor.MOBILE && myState.get(WH_SDK_ENABLED_KEY)) {
+    if (template.getFormFactor() == FormFactor.MOBILE && myState.get(AIA_SDK_ENABLED_KEY)) {
       register(IS_INSTANT_APP_KEY, myInstantAppCheckbox);
       myInstantAppCheckbox.setVisible(true);
     }
