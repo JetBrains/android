@@ -20,7 +20,7 @@ import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.ddms.screenshot.ScreenshotViewer;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -40,9 +40,9 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 
 public class SaveScreenshotAction extends AnAction {
-  private final DesignSurface mySurface;
+  private final NlDesignSurface mySurface;
 
-  public SaveScreenshotAction(DesignSurface surface) {
+  public SaveScreenshotAction(NlDesignSurface surface) {
     super("Save Screenshot...", null, AndroidIcons.Ddms.ScreenCapture);
     mySurface = surface;
   }
@@ -55,7 +55,7 @@ public class SaveScreenshotAction extends AnAction {
 
   @Nullable
   private BufferedImage getImage() {
-    ScreenView currentScreenView = mySurface.getCurrentScreenView();
+    ScreenView currentScreenView = mySurface.getCurrentSceneView();
     if (currentScreenView != null) {
       RenderResult result = currentScreenView.getResult();
       return result != null ? result.getRenderedImage().getCopy() : null;

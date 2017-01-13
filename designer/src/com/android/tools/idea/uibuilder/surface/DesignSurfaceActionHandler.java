@@ -41,11 +41,11 @@ class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, CopyPro
 
   @Override
   public void performCopy(@NotNull DataContext dataContext) {
-    ScreenView screenView = mySurface.getCurrentScreenView();
-    if (screenView == null) {
+    SceneView sceneView = mySurface.getCurrentSceneView();
+    if (sceneView == null) {
       return;
     }
-    CopyPasteManager.getInstance().setContents(screenView.getModel().getSelectionAsTransferable());
+    CopyPasteManager.getInstance().setContents(sceneView.getModel().getSelectionAsTransferable());
   }
 
   @Override
@@ -76,12 +76,12 @@ class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, CopyPro
 
   @Override
   public void deleteElement(@NotNull DataContext dataContext) {
-    ScreenView screenView = mySurface.getCurrentScreenView();
-    if (screenView == null) {
+    SceneView sceneView = mySurface.getCurrentSceneView();
+    if (sceneView == null) {
       return;
     }
-    SelectionModel selectionModel = screenView.getSelectionModel();
-    NlModel model = screenView.getModel();
+    SelectionModel selectionModel = sceneView.getSelectionModel();
+    NlModel model = sceneView.getModel();
     model.delete(selectionModel.getSelection());
   }
 
@@ -106,22 +106,22 @@ class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, CopyPro
   }
 
   private boolean hasNonEmptySelection() {
-    ScreenView screenView = mySurface.getCurrentScreenView();
-    return screenView != null && !screenView.getSelectionModel().isEmpty();
+    SceneView sceneView = mySurface.getCurrentSceneView();
+    return sceneView != null && !sceneView.getSelectionModel().isEmpty();
   }
 
   private boolean pasteOperation(boolean checkOnly) {
-    ScreenView screenView = mySurface.getCurrentScreenView();
-    if (screenView == null) {
+    SceneView sceneView = mySurface.getCurrentSceneView();
+    if (sceneView == null) {
       return false;
     }
 
-    List<NlComponent> selection = screenView.getSelectionModel().getSelection();
+    List<NlComponent> selection = sceneView.getSelectionModel().getSelection();
     NlComponent receiver = !selection.isEmpty() ? selection.get(0) : null;
 
     if (receiver == null) {
         // In the case where there is no selection but we only have a root component, use that one
-      List<NlComponent> components = screenView.getModel().getComponents();
+      List<NlComponent> components = sceneView.getModel().getComponents();
       if (components.size() == 1) {
         receiver = components.get(0);
       }
@@ -131,7 +131,7 @@ class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, CopyPro
       return false;
     }
     NlComponent before;
-    NlModel model = screenView.getModel();
+    NlModel model = sceneView.getModel();
     ViewHandlerManager handlerManager = ViewHandlerManager.get(model.getProject());
     ViewHandler handler = handlerManager.getHandler(receiver);
     if (handler instanceof ViewGroupHandler) {
@@ -150,7 +150,7 @@ class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, CopyPro
       return false;
     }
     InsertType insertType = model.determineInsertType(DragType.PASTE, item, checkOnly);
-    List<NlComponent> pasted = model.createComponents(screenView, item, insertType);
+    List<NlComponent> pasted = model.createComponents(sceneView, item, insertType);
     if (!model.canAddComponents(pasted, receiver, before)) {
       return false;
     }

@@ -25,14 +25,14 @@ import com.intellij.openapi.util.Disposer;
 
 import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
 
-public class DesignSurfaceTest extends LayoutTestCase {
-  private DesignSurface mySurface;
+public class NlDesignSurfaceTest extends LayoutTestCase {
+  private NlDesignSurface mySurface;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
 
-    mySurface = new DesignSurface(getProject(), false);
+    mySurface = new NlDesignSurface(getProject(), false);
   }
 
   @Override
@@ -121,17 +121,17 @@ public class DesignSurfaceTest extends LayoutTestCase {
     mySurface.setModel(model);
     assertNull(model.getRenderResult());
 
-    mySurface.setScreenMode(DesignSurface.ScreenMode.SCREEN_ONLY, false);
+    mySurface.setScreenMode(NlDesignSurface.ScreenMode.SCREEN_ONLY, false);
     mySurface.requestRender();
     assertTrue(model.getRenderResult().getRenderResult().isSuccess());
-    assertNotNull(mySurface.getCurrentScreenView());
+    assertNotNull(mySurface.getCurrentSceneView());
     assertNull(mySurface.getBlueprintView());
 
-    mySurface.setScreenMode(DesignSurface.ScreenMode.BOTH, false);
+    mySurface.setScreenMode(NlDesignSurface.ScreenMode.BOTH, false);
     mySurface.requestRender();
     assertTrue(model.getRenderResult().getRenderResult().isSuccess());
 
-    ScreenView screenView = mySurface.getCurrentScreenView();
+    ScreenView screenView = mySurface.getCurrentSceneView();
     ScreenView blueprintView = mySurface.getBlueprintView();
     assertNotNull(screenView);
     assertNotNull(blueprintView);

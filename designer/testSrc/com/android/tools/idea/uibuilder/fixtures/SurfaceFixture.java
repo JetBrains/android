@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import org.jetbrains.annotations.NotNull;
 
 public class SurfaceFixture {
-  private DesignSurface mySurface;
+  private NlDesignSurface mySurface;
 
-  public DesignSurface getSurface() {
+  public NlDesignSurface getSurface() {
     if (mySurface == null) {
       mySurface = LayoutTestUtilities.createSurface();
     }

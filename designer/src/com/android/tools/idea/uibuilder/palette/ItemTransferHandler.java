@@ -21,7 +21,7 @@ import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,14 +61,14 @@ public class ItemTransferHandler extends TransferHandler {
     if (item == null) {
       return null;
     }
-    ScreenView screenView = myDesignSurface.getCurrentScreenView();
-    if (screenView == null) {
+    SceneView sceneView = myDesignSurface.getCurrentSceneView();
+    if (sceneView == null) {
       return null;
     }
 
     @AndroidCoordinate
     Dimension size;
-    BufferedImage image = myDependencyManager.needsLibraryLoad(item) ? null : myIconFactory.renderDragImage(item, screenView);
+    BufferedImage image = myDependencyManager.needsLibraryLoad(item) ? null : myIconFactory.renderDragImage(item, sceneView);
     if (image != null) {
       size = new Dimension(image.getWidth(), image.getHeight());
       double scale = myDesignSurface.getScale();

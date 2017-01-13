@@ -21,7 +21,7 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.ComponentDriver;
@@ -51,9 +51,9 @@ public class NlComponentFixture {
   /** Returns the center point in panel coordinates */
   @NotNull
   private Point getMidPoint() {
-    ScreenView screenView = mySurface.getCurrentScreenView();
-    int midX = Coordinates.getSwingX(screenView, myComponent.x + myComponent.w / 2);
-    int midY = Coordinates.getSwingY(screenView, myComponent.y + myComponent.h / 2);
+    SceneView sceneView = mySurface.getCurrentSceneView();
+    int midX = Coordinates.getSwingX(sceneView, myComponent.x + myComponent.w / 2);
+    int midY = Coordinates.getSwingY(sceneView, myComponent.y + myComponent.h / 2);
     return new Point(midX, midY);
   }
 

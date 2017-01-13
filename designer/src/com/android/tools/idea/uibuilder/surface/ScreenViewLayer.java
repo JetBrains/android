@@ -76,7 +76,7 @@ public class ScreenViewLayer extends Layer {
     myCachedScale = newScale;
     myImage = newImage;
     myScaledImage = null;
-    boolean fastScaling = myScreenView.getSurface().isCanvasResizing(); // Fast scaling if in the middle of resizing
+    boolean fastScaling = myScreenView.getSurface().isLayoutDisabled(); // Fast scaling if in the middle of resizing
 
     if (UIUtil.isRetina() && ImageUtils.supportsRetina()) {
       myScaledImage = getRetinaScaledImage(newImage, newScale, fastScaling);

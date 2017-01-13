@@ -29,7 +29,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.google.common.collect.Lists;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.Disposable;
@@ -137,8 +137,8 @@ public class IconPreviewFactory implements Disposable {
    * Return null if such an image cannot be rendered. The palette must provide a fallback in this case.
    */
   @Nullable
-  public BufferedImage renderDragImage(@NotNull Palette.Item item, @NotNull ScreenView screenView) {
-    XmlElementFactory elementFactory = XmlElementFactory.getInstance(screenView.getModel().getProject());
+  public BufferedImage renderDragImage(@NotNull Palette.Item item, @NotNull SceneView sceneView) {
+    XmlElementFactory elementFactory = XmlElementFactory.getInstance(sceneView.getModel().getProject());
     String xml = item.getDragPreviewXml();
     if (xml.equals(NO_PREVIEW)) {
       return null;
@@ -153,10 +153,10 @@ public class IconPreviewFactory implements Disposable {
       return null;
     }
 
-    NlModel model = screenView.getModel();
+    NlModel model = sceneView.getModel();
 
     NlComponent component = ApplicationManager.getApplication()
-      .runWriteAction((Computable<NlComponent>)() -> model.createComponent(screenView, tag, null, null, InsertType.CREATE_PREVIEW));
+      .runWriteAction((Computable<NlComponent>)() -> model.createComponent(sceneView, tag, null, null, InsertType.CREATE_PREVIEW));
 
     if (component == null) {
       return null;
@@ -186,9 +186,9 @@ public class IconPreviewFactory implements Disposable {
       return null;
     }
     @AndroidCoordinate
-    int shadowWitdh = SHADOW_SIZE * screenView.getConfiguration().getDensity().getDpiValue() / Density.DEFAULT_DENSITY;
+    int shadowWitdh = SHADOW_SIZE * sceneView.getConfiguration().getDensity().getDpiValue() / Density.DEFAULT_DENSITY;
     @SwingCoordinate
-    int shadowIncrement = 1 + Coordinates.getSwingDimension(screenView, shadowWitdh);
+    int shadowIncrement = 1 + Coordinates.getSwingDimension(sceneView, shadowWitdh);
 
     BufferedImage imageCopy = image.getCopy();
     if (imageCopy == null) {

@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHand
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.target.*;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
@@ -45,7 +46,7 @@ import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DE
  */
 public class Scene implements ModelListener, SelectionListener {
 
-  private final ScreenView myScreenView;
+  private final SceneView mySceneView;
   private static final boolean DEBUG = false;
   private NlModel myModel;
   /** The DPI factor can be manually set for testing. Do not auto-update */
@@ -91,7 +92,7 @@ public class Scene implements ModelListener, SelectionListener {
    * @param screenView
    * @return a newly initialized Scene instance populated using the given NlModel
    */
-  public static Scene createScene(@NotNull NlModel model, @NotNull ScreenView screenView) {
+  public static Scene createScene(@NotNull NlModel model, @NotNull SceneView screenView) {
     Scene scene = new Scene(screenView, model.getConfiguration().getDensity().getDpiValue());
     scene.add(model);
     return scene;
@@ -100,12 +101,12 @@ public class Scene implements ModelListener, SelectionListener {
   /**
    * Default constructor
    *
-   * @param screenView
+   * @param sceneView
    * @param dpiFactor
    */
-  private Scene(@NotNull ScreenView screenView, float dpiFactor) {
-    myScreenView = screenView;
-    myScreenView.getSelectionModel().addListener(this);
+  private Scene(@NotNull SceneView sceneView, float dpiFactor) {
+    mySceneView = sceneView;
+    mySceneView.getSelectionModel().addListener(this);
     myDpiFactor = dpiFactor / 160f;
   }
 
@@ -328,8 +329,8 @@ public class Scene implements ModelListener, SelectionListener {
     model.addListener(this);
     myModel = model;
     // let's make sure the selection is correct
-    if (myScreenView != null) {
-      selectionChanged(myScreenView.getSelectionModel(), myScreenView.getSelectionModel().getSelection());
+    if (mySceneView != null) {
+      selectionChanged(mySceneView.getSelectionModel(), mySceneView.getSelectionModel().getSelection());
     }
   }
 
@@ -370,12 +371,12 @@ public class Scene implements ModelListener, SelectionListener {
         it.remove();
       }
     }
-    if (myRoot != null && myScreenView != null && myScreenView.getSelectionModel().isEmpty()) {
+    if (myRoot != null && mySceneView != null && mySceneView.getSelectionModel().isEmpty()) {
       addTargets(myRoot);
     }
     // Makes sure the selection is correct (after DND this might not be true)
-    if (myScreenView != null) {
-      selectionChanged(myScreenView.getSelectionModel().getSelection(), false);
+    if (mySceneView != null) {
+      selectionChanged(mySceneView.getSelectionModel().getSelection(), false);
     }
   }
 
@@ -535,7 +536,7 @@ public class Scene implements ModelListener, SelectionListener {
   }
 
   public void repaint() {
-    myScreenView.getSurface().repaint();
+    mySceneView.getSurface().repaint();
   }
 
   /**
@@ -574,10 +575,10 @@ public class Scene implements ModelListener, SelectionListener {
    * @param component
    */
   public void select(List<SceneComponent> components) {
-    if (myScreenView != null) {
+    if (mySceneView != null) {
       ArrayList<NlComponent> nlComponents = new ArrayList<>();
       if (myIsShiftDown) {
-        List<NlComponent> selection = myScreenView.getSelectionModel().getSelection();
+        List<NlComponent> selection = mySceneView.getSelectionModel().getSelection();
         nlComponents.addAll(selection);
       }
       int count = components.size();
@@ -591,7 +592,7 @@ public class Scene implements ModelListener, SelectionListener {
           nlComponents.add(component);
         }
       }
-      myScreenView.getSelectionModel().setSelection(nlComponents);
+      mySceneView.getSelectionModel().setSelection(nlComponents);
     }
   }
 
@@ -734,7 +735,7 @@ public class Scene implements ModelListener, SelectionListener {
       if (count == 1) {
         return myHitTargets.get(0);
       }
-      List<NlComponent> selection = myScreenView.getSelectionModel().getSelection();
+      List<NlComponent> selection = mySceneView.getSelectionModel().getSelection();
       if (selection.isEmpty()) {
         Target candidate = myHitTargets.get(count - 1);
         for (int i = count - 2; i >= 0; i--) {
@@ -803,7 +804,7 @@ public class Scene implements ModelListener, SelectionListener {
       if (count == 1) {
         return myHitComponents.get(0);
       }
-      List<NlComponent> selection = myScreenView.getSelectionModel().getSelection();
+      List<NlComponent> selection = mySceneView.getSelectionModel().getSelection();
       if (selection.isEmpty()) {
         return myHitComponents.get(count - 1);
       }
@@ -1050,7 +1051,7 @@ public class Scene implements ModelListener, SelectionListener {
   }
 
   private boolean sameSelection() {
-    List<NlComponent> currentSelection = myScreenView.getSelectionModel().getSelection();
+    List<NlComponent> currentSelection = mySceneView.getSelectionModel().getSelection();
     if (myNewSelectedComponents.size() == currentSelection.size()) {
       int count = currentSelection.size();
       for (int i = 0; i < count; i++) {

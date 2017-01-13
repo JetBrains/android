@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
 import com.android.tools.idea.uibuilder.property.NlPropertyPanelDefinition;
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeDefinition;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -54,7 +55,7 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
     myFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, file);
     assert myFile != null : file;
 
-    mySurface = new DesignSurface(project, false);
+    mySurface = new NlDesignSurface(project, false);
     Disposer.register(editor, mySurface);
     NlModel model = NlModel.create(mySurface, editor, facet, myFile);
     mySurface.setModel(model);

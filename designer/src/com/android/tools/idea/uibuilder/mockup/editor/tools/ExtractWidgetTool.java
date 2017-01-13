@@ -23,7 +23,8 @@ import com.android.tools.idea.uibuilder.mockup.editor.creators.WidgetCreator;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.WidgetCreatorFactory;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.forms.ToolRootPanel;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.*;
@@ -69,7 +70,7 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
 
   private final MockupViewPanel myMockupViewPanel;
   private final MockupEditor myMockupEditor;
-  private DesignSurface mySurface;
+  private NlDesignSurface mySurface;
   private Rectangle mySelection;
   private MySelectionListener mySelectionListener;
   private float myAlpha = 0;
@@ -88,7 +89,7 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
     setOpaque(false);
   }
 
-  public void setDesignSurface(@Nullable DesignSurface surface) {
+  public void setDesignSurface(@Nullable NlDesignSurface surface) {
     mySurface = surface;
   }
 
@@ -214,7 +215,7 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
       @Override
       public void actionPerformed(AnActionEvent e) {
         Mockup mockup = myMockupEditor.getMockup();
-        ScreenView currentScreenView = mySurface.getCurrentScreenView();
+        ScreenView currentScreenView = mySurface.getCurrentSceneView();
         if (mockup == null) {
           myMockupEditor.showError("Cannot create a widget from an empty mockup");
           LOGGER.warn("MockupEditor has no associated mockup");
@@ -222,7 +223,7 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
         }
         if (currentScreenView == null) {
           myMockupEditor.showError("The designer is not ready to create a new widget");
-          LOGGER.warn("The DesignSurface does not have a current screen view");
+          LOGGER.warn("The NlDesignSurface does not have a current screen view");
           return;
         }
         WidgetCreator creator = WidgetCreatorFactory.create(

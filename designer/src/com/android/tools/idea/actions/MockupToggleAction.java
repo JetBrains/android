@@ -17,7 +17,7 @@ package com.android.tools.idea.actions;
 
 import com.android.tools.idea.uibuilder.mockup.editor.AnimatedComponentSplitter;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
@@ -37,12 +37,12 @@ import static com.android.tools.idea.rendering.RenderService.MOCKUP_EDITOR_ENABL
 public class MockupToggleAction extends ToggleAction {
   public static final Dimension CLOSED_DIMENSION = new Dimension(0, 0);
   public static final Dimension OPEN_DIMENSION = new Dimension(200, 200);
-  private final DesignSurface mySurface;
+  private final NlDesignSurface mySurface;
 
   private final static String SHOW_ACTION_TITLE = "Show Mockup Editor";
   private final static String HIDE_ACTION_TITLE = "Hide Mockup Editor";
 
-  public MockupToggleAction(@NotNull DesignSurface surface) {
+  public MockupToggleAction(@NotNull NlDesignSurface surface) {
     mySurface = surface;
     Presentation presentation = getTemplatePresentation();
     presentation.setIcon(getDesignIcon());

@@ -26,7 +26,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintModel;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.scout.Scout;
 import com.android.tools.sherpa.structure.WidgetsScene;
@@ -78,9 +78,9 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
   public static final String ATTR_LAYOUT_CONVERSION_ABSOLUTE_WIDTH = "layout_conversion_absoluteWidth"; //$NON-NLS-1$
   public static final String ATTR_LAYOUT_CONVERSION_ABSOLUTE_HEIGHT = "layout_conversion_absoluteHeight"; //$NON-NLS-1$
 
-  private final DesignSurface mySurface;
+  private final NlDesignSurface mySurface;
 
-  public ConvertToConstraintLayoutAction(@NotNull DesignSurface surface) {
+  public ConvertToConstraintLayoutAction(@NotNull NlDesignSurface surface) {
     super(TITLE, TITLE, null);
     mySurface = surface;
   }
@@ -88,7 +88,7 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
   @Override
   public void update(AnActionEvent e) {
     Presentation presentation = e.getPresentation();
-    ScreenView screenView = mySurface.getCurrentScreenView();
+    ScreenView screenView = mySurface.getCurrentSceneView();
     NlComponent target = findTarget(screenView);
     if (target != null) {
       String tagName = target.getTagName();
@@ -127,7 +127,7 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    ScreenView screenView = mySurface.getCurrentScreenView();
+    ScreenView screenView = mySurface.getCurrentSceneView();
     if (screenView == null) {
       return;
     }

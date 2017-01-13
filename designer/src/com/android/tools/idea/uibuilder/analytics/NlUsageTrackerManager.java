@@ -24,6 +24,7 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.wireless.android.sdk.stats.*;
@@ -109,8 +110,6 @@ public class NlUsageTrackerManager implements NlUsageTracker {
       return builder.build();
     }
 
-    builder.setMode(surface.isPreviewSurface() ? LayoutEditorState.Mode.PREVIEW_MODE : LayoutEditorState.Mode.DESIGN_MODE);
-
     switch (surface.getLayoutType()) {
       case DRAWABLE:
         builder.setType(LayoutEditorState.Type.DRAWABLE);
@@ -157,16 +156,20 @@ public class NlUsageTrackerManager implements NlUsageTracker {
       builder.setConfigZoomLevel((int)(scale * 100));
     }
 
-    switch (surface.getScreenMode()) {
-      case SCREEN_ONLY:
-        builder.setSurfaces(LayoutEditorState.Surfaces.SCREEN_SURFACE);
-        break;
-      case BLUEPRINT_ONLY:
-        builder.setSurfaces(LayoutEditorState.Surfaces.BLUEPRINT_SURFACE);
-        break;
-      case BOTH:
-        builder.setSurfaces(LayoutEditorState.Surfaces.BOTH);
-        break;
+    // TODO: better handling of layout vs. nav editor?
+    if (surface instanceof NlDesignSurface) {
+      builder.setMode(((NlDesignSurface)surface).isPreviewSurface() ? LayoutEditorState.Mode.PREVIEW_MODE : LayoutEditorState.Mode.DESIGN_MODE);
+      switch (((NlDesignSurface)surface).getScreenMode()) {
+        case SCREEN_ONLY:
+          builder.setSurfaces(LayoutEditorState.Surfaces.SCREEN_SURFACE);
+          break;
+        case BLUEPRINT_ONLY:
+          builder.setSurfaces(LayoutEditorState.Surfaces.BLUEPRINT_SURFACE);
+          break;
+        case BOTH:
+          builder.setSurfaces(LayoutEditorState.Surfaces.BOTH);
+          break;
+      }
     }
 
     return builder.build();
