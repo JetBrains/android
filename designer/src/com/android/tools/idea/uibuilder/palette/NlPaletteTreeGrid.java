@@ -19,6 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.splitter.ComponentsSplitter;
 import com.android.tools.adtui.treegrid.TreeGrid;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
@@ -259,7 +260,7 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
 
   private class MyItemTransferHandler extends ItemTransferHandler {
 
-    public MyItemTransferHandler(@NotNull NlDesignSurface designSurface,
+    public MyItemTransferHandler(@NotNull DesignSurface designSurface,
                                  @NotNull DependencyManager dependencyManager,
                                  @NotNull Supplier<Palette.Item> itemSupplier,
                                  @NotNull IconPreviewFactory iconPreviewFactory) {

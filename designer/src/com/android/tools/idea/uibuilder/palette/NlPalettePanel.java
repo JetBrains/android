@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.CopyProvider;
 import com.intellij.openapi.Disposable;
@@ -47,7 +48,7 @@ import java.util.List;
 
 import static com.android.tools.adtui.splitter.SplitterUtil.setMinimumHeight;
 
-public class NlPalettePanel extends JPanel implements Disposable, DataProvider, ToolContent<NlDesignSurface> {
+public class NlPalettePanel extends JPanel implements Disposable, DataProvider, ToolContent<DesignSurface> {
   private final Project myProject;
   private final NlPreviewPanel myPreviewPane;
   private final CopyProvider myCopyProvider;
@@ -141,14 +142,15 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider, 
   }
 
   @Override
-  public void setToolContext(@Nullable NlDesignSurface designSurface) {
+  public void setToolContext(@Nullable DesignSurface designSurface) {
+    assert designSurface == null || designSurface instanceof NlDesignSurface;
     myPreviewPane.setDesignSurface(designSurface);
     Module module = getModule(designSurface);
     if (designSurface != null && module != null && myLayoutType != designSurface.getLayoutType()) {
       myLayoutType = designSurface.getLayoutType();
       NlPaletteModel model = NlPaletteModel.get(myProject);
       Palette palette = model.getPalette(myLayoutType);
-      myPalettePanel.populateUiModel(palette, designSurface);
+      myPalettePanel.populateUiModel(palette, (NlDesignSurface)designSurface);
       myDependencyManager.setPalette(palette, module);
       repaint();
     }
@@ -161,7 +163,7 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider, 
   }
 
   @Nullable
-  private static Module getModule(@Nullable NlDesignSurface designSurface) {
+  private static Module getModule(@Nullable DesignSurface designSurface) {
     Configuration configuration =
       designSurface != null && designSurface.getLayoutType().isSupportedByDesigner() ? designSurface.getConfiguration() : null;
     return configuration != null ? configuration.getModule() : null;

@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.lint;
 
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.lint.detector.api.Issue;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
@@ -31,12 +30,13 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.inspections.lint.*;
+import org.jetbrains.annotations.NotNull;
 
 public class NlLintHighlightingPass implements HighlightingPass {
-  private final NlDesignSurface mySurface;
+  private final DesignSurface mySurface;
   private LintAnnotationsModel myLintAnnotationsModel;
 
-  public NlLintHighlightingPass(@NotNull NlDesignSurface surface) {
+  public NlLintHighlightingPass(@NotNull DesignSurface surface) {
     mySurface = surface;
   }
 

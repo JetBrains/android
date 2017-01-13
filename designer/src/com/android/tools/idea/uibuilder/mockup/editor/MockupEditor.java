@@ -58,7 +58,7 @@ import java.util.List;
  * The behavior of the the editor can be changed by implementing {@link Tool}.
  * </p>
  */
-public class MockupEditor extends JPanel implements ToolContent<NlDesignSurface> {
+public class MockupEditor extends JPanel implements ToolContent<DesignSurface> {
 
   private static final String TITLE = "Mockup Editor";
   private static final String NO_MOCKUP_TEXT = "<html>No mockup available for this View.<br/>Click to add mockup</html>";
@@ -373,7 +373,8 @@ public class MockupEditor extends JPanel implements ToolContent<NlDesignSurface>
   }
 
   @Override
-  public void setToolContext(@Nullable NlDesignSurface newDesignSurface) {
+  public void setToolContext(@Nullable DesignSurface newDesignSurface) {
+    assert newDesignSurface == null || newDesignSurface instanceof NlDesignSurface;
     if (mySurface != null) {
       mySurface.removeListener(myDesignSurfaceListener);
       mySurface = null;
@@ -381,7 +382,7 @@ public class MockupEditor extends JPanel implements ToolContent<NlDesignSurface>
     }
     ScreenView screenView = newDesignSurface != null ? newDesignSurface.getCurrentScreenView() : null;
     if (screenView != null) {
-      mySurface = newDesignSurface;
+      mySurface = (NlDesignSurface)newDesignSurface;
       mySurface.addListener(myDesignSurfaceListener);
       setModel(screenView.getModel());
       myExtractWidgetTool.setDesignSurface(mySurface);

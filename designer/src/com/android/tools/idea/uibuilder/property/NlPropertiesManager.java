@@ -48,7 +48,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class NlPropertiesManager implements ToolContent<NlDesignSurface>, DesignSurfaceListener, ModelListener {
+public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSurfaceListener, ModelListener {
   public final static int UPDATE_DELAY_MSECS = 250;
 
   private final Project myProject;
@@ -56,7 +56,7 @@ public class NlPropertiesManager implements ToolContent<NlDesignSurface>, Design
   private final NlPropertiesPanel myPropertiesPanel;
   private final NlPropertyEditors myEditors;
 
-  @Nullable private NlDesignSurface mySurface;
+  @Nullable private DesignSurface mySurface;
   @Nullable private ScreenView myScreenView;
 
   private MergingUpdateQueue myUpdateQueue;
@@ -83,7 +83,7 @@ public class NlPropertiesManager implements ToolContent<NlDesignSurface>, Design
   }
 
   @Override
-  public void setToolContext(@Nullable NlDesignSurface designSurface) {
+  public void setToolContext(@Nullable DesignSurface designSurface) {
     if (designSurface == mySurface) {
       return;
     }
@@ -141,7 +141,7 @@ public class NlPropertiesManager implements ToolContent<NlDesignSurface>, Design
   }
 
   @Nullable
-  public NlDesignSurface getDesignSurface() {
+  public DesignSurface getDesignSurface() {
     return mySurface;
   }
 

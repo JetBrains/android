@@ -121,8 +121,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private final RenderErrorPanel myErrorPanel;
   protected List<DesignSurfaceListener> myListeners;
   private List<PanZoomListener> myZoomListeners;
-  // TODO: move to layout if not needed in nav
-  protected boolean myCentered;
   private final NlActionManager myActionManager = new NlActionManager((NlDesignSurface)this);
   private float mySavedErrorPanelProportion;
   @NotNull private WeakReference<FileEditor> myFileEditorDelegate = new WeakReference<>(null);
@@ -249,10 +247,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   public NlActionManager getActionManager() {
     return myActionManager;
-  }
-
-  public void setCentered(boolean centered) {
-    myCentered = centered;
   }
 
   protected abstract void doSetModel(@Nullable NlModel model);

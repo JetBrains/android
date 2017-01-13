@@ -119,7 +119,7 @@ public class NlPreviewFixture extends ToolWindowFixture {
    * Switch to showing only the blueprint view.
    */
   public NlPreviewFixture showOnlyBlueprintView() {
-    NlDesignSurface surface = myDesignSurfaceFixture.target();
+    NlDesignSurface surface = (NlDesignSurface)myDesignSurfaceFixture.target();
     if (surface.getScreenMode() != NlDesignSurface.ScreenMode.BLUEPRINT_ONLY) {
       getConfigToolbar().showBlueprint();
     }
