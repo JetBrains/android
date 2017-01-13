@@ -20,6 +20,8 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.intellij.openapi.module.Module;
@@ -79,10 +81,73 @@ public class NewInstantAppTest {
     newProjectWizard
       .clickNext() // Complete form factor configuration
       .clickNext() // Accept default values for Instant App Module
-      .clickNext() // Skip "Add Activity" step
+      .chooseActivity("Basic Activity")
+      .clickNext() // Complete "Add Activity" step
       .clickFinish();
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+  }
+
+  @Test
+  public void testNoWarningsInDefaultNewInstantAppProjects() throws IOException {
+    String projectName = "WarningApp";
+    createAndOpenDefaultAIAProject(projectName);
+
+    String inspectionResults = guiTest.ideFrame()
+      // Need to sync twice otherwise you get an error on shutdown
+      // TODO: find out why this is and handle it properly.
+      .getEditor()
+      .open("atom/build.gradle", EditorFixture.Tab.EDITOR)
+      .moveBetween("", "compileSdkVersion")
+      .enterText(" ")
+      .awaitNotification(
+        "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
+      .performAction("Sync Now")
+      .waitForGradleProjectSyncToFinish()
+      // End
+      .openFromMenu(InspectCodeDialogFixture::find, "Analyze", "Inspect Code...")
+      .clickOk()
+      .getResults();
+
+    //Eventually this will be empty ( or almost empty) for now we are just checking that there are no unexpected errors...
+    assertThat(inspectionResults).isEqualTo(
+      "Project '" + guiTest.getProjectPath() + "' " + projectName + "\n" +
+      // TODO: Linting for Android Instant Apps needs to be updated as it isn't correctly picking up the dependencies
+      "    Android > Lint > Correctness\n" +
+      "        Menu namespace\n" +
+      "            menu_main.xml\n" +
+      "                Should use 'android:showAsAction' when not using the appcompat library\n" +
+      "        Missing Android XML namespace\n" +
+      "            AndroidManifest.xml\n" +
+      "                Attribute is missing the Android namespace prefix\n" +
+      // TODO: prebuilts etc. need to be updated to 25.0.2 then these can be removed
+      "        Obsolete Gradle Dependency\n" +
+      "            build.gradle\n" +
+      "                Old buildToolsVersion 25.0.1; recommended version is 25.0.2 or later\n" +
+      "            build.gradle\n" +
+      "                Old buildToolsVersion 25.0.1; recommended version is 25.0.2 or later\n" +
+      // This warning is unfortunate. We may want to get rid of it.
+      "    Android > Lint > Security\n" +
+      "        AllowBackup/FullBackupContent Problems\n" +
+      "            AndroidManifest.xml\n" +
+      "                On SDK version 23 and up, your app data will be automatically backed up and restored on app install. Consider adding the attribute 'android:fullBackupContent' to specify an '@xml' resource which configures which files to backup. More info: https://developer.android.com/training/backup/autosyncapi.html\n" +
+      // TODO: Not valid for instant apps - linting needs updating
+      "    Android > Lint > Usability > Icons\n" +
+      "        Missing application icon\n" +
+      "            AndroidManifest.xml\n" +
+      "                Should explicitly set 'android:icon', there is no default\n" +
+      // TODO: dependency is a packaging dependency - linting needs updating
+      "    Declaration redundancy\n" +
+      "        Unnecessary module dependency\n" +
+      "            instant-app\n" +
+      "                Module 'instant-app' sources do not depend on module 'atom' sources\n");
+  }
+
+  @Test
+  public void testCanBuildDefaultNewInstantAppProjects() throws IOException {
+    createAndOpenDefaultAIAProject("BuildApp");
+
+    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
   @Test
