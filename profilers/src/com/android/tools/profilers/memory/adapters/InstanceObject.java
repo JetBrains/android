@@ -60,15 +60,15 @@ public interface InstanceObject extends MemoryObject {
   String getName();
 
   default int getDepth() {
-    return 0;
+    return INVALID_VALUE;
   }
 
   default int getShallowSize() {
-    return 0;
+    return INVALID_VALUE;
   }
 
   default long getRetainedSize() {
-    return 0;
+    return INVALID_VALUE;
   }
 
   @NotNull
@@ -84,11 +84,6 @@ public interface InstanceObject extends MemoryObject {
   @NotNull
   default List<ReferenceObject> getReferences() {
     return Collections.emptyList();
-  }
-
-  @NotNull
-  default String getValueLabel() {
-    return "";
   }
 
   default ValueType getValueType() {
