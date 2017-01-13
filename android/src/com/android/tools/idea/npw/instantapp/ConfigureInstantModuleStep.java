@@ -72,7 +72,7 @@ public final class ConfigureInstantModuleStep extends DynamicWizardStepWithDescr
       myState.put(moduleNameKey, "atom");
 
       register(ATOM_ROUTE_KEY, mySupportedRoutesField);
-      myState.put(ATOM_ROUTE_KEY, ".*");
+      myState.put(ATOM_ROUTE_KEY, "/.*");
     }
 
   }
