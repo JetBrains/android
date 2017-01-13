@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.actions;
 
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ZoomType;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -27,10 +27,10 @@ import org.jetbrains.annotations.NotNull;
  * Action for performing a zooming operation according to the {@link ZoomType}
  */
 public class SetZoomAction extends AnAction {
-  @NotNull private final DesignSurface mySurface;
+  @NotNull private final NlDesignSurface mySurface;
   @NotNull private final ZoomType myType;
 
-  public SetZoomAction(@NotNull DesignSurface surface, @NotNull ZoomType type) {
+  public SetZoomAction(@NotNull NlDesignSurface surface, @NotNull ZoomType type) {
     super(type.getLabel());
     myType = type;
     mySurface = surface;

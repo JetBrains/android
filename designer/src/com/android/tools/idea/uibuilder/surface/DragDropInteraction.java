@@ -93,7 +93,7 @@ public class DragDropInteraction extends Interaction {
   /**
    * The last accessed screen view.
    */
-  private ScreenView myScreenView;
+  private SceneView mySceneView;
 
   /**
    * The transfer item for this drag if any
@@ -138,9 +138,9 @@ public class DragDropInteraction extends Interaction {
   public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers, boolean canceled) {
     super.end(x, y, modifiers, canceled);
     moveTo(x, y, modifiers, !canceled);
-    myScreenView = myDesignSurface.getScreenView(x, y);
-    if (myScreenView != null && !canceled) {
-      myScreenView.getModel().notifyModified(NlModel.ChangeType.DND_END);
+    mySceneView = myDesignSurface.getSceneView(x, y);
+    if (mySceneView != null && !canceled) {
+      mySceneView.getModel().notifyModified(NlModel.ChangeType.DND_END);
     }
     if (canceled && myDragHandler != null) {
       myDragHandler.cancel();
@@ -149,24 +149,24 @@ public class DragDropInteraction extends Interaction {
   }
 
   private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask final int modifiers, boolean commit) {
-    myScreenView = myDesignSurface.getScreenView(x, y);
-    if (myScreenView == null) {
+    mySceneView = myDesignSurface.getSceneView(x, y);
+    if (mySceneView == null) {
       return;
     }
     myDesignSurface.getLayeredPane().scrollRectToVisible(
       new Rectangle(x - NlConstants.DEFAULT_SCREEN_OFFSET_X, y - NlConstants.DEFAULT_SCREEN_OFFSET_Y,
                     2 * NlConstants.DEFAULT_SCREEN_OFFSET_X, 2 * NlConstants.DEFAULT_SCREEN_OFFSET_Y));
-    final int ax = Coordinates.getAndroidX(myScreenView, x);
-    final int ay = Coordinates.getAndroidY(myScreenView, y);
+    final int ax = Coordinates.getAndroidX(mySceneView, x);
+    final int ay = Coordinates.getAndroidY(mySceneView, y);
 
-    Project project = myScreenView.getModel().getProject();
+    Project project = mySceneView.getModel().getProject();
     ViewGroupHandler handler = findViewGroupHandlerAt(ax, ay);
 
     if (handler != myCurrentHandler) {
       if (myDragHandler != null) {
         myDragHandler.cancel();
         myDragHandler = null;
-        myScreenView.getSurface().repaint();
+        mySceneView.getSurface().repaint();
       }
 
       myCurrentHandler = handler;
@@ -187,10 +187,10 @@ public class DragDropInteraction extends Interaction {
           }
         }
         if (error == null) {
-          myDragHandler = myCurrentHandler.createDragHandler(new ViewEditorImpl(myScreenView), myDragReceiver, myDraggedComponents, myType);
+          myDragHandler = myCurrentHandler.createDragHandler(new ViewEditorImpl(mySceneView), myDragReceiver, myDraggedComponents, myType);
           if (myDragHandler != null) {
             myDragHandler
-              .start(Coordinates.getAndroidX(myScreenView, myStartX), Coordinates.getAndroidY(myScreenView, myStartY), myStartMask);
+              .start(Coordinates.getAndroidX(mySceneView, myStartX), Coordinates.getAndroidY(mySceneView, myStartY), myStartMask);
           }
         }
         else {
@@ -204,7 +204,7 @@ public class DragDropInteraction extends Interaction {
       final List<NlComponent> added = Lists.newArrayList();
       if (commit && error == null) {
         added.addAll(myDraggedComponents);
-        final NlModel model = myScreenView.getModel();
+        final NlModel model = mySceneView.getModel();
         XmlFile file = model.getFile();
         String label = myType.getDescription();
         WriteCommandAction action = new WriteCommandAction(project, label, file) {
@@ -219,7 +219,7 @@ public class DragDropInteraction extends Interaction {
         // Select newly dropped components
         model.getSelectionModel().setSelection(added);
       }
-      myScreenView.getSurface().repaint();
+      mySceneView.getSurface().repaint();
     }
   }
 
@@ -239,11 +239,11 @@ public class DragDropInteraction extends Interaction {
 
   @Nullable
   private ViewGroupHandler findViewGroupHandlerAt(@AndroidCoordinate int x, @AndroidCoordinate int y) {
-    final ScreenView screenView = myDesignSurface.getScreenView(x, y);
-    if (screenView == null) {
+    final SceneView sceneView = myDesignSurface.getSceneView(x, y);
+    if (sceneView == null) {
       return null;
     }
-    NlModel model = screenView.getModel();
+    NlModel model = sceneView.getModel();
     NlComponent component = model.findLeafAt(x, y, true);
     component = excludeDraggedComponents(component);
     if (component == myCachedComponent && myCachedHandler != null) {
@@ -285,7 +285,7 @@ public class DragDropInteraction extends Interaction {
                               @NotNull ViewGroupHandler parentHandler,
                               @AndroidCoordinate int x,
                               @AndroidCoordinate int y) {
-    ScreenView view = myDesignSurface.getScreenView(x, y);
+    SceneView view = myDesignSurface.getSceneView(x, y);
     assert view != null;
 
     ViewHandlerManager manager = ViewHandlerManager.get(view.getModel().getFacet());
@@ -333,7 +333,7 @@ public class DragDropInteraction extends Interaction {
     @Override
     public void paint(@NotNull Graphics2D gc) {
       if (myDragHandler != null) {
-        myDragHandler.paint(new NlGraphics(gc, myScreenView));
+        myDragHandler.paint(new NlGraphics(gc, mySceneView));
       }
     }
   }

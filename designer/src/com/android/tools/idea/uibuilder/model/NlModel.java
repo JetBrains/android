@@ -49,7 +49,7 @@ import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.ZoomType;
 import com.android.util.PropertiesMap;
 import com.android.utils.XmlUtils;
@@ -129,7 +129,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private final ConfigurationListener myConfigurationListener = new ConfigurationListener() {
     @Override
     public boolean changed(int flags) {
-      if ((flags & (CFG_DEVICE | CFG_DEVICE_STATE)) != 0 && !mySurface.isCanvasResizing()) {
+      if ((flags & (CFG_DEVICE | CFG_DEVICE_STATE)) != 0 && !mySurface.isLayoutDisabled()) {
         mySurface.zoom(ZoomType.FIT_INTO);
       }
 
@@ -1476,7 +1476,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * Note: This operation can only be called when the caller is already holding a write lock. This will be the
    * case from {@link ViewHandler} callbacks such as {@link ViewHandler#onCreate} and {@link DragHandler#commit}.
    *
-   * @param screenView The target screen, if known. Used to handle pixel to dp computations in view handlers, etc.
+   * @param sceneView The target screen, if known. Used to handle pixel to dp computations in view handlers, etc.
    * @param fqcn       The fully qualified name of the widget to insert, such as {@code android.widget.LinearLayout}.
    *                   You can also pass XML tags here (this is typically the same as the fully qualified class name
    *                   of the custom view, but for Android framework views in the android.view or android.widget packages,
@@ -1485,7 +1485,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * @param before     The sibling to insert immediately before, or null to append
    * @param insertType The type of insertion
    */
-  public NlComponent createComponent(@Nullable ScreenView screenView,
+  public NlComponent createComponent(@Nullable SceneView sceneView,
                                      @NotNull String fqcn,
                                      @Nullable NlComponent parent,
                                      @Nullable NlComponent before,
@@ -1505,10 +1505,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       tag = elementFactory.createTagFromText(text);
     }
 
-    return createComponent(screenView, tag, parent, before, insertType);
+    return createComponent(sceneView, tag, parent, before, insertType);
   }
 
-  public NlComponent createComponent(@Nullable ScreenView screenView,
+  public NlComponent createComponent(@Nullable SceneView sceneView,
                                      @NotNull XmlTag tag,
                                      @Nullable NlComponent parent,
                                      @Nullable NlComponent before,
@@ -1550,8 +1550,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     // Notify view handlers
     ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(getProject());
     ViewHandler childHandler = viewHandlerManager.getHandler(child);
-    if (childHandler != null && screenView != null) {
-      ViewEditor editor = new ViewEditorImpl(screenView);
+    if (childHandler != null && sceneView != null) {
+      ViewEditor editor = new ViewEditorImpl(sceneView);
       boolean ok = childHandler.onCreate(editor, parent, child, insertType);
       if (!ok) {
         if (parent != null) {
@@ -1824,13 +1824,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @Nullable
-  public List<NlComponent> createComponents(@NotNull ScreenView screenView,
+  public List<NlComponent> createComponents(@NotNull SceneView sceneView,
                                             @NotNull DnDTransferItem item,
                                             @NotNull InsertType insertType) {
     List<NlComponent> components = new ArrayList<>(item.getComponents().size());
     for (DnDTransferComponent dndComponent : item.getComponents()) {
-      XmlTag tag = createTag(screenView.getModel().getProject(), dndComponent.getRepresentation());
-      NlComponent component = createComponent(screenView, tag, null, null, insertType);
+      XmlTag tag = createTag(sceneView.getModel().getProject(), dndComponent.getRepresentation());
+      NlComponent component = createComponent(sceneView, tag, null, null, insertType);
       if (component == null) {
         return null;  // User may have cancelled
       }

@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.lint;
 
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.lint.detector.api.Issue;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeHighlighting.HighlightingPass;
@@ -31,6 +30,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.inspections.lint.*;
+import org.jetbrains.annotations.NotNull;
 
 public class NlLintHighlightingPass implements HighlightingPass {
   private final DesignSurface mySurface;
@@ -42,26 +42,26 @@ public class NlLintHighlightingPass implements HighlightingPass {
 
   @Override
   public void collectInformation(@NotNull ProgressIndicator progress) {
-    ScreenView screenView = mySurface.getCurrentScreenView();
-    if (screenView == null) {
+    SceneView sceneView = mySurface.getCurrentSceneView();
+    if (sceneView == null) {
       return;
     }
 
-    myLintAnnotationsModel = getAnnotations(screenView.getModel(), progress);
+    myLintAnnotationsModel = getAnnotations(sceneView.getModel(), progress);
   }
 
   @Override
   public void applyInformationToEditor() {
-    ScreenView screenView = mySurface.getCurrentScreenView();
-    if (screenView == null) {
+    SceneView sceneView = mySurface.getCurrentSceneView();
+    if (sceneView == null) {
       return;
     }
 
-    screenView.getModel().setLintAnnotationsModel(myLintAnnotationsModel);
+    sceneView.getModel().setLintAnnotationsModel(myLintAnnotationsModel);
     // Ensure that the layers are repainted to reflect the latest model
     // (updating the lint annotations associated with a model doesn't actually rev the model
     // version.)
-    screenView.getSurface().repaint();
+    sceneView.getSurface().repaint();
   }
 
   @NotNull

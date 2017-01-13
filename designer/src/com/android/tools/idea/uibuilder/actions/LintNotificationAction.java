@@ -18,8 +18,8 @@ package com.android.tools.idea.uibuilder.actions;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.lint.LintNotificationPanel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -34,17 +34,17 @@ import javax.swing.*;
  * and when clicked, shows them
  */
 public class LintNotificationAction extends AnAction {
-  private final DesignSurface mySurface;
+  private final NlDesignSurface mySurface;
   private int myCount = -1;
 
-  public LintNotificationAction(@NotNull DesignSurface surface) {
+  public LintNotificationAction(@NotNull NlDesignSurface surface) {
     mySurface = surface;
   }
 
   @Override
   public void update(AnActionEvent e) {
     Presentation presentation = e.getPresentation();
-    ScreenView screenView = mySurface.getCurrentScreenView();
+    SceneView screenView = mySurface.getCurrentSceneView();
     int markerCount = 0;
     if (screenView != null) {
       LintAnnotationsModel lintModel = screenView.getModel().getLintAnnotationsModel();
@@ -81,7 +81,7 @@ public class LintNotificationAction extends AnAction {
   @Override
   public void actionPerformed(AnActionEvent e) {
     NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.SHOW_LINT_MESSAGES);
-    ScreenView screenView = mySurface.getCurrentScreenView();
+    SceneView screenView = mySurface.getCurrentSceneView();
     if (screenView != null) {
       LintAnnotationsModel lintModel = screenView.getModel().getLintAnnotationsModel();
       if (lintModel != null && lintModel.getIssueCount() > 0) {

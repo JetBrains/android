@@ -26,7 +26,6 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHand
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.target.DragDndTarget;
-import com.android.tools.idea.uibuilder.scene.target.DragTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,7 +47,7 @@ public class SceneDragHandler extends DragHandler {
     super(editor, constraintLayoutHandler, layout, components, type);
     if (components.size() == 1) {
       myComponent = components.get(0);
-      Scene scene = ((ViewEditorImpl) editor).getScreenView().getScene();
+      Scene scene = ((ViewEditorImpl) editor).getSceneView().getScene();
       scene.setDnDComponent(myComponent);
     }
   }
@@ -59,7 +58,7 @@ public class SceneDragHandler extends DragHandler {
     if (myComponent == null) {
       return;
     }
-    Scene scene = ((ViewEditorImpl) editor).getScreenView().getScene();
+    Scene scene = ((ViewEditorImpl) editor).getSceneView().getScene();
     scene.needsRebuildList();
     SceneComponent component = scene.getSceneComponent(myComponent);
     ArrayList<Target> targets = component.getTargets();
@@ -81,7 +80,7 @@ public class SceneDragHandler extends DragHandler {
     if (myComponent == null) {
       return "undefined";
     }
-    Scene scene = ((ViewEditorImpl) editor).getScreenView().getScene();
+    Scene scene = ((ViewEditorImpl) editor).getSceneView().getScene();
     SceneComponent component = scene.getSceneComponent(myComponent);
     int dx = x - myComponent.w / 2;
     int dy = y - myComponent.h / 2;
@@ -103,13 +102,13 @@ public class SceneDragHandler extends DragHandler {
 
   @Override
   public void cancel() {
-    Scene scene = ((ViewEditorImpl) editor).getScreenView().getScene();
+    Scene scene = ((ViewEditorImpl) editor).getSceneView().getScene();
     scene.setDnDComponent(null);
   }
 
   @Override
   public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
-    Scene scene = ((ViewEditorImpl) editor).getScreenView().getScene();
+    Scene scene = ((ViewEditorImpl) editor).getSceneView().getScene();
     if (myComponent != null) {
       NlComponent nlComponent = components.get(0);
       NlComponent root = nlComponent.getRoot();

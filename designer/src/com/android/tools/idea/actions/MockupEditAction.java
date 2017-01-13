@@ -18,6 +18,7 @@ package com.android.tools.idea.actions;
 import com.android.tools.idea.uibuilder.mockup.editor.MockUpFileChooser;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -40,9 +41,9 @@ public class MockupEditAction extends AnAction {
   private final static String ADD_ACTION_TITLE = "Add Mockup";
 
   private final MockupToggleAction myMockupToggleAction;
-  private final DesignSurface myDesignSurface;
+  private final NlDesignSurface myDesignSurface;
 
-  public MockupEditAction(@NotNull DesignSurface designSurface) {
+  public MockupEditAction(@NotNull NlDesignSurface designSurface) {
     super(ADD_ACTION_TITLE);
 
     if (!MOCKUP_EDITOR_ENABLED) {
@@ -98,7 +99,7 @@ public class MockupEditAction extends AnAction {
 
   @Nullable
   public NlComponent getFirstSelectedComponent() {
-    ScreenView screenView = myDesignSurface.getCurrentScreenView();
+    ScreenView screenView = myDesignSurface.getCurrentSceneView();
     if (screenView == null) {
       return null;
     }

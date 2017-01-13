@@ -19,9 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.*;
 import com.google.common.collect.Sets;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
@@ -84,12 +82,12 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private InsertionPoint myInsertionPoint;
   private boolean mySkipWait;
 
-  public NlComponentTree(@Nullable DesignSurface designSurface) {
+  public NlComponentTree(@Nullable NlDesignSurface designSurface) {
     this(designSurface, CopyPasteManager.getInstance());
   }
 
   @VisibleForTesting
-  NlComponentTree(@Nullable DesignSurface designSurface, @NotNull CopyPasteManager copyPasteManager) {
+  NlComponentTree(@Nullable NlDesignSurface designSurface, @NotNull CopyPasteManager copyPasteManager) {
     mySelectionIsUpdating = new AtomicBoolean(false);
     myCopyPasteManager = copyPasteManager;
     myUpdateQueue = new MergingUpdateQueue(
@@ -122,8 +120,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     }
   }
 
-  public void setDesignSurface(@Nullable DesignSurface designSurface) {
-    setScreenView(designSurface != null ? designSurface.getCurrentScreenView() : null);
+  public void setDesignSurface(@Nullable NlDesignSurface designSurface) {
+    setScreenView(designSurface != null ? designSurface.getCurrentSceneView() : null);
   }
 
   private void setScreenView(@Nullable ScreenView screenView) {
@@ -399,8 +397,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   }
 
   @Override
-  public void screenChanged(@NotNull DesignSurface surface, @Nullable ScreenView screenView) {
-    setScreenView(screenView);
+  public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
+    setScreenView((ScreenView)sceneView);
   }
 
   @Override
@@ -439,7 +437,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
           if (component instanceof NlComponent) {
             // TODO: Ensure the node is selected first
-            myScreenView.getSurface().getActionManager().showPopup(e, myScreenView, (NlComponent)component);
+            myScreenView.getSurface().getActionManager().showPopup(e, (NlComponent)component);
           }
         }
       }

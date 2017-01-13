@@ -43,7 +43,7 @@ public class InteractionManagerTest extends LayoutTestCase {
                     "</LinearLayout>\n";
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", source);
 
-    DesignSurface surface = createSurface();
+    NlDesignSurface surface = createSurface();
     NlModel model = createModel(surface, myFacet, xmlFile);
 
     ScreenView screenView = createScreen(surface, model, new SelectionModel());

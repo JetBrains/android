@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.Display;
-import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,18 +29,21 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.BLUEPRINT_BG
  * Basic display layer for Scene
  */
 public class SceneLayer extends Layer {
+  private final NlDesignSurface myDesignSurface;
   private final ScreenView myScreenView;
   private final Dimension myScreenViewSize = new Dimension();
   private final Rectangle mySizeRectangle = new Rectangle();
   private final Display myDisplay = new Display();
   private boolean myShowOnHover = false;
   private boolean myShowAlways = true;
+
   /**
    * Default constructor
    *
    * @param view the current ScreenView
    */
-  public SceneLayer(@NotNull ScreenView view, boolean showAlways) {
+  public SceneLayer(@NotNull NlDesignSurface surface, @NotNull ScreenView view, boolean showAlways) {
+    myDesignSurface = surface;
     myScreenView = view;
     myShowAlways = showAlways;
   }
@@ -73,7 +76,8 @@ public class SceneLayer extends Layer {
 
       // Draw the components
       myDisplay.draw(SceneContext.get(myScreenView), g, myScreenView.getScene());
-    } finally {
+    }
+    finally {
       g.dispose();
     }
   }
@@ -88,5 +92,17 @@ public class SceneLayer extends Layer {
 
   public ScreenView getScreenView() {
     return myScreenView;
+  }
+
+  @Override
+  public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
+    boolean show = false;
+    if (getScreenView() == myDesignSurface.getHoverScreenView(x, y)) {
+      show = true;
+    }
+    if (isShowOnHover() != show) {
+      setShowOnHover(show);
+      myDesignSurface.repaint();
+    }
   }
 }

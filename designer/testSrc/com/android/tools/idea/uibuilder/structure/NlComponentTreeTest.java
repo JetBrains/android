@@ -19,7 +19,7 @@ import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -43,7 +43,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 public class NlComponentTreeTest extends LayoutTestCase {
   @Mock
-  private DesignSurface mySurface;
+  private NlDesignSurface mySurface;
   @Mock
   private ScreenView myScreen;
   @Mock
@@ -63,7 +63,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     myModel = createModel();
     when(myScreen.getModel()).thenReturn(myModel);
     when(myScreen.getSelectionModel()).thenReturn(myModel.getSelectionModel());
-    when(mySurface.getCurrentScreenView()).thenReturn(myScreen);
+    when(mySurface.getCurrentSceneView()).thenReturn(myScreen);
     when(mySurface.getProject()).thenReturn(getProject());
     myTree = new NlComponentTree(mySurface, myCopyPasteManager);
 
