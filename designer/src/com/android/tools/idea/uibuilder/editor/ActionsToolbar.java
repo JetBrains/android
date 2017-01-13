@@ -22,7 +22,7 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
@@ -107,7 +107,7 @@ abstract public class ActionsToolbar implements DesignSurfaceListener, ModelList
   abstract protected ActionGroup getRhsActions(DesignSurface surface);
 
   public void updateActions() {
-    ScreenView view = mySurface.getCurrentScreenView();
+    SceneView view = mySurface.getCurrentSceneView();
     if (view != null) {
       SelectionModel selectionModel = view.getSelectionModel();
       List<NlComponent> selection = selectionModel.getSelection();
@@ -148,7 +148,7 @@ abstract public class ActionsToolbar implements DesignSurfaceListener, ModelList
   }
 
   protected void updateActions(@NotNull List<NlComponent> newSelection) {
-    ScreenView screenView = mySurface.getCurrentScreenView();
+    SceneView screenView = mySurface.getCurrentSceneView();
     if (screenView == null) {
       return;
     }
@@ -176,7 +176,7 @@ abstract public class ActionsToolbar implements DesignSurfaceListener, ModelList
   }
 
   @Override
-  public void screenChanged(@NotNull DesignSurface surface, @Nullable ScreenView screenView) {
+  public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
     // The toolbar depends on the current ScreenView for its content,
     // so reload when the ScreenView changes.
     myActionToolbar.updateActionsImmediately();

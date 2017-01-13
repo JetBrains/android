@@ -579,7 +579,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                             @NotNull NlComponent parent,
                             @NotNull List<NlComponent> selectedChildren,
                             boolean selected) {
-      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
+      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface())
         .logAction(selected
                    ? LayoutEditorEvent.LayoutEditorEventType.TURN_ON_AUTOCONNECT
                    : LayoutEditorEvent.LayoutEditorEventType.TURN_OFF_AUTOCONNECT);
@@ -607,10 +607,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       if (model == null) {
         return;
       }
-      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
+      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface())
         .logAction(LayoutEditorEvent.LayoutEditorEventType.CLEAR_ALL_CONSTRAINTS);
       ViewEditorImpl viewEditor = (ViewEditorImpl) editor;
-      Scene scene = viewEditor.getScreenView().getScene();
+      Scene scene = viewEditor.getSceneView().getScene();
       scene.clearAttributes();
     }
 
@@ -666,7 +666,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       if (model == null) {
         return;
       }
-      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
+      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface())
         .logAction(LayoutEditorEvent.LayoutEditorEventType.INFER_CONSTRAINS);
       WidgetsScene scene = model.getScene();
       try {
@@ -713,7 +713,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                             @NotNull List<NlComponent> selectedChildren,
                             boolean selected) {
       myShowAllConstraints = selected;
-      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
+      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface())
         .logAction(
           selected ? LayoutEditorEvent.LayoutEditorEventType.SHOW_CONSTRAINTS : LayoutEditorEvent.LayoutEditorEventType.HIDE_CONSTRAINTS);
       PropertiesComponent.getInstance().setValue(SHOW_CONSTRAINTS_PREF_KEY, myShowAllConstraints);
@@ -778,7 +778,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
         NlComponent guideline = parent.createChild(editor, SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
         guideline.ensureId();
         guideline.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
-        NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface());
+        NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
         if (myType == HORIZONTAL_GUIDELINE) {
           tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_GUIDELINE);
           guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION,
@@ -860,7 +860,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       if (model == null) {
         return;
       }
-      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
+      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface())
         .logAction(LayoutEditorEvent.LayoutEditorEventType.ALIGN);
       modifiers &= InputEvent.CTRL_MASK;
       Scout.arrangeWidgets(myActionType, model.getSelection().getWidgets(), modifiers == 0 || ConstraintModel.isAutoConnect());
@@ -940,7 +940,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       if (model == null) {
         return;
       }
-      DesignSurface surface = ((ViewEditorImpl)editor).getScreenView().getSurface();
+      DesignSurface surface = ((ViewEditorImpl)editor).getSceneView().getSurface();
       NlUsageTrackerManager.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEFAULT_MARGINS);
       RelativePoint relativePoint = new RelativePoint(surface, new Point(0, 0));
       JBPopupFactory.getInstance().createComponentPopupBuilder(myMarginPopup, myMarginPopup.getTextField())

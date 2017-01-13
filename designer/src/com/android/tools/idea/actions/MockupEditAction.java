@@ -41,7 +41,7 @@ public class MockupEditAction extends AnAction {
   private final static String ADD_ACTION_TITLE = "Add Mockup";
 
   private final MockupToggleAction myMockupToggleAction;
-  private final DesignSurface myDesignSurface;
+  private final NlDesignSurface myDesignSurface;
 
   public MockupEditAction(@NotNull NlDesignSurface designSurface) {
     super(ADD_ACTION_TITLE);
@@ -99,7 +99,7 @@ public class MockupEditAction extends AnAction {
 
   @Nullable
   public NlComponent getFirstSelectedComponent() {
-    ScreenView screenView = myDesignSurface.getCurrentScreenView();
+    ScreenView screenView = myDesignSurface.getCurrentSceneView();
     if (screenView == null) {
       return null;
     }

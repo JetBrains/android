@@ -88,7 +88,7 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
   @Override
   public void update(AnActionEvent e) {
     Presentation presentation = e.getPresentation();
-    ScreenView screenView = mySurface.getCurrentScreenView();
+    ScreenView screenView = mySurface.getCurrentSceneView();
     NlComponent target = findTarget(screenView);
     if (target != null) {
       String tagName = target.getTagName();
@@ -127,7 +127,7 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    ScreenView screenView = mySurface.getCurrentScreenView();
+    ScreenView screenView = mySurface.getCurrentSceneView();
     if (screenView == null) {
       return;
     }

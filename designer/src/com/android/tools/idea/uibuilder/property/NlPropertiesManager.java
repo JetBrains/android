@@ -25,7 +25,7 @@ import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
@@ -57,7 +57,7 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   private final NlPropertyEditors myEditors;
 
   @Nullable private DesignSurface mySurface;
-  @Nullable private ScreenView myScreenView;
+  @Nullable private SceneView mySceneView;
 
   private MergingUpdateQueue myUpdateQueue;
   private boolean myFirstLoad = true;
@@ -94,14 +94,14 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
 
     mySurface = designSurface;
     if (mySurface == null) {
-      setScreenView(null);
+      setSceneView(null);
     }
     else {
       mySurface.addListener(this);
-      ScreenView screenView = mySurface.getCurrentScreenView();
-      setScreenView(screenView);
-      List<NlComponent> selection = screenView != null ?
-                                    screenView.getSelectionModel().getSelection() : Collections.emptyList();
+      SceneView sceneView = mySurface.getCurrentSceneView();
+      setSceneView(sceneView);
+      List<NlComponent> selection = sceneView != null ?
+                                    sceneView.getSelectionModel().getSelection() : Collections.emptyList();
       componentSelectionChanged(mySurface, selection);
     }
   }
@@ -145,18 +145,18 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
     return mySurface;
   }
 
-  private void setScreenView(@Nullable ScreenView screenView) {
-    if (screenView == myScreenView) {
+  private void setSceneView(@Nullable SceneView sceneView) {
+    if (sceneView == mySceneView) {
       return;
     }
 
-    if (myScreenView != null) {
-      myScreenView.getModel().removeListener(this);
+    if (mySceneView != null) {
+      mySceneView.getModel().removeListener(this);
     }
 
-    myScreenView = screenView;
-    if (myScreenView != null) {
-      myScreenView.getModel().addListener(this);
+    mySceneView = sceneView;
+    if (mySceneView != null) {
+      mySceneView.getModel().addListener(this);
     }
   }
 
@@ -215,7 +215,7 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
     if (mySurface == null) {
       return PropertiesMap.EMPTY_MAP;
     }
-    ScreenView view = mySurface.getCurrentScreenView();
+    SceneView view = mySurface.getCurrentSceneView();
     if (view == null) {
       return PropertiesMap.EMPTY_MAP;
     }
@@ -256,10 +256,10 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   }
 
   public void updateSelection() {
-    if (mySurface == null || myScreenView == null) {
+    if (mySurface == null || mySceneView == null) {
       return;
     }
-    List<NlComponent> selection = myScreenView.getModel().getSelectionModel().getSelection();
+    List<NlComponent> selection = mySceneView.getModel().getSelectionModel().getSelection();
     componentSelectionChanged(mySurface, selection);
   }
 
@@ -295,7 +295,7 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   }
 
   @Override
-  public void screenChanged(@NotNull DesignSurface surface, @Nullable ScreenView screenView) {
+  public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
   }
 
   @Override

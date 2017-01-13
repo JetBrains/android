@@ -15,22 +15,22 @@
  */
 package com.android.tools.idea.uibuilder.graphics;
 
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
-import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.Coordinates;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.idea.uibuilder.surface.SceneView;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
 public class NlGraphics {
-  private final ScreenView myScreenView;
+  private final SceneView myScene;
   private final Graphics2D myGraphics;
 
-  public NlGraphics(@NotNull Graphics2D graphics, @NotNull ScreenView screenView) {
+  public NlGraphics(@NotNull Graphics2D graphics, @NotNull SceneView scene) {
     myGraphics = graphics;
-    myScreenView = screenView;
+    myScene = scene;
   }
 
   /**
@@ -54,10 +54,10 @@ public class NlGraphics {
     if (fillColor != null) {
       useFill(myStyle, myGraphics);
 
-      x = Coordinates.getSwingX(myScreenView, x);
-      y = Coordinates.getSwingY(myScreenView, y);
-      width = Coordinates.getSwingDimension(myScreenView, width);
-      height = Coordinates.getSwingDimension(myScreenView, height);
+      x = Coordinates.getSwingX(myScene, x);
+      y = Coordinates.getSwingY(myScene, y);
+      width = Coordinates.getSwingDimension(myScene, width);
+      height = Coordinates.getSwingDimension(myScene, height);
 
       fillRect(myStyle, myGraphics, x, y, width, height);
     }
@@ -99,10 +99,10 @@ public class NlGraphics {
                        @AndroidCoordinate int y1,
                        @AndroidCoordinate int x2,
                        @AndroidCoordinate int y2) {
-    x1 = Coordinates.getSwingX(myScreenView, x1);
-    x2 = Coordinates.getSwingX(myScreenView, x2);
-    y1 = Coordinates.getSwingY(myScreenView, y1);
-    y2 = Coordinates.getSwingY(myScreenView, y2);
+    x1 = Coordinates.getSwingX(myScene, x1);
+    x2 = Coordinates.getSwingX(myScene, x2);
+    y1 = Coordinates.getSwingY(myScene, y1);
+    y2 = Coordinates.getSwingY(myScene, y2);
 
     drawLine(myStyle, myGraphics, x1, y1, x2, y2);
   }
@@ -111,10 +111,10 @@ public class NlGraphics {
                        @AndroidCoordinate int y,
                        @AndroidCoordinate int width,
                        @AndroidCoordinate int height) {
-    x = Coordinates.getSwingX(myScreenView, x);
-    y = Coordinates.getSwingY(myScreenView, y);
-    width = Coordinates.getSwingDimension(myScreenView, width);
-    height = Coordinates.getSwingDimension(myScreenView, height);
+    x = Coordinates.getSwingX(myScene, x);
+    y = Coordinates.getSwingY(myScene, y);
+    width = Coordinates.getSwingDimension(myScene, width);
+    height = Coordinates.getSwingDimension(myScene, height);
 
     drawRect(myStyle, myGraphics, x, y, width, height);
   }
@@ -123,17 +123,17 @@ public class NlGraphics {
                         @AndroidCoordinate int y1,
                         @AndroidCoordinate int x2,
                         @AndroidCoordinate int y2) {
-    x1 = Coordinates.getSwingX(myScreenView, x1);
-    x2 = Coordinates.getSwingX(myScreenView, x2);
-    y1 = Coordinates.getSwingY(myScreenView, y1);
-    y2 = Coordinates.getSwingY(myScreenView, y2);
+    x1 = Coordinates.getSwingX(myScene, x1);
+    x2 = Coordinates.getSwingX(myScene, x2);
+    y1 = Coordinates.getSwingY(myScene, y1);
+    y2 = Coordinates.getSwingY(myScene, y2);
 
     drawArrow(myStyle, myGraphics, x1, y1, x2, y2);
   }
 
   @SuppressWarnings("unused")
   public void drawCross(@AndroidCoordinate int radius) {
-    radius = Coordinates.getSwingDimension(myScreenView, radius);
+    radius = Coordinates.getSwingDimension(myScene, radius);
     drawCross(myStyle, myGraphics, radius);
   }
 

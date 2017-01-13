@@ -27,7 +27,7 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -325,7 +325,7 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface> {
 
   /**
    * Set the current model associated with the editor. Typically, this is the model
-   * retrieve from the Design surface screen view{@link NlDesignSurface#getCurrentScreenView()}
+   * retrieve from the Design surface screen view{@link NlDesignSurface#getCurrentSceneView()}
    * or from the {@link NlComponent} of the {@link Mockup#getComponent()}
    *
    * @param model The model to set on this instance
@@ -380,11 +380,11 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface> {
       mySurface = null;
       myExtractWidgetTool.setDesignSurface(null);
     }
-    ScreenView screenView = newDesignSurface != null ? newDesignSurface.getCurrentScreenView() : null;
-    if (screenView != null) {
+    SceneView sceneView = newDesignSurface != null ? newDesignSurface.getCurrentSceneView() : null;
+    if (sceneView != null) {
       mySurface = (NlDesignSurface)newDesignSurface;
       mySurface.addListener(myDesignSurfaceListener);
-      setModel(screenView.getModel());
+      setModel(sceneView.getModel());
       myExtractWidgetTool.setDesignSurface(mySurface);
     }
   }
@@ -439,7 +439,7 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface> {
     }
 
     @Override
-    public void screenChanged(@NotNull DesignSurface surface, @Nullable ScreenView screenView) {
+    public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
     }
 
     @Override

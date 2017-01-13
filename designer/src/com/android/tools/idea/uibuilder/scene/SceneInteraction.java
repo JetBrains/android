@@ -16,10 +16,9 @@
 package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.uibuilder.model.Coordinates;
-import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.surface.Interaction;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,16 +30,16 @@ public class SceneInteraction extends Interaction {
   /**
    * The surface associated with this interaction.
    */
-  private final ScreenView myScreenView;
+  private final SceneView mySceneView;
 
   /**
    * Base constructor
    *
-   * @param screenView the ScreenView we belong to
+   * @param sceneView the ScreenView we belong to
    * @param component  the component we belong to
    */
-  public SceneInteraction(@NotNull ScreenView screenView) {
-    myScreenView = screenView;
+  public SceneInteraction(@NotNull SceneView sceneView) {
+    mySceneView = sceneView;
   }
 
   /**
@@ -53,13 +52,13 @@ public class SceneInteraction extends Interaction {
   @Override
   public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int startMask) {
     super.begin(x, y, startMask);
-    int androidX = Coordinates.getAndroidX(myScreenView, myStartX);
-    int androidY = Coordinates.getAndroidY(myScreenView, myStartY);
-    int dpX = Coordinates.pxToDp(myScreenView, androidX);
-    int dpY = Coordinates.pxToDp(myScreenView, androidY);
-    Scene scene = myScreenView.getScene();
+    int androidX = Coordinates.getAndroidX(mySceneView, myStartX);
+    int androidY = Coordinates.getAndroidY(mySceneView, myStartY);
+    int dpX = Coordinates.pxToDp(mySceneView, androidX);
+    int dpY = Coordinates.pxToDp(mySceneView, androidY);
+    Scene scene = mySceneView.getScene();
     scene.updateModifiers(startMask);
-    scene.mouseDown(SceneContext.get(myScreenView), dpX, dpY);
+    scene.mouseDown(SceneContext.get(mySceneView), dpX, dpY);
   }
 
   /**
@@ -72,14 +71,14 @@ public class SceneInteraction extends Interaction {
   @Override
   public void update(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiers) {
     super.update(x, y, modifiers);
-    int androidX = Coordinates.getAndroidX(myScreenView, x);
-    int androidY = Coordinates.getAndroidY(myScreenView, y);
-    int dpX = Coordinates.pxToDp(myScreenView, androidX);
-    int dpY = Coordinates.pxToDp(myScreenView, androidY);
-    Scene scene = myScreenView.getScene();
+    int androidX = Coordinates.getAndroidX(mySceneView, x);
+    int androidY = Coordinates.getAndroidY(mySceneView, y);
+    int dpX = Coordinates.pxToDp(mySceneView, androidX);
+    int dpY = Coordinates.pxToDp(mySceneView, androidY);
+    Scene scene = mySceneView.getScene();
     scene.updateModifiers(modifiers);
-    scene.mouseDrag(SceneContext.get(myScreenView), dpX, dpY);
-    myScreenView.getSurface().repaint();
+    scene.mouseDrag(SceneContext.get(mySceneView), dpX, dpY);
+    mySceneView.getSurface().repaint();
   }
 
   /**
@@ -93,13 +92,13 @@ public class SceneInteraction extends Interaction {
   @Override
   public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiers, boolean canceled) {
     super.end(x, y, modifiers, canceled);
-    final int androidX = Coordinates.getAndroidX(myScreenView, x);
-    final int androidY = Coordinates.getAndroidY(myScreenView, y);
-    int dpX = Coordinates.pxToDp(myScreenView, androidX);
-    int dpY = Coordinates.pxToDp(myScreenView, androidY);
-    Scene scene = myScreenView.getScene();
+    final int androidX = Coordinates.getAndroidX(mySceneView, x);
+    final int androidY = Coordinates.getAndroidY(mySceneView, y);
+    int dpX = Coordinates.pxToDp(mySceneView, androidX);
+    int dpY = Coordinates.pxToDp(mySceneView, androidY);
+    Scene scene = mySceneView.getScene();
     scene.updateModifiers(modifiers);
-    scene.mouseRelease(SceneContext.get(myScreenView), dpX, dpY);
-    myScreenView.getSurface().repaint();
+    scene.mouseRelease(SceneContext.get(mySceneView), dpX, dpY);
+    mySceneView.getSurface().repaint();
   }
 }

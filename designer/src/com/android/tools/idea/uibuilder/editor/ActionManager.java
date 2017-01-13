@@ -19,7 +19,7 @@ import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.intellij.openapi.actionSystem.ActionPopupMenu;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -35,7 +35,7 @@ import java.awt.event.MouseEvent;
  * Provides and handles actions for an {@link NlEditor}.
  */
 public abstract class ActionManager {
-  protected final DesignSurface mySurface;
+  private final DesignSurface mySurface;
 
   public ActionManager(@NotNull DesignSurface surface) {
     mySurface = surface;
@@ -63,20 +63,20 @@ public abstract class ActionManager {
     NlComponent component = null;
     int x = event.getX();
     int y = event.getY();
-    ScreenView screenView = mySurface.getScreenView(x, y);
-    if (screenView == null) {
-      screenView = mySurface.getCurrentScreenView();
+    SceneView sceneView = mySurface.getSceneView(x, y);
+    if (sceneView == null) {
+      sceneView = mySurface.getCurrentSceneView();
     }
-    if (screenView != null) {
-      component = Coordinates.findComponent(screenView, x, y);
+    if (sceneView != null) {
+      component = Coordinates.findComponent(sceneView, x, y);
     }
-    showPopup(event, screenView, component);
+    showPopup(event, component);
   }
 
-  public void showPopup(@NotNull MouseEvent event, @Nullable ScreenView screenView, @Nullable NlComponent leafComponent) {
+  public void showPopup(@NotNull MouseEvent event, @Nullable NlComponent leafComponent) {
     com.intellij.openapi.actionSystem.ActionManager actionManager = com.intellij.openapi.actionSystem.ActionManager.getInstance();
 
-    DefaultActionGroup group = createPopupMenu(actionManager, screenView, leafComponent);
+    DefaultActionGroup group = createPopupMenu(actionManager, leafComponent);
     ActionPopupMenu popupMenu = actionManager.createActionPopupMenu("LayoutEditor", group);
     Component invoker = event.getSource() instanceof Component ? (Component)event.getSource() : mySurface;
     popupMenu.getComponent().show(invoker, event.getX(), event.getY());
@@ -84,7 +84,6 @@ public abstract class ActionManager {
 
   @NotNull
   abstract protected DefaultActionGroup createPopupMenu(@NotNull com.intellij.openapi.actionSystem.ActionManager actionManager,
-                                             @Nullable ScreenView screenView,
                                              @Nullable NlComponent leafComponent);
 
   public abstract void addActions(@NotNull DefaultActionGroup group, @Nullable NlComponent component, @Nullable NlComponent parent,

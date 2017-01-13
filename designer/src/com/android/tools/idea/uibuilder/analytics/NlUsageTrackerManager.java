@@ -110,8 +110,6 @@ public class NlUsageTrackerManager implements NlUsageTracker {
       return builder.build();
     }
 
-    builder.setMode(surface.isPreviewSurface() ? LayoutEditorState.Mode.PREVIEW_MODE : LayoutEditorState.Mode.DESIGN_MODE);
-
     switch (surface.getLayoutType()) {
       case DRAWABLE:
         builder.setType(LayoutEditorState.Type.DRAWABLE);
@@ -160,6 +158,7 @@ public class NlUsageTrackerManager implements NlUsageTracker {
 
     // TODO: better handling of layout vs. nav editor?
     if (surface instanceof NlDesignSurface) {
+      builder.setMode(((NlDesignSurface)surface).isPreviewSurface() ? LayoutEditorState.Mode.PREVIEW_MODE : LayoutEditorState.Mode.DESIGN_MODE);
       switch (((NlDesignSurface)surface).getScreenMode()) {
         case SCREEN_ONLY:
           builder.setSurfaces(LayoutEditorState.Surfaces.SCREEN_SURFACE);
