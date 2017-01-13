@@ -19,6 +19,7 @@ import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse.Status;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.google.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,9 +29,12 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   private AllocationsInfo myExplicitAllocationsInfo = null;
   private TriggerHeapDumpResponse.Status myExplicitHeapDumpStatus = null;
   private HeapDumpInfo myExplicitHeapDumpInfo = null;
+  private DumpDataResponse.Status myExplicitDumpDataStatus = null;
+  private byte[] myExplicitSnapshotBuffer = null;
   private long myCurrentTime = 0;
   private MemoryData myMemoryData = null;
   private ListHeapDumpInfosResponse.Builder myHeapDumpInfoBuilder = ListHeapDumpInfosResponse.newBuilder();
+  private AllocationContextsResponse.Builder myAllocationContextBuilder = AllocationContextsResponse.newBuilder();
 
   private int myAppId;
 
@@ -78,10 +82,22 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   }
 
   @Override
+  public void getHeapDump(HeapDumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
+    DumpDataResponse.Builder response = DumpDataResponse.newBuilder();
+    if (myExplicitDumpDataStatus != null) {
+      response.setStatus(myExplicitDumpDataStatus);
+    }
+    if (myExplicitSnapshotBuffer != null) {
+      response.setData(ByteString.copyFrom(myExplicitSnapshotBuffer));
+    }
+    responseObserver.onNext(response.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
   public void listAllocationContexts(AllocationContextsRequest request,
                                      StreamObserver<AllocationContextsResponse> responseObserver) {
-    // TODO add test data.
-    responseObserver.onNext(AllocationContextsResponse.getDefaultInstance());
+    responseObserver.onNext(myAllocationContextBuilder.build());
     responseObserver.onCompleted();
   }
 
@@ -152,6 +168,29 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
   public FakeMemoryService addExplicitHeapDumpInfo(@NotNull HeapDumpInfo info) {
     myHeapDumpInfoBuilder.addInfos(info);
+    return this;
+  }
+
+  public FakeMemoryService addExplicitAllocationClass(int id, String name) {
+    myAllocationContextBuilder.addAllocatedClasses(AllocatedClass.newBuilder().setClassId(id).setClassName(name).build());
+    return this;
+  }
+
+  public FakeMemoryService addExplicitAllocationStack(String klass, String method, int line, byte[] stackId) {
+    myAllocationContextBuilder.addAllocationStacks(
+      AllocationStack.newBuilder().setStackId(ByteString.copyFrom(stackId)).addStackFrames(
+        AllocationStack.StackFrame.newBuilder().setClassName(klass).setMethodName(method).setLineNumber(line).build()
+      ));
+    return this;
+  }
+
+  public FakeMemoryService setExplicitSnapshotBuffer(@NotNull byte[] bytes) {
+    myExplicitSnapshotBuffer = bytes;
+    return this;
+  }
+
+  public FakeMemoryService setExplicitDumpDataStatus(DumpDataResponse.Status status) {
+    myExplicitDumpDataStatus = status;
     return this;
   }
 }
