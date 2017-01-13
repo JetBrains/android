@@ -99,14 +99,12 @@ public class WizardConstants {
   public static final Key<Boolean> IS_LOW_MEMORY_KEY = createKey(ATTR_IS_LOW_MEMORY, WIZARD, Boolean.class);
 
   // Instant module step keys
-  public static final Key<String> AIA_SDK_KEY = createKey(ATTR_AIA_SDK, WIZARD, String.class);
   public static final Key<String> APP_DOMAIN_KEY = createKey(ATTR_APP_DOMAIN, WIZARD, String.class);
   public static final Key<String> ATOM_ROUTE_KEY = createKey(ATTR_ATOM_ROUTE, WIZARD, String.class);
   public static final Key<String> SPLIT_NAME_KEY = createKey(ATTR_SPLIT_NAME, WIZARD, String.class);
   public static final Key<Boolean> IS_INSTANT_APP_KEY = createKey(ATTR_IS_INSTANT_APP, WIZARD, Boolean.class);
-  public static final Key<Boolean> IS_BASE_ATOM_KEY = createKey(ATTR_IS_BASE_ATOM, WIZARD, Boolean.class);
   public static final Key<Boolean> ALSO_CREATE_IAPK_KEY = createKey("alsoCreateIapk", WIZARD, Boolean.class);
-  public static final Key<Boolean> AIA_SDK_ENABLED_KEY = createKey("whSdkEnabled", WIZARD, Boolean.class);
+  public static final Key<Boolean> AIA_SDK_ENABLED_KEY = createKey("aiaSdkEnabled", WIZARD, Boolean.class);
 
   // Native support configuration in new project wizard, see ConfigureCppSupportStep for usages
   public static final Key<Boolean> INCLUDE_CPP_SUPPORT_KEY = createKey(ATTR_CPP_SUPPORT, WIZARD, Boolean.class);
