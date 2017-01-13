@@ -43,7 +43,7 @@ import java.util.List;
  * This is actually painted by {@link ScreenViewLayer}.
  */
 public class ScreenView {
-  private final DesignSurface mySurface;
+  private final NlDesignSurface mySurface;
   private ScreenViewType myType;
   private final NlModel myModel;
   private Scene myScene = null;
@@ -53,7 +53,7 @@ public class ScreenView {
   @SwingCoordinate private int x;
   @SwingCoordinate private int y;
 
-  public ScreenView(DesignSurface surface, @NotNull ScreenViewType type, @NotNull NlModel model) {
+  public ScreenView(NlDesignSurface surface, @NotNull ScreenViewType type, @NotNull NlModel model) {
     mySurface = surface;
     myType = type;
     myModel = model;
@@ -231,7 +231,7 @@ public class ScreenView {
   }
 
   @NotNull
-  public DesignSurface getSurface() {
+  public NlDesignSurface getSurface() {
     return mySurface;
   }
 

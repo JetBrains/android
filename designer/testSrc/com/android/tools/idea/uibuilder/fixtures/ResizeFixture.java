@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ResizeInteraction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.intellij.lang.annotations.MagicConstant;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -121,7 +121,7 @@ public class ResizeFixture {
     if (keyCode == KeyEvent.VK_ALT) {
       myModifiers |= InputEvent.ALT_MASK;
     }
-    DesignSurface surface = myScreen.getSurface();
+    NlDesignSurface surface = myScreen.getSurface();
     KeyEvent event = new KeyEventBuilder(keyCode, keyChar).withSource(surface).build();
     myInteraction.keyPressed(event);
     return this;
@@ -140,7 +140,7 @@ public class ResizeFixture {
     if (keyCode == KeyEvent.VK_ALT) {
       myModifiers |= InputEvent.ALT_MASK;
     }
-    DesignSurface surface = myScreen.getSurface();
+    NlDesignSurface surface = myScreen.getSurface();
     KeyEvent event = new KeyEventBuilder(keyCode, keyChar).withSource(surface).build();
     myInteraction.keyReleased(event);
     return this;

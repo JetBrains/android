@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Sets;
@@ -84,12 +85,12 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private InsertionPoint myInsertionPoint;
   private boolean mySkipWait;
 
-  public NlComponentTree(@Nullable DesignSurface designSurface) {
+  public NlComponentTree(@Nullable NlDesignSurface designSurface) {
     this(designSurface, CopyPasteManager.getInstance());
   }
 
   @VisibleForTesting
-  NlComponentTree(@Nullable DesignSurface designSurface, @NotNull CopyPasteManager copyPasteManager) {
+  NlComponentTree(@Nullable NlDesignSurface designSurface, @NotNull CopyPasteManager copyPasteManager) {
     mySelectionIsUpdating = new AtomicBoolean(false);
     myCopyPasteManager = copyPasteManager;
     myUpdateQueue = new MergingUpdateQueue(
@@ -122,7 +123,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     }
   }
 
-  public void setDesignSurface(@Nullable DesignSurface designSurface) {
+  public void setDesignSurface(@Nullable NlDesignSurface designSurface) {
     setScreenView(designSurface != null ? designSurface.getCurrentScreenView() : null);
   }
 

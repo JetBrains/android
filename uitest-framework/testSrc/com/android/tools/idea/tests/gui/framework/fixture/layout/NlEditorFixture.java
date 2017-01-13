@@ -26,7 +26,7 @@ import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid;
 import com.android.tools.idea.uibuilder.palette.Palette;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
@@ -147,7 +147,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
    * @see #endResizeInteraction()
    */
   public NlEditorFixture startResizeInteraction() {
-    DesignSurface surface = myDesignSurfaceFixture.target();
+    NlDesignSurface surface = myDesignSurfaceFixture.target();
     ScreenView screenView = surface.getCurrentScreenView();
     assert screenView != null;
 
@@ -163,7 +163,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
    * @see #endResizeInteraction()
    */
   public NlEditorFixture resizeToAndroidSize(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height) {
-    DesignSurface surface = myDesignSurfaceFixture.target();
+    NlDesignSurface surface = myDesignSurfaceFixture.target();
     ScreenView screenView = surface.getCurrentScreenView();
     assert screenView != null;
 
@@ -186,8 +186,8 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
    * Ensures only the design view is being displayed.
    */
   public NlEditorFixture showOnlyDesignView() {
-    DesignSurface surface = myDesignSurfaceFixture.target();
-    if (surface.getScreenMode() != DesignSurface.ScreenMode.SCREEN_ONLY) {
+    NlDesignSurface surface = myDesignSurfaceFixture.target();
+    if (surface.getScreenMode() != NlDesignSurface.ScreenMode.SCREEN_ONLY) {
       getConfigToolbar().showDesign();
     }
     return this;

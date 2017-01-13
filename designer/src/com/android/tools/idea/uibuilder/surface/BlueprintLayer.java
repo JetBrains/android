@@ -90,7 +90,7 @@ public class BlueprintLayer extends Layer {
     // Draw the components
     if (drawComponent(g, component, viewHandlerManager, false)) {
       Dimension size = myScreenView.getSize();
-      DesignSurface surface = myScreenView.getSurface();
+      NlDesignSurface surface = myScreenView.getSurface();
       if (size.width != 0 && size.height != 0) {
         surface.repaint(myScreenView.getX(), myScreenView.getY(), size.width, size.height);
       } else {

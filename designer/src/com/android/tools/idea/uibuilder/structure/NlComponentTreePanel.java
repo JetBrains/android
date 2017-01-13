@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.structure;
 
 import com.android.annotations.Nullable;
 import com.android.tools.adtui.workbench.ToolContent;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.idea.IdeaApplication;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -33,7 +33,7 @@ import java.util.List;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
-public class NlComponentTreePanel extends JPanel implements ToolContent<DesignSurface> {
+public class NlComponentTreePanel extends JPanel implements ToolContent<NlDesignSurface> {
   private final NlComponentTree myTree;
 
   public NlComponentTreePanel() {
@@ -48,7 +48,7 @@ public class NlComponentTreePanel extends JPanel implements ToolContent<DesignSu
   }
 
   @Override
-  public void setToolContext(@Nullable DesignSurface designSurface) {
+  public void setToolContext(@Nullable NlDesignSurface designSurface) {
     myTree.setDesignSurface(designSurface);
   }
 

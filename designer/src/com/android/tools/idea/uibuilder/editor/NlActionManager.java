@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.tools.idea.configurations.FlatComboAction;
 import com.android.tools.idea.actions.MockupDeleteAction;
 import com.android.tools.idea.actions.MockupEditAction;
 import com.android.tools.idea.actions.SaveScreenshotAction;
+import com.android.tools.idea.configurations.FlatComboAction;
 import com.android.tools.idea.uibuilder.actions.*;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -30,8 +30,8 @@ import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.InteractionManager;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.*;
@@ -63,12 +63,12 @@ import java.util.List;
  * Provides and handles actions in the layout editor
  */
 public class NlActionManager {
-  private final DesignSurface mySurface;
+  private final NlDesignSurface mySurface;
   private AnAction mySelectAllAction;
   private AnAction mySelectParent;
   private GotoComponentAction myGotoComponentAction;
 
-  public NlActionManager(@NotNull DesignSurface surface) {
+  public NlActionManager(@NotNull NlDesignSurface surface) {
     mySurface = surface;
   }
 

@@ -19,7 +19,7 @@ import com.android.tools.idea.project.FeatureEnableService;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.ResourceNotificationManager;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.editor.Document;
@@ -60,7 +60,7 @@ import java.awt.event.HierarchyListener;
  * <p>
  * Based on the earlier {@link AndroidLayoutPreviewToolWindowManager} but updated to use
  * (a) the {@link ResourceNotificationManager} for update tracking, and (b) the
- * {@link DesignSurface} for layout rendering and direct manipulation editing.
+ * {@link NlDesignSurface} for layout rendering and direct manipulation editing.
  */
 public class NlPreviewManager implements ProjectComponent {
   private final MergingUpdateQueue myToolWindowUpdateQueue;

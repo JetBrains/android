@@ -25,7 +25,7 @@ import java.awt.*;
 
 /**
  * A layer can be thought of as a very lightweight {@link JComponent} that is stacked
- * on top of a {@link DesignSurface}. The critical difference between using a {@linkplain Layer}
+ * on top of a {@link NlDesignSurface}. The critical difference between using a {@linkplain Layer}
  * and a nested {@link JComponent} is that the layer does not have its own coordinate system
  * and crucially, its own clipping shape.
  */
@@ -87,5 +87,8 @@ public abstract class Layer implements Disposable {
   @Nullable
   public String getTooltip(@SwingCoordinate int x, @SwingCoordinate int y) {
     return null;
+  }
+
+  public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
   }
 }

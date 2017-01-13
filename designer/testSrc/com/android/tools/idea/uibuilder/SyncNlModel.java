@@ -19,7 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.Disposable;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -34,14 +34,14 @@ public class SyncNlModel extends NlModel {
   Configuration myConfiguration; // for testing purposes
 
   @NotNull
-  public static NlModel create(@NotNull DesignSurface surface,
+  public static NlModel create(@NotNull NlDesignSurface surface,
                                @Nullable Disposable parent,
                                @NotNull AndroidFacet facet,
                                @NotNull XmlFile file) {
     return new SyncNlModel(surface, parent, facet, file);
   }
 
-  private SyncNlModel(@NotNull DesignSurface surface,
+  private SyncNlModel(@NotNull NlDesignSurface surface,
                      @Nullable Disposable parent,
                      @NotNull AndroidFacet facet, @NotNull XmlFile file) {
     super(surface, parent, facet, file);

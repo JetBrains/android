@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.lint;
 
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -33,10 +33,10 @@ import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.inspections.lint.*;
 
 public class NlLintHighlightingPass implements HighlightingPass {
-  private final DesignSurface mySurface;
+  private final NlDesignSurface mySurface;
   private LintAnnotationsModel myLintAnnotationsModel;
 
-  public NlLintHighlightingPass(@NotNull DesignSurface surface) {
+  public NlLintHighlightingPass(@NotNull NlDesignSurface surface) {
     mySurface = surface;
   }
 
