@@ -692,4 +692,19 @@ public class ImageUtils {
      */
     boolean crop(BufferedImage image, int x, int y);
   }
+
+  /**
+   * Given the dimension of the viewport and the dimension of the image to be displayed in the viewport.
+   * Calculate the zoomFactor for the imageEditor that would allow the Image to be completely visible
+   * within the viewport.
+   * @param viewHeight height of the containing view
+   * @param viewWidth width of the containing view
+   * @param imageHeight height of the image
+   * @param imageWidth width of the image
+   * @return the zoom factor that would allow the viewport to fully display the image.
+   */
+  public static double calcFullyDisplayZoomFactor(double viewHeight, double viewWidth, double imageHeight, double imageWidth) {
+    assert(imageHeight != 0 && imageWidth != 0);
+    return Math.min((viewHeight / imageHeight / 1.1), (viewWidth / imageWidth / 1.1));
+  }
 }
