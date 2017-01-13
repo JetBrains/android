@@ -20,8 +20,8 @@ import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Sets;
 import com.intellij.ide.CopyProvider;
@@ -123,7 +123,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     }
   }
 
-  public void setDesignSurface(@Nullable NlDesignSurface designSurface) {
+  public void setDesignSurface(@Nullable DesignSurface designSurface) {
     setScreenView(designSurface != null ? designSurface.getCurrentScreenView() : null);
   }
 

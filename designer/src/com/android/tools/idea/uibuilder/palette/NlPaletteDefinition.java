@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import com.android.tools.adtui.workbench.*;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -26,14 +26,14 @@ import javax.swing.*;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_FONT;
 import static com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE;
 
-public class NlPaletteDefinition extends ToolWindowDefinition<NlDesignSurface> {
+public class NlPaletteDefinition extends ToolWindowDefinition<DesignSurface> {
 
   public NlPaletteDefinition(@NotNull Project project, @NotNull Side side, @NotNull Split split, @NotNull AutoHide autoHide) {
     super("Palette ", AllIcons.Toolwindows.ToolWindowPalette, "PALETTE", side, split, autoHide, getInitialWidth(),
           DEFAULT_MINIMUM_BUTTON_SIZE, () -> createPalettePanel(project));
   }
 
-  private static ToolContent<NlDesignSurface> createPalettePanel(@NotNull Project project) {
+  private static ToolContent<DesignSurface> createPalettePanel(@NotNull Project project) {
     if (project.isDisposed()) {
       return null;
     }

@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
 import com.android.tools.idea.uibuilder.property.NlPropertyPanelDefinition;
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeDefinition;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -43,9 +44,9 @@ import static com.android.tools.idea.rendering.RenderService.MOCKUP_EDITOR_ENABL
 /**
  * Assembles a designer editor from various components
  */
-public class NlEditorPanel extends WorkBench<NlDesignSurface> {
+public class NlEditorPanel extends WorkBench<DesignSurface> {
   private final XmlFile myFile;
-  private final NlDesignSurface mySurface;
+  private final DesignSurface mySurface;
 
   public NlEditorPanel(@NotNull NlEditor editor, @NotNull Project project, @NotNull AndroidFacet facet, @NotNull VirtualFile file) {
     super(project, "NELE_EDITOR", editor);
@@ -64,7 +65,7 @@ public class NlEditorPanel extends WorkBench<NlDesignSurface> {
     contentPanel.add(toolbarComponent, BorderLayout.NORTH);
     contentPanel.add(mySurface);
 
-    List<ToolWindowDefinition<NlDesignSurface>> tools = new ArrayList<>(4);
+    List<ToolWindowDefinition<DesignSurface>> tools = new ArrayList<>(4);
     tools.add(new NlPaletteDefinition(project, Side.LEFT, Split.TOP, AutoHide.DOCKED));
     tools.add(new NlComponentTreeDefinition(Side.LEFT, Split.BOTTOM, AutoHide.DOCKED));
     tools.add(new NlPropertyPanelDefinition(project, Side.RIGHT, Split.TOP, AutoHide.DOCKED));
@@ -94,19 +95,19 @@ public class NlEditorPanel extends WorkBench<NlDesignSurface> {
   }
 
   @NotNull
-  public NlDesignSurface getSurface() {
+  public DesignSurface getSurface() {
     return mySurface;
   }
 
   /**
    * <b>Temporary</b> bridge to older Configuration actions. When we can ditch the old layout preview
    * and old layout editors, we no longer needs this level of indirection to let the configuration actions
-   * talk to multiple different editor implementations, and the render actions can directly address NlDesignSurface.
+   * talk to multiple different editor implementations, and the render actions can directly address DesignSurface.
    */
   public static class NlConfigurationHolder implements ConfigurationHolder {
-    @NotNull private final NlDesignSurface mySurface;
+    @NotNull private final DesignSurface mySurface;
 
-    public NlConfigurationHolder(@NotNull NlDesignSurface surface) {
+    public NlConfigurationHolder(@NotNull DesignSurface surface) {
       mySurface = surface;
     }
 

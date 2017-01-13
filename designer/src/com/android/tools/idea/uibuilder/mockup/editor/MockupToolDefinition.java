@@ -16,11 +16,12 @@
 package com.android.tools.idea.uibuilder.mockup.editor;
 
 import com.android.tools.adtui.workbench.*;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.icons.AllIcons;
 import org.jetbrains.annotations.NotNull;
 
-public class MockupToolDefinition extends ToolWindowDefinition<NlDesignSurface> {
+public class MockupToolDefinition extends ToolWindowDefinition<DesignSurface> {
 
   public MockupToolDefinition(@NotNull Side side, @NotNull Split split, @NotNull AutoHide autoHide) {
     super("Mockup", AllIcons.Toolwindows.ToolWindowPalette, "MOCKUP", side, split, autoHide, MockupEditor::new);
