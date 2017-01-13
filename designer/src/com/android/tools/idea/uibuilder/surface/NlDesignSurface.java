@@ -20,6 +20,8 @@ import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.uibuilder.editor.ActionManager;
+import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.model.Coordinates;
@@ -281,6 +283,11 @@ public class NlDesignSurface extends DesignSurface {
 
   public void setCentered(boolean centered) {
     myCentered = centered;
+  }
+
+  @Override
+  protected ActionManager createActionManager() {
+    return new NlActionManager(this);
   }
 
   @Override
