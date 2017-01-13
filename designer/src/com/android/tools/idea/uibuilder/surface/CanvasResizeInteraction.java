@@ -144,12 +144,8 @@ public class CanvasResizeInteraction extends Interaction {
     myCurrentX = x;
     myCurrentY = y;
 
-    ScreenView screenView = myDesignSurface.getCurrentScreenView();
-    if (screenView == null) {
-      return;
-    }
-    screenView.getSurface().setResizeMode(true);
-    updateUnavailableLayer(screenView, false);
+    myDesignSurface.setResizeMode(true);
+    updateUnavailableLayer(myDesignSurface.getCurrentScreenView(), false);
   }
 
   public void updatePosition(int x, int y) {
@@ -364,7 +360,7 @@ public class CanvasResizeInteraction extends Interaction {
     }
 
     // Set the surface in resize mode so it doesn't try to re-center the screen views all the time
-    screenView.getSurface().setResizeMode(false);
+    myDesignSurface.setResizeMode(false);
 
     // When disabling the resize mode, add a render handler to call zoomToFit
     screenView.getModel().addListener(new ModelListener() {

@@ -69,7 +69,7 @@ public class MockupLayer extends Layer {
 
   @Override
   public void paint(@NotNull Graphics2D g) {
-    if (!myScreenView.getSurface().isMockupVisible() || myMockups.isEmpty()) {
+    if (!((NlDesignSurface)myScreenView.getSurface()).isMockupVisible() || myMockups.isEmpty()) {
       return;
     }
     final Composite composite = g.getComposite();

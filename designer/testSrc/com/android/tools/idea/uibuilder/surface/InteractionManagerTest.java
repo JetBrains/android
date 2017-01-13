@@ -47,7 +47,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     NlModel model = createModel(surface, myFacet, xmlFile);
 
     ScreenView screenView = createScreen(surface, model, new SelectionModel());
-    NlDesignSurface designSurface = screenView.getSurface();
+    DesignSurface designSurface = screenView.getSurface();
     InteractionManager manager = createManager(designSurface);
 
     @Language("XML")

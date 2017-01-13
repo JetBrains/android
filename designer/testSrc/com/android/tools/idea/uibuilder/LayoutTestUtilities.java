@@ -25,8 +25,9 @@ import com.android.tools.idea.uibuilder.fixtures.MouseEventBuilder;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.InteractionManager;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -163,7 +164,7 @@ public class LayoutTestUtilities {
     return surface;
   }
 
-  public static InteractionManager createManager(NlDesignSurface surface) {
+  public static InteractionManager createManager(DesignSurface surface) {
     InteractionManager manager = new InteractionManager(surface);
     manager.registerListeners();
     return manager;

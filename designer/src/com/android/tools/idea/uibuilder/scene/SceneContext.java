@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.uibuilder.model.Coordinates;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.AndroidColorSet;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
@@ -104,7 +104,7 @@ public class SceneContext {
 
   private static WeakHashMap<ScreenView, ScreenViewTransform> cache = new WeakHashMap<>();
 
-  public NlDesignSurface getSurface() {
+  public DesignSurface getSurface() {
     return null;
   }
 
@@ -119,7 +119,7 @@ public class SceneContext {
     }
 
     @Override
-    public NlDesignSurface getSurface() {
+    public DesignSurface getSurface() {
       return myScreenView.getSurface();
     }
 
