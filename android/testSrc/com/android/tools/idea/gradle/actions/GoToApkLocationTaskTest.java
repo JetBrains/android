@@ -18,12 +18,15 @@ package com.android.tools.idea.gradle.actions;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.notification.NotificationType;
 import com.intellij.testFramework.IdeaTestCase;
 import org.gradle.tooling.BuildCancelledException;
 
+import java.io.File;
 import java.util.Collections;
 
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
@@ -76,7 +79,15 @@ public class GoToApkLocationTaskTest extends IdeaTestCase {
     String message = "APK(s) generated successfully.";
     GradleInvocationResult result = new GradleInvocationResult(Collections.EMPTY_LIST, Collections.EMPTY_LIST, null);
     myTask.execute(result);
-    verify(myMockNotification)
-      .showBalloon(eq("Build APK"), eq(message), eq(NotificationType.INFORMATION), any(GoToApkLocationTask.GoToPathHyperlink.class));
+    if (ShowFilePathAction.isSupported()) {
+      verify(myMockNotification)
+        .showBalloon(eq("Build APK"), eq(message), eq(NotificationType.INFORMATION), any(GoToApkLocationTask.GoToPathHyperlink.class));
+    }
+    else {
+      File moduleFilePath = new File(toSystemDependentName(getModule().getModuleFilePath()));
+      File apkPath = moduleFilePath.getParentFile();
+      message = String.format("APK(s) location is\n%1$s.", apkPath.getPath());
+      verify(myMockNotification).showBalloon("Build APK", message, NotificationType.INFORMATION);
+    }
   }
 }
