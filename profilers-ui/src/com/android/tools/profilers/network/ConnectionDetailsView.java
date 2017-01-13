@@ -16,29 +16,25 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.profilers.IdeProfilerComponents;
-import com.android.tools.profilers.common.StackLine;
 import com.android.tools.profilers.common.StackView;
 import com.android.tools.profilers.common.TabsPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.popup.IconButton;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.InplaceButton;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.components.labels.BoldLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.android.tools.profilers.common.CodeLocation.INVALID_LINE_NUMBER;
+import java.awt.image.BufferedImage;
+import java.io.*;
 
 /**
  * View to display a single network request and its response's detailed information.
@@ -98,12 +94,12 @@ public class ConnectionDetailsView extends JPanel {
     myFieldsPanel.removeAll();
     myStackView.clearStackFrames();
 
-    if (httpData != null) {
-      JComponent fileViewer = myStageView.getIdeComponents().getFileViewer(httpData.getResponsePayloadFile());
-      if (fileViewer != null) {
-        myEditorPanel.add(fileViewer, BorderLayout.CENTER);
-      }
+    JComponent fileViewer = getFileViewer(httpData);
+    if (fileViewer != null) {
+      myEditorPanel.add(fileViewer, BorderLayout.CENTER);
+    }
 
+    if (httpData != null) {
       int row = 0;
       myFieldsPanel.add(new NoWrapBoldLabel("Request"), new TabularLayout.Constraint(row, 0));
       myFieldsPanel.add(new JLabel(HttpData.getUrlName(httpData.getUrl())), new TabularLayout.Constraint(row, 2));
@@ -172,6 +168,48 @@ public class ConnectionDetailsView extends JPanel {
   private static final class NoWrapBoldLabel extends BoldLabel {
     public NoWrapBoldLabel(String text) {
       super("<nobr>" + text + "</nobr>");
+    }
+  }
+
+  @Nullable
+  private static JComponent getFileViewer(@Nullable HttpData httpData) {
+    if (httpData == null || httpData.getResponsePayloadFile() == null) {
+      return null;
+    }
+
+    String contentType = httpData.getResponseField(HttpData.FIELD_CONTENT_TYPE);
+    if (contentType != null && StringUtil.containsIgnoreCase(contentType, "image")) {
+      BufferedImage image = null;
+      try {
+        image = httpData.getResponsePayloadFile() != null ? ImageIO.read(httpData.getResponsePayloadFile()) : null;
+      } catch (IOException e) {}
+      return image != null ? new ImageComponent(image) : null;
+    }
+
+    // TODO: Fix the viewer for html, json and etc.
+    JTextArea textArea = new JTextArea();
+    try {
+      BufferedReader reader = new BufferedReader(new FileReader(httpData.getResponsePayloadFile()));
+      textArea.read(reader, null);
+      reader.close();
+    } catch (IOException e) {}
+    textArea.setEditable(false);
+    return new JBScrollPane(textArea);
+  }
+
+  private static final class ImageComponent extends JComponent {
+    @NotNull
+    private final Image myImage;
+
+    public ImageComponent(@NotNull Image image) {
+      myImage = image;
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+      super.paintComponent(g);
+      Image scaledInstance = myImage.getScaledInstance(getParent().getWidth(), getParent().getHeight(), Image.SCALE_SMOOTH);
+      g.drawImage(scaledInstance, 0, 0, this);
     }
   }
 }
