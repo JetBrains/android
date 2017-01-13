@@ -129,12 +129,6 @@ final class HeapDumpFieldObject implements FieldObject {
     return myField.getField().getName();
   }
 
-  @NotNull
-  @Override
-  public String getValueLabel() {
-    return myField.getValue().toString();
-  }
-
   @Override
   public ValueType getValueType() {
     return myValueType;
