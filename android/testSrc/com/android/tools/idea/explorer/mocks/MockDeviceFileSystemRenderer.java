@@ -23,14 +23,24 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 public class MockDeviceFileSystemRenderer implements DeviceFileSystemRenderer {
-  @NotNull
-  @Override
-  public ListCellRenderer<DeviceFileSystem> getDeviceNameListRenderer() {
-    return new ColoredListCellRenderer<DeviceFileSystem>() {
+  private final ColoredListCellRenderer<DeviceFileSystem> myRenderer;
+
+  public MockDeviceFileSystemRenderer() {
+    myRenderer = new ColoredListCellRenderer<DeviceFileSystem>() {
       @Override
       protected void customizeCellRenderer(@NotNull JList list, DeviceFileSystem value, int index, boolean selected, boolean hasFocus) {
+        if (value == null) {
+          append("<No device>");
+        } else {
+          append(value.getName());
+        }
       }
     };
   }
 
+  @NotNull
+  @Override
+  public ListCellRenderer<DeviceFileSystem> getDeviceNameListRenderer() {
+    return myRenderer;
+  }
 }
