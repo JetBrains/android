@@ -19,8 +19,9 @@ import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.Abstr
 import com.intellij.ui.table.TableView;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
-import org.fest.swing.fixture.JTableCellFixture;
+import org.fest.swing.exception.ActionFailedException;
 import org.fest.swing.fixture.JTableFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -42,8 +43,14 @@ public class ChooseSystemImageStepFixture extends AbstractWizardStepFixture<Choo
     final TableView systemImageList = robot().finder().findByType(target(), TableView.class, true);
     JTableFixture systemImageListFixture = new JTableFixture(robot(), systemImageList);
 
-    JTableCellFixture cell = systemImageListFixture.cell(rowWithValue(releaseName, apiLevel, abiType, targetName).column(0));
-    cell.select();
+    Wait.seconds(5).expecting("The system image list is populated.").until(() -> {
+      try {
+        systemImageListFixture.cell(rowWithValue(releaseName, apiLevel, abiType, targetName).column(0)).select();
+        return true;
+      } catch (ActionFailedException e) {
+        return false;
+      }
+    });
     return this;
   }
 
