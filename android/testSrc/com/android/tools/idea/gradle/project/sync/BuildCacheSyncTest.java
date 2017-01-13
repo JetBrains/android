@@ -73,7 +73,7 @@ public class BuildCacheSyncTest extends AndroidGradleTestCase {
 
   private void setBuildCachePath(@NotNull File path) throws IOException {
     // Set up path of build-cache
-    // See: http://tools.android.com/tech-docs/build-cache
+    // See: https://developer.android.com/r/tools/build-cache.html
     Project project = getProject();
     File gradlePropertiesFilePath = new File(getBaseDirPath(project), "gradle.properties");
     Properties gradleProperties = getProperties(gradlePropertiesFilePath);
