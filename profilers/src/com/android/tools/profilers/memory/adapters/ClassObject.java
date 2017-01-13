@@ -48,23 +48,19 @@ public abstract class ClassObject extends NamespaceObject {
   }
 
   public int getChildrenCount() {
-    return -1;
+    return INVALID_VALUE;
   }
 
   public int getElementSize() {
-    return -1;
-  }
-
-  public int getDepth() {
-    return -1;
+    return INVALID_VALUE;
   }
 
   public int getShallowSize() {
-    return -1;
+    return INVALID_VALUE;
   }
 
   public long getRetainedSize() {
-    return -1;
+    return INVALID_VALUE;
   }
 
   @NotNull
