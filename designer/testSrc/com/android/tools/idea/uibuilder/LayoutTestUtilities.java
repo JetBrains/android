@@ -25,7 +25,7 @@ import com.android.tools.idea.uibuilder.fixtures.MouseEventBuilder;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.InteractionManager;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.psi.xml.XmlFile;
@@ -125,17 +125,17 @@ public class LayoutTestUtilities {
     verify(dropEvent, times(1)).dropComplete(true);
   }
 
-  public static NlModel createModel(DesignSurface surface, AndroidFacet facet, XmlFile xmlFile) {
+  public static NlModel createModel(NlDesignSurface surface, AndroidFacet facet, XmlFile xmlFile) {
     NlModel model = SyncNlModel.create(surface, xmlFile.getProject(), facet, xmlFile);
     model.notifyModified(NlModel.ChangeType.UPDATE_HIERARCHY);
     return model;
   }
 
-  public static ScreenView createScreen(DesignSurface surface, NlModel model, SelectionModel selectionModel) {
+  public static ScreenView createScreen(NlDesignSurface surface, NlModel model, SelectionModel selectionModel) {
     return createScreen(surface, model, selectionModel, 1, 0, 0, Density.MEDIUM);
   }
 
-  public static ScreenView createScreen(DesignSurface surface, NlModel model, SelectionModel selectionModel, double scale,
+  public static ScreenView createScreen(NlDesignSurface surface, NlModel model, SelectionModel selectionModel, double scale,
                                         @SwingCoordinate int x, @SwingCoordinate int y, Density density) {
     Configuration configuration = mock(Configuration.class);
     when(configuration.getDensity()).thenReturn(density);
@@ -156,14 +156,14 @@ public class LayoutTestUtilities {
     return screenView;
   }
 
-  public static DesignSurface createSurface() {
+  public static NlDesignSurface createSurface() {
     JComponent layeredPane = new JPanel();
-    DesignSurface surface = mock(DesignSurface.class);
+    NlDesignSurface surface = mock(NlDesignSurface.class);
     when(surface.getLayeredPane()).thenReturn(layeredPane);
     return surface;
   }
 
-  public static InteractionManager createManager(DesignSurface surface) {
+  public static InteractionManager createManager(NlDesignSurface surface) {
     InteractionManager manager = new InteractionManager(surface);
     manager.registerListeners();
     return manager;

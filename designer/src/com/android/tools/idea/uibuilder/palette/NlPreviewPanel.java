@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.IdeBorderFactory;
@@ -44,7 +44,7 @@ public class NlPreviewPanel extends JPanel implements SelectionListener, Disposa
     add(myItemName, BorderLayout.SOUTH);
   }
 
-  public void setDesignSurface(@Nullable DesignSurface designSurface) {
+  public void setDesignSurface(@Nullable NlDesignSurface designSurface) {
     myImage.setDesignSurface(designSurface);
   }
 

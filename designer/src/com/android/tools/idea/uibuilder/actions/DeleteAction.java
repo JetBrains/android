@@ -17,16 +17,16 @@ package com.android.tools.idea.uibuilder.actions;
 
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class DeleteAction extends AnAction {
-  private final DesignSurface mySurface;
+  private final NlDesignSurface mySurface;
 
-  public DeleteAction(@NotNull DesignSurface surface) {
+  public DeleteAction(@NotNull NlDesignSurface surface) {
     super("Delete", "Delete", null);
     mySurface = surface;
   }

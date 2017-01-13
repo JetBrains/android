@@ -24,7 +24,7 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
 import com.android.tools.idea.uibuilder.property.NlPropertyPanelDefinition;
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeDefinition;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -43,9 +43,9 @@ import static com.android.tools.idea.rendering.RenderService.MOCKUP_EDITOR_ENABL
 /**
  * Assembles a designer editor from various components
  */
-public class NlEditorPanel extends WorkBench<DesignSurface> {
+public class NlEditorPanel extends WorkBench<NlDesignSurface> {
   private final XmlFile myFile;
-  private final DesignSurface mySurface;
+  private final NlDesignSurface mySurface;
 
   public NlEditorPanel(@NotNull NlEditor editor, @NotNull Project project, @NotNull AndroidFacet facet, @NotNull VirtualFile file) {
     super(project, "NELE_EDITOR", editor);
@@ -54,7 +54,7 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
     myFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, file);
     assert myFile != null : file;
 
-    mySurface = new DesignSurface(project, false);
+    mySurface = new NlDesignSurface(project, false);
     Disposer.register(editor, mySurface);
     NlModel model = NlModel.create(mySurface, editor, facet, myFile);
     mySurface.setModel(model);
@@ -64,7 +64,7 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
     contentPanel.add(toolbarComponent, BorderLayout.NORTH);
     contentPanel.add(mySurface);
 
-    List<ToolWindowDefinition<DesignSurface>> tools = new ArrayList<>(4);
+    List<ToolWindowDefinition<NlDesignSurface>> tools = new ArrayList<>(4);
     tools.add(new NlPaletteDefinition(project, Side.LEFT, Split.TOP, AutoHide.DOCKED));
     tools.add(new NlComponentTreeDefinition(Side.LEFT, Split.BOTTOM, AutoHide.DOCKED));
     tools.add(new NlPropertyPanelDefinition(project, Side.RIGHT, Split.TOP, AutoHide.DOCKED));
@@ -94,19 +94,19 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
   }
 
   @NotNull
-  public DesignSurface getSurface() {
+  public NlDesignSurface getSurface() {
     return mySurface;
   }
 
   /**
    * <b>Temporary</b> bridge to older Configuration actions. When we can ditch the old layout preview
    * and old layout editors, we no longer needs this level of indirection to let the configuration actions
-   * talk to multiple different editor implementations, and the render actions can directly address DesignSurface.
+   * talk to multiple different editor implementations, and the render actions can directly address NlDesignSurface.
    */
   public static class NlConfigurationHolder implements ConfigurationHolder {
-    @NotNull private final DesignSurface mySurface;
+    @NotNull private final NlDesignSurface mySurface;
 
-    public NlConfigurationHolder(@NotNull DesignSurface surface) {
+    public NlConfigurationHolder(@NotNull NlDesignSurface surface) {
       mySurface = surface;
     }
 
