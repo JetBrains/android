@@ -15,8 +15,8 @@
  */
 package com.android.tools.datastore;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.datastore.poller.*;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -46,6 +46,11 @@ public class DataStoreService {
   private LegacyAllocationTracker myLegacyAllocationTracker;
   private Consumer<Runnable> myFetchExecutor;
 
+  /**
+   * @param fetchExecutor A callback which is given a {@link Runnable} for each datastore service.
+   *                      The runnable, when run, begins polling the target service. You probably
+   *                      want to run it on a background thread.
+   */
   public DataStoreService(String name, Consumer<Runnable> fetchExecutor) {
     try {
       myFetchExecutor = fetchExecutor;
@@ -140,5 +145,10 @@ public class DataStoreService {
   @Nullable
   public LegacyAllocationTracker getLegacyAllocationTracker() {
     return myLegacyAllocationTracker;
+  }
+
+  @VisibleForTesting
+  List<ServicePassThrough> getRegisteredServices() {
+    return myServices;
   }
 }
