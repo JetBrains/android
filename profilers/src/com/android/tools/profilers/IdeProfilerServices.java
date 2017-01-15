@@ -15,8 +15,9 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.profilers.common.CodeLocation;
 import org.jetbrains.annotations.NotNull;
 
 public interface IdeProfilerServices {
-  boolean navigateToStackTraceLine(@NotNull String line);
+  boolean navigateToStackFrame(@NotNull CodeLocation line);
 }

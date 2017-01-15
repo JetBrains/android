@@ -16,9 +16,16 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.profilers.IdeProfilerServices;
+import com.android.tools.profilers.common.CodeLocation;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class IntellijProfilerServices implements IdeProfilerServices {
   @NotNull private final Project myProject;
@@ -28,8 +35,8 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public boolean navigateToStackTraceLine(@NotNull String line) {
-    CallStackLine stackLine = new CallStackLine(myProject, line);
+  public boolean navigateToStackFrame(@NotNull CodeLocation codeLocation) {
+    NavigatableStackFrame stackLine = new NavigatableStackFrame(myProject, codeLocation);
     Navigatable nav = stackLine.getNavigatable();
     if (nav != null && nav.canNavigate()) {
       nav.navigate(true);
@@ -37,5 +44,43 @@ public class IntellijProfilerServices implements IdeProfilerServices {
     }
 
     return false;
+  }
+
+  static final class NavigatableStackFrame {
+    @NotNull private final Project myProject;
+    @NotNull private final CodeLocation myCodeLocation;
+
+    public NavigatableStackFrame(@NotNull Project project, @NotNull CodeLocation codeLocation) {
+      myProject = project;
+      myCodeLocation = codeLocation;
+    }
+
+    @Nullable
+    public Navigatable getNavigatable() {
+      VirtualFile file = findClassFile();
+      if (file == null) return null;
+
+      int lineNumber = myCodeLocation.getLine();
+      if (lineNumber == -1) {
+        return new OpenFileDescriptor(myProject, file);
+      }
+      else {
+        return new OpenFileDescriptor(myProject, file, lineNumber, 0);
+      }
+    }
+
+    @Nullable
+    private VirtualFile findClassFile() {
+      String className = myCodeLocation.getClassName();
+      if (className == null) {
+        return null;
+      }
+
+      PsiClass psiClass = JavaPsiFacade.getInstance(myProject).findClass(className, GlobalSearchScope.allScope(myProject));
+      if (psiClass == null) {
+        return null;
+      }
+      return psiClass.getContainingFile().getVirtualFile();
+    }
   }
 }

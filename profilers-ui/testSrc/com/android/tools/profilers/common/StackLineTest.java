@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,56 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers;
+package com.android.tools.profilers.common;
 
-import com.intellij.openapi.project.Project;
+import com.android.tools.profilers.network.ConnectionDetailsView;
 import org.junit.Test;
-import org.mockito.Mockito;
 
+import static com.android.tools.profilers.common.CodeLocation.INVALID_LINE_NUMBER;
 import static org.junit.Assert.assertEquals;
 
-public class CallStackLineTest {
-  private CallStackLine myStackLine;
-
+public class StackLineTest {
   @Test
   public void getLineNumber() {
     String line = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:274)";
-    myStackLine = new CallStackLine(Mockito.mock(Project.class), line);
-    assertEquals(273, myStackLine.getLineNumber());
+    assertEquals(273, StackLine.getLineNumber(line));
   }
 
   @Test
   public void getNoLineNumber() {
     String line = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java)";
-    myStackLine = new CallStackLine(Mockito.mock(Project.class), line);
-    assertEquals(-1, myStackLine.getLineNumber());
+    assertEquals(INVALID_LINE_NUMBER, StackLine.getLineNumber(line));
   }
 
   @Test
   public void getInvalidLineNumber() {
     String line = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:init)";
-    myStackLine = new CallStackLine(Mockito.mock(Project.class), line);
-    assertEquals(-1, myStackLine.getLineNumber());
+    assertEquals(INVALID_LINE_NUMBER, StackLine.getLineNumber(line));
   }
 
   @Test
   public void getClassName() {
     String line = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:27)";
-    myStackLine = new CallStackLine(Mockito.mock(Project.class), line);
-    assertEquals("com.example.android.displayingbitmaps.util.ImageFetcher", myStackLine.getClassName());
+    assertEquals("com.example.android.displayingbitmaps.util.ImageFetcher", StackLine.getClassName(line));
   }
 
   @Test
   public void getClassNameIfNested() {
     String line = "com.example.android.displayingbitmaps.util.ImageWorker$BitmapWorkerTask.doInBackground(ImageWorker.java:312)";
-    myStackLine = new CallStackLine(Mockito.mock(Project.class), line);
-    assertEquals("com.example.android.displayingbitmaps.util.ImageWorker", myStackLine.getClassName());
+    assertEquals("com.example.android.displayingbitmaps.util.ImageWorker", StackLine.getClassName(line));
   }
 
   @Test
   public void getClassNameIfAnonymous() {
     String line = "com.example.android.displayingbitmaps.util.AsyncTask$2.call(AsyncTask.java:313)";
-    myStackLine = new CallStackLine(Mockito.mock(Project.class), line);
-    assertEquals("com.example.android.displayingbitmaps.util.AsyncTask", myStackLine.getClassName());
+    assertEquals("com.example.android.displayingbitmaps.util.AsyncTask", StackLine.getClassName(line));
   }
 }

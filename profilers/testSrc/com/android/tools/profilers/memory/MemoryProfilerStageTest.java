@@ -43,8 +43,6 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     return myGrpcChannel;
   }
 
-  ;
-
   @Test
   public void testToggleLegacyCapture() throws Exception {
     assertEquals(false, myStage.isTrackingAllocations());
@@ -53,15 +51,15 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     // Test the no-action cases
     myStage.trackAllocations(false, null);
     assertEquals(false, myStage.isTrackingAllocations());
-    assertAndResetCounts(1, 0, 0, 0, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0);
     myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.NOT_ENABLED);
     myStage.trackAllocations(false, null);
     assertEquals(false, myStage.isTrackingAllocations());
-    assertAndResetCounts(1, 0, 0, 0, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0);
     myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.FAILURE_UNKNOWN);
     myStage.trackAllocations(false, null);
     assertEquals(false, myStage.isTrackingAllocations());
-    assertAndResetCounts(1, 0, 0, 0, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0);
 
     // Starting a tracking session
     int infoId = 1;
@@ -74,13 +72,13 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.trackAllocations(true, null);
     assertEquals(true, myStage.isTrackingAllocations());
     assertEquals(null, myStage.getSelectedCapture());
-    assertAndResetCounts(1, 0, 0, 0, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0);
 
     // Attempting to start a in-progress session
     myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.IN_PROGRESS);
     myStage.trackAllocations(true, null);
     assertEquals(true, myStage.isTrackingAllocations());
-    assertAndResetCounts(1, 0, 0, 0, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0);
 
     // Spawn a different thread to stopping a tracking session
     // This will start loading the CaptureObject but it will loop until the AllocationsInfo returns a COMPLETED status.
@@ -98,7 +96,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
       assertEquals(infoEnd, capture.getEndTimeNs());
       assertFalse(capture.isDoneLoading());
       assertFalse(capture.isError());
-      assertAndResetCounts(1, 1, 0, 0, 0, 0, 0);
+      myAspectObserver.assertAndResetCounts(1, 1, 0, 0, 0, 0, 0);
       waitLatch.countDown();
     }).run();
 
@@ -117,7 +115,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myMockLoader.runTask();
     assertTrue(capture.isDoneLoading());
     assertFalse(capture.isError());
-    assertAndResetCounts(0, 0, 1, 0, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 0, 0, 0);
   }
 
   @Test
@@ -149,8 +147,9 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testMemoryObjectSelection() {
-    InstanceObject mockInstance = mockInstanceObject("DUMMY_INSTANCE");
-    ClassObject mockKlass = mockClassObject("DUMMY_CLASS1", Collections.singletonList(mockInstance));
+    final String dummyClassName = "DUMMY_CLASS1";
+    InstanceObject mockInstance = mockInstanceObject(dummyClassName, "DUMMY_INSTANCE");
+    ClassObject mockKlass = mockClassObject(dummyClassName, Collections.singletonList(mockInstance));
     HeapObject mockHeap = mockHeapObject("DUMMY_HEAP1", Arrays.asList(mockKlass));
     CaptureObject mockCapture = mockCaptureObject("DUMMY_CAPTURE1", 5, 10, Arrays.asList(mockHeap));
 
@@ -160,9 +159,9 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
-    assertAndResetCounts(0, 1, 0, 0, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0);
     myMockLoader.runTask();
-    assertAndResetCounts(0, 0, 1, 0, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 0, 0, 0);
 
     // Make sure the same capture selected shouldn't result in aspects getting raised again.
     myStage.selectCapture(mockCapture, null);
@@ -171,7 +170,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
-    assertAndResetCounts(0, 0, 0, 0, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0);
 
     myStage.selectHeap(mockHeap);
     assertEquals(mockCapture, myStage.getSelectedCapture());
@@ -179,7 +178,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
-    assertAndResetCounts(0, 0, 0, 0, 1, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 1, 0, 0);
 
     myStage.selectHeap(mockHeap);
     assertEquals(mockCapture, myStage.getSelectedCapture());
@@ -187,16 +186,16 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
-    assertAndResetCounts(0, 0, 0, 0, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0);
 
     assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
     myStage.getConfiguration().setClassGrouping(GROUP_BY_PACKAGE);
     assertEquals(GROUP_BY_PACKAGE, myStage.getConfiguration().getClassGrouping());
-    assertAndResetCounts(0, 0, 0, 1, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 0, 0);
 
     myStage.getConfiguration().setClassGrouping(NO_GROUPING);
     assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
-    assertAndResetCounts(0, 0, 0, 1, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 0, 0);
 
     myStage.selectClass(mockKlass);
     assertEquals(mockCapture, myStage.getSelectedCapture());
@@ -204,7 +203,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
     assertEquals(mockKlass, myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
-    assertAndResetCounts(0, 0, 0, 0, 0, 1, 0);
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 1, 0);
 
 
     myStage.selectClass(mockKlass);
@@ -213,7 +212,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
     assertEquals(mockKlass, myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
-    assertAndResetCounts(0, 0, 0, 0, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0);
 
     myStage.selectInstance(mockInstance);
     assertEquals(mockCapture, myStage.getSelectedCapture());
@@ -221,7 +220,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
     assertEquals(mockKlass, myStage.getSelectedClass());
     assertEquals(mockInstance, myStage.getSelectedInstance());
-    assertAndResetCounts(0, 0, 0, 0, 0, 0, 1);
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 1);
 
     myStage.selectInstance(mockInstance);
     assertEquals(mockCapture, myStage.getSelectedCapture());
@@ -229,7 +228,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
     assertEquals(mockKlass, myStage.getSelectedClass());
     assertEquals(mockInstance, myStage.getSelectedInstance());
-    assertAndResetCounts(0, 0, 0, 0, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0);
 
     // Test the reverse direction, to make sure children MemoryObjects are nullified in the selection.
     myStage.selectClass(null);
@@ -238,7 +237,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
-    assertAndResetCounts(0, 0, 0, 0, 0, 1, 1);
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 1, 1);
 
     // However, if a selection didn't change (e.g. null => null), it shouldn't trigger an aspect change either.
     myStage.selectHeap(null);
@@ -247,7 +246,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
-    assertAndResetCounts(0, 0, 0, 0, 1, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 1, 0, 0);
   }
 
   @Test
@@ -257,15 +256,15 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     myStage.selectCapture(mockCapture1, null);
     assertEquals(mockCapture1, myStage.getSelectedCapture());
-    assertAndResetCounts(0, 1, 0, 0, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0);
 
     // Make sure selecting a new capture while the first one is loading will select the new one
     myStage.selectCapture(mockCapture2, null);
     assertEquals(mockCapture2, myStage.getSelectedCapture());
-    assertAndResetCounts(0, 1, 0, 0, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0);
 
     myMockLoader.runTask();
     assertEquals(mockCapture2, myStage.getSelectedCapture());
-    assertAndResetCounts(0, 0, 1, 0, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 0, 0, 0);
   }
 }
