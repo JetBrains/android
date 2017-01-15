@@ -15,12 +15,27 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.profilers.common.CodeLocation;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
+import java.util.function.Supplier;
 
 public interface IdeProfilerComponents {
   @Nullable
   JComponent getFileViewer(@Nullable File file);
+
+  /**
+   * Installs an IntelliJ context menu on a {@link JComponent}.
+   *
+   * @param component            The target {@link JComponent} that the context menu is to be installed on.
+   * @param codeLocationSupplier A {@link Supplier} of the desired code to navigate to. When the supplier is resolved, the system is not
+   *                             necessarily ready to conduct the navigation (i.e. displaying the menu popup, awaiting user input).
+   * @param preNavigate          A runnable callback invoked just prior to the actual act of navigating to the code.
+   */
+  void installNavigationContextMenu(@NotNull JComponent component,
+                                    @NotNull Supplier<CodeLocation> codeLocationSupplier,
+                                    @Nullable Runnable preNavigate);
 }

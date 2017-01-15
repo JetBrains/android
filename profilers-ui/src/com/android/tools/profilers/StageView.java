@@ -51,11 +51,6 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
   }
 
   @NotNull
-  public IdeProfilerServices getIdeServices() {
-    return myStage.getStudioProfilers().getIdeServices();
-  }
-
-  @NotNull
   public final JComponent getComponent() {
     return myComponent;
   }

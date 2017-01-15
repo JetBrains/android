@@ -17,13 +17,16 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.FieldObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject.InstanceAttribute;
 import com.android.tools.profilers.memory.adapters.InstanceObject.ValueType;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
+import com.android.tools.profilers.common.CodeLocation;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.treeStructure.Tree;
@@ -47,6 +50,8 @@ final class MemoryInstanceView extends AspectObserver {
 
   @NotNull private final MemoryProfilerStage myStage;
 
+  @NotNull private final IdeProfilerComponents myIdeProfilerComponents;
+
   @NotNull private final Map<InstanceAttribute, AttributeColumn> myAttributeColumns = new HashMap<>();
 
   @NotNull private final JPanel myInstancesPanel = new JPanel(new BorderLayout());
@@ -63,8 +68,9 @@ final class MemoryInstanceView extends AspectObserver {
 
   @Nullable private InstanceObject myInstanceObject;
 
-  public MemoryInstanceView(@NotNull MemoryProfilerStage stage) {
+  public MemoryInstanceView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
+    myIdeProfilerComponents = ideProfilerComponents;
 
     myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::refreshClass)
@@ -74,13 +80,13 @@ final class MemoryInstanceView extends AspectObserver {
       InstanceObject.InstanceAttribute.LABEL,
       new AttributeColumn(
         "Instance",
-        () -> new DetailColumnRenderer(value -> ((InstanceObject)value.getAdapter()).getName(),
+        () -> new DetailColumnRenderer(value -> ((InstanceObject)value.getAdapter()).getDisplayLabel(),
                                        value -> MemoryProfilerStageView.getInstanceObjectIcon((InstanceObject)value.getAdapter()),
                                        SwingConstants.LEFT),
         SwingConstants.LEFT,
         LABEL_COLUMN_WIDTH,
         SortOrder.ASCENDING,
-        (o1, o2) -> ((InstanceObject)o1.getAdapter()).getName().compareTo(((InstanceObject)o2.getAdapter()).getName())));
+        Comparator.comparing(o -> ((InstanceObject)o.getAdapter()).getDisplayLabel())));
     myAttributeColumns.put(
       InstanceObject.InstanceAttribute.DEPTH,
       new AttributeColumn(
@@ -98,7 +104,7 @@ final class MemoryInstanceView extends AspectObserver {
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
-        (o1, o2) -> ((InstanceObject)o1.getAdapter()).getDepth() - ((InstanceObject)o2.getAdapter()).getDepth()));
+        Comparator.comparingInt(o -> ((InstanceObject)o.getAdapter()).getDepth())));
     myAttributeColumns.put(
       InstanceObject.InstanceAttribute.SHALLOW_SIZE,
       new AttributeColumn(
@@ -108,7 +114,7 @@ final class MemoryInstanceView extends AspectObserver {
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
-        (o1, o2) -> ((InstanceObject)o1.getAdapter()).getShallowSize() - ((InstanceObject)o2.getAdapter()).getShallowSize()));
+        Comparator.comparingInt(o -> ((InstanceObject)o.getAdapter()).getShallowSize())));
     myAttributeColumns.put(
       InstanceObject.InstanceAttribute.RETAINED_SIZE,
       new AttributeColumn(
@@ -167,8 +173,14 @@ final class MemoryInstanceView extends AspectObserver {
     myTreeRoot = new MemoryObjectTreeNode<>(new InstanceObject() {
       @NotNull
       @Override
-      public String getName() {
+      public String getDisplayLabel() {
         return "";
+      }
+
+      @Nullable
+      @Override
+      public String getClassName() {
+        return null;
       }
     });
 
@@ -216,6 +228,18 @@ final class MemoryInstanceView extends AspectObserver {
         // No-op. TODO remove unseen children?
       }
     });
+    myIdeProfilerComponents.installNavigationContextMenu(myTree, () -> {
+      TreePath selection = myTree.getSelectionPath();
+      if (selection == null || !(selection.getLastPathComponent() instanceof MemoryObjectTreeNode)) {
+        return null;
+      }
+
+      if (((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter() instanceof InstanceObject) {
+        InstanceObject instanceObject = (InstanceObject)((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
+        return new CodeLocation(instanceObject.getClassName());
+      }
+      return null;
+    }, () -> myStage.setProfilerMode(ProfilerMode.NORMAL));
 
     assert myClassObject != null;
     List<InstanceAttribute> attributes = myClassObject.getInstanceAttributes();

@@ -41,7 +41,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -53,14 +52,11 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     IconLoader
       .findIcon(UIUtil.isUnderDarcula() ? "/icons/garbage-event_dark.png" : "/icons/garbage-event.png", MemoryProfilerStageView.class);
 
-  @NotNull private final ExecutorService myExecutorService =
-    Executors.newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat("profiler-memory-profiler-stage-view").build());
-
   @NotNull private final MemoryCaptureView myCaptureView = new MemoryCaptureView(getStage());
   @NotNull private final MemoryHeapView myHeapView = new MemoryHeapView(getStage());
-  @NotNull private final MemoryClassView myClassView = new MemoryClassView(getStage());
+  @NotNull private final MemoryClassView myClassView = new MemoryClassView(getStage(), getIdeComponents());
   @NotNull private final MemoryClassGrouping myClassGrouping = new MemoryClassGrouping(getStage());
-  @NotNull private final MemoryInstanceView myInstanceView = new MemoryInstanceView(getStage());
+  @NotNull private final MemoryInstanceView myInstanceView = new MemoryInstanceView(getStage(), getIdeComponents());
   @NotNull private final MemoryInstanceDetailsView myInstanceDetailsView = new MemoryInstanceDetailsView(getStage());
 
   @Nullable private CaptureObject myCaptureObject = null;

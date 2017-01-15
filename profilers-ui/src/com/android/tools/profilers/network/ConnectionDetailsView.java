@@ -16,10 +16,10 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.common.StackLine;
+import com.android.tools.profilers.common.StackView;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.ui.popup.IconButton;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.InplaceButton;
@@ -27,13 +27,16 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.components.labels.BoldLabel;
-import com.intellij.ui.components.labels.SwingActionLink;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.android.tools.profilers.common.CodeLocation.INVALID_LINE_NUMBER;
 
 /**
  * View to display a single network request and its response's detailed information.
@@ -41,7 +44,7 @@ import java.awt.event.ActionEvent;
 public class ConnectionDetailsView extends JPanel {
   private final JPanel myEditorPanel;
   private final JPanel myFieldsPanel;
-  private final JPanel myCallStackView;
+  private final StackView myStackView;
 
   @NotNull
   private final NetworkProfilerStageView myStageView;
@@ -68,13 +71,13 @@ public class ConnectionDetailsView extends JPanel {
     scrollPane.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0));
     responsePanel.add(scrollPane, BorderLayout.SOUTH);
 
-    myCallStackView = new JPanel(new VerticalFlowLayout());
-    myCallStackView.setBackground(ProfilerColors.MONITOR_BACKGROUND);
     tabPanel.addTab("Response", responsePanel);
-    tabPanel.addTab("Call Stack", new JBScrollPane(myCallStackView));
+
+    myStackView = new StackView(myStageView.getStage().getStudioProfilers().getIdeServices(), null);
+    tabPanel.addTab("Call Stack", myStackView.getComponent());
 
     IconButton closeIcon = new IconButton("Close", AllIcons.Actions.Close, AllIcons.Actions.CloseHovered);
-    InplaceButton closeButton = new InplaceButton(closeIcon, e -> this.update((HttpData) null));
+    InplaceButton closeButton = new InplaceButton(closeIcon, e -> this.update((HttpData)null));
     closeButton.setMinimumSize(closeButton.getPreferredSize()); // Prevent layout phase from squishing this button
 
     rootPanel.add(closeButton, new TabularLayout.Constraint(0, 1));
@@ -91,7 +94,7 @@ public class ConnectionDetailsView extends JPanel {
     setBackground(JBColor.background());
     myEditorPanel.removeAll();
     myFieldsPanel.removeAll();
-    myCallStackView.removeAll();
+    myStackView.clearStackFrames();
 
     if (httpData != null) {
       JComponent fileViewer = myStageView.getIdeComponents().getFileViewer(httpData.getResponsePayloadFile());
@@ -127,16 +130,7 @@ public class ConnectionDetailsView extends JPanel {
         myFieldsPanel.add(new JLabel(contentLength), new TabularLayout.Constraint(row, 2));
       }
 
-      for (String line : httpData.getTrace().split("\\n")) {
-        JLabel label = new SwingActionLink(new AbstractAction(line) {
-          @Override
-          public void actionPerformed(ActionEvent e) {
-            myStageView.getIdeServices().navigateToStackTraceLine(line);
-          }
-        });
-        myCallStackView.add(label);
-      }
-
+      myStackView.setStackFrames(httpData.getTrace());
       repaint();
     }
     setVisible(httpData != null);
@@ -150,16 +144,15 @@ public class ConnectionDetailsView extends JPanel {
   }
 
   @VisibleForTesting
-  JPanel getCallStackView() {
-    return myCallStackView;
+  JPanel getStackView() {
+    return myStackView.getPanel();
   }
-
 
   @VisibleForTesting
   int getFieldComponentIndex(String labelText) {
-    for (int i = 0; i < myFieldsPanel.getComponentCount(); i+=2) {
+    for (int i = 0; i < myFieldsPanel.getComponentCount(); i += 2) {
       if (myFieldsPanel.getComponent(i) instanceof JLabel) {
-        JLabel label = (JLabel) myFieldsPanel.getComponent(i);
+        JLabel label = (JLabel)myFieldsPanel.getComponent(i);
         if (label.getText().contains(labelText)) {
           return i;
         }

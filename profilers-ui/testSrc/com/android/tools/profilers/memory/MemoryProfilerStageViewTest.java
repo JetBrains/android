@@ -16,7 +16,7 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.IdeProfilerComponentsStub;
+import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.memory.adapters.*;
@@ -38,7 +38,7 @@ import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.Cla
 import static org.junit.Assert.*;
 
 public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
-  @NotNull private StudioProfilersView myView;
+  private StudioProfilersView myView;
   @NotNull private final FakeMemoryService myService = new FakeMemoryService();
 
   @Rule
@@ -51,15 +51,18 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
   @Override
   protected void onProfilersCreated(StudioProfilers profilers) {
-    myView = new StudioProfilersView(profilers, new IdeProfilerComponentsStub());
+    myView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     myView.bind(MemoryProfilerStage.class, MemoryProfilerStageViewFake::new);
   }
 
   @Test
   public void testCaptureAndHeapView() throws Exception {
-    InstanceObject mockInstance = mockInstanceObject("DUMMY_INSTANCE");
-    ClassObject mockKlass1 = mockClassObject("DUMMY_CLASS1", Collections.singletonList(mockInstance));
-    ClassObject mockKlass2 = mockClassObject("DUMMY_CLASS2", Collections.singletonList(mockInstance));
+    final String dummyClassName1 = "DUMMY_CLASS1";
+    final String dummyClassName2 = "DUMMY_CLASS2";
+    InstanceObject mockInstance1 = mockInstanceObject(dummyClassName1, "DUMMY_INSTANCE");
+    InstanceObject mockInstance2 = mockInstanceObject(dummyClassName2, "DUMMY_INSTANCE");
+    ClassObject mockKlass1 = mockClassObject(dummyClassName1, Collections.singletonList(mockInstance1));
+    ClassObject mockKlass2 = mockClassObject(dummyClassName2, Collections.singletonList(mockInstance2));
     HeapObject mockHeap1 = mockHeapObject("DUMMY_HEAP1", Arrays.asList(mockKlass1, mockKlass2));
     HeapObject mockHeap2 = mockHeapObject("DUMMY_HEAP2", Arrays.asList(mockKlass2, mockKlass1));
     CaptureObject mockCapture1 = mockCaptureObject("DUMMY_CAPTURE1", 5, 10, Arrays.asList(mockHeap1, mockHeap2));
@@ -76,30 +79,30 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     myStage.selectCapture(mockCapture1, null);
     assertView(mockCapture1, null, null, null, true);
-    assertAndResetCounts(0, 1, 0, 0, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0);
     myMockLoader.runTask();
     assertView(mockCapture1, mockHeap1, null, null, false);
-    assertAndResetCounts(0, 0, 1, 0, 1, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 1, 0, 0);
 
     // Tests selecting a capture which loads immediately.
     myMockLoader.setReturnImmediateFuture(true);
     myStage.selectCapture(mockCapture2, null);
     // 2 heap changes: 1 from changing the capture, the other from the auto-selection after the capture is loaded.
     assertView(mockCapture2, mockHeap2, null, null, false);
-    assertAndResetCounts(0, 1, 1, 0, 2, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 1, 1, 0, 2, 0, 0);
 
     stageView.getHeapView().getComponent().setSelectedItem(mockHeap1);
     assertSelection(mockCapture2, mockHeap1, null, null);
-    assertAndResetCounts(0, 0, 0, 0, 1, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 1, 0, 0);
 
     myStage.selectClass(mockKlass1);
     assertView(mockCapture2, mockHeap1, mockKlass1, null, false);
-    assertAndResetCounts(0, 0, 0, 0, 0, 1, 0);
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 1, 0);
 
     assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
     myStage.getConfiguration().setClassGrouping(GROUP_BY_PACKAGE);
     assertEquals(GROUP_BY_PACKAGE, ((MemoryProfilerStageView)myView.getStageView()).getClassGrouping().getComponent().getSelectedItem());
-    assertAndResetCounts(0, 0, 0, 1, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 0, 0);
 
     JTree classTree = stageView.getClassView().getTree();
     assertNotNull(classTree);
@@ -112,8 +115,8 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
       .setSelectionPath(new TreePath(new Object[]{classTree.getModel().getRoot(), memoryClassRoot.getChildren().get(1)}));
     assertSelection(mockCapture2, mockHeap1, mockKlass2, null);
 
-    myStage.selectInstance(mockInstance);
-    assertSelection(mockCapture2, mockHeap1, mockKlass2, mockInstance);
+    myStage.selectInstance(mockInstance1);
+    assertSelection(mockCapture2, mockHeap1, mockKlass2, mockInstance1);
 
     myStage.selectCapture(null, null);
     assertView(null, null, null, null, false);
@@ -123,20 +126,20 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   public void testLoadingNewCaptureWithExistingLoad() throws Exception {
     HeapObject mockHeap1 = mockHeapObject("DUMMY_HEAP1", Collections.emptyList());
     HeapObject mockHeap2 = mockHeapObject("DUMMY_HEAP2", Collections.emptyList());
-    CaptureObject mockCapture1 = mockCaptureObject("DUMMY_CAPTURE1", 5, 10, Arrays.asList(mockHeap1));
-    CaptureObject mockCapture2 = mockCaptureObject("DUMMY_CAPTURE2", 10, 15, Arrays.asList(mockHeap2));
+    CaptureObject mockCapture1 = mockCaptureObject("DUMMY_CAPTURE1", 5, 10, Collections.singletonList(mockHeap1));
+    CaptureObject mockCapture2 = mockCaptureObject("DUMMY_CAPTURE2", 10, 15, Collections.singletonList(mockHeap2));
 
     myStage.selectCapture(mockCapture1, null);
     assertView(mockCapture1, null, null, null, true);
-    assertAndResetCounts(0, 1, 0, 0, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0);
 
     // Select a new capture before the first is loaded.
     myStage.selectCapture(mockCapture2, null);
     assertView(mockCapture2, null, null, null, true);
-    assertAndResetCounts(0, 1, 0, 0, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0);
     myMockLoader.runTask();
     assertView(mockCapture2, mockHeap2, null, null, false);
-    assertAndResetCounts(0, 0, 1, 0, 1, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 1, 0, 0);
   }
 
   private void assertSelection(@Nullable CaptureObject expectedCaptureObject,
