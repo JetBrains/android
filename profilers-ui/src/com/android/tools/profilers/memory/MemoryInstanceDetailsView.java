@@ -27,6 +27,7 @@ import com.android.tools.profilers.memory.adapters.ReferenceObject;
 import com.android.tools.profilers.common.StackView;
 import com.android.tools.profilers.common.StackLine;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.containers.HashMap;
@@ -67,6 +68,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
     // TODO fix tab styling. Currently tabs appear in the middle with too much padding.
     myTabbedPane = new JBTabbedPane();
+    myTabbedPane.setBorder(BorderFactory.createLineBorder(JBColor.border()));
 
     myStackView = new StackView(myStage.getStudioProfilers().getIdeServices(), () -> myStage.setProfilerMode(ProfilerMode.NORMAL));
 

@@ -28,10 +28,10 @@ import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.memory.adapters.*;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.PlatformIcons;
@@ -41,8 +41,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
@@ -180,6 +178,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     TabularLayout layout = new TabularLayout("*");
     JPanel panel = new JBPanel(layout);
+    panel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     panel.setBackground(ProfilerColors.MONITOR_BACKGROUND);
 
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
@@ -274,7 +273,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     rightAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH);
     rightAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
 
-
     axisPanel.add(rightAxis, BorderLayout.EAST);
 
     MemoryProfilerStage.MemoryStageLegends legends = getStage().getLegends();
@@ -309,6 +307,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull
   private JPanel buildCaptureUi() {
     JPanel headingPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+    headingPanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     headingPanel.add(myCaptureView.getComponent());
 
     JToolBar toolBar = new JToolBar();
