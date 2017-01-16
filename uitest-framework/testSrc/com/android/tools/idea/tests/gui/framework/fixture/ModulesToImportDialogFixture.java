@@ -107,7 +107,7 @@ public class ModulesToImportDialogFixture extends IdeaDialogFixture<ModulesToImp
   }
 
   public ModulesToImportDialogFixture doQuickSearch(@NotNull String string) {
-    robot().enterText(string);
+    robot().enterText(string, target());
     return this;
   }
 }
