@@ -20,6 +20,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -608,8 +609,7 @@ public class AppBarConfigurationDialog extends JDialog {
     if (task != null) {
       task.setRenderingMode(SessionParams.RenderingMode.NORMAL);
       task.setFolderType(ResourceFolderType.LAYOUT);
-      //noinspection deprecation
-      result = task.render();
+      result = Futures.getUnchecked(task.render());
       task.dispose();
     }
 
