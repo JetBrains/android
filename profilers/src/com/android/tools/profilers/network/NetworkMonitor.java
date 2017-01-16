@@ -20,7 +20,6 @@ import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
-import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
@@ -41,18 +40,6 @@ public class NetworkMonitor extends ProfilerMonitor {
     myTrafficAxis.setClampToMajorTicks(true);
 
     myLegends = new NetworkLegends(myNetworkUsage, getTimeline().getDataRange());
-  }
-
-  @NotNull
-  public NetworkTrafficDataSeries getSpeedSeries(NetworkTrafficDataSeries.Type trafficType) {
-    NetworkServiceGrpc.NetworkServiceBlockingStub client = myProfilers.getClient().getNetworkClient();
-    return new NetworkTrafficDataSeries(client, myProfilers.getProcessId(), trafficType);
-  }
-
-  @NotNull
-  public NetworkOpenConnectionsDataSeries getOpenConnectionsSeries() {
-    NetworkServiceGrpc.NetworkServiceBlockingStub client = myProfilers.getClient().getNetworkClient();
-    return new NetworkOpenConnectionsDataSeries(client, myProfilers.getProcessId());
   }
 
   @NotNull
