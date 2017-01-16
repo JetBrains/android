@@ -76,6 +76,7 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
     return Collections.enumeration(myChildren);
   }
 
+  @NotNull
   public ImmutableList<MemoryObjectTreeNode<T>> getChildren() {
     return ContainerUtil.immutableList(myChildren);
   }
@@ -110,10 +111,12 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
   @Override
   public void remove(MutableTreeNode node) {
     assert node instanceof MemoryObjectTreeNode;
+    ((MemoryObjectTreeNode)node).myParent = null;
     myChildren.remove(node);
   }
 
   public void removeAll() {
+    myChildren.forEach(child -> child.myParent = null);
     myChildren.clear();
   }
 
@@ -152,7 +155,7 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
     if ((myParent != null && myParent.myComparator != myComparator)
         || myParent == null && myComparator != null) {
       myComparator = myParent != null ? myParent.myComparator : myComparator;
-      Collections.sort(myChildren, myComparator);
+      myChildren.sort(myComparator);
     }
   }
 }
