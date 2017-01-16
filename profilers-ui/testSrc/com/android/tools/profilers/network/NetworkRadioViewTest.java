@@ -16,7 +16,7 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.LegendComponent;
-import com.android.tools.adtui.chart.StateChart;
+import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
