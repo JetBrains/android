@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.validation.common;
 
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
+import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
@@ -39,9 +39,9 @@ import java.util.Set;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.PROJECT_STRUCTURE_ISSUES;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
+import static com.android.tools.idea.gradle.util.Projects.findModuleRootFolderPath;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 class UniquePathModuleValidatorStrategy extends CommonProjectValidationStrategy {
   @NotNull private final Multimap<String, Module> myModulesByPath = ArrayListMultimap.create();
@@ -52,16 +52,10 @@ class UniquePathModuleValidatorStrategy extends CommonProjectValidationStrategy 
 
   @Override
   void validate(@NotNull Module module) {
-    File moduleFolderPath = getModuleFilePath(module).getParentFile();
+    File moduleFolderPath = findModuleRootFolderPath(module);
     if (moduleFolderPath != null) {
       myModulesByPath.put(moduleFolderPath.getPath(), module);
     }
-  }
-
-  @NotNull
-  private static File getModuleFilePath(@NotNull Module module) {
-    String path = module.getModuleFilePath();
-    return new File(toSystemDependentName(path));
   }
 
   @Override

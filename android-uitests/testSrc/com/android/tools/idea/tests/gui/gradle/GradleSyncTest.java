@@ -88,6 +88,7 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
@@ -285,7 +286,7 @@ public class GradleSyncTest {
           for (ExcludeFolder excluded : parent.getExcludeFolders()) {
             String path = urlToPath(excluded.getUrl());
             if (isNotEmpty(path)) {
-              paths.add(new File(toSystemDependentName(path)));
+              paths.add(toSystemDependentPath(path));
             }
           }
           return paths.toArray(new File[paths.size()]);

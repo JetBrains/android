@@ -34,9 +34,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 /**
  * Implementation of {@link JUnitPatcher} that removes android.jar from the class path. It's only applicable to
@@ -111,7 +111,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     // classpath.
     List<String> mockableJars = ContainerUtil.newSmartList();
     for (String path : classPath.getPathList()) {
-      if (new File(toSystemDependentName(path)).getName().startsWith("mockable-")) {
+      if (toSystemDependentPath(path).getName().startsWith("mockable-")) {
         // PathsList stores strings - use the one that's actually stored there.
         mockableJars.add(path);
       }
