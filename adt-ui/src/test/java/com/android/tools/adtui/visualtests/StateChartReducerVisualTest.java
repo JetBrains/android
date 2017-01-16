@@ -16,7 +16,7 @@
 package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.chart.StateChart;
+import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
 import com.intellij.ui.JBColor;
@@ -57,7 +57,7 @@ public class StateChartReducerVisualTest extends VisualTest {
     myViewRange = new Range(0, 0);
     myData = new DefaultDataSeries<>();
     RangedSeries<ColorState> series = new RangedSeries<>(myViewRange, myData);
-    StateChartModel<ColorState> model = new StateChartModel();
+    StateChartModel<ColorState> model = new StateChartModel<>();
     myColorChart = new StateChart<>(model, COLOR_STATE_COLORS, (rectangles, values) -> {});
     model.addSeries(series);
 

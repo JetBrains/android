@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package com.android.tools.adtui.chart;
+package com.android.tools.adtui.chart.statechart;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.EnumColors;
-import com.android.tools.adtui.common.datareducer.StateChartReducer;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.StateChartModel;
@@ -82,8 +81,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
   }
 
   public StateChart(@NotNull StateChartModel<E> model, @NotNull EnumColors<E> enumColors) {
-    // TODO: Replace with new DefaultStateChartReducer()
-    this(model, enumColors, (rectangles, values) -> {});
+    this(model, enumColors, new DefaultStateChartReducer<>());
   }
 
   @VisibleForTesting
@@ -150,6 +148,8 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
   }
 
   protected void render() {
+    long renderTime = System.nanoTime();
+
     List<RangedSeries<E>> series = myModel.getSeries();
     int seriesSize = series.size();
     if (seriesSize == 0) {
@@ -220,6 +220,8 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
     if (rectCount < mRectangles.size()) {
       mRectangles.subList(rectCount, mRectangles.size()).clear();
     }
+
+    addDebugInfo("Render time: %.2fms", (System.nanoTime() - renderTime) / 1000000.f);
   }
 
   @Override
@@ -228,6 +230,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
       render();
       myRender = false;
     }
+    long drawTime = System.nanoTime();
 
     g2d.setFont(getFont());
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -267,7 +270,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
           break;
       }
     }
-
+    addDebugInfo("Draw time: %.2fms", (System.nanoTime() - drawTime) / 1000000.f);
     addDebugInfo("# of drawn rects: %d", transformedShapes.size());
   }
 
