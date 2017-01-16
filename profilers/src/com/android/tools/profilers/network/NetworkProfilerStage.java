@@ -50,8 +50,6 @@ public class NetworkProfilerStage extends Stage {
   private final NetworkConnectionsModel myConnectionsModel =
     new RpcNetworkConnectionsModel(getStudioProfilers().getClient().getNetworkClient(), getStudioProfilers().getProcessId());
 
-  private final NetworkRadioDataSeries myRadioDataSeries =
-    new NetworkRadioDataSeries(getStudioProfilers().getClient().getNetworkClient(), getStudioProfilers().getProcessId());
   private final DetailedNetworkUsage myDetailedNetworkUsage;
   private final NetworkStageLegends myLegends;
   private final AxisComponentModel myTrafficAxis;
@@ -61,8 +59,9 @@ public class NetworkProfilerStage extends Stage {
   public NetworkProfilerStage(StudioProfilers profilers) {
     super(profilers);
 
+    NetworkRadioDataSeries radioDataSeries = new NetworkRadioDataSeries(profilers.getClient().getNetworkClient(), profilers.getProcessId());
     myRadioState = new StateChartModel<>();
-    myRadioState.addSeries(new RangedSeries<>(getStudioProfilers().getTimeline().getViewRange(), getRadioDataSeries()));
+    myRadioState.addSeries(new RangedSeries<>(getStudioProfilers().getTimeline().getViewRange(), radioDataSeries));
 
     myDetailedNetworkUsage = new DetailedNetworkUsage(profilers);
 
@@ -116,11 +115,6 @@ public class NetworkProfilerStage extends Stage {
   @NotNull
   public NetworkConnectionsModel getConnectionsModel() {
     return myConnectionsModel;
-  }
-
-  @NotNull
-  public NetworkRadioDataSeries getRadioDataSeries() {
-    return myRadioDataSeries;
   }
 
   /**
@@ -190,26 +184,32 @@ public class NetworkProfilerStage extends Stage {
     getStudioProfilers().getUpdater().unregister(myLegends);
   }
 
+  @NotNull
   public String getName() {
     return "Network";
   }
 
+  @NotNull
   public DetailedNetworkUsage getDetailedNetworkUsage() {
     return myDetailedNetworkUsage;
   }
 
+  @NotNull
   public AxisComponentModel getTrafficAxis() {
     return myTrafficAxis;
   }
 
+  @NotNull
   public AxisComponentModel getConnectionsAxis() {
     return myConnectionsAxis;
   }
 
+  @NotNull
   public NetworkStageLegends getLegends() {
     return myLegends;
   }
 
+  @NotNull
   public EventMonitor getEventMonitor() {
     return myEventMonitor;
   }
