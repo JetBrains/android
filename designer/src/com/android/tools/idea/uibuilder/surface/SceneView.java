@@ -47,13 +47,9 @@ public abstract class SceneView {
   protected final NlModel myModel;
   protected Scene myScene = null;
 
-  public SceneView(DesignSurface surface, @NotNull NlModel model) {
+  public SceneView(@NotNull DesignSurface surface, @NotNull NlModel model) {
     mySurface = surface;
     myModel = model;
-
-    if (!ConstraintLayoutHandler.USE_SOLVER) {
-      myScene = Scene.createScene(myModel, this);
-    }
 
     if (!ConstraintLayoutHandler.USE_SOLVER) {
       myScene = Scene.createScene(myModel, this);
@@ -62,9 +58,7 @@ public abstract class SceneView {
     myModel.getSelectionModel().addListener((model1, selection) -> ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        if (mySurface!=null) {
-          mySurface.repaint();
-        }
+        mySurface.repaint();
       }
     }));
   }
