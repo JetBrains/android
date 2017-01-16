@@ -16,10 +16,10 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.HeapObject;
 import com.android.tools.profilers.memory.adapters.NamespaceObject;
-import com.android.tools.profilers.common.CodeLocation;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -72,9 +72,9 @@ public class MemoryClassViewTest {
 
     // Setup fake package hierarchy
     ClassObject mockClass1 = MemoryProfilerTestBase.mockClassObject("int", Collections.emptyList());
-    ClassObject mockClass2 = MemoryProfilerTestBase.mockClassObject("com.android.Foo", Collections.emptyList());
+    ClassObject mockClass2 = MemoryProfilerTestBase.mockClassObject("com.android.studio.Foo", Collections.emptyList());
     ClassObject mockClass3 = MemoryProfilerTestBase.mockClassObject("com.google.Bar", Collections.emptyList());
-    ClassObject mockClass4 = MemoryProfilerTestBase.mockClassObject("com.android.Foo2", Collections.emptyList());
+    ClassObject mockClass4 = MemoryProfilerTestBase.mockClassObject("com.android.studio.Foo2", Collections.emptyList());
     ClassObject mockClass5 = MemoryProfilerTestBase.mockClassObject("java.lang.Object", Collections.emptyList());
     ClassObject mockClass6 = MemoryProfilerTestBase.mockClassObject("long", Collections.emptyList());
     List<ClassObject> fakeClassObjects = Arrays.asList(mockClass1, mockClass2, mockClass3, mockClass4, mockClass5, mockClass6);
@@ -86,12 +86,15 @@ public class MemoryClassViewTest {
     JTree classTree = classView.getTree();
     Object root = classTree.getModel().getRoot();
     assertTrue(root instanceof MemoryObjectTreeNode);
+    assertTrue(((MemoryObjectTreeNode)root).getAdapter() instanceof NamespaceObject);
     //noinspection unchecked
     classTree.setSelectionPath(new TreePath(new Object[]{root,
       ((MemoryObjectTreeNode<NamespaceObject>)classTree.getModel().getRoot()).getChildren().get(0)}));
 
     // Check if group by package is grouping as expected.
     myStage.getConfiguration().setClassGrouping(GROUP_BY_PACKAGE);
+    //noinspection unchecked
+    assertEquals(6, countClassObjects((MemoryObjectTreeNode<NamespaceObject>)root)); // 6 is the number of mockClass*
     assertTrue(classTree.getSelectionPath().getLastPathComponent() instanceof MemoryObjectTreeNode);
     //noinspection unchecked
     assertEquals(mockClass1, ((MemoryObjectTreeNode<ClassObject>)classTree.getSelectionPath().getLastPathComponent()).getAdapter());
@@ -102,12 +105,10 @@ public class MemoryClassViewTest {
     assertEquals(1, children.stream().filter((child) -> child.getAdapter() == mockClass1).count());
     assertEquals(1, children.stream().filter((child) -> child.getAdapter() == mockClass6).count());
 
-    MemoryObjectTreeNode<NamespaceObject> javaPackage = getSingularInList(children, (child) -> child.getAdapter().getName().equals("java"));
-    MemoryObjectTreeNode<NamespaceObject> langPackage = javaPackage.getChildren().get(0);
-    assertEquals(1, langPackage.getChildCount());
-    assertEquals("lang", langPackage.getAdapter().getName());
-    assertEquals(1, langPackage.getChildCount());
-    assertEquals(mockClass5, langPackage.getChildren().get(0).getAdapter());
+    MemoryObjectTreeNode<NamespaceObject> javaLangPackage =
+      getSingularInList(children, (child) -> child.getAdapter().getName().equals("java.lang"));
+    assertEquals(1, javaLangPackage.getChildCount());
+    assertEquals(mockClass5, javaLangPackage.getChildren().get(0).getAdapter());
 
     MemoryObjectTreeNode<NamespaceObject> comPackage = getSingularInList(children, (child) -> child.getAdapter().getName().equals("com"));
     assertEquals(2, comPackage.getChildCount());
@@ -118,7 +119,7 @@ public class MemoryClassViewTest {
     assertEquals(mockClass3, googlePackage.getChildren().get(0).getAdapter());
 
     MemoryObjectTreeNode<NamespaceObject> androidPackage =
-      getSingularInList(comPackage.getChildren(), (child) -> child.getAdapter().getName().equals("android"));
+      getSingularInList(comPackage.getChildren(), (child) -> child.getAdapter().getName().equals("android.studio"));
     assertEquals(2, androidPackage.getChildCount());
     assertEquals(mockClass2, androidPackage.getChildren().get(0).getAdapter());
     assertEquals(mockClass4, androidPackage.getChildren().get(1).getAdapter());
@@ -227,5 +228,18 @@ public class MemoryClassViewTest {
     List<T> reducedList = list.stream().filter(predicate).collect(Collectors.toList());
     assertEquals(1, reducedList.size());
     return reducedList.get(0);
+  }
+
+  private static int countClassObjects(@NotNull MemoryObjectTreeNode<NamespaceObject> node) {
+    int classObjectCount = 0;
+    for (MemoryObjectTreeNode<NamespaceObject> child : node.getChildren()) {
+      if (child.getAdapter() instanceof ClassObject) {
+        classObjectCount++;
+      }
+      else {
+        classObjectCount += countClassObjects(child);
+      }
+    }
+    return classObjectCount;
   }
 }
