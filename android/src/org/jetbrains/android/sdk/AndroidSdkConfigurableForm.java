@@ -38,7 +38,7 @@ import java.awt.event.ItemEvent;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.gradle.util.FilePaths.pathToFile;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 
 /**
  * @author Eugene.Kudelevsky
@@ -87,7 +87,7 @@ class AndroidSdkConfigurableForm {
       }
       final IAndroidTarget target = (IAndroidTarget)e.getItem();
 
-      List<OrderRoot> roots = AndroidSdks.getInstance().getLibraryRootsForTarget(target, pathToFile(mySdkLocation), true);
+      List<OrderRoot> roots = AndroidSdks.getInstance().getLibraryRootsForTarget(target, toSystemDependentPath(mySdkLocation), true);
       Map<OrderRootType, String[]> configuredRoots = new HashMap<>();
 
       for (OrderRootType type : OrderRootType.getAllTypes()) {

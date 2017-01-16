@@ -58,6 +58,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.Projects.findModuleRootFolderPath;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
@@ -303,13 +304,12 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
   private boolean isTopModuleDirectoryOrParent(@NotNull VirtualFile directory) {
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      File moduleFilePath = new File(toSystemDependentName(module.getModuleFilePath()));
-      File moduleRootDirPath = moduleFilePath.getParentFile();
-      if (moduleRootDirPath == null) {
+      File moduleRootFolderPath = findModuleRootFolderPath(module);
+      if (moduleRootFolderPath == null) {
         continue;
       }
       File baseDirPath = Projects.getBaseDirPath(myProject);
-      if (filesEqual(moduleRootDirPath, baseDirPath)) {
+      if (filesEqual(moduleRootFolderPath, baseDirPath)) {
         // This is the project module. Don't allow to delete.
         File directoryPath = virtualToIoFile(directory);
         return isAncestor(directoryPath, baseDirPath, false);

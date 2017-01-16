@@ -67,13 +67,13 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Properties;
 
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.npw.WizardUtils.validateLocation;
 import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
 import static com.android.tools.idea.startup.Actions.*;
 import static com.intellij.openapi.actionSystem.Anchor.AFTER;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.DEFAULT_JDK_NAME;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
@@ -298,7 +298,7 @@ public class GradleSpecificInitializer implements Runnable {
     if (sdk != null) {
       String sdkHomePath = sdk.getHomePath();
       assert sdkHomePath != null;
-      ideSdks.createAndroidSdkPerAndroidTarget(new File(toSystemDependentName(sdkHomePath)));
+      ideSdks.createAndroidSdkPerAndroidTarget(toSystemDependentPath(sdkHomePath));
       return;
     }
 
@@ -390,7 +390,7 @@ public class GradleSpecificInitializer implements Runnable {
 
     if (!isEmpty(androidHomeValue) && AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue)) {
       LOG.info("Using Android SDK specified by the environment variable.");
-      return new File(toSystemDependentName(androidHomeValue));
+      return toSystemDependentPath(androidHomeValue);
     }
 
     String toolsPreferencePath = AndroidLocation.getFolderWithoutWrites();
@@ -401,7 +401,7 @@ public class GradleSpecificInitializer implements Runnable {
       msg = "Unable to locate last SDK used by Android tools";
     }
     LOG.info(msg);
-    return sdkPath == null ? null : new File(toSystemDependentName(sdkPath));
+    return toSystemDependentPath(sdkPath);
   }
 
   /**

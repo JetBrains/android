@@ -20,10 +20,10 @@ import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
-import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -37,7 +37,7 @@ import java.io.File;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.android.tools.idea.gradle.util.Projects.findModuleRootFolderPath;
 
 public class ModuleSetup {
   @NotNull private final IdeModifiableModelsProvider myIdeModelsProvider;
@@ -69,7 +69,10 @@ public class ModuleSetup {
   public void setUpModule(@NotNull Module module, @NotNull SyncAction.ModuleModels models, @NotNull ProgressIndicator indicator) {
     boolean isProjectRootFolder = false;
 
-    File gradleSettingsFile = new File(getModulePath(module), FN_SETTINGS_GRADLE);
+    File moduleRootFolderPath = findModuleRootFolderPath(module);
+    assert moduleRootFolderPath != null;
+
+    File gradleSettingsFile = new File(moduleRootFolderPath, FN_SETTINGS_GRADLE);
     if (gradleSettingsFile.isFile() && !models.hasModel(AndroidProject.class) && !models.hasModel(NativeAndroidProject.class)) {
       // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
       // compile it using Gradle. We still need to create the module to display files inside it.
@@ -97,7 +100,7 @@ public class ModuleSetup {
 
     NativeAndroidProject nativeAndroidProject = models.findModel(NativeAndroidProject.class);
     if (nativeAndroidProject != null) {
-      NdkModuleModel ndkModuleModel = new NdkModuleModel(module.getName(), getModulePath(module), nativeAndroidProject);
+      NdkModuleModel ndkModuleModel = new NdkModuleModel(module.getName(), moduleRootFolderPath, nativeAndroidProject);
       myNdkModuleSetup.setUpModule(module, myIdeModelsProvider, ndkModuleModel, models, indicator);
       return;
     }
@@ -117,7 +120,10 @@ public class ModuleSetup {
   private AndroidModuleModel createAndroidModel(@NotNull Module module, @NotNull AndroidProject androidProject) {
     Variant variantToSelect = myVariantSelector.findVariantToSelect(androidProject);
     if (variantToSelect != null) {
-      return new AndroidModuleModel(module.getName(), getModulePath(module), androidProject, variantToSelect.getName());
+      File moduleRootFolderPath = findModuleRootFolderPath(module);
+      if (moduleRootFolderPath != null) {
+        return new AndroidModuleModel(module.getName(), moduleRootFolderPath, androidProject, variantToSelect.getName());
+      }
     }
     // If an Android project does not have variants, it would be impossible to build. This is a possible but invalid use case.
     // For now we are going to treat this case as a Java library module, because everywhere in the IDE (e.g. run configurations,
@@ -125,12 +131,6 @@ public class ModuleSetup {
     // per Android project, and changing that in the code base is too risky, for very little benefit.
     // See https://code.google.com/p/android/issues/detail?id=170722
     return null;
-  }
-
-  @NotNull
-  private static File getModulePath(@NotNull Module module) {
-    File moduleFilePath = new File(toSystemDependentName(module.getModuleFilePath()));
-    return moduleFilePath.getParentFile();
   }
 
   private void setUpJavaModule(@NotNull Module module,

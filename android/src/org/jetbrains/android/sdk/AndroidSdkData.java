@@ -45,6 +45,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 import static com.android.SdkConstants.FD_PLATFORM_TOOLS;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.targetHasId;
 import static org.jetbrains.android.util.AndroidCommonUtils.parsePackageRevision;
@@ -108,7 +109,7 @@ public class AndroidSdkData {
 
   @Nullable
   public static AndroidSdkData getSdkData(@NotNull String sdkPath) {
-    File file = new File(toSystemDependentName(sdkPath));
+    File file = toSystemDependentPath(sdkPath);
     return getSdkData(file);
   }
 

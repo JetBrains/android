@@ -40,8 +40,8 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.getTargetPresentableName;
@@ -92,7 +92,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     if (isEmpty(path)) {
       return false;
     }
-    File sdkPath = new File(toSystemDependentName(path));
+    File sdkPath = toSystemDependentPath(path);
     return validateAndroidSdk(sdkPath, false).success;
   }
 

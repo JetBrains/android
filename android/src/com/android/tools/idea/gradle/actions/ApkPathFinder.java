@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
-import static com.android.tools.idea.gradle.util.FilePaths.pathToFile;
+import static com.android.tools.idea.gradle.util.Projects.findModuleRootFolderPath;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
@@ -49,8 +49,7 @@ class ApkPathFinder {
         }
       }
     }
-    File moduleFilePath = pathToFile(module.getModuleFilePath());
-    File potentialPath = moduleFilePath.getParentFile();
-    return potentialPath.isDirectory() ? potentialPath : null;
+    File potentialPath = findModuleRootFolderPath(module);
+    return potentialPath != null && potentialPath.isDirectory() ? potentialPath : null;
   }
 }

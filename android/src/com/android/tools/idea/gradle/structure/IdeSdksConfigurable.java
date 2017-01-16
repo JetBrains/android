@@ -72,6 +72,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.FD_NDK;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.npw.WizardUtils.validateLocation;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
@@ -536,13 +537,13 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
   @NotNull
   private File getSdkLocation() {
     String sdkLocation = mySdkLocationTextField.getText();
-    return new File(toSystemDependentName(sdkLocation));
+    return toSystemDependentPath(sdkLocation);
   }
 
   @NotNull
   private File getNdkLocation() {
     String ndkLocation = myNdkLocationTextField.getText();
-    return new File(toSystemDependentName(ndkLocation));
+    return toSystemDependentPath(ndkLocation);
   }
 
   @Override
@@ -669,13 +670,13 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
   @NotNull
   private File getUserSelectedJdkLocation() {
     String jdkLocation = nullToEmpty(myUserSelectedJdkHomePath);
-    return new File(toSystemDependentName(jdkLocation));
+    return toSystemDependentPath(jdkLocation);
   }
 
   @NotNull
   private File getJdkLocation() {
     String jdkLocation = myJdkLocationTextField.getText();
-    return new File(toSystemDependentName(jdkLocation));
+    return toSystemDependentPath(jdkLocation);
   }
 
   private boolean useEmbeddedJdk() {
