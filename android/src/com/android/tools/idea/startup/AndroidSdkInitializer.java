@@ -40,11 +40,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
@@ -100,7 +99,7 @@ public class AndroidSdkInitializer implements Runnable {
     if (sdk != null) {
       String sdkHomePath = sdk.getHomePath();
       assert sdkHomePath != null;
-      IdeSdks.getInstance().createAndroidSdkPerAndroidTarget(new File(toSystemDependentName(sdkHomePath)));
+      IdeSdks.getInstance().createAndroidSdkPerAndroidTarget(toSystemDependentPath(sdkHomePath));
       return;
     }
 
@@ -180,7 +179,7 @@ public class AndroidSdkInitializer implements Runnable {
 
     if (!isEmpty(androidHomeValue) && AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue)) {
       LOG.info("Using Android SDK specified by the environment variable.");
-      return new File(toSystemDependentName(androidHomeValue));
+      return toSystemDependentPath(androidHomeValue);
     }
 
     String sdkPath = getLastSdkPathUsedByAndroidTools();
@@ -190,7 +189,7 @@ public class AndroidSdkInitializer implements Runnable {
       msg = "Unable to locate last SDK used by Android tools";
     }
     LOG.info(msg);
-    return sdkPath != null ? new File(toSystemDependentName(sdkPath)) : null;
+    return sdkPath != null ? toSystemDependentPath(sdkPath) : null;
   }
 
   /**

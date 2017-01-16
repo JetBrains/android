@@ -55,6 +55,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.EXT_JAR;
 import static com.android.tools.idea.gradle.util.AndroidStudioPreferences.cleanUpPreferences;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.startup.Actions.hideAction;
 import static com.android.tools.idea.startup.Actions.replaceAction;
 import static com.intellij.openapi.actionSystem.IdeActions.*;
@@ -119,7 +120,7 @@ public class AndroidStudioInitializer implements Runnable {
       LOG.info("Unable to find Studio home directory");
       return;
     }
-    File studioHomePath = new File(toSystemDependentName(studioHome));
+    File studioHomePath = toSystemDependentPath(studioHome);
     if (!studioHomePath.isDirectory()) {
       LOG.info(String.format("The path '%1$s' does not belong to an existing directory", studioHomePath.getPath()));
       return;

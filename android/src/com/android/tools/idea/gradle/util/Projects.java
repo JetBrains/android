@@ -66,6 +66,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
@@ -313,13 +314,18 @@ public final class Projects {
     // if we got here is because we are dealing with a Gradle project, but if there is only one module selected and this module is the
     // module that corresponds to the project itself, it won't have an android-gradle facet. In this case we treat it as if we were going
     // to build the whole project.
-    File moduleFilePath = new File(toSystemDependentName(module.getModuleFilePath()));
-    File moduleRootDirPath = moduleFilePath.getParentFile();
-    if (moduleRootDirPath == null) {
+    File moduleRootFolderPath = findModuleRootFolderPath(module);
+    if (moduleRootFolderPath == null) {
       return false;
     }
     String basePath = module.getProject().getBasePath();
-    return basePath != null && filesEqual(moduleRootDirPath, new File(basePath)) && !isBuildWithGradle(module);
+    return basePath != null && filesEqual(moduleRootFolderPath, new File(basePath)) && !isBuildWithGradle(module);
+  }
+
+  @Nullable
+  public static File findModuleRootFolderPath(@NotNull Module module) {
+    File moduleFilePath = toSystemDependentPath(module.getModuleFilePath());
+    return moduleFilePath.getParentFile();
   }
 
   /**
@@ -370,7 +376,7 @@ public final class Projects {
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
     if (androidFacet != null && androidFacet.requiresAndroidModel() && isBuildWithGradle(module)) {
       // If the module is an Android project, check that the module's path is the same as the project's.
-      File moduleFilePath = new File(toSystemDependentName(module.getModuleFilePath()));
+      File moduleFilePath = toSystemDependentPath(module.getModuleFilePath());
       File moduleRootDirPath = moduleFilePath.getParentFile();
       return pathsEqual(moduleRootDirPath.getPath(), module.getProject().getBasePath());
     }
