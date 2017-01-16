@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.driver;
 
 import com.intellij.ui.SearchTextField;
+import com.intellij.ui.components.JBTextField;
 import org.fest.swing.annotation.RunsInEDT;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.JComponentDriver;
@@ -56,8 +57,9 @@ public class SearchTextFieldDriver extends JComponentDriver implements TextDispl
 
   @RunsInEDT
   public void enterText(@NotNull SearchTextField textBox, @NotNull String text) {
-    focusAndWaitForFocusGain(textBox.getTextEditor());
-    robot.enterText(text);
+    JBTextField textField = textBox.getTextEditor();
+    focusAndWaitForFocusGain(textField);
+    robot.enterText(text, textField);
   }
 
   @RunsInEDT
