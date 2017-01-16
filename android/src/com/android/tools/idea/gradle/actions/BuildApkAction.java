@@ -49,8 +49,6 @@ public class BuildApkAction extends DumbAwareAction {
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
     if (project != null && GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
-      GoToApkLocationTask task = null;
-
       List<Module> appModules = new ArrayList<>();
 
       for (Module module : ModuleManager.getInstance(project).getModules()) {
@@ -60,18 +58,15 @@ public class BuildApkAction extends DumbAwareAction {
           if (androidModel != null && androidModel.getProjectType() == PROJECT_TYPE_APP) {
             String assembleTaskName = facet.getProperties().ASSEMBLE_TASK_NAME;
             if (isNotEmpty(assembleTaskName)) {
-              if (task == null) {
-                task = new GoToApkLocationTask(ACTION_TEXT, module, null);
-              }
               appModules.add(module);
             }
           }
         }
       }
 
-      if (task != null && !appModules.isEmpty()) {
+      if (!appModules.isEmpty()) {
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
-        gradleBuildInvoker.add(task);
+        gradleBuildInvoker.add(new GoToApkLocationTask(appModules, ACTION_TEXT));
         gradleBuildInvoker.assemble(appModules.toArray(new Module[appModules.size()]), TestCompileType.NONE);
       }
     }
