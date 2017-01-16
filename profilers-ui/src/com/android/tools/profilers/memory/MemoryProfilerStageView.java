@@ -28,7 +28,6 @@ import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.memory.adapters.*;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
@@ -41,8 +40,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
@@ -83,6 +80,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     captureObjectChanged();
 
     myAllocationButton = new JButton("Record");
+    myAllocationButton.setToolTipText("Starts/stops recording of memory allocations");
     myAllocationButton
       .addActionListener(e -> getStage().trackAllocations(!getStage().isTrackingAllocations(), SwingUtilities::invokeLater));
 
@@ -96,7 +94,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   @Override
   public JComponent getToolbar() {
-
     JButton backButton = new JButton();
     backButton.addActionListener(action -> getStage().getStudioProfilers().setMonitoringStage());
     backButton.setIcon(AllIcons.Actions.Back);
@@ -107,6 +104,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     toolBar.add(myAllocationButton);
 
     JButton triggerHeapDumpButton = new JButton("Heap Dump");
+    triggerHeapDumpButton.setToolTipText("Takes an Hprof snapshot of the application memory");
     triggerHeapDumpButton.addActionListener(e -> getStage().requestHeapDump(SwingUtilities::invokeLater));
     toolBar.add(triggerHeapDumpButton);
 
