@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 
 public class ModuleDisposer {
   public void disposeModulesAndMarkImlFilesForDeletion(@NotNull Collection<Module> modules,
@@ -39,7 +39,7 @@ public class ModuleDisposer {
       List<File> imlFilesToRemove = new ArrayList<>();
 
       for (Module toDispose : modules) {
-        File imlFilePath = new File(toSystemDependentName(toDispose.getModuleFilePath()));
+        File imlFilePath = toSystemDependentPath(toDispose.getModuleFilePath());
         imlFilesToRemove.add(imlFilePath);
         moduleModel.disposeModule(toDispose);
       }

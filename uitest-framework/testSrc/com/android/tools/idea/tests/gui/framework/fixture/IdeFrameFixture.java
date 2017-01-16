@@ -93,6 +93,7 @@ import java.util.function.Function;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
@@ -190,7 +191,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
               JpsModuleSourceRootType<?> rootType = folder.getRootType();
               if (rootType.equals(sourceType)) {
                 String path = urlToPath(folder.getUrl());
-                String relativePath = getRelativePath(myProjectPath, new File(toSystemDependentName(path)));
+                String relativePath = getRelativePath(myProjectPath, toSystemDependentPath(path));
                 paths.add(PathUtil.toSystemIndependentName(relativePath));
               }
             }

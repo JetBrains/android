@@ -50,7 +50,7 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.sdklib.IAndroidTarget.RESOURCES;
-import static com.android.tools.idea.gradle.util.FilePaths.pathToFile;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createUniqueSdkName;
@@ -98,7 +98,7 @@ public class AndroidSdks {
         if (moduleSdk != null && isAndroidSdk(moduleSdk)) {
           String homePath = moduleSdk.getHomePath();
           if (homePath != null) {
-            File sdkHomePath = new File(toSystemDependentName(homePath));
+            File sdkHomePath = toSystemDependentPath(homePath);
             if (isMissingAddonsFolder(sdkHomePath)) {
               return sdkHomePath;
             }
@@ -164,7 +164,7 @@ public class AndroidSdks {
     File javaDocPath = findJavadocFolder(new File(getPlatformPath(target)));
 
     if (javaDocPath == null) {
-      File sdkDir = pathToFile(sdk.getHomePath());
+      File sdkDir = toSystemDependentPath(sdk.getHomePath());
       if (sdkDir != null) {
         javaDocPath = findJavadocFolder(sdkDir);
       }
@@ -323,7 +323,7 @@ public class AndroidSdks {
     sdkModificator.setName(name);
 
     if (addRoots) {
-      List<OrderRoot> newRoots = getLibraryRootsForTarget(target, pathToFile(sdkModificator.getHomePath()), true);
+      List<OrderRoot> newRoots = getLibraryRootsForTarget(target, toSystemDependentPath(sdkModificator.getHomePath()), true);
       sdkModificator.removeAllRoots();
       for (OrderRoot orderRoot : newRoots) {
         sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
@@ -559,7 +559,7 @@ public class AndroidSdks {
         OrderRootType javaDocType = JavadocOrderRootType.getInstance();
         SdkModificator sdkModificator = sdk.getSdkModificator();
 
-        List<OrderRoot> newRoots = getLibraryRootsForTarget(target, pathToFile(sdkModificator.getHomePath()), true);
+        List<OrderRoot> newRoots = getLibraryRootsForTarget(target, toSystemDependentPath(sdkModificator.getHomePath()), true);
         sdkModificator.removeRoots(javaDocType);
         for (OrderRoot orderRoot : newRoots) {
           if (orderRoot.getType() == javaDocType) {

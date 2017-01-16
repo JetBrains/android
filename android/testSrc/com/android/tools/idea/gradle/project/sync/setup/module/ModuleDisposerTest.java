@@ -29,11 +29,9 @@ import org.mockito.Mock;
 import java.io.File;
 import java.util.Collections;
 
-import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static org.mockito.Matchers.anyList;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -73,7 +71,7 @@ public class ModuleDisposerTest extends IdeaTestCase {
   public void testDisposeModulesAndMarkImlFilesForDeletion() {
     // This module should be disposed.
     Module libModule = createModule("lib");
-    File libImlFilePath = new File(toSystemDependentName(libModule.getModuleFilePath()));
+    File libImlFilePath = toSystemDependentPath(libModule.getModuleFilePath());
 
     Project project = getProject();
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(project);

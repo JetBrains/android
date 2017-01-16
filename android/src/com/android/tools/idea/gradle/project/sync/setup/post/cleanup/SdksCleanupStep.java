@@ -50,7 +50,7 @@ import java.util.List;
 import static com.android.SdkConstants.FN_ANNOTATIONS_JAR;
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
-import static com.android.tools.idea.gradle.util.FilePaths.pathToFile;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 
@@ -99,7 +99,7 @@ public class SdksCleanupStep extends ProjectCleanupStep {
           // First try to recreate SDK; workaround for issue 78072
           SdkModificator sdkModificator = sdk.getSdkModificator();
           sdkModificator.removeAllRoots();
-          for (OrderRoot orderRoot : myAndroidSdks.getLibraryRootsForTarget(target, pathToFile(sdk.getHomePath()), true)) {
+          for (OrderRoot orderRoot : myAndroidSdks.getLibraryRootsForTarget(target, toSystemDependentPath(sdk.getHomePath()), true)) {
             sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
           }
           attachJdkAnnotations(sdkModificator);
