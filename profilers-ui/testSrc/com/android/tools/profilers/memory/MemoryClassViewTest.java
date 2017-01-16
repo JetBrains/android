@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.memory.adapters.ClassObject;
@@ -71,12 +72,12 @@ public class MemoryClassViewTest {
     MemoryClassView classView = new MemoryClassView(myStage, myFakeIdeProfilerComponents);
 
     // Setup fake package hierarchy
-    ClassObject mockClass1 = MemoryProfilerTestBase.mockClassObject("com.android.studio.Foo", Collections.emptyList());
-    ClassObject mockClass2 = MemoryProfilerTestBase.mockClassObject("int", Collections.emptyList());
-    ClassObject mockClass3 = MemoryProfilerTestBase.mockClassObject("com.google.Bar", Collections.emptyList());
-    ClassObject mockClass4 = MemoryProfilerTestBase.mockClassObject("com.android.studio.Foo2", Collections.emptyList());
-    ClassObject mockClass5 = MemoryProfilerTestBase.mockClassObject("java.lang.Object", Collections.emptyList());
-    ClassObject mockClass6 = MemoryProfilerTestBase.mockClassObject("long", Collections.emptyList());
+    ClassObject mockClass1 = MemoryProfilerTestBase.mockClassObject("com.android.studio.Foo", 1, 2, 3, Collections.emptyList());
+    ClassObject mockClass2 = MemoryProfilerTestBase.mockClassObject("int", 1, 2, 3, Collections.emptyList());
+    ClassObject mockClass3 = MemoryProfilerTestBase.mockClassObject("com.google.Bar", 1, 2, 3, Collections.emptyList());
+    ClassObject mockClass4 = MemoryProfilerTestBase.mockClassObject("com.android.studio.Foo2", 1, 2, 3, Collections.emptyList());
+    ClassObject mockClass5 = MemoryProfilerTestBase.mockClassObject("java.lang.Object", 1, 2, 3, Collections.emptyList());
+    ClassObject mockClass6 = MemoryProfilerTestBase.mockClassObject("long", 1, 2, 3, Collections.emptyList());
     List<ClassObject> fakeClassObjects = Arrays.asList(mockClass1, mockClass2, mockClass3, mockClass4, mockClass5, mockClass6);
     HeapObject mockHeap = MemoryProfilerTestBase.mockHeapObject("Test", fakeClassObjects);
     myStage.selectHeap(mockHeap);
@@ -90,6 +91,8 @@ public class MemoryClassViewTest {
     //noinspection unchecked
     classTree.setSelectionPath(new TreePath(new Object[]{root,
       ((MemoryObjectTreeNode<NamespaceObject>)classTree.getModel().getRoot()).getChildren().get(0)}));
+    // Note - com.google.Bar would be sorted to the top since sorting is done ignoring namespaces.
+    assertEquals(mockClass3, ((MemoryObjectTreeNode<ClassObject>)classTree.getSelectionPath().getLastPathComponent()).getAdapter());
 
     // Check if group by package is grouping as expected.
     myStage.getConfiguration().setClassGrouping(GROUP_BY_PACKAGE);
@@ -97,7 +100,7 @@ public class MemoryClassViewTest {
     assertEquals(6, countClassObjects((MemoryObjectTreeNode<NamespaceObject>)root)); // 6 is the number of mockClass*
     assertTrue(classTree.getSelectionPath().getLastPathComponent() instanceof MemoryObjectTreeNode);
     //noinspection unchecked
-    assertEquals(mockClass1, ((MemoryObjectTreeNode<ClassObject>)classTree.getSelectionPath().getLastPathComponent()).getAdapter());
+    assertEquals(mockClass3, ((MemoryObjectTreeNode<ClassObject>)classTree.getSelectionPath().getLastPathComponent()).getAdapter());
     assertTrue(((MemoryObjectTreeNode)root).getAdapter() instanceof NamespaceObject);
     //noinspection unchecked
     ImmutableList<MemoryObjectTreeNode<NamespaceObject>> children = ((MemoryObjectTreeNode<NamespaceObject>)root).getChildren();
@@ -148,8 +151,8 @@ public class MemoryClassViewTest {
     MemoryClassView classView = new MemoryClassView(myStage, myFakeIdeProfilerComponents);
 
     // Setup fake package hierarchy
-    ClassObject fake1 = MemoryProfilerTestBase.mockClassObject("int", Collections.emptyList());
-    ClassObject fake2 = MemoryProfilerTestBase.mockClassObject("com.Foo", Collections.emptyList());
+    ClassObject fake1 = MemoryProfilerTestBase.mockClassObject("int", 1, 2, 3, Collections.emptyList());
+    ClassObject fake2 = MemoryProfilerTestBase.mockClassObject("com.Foo", 1, 2, 3, Collections.emptyList());
     List<ClassObject> fakeClassObjects = Arrays.asList(fake1, fake2);
     HeapObject mockHeap = MemoryProfilerTestBase.mockHeapObject("Test", fakeClassObjects);
     myStage.selectHeap(mockHeap);
@@ -188,9 +191,9 @@ public class MemoryClassViewTest {
     MemoryObjectTreeNode<NamespaceObject> package1 = new MemoryObjectTreeNode<>(MemoryProfilerTestBase.mockPackageObject("bar"));
     MemoryObjectTreeNode<NamespaceObject> package2 = new MemoryObjectTreeNode<>(MemoryProfilerTestBase.mockPackageObject("foo"));
     MemoryObjectTreeNode<ClassObject> class1 =
-      new MemoryObjectTreeNode<>(MemoryProfilerTestBase.mockClassObject("abar", Collections.emptyList()));
+      new MemoryObjectTreeNode<>(MemoryProfilerTestBase.mockClassObject("abar", 1, 2, 3, Collections.emptyList()));
     MemoryObjectTreeNode<ClassObject> class2 =
-      new MemoryObjectTreeNode<>(MemoryProfilerTestBase.mockClassObject("zoo", Collections.emptyList()));
+      new MemoryObjectTreeNode<>(MemoryProfilerTestBase.mockClassObject("zoo", 4, 5, 6, Collections.emptyList()));
 
     Comparator<MemoryObjectTreeNode> comparator =
       MemoryClassView.createTreeNodeComparator(Comparator.comparing(ClassObject::getClassName));
@@ -203,7 +206,7 @@ public class MemoryClassViewTest {
   @Test
   public void navigationTest() {
     final String testClassName = "com.Foo";
-    ClassObject mockClass = MemoryProfilerTestBase.mockClassObject(testClassName, Collections.emptyList());
+    ClassObject mockClass = MemoryProfilerTestBase.mockClassObject(testClassName, 1, 2, 3, Collections.emptyList());
     HeapObject mockHeap = MemoryProfilerTestBase.mockHeapObject("Test", Collections.singletonList(mockClass));
     myStage.selectHeap(mockHeap);
     myStage.selectClass(mockClass);
@@ -222,6 +225,37 @@ public class MemoryClassViewTest {
     assertNotNull(preNavigate);
     preNavigate.run();
     verify(myStage).setProfilerMode(ProfilerMode.NORMAL);
+  }
+
+  @Test
+  public void testCorrectColumnsAndRendererContents() {
+    ClassObject mockClass1 = MemoryProfilerTestBase.mockClassObject("abc", 1, 2, 3, Collections.emptyList());
+    ClassObject mockClass2 = MemoryProfilerTestBase.mockClassObject("def", 4, 5, 6, Collections.emptyList());
+    ClassObject mockClass3 = MemoryProfilerTestBase.mockClassObject("ghi", 7, 8, 9, Collections.emptyList());
+    List<ClassObject> fakeClassObjects = Arrays.asList(mockClass1, mockClass2, mockClass3);
+    HeapObject mockHeap = MemoryProfilerTestBase.mockHeapObject("Test", fakeClassObjects);
+
+    MemoryClassView view = new MemoryClassView(myStage, myFakeIdeProfilerComponents);
+    myStage.selectHeap(mockHeap);
+
+    JTree tree = view.getTree();
+    assertNotNull(tree);
+    JScrollPane columnTreePane = (JScrollPane)view.getColumnTree();
+    assertNotNull(columnTreePane);
+    ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(tree, columnTreePane);
+    treeInfo.verifyColumnHeaders("Class Name", "Count", "Size", "Shallow Size", "Retained Size");
+
+    MemoryObjectTreeNode root = (MemoryObjectTreeNode)tree.getModel().getRoot();
+    assertEquals(fakeClassObjects.size(), root.getChildCount());
+    for (int i = 0; i < root.getChildCount(); i++) {
+      ClassObject klass = fakeClassObjects.get(i);
+      treeInfo.verifyRendererValues(root.getChildAt(i),
+                                    klass.getName(),
+                                    Integer.toString(klass.getChildrenCount()),
+                                    Integer.toString(klass.getElementSize()),
+                                    Integer.toString(klass.getShallowSize()),
+                                    Long.toString(klass.getRetainedSize()));
+    }
   }
 
   private static <T> T getSingularInList(@NotNull List<T> list, @NotNull Predicate<T> predicate) {

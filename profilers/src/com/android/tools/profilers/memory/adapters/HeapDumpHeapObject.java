@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.perflib.heap.Heap;
+import com.android.tools.profilers.memory.adapters.ClassObject.ClassAttribute;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,7 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.android.tools.profilers.memory.adapters.HeapObject.ClassAttribute.*;
+import static com.android.tools.profilers.memory.adapters.ClassObject.ClassAttribute.*;
 
 /**
  * A UI representation for a {@link Heap}.

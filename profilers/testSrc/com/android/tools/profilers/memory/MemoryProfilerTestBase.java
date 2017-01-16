@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -121,41 +122,63 @@ public abstract class MemoryProfilerTestBase {
     HeapObject object = mock(HeapObject.class);
     when(object.getHeapName()).thenReturn(name);
     when(object.getClasses()).thenReturn(klasses);
-    when(object.getClassAttributes()).thenReturn(Collections.emptyList());
+    when(object.getClassAttributes()).thenReturn(Arrays.asList(ClassObject.ClassAttribute.values()));
     return object;
   }
 
   @NotNull
-  static ClassObject mockClassObject(@NotNull String name, @NotNull List<InstanceObject> instances) {
+  static ClassObject mockClassObject(@NotNull String name,
+                                     int size,
+                                     int shallowSize,
+                                     long retainedSize,
+                                     @NotNull List<InstanceObject> instances) {
     ClassObject object = mock(ClassObject.class);
     when(object.getName()).thenReturn(name);
+    when(object.getElementSize()).thenReturn(size);
+    when(object.getShallowSize()).thenReturn(shallowSize);
+    when(object.getRetainedSize()).thenReturn(retainedSize);
     int lastDotIndex = name.lastIndexOf('.');
     when(object.getClassName()).thenReturn(name.substring(lastDotIndex + 1));
     when(object.getSplitPackageName()).thenReturn(lastDotIndex > 0 ? name.substring(0, lastDotIndex).split("\\.") : new String[0]);
     when(object.getChildrenCount()).thenReturn(instances.size());
     when(object.getInstances()).thenReturn(instances);
-    when(object.getInstanceAttributes()).thenReturn(Collections.emptyList());
+    when(object.getInstanceAttributes()).thenReturn(Arrays.asList(InstanceObject.InstanceAttribute.values()));
     return object;
   }
 
   @NotNull
-  static InstanceObject mockInstanceObject(@NotNull String className, @NotNull String label) {
+  static InstanceObject mockInstanceObject(@NotNull String className,
+                                           @NotNull String label,
+                                           int depth,
+                                           int shallowSize,
+                                           long retainedSize) {
     InstanceObject object = mock(InstanceObject.class);
     when(object.getClassName()).thenReturn(className);
     when(object.getDisplayLabel()).thenReturn(label);
+    when(object.getDepth()).thenReturn(depth);
+    when(object.getShallowSize()).thenReturn(shallowSize);
+    when(object.getRetainedSize()).thenReturn(retainedSize);
     when(object.getCallStack()).thenReturn(MemoryProfiler.AllocationStack.newBuilder()
                                              .addStackFrames(MemoryProfiler.AllocationStack.StackFrame.newBuilder().build()).build());
+    when(object.getReferenceAttributes()).thenReturn(Arrays.asList(InstanceObject.InstanceAttribute.values()));
     return object;
   }
 
   @NotNull
   static ReferenceObject mockReferenceObject(@NotNull String label,
+                                             int depth,
+                                             int shallowSize,
+                                             long retainedSize,
                                              @NotNull List<ReferenceObject> referrers,
                                              @Nullable MemoryProfiler.AllocationStack stack) {
     ReferenceObject object = mock(ReferenceObject.class);
     when(object.getDisplayLabel()).thenReturn(label);
+    when(object.getDepth()).thenReturn(depth);
+    when(object.getShallowSize()).thenReturn(shallowSize);
+    when(object.getRetainedSize()).thenReturn(retainedSize);
     when(object.getReferences()).thenReturn(referrers);
     when(object.getReferenceFieldNames()).thenReturn(Collections.emptyList());
+    when(object.getReferenceAttributes()).thenReturn(Arrays.asList(InstanceObject.InstanceAttribute.values()));
     when(object.getCallStack()).thenReturn(stack == null ? MemoryProfiler.AllocationStack.newBuilder().build() : stack);
     return object;
   }
