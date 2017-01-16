@@ -25,6 +25,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SelectionModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.common.LoadingPanel;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.memory.adapters.*;
 import com.google.common.annotations.VisibleForTesting;
@@ -32,7 +33,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.UIUtil;
@@ -62,7 +62,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private final Splitter myMainSplitter = new Splitter(false);
   @NotNull private final Splitter myChartCaptureSplitter = new Splitter(true);
   @NotNull private final JPanel myCapturePanel;
-  private JBLoadingPanel myCaptureLoadingPanel;
+  @Nullable private LoadingPanel myCaptureLoadingPanel;
   @NotNull private final Splitter myInstanceDetailsSplitter = new Splitter(true);
 
   @NotNull private JButton myAllocationButton;
@@ -331,10 +331,12 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       return;
     }
 
-    myCaptureLoadingPanel = new JBLoadingPanel(new BorderLayout(), myCaptureObject);
-    myCaptureLoadingPanel.setLoadingText("Fetching results");
-    myCaptureLoadingPanel.startLoading();
-    myChartCaptureSplitter.setSecondComponent(myCaptureLoadingPanel);
+    myCaptureLoadingPanel = getProfilersView().getIdeProfilerComponents().createLoadingPanel();
+    if (myCaptureLoadingPanel != null) {
+      myCaptureLoadingPanel.setLoadingText("Fetching results");
+      myCaptureLoadingPanel.startLoading();
+      myChartCaptureSplitter.setSecondComponent(myCaptureLoadingPanel.getComponent());
+    }
   }
 
   private void captureObjectFinishedLoading() {

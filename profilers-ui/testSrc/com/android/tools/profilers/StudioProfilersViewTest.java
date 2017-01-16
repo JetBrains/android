@@ -40,9 +40,7 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 
 public class StudioProfilersViewTest {
@@ -214,7 +212,8 @@ public class StudioProfilersViewTest {
    * Collects all the objects reachable from "object" by following hard links. This method doesn't dive in if it finds
    * objects within java.lang or io.grpc.
    */
-  private void collectReachable(LinkedList<Object> path, Object object, Predicate<Object> invalid, Set<Object> reachable) throws IllegalAccessException {
+  private void collectReachable(LinkedList<Object> path, Object object, Predicate<Object> invalid, Set<Object> reachable)
+    throws IllegalAccessException {
     if (object == null || object.getClass().equals(WeakReference.class) || object.getClass().equals(WeakHashMap.class)) {
       return;
     }
@@ -274,14 +273,17 @@ public class StudioProfilersViewTest {
     public FakeStage(@NotNull StudioProfilers profilers) {
       super(profilers);
     }
+
     @Override
     public void enter() {
 
     }
+
     @Override
     public void exit() {
 
     }
+
     @Override
     public ProfilerMode getProfilerMode() {
       return ProfilerMode.NORMAL;

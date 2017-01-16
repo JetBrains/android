@@ -52,10 +52,6 @@ public final class AllocationsCaptureObject implements CaptureObject {
     return other.myAppId == myAppId && other.myStartTimeNs == myStartTimeNs && other.myEndTimeNs == myEndTimeNs;
   }
 
-  @Override
-  public void dispose() {
-  }
-
   @NotNull
   @Override
   public String getLabel() {
