@@ -56,7 +56,9 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.api.PaletteComponentHandler.NO_PREVIEW;
@@ -88,18 +90,8 @@ public class IconPreviewFactory implements Disposable {
                                               "  %2$s\n" +
                                               "</LinearLayout>\n";
 
-  /**
-   * This {@link ExecutorService} is used to add a render timeout for the factory as temporary workaround for http://b.android.com/229723.
-   * In 2.4, all the rendering is asynchronous so this won't be necessary.
-   */
-  @VisibleForTesting
-  final ExecutorService myExecutorService = new ThreadPoolExecutor(0, 1,
-                                                                           60L, TimeUnit.SECONDS,
-                                                                           new LinkedBlockingQueue<>());
-  @VisibleForTesting
-  long myRenderTimeoutSeconds = 1L;
-
   private RenderTask myRenderTask;
+  public long myRenderTimeoutSeconds = 1L;
 
   @Nullable
   public BufferedImage getImage(@NotNull Palette.Item item, @NotNull Configuration configuration, double scale) {
@@ -166,7 +158,7 @@ public class IconPreviewFactory implements Disposable {
     // Some components require a parent to render correctly.
     xml = String.format(LINEAR_LAYOUT, CONTAINER_ID, component.getTag().getText());
 
-    RenderResult result = renderImage(myExecutorService, myRenderTimeoutSeconds, getRenderTask(model.getConfiguration()), xml);
+    RenderResult result = renderImage(myRenderTimeoutSeconds, getRenderTask(model.getConfiguration()), xml);
     if (result == null || !result.hasImage()) {
       return null;
     }
@@ -274,8 +266,7 @@ public class IconPreviewFactory implements Disposable {
         loadSources(sources, requestedIds, palette.getItems());
         for (StringBuilder source : sources) {
           String preview = String.format(LINEAR_LAYOUT, CONTAINER_ID, source);
-          addResultToCache(renderImage(myExecutorService, myRenderTimeoutSeconds, getRenderTask(configuration), preview), generatedIds,
-                           configuration);
+          addResultToCache(renderImage(myRenderTimeoutSeconds, getRenderTask(configuration), preview), generatedIds, configuration);
         }
         return null;
       }
@@ -376,10 +367,7 @@ public class IconPreviewFactory implements Disposable {
   }
 
   @Nullable
-  private static RenderResult renderImage(@NotNull ExecutorService executorService,
-                                          long timeoutSeconds,
-                                          @Nullable RenderTask renderTask,
-                                          @NotNull String xml) {
+  private static RenderResult renderImage(long renderTimeoutSeconds, @Nullable RenderTask renderTask, @NotNull String xml) {
     if (renderTask == null) {
       return null;
     }
@@ -391,12 +379,9 @@ public class IconPreviewFactory implements Disposable {
     renderTask.setRenderingMode(SessionParams.RenderingMode.V_SCROLL);
     renderTask.setFolderType(ResourceFolderType.LAYOUT);
 
+    renderTask.inflate();
     try {
-      return executorService.submit(() -> {
-        renderTask.inflate();
-        //noinspection deprecation
-        return renderTask.render();
-      }).get(timeoutSeconds, TimeUnit.SECONDS);
+      return renderTask.render().get(renderTimeoutSeconds, TimeUnit.SECONDS);
     }
     catch (InterruptedException | ExecutionException | TimeoutException e) {
       LOG.debug(e);
@@ -411,7 +396,6 @@ public class IconPreviewFactory implements Disposable {
       myRenderTask.dispose();
       myRenderTask = null;
     }
-    myExecutorService.shutdown();
   }
 
   private static class ImageAccumulator {

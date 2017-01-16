@@ -39,7 +39,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static com.android.SdkConstants.RELATIVE_LAYOUT;
 import static java.io.File.separator;
@@ -69,7 +68,6 @@ public class IconPreviewFactoryTest extends LayoutTestCase {
   public void tearDown() throws Exception {
     try {
       RenderService.setForTesting(myFacet, null);
-      myFactory.myExecutorService.awaitTermination(60L, TimeUnit.SECONDS);
       Disposer.dispose(myFactory);
     }
     finally {
