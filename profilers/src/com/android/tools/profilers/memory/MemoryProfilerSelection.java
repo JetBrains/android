@@ -63,9 +63,6 @@ public final class MemoryProfilerSelection {
       return false;
     }
 
-    if (myCaptureObject != null) {
-      Disposer.dispose(myCaptureObject);
-    }
     setHeapObject(null);
     myCaptureObject = captureObject;
     myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE);

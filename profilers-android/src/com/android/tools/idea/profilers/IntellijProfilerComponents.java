@@ -19,6 +19,7 @@ import com.android.tools.idea.actions.EditMultipleSourcesAction;
 import com.android.tools.idea.actions.PsiClassNavigation;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.common.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.*;
@@ -28,6 +29,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.PopupHandler;
+import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,6 +52,39 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
   public JComponent getFileViewer(@Nullable File file) {
     VirtualFile virtualFile = file != null ? LocalFileSystem.getInstance().findFileByIoFile(file) : null;
     return getFileViewer(virtualFile, FileEditorProviderManager.getInstance(), myProject);
+  }
+
+  @Nullable
+  @Override
+  public LoadingPanel createLoadingPanel() {
+    if (myProject == null) {
+      return null;
+    }
+
+    return new LoadingPanel() {
+      private JBLoadingPanel myLoadingPanel = new JBLoadingPanel(new BorderLayout(), myProject);
+
+      @NotNull
+      @Override
+      public JComponent getComponent() {
+        return myLoadingPanel;
+      }
+
+      @Override
+      public void setLoadingText(@NotNull String loadingText) {
+        myLoadingPanel.setLoadingText(loadingText);
+      }
+
+      @Override
+      public void startLoading() {
+        myLoadingPanel.startLoading();
+      }
+
+      @Override
+      public void stopLoading() {
+        myLoadingPanel.stopLoading();
+      }
+    };
   }
 
   @Nullable
