@@ -22,8 +22,8 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.memory.adapters.ClassObject;
+import com.android.tools.profilers.memory.adapters.ClassObject.ClassAttribute;
 import com.android.tools.profilers.memory.adapters.HeapObject;
-import com.android.tools.profilers.memory.adapters.HeapObject.ClassAttribute;
 import com.android.tools.profilers.memory.adapters.NamespaceObject;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.treeStructure.Tree;
@@ -157,6 +157,12 @@ final class MemoryClassView extends AspectObserver {
     return myTree;
   }
 
+  @VisibleForTesting
+  @Nullable
+  JComponent getColumnTree() {
+    return myColumnTree;
+  }
+
   /**
    * Must manually remove from parent container!
    */
@@ -206,7 +212,7 @@ final class MemoryClassView extends AspectObserver {
     }, () -> myStage.setProfilerMode(ProfilerMode.NORMAL));
 
     assert myHeapObject != null;
-    List<HeapObject.ClassAttribute> attributes = myHeapObject.getClassAttributes();
+    List<ClassAttribute> attributes = myHeapObject.getClassAttributes();
     ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree);
     for (ClassAttribute attribute : attributes) {
       builder.addColumn(myAttributeColumns.get(attribute).getBuilder());

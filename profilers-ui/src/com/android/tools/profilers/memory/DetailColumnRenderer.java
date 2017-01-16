@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory;
 
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -43,7 +44,13 @@ class DetailColumnRenderer extends ColoredTreeCellRenderer {
                                     int row,
                                     boolean hasFocus) {
     if (value instanceof MemoryObjectTreeNode) {
-      append(myTextGetter.apply((MemoryObjectTreeNode)value));
+      /**
+       * Note - the same text is added as a fragment tag so it can be exposed for us to validate
+       * the values we are setting to the fragments.
+       * See {@link com.intellij.ui.SimpleColoredComponent#getFragmentTag(int)} for details.
+       */
+      String text = myTextGetter.apply((MemoryObjectTreeNode)value);
+      append(text, SimpleTextAttributes.REGULAR_ATTRIBUTES, text);
       Icon icon = myIconGetter.apply((MemoryObjectTreeNode)value);
       if (icon != null) {
         setIcon(icon);

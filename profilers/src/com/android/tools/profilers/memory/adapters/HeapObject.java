@@ -20,15 +20,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public interface HeapObject extends MemoryObject {
-  // TODO move to ClassObject.
-  enum ClassAttribute {
-    LABEL,
-    CHILDREN_COUNT,
-    ELEMENT_SIZE,
-    DEPTH,
-    SHALLOW_SIZE,
-    RETAINED_SIZE
-  }
 
   @NotNull
   String getHeapName();
@@ -37,5 +28,5 @@ public interface HeapObject extends MemoryObject {
   List<ClassObject> getClasses();
 
   @NotNull
-  List<ClassAttribute> getClassAttributes();
+  List<ClassObject.ClassAttribute> getClassAttributes();
 }

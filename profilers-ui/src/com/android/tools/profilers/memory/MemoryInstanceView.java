@@ -160,7 +160,7 @@ final class MemoryInstanceView extends AspectObserver {
   }
 
   @NotNull
-  public JComponent getComponent() {
+  JComponent getComponent() {
     return myInstancesPanel;
   }
 
@@ -168,6 +168,12 @@ final class MemoryInstanceView extends AspectObserver {
   @Nullable
   JTree getTree() {
     return myTree;
+  }
+
+  @VisibleForTesting
+  @Nullable
+  JComponent getColumnTree() {
+    return myColumnTree;
   }
 
   private void initializeTree() {
