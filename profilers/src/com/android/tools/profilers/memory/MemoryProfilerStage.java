@@ -144,6 +144,7 @@ public class MemoryProfilerStage extends Stage {
     myLoader.stop();
   }
 
+  @NotNull
   @Override
   public ProfilerMode getProfilerMode() {
     return myProfilerMode;

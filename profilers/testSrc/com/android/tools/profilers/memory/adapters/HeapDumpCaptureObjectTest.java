@@ -110,8 +110,6 @@ public class HeapDumpCaptureObjectTest {
 
     ReferenceObject reference1 = instance1.getReferences().get(0);
     verifyReference(reference1, "@1 (0x1)", Arrays.asList("field0"));
-
-    capture.dispose();
   }
 
   @Test
