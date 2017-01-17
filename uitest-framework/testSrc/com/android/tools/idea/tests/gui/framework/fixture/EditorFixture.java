@@ -176,7 +176,7 @@ public class EditorFixture {
   public EditorFixture enterText(@NotNull final String text) {
     Component component = getFocusedEditor();
     if (component != null) {
-      robot.enterText(text);
+      robot.enterText(text, component);
     }
 
     return this;
