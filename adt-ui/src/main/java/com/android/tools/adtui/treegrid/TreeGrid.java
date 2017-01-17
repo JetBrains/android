@@ -21,6 +21,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.util.Condition;
 import com.intellij.ui.HideableDecorator;
 import com.intellij.ui.ListSpeedSearch;
+import com.intellij.ui.components.JBList;
 import com.intellij.ui.speedSearch.FilteringListModel;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
@@ -128,9 +129,8 @@ public class TreeGrid<T> extends Box {
       });
       listModel.refilter(); // Needed as otherwise the filtered list does not show any content.
 
-      // JBList does not work with HORIZONTAL_WRAP
-      //noinspection UndesirableClassUsage,unchecked
-      JList<T> list = new JList<>(listModel);
+      //noinspection unchecked
+      JList<T> list = new JBList(listModel);
       list.setAutoscrolls(false);
       list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
       list.setVisibleRowCount(-1);
