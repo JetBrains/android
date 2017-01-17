@@ -81,6 +81,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     captureObjectChanged();
 
     myAllocationButton = new JButton("Record");
+    myAllocationButton.setToolTipText("Starts/stops recording of memory allocations");
     myAllocationButton
       .addActionListener(e -> getStage().trackAllocations(!getStage().isTrackingAllocations(), SwingUtilities::invokeLater));
 
@@ -94,7 +95,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   @Override
   public JComponent getToolbar() {
-
     JButton backButton = new JButton();
     backButton.addActionListener(action -> getStage().getStudioProfilers().setMonitoringStage());
     backButton.setIcon(AllIcons.Actions.Back);
@@ -105,6 +105,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     toolBar.add(myAllocationButton);
 
     JButton triggerHeapDumpButton = new JButton("Heap Dump");
+    triggerHeapDumpButton.setToolTipText("Takes an Hprof snapshot of the application memory");
     triggerHeapDumpButton.addActionListener(e -> getStage().requestHeapDump(SwingUtilities::invokeLater));
     toolBar.add(triggerHeapDumpButton);
 
