@@ -16,6 +16,7 @@
 package com.android.tools.idea.instantapp;
 
 import com.android.builder.model.AndroidAtom;
+import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
@@ -25,6 +26,7 @@ import java.io.File;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_ATOM;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.fd.gradle.InstantRunGradleUtils.getIrSupportStatus;
 import static com.android.tools.idea.testing.HighlightInfos.assertFileHasNoErrors;
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
 
@@ -60,4 +62,13 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
     assertFileHasNoErrors(project, new File("baseatom/src/test/java/com/example/instantapp/ExampleUnitTest.java"));
   }
 
+  public void testInstantRunDisabled() throws Exception {
+    loadProject(INSTANT_APP);
+
+    Module appModule = myModules.getModule(APP_NAME);
+    AndroidModuleModel appModel = AndroidModuleModel.get(appModule);
+    assertNotNull(appModel);
+    // by definition, InstantRunGradleSupport.INSTANT_APP != InstantRunGradleSupport.SUPPORTED
+    assertEquals(InstantRunGradleSupport.INSTANT_APP, getIrSupportStatus(appModel, null));
+  }
 }
