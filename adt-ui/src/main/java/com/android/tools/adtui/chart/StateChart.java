@@ -26,7 +26,6 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.StateChartModel;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
