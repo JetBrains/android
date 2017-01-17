@@ -50,6 +50,7 @@ import com.intellij.psi.xml.*;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.Contract;
@@ -1387,7 +1388,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
             PsiDirectory parentDirectory = ((PsiDirectory)child).getParent();
             if (parentDirectory != null) {
               VirtualFile dir = parentDirectory.getVirtualFile();
-              if  (!myFacet.getLocalResourceManager().isResourceDir(dir)) {
+              if  (!ModuleResourceManagers.getInstance(myFacet).getLocalResourceManager().isResourceDir(dir)) {
                 return;
               }
             } else {

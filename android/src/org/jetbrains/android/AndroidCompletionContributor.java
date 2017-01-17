@@ -56,12 +56,15 @@ import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.PreferenceElement;
 import org.jetbrains.android.dom.xml.XmlResourceDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.util.*;
+
+import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 
 public class AndroidCompletionContributor extends CompletionContributor {
@@ -330,7 +333,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
   }
 
   private static boolean isFrameworkAttributeDeprecated(AndroidFacet facet, XmlAttribute attribute, String attributeName) {
-    final ResourceManager manager = facet.getResourceManager(AndroidUtils.SYSTEM_RESOURCE_PACKAGE, attribute.getParent());
+    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(SYSTEM_RESOURCE_PACKAGE, attribute.getParent());
     if (manager == null) {
       return false;
     }

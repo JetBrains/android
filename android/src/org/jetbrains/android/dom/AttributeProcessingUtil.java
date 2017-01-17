@@ -52,6 +52,7 @@ import org.jetbrains.android.dom.xml.Intent;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.LayoutViewClassUtils;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.SystemResourceManager;
 import org.jetbrains.annotations.NotNull;
@@ -219,7 +220,7 @@ public class AttributeProcessingUtil {
                                          @Nullable String resPackage,
                                          AttributeProcessor callback,
                                          Set<XmlName> skipNames) {
-    ResourceManager manager = facet.getResourceManager(resPackage);
+    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(resPackage);
     if (manager == null) {
       return;
     }
@@ -527,7 +528,7 @@ public class AttributeProcessingUtil {
       return;
     }
 
-    final SystemResourceManager manager = facet.getSystemResourceManager();
+    final SystemResourceManager manager = ModuleResourceManagers.getInstance(facet).getSystemResourceManager();
     if (manager == null) {
       return;
     }
@@ -608,7 +609,7 @@ public class AttributeProcessingUtil {
                                                 @NotNull DomElement element,
                                                 @NotNull Collection<XmlName> skippedAttributes,
                                                 @NotNull AttributeProcessor callback) {
-    ResourceManager manager = facet.getSystemResourceManager();
+    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getSystemResourceManager();
 
     if (manager == null) {
       return;
