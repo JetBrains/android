@@ -30,7 +30,6 @@ import org.junit.runner.RunWith;
 
 import java.util.regex.Pattern;
 
-@Ignore("https://code.google.com/p/android/issues/detail?id=231853")
 @RunWith(GuiTestRunner.class)
 public class FlavorsExecutionTest {
 
@@ -101,6 +100,7 @@ public class FlavorsExecutionTest {
    *   2. Verify in Android Run tool window for the launch of F2_Main_Activity
    * </pre>
    */
+  @Ignore("https://code.google.com/p/android/issues/detail?id=231853")
   @RunIn(TestGroup.QA)
   @Test
   public void runBuildFlavors() throws Exception {
