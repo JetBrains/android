@@ -16,10 +16,12 @@
 package com.android.tools.profilers;
 
 import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.common.LoadingPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,6 +38,22 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
   @Override
   public JComponent getFileViewer(@Nullable File file) {
     return null;
+  }
+
+  @Nullable
+  @Override
+  public LoadingPanel createLoadingPanel() {
+    return new LoadingPanel() {
+      @NotNull
+      @Override
+      public JComponent getComponent() {
+        return new JPanel(new BorderLayout());
+      }
+
+      @Override public void setLoadingText(@NotNull String loadingText) {}
+      @Override public void startLoading() {}
+      @Override public void stopLoading() {}
+    };
   }
 
   @Override

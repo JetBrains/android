@@ -70,15 +70,6 @@ public final class HeapDumpCaptureObject implements CaptureObject {
     return other.myAppId == myAppId && other.myIsLoadingError == myIsLoadingError && other.myHeapDumpInfo == myHeapDumpInfo;
   }
 
-  @Override
-  public void dispose() {
-    Snapshot snapshot = mySnapshot;
-    if (snapshot != null) {
-      snapshot.dispose();
-      mySnapshot = null;
-    }
-  }
-
   @NotNull
   @Override
   public String getLabel() {
