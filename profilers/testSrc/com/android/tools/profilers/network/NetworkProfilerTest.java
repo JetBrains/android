@@ -17,6 +17,7 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.IdeProfilerServicesStub;
+import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.FakeGrpcChannel;
 import org.junit.Before;
@@ -24,6 +25,8 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class NetworkProfilerTest {
   private static final int FAKE_PID = 111;
@@ -37,6 +40,13 @@ public class NetworkProfilerTest {
   @Before
   public void setUp() {
     myProfiler = new NetworkProfiler(new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub()));
+  }
+
+  @Test
+  public void newMonitor() {
+    ProfilerMonitor monitor = myProfiler.newMonitor();
+    assertNotNull(monitor);
+    assertTrue(monitor instanceof NetworkMonitor);
   }
 
   @Test
