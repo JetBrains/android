@@ -716,7 +716,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    */
   public void requestFocusIfLost() {
     KeyboardFocusManager keyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-    Wait.seconds(1).expecting("a component to have the focus").until(() -> {
+    Wait.seconds(5).expecting("a component to have the focus").until(() -> {
       // Keep requesting focus until it is obtained. Since there is no guarantee that the request focus will be granted,
       // keep asking until it is. This problem has appeared at least when not using a window manager when running tests.
       if (keyboardFocusManager.getFocusOwner() == null) {
