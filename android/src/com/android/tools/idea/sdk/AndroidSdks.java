@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sdk;
 
+import com.android.annotations.NonNull;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
@@ -29,14 +30,14 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.JavadocOrderRootType;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -287,9 +288,8 @@ public class AndroidSdks {
                        @NotNull IAndroidTarget target,
                        @NotNull String sdkName,
                        @NotNull Collection<Sdk> allSdks,
-                       @Nullable Sdk jdk,
-                       boolean addRoots) {
-    setUpSdkAndCommit(getAndInitialiseSdkModificator(androidSdk, target, jdk), sdkName, allSdks, addRoots);
+                       @Nullable Sdk jdk) {
+    setUpSdkAndCommit(getAndInitialiseSdkModificator(androidSdk, target, jdk), sdkName, allSdks, true /* add roots */);
   }
 
   @NotNull
@@ -594,5 +594,31 @@ public class AndroidSdks {
       sdkModificator.addRoot(library, CLASSES);
     }
     sdkModificator.commitChanges();
+  }
+
+  public boolean isInAndroidSdk(@NonNull PsiElement element) {
+    VirtualFile file = getVirtualFile(element);
+    if (file == null) {
+      return false;
+    }
+
+    ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(element.getProject()).getFileIndex();
+    List<OrderEntry> entries = projectFileIndex.getOrderEntriesForFile(file);
+    for (OrderEntry entry : entries) {
+      if (entry instanceof JdkOrderEntry) {
+        Sdk sdk = ((JdkOrderEntry)entry).getJdk();
+
+        if (sdk != null && sdk.getSdkType() instanceof AndroidSdkType) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  @Nullable
+  private static VirtualFile getVirtualFile(@NotNull PsiElement element) {
+    PsiFile file = element.getContainingFile();
+    return file != null ? file.getVirtualFile() : null;
   }
 }
