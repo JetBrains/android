@@ -41,6 +41,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
+import java.awt.IllegalComponentStateException;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
@@ -121,14 +122,23 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
     }
 
     @NotNull
-    public JListFixture getFramesList() {
-      JComponent debuggerComponent = getTabComponent("Debugger");
-      myRobot.click(debuggerComponent);
-      ThreeComponentsSplitter splitter =
-        myRobot.finder().findByType(debuggerComponent, ThreeComponentsSplitter.class, false);
-      JComponent component = splitter.getFirstComponent();
-      assert component != null;
-      return new JListFixture(myRobot, myRobot.finder().findByType(component, XDebuggerFramesList.class, false));
+    public JListFixture getFramesListFixture() {
+      Wait.seconds(5).expecting("Frames list present").until(() -> getFramesList() != null);
+      return new JListFixture(myRobot, getFramesList());
+    }
+
+    @Nullable
+    private XDebuggerFramesList getFramesList() {
+      try {
+        JComponent debuggerComponent = getTabComponent("Debugger");
+        myRobot.click(debuggerComponent);
+        ThreeComponentsSplitter splitter =
+          myRobot.finder().findByType(debuggerComponent, ThreeComponentsSplitter.class, false);
+        JComponent component = splitter.getFirstComponent();
+        return myRobot.finder().findByType(component, XDebuggerFramesList.class, false);
+      } catch (ComponentLookupException | IllegalComponentStateException e) {
+        return null;
+      }
     }
 
     public void clickDebuggerTreeRoot() {
