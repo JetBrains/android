@@ -126,7 +126,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
 
     MemoryProfiler.MemoryData response = myClient
       .getData(MemoryProfiler.MemoryRequest.newBuilder().setAppId(myAppId).setStartTime(myStartTimeNs).setEndTime(myEndTimeNs).build());
-    LinkedHashSet<Integer> allocatedClasses = new LinkedHashSet();
+    LinkedHashSet<Integer> allocatedClasses = new LinkedHashSet<>();
 
     // TODO make sure class IDs fall into a global pool
     for (MemoryProfiler.MemoryData.AllocationEvent event : response.getAllocationEventsList()) {
