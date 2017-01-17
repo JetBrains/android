@@ -243,7 +243,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return null;
   }
 
-  public void androidPlatformChanged() {
+  void androidPlatformChanged() {
     ModuleAvds.disposeInstance(this);
     ModuleResourceManagers.getInstance(this).clear();
     ClassMaps.getInstance(this).clear();
