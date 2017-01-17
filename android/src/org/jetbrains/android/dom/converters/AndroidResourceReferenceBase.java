@@ -21,6 +21,7 @@ import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.dom.wrappers.ResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.ValueResourceInfo;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -29,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -86,13 +86,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
   @Override
   public ResolveResult[] multiResolve(boolean incompleteCode) {
     return ResolveCache.getInstance(myElement.getProject())
-      .resolveWithCaching(this, new ResolveCache.PolyVariantResolver<AndroidResourceReferenceBase>() {
-        @NotNull
-        @Override
-        public ResolveResult[] resolve(@NotNull AndroidResourceReferenceBase reference, boolean incompleteCode) {
-          return resolveInner();
-        }
-      }, false, incompleteCode);
+      .resolveWithCaching(this, (reference, incompleteCode1) -> resolveInner(), false, incompleteCode);
   }
 
   @NotNull
@@ -125,7 +119,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
     }
 
     if (elements.size() > 1) {
-      Collections.sort(elements, AndroidResourceUtil.RESOURCE_ELEMENT_COMPARATOR);
+      elements.sort(AndroidResourceUtil.RESOURCE_ELEMENT_COMPARATOR);
     }
 
     for (PsiElement target : elements) {
@@ -140,7 +134,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
     if (resType == null) {
       return;
     }
-    ResourceManager manager = facet.getResourceManager(resValue.getNamespace(), myElement);
+    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(resValue.getNamespace(), myElement);
     if (manager != null) {
       String resName = resValue.getResourceName();
       if (resName != null) {
