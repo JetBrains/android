@@ -17,7 +17,6 @@ package com.android.tools.adtui;
 
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
-import com.intellij.ui.components.JBLoadingPanel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

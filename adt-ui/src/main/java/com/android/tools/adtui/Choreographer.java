@@ -21,7 +21,6 @@ import com.android.tools.adtui.model.FpsTimer;
 import com.android.tools.adtui.model.StopwatchTimer;
 import com.android.tools.adtui.model.Updatable;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.awt.event.HierarchyListener;
