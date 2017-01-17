@@ -110,30 +110,27 @@ public class LocalResourceManager extends ResourceManager {
   @Nullable
   public static LocalResourceManager getInstance(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    return facet != null ? facet.getLocalResourceManager() : null;
+    return facet != null ? ModuleResourceManagers.getInstance(facet).getLocalResourceManager() : null;
   }
 
   @Nullable
   public static LocalResourceManager getInstance(@NotNull PsiElement element) {
     AndroidFacet facet = AndroidFacet.getInstance(element);
-    return facet != null ? facet.getLocalResourceManager() : null;
+    return facet != null ? ModuleResourceManagers.getInstance(facet).getLocalResourceManager() : null;
   }
 
   @Override
   @NotNull
   public AttributeDefinitions getAttributeDefinitions() {
     if (myAttrDefs == null) {
-      ApplicationManager.getApplication().runReadAction(new Runnable() {
-        @Override
-        public void run() {
-          List<XmlFile> xmlResFiles = new ArrayList<XmlFile>();
-          for (PsiFile file : findResourceFiles("values")) {
-            if (file instanceof XmlFile) {
-              xmlResFiles.add((XmlFile)file);
-            }
+      ApplicationManager.getApplication().runReadAction(() -> {
+        List<XmlFile> xmlResFiles = new ArrayList<>();
+        for (PsiFile file : findResourceFiles("values")) {
+          if (file instanceof XmlFile) {
+            xmlResFiles.add((XmlFile)file);
           }
-          myAttrDefs = new AttributeDefinitionsImpl(xmlResFiles.toArray(new XmlFile[xmlResFiles.size()]));
         }
+        myAttrDefs = new AttributeDefinitionsImpl(xmlResFiles.toArray(new XmlFile[xmlResFiles.size()]));
       });
     }
     return myAttrDefs;
@@ -145,7 +142,7 @@ public class LocalResourceManager extends ResourceManager {
 
   @NotNull
   public List<Attr> findAttrs(@NotNull String name) {
-    List<Attr> list = new ArrayList<Attr>();
+    List<Attr> list = new ArrayList<>();
     for (Pair<Resources, VirtualFile> pair : getResourceElements()) {
       final Resources res = pair.getFirst();
       for (Attr attr : res.getAttrs()) {
@@ -201,7 +198,7 @@ public class LocalResourceManager extends ResourceManager {
     String styleableName = fieldName.substring(0, index);
     String attrName = fieldName.substring(index + 1);
 
-    List<Attr> list = new ArrayList<Attr>();
+    List<Attr> list = new ArrayList<>();
     for (Pair<Resources, VirtualFile> pair : getResourceElements()) {
       final Resources res = pair.getFirst();
       for (DeclareStyleable styleable : res.getDeclareStyleables()) {
@@ -234,7 +231,7 @@ public class LocalResourceManager extends ResourceManager {
 
   @NotNull
   public List<PsiElement> findResourcesByFieldName(@NotNull String resClassName, @NotNull String fieldName) {
-    List<PsiElement> targets = new ArrayList<PsiElement>();
+    List<PsiElement> targets = new ArrayList<>();
     if (resClassName.equals(ResourceType.ID.getName())) {
       targets.addAll(findIdDeclarations(fieldName));
     }

@@ -71,6 +71,7 @@ import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -104,44 +105,41 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
 
   @Override
   public boolean canProcessElement(@NotNull final PsiElement element) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
-      @Override
-      public Boolean compute() {
-        final PsiElement element1 = LazyValueResourceElementWrapper.computeLazyElement(element);
-        if (element1 == null) {
-          return false;
-        }
-
-        if (element1 instanceof PsiFile) {
-          return AndroidFacet.getInstance(element1) != null && AndroidResourceUtil.isInResourceSubdirectory((PsiFile)element1, null);
-        }
-        else if (element1 instanceof PsiField) {
-          PsiField field = (PsiField)element1;
-          if (AndroidResourceUtil.isResourceField(field)) {
-            return AndroidResourceUtil.findResourcesByField(field).size() > 0;
-          }
-        }
-        else if (element1 instanceof XmlAttributeValue) {
-          LocalResourceManager manager = LocalResourceManager.getInstance(element1);
-          if (manager != null) {
-            if (AndroidResourceUtil.isIdDeclaration((XmlAttributeValue)element1)) {
-              return true;
-            }
-            // then it is value resource
-            XmlTag tag = PsiTreeUtil.getParentOfType(element1, XmlTag.class);
-            return tag != null &&
-                   DomManager.getDomManager(tag.getProject()).getDomElement(tag) instanceof ResourceElement &&
-                   manager.getValueResourceType(tag) != null;
-          }
-        }
-        else if (element1 instanceof PsiClass) {
-          PsiClass cls = (PsiClass)element1;
-          if (AndroidDomUtil.isInheritor(cls, CLASS_VIEW)) {
-            return true;
-          }
-        }
+    return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
+      final PsiElement element1 = LazyValueResourceElementWrapper.computeLazyElement(element);
+      if (element1 == null) {
         return false;
       }
+
+      if (element1 instanceof PsiFile) {
+        return AndroidFacet.getInstance(element1) != null && AndroidResourceUtil.isInResourceSubdirectory((PsiFile)element1, null);
+      }
+      else if (element1 instanceof PsiField) {
+        PsiField field = (PsiField)element1;
+        if (AndroidResourceUtil.isResourceField(field)) {
+          return AndroidResourceUtil.findResourcesByField(field).size() > 0;
+        }
+      }
+      else if (element1 instanceof XmlAttributeValue) {
+        LocalResourceManager manager = LocalResourceManager.getInstance(element1);
+        if (manager != null) {
+          if (AndroidResourceUtil.isIdDeclaration((XmlAttributeValue)element1)) {
+            return true;
+          }
+          // then it is value resource
+          XmlTag tag = PsiTreeUtil.getParentOfType(element1, XmlTag.class);
+          return tag != null &&
+                 DomManager.getDomManager(tag.getProject()).getDomElement(tag) instanceof ResourceElement &&
+                 manager.getValueResourceType(tag) != null;
+        }
+      }
+      else if (element1 instanceof PsiClass) {
+        PsiClass cls = (PsiClass)element1;
+        if (AndroidDomUtil.isInheritor(cls, CLASS_VIEW)) {
+          return true;
+        }
+      }
+      return false;
     });
   }
 
@@ -183,7 +181,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(facet);
     String oldName = cls.getName();
     if (appResources.hasResourceItem(DECLARE_STYLEABLE, oldName)) {
-      LocalResourceManager manager = facet.getLocalResourceManager();
+      LocalResourceManager manager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
       for (PsiElement element : manager.findResourcesByFieldName(STYLEABLE.getName(), oldName)) {
         if (element instanceof XmlAttributeValue) {
           if (element.getParent() instanceof XmlAttribute) {
@@ -220,7 +218,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
   }
 
   private static void prepareIdRenaming(XmlAttributeValue value, String newName, Map<PsiElement, String> allRenames, AndroidFacet facet) {
-    LocalResourceManager manager = facet.getLocalResourceManager();
+    LocalResourceManager manager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
     allRenames.remove(value);
     String id = AndroidResourceUtil.getResourceNameByReferenceText(value.getValue());
     assert id != null;
@@ -332,7 +330,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
                                                    String newName,
                                                    Map<PsiElement, String> allRenames,
                                                    final AndroidFacet facet) {
-    ResourceManager manager = facet.getLocalResourceManager();
+    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
     XmlTag tag = PsiTreeUtil.getParentOfType(element, XmlTag.class);
     assert tag != null;
     String type = manager.getValueResourceType(tag);
@@ -434,7 +432,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
 
   private static void prepareResourceFileRenaming(PsiFile file, String newName, Map<PsiElement, String> allRenames, AndroidFacet facet) {
     Project project = file.getProject();
-    ResourceManager manager = facet.getLocalResourceManager();
+    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
     String type = manager.getFileResourceType(file);
     if (type == null) return;
     String name = file.getName();

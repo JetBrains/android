@@ -35,6 +35,7 @@ import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -287,8 +288,9 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   @Nullable
   protected static AttributeDefinition getDefinition(@NotNull NlComponent component, @NotNull XmlAttributeDescriptor descriptor) {
     AndroidFacet facet = component.getModel().getFacet();
-    ResourceManager localResourceManager = facet.getLocalResourceManager();
-    ResourceManager systemResourceManager = facet.getSystemResourceManager();
+    ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(facet);
+    ResourceManager localResourceManager = resourceManagers.getLocalResourceManager();
+    ResourceManager systemResourceManager = resourceManagers.getSystemResourceManager();
     assertThat(systemResourceManager).isNotNull();
 
     AttributeDefinitions localAttrDefs = localResourceManager.getAttributeDefinitions();
