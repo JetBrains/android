@@ -173,7 +173,6 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     assertNotNull(stageView.getChartCaptureSplitter().getSecondComponent());
     if (isCaptureLoading) {
-      assertTrue(stageView.getChartCaptureSplitter().getSecondComponent() instanceof JBLoadingPanel);
       assertEquals("", stageView.getCaptureView().getComponent().getText());
       assertEquals(heapObjectComboBoxModel.getSize(), 0);
     }
