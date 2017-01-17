@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -124,7 +125,13 @@ public final class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.
       case WAITING:
         return captured ? CpuProfilerStage.ThreadState.WAITING_CAPTURED : CpuProfilerStage.ThreadState.WAITING;
       default:
+        getLog().warn("Unexpected thread state found: " + state);
         return CpuProfilerStage.ThreadState.UNKNOWN;
     }
+  }
+
+  @NotNull
+  private static Logger getLog() {
+    return Logger.getInstance(ThreadStateDataSeries.class);
   }
 }
