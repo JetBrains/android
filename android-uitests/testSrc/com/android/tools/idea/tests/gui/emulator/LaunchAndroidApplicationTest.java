@@ -70,6 +70,7 @@ public class LaunchAndroidApplicationTest {
     getEmulatorConnection().deleteAvdByDisplayName(AVD_NAME);
   }
 
+  @Ignore("https://code.google.com/p/android/issues/detail?id=231853")
   @RunIn(TestGroup.QA)
   @Test
   public void testRunOnEmulator() throws IOException, ClassNotFoundException {
