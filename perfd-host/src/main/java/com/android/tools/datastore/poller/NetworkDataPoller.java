@@ -183,11 +183,6 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
   }
 
   @Override
-  public ServerServiceDefinition bindService() {
-    return super.bindService();
-  }
-
-  @Override
   public void poll() {
     if (myProcessId == -1) {
       return;
