@@ -48,7 +48,7 @@ public class JavadocDialogFixture implements ContainerFixture<JDialog> {
     JTextField textField =
       GuiTests.waitUntilFound(myRobot, myDialog, Matchers.byType(TextFieldWithBrowseButton.class)).getTextField();
     myRobot.focusAndWaitForFocusGain(textField);
-    myRobot.enterText(path);
+    textField.setText(path);
     return this;
   }
 
