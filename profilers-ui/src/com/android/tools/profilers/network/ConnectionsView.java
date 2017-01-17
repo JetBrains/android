@@ -72,12 +72,44 @@ final class ConnectionsView {
    */
   @VisibleForTesting
   enum Column {
-    URL(0.25, String.class),
-    SIZE(0.25/4, Integer.class),
-    TYPE(0.25/4, String.class),
-    STATUS(0.25/4, Integer.class),
-    TIME(0.25/4, Long.class),
-    TIMELINE(0.5, Long.class);
+    URL(0.25, String.class) {
+      @Override
+      Object getValueFrom(@NotNull HttpData data) {
+        return data.getUrl();
+      }
+    },
+    SIZE(0.25/4, Integer.class) {
+      @Override
+      Object getValueFrom(@NotNull HttpData data) {
+        String contentLength = data.getResponseField(HttpData.FIELD_CONTENT_LENGTH);
+        return (contentLength != null) ? Integer.parseInt(contentLength) : -1;
+      }
+    },
+    TYPE(0.25/4, String.class) {
+      @Override
+      Object getValueFrom(@NotNull HttpData data) {
+        String contentType = data.getResponseField(HttpData.FIELD_CONTENT_TYPE);
+        return StringUtil.notNullize(contentType);
+      }
+    },
+    STATUS(0.25/4, Integer.class) {
+      @Override
+      Object getValueFrom(@NotNull HttpData data) {
+        return data.getStatusCode();
+      }
+    },
+    TIME(0.25/4, Long.class) {
+      @Override
+      Object getValueFrom(@NotNull HttpData data) {
+        return data.getEndTimeUs() - data.getStartTimeUs();
+      }
+    },
+    TIMELINE(0.5, Long.class) {
+      @Override
+      Object getValueFrom(@NotNull HttpData data) {
+        return data.getStartTimeUs();
+      }
+    };
 
     private final double myWidthPercentage;
     private final Class<?> myType;
@@ -99,32 +131,7 @@ final class ConnectionsView {
       return StringUtil.capitalize(name().toLowerCase(Locale.getDefault()));
     }
 
-    public Object getValueFrom(HttpData data) {
-      switch (this) {
-        case URL:
-          return data.getUrl();
-
-        case SIZE:
-          String contentLength = data.getResponseField(HttpData.FIELD_CONTENT_LENGTH);
-          return (contentLength != null) ? Integer.parseInt(contentLength) : -1;
-
-        case TYPE:
-          String contentType = data.getResponseField(HttpData.FIELD_CONTENT_TYPE);
-          return StringUtil.notNullize(contentType);
-
-        case STATUS:
-          return data.getStatusCode();
-
-        case TIME:
-          return data.getEndTimeUs() - data.getStartTimeUs();
-
-        case TIMELINE:
-          return data.getStartTimeUs();
-
-        default:
-          throw new UnsupportedOperationException("getValueFrom not implemented for: " + this);
-      }
-    }
+    abstract Object getValueFrom(@NotNull HttpData data);
   }
 
   @NotNull
