@@ -80,7 +80,7 @@ public class SystemResourceManager extends ResourceManager {
   @Nullable
   public static SystemResourceManager getInstance(@NotNull ConvertContext context) {
     AndroidFacet facet = AndroidFacet.getInstance(context);
-    return facet != null ? facet.getSystemResourceManager() : null;
+    return facet != null ? ModuleResourceManagers.getInstance(facet).getSystemResourceManager() : null;
   }
 
   @Override
