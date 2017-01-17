@@ -39,7 +39,7 @@ public class ScreenView extends SceneView {
   @SwingCoordinate private int x;
   @SwingCoordinate private int y;
 
-  public ScreenView(NlDesignSurface surface, @NotNull ScreenViewType type, @NotNull NlModel model) {
+  public ScreenView(@NotNull NlDesignSurface surface, @NotNull ScreenViewType type, @NotNull NlModel model) {
     super(surface, model);
     myType = type;
   }
