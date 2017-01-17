@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlin
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleWrapper;
-import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.model.UnsupportedMethodException;
@@ -46,7 +45,7 @@ public class UnsupportedGradleVersionErrorHandler extends BaseSyncErrorHandler {
 
   @Override
   @Nullable
-  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
+  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String text = rootCause.getMessage();
     String newMsg = "";
     if (isOldGradleVersion(rootCause)) {
@@ -91,11 +90,9 @@ public class UnsupportedGradleVersionErrorHandler extends BaseSyncErrorHandler {
 
   @Override
   @NotNull
-  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
-                                                              @NotNull Project project,
-                                                              @NotNull String text) {
+  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull Project project, @NotNull String text) {
     String gradleVersion = getSupportedGradleVersion(getFirstLineMessage(text));
-    return getQuickFixHyperlinks(project, gradleVersion);
+    return getQuickFixHyperlinksWithGradleVersion(project, gradleVersion);
   }
 
   @Nullable
@@ -110,9 +107,9 @@ public class UnsupportedGradleVersionErrorHandler extends BaseSyncErrorHandler {
     return null;
   }
 
-
   @NotNull
-  public static List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull Project project, @Nullable String gradleVersion) {
+  public static List<NotificationHyperlink> getQuickFixHyperlinksWithGradleVersion(@NotNull Project project,
+                                                                                   @Nullable String gradleVersion) {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     GradleWrapper gradleWrapper = GradleWrapper.find(project);
     if (gradleWrapper != null) {
