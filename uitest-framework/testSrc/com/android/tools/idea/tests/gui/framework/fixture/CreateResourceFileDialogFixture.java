@@ -45,7 +45,7 @@ public class CreateResourceFileDialogFixture extends IdeaDialogFixture<CreateRes
     final Component field = robot().finder().findByLabel(getDialogWrapper().getContentPane(), "File name:");
     GuiTask.execute(() -> field.requestFocus());
     robot().pressAndReleaseKey(KeyEvent.VK_BACK_SPACE); // to make sure we don't append to existing item on Linux
-    robot().enterText(newName);
+    robot().enterText(newName, target());
     return this;
   }
 }

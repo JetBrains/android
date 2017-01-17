@@ -62,19 +62,17 @@ public class EditorTextFieldDriver extends JComponentDriver implements TextDispl
   @RunsInEDT
   public void enterText(@NotNull EditorTextField component, @NotNull String text) {
     focusAndWaitForFocusGain(component);
-    robot.enterText(text);
+    robot.enterText(text, component);
   }
 
   @RunsInEDT
   public void deleteText(@NotNull EditorTextField component) {
-    selectAll(component);
-    robot.pressAndReleaseKey(KeyEvent.VK_DELETE);
+    GuiTask.execute(() -> component.setText(""));
   }
 
   @RunsInEDT
   public void replaceText(@NotNull EditorTextField component, @NotNull String text) {
-    selectAll(component);
-    robot.enterText(text);
+    GuiTask.execute(() -> component.setText(text));
   }
 
   @RunsInEDT
