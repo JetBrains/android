@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.facet;
 
-import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.IAndroidTarget;
@@ -39,13 +38,15 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.ModuleRootAdapter;
+import com.intellij.openapi.roots.ModuleRootEvent;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
 import org.jetbrains.android.ClassMaps;
@@ -384,36 +385,10 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     if (SYSTEM_RESOURCE_PACKAGE.equals(resourcePackage)) {
       return getSystemResourceManager();
     }
-    if (contextElement != null && isInAndroidSdk(contextElement)) {
+    if (contextElement != null && AndroidSdks.getInstance().isInAndroidSdk(contextElement)) {
       return getSystemResourceManager();
     }
     return getLocalResourceManager();
-  }
-
-  public static boolean isInAndroidSdk(@NonNull PsiElement element) {
-    PsiFile file = element.getContainingFile();
-
-    if (file == null) {
-      return false;
-    }
-    VirtualFile virtualFile = file.getVirtualFile();
-
-    if (virtualFile == null) {
-      return false;
-    }
-    ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(element.getProject()).getFileIndex();
-    List<OrderEntry> entries = projectFileIndex.getOrderEntriesForFile(virtualFile);
-
-    for (OrderEntry entry : entries) {
-      if (entry instanceof JdkOrderEntry) {
-        Sdk sdk = ((JdkOrderEntry)entry).getJdk();
-
-        if (sdk != null && sdk.getSdkType() instanceof AndroidSdkType) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 
   @NotNull
