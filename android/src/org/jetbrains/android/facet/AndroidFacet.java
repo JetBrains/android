@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.facet;
 
-import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.IAndroidTarget;
@@ -39,21 +38,21 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.ModuleRootAdapter;
+import com.intellij.openapi.roots.ModuleRootEvent;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
 import org.jetbrains.android.ClassMaps;
 import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.resourceManagers.LocalResourceManager;
-import org.jetbrains.android.resourceManagers.ResourceManager;
-import org.jetbrains.android.resourceManagers.SystemResourceManager;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
@@ -71,7 +70,6 @@ import static com.android.tools.idea.databinding.DataBindingUtil.refreshDataBind
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.vfs.JarFileSystem.JAR_SEPARATOR;
 import static org.jetbrains.android.util.AndroidCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
-import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 import static org.jetbrains.android.util.AndroidUtils.loadDomElement;
 
 /**
@@ -82,10 +80,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public static final String NAME = "Android";
 
   private static boolean ourDynamicTemplateMenuCreated;
-
-  private SystemResourceManager myPublicSystemResourceManager;
-  private SystemResourceManager myFullSystemResourceManager;
-  private LocalResourceManager myLocalResourceManager;
 
   private AndroidModel myAndroidModel;
   private final ResourceFolderManager myFolderManager = new ResourceFolderManager(this);
@@ -249,10 +243,9 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return null;
   }
 
-  public void androidPlatformChanged() {
+  void androidPlatformChanged() {
     ModuleAvds.disposeInstance(this);
-    myLocalResourceManager = null;
-    myPublicSystemResourceManager = null;
+    ModuleResourceManagers.getInstance(this).clear();
     ClassMaps.getInstance(this).clear();
   }
 
@@ -311,7 +304,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
           }
           myPrevSdk = newSdk;
 
-          getLocalResourceManager().invalidateAttributeDefinitions();
+          ModuleResourceManagers.getInstance(AndroidFacet.this).getLocalResourceManager().invalidateAttributeDefinitions();
         });
       }
     });
@@ -372,81 +365,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @Override
   public void disposeFacet() {
     myAndroidModel = null;
-  }
-
-  @Nullable
-  public ResourceManager getResourceManager(@Nullable String resourcePackage) {
-    return getResourceManager(resourcePackage, null);
-  }
-
-  @Nullable
-  public ResourceManager getResourceManager(@Nullable String resourcePackage, @Nullable PsiElement contextElement) {
-    if (SYSTEM_RESOURCE_PACKAGE.equals(resourcePackage)) {
-      return getSystemResourceManager();
-    }
-    if (contextElement != null && isInAndroidSdk(contextElement)) {
-      return getSystemResourceManager();
-    }
-    return getLocalResourceManager();
-  }
-
-  public static boolean isInAndroidSdk(@NonNull PsiElement element) {
-    PsiFile file = element.getContainingFile();
-
-    if (file == null) {
-      return false;
-    }
-    VirtualFile virtualFile = file.getVirtualFile();
-
-    if (virtualFile == null) {
-      return false;
-    }
-    ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(element.getProject()).getFileIndex();
-    List<OrderEntry> entries = projectFileIndex.getOrderEntriesForFile(virtualFile);
-
-    for (OrderEntry entry : entries) {
-      if (entry instanceof JdkOrderEntry) {
-        Sdk sdk = ((JdkOrderEntry)entry).getJdk();
-
-        if (sdk != null && sdk.getSdkType() instanceof AndroidSdkType) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  @NotNull
-  public LocalResourceManager getLocalResourceManager() {
-    if (myLocalResourceManager == null) {
-      myLocalResourceManager = new LocalResourceManager(this);
-    }
-    return myLocalResourceManager;
-  }
-
-  @Nullable
-  public SystemResourceManager getSystemResourceManager() {
-    return getSystemResourceManager(true);
-  }
-
-  @Nullable
-  public SystemResourceManager getSystemResourceManager(boolean publicOnly) {
-    if (publicOnly) {
-      if (myPublicSystemResourceManager == null) {
-        AndroidPlatform platform = getConfiguration().getAndroidPlatform();
-        if (platform != null) {
-          myPublicSystemResourceManager = new SystemResourceManager(getProject(), platform, true);
-        }
-      }
-      return myPublicSystemResourceManager;
-    }
-    if (myFullSystemResourceManager == null) {
-      AndroidPlatform platform = getConfiguration().getAndroidPlatform();
-      if (platform != null) {
-        myFullSystemResourceManager = new SystemResourceManager(getProject(), platform, false);
-      }
-    }
-    return myFullSystemResourceManager;
   }
 
   @Nullable
