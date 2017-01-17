@@ -137,9 +137,11 @@ public class FloatingToolWindowManager implements ProjectComponent {
     if (selectedEditors.length == 1) {
       return myWorkBenchMap.get(selectedEditors[0]);
     }
-    for (FileEditor editor : selectedEditors) {
-      if (SwingUtilities.isDescendingFrom(focusOwner, editor.getComponent())) {
-        return myWorkBenchMap.get(editor);
+    if (focusOwner != null) {
+      for (FileEditor editor : selectedEditors) {
+        if (SwingUtilities.isDescendingFrom(focusOwner, editor.getComponent())) {
+          return myWorkBenchMap.get(editor);
+        }
       }
     }
     return myWorkBenchMap.get(selectedEditors[0]);
