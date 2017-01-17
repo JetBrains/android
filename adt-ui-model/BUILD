@@ -14,6 +14,6 @@ iml_module(
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/.idea/libraries:hamcrest[test]",
         "//tools/idea/.idea/libraries:JUnit4[test]",
-        "//tools/idea/.idea/libraries:truth",
+        "//tools/idea/.idea/libraries:truth[test]",
     ],
 )
