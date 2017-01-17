@@ -111,8 +111,6 @@ public class AllocationsCaptureObjectTest {
     MemoryProfiler.AllocationStack.StackFrame frame1 = instance1.getCallStack().getStackFramesList().get(0);
     verifyStackFrame(frame0, "test.klass1", "testMethod1", 7);
     verifyStackFrame(frame1, "test.klass0", "testMethod0", 3);
-
-    capture.dispose();
   }
 
   @Test

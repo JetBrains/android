@@ -16,16 +16,21 @@
 package com.android.tools.profilers;
 
 import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.common.LoadingPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.util.function.Supplier;
 
 public interface IdeProfilerComponents {
   @Nullable
   JComponent getFileViewer(@Nullable File file);
+
+  @Nullable
+  LoadingPanel createLoadingPanel();
 
   /**
    * Installs an IntelliJ context menu on a {@link JComponent}.
