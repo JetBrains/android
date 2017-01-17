@@ -20,11 +20,11 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.HeapObject;
 import com.android.tools.profilers.memory.adapters.HeapObject.ClassAttribute;
 import com.android.tools.profilers.memory.adapters.NamespaceObject;
-import com.android.tools.profilers.common.CodeLocation;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
@@ -235,31 +235,14 @@ final class MemoryClassView extends AspectObserver {
                                           : null;
     myTreeRoot.removeAll();
 
-    PackageClassificationIndex rootIndex = new PackageClassificationIndex(myTreeRoot);
     switch (myStage.getConfiguration().getClassGrouping()) {
       case NO_GROUPING:
         for (ClassObject classObject : myHeapObject.getClasses()) {
-          // TODO handle package view
           myTreeRoot.add(new MemoryObjectTreeNode<>(classObject));
         }
         break;
       case GROUP_BY_PACKAGE:
-        for (ClassObject classObject : myHeapObject.getClasses()) {
-          String[] splitPackages = classObject.getSplitPackageName();
-          PackageClassificationIndex currentIndex = rootIndex;
-          for (String packageName : splitPackages) {
-            if (!currentIndex.myChildPackages.containsKey(packageName)) {
-              PackageClassificationIndex nextIndex = new PackageClassificationIndex(packageName);
-              currentIndex.myChildPackages.put(packageName, nextIndex);
-              currentIndex.myPackageNode.add(nextIndex.myPackageNode);
-              currentIndex = nextIndex;
-            }
-            else {
-              currentIndex = currentIndex.myChildPackages.get(packageName);
-            }
-          }
-          currentIndex.myPackageNode.add(new MemoryObjectTreeNode<>(classObject));
-        }
+        createPackageView();
         break;
       default:
         throw new RuntimeException("Unimplemented grouping!");
@@ -273,6 +256,7 @@ final class MemoryClassView extends AspectObserver {
     }
 
     // Find the path to the last selected object before the grouping changed.
+    PackageClassificationIndex rootIndex = new PackageClassificationIndex(myTreeRoot);
     TreePath selectionPath = null;
     switch (myStage.getConfiguration().getClassGrouping()) {
       case NO_GROUPING:
@@ -311,6 +295,57 @@ final class MemoryClassView extends AspectObserver {
       myTree.setSelectionPath(selectionPath);
       myTree.scrollPathToVisible(selectionPath);
     }
+  }
+
+  private void createPackageView() {
+    assert myTreeRoot != null;
+    assert myHeapObject != null;
+
+    PackageClassificationIndex rootIndex = new PackageClassificationIndex(myTreeRoot);
+
+    // First, iteratively classify all ClassObjects into packages.
+    for (ClassObject classObject : myHeapObject.getClasses()) {
+      String[] splitPackages = classObject.getSplitPackageName();
+      PackageClassificationIndex currentIndex = rootIndex;
+      for (String packageName : splitPackages) {
+        if (!currentIndex.myChildPackages.containsKey(packageName)) {
+          PackageClassificationIndex nextIndex = new PackageClassificationIndex(packageName);
+          currentIndex.myChildPackages.put(packageName, nextIndex);
+          currentIndex.myPackageNode.add(nextIndex.myPackageNode);
+          currentIndex = nextIndex;
+        }
+        else {
+          currentIndex = currentIndex.myChildPackages.get(packageName);
+        }
+      }
+      currentIndex.myPackageNode.add(new MemoryObjectTreeNode<>(classObject));
+    }
+
+    // Now collapse single node packages.
+    List<MemoryObjectTreeNode<NamespaceObject>> children = new ArrayList<>(myTreeRoot.getChildren());
+    myTreeRoot.removeAll();
+    children.forEach(child -> myTreeRoot.add(collapsePackageNodes(child)));
+  }
+
+  @SuppressWarnings("MethodMayBeStatic")
+  @NotNull
+  private MemoryObjectTreeNode<NamespaceObject> collapsePackageNodes(@NotNull MemoryObjectTreeNode<NamespaceObject> currentNode) {
+    List<MemoryObjectTreeNode<NamespaceObject>> children = new ArrayList<>(currentNode.getChildren());
+    currentNode.removeAll();
+    children.forEach(child -> currentNode.add(collapsePackageNodes(child)));
+
+    children = currentNode.getChildren();
+    if (children.size() != 1 || children.get(0).getAdapter() instanceof ClassObject) {
+      return currentNode;
+    }
+
+    MemoryObjectTreeNode<NamespaceObject> onlyChild = children.get(0);
+    List<MemoryObjectTreeNode<NamespaceObject>> childrenOfChild = new ArrayList<>(onlyChild.getChildren());
+    onlyChild.removeAll();
+    MemoryObjectTreeNode<NamespaceObject> collapsedNode = new MemoryObjectTreeNode<>(
+      new NamespaceObject(String.join(".", currentNode.getAdapter().getName(), onlyChild.getAdapter().getName())));
+    childrenOfChild.forEach(collapsedNode::add);
+    return collapsedNode;
   }
 
   private void refreshHeap() {
