@@ -114,5 +114,11 @@ public class FakeGrpcServer extends FakeGrpcChannel {
       response.onNext(CpuDataResponse.getDefaultInstance());
       response.onCompleted();
     }
+
+    @Override
+    public void getThreads(GetThreadsRequest request, StreamObserver<GetThreadsResponse> response) {
+      response.onNext(GetThreadsResponse.getDefaultInstance());
+      response.onCompleted();
+    }
   }
 }
