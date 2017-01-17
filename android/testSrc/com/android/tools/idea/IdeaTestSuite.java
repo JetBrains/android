@@ -39,10 +39,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.testing.TestProjectPathsGeneratorTest.class, // This is for a standalone, test-only application
   // The following classes had failures when run in Bazel.
   com.android.tools.idea.gradle.project.NonAndroidGradleProjectImportingTestSuite.class,
-  com.android.tools.idea.npw.importing.ArchiveToGradleModuleModelTest.class,
-  com.android.tools.idea.npw.importing.ArchiveToGradleModuleStepTest.class,
-  com.android.tools.idea.npw.importing.SourceToGradleModuleStepTest.class,
-  com.android.tools.idea.npw.project.AndroidGradleModuleUtilsTest.class,
   com.android.tools.perf.idea.gradle.project.sync.GradleSyncPerfTest.class, // Sync performance test only runs on perf buildbot
   org.jetbrains.android.databinding.DataBindingScopeTest.class,
   org.jetbrains.android.databinding.GeneratedCodeMatchTest.class,

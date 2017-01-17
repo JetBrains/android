@@ -15,31 +15,42 @@
  */
 package com.android.tools.idea.npw.project;
 
-import com.android.tools.idea.npw.importing.AndroidGradleImportTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 
 import java.io.File;
 
 import static com.android.tools.idea.npw.project.AndroidGradleModuleUtils.getContainingModule;
+import static com.android.tools.idea.testing.TestProjectPaths.IMPORTING;
+import static com.intellij.openapi.util.io.FileUtil.join;
 
-public class AndroidGradleModuleUtilsTest extends AndroidGradleImportTestCase {
+public class AndroidGradleModuleUtilsTest extends AndroidGradleTestCase {
+  private static final String ARCHIVE_JAR_PATH = join("lib", "library.jar");
+  private static final String NESTED_MODULE_NAME = "sourcemodule";
+  private static final String NESTED_MODULE_ARCHIVE_PATH = join("nested", NESTED_MODULE_NAME, ARCHIVE_JAR_PATH);
+  private static final String SIMPLE_MODULE_NAME = "simple";
+  private static final String SIMPLE_MODULE_ARCHIVE_PATH = join(SIMPLE_MODULE_NAME, ARCHIVE_JAR_PATH);
 
-  public void testGetContainingModule() {
+  public void testGetContainingModule() throws Exception {
     Project project = getProject();
-    File archiveToImport = createArchiveInModuleWithinCurrentProject(false, String.format(BUILD_GRADLE_TEMPLATE, LIBS_DEPENDENCY));
 
-    assertEquals(getContainingModule(archiveToImport, project), ModuleManager.getInstance(project).findModuleByName(SOURCE_MODULE_NAME));
+    loadProject(IMPORTING);
+    File archiveToImport = new File(project.getBasePath(), SIMPLE_MODULE_ARCHIVE_PATH);
+
+    assertEquals(ModuleManager.getInstance(project).findModuleByName(SIMPLE_MODULE_NAME), getContainingModule(archiveToImport, project));
   }
 
-  public void testGetContainingModuleNested() {
+  public void testGetContainingModuleNested() throws Exception {
     Project project = getProject();
-    File archiveToImport = createArchiveInModuleWithinCurrentProject(true, String.format(BUILD_GRADLE_TEMPLATE, LIBS_DEPENDENCY));
 
-    assertEquals(getContainingModule(archiveToImport, project), ModuleManager.getInstance(project).findModuleByName(SOURCE_MODULE_NAME));
+    loadProject(IMPORTING);
+    File archiveToImport = new File(project.getBasePath(), NESTED_MODULE_ARCHIVE_PATH);
+
+    assertEquals(ModuleManager.getInstance(project).findModuleByName(NESTED_MODULE_NAME), getContainingModule(archiveToImport, project));
   }
 
-  public void testGetContainingModuleNotInModule() {
-    assertEquals(getContainingModule(getJarNotInProject(), getProject()), null);
+  public void testGetContainingModuleNotInModule() throws Exception {
+    assertEquals(null, getContainingModule(new File(getTestDataPath(), join(IMPORTING, SIMPLE_MODULE_ARCHIVE_PATH)), getProject()));
   }
 }
