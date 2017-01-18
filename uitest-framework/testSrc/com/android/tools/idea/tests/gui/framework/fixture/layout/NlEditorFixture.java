@@ -136,7 +136,8 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     // Wait until the list has been expanded in UI (eliminating flakiness).
     JList list = GuiTests.waitUntilShowing(robot(), treeGrid, Matchers.byName(JList.class, group));
     new JListFixture(robot(), list).drag(item);
-    myDragAndDrop.drop(myDesignSurfaceFixture.target(), new Point(0, 0));
+    NlDesignSurface target = myDesignSurfaceFixture.target();
+    myDragAndDrop.drop(target, new Point(target.getWidth() / 2, target.getHeight() / 2));
     return this;
   }
 
