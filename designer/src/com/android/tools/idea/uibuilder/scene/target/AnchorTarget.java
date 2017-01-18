@@ -76,6 +76,11 @@ public class AnchorTarget extends ConstraintTarget {
   //region Accessors
   /////////////////////////////////////////////////////////////////////////////
 
+  @Override
+  public boolean canChangeSelection() {
+    return false;
+  }
+
   public Type getType() {
     return myType;
   }
