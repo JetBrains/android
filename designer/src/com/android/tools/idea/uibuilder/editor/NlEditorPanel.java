@@ -67,7 +67,7 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
 
     List<ToolWindowDefinition<DesignSurface>> tools = new ArrayList<>(4);
     tools.add(new NlPaletteDefinition(project, Side.LEFT, Split.TOP, AutoHide.DOCKED));
-    tools.add(new NlComponentTreeDefinition(Side.LEFT, Split.BOTTOM, AutoHide.DOCKED));
+    tools.add(new NlComponentTreeDefinition(project, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED));
     tools.add(new NlPropertyPanelDefinition(project, Side.RIGHT, Split.TOP, AutoHide.DOCKED));
     if (MOCKUP_EDITOR_ENABLED) {
       tools.add(new MockupToolDefinition(Side.RIGHT, Split.TOP, AutoHide.AUTO_HIDE));
