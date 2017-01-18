@@ -37,7 +37,8 @@ import static com.google.common.truth.Truth.assertThat;
 public class AppBarConfigurationDialogTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  
+
+  @Ignore
   @Test
   public void testDependencyDialog() throws Exception {
     EditorFixture editor = guiTest.importSimpleApplication()
@@ -77,6 +78,7 @@ public class AppBarConfigurationDialogTest {
     assertThat(gradleContents).contains("com.android.support:design:");
   }
 
+  @Ignore
   @Test
   public void testAddComponent() throws Exception {
     EditorFixture editor = guiTest.importSimpleApplication()
