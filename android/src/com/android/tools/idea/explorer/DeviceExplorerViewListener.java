@@ -13,20 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer.actions;
+package com.android.tools.idea.explorer;
 
-import com.android.tools.idea.explorer.DeviceExplorerController;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.project.DumbAwareAction;
+import com.android.tools.idea.explorer.fs.DeviceFileSystem;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class GotoSharedPrefsFolderAction extends DumbAwareAction {
-  @Override
-  public void update(AnActionEvent e) {
-    DeviceExplorerController controller = DeviceExplorerController.getProjectController(e.getProject());
-    e.getPresentation().setEnabled(controller != null && controller.hasActiveDevice());
-  }
-
-  @Override
-  public void actionPerformed(AnActionEvent e) {
-  }
+public interface DeviceExplorerViewListener {
+  void deviceSelected(@Nullable DeviceFileSystem device);
+  void treeNodeActionPerformed(@NotNull DeviceFileEntryNode treeNode);
+  void treeNodeExpanding(@NotNull DeviceFileEntryNode treeNode);
 }
