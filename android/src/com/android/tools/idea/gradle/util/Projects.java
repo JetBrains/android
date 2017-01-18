@@ -42,6 +42,8 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
@@ -165,23 +167,19 @@ public final class Projects {
                               @NotNull DataNode<ProjectData> projectInfo,
                               @NotNull Collection<DataNode<ModuleData>> modulesToImport,
                               @Nullable PostSyncProjectSetup.Request setupRequest) {
-    invokeAndWaitIfNeeded((Runnable)() -> {
-      SyncMessages.getInstance(project).removeProjectMessages();
+    invokeAndWaitIfNeeded((Runnable)() -> SyncMessages.getInstance(project).removeProjectMessages());
 
-      ApplicationManager.getApplication().runWriteAction(() -> {
-        if (!project.isDisposed()) {
-          ProjectRootManagerEx.getInstanceEx(project).mergeRootsChangesDuring(() -> {
-            disableExcludedModules(projectInfo, modulesToImport);
-            doSelectiveImport(modulesToImport, project);
-          });
+    Task.Backgroundable task = new Task.Backgroundable(project, "Project Setup", false) {
+      @Override
+      public void run(@NotNull ProgressIndicator indicator) {
+        disableExcludedModules(projectInfo, modulesToImport);
+        doSelectiveImport(modulesToImport, project);
+        if (setupRequest != null) {
+          PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest, indicator);
         }
-      });
-      // We need to call this method here, otherwise the IDE will think the project is not a Gradle project and it won't generate
-      // sources for it. This happens on new projects.
-      if (setupRequest != null) {
-        PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest, null);
       }
-    });
+    };
+    task.queue();
   }
 
   /**
