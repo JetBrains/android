@@ -20,7 +20,7 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkProfiler.ConnectivityData;
 import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.IdeProfilerServicesStub;
+import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.StudioProfilers;
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
@@ -49,7 +49,7 @@ public class NetworkRadioDataSeriesTest {
 
   @Before
   public void setUp() {
-    StudioProfilers profiler = new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub());
+    StudioProfilers profiler = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
     mySeries = new NetworkRadioDataSeries(profiler.getClient().getNetworkClient(), FakeNetworkService.FAKE_APP_ID);
   }
 
