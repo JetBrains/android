@@ -232,6 +232,21 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       return false;
     }
 
+    public void waitForStopClick() {
+      Wait.seconds(5).expecting("Stop button clicked").until(() -> {
+        for (ActionButton button : getToolbarButtons()) {
+          if (button.getAction() == null || !button.getAction().getClass().getName().equals("com.intellij.execution.actions.StopAction")) {
+            continue;
+          }
+          if (button.isEnabled() && button.isShowing()) {
+            GuiTask.execute(() -> button.click());
+            return true;
+          }
+        }
+        return false;
+      });
+    }
+
     @NotNull
     private List<ActionButton> getToolbarButtons() {
       ActionToolbarImpl toolbar = findComponentOfType(myContent.getComponent(), ActionToolbarImpl.class);
