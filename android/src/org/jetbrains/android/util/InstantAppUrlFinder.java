@@ -198,7 +198,7 @@ public final class InstantAppUrlFinder {
 
     public boolean isValid() {
       String effectivePath = getEffectivePath();
-      return isNotEmpty(myScheme) && isNotEmpty(myHost) && isNotEmpty(effectivePath) && effectivePath.startsWith("/");
+      return isNotEmpty(myScheme) && isNotEmpty(myHost) && effectivePath.startsWith("/");
     }
 
     @NotNull
@@ -211,7 +211,7 @@ public final class InstantAppUrlFinder {
           path = myPathPattern;
         }
       }
-      return path;
+      return isNotEmpty(path) ? path : "/";
     }
 
     @NotNull
