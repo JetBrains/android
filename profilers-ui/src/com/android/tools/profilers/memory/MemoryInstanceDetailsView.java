@@ -20,12 +20,12 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.common.StackLine;
+import com.android.tools.profilers.common.StackView;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject.InstanceAttribute;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.android.tools.profilers.memory.adapters.ReferenceObject;
-import com.android.tools.profilers.common.StackView;
-import com.android.tools.profilers.common.StackLine;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBTabbedPane;
@@ -58,6 +58,10 @@ final class MemoryInstanceDetailsView extends AspectObserver {
   @NotNull private final JTabbedPane myTabbedPane;
 
   @NotNull private final StackView myStackView;
+
+  @Nullable private JComponent myReferenceColumnTree;
+
+  @Nullable private JTree myReferenceTree;
 
   @NotNull private final Map<InstanceAttribute, AttributeColumn> myAttributeColumns = new HashMap<>();
 
@@ -153,13 +157,27 @@ final class MemoryInstanceDetailsView extends AspectObserver {
   }
 
   @NotNull
-  public JComponent getComponent() {
+  JComponent getComponent() {
     return myTabbedPane;
+  }
+
+  @VisibleForTesting
+  @Nullable
+  JTree getReferenceTree() {
+    return myReferenceTree;
+  }
+
+  @VisibleForTesting
+  @Nullable
+  JComponent getReferenceColumnTree() {
+    return myReferenceColumnTree;
   }
 
   private void instanceChanged() {
     InstanceObject instance = myStage.getSelectedInstance();
     if (instance == null) {
+      myReferenceTree = null;
+      myReferenceColumnTree = null;
       myTabbedPane.setVisible(false);
       return;
     }
@@ -179,9 +197,9 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     }
 
     // Populate references
-    JComponent tree = buildReferenceColumnTree(instance);
-    if (tree != null) {
-      myTabbedPane.add("References", tree);
+    myReferenceColumnTree = buildReferenceColumnTree(instance);
+    if (myReferenceColumnTree != null) {
+      myTabbedPane.add("References", myReferenceColumnTree);
       hasContent = true;
     }
 
@@ -191,17 +209,18 @@ final class MemoryInstanceDetailsView extends AspectObserver {
   @Nullable
   private JComponent buildReferenceColumnTree(@NotNull InstanceObject instance) {
     if (instance.getReferences().isEmpty()) {
+      myReferenceTree = null;
       return null;
     }
 
-    JTree tree = buildTree(instance);
-    ColumnTreeBuilder builder = new ColumnTreeBuilder(tree);
+    myReferenceTree = buildTree(instance);
+    ColumnTreeBuilder builder = new ColumnTreeBuilder(myReferenceTree);
     for (InstanceAttribute attribute : instance.getReferenceAttributes()) {
       builder.addColumn(myAttributeColumns.get(attribute).getBuilder());
     }
     builder.setTreeSorter((Comparator<MemoryObjectTreeNode<InstanceObject>> comparator, SortOrder sortOrder) -> {
-      assert tree.getModel() instanceof DefaultTreeModel;
-      DefaultTreeModel treeModel = (DefaultTreeModel)tree.getModel();
+      assert myReferenceTree.getModel() instanceof DefaultTreeModel;
+      DefaultTreeModel treeModel = (DefaultTreeModel)myReferenceTree.getModel();
       assert treeModel.getRoot() instanceof MemoryObjectTreeNode;
       assert ((MemoryObjectTreeNode)treeModel.getRoot()).getAdapter() instanceof InstanceObject;
       //noinspection unchecked

@@ -22,6 +22,14 @@ import java.util.Collections;
 import java.util.List;
 
 public abstract class ClassObject extends NamespaceObject {
+  public enum ClassAttribute {
+    LABEL,
+    CHILDREN_COUNT,
+    ELEMENT_SIZE,
+    SHALLOW_SIZE,
+    RETAINED_SIZE
+  }
+
   @NotNull
   private final String myPackageName;
 

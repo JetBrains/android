@@ -39,9 +39,9 @@ public class ColumnTreeBuilderTest {
   @Test
   public void testTreeFillsViewportIfSmallerThanViewport() throws Exception {
     // Prepare
-    TableInfo tableInfo = createTestTable(null);
-    JTree tree = tableInfo.tree;
-    JScrollPane columnTreePane = tableInfo.columnTreePane;
+    ColumnTreeTestInfo tableInfo = createTestTable(null);
+    JTree tree = tableInfo.getTree();
+    JScrollPane columnTreePane = tableInfo.getScrollPane();
 
     // Assert: Check the tree height has been extended to the whole viewport
     assertThat(tree.getHeight()).isGreaterThan(0);
@@ -72,8 +72,8 @@ public class ColumnTreeBuilderTest {
 
   @Test
   public void testTreeToolTipIsNullByDefault() throws Exception {
-    TableInfo info = createTestTable(null);
-    JTree tree = info.tree;
+    ColumnTreeTestInfo info = createTestTable(null);
+    JTree tree = info.getTree();
 
     Component component =
       tree.getCellRenderer().getTreeCellRendererComponent(tree, tree.getModel().getRoot(), false, false, true, 0, false);
@@ -86,14 +86,14 @@ public class ColumnTreeBuilderTest {
   public void testTreeToolTipIsSetFromColumnRenderer() throws Exception {
     String toolTipTestText = "This is a test";
 
-    TableInfo info = createTestTable(null, new MyEmptyRenderer() {
+    ColumnTreeTestInfo info = createTestTable(null, new MyEmptyRenderer() {
       @Override
       public String getToolTipText() {
         return toolTipTestText;
       }
     });
 
-    JTree tree = info.tree;
+    JTree tree = info.getTree();
     Component component =
       tree.getCellRenderer().getTreeCellRendererComponent(tree, tree.getModel().getRoot(), false, false, true, 0, false);
 
@@ -101,11 +101,11 @@ public class ColumnTreeBuilderTest {
     assertThat(((JComponent)component).getToolTipText()).isEqualTo(toolTipTestText);
   }
 
-  private TableInfo createTestTable(Border headerBorder) {
+  private ColumnTreeTestInfo createTestTable(Border headerBorder) {
     return createTestTable(headerBorder, new MyEmptyRenderer());
   }
 
-  private TableInfo createTestTable(Border headerBorder, ColoredTreeCellRenderer cellRenderer) {
+  private ColumnTreeTestInfo createTestTable(Border headerBorder, ColoredTreeCellRenderer cellRenderer) {
     DefaultTreeModel treeModel = new DefaultTreeModel(new LoadingNode());
     Tree tree = new Tree(treeModel);
 
@@ -126,30 +126,21 @@ public class ColumnTreeBuilderTest {
 
     JScrollPane columnTreePane = (JScrollPane)builder.build();
     columnTreePane.setPreferredSize(new Dimension(100, 100));
-
-    // Simulate layout
-    columnTreePane.setSize(new Dimension(100, 100));
-    columnTreePane.doLayout();
-    columnTreePane.getViewport().doLayout();
-    columnTreePane.getViewport().getView().doLayout();
-
-    TableInfo info = new TableInfo();
-    info.builder = builder;
-    info.table = (JTable)((JPanel)columnTreePane.getViewport().getView()).getComponent(0);
-    info.tree = tree;
-    info.columnTreePane = columnTreePane;
+    ColumnTreeTestInfo info = new ColumnTreeTestInfo(tree, columnTreePane);
+    info.simulateLayout(new Dimension(100, 100));
     return info;
   }
 
   private TableHeaderSizes getTestTableSizes(Border headerBorder) {
-    TableInfo builder = createTestTable(headerBorder);
+    ColumnTreeTestInfo builder = createTestTable(headerBorder);
 
     // Retrieve sizes
-    JTable table = builder.table;
+    JTable table = builder.getTable();
     TableHeaderSizes sizes = new TableHeaderSizes();
     sizes.headerSize = table.getTableHeader().getPreferredSize();
     sizes.column0Size = getColumnHeaderComponent(table.getTableHeader(), 0).getPreferredSize();
-    sizes.column1Size = getColumnHeaderComponent(table.getTableHeader(), 1).getPreferredSize();;
+    sizes.column1Size = getColumnHeaderComponent(table.getTableHeader(), 1).getPreferredSize();
+    ;
     return sizes;
   }
 
@@ -161,13 +152,6 @@ public class ColumnTreeBuilderTest {
     }
 
     return renderer.getTableCellRendererComponent(header.getTable(), column.getHeaderValue(), false, false, -1, columnIndex);
-  }
-
-  private class TableInfo {
-    ColumnTreeBuilder builder;
-    JTree tree;
-    JTable table;
-    JScrollPane columnTreePane;
   }
 
   private class TableHeaderSizes {

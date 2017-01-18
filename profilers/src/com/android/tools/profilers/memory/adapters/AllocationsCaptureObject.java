@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
+import com.android.tools.profilers.memory.adapters.ClassObject.ClassAttribute;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf3jarjar.ByteString;
 import gnu.trove.TIntObjectHashMap;
@@ -169,7 +170,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
 
     @NotNull
     @Override
-    public List<ClassAttribute> getClassAttributes() {
+    public List<ClassObject.ClassAttribute> getClassAttributes() {
       return Arrays.asList(ClassAttribute.LABEL, ClassAttribute.CHILDREN_COUNT);
     }
   }
