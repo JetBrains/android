@@ -54,7 +54,7 @@ public class NetworkRadioViewTest {
   @Before
   public void setUp() {
     myTimer = new FakeTimer();
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub(), myTimer);
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
     StudioProfilersView profilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     NetworkProfilerStage stage = new NetworkProfilerStage(profilers);
     myStageView = new NetworkProfilerStageView(profilersView, stage);

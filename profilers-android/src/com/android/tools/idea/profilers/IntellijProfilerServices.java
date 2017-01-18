@@ -17,6 +17,7 @@ package com.android.tools.idea.profilers;
 
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.common.CodeLocation;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -26,6 +27,8 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.concurrent.Executor;
 
 public class IntellijProfilerServices implements IdeProfilerServices {
   @NotNull private final Project myProject;
@@ -82,5 +85,11 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
       return psiClass.getContainingFile().getVirtualFile();
     }
+  }
+
+  @NotNull
+  @Override
+  public Executor getProfilerExecutor() {
+    return ApplicationManager.getApplication()::invokeLater;
   }
 }
