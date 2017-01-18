@@ -17,10 +17,34 @@ package com.android.tools.profilers;
 
 import com.android.tools.profilers.common.CodeLocation;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public final class IdeProfilerServicesStub implements IdeProfilerServices {
+import java.util.concurrent.Executor;
+
+public final class FakeIdeProfilerServices implements IdeProfilerServices {
+  /**
+   * Callback to be run after the executor calls its execute() method.
+   */
+  @Nullable
+  Runnable myOnExecute;
+
   @Override
   public boolean navigateToStackFrame(@NotNull CodeLocation line) {
     return false;
+  }
+
+  @NotNull
+  @Override
+  public Executor getProfilerExecutor() {
+    return (runnable) -> {
+      runnable.run();
+      if (myOnExecute != null) {
+        myOnExecute.run();
+      }
+    };
+  }
+
+  public void setOnExecute(@Nullable Runnable onExecute) {
+    myOnExecute = onExecute;
   }
 }

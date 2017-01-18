@@ -41,7 +41,7 @@ final public class StudioProfilersTest {
 
   @Test
   public void testClearedOnMonitorStage() throws Exception {
-    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new IdeProfilerServicesStub());
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices());
 
     assertTrue(profilers.getTimeline().getSelectionRange().isEmpty());
 
@@ -54,7 +54,7 @@ final public class StudioProfilersTest {
 
   @Test
   public void testProfilerModeChange() throws Exception {
-    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new IdeProfilerServicesStub());
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices());
     assertEquals(ProfilerMode.NORMAL, profilers.getMode());
     CpuProfilerStage stage = new CpuProfilerStage(profilers);
     profilers.setStage(stage);
@@ -68,7 +68,7 @@ final public class StudioProfilersTest {
   @Test
   public void testLateConnectionOfPreferredProcess() throws Exception {
     FakeTimer timer = new FakeTimer();
-    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new IdeProfilerServicesStub(), timer);
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertNull(profilers.getDevice());
     assertNull(profilers.getProcess());
@@ -105,7 +105,7 @@ final public class StudioProfilersTest {
   @Test
   public void testConnectionError() throws Exception {
     FakeTimer timer = new FakeTimer();
-    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new IdeProfilerServicesStub(), timer);
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
 
     Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
     Profiler.Process process = Profiler.Process.newBuilder().setPid(20).setName("FakeProcess").build();
@@ -136,7 +136,7 @@ final public class StudioProfilersTest {
     myProfilerService.addDevice(device);
     myProfilerService.addProcess(device.getSerial(), process);
 
-    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new IdeProfilerServicesStub(), timer);
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertTrue(profilers.getStage() instanceof StudioMonitorStage);
   }
@@ -144,7 +144,7 @@ final public class StudioProfilersTest {
   @Test
   public void testTimeResetOnConnectedDevice() throws Exception {
     FakeTimer timer = new FakeTimer();
-    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new IdeProfilerServicesStub(), timer);
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
     int nowInSeconds = 42;
     myProfilerService.setTimestampNs(TimeUnit.SECONDS.toNanos(nowInSeconds));
 

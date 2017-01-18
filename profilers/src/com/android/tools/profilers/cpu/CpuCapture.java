@@ -46,7 +46,6 @@ public class CpuCapture implements DurationData {
   private final Range myRange;
 
   public CpuCapture(@NotNull ByteString bytes) {
-    // TODO: Move file parsing/manipulation to another thread.
     // TODO: Remove layers, analyze whether we can keep the whole file in memory.
     try {
       File trace = FileUtil.createTempFile("cpu_trace", ".trace");
