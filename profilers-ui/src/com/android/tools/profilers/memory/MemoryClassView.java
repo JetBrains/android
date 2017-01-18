@@ -235,6 +235,7 @@ final class MemoryClassView extends AspectObserver {
                                           : null;
     myTreeRoot.removeAll();
 
+    PackageClassificationIndex rootIndex = null;
     switch (myStage.getConfiguration().getClassGrouping()) {
       case NO_GROUPING:
         for (ClassObject classObject : myHeapObject.getClasses()) {
@@ -242,7 +243,7 @@ final class MemoryClassView extends AspectObserver {
         }
         break;
       case GROUP_BY_PACKAGE:
-        createPackageView();
+        rootIndex = createPackageView();
         break;
       default:
         throw new RuntimeException("Unimplemented grouping!");
@@ -251,53 +252,53 @@ final class MemoryClassView extends AspectObserver {
     myTreeModel.nodeChanged(myTreeRoot);
     myTreeModel.reload();
 
-    if (lastSelectedClassObject == null) {
-      return;
+    MemoryObjectTreeNode<NamespaceObject> objectToSelect = null;
+    if (lastSelectedClassObject != null) {
+      // Find the path to the last selected object before the grouping changed.
+      switch (myStage.getConfiguration().getClassGrouping()) {
+        case NO_GROUPING:
+          for (MemoryObjectTreeNode<NamespaceObject> child : myTreeRoot.getChildren()) {
+            if (child.getAdapter() == lastSelectedClassObject) {
+              objectToSelect = child;
+              break;
+            }
+          }
+          break;
+        case GROUP_BY_PACKAGE:
+          assert rootIndex != null;
+          String[] splitPackages = lastSelectedClassObject.getSplitPackageName();
+          PackageClassificationIndex currentIndex = rootIndex;
+          for (String packageName : splitPackages) {
+            if (!currentIndex.myChildPackages.containsKey(packageName)) {
+              break;
+            }
+            currentIndex = currentIndex.myChildPackages.get(packageName);
+          }
+          List<MemoryObjectTreeNode<NamespaceObject>> filteredClasses = currentIndex.myPackageNode.getChildren().stream()
+            .filter((packageNode) -> packageNode.getAdapter() instanceof ClassObject && packageNode.getAdapter() == lastSelectedClassObject)
+            .collect(Collectors.toList());
+          if (filteredClasses.size() > 0) {
+            objectToSelect = filteredClasses.get(0);
+          }
+          break;
+      }
     }
 
-    // Find the path to the last selected object before the grouping changed.
-    PackageClassificationIndex rootIndex = new PackageClassificationIndex(myTreeRoot);
-    TreePath selectionPath = null;
-    switch (myStage.getConfiguration().getClassGrouping()) {
-      case NO_GROUPING:
-        for (MemoryObjectTreeNode<NamespaceObject> child : myTreeRoot.getChildren()) {
-          if (child.getAdapter() == lastSelectedClassObject) {
-            selectionPath = new TreePath(new Object[]{myTreeRoot, child});
-            break;
-          }
-        }
-        break;
-      case GROUP_BY_PACKAGE:
-        String[] splitPackages = lastSelectedClassObject.getSplitPackageName();
-        PackageClassificationIndex currentIndex = rootIndex;
-        List<MemoryObjectTreeNode<NamespaceObject>> path = new ArrayList<>();
-        path.add(myTreeRoot);
-        for (String packageName : splitPackages) {
-          if (!currentIndex.myChildPackages.containsKey(packageName)) {
-            break;
-          }
-          currentIndex = currentIndex.myChildPackages.get(packageName);
-          path.add(currentIndex.myPackageNode);
-        }
-        List<MemoryObjectTreeNode<NamespaceObject>> filteredClasses = currentIndex.myPackageNode.getChildren().stream()
-          .filter((packageNode) -> packageNode.getAdapter() instanceof ClassObject && packageNode.getAdapter() == lastSelectedClassObject)
-          .collect(Collectors.toList());
-        if (filteredClasses.size() > 0) {
-          path.add(filteredClasses.get(0));
-          selectionPath = new TreePath(path.toArray());
-        }
-        break;
+    if (myStage.getConfiguration().getClassGrouping() == GROUP_BY_PACKAGE) {
+      collapsePackageNodes();
     }
 
     // Reselect the last selected object prior to the grouping change, if it's valid.
-    if (selectionPath != null) {
+    if (objectToSelect != null) {
       assert myTree != null;
-      myTree.setSelectionPath(selectionPath);
-      myTree.scrollPathToVisible(selectionPath);
+      TreePath pathToRoot = new TreePath(objectToSelect.getPathToRoot().toArray());
+      myTree.setSelectionPath(pathToRoot);
+      myTree.scrollPathToVisible(pathToRoot);
     }
   }
 
-  private void createPackageView() {
+  @NotNull
+  private PackageClassificationIndex createPackageView() {
     assert myTreeRoot != null;
     assert myHeapObject != null;
 
@@ -321,18 +322,22 @@ final class MemoryClassView extends AspectObserver {
       currentIndex.myPackageNode.add(new MemoryObjectTreeNode<>(classObject));
     }
 
-    // Now collapse single node packages.
+    return rootIndex;
+  }
+
+  private void collapsePackageNodes() {
+    assert myTreeRoot != null;
     List<MemoryObjectTreeNode<NamespaceObject>> children = new ArrayList<>(myTreeRoot.getChildren());
     myTreeRoot.removeAll();
-    children.forEach(child -> myTreeRoot.add(collapsePackageNodes(child)));
+    children.forEach(child -> myTreeRoot.add(collapsePackageNodesRecursively(child)));
   }
 
   @SuppressWarnings("MethodMayBeStatic")
   @NotNull
-  private MemoryObjectTreeNode<NamespaceObject> collapsePackageNodes(@NotNull MemoryObjectTreeNode<NamespaceObject> currentNode) {
+  private MemoryObjectTreeNode<NamespaceObject> collapsePackageNodesRecursively(@NotNull MemoryObjectTreeNode<NamespaceObject> currentNode) {
     List<MemoryObjectTreeNode<NamespaceObject>> children = new ArrayList<>(currentNode.getChildren());
     currentNode.removeAll();
-    children.forEach(child -> currentNode.add(collapsePackageNodes(child)));
+    children.forEach(child -> currentNode.add(collapsePackageNodesRecursively(child)));
 
     children = currentNode.getChildren();
     if (children.size() != 1 || children.get(0).getAdapter() instanceof ClassObject) {

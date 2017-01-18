@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.perflib.heap.ClassObj;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,6 +28,9 @@ import java.util.stream.Collectors;
  */
 final class HeapDumpClassObject extends ClassObject {
   private final ClassObj myClassObj;
+
+  @Nullable
+  private List<InstanceObject> myInstanceObjects = null;
 
   public HeapDumpClassObject(@NotNull ClassObj classObj) {
     super(classObj.getClassName());
@@ -56,7 +60,11 @@ final class HeapDumpClassObject extends ClassObject {
   @NotNull
   @Override
   public List<InstanceObject> getInstances() {
-    return myClassObj.getInstancesList().stream().map(instance -> new HeapDumpInstanceObject(this, instance)).collect(Collectors.toList());
+    if (myInstanceObjects == null) {
+      myInstanceObjects =
+        myClassObj.getInstancesList().stream().map(instance -> new HeapDumpInstanceObject(this, instance)).collect(Collectors.toList());
+    }
+    return myInstanceObjects;
   }
 
   @NotNull

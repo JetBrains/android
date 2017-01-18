@@ -71,8 +71,8 @@ public class MemoryClassViewTest {
     MemoryClassView classView = new MemoryClassView(myStage, myFakeIdeProfilerComponents);
 
     // Setup fake package hierarchy
-    ClassObject mockClass1 = MemoryProfilerTestBase.mockClassObject("int", Collections.emptyList());
-    ClassObject mockClass2 = MemoryProfilerTestBase.mockClassObject("com.android.studio.Foo", Collections.emptyList());
+    ClassObject mockClass1 = MemoryProfilerTestBase.mockClassObject("com.android.studio.Foo", Collections.emptyList());
+    ClassObject mockClass2 = MemoryProfilerTestBase.mockClassObject("int", Collections.emptyList());
     ClassObject mockClass3 = MemoryProfilerTestBase.mockClassObject("com.google.Bar", Collections.emptyList());
     ClassObject mockClass4 = MemoryProfilerTestBase.mockClassObject("com.android.studio.Foo2", Collections.emptyList());
     ClassObject mockClass5 = MemoryProfilerTestBase.mockClassObject("java.lang.Object", Collections.emptyList());
@@ -102,7 +102,7 @@ public class MemoryClassViewTest {
     //noinspection unchecked
     ImmutableList<MemoryObjectTreeNode<NamespaceObject>> children = ((MemoryObjectTreeNode<NamespaceObject>)root).getChildren();
 
-    assertEquals(1, children.stream().filter((child) -> child.getAdapter() == mockClass1).count());
+    assertEquals(1, children.stream().filter((child) -> child.getAdapter() == mockClass2).count());
     assertEquals(1, children.stream().filter((child) -> child.getAdapter() == mockClass6).count());
 
     MemoryObjectTreeNode<NamespaceObject> javaLangPackage =
@@ -121,7 +121,7 @@ public class MemoryClassViewTest {
     MemoryObjectTreeNode<NamespaceObject> androidPackage =
       getSingularInList(comPackage.getChildren(), (child) -> child.getAdapter().getName().equals("android.studio"));
     assertEquals(2, androidPackage.getChildCount());
-    assertEquals(mockClass2, androidPackage.getChildren().get(0).getAdapter());
+    assertEquals(mockClass1, androidPackage.getChildren().get(0).getAdapter());
     assertEquals(mockClass4, androidPackage.getChildren().get(1).getAdapter());
 
     // Check if flat list is correct.
