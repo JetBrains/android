@@ -964,4 +964,44 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     }
   }
 
+  /**
+   * Called when one or more children are about to be deleted by the user.
+   *
+   * @param parent  the parent of the deleted children (which still contains
+   *                the children since this method is called before the deletion
+   *                is performed)
+   * @param deleted a nonempty list of children about to be deleted
+   * @return true if the children have been fully deleted by this participant; false if normal deletion should resume. Note that even though
+   * an implementation may return false from this method, that does not mean it did not perform any work. For example, a RelativeLayout
+   * handler could remove constraints pointing to now deleted components, but leave the overall deletion of the elements to the core
+   * designer.
+   */
+  @Override
+  public boolean deleteChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> deleted) {
+    final int count = parent.getChildCount();
+    for (int i = 0; i < count; i++) {
+      NlComponent component = parent.getChild(i);
+      if (deleted.contains(component)) {
+        continue;
+      }
+      willDelete(component, deleted);
+    }
+    return false;
+  }
+
+  /**
+   * Update the given component if one of its constraint points to one of the component deleted
+   *
+   * @param component the component we want to check
+   * @param deleted the list of components that are deleted
+   */
+  private void willDelete(NlComponent component, @NotNull List<NlComponent> deleted) {
+    final int count = deleted.size();
+    for (int i = 0; i < count; i++) {
+      NlComponent deletedComponent = deleted.get(i);
+      String id = deletedComponent.getId();
+      ConstraintComponentUtilities.updateOnDelete(component, id);
+    }
+  }
+
 }
