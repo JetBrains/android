@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.explorer.actions;
 
+import com.android.tools.idea.explorer.DeviceExplorerController;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAwareAction;
 
 public class GotoSdcardFolderAction extends DumbAwareAction {
   @Override
   public void update(AnActionEvent e) {
-    e.getPresentation().setEnabled(false);
+    DeviceExplorerController controller = DeviceExplorerController.getProjectController(e.getProject());
+    e.getPresentation().setEnabled(controller != null && controller.hasActiveDevice());
   }
 
   @Override
