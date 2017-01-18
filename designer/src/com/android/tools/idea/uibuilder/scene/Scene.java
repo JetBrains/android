@@ -780,7 +780,7 @@ public class Scene implements ModelListener, SelectionListener {
           found = true;
           continue;
         }
-        if (target.getClass() == filteredTarget.getClass()){
+        if (filteredTarget.getClass().isAssignableFrom(target.getClass())) {
           hit = target;
         }
       }
