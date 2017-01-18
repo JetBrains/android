@@ -13,20 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer.actions;
+package com.android.tools.idea.explorer;
 
-import com.android.tools.idea.explorer.DeviceExplorerController;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.project.DumbAwareAction;
+import org.jetbrains.annotations.NotNull;
 
-public class GotoSharedPrefsFolderAction extends DumbAwareAction {
-  @Override
-  public void update(AnActionEvent e) {
-    DeviceExplorerController controller = DeviceExplorerController.getProjectController(e.getProject());
-    e.getPresentation().setEnabled(controller != null && controller.hasActiveDevice());
+import javax.swing.tree.DefaultMutableTreeNode;
+
+/**
+ * A {@link DefaultMutableTreeNode} that shows an error message
+ */
+public class ErrorNode extends DefaultMutableTreeNode {
+  private final @NotNull String myText;
+
+  public ErrorNode(@NotNull String text) {
+    myText = text;
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public String toString() {
+    return myText;
+  }
+
+  @Override
+  public boolean isLeaf() {
+    return true;
+  }
+
+  @NotNull
+  public String getText() {
+    return myText;
   }
 }
