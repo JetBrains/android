@@ -30,8 +30,9 @@ import java.util.List;
  * thread.
  */
 public interface DeviceFileSystemService extends Disposable {
-  void addListener(DeviceFileSystemServiceListener listener);
-  void removeListener(DeviceFileSystemServiceListener listener);
+  void addListener(@NotNull DeviceFileSystemServiceListener listener);
+
+  void removeListener(@NotNull DeviceFileSystemServiceListener listener);
 
   /**
    * Starts the service, usually after registering one or more {@link DeviceFileSystemServiceListener}.

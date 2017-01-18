@@ -71,13 +71,18 @@ public class AdbDeviceFileSystemService implements DeviceFileSystemService {
     SetupDone,
   }
 
+  @NotNull
+  List<DeviceFileSystem> getDeviceList() {
+    return myDevices;
+  }
+
   @Override
-  public void addListener(DeviceFileSystemServiceListener listener) {
+  public void addListener(@NotNull DeviceFileSystemServiceListener listener) {
     myListeners.add(listener);
   }
 
   @Override
-  public void removeListener(DeviceFileSystemServiceListener listener) {
+  public void removeListener(@NotNull DeviceFileSystemServiceListener listener) {
     myListeners.remove(listener);
   }
 
@@ -128,9 +133,13 @@ public class AdbDeviceFileSystemService implements DeviceFileSystemService {
 
       @Override
       public void onFailure(@NotNull Throwable t) {
-        LOGGER.error("Unable to obtain debug bridge", t);
+        LOGGER.warn("Unable to obtain debug bridge", t);
         myState = State.Initial;
-        futureResult.setException(t);
+        if (t.getMessage() != null) {
+          futureResult.setException(t);
+        } else {
+          futureResult.setException(new RuntimeException(AdbService.getDebugBridgeDiagnosticErrorMessage(t, myAdb), t));
+        }
       }
     });
 
@@ -180,23 +189,6 @@ public class AdbDeviceFileSystemService implements DeviceFileSystemService {
     myDevices.clear();
   }
 
-  private void setupBridge(@Nullable AndroidDebugBridge bridge) {
-    if (myBridge != null) {
-      myDevices.clear();
-      myListeners.forEach(DeviceFileSystemServiceListener::updated);
-      myBridge = null;
-    }
-
-    if (bridge != null) {
-      myBridge = bridge;
-      if (myBridge.hasInitialDeviceList()) {
-        Arrays.stream(myBridge.getDevices())
-          .map(d -> new AdbDeviceFileSystem(this, d))
-          .forEach(myDevices::add);
-      }
-    }
-  }
-
   @NotNull
   @Override
   public ListenableFuture<List<DeviceFileSystem>> getDevices() {
@@ -214,7 +206,22 @@ public class AdbDeviceFileSystemService implements DeviceFileSystemService {
     @Override
     public void bridgeChanged(@Nullable AndroidDebugBridge bridge) {
       LOGGER.info("Debug bridge changed");
-      myEdtExecutor.execute(() -> setupBridge(bridge));
+      myEdtExecutor.execute(() -> {
+        if (myBridge != null) {
+          myDevices.clear();
+          myListeners.forEach(DeviceFileSystemServiceListener::updated);
+          myBridge = null;
+        }
+
+        if (bridge != null) {
+          myBridge = bridge;
+          if (myBridge.hasInitialDeviceList()) {
+            Arrays.stream(myBridge.getDevices())
+              .map(d -> new AdbDeviceFileSystem(AdbDeviceFileSystemService.this, d))
+              .forEach(myDevices::add);
+          }
+        }
+      });
     }
   }
 
