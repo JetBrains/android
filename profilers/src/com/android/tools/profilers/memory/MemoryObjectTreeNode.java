@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 import java.util.*;
 
 /**
@@ -149,6 +150,24 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
     assert myParent == null;
     myComparator = comparator;
     ensureOrder();
+  }
+
+  @NotNull
+  public List<MemoryObjectTreeNode<T>> getPathToRoot() {
+    List<MemoryObjectTreeNode<T>> path = new ArrayList<>();
+    MemoryObjectTreeNode<T> currentNode = this;
+    MemoryObjectTreeNode<T> cycleDetector = this;
+    while (currentNode != null) {
+      for (int i = 0; i < 2 && cycleDetector != null; i++) {
+        assert cycleDetector.myParent != currentNode;
+        cycleDetector = cycleDetector.myParent;
+      }
+
+      path.add(currentNode);
+      currentNode = currentNode.myParent;
+    }
+    Collections.reverse(path);
+    return path;
   }
 
   private void ensureOrder() {
