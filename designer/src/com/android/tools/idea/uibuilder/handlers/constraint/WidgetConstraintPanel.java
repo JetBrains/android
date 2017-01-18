@@ -711,7 +711,6 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   public void setHorizontalConstraint(int horizontalConstraint) {
-
     String width = mComponent.getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH);
     if (width.endsWith("dp") && !width.equals("0dp")) {
       mComponent.putClientProperty(SdkConstants.ATTR_LAYOUT_WIDTH, width);
@@ -722,18 +721,20 @@ public class WidgetConstraintPanel extends JPanel {
         break;
       case SingleWidgetView.FIXED:
         String oldValue = (String)mComponent.getClientProperty(SdkConstants.ATTR_LAYOUT_WIDTH);
+        if (oldValue == null) {
+          float dipValue = mComponent.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
+          oldValue = ((int)(0.5f + mComponent.w / dipValue)) + "dp";
+        }
         setAndroidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, oldValue);
         break;
       case SingleWidgetView.WRAP_CONTENT:
         setAndroidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, SdkConstants.VALUE_WRAP_CONTENT);
         break;
     }
-
     widgetModified();
   }
 
   public void setVerticalConstraint(int verticalConstraint) {
-
     String height = mComponent.getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT);
     if (height.endsWith("dp") && !height.equals("0dp")) {
       mComponent.putClientProperty(SdkConstants.ATTR_LAYOUT_HEIGHT, height);
@@ -744,6 +745,10 @@ public class WidgetConstraintPanel extends JPanel {
         break;
       case SingleWidgetView.FIXED:
         String oldValue = (String)mComponent.getClientProperty(SdkConstants.ATTR_LAYOUT_HEIGHT);
+        if (oldValue == null) {
+          float dipValue = mComponent.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
+          oldValue = ((int)(0.5f + mComponent.h / dipValue)) + "dp";
+        }
         setAndroidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, oldValue);
         break;
       case SingleWidgetView.WRAP_CONTENT:

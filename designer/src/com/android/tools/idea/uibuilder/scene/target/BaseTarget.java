@@ -39,6 +39,11 @@ public abstract class BaseTarget implements Target {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
+  public boolean canChangeSelection() {
+    return true;
+  }
+
+  @Override
   public void setComponent(@NotNull SceneComponent component) {
     myComponent = component;
   }
