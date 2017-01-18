@@ -40,6 +40,9 @@ class SceneMouseInteraction {
     repaint();
   }
 
+  public float getLastX() { return myLastX; }
+  public float getLastY() { return myLastY; }
+
   /**
    * Simulate a click on a given resize handle of the component with componentId
    *
