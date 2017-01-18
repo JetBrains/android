@@ -21,8 +21,11 @@ import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.SelectionModel;
+import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.common.LoadingPanel;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
@@ -51,6 +54,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
    */
   private final Splitter mySplitter;
 
+  private final LoadingPanel myCaptureViewLoading;
+
   @Nullable
   private CpuCaptureView myCaptureView;
 
@@ -60,7 +65,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myStage = stage;
 
     stage.getAspect().addDependency(this)
-      .onChange(CpuProfilerAspect.CAPTURE, this::updateCapture)
+      .onChange(CpuProfilerAspect.CAPTURE, this::updateCaptureState)
       .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection);
 
     StudioProfilers profilers = stage.getStudioProfilers();
@@ -188,7 +193,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myCaptureButton = new JButton();
     myCaptureButton.addActionListener(event -> capture());
 
-    updateCapture();
+    myCaptureViewLoading = getProfilersView().getIdeProfilerComponents().createLoadingPanel();
+    if (myCaptureViewLoading != null) {
+      myCaptureViewLoading.setLoadingText("Parsing capture...");
+    }
+
+    updateCaptureState();
   }
 
   @Override
@@ -222,19 +232,33 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     return String.format("%d:%02d:%03d", min, sec, mil);
   }
 
-  private void updateCapture() {
-    CpuCapture capture = myStage.getCapture();
-
-    if (capture == null) {
-      mySplitter.setSecondComponent(null);
-      myCaptureView = null;
+  private void updateCaptureState() {
+    if (myCaptureViewLoading != null) {
+      myCaptureViewLoading.stopLoading();
+    }
+    if (myStage.isCapturing()) {
+      myCaptureButton.setText("Stop");
+      // TODO: implement visual effect of an ongoing capture
     }
     else {
-      myCaptureView = new CpuCaptureView(capture, this);
-      mySplitter.setSecondComponent(myCaptureView.getComponent());
+      myCaptureButton.setText("Record");
+      if (myStage.isParsingCapture()) {
+        if (myCaptureViewLoading != null) {
+          myCaptureViewLoading.startLoading();
+          mySplitter.setSecondComponent(myCaptureViewLoading.getComponent());
+        }
+      }
+      else {
+        CpuCapture capture = myStage.getCapture();
+        if (capture == null) {
+          mySplitter.setSecondComponent(null);
+          myCaptureView = null;
+        } else {
+          myCaptureView = new CpuCaptureView(capture, this);
+          mySplitter.setSecondComponent(myCaptureView.getComponent());
+        }
+      }
     }
-
-    myCaptureButton.setText(myStage.isCapturing() ? "Stop" : "Record");
   }
 
   private void capture() {

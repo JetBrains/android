@@ -17,7 +17,7 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
-import com.android.tools.profilers.IdeProfilerServicesStub;
+import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.FakeGrpcChannel;
@@ -62,7 +62,7 @@ public class NetworkProfilerStageTest extends AspectObserver {
   @Before
   public void setUp() {
     myTimer = new FakeTimer();
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub(), myTimer);
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
     myStage = new NetworkProfilerStage(profilers);
     myStage.getStudioProfilers().getTimeline().getViewRange().set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(10));
     myStage.enter();
