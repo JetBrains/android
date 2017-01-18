@@ -25,7 +25,6 @@ import java.util.List;
 public interface InstanceObject extends MemoryObject {
   enum InstanceAttribute {
     LABEL,
-    ELEMENT_SIZE,
     DEPTH,
     SHALLOW_SIZE,
     RETAINED_SIZE

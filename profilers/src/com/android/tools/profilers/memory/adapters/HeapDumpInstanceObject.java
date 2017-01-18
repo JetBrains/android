@@ -26,6 +26,7 @@ import java.util.*;
  * A UI representation of a {@link ClassInstance}.
  */
 class HeapDumpInstanceObject implements InstanceObject {
+  public static final String NAME_FORMATTER = "@%d (0x%x)";
   private static final Comparator<Instance> DEPTH_COMPARATOR = Comparator.comparingInt(Instance::getDistanceToGcRoot);
 
   @Nullable private final ClassObject myClassObject;
@@ -128,7 +129,7 @@ class HeapDumpInstanceObject implements InstanceObject {
   @Override
   public String getDisplayLabel() {
     // TODO show length of array instance
-    return String.format("@%d (0x%x)", myInstance.getUniqueId(), myInstance.getUniqueId());
+    return String.format(NAME_FORMATTER, myInstance.getUniqueId(), myInstance.getUniqueId());
   }
 
   @Nullable

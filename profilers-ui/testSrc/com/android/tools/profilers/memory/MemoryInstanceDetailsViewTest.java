@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.IdeProfilerServicesStub;
@@ -59,7 +60,7 @@ public class MemoryInstanceDetailsViewTest {
   public void NoCallstackOrReferenceVisibilityTest() throws Exception {
     // Selection with no callstack / reference information
     Component component = myDetailsView.getComponent();
-    ReferenceObject mockInstance = mockReferenceObject("MockInstance", Collections.emptyList(), null);
+    ReferenceObject mockInstance = mockReferenceObject("MockInstance", 1, 2, 3, Collections.emptyList(), null);
     myStage.selectInstance(mockInstance);
     assertFalse(component.isVisible());
   }
@@ -69,9 +70,9 @@ public class MemoryInstanceDetailsViewTest {
   public void SelectionWithReferenceVisibilityTest() throws Exception {
     // Selection with reference information
     Component component = myDetailsView.getComponent();
-    ReferenceObject mockRef = mockReferenceObject("MockReference", Collections.emptyList(), null);
+    ReferenceObject mockRef = mockReferenceObject("MockReference", 1, 2, 3, Collections.emptyList(), null);
     ReferenceObject mockInstance =
-      mockReferenceObject("MockInstanceWithRef", Collections.singletonList(mockRef), null);
+      mockReferenceObject("MockInstanceWithRef", 1, 2, 3, Collections.singletonList(mockRef), null);
     myStage.selectInstance(mockInstance);
     assertTrue(component.isVisible());
   }
@@ -84,7 +85,7 @@ public class MemoryInstanceDetailsViewTest {
     MemoryProfiler.AllocationStack stack = MemoryProfiler.AllocationStack.newBuilder().addStackFrames(
       MemoryProfiler.AllocationStack.StackFrame.newBuilder().setClassName("MockClass").setMethodName("MockMethod").setLineNumber(1))
       .build();
-    ReferenceObject mockInstance = mockReferenceObject("MockInstanceWithCallstack", Collections.emptyList(), stack);
+    ReferenceObject mockInstance = mockReferenceObject("MockInstanceWithCallstack", 1, 2, 3, Collections.emptyList(), stack);
     myStage.selectInstance(mockInstance);
     assertTrue(component.isVisible());
   }
@@ -104,12 +105,12 @@ public class MemoryInstanceDetailsViewTest {
     // --> Ref3
     // ---> Ref4
     // -> Ref5
-    ReferenceObject mockRef2 = mockReferenceObject("Ref2", Collections.emptyList(), null);
-    ReferenceObject mockRef4 = mockReferenceObject("Ref4", Collections.emptyList(), null);
-    ReferenceObject mockRef5 = mockReferenceObject("Ref5", Collections.emptyList(), null);
-    ReferenceObject mockRef3 = mockReferenceObject("Ref3", Collections.singletonList(mockRef4), null);
-    ReferenceObject mockRef1 = mockReferenceObject("Ref1", Arrays.asList(mockRef2, mockRef3), null);
-    ReferenceObject mockRootObject = mockReferenceObject("MockRoot", Arrays.asList(mockRef1, mockRef5), null);
+    ReferenceObject mockRef2 = mockReferenceObject("Ref2", 1, 2, 3, Collections.emptyList(), null);
+    ReferenceObject mockRef4 = mockReferenceObject("Ref4", 1, 2, 3, Collections.emptyList(), null);
+    ReferenceObject mockRef5 = mockReferenceObject("Ref5", 1, 2, 3, Collections.emptyList(), null);
+    ReferenceObject mockRef3 = mockReferenceObject("Ref3", 1, 2, 3, Collections.singletonList(mockRef4), null);
+    ReferenceObject mockRef1 = mockReferenceObject("Ref1", 1, 2, 3, Arrays.asList(mockRef2, mockRef3), null);
+    ReferenceObject mockRootObject = mockReferenceObject("MockRoot", 1, 2, 3, Arrays.asList(mockRef1, mockRef5), null);
 
     JTree tree = myDetailsView.buildTree(mockRootObject);
     DefaultTreeModel treeModel = (DefaultTreeModel)tree.getModel();
@@ -141,5 +142,39 @@ public class MemoryInstanceDetailsViewTest {
     assertEquals(0, ref2Child.getChildCount());
     assertEquals(1, ref3Child.getChildCount());
     assertEquals(mockRef4, ((MemoryObjectTreeNode)ref3Child.getChildAt(0)).getAdapter());
+  }
+
+  @Test
+  public void testCorrectColumnsAndRendererContents() {
+    // TODO test more sophisticated cases (e.g. multiple field names, icons, etc)
+    // Setup mock reference hierarchy:
+    // MockRoot
+    // -> Ref1
+    // -> Ref2
+    // -> Ref3
+    ReferenceObject mockRef1 = mockReferenceObject("Ref1", 1, 2, 3, Collections.emptyList(), null);
+    ReferenceObject mockRef2 = mockReferenceObject("Ref2", 4, 5, 6, Collections.emptyList(), null);
+    ReferenceObject mockRef3 = mockReferenceObject("Ref3", 7, 8, 9, Collections.emptyList(), null);
+    java.util.List<ReferenceObject> references = Arrays.asList(mockRef1, mockRef2, mockRef3);
+    ReferenceObject mockRootObject = mockReferenceObject("MockRoot", 1, 2, 3, references, null);
+    myStage.selectInstance(mockRootObject);
+
+    JTree tree = myDetailsView.getReferenceTree();
+    assertNotNull(tree);
+    JScrollPane columnTreePane = (JScrollPane)myDetailsView.getReferenceColumnTree();
+    assertNotNull(columnTreePane);
+    ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(tree, columnTreePane);
+    treeInfo.verifyColumnHeaders("Reference", "Depth", "Shallow Size", "Retained Size");
+
+    MemoryObjectTreeNode root = (MemoryObjectTreeNode)tree.getModel().getRoot();
+    assertEquals(references.size(), root.getChildCount());
+    for (int i = 0; i < root.getChildCount(); i++) {
+      ReferenceObject ref = references.get(i);
+      treeInfo.verifyRendererValues(root.getChildAt(i),
+                                    ref.getDisplayLabel(),
+                                    Integer.toString(ref.getDepth()),
+                                    Integer.toString(ref.getShallowSize()),
+                                    Long.toString(ref.getRetainedSize()));
+    }
   }
 }

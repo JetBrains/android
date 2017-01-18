@@ -15,17 +15,19 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.HeapObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
-import com.android.tools.profilers.common.CodeLocation;
 import com.intellij.util.containers.ImmutableList;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import javax.swing.*;
+import javax.swing.tree.TreePath;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -39,9 +41,11 @@ public class MemoryInstanceViewTest {
   private static final String MOCK_CLASS_NAME = "MockClass";
 
   private static final List<InstanceObject> INSTANCE_OBJECT_LIST = Arrays.asList(
-    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance1"),
-    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance2"),
-    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance3"));
+    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance1", 2, 3, 4),
+    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance2", 5, 6, 7),
+    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance3", 8, 9, 10));
+
+  private static final ClassObject MOCK_CLASS = MemoryProfilerTestBase.mockClassObject(MOCK_CLASS_NAME, 1, 2, 3, INSTANCE_OBJECT_LIST);
 
   @Rule public final FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryInstanceViewTestGrpc");
 
@@ -65,7 +69,7 @@ public class MemoryInstanceViewTest {
   public void testSelectClassToShowInInstanceView() {
     MemoryInstanceView view = new MemoryInstanceView(myStage, myFakeIdeProfilerComponents);
 
-    myStage.selectClass(MemoryProfilerTestBase.mockClassObject("MockClass", INSTANCE_OBJECT_LIST));
+    myStage.selectClass(MOCK_CLASS);
     assertNotNull(view.getTree());
     assertTrue(view.getTree().getModel().getRoot() instanceof MemoryObjectTreeNode);
     MemoryObjectTreeNode root = (MemoryObjectTreeNode)view.getTree().getModel().getRoot();
@@ -80,7 +84,7 @@ public class MemoryInstanceViewTest {
   @Test
   public void testSelectInstanceToShowInInstanceView() {
     MemoryInstanceView view = new MemoryInstanceView(myStage, myFakeIdeProfilerComponents);
-    myStage.selectClass(MemoryProfilerTestBase.mockClassObject("MockClass", INSTANCE_OBJECT_LIST));
+    myStage.selectClass(MOCK_CLASS);
     assertNotNull(view.getTree());
     assertEquals(0, view.getTree().getSelectionCount());
     myStage.selectInstance(INSTANCE_OBJECT_LIST.get(0));
@@ -88,9 +92,24 @@ public class MemoryInstanceViewTest {
   }
 
   @Test
+  public void testTreeSelectionTriggersInstanceSelection() {
+    MemoryInstanceView view = new MemoryInstanceView(myStage, myFakeIdeProfilerComponents);
+    myStage.selectClass(MOCK_CLASS);
+    MemoryAspectObserver observer = new MemoryAspectObserver(myStage.getAspect());
+
+    // Selects the first instance object.
+    JTree tree = view.getTree();
+    MemoryObjectTreeNode firstNode = (MemoryObjectTreeNode)((MemoryObjectTreeNode)tree.getModel().getRoot()).getChildAt(0);
+    assertEquals(INSTANCE_OBJECT_LIST.get(0), firstNode.getAdapter());
+    tree.setSelectionPath(new TreePath(firstNode));
+    observer.assertAndResetCounts(0, 0, 0, 0, 0, 0, 1);
+    assertEquals(firstNode, tree.getSelectionPath().getLastPathComponent());
+  }
+
+  @Test
   public void testResetInstanceView() {
     MemoryInstanceView view = new MemoryInstanceView(myStage, myFakeIdeProfilerComponents);
-    myStage.selectClass(MemoryProfilerTestBase.mockClassObject("MockClass", INSTANCE_OBJECT_LIST));
+    myStage.selectClass(MOCK_CLASS);
     assertNotNull(view.getTree());
     assertTrue(view.getTree().getModel().getRoot() instanceof MemoryObjectTreeNode);
     view.reset();
@@ -100,8 +119,8 @@ public class MemoryInstanceViewTest {
   @Test
   public void navigationTest() {
     final String testClassName = "com.Foo";
-    InstanceObject mockInstance = MemoryProfilerTestBase.mockInstanceObject(testClassName, "TestInstance");
-    ClassObject mockClass = MemoryProfilerTestBase.mockClassObject(testClassName, Collections.singletonList(mockInstance));
+    InstanceObject mockInstance = MemoryProfilerTestBase.mockInstanceObject(testClassName, "TestInstance", 1, 2, 3);
+    ClassObject mockClass = MemoryProfilerTestBase.mockClassObject(testClassName, 4, 5, 6, Collections.singletonList(mockInstance));
     List<ClassObject> mockClassObjects = Collections.singletonList(mockClass);
     HeapObject mockHeap = MemoryProfilerTestBase.mockHeapObject("TestHeap", mockClassObjects);
     myStage.selectHeap(mockHeap);
@@ -122,5 +141,29 @@ public class MemoryInstanceViewTest {
     assertNotNull(preNavigate);
     preNavigate.run();
     verify(myStage).setProfilerMode(ProfilerMode.NORMAL);
+  }
+
+  @Test
+  public void testCorrectColumnsAndRendererContents() {
+    MemoryInstanceView view = new MemoryInstanceView(myStage, myFakeIdeProfilerComponents);
+    myStage.selectClass(MOCK_CLASS);
+
+    JTree tree = view.getTree();
+    assertNotNull(tree);
+    JScrollPane columnTreePane = (JScrollPane)view.getColumnTree();
+    assertNotNull(columnTreePane);
+    ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(tree, columnTreePane);
+    treeInfo.verifyColumnHeaders("Instance", "Depth", "Shallow Size", "Retained Size");
+
+    MemoryObjectTreeNode root = (MemoryObjectTreeNode)tree.getModel().getRoot();
+    assertEquals(INSTANCE_OBJECT_LIST.size(), root.getChildCount());
+    for (int i = 0; i < root.getChildCount(); i++) {
+      InstanceObject instance = INSTANCE_OBJECT_LIST.get(i);
+      treeInfo.verifyRendererValues(root.getChildAt(i),
+                                    instance.getDisplayLabel(),
+                                    Integer.toString(instance.getDepth()),
+                                    Integer.toString(instance.getShallowSize()),
+                                    Long.toString(instance.getRetainedSize()));
+    }
   }
 }
