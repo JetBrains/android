@@ -16,6 +16,7 @@
 package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.ServicePassThrough;
+import com.android.tools.datastore.database.CpuTable;
 import com.android.tools.datastore.database.DatastoreTable;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
@@ -27,6 +28,7 @@ import io.grpc.ServerServiceDefinition;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.RunnableFuture;
@@ -44,14 +46,7 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
    * Used to get device time.
    */
   private ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerService;
-
-  //TODO Pull this into a storage container that can read/write this to disk
-  protected final List<CpuProfiler.CpuProfilerData> myData = new ArrayList<>();
-  protected final Map<Integer, CpuProfiler.GetThreadsResponse.Thread.Builder> myThreads = new TreeMap<>();
-  protected final Map<Integer, TraceData> myTraces = new HashMap<>();
-
-  private final Object myLock = new Object();
-
+  private CpuTable myCpuTable = new CpuTable();
   private int myProcessId = -1;
 
   private long myStartTraceTimestamp = -1;
@@ -76,11 +71,6 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
   }
 
   @Override
-  public DatastoreTable getDatastoreTable() {
-    return null;
-  }
-
-  @Override
   public void poll() throws StatusRuntimeException {
     CpuProfiler.CpuDataRequest.Builder dataRequestBuilder = CpuProfiler.CpuDataRequest.newBuilder()
       .setProcessId(myProcessId)
@@ -88,26 +78,27 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
       .setEndTimestamp(Long.MAX_VALUE);
     CpuProfiler.CpuDataResponse response = myPollingService.getData(dataRequestBuilder.build());
 
-    synchronized (myLock) {
-      for (CpuProfiler.CpuProfilerData data : response.getDataList()) {
-        myDataRequestStartTimestampNs = data.getBasicInfo().getEndTimestamp();
-        myData.add(data);
-        if (data.getDataCase() == CpuProfiler.CpuProfilerData.DataCase.THREAD_ACTIVITIES) {
-          CpuProfiler.ThreadActivities activities = data.getThreadActivities();
-          if (activities != null) {
-            for (CpuProfiler.ThreadActivity activity : activities.getActivitiesList()) {
-              int tid = activity.getTid();
-              CpuProfiler.GetThreadsResponse.Thread.Builder builder = myThreads.get(tid);
-              if (builder == null) {
-                builder = CpuProfiler.GetThreadsResponse.Thread.newBuilder().setName(activity.getName()).setTid(tid);
-                myThreads.put(tid, builder);
-              }
-              CpuProfiler.ThreadActivity.State state = activity.getNewState();
-              CpuProfiler.GetThreadsResponse.State converted = CpuProfiler.GetThreadsResponse.State.valueOf(state.toString());
-              builder.addActivities(CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
-                                      .setTimestamp(activity.getTimestamp())
-                                      .setNewState(converted));
+    // TODO: Perfd should return all the thread activities data with the StartTime and EndTime already updated
+    // to refelect the lifetime of the thread.
+    for (CpuProfiler.CpuProfilerData data : response.getDataList()) {
+      myDataRequestStartTimestampNs = data.getBasicInfo().getEndTimestamp();
+      myCpuTable.insert(data);
+      if (data.getDataCase() == CpuProfiler.CpuProfilerData.DataCase.THREAD_ACTIVITIES) {
+        CpuProfiler.ThreadActivities activities = data.getThreadActivities();
+        if (activities != null) {
+          for (CpuProfiler.ThreadActivity activity : activities.getActivitiesList()) {
+            int tid = activity.getTid();
+            CpuProfiler.GetThreadsResponse.Thread.Builder builder =
+              myCpuTable.getThreadResponseByIdOrNull(data.getBasicInfo().getProcessId(), tid);
+            if (builder == null) {
+              builder = CpuProfiler.GetThreadsResponse.Thread.newBuilder().setName(activity.getName()).setTid(tid);
             }
+            CpuProfiler.ThreadActivity.State state = activity.getNewState();
+            CpuProfiler.GetThreadsResponse.State converted = CpuProfiler.GetThreadsResponse.State.valueOf(state.toString());
+            builder.addActivities(CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
+                                    .setTimestamp(activity.getTimestamp())
+                                    .setNewState(converted));
+            myCpuTable.insertOrReplace(data.getBasicInfo().getProcessId(), tid, builder);
           }
         }
       }
@@ -117,23 +108,9 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
   @Override
   public void getData(CpuProfiler.CpuDataRequest request, StreamObserver<CpuProfiler.CpuDataResponse> observer) {
     CpuProfiler.CpuDataResponse.Builder response = CpuProfiler.CpuDataResponse.newBuilder();
-    if (myData.size() == 0) {
-      observer.onNext(response.build());
-      observer.onCompleted();
-      return;
-    }
-
-    long startTime = request.getStartTimestamp();
-    long endTime = request.getEndTimestamp();
-
-    //TODO: Optimize so we do not need to loop all the data every request, ideally binary search to start time and loop till end.
-    synchronized (myLock) {
-      for (CpuProfiler.CpuProfilerData data : myData) {
-        long current = data.getBasicInfo().getEndTimestamp();
-        if (current > startTime && current <= endTime) {
-          response.addData(data);
-        }
-      }
+    List<CpuProfiler.CpuProfilerData> cpuData = myCpuTable.getCpuDataByRequest(request);
+    for (CpuProfiler.CpuProfilerData data : cpuData) {
+      response.addData(data);
     }
     observer.onNext(response.build());
     observer.onCompleted();
@@ -142,19 +119,18 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
   @Override
   public void getThreads(CpuProfiler.GetThreadsRequest request, StreamObserver<CpuProfiler.GetThreadsResponse> observer) {
     CpuProfiler.GetThreadsResponse.Builder response = CpuProfiler.GetThreadsResponse.newBuilder();
-
+    List<CpuProfiler.GetThreadsResponse.Thread.Builder> threadData = myCpuTable.getThreadsDataByRequest(request);
     long from = request.getStartTimestamp();
     long to = request.getEndTimestamp();
-
-    for (CpuProfiler.GetThreadsResponse.Thread.Builder builder : myThreads.values()) {
+    for (CpuProfiler.GetThreadsResponse.Thread.Builder builder : threadData) {
       int count = builder.getActivitiesCount();
       if (count > 0) {
         // If they overlap
         CpuProfiler.GetThreadsResponse.ThreadActivity first = builder.getActivities(0);
         CpuProfiler.GetThreadsResponse.ThreadActivity last = builder.getActivities(count - 1);
-        boolean include = first.getTimestamp() <= to && from <= last.getTimestamp();
-        // If still alive.
-        include = include || (last.getTimestamp() < from && last.getNewState() != CpuProfiler.GetThreadsResponse.State.DEAD);
+
+        //TODO Add a test that captures the exact behavior this is trying to catch.
+        boolean include = !(last.getTimestamp() < from && last.getNewState() == CpuProfiler.GetThreadsResponse.State.DEAD);
         if (include) {
           response.addThreads(builder);
         }
@@ -167,13 +143,8 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
   @Override
   public void getTraceInfo(CpuProfiler.GetTraceInfoRequest request, StreamObserver<CpuProfiler.GetTraceInfoResponse> responseObserver) {
     CpuProfiler.GetTraceInfoResponse.Builder response = CpuProfiler.GetTraceInfoResponse.newBuilder();
-    for (TraceData traceInfo : myTraces.values()) {
-      CpuProfiler.TraceInfo trace = traceInfo.getTrace();
-      // Get traces that overlap with the requested range.
-      if (Math.max(trace.getFromTimestamp(), request.getFromTimestamp()) <= Math.min(trace.getToTimestamp(), request.getToTimestamp())) {
-        response.addTraceInfo(trace);
-      }
-    }
+    List<CpuProfiler.TraceInfo> responses = myCpuTable.getTraceByRequest(request);
+    response.addAllTraceInfo(responses);
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
   }
@@ -181,10 +152,6 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
   @Override
   public void startMonitoringApp(CpuProfiler.CpuStartRequest request, StreamObserver<CpuProfiler.CpuStartResponse> observer) {
     myProcessId = request.getProcessId();
-    synchronized (myLock) {
-      myThreads.clear();
-      myData.clear();
-    }
     observer.onNext(myPollingService.startMonitoringApp(request));
     observer.onCompleted();
   }
@@ -209,9 +176,13 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
   public void stopProfilingApp(CpuProfiler.CpuProfilingAppStopRequest request,
                                StreamObserver<CpuProfiler.CpuProfilingAppStopResponse> observer) {
     CpuProfiler.CpuProfilingAppStopResponse response = myPollingService.stopProfilingApp(request);
-    TraceData trace = new TraceData(response.getTraceId(), myStartTraceTimestamp, getCurrentDeviceTimeNs(), response.getTrace());
+    CpuProfiler.TraceInfo trace = CpuProfiler.TraceInfo.newBuilder()
+      .setTraceId(response.getTraceId())
+      .setFromTimestamp(myStartTraceTimestamp)
+      .setToTimestamp(getCurrentDeviceTimeNs())
+      .build();
+    myCpuTable.insertTrace(trace, response.getTrace());
     myStartTraceTimestamp = -1;
-    myTraces.put(response.getTraceId(), trace);
     observer.onNext(response);
     observer.onCompleted();
   }
@@ -219,13 +190,13 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
   @Override
   public void getTrace(CpuProfiler.GetTraceRequest request, StreamObserver<CpuProfiler.GetTraceResponse> observer) {
 
-    TraceData data = myTraces.get(request.getTraceId());
+    ByteString data = myCpuTable.getTraceData(request.getTraceId());
     CpuProfiler.GetTraceResponse.Builder builder = CpuProfiler.GetTraceResponse.newBuilder();
     if (data == null) {
       builder.setStatus(CpuProfiler.GetTraceResponse.Status.FAILURE);
     }
     else {
-      builder.setStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS).setData(data.getData());
+      builder.setStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS).setData(data);
     }
 
     observer.onNext(builder.build());
@@ -233,31 +204,11 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
   }
 
   private long getCurrentDeviceTimeNs() {
-   return myProfilerService.getTimes(Profiler.TimesRequest.getDefaultInstance()).getTimestampNs();
+    return myProfilerService.getTimes(Profiler.TimesRequest.getDefaultInstance()).getTimestampNs();
   }
 
-  private static class TraceData {
-    @NotNull
-    private final ByteString myData;
-
-    private CpuProfiler.TraceInfo myTrace;
-
-    public TraceData(int traceId, long fromTimestamp, long toTimestamp, @NotNull ByteString data) {
-      if (fromTimestamp < 0) {
-        throw new IllegalArgumentException("Invalid trace timestamp");
-      }
-      myTrace = CpuProfiler.TraceInfo.newBuilder().setTraceId(traceId).setFromTimestamp(fromTimestamp).setToTimestamp(toTimestamp).build();
-      myData = data;
-    }
-
-    @NotNull
-    public CpuProfiler.TraceInfo getTrace() {
-      return myTrace;
-    }
-
-    @NotNull
-    public ByteString getData() {
-      return myData;
-    }
+  @Override
+  public DatastoreTable getDatastoreTable() {
+    return myCpuTable;
   }
 }
