@@ -1044,7 +1044,11 @@ public class Scene implements ModelListener, SelectionListener {
       LassoTarget lassoTarget = (LassoTarget)myHitTarget;
       lassoTarget.fillSelectedComponents(myNewSelectedComponents);
     }
-    if (!sameSelection()) {
+    boolean canChangeSelection = true;
+    if (myHitTarget != null) {
+      canChangeSelection = myHitTarget.canChangeSelection();
+    }
+    if (canChangeSelection && !sameSelection()) {
       select(myNewSelectedComponents);
     }
     checkRequestLayoutStatus();

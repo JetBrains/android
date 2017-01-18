@@ -37,7 +37,7 @@ public class GuidelineAnchorTarget extends AnchorTarget {
 
   @Override
   public int getPreferenceLevel() {
-    return Target.GUIDELINE_LEVEL;
+    return Target.GUIDELINE_ANCHOR_LEVEL;
   }
 
   public GuidelineAnchorTarget(@NotNull Type type, boolean isHorizontal) {
