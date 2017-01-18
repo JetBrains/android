@@ -45,6 +45,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
+import sun.awt.CausedFocusEvent;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
@@ -75,8 +76,6 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   private final JPanel myTablePanel;
   private final PTableModel myModel;
   private final InspectorPanel myInspectorPanel;
-  private final MyFocusTraversalPolicy myFocusTraversalPolicy;
-
   private final JPanel myCardPanel;
 
   private List<NlComponent> myComponents;
@@ -127,10 +126,9 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     tableScrollPane.getVerticalScrollBar().setUnitIncrement(VERTICAL_SCROLLING_UNIT_INCREMENT);
     tableScrollPane.getVerticalScrollBar().setBlockIncrement(VERTICAL_SCROLLING_BLOCK_INCREMENT);
     tableScrollPane.setBorder(BorderFactory.createEmptyBorder());
-    myFocusTraversalPolicy = new MyFocusTraversalPolicy();
     myCardPanel.add(CARD_ADVANCED, tableScrollPane);
     myCardPanel.setFocusCycleRoot(true);
-    myCardPanel.setFocusTraversalPolicy(myFocusTraversalPolicy);
+    myCardPanel.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
     myComponents = Collections.emptyList();
     myProperties = Collections.emptyList();
   }
@@ -334,20 +332,42 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   }
 
   private void scrollIntoView(@NotNull PropertyChangeEvent event) {
-    if (event.getNewValue() instanceof Component && "focusOwner".equals(event.getPropertyName())) {
+    if (needToScrollInView(event)) {
       Component newFocusedComponent = (Component)event.getNewValue();
-      if (isAncestorOf(newFocusedComponent) &&
-          newFocusedComponent.getParent() instanceof JComponent &&
-          myFocusTraversalPolicy.isLastFocusRecipient(newFocusedComponent)) {
-        JComponent parent1 = (JComponent)newFocusedComponent.getParent();
-        Rectangle bounds = newFocusedComponent.getBounds();
-        if (newFocusedComponent == myTable) {
-          bounds = myTable.getCellRect(myTable.getSelectedRow(), 1, true);
-          bounds.x = 0;
-        }
-        parent1.scrollRectToVisible(bounds);
+      JComponent parent = (JComponent)newFocusedComponent.getParent();
+      Rectangle bounds = newFocusedComponent.getBounds();
+      if (newFocusedComponent == myTable) {
+        bounds = myTable.getCellRect(myTable.getSelectedRow(), 1, true);
+        bounds.x = 0;
       }
+      parent.scrollRectToVisible(bounds);
     }
+  }
+
+  private boolean needToScrollInView(@NotNull PropertyChangeEvent event) {
+    AWTEvent awtEvent = EventQueue.getCurrentEvent();
+    if (!"focusOwner".equals(event.getPropertyName()) ||
+        !(event.getNewValue() instanceof Component)) {
+      return false;
+    }
+    Component newFocusedComponent = (Component)event.getNewValue();
+    if (!isAncestorOf(newFocusedComponent) ||
+        !(newFocusedComponent.getParent() instanceof JComponent) ||
+        !(awtEvent instanceof CausedFocusEvent)) {
+      return false;
+    }
+    CausedFocusEvent focusEvent = (CausedFocusEvent)awtEvent;
+    switch (focusEvent.getCause()) {
+      case TRAVERSAL:
+      case TRAVERSAL_UP:
+      case TRAVERSAL_DOWN:
+      case TRAVERSAL_FORWARD:
+      case TRAVERSAL_BACKWARD:
+        break;
+      default:
+        return false;
+    }
+    return true;
   }
 
   @NotNull
@@ -446,11 +466,6 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
       myPattern = pattern;
     }
 
-    @NotNull
-    private String getPattern() {
-      return myPattern;
-    }
-
     @Override
     public boolean include(Entry<? extends PTableModel, ? extends Integer> entry) {
       PTableItem item = (PTableItem)entry.getValue(0);
@@ -474,26 +489,6 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
 
     private boolean isMatch(@NotNull String text) {
       return myComparator.matchingFragments(myPattern, text) != null;
-    }
-  }
-
-  private static class MyFocusTraversalPolicy extends LayoutFocusTraversalPolicy {
-
-    private Component myLastFocusRecipient;
-
-    private boolean isLastFocusRecipient(@NotNull Component component) {
-      boolean isLastRecipient = component == myLastFocusRecipient;
-      myLastFocusRecipient = null;
-      return isLastRecipient;
-    }
-
-    @Override
-    protected boolean accept(@NotNull Component component) {
-      if (!super.accept(component)) {
-        return false;
-      }
-      myLastFocusRecipient = component;
-      return true;
     }
   }
 
