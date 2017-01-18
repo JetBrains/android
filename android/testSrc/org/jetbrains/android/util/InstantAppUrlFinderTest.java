@@ -82,10 +82,8 @@ public class InstantAppUrlFinderTest {
                                 "  </intent-filter>" +
                                 "  <intent-filter instant:order=\"2\">" +
                                 "    <data android:host=\"domainD\"\n" +
-                                "          android:pathPattern=\"/pathPatternD\"\n" +
                                 "          android:scheme=\"scheme1\" />" +
                                 "    <data android:host=\"domainD\"\n" +
-                                "          android:pathPattern=\"/pathPatternD\"\n" +
                                 "          android:scheme=\"scheme2\" />" +
                                 "  </intent-filter>" +
                                 "</activity>")
@@ -100,8 +98,8 @@ public class InstantAppUrlFinderTest {
     Iterator<String> iterator = finder.getAllUrls().iterator();
     assertThat(iterator.next()).isEqualTo("scheme1://domainB/pathPatternB");
     assertThat(iterator.next()).isEqualTo("scheme2://domainB/pathPatternB");
-    assertThat(iterator.next()).isEqualTo("scheme1://domainD/pathPatternD");
-    assertThat(iterator.next()).isEqualTo("scheme2://domainD/pathPatternD");
+    assertThat(iterator.next()).isEqualTo("scheme1://domainD/");
+    assertThat(iterator.next()).isEqualTo("scheme2://domainD/");
     assertThat(iterator.next()).isEqualTo("scheme1://domainA/pathA");
     assertThat(iterator.next()).isEqualTo("scheme2://domainA/pathA");
     assertThat(iterator.next()).isEqualTo("scheme1://domainC/pathPrefixC/parameter");
@@ -234,8 +232,8 @@ public class InstantAppUrlFinderTest {
   @Test
   public void UrlData_wrongNamespace() throws Exception {
     Node wrongNamespace = createXMLContent("<data android:host=\"domain\"\n" +
-                                           "      instant:pathPattern=\"/pathPattern\"\n" +
-                                           "      android:scheme=\"scheme\" />");
+                                           "      android:pathPattern=\"/pathPattern\"\n" +
+                                           "      instant:scheme=\"scheme\" />");
 
     assertThat(InstantAppUrlFinder.UrlData.of(wrongNamespace).isValid()).isFalse();
   }
@@ -274,6 +272,12 @@ public class InstantAppUrlFinderTest {
   }
 
   @Test
+  public void UrlData_getUrl_hostOnly() {
+    assertThat(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "", "", "").getUrl())
+      .isEqualTo("scheme://domain.url/");
+  }
+
+  @Test
   public void UrlData_isValid_validInputPath() {
     assertThat(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "/path", "", "").isValid()).isTrue();
   }
@@ -286,6 +290,11 @@ public class InstantAppUrlFinderTest {
   @Test
   public void UrlData_isValid_validInputPattern() {
     assertThat(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "", "", "/pattern").isValid()).isTrue();
+  }
+
+  @Test
+  public void UrlData_isValid_validInputHostOnly() {
+    assertThat(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "", "", "").isValid()).isTrue();
   }
 
   @Test
@@ -304,12 +313,7 @@ public class InstantAppUrlFinderTest {
   }
 
   @Test
-  public void UrlData_isValid_missingPath() {
-    assertThat(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "", "", "").isValid()).isFalse();
-  }
-
-  @Test
-  public void UrlData_isValid_missingDomain() {
+  public void UrlData_isValid_missingHost() {
     assertThat(new InstantAppUrlFinder.UrlData("scheme", "", "", "", "/pattern").isValid()).isFalse();
   }
 
