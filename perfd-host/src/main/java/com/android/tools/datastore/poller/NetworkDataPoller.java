@@ -16,6 +16,7 @@
 package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.ServicePassThrough;
+import com.android.tools.datastore.database.DatastoreTable;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
@@ -61,6 +62,11 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
   @Override
   public void connectService(ManagedChannel channel) {
     myPollingService = NetworkServiceGrpc.newBlockingStub(channel);
+  }
+
+  @Override
+  public DatastoreTable getDatastoreTable() {
+    return null;
   }
 
   @Override
