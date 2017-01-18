@@ -119,7 +119,8 @@ public class SceneKeepDimensTest extends SceneTest {
                  "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
                  "    android:layout_marginLeft=\"@dimen/testDimens\"\n" +
                  "    android:layout_marginStart=\"@dimen/testDimens\"\n" +
-                 "      tools:layout_editor_absoluteY=\"200dp\"/>");
+                 "    tools:layout_editor_absoluteX=\"20dp\"\n" +
+                 "    tools:layout_editor_absoluteY=\"500dp\"/>");
 
     myInteraction.mouseDown("textView1");
     myInteraction.mouseRelease("textView1", 200, 200);
@@ -145,7 +146,8 @@ public class SceneKeepDimensTest extends SceneTest {
                  "    android:layout_height=\"20dp\"\n" +
                  "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
                  "    android:layout_marginTop=\"@dimen/testDimens\"\n" +
-                 "    tools:layout_editor_absoluteX=\"500dp\" />");
+                 "    tools:layout_editor_absoluteX=\"500dp\"\n" +
+                 "    tools:layout_editor_absoluteY=\"20dp\"/>");
 
     myInteraction.mouseDown("textView2");
     myInteraction.mouseRelease("textView2", 200, 200);
@@ -170,8 +172,8 @@ public class SceneKeepDimensTest extends SceneTest {
                  "    android:layout_height=\"20dp\"\n" +
                  "    app:layout_constraintRight_toRightOf=\"parent\"\n" +
                  "    android:layout_marginRight=\"@dimen/testDimens\"\n" +
-                 "      tools:layout_editor_absoluteY=\"500dp\"\n" +
-                 "      android:layout_marginEnd=\"@dimen/testDimens\" />");
+                 "    tools:layout_editor_absoluteX=\"880dp\"\n" +
+                 "    tools:layout_editor_absoluteY=\"500dp\"/>");
 
     myInteraction.mouseDown("textView3");
     myInteraction.mouseRelease("textView3", -200, 200);
@@ -196,8 +198,9 @@ public class SceneKeepDimensTest extends SceneTest {
                  "    android:layout_width=\"100dp\"\n" +
                  "    android:layout_height=\"20dp\"\n" +
                  "    app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
-                 "      tools:layout_editor_absoluteX=\"500dp\"\n" +
-                 "      android:layout_marginBottom=\"20dp\" />");
+                 "    android:layout_marginTop=\"@dimen/testDimens\"\n" +
+                 "    tools:layout_editor_absoluteX=\"500dp\"\n" +
+                 "    tools:layout_editor_absoluteY=\"960dp\"/>");
 
     myInteraction.mouseDown("textView4");
     myInteraction.mouseRelease("textView4", 200, -200);
