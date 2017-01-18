@@ -78,7 +78,18 @@ public class SceneDragGuidelineTest extends SceneTest {
                  "    android:id=\"@id/guideline\"\n" +
                  "    android:layout_width=\"500dp\"\n" +
                  "    android:layout_height=\"0dp\"\n" +
-                 "    app:layout_constraintGuide_percent=\"0.294\" />");
+                 "    app:layout_constraintGuide_percent=\"0.29\" />");
+  }
+
+  public void testDragGuidelineRoundingUp() {
+    myInteraction.mouseDown("guideline");
+    myInteraction.mouseRelease(400, 148f);
+    myScreen.get("@id/guideline")
+      .expectXml("<android.support.constraint.Guideline\n" +
+                 "    android:id=\"@id/guideline\"\n" +
+                 "    android:layout_width=\"500dp\"\n" +
+                 "    android:layout_height=\"0dp\"\n" +
+                 "    app:layout_constraintGuide_percent=\"0.3\" />");
   }
 
   public void testDragVerticalGuideline() {
