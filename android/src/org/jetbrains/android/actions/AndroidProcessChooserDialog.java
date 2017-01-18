@@ -109,7 +109,6 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     final boolean showAllProcesses = Boolean.parseBoolean(properties.getValue(SHOW_ALL_PROCESSES_PROPERTY));
 
     myShowAllProcessesCheckBox.setSelected(showAllProcesses);
-    doUpdateTree(showAllProcesses);
 
     myClientChangeListener = (client, changeMask) -> updateTree();
     AndroidDebugBridge.addClientChangeListener(myClientChangeListener);
@@ -186,6 +185,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       }
     });
 
+    doUpdateTree(showAllProcesses);
     init();
   }
 
@@ -346,7 +346,6 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       pathToSelect = firstTreePath;
     }
 
-    assert (myCellRenderer != null);
     myCellRenderer.setShowSerial(DeviceRenderer.shouldShowSerialNumbers(Arrays.asList(devices)));
 
     UIUtil.invokeLaterIfNeeded(() -> {
