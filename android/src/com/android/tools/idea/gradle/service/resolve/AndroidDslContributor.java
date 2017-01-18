@@ -123,12 +123,10 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
 
     logClassPathOnce(place.getProject());
 
-    GroovyPsiManager psiManager = GroovyPsiManager.getInstance(place.getProject());
-
     // top level android block
     if (callStack.size() == 1) {
       String fqcn = resolveAndroidExtension(place.getContainingFile());
-      PsiClass contributorClass = fqcn == null ? null : findClassByName(psiManager, place.getResolveScope(), fqcn);
+      PsiClass contributorClass = fqcn == null ? null : findClassByName(place.getProject(), place.getResolveScope(), fqcn);
       if (contributorClass != null) {
         String qualifiedName = contributorClass.getQualifiedName();
         if (qualifiedName == null) {
@@ -136,7 +134,7 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
         }
 
         // resolve 'android' as a method that takes a closure
-        resolveToMethodWithClosure(place, contributorClass, qualifiedName, processor, state, psiManager);
+        resolveToMethodWithClosure(place, contributorClass, qualifiedName, processor, state);
         cacheContributorInfo(place, contributorClass);
       }
       return true;
@@ -151,7 +149,7 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
     // if the parent object is a class, then process the current identifier as a method of the parent class
     if (parentContributor instanceof PsiClass) {
       PsiMethod method =
-        findAndProcessContributingMethod(callStack.get(0), processor, state, place, (PsiClass)parentContributor, psiManager);
+        findAndProcessContributingMethod(callStack.get(0), processor, state, place, (PsiClass)parentContributor);
       cacheContributorInfo(place, method);
       return true;
     }
@@ -186,13 +184,13 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
       String namedDomainObject = typeExtractor.getNamedDomainObject();
       assert namedDomainObject != null : typeExtractor.getCanonicalType(); // because hasNamedDomainObjectContainer()
 
-      PsiClass contributorClass = findClassByName(psiManager, place.getResolveScope(), namedDomainObject);
+      PsiClass contributorClass = findClassByName(place.getProject(), place.getResolveScope(), namedDomainObject);
       if (contributorClass != null) {
         String qualifiedName = contributorClass.getQualifiedName();
         if (qualifiedName == null) {
           qualifiedName = namedDomainObject;
         }
-        resolveToMethodWithClosure(place, contributorClass, qualifiedName, processor, state, psiManager);
+        resolveToMethodWithClosure(place, contributorClass, qualifiedName, processor, state);
         cacheContributorInfo(place, contributorClass);
       }
       return true;
@@ -203,12 +201,12 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
       String clz = typeExtractor.getClosureType();
       assert clz != null : typeExtractor.getCanonicalType(); // because typeExtractor.isClosure()
 
-      PsiClass contributorClass = findClassByName(psiManager, place.getResolveScope(), clz);
+      PsiClass contributorClass = findClassByName(place.getProject(), place.getResolveScope(), clz);
       if (contributorClass == null) {
         return true;
       }
 
-      PsiMethod method = findAndProcessContributingMethod(callStack.get(0), processor, state, place, contributorClass, psiManager);
+      PsiMethod method = findAndProcessContributingMethod(callStack.get(0), processor, state, place, contributorClass);
       cacheContributorInfo(place, method);
     }
     return true;
@@ -218,11 +216,10 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
                                                  PsiElement resolveToElement,
                                                  String closureTypeFqcn,
                                                  PsiScopeProcessor processor,
-                                                 ResolveState state,
-                                                 GroovyPsiManager psiManager) {
+                                                 ResolveState state) {
     if (place.getParent() instanceof GrMethodCallExpression) {
       GrLightMethodBuilder methodWithClosure =
-        GradleResolverUtil.createMethodWithClosure(place.getText(), closureTypeFqcn, null, place, psiManager);
+        GradleResolverUtil.createMethodWithClosure(place.getText(), closureTypeFqcn, null, place);
       if (methodWithClosure != null) {
         processor.execute(methodWithClosure, state);
         methodWithClosure.setNavigationElement(resolveToElement);
@@ -238,8 +235,7 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
                                                             PsiScopeProcessor processor,
                                                             ResolveState state,
                                                             PsiElement place,
-                                                            PsiClass contributorClass,
-                                                            GroovyPsiManager psiManager) {
+                                                            PsiClass contributorClass) {
     PsiMethod method = getContributingMethod(place, contributorClass, symbol);
     if (method == null) {
       return null;
@@ -255,7 +251,7 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
       if (ourDslForClassMap.containsKey(clz)) {
         clz = ourDslForClassMap.get(clz);
       }
-      resolveToMethodWithClosure(place, method, clz, processor, state, psiManager);
+      resolveToMethodWithClosure(place, method, clz, processor, state);
     } else {
       GrLightMethodBuilder builder = new GrLightMethodBuilder(place.getManager(), method.getName());
       PsiElementFactory factory = JavaPsiFacade.getElementFactory(place.getManager().getProject());
@@ -355,12 +351,12 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
   }
 
   @Nullable
-  public static PsiClass findClassByName(GroovyPsiManager psiManager, GlobalSearchScope resolveScope, @NotNull String fqcn) {
+  public static PsiClass findClassByName(Project project, GlobalSearchScope resolveScope, @NotNull String fqcn) {
     if (ourDslForClassMap.containsKey(fqcn)) {
       fqcn = ourDslForClassMap.get(fqcn);
     }
 
-    return psiManager.findClassWithCache(fqcn, resolveScope);
+    return JavaPsiFacade.getInstance(project).findClass(fqcn, resolveScope);
   }
 
   private static void cacheContributorInfo(@NotNull PsiElement place, @Nullable PsiElement contributor) {
