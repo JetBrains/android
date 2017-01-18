@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.DurationData;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.LegacyAllocationTrackingService;
 import com.android.tools.datastore.ServicePassThrough;
+import com.android.tools.datastore.database.DatastoreTable;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.AllocationEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.MemorySample;
@@ -114,6 +115,11 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
   @Override
   public void connectService(ManagedChannel channel) {
     myPollingService = MemoryServiceGrpc.newBlockingStub(channel);
+  }
+
+  @Override
+  public DatastoreTable getDatastoreTable() {
+    return null;
   }
 
   @Override

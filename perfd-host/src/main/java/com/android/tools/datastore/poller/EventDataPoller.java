@@ -16,6 +16,8 @@
 package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.ServicePassThrough;
+import com.android.tools.datastore.database.DatastoreTable;
+import com.android.tools.datastore.database.EventsTable;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import io.grpc.ManagedChannel;
@@ -23,8 +25,7 @@ import io.grpc.ServerServiceDefinition;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.RunnableFuture;
 
 /**
@@ -37,14 +38,11 @@ public class EventDataPoller extends EventServiceGrpc.EventServiceImplBase imple
   private EventServiceGrpc.EventServiceBlockingStub myEventPollingService;
   private int myProcessId = -1;
 
-  //TODO: Pull into a storage class that can manage caching data to disk.
-  private Map<Long, EventProfiler.ActivityData> myActivityDataMap = new HashMap<>();
-  private Map<Long, EventProfiler.SystemData> mySystemMap = new HashMap<>();
+  private EventsTable myEventsTable = new EventsTable();
   private Object myActivityLock = new Object();
   private Object mySystemDataLock = new Object();
 
   public EventDataPoller() {
-
   }
 
   @Override
@@ -59,10 +57,9 @@ public class EventDataPoller extends EventServiceGrpc.EventServiceImplBase imple
     synchronized (myActivityLock) {
       for (EventProfiler.ActivityData data : activityResponse.getDataList()) {
         long id = data.getHash();
-        if (myActivityDataMap.containsKey(id)) {
-          EventProfiler.ActivityData cached_data = myActivityDataMap.get(id);
-          EventProfiler.ActivityData.Builder builder = myActivityDataMap.get(id).toBuilder();
-
+        EventProfiler.ActivityData cached_data = myEventsTable.findActivityDataOrNull(data.getAppId(), id);
+        if (cached_data != null) {
+          EventProfiler.ActivityData.Builder builder = cached_data.toBuilder();
           // Perfd may return states that we already have cached. This checks for that and only adds unique ones.
           for (EventProfiler.ActivityStateData state : data.getStateChangesList()) {
             if (!cached_data.getStateChangesList().contains(state)) {
@@ -72,10 +69,10 @@ public class EventDataPoller extends EventServiceGrpc.EventServiceImplBase imple
               myDataRequestStartTimestampNs = state.getTimestamp();
             }
           }
-          myActivityDataMap.replace(id, builder.build());
+          myEventsTable.insertOrReplace(id, builder.build());
         }
         else {
-          myActivityDataMap.put(id, data);
+          myEventsTable.insertOrReplace(id, data);
           for (EventProfiler.ActivityStateData state : data.getStateChangesList()) {
             if (state.getTimestamp() > myDataRequestStartTimestampNs) {
               myDataRequestStartTimestampNs = state.getTimestamp();
@@ -91,7 +88,7 @@ public class EventDataPoller extends EventServiceGrpc.EventServiceImplBase imple
     synchronized (mySystemDataLock) {
       for (EventProfiler.SystemData data : systemResponse.getDataList()) {
         long id = data.getEventId();
-        mySystemMap.put(id, data);
+        myEventsTable.insertOrReplace(id, data);
       }
     }
   }
@@ -100,10 +97,8 @@ public class EventDataPoller extends EventServiceGrpc.EventServiceImplBase imple
   public void getActivityData(EventProfiler.EventDataRequest request, StreamObserver<EventProfiler.ActivityDataResponse> responseObserver) {
     EventProfiler.ActivityDataResponse.Builder response = EventProfiler.ActivityDataResponse.newBuilder();
     synchronized (myActivityLock) {
-      for (EventProfiler.ActivityData data : myActivityDataMap.values()) {
-        if (data.getAppId() != request.getAppId()) {
-          continue;
-        }
+      List<EventProfiler.ActivityData> activites = myEventsTable.getActivityDataByApp(request.getAppId());
+      for (EventProfiler.ActivityData data : activites) {
         // We always return information about an activity to the caller. This is so the caller can choose to act on this
         // information or drop it.
         EventProfiler.ActivityData.Builder builder = EventProfiler.ActivityData.newBuilder();
@@ -141,16 +136,9 @@ public class EventDataPoller extends EventServiceGrpc.EventServiceImplBase imple
   @Override
   public void getSystemData(EventProfiler.EventDataRequest request, StreamObserver<EventProfiler.SystemDataResponse> responseObserver) {
     EventProfiler.SystemDataResponse.Builder response = EventProfiler.SystemDataResponse.newBuilder();
-    synchronized (mySystemDataLock) {
-      for (EventProfiler.SystemData data : mySystemMap.values()) {
-        if (request.getAppId() != data.getAppId()) {
-          continue;
-        }
-        if ((data.getStartTimestamp() < request.getEndTimestamp()) &&
-            (data.getEndTimestamp() >= request.getStartTimestamp() || data.getEndTimestamp() == 0)) {
-          response.addData(data);
-        }
-      }
+    List<EventProfiler.SystemData> systemData = myEventsTable.getSystemDataByRequest(request);
+    for(EventProfiler.SystemData data : systemData) {
+      response.addData(data);
     }
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
@@ -185,4 +173,8 @@ public class EventDataPoller extends EventServiceGrpc.EventServiceImplBase imple
     return new PollRunner(this, PollRunner.POLLING_DELAY_NS);
   }
 
+  @Override
+  public DatastoreTable getDatastoreTable() {
+    return myEventsTable;
+  }
 }
