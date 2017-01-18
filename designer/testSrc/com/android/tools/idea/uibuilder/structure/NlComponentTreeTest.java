@@ -21,22 +21,30 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.util.JavaDocViewer;
 import com.android.tools.idea.uibuilder.util.NlTreeDumper;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import javax.swing.tree.TreePath;
 import java.awt.datatransfer.Transferable;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.findActionForKey;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -48,6 +56,8 @@ public class NlComponentTreeTest extends LayoutTestCase {
   private ScreenView myScreen;
   @Mock
   private CopyPasteManager myCopyPasteManager;
+  @Mock
+  private JavaDocViewer myJavaDocViewer;
   private NlModel myModel;
   private NlComponentTree myTree;
   private NlComponent myRelativeLayout;
@@ -65,7 +75,8 @@ public class NlComponentTreeTest extends LayoutTestCase {
     when(myScreen.getSelectionModel()).thenReturn(myModel.getSelectionModel());
     when(mySurface.getCurrentSceneView()).thenReturn(myScreen);
     when(mySurface.getProject()).thenReturn(getProject());
-    myTree = new NlComponentTree(mySurface, myCopyPasteManager);
+    myTree = new NlComponentTree(getProject(), mySurface, myCopyPasteManager);
+    registerApplicationComponent(JavaDocViewer.class, myJavaDocViewer);
 
     myRelativeLayout = findFirst(RELATIVE_LAYOUT);
     myLinearLayout = findFirst(LINEAR_LAYOUT);
@@ -336,6 +347,22 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                    "    <LinearLayout>  [expanded]\n" +
                                    "        <Button>\n" +
                                    "    <AbsoluteLayout>\n");
+  }
+
+  public void testShiftHelpOnComponentTree() throws Exception {
+    AnAction action = findActionForKey(myTree, KeyEvent.VK_F1, InputEvent.SHIFT_MASK);
+
+    assertThat(action).isNotNull();
+
+    DataContext context = mock(DataContext.class);
+    AnActionEvent event = mock(AnActionEvent.class);
+    when(event.getDataContext()).thenReturn(context);
+    ArgumentCaptor<PsiClass> psiClassCaptor = ArgumentCaptor.forClass(PsiClass.class);
+
+    myModel.getSelectionModel().toggle(myTextView);
+    action.actionPerformed(event);
+    verify(myJavaDocViewer).showExternalJavaDoc(psiClassCaptor.capture(), eq(context));
+    assertThat(psiClassCaptor.getValue().getQualifiedName()).isEqualTo("android.widget.TextView");
   }
 
   private void copy(@NotNull NlComponent... components) {
