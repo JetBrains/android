@@ -24,8 +24,8 @@ import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.profilers.event.EventMonitor;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +48,9 @@ public class NetworkProfilerStage extends Stage {
   StateChartModel<NetworkRadioDataSeries.RadioState> myRadioState;
 
   private final NetworkConnectionsModel myConnectionsModel =
-    new RpcNetworkConnectionsModel(getStudioProfilers().getClient().getNetworkClient(), getStudioProfilers().getProcessId(), getStudioProfilers().getDeviceSerial());
+    new RpcNetworkConnectionsModel(getStudioProfilers().getClient().getProfilerClient(),
+                                   getStudioProfilers().getClient().getNetworkClient(), getStudioProfilers().getProcessId(),
+                                   getStudioProfilers().getDeviceSerial());
 
   private final DetailedNetworkUsage myDetailedNetworkUsage;
   private final NetworkStageLegends myLegends;

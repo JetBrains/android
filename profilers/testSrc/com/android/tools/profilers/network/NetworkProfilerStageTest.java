@@ -17,10 +17,7 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
-import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.*;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf3jarjar.ByteString;
 import org.junit.Before;
@@ -32,7 +29,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.profiler.proto.NetworkProfiler.*;
+import static com.android.tools.profiler.proto.NetworkProfiler.ConnectivityData;
+import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -51,9 +49,9 @@ public class NetworkProfilerStageTest extends AspectObserver {
       .add(FakeNetworkService.newHttpData(7, 0, 7, 14))
       .build();
 
-  @Rule public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("NetworkProfilerStageTest",
-                        FakeNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).setHttpDataList(FAKE_HTTP_DATA).build());
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("NetworkProfilerStageTest", new FakeProfilerService(false),
+                                                                   FakeNetworkService.newBuilder().setNetworkDataList(FAKE_DATA)
+                                                                     .setHttpDataList(FAKE_HTTP_DATA).build());
 
   private NetworkProfilerStage myStage;
 

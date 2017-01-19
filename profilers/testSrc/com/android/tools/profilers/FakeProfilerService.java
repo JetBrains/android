@@ -17,6 +17,7 @@ package com.android.tools.profilers;
 
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
+import com.google.protobuf3jarjar.ByteString;
 import com.intellij.util.containers.MultiMap;
 import io.grpc.stub.StreamObserver;
 
@@ -27,6 +28,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   public static final String VERSION = "3141592";
   private final Map<String, Profiler.Device> myDevices;
   private final MultiMap<Profiler.Device, Profiler.Process> myProcesses;
+  private final Map<String, ByteString> myCache;
   private long myTimestampNs;
   private boolean myThrowErrorOnGetDevices;
 
@@ -40,6 +42,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   public FakeProfilerService(boolean connected) {
     myDevices = new HashMap<>();
     myProcesses = MultiMap.create();
+    myCache = new HashMap<>();
     if (connected) {
       Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
       Profiler.Process process = Profiler.Process.newBuilder().setPid(20).setName("FakeProcess").build();
@@ -57,6 +60,10 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
 
   public void addDevice(Profiler.Device device) {
     myDevices.put(device.getSerial(), device);
+  }
+
+  public void addFile(String id, ByteString contents) {
+    myCache.put(id, contents);
   }
 
   public void setTimestampNs(long timestamp) {
@@ -103,6 +110,17 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     Profiler.TimesResponse.Builder response = Profiler.TimesResponse.newBuilder();
     response.setTimestampNs(myTimestampNs);
     responseObserver.onNext(response.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void getBytes(Profiler.BytesRequest request, StreamObserver<Profiler.BytesResponse> responseObserver) {
+    Profiler.BytesResponse.Builder builder = Profiler.BytesResponse.newBuilder();
+    ByteString bytes = myCache.get(request.getId());
+    if (bytes != null) {
+      builder.setContents(bytes);
+    }
+    responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
   }
 
