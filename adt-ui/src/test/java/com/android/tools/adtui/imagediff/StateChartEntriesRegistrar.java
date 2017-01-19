@@ -30,7 +30,6 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
   public StateChartEntriesRegistrar() {
     registerSimpleStateChart();
     registerMultipleSeriesStateChart();
-    registerArcHeightWidthStateChart();
     registerTextStateChart();
   }
 
@@ -74,18 +73,6 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
         for (int i = 0; i < 15; i++) {
           addSeries();
         }
-      }
-    });
-  }
-
-  private void registerArcHeightWidthStateChart() {
-    register(new StateChartImageDiffEntry("arc_height_width_state_chart_baseline.png") {
-      @Override
-      protected void generateComponent() {
-        // Modify arc height and width of state chart
-        myStateChart.setArcHeight(0.75f);
-        myStateChart.setArcWidth(0.75f);
-        addSeries();
       }
     });
   }
