@@ -17,7 +17,7 @@
 package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.chart.StateChart;
+import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.model.*;
 import com.intellij.ui.JBColor;
 import gnu.trove.TIntArrayList;
