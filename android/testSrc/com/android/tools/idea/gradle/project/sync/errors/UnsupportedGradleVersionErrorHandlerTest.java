@@ -50,8 +50,31 @@ public class UnsupportedGradleVersionErrorHandlerTest extends AndroidGradleTestC
     SyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
     assertNotNull(notificationUpdate);
 
-    assertThat(notificationUpdate.getText())
-      .contains("Gradle version 2.2 is required." + "\n\n" + "Please fix the project's Gradle settings.");
+    assertThat(notificationUpdate.getText()).contains("Gradle version 2.2 is required." + "\n\n" +
+                                                      "Please fix the project's Gradle settings.");
+
+    // Verify hyperlinks are correct.
+    List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();
+    assertThat(quickFixes).hasSize(2);
+    assertThat(quickFixes.get(0)).isInstanceOf(FixGradleVersionInWrapperHyperlink.class);
+    assertThat(quickFixes.get(1)).isInstanceOf(OpenGradleSettingsHyperlink.class);
+  }
+
+  // See https://code.google.com/p/android/issues/detail?id=231658
+  public void testHandleErrorWithPlugin2_3AndGradleOlderThan3_3() throws Exception {
+    String causeText = "Minimum supported Gradle version is 3.3. Current version is 2.14.1. " +
+                       "If using the gradle wrapper, try editing the distributionUrl in " +
+                       "/MyApplication/gradle/wrapper/gradle-wrapper.properties to gradle-3.3-all.zip";
+    RuntimeException cause = new RuntimeException(causeText);
+    registerSyncErrorToSimulate(cause);
+
+    loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
+
+    SyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
+    assertNotNull(notificationUpdate);
+
+    assertThat(notificationUpdate.getText()).contains("Minimum supported Gradle version is 3.3. Current version is 2.14.1." + "\n\n" +
+                                                      "Please fix the project's Gradle settings.");
 
     // Verify hyperlinks are correct.
     List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();
