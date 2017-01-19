@@ -54,11 +54,11 @@ public class DataStoreService {
    *                      The runnable, when run, begins polling the target service. You probably
    *                      want to run it on a background thread.
    */
-  public DataStoreService(String dbPath, Consumer<Runnable> fetchExecutor) {
+  public DataStoreService(String serviceName, String dbPath, Consumer<Runnable> fetchExecutor) {
     try {
       myFetchExecutor = fetchExecutor;
       myDatabase = new DataStoreDatabase(dbPath);
-      myServerBuilder = InProcessServerBuilder.forName(dbPath);
+      myServerBuilder = InProcessServerBuilder.forName(serviceName);
       createPollers();
       myServer = myServerBuilder.build();
       myServer.start();
