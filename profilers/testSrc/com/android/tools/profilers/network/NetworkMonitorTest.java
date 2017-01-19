@@ -57,7 +57,7 @@ public class NetworkMonitorTest {
 
   @Test
   public void getName() {
-    assertEquals("Network", myMonitor.getName());
+    assertEquals("NETWORK", myMonitor.getName());
   }
 
   @Test

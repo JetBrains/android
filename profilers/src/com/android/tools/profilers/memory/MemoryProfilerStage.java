@@ -323,7 +323,7 @@ public class MemoryProfilerStage extends Stage {
   }
 
   public String getName() {
-    return "Memory";
+    return "MEMORY";
   }
 
   public static class MemoryStageLegends extends LegendComponentModel {
