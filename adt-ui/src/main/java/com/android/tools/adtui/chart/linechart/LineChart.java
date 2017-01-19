@@ -167,16 +167,20 @@ public class LineChart extends AnimatedComponent {
     Deque<LineConfig> orderedConfigs = new ArrayDeque<>(myLinesConfig.size());
 
     for (RangedContinuousSeries ranged : myModel.getSeries()) {
+      if (ranged.getXRange().isEmpty() || ranged.getXRange().isPoint()
+          || ranged.getYRange().isEmpty() || ranged.getYRange().isPoint()) {
+        continue;
+      }
+
       final LineConfig config = getLineConfig(ranged);
       // Stores the y coordinates of the current series in case it's used as a stacked series
       final TDoubleArrayList currentSeriesY = new TDoubleArrayList();
 
       Path2D path = new Path2D.Float();
-
       double xMin = ranged.getXRange().getMin();
-      double xMax = ranged.getXRange().getMax();
+      double xLength = ranged.getXRange().getLength();
       double yMin = ranged.getYRange().getMin();
-      double yMax = ranged.getYRange().getMax();
+      double yLength = ranged.getYRange().getLength();
 
       // X coordinate of the first point
       double firstXd = 0f;
@@ -187,8 +191,8 @@ public class LineChart extends AnimatedComponent {
         SeriesData<Long> seriesData = seriesList.get(i);
         long currX = seriesData.x;
         long currY = seriesData.value;
-        double xd = (currX - xMin) / (xMax - xMin);
-        double yd = (currY - yMin) / (yMax - yMin);
+        double xd = (currX - xMin) / xLength;
+        double yd = (currY - yMin) / yLength;
 
         // If the current series is stacked, increment its yd by the yd of the last stacked
         // series if it's not null.
@@ -255,20 +259,21 @@ public class LineChart extends AnimatedComponent {
 
   @Override
   protected void draw(Graphics2D g2d, Dimension dim) {
-      long now = System.nanoTime();
-      if (now - myLastCount > 1000000000) {
-        myLastDraws = myDraws;
-        myLastRedraws = myRedraws;
-        myDraws = 0;
-        myRedraws = 0;
-        myLastCount = now;
-      }
-      myDraws++;
+    long now = System.nanoTime();
+    if (now - myLastCount > 1000000000) {
+      myLastDraws = myDraws;
+      myLastRedraws = myRedraws;
+      myDraws = 0;
+      myRedraws = 0;
+      myLastCount = now;
+    }
+    myDraws++;
     if (myRedraw) {
       myRedraw = false;
       redraw();
       myRedraws++;
-    } else {
+    }
+    else {
       addDebugInfo("postAnimate time: 0 ms");
     }
     addDebugInfo("Draws in the last second %d", myLastDraws);
