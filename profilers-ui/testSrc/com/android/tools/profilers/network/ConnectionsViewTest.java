@@ -18,9 +18,10 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.StudioProfilers;
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Rule;
@@ -45,8 +46,8 @@ public class ConnectionsViewTest {
       .add(FakeNetworkService.newHttpData(4, 21, 25, 34))
       .build();
 
-  @Rule public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("ConnectionsViewTest", FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("ConnectionsViewTest", new FakeProfilerService(false),
+                                                                   FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
   private NetworkProfilerStage myStage;
 
   @Before

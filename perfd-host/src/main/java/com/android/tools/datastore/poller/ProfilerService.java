@@ -96,6 +96,14 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   }
 
   @Override
+  public void getBytes(Profiler.BytesRequest request, StreamObserver<Profiler.BytesResponse> responseObserver) {
+    // TODO: This should check a local cache of files (either in a database or on disk) before
+    // making the request against the device
+    responseObserver.onNext(myPollingService.getBytes(request));
+    responseObserver.onCompleted();
+  }
+
+  @Override
   public void setProcesses(Profiler.SetProcessesRequest request, StreamObserver<Profiler.SetProcessesResponse> observer) {
     List<Profiler.DeviceProcesses> list = request.getDeviceProcessesList();
     myProcesses.clear();
