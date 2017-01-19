@@ -28,8 +28,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 
-import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.GROUP_BY_PACKAGE;
-import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.NO_GROUPING;
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
 import static org.junit.Assert.*;
 
 public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
@@ -156,7 +156,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.selectCapture(mockCapture, null);
     assertEquals(mockCapture, myStage.getSelectedCapture());
     assertNull(myStage.getSelectedHeap());
-    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
+    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0);
@@ -167,7 +167,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.selectCapture(mockCapture, null);
     assertEquals(mockCapture, myStage.getSelectedCapture());
     assertNull(myStage.getSelectedHeap());
-    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
+    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0);
@@ -175,7 +175,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.selectHeap(mockHeap);
     assertEquals(mockCapture, myStage.getSelectedCapture());
     assertEquals(mockHeap, myStage.getSelectedHeap());
-    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
+    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 1, 0, 0);
@@ -183,24 +183,24 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.selectHeap(mockHeap);
     assertEquals(mockCapture, myStage.getSelectedCapture());
     assertEquals(mockHeap, myStage.getSelectedHeap());
-    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
+    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0);
 
-    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
-    myStage.getConfiguration().setClassGrouping(GROUP_BY_PACKAGE);
-    assertEquals(GROUP_BY_PACKAGE, myStage.getConfiguration().getClassGrouping());
+    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
+    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
+    assertEquals(ARRANGE_BY_PACKAGE, myStage.getConfiguration().getClassGrouping());
     myAspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 0, 0);
 
-    myStage.getConfiguration().setClassGrouping(NO_GROUPING);
-    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
+    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_CLASS);
+    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
     myAspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 0, 0);
 
     myStage.selectClass(mockKlass);
     assertEquals(mockCapture, myStage.getSelectedCapture());
     assertEquals(mockHeap, myStage.getSelectedHeap());
-    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
+    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
     assertEquals(mockKlass, myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 1, 0);
@@ -209,7 +209,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.selectClass(mockKlass);
     assertEquals(mockCapture, myStage.getSelectedCapture());
     assertEquals(mockHeap, myStage.getSelectedHeap());
-    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
+    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
     assertEquals(mockKlass, myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0);
@@ -217,7 +217,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.selectInstance(mockInstance);
     assertEquals(mockCapture, myStage.getSelectedCapture());
     assertEquals(mockHeap, myStage.getSelectedHeap());
-    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
+    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
     assertEquals(mockKlass, myStage.getSelectedClass());
     assertEquals(mockInstance, myStage.getSelectedInstance());
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 1);
@@ -225,7 +225,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.selectInstance(mockInstance);
     assertEquals(mockCapture, myStage.getSelectedCapture());
     assertEquals(mockHeap, myStage.getSelectedHeap());
-    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
+    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
     assertEquals(mockKlass, myStage.getSelectedClass());
     assertEquals(mockInstance, myStage.getSelectedInstance());
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0);
@@ -234,7 +234,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.selectClass(null);
     assertEquals(mockCapture, myStage.getSelectedCapture());
     assertEquals(mockHeap, myStage.getSelectedHeap());
-    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
+    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 1, 1);
@@ -243,7 +243,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.selectHeap(null);
     assertEquals(mockCapture, myStage.getSelectedCapture());
     assertNull(myStage.getSelectedHeap());
-    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
+    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 1, 0, 0);
