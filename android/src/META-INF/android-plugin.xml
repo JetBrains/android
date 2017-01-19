@@ -411,7 +411,7 @@
     <fileTypeFactory implementation="com.android.tools.idea.editors.hprof.HprofFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.allocations.AllocationsFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.vmtrace.VmTraceFileTypeFactory" />
-    <fileTypeFactory implementation="com.android.tools.idea.editors.hierarchyview.LayoutInspectorFileTypeFactory" />
+    <fileTypeFactory implementation="com.android.tools.idea.editors.layoutInspector.LayoutInspectorFileTypeFactory" />
     <lang.parserDefinition language="Renderscript"
                            implementationClass="com.android.tools.idea.lang.rs.RenderscriptParserDefinition"/>
     <lang.parserDefinition language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardParserDefinition" />
@@ -1136,7 +1136,7 @@
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
-    <captureType implementation="com.android.tools.idea.editors.hierarchyview.HierarchyViewCaptureType"/>
+    <captureType implementation="com.android.tools.idea.editors.layoutInspector.LayoutInspectorCaptureType"/>
     <captureType implementation="com.android.tools.idea.editors.hprof.HprofCaptureType"/>
     <captureType implementation="com.android.tools.idea.editors.allocations.AllocationCaptureType"/>
     <captureType implementation="com.android.tools.idea.editors.systeminfo.SystemInfoCaptureType"/>
