@@ -89,8 +89,7 @@ public class SplitApkDeployTask implements LaunchTask {
     }
 
     assert myInstantRunContext.getBuildSelection() != null;
-    InstantRunStatsService.get(myProject).notifyDeployType(DeployType.SPLITAPK, myInstantRunContext.getBuildSelection().why,
-                                                           myInstantRunContext.getInstantRunBuildInfo().getVerifierStatus(), device);
+    InstantRunStatsService.get(myProject).notifyDeployType(DeployType.SPLITAPK, myInstantRunContext, device);
 
     return status;
   }
