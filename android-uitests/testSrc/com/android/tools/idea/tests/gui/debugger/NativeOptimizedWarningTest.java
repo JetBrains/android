@@ -93,7 +93,7 @@ public class NativeOptimizedWarningTest {
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
     {
       final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
-      contentFixture.waitForOutput(new PatternTextMatcher(Pattern.compile(".*Debugger attached to process.*", Pattern.DOTALL)), 50);
+      contentFixture.waitForOutput(new PatternTextMatcher(Pattern.compile(".*Debugger attached to process.*", Pattern.DOTALL)), 70);
     }
 
     Wait.seconds(5).expecting("Frame list populated").until(
