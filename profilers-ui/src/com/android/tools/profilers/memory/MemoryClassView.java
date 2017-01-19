@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.GROUP_BY_PACKAGE;
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
 
 final class MemoryClassView extends AspectObserver {
   private static final int LABEL_COLUMN_WIDTH = 800;
@@ -83,7 +83,7 @@ final class MemoryClassView extends AspectObserver {
         "Class Name",
         () -> new DetailColumnRenderer(
           value -> {
-            if (value.getAdapter() instanceof ClassObject && myStage.getConfiguration().getClassGrouping() == GROUP_BY_PACKAGE) {
+            if (value.getAdapter() instanceof ClassObject && myStage.getConfiguration().getClassGrouping() == ARRANGE_BY_PACKAGE) {
               return ((ClassObject)value.getAdapter()).getClassName();
             }
             else {
@@ -243,12 +243,12 @@ final class MemoryClassView extends AspectObserver {
 
     PackageClassificationIndex rootIndex = null;
     switch (myStage.getConfiguration().getClassGrouping()) {
-      case NO_GROUPING:
+      case ARRANGE_BY_CLASS:
         for (ClassObject classObject : myHeapObject.getClasses()) {
           myTreeRoot.add(new MemoryObjectTreeNode<>(classObject));
         }
         break;
-      case GROUP_BY_PACKAGE:
+      case ARRANGE_BY_PACKAGE:
         rootIndex = createPackageView();
         break;
       default:
@@ -262,7 +262,7 @@ final class MemoryClassView extends AspectObserver {
     if (lastSelectedClassObject != null) {
       // Find the path to the last selected object before the grouping changed.
       switch (myStage.getConfiguration().getClassGrouping()) {
-        case NO_GROUPING:
+        case ARRANGE_BY_CLASS:
           for (MemoryObjectTreeNode<NamespaceObject> child : myTreeRoot.getChildren()) {
             if (child.getAdapter() == lastSelectedClassObject) {
               objectToSelect = child;
@@ -270,7 +270,7 @@ final class MemoryClassView extends AspectObserver {
             }
           }
           break;
-        case GROUP_BY_PACKAGE:
+        case ARRANGE_BY_PACKAGE:
           assert rootIndex != null;
           String[] splitPackages = lastSelectedClassObject.getSplitPackageName();
           PackageClassificationIndex currentIndex = rootIndex;
@@ -290,7 +290,7 @@ final class MemoryClassView extends AspectObserver {
       }
     }
 
-    if (myStage.getConfiguration().getClassGrouping() == GROUP_BY_PACKAGE) {
+    if (myStage.getConfiguration().getClassGrouping() == ARRANGE_BY_PACKAGE) {
       collapsePackageNodes();
     }
 

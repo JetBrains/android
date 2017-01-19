@@ -20,7 +20,6 @@ import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.memory.adapters.*;
-import com.intellij.ui.components.JBLoadingPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Rule;
@@ -33,8 +32,8 @@ import java.util.Collections;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.GROUP_BY_PACKAGE;
-import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.NO_GROUPING;
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
 import static org.junit.Assert.*;
 
 public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
@@ -99,9 +98,9 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertView(mockCapture2, mockHeap1, mockKlass1, null, false);
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 1, 0);
 
-    assertEquals(NO_GROUPING, myStage.getConfiguration().getClassGrouping());
-    myStage.getConfiguration().setClassGrouping(GROUP_BY_PACKAGE);
-    assertEquals(GROUP_BY_PACKAGE, ((MemoryProfilerStageView)myView.getStageView()).getClassGrouping().getComponent().getSelectedItem());
+    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
+    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
+    assertEquals(ARRANGE_BY_PACKAGE, ((MemoryProfilerStageView)myView.getStageView()).getClassGrouping().getComponent().getSelectedItem());
     myAspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 0, 0);
 
     JTree classTree = stageView.getClassView().getTree();
