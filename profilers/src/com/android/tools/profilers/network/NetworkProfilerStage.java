@@ -186,7 +186,7 @@ public class NetworkProfilerStage extends Stage {
 
   @NotNull
   public String getName() {
-    return "Network";
+    return "NETWORK";
   }
 
   @NotNull
