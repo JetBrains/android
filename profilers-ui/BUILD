@@ -20,5 +20,6 @@ iml_module(
         "//tools/base/perflib:studio.perflib[module]",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea/.idea/libraries:mockito[test]",
+        "//tools/idea/.idea/libraries:truth[test]",
     ],
 )
