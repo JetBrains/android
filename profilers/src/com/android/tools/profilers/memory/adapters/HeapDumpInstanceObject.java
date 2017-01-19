@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.perflib.heap.*;
+import com.android.tools.perflib.heap.ClassInstance.FieldValue;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,38 +31,43 @@ class HeapDumpInstanceObject implements InstanceObject {
   private static final Comparator<Instance> DEPTH_COMPARATOR = Comparator.comparingInt(Instance::getDistanceToGcRoot);
 
   @Nullable private final ClassObject myClassObject;
-  @NotNull private final Instance myInstance;
+  @Nullable private final Instance myInstance;
+  @NotNull private final String myMemoizedLabel;
 
   @NotNull
-  public static List<FieldObject> extractFields(@NotNull Instance instance) {
-    List<FieldObject> sublist = new ArrayList<>();
-    if (instance instanceof ClassInstance) {
-      ClassInstance classInstance = (ClassInstance)instance;
-      for (ClassInstance.FieldValue field : classInstance.getValues()) {
-        sublist.add(new HeapDumpFieldObject(classInstance, field));
+  static List<FieldObject> extractFields(@NotNull Instance parentInstance) {
+    List<FieldObject> fields = new ArrayList<>();
+    if (parentInstance instanceof ClassInstance) {
+      ClassInstance classInstance = (ClassInstance)parentInstance;
+      for (FieldValue field : classInstance.getValues()) {
+        Instance instance = field.getValue() instanceof Instance ? (Instance)field.getValue() : null;
+        fields.add(new HeapDumpFieldObject(parentInstance, field, instance));
       }
     }
-    else if (instance instanceof ArrayInstance) {
-      ArrayInstance arrayInstance = (ArrayInstance)instance;
+    else if (parentInstance instanceof ArrayInstance) {
+      ArrayInstance arrayInstance = (ArrayInstance)parentInstance;
       Type arrayType = arrayInstance.getArrayType();
       int arrayIndex = 0;
       for (Object value : arrayInstance.getValues()) {
-        sublist.add(
-          new HeapDumpFieldObject(arrayInstance, new ClassInstance.FieldValue(new Field(arrayType, Integer.toString(arrayIndex)), value)));
+        FieldValue field = new FieldValue(new Field(arrayType, Integer.toString(arrayIndex)), value);
+        Instance instance = field.getValue() instanceof Instance ? (Instance)field.getValue() : null;
+        fields.add(new HeapDumpFieldObject(parentInstance, field, instance));
         arrayIndex++;
       }
     }
-    else if (instance instanceof ClassObj) {
-      ClassObj classObj = (ClassObj)instance;
+    else if (parentInstance instanceof ClassObj) {
+      ClassObj classObj = (ClassObj)parentInstance;
       for (Map.Entry<Field, Object> entry : classObj.getStaticFieldValues().entrySet()) {
-        sublist.add(new HeapDumpFieldObject(classObj, new ClassInstance.FieldValue(entry.getKey(), entry.getValue())));
+        FieldValue field = new FieldValue(entry.getKey(), entry.getValue());
+        Instance instance = entry.getValue() instanceof Instance ? (Instance)field.getValue() : null;
+        fields.add(new HeapDumpFieldObject(parentInstance, field, instance));
       }
     }
 
-    return sublist;
+    return fields;
   }
 
-  public static List<ReferenceObject> extractReferences(@NotNull Instance instance) {
+  static List<ReferenceObject> extractReferences(@NotNull Instance instance) {
     // Sort hard referrers to appear first.
     List<Instance> sortedReferences = new ArrayList<>(instance.getHardReverseReferences());
     sortedReferences.sort(DEPTH_COMPARATOR);
@@ -109,27 +115,26 @@ class HeapDumpInstanceObject implements InstanceObject {
         }
       }
 
-      referrers.add(new HeapDumpReferenceObject(new HeapDumpInstanceObject(reference), referencingFieldNames));
+      referrers.add(new HeapDumpReferenceObject(
+        // TODO - is the ClassObj logic correct here? Should a ClassObj instance not have the "java.lang.Class" as its ClassObj?
+        new HeapDumpClassObject(reference instanceof ClassObj ? (ClassObj)reference : reference.getClassObj()), reference,
+        referencingFieldNames));
     }
 
     return referrers;
   }
 
-  public HeapDumpInstanceObject(@NotNull Instance instance) {
-    myClassObject = null;
-    myInstance = instance;
-  }
-
-  public HeapDumpInstanceObject(@NotNull ClassObject classObject, @NotNull Instance instance) {
+  public HeapDumpInstanceObject(@Nullable ClassObject classObject, @Nullable Instance instance) {
     myClassObject = classObject;
     myInstance = instance;
+    myMemoizedLabel = myInstance == null ? "{null}" : String.format(NAME_FORMATTER, myInstance.getUniqueId(), myInstance.getUniqueId());
   }
 
   @NotNull
   @Override
   public String getDisplayLabel() {
     // TODO show length of array instance
-    return String.format(NAME_FORMATTER, myInstance.getUniqueId(), myInstance.getUniqueId());
+    return myMemoizedLabel;
   }
 
   @Nullable
@@ -140,28 +145,32 @@ class HeapDumpInstanceObject implements InstanceObject {
 
   @Override
   public int getDepth() {
-    return myInstance.getDistanceToGcRoot();
+    return myInstance == null ? MemoryObject.INVALID_VALUE : myInstance.getDistanceToGcRoot();
   }
 
   @Override
   public int getShallowSize() {
-    return myInstance.getSize();
+    return myInstance == null ? MemoryObject.INVALID_VALUE : myInstance.getSize();
   }
 
   @Override
   public long getRetainedSize() {
-    return myInstance.getTotalRetainedSize();
+    return myInstance == null ? MemoryObject.INVALID_VALUE : myInstance.getTotalRetainedSize();
   }
 
   @NotNull
   @Override
   public List<FieldObject> getFields() {
-    return extractFields(myInstance);
+    return myInstance == null ? Collections.emptyList() : extractFields(myInstance);
   }
 
   @Nullable
   @Override
   public AllocationStack getCallStack() {
+    if (myInstance == null) {
+      return null;
+    }
+
     AllocationStack.Builder builder = AllocationStack.newBuilder();
     for (StackFrame stackFrame : myInstance.getStack().getFrames()) {
       String fileName = stackFrame.getFilename();
@@ -186,7 +195,7 @@ class HeapDumpInstanceObject implements InstanceObject {
   @NotNull
   @Override
   public List<ReferenceObject> getReferences() {
-    return getIsRoot() ? Collections.EMPTY_LIST : extractReferences(myInstance);
+    return getIsRoot() ? Collections.EMPTY_LIST : (myInstance == null ? Collections.emptyList() : extractReferences(myInstance));
   }
 
   @NotNull

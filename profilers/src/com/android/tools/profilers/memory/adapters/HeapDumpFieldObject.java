@@ -21,14 +21,12 @@ import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 /**
  * A UI representation of a {@link Field}.
  */
-final class HeapDumpFieldObject implements FieldObject {
+final class HeapDumpFieldObject extends HeapDumpInstanceObject implements FieldObject {
   private static final Map<Type, ValueType> ourValueTypeMap = ImmutableMap.<Type, ValueType>builder()
     .put(Type.BOOLEAN, ValueType.BOOLEAN)
     .put(Type.BYTE, ValueType.BYTE)
@@ -46,24 +44,26 @@ final class HeapDumpFieldObject implements FieldObject {
   private final long myRetainedSize;
   private final ValueType myValueType;
 
-  public HeapDumpFieldObject(@NotNull Instance parentInstance, @NotNull FieldValue field) {
+  public HeapDumpFieldObject(@NotNull Instance parentInstance, @NotNull FieldValue field, @Nullable Instance instance) {
+    // TODO - is the ClassObj logic correct here? Should a ClassObj instance not have the "java.lang.Class" as its ClassObj?
+    super(instance == null ? null : new HeapDumpClassObject(instance instanceof ClassObj ? (ClassObj)instance : instance.getClassObj()),
+          instance);
+
     myField = field;
     Type type = myField.getField().getType();
     if (type == Type.OBJECT) {
       if (myField.getValue() == null) {
         myValueType = ValueType.NULL;
-        myShallowSize = 0;
-        myRetainedSize = 0;
-        myDepth = -1;
+        myShallowSize = INVALID_VALUE;
+        myRetainedSize = INVALID_VALUE;
+        myDepth = INVALID_VALUE;
       }
       else {
-        Class valueClass = myField.getValue().getClass();
-        Instance instance = (Instance)myField.getValue();
-        if (ClassObj.class.isAssignableFrom(valueClass)) {
+        assert myField.getValue() == instance;
+        if (instance instanceof ClassObj) {
           myValueType = ValueType.CLASS;
         }
-        else if (ClassInstance.class.isAssignableFrom(valueClass) &&
-                 "java.lang.String".equals(((ClassInstance)myField.getValue()).getClassObj().getClassName())) {
+        else if (instance instanceof ClassInstance && instance.getClassObj().getClassName().equals(STRING_NAMESPACE)) {
           myValueType = ValueType.STRING;
         }
         else {
@@ -85,18 +85,7 @@ final class HeapDumpFieldObject implements FieldObject {
   @NotNull
   @Override
   public String getDisplayLabel() {
-    if (myField.getValue() == null) {
-      return myField.getField().getName() + "= {null}";
-    }
-    else {
-      return myField.getField().getName() + "=" + myField.getValue().toString();
-    }
-  }
-
-  @Nullable
-  @Override
-  public String getClassName() {
-    return null;
+    return String.format(FIELD_DISPLAY_FORMAT, myField.getField().getName(), myField.getValue() == null ? "{null}" : myField.getValue());
   }
 
   @Override
@@ -116,19 +105,6 @@ final class HeapDumpFieldObject implements FieldObject {
 
   @NotNull
   @Override
-  public List<FieldObject> getFields() {
-    Type type = myField.getField().getType();
-    Object value = myField.getValue();
-    // The field has children only if it is a non-primitive field.
-    if (type == Type.OBJECT && value != null && value instanceof Instance) {
-      return HeapDumpInstanceObject.extractFields((Instance)value);
-    }
-
-    return Collections.emptyList();
-  }
-
-  @NotNull
-  @Override
   public String getFieldName() {
     return myField.getField().getName();
   }
@@ -136,11 +112,6 @@ final class HeapDumpFieldObject implements FieldObject {
   @Override
   public ValueType getValueType() {
     return myValueType;
-  }
-
-  @Override
-  public boolean getIsArray() {
-    return myField.getValue() instanceof ArrayInstance;
   }
 
   @Override
