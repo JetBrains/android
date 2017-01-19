@@ -35,7 +35,7 @@ import static com.android.tools.profilers.ProfilerLayout.MONITOR_BORDER;
 import static com.android.tools.profilers.network.NetworkRadioDataSeries.RadioState;
 
 public class NetworkRadioView {
-  private static final String LABEL = "Radio";
+  private static final String LABEL = "RADIO";
   private static final int MINIMUM_HEIGHT = JBUI.scale(45);
 
   private static final EnumMap<RadioState, Color> RADIO_STATE_COLOR = new EnumMap<>(RadioState.class);
