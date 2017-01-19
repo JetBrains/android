@@ -34,7 +34,7 @@ public class MemoryMonitorTest {
   @Test
   public void testName() {
     MemoryMonitor monitor = new MemoryMonitor(new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices()));
-    assertEquals("Memory", monitor.getName());
+    assertEquals("MEMORY", monitor.getName());
   }
 
   @Test
