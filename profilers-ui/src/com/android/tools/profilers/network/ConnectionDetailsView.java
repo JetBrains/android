@@ -16,8 +16,10 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.common.StackLine;
 import com.android.tools.profilers.common.StackView;
+import com.android.tools.profilers.common.TabsPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.popup.IconButton;
@@ -60,7 +62,7 @@ public class ConnectionDetailsView extends JPanel {
     // where main contents span the whole area and a close button fits into the top right
     JPanel rootPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
 
-    JBTabbedPane tabPanel = new JBTabbedPane();
+    TabsPanel tabsPanel = stageView.getIdeComponents().createTabsPanel();
 
     JPanel responsePanel = new JPanel(new BorderLayout());
     myEditorPanel = new JPanel(new BorderLayout());
@@ -71,17 +73,17 @@ public class ConnectionDetailsView extends JPanel {
     scrollPane.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0));
     responsePanel.add(scrollPane, BorderLayout.SOUTH);
 
-    tabPanel.addTab("Response", responsePanel);
+    tabsPanel.addTab("Response", responsePanel);
 
     myStackView = new StackView(myStageView.getStage().getStudioProfilers().getIdeServices(), null);
-    tabPanel.addTab("Call Stack", myStackView.getComponent());
+    tabsPanel.addTab("Call Stack", myStackView.getComponent());
 
     IconButton closeIcon = new IconButton("Close", AllIcons.Actions.Close, AllIcons.Actions.CloseHovered);
     InplaceButton closeButton = new InplaceButton(closeIcon, e -> this.update((HttpData)null));
     closeButton.setMinimumSize(closeButton.getPreferredSize()); // Prevent layout phase from squishing this button
 
     rootPanel.add(closeButton, new TabularLayout.Constraint(0, 1));
-    rootPanel.add(tabPanel, new TabularLayout.Constraint(0, 0, 2, 2));
+    rootPanel.add(tabsPanel.getComponent(), new TabularLayout.Constraint(0, 0, 2, 2));
 
     add(rootPanel);
   }

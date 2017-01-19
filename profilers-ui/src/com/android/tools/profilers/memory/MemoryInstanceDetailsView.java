@@ -18,17 +18,17 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.common.StackLine;
 import com.android.tools.profilers.common.StackView;
+import com.android.tools.profilers.common.TabsPanel;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject.InstanceAttribute;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.android.tools.profilers.memory.adapters.ReferenceObject;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ui.JBColor;
-import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
@@ -55,7 +55,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   @NotNull private final MemoryProfilerStage myStage;
 
-  @NotNull private final JTabbedPane myTabbedPane;
+  @NotNull private final TabsPanel myTabsPanel;
 
   @NotNull private final StackView myStackView;
 
@@ -65,15 +65,12 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   @NotNull private final Map<InstanceAttribute, AttributeColumn> myAttributeColumns = new HashMap<>();
 
-  public MemoryInstanceDetailsView(@NotNull MemoryProfilerStage stage) {
+  public MemoryInstanceDetailsView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
     myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::instanceChanged);
 
-    // TODO fix tab styling. Currently tabs appear in the middle with too much padding.
-    myTabbedPane = new JBTabbedPane();
-    myTabbedPane.setBorder(BorderFactory.createLineBorder(JBColor.border()));
-
+    myTabsPanel = ideProfilerComponents.createTabsPanel();
     myStackView = new StackView(myStage.getStudioProfilers().getIdeServices(), () -> myStage.setProfilerMode(ProfilerMode.NORMAL));
 
     myAttributeColumns.put(
@@ -158,7 +155,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   @NotNull
   JComponent getComponent() {
-    return myTabbedPane;
+    return myTabsPanel.getComponent();
   }
 
   @VisibleForTesting
@@ -178,11 +175,11 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     if (instance == null) {
       myReferenceTree = null;
       myReferenceColumnTree = null;
-      myTabbedPane.setVisible(false);
+      myTabsPanel.getComponent().setVisible(false);
       return;
     }
 
-    myTabbedPane.removeAll();
+    myTabsPanel.removeAll();
     boolean hasContent = false;
 
     // Populate Callstacks
@@ -192,18 +189,18 @@ final class MemoryInstanceDetailsView extends AspectObserver {
         new StackTraceElement(frame.getClassName(), frame.getMethodName(), frame.getFileName(), frame.getLineNumber()).toString(),
         frame.getClassName(), frame.getMethodName(), frame.getFileName(), frame.getLineNumber())).collect(Collectors.toList());
       myStackView.setStackFrames(stackFrames);
-      myTabbedPane.add("Callstack", myStackView.getComponent());
+      myTabsPanel.addTab("Callstack", myStackView.getComponent());
       hasContent = true;
     }
 
     // Populate references
     myReferenceColumnTree = buildReferenceColumnTree(instance);
     if (myReferenceColumnTree != null) {
-      myTabbedPane.add("References", myReferenceColumnTree);
+      myTabsPanel.addTab("References", myReferenceColumnTree);
       hasContent = true;
     }
 
-    myTabbedPane.setVisible(hasContent);
+    myTabsPanel.getComponent().setVisible(hasContent);
   }
 
   @Nullable

@@ -20,6 +20,7 @@ import com.android.tools.idea.actions.PsiClassNavigation;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.common.LoadingPanel;
+import com.android.tools.profilers.common.TabsPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.*;
@@ -30,7 +31,10 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.components.JBLoadingPanel;
+import com.intellij.ui.tabs.TabInfo;
+import com.intellij.ui.tabs.impl.JBTabsImpl;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,6 +87,46 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
       @Override
       public void stopLoading() {
         myLoadingPanel.stopLoading();
+      }
+    };
+  }
+
+  @Nullable
+  @Override
+  public TabsPanel createTabsPanel() {
+    if (myProject == null) {
+      return null;
+    }
+
+    return new TabsPanel() {
+      @NotNull private final JBTabsImpl myTabsImpl = new JBTabsImpl(myProject);
+      @NotNull private final HashMap<JComponent, TabInfo> myTabsCache = new HashMap<>();
+
+      @NotNull
+      @Override
+      public JComponent getComponent() {
+        return myTabsImpl;
+      }
+
+      @Override
+      public void addTab(@NotNull String label, @NotNull JComponent content) {
+        TabInfo info = new TabInfo(content);
+        info.setText(label);
+        myTabsCache.put(content, info);
+        myTabsImpl.addTab(info);
+      }
+
+      @Override
+      public void removeTab(@NotNull JComponent tab) {
+        assert myTabsCache.containsKey(tab);
+        myTabsImpl.removeTab(myTabsCache.get(tab));
+        myTabsCache.remove(tab);
+      }
+
+      @Override
+      public void removeAll() {
+        myTabsImpl.removeAllTabs();
+        myTabsCache.clear();
       }
     };
   }
