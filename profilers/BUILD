@@ -18,5 +18,6 @@ iml_module(
         "//tools/base/perflib:studio.perflib[module]",
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools/idea/.idea/libraries:mockito[test]",
+        "//tools/idea/.idea/libraries:truth[test]",
     ],
 )
