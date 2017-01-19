@@ -35,8 +35,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profiler.proto.NetworkProfiler.*;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.*;
+import static com.google.common.truth.Truth.assertThat;
 
 public class NetworkRadioViewTest {
   private static final ImmutableList<NetworkProfilerData> FAKE_DATA =
@@ -63,16 +62,16 @@ public class NetworkRadioViewTest {
 
   @Test
   public void componentStructure() {
-    assertTrue(myView.getComponent() instanceof JPanel);
+    assertThat(myView.getComponent()).isInstanceOf(JPanel.class);
     JPanel component = (JPanel)myView.getComponent();
-    assertEquals(2, component.getComponentCount());
+    assertThat(component.getComponentCount()).isEqualTo(2);
 
-    assertTrue(component.getComponent(0) instanceof JPanel);
-    assertTrue(component.getComponent(1) instanceof StateChart);
+    assertThat(component.getComponent(0)).isInstanceOf(JPanel.class);
+    assertThat(component.getComponent(1)).isInstanceOf(StateChart.class);
     JPanel labelAndLegend = (JPanel)component.getComponent(0);
-    assertEquals(2, labelAndLegend.getComponentCount());
-    assertTrue(labelAndLegend.getComponent(0) instanceof JLabel);
-    assertTrue(labelAndLegend.getComponent(1) instanceof LegendComponent);
+    assertThat(labelAndLegend.getComponentCount()).isEqualTo(2);
+    assertThat(labelAndLegend.getComponent(0)).isInstanceOf(JLabel.class);
+    assertThat(labelAndLegend.getComponent(1)).isInstanceOf(LegendComponent.class);
   }
 
   @Test
@@ -81,7 +80,7 @@ public class NetworkRadioViewTest {
     myTimer.tick(1);
 
     List<RangedSeries<NetworkRadioDataSeries.RadioState>> series = myStageView.getStage().getRadioState().getSeries();
-    assertEquals(1, series.size());
+    assertThat(series.size()).isEqualTo(1);
 
     List<SeriesData<NetworkRadioDataSeries.RadioState>> expected = Arrays.asList(
       new SeriesData<>(TimeUnit.SECONDS.toMicros(1), NetworkRadioDataSeries.RadioState.HIGH),
@@ -96,28 +95,28 @@ public class NetworkRadioViewTest {
       new SeriesData<>(TimeUnit.SECONDS.toMicros(18), NetworkRadioDataSeries.RadioState.HIGH));
 
     series = myStageView.getStage().getRadioState().getSeries();
-    assertEquals(1, series.size());
+    assertThat(series.size()).isEqualTo(1);
     checkSeriesEquals(expected, series.get(0).getSeries());
   }
 
   @Test
   public void testLabel() {
-    assertEquals("Radio", getLabel().getText());
+    assertThat(getLabel().getText()).isNotEmpty();
   }
 
   private JLabel getLabel() {
     JPanel comp = (JPanel)myView.getComponent();
     JPanel topPane = (JPanel)comp.getComponent(0);
-    assertThat(topPane.getComponent(0), instanceOf(JLabel.class));
+    assertThat(topPane.getComponent(0)).isInstanceOf(JLabel.class);
     return (JLabel)topPane.getComponent(0);
   }
 
   private static void checkSeriesEquals(@NotNull List<SeriesData<NetworkRadioDataSeries.RadioState>> expected,
                                  @NotNull List<SeriesData<NetworkRadioDataSeries.RadioState>> actual) {
-    assertEquals(expected.size(), actual.size());
+    assertThat(actual.size()).isEqualTo(expected.size());
     for (int i = 0; i < expected.size(); ++i) {
-      assertEquals(expected.get(i).x, actual.get(i).x);
-      assertEquals(expected.get(i).value, actual.get(i).value);
+      assertThat(actual.get(i).x).isEqualTo(expected.get(i).x);
+      assertThat(actual.get(i).value).isEqualTo(expected.get(i).value);
     }
   }
 }
