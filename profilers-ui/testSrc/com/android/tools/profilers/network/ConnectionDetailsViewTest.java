@@ -17,6 +17,7 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.common.TabsPanel;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.labels.LinkLabel;
 import org.junit.Before;
@@ -32,8 +33,7 @@ import java.util.List;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class ConnectionDetailsViewTest {
 
@@ -51,6 +51,9 @@ public class ConnectionDetailsViewTest {
     when(myHttpData.getUrl()).thenReturn("dumbUrl");
     when(myHttpData.getTrace()).thenReturn("dumbTrace");
 
+    TabsPanel tabs = mock(TabsPanel.class);
+    when(tabs.getComponent()).thenReturn(new JPanel());
+    when(myIdeProfilerComponents.createTabsPanel()).thenReturn(tabs);
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myIdeServices);
     NetworkProfilerStage stage = new NetworkProfilerStage(profilers);
     StudioProfilersView view = new StudioProfilersView(profilers, myIdeProfilerComponents);

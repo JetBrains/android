@@ -18,6 +18,7 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.adapters.ReferenceObject;
@@ -45,7 +46,7 @@ public class MemoryInstanceDetailsViewTest {
   @Before
   public void setup() {
     myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices()));
-    myDetailsView = new MemoryInstanceDetailsView(myStage);
+    myDetailsView = new MemoryInstanceDetailsView(myStage, new FakeIdeProfilerComponents());
   }
 
   @Test
