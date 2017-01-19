@@ -37,12 +37,6 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
 
   @Nullable
   @Override
-  public JComponent getFileViewer(@Nullable File file) {
-    return null;
-  }
-
-  @Nullable
-  @Override
   public LoadingPanel createLoadingPanel() {
     return new LoadingPanel() {
       @NotNull
