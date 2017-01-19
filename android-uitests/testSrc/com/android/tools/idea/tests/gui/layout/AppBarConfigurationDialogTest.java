@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.layout;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.AppBarConfigurationDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
@@ -31,11 +33,11 @@ import static com.google.common.truth.Truth.assertThat;
  * UI tests for {@link com.android.tools.idea.uibuilder.handlers.ui.AppBarConfigurationDialog}
  */
 @RunWith(GuiTestRunner.class)
+@RunIn(TestGroup.UNRELIABLE)
 public class AppBarConfigurationDialogTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-
-  @Ignore // http://b.android.com/232468
+  
   @Test
   public void testDependencyDialog() throws Exception {
     EditorFixture editor = guiTest.importSimpleApplication()
@@ -75,7 +77,6 @@ public class AppBarConfigurationDialogTest {
     assertThat(gradleContents).contains("com.android.support:design:");
   }
 
-  @Ignore // http://b.android.com/232468
   @Test
   public void testAddComponent() throws Exception {
     EditorFixture editor = guiTest.importSimpleApplication()
