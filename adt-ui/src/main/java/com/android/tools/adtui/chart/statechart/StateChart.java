@@ -30,7 +30,6 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -47,20 +46,15 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
 
   private static final int TEXT_PADDING = 3;
 
-  @NotNull
   private StateChartModel<E> myModel;
 
   @NotNull
   private EnumColors<E> mColors;
 
-  private float mArcWidth;
-
-  private float mArcHeight;
-
   private float mHeightGap;
 
   @NotNull
-  private final ArrayList<RoundRectangle2D.Float> mRectangles;
+  private final ArrayList<Rectangle2D.Float> mRectangles;
 
   @NotNull
   private final List<E> mValues;
@@ -117,20 +111,6 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
 
   public void setRenderMode(RenderMode mode) {
     mRenderMode = mode;
-  }
-
-  /**
-   * Sets the arc width parameter for the rectangles.
-   */
-  public void setArcWidth(float arcWidth) {
-    mArcWidth = arcWidth;
-  }
-
-  /**
-   * Sets the arc height parameter for the rectangles.
-   */
-  public void setArcHeight(float arcHeight) {
-    mArcHeight = arcHeight;
   }
 
   /**
@@ -270,6 +250,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
           break;
       }
     }
+
     addDebugInfo("Draw time: %.2fms", (System.nanoTime() - drawTime) / 1000000.f);
     addDebugInfo("# of drawn rects: %d", transformedShapes.size());
   }
@@ -282,11 +263,11 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
                                         E previousValue,
                                         float rectY,
                                         float rectHeight) {
-    RoundRectangle2D.Float rect;
+    Rectangle2D.Float rect;
 
     //Reuse existing Rectangle objects when possible to avoid unnecessary allocations.
     if (rectCount == mRectangles.size()) {
-      rect = new RoundRectangle2D.Float();
+      rect = new Rectangle2D.Float();
       mRectangles.add(rect);
     } else {
       rect = mRectangles.get(rectCount);
@@ -294,12 +275,8 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
 
     mValues.add(previousValue);
 
-    rect.setRoundRect((previousX - minX) / (maxX - minX),
-                      rectY,
-                      (currentX - previousX) / (maxX - minX),
-                      rectHeight,
-                      mArcWidth,
-                      mArcHeight);
+    rect.setRect((previousX - minX) / (maxX - minX), rectY,
+                 (currentX - previousX) / (maxX - minX), rectHeight);
   }
 }
 

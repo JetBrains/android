@@ -122,21 +122,6 @@ public class StateChartReducerVisualTest extends VisualTest {
     chartPane.add(new JPanel(), gbc);
 
     final JPanel controls = VisualTest.createControlledPane(panel, chartPane);
-    controls.add(VisualTest.createVariableSlider("ArcWidth", 0, 100, new VisualTests.ValueAdapter() {
-      @Override
-      protected void onSet(int v) {
-        myColorChart.setArcWidth(v / 100f);
-        myOptimizedColorChart.setArcWidth(v / 100f);
-      }
-    }));
-
-    controls.add(VisualTest.createVariableSlider("ArcHeight", 0, 100, new VisualTests.ValueAdapter() {
-      @Override
-      protected void onSet(int v) {
-        myColorChart.setArcHeight(v / 100f);
-        myOptimizedColorChart.setArcHeight(v / 100f);
-      }
-    }));
 
     controls.add(VisualTest.createVariableSlider("Sample Size", 0, 10000, new VisualTests.ValueAdapter() {
       @Override
