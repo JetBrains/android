@@ -17,11 +17,11 @@ package com.android.tools.profilers;
 
 import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.common.LoadingPanel;
+import com.android.tools.profilers.common.TabsPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
 import java.io.File;
 import java.util.function.Supplier;
 
@@ -31,6 +31,9 @@ public interface IdeProfilerComponents {
 
   @Nullable
   LoadingPanel createLoadingPanel();
+
+  @NotNull
+  TabsPanel createTabsPanel();
 
   /**
    * Installs an IntelliJ context menu on a {@link JComponent}.
