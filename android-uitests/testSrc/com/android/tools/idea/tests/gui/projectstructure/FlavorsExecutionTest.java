@@ -25,7 +25,10 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActi
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import org.fest.swing.util.PatternTextMatcher;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.regex.Pattern;
@@ -100,7 +103,6 @@ public class FlavorsExecutionTest {
    *   2. Verify in Android Run tool window for the launch of F2_Main_Activity
    * </pre>
    */
-  @Ignore("https://code.google.com/p/android/issues/detail?id=231853")
   @RunIn(TestGroup.QA)
   @Test
   public void runBuildFlavors() throws Exception {
