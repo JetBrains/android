@@ -167,8 +167,8 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
     MemoryProfiler.MemoryRequest request = MemoryProfiler.MemoryRequest.newBuilder()
       .setProcessId(0)
-      .setStartTime(delayTimeFromBase(2))
-      .setEndTime(Long.MAX_VALUE)
+      .setStartTime(BASE_TIME_NS)
+      .setEndTime(delayTimeFromBase(-2))
       .build();
     MemoryProfiler.MemoryData expected = MemoryProfiler.MemoryData.getDefaultInstance();
     StreamObserver<MemoryProfiler.MemoryData> observer = mock(StreamObserver.class);
