@@ -32,6 +32,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class MemoryDataPollerTest extends DataStorePollerTest {
 
@@ -89,20 +90,20 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     .setEndTime(DurationData.UNSPECIFIED_DURATION)
     .build();
 
-  private MemoryDataPoller myMemoryDataPoller;
-  private DataStoreService myDataStore;
-  private FakeMemoryService myMemoryService;
+  private DataStoreService myDataStore = mock(DataStoreService.class);
+  private MemoryDataPoller myMemoryDataPoller = new MemoryDataPoller(myDataStore, Runnable::run);
+  private FakeMemoryService myMemoryService = new FakeMemoryService();
+
   @Rule
-  public TestGrpcService<FakeMemoryService> myGrpcService = new TestGrpcService<>(new FakeMemoryService());
+  public TestGrpcService<FakeMemoryService> myService = new TestGrpcService<>(myMemoryDataPoller, myMemoryService, null, this::startMonitoringApp);
 
   @Before
   public void setUp() throws Exception {
-    myDataStore = new DataStoreService("fake_service_name", Runnable::run);
-    myDataStore.setLegacyAllocationTracker(new FakeLegacyAllocationTracker());
+    when(myDataStore.getLegacyAllocationTracker()).thenReturn(new FakeLegacyAllocationTracker());
     // TODO: Abstract to TestGrpcService
-    myMemoryDataPoller = new MemoryDataPoller(myDataStore, Runnable::run);
-    myMemoryService = myGrpcService.getService();
-    myMemoryDataPoller.connectService(myGrpcService.getChannel());
+    myMemoryDataPoller.connectService(myService.getChannel());
+  }
+  public void startMonitoringApp() {
     myMemoryDataPoller
       .startMonitoringApp(MemoryProfiler.MemoryStartRequest.newBuilder().setAppId(TEST_APP_ID).build(), mock(StreamObserver.class));
 

@@ -15,6 +15,9 @@
  */
 package com.android.tools.datastore.poller;
 
+import com.android.annotations.VisibleForTesting;
+import com.intellij.openapi.diagnostic.Logger;
+import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 
 import java.util.concurrent.CountDownLatch;
@@ -59,10 +62,7 @@ public class PollRunner implements RunnableFuture<Void> {
     try {
       while (myRunning.getCount() > 0) {
         long startTimeNs = System.nanoTime();
-        try {
-          myPollingCallback.poll();
-        }
-        catch (StatusRuntimeException ignored) {}
+        tick();
         long sleepTime = Math.max(myPollPeriodNs - (System.nanoTime() - startTimeNs), 0L);
         myRunning.await(sleepTime, TimeUnit.NANOSECONDS);
       }
@@ -73,6 +73,14 @@ public class PollRunner implements RunnableFuture<Void> {
     finally {
       myIsDone.countDown();
     }
+  }
+
+  @VisibleForTesting
+  public void tick() {
+    try {
+      myPollingCallback.poll();
+    }
+    catch (StatusRuntimeException ignored) {}
   }
 
   @Override

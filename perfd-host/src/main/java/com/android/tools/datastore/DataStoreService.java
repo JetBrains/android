@@ -27,7 +27,9 @@ import io.grpc.netty.NettyChannelBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.RunnableFuture;
@@ -39,6 +41,7 @@ import java.util.function.Consumer;
 public class DataStoreService {
   private static final Logger LOG = Logger.getInstance(DataStoreService.class.getCanonicalName());
   private static final int MAX_MESSAGE_SIZE = 512 * 1024 * 1024 - 1;
+  private DataStoreDatabase myDatabase;
   private ManagedChannel myChannel;
   private ServerBuilder myServerBuilder;
   private Server myServer;
@@ -51,10 +54,11 @@ public class DataStoreService {
    *                      The runnable, when run, begins polling the target service. You probably
    *                      want to run it on a background thread.
    */
-  public DataStoreService(String name, Consumer<Runnable> fetchExecutor) {
+  public DataStoreService(String dbPath, Consumer<Runnable> fetchExecutor) {
     try {
       myFetchExecutor = fetchExecutor;
-      myServerBuilder = InProcessServerBuilder.forName(name);
+      myDatabase = new DataStoreDatabase(dbPath);
+      myServerBuilder = InProcessServerBuilder.forName(dbPath);
       createPollers();
       myServer = myServerBuilder.build();
       myServer.start();
@@ -83,6 +87,7 @@ public class DataStoreService {
    */
   private void registerService(ServicePassThrough service) {
     myServices.add(service);
+    myDatabase.registerTable(service.getDatastoreTable());
     // Build server and start listening for RPC calls for the registered service
     myServerBuilder.addService(service.getService());
   }
@@ -132,6 +137,7 @@ public class DataStoreService {
 
   public void shutdown() {
     myServer.shutdownNow();
+    myDatabase.disconnect();
   }
 
   /**

@@ -17,6 +17,7 @@ package com.android.tools.datastore;
 
 import com.android.tools.datastore.poller.*;
 import com.android.tools.profiler.proto.*;
+import com.intellij.openapi.util.io.FileUtil;
 import io.grpc.ManagedChannel;
 import io.grpc.Server;
 import io.grpc.StatusRuntimeException;
@@ -29,6 +30,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,7 +39,7 @@ import static org.junit.Assert.assertEquals;
 
 public class DataStoreServiceTest {
 
-  private static final String SERVICE_NAME = "DataStoreServiceTest";
+  private static final String SERVICE_PATH = "/tmp/DataStoreServiceTest.sql";
   private static final int TEST_PORT = 31313;
   private static final Profiler.VersionResponse EXPECTED_VERSION = Profiler.VersionResponse.newBuilder().setVersion("TEST").build();
   private DataStoreService myDataStore;
@@ -48,7 +50,8 @@ public class DataStoreServiceTest {
 
   @Before
   public void setUp() throws Exception {
-    myDataStore = new DataStoreService(SERVICE_NAME, r -> {});
+
+    myDataStore = new DataStoreService(SERVICE_PATH, r -> {});
     myService = NettyServerBuilder.forPort(TEST_PORT)
       .addService(new FakeProfilerService().bindService())
       .addService(new EventServiceStub().bindService())
@@ -68,7 +71,7 @@ public class DataStoreServiceTest {
 
   @Test
   public void testServiceSetupWithExpectedName() {
-    ManagedChannel channel = InProcessChannelBuilder.forName(SERVICE_NAME).build();
+    ManagedChannel channel = InProcessChannelBuilder.forName(SERVICE_PATH).build();
     ProfilerServiceGrpc.newBlockingStub(channel);
   }
 
@@ -92,7 +95,7 @@ public class DataStoreServiceTest {
   @Test
   public void testConnectServices() {
     myDataStore.connect(TEST_PORT);
-    ProfilerServiceGrpc.ProfilerServiceBlockingStub stub = ProfilerServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName(SERVICE_NAME).usePlaintext(true).build());
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub stub = ProfilerServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName(SERVICE_PATH).usePlaintext(true).build());
     Profiler.VersionResponse response = stub.getVersion(Profiler.VersionRequest.getDefaultInstance());
     assertEquals(response, EXPECTED_VERSION);
   }
@@ -100,7 +103,7 @@ public class DataStoreServiceTest {
   @Test
   public void testDisconnectServices() {
     myDataStore.connect(TEST_PORT);
-    ProfilerServiceGrpc.ProfilerServiceBlockingStub stub = ProfilerServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName(SERVICE_NAME).usePlaintext(true).build());
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub stub = ProfilerServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName(SERVICE_PATH).usePlaintext(true).build());
     Profiler.VersionResponse response = stub.getVersion(Profiler.VersionRequest.getDefaultInstance());
     assertEquals(response, EXPECTED_VERSION);
     myDataStore.disconnect();
