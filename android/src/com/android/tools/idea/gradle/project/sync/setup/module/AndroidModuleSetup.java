@@ -25,14 +25,14 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidModuleSetup {
-  private final AndroidModuleSetupStep[] mySetupSteps;
+  @NotNull private final AndroidModuleSetupStep[] mySetupSteps;
 
   public AndroidModuleSetup() {
     this(AndroidModuleSetupStep.getExtensions());
   }
 
   @VisibleForTesting
-  AndroidModuleSetup(AndroidModuleSetupStep[] setupSteps) {
+  AndroidModuleSetup(@NotNull AndroidModuleSetupStep... setupSteps) {
     mySetupSteps = setupSteps;
   }
 
@@ -40,8 +40,12 @@ public class AndroidModuleSetup {
                           @NotNull IdeModifiableModelsProvider ideModelsProvider,
                           @Nullable AndroidModuleModel androidModel,
                           @Nullable SyncAction.ModuleModels models,
-                          @Nullable ProgressIndicator indicator) {
+                          @Nullable ProgressIndicator indicator,
+                          boolean syncSkipped) {
     for (AndroidModuleSetupStep step : mySetupSteps) {
+      if (syncSkipped && !step.invokeOnSkippedSync()) {
+        continue;
+      }
       if (indicator != null) {
         step.displayDescription(module, indicator);
       }

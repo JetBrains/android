@@ -54,4 +54,8 @@ public abstract class ModuleSetupStep<T> {
   public boolean invokeOnBuildVariantChange() {
     return false;
   }
+
+  public boolean invokeOnSkippedSync() {
+    return false;
+  }
 }

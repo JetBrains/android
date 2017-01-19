@@ -145,4 +145,9 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
   public String getDescription() {
     return "Java dependencies setup";
   }
+
+  @Override
+  public boolean invokeOnSkippedSync() {
+    return true;
+  }
 }
