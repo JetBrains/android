@@ -69,6 +69,9 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
 
   @NotNull
   public ActionButtonFixture waitUntilEnabledAndShowing() {
+    // move mouse over the target button due to Intellij bug that can cause buttons state to not be updated correctly
+    // see: http://b.android.com/231853
+    robot().moveMouse(target());
     Wait.seconds(1).expecting("action to be enabled and showing").until(() -> GuiQuery.getNonNull(
       () -> target().getAction().getTemplatePresentation().isEnabledAndVisible()
             && target().isShowing() && target().isVisible() && target().isEnabled()));

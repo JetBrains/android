@@ -26,7 +26,10 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWiza
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
 import org.fest.swing.util.PatternTextMatcher;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.List;
@@ -86,7 +89,6 @@ public class LayoutInspectorTest {
    *   1. Verify for Layout elements in Hierarchy View of Layout Inspector
    * </pre>
    */
-  @Ignore("https://code.google.com/p/android/issues/detail?id=231853")
   @Test
   @RunIn(TestGroup.QA)
   public void launchLayoutInspector() throws Exception {
