@@ -103,17 +103,13 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
     put(PAYLOAD_ID_2, PAYLOAD_2).
     build();
 
-  private NetworkDataPoller myNetworkDataPoller;
+  private NetworkDataPoller myNetworkDataPoller = new NetworkDataPoller();
   @Rule
-  public TestGrpcService<FakeNetworkService> myService = new TestGrpcService<>(new FakeNetworkService());
+  public TestGrpcService<FakeNetworkService> myService = new TestGrpcService<>(myNetworkDataPoller, new FakeNetworkService());
 
   @Before
   public void setUp() throws Exception {
-    // TODO: Abstract to TestGrpcService
-    myNetworkDataPoller = new NetworkDataPoller();
-    myNetworkDataPoller.connectService(myService.getChannel());
-    myNetworkDataPoller
-      .startMonitoringApp(NetworkProfiler.NetworkStartRequest.newBuilder().setAppId(TEST_APP_ID).build(), mock(StreamObserver.class));
+    myNetworkDataPoller.startMonitoringApp(NetworkProfiler.NetworkStartRequest.newBuilder().setAppId(TEST_APP_ID).build(), mock(StreamObserver.class));
     myNetworkDataPoller.poll();
   }
 
