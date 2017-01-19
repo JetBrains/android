@@ -276,17 +276,11 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     assertThat(excludeFolderUrls).contains(pathToIdeaUrl(jarsFolderPath));
   }
 
-  // Disable this test temporarily to unblock the broken build. A proper fix should be checked in soon.
-  public void /*test*/SourceAttachmentsForJavaLibraries() throws Exception {
+  public void testSourceAttachmentsForJavaLibraries() throws Exception {
     loadSimpleApplication();
 
-    Library guava = null;
-    for (Library library : ProjectLibraryTable.getInstance(getProject()).getLibraries()) {
-      String name = library.getName();
-      if (name != null && name.contains("guava")) {
-        guava = library;
-      }
-    }
+    ProjectLibraries libraries = new ProjectLibraries(getProject());
+    Library guava = libraries.findMatchingLibrary("guava-.*");
     assertNotNull(guava);
 
     String[] sources = guava.getUrls(SOURCES);
