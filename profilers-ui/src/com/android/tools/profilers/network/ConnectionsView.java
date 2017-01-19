@@ -15,9 +15,8 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.chart.StateChart;
+import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.adtui.model.*;
