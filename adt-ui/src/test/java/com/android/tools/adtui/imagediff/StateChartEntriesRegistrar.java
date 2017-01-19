@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.imagediff;
 
-import com.android.tools.adtui.chart.StateChart;
+import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
