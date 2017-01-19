@@ -35,28 +35,37 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler.FIX_GRADLE_VERSION;
 
 public class UnsupportedGradleVersionErrorHandler extends BaseSyncErrorHandler {
-  private static final Pattern UNSUPPORTED_GRADLE_VERSION_PATTERN = Pattern.compile("Gradle version (.*) is required.*?");
+  private static final Pattern UNSUPPORTED_GRADLE_VERSION_PATTERN_1 =
+    Pattern.compile("Minimum supported Gradle version is (.*)\\. Current version is.*?");
+  private static final Pattern UNSUPPORTED_GRADLE_VERSION_PATTERN_2 = Pattern.compile("Gradle version (.*) is required.*?");
 
   @Override
   @Nullable
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
-    String text = rootCause.getMessage();
     String newMsg = "";
     if (isOldGradleVersion(rootCause)) {
       newMsg = "The project is using an unsupported version of Gradle.\n" + FIX_GRADLE_VERSION;
     }
-    if (text != null && UNSUPPORTED_GRADLE_VERSION_PATTERN.matcher(text).matches()) {
-      if (!text.endsWith(".")) {
-        text += ".";
+    String text = rootCause.getMessage();
+    if (text != null) {
+      if (UNSUPPORTED_GRADLE_VERSION_PATTERN_1.matcher(text).matches() || UNSUPPORTED_GRADLE_VERSION_PATTERN_2.matcher(text).matches()) {
+        int i = text.indexOf("If using the gradle wrapper");
+        if (i != -1) {
+          // Remove portion "If using the gradle wrapper".
+          text = text.substring(0, i);
+          text = text.trim();
+        }
+        if (!text.endsWith(".")) {
+          text += ".";
+        }
+        newMsg = text + EMPTY_LINE + "Please fix the project's Gradle settings.";
       }
-      newMsg = text + EMPTY_LINE + "Please fix the project's Gradle settings.";
     }
     if (isNotEmpty(newMsg)) {
       updateUsageTracker(UNSUPPORTED_GRADLE_VERSION);
@@ -67,7 +76,6 @@ public class UnsupportedGradleVersionErrorHandler extends BaseSyncErrorHandler {
 
   private static boolean isOldGradleVersion(@NotNull Throwable error) {
     String msg = error.getMessage();
-
     if (error instanceof UnsupportedVersionException) {
       return true;
     }
@@ -78,11 +86,6 @@ public class UnsupportedGradleVersionErrorHandler extends BaseSyncErrorHandler {
     }
     if (error instanceof ClassNotFoundException) {
       if (msg != null && msg.contains(ToolingModelBuilderRegistry.class.getName())) {
-        return true;
-      }
-    }
-    if (error instanceof RuntimeException) {
-      if (msg != null && msg.startsWith("Gradle version " + GRADLE_MINIMUM_VERSION + " is required")) {
         return true;
       }
     }
@@ -100,11 +103,18 @@ public class UnsupportedGradleVersionErrorHandler extends BaseSyncErrorHandler {
 
   @Nullable
   private static String getSupportedGradleVersion(@NotNull String message) {
-    Matcher matcher = UNSUPPORTED_GRADLE_VERSION_PATTERN.matcher(message);
-    if (matcher.matches()) {
-      String version = matcher.group(1);
-      if (isNotEmpty(version)) {
-        return version;
+    return getSupportedGradleVersion(message, UNSUPPORTED_GRADLE_VERSION_PATTERN_1, UNSUPPORTED_GRADLE_VERSION_PATTERN_2);
+  }
+
+  @Nullable
+  private static String getSupportedGradleVersion(@NotNull String message, @NotNull Pattern... patterns) {
+    for (Pattern pattern : patterns) {
+      Matcher matcher = pattern.matcher(message);
+      if (matcher.matches()) {
+        String version = matcher.group(1);
+        if (isNotEmpty(version)) {
+          return version;
+        }
       }
     }
     return null;
