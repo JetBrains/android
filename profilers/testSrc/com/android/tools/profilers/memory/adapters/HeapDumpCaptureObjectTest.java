@@ -108,7 +108,9 @@ public class HeapDumpCaptureObjectTest {
     verifyInstance(instance1, "@2 (0x2)", 1, 0, 1);
 
     FieldObject field0 = instance0.getFields().get(0);
-    verifyField(field0, "field0=Class1@2 (0x2)");
+    verifyField(field0, "field0", "Class1@2 (0x2)");
+    // Ensure that the various info in the field match those of instance1
+    verifyInstance(field0, String.format(FieldObject.FIELD_DISPLAY_FORMAT, "field0", "Class1@2 (0x2)"), 1, 0, 1);
 
     ReferenceObject reference1 = instance1.getReferences().get(0);
     verifyReference(reference1, "@1 (0x1)", Arrays.asList("field0"));
@@ -181,8 +183,8 @@ public class HeapDumpCaptureObjectTest {
     assertEquals(referenceSize, instance.getReferences().size());
   }
 
-  private void verifyField(FieldObject field, String name) {
-    assertEquals(name, field.getDisplayLabel());
+  private void verifyField(FieldObject field, String fieldName, String valueName) {
+    assertEquals(String.format(FieldObject.FIELD_DISPLAY_FORMAT, fieldName, valueName), field.getDisplayLabel());
   }
 
   private void verifyReference(ReferenceObject reference, String referrerName, List<String> referrerFieldNames) {
