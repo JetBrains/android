@@ -79,10 +79,12 @@ public class ProjectCleanupDataServiceTest extends IdeaTestCase {
   public void testImportDataWithAndroidStudioAndSuccessfulSync() {
     when(myIdeInfo.isAndroidStudio()).thenReturn(true);
     when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(false);
+    when(mySyncState.isSyncSkipped()).thenReturn(true);
 
     myDataService.importData(myDataNodes, null, getProject(), myModelsProvider);
 
-    verify(myProjectCleanup, times(1)).cleanUpProject(getProject(), myModelsProvider, null);
+    verify(myProjectCleanup, times(1)).cleanUpProject(getProject(), myModelsProvider, null, true);
+    verify(mySyncState, times(1)).isSyncSkipped();
   }
 
   public void testImportDataWithAndroidStudioAndFailedSync() {
@@ -91,7 +93,7 @@ public class ProjectCleanupDataServiceTest extends IdeaTestCase {
 
     myDataService.importData(myDataNodes, null, getProject(), myModelsProvider);
 
-    verify(myProjectCleanup, never()).cleanUpProject(getProject(), myModelsProvider, null);
+    verify(myProjectCleanup, never()).cleanUpProject(getProject(), myModelsProvider, null, false);
   }
 
   public void testImportDataWithIdeNotAndroidStudio() {
@@ -99,6 +101,6 @@ public class ProjectCleanupDataServiceTest extends IdeaTestCase {
 
     myDataService.importData(myDataNodes, null, getProject(), myModelsProvider);
 
-    verify(myProjectCleanup, never()).cleanUpProject(getProject(), myModelsProvider, null);
+    verify(myProjectCleanup, never()).cleanUpProject(getProject(), myModelsProvider, null, false);
   }
 }

@@ -25,14 +25,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class NdkModuleSetup {
-  private final NdkModuleSetupStep[] mySetupSteps;
+  @NotNull private final NdkModuleSetupStep[] mySetupSteps;
 
   public NdkModuleSetup() {
     this(NdkModuleSetupStep.getExtensions());
   }
 
   @VisibleForTesting
-  NdkModuleSetup(@NotNull NdkModuleSetupStep[] extensions) {
+  NdkModuleSetup(@NotNull NdkModuleSetupStep... extensions) {
     mySetupSteps = extensions;
   }
 
@@ -40,12 +40,16 @@ public class NdkModuleSetup {
                           @NotNull IdeModifiableModelsProvider ideModelsProvider,
                           @Nullable NdkModuleModel ndkModuleModel,
                           @Nullable SyncAction.ModuleModels models,
-                          @Nullable ProgressIndicator indicator) {
-    for (NdkModuleSetupStep setupStep : mySetupSteps) {
+                          @Nullable ProgressIndicator indicator,
+                          boolean syncSkipped) {
+    for (NdkModuleSetupStep step : mySetupSteps) {
       if (indicator != null) {
-        setupStep.displayDescription(module, indicator);
+        step.displayDescription(module, indicator);
       }
-      setupStep.setUpModule(module, ideModelsProvider, ndkModuleModel, models, indicator);
+      if (syncSkipped && !step.invokeOnSkippedSync()) {
+        continue;
+      }
+      step.setUpModule(module, ideModelsProvider, ndkModuleModel, models, indicator);
     }
   }
 }

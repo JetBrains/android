@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import com.android.annotations.Nullable;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
-import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -34,14 +34,14 @@ import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ER
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
 
 public class JavaModuleSetup {
-  private final JavaModuleSetupStep[] mySetupSteps;
+  @NotNull private final JavaModuleSetupStep[] mySetupSteps;
 
   public JavaModuleSetup() {
     this(JavaModuleSetupStep.getExtensions());
   }
 
   @VisibleForTesting
-  JavaModuleSetup(JavaModuleSetupStep[] setupSteps) {
+  JavaModuleSetup(@NotNull JavaModuleSetupStep... setupSteps) {
     mySetupSteps = setupSteps;
   }
 
@@ -49,7 +49,8 @@ public class JavaModuleSetup {
                           @NotNull IdeModifiableModelsProvider ideModelsProvider,
                           @NotNull JavaModuleModel javaModuleModel,
                           @Nullable SyncAction.ModuleModels models,
-                          @Nullable ProgressIndicator indicator) {
+                          @Nullable ProgressIndicator indicator,
+                          boolean syncSkipped) {
     if (javaModuleModel.isAndroidModuleWithoutVariants()) {
       // See https://code.google.com/p/android/issues/detail?id=170722
       SyncMessages messages = SyncMessages.getInstance(module.getProject());
@@ -62,7 +63,11 @@ public class JavaModuleSetup {
       // happen due to a project configuration error and there is a lot of module configuration missing, there is no point on even trying.
       return;
     }
+
     for (JavaModuleSetupStep step : mySetupSteps) {
+      if (syncSkipped && !step.invokeOnSkippedSync()) {
+        continue;
+      }
       if (indicator != null) {
         step.displayDescription(module, indicator);
       }

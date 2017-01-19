@@ -46,12 +46,12 @@ public class AndroidModuleSetupTest {
   @Before
   public void setUp() throws Exception {
     initMocks(this);
-    myModuleSetup = new AndroidModuleSetup(new AndroidModuleSetupStep[]{mySetupStep1, mySetupStep2});
+    myModuleSetup = new AndroidModuleSetup(mySetupStep1, mySetupStep2);
   }
 
   @Test
   public void setUpAndroidModuleWithProgressIndicator() {
-    myModuleSetup.setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, myProgressIndicator);
+    myModuleSetup.setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, myProgressIndicator, false);
 
     verify(mySetupStep1, times(1)).setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, myProgressIndicator);
     verify(mySetupStep2, times(1)).setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, myProgressIndicator);
@@ -62,12 +62,34 @@ public class AndroidModuleSetupTest {
 
   @Test
   public void setUpAndroidModuleWithoutProgressIndicator() {
-    myModuleSetup.setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, null);
+    myModuleSetup.setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, null, false);
 
     verify(mySetupStep1, times(1)).setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, null);
     verify(mySetupStep2, times(1)).setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, null);
 
     verify(mySetupStep1, never()).displayDescription(same(myModule), any());
     verify(mySetupStep2, never()).displayDescription(same(myModule), any());
+  }
+
+  @Test
+  public void setUpAndroidModuleWithSyncSkipped() {
+    when(mySetupStep1.invokeOnSkippedSync()).thenReturn(true);
+
+    myModuleSetup.setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, null, true /* sync skipped */);
+
+    // Only 'mySetupStep1' should be invoked when sync is skipped.
+    verify(mySetupStep1, times(1)).setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, null);
+    verify(mySetupStep2, never()).setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, null);
+  }
+
+  @Test
+  public void setUpAndroidModuleWithSyncNotSkipped() {
+    when(mySetupStep1.invokeOnSkippedSync()).thenReturn(true);
+
+    myModuleSetup.setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, null, false /* sync not skipped */);
+
+    // Only 'mySetupStep1' should be invoked when sync is skipped.
+    verify(mySetupStep1, times(1)).setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, null);
+    verify(mySetupStep2, times(1)).setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, null);
   }
 }

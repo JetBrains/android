@@ -118,4 +118,9 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
     }
     return "";
   }
+
+  @Override
+  public boolean invokeOnSkippedSync() {
+    return true;
+  }
 }
