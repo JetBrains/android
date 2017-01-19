@@ -22,6 +22,7 @@ import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.SdkUtils;
+import com.android.utils.XmlUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.notification.NotificationDisplayType;
@@ -363,9 +364,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
       }
 
       if (modules.isEmpty()) {
-        for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-          modules.add(module);
-        }
+        modules.addAll(Arrays.asList(ModuleManager.getInstance(myProject).getModules()));
       }
 
       // Find all the android modules/facets
@@ -383,24 +382,22 @@ public class ConvertToWebpAction extends DumbAwareAction {
       for (AndroidFacet facet : facets) {
         Document document = MergedManifest.get(facet).getDocument();
         if (document != null && document.getDocumentElement() != null) {
-          for (Element element : LintUtils.getChildren(document.getDocumentElement())) {
-            if (TAG_APPLICATION.equals(element.getTagName())) {
-              addIcons(names, element);
-              for (Element child : LintUtils.getChildren(element)) {
-                String tagName = child.getTagName();
-                if (tagName.equals(TAG_ACTIVITY)
-                    || tagName.equals(TAG_ACTIVITY_ALIAS)
-                    || tagName.equals(TAG_SERVICE)
-                    || tagName.equals(TAG_PROVIDER)
-                    || tagName.equals(TAG_RECEIVER)) {
-                  addIcons(names, element);
-                }
+          Element element = XmlUtils.getFirstSubTagTagByName(document.getDocumentElement(), TAG_APPLICATION);
+          if (element != null) {
+            addIcons(names, element);
+            for (Element child : XmlUtils.getSubTags(element)) {
+              String tagName = child.getTagName();
+              if (tagName.equals(TAG_ACTIVITY)
+                  || tagName.equals(TAG_ACTIVITY_ALIAS)
+                  || tagName.equals(TAG_SERVICE)
+                  || tagName.equals(TAG_PROVIDER)
+                  || tagName.equals(TAG_RECEIVER)) {
+                addIcons(names, element);
               }
             }
           }
         }
       }
-
 
       // Defaults
       names.add("ic_launcher_round");
