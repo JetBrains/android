@@ -45,7 +45,7 @@ public class MemoryMonitor extends ProfilerMonitor {
   }
 
   public String getName() {
-    return "Memory";
+    return "MEMORY";
   }
 
   @Override

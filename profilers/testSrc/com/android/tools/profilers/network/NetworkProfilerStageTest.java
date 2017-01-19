@@ -96,7 +96,7 @@ public class NetworkProfilerStageTest extends AspectObserver {
 
   @Test
   public void getName() {
-    assertEquals("Network", myStage.getName());
+    assertEquals("NETWORK", myStage.getName());
   }
 
   @Test
