@@ -17,6 +17,7 @@ package com.android.tools.profilers;
 
 import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.common.LoadingPanel;
+import com.android.tools.profilers.common.TabsPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,9 +51,46 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
         return new JPanel(new BorderLayout());
       }
 
-      @Override public void setLoadingText(@NotNull String loadingText) {}
-      @Override public void startLoading() {}
-      @Override public void stopLoading() {}
+      @Override
+      public void setLoadingText(@NotNull String loadingText) {
+      }
+
+      @Override
+      public void startLoading() {
+      }
+
+      @Override
+      public void stopLoading() {
+      }
+    };
+  }
+
+  @NotNull
+  @Override
+  public TabsPanel createTabsPanel() {
+    return new TabsPanel() {
+      private JTabbedPane myTabbedPane = new JTabbedPane();
+
+      @NotNull
+      @Override
+      public JComponent getComponent() {
+        return myTabbedPane;
+      }
+
+      @Override
+      public void addTab(@NotNull String label, @NotNull JComponent content) {
+        myTabbedPane.add(label, content);
+      }
+
+      @Override
+      public void removeTab(@NotNull JComponent tab) {
+        myTabbedPane.remove(tab);
+      }
+
+      @Override
+      public void removeAll() {
+        myTabbedPane.removeAll();
+      }
     };
   }
 
