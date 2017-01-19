@@ -38,7 +38,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.RunnableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.COMPLETED;
@@ -349,7 +348,9 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
           assert i == 0;
           HeapDumpInfo info = response.getHeapDumpInfos(i);
           assert myPendingHeapDumpSample.myInfo.getDumpId() == info.getDumpId();
-          assert info.getEndTime() != DurationData.UNSPECIFIED_DURATION;
+          if (info.getEndTime() == DurationData.UNSPECIFIED_DURATION) {
+            throw new RuntimeException("Invalid endTime: " +  + info.getEndTime() + " for DumpID: " + info.getDumpId());
+          }
           myPendingHeapDumpSample.myInfo = myPendingHeapDumpSample.myInfo.toBuilder().setEndTime(info.getEndTime()).build();
           dumpsToFetch.add(myPendingHeapDumpSample);
           myPendingHeapDumpSample = null;
