@@ -20,4 +20,6 @@ public enum CpuProfilerAspect {
   CAPTURE,
   // The threads selection has changed.
   SELECTED_THREADS,
+  // The capture details has changed, e.g the user selected "Bottom Up" or "Top Down" tab.
+  CAPTURE_DETAILS,
 }

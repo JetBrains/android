@@ -30,21 +30,23 @@ import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 
 public class CpuProfilerStage extends Stage {
 
   private static final SingleUnitAxisFormatter CPU_USAGE_FORMATTER = new SingleUnitAxisFormatter(1, 5, 10, "%");
   private static final SingleUnitAxisFormatter NUM_THREADS_AXIS = new SingleUnitAxisFormatter(1, 5, 1, "");
+
   private final CpuThreadsModel myThreadsStates;
   private final AxisComponentModel myCpuUsageAxis;
   private final AxisComponentModel myThreadCountAxis;
@@ -109,6 +111,9 @@ public class CpuProfilerStage extends Stage {
    * A cache of already parsed captures, indexed by trace_id.
    */
   private Map<Integer, CpuCapture> myTraceCaptures = new HashMap<>();
+
+  @Nullable
+  private CaptureDetails myCaptureDetails;
 
   public CpuProfilerStage(@NotNull StudioProfilers profilers) {
     super(profilers);
@@ -330,6 +335,66 @@ public class CpuProfilerStage extends Stage {
       myTraceCaptures.put(traceId, capture);
     }
     return capture;
+  }
+
+  public void changeCaptureDetails(@Nullable BiFunction<Range, HNode<MethodModel>, CaptureDetails> builder) {
+    if (builder != null) {
+      Range range = getStudioProfilers().getTimeline().getSelectionRange();
+      HNode<MethodModel> node = myCapture != null ? myCapture.getCaptureNode(getSelectedThread()) : null;
+      myCaptureDetails = builder.apply(range, node);
+    } else {
+      myCaptureDetails = null;
+    }
+
+    myAspect.changed(CpuProfilerAspect.CAPTURE_DETAILS);
+  }
+
+  @Nullable
+  public CaptureDetails getCaptureDetails() {
+    return myCaptureDetails;
+  }
+
+  public interface CaptureDetails {
+  }
+
+  public static class TopDown implements CaptureDetails {
+    @Nullable private TopDownTreeModel myModel;
+
+    public TopDown(@NotNull Range range, @Nullable HNode<MethodModel> node) {
+      myModel = node == null ? null : new TopDownTreeModel(range, new TopDownNode(node));
+    }
+
+    @Nullable
+    public TopDownTreeModel getModel() {
+      return myModel;
+    }
+  }
+
+  public static class BottomUp implements CaptureDetails {
+    @Nullable private BottomUpTreeModel myModel;
+
+    public BottomUp(@NotNull Range range, @Nullable HNode<MethodModel> node) {
+      myModel = node == null ? null : new BottomUpTreeModel(range, new BottomUpNode(node));
+    }
+
+    @Nullable
+    public BottomUpTreeModel getModel() {
+      return myModel;
+    }
+  }
+
+  public static class TreeChart implements CaptureDetails {
+    @Nullable private HNode<MethodModel> myNode;
+
+    @SuppressWarnings("unused")
+    public TreeChart(@NotNull Range range, @Nullable HNode<MethodModel> node) {
+      myNode = node;
+    }
+
+    @Nullable
+    public HNode<MethodModel> getNode() {
+      return myNode;
+    }
   }
 
   @VisibleForTesting
