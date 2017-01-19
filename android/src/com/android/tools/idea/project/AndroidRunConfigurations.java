@@ -23,6 +23,7 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -55,13 +56,10 @@ public class AndroidRunConfigurations {
         return;
       }
     }
-    addRunConfiguration(facet, null, TargetSelectionMode.SHOW_DIALOG, null);
+    addRunConfiguration(facet, TargetSelectionMode.SHOW_DIALOG);
   }
 
-  public void addRunConfiguration(@NotNull AndroidFacet facet,
-                                  @Nullable String activityClass,
-                                  @Nullable TargetSelectionMode targetSelectionMode,
-                                  @Nullable String preferredAvdName) {
+  public void addRunConfiguration(@NotNull AndroidFacet facet, @Nullable TargetSelectionMode targetSelectionMode) {
     Module module = facet.getModule();
     RunManager runManager = RunManager.getInstance(module.getProject());
     AndroidRunConfigurationType runConfigurationType = AndroidRunConfigurationType.getInstance();
@@ -69,10 +67,7 @@ public class AndroidRunConfigurations {
     AndroidRunConfiguration configuration = (AndroidRunConfiguration)settings.getConfiguration();
     configuration.setModule(module);
 
-    if (activityClass != null) {
-      configuration.setLaunchActivity(activityClass);
-    }
-    else if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+    if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
       configuration.setLaunchUrl(getDefaultRunConfigurationUrl(facet));
     }
     else if (isWatchFaceApp(facet)) {
@@ -88,11 +83,8 @@ public class AndroidRunConfigurations {
     if (targetSelectionMode != null) {
       configuration.getDeployTargetContext().setTargetSelectionMode(targetSelectionMode);
     }
-    if (preferredAvdName != null) {
-      configuration.PREFERRED_AVD = preferredAvdName;
-    }
     runManager.addConfiguration(settings, false);
-    runManager.setSelectedConfiguration(settings);
+    ApplicationManager.getApplication().runReadAction(() -> runManager.setSelectedConfiguration(settings));
   }
 
   @NotNull
