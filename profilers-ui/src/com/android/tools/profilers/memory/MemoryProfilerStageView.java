@@ -55,7 +55,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private final MemoryClassView myClassView = new MemoryClassView(getStage(), getIdeComponents());
   @NotNull private final MemoryClassGrouping myClassGrouping = new MemoryClassGrouping(getStage());
   @NotNull private final MemoryInstanceView myInstanceView = new MemoryInstanceView(getStage(), getIdeComponents());
-  @NotNull private final MemoryInstanceDetailsView myInstanceDetailsView = new MemoryInstanceDetailsView(getStage());
+  @NotNull private final MemoryInstanceDetailsView myInstanceDetailsView = new MemoryInstanceDetailsView(getStage(), getIdeComponents());
 
   @Nullable private CaptureObject myCaptureObject = null;
 
@@ -72,6 +72,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     myChartCaptureSplitter.setFirstComponent(buildMonitorUi());
     myCapturePanel = buildCaptureUi();
+    myInstanceDetailsSplitter.setOpaque(true);
     myInstanceDetailsSplitter.setFirstComponent(myInstanceView.getComponent());
     myInstanceDetailsSplitter.setSecondComponent(myInstanceDetailsView.getComponent());
     myMainSplitter.setFirstComponent(myChartCaptureSplitter);
