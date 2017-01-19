@@ -16,10 +16,12 @@
 package com.android.tools.idea.editors.hierarchyview.ui;
 
 import com.android.tools.idea.editors.hierarchyview.model.ViewNode;
+import com.android.tools.idea.editors.strings.FontUtil;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 
 import javax.swing.*;
+import java.awt.*;
 
 public class ViewNodeTreeRenderer extends ColoredTreeCellRenderer {
 
@@ -36,6 +38,11 @@ public class ViewNodeTreeRenderer extends ColoredTreeCellRenderer {
            node.isDrawn() ? SimpleTextAttributes.REGULAR_ATTRIBUTES : SimpleTextAttributes.GRAYED_ATTRIBUTES);
 
     if (node.displayInfo.contentDesc != null) {
+      Font currentFont = getFont();
+      Font f = FontUtil.getFontAbleToDisplay(node.displayInfo.contentDesc, currentFont);
+      if (f != null && f != currentFont) {
+        setFont(f);
+      }
       append(node.displayInfo.contentDesc,
              node.isDrawn() ? SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES : SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES);
     }
