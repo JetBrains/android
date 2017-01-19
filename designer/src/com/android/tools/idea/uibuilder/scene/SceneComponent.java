@@ -493,6 +493,7 @@ public class SceneComponent {
   }
 
   public void addChild(@NotNull SceneComponent child) {
+    child.removeFromParent();
     child.setParent(this);
     myChildren.add(child);
   }
