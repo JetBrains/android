@@ -37,8 +37,8 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.GROUP_BY_PACKAGE;
-import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.NO_GROUPING;
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -82,7 +82,7 @@ public class MemoryClassViewTest {
     HeapObject mockHeap = MemoryProfilerTestBase.mockHeapObject("Test", fakeClassObjects);
     myStage.selectHeap(mockHeap);
 
-    assertEquals(myStage.getConfiguration().getClassGrouping(), NO_GROUPING);
+    assertEquals(myStage.getConfiguration().getClassGrouping(), ARRANGE_BY_CLASS);
     assertNotNull(classView.getTree());
     JTree classTree = classView.getTree();
     Object root = classTree.getModel().getRoot();
@@ -95,7 +95,7 @@ public class MemoryClassViewTest {
     assertEquals(mockClass3, ((MemoryObjectTreeNode<ClassObject>)classTree.getSelectionPath().getLastPathComponent()).getAdapter());
 
     // Check if group by package is grouping as expected.
-    myStage.getConfiguration().setClassGrouping(GROUP_BY_PACKAGE);
+    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
     //noinspection unchecked
     assertEquals(6, countClassObjects((MemoryObjectTreeNode<NamespaceObject>)root)); // 6 is the number of mockClass*
     assertTrue(classTree.getSelectionPath().getLastPathComponent() instanceof MemoryObjectTreeNode);
@@ -128,7 +128,7 @@ public class MemoryClassViewTest {
     assertEquals(mockClass4, androidPackage.getChildren().get(1).getAdapter());
 
     // Check if flat list is correct.
-    myStage.getConfiguration().setClassGrouping(NO_GROUPING);
+    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_CLASS);
     root = classTree.getModel().getRoot();
     assertTrue(root instanceof MemoryObjectTreeNode);
     assertTrue(((MemoryObjectTreeNode)root).getAdapter() instanceof NamespaceObject);
@@ -157,7 +157,7 @@ public class MemoryClassViewTest {
     HeapObject mockHeap = MemoryProfilerTestBase.mockHeapObject("Test", fakeClassObjects);
     myStage.selectHeap(mockHeap);
 
-    assertEquals(myStage.getConfiguration().getClassGrouping(), NO_GROUPING);
+    assertEquals(myStage.getConfiguration().getClassGrouping(), ARRANGE_BY_CLASS);
     assertNull(myStage.getSelectedClass());
     assertNotNull(classView.getTree());
     JTree classTree = classView.getTree();
@@ -172,8 +172,8 @@ public class MemoryClassViewTest {
     assertEquals(selectedClassNode.getAdapter(), myStage.getSelectedClass());
     assertEquals(selectedClassNode, classTree.getSelectionPath().getLastPathComponent());
 
-    myStage.getConfiguration().setClassGrouping(GROUP_BY_PACKAGE);
-    // Check that after changing to GROUP_BY_PACKAGE, the originally selected item is reselected.
+    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
+    // Check that after changing to ARRANGE_BY_PACKAGE, the originally selected item is reselected.
     Object reselected = classTree.getSelectionPath().getLastPathComponent();
     assertNotNull(reselected);
     assertTrue(reselected instanceof MemoryObjectTreeNode && ((MemoryObjectTreeNode)reselected).getAdapter() instanceof ClassObject);
