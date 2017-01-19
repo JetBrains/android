@@ -734,7 +734,7 @@ public class RenderTask implements IImageFactory {
         message = e.toString();
       }
       myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myRenderService.getProject(), myLogger.getLinkManager(), e));
-      return RenderResult.createSessionInitializationError(this, myPsiFile, myLogger);
+      return RenderResult.createSessionInitializationError(this, myPsiFile, myLogger, e);
     }
   }
 
@@ -809,7 +809,7 @@ public class RenderTask implements IImageFactory {
         message = e.toString();
       }
       myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), e));
-      return Futures.immediateFuture(RenderResult.createSessionInitializationError(this, myPsiFile, myLogger));
+      return Futures.immediateFuture(RenderResult.createSessionInitializationError(this, myPsiFile, myLogger, e));
     }
   }
 
