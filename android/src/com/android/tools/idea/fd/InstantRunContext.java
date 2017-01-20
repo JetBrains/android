@@ -44,7 +44,9 @@ public interface InstantRunContext {
    * @return the android gradle plugin version in use to build the instant run artifacts.
    */
   @NotNull
-  GradleVersion getGradlePluginVersion();
+  default GradleVersion getGradlePluginVersion() {
+    return new GradleVersion(0, 0, 0);
+  }
 
   /**
    * @return a hashcode which encapsulates the set of resources referenced from the manifest along with the values of those resources.
