@@ -23,10 +23,13 @@ import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
+import com.android.manifmerger.Actions;
 import com.android.repository.Revision;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -38,6 +41,7 @@ import com.android.tools.lint.client.api.*;
 import com.android.tools.lint.detector.api.*;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.Disposable;
@@ -76,6 +80,8 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import java.io.File;
 import java.io.IOException;
@@ -134,6 +140,11 @@ public class LintIdeClient extends LintClient implements Disposable {
    */
   public static LintIdeClient forEditor(@NotNull State state) {
     return new EditorLintClient(state);
+  }
+
+  @NonNull
+  public Project getIdeProject() {
+    return myProject;
   }
 
   @Nullable
@@ -527,6 +538,78 @@ public class LintIdeClient extends LintClient implements Disposable {
     }
 
     return null;
+  }
+
+  private static final String MERGED_MANIFEST_INFO = "lint-merged-manifest-info";
+
+  @Nullable
+  @Override
+  public org.w3c.dom.Document getMergedManifest(@NonNull com.android.tools.lint.detector.api.Project project) {
+    final Module module = findModuleForLintProject(myProject, project);
+    if (module != null) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        MergedManifest mergedManifest = MergedManifest.get(facet);
+        org.w3c.dom.Document document = mergedManifest.getDocument();
+        if (document != null) {
+          Element root = document.getDocumentElement();
+          if (root != null && !isMergeManifestNode(root)) {
+            resolveMergeManifestSources(document, project.getDir());
+            document.setUserData(MERGED_MANIFEST_INFO, mergedManifest, null);
+          }
+          return document;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  @Override
+  @Nullable
+  public Node findManifestSourceNode(@NonNull Node mergedNode) {
+    if (sourceNodeCache != null) {
+      Node source = sourceNodeCache.get(mergedNode);
+      if (source != null) {
+        // document node is a place holder meaning "searched, not found". See
+        // code at the end of this method which populates cache.
+        if (source.getNodeType() == Node.DOCUMENT_NODE) {
+          return null;
+        }
+        return source;
+      }
+    }
+
+    org.w3c.dom.Document doc = mergedNode.getOwnerDocument();
+    if (doc == null) {
+      return null;
+    }
+    MergedManifest mergedManifest = (MergedManifest) doc.getUserData(MERGED_MANIFEST_INFO);
+    if (mergedManifest == null) {
+      return null;
+    }
+
+    Node source = null;
+    List<? extends Actions.Record> records = ManifestUtils.getRecords(mergedManifest, mergedNode);
+    for (Actions.Record record : records) {
+      if (record.getActionType() == Actions.ActionType.ADDED ||
+          record.getActionType() == Actions.ActionType.MERGED) {
+        source = ManifestUtils.getSourceNode(mergedManifest.getModule(), record);
+        if (source != null) {
+          break;
+        }
+      }
+    }
+
+    // Cache for next time
+    // If not found, put doc node as place holder meaning "already searched, not found"
+    Node cacheValue = source != null ? source : doc;
+    if (sourceNodeCache == null) {
+      sourceNodeCache = Maps.newIdentityHashMap();
+    }
+    sourceNodeCache.put(mergedNode, cacheValue);
+
+    return source;
   }
 
   /**
