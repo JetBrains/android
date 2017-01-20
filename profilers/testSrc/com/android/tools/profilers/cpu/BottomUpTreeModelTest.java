@@ -36,19 +36,19 @@ public class BottomUpTreeModelTest {
   @Test
   public void testExpand() {
     DefaultMutableTreeNode root = (DefaultMutableTreeNode)myModel.getRoot();
-    checkTraverseOrder(root, " +Root +:B +:A - +:main - - +:C +:main - - +:A +:C - +:main - - -");
+    checkTraverseOrder(root, " +Root +:A +:main - +:C - - +:C +:main - - +:B +:main - +:A - - -");
     myModel.expand(findNodeOnPath(root, "Root", ":B"));
-    checkTraverseOrder(root, " +Root +:B +:A +:C - +:main - - +:main - - +:C +:main - - +:A +:C - +:main - - -");
+    checkTraverseOrder(root, " +Root +:A +:main - +:C - - +:C +:main - - +:B +:main - +:A +:C - +:main - - - -");
   }
 
   @Test
   public void nodeExpandedTwice() {
     DefaultMutableTreeNode root = (DefaultMutableTreeNode)myModel.getRoot();
-    checkTraverseOrder(root, " +Root +:B +:A - +:main - - +:C +:main - - +:A +:C - +:main - - -");
+    checkTraverseOrder(root, " +Root +:A +:main - +:C - - +:C +:main - - +:B +:main - +:A - - -");
     myModel.expand(findNodeOnPath(root, "Root", ":B"));
-    checkTraverseOrder(root, " +Root +:B +:A +:C - +:main - - +:main - - +:C +:main - - +:A +:C - +:main - - -");
+    checkTraverseOrder(root, " +Root +:A +:main - +:C - - +:C +:main - - +:B +:main - +:A +:C - +:main - - - -");
     myModel.expand(findNodeOnPath(root, "Root", ":B"));
-    checkTraverseOrder(root, " +Root +:B +:A +:C - +:main - - +:main - - +:C +:main - - +:A +:C - +:main - - -");
+    checkTraverseOrder(root, " +Root +:A +:main - +:C - - +:C +:main - - +:B +:main - +:A +:C - +:main - - - -");
   }
 
   @Test
