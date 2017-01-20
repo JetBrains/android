@@ -26,7 +26,6 @@ import io.grpc.ServerServiceDefinition;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.RunnableFuture;
@@ -165,7 +164,7 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
     for (TraceData traceInfo : myTraces.values()) {
       CpuProfiler.TraceInfo trace = traceInfo.getTrace();
       // Get traces that overlap with the requested range.
-      if (Math.max(trace.getFromTimestamp(), request.getFromTimestamp()) <= Math.min(trace.getFromTimestamp(), request.getToTimestamp())) {
+      if (Math.max(trace.getFromTimestamp(), request.getFromTimestamp()) <= Math.min(trace.getToTimestamp(), request.getToTimestamp())) {
         response.addTraceInfo(trace);
       }
     }
