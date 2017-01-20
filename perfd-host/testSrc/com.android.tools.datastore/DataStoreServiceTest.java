@@ -40,6 +40,7 @@ import static org.junit.Assert.assertEquals;
 public class DataStoreServiceTest {
 
   private static final String SERVICE_PATH = "/tmp/DataStoreServiceTest.sql";
+  private static final String SERVICE_NAME = "DataStoreServiceTest";
   private static final int TEST_PORT = 31313;
   private static final Profiler.VersionResponse EXPECTED_VERSION = Profiler.VersionResponse.newBuilder().setVersion("TEST").build();
   private DataStoreService myDataStore;
@@ -51,7 +52,7 @@ public class DataStoreServiceTest {
   @Before
   public void setUp() throws Exception {
 
-    myDataStore = new DataStoreService(SERVICE_PATH, r -> {});
+    myDataStore = new DataStoreService(SERVICE_NAME, SERVICE_PATH, r -> {});
     myService = NettyServerBuilder.forPort(TEST_PORT)
       .addService(new FakeProfilerService().bindService())
       .addService(new EventServiceStub().bindService())
@@ -95,7 +96,7 @@ public class DataStoreServiceTest {
   @Test
   public void testConnectServices() {
     myDataStore.connect(TEST_PORT);
-    ProfilerServiceGrpc.ProfilerServiceBlockingStub stub = ProfilerServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName(SERVICE_PATH).usePlaintext(true).build());
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub stub = ProfilerServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName(SERVICE_NAME).usePlaintext(true).build());
     Profiler.VersionResponse response = stub.getVersion(Profiler.VersionRequest.getDefaultInstance());
     assertEquals(response, EXPECTED_VERSION);
   }
@@ -103,7 +104,7 @@ public class DataStoreServiceTest {
   @Test
   public void testDisconnectServices() {
     myDataStore.connect(TEST_PORT);
-    ProfilerServiceGrpc.ProfilerServiceBlockingStub stub = ProfilerServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName(SERVICE_PATH).usePlaintext(true).build());
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub stub = ProfilerServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName(SERVICE_NAME).usePlaintext(true).build());
     Profiler.VersionResponse response = stub.getVersion(Profiler.VersionRequest.getDefaultInstance());
     assertEquals(response, EXPECTED_VERSION);
     myDataStore.disconnect();
