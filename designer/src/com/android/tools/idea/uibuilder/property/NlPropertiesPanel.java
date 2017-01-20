@@ -55,10 +55,12 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static com.android.SdkConstants.TOOLS_URI;
 
@@ -77,6 +79,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   private final PTableModel myModel;
   private final InspectorPanel myInspectorPanel;
   private final JPanel myCardPanel;
+  private final PropertyChangeListener myPropertyChangeListener = this::scrollIntoView;
 
   private List<NlComponent> myComponents;
   private List<NlPropertyItem> myProperties;
@@ -143,13 +146,13 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   @Override
   public void addNotify() {
     super.addNotify();
-    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(this::scrollIntoView);
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(myPropertyChangeListener);
   }
 
   @Override
   public void removeNotify() {
     super.removeNotify();
-    KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener(this::scrollIntoView);
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener(myPropertyChangeListener);
   }
 
   public void setFilter(@NotNull String filter) {

@@ -38,6 +38,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.*;
 import java.util.List;
 
@@ -75,6 +76,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   private final MinimizedPanel<T> myLeftMinimizePanel;
   private final MinimizedPanel<T> myRightMinimizePanel;
   private final ButtonDragListener<T> myButtonDragListener;
+  private final PropertyChangeListener myMyPropertyChangeListener = this::autoHide;
   private FileEditor myFileEditor;
 
   /**
@@ -178,13 +180,13 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   @Override
   public void addNotify() {
     super.addNotify();
-    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", this::autoHide);
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", myMyPropertyChangeListener);
   }
 
   @Override
   public void removeNotify() {
     super.removeNotify();
-    KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", this::autoHide);
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", myMyPropertyChangeListener);
   }
 
   private void autoHide(@NotNull PropertyChangeEvent event) {
