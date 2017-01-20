@@ -120,12 +120,6 @@ public class NewInstantAppTest {
       "        Missing Android XML namespace\n" +
       "            AndroidManifest.xml\n" +
       "                Attribute is missing the Android namespace prefix\n" +
-      // TODO: prebuilts etc. need to be updated to 25.0.2 then these can be removed
-      "        Obsolete Gradle Dependency\n" +
-      "            build.gradle\n" +
-      "                Old buildToolsVersion 25.0.1; recommended version is 25.0.2 or later\n" +
-      "            build.gradle\n" +
-      "                Old buildToolsVersion 25.0.1; recommended version is 25.0.2 or later\n" +
       // This warning is unfortunate. We may want to get rid of it.
       "    Android > Lint > Security\n" +
       "        AllowBackup/FullBackupContent Problems\n" +
