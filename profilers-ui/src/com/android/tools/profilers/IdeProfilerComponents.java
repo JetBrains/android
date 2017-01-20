@@ -22,12 +22,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.io.File;
 import java.util.function.Supplier;
 
 public interface IdeProfilerComponents {
-  @Nullable
-  JComponent getFileViewer(@Nullable File file);
 
   @Nullable
   LoadingPanel createLoadingPanel();

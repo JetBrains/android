@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.testutils.TestResources;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.common.TabsPanel;
@@ -29,6 +30,9 @@ import org.mockito.MockitoAnnotations;
 import javax.swing.*;
 import java.util.Arrays;
 import java.util.List;
+
+import java.io.File;
+import java.io.IOException;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -79,7 +83,8 @@ public class ConnectionDetailsViewTest {
 
   @Test
   public void contentsAreEmptyWhenDataIsNull() {
-    when(myIdeProfilerComponents.getFileViewer(any())).thenReturn(new JLabel());
+    File file = TestResources.getFile(this.getClass(), "/icons/garbage-event.png");
+    when(myHttpData.getResponsePayloadFile()).thenReturn(file);
     myView.update(myHttpData);
     assertNotNull(myView.getFileViewer());
     assertNotNull(myView.getFieldComponent(0));
@@ -92,18 +97,13 @@ public class ConnectionDetailsViewTest {
   }
 
   @Test
-  public void editorComponentIsAddedWhenComponentsProviderReturnsNonNull() {
-    JLabel fileViewer = new JLabel("fileViewer");
-    when(myIdeProfilerComponents.getFileViewer(any())).thenReturn(fileViewer);
-    myView.update(myHttpData);
-    assertEquals(fileViewer, myView.getFileViewer());
-  }
-
-  @Test
-  public void editorComponentIsAbsentWhenComponentsProviderReturnsNull() {
-    when(myIdeProfilerComponents.getFileViewer(any())).thenReturn(null);
-    myView.update(myHttpData);
+  public void fileViewerExistWhenPayloadFileIsNotNull() {
+    File file = new File("temp");
+    when(myHttpData.getResponsePayloadFile()).thenReturn(file);
+    when(myHttpData.getResponseField(eq(HttpData.FIELD_CONTENT_TYPE))).thenReturn("test");
     assertNull(myView.getFileViewer());
+    myView.update(myHttpData);
+    assertNotNull(myView.getFileViewer());
   }
 
   @Test

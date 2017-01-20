@@ -21,26 +21,19 @@ import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.common.LoadingPanel;
 import com.android.tools.profilers.common.TabsPanel;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.fileEditor.FileEditorProvider;
-import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.tabs.TabInfo;
 import com.intellij.ui.tabs.impl.JBTabsImpl;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 import java.util.function.Supplier;
 
 public class IntellijProfilerComponents implements IdeProfilerComponents {
@@ -49,13 +42,6 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
 
   public IntellijProfilerComponents(@Nullable Project project) {
     myProject = project;
-  }
-
-  @Nullable
-  @Override
-  public JComponent getFileViewer(@Nullable File file) {
-    VirtualFile virtualFile = file != null ? LocalFileSystem.getInstance().findFileByIoFile(file) : null;
-    return getFileViewer(virtualFile, FileEditorProviderManager.getInstance(), myProject);
   }
 
   @Nullable
@@ -129,19 +115,6 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
         myTabsCache.clear();
       }
     };
-  }
-
-  @Nullable
-  @VisibleForTesting
-  static JComponent getFileViewer(@Nullable VirtualFile virtualFile,
-                                  @NotNull FileEditorProviderManager fileEditorProviderManager,
-                                  @Nullable Project project) {
-    if (project != null && virtualFile != null) {
-      // TODO: Investigate providers are empty when file download is not finished.
-      FileEditorProvider editorProvider = ArrayUtil.getFirstElement(fileEditorProviderManager.getProviders(project, virtualFile));
-      return editorProvider != null ? editorProvider.createEditor(project, virtualFile).getComponent() : null;
-    }
-    return null;
   }
 
   @Override
