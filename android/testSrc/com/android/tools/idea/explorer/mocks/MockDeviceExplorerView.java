@@ -53,6 +53,8 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   @NotNull private final FutureValuesTracker<String> myReportErrorRelatedToServiceTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<String> myReportErrorRelatedToDeviceTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<String> myReportErrorRelatedToNodeTracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<Void> myStartTreeBusyIndicatorTacker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<Void> myStopTreeBusyIndicatorTacker = new FutureValuesTracker<>();
 
   public MockDeviceExplorerView(@NotNull Project project,
                                 @NotNull ToolWindow toolWindow,
@@ -91,10 +93,12 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
 
     myViewImpl.getLoadingPanel().setSize(new Dimension(100, 300));
     myViewImpl.getDeviceExplorerPanel().getComponent().setSize(new Dimension(100, 300));
+    myViewImpl.getDeviceExplorerPanel().getDeviceCombo().setSize(new Dimension(100, 30));
     myViewImpl.getDeviceExplorerPanel().getColumnTreePane().setSize(new Dimension(100, 300));
 
     myViewImpl.getLoadingPanel().doLayout();
     myViewImpl.getDeviceExplorerPanel().getComponent().doLayout();
+    myViewImpl.getDeviceExplorerPanel().getDeviceCombo().doLayout();
     myViewImpl.getDeviceExplorerPanel().getColumnTreePane().doLayout();
     myViewImpl.getDeviceExplorerPanel().getColumnTreePane().getViewport().doLayout();
     myViewImpl.getDeviceExplorerPanel().getColumnTreePane().getViewport().getView().doLayout();
@@ -131,10 +135,14 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
 
   @Override
   public void startTreeBusyIndicator() {
+    myStartTreeBusyIndicatorTacker.produce(null);
+    myViewImpl.startTreeBusyIndicator();
   }
 
   @Override
   public void stopTreeBusyIndicator() {
+    myStopTreeBusyIndicatorTacker.produce(null);
+    myViewImpl.stopTreeBusyIndicator();
   }
 
   public FutureValuesTracker<DeviceFileSystem> getDeviceAddedTracker() {
@@ -212,6 +220,16 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   @NotNull
   public FutureValuesTracker<String> getReportErrorRelatedToNodeTracker() {
     return myReportErrorRelatedToNodeTracker;
+  }
+
+  @NotNull
+  public FutureValuesTracker<Void> getStartTreeBusyIndicatorTacker() {
+    return myStartTreeBusyIndicatorTacker;
+  }
+
+  @NotNull
+  public FutureValuesTracker<Void> getStopTreeBusyIndicatorTacker() {
+    return myStopTreeBusyIndicatorTacker;
   }
 
   private class MyDeviceExplorerViewListener implements DeviceExplorerViewListener {
