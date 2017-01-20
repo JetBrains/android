@@ -64,6 +64,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   protected NlComponent myButtonInConstraintLayout;
   protected NlComponent myTextViewInLinearLayout;
   protected NlComponent myButtonInLinearLayout;
+  protected NlComponent myImageViewInCollapsingToolbarLayout;
   protected NlModel myModel;
   protected NlPropertiesManager myPropertiesManager;
   protected AndroidDomElementDescriptorProvider myDescriptorProvider;
@@ -91,6 +92,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     myButtonInConstraintLayout = myComponentMap.get("button2");
     myTextViewInLinearLayout = myComponentMap.get("textview_in_linearlayout");
     myButtonInLinearLayout = myComponentMap.get("button_in_linearlayout");
+    myImageViewInCollapsingToolbarLayout = myComponentMap.get("imgv");
     myPropertiesManager = new NlPropertiesManager(getProject(), null);
     myDescriptorProvider = new AndroidDomElementDescriptorProvider();
     myPropertiesComponent = new PropertiesComponentMock();
@@ -139,6 +141,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
                                        .id("@id/textView")
                                        .width("wrap_content")
                                        .height("wrap_content")
+                                       .withAttribute(ANDROID_URI, ATTR_ELEVATION, "2dp")
                                        .text("SomeText"),
                                      component(PROGRESS_BAR)
                                        .withBounds(100, 200, 100, 100)
@@ -236,8 +239,15 @@ public abstract class PropertyTestCase extends LayoutTestCase {
                                            .id("@id/button_in_linearlayout")
                                            .width("wrap_content")
                                            .height("wrap_content")
-                                           .text("ButtonInLinearLayout")
-                                       )));
+                                           .text("ButtonInLinearLayout"),
+                                         component(COLLAPSING_TOOLBAR_LAYOUT)
+                                           .withBounds(400, 300, 100, 200)
+                                           .children(
+                                             component(IMAGE_VIEW)
+                                               .withBounds(410, 310, 50, 100)
+                                               .id("@id/imgv")
+                                               .withAttribute(AUTO_URI, ATTR_COLLAPSE_PARALLAX_MULTIPLIER, ".2")
+                                       ))));
     return builder.build();
   }
 
