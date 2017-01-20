@@ -82,11 +82,6 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
     // since the row heights are uniform, there is no need to look at more than a few items
     setMaxItemsForSizeCalculation(5);
 
-    // When a label cannot be fully displayed, hovering over it results in a popup that extends beyond the
-    // cell bounds to show the full value. We don't need this feature as it'll end up covering parts of the
-    // cell we don't want covered.
-    setExpandableItemsEnabled(false);
-
     setShowColumns(false);
     setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
