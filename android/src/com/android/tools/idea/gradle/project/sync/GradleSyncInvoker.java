@@ -183,7 +183,13 @@ public class GradleSyncInvoker {
 
     // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
     // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
-    boolean started = GradleSyncState.getInstance(project).syncStarted(!request.isNewProject());
+    boolean started;
+    if (request.isUseCachedGradleModels()) {
+      started = GradleSyncState.getInstance(project).skippedSyncStarted(!request.isNewProject());
+    }
+    else {
+      started = GradleSyncState.getInstance(project).syncStarted(!request.isNewProject());
+    }
     if (!started) {
       return;
     }

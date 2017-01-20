@@ -72,6 +72,9 @@ public class GradleSyncState {
   private boolean mySyncNotificationsEnabled;
 
   @GuardedBy("myLock")
+  private boolean mySyncSkipped;
+
+  @GuardedBy("myLock")
   private boolean mySyncInProgress;
 
   @NotNull
@@ -123,6 +126,18 @@ public class GradleSyncState {
   }
 
   /**
+   * Notification that a sync has started. It is considered "skipped" because, instead of obtaining the project models from Gradle, "sync"
+   * uses the models cached in disk.
+   *
+   * @param notifyUser indicates whether the user should be notified.
+   * @return {@code true} if there another sync is not already in progress and this sync request can continue; {@code false} if the
+   * current request cannot continue because there is already one in progress.
+   */
+  public boolean skippedSyncStarted(boolean notifyUser) {
+    return syncStarted(true, notifyUser);
+  }
+
+  /**
    * Notification that a sync has started.
    *
    * @param notifyUser indicates whether the user should be notified.
@@ -130,11 +145,16 @@ public class GradleSyncState {
    * current request cannot continue because there is already one in progress.
    */
   public boolean syncStarted(boolean notifyUser) {
+    return syncStarted(false, notifyUser);
+  }
+
+  private boolean syncStarted(boolean syncSkipped, boolean notifyUser) {
     synchronized (myLock) {
       if (mySyncInProgress) {
         LOG.info(String.format("Sync already in progress for project '%1$s'.", myProject.getName()));
         return false;
       }
+      mySyncSkipped = syncSkipped;
       mySyncInProgress = true;
     }
     LOG.info(String.format("Started sync with Gradle for project '%1$s'.", myProject.getName()));
@@ -238,6 +258,7 @@ public class GradleSyncState {
   private void stopSyncInProgress() {
     synchronized (myLock) {
       mySyncInProgress = false;
+      mySyncSkipped = false;
     }
   }
 
@@ -290,6 +311,12 @@ public class GradleSyncState {
   public boolean isSyncInProgress() {
     synchronized (myLock) {
       return mySyncInProgress;
+    }
+  }
+
+  public boolean isSyncSkipped() {
+    synchronized (myLock) {
+      return mySyncSkipped;
     }
   }
 

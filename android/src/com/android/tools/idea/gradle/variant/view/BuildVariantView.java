@@ -141,7 +141,8 @@ public class BuildVariantView {
   }
 
   public void updateContents() {
-    if (GradleSyncState.getInstance(myProject).isSyncInProgress()) {
+    GradleSyncState syncState = GradleSyncState.getInstance(myProject);
+    if (syncState.isSyncInProgress() && !syncState.isSyncSkipped()) {
       projectImportStarted();
       return;
     }
