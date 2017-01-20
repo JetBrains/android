@@ -131,7 +131,11 @@ public class HttpData {
 
   private void parseResponseFields(@NotNull String fields) {
     List<String> lines = Arrays.stream(fields.split("\\n")).filter(line -> !line.trim().isEmpty()).collect(Collectors.toList());
-    assert !lines.isEmpty(): String.format("Unexpected http response fields (%s)", fields);
+
+    if (lines.isEmpty()) {
+      // This may happen when a connection is aborted
+      return;
+    }
 
     String firstLine = lines.remove(0);
     String[] tokens = firstLine.split("=", 2);
