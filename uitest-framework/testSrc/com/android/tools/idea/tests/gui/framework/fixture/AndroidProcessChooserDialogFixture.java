@@ -20,6 +20,7 @@ import org.fest.swing.core.matcher.DialogMatcher;
 import org.fest.swing.finder.WindowFinder;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JTreeFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -50,7 +51,8 @@ public class AndroidProcessChooserDialogFixture extends ComponentFixture<Android
   public AndroidProcessChooserDialogFixture selectProcess() {
     JTree processTree = robot().finder().findByType(target(), JTree.class);
     JTreeFixture jTreeFixture = new JTreeFixture(robot(), processTree);
-    jTreeFixture.selectRow(processTree.getRowCount() - 1);
+    Wait.seconds(3).expecting("process list to be populated").until(() -> processTree.getRowCount() == 2);
+    jTreeFixture.selectRow(1);
     return this;
   }
 
