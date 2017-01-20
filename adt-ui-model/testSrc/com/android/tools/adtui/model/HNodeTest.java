@@ -18,43 +18,42 @@ package com.android.tools.adtui.model;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.*;
+import static com.google.common.truth.Truth.assertThat;
 
 public class HNodeTest {
 
   @Test
   public void testSingleNode() throws Exception {
     HNode<String> root = new HNode<>("Root", 0, 30);
-    assertTrue(root.getChildren().isEmpty());
-    assertNull(root.getFirstChild());
-    assertNull(root.getLastChild());
-    assertEquals(0, root.getStart());
-    assertEquals(30, root.getEnd());
+    assertThat(root.getChildren()).isEmpty();
+    assertThat(root.getFirstChild()).isNull();
+    assertThat(root.getLastChild()).isNull();
+    assertThat(root.getStart()).isEqualTo(0);
+    assertThat(root.getEnd()).isEqualTo(30);
   }
 
   @Test
   public void testDefaultConstructor() throws Exception {
     HNode<String> root = new HNode<>();
-    assertNull(root.getData());
-    assertEquals(0, root.getStart());
-    assertEquals(0, root.getEnd());
+    assertThat(root.getData()).isNull();
+    assertThat(root.getStart()).isEqualTo(0);
+    assertThat(root.getEnd()).isEqualTo(0);
   }
 
   @Test
   public void testStartEnd() throws Exception {
     HNode<String> root = new HNode<>();
 
-    assertEquals(0, root.getStart());
+    assertThat(root.getStart()).isEqualTo(0);
     root.setStart(5);
-    assertEquals(5, root.getStart());
+    assertThat(root.getStart()).isEqualTo(5);
 
-    assertEquals(0, root.getEnd());
+    assertThat(root.getEnd()).isEqualTo(0);
     root.setEnd(30);
-    assertEquals(30, root.getEnd());
+    assertThat(root.getEnd()).isEqualTo(30);
 
     // Duration should be end - start
-    assertEquals(25, root.duration());
+    assertThat(root.duration()).isEqualTo(25);
   }
 
   @Test
@@ -69,34 +68,34 @@ public class HNodeTest {
 
     nodeA.addHNode(nodeB);
     nodeA.addHNode(nodeC);
-    assertThat(nodeA.getChildren(), hasSize(2));
+    assertThat(nodeA.getChildren()).hasSize(2);
 
     HNode<String> nodeD = new HNode<>();
     HNode<String> nodeE = new HNode<>();
 
     nodeC.addHNode(nodeD);
     nodeC.addHNode(nodeE);
-    assertThat(nodeC.getChildren(), hasSize(2));
+    assertThat(nodeC.getChildren()).hasSize(2);
 
-    assertSame(nodeC, nodeA.getLastChild());
-    assertThat(nodeA.getLastChild().getChildren(), hasSize(2));
-    assertSame(nodeD, nodeA.getLastChild().getFirstChild());
+    assertThat(nodeC).isSameAs(nodeA.getLastChild());
+    assertThat(nodeA.getLastChild().getChildren()).hasSize(2);
+    assertThat(nodeD).isSameAs(nodeA.getLastChild().getFirstChild());
   }
 
   @Test
   public void testData() {
     HNode<String> root = new HNode<>();
-    assertNull(root.getData());
+    assertThat(root.getData()).isNull();
     root.setData("Root");
-    assertEquals("Root", root.getData());
+    assertThat(root.getData()).isEqualTo("Root");
   }
 
   @Test
   public void testDepth() {
     HNode<String> root = new HNode<>();
     root.setDepth(3);
-    assertEquals(3, root.getDepth());
+    assertThat(root.getDepth()).isEqualTo(3);
     root.setDepth(5);
-    assertEquals(5, root.getDepth());
+    assertThat(root.getDepth()).isEqualTo(5);
   }
 }
