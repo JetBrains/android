@@ -26,6 +26,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.Alarm;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -39,6 +40,7 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
   private long myDownloadChunkSize = 1024;
   private int myDownloadFileChunkIntervalMillis = MockDeviceFileSystemService.OPERATION_TIMEOUT_MILLIS;
   private Throwable myDownloadError;
+  private Throwable myRootDirectoryError;
 
   public MockDeviceFileSystem(@NotNull MockDeviceFileSystemService service, @NotNull String name) {
     myService = service;
@@ -66,6 +68,9 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
   @NotNull
   @Override
   public ListenableFuture<DeviceFileEntry> getRootDirectory() {
+    if (myRootDirectoryError != null) {
+      return FutureUtils.delayedError(myRootDirectoryError, MockDeviceFileSystemService.OPERATION_TIMEOUT_MILLIS);
+    }
     return FutureUtils.delayedValue(myRoot, MockDeviceFileSystemService.OPERATION_TIMEOUT_MILLIS);
   }
 
@@ -92,8 +97,12 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
     myDownloadFileChunkIntervalMillis = millis;
   }
 
-  public void setDownloadError(Throwable t) {
+  public void setDownloadError(@Nullable Throwable t) {
     myDownloadError = t;
+  }
+
+  public void setRootDirectoryError(@Nullable Throwable t) {
+    myRootDirectoryError = t;
   }
 
   public class DownloadWorker implements Disposable {

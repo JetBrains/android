@@ -301,7 +301,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     public void deviceUpdated(@NotNull DeviceFileSystem device) {
       if (myPanel != null) {
         if (myPanel.getDeviceCombo().getSelectedItem() == device) {
-          myPanel.getDeviceCombo().invalidate();
+          myPanel.getDeviceCombo().repaint();
         }
       }
     }

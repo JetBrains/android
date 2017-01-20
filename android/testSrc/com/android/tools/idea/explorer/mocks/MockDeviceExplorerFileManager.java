@@ -49,6 +49,7 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
   @NotNull private final FutureValuesTracker<DeviceFileEntry> myDownloadFileEntryTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntry> myDownloadFileEntryCompletionTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<Path> myOpenFileInEditorTracker = new FutureValuesTracker<>();
+  @Nullable private RuntimeException myOpenFileInEditorError;
 
   public MockDeviceExplorerFileManager(@NotNull Project project, @NotNull Executor edtExecutor) {
     myProject = project;
@@ -81,7 +82,9 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
   @Override
   public void openFileInEditor(@NotNull Path localPath, boolean focusEditor) {
     myOpenFileInEditorTracker.produce(localPath);
-    //myLocalFiles.add(localPath);
+    if (myOpenFileInEditorError != null) {
+      throw myOpenFileInEditorError;
+    }
     myFileManagerImpl.openFileInEditor(localPath, focusEditor);
   }
 
@@ -123,5 +126,9 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
   @NotNull
   public FutureValuesTracker<Path> getOpenFileInEditorTracker() {
     return myOpenFileInEditorTracker;
+  }
+
+  public void setOpenFileInEditorError(@Nullable RuntimeException e) {
+    myOpenFileInEditorError = e;
   }
 }
