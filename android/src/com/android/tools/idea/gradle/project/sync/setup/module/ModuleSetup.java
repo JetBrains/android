@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.google.common.annotations.VisibleForTesting;
@@ -48,7 +49,8 @@ public class ModuleSetup {
   @NotNull private final JavaModuleSetup myJavaModuleSetup;
 
   public ModuleSetup(@NotNull IdeModifiableModelsProvider ideModelsProvider) {
-    this(ideModelsProvider, new VariantSelector(), new GradleModuleSetup(), new AndroidModuleSetup(), new NdkModuleSetup(), new JavaModuleSetup());
+    this(ideModelsProvider, new VariantSelector(), new GradleModuleSetup(), new AndroidModuleSetup(), new NdkModuleSetup(),
+         new JavaModuleSetup());
   }
 
   @VisibleForTesting
@@ -79,6 +81,7 @@ public class ModuleSetup {
       isProjectRootFolder = true;
     }
 
+    boolean syncSkipped = GradleSyncState.getInstance(module.getProject()).isSyncSkipped();
     myGradleModuleSetup.setUpModule(module, myIdeModelsProvider, models);
 
     AndroidProject androidProject = models.findModel(AndroidProject.class);
@@ -86,12 +89,12 @@ public class ModuleSetup {
       AndroidModuleModel androidModel = createAndroidModel(module, androidProject);
       if (androidModel != null) {
         // This is an Android module without variants.
-        myAndroidModuleSetup.setUpModule(module, myIdeModelsProvider, androidModel, models, indicator);
+        myAndroidModuleSetup.setUpModule(module, myIdeModelsProvider, androidModel, models, indicator, syncSkipped);
       }
       else {
         // This is an Android module without variants. Treat as a non-buildable Java module.
         removeAndroidFacetFrom(module);
-        setUpJavaModule(module, models, indicator, true /* Android project without variants */);
+        setUpJavaModule(module, models, indicator, true /* Android project without variants */, syncSkipped);
       }
       return;
     }
@@ -101,14 +104,14 @@ public class ModuleSetup {
     NativeAndroidProject nativeAndroidProject = models.findModel(NativeAndroidProject.class);
     if (nativeAndroidProject != null) {
       NdkModuleModel ndkModuleModel = new NdkModuleModel(module.getName(), moduleRootFolderPath, nativeAndroidProject);
-      myNdkModuleSetup.setUpModule(module, myIdeModelsProvider, ndkModuleModel, models, indicator);
+      myNdkModuleSetup.setUpModule(module, myIdeModelsProvider, ndkModuleModel, models, indicator, syncSkipped);
       return;
     }
     // This is not an Android module. Remove any AndroidFacet set in a previous sync operation.
     removeAllFacets(myIdeModelsProvider.getModifiableFacetModel(module), NdkFacet.getFacetTypeId());
 
     if (!isProjectRootFolder) {
-      setUpJavaModule(module, models, indicator, false /* Regular Java module */);
+      setUpJavaModule(module, models, indicator, false /* Regular Java module */, syncSkipped);
     }
   }
 
@@ -136,9 +139,10 @@ public class ModuleSetup {
   private void setUpJavaModule(@NotNull Module module,
                                @NotNull SyncAction.ModuleModels models,
                                @NotNull ProgressIndicator indicator,
-                               boolean androidProjectWithoutVariants) {
+                               boolean androidProjectWithoutVariants,
+                               boolean syncSkipped) {
     ModuleExtendedModel javaModel = models.findModel(ModuleExtendedModel.class);
     JavaModuleModel javaModuleModel = new JavaModuleModel(models.getModule(), javaModel, androidProjectWithoutVariants);
-    myJavaModuleSetup.setUpModule(module, myIdeModelsProvider, javaModuleModel, models, indicator);
+    myJavaModuleSetup.setUpModule(module, myIdeModelsProvider, javaModuleModel, models, indicator, syncSkipped);
   }
 }

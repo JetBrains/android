@@ -83,4 +83,9 @@ public class JavaFacetModuleSetupStep extends JavaModuleSetupStep {
   public String getDescription() {
     return "Java Facet setup";
   }
+
+  @Override
+  public boolean invokeOnSkippedSync() {
+    return true;
+  }
 }

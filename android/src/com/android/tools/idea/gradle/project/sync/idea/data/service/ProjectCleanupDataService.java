@@ -66,8 +66,9 @@ public class ProjectCleanupDataService extends AbstractProjectDataService<Projec
       return;
     }
 
-    if (!GradleSyncState.getInstance(project).lastSyncFailedOrHasIssues()) {
-      myProjectCleanup.cleanUpProject(project, modelsProvider, null);
+    GradleSyncState syncState = GradleSyncState.getInstance(project);
+    if (!syncState.lastSyncFailedOrHasIssues()) {
+      myProjectCleanup.cleanUpProject(project, modelsProvider, null, syncState.isSyncSkipped());
     }
   }
 }
