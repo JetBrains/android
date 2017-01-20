@@ -207,9 +207,9 @@ public final class Projects {
 
     // do not ignore projectNode child data, e.g. project libraries
     if (projectNode != null) {
-      final Collection<DataNode<ModuleData>> allModules = findAll(projectNode, ProjectKeys.MODULE);
+      Collection<DataNode<ModuleData>> allModules = findAll(projectNode, ProjectKeys.MODULE);
       if (enabledModules.size() != allModules.size()) {
-        final Set<DataNode<ModuleData>> moduleToIgnore = ContainerUtil.newIdentityTroveSet(allModules);
+        Set<DataNode<ModuleData>> moduleToIgnore = ContainerUtil.newIdentityTroveSet(allModules);
         moduleToIgnore.removeAll(enabledModules);
         for (DataNode<ModuleData> moduleNode : moduleToIgnore) {
           visit(moduleNode, node -> node.setIgnored(true));
