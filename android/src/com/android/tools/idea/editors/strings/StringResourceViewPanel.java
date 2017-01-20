@@ -157,20 +157,33 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     }
   }
 
-  private final class SetTableValueAtFocusListener extends FocusAdapter {
-    private final IntSupplier myColumn;
+  private final class SetTableValueAtFocusListener implements FocusListener {
+    private final IntSupplier myColumnSupplier;
+
+    private int mySelectedRowCount;
+    private int mySelectedColumnCount;
+    private int myRow;
+    private int myColumn;
 
     private SetTableValueAtFocusListener(int column) {
-      myColumn = () -> column;
+      myColumnSupplier = () -> column;
     }
 
-    private SetTableValueAtFocusListener(@NotNull IntSupplier column) {
-      myColumn = column;
+    private SetTableValueAtFocusListener(@NotNull IntSupplier columnSupplier) {
+      myColumnSupplier = columnSupplier;
+    }
+
+    @Override
+    public void focusGained(@NotNull FocusEvent event) {
+      mySelectedRowCount = myTable.getSelectedRowCount();
+      mySelectedColumnCount = myTable.getSelectedColumnCount();
+      myRow = myTable.getSelectedRowModelIndex();
+      myColumn = myColumnSupplier.getAsInt();
     }
 
     @Override
     public void focusLost(@NotNull FocusEvent event) {
-      if (myTable.getSelectedRowCount() != 1 || myTable.getSelectedColumnCount() != 1) {
+      if (mySelectedRowCount != 1 || mySelectedColumnCount != 1) {
         return;
       }
 
@@ -180,7 +193,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
         return;
       }
 
-      myTable.getModel().setValueAt(component.getText(), myTable.getSelectedRowModelIndex(), myColumn.getAsInt());
+      myTable.getModel().setValueAt(component.getText(), myRow, myColumn);
       myTable.refilter();
     }
   }
