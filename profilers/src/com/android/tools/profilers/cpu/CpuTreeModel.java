@@ -69,26 +69,26 @@ abstract class CpuTreeModel<T extends CpuTreeNode<T>> extends DefaultTreeModel {
 
     if (changes(data, ranges)) {
       Enumeration e = node.children();
-      Map<String, DefaultMutableTreeNode> children = new HashMap<>();
+      Map<T, DefaultMutableTreeNode> children = new HashMap<>();
       while (e.hasMoreElements()) {
         DefaultMutableTreeNode child = (DefaultMutableTreeNode)e.nextElement();
-        children.put(((T)child.getUserObject()).getId(), child);
+        children.put((T)child.getUserObject(), child);
       }
-      Set<String> actual = new TreeSet<>();
+      Set<T> actual = new HashSet<>();
       for (T child : data.getChildren()) {
         if (child.inRange(range)) {
-          actual.add(child.getId());
-          DefaultMutableTreeNode existing = children.get(child.getId());
+          actual.add(child);
+          DefaultMutableTreeNode existing = children.get(child);
           if (existing == null) {
             existing = new DefaultMutableTreeNode(child);
-            insertNodeInto(existing, node, 0);
+            insertNodeInto(existing, node, node.getChildCount());
           }
           update(existing, range, ranges);
         } else {
           child.reset();
         }
       }
-      for (Map.Entry<String, DefaultMutableTreeNode> entry : children.entrySet()) {
+      for (Map.Entry<T, DefaultMutableTreeNode> entry : children.entrySet()) {
         if (!actual.contains(entry.getKey())) {
           removeNodeFromParent(entry.getValue());
         }
