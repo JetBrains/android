@@ -20,7 +20,6 @@ import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import com.android.tools.datastore.TestGrpcService;
 import io.grpc.stub.StreamObserver;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -77,16 +76,9 @@ public class EventDataPollerTest extends DataStorePollerTest {
         .build())
     .build();
 
-  private EventDataPoller myEventDataPoller;
+  private EventDataPoller myEventDataPoller = new EventDataPoller();
   @Rule
-  public TestGrpcService<EventServiceMock> myService = new TestGrpcService<>(new EventServiceMock());
-
-  @Before
-  public void setUp() throws Exception {
-    myEventDataPoller = new EventDataPoller();
-    myEventDataPoller.connectService(myService.getChannel());
-    myEventDataPoller.poll();
-  }
+  public TestGrpcService<EventServiceMock> myService = new TestGrpcService<>(myEventDataPoller, new EventServiceMock());
 
   @Test
   public void testGetSystemDataInRange() throws Exception {
@@ -144,11 +136,11 @@ public class EventDataPollerTest extends DataStorePollerTest {
       .build();
     EventProfiler.ActivityDataResponse expectedResponse = EventProfiler.ActivityDataResponse.newBuilder()
       .addData(SIMPLE_ACTIVITY_DATA.toBuilder()
-      .addStateChanges(EventProfiler.ActivityStateData.newBuilder()
-                         .setState(EventProfiler.ActivityStateData.ActivityState.STARTED)
-                         .setTimestamp(START_TIME + ONE_SECOND)
-                         .build())
-      .build())
+                 .addStateChanges(EventProfiler.ActivityStateData.newBuilder()
+                                    .setState(EventProfiler.ActivityStateData.ActivityState.STARTED)
+                                    .setTimestamp(START_TIME + ONE_SECOND)
+                                    .build())
+                 .build())
       .build();
 
     StreamObserver<EventProfiler.ActivityDataResponse> observer = mock(StreamObserver.class);

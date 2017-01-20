@@ -16,6 +16,7 @@
 package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.ServicePassThrough;
+import com.android.tools.datastore.database.DatastoreTable;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.Profiler;
@@ -72,6 +73,11 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
   public void connectService(ManagedChannel channel) {
     myPollingService = CpuServiceGrpc.newBlockingStub(channel);
     myProfilerService = ProfilerServiceGrpc.newBlockingStub(channel);
+  }
+
+  @Override
+  public DatastoreTable getDatastoreTable() {
+    return null;
   }
 
   @Override
