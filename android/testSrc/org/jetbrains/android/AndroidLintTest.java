@@ -956,6 +956,34 @@ public class AndroidLintTest extends AndroidTestCase {
                   "/src/test/pkg/ExifUsage.java", "java");
   }
 
+  public void testMissingWearStandaloneAppFlag() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintWearStandaloneAppFlagInspection(),
+                  "Add meta-data element for 'com.google.android.wearable.standalone'",
+                  "AndroidManifest.xml", "xml");
+  }
+
+  public void testInvalidWearStandaloneAppAttrValue() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintWearStandaloneAppFlagInspection(),
+                  "Replace with true",
+                  "AndroidManifest.xml", "xml");
+  }
+
+  public void testMissingWearStandaloneAppFlagValueAttr() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintWearStandaloneAppFlagInspection(),
+                  "Set value attribute",
+                  "AndroidManifest.xml", "xml");
+  }
+
+  public void testInvalidWearFeatureAttr() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintInvalidWearFeatureAttributeInspection(),
+                  "Remove attribute",
+                  "AndroidManifest.xml", "xml");
+  }
+
   private void doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection) {
     doGlobalInspectionTest(inspection, getGlobalTestDir(), new AnalysisScope(myModule));
   }
