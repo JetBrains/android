@@ -199,6 +199,7 @@ public class DragTarget extends ConstraintTarget {
     else if (targetLeftComponent != null) {
       int dx = x - getLeftTargetOrigin(targetLeftComponent);
       applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, dx);
+      /*
       // TODO: handles RTL correctly
       if (myComponent.getNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START) == null) {
         // if start isn't defined, create it based on the margin left
@@ -207,10 +208,12 @@ public class DragTarget extends ConstraintTarget {
       } else {
         applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_START, dx);
       }
+      */
     }
     else if (targetRightComponent != null) {
       int dx = getRightTargetOrigin(targetRightComponent) - (x + myComponent.getDrawWidth());
       applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, dx);
+      /*
       // TODO: handles RTL correctly
       if (myComponent.getNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END) == null) {
         // if end isn't defined, create it based on the margin right
@@ -219,6 +222,7 @@ public class DragTarget extends ConstraintTarget {
       } else {
         applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_END, dx);
       }
+      */
     }
     else {
       int dx = x - myComponent.getParent().getDrawX();
