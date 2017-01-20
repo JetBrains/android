@@ -47,6 +47,16 @@ public class PollRunner implements RunnableFuture<Void> {
     myPollingCallback = pollCallback;
     myPollPeriodNs = pollPeriodNs;
   }
+
+  public PollRunner(long pollPeriodNs) {
+    myPollPeriodNs = pollPeriodNs;
+  }
+
+  // TODO: Remove function and make class abstract when all pollers are converted to using DatastoreTable.
+  protected void setPollingCallback(PollingCallback callback) {
+    myPollingCallback = callback;
+  }
+
   public void stop() {
     cancel(true);
     try {

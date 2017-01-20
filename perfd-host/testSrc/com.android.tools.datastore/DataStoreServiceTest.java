@@ -16,6 +16,7 @@
 package com.android.tools.datastore;
 
 import com.android.tools.datastore.poller.*;
+import com.android.tools.datastore.service.EventService;
 import com.android.tools.profiler.proto.*;
 import com.intellij.openapi.util.io.FileUtil;
 import io.grpc.ManagedChannel;
@@ -80,7 +81,7 @@ public class DataStoreServiceTest {
   public void testProperServicesSetup() {
     Set<Class> expectedServices = new HashSet<>();
     expectedServices.add(ProfilerService.class);
-    expectedServices.add(EventDataPoller.class);
+    expectedServices.add(EventService.class);
     expectedServices.add(CpuDataPoller.class);
     expectedServices.add(NetworkDataPoller.class);
     expectedServices.add(MemoryDataPoller.class);

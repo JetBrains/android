@@ -16,10 +16,12 @@
 package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.DataStorePollerTest;
+import com.android.tools.datastore.service.EventService;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import com.android.tools.datastore.TestGrpcService;
 import io.grpc.stub.StreamObserver;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -76,9 +78,18 @@ public class EventDataPollerTest extends DataStorePollerTest {
         .build())
     .build();
 
-  private EventDataPoller myEventDataPoller = new EventDataPoller();
+  private EventService myEventDataPoller = new EventService(StaticPollTicker::run);
+
   @Rule
   public TestGrpcService<EventServiceMock> myService = new TestGrpcService<>(myEventDataPoller, new EventServiceMock());
+
+  @Before
+  public void setUp() {
+    EventProfiler.EventStartRequest request = EventProfiler.EventStartRequest.newBuilder()
+      .setProcessId(TEST_APP_ID)
+      .build();
+    myEventDataPoller.startMonitoringApp(request, mock(StreamObserver.class));
+  }
 
   @Test
   public void testGetSystemDataInRange() throws Exception {
@@ -185,6 +196,13 @@ public class EventDataPollerTest extends DataStorePollerTest {
 
         .build();
       responseObserver.onNext(systemResponse);
+      responseObserver.onCompleted();
+    }
+
+    @Override
+    public void startMonitoringApp(EventProfiler.EventStartRequest request,
+                                   StreamObserver<EventProfiler.EventStartResponse> responseObserver) {
+      responseObserver.onNext(EventProfiler.EventStartResponse.getDefaultInstance());
       responseObserver.onCompleted();
     }
   }
