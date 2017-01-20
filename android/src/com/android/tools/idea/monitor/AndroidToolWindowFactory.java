@@ -44,7 +44,6 @@ import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAware;
@@ -204,7 +203,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     group.add(new Separator());
 
     group.add(new TerminateVMAction(deviceContext));
-    group.add(new HierarchyViewAction(project, deviceContext));
+    group.add(new LayoutInspectorAction(project, deviceContext));
     group.add(new Separator());
     group.add(new BrowserHelpAction("Android Monitor", "http://developer.android.com/r/studio-ui/android-monitor.html"));
 
