@@ -23,5 +23,6 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
         "//tools/idea/.idea/libraries:jcip",
         "//tools/idea/.idea/libraries:mockito[test]",
+        "//tools/idea/.idea/libraries:sqlite",
     ],
 )

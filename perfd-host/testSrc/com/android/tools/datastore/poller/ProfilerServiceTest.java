@@ -37,16 +37,13 @@ public class ProfilerServiceTest extends DataStorePollerTest {
 
   private static final String DEVICE_SERIAL = "SomeSerialId";
 
-  private ProfilerService myProfilerService;
-  private DataStoreService myDataStore;
+  private DataStoreService myDataStore = mock(DataStoreService.class);
+  private ProfilerService myProfilerService = new ProfilerService(myDataStore);
   @Rule
-  public TestGrpcService<FakeProfilerService> myService = new TestGrpcService<>(new FakeProfilerService());
+  public TestGrpcService<FakeProfilerService> myService = new TestGrpcService<>(myProfilerService, new FakeProfilerService());
 
   @Before
   public void setUp() throws Exception {
-    myDataStore = mock(DataStoreService.class);
-
-    myProfilerService = new ProfilerService(myDataStore);
     myProfilerService.connectService(myService.getChannel());
   }
 

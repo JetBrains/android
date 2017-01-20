@@ -72,16 +72,9 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     .setSystemCpuTimeInMillisec(ONE_SECOND_MS * 2)
     .build();
 
-  private CpuDataPoller myCpuDataPoller;
+  private CpuDataPoller myCpuDataPoller = new CpuDataPoller();
   @Rule
-  public TestGrpcService<FakeCpuService> myService = new TestGrpcService<>(new FakeCpuService(), new FakeProfilerService());
-
-  @Before
-  public void setUp() throws Exception {
-    myCpuDataPoller = new CpuDataPoller();
-    myCpuDataPoller.connectService(myService.getChannel());
-    myCpuDataPoller.poll();
-  }
+  public TestGrpcService<FakeCpuService> myService = new TestGrpcService<>(myCpuDataPoller, new FakeCpuService(), new FakeProfilerService(), null);
 
   @Test
   public void testGetDataInRange() {
