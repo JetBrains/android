@@ -148,6 +148,25 @@ public final class TranslationsEditorTest {
   }
 
   @Test
+  public void enteringTextInDefaultValueTextFieldUpdatesTableCell() {
+    JTableFixture table = myTranslationsEditor.getTable();
+    TableCell actionSettingsDefaultValue = TableCell.row(0).column(2);
+
+    table.selectCell(actionSettingsDefaultValue);
+
+    JTextComponentFixture field = myTranslationsEditor.getDefaultValueTextField();
+
+    field.selectAll();
+    field.enterText("action_settings");
+
+    TableCell appNameDefaultValue = TableCell.row(1).column(2);
+    table.selectCell(appNameDefaultValue);
+
+    assertEquals("action_settings", table.valueAt(actionSettingsDefaultValue));
+    assertEquals("Simple Application", table.valueAt(appNameDefaultValue));
+  }
+
+  @Test
   public void enteringTextInTranslationTextFieldUpdatesTableCell() {
     JTableFixture table = myTranslationsEditor.getTable();
     TableCell cell = TableCell.row(2).column(3);
