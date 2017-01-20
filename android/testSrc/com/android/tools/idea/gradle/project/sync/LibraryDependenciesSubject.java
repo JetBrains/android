@@ -77,6 +77,22 @@ public class LibraryDependenciesSubject extends Subject<LibraryDependenciesSubje
   }
 
   @NotNull
+  public LibraryDependenciesSubject containsMatching(@NotNull String libraryNameRegEx) {
+    boolean found = false;
+    for (String name : getLibraryNames()) {
+      if (name.matches(libraryNameRegEx)) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      fail("Unable to find a library with name matching '" + libraryNameRegEx + "'");
+    }
+
+    return this;
+  }
+
+  @NotNull
   public LibraryDependenciesSubject doesNotContain(@NotNull String libraryName) {
     assertThat(getLibraryNames()).doesNotContain(libraryName);
     return this;
