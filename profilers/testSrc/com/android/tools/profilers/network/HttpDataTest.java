@@ -57,18 +57,18 @@ public class HttpDataTest {
     assertThat(data.getResponseField("Content-Type"), equalTo("text/html; charset=UTF-8"));
   }
 
-  @Test(expected = AssertionError.class)
+  @Test()
   public void emptyResponseFields() {
     HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
     builder.setResponseFields("");
-    builder.build();
+    assertEquals(-1, builder.build().getStatusCode());
   }
 
-  @Test(expected = AssertionError.class)
+  @Test()
   public void emptyResponseFields2() {
     HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
     builder.setResponseFields("   \n  \n  \n\n   \n  ");
-    builder.build();
+    assertEquals(-1, builder.build().getStatusCode());
   }
 
   @Test(expected = AssertionError.class)
@@ -110,7 +110,7 @@ public class HttpDataTest {
     try {
       HttpData.getUrlName(notEncoded);
       fail(String.format("Not-encoded URL %s should be invalid.", notEncoded));
-    } catch (IllegalArgumentException expected) {}
+    } catch (IllegalArgumentException ignored) {}
     String singleEncoded = "https://www.google.com/test%20test";
     assertThat(HttpData.getUrlName(singleEncoded), equalTo("test test"));
     String tripleEncoded = "https://www.google.com/test%252520test";
