@@ -46,7 +46,6 @@ public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-
     initMocks(this);
 
     AndroidModuleValidator.Factory validatorFactory = mock(AndroidModuleValidator.Factory.class);
@@ -72,7 +71,7 @@ public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
 
     myService.importData(Lists.newArrayList(dataNode), mock(ProjectData.class), project, modelsProvider);
 
-    verify(myModuleSetup).setUpModule(appModule, modelsProvider, androidModel, null, null);
+    verify(myModuleSetup).setUpModule(appModule, modelsProvider, androidModel, null, null, false);
     verify(myValidator).validate(appModule, androidModel);
     verify(myValidator).fixAndReportFoundIssues();
   }
@@ -85,7 +84,7 @@ public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
 
     myService.importData(Collections.emptyList(), mock(ProjectData.class), project, modelsProvider);
 
-    verify(myModuleSetup).setUpModule(module, modelsProvider, null, null, null);
+    verify(myModuleSetup).setUpModule(module, modelsProvider, null, null, null, false);
     verify(myValidator, never()).validate(same(module), any());
     verify(myValidator, never()).fixAndReportFoundIssues();
   }

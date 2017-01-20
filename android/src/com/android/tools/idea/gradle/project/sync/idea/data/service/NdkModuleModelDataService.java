@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -54,9 +55,11 @@ public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleM
                             @NotNull Project project,
                             @NotNull IdeModifiableModelsProvider modelsProvider,
                             @NotNull Map<String, NdkModuleModel> modelsByName) {
+    boolean syncSkipped = GradleSyncState.getInstance(project).isSyncSkipped();
+
     for (Module module : modelsProvider.getModules()) {
       NdkModuleModel ndkModuleModel = modelsByName.get(module.getName());
-      myModuleSetup.setUpModule(module, modelsProvider, ndkModuleModel, null, null);
+      myModuleSetup.setUpModule(module, modelsProvider, ndkModuleModel, null, null, syncSkipped);
     }
   }
 }
