@@ -183,7 +183,7 @@ public class BasicNativeDebuggerTest {
   private void waitForSessionStart(DebugToolWindowFixture debugToolWindowFixture) {
     // Wait for "Debugger attached to process.*" to be printed on the app-native debug console.
     final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
-    contentFixture.waitForOutput(new PatternTextMatcher(DEBUGGER_ATTACHED_PATTERN), 50);
+    contentFixture.waitForOutput(new PatternTextMatcher(DEBUGGER_ATTACHED_PATTERN), 70);
   }
 
   private void waitUntilDebugConsoleCleared(DebugToolWindowFixture debugToolWindowFixture) {
