@@ -34,7 +34,7 @@ public class TopDownTreeModelTest {
     TopDownNode topDown = new TopDownNode(tree);
 
     Range range = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
-    TopDownTreeModel model = new TopDownTreeModel(range, topDown);
+    CpuTreeModel model = new TopDownTreeModel(range, topDown);
 
     TreeNode root = (TreeNode)model.getRoot();
     assertEquals(":A", getId(root));

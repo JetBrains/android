@@ -29,6 +29,7 @@ public class HNode<T> {
   private long myEnd;
   @Nullable private T myData;
   @NotNull private List<HNode<T>> myNodes;
+  @Nullable private HNode<T> myParent;
   private int myDepth;
 
   public HNode() {
@@ -49,6 +50,12 @@ public class HNode<T> {
 
   public void addHNode(HNode<T> node) {
     myNodes.add(node);
+    node.myParent = this;
+  }
+
+  @Nullable
+  public HNode<T> getParent() {
+    return myParent;
   }
 
   @Nullable
