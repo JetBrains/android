@@ -936,6 +936,10 @@ public class AndroidLintTest extends AndroidTestCase {
                   "Escape Apostrophe", "/res/values/strings.xml", "xml");
   }
 
+  public void testRegistration() throws Exception {
+    doTestHighlighting(new AndroidLintRegisteredInspection(), "/src/p1/p2/RegistrationTest.java", "java");
+  }
+
   public void testExtendAppCompatWidgets() throws Exception {
     // Configure appcompat dependency
     Module[] modules = ModuleManager.getInstance(getProject()).getModules();
