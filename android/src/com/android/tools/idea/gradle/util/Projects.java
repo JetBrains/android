@@ -169,17 +169,30 @@ public final class Projects {
                               @Nullable PostSyncProjectSetup.Request setupRequest) {
     invokeAndWaitIfNeeded((Runnable)() -> SyncMessages.getInstance(project).removeProjectMessages());
 
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      populate(project, projectInfo, modulesToImport, setupRequest, null);
+      return;
+    }
+
     Task.Backgroundable task = new Task.Backgroundable(project, "Project Setup", false) {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
-        disableExcludedModules(projectInfo, modulesToImport);
-        doSelectiveImport(modulesToImport, project);
-        if (setupRequest != null) {
-          PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest, indicator);
-        }
+        populate(project, projectInfo, modulesToImport, setupRequest, indicator);
       }
     };
     task.queue();
+  }
+
+  private static void populate(@NotNull Project project,
+                               @NotNull DataNode<ProjectData> projectInfo,
+                               @NotNull Collection<DataNode<ModuleData>> modulesToImport,
+                               @Nullable PostSyncProjectSetup.Request setupRequest,
+                               @Nullable ProgressIndicator indicator) {
+    disableExcludedModules(projectInfo, modulesToImport);
+    doSelectiveImport(modulesToImport, project);
+    if (setupRequest != null) {
+      PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest, indicator);
+    }
   }
 
   /**
