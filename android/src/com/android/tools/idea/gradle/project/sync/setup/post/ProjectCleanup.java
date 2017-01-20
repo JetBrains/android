@@ -34,11 +34,16 @@ public class ProjectCleanup {
     myCleanupSteps = cleanupSteps;
   }
 
+  // TODO: use in "new sync".
   public void cleanUpProject(@NotNull Project project,
                              @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                             @Nullable ProgressIndicator indicator) {
-    for (ProjectCleanupStep cleanupStep : myCleanupSteps) {
-      cleanupStep.cleanUpProject(project, ideModelsProvider, indicator);
+                             @Nullable ProgressIndicator indicator,
+                             boolean syncSkipped) {
+    for (ProjectCleanupStep step : myCleanupSteps) {
+      if (syncSkipped && !step.invokeOnSkippedSync()) {
+        continue;
+      }
+      step.cleanUpProject(project, ideModelsProvider, indicator);
     }
   }
 }

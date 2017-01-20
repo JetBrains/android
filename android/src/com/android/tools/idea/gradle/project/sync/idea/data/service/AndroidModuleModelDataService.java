@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.google.common.annotations.VisibleForTesting;
@@ -64,10 +65,11 @@ public class AndroidModuleModelDataService extends ModuleModelDataService<Androi
                             @NotNull IdeModifiableModelsProvider modelsProvider,
                             @NotNull Map<String, AndroidModuleModel> modelsByName) {
     AndroidModuleValidator moduleValidator = myModuleValidatorFactory.create(project);
+    boolean syncSkipped = GradleSyncState.getInstance(project).isSyncSkipped();
 
     for (Module module : modelsProvider.getModules()) {
       AndroidModuleModel androidModel = modelsByName.get(module.getName());
-      setUpModule(module, moduleValidator, modelsProvider, androidModel);
+      setUpModule(module, moduleValidator, modelsProvider, androidModel, syncSkipped);
     }
 
     if (!modelsByName.isEmpty()) {
@@ -78,8 +80,9 @@ public class AndroidModuleModelDataService extends ModuleModelDataService<Androi
   private void setUpModule(@NotNull Module module,
                            @NotNull AndroidModuleValidator moduleValidator,
                            @NotNull IdeModifiableModelsProvider modelsProvider,
-                           @Nullable AndroidModuleModel androidModel) {
-    myModuleSetup.setUpModule(module, modelsProvider, androidModel, null, null);
+                           @Nullable AndroidModuleModel androidModel,
+                           boolean syncSkipped) {
+    myModuleSetup.setUpModule(module, modelsProvider, androidModel, null, null, syncSkipped);
     if (androidModel != null) {
       moduleValidator.validate(module, androidModel);
     }

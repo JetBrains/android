@@ -71,4 +71,9 @@ public class NdkFacetModuleSetupStep extends NdkModuleSetupStep {
   public String getDescription() {
     return "NDK Android Facet setup";
   }
+
+  @Override
+  public boolean invokeOnSkippedSync() {
+    return true;
+  }
 }
