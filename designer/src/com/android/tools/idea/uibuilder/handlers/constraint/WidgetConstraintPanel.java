@@ -56,6 +56,7 @@ public class WidgetConstraintPanel extends JPanel {
   final JSlider mVerticalSlider = new JSlider(SwingConstants.VERTICAL);
   final JSlider mHorizontalSlider = new JSlider(SwingConstants.HORIZONTAL);
   private WidgetsScene mScene;
+  private boolean mConfiguringUI = false;
   ConstraintModel mConstraintModel;
   NlComponent mComponent;
   public static final int UNCONNECTED = -1;
@@ -233,6 +234,7 @@ public class WidgetConstraintPanel extends JPanel {
     if (mComponent == null) {
       return;
     }
+    mConfiguringUI = true;
 
     final String sherpaNamespace = SdkConstants.SHERPA_URI;
     int top = getMargin(CONNECTION_TOP);
@@ -278,6 +280,7 @@ public class WidgetConstraintPanel extends JPanel {
     int widthValue = convertFromNL(SdkConstants.ATTR_LAYOUT_WIDTH);
     int heightValue = convertFromNL(SdkConstants.ATTR_LAYOUT_HEIGHT);
     mMain.configureUi(bottom, top, left, right, baseline, widthValue, heightValue, ratioString);
+    mConfiguringUI = false;
   }
 
   private static float parseFloat(String string, float defaultValue) {
@@ -327,6 +330,9 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   private void setAttribute(String nameSpace, String attribute, String value) {
+    if (mConfiguringUI) {
+      return;
+    }
     NlModel model = mComponent.getModel();
 
     AttributesTransaction transaction = mComponent.startAttributeTransaction();
@@ -350,7 +356,6 @@ public class WidgetConstraintPanel extends JPanel {
     };
 
     myTimer.restart();
-
   }
 
   private void removeAttribute(int type) {
@@ -365,6 +370,10 @@ public class WidgetConstraintPanel extends JPanel {
     for (int i = 0; i < attribute.length; i++) {
       transaction.setAttribute(namespace[i], attribute[i], null);
     }
+
+    ConstraintComponentUtilities.ensureHorizontalPosition(mComponent, transaction);
+    ConstraintComponentUtilities.ensureVerticalPosition(mComponent, transaction);
+
     transaction.apply();
     WriteCommandAction action = new WriteCommandAction(project, label, file) {
       @Override
@@ -649,9 +658,6 @@ public class WidgetConstraintPanel extends JPanel {
         removeAttribute(CONNECTION_BASELINE);
         break;
     }
-
-
-    widgetModified();
   }
 
   public void setHorizontalBias() {
@@ -731,7 +737,6 @@ public class WidgetConstraintPanel extends JPanel {
         setAndroidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, SdkConstants.VALUE_WRAP_CONTENT);
         break;
     }
-    widgetModified();
   }
 
   public void setVerticalConstraint(int verticalConstraint) {
@@ -755,7 +760,6 @@ public class WidgetConstraintPanel extends JPanel {
         setAndroidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.VALUE_WRAP_CONTENT);
         break;
     }
-    widgetModified();
   }
 
   /*-----------------------------------------------------------------------*/
