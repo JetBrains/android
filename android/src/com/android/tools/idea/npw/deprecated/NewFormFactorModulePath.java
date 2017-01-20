@@ -140,7 +140,6 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     myState.put(CREATE_ACTIVITY_KEY, false);
     myState.put(IS_INSTANT_APP_KEY, false);
 
-    myState.put(AIA_SDK_KEY, WH_SDK_LOCATION + "/tools/resources/shared-libs");
     myState.put(AIA_SDK_ENABLED_KEY, isNotEmpty(WH_SDK_LOCATION));
 
     addStep(new ConfigureAndroidModuleStepDynamic(myDisposable, myFormFactor));
@@ -336,9 +335,6 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     }
 
     Map<String, Object> activityTemplateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
-    if (isInstantApp) {
-      activityTemplateState.put(ATTR_APPLICATION_PACKAGE, myState.get(PACKAGE_NAME_KEY) + "." + moduleName);
-    }
     if (!renderActivity(dryRun, activityTemplateState, projectRoot, moduleRoot)) {
       return false;
     }
