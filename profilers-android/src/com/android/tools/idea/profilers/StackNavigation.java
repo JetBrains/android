@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,27 @@
  */
 package com.android.tools.idea.profilers;
 
-import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.common.CodeLocation;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.concurrent.Executor;
+public interface StackNavigation {
+  String UNKONWN_CLASS = "<unkonwn class>";
+  String UNKNOWN_PACKAGE = "<unknown package>";
+  String NO_PACKAGE = "<no package>";
+  String UNKNOWN_METHOD = "<unknown method>";
 
-public class IntellijProfilerServices implements IdeProfilerServices {
-  @NotNull
-  @Override
-  public Executor getProfilerExecutor() {
-    return ApplicationManager.getApplication()::invokeLater;
-  }
+  @NotNull CodeLocation getCodeLocation();
+
+  @NotNull String getPackageName();
+
+  @NotNull String getSimpleClassName();
+
+  @NotNull String getMethodName();
+
+  @Nullable Navigatable[] getNavigatable(@Nullable Runnable preNavigate);
+
+  @Nullable VirtualFile findClassFile();
 }

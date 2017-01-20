@@ -334,11 +334,9 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     }
 
     myCaptureLoadingPanel = getProfilersView().getIdeProfilerComponents().createLoadingPanel();
-    if (myCaptureLoadingPanel != null) {
-      myCaptureLoadingPanel.setLoadingText("Fetching results");
-      myCaptureLoadingPanel.startLoading();
-      myChartCaptureSplitter.setSecondComponent(myCaptureLoadingPanel.getComponent());
-    }
+    myCaptureLoadingPanel.setLoadingText("Fetching results");
+    myCaptureLoadingPanel.startLoading();
+    myChartCaptureSplitter.setSecondComponent(myCaptureLoadingPanel.getComponent());
   }
 
   private void captureObjectFinishedLoading() {
