@@ -39,6 +39,7 @@ public class MockDeviceFileEntry implements DeviceFileEntry {
   private final String myLinkTarget;
   private long mySize;
   private Throwable myGetEntriesError;
+  private int myGetEntriesTimeoutMillis = OPERATION_TIMEOUT_MILLIS;
 
   @NotNull
   public static MockDeviceFileEntry createRoot(@NotNull MockDeviceFileSystem fileSystem) {
@@ -49,6 +50,12 @@ public class MockDeviceFileEntry implements DeviceFileEntry {
   public MockDeviceFileEntry addFile(@NotNull String name) {
     assert myIsDirectory;
     return new MockDeviceFileEntry(myFileSystem, this, name, false, false, null);
+  }
+
+  @NotNull
+  public MockDeviceFileEntry addFileLink(@NotNull String name, @NotNull String linkTarget) {
+    assert myIsDirectory;
+    return new MockDeviceFileEntry(myFileSystem, this, name, false, true, linkTarget);
   }
 
   @NotNull
@@ -101,9 +108,9 @@ public class MockDeviceFileEntry implements DeviceFileEntry {
   @Override
   public ListenableFuture<List<DeviceFileEntry>> getEntries() {
     if (myGetEntriesError != null) {
-      return FutureUtils.delayedError(myGetEntriesError, OPERATION_TIMEOUT_MILLIS);
+      return FutureUtils.delayedError(myGetEntriesError, myGetEntriesTimeoutMillis);
     }
-    return FutureUtils.delayedValue(myEntries.stream().collect(Collectors.toList()), OPERATION_TIMEOUT_MILLIS);
+    return FutureUtils.delayedValue(myEntries.stream().collect(Collectors.toList()), myGetEntriesTimeoutMillis);
   }
 
   @NotNull
@@ -150,5 +157,9 @@ public class MockDeviceFileEntry implements DeviceFileEntry {
 
   public void setGetEntriesError(Throwable t) {
     myGetEntriesError = t;
+  }
+
+  public void setGetEntriesTimeoutMillis(int timeoutMillis) {
+    myGetEntriesTimeoutMillis = timeoutMillis;
   }
 }

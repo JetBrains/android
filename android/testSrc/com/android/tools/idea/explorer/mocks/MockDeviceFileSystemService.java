@@ -68,6 +68,10 @@ public class MockDeviceFileSystemService implements DeviceFileSystemService {
     myListeners.remove(listener);
   }
 
+  public DeviceFileSystemServiceListener[] getListeners() {
+    return myListeners.toArray(new DeviceFileSystemServiceListener[myListeners.size()]);
+  }
+
   @NotNull
   @Override
   public ListenableFuture<Void> start() {
@@ -103,5 +107,16 @@ public class MockDeviceFileSystemService implements DeviceFileSystemService {
     myDevices.add(device);
     myListeners.forEach(l -> l.deviceAdded(device));
     return device;
+  }
+
+  public boolean removeDevice(MockDeviceFileSystem device) {
+    int index = myDevices.indexOf(device);
+    if (index < 0) {
+      return false;
+    }
+
+    myDevices.remove(index);
+    myListeners.forEach(l -> l.deviceRemoved(device));
+    return true;
   }
 }

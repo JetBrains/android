@@ -26,6 +26,7 @@ import com.intellij.util.Alarm;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
@@ -42,8 +43,8 @@ import java.util.stream.Collectors;
 public class DeviceExplorerController {
   private static final Key<DeviceExplorerController> KEY = Key.create(DeviceExplorerController.class.getName());
 
-  private static final int SHOW_LOADING_NODE_DELAY_MILLIS = 200;
-  private static final int DOWNLOADING_NODE_REPAINT_MILLIS = 100;
+  private int myShowLoadingNodeDelayMillis = 200;
+  private int myDownloadingNodeRepaintMillis = 100;
 
   @NotNull private final DeviceExplorerView myView;
   @NotNull private final DeviceExplorerModel myModel;
@@ -188,7 +189,7 @@ public class DeviceExplorerController {
     myView.startTreeBusyIndicator();
     node.setDownloading(true);
     if (myDownloadingNodes.size() == 0) {
-      myDownloadingNodesAlarms.addRequest(new MyDownloadingNodesRepaint(), DOWNLOADING_NODE_REPAINT_MILLIS);
+      myDownloadingNodesAlarms.addRequest(new MyDownloadingNodesRepaint(), myDownloadingNodeRepaintMillis);
     }
     myDownloadingNodes.add(node);
   }
@@ -208,7 +209,7 @@ public class DeviceExplorerController {
   private void startLoadChildren(@NotNull DeviceFileEntryNode node) {
     myView.startTreeBusyIndicator();
     if (myLoadingChildren.size() == 0) {
-      myLoadingChildrenAlarms.addRequest(new MyLoadingChildrenRepaint(), DOWNLOADING_NODE_REPAINT_MILLIS);
+      myLoadingChildrenAlarms.addRequest(new MyLoadingChildrenRepaint(), myDownloadingNodeRepaintMillis);
     }
     myLoadingChildren.add(node);
   }
@@ -223,6 +224,18 @@ public class DeviceExplorerController {
 
   public boolean hasActiveDevice() {
     return myModel.getActiveDevice() != null;
+  }
+
+  @TestOnly
+  @SuppressWarnings("SameParameterValue")
+  public void setShowLoadingNodeDelayMillis(int showLoadingNodeDelayMillis) {
+    myShowLoadingNodeDelayMillis = showLoadingNodeDelayMillis;
+  }
+
+  @TestOnly
+  @SuppressWarnings("SameParameterValue")
+  public void setDownloadingNodeRepaintMillis(int downloadingNodeRepaintMillis) {
+    myDownloadingNodeRepaintMillis = downloadingNodeRepaintMillis;
   }
 
   private class ServiceListener implements DeviceFileSystemServiceListener {
@@ -315,7 +328,7 @@ public class DeviceExplorerController {
       }
 
       ShowLoadingNodeRequest showLoadingNode = new ShowLoadingNodeRequest(treeModel, node);
-      myLoadingNodesAlarms.addRequest(showLoadingNode, SHOW_LOADING_NODE_DELAY_MILLIS);
+      myLoadingNodesAlarms.addRequest(showLoadingNode, myShowLoadingNodeDelayMillis);
 
       startLoadChildren(node);
       ListenableFuture<List<DeviceFileEntry>> futureEntries = entry.getEntries();
@@ -350,7 +363,7 @@ public class DeviceExplorerController {
     @NotNull
     private String getUserFacingNodeName(@NotNull DeviceFileEntryNode node) {
       return StringUtil.isEmpty(node.getEntry().getName()) ?
-             "<root>" :
+             "[root]" :
              "\"" + node.getEntry().getName() + "\"";
     }
   }
@@ -380,7 +393,7 @@ public class DeviceExplorerController {
           getTreeModel().nodeChanged(x);
         }
       });
-      myDownloadingNodesAlarms.addRequest(new MyDownloadingNodesRepaint(), DOWNLOADING_NODE_REPAINT_MILLIS);
+      myDownloadingNodesAlarms.addRequest(new MyDownloadingNodesRepaint(), myDownloadingNodeRepaintMillis);
     }
   }
 
@@ -400,7 +413,7 @@ public class DeviceExplorerController {
           }
         }
       });
-      myLoadingChildrenAlarms.addRequest(new MyLoadingChildrenRepaint(), DOWNLOADING_NODE_REPAINT_MILLIS);
+      myLoadingChildrenAlarms.addRequest(new MyLoadingChildrenRepaint(), myDownloadingNodeRepaintMillis);
     }
   }
 }
