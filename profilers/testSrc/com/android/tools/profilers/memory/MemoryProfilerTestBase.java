@@ -182,4 +182,13 @@ public abstract class MemoryProfilerTestBase {
     when(object.getCallStack()).thenReturn(stack == null ? MemoryProfiler.AllocationStack.newBuilder().build() : stack);
     return object;
   }
+
+  @NotNull
+  static FieldObject mockFieldObject(@NotNull String className, @NotNull String label, @NotNull String fieldName) {
+    FieldObject object = mock(FieldObject.class);
+    when(object.getClassName()).thenReturn(className);
+    when(object.getDisplayLabel()).thenReturn(label);
+    when(object.getFieldName()).thenReturn(fieldName);
+    return object;
+  }
 }

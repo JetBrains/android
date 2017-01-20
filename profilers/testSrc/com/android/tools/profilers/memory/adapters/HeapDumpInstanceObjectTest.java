@@ -22,6 +22,7 @@ import org.junit.Test;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 public class HeapDumpInstanceObjectTest {
 
@@ -186,5 +187,22 @@ public class HeapDumpInstanceObjectTest {
     refs = referrers.get(3).getReferenceFieldNames();
     assertEquals(1, refs.size());
     assertEquals("softInstanceRef", refs.get(0));
+  }
+
+  @Test
+  public void testEqual() throws Exception {
+    MockClassInstance mockInstance = new MockClassInstance(-1, 1, "MockClass1");
+    HeapDumpInstanceObject instance1 = new HeapDumpInstanceObject(null, mockInstance);
+    HeapDumpInstanceObject instance2 = new HeapDumpInstanceObject(null, mockInstance);
+    assertEquals(instance1, instance2);
+  }
+
+  @Test
+  public void testNotEqual() throws Exception {
+    MockClassInstance mockInstance1 = new MockClassInstance(-1, 1, "MockClass1");
+    MockClassInstance mockInstance2 = new MockClassInstance(-1, 1, "MockClass1");
+    HeapDumpInstanceObject instance1 = new HeapDumpInstanceObject(null, mockInstance1);
+    HeapDumpInstanceObject instance2 = new HeapDumpInstanceObject(null, mockInstance2);
+    assertNotEquals(instance1, instance2);
   }
 }

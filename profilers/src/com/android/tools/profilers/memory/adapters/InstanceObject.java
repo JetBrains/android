@@ -61,6 +61,9 @@ public interface InstanceObject extends MemoryObject {
   String getDisplayLabel();
 
   @Nullable
+  ClassObject getClassObject();
+
+  @Nullable
   String getClassName();
 
   default int getDepth() {
