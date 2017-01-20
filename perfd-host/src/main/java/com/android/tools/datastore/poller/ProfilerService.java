@@ -74,7 +74,7 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
 
   @Override
   public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> observer) {
-    List<Profiler.Process> processes = myProcesses.get(request.getSerial());
+    List<Profiler.Process> processes = myProcesses.get(request.getDeviceSerial());
     Profiler.GetProcessesResponse response = Profiler.GetProcessesResponse.newBuilder().addAllProcess(processes).build();
     observer.onNext(response);
     observer.onCompleted();

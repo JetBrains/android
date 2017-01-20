@@ -83,7 +83,7 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
   @Override
   public void poll() throws StatusRuntimeException {
     CpuProfiler.CpuDataRequest.Builder dataRequestBuilder = CpuProfiler.CpuDataRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
       .setStartTimestamp(myDataRequestStartTimestampNs)
       .setEndTimestamp(Long.MAX_VALUE);
     CpuProfiler.CpuDataResponse response = myPollingService.getData(dataRequestBuilder.build());
@@ -180,7 +180,7 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
 
   @Override
   public void startMonitoringApp(CpuProfiler.CpuStartRequest request, StreamObserver<CpuProfiler.CpuStartResponse> observer) {
-    myProcessId = request.getAppId();
+    myProcessId = request.getProcessId();
     synchronized (myLock) {
       myThreads.clear();
       myData.clear();

@@ -38,6 +38,8 @@ public class ThreadStateDataSeriesTest {
 
   private static final int FAKE_PID = 3039;
 
+  private static final String FAKE_DEVICE_SERIAL = "Test Device Serial";
+
   private final FakeCpuService myService = new FakeCpuService();
 
   @Rule
@@ -48,7 +50,7 @@ public class ThreadStateDataSeriesTest {
   @Before
   public void setUp() {
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
-    myThreadsModel = new CpuThreadsModel(new Range(), new CpuProfilerStage(profilers), FAKE_PID);
+    myThreadsModel = new CpuThreadsModel(new Range(), new CpuProfilerStage(profilers), FAKE_PID, FAKE_DEVICE_SERIAL);
   }
 
   @Test

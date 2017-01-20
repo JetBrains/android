@@ -33,17 +33,21 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
   private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkService;
 
   private final int myPid;
+  private final String myDeviceSerial;
 
-  public RpcNetworkConnectionsModel(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub service, int pid) {
+  public RpcNetworkConnectionsModel(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub service, int pid, String serial) {
     myNetworkService = service;
     myPid = pid;
+    myDeviceSerial = serial;
   }
 
   @NotNull
   @Override
   public List<HttpData> getData(@NotNull Range timeCurrentRangeUs) {
     NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
-      .setAppId(myPid).setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
+      .setProcessId(myPid)
+      .setDeviceSerial(myDeviceSerial)
+      .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax())).build();
     NetworkProfiler.HttpRangeResponse response = myNetworkService.getHttpRange(request);
 

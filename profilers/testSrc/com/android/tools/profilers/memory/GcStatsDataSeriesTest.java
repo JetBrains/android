@@ -45,7 +45,7 @@ public class GcStatsDataSeriesTest {
         .build();
     myService.setMemoryData(memoryData);
 
-    GcStatsDataSeries series = new GcStatsDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1);
+    GcStatsDataSeries series = new GcStatsDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, "Test Device Serial");
     ImmutableList<SeriesData<GcDurationData>> dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
 
     assertEquals(2, dataList.size());

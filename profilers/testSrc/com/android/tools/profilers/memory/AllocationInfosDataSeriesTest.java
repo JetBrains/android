@@ -47,7 +47,7 @@ public class AllocationInfosDataSeriesTest {
       .build();
     myService.setMemoryData(memoryData);
 
-    AllocationInfosDataSeries series = new AllocationInfosDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1);
+    AllocationInfosDataSeries series = new AllocationInfosDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, "Test Device Serial");
     ImmutableList<SeriesData<CaptureDurationData<AllocationsCaptureObject>>> dataList =
       series.getDataForXRange(new Range(0, Double.MAX_VALUE));
 

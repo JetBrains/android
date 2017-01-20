@@ -34,12 +34,16 @@ public class MemoryProfiler extends StudioProfiler {
   }
 
   @Override
-  public void startProfiling(Profiler.Process process) {
-    myProfilers.getClient().getMemoryClient().startMonitoringApp(MemoryStartRequest.newBuilder().setAppId(process.getPid()).build());
+  public void startProfiling(String deviceSerial, Profiler.Process process) {
+    myProfilers.getClient().getMemoryClient().startMonitoringApp(MemoryStartRequest.newBuilder()
+                                                                   .setProcessId(process.getPid())
+                                                                   .setDeviceSerial(deviceSerial).build());
   }
 
   @Override
-  public void stopProfiling(Profiler.Process process) {
-    myProfilers.getClient().getMemoryClient().stopMonitoringApp(MemoryStopRequest.newBuilder().setAppId(process.getPid()).build());
+  public void stopProfiling(String deviceSerial, Profiler.Process process) {
+    myProfilers.getClient().getMemoryClient().stopMonitoringApp(MemoryStopRequest.newBuilder()
+                                                                  .setProcessId(process.getPid())
+                                                                  .setDeviceSerial(deviceSerial).build());
   }
 }

@@ -39,7 +39,7 @@ public class SimpleEventDataSeriesTest {
 
   @Before
   public void setUp() {
-    mySeries = new SimpleEventDataSeries(myGrpcChannel.getClient(), FakeEventService.FAKE_APP_ID);
+    mySeries = new SimpleEventDataSeries(myGrpcChannel.getClient(), FakeEventService.FAKE_APP_ID, FakeEventService.FAKE_DEVICE_ID);
   }
 
   @Test
@@ -93,7 +93,7 @@ public class SimpleEventDataSeriesTest {
   private EventProfiler.SystemData buildTouchEvent(int eventId) {
    return EventProfiler.SystemData.newBuilder()
      .setEventId(eventId)
-     .setAppId(FakeEventService.FAKE_APP_ID)
+     .setProcessId(FakeEventService.FAKE_APP_ID)
      .setStartTimestamp(TEST_START_TIME_NS)
      .setEndTimestamp(TEST_END_TIME_NS)
      .setType(EventProfiler.SystemData.SystemEventType.TOUCH)
@@ -102,7 +102,7 @@ public class SimpleEventDataSeriesTest {
   private EventProfiler.SystemData buildRotationEvent(int eventId) {
     return EventProfiler.SystemData.newBuilder()
       .setEventId(eventId)
-      .setAppId(FakeEventService.FAKE_APP_ID)
+      .setProcessId(FakeEventService.FAKE_APP_ID)
       .setStartTimestamp(TEST_START_TIME_NS)
       .setEndTimestamp(TEST_START_TIME_NS)
       .setType(EventProfiler.SystemData.SystemEventType.ROTATION)
