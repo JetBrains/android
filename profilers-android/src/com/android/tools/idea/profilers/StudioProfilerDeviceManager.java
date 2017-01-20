@@ -59,7 +59,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
                                              AndroidDebugBridge.IDebugBridgeChangeListener {
 
   private static final int DEVICE_PORT = 12389;
-  private static final String DATASTORE_NAME = "DataStoreService.sql";
+  private static final String DATASTORE_NAME = "DataStoreService";
   private final ProfilerClient myClient;
   private final DataStoreService myDataStoreService;
   private final StudioLegacyAllocationTracker myLegacyAllocationTracker;
@@ -74,7 +74,9 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
     //TODO: Spawn the datastore in the right place (service)?
     String directory = Paths.get(System.getProperty("user.home"), ".android").toString() + File.separator;
 
-    myDataStoreService = new DataStoreService(directory + DATASTORE_NAME, r -> ApplicationManager.getApplication().executeOnPooledThread(r));
+    myDataStoreService = new DataStoreService(DATASTORE_NAME,
+                                              directory + DATASTORE_NAME,
+                                              r -> ApplicationManager.getApplication().executeOnPooledThread(r));
 
     // The client is referenced in the update devices callback. As such the client needs to be set before we register
     // ourself as a listener for this callback. Otherwise we may get the callback before we are fully constructed
