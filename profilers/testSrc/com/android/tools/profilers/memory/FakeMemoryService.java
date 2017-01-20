@@ -42,7 +42,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   public void startMonitoringApp(MemoryProfiler.MemoryStartRequest request,
                                  StreamObserver<MemoryProfiler.MemoryStartResponse> responseObserver) {
 
-    myAppId = request.getAppId();
+    myAppId = request.getProcessId();
     responseObserver.onNext(MemoryProfiler.MemoryStartResponse.newBuilder().build());
     responseObserver.onCompleted();
   }
@@ -50,12 +50,12 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   @Override
   public void stopMonitoringApp(MemoryProfiler.MemoryStopRequest request,
                                 StreamObserver<MemoryProfiler.MemoryStopResponse> responseObserver) {
-    myAppId = request.getAppId();
+    myAppId = request.getProcessId();
     responseObserver.onNext(MemoryProfiler.MemoryStopResponse.newBuilder().build());
     responseObserver.onCompleted();
   }
 
-  public int getAppId() {
+  public int getProcessId() {
     return myAppId;
   }
 

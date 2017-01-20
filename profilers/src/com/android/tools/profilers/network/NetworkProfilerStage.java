@@ -48,7 +48,7 @@ public class NetworkProfilerStage extends Stage {
   StateChartModel<NetworkRadioDataSeries.RadioState> myRadioState;
 
   private final NetworkConnectionsModel myConnectionsModel =
-    new RpcNetworkConnectionsModel(getStudioProfilers().getClient().getNetworkClient(), getStudioProfilers().getProcessId());
+    new RpcNetworkConnectionsModel(getStudioProfilers().getClient().getNetworkClient(), getStudioProfilers().getProcessId(), getStudioProfilers().getDeviceSerial());
 
   private final DetailedNetworkUsage myDetailedNetworkUsage;
   private final NetworkStageLegends myLegends;
@@ -59,7 +59,7 @@ public class NetworkProfilerStage extends Stage {
   public NetworkProfilerStage(StudioProfilers profilers) {
     super(profilers);
 
-    NetworkRadioDataSeries radioDataSeries = new NetworkRadioDataSeries(profilers.getClient().getNetworkClient(), profilers.getProcessId());
+    NetworkRadioDataSeries radioDataSeries = new NetworkRadioDataSeries(profilers.getClient().getNetworkClient(), profilers.getProcessId(), getStudioProfilers().getDeviceSerial());
     myRadioState = new StateChartModel<>();
     myRadioState.addSeries(new RangedSeries<>(getStudioProfilers().getTimeline().getViewRange(), radioDataSeries));
 

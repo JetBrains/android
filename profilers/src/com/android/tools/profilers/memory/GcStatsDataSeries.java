@@ -34,9 +34,12 @@ public final class GcStatsDataSeries implements DataSeries<GcDurationData> {
 
   private final int myProcessId;
 
-  public GcStatsDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, int id) {
+  private final String myDeviceSerial;
+
+  public GcStatsDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, int id, String serial) {
     myClient = client;
     myProcessId = id;
+    myDeviceSerial = serial;
   }
 
   @Override
@@ -44,7 +47,8 @@ public final class GcStatsDataSeries implements DataSeries<GcDurationData> {
     // TODO: Change the Memory API to allow specifying padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
+      .setDeviceSerial(myDeviceSerial)
       .setStartTime(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTime(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
     MemoryProfiler.MemoryData response = myClient.getData(dataRequestBuilder.build());

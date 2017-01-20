@@ -48,7 +48,7 @@ public class EventDataPoller extends EventServiceGrpc.EventServiceImplBase imple
   @Override
   public void poll() throws StatusRuntimeException {
     EventProfiler.EventDataRequest.Builder dataRequestBuilder = EventProfiler.EventDataRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
       .setStartTimestamp(myDataRequestStartTimestampNs)
       .setEndTimestamp(Long.MAX_VALUE);
 
@@ -57,7 +57,7 @@ public class EventDataPoller extends EventServiceGrpc.EventServiceImplBase imple
     synchronized (myActivityLock) {
       for (EventProfiler.ActivityData data : activityResponse.getDataList()) {
         long id = data.getHash();
-        EventProfiler.ActivityData cached_data = myEventsTable.findActivityDataOrNull(data.getAppId(), id);
+        EventProfiler.ActivityData cached_data = myEventsTable.findActivityDataOrNull(data.getProcessId(), id);
         if (cached_data != null) {
           EventProfiler.ActivityData.Builder builder = cached_data.toBuilder();
           // Perfd may return states that we already have cached. This checks for that and only adds unique ones.
@@ -97,13 +97,13 @@ public class EventDataPoller extends EventServiceGrpc.EventServiceImplBase imple
   public void getActivityData(EventProfiler.EventDataRequest request, StreamObserver<EventProfiler.ActivityDataResponse> responseObserver) {
     EventProfiler.ActivityDataResponse.Builder response = EventProfiler.ActivityDataResponse.newBuilder();
     synchronized (myActivityLock) {
-      List<EventProfiler.ActivityData> activites = myEventsTable.getActivityDataByApp(request.getAppId());
+      List<EventProfiler.ActivityData> activites = myEventsTable.getActivityDataByApp(request.getProcessId());
       for (EventProfiler.ActivityData data : activites) {
         // We always return information about an activity to the caller. This is so the caller can choose to act on this
         // information or drop it.
         EventProfiler.ActivityData.Builder builder = EventProfiler.ActivityData.newBuilder();
         builder.setName(data.getName());
-        builder.setAppId(data.getAppId());
+        builder.setProcessId(data.getProcessId());
         builder.setHash(data.getHash());
 
         // Loop through each state change event an activity has gone through and add
@@ -146,7 +146,7 @@ public class EventDataPoller extends EventServiceGrpc.EventServiceImplBase imple
 
   @Override
   public void startMonitoringApp(EventProfiler.EventStartRequest request, StreamObserver<EventProfiler.EventStartResponse> observer) {
-    myProcessId = request.getAppId();
+    myProcessId = request.getProcessId();
     observer.onNext(myEventPollingService.startMonitoringApp(request));
     observer.onCompleted();
   }

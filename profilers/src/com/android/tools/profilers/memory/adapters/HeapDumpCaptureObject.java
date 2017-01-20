@@ -37,7 +37,9 @@ public final class HeapDumpCaptureObject implements CaptureObject {
   @NotNull
   private final MemoryServiceBlockingStub myClient;
 
-  private final int myAppId;
+  private final int myProcessId;
+
+  private final String myDeviceSerial;
 
   @NotNull
   private final HeapDumpInfo myHeapDumpInfo;
@@ -52,10 +54,12 @@ public final class HeapDumpCaptureObject implements CaptureObject {
 
   public HeapDumpCaptureObject(@NotNull MemoryServiceBlockingStub client,
                                int appId,
+                               String serial,
                                @NotNull HeapDumpInfo heapDumpInfo,
                                @Nullable ProguardMap proguardMap) {
     myClient = client;
-    myAppId = appId;
+    myProcessId = appId;
+    myDeviceSerial = serial;
     myHeapDumpInfo = heapDumpInfo;
     myProguardMap = proguardMap;
   }
@@ -67,7 +71,7 @@ public final class HeapDumpCaptureObject implements CaptureObject {
     }
 
     HeapDumpCaptureObject other = (HeapDumpCaptureObject)obj;
-    return other.myAppId == myAppId && other.myIsLoadingError == myIsLoadingError && other.myHeapDumpInfo == myHeapDumpInfo;
+    return other.myProcessId == myProcessId && other.myIsLoadingError == myIsLoadingError && other.myHeapDumpInfo == myHeapDumpInfo;
   }
 
   @NotNull
@@ -106,7 +110,10 @@ public final class HeapDumpCaptureObject implements CaptureObject {
     DumpDataResponse response;
     while (true) {
       // TODO move this to another thread and complete before we notify
-      response = myClient.getHeapDump(HeapDumpDataRequest.newBuilder().setAppId(myAppId).setDumpId(myHeapDumpInfo.getDumpId()).build());
+      response = myClient.getHeapDump(HeapDumpDataRequest.newBuilder()
+                                        .setProcessId(myProcessId)
+                                        .setDeviceSerial(myDeviceSerial)
+                                        .setDumpId(myHeapDumpInfo.getDumpId()).build());
       if (response.getStatus() == DumpDataResponse.Status.SUCCESS) {
         break;
       }

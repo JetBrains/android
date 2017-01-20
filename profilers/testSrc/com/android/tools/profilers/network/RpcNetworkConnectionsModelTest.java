@@ -46,7 +46,7 @@ public class RpcNetworkConnectionsModelTest {
   @Before
   public void setUp() {
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
-    myModel = new RpcNetworkConnectionsModel(profilers.getClient().getNetworkClient(), 12);
+    myModel = new RpcNetworkConnectionsModel(profilers.getClient().getNetworkClient(), 12, "Test Device Serial");
   }
 
   @Test

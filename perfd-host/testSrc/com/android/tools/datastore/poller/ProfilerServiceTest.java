@@ -84,7 +84,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     setProcesses();
     StreamObserver<Profiler.GetProcessesResponse> observer = mock(StreamObserver.class);
     Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder()
-      .setSerial(DEVICE_SERIAL)
+      .setDeviceSerial(DEVICE_SERIAL)
       .build();
     Profiler.GetProcessesResponse expected = Profiler.GetProcessesResponse.newBuilder()
       .addProcess(Profiler.Process.getDefaultInstance())

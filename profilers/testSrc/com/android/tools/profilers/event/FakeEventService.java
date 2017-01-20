@@ -24,6 +24,7 @@ import java.util.Map;
 
 public final class FakeEventService extends EventServiceGrpc.EventServiceImplBase {
   public static final int FAKE_APP_ID = 1111;
+  public static final String FAKE_DEVICE_ID = "Fake_Device_Id";
   Map<Long, EventProfiler.SystemData> myEventData = new HashMap<>();
   Map<Long, EventProfiler.ActivityData> myActivityData = new HashMap<>();
 

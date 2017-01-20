@@ -28,16 +28,18 @@ import java.util.concurrent.TimeUnit;
 
 public final class AllocationsCaptureObject implements CaptureObject {
   @NotNull private final MemoryServiceBlockingStub myClient;
-  private final int myAppId;
+  private final int myProcessId;
+  private final String myDeviceSerial;
   private final int myInfoId;
   private long myStartTimeNs;
   private long myEndTimeNs;
   private volatile List<ClassObject> myClassObjs = null;
   private volatile boolean myIsLoadingError;
 
-  public AllocationsCaptureObject(@NotNull MemoryServiceBlockingStub client, int appId, @NotNull MemoryProfiler.AllocationsInfo info) {
+  public AllocationsCaptureObject(@NotNull MemoryServiceBlockingStub client, int processId, String serial, @NotNull MemoryProfiler.AllocationsInfo info) {
     myClient = client;
-    myAppId = appId;
+    myProcessId = processId;
+    myDeviceSerial = serial;
     myInfoId = info.getInfoId();
     myStartTimeNs = info.getStartTime();
     myEndTimeNs = info.getEndTime();
@@ -50,7 +52,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
     }
 
     AllocationsCaptureObject other = (AllocationsCaptureObject)obj;
-    return other.myAppId == myAppId && other.myStartTimeNs == myStartTimeNs && other.myEndTimeNs == myEndTimeNs;
+    return other.myProcessId == myProcessId && other.myStartTimeNs == myStartTimeNs && other.myEndTimeNs == myEndTimeNs;
   }
 
   @NotNull
@@ -88,7 +90,10 @@ public final class AllocationsCaptureObject implements CaptureObject {
   public boolean load() {
     while (true) {
       MemoryProfiler.GetAllocationsInfoStatusResponse response = myClient.getAllocationsInfoStatus(
-        MemoryProfiler.GetAllocationsInfoStatusRequest.newBuilder().setAppId(myAppId).setInfoId(myInfoId).build());
+        MemoryProfiler.GetAllocationsInfoStatusRequest.newBuilder()
+          .setProcessId(myProcessId)
+          .setDeviceSerial(myDeviceSerial)
+          .setInfoId(myInfoId).build());
 
       if (response.getStatus() == MemoryProfiler.AllocationsInfo.Status.COMPLETED) {
         break;
@@ -111,7 +116,11 @@ public final class AllocationsCaptureObject implements CaptureObject {
 
     // TODO add caching
     MemoryProfiler.AllocationContextsResponse contextsResponse = myClient.listAllocationContexts(
-      MemoryProfiler.AllocationContextsRequest.newBuilder().setAppId(myAppId).setStartTime(myStartTimeNs).setEndTime(myEndTimeNs).build());
+      MemoryProfiler.AllocationContextsRequest.newBuilder()
+        .setProcessId(myProcessId)
+        .setDeviceSerial(myDeviceSerial)
+        .setStartTime(myStartTimeNs)
+        .setEndTime(myEndTimeNs).build());
 
     TIntObjectHashMap<AllocationsClassObject> classNodes = new TIntObjectHashMap<>();
     Map<ByteString, MemoryProfiler.AllocationStack> callStacks = new HashMap<>();
@@ -122,7 +131,11 @@ public final class AllocationsCaptureObject implements CaptureObject {
     contextsResponse.getAllocationStacksList().forEach(callStack -> callStacks.putIfAbsent(callStack.getStackId(), callStack));
 
     MemoryProfiler.MemoryData response = myClient
-      .getData(MemoryProfiler.MemoryRequest.newBuilder().setAppId(myAppId).setStartTime(myStartTimeNs).setEndTime(myEndTimeNs).build());
+      .getData(MemoryProfiler.MemoryRequest.newBuilder()
+                 .setProcessId(myProcessId)
+                 .setDeviceSerial(myDeviceSerial)
+                 .setStartTime(myStartTimeNs)
+                 .setEndTime(myEndTimeNs).build());
     LinkedHashSet<Integer> allocatedClasses = new LinkedHashSet<>();
 
     // TODO make sure class IDs fall into a global pool

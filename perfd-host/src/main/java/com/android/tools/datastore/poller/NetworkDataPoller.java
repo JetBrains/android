@@ -85,7 +85,7 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
       long endTime = request.getEndTimestamp();
 
       for (NetworkProfiler.NetworkProfilerData data : myData) {
-        if (data.getBasicInfo().getAppId() != Common.AppId.ANY_VALUE && data.getBasicInfo().getAppId() != request.getAppId()) {
+        if (data.getBasicInfo().getProcessId() != Common.AppId.ANY_VALUE && data.getBasicInfo().getProcessId() != request.getProcessId()) {
           continue;
         }
 
@@ -116,7 +116,7 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
       myConnectionData.clear();
     }
 
-    myProcessId = request.getAppId();
+    myProcessId = request.getProcessId();
     responseObserver.onNext(myPollingService.startMonitoringApp(request));
     responseObserver.onCompleted();
   }
@@ -139,7 +139,7 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
       // Because myConnectionRangeData.values is in sorted order (by start time), then,
       // based on the requested range, we can exclude older connections and stop if we get to newer connections.
       for (ConnectionData allData: myConnectionData.values()) {
-        if (allData.myProcessId != request.getAppId()) {
+        if (allData.myProcessId != request.getProcessId()) {
           continue;
         }
 
@@ -194,7 +194,7 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
       return;
     }
     NetworkProfiler.NetworkDataRequest.Builder dataRequestBuilder = NetworkProfiler.NetworkDataRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
       .setStartTimestamp(myDataRequestStartTimestampNs)
       .setEndTimestamp(Long.MAX_VALUE);
     NetworkProfiler.NetworkDataResponse response = myPollingService.getData(dataRequestBuilder.build());
@@ -210,7 +210,7 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
 
   private void pollHttpRange() {
     NetworkProfiler.HttpRangeRequest.Builder requestBuilder = NetworkProfiler.HttpRangeRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
       .setStartTimestamp(myHttpRangeRequestStartTimeNs)
       .setEndTimestamp(Long.MAX_VALUE);
     NetworkProfiler.HttpRangeResponse response = myPollingService.getHttpRange(requestBuilder.build());

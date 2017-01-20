@@ -87,7 +87,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   @Override
   public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> responseObserver) {
     Profiler.GetProcessesResponse.Builder response = Profiler.GetProcessesResponse.newBuilder();
-    String serial = request.getSerial();
+    String serial = request.getDeviceSerial();
     Profiler.Device device = myDevices.get(serial);
     if (device != null) {
       for (Profiler.Process process : myProcesses.get(device)) {

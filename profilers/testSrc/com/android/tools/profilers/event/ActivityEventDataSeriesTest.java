@@ -42,7 +42,7 @@ public class ActivityEventDataSeriesTest {
 
   @Before
   public void setUp() {
-    mySeries = new ActivityEventDataSeries(myGrpcChannel.getClient(), FakeEventService.FAKE_APP_ID);
+    mySeries = new ActivityEventDataSeries(myGrpcChannel.getClient(), FakeEventService.FAKE_APP_ID, FakeEventService.FAKE_DEVICE_ID);
   }
 
   @Test
@@ -133,7 +133,7 @@ public class ActivityEventDataSeriesTest {
 
   private EventProfiler.ActivityData buildActivityEvent(String name, ActivityStateData[] states) {
     EventProfiler.ActivityData.Builder builder = EventProfiler.ActivityData.newBuilder();
-    builder.setAppId(FakeEventService.FAKE_APP_ID)
+    builder.setProcessId(FakeEventService.FAKE_APP_ID)
       .setName(name)
       .setHash(name.hashCode());
     for (ActivityStateData state : states) {

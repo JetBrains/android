@@ -82,7 +82,7 @@ public class EventsTable extends DatastoreTable<EventsTable.EventStatements> {
   }
 
   public void insertOrReplace(long id, EventProfiler.ActivityData activity) {
-    execute(EventStatements.INSERT_ACTIVITY, id, activity.getAppId(), activity.toByteArray());
+    execute(EventStatements.INSERT_ACTIVITY, id, activity.getProcessId(), activity.toByteArray());
   }
 
   public List<EventProfiler.ActivityData> getActivityDataByApp(long appId) {
@@ -91,7 +91,7 @@ public class EventsTable extends DatastoreTable<EventsTable.EventStatements> {
   }
 
   public void insertOrReplace(long id, EventProfiler.SystemData activity) {
-    execute(EventStatements.INSERT_SYSTEM, id, activity.getAppId(), activity.getStartTimestamp(), activity.getEndTimestamp(),
+    execute(EventStatements.INSERT_SYSTEM, id, activity.getProcessId(), activity.getStartTimestamp(), activity.getEndTimestamp(),
             activity.toByteArray());
   }
 
@@ -99,7 +99,7 @@ public class EventsTable extends DatastoreTable<EventsTable.EventStatements> {
     List<EventProfiler.SystemData> events = new ArrayList<>();
     try {
       ResultSet results =
-        executeQuery(EventStatements.QUERY_SYSTEM, request.getAppId(), request.getStartTimestamp(), request.getEndTimestamp());
+        executeQuery(EventStatements.QUERY_SYSTEM, request.getProcessId(), request.getStartTimestamp(), request.getEndTimestamp());
       while (results.next()) {
         EventProfiler.SystemData.Builder data = EventProfiler.SystemData.newBuilder();
         data.mergeFrom(results.getBytes(1));

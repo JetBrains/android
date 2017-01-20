@@ -56,6 +56,7 @@ public class MemoryProfilerStage extends Stage {
   private final MemoryStageLegends myLegends;
 
   private final int myProcessId;
+  private final String myDeviceSerial;
   private DurationDataModel<GcDurationData> myGcCount;
 
   @NotNull
@@ -81,11 +82,12 @@ public class MemoryProfilerStage extends Stage {
   MemoryProfilerStage(@NotNull StudioProfilers profilers, @NotNull CaptureObjectLoader loader) {
     super(profilers);
     myProcessId = profilers.getProcessId();
+    myDeviceSerial = profilers.getDeviceSerial();
     myClient = profilers.getClient().getMemoryClient();
     HeapDumpSampleDataSeries heapDumpSeries =
-      new HeapDumpSampleDataSeries(profilers.getClient().getMemoryClient(), profilers.getProcessId());
+      new HeapDumpSampleDataSeries(profilers.getClient().getMemoryClient(), myProcessId, myDeviceSerial);
     AllocationInfosDataSeries allocationSeries =
-      new AllocationInfosDataSeries(profilers.getClient().getMemoryClient(), profilers.getProcessId());
+      new AllocationInfosDataSeries(profilers.getClient().getMemoryClient(), myProcessId, myDeviceSerial);
     myLoader = loader;
 
     Range viewRange = profilers.getTimeline().getViewRange();
@@ -107,7 +109,7 @@ public class MemoryProfilerStage extends Stage {
 
     myLegends = new MemoryStageLegends(myDetailedMemoryUsage, profilers.getTimeline().getDataRange());
 
-    myGcCount = new DurationDataModel<>(new RangedSeries<>(viewRange, new GcStatsDataSeries(myClient, myProcessId)));
+    myGcCount = new DurationDataModel<>(new RangedSeries<>(viewRange, new GcStatsDataSeries(myClient, myProcessId, myDeviceSerial)));
     myGcCount.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries());
 
     myEventMonitor = new EventMonitor(profilers);
@@ -169,10 +171,10 @@ public class MemoryProfilerStage extends Stage {
    */
   public void requestHeapDump(@Nullable Executor loadJoiner) {
     MemoryProfiler.TriggerHeapDumpResponse response =
-      myClient.triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.newBuilder().setAppId(myProcessId).build());
+      myClient.triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.newBuilder().setProcessId(myProcessId).build());
     switch (response.getStatus()) {
       case SUCCESS:
-        selectCapture(new HeapDumpCaptureObject(myClient, myProcessId, response.getInfo(), null), loadJoiner);
+        selectCapture(new HeapDumpCaptureObject(myClient, myProcessId, myDeviceSerial, response.getInfo(), null), loadJoiner);
         break;
       case IN_PROGRESS:
         getLogger().debug(String.format("A heap dump for %d is already in progress.", myProcessId));
@@ -197,12 +199,12 @@ public class MemoryProfilerStage extends Stage {
    */
   public void trackAllocations(boolean enabled, @Nullable Executor loadJoiner) {
     TrackAllocationsResponse response = myClient.trackAllocations(
-      MemoryProfiler.TrackAllocationsRequest.newBuilder().setAppId(myProcessId).setEnabled(enabled).build());
+      MemoryProfiler.TrackAllocationsRequest.newBuilder().setProcessId(myProcessId).setEnabled(enabled).build());
     switch (response.getStatus()) {
       case SUCCESS:
         myTrackingAllocations = enabled;
         if (!myTrackingAllocations) {
-          selectCapture(new AllocationsCaptureObject(myClient, myProcessId, response.getInfo()), loadJoiner);
+          selectCapture(new AllocationsCaptureObject(myClient, myProcessId, myDeviceSerial, response.getInfo()), loadJoiner);
         }
         break;
       case IN_PROGRESS:
