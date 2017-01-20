@@ -276,7 +276,7 @@ public class InspectorPanelTest extends PropertyTestCase {
     for (int row : components.keySet()) {
       JLabel label = findFirstLabelWithText(components.get(row));
       if (label != null) {
-        labelToRowNumber.put(label.getText(), row);
+        labelToRowNumber.put(StringUtil.removeHtmlTags(label.getText()), row);
       }
     }
     return labelToRowNumber;
