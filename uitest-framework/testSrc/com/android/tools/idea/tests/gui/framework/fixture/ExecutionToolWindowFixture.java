@@ -116,7 +116,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
           myRobot.finder().findByType(debuggerComponent, ThreeComponentsSplitter.class, false);
         JComponent innerComponent = threeComponentsSplitter.getInnerComponent();
         return myRobot.finder().findByType(innerComponent, XDebuggerTree.class, false).getRoot();
-      } catch (ComponentLookupException e) {
+      } catch (ComponentLookupException | IllegalComponentStateException e) {
         return null;
       }
     }
