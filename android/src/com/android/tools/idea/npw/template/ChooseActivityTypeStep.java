@@ -215,9 +215,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
     templateValues.put("files.to.open", new ArrayList<>());
 
     // TODO: Implement Instant App code
-    String aiaSdkLocation = System.getenv(AIA_SDK_ENV_VAR);
-    templateValues.put(ATTR_AIA_SDK, aiaSdkLocation + "/tools/resources/shared-libs");
-    templateValues.put("whSdkEnabled", isNotEmpty(aiaSdkLocation));
+    templateValues.put("aiaSdkEnabled", isNotEmpty(System.getenv(AIA_SDK_ENV_VAR)));
     templateValues.put("alsoCreateIapk", false);
     templateValues.put("isInstantApp", false);
 
