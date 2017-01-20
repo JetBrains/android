@@ -15,14 +15,11 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.profilers.common.CodeLocation;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.Executor;
 
 public interface IdeProfilerServices {
-  boolean navigateToStackFrame(@NotNull CodeLocation line);
-
   /**
    * Executor to run the tasks that should get back to the profiler main thread.
    */

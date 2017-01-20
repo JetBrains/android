@@ -21,8 +21,8 @@ import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.common.StackLine;
-import com.android.tools.profilers.common.StackView;
+import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.common.StackTraceView;
 import com.android.tools.profilers.common.TabsPanel;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject.InstanceAttribute;
@@ -57,7 +57,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   @NotNull private final TabsPanel myTabsPanel;
 
-  @NotNull private final StackView myStackView;
+  @NotNull private final StackTraceView myStackTraceView;
 
   @Nullable private JComponent myReferenceColumnTree;
 
@@ -71,7 +71,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::instanceChanged);
 
     myTabsPanel = ideProfilerComponents.createTabsPanel();
-    myStackView = new StackView(myStage.getStudioProfilers().getIdeServices(), () -> myStage.setProfilerMode(ProfilerMode.NORMAL));
+    myStackTraceView = ideProfilerComponents.createStackView(() -> myStage.setProfilerMode(ProfilerMode.NORMAL));
 
     myAttributeColumns.put(
       InstanceObject.InstanceAttribute.LABEL,
@@ -185,11 +185,11 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     // Populate Callstacks
     AllocationStack callStack = instance.getCallStack();
     if (callStack != null && !callStack.getStackFramesList().isEmpty()) {
-      List<StackLine> stackFrames = callStack.getStackFramesList().stream().map((frame) -> new StackLine(
-        new StackTraceElement(frame.getClassName(), frame.getMethodName(), frame.getFileName(), frame.getLineNumber()).toString(),
-        frame.getClassName(), frame.getMethodName(), frame.getFileName(), frame.getLineNumber())).collect(Collectors.toList());
-      myStackView.setStackFrames(stackFrames);
-      myTabsPanel.addTab("Callstack", myStackView.getComponent());
+      List<CodeLocation> stackFrames = callStack.getStackFramesList().stream()
+        .map((frame) -> new CodeLocation(frame.getClassName(), frame.getFileName(), frame.getMethodName(), frame.getLineNumber() - 1))
+        .collect(Collectors.toList());
+      myStackTraceView.setStackFrames(stackFrames);
+      myTabsPanel.addTab("Callstack", myStackTraceView.getComponent());
       hasContent = true;
     }
 

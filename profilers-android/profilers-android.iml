@@ -19,5 +19,6 @@
     <orderEntry type="module" module-name="java-psi-api" />
     <orderEntry type="module" module-name="android" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="module" module-name="lang-api" />
   </component>
 </module>

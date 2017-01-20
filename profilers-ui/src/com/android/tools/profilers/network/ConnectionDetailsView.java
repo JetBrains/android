@@ -16,7 +16,7 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.profilers.common.StackView;
+import com.android.tools.profilers.common.StackTraceView;
 import com.android.tools.profilers.common.TabsPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
@@ -35,7 +35,9 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -47,7 +49,9 @@ public class ConnectionDetailsView extends JPanel {
   private final JPanel myEditorPanel;
   private final JPanel myFieldsPanel;
   private final JPanel myHeadersPanel;
-  private final StackView myStackView;
+
+  @NotNull
+  private final StackTraceView myStackTraceView;
 
   @NotNull
   private final NetworkProfilerStageView myStageView;
@@ -82,8 +86,8 @@ public class ConnectionDetailsView extends JPanel {
     myHeadersPanel.setName("Headers");
     tabsPanel.addTab("Headers", new JBScrollPane(myHeadersPanel));
 
-    myStackView = new StackView(myStageView.getStage().getStudioProfilers().getIdeServices(), null);
-    tabsPanel.addTab("Call Stack", myStackView.getComponent());
+    myStackTraceView = myStageView.getIdeComponents().createStackView(null);
+    tabsPanel.addTab("Call Stack", myStackTraceView.getComponent());
 
     IconButton closeIcon = new IconButton("Close", AllIcons.Actions.Close, AllIcons.Actions.CloseHovered);
     InplaceButton closeButton = new InplaceButton(closeIcon, e -> this.update((HttpData)null));
@@ -104,7 +108,7 @@ public class ConnectionDetailsView extends JPanel {
     myEditorPanel.removeAll();
     myFieldsPanel.removeAll();
     myHeadersPanel.removeAll();
-    myStackView.clearStackFrames();
+    myStackTraceView.clearStackFrames();
 
     JComponent fileViewer = getFileViewer(httpData);
     if (fileViewer != null) {
@@ -117,12 +121,12 @@ public class ConnectionDetailsView extends JPanel {
       myHeadersPanel.add(createHeaderSection("Response Headers", httpData.getResponseHeaders()), 0);
       JSeparator separator = new JSeparator();
       // Separator will grow to take up the extra space, so set the maximum.
-      separator.setMaximumSize(new Dimension((int) separator.getMaximumSize().getWidth(), (int) separator.getPreferredSize().getHeight()));
+      separator.setMaximumSize(new Dimension((int)separator.getMaximumSize().getWidth(), (int)separator.getPreferredSize().getHeight()));
       myHeadersPanel.add(separator, 1);
       // TODO: Replace with real request data, this is a place holder.
       myHeadersPanel.add(createHeaderSection("Request Headers", new HashMap<>()), 2);
 
-      myStackView.setStackFrames(httpData.getTrace());
+      myStackTraceView.setStackFrames(httpData.getTrace());
       repaint();
     }
     setVisible(httpData != null);
@@ -190,9 +194,9 @@ public class ConnectionDetailsView extends JPanel {
     return myEditorPanel.getComponentCount() > 0 ? myEditorPanel.getComponent(0) : null;
   }
 
-  @VisibleForTesting
-  JPanel getStackView() {
-    return myStackView.getPanel();
+  @NotNull
+  public StackTraceView getStackTraceView() {
+    return myStackTraceView;
   }
 
   @VisibleForTesting
@@ -231,7 +235,9 @@ public class ConnectionDetailsView extends JPanel {
       BufferedImage image = null;
       try {
         image = httpData.getResponsePayloadFile() != null ? ImageIO.read(httpData.getResponsePayloadFile()) : null;
-      } catch (IOException e) {}
+      }
+      catch (IOException ignored) {
+      }
       return image != null ? new ImageComponent(image) : null;
     }
 
@@ -241,7 +247,9 @@ public class ConnectionDetailsView extends JPanel {
       BufferedReader reader = new BufferedReader(new FileReader(httpData.getResponsePayloadFile()));
       textArea.read(reader, null);
       reader.close();
-    } catch (IOException e) {}
+    }
+    catch (IOException ignored) {
+    }
     textArea.setEditable(false);
     return new JBScrollPane(textArea);
   }

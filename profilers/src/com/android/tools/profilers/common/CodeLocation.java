@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.common;
 
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.Nullable;
 
 public class CodeLocation {
@@ -29,21 +30,27 @@ public class CodeLocation {
   @Nullable
   private String myMethodName;
 
-  private int myLine;
+  private int myLineNumber;
 
   public CodeLocation(@Nullable String className) {
     this(className, null, null, INVALID_LINE_NUMBER);
   }
 
-  public CodeLocation(@Nullable String className, int line) {
-    this(className, null, null, line);
+  /**
+   * @param lineNumber 0-based line number
+   */
+  public CodeLocation(@Nullable String className, int lineNumber) {
+    this(className, null, null, lineNumber);
   }
 
-  public CodeLocation(@Nullable String className, @Nullable String fileName, @Nullable String methodName, int line) {
+  /**
+   * @param lineNumber 0-based line number
+   */
+  public CodeLocation(@Nullable String className, @Nullable String fileName, @Nullable String methodName, int lineNumber) {
     myClassName = className;
     myFileName = fileName;
     myMethodName = methodName;
-    myLine = line;
+    myLineNumber = lineNumber;
   }
 
   @Nullable
@@ -61,7 +68,20 @@ public class CodeLocation {
     return myMethodName;
   }
 
-  public int getLine() {
-    return myLine;
+  public int getLineNumber() {
+    return myLineNumber;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof CodeLocation)) {
+      return false;
+    }
+
+    CodeLocation other = (CodeLocation)obj;
+    return StringUtil.equals(myClassName, other.myClassName) &&
+           StringUtil.equals(myFileName, other.myFileName) &&
+           StringUtil.equals(myMethodName, other.myMethodName) &&
+           myLineNumber == other.myLineNumber;
   }
 }
