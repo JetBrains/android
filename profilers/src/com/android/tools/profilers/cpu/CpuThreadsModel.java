@@ -32,14 +32,17 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
 
   private final int myProcessId;
 
+  private final String myDeviceSerial;
+
   private final Range myRange;
 
   private final AspectObserver myAspectObserver;
 
-  public CpuThreadsModel(@NotNull Range range, @NotNull CpuProfilerStage stage, int id) {
+  public CpuThreadsModel(@NotNull Range range, @NotNull CpuProfilerStage stage, int id, String serial) {
     myRange = range;
     myStage = stage;
     myProcessId = id;
+    myDeviceSerial = serial;
     myAspectObserver = new AspectObserver();
 
     myRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::rangeChanged);
@@ -47,7 +50,8 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
 
   public void rangeChanged() {
     CpuProfiler.GetThreadsRequest.Builder request = CpuProfiler.GetThreadsRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
+      .setDeviceSerial(myDeviceSerial)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myRange.getMin()))
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myRange.getMax()));
     CpuServiceGrpc.CpuServiceBlockingStub client = myStage.getStudioProfilers().getClient().getCpuClient();
@@ -95,7 +99,7 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
       myThreadId = threadId;
       myName = name;
       myModel = new StateChartModel<>();
-      ThreadStateDataSeries series = new ThreadStateDataSeries(myStage, myProcessId, myThreadId);
+      ThreadStateDataSeries series = new ThreadStateDataSeries(myStage, myProcessId, myDeviceSerial, myThreadId);
       myModel.addSeries(new RangedSeries<>(myRange, series));
     }
 

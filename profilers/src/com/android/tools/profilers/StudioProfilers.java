@@ -40,6 +40,7 @@ import java.util.concurrent.TimeUnit;
 public class StudioProfilers extends AspectModel<ProfilerAspect> implements Updatable {
 
   public static final int INVALID_PROCESS_ID = -1;
+  public static final String INVALID_DEVICE_SERIAL = "";
 
   /**
    * The number of updates per second our simulated object models receive.
@@ -134,7 +135,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       Set<Profiler.Device> devices = new HashSet<>(response.getDeviceList());
       Map<Profiler.Device, List<Profiler.Process>> newProcesses = new HashMap<>();
       for (Profiler.Device device : devices) {
-        Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder().setSerial(device.getSerial()).build();
+        Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder().setDeviceSerial(device.getSerial()).build();
         Profiler.GetProcessesResponse processes = myClient.getProfilerClient().getProcesses(request);
         newProcesses.put(device, processes.getProcessList());
       }
@@ -199,14 +200,14 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
     if (!Objects.equals(process, myProcess)) {
       if (myDevice != null && myProcess != null) {
-        myProfilers.forEach(profiler -> profiler.stopProfiling(myProcess));
+        myProfilers.forEach(profiler -> profiler.stopProfiling(myDevice.getSerial(), myProcess));
       }
 
       myProcess = process;
       changed(ProfilerAspect.PROCESSES);
 
-      if (myProcess != null) {
-        myProfilers.forEach(profiler -> profiler.startProfiling(myProcess));
+      if (myDevice != null && myProcess != null) {
+        myProfilers.forEach(profiler -> profiler.startProfiling(myDevice.getSerial(), myProcess));
       }
       setStage(new StudioMonitorStage(this));
     }
@@ -253,6 +254,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   public int getProcessId() {
     return myProcess != null ? myProcess.getPid() : INVALID_PROCESS_ID;
+  }
+
+  public String getDeviceSerial() {
+    return myDevice != null ? myDevice.getSerial() : INVALID_DEVICE_SERIAL;
   }
 
   public void setStage(Stage stage) {

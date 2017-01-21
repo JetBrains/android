@@ -34,14 +34,18 @@ public class CpuProfiler extends StudioProfiler {
   }
 
   @Override
-  public void startProfiling(Profiler.Process process) {
+  public void startProfiling(String deviceSerial, Profiler.Process process) {
     // TODO: handle different status of the response
-    myProfilers.getClient().getCpuClient().startMonitoringApp(CpuStartRequest.newBuilder().setAppId(process.getPid()).build());
+    myProfilers.getClient().getCpuClient().startMonitoringApp(CpuStartRequest.newBuilder()
+                                                                .setProcessId(process.getPid())
+                                                                .setDeviceSerial(deviceSerial).build());
   }
 
   @Override
-  public void stopProfiling(Profiler.Process process) {
+  public void stopProfiling(String deviceSerial, Profiler.Process process) {
     // TODO: handle different status of the response
-    myProfilers.getClient().getCpuClient().stopMonitoringApp(CpuStopRequest.newBuilder().setAppId(process.getPid()).build());
+    myProfilers.getClient().getCpuClient().stopMonitoringApp(CpuStopRequest.newBuilder()
+                                                               .setProcessId(process.getPid())
+                                                               .setDeviceSerial(deviceSerial).build());
   }
 }

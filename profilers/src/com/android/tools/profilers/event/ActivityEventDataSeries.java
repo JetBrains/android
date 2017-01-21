@@ -39,10 +39,12 @@ public class ActivityEventDataSeries implements DataSeries<EventAction<EventActi
   @NotNull
   private ProfilerClient myClient;
   private final int myProcessId;
+  private final String myDeviceSerial;
 
-  public ActivityEventDataSeries(@NotNull ProfilerClient client, int id) {
+  public ActivityEventDataSeries(@NotNull ProfilerClient client, int id, String serial) {
     myClient = client;
     myProcessId = id;
+    myDeviceSerial = serial;
   }
 
   @Override
@@ -50,7 +52,8 @@ public class ActivityEventDataSeries implements DataSeries<EventAction<EventActi
     List<SeriesData<EventAction<EventAction.ActivityAction, String>>> seriesData = new ArrayList<>();
     EventServiceGrpc.EventServiceBlockingStub eventService = myClient.getEventClient();
     EventProfiler.EventDataRequest.Builder dataRequestBuilder = EventProfiler.EventDataRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
+      .setDeviceSerial(myDeviceSerial)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()));
     EventProfiler.ActivityDataResponse response = eventService.getActivityData(dataRequestBuilder.build());

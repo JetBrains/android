@@ -51,7 +51,7 @@ public class NetworkUsage extends LineChartModel {
   @NotNull
   public NetworkTrafficDataSeries createSeries(@NotNull StudioProfilers profilers, @NotNull NetworkTrafficDataSeries.Type trafficType) {
     NetworkServiceGrpc.NetworkServiceBlockingStub client = profilers.getClient().getNetworkClient();
-    return new NetworkTrafficDataSeries(client, profilers.getProcessId(), trafficType);
+    return new NetworkTrafficDataSeries(client, profilers.getProcessId(), profilers.getDeviceSerial(), trafficType);
   }
 
   @NotNull
