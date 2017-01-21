@@ -55,7 +55,7 @@ public class ConnectionsViewTest {
   @Test
   public void logicToExtractColumnValuesFromDataWorks() throws Exception {
     HttpData data = FAKE_DATA.get(2); // Request: id = 3, time = 8->13
-    assertThat(ConnectionsView.Column.URL.getValueFrom(data), is("http://example.com/3"));
+    assertThat(ConnectionsView.Column.NAME.getValueFrom(data), is("3"));
     assertThat(ConnectionsView.Column.SIZE.getValueFrom(data), is(3));
     assertThat(ConnectionsView.Column.TYPE.getValueFrom(data), is("image/jpeg"));
     assertThat(ConnectionsView.Column.STATUS.getValueFrom(data), is(302));
