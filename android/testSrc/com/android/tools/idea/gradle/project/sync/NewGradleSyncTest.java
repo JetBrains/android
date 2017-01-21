@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync;
 
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
+import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandlerManager;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
