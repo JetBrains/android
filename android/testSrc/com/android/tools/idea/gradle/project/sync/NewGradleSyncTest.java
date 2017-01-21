@@ -41,7 +41,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class NewGradleSyncTest extends AndroidGradleTestCase {
   @Mock private CommandLineArgs myCommandLineArgs;
   @Mock private ProjectSetup.Factory myProjectSetupFactory;
-
+  @Mock private SyncErrorHandlerManager myErrorHandlerManager;
   private ProjectSetupStub myProjectSetup;
 
   private NewGradleSync myGradleSync;
@@ -55,7 +55,7 @@ public class NewGradleSyncTest extends AndroidGradleTestCase {
 
     when(myProjectSetupFactory.create(getProject())).thenReturn(myProjectSetup);
 
-    myGradleSync = new NewGradleSync(getProject(), myCommandLineArgs, myProjectSetupFactory);
+    myGradleSync = new NewGradleSync(getProject(), myCommandLineArgs, myErrorHandlerManager, myProjectSetupFactory);
   }
 
   public void testDummy() {
