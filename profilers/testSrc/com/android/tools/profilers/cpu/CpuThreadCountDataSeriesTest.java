@@ -37,7 +37,7 @@ public class CpuThreadCountDataSeriesTest {
 
   @Before
   public void setUp() {
-    myDataSeries = new CpuThreadCountDataSeries(myGrpcChannel.getClient().getCpuClient(), 1);
+    myDataSeries = new CpuThreadCountDataSeries(myGrpcChannel.getClient().getCpuClient(), 1, "Test Device Serial");
   }
 
   @Test

@@ -49,17 +49,17 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   private static final ByteString PAYLOAD_2 = ByteString.copyFromUtf8("PAYLOAD2");
 
   private static final Common.CommonData STARTUP_BASIC_INFO = Common.CommonData.newBuilder()
-    .setAppId(TEST_APP_ID)
+    .setProcessId(TEST_APP_ID)
     .setEndTimestamp(BASE_TIME_NS)
     .build();
 
   private static final Common.CommonData DELAY_BASIC_INFO = Common.CommonData.newBuilder()
-    .setAppId(TEST_APP_ID)
+    .setProcessId(TEST_APP_ID)
     .setEndTimestamp(BASE_TIME_NS + TimeUnit.SECONDS.toNanos(1))
     .build();
 
   private static final Common.CommonData GLOBAL_APP_INFO = Common.CommonData.newBuilder()
-    .setAppId(Common.AppId.ANY_VALUE)
+    .setProcessId(Common.AppId.ANY_VALUE)
     .setEndTimestamp(BASE_TIME_NS)
     .build();
 
@@ -109,7 +109,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
 
   @Before
   public void setUp() throws Exception {
-    myNetworkDataPoller.startMonitoringApp(NetworkProfiler.NetworkStartRequest.newBuilder().setAppId(TEST_APP_ID).build(), mock(StreamObserver.class));
+    myNetworkDataPoller.startMonitoringApp(NetworkProfiler.NetworkStartRequest.newBuilder().setProcessId(TEST_APP_ID).build(), mock(StreamObserver.class));
     myNetworkDataPoller.poll();
   }
 
@@ -117,7 +117,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   public void tearDown() throws Exception {
     // Not strictly necessary to do this but it ensures we run all code paths
     myNetworkDataPoller
-      .stopMonitoringApp(NetworkProfiler.NetworkStopRequest.newBuilder().setAppId(TEST_APP_ID).build(), mock(StreamObserver.class));
+      .stopMonitoringApp(NetworkProfiler.NetworkStopRequest.newBuilder().setProcessId(TEST_APP_ID).build(), mock(StreamObserver.class));
   }
 
   @Test
@@ -145,7 +145,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   @Test
   public void testGetHttpRangeInvalidAppId() {
     NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
-      .setAppId(0)
+      .setProcessId(0)
       .setStartTimestamp(0)
       .setEndTimestamp(Long.MAX_VALUE)
       .build();
@@ -158,7 +158,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   @Test
   public void testGetHttpRangeInRange() {
     NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
-      .setAppId(TEST_APP_ID)
+      .setProcessId(TEST_APP_ID)
       .setStartTimestamp(0)
       .setEndTimestamp(Long.MAX_VALUE)
       .build();
@@ -171,7 +171,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   @Test
   public void testGetHttpRangeOutOfRange_StartTimeAfterLastRequest() {
     NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
-      .setAppId(TEST_APP_ID)
+      .setProcessId(TEST_APP_ID)
       .setStartTimestamp(BASE_TIME_NS + TimeUnit.SECONDS.toNanos(1))
       .setEndTimestamp(Long.MAX_VALUE)
       .build();
@@ -184,7 +184,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   @Test
   public void testGetHttpRangeOutOfRange_EndTimeBeforeFirstRequest() {
     NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
-      .setAppId(TEST_APP_ID)
+      .setProcessId(TEST_APP_ID)
       .setStartTimestamp(Long.MIN_VALUE)
       .setEndTimestamp(Long.MIN_VALUE + 1)
       .build();
@@ -237,7 +237,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   @Test
   public void testGetDataOutOfRange() {
     NetworkProfiler.NetworkDataRequest request = NetworkProfiler.NetworkDataRequest.newBuilder()
-      .setAppId(TEST_APP_ID)
+      .setProcessId(TEST_APP_ID)
       .setStartTimestamp(BASE_TIME_NS + TimeUnit.SECONDS.toNanos(1))
       .setEndTimestamp(Long.MAX_VALUE)
       .setType(NetworkProfiler.NetworkDataRequest.Type.ALL)
@@ -250,7 +250,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   @Test
   public void testGetDataInvalidAppId() {
     NetworkProfiler.NetworkDataRequest request = NetworkProfiler.NetworkDataRequest.newBuilder()
-      .setAppId(0)
+      .setProcessId(0)
       .setStartTimestamp(0)
       .setEndTimestamp(Long.MAX_VALUE)
       .setType(NetworkProfiler.NetworkDataRequest.Type.ALL)
@@ -299,7 +299,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
 
   private void getData(int appId, NetworkProfiler.NetworkDataRequest.Type type, NetworkProfiler.NetworkDataResponse expected) {
     NetworkProfiler.NetworkDataRequest request = NetworkProfiler.NetworkDataRequest.newBuilder()
-      .setAppId(appId)
+      .setProcessId(appId)
       .setStartTimestamp(0)
       .setEndTimestamp(Long.MAX_VALUE)
       .setType(type)

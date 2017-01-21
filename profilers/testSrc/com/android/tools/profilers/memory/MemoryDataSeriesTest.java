@@ -29,6 +29,8 @@ import static org.junit.Assert.assertEquals;
 
 public class MemoryDataSeriesTest {
 
+  private static final String FAKE_DEVICE_SERIAL = "Test Device Serial";
+
   private final FakeMemoryService myService = new FakeMemoryService();
 
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryDataSeriesTestChannel", myService);
@@ -41,7 +43,7 @@ public class MemoryDataSeriesTest {
             .setJavaMem(222).setTimestamp(TimeUnit.MICROSECONDS.toNanos(222)).setTotalMem(222))
         .build();
     myService.setMemoryData(memoryData);
-    MemoryDataSeries series = new MemoryDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, data -> 111L);
+    MemoryDataSeries series = new MemoryDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, FAKE_DEVICE_SERIAL, data -> 111L);
     ImmutableList<SeriesData<Long>> seriesDataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
     assertEquals(1, seriesDataList.size());
     assertEquals(222, seriesDataList.get(0).x);
@@ -58,7 +60,7 @@ public class MemoryDataSeriesTest {
         .setNativeMem(444).setTimestamp(TimeUnit.MICROSECONDS.toNanos(444)).setTotalMem(444))
       .build();
     myService.setMemoryData(memoryData);
-    MemoryDataSeries series = new MemoryDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, data -> 111L);
+    MemoryDataSeries series = new MemoryDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, FAKE_DEVICE_SERIAL,  data -> 111L);
     ImmutableList<SeriesData<Long>> seriesDataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
     assertEquals(2, seriesDataList.size());
     assertEquals(333, seriesDataList.get(0).x);

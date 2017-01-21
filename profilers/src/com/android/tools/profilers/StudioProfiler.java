@@ -28,7 +28,7 @@ public abstract class StudioProfiler {
 
   abstract public ProfilerMonitor newMonitor();
 
-  public abstract void startProfiling(Profiler.Process process);
+  public abstract void startProfiling(String deviceSerial, Profiler.Process process);
 
-  public abstract void stopProfiling(Profiler.Process process);
+  public abstract void stopProfiling(String deviceSerial, Profiler.Process process);
 }

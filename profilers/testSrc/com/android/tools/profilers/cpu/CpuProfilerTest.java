@@ -30,6 +30,8 @@ public class CpuProfilerTest {
 
   private static final int FAKE_PID = 42;
 
+  private static final String FAKE_DEVICE_SERIAL = "Test Device Serial";
+
   private final FakeCpuService myService = new FakeCpuService();
 
   private Profiler.Process FAKE_PROCESS = Profiler.Process.newBuilder().setPid(FAKE_PID).setName("FakeProcess").build();
@@ -53,15 +55,15 @@ public class CpuProfilerTest {
 
   @Test
   public void startProfilingCallStartMonitoringAppId() throws InterruptedException {
-    myCpuProfiler.startProfiling(FAKE_PROCESS);
+    myCpuProfiler.startProfiling(FAKE_DEVICE_SERIAL, FAKE_PROCESS);
     // Make sure the pid of the service was set to FAKE_PID by the start monitoring request
-    assertEquals(FAKE_PID, myService.getAppId());
+    assertEquals(FAKE_PID, myService.getProcessId());
   }
 
   @Test
   public void stopProfilingCallStopMonitoringAppId() throws InterruptedException {
-    myCpuProfiler.stopProfiling(FAKE_PROCESS);
+    myCpuProfiler.stopProfiling(FAKE_DEVICE_SERIAL, FAKE_PROCESS);
     // Make sure the pid of the service was set to FAKE_PID by the stop monitoring request
-    assertEquals(FAKE_PID, myService.getAppId());
+    assertEquals(FAKE_PID, myService.getProcessId());
   }
 }

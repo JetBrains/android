@@ -32,12 +32,14 @@ import java.util.concurrent.TimeUnit;
 public final class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.ThreadState> {
 
   private final int myProcessId;
+  private final String myDeviceSerial;
   private final int myThreadId;
   private final CpuProfilerStage myStage;
 
-  public ThreadStateDataSeries(@NotNull CpuProfilerStage stage, int pid, int tid) {
+  public ThreadStateDataSeries(@NotNull CpuProfilerStage stage, int pid, String serial, int tid) {
     myStage = stage;
     myProcessId = pid;
+    myDeviceSerial = serial;
     myThreadId = tid;
   }
 
@@ -54,13 +56,15 @@ public final class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.
     long max = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
     CpuServiceGrpc.CpuServiceBlockingStub client = myStage.getStudioProfilers().getClient().getCpuClient();
     CpuProfiler.GetThreadsResponse threads = client.getThreads(CpuProfiler.GetThreadsRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
+      .setDeviceSerial(myDeviceSerial)
       .setStartTimestamp(min)
       .setEndTimestamp(max)
       .build());
 
     CpuProfiler.GetTraceInfoResponse traces = client.getTraceInfo(CpuProfiler.GetTraceInfoRequest.newBuilder()
-        .setAppId(myProcessId)
+        .setProcessId(myProcessId)
+        .setDeviceSerial(myDeviceSerial)
         .setFromTimestamp(min)
         .setToTimestamp(max)
         .build());

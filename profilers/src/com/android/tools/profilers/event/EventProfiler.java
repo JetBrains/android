@@ -34,12 +34,16 @@ public class EventProfiler extends StudioProfiler {
   }
 
   @Override
-  public void startProfiling(Profiler.Process process) {
-    myProfilers.getClient().getEventClient().startMonitoringApp(EventStartRequest.newBuilder().setAppId(process.getPid()).build());
+  public void startProfiling(String deviceSerial, Profiler.Process process) {
+    myProfilers.getClient().getEventClient().startMonitoringApp(EventStartRequest.newBuilder()
+                                                                  .setProcessId(process.getPid())
+                                                                  .setDeviceSerial(deviceSerial).build());
   }
 
   @Override
-  public void stopProfiling(Profiler.Process process) {
-    myProfilers.getClient().getEventClient().stopMonitoringApp(EventStopRequest.newBuilder().setAppId(process.getPid()).build());
+  public void stopProfiling(String deviceSerial, Profiler.Process process) {
+    myProfilers.getClient().getEventClient().stopMonitoringApp(EventStopRequest.newBuilder()
+                                                                 .setProcessId(process.getPid())
+                                                                 .setDeviceSerial(deviceSerial).build());
   }
 }

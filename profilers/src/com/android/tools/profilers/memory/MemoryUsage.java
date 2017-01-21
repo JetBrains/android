@@ -40,7 +40,7 @@ public class MemoryUsage extends LineChartModel {
 
   protected RangedContinuousSeries createRangedSeries(StudioProfilers profilers, String name, Range range, Function<MemorySample, Long> getter) {
     MemoryServiceGrpc.MemoryServiceBlockingStub client = profilers.getClient().getMemoryClient();
-    MemoryDataSeries series = new MemoryDataSeries(client, profilers.getProcessId(), getter);
+    MemoryDataSeries series = new MemoryDataSeries(client, profilers.getProcessId(), profilers.getDeviceSerial(), getter);
     return new RangedContinuousSeries(name, profilers.getTimeline().getViewRange(), range, series);
   }
 

@@ -39,11 +39,13 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
 
   private boolean myOtherProcesses;
   private final int myProcessId;
+  private final String myDeviceSerial;
 
-  public CpuUsageDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, boolean otherProcesses, int id) {
+  public CpuUsageDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, boolean otherProcesses, int id, String serial) {
     myClient = client;
     myOtherProcesses = otherProcesses;
     myProcessId = id;
+    myDeviceSerial = serial;
   }
 
   @Override
@@ -53,7 +55,8 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
     // TODO: Change the CPU API to allow specifying this padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     CpuProfiler.CpuDataRequest.Builder dataRequestBuilder = CpuProfiler.CpuDataRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
+      .setDeviceSerial(myDeviceSerial)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
     CpuProfiler.CpuDataResponse response = myClient.getData(dataRequestBuilder.build());
