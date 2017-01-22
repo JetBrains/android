@@ -19,4 +19,11 @@
       <implementation-class>com.android.tools.idea.profilers.ProfilerComponent</implementation-class>
     </component>
   </application-components>
+  <extensions defaultExtensionNs="com.intellij">
+    <toolWindow id="Android Profiler"
+                anchor="bottom"
+                icon="AndroidIcons.AndroidToolWindow"
+                conditionClass="com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory"
+                factoryClass="com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory"/>
+  </extensions>
 </idea-plugin>
