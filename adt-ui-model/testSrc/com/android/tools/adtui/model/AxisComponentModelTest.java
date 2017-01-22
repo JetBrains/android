@@ -43,4 +43,20 @@ public class AxisComponentModelTest {
     t.step();
     assertEquals(model.getRange().getMax(), 10.0, 0.0);  // after update.
   }
+
+  @Test
+  public void testRangeIsNotChangedWhenNoNeedToClampToMajorTick() {
+    SingleUnitAxisFormatter formatter = new SingleUnitAxisFormatter(1, 1, 10, "");
+    Range range = new Range(0, 5);
+    FakeTimer t = new FakeTimer();
+    Updater choreographer = new Updater(t);
+
+    AxisComponentModel model = new AxisComponentModel(range, formatter);
+    model.setClampToMajorTicks(false);
+    choreographer.register(model);
+
+    assertEquals(model.getRange().getMax(), 5.0, 0.0);  // before update.
+    t.step();
+    assertEquals(model.getRange().getMax(), 5.0, 0.0);  // after update.
+  }
 }

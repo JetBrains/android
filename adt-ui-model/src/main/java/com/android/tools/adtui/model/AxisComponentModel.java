@@ -49,22 +49,24 @@ public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> i
 
   @Override
   public void update(long elapsedNs) {
-    double maxTarget = myRange.getMax() - getZero();
-    double rangeTarget = myRange.getLength();
-    double clampedMaxTarget;
-
     // During the animate/updateData phase, the axis updates the range's max to a new target based on whether myClampToMajorTicks is enabled
     //    - This would increase the max to an integral multiplier of the major interval.
-    // TODO Handle non-zero min offsets. Currently these features are used only for y axes and a non-zero use case does not exist yet.
-    long majorInterval = myFormatter.getMajorInterval(rangeTarget);
+    if (myClampToMajorTicks) {
+      double maxTarget = myRange.getMax() - getZero();
+      double rangeTarget = myRange.getLength();
+      double clampedMaxTarget;
 
-    float majorNumTicksTarget = myClampToMajorTicks ? (float)Math.ceil(maxTarget / majorInterval) : (float)(maxTarget / majorInterval);
-    clampedMaxTarget = majorNumTicksTarget * majorInterval;
+      // TODO Handle non-zero min offsets. Currently these features are used only for y axes and a non-zero use case does not exist yet.
+      long majorInterval = myFormatter.getMajorInterval(rangeTarget);
 
-    clampedMaxTarget += getZero();
-    float fraction = myFirstUpdate ? 1f : Updater.DEFAULT_LERP_FRACTION;
-    myRange.setMax(Updater.lerp(myRange.getMax(), clampedMaxTarget, fraction, elapsedNs,
-                                (float)(clampedMaxTarget * Updater.DEFAULT_LERP_THRESHOLD_PERCENTAGE)));
+      float majorNumTicksTarget = (float)Math.ceil(maxTarget / majorInterval);
+      clampedMaxTarget = majorNumTicksTarget * majorInterval;
+
+      clampedMaxTarget += getZero();
+      float fraction = myFirstUpdate ? 1f : Updater.DEFAULT_LERP_FRACTION;
+      myRange.setMax(Updater.lerp(myRange.getMax(), clampedMaxTarget, fraction, elapsedNs,
+                                  (float)(clampedMaxTarget * Updater.DEFAULT_LERP_THRESHOLD_PERCENTAGE)));
+    }
     myFirstUpdate = false;
 
     //TODO also change when data changes
@@ -102,6 +104,7 @@ public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> i
     return myRange;
   }
 
+  @Nullable
   public Range getGlobalRange() {
     return myGlobalRange;
   }
