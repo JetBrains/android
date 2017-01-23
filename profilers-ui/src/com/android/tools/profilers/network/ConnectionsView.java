@@ -369,15 +369,24 @@ final class ConnectionsView {
 
     ConnectionsTable(@NotNull TableModel model) {
       super(model);
+
       MouseAdapter mouseAdapter = new MouseAdapter() {
         @Override
         public void mouseMoved(MouseEvent e) {
-          myHoveredRow = rowAtPoint(e.getPoint());
+          hoveredRowChanged(rowAtPoint(e.getPoint()));
         }
 
         @Override
         public void mouseExited(MouseEvent e) {
-          myHoveredRow = -1;
+          hoveredRowChanged(-1);
+        }
+
+        private void hoveredRowChanged(int row) {
+          if (row == myHoveredRow) {
+            return;
+          }
+          myHoveredRow = row;
+          ConnectionsTable.this.repaint();
         }
       };
       addMouseMotionListener(mouseAdapter);
