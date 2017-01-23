@@ -203,7 +203,7 @@ public class ImagePoolTest {
       g.setColor(Color.RED);
       g.fillRect(0, 0, 25, 50);
       g.setColor(Color.BLUE);
-      g.fillRect(25, 0, 50, 50);
+      g.fillRect(25, 0, 25, 50);
     });
     ImageDiffUtil.assertImageSimilar("sample", sample, image.getCopy(), 0.0);
     image.paint((g) -> {
@@ -211,5 +211,29 @@ public class ImagePoolTest {
       image.drawImageTo(g, 0, 0, image.getWidth(), image.getHeight());
     });
     ImageDiffUtil.assertImageSimilar("sample", sample, image.getCopy(), 0.0);
+  }
+
+  @Test
+  public void testPaintWithOffset() throws IOException {
+    BufferedImage sample = getSampleImage();
+    ImagePool.Image image = myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, null);
+    image.paint((g) -> {
+      g.setColor(Color.RED);
+      g.fillRect(0, 0, 25, 50);
+      g.setColor(Color.BLUE);
+      g.fillRect(25, 0, 25, 50);
+    });
+
+    BufferedImage sampleImagePlusOffset = new BufferedImage(sample.getWidth() * 2, sample.getHeight() * 2, sample.getType());
+    Graphics g = sampleImagePlusOffset.getGraphics();
+    g.drawImage(sample, sample.getWidth(), sample.getHeight(), sample.getWidth() * 2, sample.getHeight() * 2, 0, 0, sample.getWidth(),
+                sample.getHeight(), null);
+    g.dispose();
+
+    BufferedImage testImagePlusOffset = new BufferedImage(sample.getWidth() * 2, sample.getHeight() * 2, sample.getType());
+
+    g = testImagePlusOffset.getGraphics();
+    image.drawImageTo(g, sample.getWidth(), sample.getHeight(), image.getWidth(), image.getHeight());
+    ImageDiffUtil.assertImageSimilar("offsetSample", sampleImagePlusOffset, testImagePlusOffset, 0.0);
   }
 }
