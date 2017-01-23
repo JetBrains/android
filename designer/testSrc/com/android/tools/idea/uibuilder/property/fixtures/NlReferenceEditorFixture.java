@@ -60,6 +60,7 @@ public class NlReferenceEditorFixture extends NlEditorFixtureBase {
   @Override
   public void tearDown() {
     myEditor.removeNotify(); // Removes editor
+    UIUtil.dispatchAllInvocationEvents();
     super.tearDown();
   }
 
