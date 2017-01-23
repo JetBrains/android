@@ -129,6 +129,11 @@ public class HttpData {
     return myResponseFields.get(field);
   }
 
+  @NotNull
+  public ImmutableMap<String, String> getResponseHeaders() {
+    return ImmutableMap.copyOf(myResponseFields);
+  }
+
   private void parseResponseFields(@NotNull String fields) {
     List<String> lines = Arrays.stream(fields.split("\\n")).filter(line -> !line.trim().isEmpty()).collect(Collectors.toList());
 
