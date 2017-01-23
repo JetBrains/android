@@ -38,7 +38,9 @@
             <minimum-size width="400" height="150"/>
           </grid>
         </constraints>
-        <properties/>
+        <properties>
+          <name value="translationEditorTextField"/>
+        </properties>
       </component>
     </children>
   </grid>
