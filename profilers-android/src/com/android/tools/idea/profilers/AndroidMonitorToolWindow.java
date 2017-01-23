@@ -49,7 +49,7 @@ public class AndroidMonitorToolWindow extends AspectObserver implements Disposab
       myProject = project;
       Disposer.register(project, this);
       StudioProfilerDeviceManager manager = new StudioProfilerDeviceManager(project);
-      myProfilers = new StudioProfilers(manager.getClient(), new IntellijProfilerServices(myProject));
+      myProfilers = new StudioProfilers(manager.getClient(), new IntellijProfilerServices());
 
       myProfilers.setPreferredProcessName(getPreferredProcessName(project));
       myView = new StudioProfilersView(myProfilers, new IntellijProfilerComponents(myProject));

@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.profilers.common.CodeLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,11 +26,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
    */
   @Nullable
   Runnable myOnExecute;
-
-  @Override
-  public boolean navigateToStackFrame(@NotNull CodeLocation line) {
-    return false;
-  }
 
   @NotNull
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers;
+package com.android.tools.profilers.common;
 
-import com.android.tools.profilers.IdeProfilerServices;
-import com.android.tools.profilers.common.CodeLocation;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.pom.Navigatable;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.concurrent.Executor;
+import javax.swing.*;
+import java.util.List;
 
-public class IntellijProfilerServices implements IdeProfilerServices {
+public interface StackTraceView {
+  void clearStackFrames();
+
+  void setStackFrames(@NotNull String stackString);
+
+  void setStackFrames(@NotNull List<CodeLocation> stackFrames);
+
   @NotNull
-  @Override
-  public Executor getProfilerExecutor() {
-    return ApplicationManager.getApplication()::invokeLater;
-  }
+  JComponent getComponent();
+
+  @NotNull
+  List<CodeLocation> getCodeLocations();
 }

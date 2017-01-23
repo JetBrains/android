@@ -8,6 +8,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/idea/platform/core-api[module]",
+        "//tools/idea/platform/lang-api[module]",
         "//tools/idea/platform/platform-api[module]",
         "//tools/adt/idea/profilers-ui[module]",
         "//tools/adt/idea/profilers[module]",

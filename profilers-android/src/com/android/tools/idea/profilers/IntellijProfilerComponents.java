@@ -20,6 +20,7 @@ import com.android.tools.idea.actions.PsiClassNavigation;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.common.LoadingPanel;
+import com.android.tools.profilers.common.StackTraceView;
 import com.android.tools.profilers.common.TabsPanel;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.*;
@@ -37,20 +38,16 @@ import java.awt.*;
 import java.util.function.Supplier;
 
 public class IntellijProfilerComponents implements IdeProfilerComponents {
-  @Nullable
+  @NotNull
   private Project myProject;
 
-  public IntellijProfilerComponents(@Nullable Project project) {
+  public IntellijProfilerComponents(@NotNull Project project) {
     myProject = project;
   }
 
-  @Nullable
+  @NotNull
   @Override
   public LoadingPanel createLoadingPanel() {
-    if (myProject == null) {
-      return null;
-    }
-
     return new LoadingPanel() {
       private JBLoadingPanel myLoadingPanel = new JBLoadingPanel(new BorderLayout(), myProject);
 
@@ -77,13 +74,9 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
     };
   }
 
-  @Nullable
+  @NotNull
   @Override
   public TabsPanel createTabsPanel() {
-    if (myProject == null) {
-      return null;
-    }
-
     return new TabsPanel() {
       @NotNull private final JBTabsImpl myTabsImpl = new JBTabsImpl(myProject);
       @NotNull private final HashMap<JComponent, TabInfo> myTabsCache = new HashMap<>();
@@ -117,6 +110,12 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
     };
   }
 
+  @NotNull
+  @Override
+  public StackTraceView createStackView(@Nullable Runnable prenavigate) {
+    return new IntelliJStackTraceView(myProject, prenavigate);
+  }
+
   @Override
   public void installNavigationContextMenu(@NotNull JComponent component,
                                            @NotNull Supplier<CodeLocation> codeLocationSupplier,
@@ -124,12 +123,12 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
     component.putClientProperty(DataManager.CLIENT_PROPERTY_DATA_PROVIDER, (DataProvider)dataId -> {
       if (CommonDataKeys.NAVIGATABLE_ARRAY.is(dataId)) {
         CodeLocation frame = codeLocationSupplier.get();
-        if (frame == null || myProject == null) {
+        if (frame == null) {
           return null;
         }
 
-        if (frame.getLine() > 0) {
-          return PsiClassNavigation.getNavigationForClass(myProject, preNavigate, frame.getClassName(), frame.getLine());
+        if (frame.getLineNumber() > 0) {
+          return PsiClassNavigation.getNavigationForClass(myProject, preNavigate, frame.getClassName(), frame.getLineNumber());
         }
         else {
           return PsiClassNavigation.getNavigationForClass(myProject, preNavigate, frame.getClassName());
