@@ -481,6 +481,9 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
         return;
       }
 
+      myKeyTextField.setEnabled(true);
+      myDefaultValueTextField.setEnabled(true);
+      myTranslationTextField.setEnabled(true);
       StringResourceTableModel model = (StringResourceTableModel)myTable.getModel();
 
       int row = myTable.getSelectedRowModelIndex();
@@ -490,7 +493,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
       setTextAndEditable(myKeyTextField, model.getKey(row), false); // TODO: keys are not editable, we want them to be refactor operations
 
       String defaultValue = (String)model.getValueAt(row, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
-      boolean defaultValueEditable = !StringUtil.containsChar(defaultValue, '\n'); // don't allow editing multiline chars in a text field
+      boolean defaultValueEditable = isValueEditableInline(defaultValue); // don't allow editing multiline chars in a text field
       setTextAndEditable(myDefaultValueTextField.getTextField(), defaultValue, defaultValueEditable);
       myDefaultValueTextField.getButton().setEnabled(true);
 
@@ -498,22 +501,34 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
       String translation = "";
       if (locale != null) {
         translation = (String)model.getValueAt(row, column);
-        translationEditable = !StringUtil.containsChar(translation, '\n'); // don't allow editing multiline chars in a text field
+        translationEditable = isValueEditableInline(translation); // don't allow editing multiline chars in a text field
       }
       setTextAndEditable(myTranslationTextField.getTextField(), translation, translationEditable);
       myTranslationTextField.getButton().setEnabled(locale != null);
     }
+  }
 
-    private void setTextAndEditable(@NotNull JTextComponent component, @NotNull String text, boolean editable) {
-      component.setText(text);
-      component.setCaretPosition(0);
-      component.setEditable(editable);
-      // If a text component is not editable when it gains focus and becomes editable while still focused,
-      // the caret does not appear, so we need to set the caret visibility manually
-      component.getCaret().setVisible(editable && component.hasFocus());
+  /**
+   * Check if the provided value can be edited inline or has to be edited using the multiline text field.
+   *
+   * A Value can be edited inline if it contains no "\n" character.
+   *
+   * @param value The value to check
+   * @return true is the value can be edited inline, false if it has to be edited with the multiline text field
+   */
+  private static boolean isValueEditableInline(@NotNull String value) {
+    return !StringUtil.containsChar(value, '\n');
+  }
 
-      component.setFont(FontUtil.getFontAbleToDisplay(text, component.getFont()));
-    }
+  private static void setTextAndEditable(@NotNull JTextComponent component, @NotNull String text, boolean editable) {
+    component.setText(text);
+    component.setCaretPosition(0);
+    component.setEditable(editable);
+    // If a text component is not editable when it gains focus and becomes editable while still focused,
+    // the caret does not appear, so we need to set the caret visibility manually
+    component.getCaret().setVisible(editable && component.hasFocus());
+
+    component.setFont(FontUtil.getFontAbleToDisplay(text, component.getFont()));
   }
 
   private class ShowMultilineActionListener implements ActionListener {
@@ -536,11 +551,13 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
       if (d.showAndGet()) {
         if (!StringUtil.equals(value, d.getDefaultValue())) {
           model.setValueAt(d.getDefaultValue(), row, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
+          setTextAndEditable(myDefaultValueTextField.getTextField(), d.getDefaultValue(), isValueEditableInline(d.getDefaultValue()));
           myTable.refilter();
         }
 
         if (locale != null && !StringUtil.equals(translation, d.getTranslation())) {
           model.setValueAt(d.getTranslation(), row, column);
+          setTextAndEditable(myTranslationTextField.getTextField(), d.getTranslation(), isValueEditableInline(d.getTranslation()));
           myTable.refilter();
         }
       }
