@@ -16,9 +16,10 @@
 package com.android.tools.profilers.network;
 
 import com.android.testutils.TestResources;
+import com.android.tools.adtui.TreeWalker;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.common.CodeLocation;
-import com.android.tools.profilers.common.TabsPanel;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.labels.LinkLabel;
 import org.junit.Before;
@@ -28,11 +29,12 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.Arrays;
 import java.util.List;
 
 import java.io.File;
-import java.io.IOException;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -41,7 +43,12 @@ import static org.mockito.Mockito.*;
 
 public class ConnectionDetailsViewTest {
 
-  @Mock private IdeProfilerComponents myIdeProfilerComponents;
+  private static final ImmutableMap<String, String> TEST_HEADERS = ImmutableMap.<String, String>builder()
+    .put("car", "value")
+    .put("border", "value")
+    .put("apple", "value")
+    .put("123", "value").build();
+
   @Mock private IdeProfilerServices myIdeServices;
   @Mock private HttpData myHttpData;
   private ConnectionDetailsView myView;
@@ -54,13 +61,11 @@ public class ConnectionDetailsViewTest {
     MockitoAnnotations.initMocks(this);
     when(myHttpData.getUrl()).thenReturn("dumbUrl");
     when(myHttpData.getTrace()).thenReturn("dumbTrace");
+    when(myHttpData.getResponseHeaders()).thenReturn(ImmutableMap.of());
 
-    TabsPanel tabs = mock(TabsPanel.class);
-    when(tabs.getComponent()).thenReturn(new JPanel());
-    when(myIdeProfilerComponents.createTabsPanel()).thenReturn(tabs);
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myIdeServices);
     NetworkProfilerStage stage = new NetworkProfilerStage(profilers);
-    StudioProfilersView view = new StudioProfilersView(profilers, myIdeProfilerComponents);
+    StudioProfilersView view = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     profilers.setStage(stage);
 
     NetworkProfilerStageView networkView = (NetworkProfilerStageView)view.getStageView();
@@ -162,6 +167,31 @@ public class ConnectionDetailsViewTest {
     when(myHttpData.getResponseField(eq(HttpData.FIELD_CONTENT_LENGTH))).thenReturn(null);
     myView.update(myHttpData);
     assertEquals(-1, myView.getFieldComponentIndex("Content length"));
+  }
+
+  @Test
+  public void headersIsUpdated() {
+    when(myHttpData.getResponseHeaders()).thenReturn(TEST_HEADERS);
+    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    JPanel headers = (JPanel) stream.filter(c -> "Headers".equals(c.getName())).findFirst().get();
+    assertEquals(0, headers.getComponentCount());
+    myView.update(myHttpData);
+    assertNotEquals(0, headers.getComponentCount());
+  }
+
+  @Test
+  public void headerSectionIsSorted() {
+    when(myHttpData.getResponseHeaders()).thenReturn(TEST_HEADERS);
+    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    JPanel headers = (JPanel) stream.filter(c -> "Headers".equals(c.getName())).findFirst().get();
+    myView.update(myHttpData);
+    stream = new TreeWalker(headers).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    JPanel responseHeaders = (JPanel) stream.filter(c -> "Response Headers".equals(c.getName())).findFirst().get();
+    assertNotEquals("123", TEST_HEADERS.entrySet().iterator().next().getKey());
+    assertEquals("123", responseHeaders.getComponent(1).getName());
+    assertEquals("apple", responseHeaders.getComponent(2).getName());
+    assertEquals("border", responseHeaders.getComponent(3).getName());
+    assertEquals("car", responseHeaders.getComponent(4).getName());
   }
 
   @Test
