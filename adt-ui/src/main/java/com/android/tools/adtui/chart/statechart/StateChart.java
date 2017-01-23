@@ -23,7 +23,6 @@ import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.StateChartModel;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -145,22 +144,22 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
     for (RangedSeries<E> data : series) {
       double min = data.getXRange().getMin();
       double max = data.getXRange().getMax();
-      ImmutableList<SeriesData<E>> seriesDataList = data.getSeries();
-      int size = seriesDataList.size();
+      float startHeight = 1 - (height * (seriesIndex + 1));
 
       // Construct rectangles.
       long previousX = -1;
       E previousValue = null;
-
-      for (int i = 0; i < size; i++) {
-        SeriesData<E> seriesData = seriesDataList.get(i);
+      for (SeriesData<E> seriesData: data.getSeries()) {
         long x = seriesData.x;
         E value = seriesData.value;
 
-        float startHeight = 1 - (height * (seriesIndex + 1));
+        if (value.equals(previousValue)) {
+          // Ignore repeated values
+          continue;
+        }
 
         // Don't draw if this block doesn't intersect with [min..max]
-        if (i > 0 && x >= min) {
+        if (previousValue != null && x >= min) {
           // Draw the previous block.
           setRectangleAndValueData(rectCount,
                                    Math.max(min, previousX),
@@ -177,23 +176,24 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
         previousValue = value;
         previousX = x;
 
-        if (x >= max) {
+        if (previousX >= max) {
           // Drawn past max range, stop.
           break;
         }
-        else if (i == size - 1) {
-          // Reached the end, assumes the last data point continues till max.
-          setRectangleAndValueData(rectCount,
-                                   Math.max(min, previousX),
-                                   max,
-                                   min,
-                                   max,
-                                   previousValue,
-                                   startHeight + gap * 0.5f,
-                                   height - gap);
-          rectCount++;
-        }
       }
+      // The last data point continues till max
+      if (previousX < max) {
+        setRectangleAndValueData(rectCount,
+                                 Math.max(min, previousX),
+                                 max,
+                                 min,
+                                 max,
+                                 previousValue,
+                                 startHeight + gap * 0.5f,
+                                 height - gap);
+        rectCount++;
+      }
+
       seriesIndex++;
     }
 
