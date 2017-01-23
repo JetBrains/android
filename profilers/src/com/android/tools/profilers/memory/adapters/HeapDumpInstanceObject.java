@@ -117,7 +117,8 @@ class HeapDumpInstanceObject implements InstanceObject {
 
       referrers.add(new HeapDumpReferenceObject(
         // TODO - is the ClassObj logic correct here? Should a ClassObj instance not have the "java.lang.Class" as its ClassObj?
-        new HeapDumpClassObject(reference instanceof ClassObj ? (ClassObj)reference : reference.getClassObj()), reference,
+        new HeapDumpClassObject(reference instanceof ClassObj ? (ClassObj)reference : reference.getClassObj(), reference.getHeap().getId()),
+        reference,
         referencingFieldNames));
     }
 

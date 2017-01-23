@@ -17,12 +17,16 @@ package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Field;
+import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Type;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class MockClassObj extends ClassObj {
   // keep insertion order with LinkedHashMap so we have deterministic positions when validating the fields
@@ -37,6 +41,13 @@ class MockClassObj extends ClassObj {
   @Override
   public long getUniqueId() {
     return getId();
+  }
+
+  @Override
+  public Heap getHeap() {
+    Heap mockHeap = mock(Heap.class);
+    when(mockHeap.getId()).thenReturn(-1);
+    return mockHeap;
   }
 
   @Override

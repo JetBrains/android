@@ -130,19 +130,20 @@ public abstract class MemoryProfilerTestBase {
 
   @NotNull
   static ClassObject mockClassObject(@NotNull String name,
-                                     int size,
+                                     int instanceSize,
                                      int shallowSize,
                                      long retainedSize,
                                      @NotNull List<InstanceObject> instances) {
     ClassObject object = mock(ClassObject.class);
     when(object.getName()).thenReturn(name);
-    when(object.getElementSize()).thenReturn(size);
+    when(object.getInstanceSize()).thenReturn(instanceSize);
     when(object.getShallowSize()).thenReturn(shallowSize);
     when(object.getRetainedSize()).thenReturn(retainedSize);
     int lastDotIndex = name.lastIndexOf('.');
     when(object.getClassName()).thenReturn(name.substring(lastDotIndex + 1));
     when(object.getSplitPackageName()).thenReturn(lastDotIndex > 0 ? name.substring(0, lastDotIndex).split("\\.") : new String[0]);
-    when(object.getInstanceCount()).thenReturn(instances.size());
+    when(object.getTotalCount()).thenReturn(instances.size());
+    when(object.getHeapCount()).thenReturn(instances.size());
     when(object.getInstances()).thenReturn(instances);
     when(object.getInstanceAttributes()).thenReturn(Arrays.asList(InstanceObject.InstanceAttribute.values()));
     return object;

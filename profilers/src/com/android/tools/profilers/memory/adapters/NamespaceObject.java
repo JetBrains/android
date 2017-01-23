@@ -29,7 +29,11 @@ public class NamespaceObject implements MemoryObject {
     return myName;
   }
 
-  public int getInstanceCount() {
+  public int getTotalCount() {
+    return INVALID_VALUE;
+  }
+
+  public int getHeapCount() {
     return INVALID_VALUE;
   }
 
