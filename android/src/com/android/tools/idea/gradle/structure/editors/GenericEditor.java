@@ -73,14 +73,6 @@ public class GenericEditor<E extends EditorPanel> implements ModuleConfiguration
   }
 
   @Override
-  public void saveData() {
-  }
-
-  @Override
-  public void moduleStateChanged() {
-  }
-
-  @Override
   public void apply() throws ConfigurationException {
     CommandProcessor.getInstance().runUndoTransparentAction(new Runnable() {
       @Override

@@ -44,10 +44,6 @@ public class AndroidGradleFacetEditorTab extends FacetEditorTab {
   }
 
   @Override
-  public void reset() {
-  }
-
-  @Override
   public void disposeUIResources() {
     Disposer.dispose(myModuleEditor);
   }

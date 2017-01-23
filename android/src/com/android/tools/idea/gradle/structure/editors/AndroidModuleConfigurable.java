@@ -98,10 +98,6 @@ public class AndroidModuleConfigurable extends NamedConfigurable {
   }
 
   @Override
-  public void reset() {
-  }
-
-  @Override
   public void disposeUIResources() {
     Disposer.dispose(myModuleEditor);
   }
