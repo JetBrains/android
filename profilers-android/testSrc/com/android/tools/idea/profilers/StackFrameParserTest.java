@@ -13,48 +13,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.common;
+package com.android.tools.idea.profilers;
 
-import com.android.tools.profilers.network.ConnectionDetailsView;
 import org.junit.Test;
 
 import static com.android.tools.profilers.common.CodeLocation.INVALID_LINE_NUMBER;
 import static org.junit.Assert.assertEquals;
 
-public class StackLineTest {
+public class StackFrameParserTest {
   @Test
   public void getLineNumber() {
     String line = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:274)";
-    assertEquals(273, StackLine.getLineNumber(line));
+    assertEquals(274, new StackFrameParser(line).getLineNumber());
   }
 
   @Test
   public void getNoLineNumber() {
     String line = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java)";
-    assertEquals(INVALID_LINE_NUMBER, StackLine.getLineNumber(line));
+    assertEquals(INVALID_LINE_NUMBER, new StackFrameParser(line).getLineNumber());
   }
 
   @Test
   public void getInvalidLineNumber() {
     String line = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:init)";
-    assertEquals(INVALID_LINE_NUMBER, StackLine.getLineNumber(line));
+    assertEquals(INVALID_LINE_NUMBER, new StackFrameParser(line).getLineNumber());
   }
 
   @Test
   public void getClassName() {
     String line = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:27)";
-    assertEquals("com.example.android.displayingbitmaps.util.ImageFetcher", StackLine.getClassName(line));
+    assertEquals("com.example.android.displayingbitmaps.util.ImageFetcher", new StackFrameParser(line).getClassName());
   }
 
   @Test
   public void getClassNameIfNested() {
     String line = "com.example.android.displayingbitmaps.util.ImageWorker$BitmapWorkerTask.doInBackground(ImageWorker.java:312)";
-    assertEquals("com.example.android.displayingbitmaps.util.ImageWorker", StackLine.getClassName(line));
+    assertEquals("com.example.android.displayingbitmaps.util.ImageWorker$BitmapWorkerTask", new StackFrameParser(line).getClassName());
   }
 
   @Test
   public void getClassNameIfAnonymous() {
     String line = "com.example.android.displayingbitmaps.util.AsyncTask$2.call(AsyncTask.java:313)";
-    assertEquals("com.example.android.displayingbitmaps.util.AsyncTask", StackLine.getClassName(line));
+    assertEquals("com.example.android.displayingbitmaps.util.AsyncTask$2", new StackFrameParser(line).getClassName());
   }
 }

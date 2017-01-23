@@ -17,14 +17,17 @@ package com.android.tools.profilers;
 
 import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.common.LoadingPanel;
+import com.android.tools.profilers.common.StackTraceView;
 import com.android.tools.profilers.common.TabsPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mockito.Mockito;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -35,7 +38,7 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
   @NotNull
   private Map<JComponent, ComponentNavigations> myComponents = new HashMap<>();
 
-  @Nullable
+  @NotNull
   @Override
   public LoadingPanel createLoadingPanel() {
     return new LoadingPanel() {
@@ -88,6 +91,16 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     };
   }
 
+  /**
+   * This creates a mocked version of a {@link StackTraceViewStub} such that code that uses {@link IdeProfilerComponents} can be tested.
+   * @return a mocked {@link StackTraceViewStub}
+   */
+  @NotNull
+  @Override
+  public StackTraceView createStackView(@Nullable Runnable prenavigate) {
+    return Mockito.spy(new StackTraceViewStub());
+  }
+
   @Override
   public void installNavigationContextMenu(@NotNull JComponent component,
                                            @NotNull Supplier<CodeLocation> codeLocationSupplier,
@@ -118,6 +131,35 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     private ComponentNavigations(@Nullable Supplier<CodeLocation> supplier, @Nullable Runnable navigate) {
       myCodeLocationSupplier = supplier;
       myPreNavigate = navigate;
+    }
+  }
+
+  public static class StackTraceViewStub implements StackTraceView {
+    @Override
+    public void clearStackFrames() {
+
+    }
+
+    @Override
+    public void setStackFrames(@NotNull String stackString) {
+
+    }
+
+    @Override
+    public void setStackFrames(@NotNull List<CodeLocation> stackFrames) {
+
+    }
+
+    @NotNull
+    @Override
+    public JComponent getComponent() {
+      return new JPanel();
+    }
+
+    @NotNull
+    @Override
+    public List<CodeLocation> getCodeLocations() {
+      return new ArrayList<>();
     }
   }
 }
