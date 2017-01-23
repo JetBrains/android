@@ -215,7 +215,9 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     lineChart.configure(memoryUsage.getOtherSeries(), new LineConfig(ProfilerColors.MEMORY_OTHERS).setFilled(true).setStacked(true));
     lineChart.configure(memoryUsage.getTotalMemorySeries(), new LineConfig(ProfilerColors.MEMORY_TOTAL));
     lineChart
-      .configure(memoryUsage.getObjectsSeries(), new LineConfig(ProfilerColors.MEMORY_OBJECTS).setStroke(LineConfig.DEFAULT_DASH_STROKE));
+      .configure(memoryUsage.getObjectsSeries(),
+                 new LineConfig(ProfilerColors.MEMORY_OBJECTS).setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(
+                   LegendConfig.IconType.DOTTED_LINE));
 
     // TODO set proper colors / icons
     DurationDataRenderer<CaptureDurationData<HeapDumpCaptureObject>> heapDumpRenderer =
