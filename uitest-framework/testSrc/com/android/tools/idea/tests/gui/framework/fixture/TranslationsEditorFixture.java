@@ -95,4 +95,11 @@ public final class TranslationsEditorFixture {
     TextFieldWithBrowseButton field = (TextFieldWithBrowseButton)myRobot.finder().findByName(myTranslationsEditor, "translationTextField");
     return new JTextComponentFixture(myRobot, field.getTextField());
   }
+
+  @NotNull
+  public MultilineStringEditorDialogFixture getMultilineEditorDialog() {
+    TextFieldWithBrowseButton field = (TextFieldWithBrowseButton)myRobot.finder().findByName(myTranslationsEditor, "translationTextField");
+    myRobot.click(field.getButton());
+    return MultilineStringEditorDialogFixture.find(myRobot);
+  }
 }

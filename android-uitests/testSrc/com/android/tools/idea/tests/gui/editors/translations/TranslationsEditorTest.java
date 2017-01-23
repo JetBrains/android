@@ -16,11 +16,15 @@
 package com.android.tools.idea.tests.gui.editors.translations;
 
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
+import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MultilineStringEditorDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.TranslationsEditorFixture;
+import com.intellij.notification.Notification;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.util.ui.EmptyClipboardOwner;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.KeyPressInfo;
@@ -190,6 +194,24 @@ public final class TranslationsEditorTest {
     translationTextField.pressAndReleaseKey(KeyPressInfo.keyCode(keyStroke.getKeyCode()).modifiers(keyStroke.getModifiers()));
 
     assertEquals(-1, translationTextField.font().target().canDisplayUpTo("יישום פשוט"));
+  }
+
+  @Test
+  public void multilineEditUpdateShowsInTable() {
+    myTranslationsEditor.getTable().selectCell(TableCell.row(1).column(3));
+
+    /* TODO Ideally, this would be good to have an option on the GuiTestRunner to avoid showing any notification for tests
+     * because the notification prevent the robot to click on the multiline editor button */
+    Notification notification =
+      ServiceManager.getService(myGuiTest.ideFrame().getProject(), AndroidGradleNotification.class).getNotification();
+    if (notification != null) {
+      notification.hideBalloon();
+    }
+
+    MultilineStringEditorDialogFixture editor = myTranslationsEditor.getMultilineEditorDialog();
+    editor.getTranslationEditorTextField().replaceText("Multiline\nTest");
+    editor.clickOk();
+    myTranslationsEditor.getTable().cell(TableCell.row(1).column(3)).requireValue("Multiline\nTest");
   }
 
   @NotNull
