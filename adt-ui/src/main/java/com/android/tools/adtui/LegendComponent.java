@@ -17,8 +17,8 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.Legend;
+import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +40,12 @@ public class LegendComponent extends AnimatedComponent {
   }
 
   private static final BasicStroke LINE_STROKE = new BasicStroke(3);
+  private static final BasicStroke DASH_STROKE = new BasicStroke(2.0f,
+                                                                 BasicStroke.CAP_BUTT,
+                                                                 BasicStroke.JOIN_BEVEL,
+                                                                 10.0f,  // Miter limit, Swing's default
+                                                                 new float[]{4.0f, 2.0f},  // Dash pattern in pixel
+                                                                 0.0f);  // Dash phase - just starts at zero.)
   private static final BasicStroke BORDER_STROKE = new BasicStroke(1);
 
   /**
@@ -146,34 +152,39 @@ public class LegendComponent extends AnimatedComponent {
       int xOffset = 0;
 
       // Draw the icon, and apply a translation offset for the label to be drawn.
-      // TODO: Add config for LegendRenderData.IconType.DOTTED_LINE once we support dashed lines.
-      if (config.getIcon() == LegendConfig.IconType.BOX) {
-        // Adjust the box initial Y coordinate to align the box and the label vertically.
-        int boxY = LEGEND_VERTICAL_PADDING_PX + (labelPreferredSize.height - ICON_WIDTH_PX) / 2;
-        Color fillColor = config.getColor();
-        g2d.setColor(fillColor);
-        g2d.fillRect(0, boxY, ICON_WIDTH_PX, ICON_WIDTH_PX);
+      switch (config.getIcon()) {
+        case BOX:
+          // Adjust the box initial Y coordinate to align the box and the label vertically.
+          int boxY = LEGEND_VERTICAL_PADDING_PX + (labelPreferredSize.height - ICON_WIDTH_PX) / 2;
+          Color fillColor = config.getColor();
+          g2d.setColor(fillColor);
+          g2d.fillRect(0, boxY, ICON_WIDTH_PX, ICON_WIDTH_PX);
 
-        int r = (int)(fillColor.getRed() * .8f);
-        int g = (int)(fillColor.getGreen() * .8f);
-        int b = (int)(fillColor.getBlue() * .8f);
+          int r = (int)(fillColor.getRed() * .8f);
+          int g = (int)(fillColor.getGreen() * .8f);
+          int b = (int)(fillColor.getBlue() * .8f);
 
-        Color borderColor = new Color(r,g,b);
-        g2d.setColor(borderColor);
-        g2d.setStroke(BORDER_STROKE);
-        g2d.drawRect(0, boxY, ICON_WIDTH_PX, ICON_WIDTH_PX);
-        g2d.setStroke(defaultStroke);
+          Color borderColor = new Color(r, g, b);
+          g2d.setColor(borderColor);
+          g2d.setStroke(BORDER_STROKE);
+          g2d.drawRect(0, boxY, ICON_WIDTH_PX, ICON_WIDTH_PX);
+          g2d.setStroke(defaultStroke);
 
-        xOffset = ICON_WIDTH_PX + ICON_MARGIN_PX;
+          xOffset = ICON_WIDTH_PX + ICON_MARGIN_PX;
+          break;
+        case LINE:
+        case DOTTED_LINE:
+          g2d.setColor(config.getColor());
+          g2d.setStroke(config.getIcon() == LegendConfig.IconType.LINE ? LINE_STROKE : DASH_STROKE);
+          int lineY = LEGEND_VERTICAL_PADDING_PX + labelPreferredSize.height / 2;
+          g2d.drawLine(xOffset, lineY, ICON_WIDTH_PX, lineY);
+          g2d.setStroke(defaultStroke);
+          xOffset = ICON_WIDTH_PX + ICON_MARGIN_PX;
+          break;
+        default:
+          break;
       }
-      else if (config.getIcon() == LegendConfig.IconType.LINE) {
-        g2d.setColor(config.getColor());
-        g2d.setStroke(LINE_STROKE);
-        int lineY = LEGEND_VERTICAL_PADDING_PX + labelPreferredSize.height / 2;
-        g2d.drawLine(xOffset, lineY, ICON_WIDTH_PX, lineY);
-        g2d.setStroke(defaultStroke);
-        xOffset = ICON_WIDTH_PX + ICON_MARGIN_PX;
-      }
+
       g2d.translate(xOffset, LEGEND_VERTICAL_PADDING_PX);
       label.paint(g2d);
 
