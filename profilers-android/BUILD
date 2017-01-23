@@ -4,6 +4,7 @@ iml_module(
     name = "profilers-android",
     srcs = ["src"],
     tags = ["managed"],
+    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
