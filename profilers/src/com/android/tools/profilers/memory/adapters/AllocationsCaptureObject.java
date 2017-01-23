@@ -36,7 +36,10 @@ public final class AllocationsCaptureObject implements CaptureObject {
   private volatile List<ClassObject> myClassObjs = null;
   private volatile boolean myIsLoadingError;
 
-  public AllocationsCaptureObject(@NotNull MemoryServiceBlockingStub client, int processId, String serial, @NotNull MemoryProfiler.AllocationsInfo info) {
+  public AllocationsCaptureObject(@NotNull MemoryServiceBlockingStub client,
+                                  int processId,
+                                  String serial,
+                                  @NotNull MemoryProfiler.AllocationsInfo info) {
     myClient = client;
     myProcessId = processId;
     myDeviceSerial = serial;
@@ -184,7 +187,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
     @NotNull
     @Override
     public List<ClassObject.ClassAttribute> getClassAttributes() {
-      return Arrays.asList(ClassAttribute.LABEL, ClassAttribute.INSTANCE_COUNT);
+      return Arrays.asList(ClassAttribute.LABEL, ClassAttribute.HEAP_COUNT);
     }
   }
 }

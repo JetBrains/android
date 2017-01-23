@@ -15,13 +15,16 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Heap;
 import com.android.tools.profilers.memory.adapters.ClassObject.ClassAttribute;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.android.tools.profilers.memory.adapters.ClassObject.ClassAttribute.*;
@@ -60,7 +63,15 @@ final class HeapDumpHeapObject implements HeapObject {
   @Override
   public List<ClassObject> getClasses() {
     if (myClassObjects == null) {
-      myClassObjects = myHeap.getClasses().stream().map(HeapDumpClassObject::new).collect(Collectors.toList());
+      // Find the union of the classObjs this heap has instances of, plus the classObjs themselves that are allocated on this heap.
+      Set<ClassObj> classes = new LinkedHashSet<>(myHeap.getClasses().size() + myHeap.getInstancesCount());
+      classes.addAll(myHeap.getClasses());
+
+      myHeap.forEachInstance(instance -> {
+        classes.add(instance.getClassObj());
+        return true;
+      });
+      myClassObjects = classes.stream().map(klass -> new HeapDumpClassObject(klass, myHeap.getId())).collect(Collectors.toList());
     }
     return myClassObjects;
   }
@@ -68,6 +79,6 @@ final class HeapDumpHeapObject implements HeapObject {
   @NotNull
   @Override
   public List<ClassAttribute> getClassAttributes() {
-    return Arrays.asList(LABEL, INSTANCE_COUNT, ELEMENT_SIZE, SHALLOW_SIZE, RETAINED_SIZE);
+    return Arrays.asList(LABEL, TOTAL_COUNT, HEAP_COUNT, INSTANCE_SIZE, SHALLOW_SIZE, RETAINED_SIZE);
   }
 }

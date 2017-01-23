@@ -17,9 +17,13 @@ package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.perflib.heap.ArrayInstance;
 import com.android.tools.perflib.heap.ClassObj;
+import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Type;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class MockArrayInstance extends ArrayInstance {
   @NotNull private final Object[] myArrayValues;
@@ -34,6 +38,13 @@ class MockArrayInstance extends ArrayInstance {
   @Override
   public long getUniqueId() {
     return getId();
+  }
+
+  @Override
+  public Heap getHeap() {
+    Heap mockHeap = mock(Heap.class);
+    when(mockHeap.getId()).thenReturn(-1);
+    return mockHeap;
   }
 
   @Override
