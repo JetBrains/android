@@ -60,15 +60,21 @@ public class NewGradleSync implements GradleSync {
   @NotNull private final ProjectSetup.Factory myProjectSetupFactory;
 
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
+  @NotNull private final SyncErrorHandlerManager myErrorHandlerManager;
 
   NewGradleSync(@NotNull Project project) {
-    this(project, new CommandLineArgs(true /* create classpath init script */), new ProjectSetup.Factory());
+    this(project, new CommandLineArgs(true /* create classpath init script */), new SyncErrorHandlerManager(project),
+         new ProjectSetup.Factory());
   }
 
   @VisibleForTesting
-  NewGradleSync(@NotNull Project project, @NotNull CommandLineArgs commandLineArgs, @NotNull ProjectSetup.Factory projectSetupFactory) {
+  NewGradleSync(@NotNull Project project,
+                @NotNull CommandLineArgs commandLineArgs,
+                @NotNull SyncErrorHandlerManager errorHandlerManager,
+                @NotNull ProjectSetup.Factory projectSetupFactory) {
     myProject = project;
     myCommandLineArgs = commandLineArgs;
+    myErrorHandlerManager = errorHandlerManager;
     myProjectSetupFactory = projectSetupFactory;
   }
 
@@ -151,6 +157,7 @@ public class NewGradleSync implements GradleSync {
         callback.setDone(models);
       }
       catch (RuntimeException e) {
+        myErrorHandlerManager.handleError(e);
         callback.setRejected(e);
       }
 
