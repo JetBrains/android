@@ -78,6 +78,12 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   @Override
+  protected void tearDown() throws Exception {
+    mySubModule = null;
+    super.tearDown();
+  }
+
+  @Override
   protected Module createMainModule() throws IOException {
     Module mainModule = createModule(myProject.getName());
 
