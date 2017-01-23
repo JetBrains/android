@@ -44,7 +44,7 @@ public class HeapDumpSampleDataSeriesTest {
     myService.addExplicitHeapDumpInfo(dumpInfo1);
     myService.addExplicitHeapDumpInfo(dumpInfo2);
 
-    HeapDumpSampleDataSeries series = new HeapDumpSampleDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1);
+    HeapDumpSampleDataSeries series = new HeapDumpSampleDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, "TestDeviceSerial");
     ImmutableList<SeriesData<CaptureDurationData<HeapDumpCaptureObject>>> dataList =
       series.getDataForXRange(new Range(0, Double.MAX_VALUE));
 

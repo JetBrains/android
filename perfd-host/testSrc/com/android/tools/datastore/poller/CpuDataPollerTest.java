@@ -62,7 +62,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     .build();
 
   private static final Common.CommonData STARTUP_BASIC_INFO = Common.CommonData.newBuilder()
-    .setAppId(TEST_APP_ID)
+    .setProcessId(TEST_APP_ID)
     .setEndTimestamp(BASE_TIME_NS)
     .build();
 
@@ -79,7 +79,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   @Test
   public void testGetDataInRange() {
     CpuProfiler.CpuDataRequest request = CpuProfiler.CpuDataRequest.newBuilder()
-      .setAppId(TEST_APP_ID)
+      .setProcessId(TEST_APP_ID)
       .setStartTimestamp(0)
       .setEndTimestamp(BASE_TIME_NS)
       .build();
@@ -101,7 +101,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   @Test
   public void testGetDataExcludeStart() {
     CpuProfiler.CpuDataRequest request = CpuProfiler.CpuDataRequest.newBuilder()
-      .setAppId(TEST_APP_ID)
+      .setProcessId(TEST_APP_ID)
       .setStartTimestamp(BASE_TIME_NS)
       .setEndTimestamp(Long.MAX_VALUE)
       .build();
@@ -136,7 +136,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   @Test
   public void testGetThreadsInRange() {
     CpuProfiler.GetThreadsRequest request = CpuProfiler.GetThreadsRequest.newBuilder()
-      .setAppId(TEST_APP_ID)
+      .setProcessId(TEST_APP_ID)
       .setStartTimestamp(BASE_TIME_NS)
       .setEndTimestamp(Long.MAX_VALUE)
       .build();
@@ -173,7 +173,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     StreamObserver<CpuProfiler.CpuProfilingAppStopResponse> stopObserver = mock(StreamObserver.class);
     myCpuDataPoller.stopProfilingApp(stopRequest, stopObserver);
     CpuProfiler.GetTraceInfoRequest request = CpuProfiler.GetTraceInfoRequest.newBuilder()
-      .setAppId(TEST_APP_ID)
+      .setProcessId(TEST_APP_ID)
       .setFromTimestamp(BASE_TIME_NS)
       .setToTimestamp(Long.MAX_VALUE)
       .build();

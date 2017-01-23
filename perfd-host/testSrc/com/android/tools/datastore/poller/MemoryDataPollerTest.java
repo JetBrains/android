@@ -105,7 +105,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   }
   public void startMonitoringApp() {
     myMemoryDataPoller
-      .startMonitoringApp(MemoryProfiler.MemoryStartRequest.newBuilder().setAppId(TEST_APP_ID).build(), mock(StreamObserver.class));
+      .startMonitoringApp(MemoryProfiler.MemoryStartRequest.newBuilder().setProcessId(TEST_APP_ID).build(), mock(StreamObserver.class));
 
     // First trigger heap dumps on the MemoryDataPoller to create the latching mechanism which both GetData and GetHeapDump depend on.
     myMemoryService.setTriggerHeapDumpInfo(DEFAULT_DUMP_INFO);
@@ -134,7 +134,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     myMemoryDataPoller.poll();
 
     MemoryProfiler.MemoryRequest request = MemoryProfiler.MemoryRequest.newBuilder()
-      .setAppId(TEST_APP_ID)
+      .setProcessId(TEST_APP_ID)
       .setStartTime(0)
       .setEndTime(Long.MAX_VALUE)
       .build();
@@ -166,7 +166,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     myMemoryDataPoller.poll();
 
     MemoryProfiler.MemoryRequest request = MemoryProfiler.MemoryRequest.newBuilder()
-      .setAppId(0)
+      .setProcessId(0)
       .setStartTime(delayTimeFromBase(2))
       .setEndTime(Long.MAX_VALUE)
       .build();
@@ -180,7 +180,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   @Ignore
   public void testGetDataInvalidAppId() throws Exception {
     MemoryProfiler.MemoryRequest request = MemoryProfiler.MemoryRequest.newBuilder()
-      .setAppId(0)
+      .setProcessId(0)
       .setStartTime(0)
       .setEndTime(Long.MAX_VALUE)
       .build();
@@ -193,7 +193,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   @Test
   public void testTrackAllocations() throws Exception {
     MemoryProfiler.TrackAllocationsRequest request = MemoryProfiler.TrackAllocationsRequest.newBuilder()
-      .setAppId(TEST_APP_ID)
+      .setProcessId(TEST_APP_ID)
       .setEnabled(true)
       .build();
     MemoryProfiler.TrackAllocationsResponse expected = MemoryProfiler.TrackAllocationsResponse.newBuilder()
@@ -207,7 +207,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   @Test
   public void testListAllocationContexts() throws Exception {
     MemoryProfiler.AllocationContextsRequest request = MemoryProfiler.AllocationContextsRequest.newBuilder()
-      .setAppId(TEST_APP_ID)
+      .setProcessId(TEST_APP_ID)
       .setStartTime(0)
       .setEndTime(Long.MAX_VALUE)
       .build();
@@ -240,7 +240,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
     // First enable allocation tracking.
     MemoryProfiler.TrackAllocationsRequest request = MemoryProfiler.TrackAllocationsRequest.newBuilder()
-      .setAppId(TEST_APP_ID).setEnabled(true).setLegacyTracking(true).build();
+      .setProcessId(TEST_APP_ID).setEnabled(true).setLegacyTracking(true).build();
     StreamObserver<MemoryProfiler.TrackAllocationsResponse> observer = mock(StreamObserver.class);
     myMemoryDataPoller.trackAllocations(request, observer);
     myMemoryService.addAllocationInfo(info);
@@ -264,7 +264,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       threadWaitLatch.countDown();
       StreamObserver<MemoryProfiler.TrackAllocationsResponse> threadObserver = mock(StreamObserver.class);
       MemoryProfiler.TrackAllocationsRequest threadRequest = MemoryProfiler.TrackAllocationsRequest.newBuilder()
-        .setAppId(TEST_APP_ID).setEnabled(false).setLegacyTracking(true).build();
+        .setProcessId(TEST_APP_ID).setEnabled(false).setLegacyTracking(true).build();
       myMemoryDataPoller.trackAllocations(threadRequest, threadObserver);
       threadDoneLatch.countDown();
     }).start();
@@ -297,7 +297,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     myMemoryDataPoller.poll();
 
     MemoryProfiler.ListDumpInfosRequest request = MemoryProfiler.ListDumpInfosRequest.newBuilder()
-      .setAppId(TEST_APP_ID)
+      .setProcessId(TEST_APP_ID)
       .setStartTime(0)
       .setEndTime(BASE_TIME_NS)
       .build();
@@ -309,7 +309,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     validateResponse(observer, expected);
 
     request = MemoryProfiler.ListDumpInfosRequest.newBuilder()
-      .setAppId(TEST_APP_ID)
+      .setProcessId(TEST_APP_ID)
       .setStartTime(BASE_TIME_NS)
       .setEndTime(delayTimeFromBase(1))
       .build();
@@ -322,7 +322,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     validateResponse(observer, expected);
 
     request = MemoryProfiler.ListDumpInfosRequest.newBuilder()
-      .setAppId(TEST_APP_ID)
+      .setProcessId(TEST_APP_ID)
       .setStartTime(delayTimeFromBase(1))
       .setEndTime(delayTimeFromBase(2))
       .build();
@@ -343,7 +343,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     myMemoryDataPoller.poll();
 
     MemoryProfiler.ListDumpInfosRequest request = MemoryProfiler.ListDumpInfosRequest.newBuilder()
-      .setAppId(TEST_APP_ID)
+      .setProcessId(TEST_APP_ID)
       .setStartTime(delayTimeFromBase(2))
       .setEndTime(Long.MAX_VALUE)
       .build();
@@ -381,7 +381,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     myMemoryDataPoller.poll();
 
     MemoryProfiler.HeapDumpDataRequest request = MemoryProfiler.HeapDumpDataRequest.newBuilder()
-      .setAppId(TEST_APP_ID)
+      .setProcessId(TEST_APP_ID)
       .setDumpId(TEST_DUMP_ID)
       .build();
     MemoryProfiler.DumpDataResponse expected = MemoryProfiler.DumpDataResponse.newBuilder()
@@ -395,7 +395,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
   private void getHeapDumpError(int id, MemoryProfiler.DumpDataResponse.Status error) {
     MemoryProfiler.HeapDumpDataRequest request = MemoryProfiler.HeapDumpDataRequest.newBuilder()
-      .setAppId(TEST_APP_ID)
+      .setProcessId(TEST_APP_ID)
       .setDumpId(id)
       .build();
     MemoryProfiler.DumpDataResponse expected = MemoryProfiler.DumpDataResponse.newBuilder()

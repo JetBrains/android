@@ -27,6 +27,7 @@ import static org.junit.Assert.*;
 
 public class MemoryProfilerTest {
   private static final int FAKE_PID = 111;
+  private static final String FAKE_DEVICE_SERIAL = "Test Device Serial";
 
   private final FakeMemoryService myService = new FakeMemoryService();
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryProfilerTest", myService);
@@ -41,13 +42,13 @@ public class MemoryProfilerTest {
 
   @Test
   public void startMonitoring() {
-    myProfiler.startProfiling(FAKE_PROCESS);
-    assertEquals(FAKE_PID, myService.getAppId());
+    myProfiler.startProfiling(FAKE_DEVICE_SERIAL, FAKE_PROCESS);
+    assertEquals(FAKE_PID, myService.getProcessId());
   }
 
   @Test
   public void stopMonitoring() {
-    myProfiler.stopProfiling(FAKE_PROCESS);
-    assertEquals(FAKE_PID, myService.getAppId());
+    myProfiler.stopProfiling(FAKE_DEVICE_SERIAL, FAKE_PROCESS);
+    assertEquals(FAKE_PID, myService.getProcessId());
   }
 }
