@@ -85,7 +85,8 @@ public final class AvdDeviceData {
       @Override
       public Double get() {
         // The diagonal DPI will be somewhere in between the X and Y dpi if they differ
-        return AvdScreenData.calculateDpi(myScreenResolutionWidth.get(), myScreenResolutionHeight.get(), myDiagonalScreenSize.get());
+        return AvdScreenData.calculateDpi(
+            myScreenResolutionWidth.get(), myScreenResolutionHeight.get(), myDiagonalScreenSize.get(), myIsScreenRound.get());
       }
     };
 
