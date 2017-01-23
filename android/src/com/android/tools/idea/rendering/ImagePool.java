@@ -243,7 +243,7 @@ public class ImagePool {
      * See {@link Graphics#drawImage(java.awt.Image, int, int, int, int, ImageObserver)}
      */
     default void drawImageTo(@NotNull Graphics g, int x, int y, int w, int h) {
-      drawImageTo(g, x, y, w, h, 0, 0, getWidth(), getHeight());
+      drawImageTo(g, x, y, x + w, y + h, 0, 0, getWidth(), getHeight());
     }
 
     /**
