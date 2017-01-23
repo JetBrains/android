@@ -16,11 +16,11 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
+import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SelectionModel;
 import com.android.tools.adtui.model.StateChartModel;
@@ -29,6 +29,7 @@ import com.android.tools.profilers.common.LoadingPanel;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
@@ -75,17 +76,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     JPanel details = new JPanel(layout);
     details.setBackground(ProfilerColors.MONITOR_BACKGROUND);
 
-    // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
-    // that attempts to read the same range instance.
-    ProfilerScrollbar scrollbar = new ProfilerScrollbar(timeline, details);
-
     EventMonitorView eventsView = new EventMonitorView(profilersView, stage.getEventMonitor());
     JComponent eventsComponent = eventsView.initialize();
 
     JPanel monitorPanel = new JBPanel(new TabularLayout("*", "*"));
     monitorPanel.setOpaque(false);
     monitorPanel.setBorder(MONITOR_BORDER);
-
 
     final JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
@@ -167,9 +163,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         myStage.setSelectedThread(thread.getThreadId());
       }
     });
-    JScrollPane scrollingThreads = new JBScrollPane();
+    JScrollPane scrollingThreads = new MyScrollPane();
     scrollingThreads.setViewportView(myThreads);
-
     myThreads.setCellRenderer(new ThreadCellRenderer(myThreads));
 
     details.add(eventsComponent, new TabularLayout.Constraint(0, 0));
@@ -180,10 +175,11 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     layout.setRowSizing(2, "6*");
     details.add(scrollingThreads, new TabularLayout.Constraint(2, 0));
 
-    details.add(scrollbar, new TabularLayout.Constraint(3, 0));
     AxisComponent timeAxis = buildTimeAxis(profilers);
+    details.add(timeAxis, new TabularLayout.Constraint(3, 0));
 
-    details.add(timeAxis, new TabularLayout.Constraint(4, 0));
+    ProfilerScrollbar scrollbar = new ProfilerScrollbar(timeline, details);
+    details.add(scrollbar, new TabularLayout.Constraint(4, 0));
 
     mySplitter = new Splitter(true);
     mySplitter.setFirstComponent(details);
@@ -199,6 +195,15 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     }
 
     updateCaptureState();
+  }
+
+  private static String formatTime(long micro) {
+    // TODO unify with TimeAxisFormatter
+    long min = micro / (1000000 * 60);
+    long sec = (micro % (1000000 * 60)) / 1000000;
+    long mil = (micro % 1000000) / 1000;
+
+    return String.format("%d:%02d:%03d", min, sec, mil);
   }
 
   @Override
@@ -223,15 +228,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     return formatTime(min) + " - " + formatTime(max);
   }
 
-  private static String formatTime(long micro) {
-    // TODO unify with TimeAxisFormatter
-    long min = micro / (1000000 * 60);
-    long sec = (micro % (1000000 * 60)) / 1000000;
-    long mil = (micro % 1000000) / 1000;
-
-    return String.format("%d:%02d:%03d", min, sec, mil);
-  }
-
   private void updateCaptureState() {
     if (myCaptureViewLoading != null) {
       myCaptureViewLoading.stopLoading();
@@ -253,7 +249,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         if (capture == null) {
           mySplitter.setSecondComponent(null);
           myCaptureView = null;
-        } else {
+        }
+        else {
           myCaptureView = new CpuCaptureView(capture, this);
           mySplitter.setSecondComponent(myCaptureView.getComponent());
         }
@@ -280,6 +277,18 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     }
     if (myCaptureView != null) {
       myCaptureView.updateThread();
+    }
+  }
+
+  private static class MyScrollPane extends JBScrollPane {
+    @Override
+    protected JViewport createViewport() {
+      if (SystemInfo.isMac) {
+        return super.createViewport();
+      }
+      // Overrides it because, when not on mac, JBViewport adds the width of the scrollbar to the right inset of the border,
+      // which would consequently misplace the threads state chart.
+      return new JViewport();
     }
   }
 
