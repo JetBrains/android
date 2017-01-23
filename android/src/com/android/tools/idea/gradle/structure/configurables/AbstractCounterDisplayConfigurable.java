@@ -78,10 +78,6 @@ public abstract class AbstractCounterDisplayConfigurable extends JPanel implemen
   }
 
   @Override
-  public void reset() {
-  }
-
-  @Override
   public void disposeUIResources() {
     Disposer.dispose(this);
   }
