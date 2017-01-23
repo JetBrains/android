@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.AndroidColorSet;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
+import com.intellij.reference.SoftReference;
 
 import java.util.WeakHashMap;
 
@@ -93,18 +94,23 @@ public class SceneContext {
    */
   public static SceneContext get(SceneView sceneView) {
     if (cache.containsKey(sceneView)) {
-      return cache.get(sceneView);
+      SoftReference<SceneViewTransform> viewTransformRef =  cache.get(sceneView);
+      SceneViewTransform viewTransform = viewTransformRef != null ? viewTransformRef.get() : null;
+
+      if (viewTransform != null) {
+        return viewTransform;
+      }
     }
     SceneViewTransform sceneViewTransform = new SceneViewTransform(sceneView);
     // TODO(jbakermalone): don't require instanceof
     sceneViewTransform.myColorSet =
       (sceneView instanceof ScreenView && ((ScreenView)sceneView).getScreenViewType() == ScreenView.ScreenViewType.BLUEPRINT) ? new BlueprintColorSet() : new AndroidColorSet();
 
-    cache.put(sceneView, sceneViewTransform);
+    cache.put(sceneView, new SoftReference<>(sceneViewTransform));
     return sceneViewTransform;
   }
 
-  private static WeakHashMap<SceneView, SceneViewTransform> cache = new WeakHashMap<>();
+  private static WeakHashMap<SceneView, SoftReference<SceneViewTransform>> cache = new WeakHashMap<>();
 
   public DesignSurface getSurface() {
     return null;
