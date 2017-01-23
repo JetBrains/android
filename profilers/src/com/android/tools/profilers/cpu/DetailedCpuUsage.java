@@ -54,4 +54,9 @@ public class DetailedCpuUsage extends CpuUsage {
   public Range getThreadRange() {
     return myThreadRange;
   }
+
+  @Override
+  protected String getCpuSeriesLabel() {
+    return "App";
+  }
 }
