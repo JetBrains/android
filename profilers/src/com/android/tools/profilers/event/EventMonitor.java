@@ -32,10 +32,14 @@ public class EventMonitor extends ProfilerMonitor {
 
   public EventMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
-    SimpleEventDataSeries events = new SimpleEventDataSeries(myProfilers.getClient(), myProfilers.getProcessId());
+    SimpleEventDataSeries events = new SimpleEventDataSeries(myProfilers.getClient(),
+                                                             myProfilers.getProcessId(),
+                                                             myProfilers.getDeviceSerial());
     mySimpleEvents = new SimpleEventModel<>(new RangedSeries<>(getTimeline().getViewRange(), events));
 
-    ActivityEventDataSeries activities = new ActivityEventDataSeries(myProfilers.getClient(), myProfilers.getProcessId());
+    ActivityEventDataSeries activities = new ActivityEventDataSeries(myProfilers.getClient(),
+                                                                     myProfilers.getProcessId(),
+                                                                     myProfilers.getDeviceSerial());
     myActivityEvents = new StackedEventModel(new RangedSeries<>(getTimeline().getViewRange(), activities));
   }
 

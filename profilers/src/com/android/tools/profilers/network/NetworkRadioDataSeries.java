@@ -37,10 +37,12 @@ public class NetworkRadioDataSeries implements DataSeries<NetworkRadioDataSeries
 
   @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myClient;
   private final int myProcessId;
+  private final String myDeviceSerial;
 
-  public NetworkRadioDataSeries(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub client, int processId) {
+  public NetworkRadioDataSeries(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub client, int processId, String serial) {
     myClient = client;
     myProcessId = processId;
+    myDeviceSerial = serial;
   }
 
   @Override
@@ -49,7 +51,8 @@ public class NetworkRadioDataSeries implements DataSeries<NetworkRadioDataSeries
     // TODO: Change the Network API to allow specifying padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     NetworkDataRequest.Builder dataRequestBuilder = NetworkDataRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
+      .setDeviceSerial(myDeviceSerial)
       .setType(NetworkDataRequest.Type.CONNECTIVITY)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);

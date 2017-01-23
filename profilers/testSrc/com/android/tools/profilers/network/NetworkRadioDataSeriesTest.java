@@ -50,7 +50,7 @@ public class NetworkRadioDataSeriesTest {
   @Before
   public void setUp() {
     StudioProfilers profiler = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
-    mySeries = new NetworkRadioDataSeries(profiler.getClient().getNetworkClient(), FakeNetworkService.FAKE_APP_ID);
+    mySeries = new NetworkRadioDataSeries(profiler.getClient().getNetworkClient(), FakeNetworkService.FAKE_APP_ID, FakeNetworkService.FAKE_DEVICE_SERIAL);
   }
 
   @Test

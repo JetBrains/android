@@ -35,14 +35,16 @@ public final class VmStatsDataSeries implements DataSeries<Long> {
   private MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
 
   private final int myProcessId;
+  private final String myDeviceSerial;
 
   @NotNull
   private Function<MemoryProfiler.MemoryData.VmStatsSample, Long> myFilter;
 
-  public VmStatsDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, int id,
+  public VmStatsDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, int id, String serial,
                            @NotNull Function<MemoryProfiler.MemoryData.VmStatsSample, Long> filter) {
     myClient = client;
     myProcessId = id;
+    myDeviceSerial = serial;
     myFilter = filter;
   }
 
@@ -51,7 +53,8 @@ public final class VmStatsDataSeries implements DataSeries<Long> {
     // TODO: Change the Memory API to allow specifying padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
+      .setDeviceSerial(myDeviceSerial)
       .setStartTime(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTime(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
     MemoryProfiler.MemoryData response = myClient.getData(dataRequestBuilder.build());

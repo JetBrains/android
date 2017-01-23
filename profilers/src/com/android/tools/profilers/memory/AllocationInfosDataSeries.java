@@ -34,16 +34,19 @@ import static com.android.tools.adtui.model.DurationData.UNSPECIFIED_DURATION;
 class AllocationInfosDataSeries implements DataSeries<CaptureDurationData<AllocationsCaptureObject>> {
   @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
   private final int myProcessId;
+  private final String myDeviceSerial;
 
-  public AllocationInfosDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, int processId) {
+  public AllocationInfosDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, int processId, String serial) {
     myClient = client;
     myProcessId = processId;
+    myDeviceSerial = serial;
   }
 
   @NotNull
   private List<MemoryProfiler.AllocationsInfo> getDataForXRange(long rangeMinNs, long rangeMaxNs) {
     MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
+      .setDeviceSerial(myDeviceSerial)
       .setStartTime(rangeMinNs)
       .setEndTime(rangeMaxNs);
     MemoryProfiler.MemoryData response = myClient.getData(dataRequestBuilder.build());
@@ -65,7 +68,7 @@ class AllocationInfosDataSeries implements DataSeries<CaptureDurationData<Alloca
       long durationUs = endTimeNs == UNSPECIFIED_DURATION ? UNSPECIFIED_DURATION : TimeUnit.NANOSECONDS.toMicros(endTimeNs - startTimeNs);
       seriesData.add(new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(startTimeNs),
                                       new CaptureDurationData<>(
-                                        durationUs, new AllocationsCaptureObject(myClient, myProcessId, info))));
+                                        durationUs, new AllocationsCaptureObject(myClient, myProcessId, myDeviceSerial, info))));
     }
     return ContainerUtil.immutableList(seriesData);
   }

@@ -40,7 +40,7 @@ public class CpuThreadsModelTest {
   public void setUp() {
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
     myRange = new Range();
-    myThreadsModel = new CpuThreadsModel(myRange, new CpuProfilerStage(profilers), 42 /* Any process id */);
+    myThreadsModel = new CpuThreadsModel(myRange, new CpuProfilerStage(profilers), 42 /* Any process id */, "Test Device Serial");
   }
 
   @Test

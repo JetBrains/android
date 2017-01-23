@@ -66,11 +66,13 @@ public class NetworkTrafficDataSeries implements DataSeries<Long> {
   @NotNull
   private NetworkServiceGrpc.NetworkServiceBlockingStub myClient;
   private final int myProcessId;
+  private final String myDeviceSerial;
   private final Type myType;
 
-  public NetworkTrafficDataSeries(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub client, int id, Type type) {
+  public NetworkTrafficDataSeries(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub client, int id, String serial, Type type) {
     myClient = client;
     myProcessId = id;
+    myDeviceSerial = serial;
     myType = type;
   }
 
@@ -81,7 +83,8 @@ public class NetworkTrafficDataSeries implements DataSeries<Long> {
     // TODO: Change the Network API to allow specifying padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     NetworkProfiler.NetworkDataRequest.Builder dataRequestBuilder = NetworkProfiler.NetworkDataRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
+      .setDeviceSerial(myDeviceSerial)
       .setType(NetworkProfiler.NetworkDataRequest.Type.SPEED)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);

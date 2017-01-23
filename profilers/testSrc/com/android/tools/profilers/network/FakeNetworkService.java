@@ -30,6 +30,7 @@ import static com.android.tools.profiler.proto.NetworkProfiler.*;
 public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceImplBase {
   public static final int FAKE_APP_ID = 1111;
   public static final String FAKE_PAYLOAD = "Test Payload";
+  public static final String FAKE_DEVICE_SERIAL = "Test Device Serial";
 
   private int myAppId;
 
@@ -44,7 +45,7 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
   @Override
   public void startMonitoringApp(NetworkStartRequest request,
                                  StreamObserver<NetworkStartResponse> responseObserver) {
-    myAppId = request.getAppId();
+    myAppId = request.getProcessId();
     responseObserver.onNext(NetworkStartResponse.newBuilder().build());
     responseObserver.onCompleted();
   }
@@ -52,12 +53,12 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
   @Override
   public void stopMonitoringApp(NetworkStopRequest request,
                                 StreamObserver<NetworkStopResponse> responseObserver) {
-    myAppId = request.getAppId();
+    myAppId = request.getProcessId();
     responseObserver.onNext(NetworkStopResponse.newBuilder().build());
     responseObserver.onCompleted();
   }
 
-  public int getAppId() {
+  public int getProcessId() {
     return myAppId;
   }
 
@@ -173,7 +174,7 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
                                                  long received) {
     NetworkProfilerData.Builder builder = NetworkProfilerData.newBuilder();
     builder.setBasicInfo(Common.CommonData.newBuilder()
-                           .setAppId(FAKE_APP_ID)
+                           .setProcessId(FAKE_APP_ID)
                            .setEndTimestamp(TimeUnit.SECONDS.toNanos(timestampSec)));
     builder.setSpeedData(SpeedData.newBuilder().setReceived(received).setSent(sent));
     return builder.build();
@@ -185,7 +186,7 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
                                                  @NotNull ConnectivityData.RadioState radioState) {
     NetworkProfilerData.Builder builder = NetworkProfilerData.newBuilder();
     builder.setBasicInfo(Common.CommonData.newBuilder()
-                           .setAppId(FAKE_APP_ID)
+                           .setProcessId(FAKE_APP_ID)
                            .setEndTimestamp(TimeUnit.SECONDS.toNanos(timestampSec)));
     builder.setConnectivityData(ConnectivityData.newBuilder()
                                   .setDefaultNetworkType(networkType)
@@ -197,7 +198,7 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
   public static NetworkProfilerData newConnectionData(long timestampSec, int value) {
     NetworkProfilerData.Builder builder = NetworkProfilerData.newBuilder();
     builder.setBasicInfo(Common.CommonData.newBuilder()
-                           .setAppId(FAKE_APP_ID)
+                           .setProcessId(FAKE_APP_ID)
                            .setEndTimestamp(TimeUnit.SECONDS.toNanos(timestampSec)));
     builder.setConnectionData(ConnectionData.newBuilder().setConnectionNumber(value).build());
     return builder.build();

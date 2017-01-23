@@ -39,16 +39,20 @@ public class CpuThreadCountDataSeries implements DataSeries<Long> {
 
   private final int myProcessId;
 
-  public CpuThreadCountDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, int id) {
+  private final String myDeviceSerial;
+
+  public CpuThreadCountDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, int id, String serial) {
     myClient = client;
     myProcessId = id;
+    myDeviceSerial = serial;
   }
 
   @Override
   public ImmutableList<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     CpuProfiler.GetThreadsRequest.Builder request = CpuProfiler.GetThreadsRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
+      .setDeviceSerial(myDeviceSerial)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
 

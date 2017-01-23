@@ -129,7 +129,7 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
       myStatsData.clear();
       myHeapData.clear();
     }
-    myProcessId = request.getAppId();
+    myProcessId = request.getProcessId();
     observer.onNext(myPollingService.startMonitoringApp(request));
     observer.onCompleted();
   }
@@ -212,7 +212,7 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
     synchronized (myUpdatingAllocationsLock) {
       // TODO support non-legacy allocation tracking path.
       TrackAllocationsResponse response = myPollingService.trackAllocations(TrackAllocationsRequest.newBuilder()
-                                                                              .setAppId(myProcessId)
+                                                                              .setProcessId(myProcessId)
                                                                               .setEnabled(request.getEnabled())
                                                                               .setLegacyTracking(true).build());
       if (response.getStatus() == SUCCESS) {
@@ -318,7 +318,7 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
   @Override
   public void poll() {
     MemoryRequest.Builder dataRequestBuilder = MemoryRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
       .setStartTime(myDataRequestStartTimestampNs)
       .setEndTime(Long.MAX_VALUE);
     MemoryData response = myPollingService.getData(dataRequestBuilder.build());
@@ -381,7 +381,7 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
         Runnable query = () -> {
           for (HeapDumpSample sample : dumpsToFetch) {
             DumpDataResponse dumpDataResponse = myPollingService.getHeapDump(
-              HeapDumpDataRequest.newBuilder().setAppId(myProcessId).setDumpId(sample.myInfo.getDumpId()).build());
+              HeapDumpDataRequest.newBuilder().setProcessId(myProcessId).setDumpId(sample.myInfo.getDumpId()).build());
             synchronized (myUpdatingDataLock) {
               if (dumpDataResponse.getStatus() == DumpDataResponse.Status.SUCCESS) {
                 sample.myData = dumpDataResponse.getData();
