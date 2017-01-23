@@ -21,6 +21,6 @@ iml_module(
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:truth[test]",
-        "//tools/base/testutils:studio.testutils[test]",
+        "//tools/base/testutils:studio.testutils[module, test]",
     ],
 )
