@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.project;
 
-import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.TargetSelectionMode;
@@ -27,7 +26,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.InstantAppUrlFinder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,7 +35,7 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.run.AndroidRunConfiguration.DO_NOTHING;
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY;
 import static com.android.tools.idea.run.util.LaunchUtils.isWatchFaceApp;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static org.jetbrains.android.util.InstantApps.getDefaultInstantAppUrl;
 
 public class AndroidRunConfigurations {
   @NotNull
@@ -68,7 +66,7 @@ public class AndroidRunConfigurations {
     configuration.setModule(module);
 
     if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
-      configuration.setLaunchUrl(getDefaultRunConfigurationUrl(facet));
+      configuration.setLaunchUrl(getDefaultInstantAppUrl(facet));
     }
     else if (isWatchFaceApp(facet)) {
       // In case of a watch face app, there is only a service and no default activity that can be launched
@@ -85,13 +83,5 @@ public class AndroidRunConfigurations {
     }
     runManager.addConfiguration(settings, false);
     ApplicationManager.getApplication().runReadAction(() -> runManager.setSelectedConfiguration(settings));
-  }
-
-  @NotNull
-  private static String getDefaultRunConfigurationUrl(@NotNull AndroidFacet facet) {
-    String defaultUrl = "<<ERROR - NO URL SET>>";
-    assert facet.getProjectType() == PROJECT_TYPE_INSTANTAPP;
-    String foundUrl = new InstantAppUrlFinder(MergedManifest.get(facet)).getDefaultUrl();
-    return isEmpty(foundUrl) ? defaultUrl : foundUrl;
   }
 }
