@@ -1472,39 +1472,15 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * <p/>
    * Note: This operation can only be called when the caller is already holding a write lock. This will be the
    * case from {@link ViewHandler} callbacks such as {@link ViewHandler#onCreate} and {@link DragHandler#commit}.
+   * <p/>
+   * Note: The caller is responsible for calling {@link #notifyModified(ChangeType)} if the creation completes successfully.
    *
-   * @param sceneView The target screen, if known. Used to handle pixel to dp computations in view handlers, etc.
-   * @param fqcn       The fully qualified name of the widget to insert, such as {@code android.widget.LinearLayout}.
-   *                   You can also pass XML tags here (this is typically the same as the fully qualified class name
-   *                   of the custom view, but for Android framework views in the android.view or android.widget packages,
-   *                   you can omit the package.)
-   * @param parent     The optional parent to add this component to
+   * @param sceneView  The target screen, if known. Used to handle pixel to dp computations in view handlers, etc.
+   * @param tag        The XmlTag for the component.
+   * @param parent     The parent to add this component to.
    * @param before     The sibling to insert immediately before, or null to append
    * @param insertType The type of insertion
    */
-  public NlComponent createComponent(@Nullable SceneView sceneView,
-                                     @NotNull String fqcn,
-                                     @Nullable NlComponent parent,
-                                     @Nullable NlComponent before,
-                                     @NotNull InsertType insertType) {
-    String tagName = NlComponent.viewClassToTag(fqcn);
-
-    XmlTag tag;
-    if (parent != null) {
-      // Creating a component intended to be inserted into an existing layout
-      tag = parent.getTag().createChildTag(tagName, null, null, false);
-    }
-    else {
-      // Creating a component not yet inserted into a layout. Typically done when trying to perform
-      // a drag from palette, etc.
-      XmlElementFactory elementFactory = XmlElementFactory.getInstance(getProject());
-      String text = "<" + fqcn + " xmlns:android=\"http://schemas.android.com/apk/res/android\"/>"; // SIZES?
-      tag = elementFactory.createTagFromText(text);
-    }
-
-    return createComponent(sceneView, tag, parent, before, insertType);
-  }
-
   public NlComponent createComponent(@Nullable SceneView sceneView,
                                      @NotNull XmlTag tag,
                                      @Nullable NlComponent parent,
@@ -1550,6 +1526,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     if (childHandler != null && sceneView != null) {
       ViewEditor editor = new ViewEditorImpl(sceneView);
       boolean ok = childHandler.onCreate(editor, parent, child, insertType);
+      if (parent != null) {
+        ok &= addDependencies(ImmutableList.of(child), InsertType.CREATE);
+      }
       if (!ok) {
         if (parent != null) {
           parent.removeChild(child);
