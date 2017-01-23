@@ -71,10 +71,10 @@ final class ConnectionsView {
    */
   @VisibleForTesting
   enum Column {
-    URL(0.25, String.class) {
+    NAME(0.25, String.class) {
       @Override
       Object getValueFrom(@NotNull HttpData data) {
-        return data.getUrl();
+        return HttpData.getUrlName(data.getUrl());
       }
     },
     SIZE(0.25/4, Integer.class) {
@@ -304,7 +304,7 @@ final class ConnectionsView {
     }
   }
 
-  private final class TimelineRenderer implements TableCellRenderer, TableModelListener {
+  private static final class TimelineRenderer implements TableCellRenderer, TableModelListener {
     private final EnumColors<NetworkState> NETWORK_STATE_COLORS = new EnumColors.Builder<NetworkState>(2)
       .add(NetworkState.SENDING, NETWORK_SENDING_COLOR, NETWORK_SENDING_COLOR)
       .add(NetworkState.RECEIVING, NETWORK_RECEIVING_COLOR, NETWORK_RECEIVING_SELECTED_COLOR)
