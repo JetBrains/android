@@ -20,6 +20,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.annotations.NotNull;
@@ -100,8 +101,17 @@ class ReplaceStringQuickFix implements AndroidLintQuickFix {
     if (myRegexp != null) {
       try {
         Pattern pattern = Pattern.compile(myRegexp, Pattern.MULTILINE);
-        String text = startElement.getContainingFile().getText();
-        String sequence = text.substring(start, end);
+        String sequence;
+        PsiElement parent = PsiTreeUtil.findCommonParent(startElement, endElement);
+        if (parent != null && parent.getTextRange().containsRange(start, end)) {
+          TextRange parentRange = parent.getTextRange();
+          int offset = parentRange.getStartOffset();
+          sequence = parent.getText().substring(start - offset, end - offset);
+        }
+        else {
+          String text = startElement.getContainingFile().getText();
+          sequence = text.substring(start, end);
+        }
         Matcher matcher = pattern.matcher(sequence);
         if (matcher.find()) {
           end = start + matcher.end(1);
