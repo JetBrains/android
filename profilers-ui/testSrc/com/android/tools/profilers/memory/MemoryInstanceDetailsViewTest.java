@@ -21,6 +21,10 @@ import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.common.ContextMenuItem;
+import com.android.tools.profilers.memory.adapters.ClassObject;
+import com.android.tools.profilers.memory.adapters.FieldObject;
+import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.ReferenceObject;
 import org.junit.Before;
 import org.junit.Rule;
@@ -28,6 +32,7 @@ import org.junit.Test;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.util.Arrays;
@@ -35,6 +40,7 @@ import java.util.Collections;
 
 import static com.android.tools.profilers.memory.MemoryProfilerTestBase.mockReferenceObject;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.when;
 
 public class MemoryInstanceDetailsViewTest {
   @Rule
@@ -42,11 +48,12 @@ public class MemoryInstanceDetailsViewTest {
 
   private MemoryProfilerStage myStage;
   private MemoryInstanceDetailsView myDetailsView;
-
+  private FakeIdeProfilerComponents myFakeIdeProfilerComponents;
   @Before
   public void setup() {
+    myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
     myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices()));
-    myDetailsView = new MemoryInstanceDetailsView(myStage, new FakeIdeProfilerComponents());
+    myDetailsView = new MemoryInstanceDetailsView(myStage, myFakeIdeProfilerComponents);
   }
 
   @Test
@@ -143,6 +150,34 @@ public class MemoryInstanceDetailsViewTest {
     assertEquals(0, ref2Child.getChildCount());
     assertEquals(1, ref3Child.getChildCount());
     assertEquals(mockRef4, ((MemoryObjectTreeNode)ref3Child.getChildAt(0)).getAdapter());
+  }
+
+  @Test
+  public void testGoToInstance() {
+    ReferenceObject mockRef1 = mockReferenceObject("Ref1", 1, 2, 3, Collections.emptyList(), null);
+    ClassObject ref1Class = MemoryProfilerTestBase.mockClassObject("ref1Class", 1, 2, 3, Collections.singletonList(mockRef1));
+    when(mockRef1.getClassObject()).thenReturn(ref1Class);
+    ReferenceObject mockRoot = mockReferenceObject("MockRoot", 1, 2, 3, Arrays.asList(mockRef1), null);
+
+    myStage.selectInstance(mockRoot);
+    JTree tree = myDetailsView.getReferenceTree();
+    assertNotNull(tree);
+    assertEquals(mockRoot, myStage.getSelectedInstance());
+    assertNull(myStage.getSelectedClass());
+
+    // Check that the Go To Instance menu item exists but is disabled since no instance is selected
+    java.util.List<ContextMenuItem> menus = myFakeIdeProfilerComponents.getComponentContextMenus(tree);
+    assertEquals(1, menus.size());
+    assertEquals("Go to Instance", menus.get(0).getText());
+    assertFalse(menus.get(0).isEnabled());
+
+    // Selects the mockRef1 node and triggers the context menu action to select the ref instance.
+    TreeNode refNode = ((MemoryObjectTreeNode)tree.getModel().getRoot()).getChildAt(0);
+    tree.setSelectionPath(new TreePath(refNode));
+    assertTrue(menus.get(0).isEnabled());
+    menus.get(0).run();
+    assertEquals(ref1Class, myStage.getSelectedClass());
+    assertEquals(mockRef1, myStage.getSelectedInstance());
   }
 
   @Test
