@@ -69,11 +69,6 @@ public class LegendComponent extends AnimatedComponent {
    */
   private int LEGEND_MARGIN_PX = 10;
 
-  /**
-   * Min width of the label so that the legends don't shuffle around as the magnitude of the data changes.
-   */
-  private static final int LABEL_MIN_WIDTH_PX = 100;
-
   private LegendComponentModel myModel;
 
   /**
@@ -99,6 +94,7 @@ public class LegendComponent extends AnimatedComponent {
     myOrientation = Orientation.HORIZONTAL;
     myModel.addDependency(myAspectObserver)
       .onChange(LegendComponentModel.Aspect.LEGEND, this::modelChanged);
+    setFont(AdtUiUtils.DEFAULT_FONT);
     modelChanged();
   }
 
@@ -110,7 +106,7 @@ public class LegendComponent extends AnimatedComponent {
     int labels = myModel.getValues().size();
     for (int i = myLabelsToDraw.size(); i < labels; i++) {
       JBLabel label = new JBLabel();
-      label.setFont(AdtUiUtils.DEFAULT_FONT);
+      label.setFont(getFont());
       myLabelsToDraw.add(label);
     }
     if (myLabelsToDraw.size() > labels) {
@@ -123,16 +119,15 @@ public class LegendComponent extends AnimatedComponent {
       Legend legend = myModel.getLegends().get(i);
       String text = legend.getName();
       String value = legend.getValue();
+      if (!text.isEmpty()) {
+        text += ": ";
+      }
       if (value != null) {
-        text += ": " + value;
+        text += value;
       }
       label.setText(text);
 
       Dimension preferredSize = label.getPreferredSize();
-      if (preferredSize.getWidth() < LABEL_MIN_WIDTH_PX) {
-        preferredSize.width = LABEL_MIN_WIDTH_PX;
-        label.setPreferredSize(preferredSize);
-      }
       label.setBounds(0, 0, preferredSize.width, preferredSize.height);
     }
     if (oldSize != getPreferredSize()) {
@@ -186,8 +181,9 @@ public class LegendComponent extends AnimatedComponent {
       }
 
       g2d.translate(xOffset, LEGEND_VERTICAL_PADDING_PX);
+      label.setSize(labelPreferredSize);
+      // TODO: use a string instead of a label and call g2d.drawString instead.
       label.paint(g2d);
-
 
       // Translate the draw position for the next set of labels.
       if (myOrientation == Orientation.HORIZONTAL) {
