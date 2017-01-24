@@ -56,6 +56,7 @@ public class ConnectionDetailsViewTest {
     when(myHttpData.getUrl()).thenReturn("dumbUrl");
     when(myHttpData.getTrace()).thenReturn("dumbTrace");
     when(myHttpData.getResponseHeaders()).thenReturn(ImmutableMap.of());
+    when(myHttpData.getRequestHeaders()).thenReturn(ImmutableMap.of());
 
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myIdeServices);
     NetworkProfilerStage stage = new NetworkProfilerStage(profilers);

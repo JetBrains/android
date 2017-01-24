@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.android.tools.profiler.proto.NetworkProfiler.*;
 
@@ -121,9 +122,12 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
     switch (request.getType()) {
       case REQUEST:
         HttpDetailsResponse.Request.Builder requestBuilder = HttpDetailsResponse.Request.newBuilder();
+        String requestHeaders = data.getRequestHeaders().entrySet().stream().map(x -> x.getKey() + " = " + x.getValue())
+          .collect(Collectors.joining("\n"));
         requestBuilder.setTrace(data.getTrace())
           .setMethod(data.getMethod())
-          .setUrl(data.getUrl());
+          .setUrl(data.getUrl())
+          .setFields(requestHeaders);
         response.setRequest(requestBuilder.build());
         break;
       case RESPONSE:
@@ -146,6 +150,11 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
 
   @NotNull
   public static HttpData newHttpData(long id, long startS, long downloadS, long endS) {
+    return newHttpDataBuilder(id, startS, downloadS, endS).build();
+  }
+
+  @NotNull
+  public static HttpData.Builder newHttpDataBuilder(long id, long startS, long downloadS, long endS) {
     long startUs = TimeUnit.SECONDS.toMicros(startS);
     long downloadUs = TimeUnit.SECONDS.toMicros(downloadS);
     long endUs = TimeUnit.SECONDS.toMicros(endS);
@@ -157,7 +166,7 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
       builder.setResponsePayloadId("payloadId " + id);
       builder.setResponseFields(formatFakeResponseFields(id));
     }
-    return builder.build();
+    return builder;
   }
 
   @NotNull
