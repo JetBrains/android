@@ -175,7 +175,12 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
       for (Rectangle2D.Float rect : myPathCache) {
         double scaledXStart = rect.x * dim.getWidth();
         double scaledXDuration = rect.width * dim.getWidth();
-        clipRect.setRect(scaledXStart, 0, scaledXDuration, dim.getHeight());
+        double newX = Math.max(scaledXStart, originalClip.getBounds().getX());
+        clipRect.setRect(newX,
+                         0,
+                         Math.min(scaledXDuration + scaledXStart - newX,
+                                  originalClip.getBounds().getX() + originalClip.getBounds().getWidth() - newX),
+                         dim.getHeight());
 
         // Clear the region by repainting the background
         g2d.setColor(host.getBackground());

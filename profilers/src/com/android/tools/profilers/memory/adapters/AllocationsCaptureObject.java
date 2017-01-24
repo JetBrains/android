@@ -184,7 +184,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
     @NotNull
     @Override
     public List<ClassObject.ClassAttribute> getClassAttributes() {
-      return Arrays.asList(ClassAttribute.LABEL, ClassAttribute.CHILDREN_COUNT);
+      return Arrays.asList(ClassAttribute.LABEL, ClassAttribute.INSTANCE_COUNT);
     }
   }
 }
