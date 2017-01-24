@@ -15,6 +15,7 @@
  */
 package com.android.tools.datastore.service;
 
+import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.DatastoreTable;
 import com.android.tools.datastore.database.NetworkTable;
@@ -32,17 +33,15 @@ import java.util.function.Consumer;
 
 // TODO: Implement a storage container that can read/write data to disk
 public class NetworkService extends NetworkServiceGrpc.NetworkServiceImplBase implements ServicePassThrough {
-  private NetworkServiceGrpc.NetworkServiceBlockingStub myPollingService;
-  private NetworkTable myNetworkTable = new NetworkTable();
-  Consumer<Runnable> myFetchExecutor;
-  private Map<Integer, PollRunner> myRunners = new HashMap<>();
-  public NetworkService(Consumer<Runnable> fetchExecutor) {
-    myFetchExecutor = fetchExecutor;
-  }
 
-  @Override
-  public void connectService(ManagedChannel channel) {
-    myPollingService = NetworkServiceGrpc.newBlockingStub(channel);
+  private NetworkTable myNetworkTable = new NetworkTable();
+  private Consumer<Runnable> myFetchExecutor;
+  private Map<Integer, PollRunner> myRunners = new HashMap<>();
+  private DataStoreService myService;
+
+  public NetworkService(DataStoreService service, Consumer<Runnable> fetchExecutor) {
+    myFetchExecutor = fetchExecutor;
+    myService = service;
   }
 
   @Override
@@ -57,10 +56,10 @@ public class NetworkService extends NetworkServiceGrpc.NetworkServiceImplBase im
   @Override
   public void startMonitoringApp(NetworkProfiler.NetworkStartRequest request,
                                  StreamObserver<NetworkProfiler.NetworkStartResponse> responseObserver) {
-    responseObserver.onNext(myPollingService.startMonitoringApp(request));
+    responseObserver.onNext(myService.getNetworkClient(request.getSession()).startMonitoringApp(request));
     responseObserver.onCompleted();
     int processId = request.getProcessId();
-    myRunners.put(processId, new NetworkDataPoller(processId, myNetworkTable, myPollingService));
+    myRunners.put(processId, new NetworkDataPoller(processId, request.getSession(), myNetworkTable, myService.getNetworkClient(request.getSession())));
     myFetchExecutor.accept(myRunners.get(processId));
   }
 
@@ -72,10 +71,11 @@ public class NetworkService extends NetworkServiceGrpc.NetworkServiceImplBase im
     // Our polling service can get shutdown if we unplug the device.
     // This should be the only function that gets called as StudioProfilers attempts
     // to stop monitoring the last app it was monitoring.
-    if (!((ManagedChannel)myPollingService.getChannel()).isShutdown()) {
-      responseObserver.onNext(myPollingService.stopMonitoringApp(request));
-    } else {
+    NetworkServiceGrpc.NetworkServiceBlockingStub service = myService.getNetworkClient(request.getSession());
+    if (service == null) {
       responseObserver.onNext(NetworkProfiler.NetworkStopResponse.getDefaultInstance());
+    } else {
+      responseObserver.onNext(service.stopMonitoringApp(request));
     }
     responseObserver.onCompleted();
   }

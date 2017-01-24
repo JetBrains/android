@@ -15,9 +15,11 @@
  */
 package com.android.tools.datastore.poller;
 
+import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.DatastoreTable;
 import com.android.tools.datastore.database.NetworkTable;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import io.grpc.ManagedChannel;
@@ -34,14 +36,17 @@ public class NetworkDataPoller extends PollRunner {
   @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
   private long myDataRequestStartTimestampNs = Long.MIN_VALUE;
   private long myHttpRangeRequestStartTimeNs = Long.MIN_VALUE;
-  private NetworkServiceGrpc.NetworkServiceBlockingStub myPollingService;
   private int myProcessId = -1;
-  private NetworkTable myNetworkTable = new NetworkTable();
+  // TODO: Key data off device session.
+  private Common.Session mySession;
+  private NetworkTable myNetworkTable;
+  NetworkServiceGrpc.NetworkServiceBlockingStub myPollingService;
 
-  public NetworkDataPoller(int processId, NetworkTable table, NetworkServiceGrpc.NetworkServiceBlockingStub pollingService) {
+  public NetworkDataPoller(int processId, Common.Session session, NetworkTable table, NetworkServiceGrpc.NetworkServiceBlockingStub pollingService) {
     super(POLLING_DELAY_NS);
     myProcessId = processId;
     myNetworkTable = table;
+    mySession = session;
     myPollingService = pollingService;
   }
 
@@ -59,11 +64,11 @@ public class NetworkDataPoller extends PollRunner {
     for (NetworkProfiler.NetworkProfilerData data : response.getDataList()) {
       myDataRequestStartTimestampNs = data.getBasicInfo().getEndTimestamp();
       myNetworkTable.insert(data.getBasicInfo().getProcessId(), data);
-      pollHttpRange();
+      pollHttpRange(dataRequestBuilder.getSession());
     }
   }
 
-  private void pollHttpRange() {
+  private void pollHttpRange(Common.Session session) {
     NetworkProfiler.HttpRangeRequest.Builder requestBuilder = NetworkProfiler.HttpRangeRequest.newBuilder()
       .setProcessId(myProcessId)
       .setStartTimestamp(myHttpRangeRequestStartTimeNs)
@@ -89,7 +94,6 @@ public class NetworkDataPoller extends PollRunner {
       myNetworkTable.insertOrReplace(myProcessId, request, responseData, body, data);
     }
   }
-
   private NetworkProfiler.HttpDetailsResponse pollHttpDetails(long id, NetworkProfiler.HttpDetailsRequest.Type type) {
     NetworkProfiler.HttpDetailsRequest request = NetworkProfiler.HttpDetailsRequest.newBuilder()
       .setConnId(id)
