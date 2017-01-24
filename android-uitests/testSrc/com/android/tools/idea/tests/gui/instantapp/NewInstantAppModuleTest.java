@@ -23,6 +23,13 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidModuleStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewModuleWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.psi.PsiElement;
+import com.intellij.util.xml.GenericAttributeValue;
+import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
@@ -103,6 +110,27 @@ public class NewInstantAppModuleTest {
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
+  @Test
+  public void testApplicationPackageGeneratedCorrectly() throws IOException {
+    guiTest.importSimpleApplication();
+    addNewInstantAppModule(true, false, "instantapp");
+    assertCorrectPackageAndSplit("instantapp", "com.example", "instantapp");
+  }
+
+  @Test
+  public void testAtomPackageGeneratedCorrectly() throws IOException {
+    guiTest.importSimpleApplication();
+    addNewInstantAppModule(false, false, "atom");
+    assertCorrectPackageAndSplit("atom", "com.example", "atom");
+  }
+
+  @Test
+  public void testBaseAtomPackageGeneratedCorrectly() throws IOException {
+    guiTest.importSimpleApplication();
+    addNewInstantAppModule(false, true, "baseatom");
+    assertCorrectPackageAndSplit("baseatom", "com.example", null);
+  }
+
   private void addNewInstantAppModule(boolean isApplication, boolean isBaseAtom, @Nullable String moduleName) {
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
@@ -135,5 +163,29 @@ public class NewInstantAppModuleTest {
     ideFrame
       .waitForGradleProjectSyncToFinish()
       .waitForBuildToFinish(SOURCE_GEN);
+  }
+
+  private void assertCorrectPackageAndSplit(@NotNull String moduleName, @NotNull String manifestPackage, @Nullable String splitName) {
+
+    Module module = guiTest.ideFrame().getModule(moduleName);
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    assertThat(facet).isNotNull();
+    Manifest manifest = facet.getManifest();
+    assertThat(manifest).isNotNull();
+
+    ApplicationManager.getApplication().runReadAction(() -> {
+      GenericAttributeValue<String> packageAttribute = manifest.getPackage();
+      assertThat(packageAttribute).isNotNull();
+      assertThat(packageAttribute.isValid()).isTrue();
+      assertThat(packageAttribute.getStringValue()).isEqualTo(manifestPackage);
+
+      if (splitName != null) {
+        boolean splitNameFound = false;
+        for (PsiElement child : manifest.getXmlElement().getChildren()) {
+          splitNameFound = splitNameFound || child.getText().equals("split=\"" + splitName + "\"");
+        }
+        assertThat(splitNameFound).isTrue();
+      }
+    });
   }
 }
