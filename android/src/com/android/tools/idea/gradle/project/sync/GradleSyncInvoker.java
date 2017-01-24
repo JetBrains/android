@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
 import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
 import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
@@ -194,13 +193,10 @@ public class GradleSyncInvoker {
       return;
     }
 
-    boolean useNewGradleSync = GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC;
-    if (!useNewGradleSync) {
-      removeAndroidModels(project);
-    }
+    removeAndroidModels(project);
     myPreSyncProjectCleanUp.cleanUp(project);
 
-    GradleSync gradleSync = useNewGradleSync ? new NewGradleSync() : new IdeaGradleSync();
+    GradleSync gradleSync = new IdeaGradleSync();
     gradleSync.sync(project, request, listener);
   }
 
