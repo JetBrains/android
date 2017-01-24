@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 public class RecommendedPluginVersionUpgradeStep extends PluginVersionUpgradeStep {
   @Override
@@ -35,8 +36,11 @@ public class RecommendedPluginVersionUpgradeStep extends PluginVersionUpgradeSte
       assert current != null;
       AndroidPluginGeneration pluginGeneration = pluginInfo.getPluginGeneration();
       GradleVersion recommended = GradleVersion.parse(pluginGeneration.getLatestKnownVersion());
-      RecommendedPluginVersionUpdateDialog updateDialog = new RecommendedPluginVersionUpdateDialog(project, current, recommended);
-      boolean userAcceptsUpgrade = updateDialog.showAndGet();
+
+      boolean userAcceptsUpgrade = invokeAndWaitIfNeeded(() -> {
+        RecommendedPluginVersionUpdateDialog updateDialog = new RecommendedPluginVersionUpdateDialog(project, current, recommended);
+        return updateDialog.showAndGet();
+      });
 
       if (userAcceptsUpgrade) {
         AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(project);
