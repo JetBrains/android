@@ -33,11 +33,6 @@ public interface ServicePassThrough {
   ServerServiceDefinition bindService();
 
   /**
-   * Channel for this pass through object to connect to. The implementor is responsible for initializing the connection.
-   */
-  void connectService(ManagedChannel channel);
-
-  /**
    * @return a DatastoreTable for the Datastore to register a connection with, or null.
    */
   DatastoreTable getDatastoreTable();

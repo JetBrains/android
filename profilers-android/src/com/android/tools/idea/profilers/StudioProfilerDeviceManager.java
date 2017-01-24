@@ -20,6 +20,7 @@ import com.android.annotations.Nullable;
 import com.android.ddmlib.*;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.idea.profilers.perfd.PerfdProxy;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.ProfilerClient;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.application.ApplicationManager;
@@ -196,7 +197,11 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         }, 0, null);
 
         if (proxyChannel != null) {
-          myDataStore.disconnect(proxyChannel);
+          Common.Session session = Common.Session.newBuilder()
+            .setDeviceSerial(myDevice.getSerialNumber())
+            .setBootId(Integer.toString(myDevice.getSerialNumber().hashCode()))
+            .build();
+          myDataStore.disconnect(session);
         }
 
         if (myPerfdProxy != null) {

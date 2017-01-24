@@ -16,11 +16,13 @@
 package com.android.tools.datastore.service;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.DatastoreTable;
 import com.android.tools.datastore.database.MemoryTable;
 import com.android.tools.datastore.poller.MemoryDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.google.protobuf3jarjar.ByteString;
@@ -35,29 +37,29 @@ import java.util.function.Consumer;
 public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase implements ServicePassThrough {
 
   private Map<Integer, PollRunner> myRunners = new HashMap<>();
-
-  private MemoryServiceGrpc.MemoryServiceBlockingStub myPollingService;
-
   private MemoryTable myMemoryTable = new MemoryTable();
   private Consumer<Runnable> myFetchExecutor;
+  private DataStoreService myService;
 
   @VisibleForTesting
   // TODO Revisit fetch mechanism
-  public MemoryService(Consumer<Runnable> fetchExecutor) {
+  public MemoryService(DataStoreService dataStoreService, Consumer<Runnable> fetchExecutor) {
     myFetchExecutor = fetchExecutor;
-  }
-
-  @Override
-  public void connectService(ManagedChannel channel) {
-    myPollingService = MemoryServiceGrpc.newBlockingStub(channel);
+    myService = dataStoreService;
   }
 
   @Override
   public void startMonitoringApp(MemoryStartRequest request, StreamObserver<MemoryStartResponse> observer) {
-    observer.onNext(myPollingService.startMonitoringApp(request));
+    observer.onNext(myService.getMemoryClient(request.getSession()).startMonitoringApp(request));
     observer.onCompleted();
     int processId = request.getProcessId();
-    myRunners.put(processId, new MemoryDataPoller(processId, myMemoryTable, myPollingService, myFetchExecutor));
+    Common.Session session = request.getSession();
+    myRunners.put(processId,
+                  new MemoryDataPoller(processId,
+                                       session,
+                                       myMemoryTable,
+                                       myService.getMemoryClient(session),
+                                       myFetchExecutor));
     myFetchExecutor.accept(myRunners.get(processId));
   }
 
@@ -69,17 +71,18 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
     // Our polling service can get shutdown if we unplug the device.
     // This should be the only function that gets called as StudioProfilers attempts
     // to stop monitoring the last app it was monitoring.
-    if (!((ManagedChannel)myPollingService.getChannel()).isShutdown()) {
-      observer.onNext(myPollingService.stopMonitoringApp(request));
-    } else {
+    MemoryServiceGrpc.MemoryServiceBlockingStub service = myService.getMemoryClient(request.getSession());
+    if (service == null) {
       observer.onNext(MemoryStopResponse.getDefaultInstance());
+    } else {
+      observer.onNext(service.stopMonitoringApp(request));
     }
     observer.onCompleted();
   }
 
   @Override
   public void triggerHeapDump(TriggerHeapDumpRequest request, StreamObserver<TriggerHeapDumpResponse> responseObserver) {
-    TriggerHeapDumpResponse response = myPollingService.triggerHeapDump(request);
+    TriggerHeapDumpResponse response = myService.getMemoryClient(request.getSession()).triggerHeapDump(request);
     // Saves off the HeapDumpInfo immediately instead of waiting for the MemoryDataPoller to pull it through, which can be delayed
     // and results in a NOT_FOUND status when the profiler tries to pull the dump's data in quick successions.
     if (response.getStatus() == TriggerHeapDumpResponse.Status.SUCCESS) {
@@ -127,7 +130,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   @Override
   public void trackAllocations(TrackAllocationsRequest request,
                                StreamObserver<TrackAllocationsResponse> responseObserver) {
-    TrackAllocationsResponse response = myPollingService.trackAllocations(request);
+    TrackAllocationsResponse response = myService.getMemoryClient(request.getSession()).trackAllocations(request);
     // Saves off the AllocationsInfo immediately instead of waiting for the MemoryDataPoller to pull it through, which can be delayed
     // and results in a NOT_FOUND status when the profiler tries to pull the info's data in quick successions.
     if (request.getEnabled() && response.getStatus() == TrackAllocationsResponse.Status.SUCCESS) {

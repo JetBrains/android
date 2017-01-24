@@ -35,7 +35,7 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 
-public class DataStoreServiceTest {
+public class DataStoreServiceTest extends DataStorePollerTest {
 
   private static final String SERVICE_PATH = "/tmp/DataStoreServiceTest.sql";
   private static final String SERVICE_NAME = "DataStoreServiceTest";
@@ -49,8 +49,7 @@ public class DataStoreServiceTest {
 
   @Before
   public void setUp() throws Exception {
-    myDataStore = new DataStoreService(SERVICE_NAME, SERVICE_PATH, r -> {
-    });
+    myDataStore = new DataStoreService(SERVICE_NAME, SERVICE_PATH, getPollTicker()::run);
     myService = InProcessServerBuilder.forName(SERVER_NAME)
       .addService(new FakeProfilerService().bindService())
       .addService(new EventServiceStub().bindService())
@@ -95,8 +94,8 @@ public class DataStoreServiceTest {
     ManagedChannel channel = InProcessChannelBuilder.forName(SERVER_NAME).build();
     myDataStore.connect(channel);
     ProfilerServiceGrpc.ProfilerServiceBlockingStub stub =
-      ProfilerServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName(SERVICE_NAME).usePlaintext(true).build());
-    Profiler.VersionResponse response = stub.getVersion(Profiler.VersionRequest.getDefaultInstance());
+      myDataStore.getProfilerClient(DataStorePollerTest.SESSION);
+    Profiler.VersionResponse response = stub.getVersion(Profiler.VersionRequest.newBuilder().setSession(DataStorePollerTest.SESSION).build());
     assertEquals(response, EXPECTED_VERSION);
   }
 
@@ -106,9 +105,9 @@ public class DataStoreServiceTest {
     myDataStore.connect(channel);
     ProfilerServiceGrpc.ProfilerServiceBlockingStub stub =
       ProfilerServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName(SERVICE_NAME).usePlaintext(true).build());
-    Profiler.VersionResponse response = stub.getVersion(Profiler.VersionRequest.getDefaultInstance());
+    Profiler.VersionResponse response = stub.getVersion(Profiler.VersionRequest.newBuilder().setSession(DataStorePollerTest.SESSION).build());
     assertEquals(response, EXPECTED_VERSION);
-    myDataStore.disconnect(channel);
+    myDataStore.disconnect(DataStorePollerTest.SESSION);
     myExpectedException.expect(StatusRuntimeException.class);
     stub.getVersion(Profiler.VersionRequest.getDefaultInstance());
   }
@@ -130,6 +129,24 @@ public class DataStoreServiceTest {
     @Override
     public void getVersion(Profiler.VersionRequest request, StreamObserver<Profiler.VersionResponse> responseObserver) {
       responseObserver.onNext(EXPECTED_VERSION);
+      responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getDevices(Profiler.GetDevicesRequest request, StreamObserver<Profiler.GetDevicesResponse> responseObserver) {
+      String serial = DataStorePollerTest.SESSION.getDeviceSerial();
+      String bootid = DataStorePollerTest.SESSION.getBootId();
+      Profiler.Device device = Profiler.Device.newBuilder()
+        .setSerial(serial)
+        .setBootId(bootid)
+        .build();
+      responseObserver.onNext(Profiler.GetDevicesResponse.newBuilder().addDevice(device).build());
+      responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> responseObserver) {
+      responseObserver.onNext(Profiler.GetProcessesResponse.getDefaultInstance());
       responseObserver.onCompleted();
     }
   }
