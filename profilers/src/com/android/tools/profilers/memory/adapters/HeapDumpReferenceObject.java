@@ -17,67 +17,21 @@ package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.perflib.heap.Instance;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-class HeapDumpReferenceObject implements ReferenceObject {
-
-  @NotNull private final InstanceObject myReferrer;
+class HeapDumpReferenceObject extends HeapDumpInstanceObject implements ReferenceObject {
 
   @NotNull private final List<String> myReferencingFieldNames;
 
-  public HeapDumpReferenceObject(@NotNull InstanceObject referrer, @NotNull List<String> referencingFieldNames) {
-    myReferrer = referrer;
+  public HeapDumpReferenceObject(@NotNull ClassObject klass, @NotNull Instance instance, @NotNull List<String> referencingFieldNames) {
+    super(klass, instance);
     myReferencingFieldNames = referencingFieldNames;
-  }
-
-  @NotNull
-  @Override
-  public String getDisplayLabel() {
-    return myReferrer.getDisplayLabel();
-  }
-
-  @Nullable
-  @Override
-  public String getClassName() {
-    return myReferrer.getClassName();
   }
 
   @NotNull
   @Override
   public List<String> getReferenceFieldNames() {
     return myReferencingFieldNames;
-  }
-
-  @Override
-  public int getShallowSize() {
-    return myReferrer.getShallowSize();
-  }
-
-  @Override
-  public long getRetainedSize() {
-    return myReferrer.getRetainedSize();
-  }
-
-  @Override
-  public int getDepth() {
-    return myReferrer.getDepth();
-  }
-
-  @Override
-  public boolean getIsArray() {
-    return myReferrer.getIsArray();
-  }
-
-  @Override
-  public boolean getIsRoot() {
-    return myReferrer.getIsRoot();
-  }
-
-  @NotNull
-  @Override
-  public List<ReferenceObject> getReferences() {
-    return myReferrer.getReferences();
   }
 }

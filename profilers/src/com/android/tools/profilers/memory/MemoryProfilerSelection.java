@@ -19,7 +19,6 @@ import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.HeapObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
-import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,7 +72,7 @@ public final class MemoryProfilerSelection {
    * @return true if the internal state changed, otherwise false
    */
   public boolean setHeapObject(@Nullable HeapObject heapObject) {
-    if (myHeapObject == heapObject) {
+    if (myHeapObject == heapObject || (myHeapObject != null && myHeapObject.equals(heapObject))) {
       return false;
     }
     setClassObject(null);
@@ -86,7 +85,7 @@ public final class MemoryProfilerSelection {
    * @return true if the internal state changed, otherwise false
    */
   public boolean setClassObject(@Nullable ClassObject classObject) {
-    if (myClassObject == classObject) {
+    if (myClassObject == classObject || (myClassObject != null && myClassObject.equals(classObject))) {
       return false;
     }
     setInstanceObject(null);
@@ -99,7 +98,7 @@ public final class MemoryProfilerSelection {
    * @return true if the internal state changed, otherwise false
    */
   public boolean setInstanceObject(@Nullable InstanceObject instanceObject) {
-    if (myInstanceObject == instanceObject) {
+    if (myInstanceObject == instanceObject || (myInstanceObject != null && myInstanceObject.equals(instanceObject))) {
       return false;
     }
     myInstanceObject = instanceObject;

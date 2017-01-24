@@ -18,15 +18,19 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.common.ContextMenuItem;
 import com.android.tools.profilers.memory.adapters.ClassObject;
+import com.android.tools.profilers.memory.adapters.FieldObject;
 import com.android.tools.profilers.memory.adapters.HeapObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.intellij.util.containers.ImmutableList;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import javax.swing.*;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.util.Arrays;
 import java.util.Collections;
@@ -34,8 +38,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 public class MemoryInstanceViewTest {
   private static final String MOCK_CLASS_NAME = "MockClass";
@@ -114,6 +117,41 @@ public class MemoryInstanceViewTest {
     assertTrue(view.getTree().getModel().getRoot() instanceof MemoryObjectTreeNode);
     view.reset();
     assertNull(view.getTree());
+  }
+
+  @Test
+  public void testGoToInstance() {
+    // Setup a Class-Instance-Fields hierarchy so that the instance contains a field of a different class
+    FieldObject field = MemoryProfilerTestBase.mockFieldObject("fieldClass", "fieldLabel", "field");
+    ClassObject fieldClass = MemoryProfilerTestBase.mockClassObject("fieldClass", 1, 2, 3, Collections.singletonList(field));
+    when(field.getClassObject()).thenReturn(fieldClass);
+    InstanceObject instance = MemoryProfilerTestBase.mockInstanceObject("instanceClass", "instance", 1, 2, 3);
+    when(instance.getFields()).thenReturn(Collections.singletonList(field));
+    ClassObject instanceClass = MemoryProfilerTestBase.mockClassObject("instanceClass", 1, 2, 3, Collections.singletonList(instance));
+
+    MemoryInstanceView view = new MemoryInstanceView(myStage, myFakeIdeProfilerComponents);
+    myStage.selectClass(instanceClass);
+    JTree tree = view.getTree();
+
+    // Check that the Go To Instance menu item exists but is disabled since no instance is selected
+    List<ContextMenuItem> menus = myFakeIdeProfilerComponents.getComponentContextMenus(tree);
+    assertEquals(1, menus.size());
+    assertEquals("Go to Instance", menus.get(0).getText());
+    assertFalse(menus.get(0).isEnabled());
+
+    // Expands the instance in the tree to select the field
+    TreeNode instanceNode = ((MemoryObjectTreeNode)tree.getModel().getRoot()).getChildAt(0);
+    tree.expandPath(new TreePath(instanceNode));
+    TreeNode fieldNode = instanceNode.getChildAt(0);
+    tree.setSelectionPath(new TreePath(fieldNode));
+    assertEquals(instanceClass, myStage.getSelectedClass());
+    assertEquals(field, myStage.getSelectedInstance());
+
+    // Trigger the context menu action to go to the field's class
+    assertTrue(menus.get(0).isEnabled());
+    menus.get(0).run();
+    assertEquals(fieldClass, myStage.getSelectedClass());
+    assertEquals(field, myStage.getSelectedInstance());
   }
 
   @Test

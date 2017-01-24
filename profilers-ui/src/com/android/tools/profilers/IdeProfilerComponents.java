@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.common.ContextMenuItem;
 import com.android.tools.profilers.common.LoadingPanel;
 import com.android.tools.profilers.common.StackTraceView;
 import com.android.tools.profilers.common.TabsPanel;
@@ -47,4 +48,10 @@ public interface IdeProfilerComponents {
   void installNavigationContextMenu(@NotNull JComponent component,
                                     @NotNull Supplier<CodeLocation> codeLocationSupplier,
                                     @Nullable Runnable preNavigate);
+
+  /**
+   * Installs a generic IntelliJ context menu on a {@code component} from the specified {@code contextMenu}.
+   * TODO - handles shortcut
+   */
+  void installContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem);
 }
