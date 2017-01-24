@@ -19,17 +19,17 @@ import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.adtui.swing.FakeUi;
 import org.junit.Test;
 
 import java.awt.*;
-import java.io.IOException;
-import java.io.OutputStream;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 public class LineChartTest {
 
-  @Test(timeout = 1000) // 1000 msec timeout.
-  public void testDashRenderingWithPointRange() throws Exception {
+  @Test
+  public void testNoRenderWithEmptyRange() throws Exception {
     // Ensures that if the LineChartModel hasn't had a chance to update and the yRange remains zero - then the LineChart would not render
     // any data.
     LineChartModel model = new LineChartModel();
@@ -44,13 +44,10 @@ public class LineChartTest {
 
     LineChart chart = new LineChart(model);
     chart.setSize(100, 100);
-    chart.configure(rangedSeries, new LineConfig(Color.BLACK).setStroke(LineConfig.DEFAULT_DASH_STROKE));
-    FakeUi ui = new FakeUi(chart);
-    ui.render(new OutputStream() {
-      @Override
-      public void write(int b) throws IOException {
-
-      }
-    });
+    Graphics2D fakeGraphics = mock(Graphics2D.class);
+    when(fakeGraphics.create()).thenReturn(fakeGraphics);
+    doThrow(new AssertionError()).when(fakeGraphics).draw(any(Shape.class));
+    doThrow(new AssertionError()).when(fakeGraphics).fill(any(Shape.class));
+    chart.paint(fakeGraphics);
   }
 }
