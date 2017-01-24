@@ -68,6 +68,6 @@ final class HeapDumpHeapObject implements HeapObject {
   @NotNull
   @Override
   public List<ClassAttribute> getClassAttributes() {
-    return Arrays.asList(LABEL, CHILDREN_COUNT, ELEMENT_SIZE, SHALLOW_SIZE, RETAINED_SIZE);
+    return Arrays.asList(LABEL, INSTANCE_COUNT, ELEMENT_SIZE, SHALLOW_SIZE, RETAINED_SIZE);
   }
 }
