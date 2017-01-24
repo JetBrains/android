@@ -230,8 +230,7 @@ public final class TemplateValueInjector {
 
     File sdkLocation = sdkHandler.getLocation();
     if (sdkLocation != null) {
-      // Gradle expects a platform-neutral path
-      myTemplateValues.put(ATTR_SDK_DIR, FileUtil.toSystemIndependentName(sdkLocation.getPath()));
+      myTemplateValues.put(ATTR_SDK_DIR, sdkLocation.getPath());
 
       String espressoVersion = RepositoryUrlManager.get().getLibraryRevision(SupportLibrary.ESPRESSO_CORE.getGroupId(),
                                                                              SupportLibrary.ESPRESSO_CORE.getArtifactId(),
