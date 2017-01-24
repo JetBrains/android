@@ -53,7 +53,7 @@ final class HeapDumpClassObject extends ClassObject {
   }
 
   @Override
-  public int getChildrenCount() {
+  public int getInstanceCount() {
     return myClassObj.getInstanceCount();
   }
 
