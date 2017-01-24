@@ -48,7 +48,7 @@ final class AllocationsInstanceObject implements InstanceObject {
 
     String className = myAllocationsClassObject.getName();
     if (className.contains(".")) {
-      if (className.equals("java.lang.String")) {
+      if (className.equals(STRING_NAMESPACE)) {
         myValueType = ValueType.STRING;
       }
       else {
