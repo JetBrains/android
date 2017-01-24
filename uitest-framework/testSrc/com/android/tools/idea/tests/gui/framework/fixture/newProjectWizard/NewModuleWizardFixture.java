@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
-import com.android.tools.idea.npw.CreateModuleTemplate;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
@@ -48,10 +47,12 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
 
   public NewModuleWizardFixture chooseModuleType(@NotNull String activity) {
     JListFixture listFixture = new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class));
-    listFixture.replaceCellReader((jList, index) -> {
-      CreateModuleTemplate templateEntry = (CreateModuleTemplate) jList.getModel().getElementAt(index);
-      return templateEntry == null ? "none" : templateEntry.getName();
-    });
+    listFixture.clickItem(activity);
+    return this;
+  }
+
+  public NewModuleWizardFixture chooseActivity(@NotNull String activity) {
+    JListFixture listFixture = new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class));
     listFixture.clickItem(activity);
     return this;
   }

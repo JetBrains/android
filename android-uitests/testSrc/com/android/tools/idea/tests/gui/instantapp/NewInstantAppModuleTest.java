@@ -37,11 +37,15 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.npw.deprecated.NewFormFactorModulePath.setWHSdkLocation;
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.util.io.FileUtil.join;
 import static java.lang.System.getenv;
 
 /**
@@ -65,7 +69,7 @@ public class NewInstantAppModuleTest {
   // TODO: add tests for warnings in code - requires way to separate warnings from SimpleApplication out from warnings in new module
 
   @Test
-  public void testCanBuildDefaultNewInstantAppModule() throws IOException {
+  public void testCanBuildDefaultNewInstantAppApplicationModule() throws IOException {
     guiTest.importSimpleApplication();
     addNewInstantAppModule(true, false, null);
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
@@ -83,6 +87,20 @@ public class NewInstantAppModuleTest {
     guiTest.importSimpleApplication();
     addNewInstantAppModule(false, true, null);
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
+  }
+
+  @Test
+  public void testDefaultNewInstantAppApplicationModuleHasNoResources() throws IOException {
+    guiTest.importSimpleApplication();
+
+    addNewInstantAppModule(true, false, "instantapp");
+    addNewInstantAppModule(false, false, "atom");
+    addNewInstantAppModule(false, true, "baseatom");
+
+    File projectRoot = guiTest.ideFrame().getProjectPath();
+    assertAbout(file()).that(new File(projectRoot, join("instantapp", "src", "main", "res"))).doesNotExist();
+    assertAbout(file()).that(new File(projectRoot, join("atom", "src", "main", "res"))).doesNotExist();
+    assertAbout(file()).that(new File(projectRoot, join("baseatom", "src", "main", "res"))).isDirectory();
   }
 
   @Test
@@ -153,8 +171,8 @@ public class NewInstantAppModuleTest {
 
     if (isApplication) {
       newModuleWizardFixture
-        .clickNext()  // Default options
-        .clickNext(); // Skip Activity
+        .clickNext() // Default options
+        .chooseActivity("Add No Activity"); // No Activity (see http://b/34216139)
     }
 
     newModuleWizardFixture
