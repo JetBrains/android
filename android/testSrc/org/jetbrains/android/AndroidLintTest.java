@@ -988,6 +988,13 @@ public class AndroidLintTest extends AndroidTestCase {
                   "AndroidManifest.xml", "xml");
   }
 
+  public void testWakelockTimeout() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintWakelockTimeoutInspection(),
+                  "Set timeout to 10 minutes",
+                  "/src/test/pkg/WakelockTest.java", "java");
+  }
+
   private void doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection) {
     doGlobalInspectionTest(inspection, getGlobalTestDir(), new AnalysisScope(myModule));
   }
