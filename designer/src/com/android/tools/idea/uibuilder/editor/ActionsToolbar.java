@@ -91,6 +91,7 @@ abstract public class ActionsToolbar implements DesignSurfaceListener, ModelList
 
     JPanel combined = new JPanel(new BorderLayout());
     ActionToolbar zoomToolBar = actionManager.createActionToolbar("NlRhsToolbar", getRhsActions(mySurface), true);
+    zoomToolBar.getComponent().setName("NlRhsToolbar");
     combined.add(zoomToolBar.getComponent(), BorderLayout.WEST);
     bottom.add(combined, BorderLayout.EAST);
 
