@@ -94,7 +94,7 @@ public class ModuleSetup {
       else {
         // This is an Android module without variants. Treat as a non-buildable Java module.
         removeAndroidFacetFrom(module);
-        setUpJavaModule(module, models, indicator, true /* Android project without variants */, syncSkipped);
+        //setUpJavaModule(module, models, indicator, true /* Android project without variants */, syncSkipped);
       }
       return;
     }
@@ -111,7 +111,8 @@ public class ModuleSetup {
     removeAllFacets(myIdeModelsProvider.getModifiableFacetModel(module), NdkFacet.getFacetTypeId());
 
     if (!isProjectRootFolder) {
-      setUpJavaModule(module, models, indicator, false /* Regular Java module */, syncSkipped);
+      // TODO: enable when new "Java library" model is implemented
+      //setUpJavaModule(module, models, indicator, false /* Regular Java module */, syncSkipped);
     }
   }
 
@@ -136,13 +137,14 @@ public class ModuleSetup {
     return null;
   }
 
-  private void setUpJavaModule(@NotNull Module module,
-                               @NotNull SyncAction.ModuleModels models,
-                               @NotNull ProgressIndicator indicator,
-                               boolean androidProjectWithoutVariants,
-                               boolean syncSkipped) {
-    ModuleExtendedModel javaModel = models.findModel(ModuleExtendedModel.class);
-    JavaModuleModel javaModuleModel = new JavaModuleModel(models.getModule(), javaModel, androidProjectWithoutVariants);
-    myJavaModuleSetup.setUpModule(module, myIdeModelsProvider, javaModuleModel, models, indicator, syncSkipped);
-  }
+  // TODO: enable when new "Java library" model is implemented
+  //private void setUpJavaModule(@NotNull Module module,
+  //                             @NotNull SyncAction.ModuleModels models,
+  //                             @NotNull ProgressIndicator indicator,
+  //                             boolean androidProjectWithoutVariants,
+  //                             boolean syncSkipped) {
+  //  ModuleExtendedModel javaModel = models.findModel(ModuleExtendedModel.class);
+  //  JavaModuleModel javaModuleModel = new JavaModuleModel(models.getModule(), javaModel, androidProjectWithoutVariants);
+  //  myJavaModuleSetup.setUpModule(module, myIdeModelsProvider, javaModuleModel, models, indicator, syncSkipped);
+  //}
 }

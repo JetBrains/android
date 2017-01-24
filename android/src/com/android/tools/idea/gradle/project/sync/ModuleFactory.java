@@ -24,12 +24,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
-import org.gradle.tooling.model.idea.IdeaModule;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.ide.highlighter.ModuleFileType.DOT_DEFAULT_EXTENSION;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getModuleDirPath;
@@ -45,10 +46,13 @@ class ModuleFactory {
   }
 
   @NotNull
-  Module createModule(@NotNull IdeaModule ideaModule, @NotNull SyncAction.ModuleModels moduleModels) {
-    File imlFilePath = getModuleImlFilePath(ideaModule, moduleModels);
+  Module createModule(@NotNull SyncAction.ModuleModels moduleModels) {
+    GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
+    assert gradleProject != null;
+    File imlFilePath = getModuleImlFilePath(gradleProject, moduleModels);
 
     Module newModule = myModelsProvider.newModule(imlFilePath.getPath(), StdModuleTypes.JAVA.getId());
+    newModule.setOption(EXTERNAL_SYSTEM_ID_KEY, GRADLE_SYSTEM_ID.getId()); // Identifies a module as a "Gradle" module.
 
     ModifiableRootModel rootModel = myModelsProvider.getModifiableRootModel(newModule);
     rootModel.inheritSdk();
@@ -69,21 +73,19 @@ class ModuleFactory {
   }
 
   @NotNull
-  private File getModuleImlFilePath(@NotNull IdeaModule ideaModule, @NotNull SyncAction.ModuleModels moduleModels) {
-    String modulePath = getModulePath(ideaModule, moduleModels);
-    String imlFileName = ideaModule.getName() + DOT_DEFAULT_EXTENSION;
+  private File getModuleImlFilePath(@NotNull GradleProject gradleProject, @NotNull SyncAction.ModuleModels moduleModels) {
+    String modulePath = getModulePath(gradleProject, moduleModels);
+    String imlFileName = gradleProject.getName() + DOT_DEFAULT_EXTENSION;
     return new File(modulePath, imlFileName);
   }
 
   @NotNull
-  private String getModulePath(@NotNull IdeaModule ideaModule, @NotNull SyncAction.ModuleModels moduleModels) {
-    GradleProject gradleProject = ideaModule.getGradleProject();
-
+  private String getModulePath(@NotNull GradleProject gradleProject, @NotNull SyncAction.ModuleModels moduleModels) {
     GradleBuild gradleBuild = moduleModels.findModel(GradleBuild.class);
     if (gradleBuild != null) {
       File moduleDirPath = getModuleDirPath(gradleBuild, gradleProject.getPath());
       if (moduleDirPath == null) {
-        throw new IllegalStateException(String.format("Unable to find root directory for module '%1$s'", ideaModule.getName()));
+        throw new IllegalStateException(String.format("Unable to find root directory for module '%1$s'", gradleProject.getName()));
       }
       return toCanonicalPath(moduleDirPath.getPath());
     }

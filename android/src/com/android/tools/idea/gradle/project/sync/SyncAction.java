@@ -15,101 +15,105 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.google.common.collect.Maps;
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.NativeAndroidProject;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
-import org.gradle.tooling.model.idea.IdeaModule;
-import org.gradle.tooling.model.idea.IdeaProject;
+import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.gradle.BasicGradleProject;
+import org.gradle.tooling.model.gradle.GradleBuild;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Action that executed inside Gradle to obtain the project structure (IDEA project and modules) and the custom models for each module (e.g.
- * {@link com.android.builder.model.AndroidProject}.
+ * {@link AndroidProject}.
  */
 // (This class replaces org.jetbrains.plugins.gradle.model.ProjectImportAction.)
 public class SyncAction implements BuildAction<SyncAction.ProjectModels>, Serializable {
-  // These are the types of models to obtain from Gradle (e.g. AndroidProject.)
-  @NotNull private final Collection<Class<?>> myModelTypes = new HashSet<>();
-
-  public SyncAction(@NotNull Collection<Class<?>> modelTypes) {
-    myModelTypes.addAll(modelTypes);
-  }
-
   @Override
   @Nullable
   public ProjectModels execute(@NotNull BuildController controller) {
-    IdeaProject project = controller.getModel(IdeaProject.class);
-    if (project == null) {
-      return null;
-    }
-    ProjectModels models = new ProjectModels(project);
-    models.populate(controller, myModelTypes);
+    GradleBuild gradleBuild = controller.getBuildModel();
+    ProjectModels models = new ProjectModels();
+    models.populate(gradleBuild, controller);
     return models;
   }
 
   public static class ProjectModels implements Serializable {
-    @NotNull private final IdeaProject myProject;
-
     // Key: module's Gradle path.
-    @NotNull private final Map<String, ModuleModels> myModelsByModule = Maps.newHashMap();
+    @NotNull private final Map<String, ModuleModels> myModelsByModule = new HashMap<>();
+    //@NotNull private final Map<String, ModuleModels2> myModelsByModule2 = new HashMap<>();
 
-    public ProjectModels(@NotNull IdeaProject project) {
-      myProject = project;
+    public void populate(@NotNull GradleBuild gradleBuild, @NotNull BuildController controller) {
+      BasicGradleProject rootProject = gradleBuild.getRootProject();
+
+      GradleProject root = controller.findModel(rootProject, GradleProject.class);
+      populateModels(root, controller);
     }
 
-    public void populate(@NotNull BuildController controller, @NotNull Collection<Class<?>> modelTypes) {
-      for (IdeaModule module : myProject.getModules()) {
-        String key = createMapKey(module);
-        ModuleModels models = new ModuleModels(module);
-        models.populate(controller, modelTypes);
-        myModelsByModule.put(key, models);
+    private void populateModels(@NotNull GradleProject project, @NotNull BuildController controller) {
+      ModuleModels models = new ModuleModels(project.getPath());
+      models.populate(project, controller);
+      myModelsByModule.put(project.getPath(), models);
+
+      for (GradleProject child : project.getChildren()) {
+        populateModels(child, controller);
       }
     }
 
     @NotNull
-    public ModuleModels getModels(@NotNull IdeaModule module) {
-      String key = createMapKey(module);
-      return getModels(key);
+    public Collection<String> getProjectPaths() {
+      return myModelsByModule.keySet();
     }
 
-    @NotNull
-    private static String createMapKey(@NotNull IdeaModule module) {
-      return module.getGradleProject().getPath();
-    }
-
-    @NotNull
+    @Nullable
     public ModuleModels getModels(@NotNull String gradlePath) {
       return myModelsByModule.get(gradlePath);
-    }
-
-    @NotNull
-    public IdeaProject getProject() {
-      return myProject;
     }
   }
 
   public static class ModuleModels implements Serializable {
-    @NotNull private final IdeaModule myModule;
+    @NotNull private final Map<Class<?>, Object> myModelsByType = new HashMap<>();
+    @NotNull private final String myGradlePath;
 
-    @NotNull private final Map<Class<?>, Object> myModelsByType = Maps.newHashMap();
-
-    public ModuleModels(@NotNull IdeaModule module) {
-      myModule = module;
+    public ModuleModels(@NotNull String gradlePath) {
+      myGradlePath = gradlePath;
     }
 
-    public void populate(@NotNull BuildController controller, @NotNull Collection<Class<?>> modelTypes) {
-      for (Class<?> modelType : modelTypes) {
-        Object model = controller.findModel(myModule, modelType);
-        if (model != null) {
-          myModelsByType.put(modelType, model);
-        }
+    public void populate(@NotNull GradleProject gradleProject, @NotNull BuildController controller) {
+      myModelsByType.put(GradleProject.class, gradleProject);
+      AndroidProject androidProject = findAndAddModel(gradleProject, controller, AndroidProject.class);
+      if (androidProject != null) {
+        // No need to query extra models.
+        return;
       }
+      NativeAndroidProject ndkAndroidProject = findAndAddModel(gradleProject, controller, NativeAndroidProject.class);
+      if (ndkAndroidProject != null) {
+        // No need to query extra models.
+        return;
+      }
+      // This is a Java module.
+      // TODO use the new Java library model here.
+    }
+
+    @NotNull
+    public String getGradlePath() {
+      return myGradlePath;
+    }
+
+    @Nullable
+    private <T> T findAndAddModel(@NotNull GradleProject gradleProject, @NotNull BuildController controller, Class<T> modelType) {
+      T model = controller.findModel(gradleProject, modelType);
+      if (model != null) {
+        myModelsByType.put(modelType, model);
+      }
+      return model;
     }
 
     public <T> boolean hasModel(@NotNull Class<T> modelType) {
@@ -124,11 +128,6 @@ public class SyncAction implements BuildAction<SyncAction.ProjectModels>, Serial
         return modelType.cast(model);
       }
       return null;
-    }
-
-    @NotNull
-    public IdeaModule getModule() {
-      return myModule;
     }
   }
 }
