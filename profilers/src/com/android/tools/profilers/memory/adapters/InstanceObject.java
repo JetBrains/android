@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.List;
 
 public interface InstanceObject extends MemoryObject {
+  String STRING_NAMESPACE = "java.lang.String";
+
   enum InstanceAttribute {
     LABEL,
     DEPTH,
@@ -57,6 +59,9 @@ public interface InstanceObject extends MemoryObject {
 
   @NotNull
   String getDisplayLabel();
+
+  @Nullable
+  ClassObject getClassObject();
 
   @Nullable
   String getClassName();

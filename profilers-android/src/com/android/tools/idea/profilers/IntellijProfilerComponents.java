@@ -18,10 +18,7 @@ package com.android.tools.idea.profilers;
 import com.android.tools.idea.actions.EditMultipleSourcesAction;
 import com.android.tools.idea.actions.PsiClassNavigation;
 import com.android.tools.profilers.IdeProfilerComponents;
-import com.android.tools.profilers.common.CodeLocation;
-import com.android.tools.profilers.common.LoadingPanel;
-import com.android.tools.profilers.common.StackTraceView;
-import com.android.tools.profilers.common.TabsPanel;
+import com.android.tools.profilers.common.*;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
@@ -38,6 +35,8 @@ import java.awt.*;
 import java.util.function.Supplier;
 
 public class IntellijProfilerComponents implements IdeProfilerComponents {
+  private final String COMPONENT_CONTEXT_MENU = "ComponentContextMenu";
+
   @NotNull
   private Project myProject;
 
@@ -140,12 +139,45 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
       return null;
     });
 
-    DefaultActionGroup popupGroup = new DefaultActionGroup(new EditMultipleSourcesAction());
-    component.addMouseListener(new PopupHandler() {
+    DefaultActionGroup popupGroup = createOrGetActionGroup(component);
+    popupGroup.add(new EditMultipleSourcesAction());
+  }
+
+  @Override
+  public void installContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem) {
+    DefaultActionGroup popupGroup = createOrGetActionGroup(component);
+    popupGroup.add(new AnAction(null, null, contextMenuItem.getIcon()) {
       @Override
-      public void invokePopup(Component comp, int x, int y) {
-        ActionManager.getInstance().createActionPopupMenu(ActionPlaces.UNKNOWN, popupGroup).getComponent().show(comp, x, y);
+      public void update(AnActionEvent e) {
+        super.update(e);
+
+        Presentation presentation = e.getPresentation();
+        presentation.setText(contextMenuItem.getText());
+        presentation.setEnabled(contextMenuItem.isEnabled());
+      }
+
+      @Override
+      public void actionPerformed(AnActionEvent e) {
+        contextMenuItem.run();
       }
     });
+  }
+
+  @NotNull
+  private DefaultActionGroup createOrGetActionGroup(@NotNull JComponent component) {
+    DefaultActionGroup actionGroup = (DefaultActionGroup)component.getClientProperty(COMPONENT_CONTEXT_MENU);
+    if (actionGroup == null) {
+      final DefaultActionGroup newActionGroup = new DefaultActionGroup();
+      component.putClientProperty(COMPONENT_CONTEXT_MENU, newActionGroup);
+      component.addMouseListener(new PopupHandler() {
+        @Override
+        public void invokePopup(Component comp, int x, int y) {
+          ActionManager.getInstance().createActionPopupMenu(ActionPlaces.UNKNOWN, newActionGroup).getComponent().show(comp, x, y);
+        }
+      });
+      actionGroup = newActionGroup;
+    }
+
+    return actionGroup;
   }
 }

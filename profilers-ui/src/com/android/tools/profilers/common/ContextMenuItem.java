@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.memory.adapters;
+package com.android.tools.profilers.common;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public interface FieldObject extends InstanceObject {
-  String FIELD_DISPLAY_FORMAT = "%s = %s";
+import javax.swing.*;
 
+/**
+ * A wrapper for creating context menu items for a UI component.
+ */
+public interface ContextMenuItem extends Runnable {
   @NotNull
-  String getFieldName();
+  String getText();
+
+  @Nullable
+  Icon getIcon();
+
+  boolean isEnabled();
 }

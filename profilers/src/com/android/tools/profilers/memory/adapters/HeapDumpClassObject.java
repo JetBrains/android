@@ -38,6 +38,21 @@ final class HeapDumpClassObject extends ClassObject {
   }
 
   @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof HeapDumpClassObject)) {
+      return false;
+    }
+
+    HeapDumpClassObject otherClass = (HeapDumpClassObject)obj;
+    return myClassObj == otherClass.myClassObj;
+  }
+
+  @Override
+  public int hashCode() {
+    return myClassObj.hashCode();
+  }
+
+  @Override
   public int getChildrenCount() {
     return myClassObj.getInstanceCount();
   }

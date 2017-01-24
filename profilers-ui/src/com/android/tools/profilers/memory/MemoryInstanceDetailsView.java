@@ -22,6 +22,7 @@ import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.common.ContextMenuItem;
 import com.android.tools.profilers.common.StackTraceView;
 import com.android.tools.profilers.common.TabsPanel;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
@@ -55,6 +56,8 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   @NotNull private final MemoryProfilerStage myStage;
 
+  @NotNull private final IdeProfilerComponents myIdeProfilerComponents;
+
   @NotNull private final TabsPanel myTabsPanel;
 
   @NotNull private final StackTraceView myStackTraceView;
@@ -69,6 +72,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     myStage = stage;
     myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::instanceChanged);
+    myIdeProfilerComponents = ideProfilerComponents;
 
     myTabsPanel = ideProfilerComponents.createTabsPanel();
     myStackTraceView = ideProfilerComponents.createStackView(() -> myStage.setProfilerMode(ProfilerMode.NORMAL));
@@ -263,6 +267,45 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
       @Override
       public void treeCollapsed(TreeExpansionEvent event) {
+      }
+    });
+
+    myIdeProfilerComponents.installNavigationContextMenu(tree, () -> {
+      TreePath selection = tree.getSelectionPath();
+      if (selection == null) {
+        return null;
+      }
+
+      InstanceObject instanceObject = (InstanceObject)((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
+      return new CodeLocation(instanceObject.getClassName());
+    }, () -> myStage.setProfilerMode(ProfilerMode.NORMAL));
+
+    myIdeProfilerComponents.installContextMenu(tree, new ContextMenuItem() {
+      @NotNull
+      @Override
+      public String getText() {
+        return "Go to Instance";
+      }
+
+      @Nullable
+      @Override
+      public Icon getIcon() {
+        return null;
+      }
+
+      @Override
+      public boolean isEnabled() {
+        return tree.getSelectionPath() != null;
+      }
+
+      @Override
+      public void run() {
+        TreePath selection = tree.getSelectionPath();
+        assert selection != null && ((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter() instanceof InstanceObject;
+        // TODO check that we are in the correct heap.
+        InstanceObject instance = (InstanceObject)((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
+        myStage.selectClass(instance.getClassObject());
+        myStage.selectInstance(instance);
       }
     });
 
