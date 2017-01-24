@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.StudioProfilers;
@@ -31,6 +33,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.Assert.assertThat;
 
 public class ConnectionsViewTest {
@@ -150,6 +153,22 @@ public class ConnectionsViewTest {
 
     table.setRowSelectionInterval(1, 1);
     assertThat(table.prepareRenderer(renderer, 1, timelineColumn).getBackground(), is(selectionColor));
+  }
+
+  @Test
+  public void ensureAxisInTheFirstRow() throws Exception {
+    Range dataRange = new Range(0, TimeUnit.SECONDS.toMicros(100));
+    ConnectionsView view = new ConnectionsView(myStage, dataRange, data -> {});
+
+    JTable table = getConnectionsTable(view);
+
+    int timelineColumn = ConnectionsView.Column.TIMELINE.ordinal();
+    TableCellRenderer renderer = table.getCellRenderer(1, timelineColumn);
+
+    Component comp = table.prepareRenderer(renderer, 0, timelineColumn);
+    assertThat(comp, instanceOf(JPanel.class));
+    assertThat(((JPanel)comp).getComponent(0), instanceOf(AxisComponent.class));
+    assertThat(((JPanel)comp).getComponent(1), instanceOf(StateChart.class));
   }
 
   /**
