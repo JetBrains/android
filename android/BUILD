@@ -167,6 +167,7 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/adt/idea/wizard[module, test]",
         "//tools/idea/.idea/libraries:guava-testlib[test]",
+        "//tools/base/fakeadbserver:studio.fakeadbserver[module, test]",
         "//tools/adt/idea/adt-branding[module, test]",
         "//tools/adt/idea/sdk-updates[module, test]",
         "//tools/base/build-system/java-lib-plugin/java-lib-model:studio.java-lib-model[module, test]",
