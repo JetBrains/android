@@ -220,11 +220,6 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     }
     try {
       GradleSyncListener listener = new PostStartupGradleSyncListener(() -> {
-        Iterable<File> targetFiles = myState.get(TARGET_FILES_KEY);
-        assert targetFiles != null;
-
-        TemplateUtils.reformatAndRearrange(myProject, targetFiles);
-
         Collection<File> filesToOpen = myState.get(FILES_TO_OPEN_KEY);
         assert filesToOpen != null;
 
