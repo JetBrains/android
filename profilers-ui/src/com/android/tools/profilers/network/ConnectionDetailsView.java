@@ -20,6 +20,7 @@ import com.android.tools.profilers.common.StackTraceView;
 import com.android.tools.profilers.common.TabsPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.ui.popup.IconButton;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.HyperlinkLabel;
@@ -38,7 +39,6 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -46,6 +46,10 @@ import java.util.TreeMap;
  * View to display a single network request and its response's detailed information.
  */
 public class ConnectionDetailsView extends JPanel {
+  private static final int PAGE_VGAP = 32;
+  private static final int SECTION_VGAP = 16;
+  private static final int HGAP = 22;
+
   private final JPanel myEditorPanel;
   private final JPanel myFieldsPanel;
   private final JPanel myHeadersPanel;
@@ -71,18 +75,17 @@ public class ConnectionDetailsView extends JPanel {
 
     JPanel responsePanel = new JPanel(new BorderLayout());
     myEditorPanel = new JPanel(new BorderLayout());
-    myEditorPanel.setBorder(BorderFactory.createEmptyBorder(24, 18, 24, 18));
+    myEditorPanel.setBorder(BorderFactory.createEmptyBorder(PAGE_VGAP, HGAP, 0, HGAP));
     responsePanel.add(myEditorPanel, BorderLayout.CENTER);
 
-    myFieldsPanel = new JPanel(new TabularLayout("Fit,20px,*").setVGap(10));
-    myFieldsPanel.setBorder(BorderFactory.createEmptyBorder(0, 18, 24, 0));
+    myFieldsPanel = new JPanel(new TabularLayout("Fit,20px,*").setVGap(SECTION_VGAP));
+    myFieldsPanel.setBorder(BorderFactory.createEmptyBorder(PAGE_VGAP, HGAP, PAGE_VGAP, 0));
     JBScrollPane scrollPane = new JBScrollPane(myFieldsPanel);
     responsePanel.add(scrollPane, BorderLayout.SOUTH);
 
     tabsPanel.addTab("Response", responsePanel);
 
-    myHeadersPanel = new JPanel();
-    myHeadersPanel.setLayout(new BoxLayout(myHeadersPanel, BoxLayout.Y_AXIS));
+    myHeadersPanel = new JPanel(new VerticalFlowLayout(0, PAGE_VGAP));
     myHeadersPanel.setName("Headers");
     tabsPanel.addTab("Headers", new JBScrollPane(myHeadersPanel));
 
@@ -118,13 +121,9 @@ public class ConnectionDetailsView extends JPanel {
     if (httpData != null) {
       updateFields(httpData);
 
-      myHeadersPanel.add(createHeaderSection("Response Headers", httpData.getResponseHeaders()), 0);
-      JSeparator separator = new JSeparator();
-      // Separator will grow to take up the extra space, so set the maximum.
-      separator.setMaximumSize(new Dimension((int)separator.getMaximumSize().getWidth(), (int)separator.getPreferredSize().getHeight()));
-      myHeadersPanel.add(separator, 1);
-      // TODO: Replace with real request data, this is a place holder.
-      myHeadersPanel.add(createHeaderSection("Request Headers", new HashMap<>()), 2);
+      myHeadersPanel.add(createHeaderSection("Response Headers", httpData.getResponseHeaders()));
+      myHeadersPanel.add(new JSeparator());
+      myHeadersPanel.add(createHeaderSection("Request Headers", httpData.getRequestHeaders()));
 
       myStackTraceView.setStackFrames(httpData.getTrace());
       repaint();
@@ -138,6 +137,16 @@ public class ConnectionDetailsView extends JPanel {
     myFieldsPanel.add(new NoWrapBoldLabel("Request"), new TabularLayout.Constraint(row, 0));
     myFieldsPanel.add(new JLabel(HttpData.getUrlName(httpData.getUrl())), new TabularLayout.Constraint(row, 2));
 
+    row++;
+    myFieldsPanel.add(new NoWrapBoldLabel("Method"), new TabularLayout.Constraint(row, 0));
+    myFieldsPanel.add(new JLabel(httpData.getMethod()), new TabularLayout.Constraint(row, 2));
+
+    if (httpData.getStatusCode() != HttpData.NO_STATUS_CODE) {
+      row++;
+      myFieldsPanel.add(new NoWrapBoldLabel("Status"), new TabularLayout.Constraint(row, 0));
+      myFieldsPanel.add(new JLabel(String.valueOf(httpData.getStatusCode())), new TabularLayout.Constraint(row, 2));
+    }
+
     String contentType = httpData.getResponseField(HttpData.FIELD_CONTENT_TYPE);
     if (contentType != null) {
       row++;
@@ -148,12 +157,6 @@ public class ConnectionDetailsView extends JPanel {
       myFieldsPanel.add(new JLabel(contentType), new TabularLayout.Constraint(row, 2));
     }
 
-    HyperlinkLabel urlLabel = new HyperlinkLabel(httpData.getUrl());
-    urlLabel.setHyperlinkTarget(httpData.getUrl());
-    row++;
-    myFieldsPanel.add(new NoWrapBoldLabel("URL"), new TabularLayout.Constraint(row, 0));
-    myFieldsPanel.add(urlLabel, new TabularLayout.Constraint(row, 2));
-
     String contentLength = httpData.getResponseField(HttpData.FIELD_CONTENT_LENGTH);
     if (contentLength != null) {
       contentLength = contentLength.split(";")[0];
@@ -161,29 +164,42 @@ public class ConnectionDetailsView extends JPanel {
       myFieldsPanel.add(new NoWrapBoldLabel("Content length"), new TabularLayout.Constraint(row, 0));
       myFieldsPanel.add(new JLabel(contentLength), new TabularLayout.Constraint(row, 2));
     }
+
+    HyperlinkLabel urlLabel = new HyperlinkLabel(httpData.getUrl());
+    urlLabel.setHyperlinkTarget(httpData.getUrl());
+    row++;
+    myFieldsPanel.add(new NoWrapBoldLabel("URL"), new TabularLayout.Constraint(row, 0));
+    myFieldsPanel.add(urlLabel, new TabularLayout.Constraint(row, 2));
   }
 
   @NotNull
   private static JPanel createHeaderSection(@NotNull String title, @NotNull Map<String, String> map) {
-    JPanel panel = new JPanel(new GridLayout(0, 1));
-    panel.setBorder(BorderFactory.createEmptyBorder(24, 18, 24, 0));
+    JPanel panel = new JPanel(new GridLayout(0, 1, 0, SECTION_VGAP));
+    panel.setBorder(BorderFactory.createEmptyBorder(0, HGAP, 0, 0));
 
     JLabel titleLabel = new NoWrapBoldLabel(title);
     titleLabel.setFont(titleLabel.getFont().deriveFont(16.f));
     panel.add(titleLabel);
 
-    Map<String, String> sortedMap = new TreeMap<>(map);
-    Border keyBorder = BorderFactory.createEmptyBorder(0, 0, 0, 20);
-    for (Map.Entry<String, String> entry : sortedMap.entrySet()) {
-      JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT));
-      JLabel keyLabel = new NoWrapBoldLabel(entry.getKey() + ":");
-      keyLabel.setBorder(keyBorder);
-      row.add(keyLabel);
-      row.add(new JLabel(entry.getValue()));
-      row.setName(entry.getKey());
-      panel.add(row);
+    if (map.isEmpty()) {
+      JLabel emptyLabel = new JLabel("No data available");
+      // TODO: Adjust color.
+      panel.add(emptyLabel);
+    } else {
+      Map<String, String> sortedMap = new TreeMap<>(map);
+      Border rowKeyBorder = BorderFactory.createEmptyBorder(0, 0, 0, HGAP);
+      for (Map.Entry<String, String> entry : sortedMap.entrySet()) {
+        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        JLabel keyLabel = new NoWrapBoldLabel(entry.getKey() + ":");
+        keyLabel.setBorder(rowKeyBorder);
+        row.add(keyLabel);
+        row.add(new JLabel(entry.getValue()));
+        row.setName(entry.getKey());
+        panel.add(row);
+      }
     }
 
+    // Set name so tests can get a handle to this panel.
     panel.setName(title);
     return panel;
   }
