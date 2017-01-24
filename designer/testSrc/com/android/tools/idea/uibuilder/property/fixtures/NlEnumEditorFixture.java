@@ -54,6 +54,16 @@ public class NlEnumEditorFixture extends NlEditorFixtureBase {
     myEditor.getCaret().setBlinkRate(0);
   }
 
+  @Override
+  public void tearDown() {
+    // This line of code will remove the component reference from AppContext.
+    // JTextComponent will add itself to AppContext using a private key when
+    // focus is gained and calling removeNotify() is the only way to clear it.
+    myEditor.removeNotify();
+
+    super.tearDown();
+  }
+
   public static NlEnumEditorFixture create() {
     NlEnumEditor.CustomComboBox comboBox = spy(new NlEnumEditor.CustomComboBox());
     when(comboBox.isShowing()).thenReturn(true);
@@ -73,7 +83,6 @@ public class NlEnumEditorFixture extends NlEditorFixtureBase {
   }
 
   public NlEnumEditorFixture loseFocus() {
-    setFocusedComponentWithoutSendingFocusEvents(myEditor);
     setFocusedComponent(null);
     return this;
   }
@@ -84,7 +93,7 @@ public class NlEnumEditorFixture extends NlEditorFixtureBase {
     myCombo.showPopup();
     ComboPopup popup = myCombo.getPopup();
     assertThat(popup).isNotNull();
-    setFocusedComponentWithoutSendingFocusEvents(popup.getList());
+    setFocusedPopupComponent(popup.getList());
     assertThat(myCombo.isPopupVisible()).isTrue();
     return this;
   }
@@ -93,7 +102,7 @@ public class NlEnumEditorFixture extends NlEditorFixtureBase {
     assertThat(myCombo).isNotNull();
     myCombo.hidePopup();
     assertThat(myCombo.isPopupVisible()).isFalse();
-    setFocusedComponentWithoutSendingFocusEvents(myEditor);
+    setFocusedComponent(myEditor);
     return this;
   }
 
