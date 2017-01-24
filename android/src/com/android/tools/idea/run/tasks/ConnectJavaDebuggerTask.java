@@ -47,8 +47,9 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
   public ConnectJavaDebuggerTask(@NotNull Set<String> applicationIds,
                                  @NotNull AndroidDebugger debugger,
                                  @NotNull Project project,
-                                 boolean monitorRemoteProcess) {
-    super(applicationIds, debugger, project, monitorRemoteProcess);
+                                 boolean monitorRemoteProcess,
+                                 boolean attachToRunningProcess) {
+    super(applicationIds, debugger, project, monitorRemoteProcess, attachToRunningProcess);
   }
 
   @Override

@@ -48,6 +48,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+
 public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebuggerState> {
   public static final String ID = "Java";
   private static final String RUN_CONFIGURATION_NAME_PATTERN = "Android Debugger (%s)";
@@ -98,7 +100,8 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
                                                    @NotNull AndroidDebuggerState state,
                                                    @NotNull String runConfigTypeId,
                                                    boolean monitorRemoteProcess) {
-    return new ConnectJavaDebuggerTask(applicationIds, this, env.getProject(), monitorRemoteProcess);
+    return new ConnectJavaDebuggerTask(applicationIds, this, env.getProject(), monitorRemoteProcess,
+                                       facet.getProjectType() == PROJECT_TYPE_INSTANTAPP);
   }
 
   @Override
