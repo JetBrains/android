@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidModuleStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewModuleWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiElement;
@@ -41,6 +42,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
+import static com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep.SAVED_COMPANY_DOMAIN;
 import static com.android.tools.idea.npw.deprecated.NewFormFactorModulePath.setAiaSdkLocation;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
@@ -55,14 +57,19 @@ import static java.lang.System.getenv;
 @RunWith(GuiTestRunner.class)
 public class NewInstantAppModuleTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Nullable private String myOldSavedCompanyDomain;
 
   @Before
   public void before() {
+    PropertiesComponent propertiesComponent = PropertiesComponent.getInstance();
+    myOldSavedCompanyDomain = propertiesComponent.getValue(SAVED_COMPANY_DOMAIN);
+    propertiesComponent.setValue(SAVED_COMPANY_DOMAIN, "aia.example.com");
     setAiaSdkLocation("TestValue");
   }
 
   @After
   public void after() {
+    PropertiesComponent.getInstance().setValue(SAVED_COMPANY_DOMAIN, myOldSavedCompanyDomain);
     setAiaSdkLocation(getenv("WH_SDK"));
   }
 
@@ -132,21 +139,21 @@ public class NewInstantAppModuleTest {
   public void testApplicationPackageGeneratedCorrectly() throws IOException {
     guiTest.importSimpleApplication();
     addNewInstantAppModule(true, false, "instantapp");
-    assertCorrectPackageAndSplit("instantapp", "com.example", "instantapp");
+    assertCorrectPackageAndSplit("instantapp", "instantapp");
   }
 
   @Test
   public void testAtomPackageGeneratedCorrectly() throws IOException {
     guiTest.importSimpleApplication();
     addNewInstantAppModule(false, false, "atom");
-    assertCorrectPackageAndSplit("atom", "com.example", "atom");
+    assertCorrectPackageAndSplit("atom", "atom");
   }
 
   @Test
   public void testBaseAtomPackageGeneratedCorrectly() throws IOException {
     guiTest.importSimpleApplication();
     addNewInstantAppModule(false, true, "baseatom");
-    assertCorrectPackageAndSplit("baseatom", "com.example", null);
+    assertCorrectPackageAndSplit("baseatom", null);
   }
 
   private void addNewInstantAppModule(boolean isApplication, boolean isBaseAtom, @Nullable String moduleName) {
@@ -183,7 +190,7 @@ public class NewInstantAppModuleTest {
       .waitForBuildToFinish(SOURCE_GEN);
   }
 
-  private void assertCorrectPackageAndSplit(@NotNull String moduleName, @NotNull String manifestPackage, @Nullable String splitName) {
+  private void assertCorrectPackageAndSplit(@NotNull String moduleName, @Nullable String splitName) {
 
     Module module = guiTest.ideFrame().getModule(moduleName);
     AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -195,7 +202,7 @@ public class NewInstantAppModuleTest {
       GenericAttributeValue<String> packageAttribute = manifest.getPackage();
       assertThat(packageAttribute).isNotNull();
       assertThat(packageAttribute.isValid()).isTrue();
-      assertThat(packageAttribute.getStringValue()).isEqualTo(manifestPackage);
+      assertThat(packageAttribute.getStringValue()).isEqualTo("com.example.aia");
 
       if (splitName != null) {
         boolean splitNameFound = false;
