@@ -166,6 +166,16 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
       ((NewFormFactorModulePath)myPath).updatePackageDerivedValues();
     }
 
+    if (commit && myState.getNotNull(IS_INSTANT_APP_KEY, false)) {
+      // If we have an auto-generated package name and we are making an instant app, strip off the module name as this will go in the
+      // "split" attribute (if required)
+      String packageName = myState.getNotNull(PACKAGE_NAME_KEY,"");
+      if (packageName.equals(PACKAGE_NAME_DERIVER.deriveValue(myState, null, null))) {
+        ScopedStateStore.Key<String> targetKey = myState.getNotNull(IS_BASE_ATOM_KEY, false) ? PACKAGE_NAME_KEY : MANIFEST_PACKAGE_NAME_KEY;
+        myState.put(targetKey, packageName.substring(0, packageName.lastIndexOf('.')));
+      }
+    }
+
     return commit;
   }
 
