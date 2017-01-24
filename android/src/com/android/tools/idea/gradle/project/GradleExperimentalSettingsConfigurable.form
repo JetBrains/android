@@ -99,6 +99,7 @@
         <properties>
           <selected value="false"/>
           <text value="Use new 'Gradle Sync'"/>
+          <visible value="false"/>
         </properties>
       </component>
     </children>
