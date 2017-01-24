@@ -47,8 +47,8 @@ final class HeapDumpFieldObject extends HeapDumpInstanceObject implements FieldO
   public HeapDumpFieldObject(@NotNull Instance parentInstance, @NotNull FieldValue field, @Nullable Instance instance) {
     // TODO - is the ClassObj logic correct here? Should a ClassObj instance not have the "java.lang.Class" as its ClassObj?
     super(instance == null ? null
-                           : new HeapDumpClassObject(instance instanceof ClassObj ? (ClassObj)instance : instance.getClassObj(),
-                                                     instance.getHeap().getId()),
+                           : new HeapDumpClassObject(new HeapDumpHeapObject(instance.getHeap()),
+                                                     instance instanceof ClassObj ? (ClassObj)instance : instance.getClassObj()),
           instance);
 
     myField = field;

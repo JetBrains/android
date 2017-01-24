@@ -299,9 +299,10 @@ final class MemoryInstanceView extends AspectObserver {
       @Override
       public void run() {
         assert myInstanceObject != null;
-        // TODO check that we are in the correct heap.
         InstanceObject instance = myInstanceObject;
-        myStage.selectClass(instance.getClassObject());
+        ClassObject klass = instance.getClassObject();
+        myStage.selectHeap(klass.getHeapObject());
+        myStage.selectClass(klass);
         myStage.selectInstance(instance);
       }
     });

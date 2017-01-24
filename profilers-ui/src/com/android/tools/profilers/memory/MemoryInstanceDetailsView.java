@@ -25,6 +25,7 @@ import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.common.ContextMenuItem;
 import com.android.tools.profilers.common.StackTraceView;
 import com.android.tools.profilers.common.TabsPanel;
+import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject.InstanceAttribute;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
@@ -302,9 +303,10 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       public void run() {
         TreePath selection = tree.getSelectionPath();
         assert selection != null && ((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter() instanceof InstanceObject;
-        // TODO check that we are in the correct heap.
         InstanceObject instance = (InstanceObject)((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
-        myStage.selectClass(instance.getClassObject());
+        ClassObject klass = instance.getClassObject();
+        myStage.selectHeap(klass.getHeapObject());
+        myStage.selectClass(klass);
         myStage.selectInstance(instance);
       }
     });
