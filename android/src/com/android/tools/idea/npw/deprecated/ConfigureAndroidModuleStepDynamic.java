@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.npw.deprecated;
 
-import com.android.tools.idea.npw.*;
 import com.android.tools.adtui.LabelWithEditLink;
+import com.android.tools.idea.npw.*;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithHeaderAndDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.intellij.ide.util.PropertiesComponent;
@@ -68,6 +68,7 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
   private JTextField myAppName;
   private LabelWithEditLink myPackageName;
   private JCheckBox myInstantAppCheckbox;
+  private JCheckBox myBaseAtomCheckbox;
 
 
   public ConfigureAndroidModuleStepDynamic(@Nullable Disposable parentDisposable, @NotNull FormFactor formFactor) {
@@ -100,9 +101,16 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
       myState.put(COMPANY_DOMAIN_KEY, savedCompanyDomain);
     }
 
-    if (template.getFormFactor() == FormFactor.MOBILE && myState.get(AIA_SDK_ENABLED_KEY)) {
+    if (template.getFormFactor() == FormFactor.MOBILE && myState.getNotNull(AIA_SDK_ENABLED_KEY, false)) {
       register(IS_INSTANT_APP_KEY, myInstantAppCheckbox);
       myInstantAppCheckbox.setVisible(true);
+      if (myState.getNotNull(IS_LIBRARY_KEY, false)) {
+        register(IS_BASE_ATOM_KEY, myBaseAtomCheckbox);
+        myBaseAtomCheckbox.setVisible(true);
+        myInstantAppCheckbox.addChangeListener(e -> {
+          myBaseAtomCheckbox.setEnabled(myInstantAppCheckbox.isSelected());
+        });
+      }
     }
 
     super.init();
