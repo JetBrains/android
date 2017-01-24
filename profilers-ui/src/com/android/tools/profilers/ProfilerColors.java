@@ -77,6 +77,10 @@ public class ProfilerColors {
 
   public static final Color NETWORK_RADIO_HIGH = new JBColor(0x396EE7, 0x3D5FAB);
 
+  public static final Color NETWORK_TABLE_AXIS = new JBColor(Gray._103, Gray._120);
+
+  public static final Color NETWORK_TABLE_AXIS_SELECTED = JBColor.BLACK;
+
   public static final Color MEMORY_TOTAL = new JBColor(new Color(98, 180, 223), new Color(83, 172, 209));
 
   public static final Color MEMORY_JAVA = new JBColor(new Color(98, 180, 223), new Color(83, 172, 209));
