@@ -64,7 +64,7 @@ public class CpuMonitorView extends ProfilerMonitorView<CpuMonitor> {
 
     CpuUsage cpuUsage = getMonitor().getThisProcessCpuUsage();
     final LineChart lineChart = new LineChart(cpuUsage);
-    LineConfig config = new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true);
+    LineConfig config = new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true).setLegendIconType(LegendConfig.IconType.NONE);
     lineChart.configure(cpuUsage.getCpuSeries(), config);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
