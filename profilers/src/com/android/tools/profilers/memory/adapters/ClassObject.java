@@ -24,7 +24,7 @@ import java.util.List;
 public abstract class ClassObject extends NamespaceObject {
   public enum ClassAttribute {
     LABEL,
-    CHILDREN_COUNT,
+    INSTANCE_COUNT,
     ELEMENT_SIZE,
     SHALLOW_SIZE,
     RETAINED_SIZE
@@ -55,19 +55,11 @@ public abstract class ClassObject extends NamespaceObject {
     return myPackageName.isEmpty() ? new String[0] : myPackageName.split("\\.");
   }
 
-  public int getChildrenCount() {
-    return INVALID_VALUE;
-  }
-
   public int getElementSize() {
     return INVALID_VALUE;
   }
 
   public int getShallowSize() {
-    return INVALID_VALUE;
-  }
-
-  public long getRetainedSize() {
     return INVALID_VALUE;
   }
 

@@ -39,7 +39,7 @@ final class AllocationsClassObject extends ClassObject {
   }
 
   @Override
-  public int getChildrenCount() {
+  public int getInstanceCount() {
     return myInstanceNodes.size();
   }
 

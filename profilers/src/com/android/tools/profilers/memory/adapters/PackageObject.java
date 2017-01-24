@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,23 +17,30 @@ package com.android.tools.profilers.memory.adapters;
 
 import org.jetbrains.annotations.NotNull;
 
-public class NamespaceObject implements MemoryObject {
-  protected final String myName;
+public class PackageObject extends NamespaceObject {
+  private int myChildrenCount = 0;
 
-  public NamespaceObject(@NotNull String name) {
-    myName = name;
+  private long myRetainedSize = 0L;
+
+  public PackageObject(@NotNull String name) {
+    super(name);
   }
 
-  @NotNull
-  public String getName() {
-    return myName;
+  public void setChildrenCount(int childrenCount) {
+    myChildrenCount = childrenCount;
   }
 
+  @Override
   public int getInstanceCount() {
-    return INVALID_VALUE;
+    return myChildrenCount;
   }
 
+  public void setRetainedSize(long retainedSize) {
+    myRetainedSize = retainedSize;
+  }
+
+  @Override
   public long getRetainedSize() {
-    return INVALID_VALUE;
+    return myRetainedSize;
   }
 }
