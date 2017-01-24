@@ -15,11 +15,13 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ExpandedItemRendererComponentWrapper;
@@ -304,7 +306,7 @@ final class ConnectionsView {
     }
   }
 
-  private static final class TimelineRenderer implements TableCellRenderer, TableModelListener {
+  private final class TimelineRenderer implements TableCellRenderer, TableModelListener {
     private final EnumColors<NetworkState> NETWORK_STATE_COLORS = new EnumColors.Builder<NetworkState>(2)
       .add(NetworkState.SENDING, NETWORK_SENDING_COLOR, NETWORK_SENDING_COLOR)
       .add(NetworkState.RECEIVING, NETWORK_RECEIVING_COLOR, NETWORK_RECEIVING_SELECTED_COLOR)
@@ -331,8 +333,12 @@ final class ConnectionsView {
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
       StateChart<NetworkState> chart = myCharts.get(myTable.convertRowIndexToModel(row));
       chart.getColors().setColorIndex(isSelected ? 1 : 0);
-
       JPanel panel = new JBPanel(new TabularLayout("*" , "*"));
+      if (row == 0) {
+        AxisComponent axis = createAxis();
+        axis.setForeground(isSelected ? NETWORK_TABLE_AXIS_SELECTED : NETWORK_TABLE_AXIS);
+        panel.add(axis, new TabularLayout.Constraint(0, 0));
+      }
       panel.add(chart, new TabularLayout.Constraint(0, 0));
 
       return panel;
@@ -360,6 +366,18 @@ final class ConnectionsView {
         stateModel.addSeries(new RangedSeries<>(myRange, series));
         myCharts.add(chart);
       }
+    }
+
+    @NotNull
+    private AxisComponent createAxis() {
+      AxisComponentModel model = new AxisComponentModel(myRange, new TimeAxisFormatter(1, 4, 1));
+      model.setClampToMajorTicks(false);
+      model.setGlobalRange(myStage.getStudioProfilers().getTimeline().getDataRange());
+      AxisComponent axis = new AxisComponent(model, AxisComponent.AxisOrientation.BOTTOM);
+      axis.setShowAxisLine(false);
+
+      model.update(1);
+      return axis;
     }
   }
 
