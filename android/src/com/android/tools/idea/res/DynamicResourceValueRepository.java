@@ -179,7 +179,7 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
   // ---- Implements BuildVariantView.BuildVariantSelectionChangeListener ----
 
   @Override
-  public void buildVariantsConfigChanged() {
+  public void selectionChanged() {
     notifyGradleSynced();
   }
 
