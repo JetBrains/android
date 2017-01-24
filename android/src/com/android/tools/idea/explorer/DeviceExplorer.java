@@ -15,12 +15,22 @@
  */
 package com.android.tools.idea.explorer;
 
+import com.intellij.facet.ProjectFacetManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.util.SystemProperties;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+
 public class DeviceExplorer {
   private static final String DEVICE_EXPLORER_ENABLED = "android.device.explorer.enabled";
   private static boolean myEnabled;
 
-  public static boolean isFeatureEnabled() {
-    return myEnabled || System.getProperty(DEVICE_EXPLORER_ENABLED) != null;
+  public static boolean isFeatureEnabled(@NotNull Project project) {
+    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
+      return false;
+    }
+
+    return myEnabled || SystemProperties.getBooleanProperty(DEVICE_EXPLORER_ENABLED, false);
   }
 
   public static void enableFeature(boolean enabled) {
