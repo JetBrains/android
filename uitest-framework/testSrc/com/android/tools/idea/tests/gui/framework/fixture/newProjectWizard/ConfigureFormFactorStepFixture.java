@@ -47,24 +47,9 @@ public class ConfigureFormFactorStepFixture extends AbstractWizardStepFixture<Co
     buttonDriver.requireEnabled(checkBox);
     buttonDriver.select(checkBox);
 
-    JComboBox comboBox = robot().finder().findByName(target(), formFactor.id + ".minSdk", JComboBox.class);
-    int itemIndex = GuiQuery.getNonNull(
-      () -> {
-        BasicJComboBoxCellReader cellReader = new BasicJComboBoxCellReader();
-        int itemCount = comboBox.getItemCount();
-        for (int i = 0; i < itemCount; i++) {
-          String value = cellReader.valueAt(comboBox, i);
-          if (value != null && value.startsWith("API " + api + ":")) {
-            return i;
-          }
-        }
-        return -1;
-      });
-    if (itemIndex < 0) {
-      throw new LocationUnavailableException("Unable to find SDK " + api + " in " + formFactor + " drop-down");
-    }
-    JComboBoxDriver comboBoxDriver = new JComboBoxDriver(robot());
-    comboBoxDriver.selectItem(comboBox, itemIndex);
+    ApiLevelComboBoxFixture apiLevelComboBox =
+      new ApiLevelComboBoxFixture(robot(), robot().finder().findByName(target(), formFactor.id + ".minSdk", JComboBox.class));
+    apiLevelComboBox.selectApiLevel(api);
     return this;
   }
 
