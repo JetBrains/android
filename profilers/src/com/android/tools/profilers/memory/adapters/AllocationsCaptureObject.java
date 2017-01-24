@@ -35,6 +35,8 @@ public final class AllocationsCaptureObject implements CaptureObject {
   private long myEndTimeNs;
   private volatile List<ClassObject> myClassObjs = null;
   private volatile boolean myIsLoadingError;
+  // Allocation records do not have heap information, but we create a fake HeapObject container anyway so that we have a consistent MemoryObject model.
+  private final AllocationsHeapObject myFakeHeapObject;
 
   public AllocationsCaptureObject(@NotNull MemoryServiceBlockingStub client,
                                   int processId,
@@ -46,6 +48,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
     myInfoId = info.getInfoId();
     myStartTimeNs = info.getStartTime();
     myEndTimeNs = info.getEndTime();
+    myFakeHeapObject = new AllocationsHeapObject();
   }
 
   @Override
@@ -71,7 +74,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
   public List<HeapObject> getHeaps() {
     //noinspection ConstantConditions
     assert isDoneLoading() && !isError();
-    return Collections.singletonList(new AllocationsHeapObject());
+    return Collections.singletonList(myFakeHeapObject);
   }
 
   @Override
@@ -128,7 +131,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
     TIntObjectHashMap<AllocationsClassObject> classNodes = new TIntObjectHashMap<>();
     Map<ByteString, MemoryProfiler.AllocationStack> callStacks = new HashMap<>();
     contextsResponse.getAllocatedClassesList().forEach(className -> {
-      AllocationsClassObject dupe = classNodes.put(className.getClassId(), new AllocationsClassObject(className));
+      AllocationsClassObject dupe = classNodes.put(className.getClassId(), new AllocationsClassObject(myFakeHeapObject, className));
       assert dupe == null;
     });
     contextsResponse.getAllocationStacksList().forEach(callStack -> callStacks.putIfAbsent(callStack.getStackId(), callStack));

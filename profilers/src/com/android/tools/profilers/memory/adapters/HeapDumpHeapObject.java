@@ -43,6 +43,21 @@ final class HeapDumpHeapObject implements HeapObject {
     myHeap = heap;
   }
 
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof HeapDumpHeapObject)) {
+      return false;
+    }
+
+    HeapDumpHeapObject otherHeap = (HeapDumpHeapObject)obj;
+    return myHeap == otherHeap.myHeap;
+  }
+
+  @Override
+  public int hashCode() {
+    return myHeap.hashCode();
+  }
+
   @NotNull
   public Heap getHeap() {
     return myHeap;
@@ -71,7 +86,7 @@ final class HeapDumpHeapObject implements HeapObject {
         classes.add(instance.getClassObj());
         return true;
       });
-      myClassObjects = classes.stream().map(klass -> new HeapDumpClassObject(klass, myHeap.getId())).collect(Collectors.toList());
+      myClassObjects = classes.stream().map(klass -> new HeapDumpClassObject(this, klass)).collect(Collectors.toList());
     }
     return myClassObjects;
   }

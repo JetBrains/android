@@ -23,8 +23,7 @@ import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.common.ContextMenuItem;
 import com.android.tools.profilers.memory.adapters.ClassObject;
-import com.android.tools.profilers.memory.adapters.FieldObject;
-import com.android.tools.profilers.memory.adapters.InstanceObject;
+import com.android.tools.profilers.memory.adapters.HeapObject;
 import com.android.tools.profilers.memory.adapters.ReferenceObject;
 import org.junit.Before;
 import org.junit.Rule;
@@ -38,7 +37,7 @@ import java.awt.*;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static com.android.tools.profilers.memory.MemoryProfilerTestBase.mockReferenceObject;
+import static com.android.tools.profilers.memory.MemoryProfilerTestBase.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
@@ -49,6 +48,7 @@ public class MemoryInstanceDetailsViewTest {
   private MemoryProfilerStage myStage;
   private MemoryInstanceDetailsView myDetailsView;
   private FakeIdeProfilerComponents myFakeIdeProfilerComponents;
+
   @Before
   public void setup() {
     myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
@@ -155,8 +155,10 @@ public class MemoryInstanceDetailsViewTest {
   @Test
   public void testGoToInstance() {
     ReferenceObject mockRef1 = mockReferenceObject("Ref1", 1, 2, 3, Collections.emptyList(), null);
-    ClassObject ref1Class = MemoryProfilerTestBase.mockClassObject("ref1Class", 1, 2, 3, Collections.singletonList(mockRef1));
+    ClassObject ref1Class = mockClassObject("ref1Class", 1, 2, 3, Collections.singletonList(mockRef1));
+    HeapObject ref1Heap = mockHeapObject("ref1Heap", Collections.singletonList(ref1Class));
     when(mockRef1.getClassObject()).thenReturn(ref1Class);
+    when(ref1Class.getHeapObject()).thenReturn(ref1Heap);
     ReferenceObject mockRoot = mockReferenceObject("MockRoot", 1, 2, 3, Arrays.asList(mockRef1), null);
 
     myStage.selectInstance(mockRoot);
@@ -176,6 +178,7 @@ public class MemoryInstanceDetailsViewTest {
     tree.setSelectionPath(new TreePath(refNode));
     assertTrue(menus.get(0).isEnabled());
     menus.get(0).run();
+    assertEquals(ref1Heap, myStage.getSelectedHeap());
     assertEquals(ref1Class, myStage.getSelectedClass());
     assertEquals(mockRef1, myStage.getSelectedInstance());
   }

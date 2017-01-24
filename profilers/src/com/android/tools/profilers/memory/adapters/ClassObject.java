@@ -46,6 +46,9 @@ public abstract class ClassObject extends NamespaceObject {
   }
 
   @NotNull
+  public abstract HeapObject getHeapObject();
+
+  @NotNull
   public String getClassName() {
     return myClassName;
   }
