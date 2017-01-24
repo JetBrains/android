@@ -466,7 +466,7 @@ public class GradleSyncTest {
     ideFrame.findMessageDialog(GRADLE_SETTINGS_DIALOG_TITLE).clickYes();
 
     // Verify JVM args were removed from IDE's Gradle settings.
-    ideFrame.waitForGradleProjectSyncToFinish();
+    ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(20));
     assertNull(GradleSettings.getInstance(project).getGradleVmOptions());
 
     // Verify JVM args were copied to gradle.properties file
