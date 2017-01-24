@@ -52,6 +52,7 @@ public class TemplateMetadata {
   public static final String ATTR_REVISION = "revision";
   public static final String ATTR_MIN_API_LEVEL = "minApiLevel";
   public static final String ATTR_PACKAGE_NAME = "packageName";
+  public static final String ATTR_MANIFEST_PACKAGE_NAME = "manifestPackageName";
   public static final String ATTR_PACKAGE_ROOT = "packageRoot";
   public static final String ATTR_RELATIVE_PACKAGE = "relativePackage";
   public static final String ATTR_APP_TITLE = "appTitle";
@@ -94,7 +95,6 @@ public class TemplateMetadata {
   public static final String ATTR_GRID_LAYOUT_EXTRA = "usesGridLayout";
   public static final String ATTR_NAVIGATION_DRAWER_EXTRA = "usesNavigationDrawer";
 
-  public static final String ATTR_APP_DOMAIN = "supportedDomain";
   public static final String ATTR_ATOM_NAME = "atomName";
   public static final String ATTR_ATOM_ROUTE = "atomRoute";
   public static final String ATTR_IS_INSTANT_APP = "isInstantApp";
