@@ -130,11 +130,32 @@ class HeapDumpInstanceObject implements InstanceObject {
     myMemoizedLabel = myInstance == null ? "{null}" : String.format(NAME_FORMATTER, myInstance.getUniqueId(), myInstance.getUniqueId());
   }
 
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof HeapDumpInstanceObject)) {
+      return false;
+    }
+
+    HeapDumpInstanceObject otherInstance = (HeapDumpInstanceObject)obj;
+    return myInstance == otherInstance.myInstance;
+  }
+
+  @Override
+  public int hashCode() {
+    return myInstance == null ? super.hashCode() : myInstance.hashCode();
+  }
+
   @NotNull
   @Override
   public String getDisplayLabel() {
     // TODO show length of array instance
     return myMemoizedLabel;
+  }
+
+  @Nullable
+  @Override
+  public ClassObject getClassObject() {
+    return myClassObject;
   }
 
   @Nullable

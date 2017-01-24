@@ -72,6 +72,12 @@ final class AllocationsInstanceObject implements InstanceObject {
 
   @Nullable
   @Override
+  public ClassObject getClassObject() {
+    return myAllocationsClassObject;
+  }
+
+  @Nullable
+  @Override
   public String getClassName() {
     return myAllocationsClassObject.getName();
   }

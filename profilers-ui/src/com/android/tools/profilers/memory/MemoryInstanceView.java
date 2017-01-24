@@ -21,6 +21,7 @@ import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.common.ContextMenuItem;
 import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.FieldObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
@@ -189,6 +190,12 @@ final class MemoryInstanceView extends AspectObserver {
 
       @Nullable
       @Override
+      public ClassObject getClassObject() {
+        return null;
+      }
+
+      @Nullable
+      @Override
       public String getClassName() {
         return null;
       }
@@ -238,18 +245,7 @@ final class MemoryInstanceView extends AspectObserver {
         // No-op. TODO remove unseen children?
       }
     });
-    myIdeProfilerComponents.installNavigationContextMenu(myTree, () -> {
-      TreePath selection = myTree.getSelectionPath();
-      if (selection == null || !(selection.getLastPathComponent() instanceof MemoryObjectTreeNode)) {
-        return null;
-      }
-
-      if (((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter() instanceof InstanceObject) {
-        InstanceObject instanceObject = (InstanceObject)((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
-        return new CodeLocation(instanceObject.getClassName());
-      }
-      return null;
-    }, () -> myStage.setProfilerMode(ProfilerMode.NORMAL));
+    installTreeContextMenus();
 
     assert myClassObject != null;
     List<InstanceAttribute> attributes = myClassObject.getInstanceAttributes();
@@ -264,6 +260,51 @@ final class MemoryInstanceView extends AspectObserver {
     builder.setBackground(ProfilerColors.MONITOR_BACKGROUND);
     myColumnTree = builder.build();
     myInstancesPanel.add(myColumnTree, BorderLayout.CENTER);
+  }
+
+  private void installTreeContextMenus() {
+    assert myTree != null;
+
+    myIdeProfilerComponents.installNavigationContextMenu(myTree, () -> {
+      TreePath selection = myTree.getSelectionPath();
+      if (selection == null || !(selection.getLastPathComponent() instanceof MemoryObjectTreeNode)) {
+        return null;
+      }
+
+      if (((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter() instanceof InstanceObject) {
+        InstanceObject instanceObject = (InstanceObject)((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
+        return new CodeLocation(instanceObject.getClassName());
+      }
+      return null;
+    }, () -> myStage.setProfilerMode(ProfilerMode.NORMAL));
+
+    myIdeProfilerComponents.installContextMenu(myTree, new ContextMenuItem() {
+      @NotNull
+      @Override
+      public String getText() {
+        return "Go to Instance";
+      }
+
+      @Nullable
+      @Override
+      public Icon getIcon() {
+        return null;
+      }
+
+      @Override
+      public boolean isEnabled() {
+        return myInstanceObject != null && myInstanceObject.getClassObject() != null;
+      }
+
+      @Override
+      public void run() {
+        assert myInstanceObject != null;
+        // TODO check that we are in the correct heap.
+        InstanceObject instance = myInstanceObject;
+        myStage.selectClass(instance.getClassObject());
+        myStage.selectInstance(instance);
+      }
+    });
   }
 
   private void populateTreeContents() {
@@ -329,8 +370,10 @@ final class MemoryInstanceView extends AspectObserver {
 
     myInstanceObject = instanceObject;
     for (MemoryObjectTreeNode<InstanceObject> node : myTreeRoot.getChildren()) {
-      if (node.getAdapter() == myInstanceObject) {
-        myTree.setSelectionPath(new TreePath(myTreeModel.getPathToRoot(node)));
+      if (node.getAdapter().equals(myInstanceObject)) {
+        TreePath path = new TreePath(myTreeModel.getPathToRoot(node));
+        myTree.scrollPathToVisible(path);
+        myTree.setSelectionPath(path);
         break;
       }
     }

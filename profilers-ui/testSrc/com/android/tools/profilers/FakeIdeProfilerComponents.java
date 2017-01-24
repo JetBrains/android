@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.common.ContextMenuItem;
 import com.android.tools.profilers.common.LoadingPanel;
 import com.android.tools.profilers.common.StackTraceView;
 import com.android.tools.profilers.common.TabsPanel;
@@ -35,8 +36,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
-  @NotNull
-  private Map<JComponent, ComponentNavigations> myComponents = new HashMap<>();
+  @NotNull private Map<JComponent, ComponentNavigations> myComponentNavigations = new HashMap<>();
+  @NotNull private Map<JComponent, List<ContextMenuItem>> myComponentContextMenus = new HashMap<>();
 
   @NotNull
   @Override
@@ -105,20 +106,36 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
   public void installNavigationContextMenu(@NotNull JComponent component,
                                            @NotNull Supplier<CodeLocation> codeLocationSupplier,
                                            @Nullable Runnable preNavigate) {
-    assertFalse(myComponents.containsKey(component));
-    myComponents.put(component, new ComponentNavigations(codeLocationSupplier, preNavigate));
+    assertFalse(myComponentNavigations.containsKey(component));
+    myComponentNavigations.put(component, new ComponentNavigations(codeLocationSupplier, preNavigate));
+  }
+
+  @Override
+  public void installContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem) {
+    List<ContextMenuItem> menus = myComponentContextMenus.get(component);
+    if (menus == null) {
+      menus = new ArrayList<>();
+      myComponentContextMenus.put(component, menus);
+    }
+
+    menus.add(contextMenuItem);
   }
 
   @Nullable
   public Supplier<CodeLocation> getCodeLocationSupplier(@NotNull JComponent component) {
-    assertTrue(myComponents.containsKey(component));
-    return myComponents.get(component).myCodeLocationSupplier;
+    assertTrue(myComponentNavigations.containsKey(component));
+    return myComponentNavigations.get(component).myCodeLocationSupplier;
   }
 
   @Nullable
   public Runnable getPreNavigate(@NotNull JComponent component) {
-    assertTrue(myComponents.containsKey(component));
-    return myComponents.get(component).myPreNavigate;
+    assertTrue(myComponentNavigations.containsKey(component));
+    return myComponentNavigations.get(component).myPreNavigate;
+  }
+
+  @Nullable
+  public List<ContextMenuItem> getComponentContextMenus(@NotNull JComponent component) {
+    return myComponentContextMenus.get(component);
   }
 
   private static class ComponentNavigations {

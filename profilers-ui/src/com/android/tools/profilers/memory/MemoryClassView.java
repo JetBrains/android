@@ -388,8 +388,10 @@ final class MemoryClassView extends AspectObserver {
 
     myClassObject = myStage.getSelectedClass();
     for (MemoryObjectTreeNode<NamespaceObject> node : myTreeRoot.getChildren()) {
-      if (node.getAdapter() == myClassObject) {
-        myTree.setSelectionPath(new TreePath(myTreeModel.getPathToRoot(node)));
+      if (node.getAdapter().equals(myClassObject)) {
+        TreePath path = new TreePath(myTreeModel.getPathToRoot(node));
+        myTree.scrollPathToVisible(path);
+        myTree.setSelectionPath(path);
         break;
       }
     }
