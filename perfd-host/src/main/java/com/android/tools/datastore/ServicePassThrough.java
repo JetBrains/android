@@ -28,14 +28,9 @@ import java.util.concurrent.RunnableFuture;
 public interface ServicePassThrough {
 
   /**
-   * @return a runner object that will poll for additional data to populate the datastore.
-   */
-  RunnableFuture<Void> getRunner();
-
-  /**
    * @return bound service object for setting up an RPC client.
    */
-  ServerServiceDefinition getService();
+  ServerServiceDefinition bindService();
 
   /**
    * Channel for this pass through object to connect to. The implementor is responsible for initializing the connection.
