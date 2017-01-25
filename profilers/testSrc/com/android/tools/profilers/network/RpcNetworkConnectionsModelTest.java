@@ -16,9 +16,10 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.StudioProfilers;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf3jarjar.ByteString;
 import org.junit.Before;
@@ -28,9 +29,11 @@ import org.junit.Test;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class RpcNetworkConnectionsModelTest {
+  private static final String FAKE_PAYLOAD_ID = "Test Payload";
+
   private static final ImmutableList<HttpData> FAKE_DATA =
     new ImmutableList.Builder<HttpData>()
       .add(FakeNetworkService.newHttpData(0, 0, 7, 14))
@@ -39,20 +42,24 @@ public class RpcNetworkConnectionsModelTest {
       .add(FakeNetworkService.newHttpData(3, 8, 10, 12))
       .build();
 
-  @Rule public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("RpcNetworkConnectionsModelTest", FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
+  private FakeProfilerService myProfilerService = new FakeProfilerService(false);
+
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("RpcNetworkConnectionsModelTest", myProfilerService,
+                                                                   FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
   private NetworkConnectionsModel myModel;
 
   @Before
   public void setUp() {
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
-    myModel = new RpcNetworkConnectionsModel(profilers.getClient().getNetworkClient(), 12, "Test Device Serial");
+    myModel = new RpcNetworkConnectionsModel(profilers.getClient().getProfilerClient(), profilers.getClient().getNetworkClient(), 12,
+                                             "Test Device Serial");
   }
 
   @Test
   public void requestResponsePayload() {
-    HttpData data = new HttpData.Builder(0, 0, 0, 0).setResponsePayloadId("payloadId").build();
-    assertEquals(FakeNetworkService.FAKE_PAYLOAD, myModel.requestResponsePayload(data).toStringUtf8());
+    myProfilerService.addFile(FAKE_PAYLOAD_ID, ByteString.copyFromUtf8("Dummy Contents"));
+    HttpData data = new HttpData.Builder(0, 0, 0, 0).setResponsePayloadId(FAKE_PAYLOAD_ID).build();
+    assertEquals("Dummy Contents", myModel.requestResponsePayload(data).toStringUtf8());
   }
 
   @Test

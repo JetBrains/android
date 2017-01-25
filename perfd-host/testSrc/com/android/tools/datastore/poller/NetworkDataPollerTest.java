@@ -20,15 +20,12 @@ import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
-import com.google.common.collect.ImmutableMap;
-import com.google.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Mockito.mock;
@@ -41,12 +38,6 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   private static final long RECEIVED_VALUE = 2048;
   private static final int CONNECTION_COUNT = 4;
   private static final int CONNECTION_ID = 1;
-
-  private static final String PAYLOAD_ID_1 = "0123456789";
-  private static final String PAYLOAD_ID_2 = "9876543210";
-  private static final String BAD_PAYLOAD_ID = "0000000000";
-  private static final ByteString PAYLOAD_1 = ByteString.copyFromUtf8("PAYLOAD1");
-  private static final ByteString PAYLOAD_2 = ByteString.copyFromUtf8("PAYLOAD2");
 
   private static final Common.CommonData STARTUP_BASIC_INFO = Common.CommonData.newBuilder()
     .setProcessId(TEST_APP_ID)
@@ -98,18 +89,15 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
                .build())
     .build();
 
-  private static final Map<String, ByteString> PAYLOAD_CACHE = new ImmutableMap.Builder<String, ByteString>().
-    put(PAYLOAD_ID_1, PAYLOAD_1).
-    put(PAYLOAD_ID_2, PAYLOAD_2).
-    build();
-
   private NetworkDataPoller myNetworkDataPoller = new NetworkDataPoller();
+
   @Rule
   public TestGrpcService<FakeNetworkService> myService = new TestGrpcService<>(myNetworkDataPoller, new FakeNetworkService());
 
   @Before
   public void setUp() throws Exception {
-    myNetworkDataPoller.startMonitoringApp(NetworkProfiler.NetworkStartRequest.newBuilder().setProcessId(TEST_APP_ID).build(), mock(StreamObserver.class));
+    myNetworkDataPoller
+      .startMonitoringApp(NetworkProfiler.NetworkStartRequest.newBuilder().setProcessId(TEST_APP_ID).build(), mock(StreamObserver.class));
     myNetworkDataPoller.poll();
   }
 
@@ -270,29 +258,6 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
     validateResponse(observer, expected);
   }
 
-  @Test
-  public void testGetPayload() {
-    StreamObserver<NetworkProfiler.NetworkPayloadResponse> observer1 = mock(StreamObserver.class);
-    NetworkProfiler.NetworkPayloadRequest request1 = NetworkProfiler.NetworkPayloadRequest.newBuilder().setPayloadId(PAYLOAD_ID_1).build();
-    NetworkProfiler.NetworkPayloadResponse response1 = NetworkProfiler.NetworkPayloadResponse.newBuilder().setContents(PAYLOAD_1).build();
-    myNetworkDataPoller.getPayload(request1, observer1);
-    validateResponse(observer1, response1);
-
-    StreamObserver<NetworkProfiler.NetworkPayloadResponse> observer2 = mock(StreamObserver.class);
-    NetworkProfiler.NetworkPayloadRequest request2 = NetworkProfiler.NetworkPayloadRequest.newBuilder().setPayloadId(PAYLOAD_ID_2).build();
-    NetworkProfiler.NetworkPayloadResponse response2 = NetworkProfiler.NetworkPayloadResponse.newBuilder().setContents(PAYLOAD_2).build();
-    myNetworkDataPoller.getPayload(request2, observer2);
-    validateResponse(observer2, response2);
-
-    StreamObserver<NetworkProfiler.NetworkPayloadResponse> observerNoMatch = mock(StreamObserver.class);
-    NetworkProfiler.NetworkPayloadRequest requestBad =
-      NetworkProfiler.NetworkPayloadRequest.newBuilder().setPayloadId(BAD_PAYLOAD_ID).build();
-    NetworkProfiler.NetworkPayloadResponse responseNoMatch = NetworkProfiler.NetworkPayloadResponse.getDefaultInstance();
-    myNetworkDataPoller.getPayload(requestBad, observerNoMatch);
-    validateResponse(observerNoMatch, responseNoMatch);
-
-  }
-
   private void getData(NetworkProfiler.NetworkDataRequest.Type type, NetworkProfiler.NetworkDataResponse expected) {
     getData(TEST_APP_ID, type, expected);
   }
@@ -363,18 +328,6 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
         response.setResponseBody(NetworkProfiler.HttpDetailsResponse.Body.getDefaultInstance());
       }
       responseObserver.onNext(response.build());
-      responseObserver.onCompleted();
-    }
-
-    @Override
-    public void getPayload(NetworkProfiler.NetworkPayloadRequest request,
-                           StreamObserver<NetworkProfiler.NetworkPayloadResponse> responseObserver) {
-      NetworkProfiler.NetworkPayloadResponse.Builder builder = NetworkProfiler.NetworkPayloadResponse.newBuilder();
-      ByteString payload = PAYLOAD_CACHE.get(request.getPayloadId());
-      if (payload != null) {
-        builder.setContents(payload);
-      }
-      responseObserver.onNext(builder.build());
       responseObserver.onCompleted();
     }
   }
