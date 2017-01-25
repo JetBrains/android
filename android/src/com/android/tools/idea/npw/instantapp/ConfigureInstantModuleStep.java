@@ -83,6 +83,6 @@ public final class ConfigureInstantModuleStep extends DynamicWizardStepWithDescr
 
   @Override
   public boolean isStepVisible() {
-    return myState.getNotNull(ALSO_CREATE_IAPK_KEY, false);
+    return myState.getNotNull(IS_INSTANT_APP_KEY, false) && myState.getNotNull(ALSO_CREATE_IAPK_KEY, false);
   }
 }
