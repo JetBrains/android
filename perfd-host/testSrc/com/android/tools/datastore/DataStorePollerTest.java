@@ -15,6 +15,7 @@
  */
 package com.android.tools.datastore;
 
+import com.android.tools.datastore.poller.PollRunner;
 import io.grpc.stub.StreamObserver;
 
 import static org.mockito.Matchers.any;
@@ -30,4 +31,13 @@ public class DataStorePollerTest {
     verify(observer, never()).onError(any(Throwable.class));
   }
 
+  protected static class StaticPollTicker {
+    public static void run(Runnable runner) {
+      if (runner instanceof PollRunner) {
+        ((PollRunner)runner).tick();
+      } else {
+        runner.run();
+      }
+    }
+  }
 }
