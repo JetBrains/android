@@ -17,6 +17,7 @@ package com.android.tools.datastore;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.datastore.poller.*;
+import com.android.tools.datastore.service.EventService;
 import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -74,7 +75,7 @@ public class DataStoreService {
    */
   public void createPollers() {
     registerService(new ProfilerService(this));
-    registerService(new EventDataPoller());
+    registerService(new EventService(myFetchExecutor));
     registerService(new CpuDataPoller());
     registerService(new MemoryDataPoller(this));
     registerService(new NetworkDataPoller());
