@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.deprecated;
 
-import com.android.SdkConstants;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.npw.*;
 import com.android.tools.idea.npw.instantapp.ConfigureInstantModuleStep;
@@ -46,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.android.SdkConstants.GRADLE_PLUGIN_AIA_VERSION;
 import static com.android.tools.idea.npw.AddAndroidActivityPath.KEY_SELECTED_TEMPLATE;
 import static com.android.tools.idea.npw.ConfigureFormFactorStep.NUM_ENABLED_FORM_FACTORS_KEY;
 import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_CREATE_ACTIVITY;
@@ -81,7 +81,8 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   private static final String RELATIVE_SRC_ROOT = FileUtil.join(TemplateWizard.MAIN_FLAVOR_SOURCE_PATH, TemplateWizard.JAVA_SOURCE_PATH);
   private static final String RELATIVE_TEST_ROOT = FileUtil.join(TemplateWizard.TEST_SOURCE_PATH, TemplateWizard.JAVA_SOURCE_PATH);
 
-  private static String WH_SDK_LOCATION = System.getenv(AIA_SDK_ENV_VAR);
+  private static String AIA_SDK_LOCATION = System.getenv(AIA_SDK_ENV_VAR);
+  private static String AIA_PLUGIN_VERSION = GRADLE_PLUGIN_AIA_VERSION;
 
   private final FormFactor myFormFactor;
   private final File myTemplateFile;
@@ -94,8 +95,14 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
 
   // Can't directly set environment variables in Java so need this for testing.
   @TestOnly
-  public static void setWHSdkLocation(String value) {
-    WH_SDK_LOCATION = value;
+  public static void setAiaSdkLocation(String value) {
+    AIA_SDK_LOCATION = value;
+  }
+
+  // Need to be able to override this value for testing.
+  @TestOnly
+  public static void setAiaPluginVersion(String value) {
+    AIA_PLUGIN_VERSION = value;
   }
 
   public static List<NewFormFactorModulePath> getAvailableFormFactorModulePaths(@NotNull Disposable disposable) {
@@ -140,7 +147,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     myState.put(CREATE_ACTIVITY_KEY, false);
     myState.put(IS_INSTANT_APP_KEY, false);
 
-    myState.put(AIA_SDK_ENABLED_KEY, isNotEmpty(WH_SDK_LOCATION));
+    myState.put(AIA_SDK_ENABLED_KEY, isNotEmpty(AIA_SDK_LOCATION));
 
     addStep(new ConfigureAndroidModuleStepDynamic(myDisposable, myFormFactor));
     addStep(new ConfigureInstantModuleStep(myDisposable, myFormFactor));
@@ -309,7 +316,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     boolean isInstantApp = myState.getNotNull(IS_INSTANT_APP_KEY, false);
 
     if (isInstantApp) {
-      myState.put(GRADLE_PLUGIN_VERSION_KEY, SdkConstants.GRADLE_PLUGIN_WH_VERSION);
+      myState.put(GRADLE_PLUGIN_VERSION_KEY, AIA_PLUGIN_VERSION);
       myState.put(SPLIT_NAME_KEY, moduleName);
     }
 
