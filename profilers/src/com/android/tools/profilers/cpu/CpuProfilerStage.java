@@ -28,9 +28,6 @@ import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFutureTask;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashMap;
@@ -41,8 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 public class CpuProfilerStage extends Stage {
@@ -72,11 +68,24 @@ public class CpuProfilerStage extends Stage {
     UNKNOWN
   }
 
+  public enum CaptureState {
+    // Waiting for a capture to start (displaying the current capture or not)
+    IDLE,
+    // There is a capture in progress
+    CAPTURING,
+    // A capture is being parsed
+    PARSING,
+    // Waiting for the service to respond a start capturing call
+    STARTING,
+    // Waiting for the service to respond a stop capturing call
+    STOPPING,
+  }
+
   private static final Logger LOG = Logger.getInstance(CpuProfilerStage.class);
-  @NotNull
-  private final CpuServiceGrpc.CpuServiceBlockingStub myCpuService;
+
   @NotNull
   private final CpuTraceDataSeries myCpuTraceDataSeries;
+
   private AspectModel<CpuProfilerAspect> myAspect = new AspectModel<>();
 
   /**
@@ -84,16 +93,12 @@ public class CpuProfilerStage extends Stage {
    */
   @Nullable
   private CpuCapture myCapture;
-  /**
-   * Whether there is a capture in progress.
-   * TODO: Timeouts. Also, capturing state should come from the device instead of being kept here.
-   */
-  private boolean myCapturing;
 
   /**
-   * Whether the capture is being parsed.
+   * Represents the current state of the capture.
+   * TODO: instead of keeping/setting all these state here, we might want to get the current state from perfd.
    */
-  private boolean myParsingCapture;
+  private CaptureState myCaptureState;
 
   /**
    * Id of the current selected thread.
@@ -107,7 +112,6 @@ public class CpuProfilerStage extends Stage {
 
   public CpuProfilerStage(@NotNull StudioProfilers profilers) {
     super(profilers);
-    myCpuService = getStudioProfilers().getClient().getCpuClient();
     myCpuTraceDataSeries = new CpuTraceDataSeries();
 
     Range viewRange = getStudioProfilers().getTimeline().getViewRange();
@@ -128,6 +132,7 @@ public class CpuProfilerStage extends Stage {
     myThreadsStates = new CpuThreadsModel(viewRange, this, getStudioProfilers().getProcessId(), getStudioProfilers().getDeviceSerial());
 
     myEventMonitor = new EventMonitor(profilers);
+    myCaptureState = CaptureState.IDLE;
   }
 
   public AxisComponentModel getCpuUsageAxis() {
@@ -190,49 +195,69 @@ public class CpuProfilerStage extends Stage {
   }
 
   public void startCapturing() {
+    CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
     CpuProfiler.CpuProfilingAppStartRequest request = CpuProfiler.CpuProfilingAppStartRequest.newBuilder()
       .setAppPkgName(getStudioProfilers().getProcess().getName()) // TODO: Investigate if this is the right way of choosing the app
       .setProfiler(CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART) // TODO: support simpleperf
       .setMode(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED) // TODO: support instrumented mode
       .build();
 
-    // TODO: calls to start/stop freeze the UI for a noticeable amount of time. We need to fix it.
-    CpuProfiler.CpuProfilingAppStartResponse response = myCpuService.startProfilingApp(request);
+    setCaptureState(CaptureState.STARTING);
+    CompletableFuture.supplyAsync(
+      () -> cpuService.startProfilingApp(request), getStudioProfilers().getIdeServices().getPoolExecutor())
+      .thenAcceptAsync(this::startCapturingCallback, getStudioProfilers().getIdeServices().getMainExecutor());
+  }
 
+  private void startCapturingCallback(CpuProfiler.CpuProfilingAppStartResponse response) {
     if (!response.getStatus().equals(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS)) {
       LOG.warn("Unable to start tracing: " + response.getStatus());
       LOG.warn(response.getErrorMessage());
-      myCapturing = false;
-      myParsingCapture = false;
+      setCaptureState(CaptureState.IDLE);
     }
     else {
-      myCapturing = true;
+      setCaptureState(CaptureState.CAPTURING);
     }
-    myAspect.changed(CpuProfilerAspect.CAPTURE);
   }
 
   public void stopCapturing() {
+    CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
     CpuProfiler.CpuProfilingAppStopRequest request = CpuProfiler.CpuProfilingAppStopRequest.newBuilder()
       .setAppPkgName(getStudioProfilers().getProcess().getName()) // TODO: Investigate if this is the right way of choosing the app
       .setProfiler(CpuProfiler.CpuProfilingAppStopRequest.Profiler.ART) // TODO: support simpleperf
       .build();
 
-    CpuProfiler.CpuProfilingAppStopResponse response = myCpuService.stopProfilingApp(request);
+    setCaptureState(CaptureState.STOPPING);
+    CompletableFuture.supplyAsync(
+      () -> cpuService.stopProfilingApp(request), getStudioProfilers().getIdeServices().getPoolExecutor())
+      .thenAcceptAsync(this::stopCapturingCallback, getStudioProfilers().getIdeServices().getMainExecutor());
+  }
 
+  private void stopCapturingCallback(CpuProfiler.CpuProfilingAppStopResponse response) {
     if (!response.getStatus().equals(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS)) {
       LOG.warn("Unable to stop tracing: " + response.getStatus());
       LOG.warn(response.getErrorMessage());
+      setCaptureState(CaptureState.IDLE);
     }
     else {
-      ListenableFutureTask<CpuCapture> task = ListenableFutureTask.create(() -> new CpuCapture(response.getTrace()));
-      Futures.addCallback(task, new CpuCaptureCallback(response.getTraceId()), getStudioProfilers().getIdeServices().getProfilerExecutor());
-      ExecutorService executor = Executors.newSingleThreadExecutor();
-      executor.submit(task);
-      executor.shutdown();
-      myParsingCapture = true;
+      CompletableFuture.supplyAsync(() -> new CpuCapture(response.getTrace()), getStudioProfilers().getIdeServices().getPoolExecutor())
+        .handleAsync((capture, exception) -> {
+        if (capture != null) {
+          myTraceCaptures.put(response.getTraceId(), capture);
+          // Intentionally not firing the aspect because it will be done by setCapture with the new capture value
+          myCaptureState = CaptureState.IDLE;
+          setCapture(capture);
+          setSelectedThread(capture.getMainThreadId());
+        } else {
+          assert exception != null;
+          LOG.warn("Unable to parse capture: " + exception.getMessage());
+          // Intentionally not firing the aspect because it will be done by setCapture with the new capture value
+          myCaptureState = CaptureState.IDLE;
+          setCapture(null);
+        }
+        return capture;
+      }, getStudioProfilers().getIdeServices().getMainExecutor());
+      setCaptureState(CaptureState.PARSING);
     }
-    myCapturing = false;
-    myAspect.changed(CpuProfilerAspect.CAPTURE);
   }
 
   public void setCapture(@Nullable CpuCapture capture) {
@@ -264,13 +289,13 @@ public class CpuProfilerStage extends Stage {
     return myCapture;
   }
 
-  public boolean isCapturing() {
-    // TODO: get this information from perfd rather than keeping it in a flag
-    return myCapturing;
+  public CaptureState getCaptureState() {
+    return myCaptureState;
   }
 
-  public boolean isParsingCapture() {
-    return myParsingCapture;
+  public void setCaptureState(CaptureState captureState) {
+    myCaptureState = captureState;
+    myAspect.changed(CpuProfilerAspect.CAPTURE);
   }
 
   @NotNull
@@ -291,7 +316,8 @@ public class CpuProfilerStage extends Stage {
         .setDeviceSerial(getStudioProfilers().getDeviceSerial())
         .setTraceId(traceId)
         .build();
-      CpuProfiler.GetTraceResponse trace = myCpuService.getTrace(request);
+      CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
+      CpuProfiler.GetTraceResponse trace = cpuService.getTrace(request);
       if (trace.getStatus() == CpuProfiler.GetTraceResponse.Status.SUCCESS) {
         // TODO: move this parsing to a separate thread
         try {
@@ -313,7 +339,8 @@ public class CpuProfilerStage extends Stage {
       long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
       long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
 
-      CpuProfiler.GetTraceInfoResponse response = myCpuService.getTraceInfo(
+      CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
+      CpuProfiler.GetTraceInfoResponse response = cpuService.getTraceInfo(
         CpuProfiler.GetTraceInfoRequest.newBuilder().
         setProcessId(getStudioProfilers().getProcessId()).
         setDeviceSerial(getStudioProfilers().getDeviceSerial()).
@@ -359,36 +386,6 @@ public class CpuProfilerStage extends Stage {
     @NotNull
     public SeriesLegend getThreadsLegend() {
       return myThreadsLegend;
-    }
-  }
-
-  private class CpuCaptureCallback implements FutureCallback<CpuCapture> {
-
-    private int myTraceId;
-
-    private CpuCaptureCallback(int traceId) {
-      myTraceId = traceId;
-    }
-
-    @Override
-    public void onSuccess(@Nullable CpuCapture capture) {
-      // If onSuccess is called, it means we successfully created a new CpuCapture.
-      // Therefore, the value shouldn't be null;
-      assert capture != null;
-
-      myTraceCaptures.put(myTraceId, capture);
-      myParsingCapture = false;
-      setCapture(capture);
-      setSelectedThread(capture.getMainThreadId());
-    }
-
-    @Override
-    public void onFailure(@NotNull Throwable e) {
-      LOG.warn("Unable to parse capture: " + e.getMessage());
-      myParsingCapture = false;
-      setCapture(null);
-      // Set an invalid thread id to clear the thread selection
-      setSelectedThread(-1);
     }
   }
 }

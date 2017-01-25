@@ -27,7 +27,13 @@ import java.util.concurrent.Executor;
 public class IntellijProfilerServices implements IdeProfilerServices {
   @NotNull
   @Override
-  public Executor getProfilerExecutor() {
+  public Executor getMainExecutor() {
     return ApplicationManager.getApplication()::invokeLater;
+  }
+
+  @NotNull
+  @Override
+  public Executor getPoolExecutor() {
+    return ApplicationManager.getApplication()::executeOnPooledThread;
   }
 }
