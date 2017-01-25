@@ -55,6 +55,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
    */
   private final Splitter mySplitter;
 
+  @NotNull
   private final LoadingPanel myCaptureViewLoading;
 
   @Nullable
@@ -190,9 +191,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myCaptureButton.addActionListener(event -> capture());
 
     myCaptureViewLoading = getProfilersView().getIdeProfilerComponents().createLoadingPanel();
-    if (myCaptureViewLoading != null) {
-      myCaptureViewLoading.setLoadingText("Parsing capture...");
-    }
+    myCaptureViewLoading.setLoadingText("Parsing capture...");
 
     updateCaptureState();
   }
@@ -229,37 +228,41 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   }
 
   private void updateCaptureState() {
-    if (myCaptureViewLoading != null) {
-      myCaptureViewLoading.stopLoading();
+    myCaptureViewLoading.stopLoading();
+    switch (myStage.getCaptureState()) {
+      case IDLE:
+        myCaptureButton.setEnabled(true);
+        myCaptureButton.setText("Record");
+        break;
+      case CAPTURING:
+        myCaptureButton.setEnabled(true);
+        myCaptureButton.setText("Stop Recording");
+        break;
+      case PARSING:
+        myCaptureViewLoading.startLoading();
+        mySplitter.setSecondComponent(myCaptureViewLoading.getComponent());
+        break;
+      case STARTING:
+        myCaptureButton.setEnabled(false);
+        myCaptureButton.setText("Starting record...");
+        break;
+      case STOPPING:
+        myCaptureButton.setEnabled(false);
+        myCaptureButton.setText("Stopping record...");
     }
-    if (myStage.isCapturing()) {
-      myCaptureButton.setText("Stop");
-      // TODO: implement visual effect of an ongoing capture
+    CpuCapture capture = myStage.getCapture();
+    if (capture == null) {
+      mySplitter.setSecondComponent(null);
+      myCaptureView = null;
     }
     else {
-      myCaptureButton.setText("Record");
-      if (myStage.isParsingCapture()) {
-        if (myCaptureViewLoading != null) {
-          myCaptureViewLoading.startLoading();
-          mySplitter.setSecondComponent(myCaptureViewLoading.getComponent());
-        }
-      }
-      else {
-        CpuCapture capture = myStage.getCapture();
-        if (capture == null) {
-          mySplitter.setSecondComponent(null);
-          myCaptureView = null;
-        }
-        else {
-          myCaptureView = new CpuCaptureView(capture, this);
-          mySplitter.setSecondComponent(myCaptureView.getComponent());
-        }
-      }
+      myCaptureView = new CpuCaptureView(capture, this);
+      mySplitter.setSecondComponent(myCaptureView.getComponent());
     }
   }
 
   private void capture() {
-    if (myStage.isCapturing()) {
+    if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING) {
       myStage.stopCapturing();
     }
     else {
