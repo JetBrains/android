@@ -168,10 +168,10 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
   }
 
   @Override
-  public void onWizardFinished(boolean success) {
+  public void onWizardFinished(ModelWizard.WizardResult result) {
     // Only progress when we know the underlying wizard is done. Call the super methods directly
     // since we stubbed out our local overrides.
-    if (success) {
+    if (result.isFinished()) {
       super.doOKAction();
     }
     else {
