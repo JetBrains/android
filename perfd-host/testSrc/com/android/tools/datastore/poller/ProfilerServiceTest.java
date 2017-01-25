@@ -20,18 +20,17 @@ import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
-import io.grpc.internal.Stream;
+import com.google.common.collect.ImmutableMap;
+import com.google.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 public class ProfilerServiceTest extends DataStorePollerTest {
 
@@ -39,6 +38,18 @@ public class ProfilerServiceTest extends DataStorePollerTest {
 
   private DataStoreService myDataStore = mock(DataStoreService.class);
   private ProfilerService myProfilerService = new ProfilerService(myDataStore);
+
+  private static final String BYTES_ID_1 = "0123456789";
+  private static final String BYTES_ID_2 = "9876543210";
+  private static final String BAD_ID = "0000000000";
+  private static final ByteString BYTES_1 = ByteString.copyFromUtf8("FILE_1");
+  private static final ByteString BYTES_2 = ByteString.copyFromUtf8("FILE_2");
+
+  private static final Map<String, ByteString> PAYLOAD_CACHE = new ImmutableMap.Builder<String, ByteString>().
+    put(BYTES_ID_1, BYTES_1).
+    put(BYTES_ID_2, BYTES_2).
+    build();
+
   @Rule
   public TestGrpcService<FakeProfilerService> myService = new TestGrpcService<>(myProfilerService, new FakeProfilerService());
 
@@ -109,6 +120,29 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     validateResponse(observer, Profiler.DisconnectResponse.getDefaultInstance());
   }
 
+  @Test
+  public void testGetFile() throws Exception {
+    StreamObserver<Profiler.BytesResponse> observer1 = mock(StreamObserver.class);
+    Profiler.BytesRequest request1 = Profiler.BytesRequest.newBuilder().setId(BYTES_ID_1).build();
+    Profiler.BytesResponse response1 = Profiler.BytesResponse.newBuilder().setContents(BYTES_1).build();
+    myProfilerService.getBytes(request1, observer1);
+    validateResponse(observer1, response1);
+
+    StreamObserver<Profiler.BytesResponse> observer2 = mock(StreamObserver.class);
+    Profiler.BytesRequest request2 = Profiler.BytesRequest.newBuilder().setId(BYTES_ID_2).build();
+    Profiler.BytesResponse response2 = Profiler.BytesResponse.newBuilder().setContents(BYTES_2).build();
+    myProfilerService.getBytes(request2, observer2);
+    validateResponse(observer2, response2);
+
+    StreamObserver<Profiler.BytesResponse> observerNoMatch = mock(StreamObserver.class);
+    Profiler.BytesRequest requestBad =
+      Profiler.BytesRequest.newBuilder().setId(BAD_ID).build();
+    Profiler.BytesResponse responseNoMatch = Profiler.BytesResponse.getDefaultInstance();
+    myProfilerService.getBytes(requestBad, observerNoMatch);
+    validateResponse(observerNoMatch, responseNoMatch);
+
+  }
+
   private void setProcesses() {
     Profiler.SetProcessesRequest request = Profiler.SetProcessesRequest.newBuilder()
       .addDeviceProcesses(Profiler.DeviceProcesses.newBuilder()
@@ -133,6 +167,17 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     @Override
     public void getVersion(Profiler.VersionRequest request, StreamObserver<Profiler.VersionResponse> responseObserver) {
       responseObserver.onNext(Profiler.VersionResponse.getDefaultInstance());
+      responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getBytes(Profiler.BytesRequest request, StreamObserver<Profiler.BytesResponse> responseObserver) {
+      Profiler.BytesResponse.Builder builder = Profiler.BytesResponse.newBuilder();
+      ByteString bytes = PAYLOAD_CACHE.get(request.getId());
+      if (bytes != null) {
+        builder.setContents(bytes);
+      }
+      responseObserver.onNext(builder.build());
       responseObserver.onCompleted();
     }
   }
