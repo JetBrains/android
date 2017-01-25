@@ -26,9 +26,28 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.*;
 
 public class HeapDumpHeapObjectTest {
+  @Test
+  public void testEqual() throws Exception {
+    Heap mockHeap = mock(Heap.class);
+    HeapDumpHeapObject heap1 = new HeapDumpHeapObject(mockHeap);
+    HeapDumpHeapObject heap2 = new HeapDumpHeapObject(mockHeap);
+    assertEquals(heap1.getHeap(), heap2.getHeap());
+    assertEquals(heap1, heap2);
+  }
+
+  @Test
+  public void testNotEqual() throws Exception {
+    Heap mockHeap1 = mock(Heap.class);
+    Heap mockHeap2 = mock(Heap.class);
+    HeapDumpHeapObject heap1 = new HeapDumpHeapObject(mockHeap1);
+    HeapDumpHeapObject heap2 = new HeapDumpHeapObject(mockHeap2);
+    assertNotEquals(heap1.getHeap(), heap2.getHeap());
+    assertNotEquals(heap1, heap2);
+  }
 
   @Test
   public void testCorrectClassObjectsGenerated() throws Exception {

@@ -124,7 +124,9 @@ public class MemoryInstanceViewTest {
     // Setup a Class-Instance-Fields hierarchy so that the instance contains a field of a different class
     FieldObject field = MemoryProfilerTestBase.mockFieldObject("fieldClass", "fieldLabel", "field");
     ClassObject fieldClass = MemoryProfilerTestBase.mockClassObject("fieldClass", 1, 2, 3, Collections.singletonList(field));
+    HeapObject fieldHeap = MemoryProfilerTestBase.mockHeapObject("fieldHeap", Collections.singletonList(fieldClass));
     when(field.getClassObject()).thenReturn(fieldClass);
+    when(fieldClass.getHeapObject()).thenReturn(fieldHeap);
     InstanceObject instance = MemoryProfilerTestBase.mockInstanceObject("instanceClass", "instance", 1, 2, 3);
     when(instance.getFields()).thenReturn(Collections.singletonList(field));
     ClassObject instanceClass = MemoryProfilerTestBase.mockClassObject("instanceClass", 1, 2, 3, Collections.singletonList(instance));
@@ -150,6 +152,7 @@ public class MemoryInstanceViewTest {
     // Trigger the context menu action to go to the field's class
     assertTrue(menus.get(0).isEnabled());
     menus.get(0).run();
+    assertEquals(fieldHeap, myStage.getSelectedHeap());
     assertEquals(fieldClass, myStage.getSelectedClass());
     assertEquals(field, myStage.getSelectedInstance());
   }
