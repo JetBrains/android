@@ -28,18 +28,18 @@ import java.util.stream.Collectors;
  * A UI representation of a {@link ClassObj}.
  */
 final class HeapDumpClassObject extends ClassObject {
-  private final ClassObj myClassObj;
-  private final int myHeapId;
+  @NotNull private final ClassObj myClassObj;
+  @NotNull private final HeapDumpHeapObject myHeapObject;
   private long myRetainedSize;
 
   @Nullable
   private List<InstanceObject> myInstanceObjects = null;
 
-  public HeapDumpClassObject(@NotNull ClassObj classObj, int heapId) {
+  public HeapDumpClassObject(@NotNull HeapDumpHeapObject heapObject, @NotNull ClassObj classObj) {
     super(classObj.getClassName());
+    myHeapObject = heapObject;
     myClassObj = classObj;
-    myHeapId = heapId;
-    for (Instance instance : myClassObj.getHeapInstances(heapId)) {
+    for (Instance instance : myClassObj.getHeapInstances(myHeapObject.getHeap().getId())) {
       myRetainedSize += instance.getTotalRetainedSize();
     }
   }
@@ -59,6 +59,12 @@ final class HeapDumpClassObject extends ClassObject {
     return myClassObj.hashCode();
   }
 
+  @NotNull
+  @Override
+  public HeapObject getHeapObject() {
+    return myHeapObject;
+  }
+
   @Override
   public int getTotalCount() {
     return myClassObj.getInstanceCount();
@@ -66,7 +72,7 @@ final class HeapDumpClassObject extends ClassObject {
 
   @Override
   public int getHeapCount() {
-    return myClassObj.getHeapInstancesCount(myHeapId);
+    return myClassObj.getHeapInstancesCount(myHeapObject.getHeap().getId());
   }
 
   @Override
@@ -76,7 +82,7 @@ final class HeapDumpClassObject extends ClassObject {
 
   @Override
   public int getShallowSize() {
-    return myClassObj.getShallowSize(myHeapId);
+    return myClassObj.getShallowSize(myHeapObject.getHeap().getId());
   }
 
   @Override
@@ -89,7 +95,7 @@ final class HeapDumpClassObject extends ClassObject {
   public List<InstanceObject> getInstances() {
     if (myInstanceObjects == null) {
       myInstanceObjects =
-        myClassObj.getHeapInstances(myHeapId).stream().map(instance -> new HeapDumpInstanceObject(this, instance))
+        myClassObj.getHeapInstances(myHeapObject.getHeap().getId()).stream().map(instance -> new HeapDumpInstanceObject(this, instance))
           .collect(Collectors.toList());
     }
     return myInstanceObjects;

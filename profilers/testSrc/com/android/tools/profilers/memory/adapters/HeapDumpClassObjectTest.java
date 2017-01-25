@@ -15,17 +15,20 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.perflib.heap.Heap;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.mockito.Mockito.mock;
 
 public class HeapDumpClassObjectTest {
   @Test
   public void testEqual() throws Exception {
     MockClassObj mockClass = new MockClassObj(-1, "MockClass1", 3);
-    HeapDumpClassObject classObject1 = new HeapDumpClassObject(mockClass, 1);
-    HeapDumpClassObject classObject2 = new HeapDumpClassObject(mockClass, 2);
+    HeapDumpHeapObject mockHeap = new HeapDumpHeapObject(mock(Heap.class));
+    HeapDumpClassObject classObject1 = new HeapDumpClassObject(mockHeap, mockClass);
+    HeapDumpClassObject classObject2 = new HeapDumpClassObject(mockHeap, mockClass);
     assertEquals(classObject1, classObject2);
   }
 
@@ -33,8 +36,9 @@ public class HeapDumpClassObjectTest {
   public void testNotEqual() throws Exception {
     MockClassObj mockClass1 = new MockClassObj(-1, "MockClass1", 3);
     MockClassObj mockClass2 = new MockClassObj(-1, "MockClass1", 3);
-    HeapDumpClassObject classObject1 = new HeapDumpClassObject(mockClass1, 1);
-    HeapDumpClassObject classObject2 = new HeapDumpClassObject(mockClass2, 1);
+    HeapDumpHeapObject mockHeap = new HeapDumpHeapObject(mock(Heap.class));
+    HeapDumpClassObject classObject1 = new HeapDumpClassObject(mockHeap, mockClass1);
+    HeapDumpClassObject classObject2 = new HeapDumpClassObject(mockHeap, mockClass2);
     assertNotEquals(classObject1, classObject2);
   }
 }
