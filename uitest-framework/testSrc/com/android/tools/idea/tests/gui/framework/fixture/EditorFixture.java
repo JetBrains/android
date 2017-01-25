@@ -271,31 +271,21 @@ public class EditorFixture {
    */
   public EditorFixture selectEditorTab(@NotNull final Tab tab) {
     String tabName = tab.myTabName;
-    GuiTask.execute(
-      () -> {
+    Wait.seconds(5).expecting(String.format("find editor tab '%s'", tabName == null ? "<default>" : tabName)).until(
+      () -> GuiQuery.getNonNull(() -> {
         VirtualFile currentFile = getCurrentFile();
         assertNotNull("Can't switch to tab " + tabName + " when no file is open in the editor", currentFile);
         FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
-        FileEditor[] editors = manager.getAllEditors(currentFile);
-        FileEditor target = null;
-        for (FileEditor editor : editors) {
+        for (FileEditor editor : manager.getAllEditors(currentFile)) {
           if (tabName == null || tabName.equals(editor.getName())) {
-            target = editor;
-            break;
+            // Have to use reflection
+            //FileEditorManagerImpl#setSelectedEditor(final FileEditor editor)
+            method("setSelectedEditor").withParameterTypes(FileEditor.class).in(manager).invoke(editor);
+            return true;
           }
         }
-        if (target != null) {
-          // Have to use reflection
-          //FileEditorManagerImpl#setSelectedEditor(final FileEditor editor)
-          method("setSelectedEditor").withParameterTypes(FileEditor.class).in(manager).invoke(target);
-          return;
-        }
-        List<String> tabNames = Lists.newArrayList();
-        for (FileEditor editor : editors) {
-          tabNames.add(editor.getName());
-        }
-        fail("Could not find editor tab \"" + (tabName != null ? tabName : "<default>") + "\": Available tabs = " + tabNames);
-      });
+        return false;
+      }));
     return this;
   }
 
