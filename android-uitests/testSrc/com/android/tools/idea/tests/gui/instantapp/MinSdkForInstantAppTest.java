@@ -27,7 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
-import static com.android.tools.idea.npw.deprecated.NewFormFactorModulePath.setWHSdkLocation;
+import static com.android.tools.idea.npw.deprecated.NewFormFactorModulePath.setAiaSdkLocation;
 import static java.lang.System.getenv;
 
 /**
@@ -40,12 +40,12 @@ public class MinSdkForInstantAppTest {
 
   @Before
   public void before() {
-    setWHSdkLocation("TestValue");
+    setAiaSdkLocation("TestValue");
   }
 
   @After
   public void after() {
-    setWHSdkLocation(getenv("WH_SDK"));
+    setAiaSdkLocation(getenv("WH_SDK"));
   }
 
   @Test

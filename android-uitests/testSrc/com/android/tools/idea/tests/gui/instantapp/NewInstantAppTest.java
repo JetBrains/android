@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.instantapp;
 
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
@@ -36,8 +37,10 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
+import static com.android.SdkConstants.GRADLE_PLUGIN_AIA_VERSION;
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
-import static com.android.tools.idea.npw.deprecated.NewFormFactorModulePath.setWHSdkLocation;
+import static com.android.tools.idea.npw.deprecated.NewFormFactorModulePath.setAiaPluginVersion;
+import static com.android.tools.idea.npw.deprecated.NewFormFactorModulePath.setAiaSdkLocation;
 import static com.google.common.truth.Truth.assertThat;
 import static java.lang.System.getenv;
 
@@ -51,12 +54,14 @@ public class NewInstantAppTest {
 
   @Before
   public void before() {
-    setWHSdkLocation("TestValue");
+    setAiaPluginVersion(AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion());
+    setAiaSdkLocation("TestValue");
   }
 
   @After
   public void after() {
-    setWHSdkLocation(getenv("WH_SDK"));
+    setAiaPluginVersion(GRADLE_PLUGIN_AIA_VERSION);
+    setAiaSdkLocation(getenv("WH_SDK"));
   }
 
   //Not putting this in before() as I plan to add some tests that work on non-default projects.
