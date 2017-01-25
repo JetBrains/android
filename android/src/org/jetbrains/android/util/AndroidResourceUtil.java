@@ -483,7 +483,7 @@ public class AndroidResourceUtil {
    */
   @NotNull
   public static String getValidResourceFileName(@NotNull String base) {
-    return base.replace('-', '_').toLowerCase(Locale.US);
+    return base.replace('-', '_').replace(' ', '_').toLowerCase(Locale.US);
   }
 
   @Nullable
