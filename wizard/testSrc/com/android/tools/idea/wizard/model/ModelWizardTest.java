@@ -45,6 +45,17 @@ public class ModelWizardTest {
     wizardBuilder.addStep(new TitleStep(occupationModel, "Code Monkey"));
 
     ModelWizard wizard = wizardBuilder.build();
+    final ModelWizard.WizardResult[] wizardResult = new ModelWizard.WizardResult[1];
+    wizard.addResultListener(new ModelWizard.WizardListener() {
+      @Override
+      public void onWizardFinished(ModelWizard.WizardResult result) {
+        wizardResult[0] = result;
+      }
+
+      @Override
+      public void onWizardAdvanceError(Exception e) {
+      }
+    });
 
     SwingUtilities.invokeAndWait(EmptyRunnable.getInstance()); // Lets wizard properties update
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(NameStep.class);
@@ -66,8 +77,10 @@ public class ModelWizardTest {
     assertThat(wizard.canGoForward().get()).isTrue();
     assertThat(wizard.onLastStep().get()).isTrue();
 
+    assertThat(wizardResult[0]).isNull();
     wizard.goForward();
     SwingUtilities.invokeAndWait(EmptyRunnable.getInstance());  // Lets wizard properties update
+
     assertThat(wizard.isFinished()).isTrue();
     assertThat(wizard.canGoBack().get()).isFalse();
     assertThat(wizard.canGoForward().get()).isFalse();
@@ -80,7 +93,7 @@ public class ModelWizardTest {
     assertThat(personModel.getAge()).isEqualTo(25);
     assertThat(occupationModel.getTitle()).isEqualTo("Code Monkey");
 
-    assertThat(wizard.isFinished()).isTrue();
+    assertThat(wizardResult[0].isFinished()).isTrue();
 
     Disposer.dispose(wizard);
   }
@@ -119,11 +132,26 @@ public class ModelWizardTest {
     wizardBuilder.addStep(new DummyStep(model));
 
     ModelWizard wizard = wizardBuilder.build();
+    final ModelWizard.WizardResult[] wizardResult = new ModelWizard.WizardResult[1];
+    wizard.addResultListener(new ModelWizard.WizardListener() {
+      @Override
+      public void onWizardFinished(ModelWizard.WizardResult result) {
+        wizardResult[0] = result;
+      }
+
+      @Override
+      public void onWizardAdvanceError(Exception e) {
+
+      }
+    });
+
     assertThat(wizard.isFinished()).isFalse();
+    assertThat(wizardResult[0]).isNull();
 
     wizard.cancel();
     assertThat(wizard.isFinished()).isTrue();
     assertThat(model.myIsFinished).isFalse(); // Models are not finished when cancelled
+    assertThat(wizardResult[0].isFinished()).isFalse();
 
     Disposer.dispose(wizard);
   }
@@ -433,7 +461,7 @@ public class ModelWizardTest {
     final ModelWizardStep<?>[] badStep = {null};
     wizard.addResultListener(new ModelWizard.WizardListener() {
       @Override
-      public void onWizardFinished(boolean success) {
+      public void onWizardFinished(ModelWizard.WizardResult result) {
       }
 
       @Override
@@ -475,7 +503,7 @@ public class ModelWizardTest {
     final ModelWizardStep<?>[] badStep = {null};
     wizard.addResultListener(new ModelWizard.WizardListener() {
       @Override
-      public void onWizardFinished(boolean success) {
+      public void onWizardFinished(ModelWizard.WizardResult result) {
       }
 
       @Override
@@ -514,7 +542,7 @@ public class ModelWizardTest {
     final boolean[] onFinished = {false};
     wizard.addResultListener(new ModelWizard.WizardListener() {
       @Override
-      public void onWizardFinished(boolean success) {
+      public void onWizardFinished(ModelWizard.WizardResult result) {
         onFinished[0] = true;
       }
 

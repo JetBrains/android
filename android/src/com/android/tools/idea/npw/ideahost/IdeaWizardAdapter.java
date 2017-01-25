@@ -71,8 +71,8 @@ final class IdeaWizardAdapter implements ModelWizard.WizardListener, WizardDeleg
   }
 
   @Override
-  public void onWizardFinished(boolean success) {
-    myHostWizard.close(DialogWrapper.CLOSE_EXIT_CODE, success);
+  public void onWizardFinished(ModelWizard.WizardResult result) {
+    myHostWizard.close(DialogWrapper.CLOSE_EXIT_CODE, result.isFinished());
   }
 
   @Override
