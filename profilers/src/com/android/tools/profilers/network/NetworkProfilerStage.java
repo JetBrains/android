@@ -28,6 +28,7 @@ import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -139,9 +140,8 @@ public class NetworkProfilerStage extends Stage {
 
   @VisibleForTesting
   File getConnectionPayload(@NotNull ByteString payload, @NotNull HttpData data) throws IOException {
-    String contentType = data.getResponseField(HttpData.FIELD_CONTENT_TYPE);
-    String extension = contentType == null ? "" : HttpData.guessFileExtensionFromContentType(contentType);
-    File file = FileUtil.createTempFile(data.getResponsePayloadId(), extension, true);
+    String extension = (data.getContentType() == null) ? null : data.getContentType().guessFileExtension();
+    File file = FileUtil.createTempFile(data.getResponsePayloadId(), StringUtil.notNullize(extension), true);
     FileUtil.writeToFile(file, payload.toByteArray());
     // We don't expect the following call to fail but don't care if it does
     //noinspection ResultOfMethodCallIgnored
