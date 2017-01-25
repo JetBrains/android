@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
+import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidVectorIconGenerator;
 import com.android.tools.idea.npw.assetstudio.ui.VectorAssetBrowser;
 import com.android.tools.idea.npw.assetstudio.ui.VectorIconButton;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
+import com.android.tools.idea.res.ResourceNameValidator;
 import com.android.tools.idea.ui.VectorImageComponent;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.ListenerManager;
@@ -32,6 +34,8 @@ import com.android.tools.idea.ui.properties.swing.EnabledProperty;
 import com.android.tools.idea.ui.properties.swing.SelectedProperty;
 import com.android.tools.idea.ui.properties.swing.SliderValueProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
+import com.android.tools.idea.ui.validation.Validator;
+import com.android.tools.idea.ui.validation.ValidatorPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.ide.util.PropertiesComponent;
@@ -71,13 +75,16 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
   private final BoolProperty isValidAsset = new BoolValueProperty();
   private final VectorPreviewUpdater myPreviewUpdater = new VectorPreviewUpdater();
+  private final ResourceNameValidator myNameValidator = ResourceNameValidator.create(false, ResourceFolderType.DRAWABLE);
 
   private final BindingsManager myGeneralBindings = new BindingsManager();
   private final BindingsManager myActiveAssetBindings = new BindingsManager();
   private final ListenerManager myListeners = new ListenerManager();
   @NotNull private final AndroidFacet myFacet;
 
-  private JPanel myRootPanel;
+  private final ValidatorPanel myValidatorPanel;
+
+  private JPanel myPanel;
   private VectorImageComponent myImagePreview;
   private JLabel myImageFileLabel;
   private JTextField myOutputNameField;
@@ -114,6 +121,8 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     // with right away.
     myMaterialIconRadioButton.setSelected(true);
     myActiveAsset = new ObjectValueProperty<>(myIconButton.getAsset());
+
+    myValidatorPanel = new ValidatorPanel(this, myPanel);
   }
 
   @NotNull
@@ -189,6 +198,10 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
           }
         }
       });
+
+      myValidatorPanel.registerValidator(name, value -> Validator.Result.fromNullableMessage(myNameValidator.getErrorText(value)));
+      myValidatorPanel.registerValidator(isValidAsset, "The specified asset could not be parsed. Please choose another asset.");
+
       myActiveAssetBindings.bind(myActiveAsset.get().opacity(), opacityValue);
       myActiveAssetBindings.bind(myActiveAsset.get().autoMirrored(), autoMirrored);
       myActiveAssetBindings.bind(myActiveAsset.get().outputWidth(), width);
@@ -207,13 +220,13 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   @NotNull
   @Override
   protected JComponent getComponent() {
-    return myRootPanel;
+    return myValidatorPanel;
   }
 
   @NotNull
   @Override
   protected ObservableBool canGoForward() {
-    return isValidAsset;
+    return myValidatorPanel.hasErrors().not();
   }
 
   @Override
@@ -301,6 +314,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
         @Override
         protected void done() {
           assert myParseResult != null;
+          // it IS possible to have invalid asset, but no error, in fact that is the initial state before a file is chosen.
           isValidAsset.set(myParseResult.isValid());
           if (myParseResult.isValid()) {
             myImagePreview.setIcon(new ImageIcon(myParseResult.getImage()));
@@ -311,19 +325,16 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
             myOriginalSize.clear();
           }
 
-          myErrorPanel.setVisible(!myParseResult.getErrors().isEmpty());
-          myErrorsTextArea.setText(myParseResult.getErrors());
-          ApplicationManager.getApplication().invokeLater(() -> {
-            myErrorsScrollPane.getVerticalScrollBar().setValue(0);
-          }, ModalityState.any());
+          String error = myParseResult.getErrors();
+          myErrorPanel.setVisible(!error.isEmpty());
+          myErrorsTextArea.setText(error);
+          ApplicationManager.getApplication().invokeLater(() -> myErrorsScrollPane.getVerticalScrollBar().setValue(0), ModalityState.any());
 
           myCurrentWorker = null;
           if (myEnqueuedWorker != null) {
             myCurrentWorker = myEnqueuedWorker;
             myEnqueuedWorker = null;
-            ApplicationManager.getApplication().invokeLater(() -> {
-              myCurrentWorker.execute();
-            }, ModalityState.any());
+            ApplicationManager.getApplication().invokeLater(() -> myCurrentWorker.execute(), ModalityState.any());
           }
         }
       };
