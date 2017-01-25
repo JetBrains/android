@@ -95,7 +95,7 @@ abstract class ProjectSetup {
     }
 
     private void createModules(@NotNull SyncAction.ProjectModels projectModels, @NotNull ProgressIndicator indicator) {
-      indicator.setText2("Creating modules");
+      indicator.setText("Creating modules");
 
       for (IdeaModule ideaModule : projectModels.getProject().getModules()) {
         // We need to create all modules before setting them up, in case we find inter-module dependencies.
