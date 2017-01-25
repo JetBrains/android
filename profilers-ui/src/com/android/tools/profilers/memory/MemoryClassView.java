@@ -99,30 +99,44 @@ final class MemoryClassView extends AspectObserver {
         createTreeNodeComparator(Comparator.comparing(NamespaceObject::getName),
                                  Comparator.comparing(ClassObject::getClassName))));
     myAttributeColumns.put(
-      ClassAttribute.INSTANCE_COUNT,
+      ClassAttribute.TOTAL_COUNT,
       new AttributeColumn(
-        "Count",
+        "Total Count",
         () -> new DetailColumnRenderer(
-          value -> ((NamespaceObject)value.getAdapter()).getInstanceCount() >= 0 ?
-                   Integer.toString(((NamespaceObject)value.getAdapter()).getInstanceCount()) :
+          value -> ((NamespaceObject)value.getAdapter()).getTotalCount() >= 0 ?
+                   Integer.toString(((NamespaceObject)value.getAdapter()).getTotalCount()) :
                    "",
           value -> null,
           SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
-        createTreeNodeComparator(Comparator.comparingInt(ClassObject::getInstanceCount))));
+        createTreeNodeComparator(Comparator.comparingInt(NamespaceObject::getTotalCount))));
     myAttributeColumns.put(
-      ClassAttribute.ELEMENT_SIZE,
+      ClassAttribute.HEAP_COUNT,
       new AttributeColumn(
-        "Size",
+        "Heap Count",
         () -> new DetailColumnRenderer(
-          value -> value.getAdapter() instanceof ClassObject && ((ClassObject)value.getAdapter()).getElementSize() >= 0 ? Integer
-            .toString(((ClassObject)value.getAdapter()).getElementSize()) : "", value -> null, SwingConstants.RIGHT),
+          value -> ((NamespaceObject)value.getAdapter()).getHeapCount() >= 0 ?
+                   Integer.toString(((NamespaceObject)value.getAdapter()).getHeapCount()) :
+                   "",
+          value -> null,
+          SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
-        createTreeNodeComparator(Comparator.comparingInt(ClassObject::getElementSize))));
+        createTreeNodeComparator(Comparator.comparingInt(NamespaceObject::getHeapCount))));
+    myAttributeColumns.put(
+      ClassAttribute.INSTANCE_SIZE,
+      new AttributeColumn(
+        "Sizeof",
+        () -> new DetailColumnRenderer(
+          value -> value.getAdapter() instanceof ClassObject && ((ClassObject)value.getAdapter()).getInstanceSize() >= 0 ? Integer
+            .toString(((ClassObject)value.getAdapter()).getInstanceSize()) : "", value -> null, SwingConstants.RIGHT),
+        SwingConstants.RIGHT,
+        DEFAULT_COLUMN_WIDTH,
+        SortOrder.UNSORTED,
+        createTreeNodeComparator(Comparator.comparingLong(ClassObject::getInstanceSize))));
     myAttributeColumns.put(
       ClassAttribute.SHALLOW_SIZE,
       new AttributeColumn(
@@ -147,7 +161,7 @@ final class MemoryClassView extends AspectObserver {
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
-        createTreeNodeComparator(Comparator.comparingLong(ClassObject::getRetainedSize))));
+        createTreeNodeComparator(Comparator.comparingLong(NamespaceObject::getRetainedSize))));
   }
 
   @NotNull
@@ -347,7 +361,9 @@ final class MemoryClassView extends AspectObserver {
     children.forEach(child -> currentNode.add(collapsePackageNodesRecursively(child)));
 
     children = currentNode.getChildren();
-    if (currentNode.getAdapter() instanceof PackageObject && children.size() == 1 && children.get(0).getAdapter() instanceof PackageObject) {
+    if (currentNode.getAdapter() instanceof PackageObject &&
+        children.size() == 1 &&
+        children.get(0).getAdapter() instanceof PackageObject) {
       MemoryObjectTreeNode<NamespaceObject> onlyChild = children.get(0);
       List<MemoryObjectTreeNode<NamespaceObject>> childrenOfChild = new ArrayList<>(onlyChild.getChildren());
       onlyChild.removeAll();
@@ -370,7 +386,8 @@ final class MemoryClassView extends AspectObserver {
     if (currentNode.getAdapter() instanceof PackageObject) {
       currentNode.getChildren().forEach(child -> {
         PackageObject packageObject = (PackageObject)currentNode.getAdapter();
-        packageObject.setChildrenCount(packageObject.getInstanceCount() + child.getAdapter().getInstanceCount());
+        packageObject.setTotalCount(packageObject.getTotalCount() + child.getAdapter().getTotalCount());
+        packageObject.setHeapCount(packageObject.getHeapCount() + child.getAdapter().getHeapCount());
         packageObject.setRetainedSize(packageObject.getRetainedSize() + child.getAdapter().getRetainedSize());
       });
     }

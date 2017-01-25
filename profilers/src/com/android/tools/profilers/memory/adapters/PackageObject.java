@@ -18,7 +18,8 @@ package com.android.tools.profilers.memory.adapters;
 import org.jetbrains.annotations.NotNull;
 
 public class PackageObject extends NamespaceObject {
-  private int myChildrenCount = 0;
+  private int myTotalCount = 0;
+  private int myHeapCount = 0;
 
   private long myRetainedSize = 0L;
 
@@ -26,13 +27,22 @@ public class PackageObject extends NamespaceObject {
     super(name);
   }
 
-  public void setChildrenCount(int childrenCount) {
-    myChildrenCount = childrenCount;
+  public void setTotalCount(int totalCount) {
+    myTotalCount = totalCount;
   }
 
   @Override
-  public int getInstanceCount() {
-    return myChildrenCount;
+  public int getTotalCount() {
+    return myTotalCount;
+  }
+
+  public void setHeapCount(int heapCount) {
+    myHeapCount = heapCount;
+  }
+
+  @Override
+  public int getHeapCount() {
+    return myHeapCount;
   }
 
   public void setRetainedSize(long retainedSize) {

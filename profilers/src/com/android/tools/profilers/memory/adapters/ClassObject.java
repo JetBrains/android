@@ -24,8 +24,9 @@ import java.util.List;
 public abstract class ClassObject extends NamespaceObject {
   public enum ClassAttribute {
     LABEL,
-    INSTANCE_COUNT,
-    ELEMENT_SIZE,
+    TOTAL_COUNT,
+    HEAP_COUNT,
+    INSTANCE_SIZE,
     SHALLOW_SIZE,
     RETAINED_SIZE
   }
@@ -55,14 +56,47 @@ public abstract class ClassObject extends NamespaceObject {
     return myPackageName.isEmpty() ? new String[0] : myPackageName.split("\\.");
   }
 
-  public int getElementSize() {
+  /**
+   * @return number of instances across all heaps.
+   */
+  @Override
+  public int getTotalCount() {
     return INVALID_VALUE;
   }
 
+  /**
+   * @return number of instances on current heap.
+   */
+  @Override
+  public int getHeapCount() {
+    return INVALID_VALUE;
+  }
+
+  /**
+   * @return the (approximated?) size of each instance of the class.
+   */
+  public int getInstanceSize() {
+    return INVALID_VALUE;
+  }
+
+  /**
+   * @return size of instances on current heap.
+   */
   public int getShallowSize() {
     return INVALID_VALUE;
   }
 
+  /**
+   * @return number of instances on current heap.
+   */
+  @Override
+  public long getRetainedSize() {
+    return INVALID_VALUE;
+  }
+
+  /**
+   * @return list of instances on current heap.
+   */
   @NotNull
   public List<InstanceObject> getInstances() {
     return Collections.emptyList();

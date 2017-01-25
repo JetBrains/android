@@ -24,8 +24,8 @@ public class HeapDumpClassObjectTest {
   @Test
   public void testEqual() throws Exception {
     MockClassObj mockClass = new MockClassObj(-1, "MockClass1", 3);
-    HeapDumpClassObject classObject1 = new HeapDumpClassObject(mockClass);
-    HeapDumpClassObject classObject2 = new HeapDumpClassObject(mockClass);
+    HeapDumpClassObject classObject1 = new HeapDumpClassObject(mockClass, 1);
+    HeapDumpClassObject classObject2 = new HeapDumpClassObject(mockClass, 2);
     assertEquals(classObject1, classObject2);
   }
 
@@ -33,8 +33,8 @@ public class HeapDumpClassObjectTest {
   public void testNotEqual() throws Exception {
     MockClassObj mockClass1 = new MockClassObj(-1, "MockClass1", 3);
     MockClassObj mockClass2 = new MockClassObj(-1, "MockClass1", 3);
-    HeapDumpClassObject classObject1 = new HeapDumpClassObject(mockClass1);
-    HeapDumpClassObject classObject2 = new HeapDumpClassObject(mockClass2);
+    HeapDumpClassObject classObject1 = new HeapDumpClassObject(mockClass1, 1);
+    HeapDumpClassObject classObject2 = new HeapDumpClassObject(mockClass2, 1);
     assertNotEquals(classObject1, classObject2);
   }
 }
