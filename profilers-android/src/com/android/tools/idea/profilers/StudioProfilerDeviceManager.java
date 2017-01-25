@@ -205,11 +205,15 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
     @Override
     public void run() {
       try {
-        // TODO: Add support for non-development perfd locations.
-        String dir = "../../out/studio/native/out/release";
+        File dir = new File(PathManager.getHomePath(), "plugins/android/resources/perfd");
+        if (!dir.exists()) {
+          // Development mode
+          dir = new File(PathManager.getHomePath(), "../../out/studio/native/out/release");
+        }
+
         File perfd = null;
         for (String abi : myDevice.getAbis()) {
-          File candidate = new File(PathManager.getHomePath(), dir + "/" + abi + "/perfd");
+          File candidate = new File(dir, abi + "/perfd");
           if (candidate.exists()) {
             perfd = candidate;
           }
