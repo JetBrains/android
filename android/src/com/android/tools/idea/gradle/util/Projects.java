@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.collect.Maps;
@@ -65,7 +64,6 @@ import static java.lang.Boolean.TRUE;
  * Utility methods for {@link Project}s.
  */
 public final class Projects {
-  private static final Key<LibraryDependency> MODULE_COMPILED_ARTIFACT = Key.create("module.compiled.artifact");
   private static final Key<Boolean> SYNC_REQUESTED_DURING_BUILD = Key.create("project.sync.requested.during.build");
   private static final Key<Map<String, GradleVersion>> PLUGIN_VERSIONS_BY_MODULE = Key.create("project.plugin.versions.by.module");
 
@@ -77,22 +75,6 @@ public final class Projects {
     String basePath = project.getBasePath();
     assert basePath != null;
     return new File(toCanonicalPath(basePath));
-  }
-
-  public static void removeAllModuleCompiledArtifacts(@NotNull Project project) {
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    for (Module module : moduleManager.getModules()) {
-      setModuleCompiledArtifact(module, null);
-    }
-  }
-
-  public static void setModuleCompiledArtifact(@NotNull Module module, @Nullable LibraryDependency compiledArtifact) {
-    module.putUserData(MODULE_COMPILED_ARTIFACT, compiledArtifact);
-  }
-
-  @Nullable
-  public static LibraryDependency getModuleCompiledArtifact(@NotNull Module module) {
-    return module.getUserData(MODULE_COMPILED_ARTIFACT);
   }
 
   public static void executeProjectChanges(@NotNull Project project, @NotNull Runnable changes) {
