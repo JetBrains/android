@@ -360,9 +360,6 @@ public class NewProjectTest {
       newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(MOBILE, myMinSdk);
       newProjectWizard.clickNext();
 
-      // Skip "Configure Instant Module" step
-      newProjectWizard.clickNext();
-
       // Skip "Add Activity" step
       newProjectWizard.clickNext();
 
