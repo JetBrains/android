@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
 import com.android.tools.idea.uibuilder.surface.PanZoomPanel;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,6 +40,7 @@ public class PanZoomPanelTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
+  @Ignore
   public void openPanAndZoom() throws Exception {
     IdeFrameFixture application = guiTest.importSimpleApplication();
 
