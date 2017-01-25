@@ -42,13 +42,7 @@ import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.St
 import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.POST_PROCESS;
 import static com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse.Status.SUCCESS;
 
-public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase implements ServicePassThrough, PollRunner.PollingCallback {
-
-  private static Logger getLogger() {
-    return Logger.getInstance(MemoryDataPoller.class);
-  }
-
-  private final LegacyAllocationTrackingService myLegacyAllocationTrackingService;
+public class MemoryDataPoller extends PollRunner {
 
   private long myDataRequestStartTimestampNs = Long.MIN_VALUE;
 
@@ -61,173 +55,27 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
    *
    * These latches ensure we see the samples in the cache first before trying to update their statuses.
    */
-  private final TIntObjectHashMap<CountDownLatch> myLegacyAllocationsInfoLatches = new TIntObjectHashMap<>();
+  private final TIntObjectHashMap<CountDownLatch> myLegacyAllocationsInfoLatches;
 
   /**
    * Latches to track completion of the retrieval of dump data associated with each HeapDumpInfo.
    */
-  private final TIntObjectHashMap<CountDownLatch> myHeapDumpDataLatches = new TIntObjectHashMap<>();
+  private final TIntObjectHashMap<CountDownLatch> myHeapDumpDataLatches;
   private HeapDumpInfo myPendingHeapDumpSample = null;
-  private MemoryTable myMemoryTable = new MemoryTable();
+  private MemoryTable myMemoryTable;
 
   private int myProcessId = -1;
   private Consumer<Runnable> myFetchExecutor;
 
-  @VisibleForTesting
-  // TODO Revisit fetch mechanism
-  public MemoryDataPoller(@NotNull DataStoreService dataStoreService, Consumer<Runnable> fetchExecutor) {
-    myLegacyAllocationTrackingService = new LegacyAllocationTrackingService(dataStoreService::getLegacyAllocationTracker);
+
+  public MemoryDataPoller(int processId, MemoryTable table, MemoryServiceGrpc.MemoryServiceBlockingStub pollingService, TIntObjectHashMap<CountDownLatch> allocationLatches, TIntObjectHashMap<CountDownLatch> heapDumpLatches, Consumer<Runnable> fetchExecutor) {
+    super(POLLING_DELAY_NS);
+    myProcessId = processId;
+    myMemoryTable = table;
+    myPollingService = pollingService;
+    myLegacyAllocationsInfoLatches = allocationLatches;
+    myHeapDumpDataLatches = heapDumpLatches;
     myFetchExecutor = fetchExecutor;
-  }
-
-  public MemoryDataPoller(@NotNull DataStoreService dataStoreService) {
-    this(dataStoreService, r -> ApplicationManager.getApplication().executeOnPooledThread(r));
-  }
-
-  @Override
-  public RunnableFuture<Void> getRunner() {
-    return new PollRunner(this, PollRunner.POLLING_DELAY_NS);
-  }
-
-  @Override
-  public ServerServiceDefinition getService() {
-    return bindService();
-  }
-
-  @Override
-  public void connectService(ManagedChannel channel) {
-    myPollingService = MemoryServiceGrpc.newBlockingStub(channel);
-  }
-
-  @Override
-  public void startMonitoringApp(MemoryStartRequest request, StreamObserver<MemoryStartResponse> observer) {
-    myProcessId = request.getProcessId();
-    observer.onNext(myPollingService.startMonitoringApp(request));
-    observer.onCompleted();
-  }
-
-  @Override
-  public void stopMonitoringApp(MemoryStopRequest request, StreamObserver<MemoryStopResponse> observer) {
-    myProcessId = -1;
-    observer.onNext(myPollingService.stopMonitoringApp(request));
-    observer.onCompleted();
-  }
-
-  @Override
-  public void triggerHeapDump(TriggerHeapDumpRequest request, StreamObserver<TriggerHeapDumpResponse> responseObserver) {
-    TriggerHeapDumpResponse response = myPollingService.triggerHeapDump(request);
-    if (response.getStatus() == TriggerHeapDumpResponse.Status.SUCCESS) {
-      assert response.getInfo() != null;
-      myHeapDumpDataLatches.put(response.getInfo().getDumpId(), new CountDownLatch(1));
-    }
-
-    responseObserver.onNext(response);
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void getHeapDump(HeapDumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
-    DumpDataResponse.Builder responseBuilder = DumpDataResponse.newBuilder();
-
-    HeapDumpInfo.Builder infoBuilder = HeapDumpInfo.newBuilder();
-    //TODO: Query for heapdump status before query for heap dump data.
-    byte[] data = myMemoryTable.getHeapDumpData(request.getDumpId(), infoBuilder);
-    HeapDumpInfo info = infoBuilder.build();
-    if (info.equals(HeapDumpInfo.getDefaultInstance()) && data == null) {
-      responseBuilder.setStatus(DumpDataResponse.Status.NOT_FOUND);
-    }
-    else if (myMemoryTable.getHeapDumpStatus(request.getDumpId()) == DumpDataResponse.Status.FAILURE_UNKNOWN) {
-      responseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
-    }
-    else {
-      if (data == null) {
-        responseBuilder.setStatus(DumpDataResponse.Status.NOT_READY);
-      }
-      else {
-        responseBuilder.setStatus(DumpDataResponse.Status.SUCCESS);
-        responseBuilder.setData(ByteString.copyFrom(data));
-      }
-    }
-    responseObserver.onNext(responseBuilder.build());
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void listHeapDumpInfos(ListDumpInfosRequest request,
-                                StreamObserver<ListHeapDumpInfosResponse> responseObserver) {
-    ListHeapDumpInfosResponse.Builder responseBuilder = ListHeapDumpInfosResponse.newBuilder();
-    List<HeapDumpInfo> dump = myMemoryTable.getHeapDumpInfoByRequest(request);
-    responseBuilder.addAllInfos(dump);
-    responseObserver.onNext(responseBuilder.build());
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void trackAllocations(TrackAllocationsRequest request,
-                               StreamObserver<TrackAllocationsResponse> responseObserver) {
-
-    TrackAllocationsResponse response = myPollingService.trackAllocations(TrackAllocationsRequest.newBuilder()
-                                                                            .setProcessId(myProcessId)
-                                                                            .setEnabled(request.getEnabled())
-                                                                            .setLegacyTracking(true).build());
-    if (response.getStatus() == SUCCESS) {
-      int infoId = response.getInfo().getInfoId();
-      if (request.getEnabled()) {
-        myLegacyAllocationsInfoLatches.put(infoId, new CountDownLatch(1));
-        myLegacyAllocationTrackingService.trackAllocations(myProcessId, response.getTimestamp(), request.getEnabled(), null);
-      }
-      else {
-        myLegacyAllocationTrackingService
-          .trackAllocations(myProcessId, response.getTimestamp(), request.getEnabled(), (classes, stacks, allocations) -> {
-            classes.forEach(allocatedClass -> myMemoryTable.insertIfNotExist(allocatedClass.getClassName(), allocatedClass));
-            stacks.forEach(allocationStack -> myMemoryTable.insertIfNotExist(allocationStack.getStackId(), allocationStack));
-            allocations.forEach(allocationEvent -> myMemoryTable.insert(allocationEvent));
-            try {
-              // Wait until the AllocationsInfo sample is already in the cache.
-              assert myLegacyAllocationsInfoLatches.containsKey(infoId);
-              myLegacyAllocationsInfoLatches.get(infoId).await();
-              myLegacyAllocationsInfoLatches.remove(infoId);
-              myMemoryTable.updateAllocationInfo(infoId, COMPLETED);
-            }
-            catch (InterruptedException e) {
-              getLogger().debug("Exception while waiting on AllocationsInfo data.", e);
-            }
-          });
-      }
-    }
-    responseObserver.onNext(response);
-    responseObserver.onCompleted();
-  }
-
-  /**
-   * perfd-host only. This attempts to return the current status of an AllocationsInfo sample that is already in the cache.
-   * If it is not already in the cache, a default instance of an AllocationsInfoStatusResponse is returned.
-   */
-  @Override
-  public void getAllocationsInfoStatus(GetAllocationsInfoStatusRequest request,
-                                       StreamObserver<GetAllocationsInfoStatusResponse> responseObserver) {
-    GetAllocationsInfoStatusResponse response = myMemoryTable.getAllocationInfoStatus(request.getInfoId());
-    responseObserver.onNext(response);
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void listAllocationContexts(AllocationContextsRequest request,
-                                     StreamObserver<AllocationContextsResponse> responseObserver) {
-    AllocationContextsResponse.Builder responseBuilder = AllocationContextsResponse.newBuilder();
-    List<AllocationStack> stacks = myMemoryTable.getAllocationStacksForRequest(request);
-    List<AllocatedClass> classes = myMemoryTable.getAllocatedClassesForRequest(request);
-    responseBuilder.addAllAllocationStacks(stacks);
-    responseBuilder.addAllAllocatedClasses(classes);
-    responseObserver.onNext(responseBuilder.build());
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void getData(MemoryRequest request, StreamObserver<MemoryData> responseObserver) {
-    MemoryData response = myMemoryTable.getData(request);
-    responseObserver.onNext(response);
-    responseObserver.onCompleted();
   }
 
   @Override
@@ -295,35 +143,6 @@ public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase im
 
     if (response.getEndTimestamp() > myDataRequestStartTimestampNs) {
       myDataRequestStartTimestampNs = response.getEndTimestamp();
-    }
-  }
-
-
-  private void updateAllocationsInfoLatches(@NotNull AllocationsInfo info) {
-    if (info.getStatus() != POST_PROCESS) {
-      return;
-    }
-
-    assert info.getLegacyTracking();
-    assert myLegacyAllocationsInfoLatches.containsKey(info.getInfoId());
-    myLegacyAllocationsInfoLatches.get(info.getInfoId()).countDown();
-  }
-
-  @Override
-  public DatastoreTable getDatastoreTable() {
-    return myMemoryTable;
-  }
-
-  private static int compareTimes(long left, long right) {
-    if (left == DurationData.UNSPECIFIED_DURATION) {
-      return 1;
-    }
-    else if (right == DurationData.UNSPECIFIED_DURATION) {
-      return -1;
-    }
-    else {
-      long diff = left - right;
-      return diff == 0 ? 0 : (diff < 0 ? -1 : 1); // diff >> 63 sign extends value into a mask, the bit-or deals with 0+ case
     }
   }
 }

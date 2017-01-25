@@ -73,7 +73,7 @@ public class CpuTable extends DatastoreTable<CpuTable.CpuStatements> {
   @Override
   public void prepareStatements(Connection connection) {
     try {
-      createStatement(CpuTable.CpuStatements.INSERT_CPU_DATA, "INSERT INTO Cpu_Data (AppId, Timestamp, Data) values (?, ?, ?)");
+      createStatement(CpuTable.CpuStatements.INSERT_CPU_DATA, "INSERT OR REPLACE INTO Cpu_Data (AppId, Timestamp, Data) values (?, ?, ?)");
       createStatement(CpuTable.CpuStatements.QUERY_CPU_DATA, "SELECT Data from Cpu_Data WHERE AppId = ? AND Timestamp > ? AND Timestamp <= ? ");
       createStatement(CpuTable.CpuStatements.FIND_THREAD_DATA, "SELECT Data from Cpu_Threads WHERE AppId = ? AND ThreadId = ?");
       createStatement(CpuTable.CpuStatements.INSERT_THREAD_DATA, "INSERT OR REPLACE INTO Cpu_Threads (AppId, ThreadId, StartTime, EndTime, Data) values ( ?, ?, ?, ?, ?)");

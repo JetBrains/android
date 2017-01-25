@@ -97,11 +97,11 @@ public class EventService extends EventServiceGrpc.EventServiceImplBase implemen
 
   @Override
   public void startMonitoringApp(EventProfiler.EventStartRequest request, StreamObserver<EventProfiler.EventStartResponse> observer) {
+    observer.onNext(myEventPollingService.startMonitoringApp(request));
+    observer.onCompleted();
     int processId = request.getProcessId();
     myRunners.put(processId, new EventDataPoller(processId, myEventsTable, myEventPollingService));
     myFetchExecutor.accept(myRunners.get(processId));
-    observer.onNext(myEventPollingService.startMonitoringApp(request));
-    observer.onCompleted();
   }
 
   @Override
@@ -113,11 +113,6 @@ public class EventService extends EventServiceGrpc.EventServiceImplBase implemen
   }
 
   @Override
-  public ServerServiceDefinition getService() {
-    return bindService();
-  }
-
-  @Override
   public void connectService(ManagedChannel channel) {
     myEventPollingService = EventServiceGrpc.newBlockingStub(channel);
   }
@@ -125,10 +120,5 @@ public class EventService extends EventServiceGrpc.EventServiceImplBase implemen
   @Override
   public DatastoreTable getDatastoreTable() {
     return myEventsTable;
-  }
-
-  @Override
-  public RunnableFuture<Void> getRunner() {
-    return null;
   }
 }

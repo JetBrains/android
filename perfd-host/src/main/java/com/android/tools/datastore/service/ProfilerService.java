@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.datastore.poller;
+package com.android.tools.datastore.service;
 
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.ServicePassThrough;
@@ -118,11 +118,6 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   }
 
   @Override
-  public ServerServiceDefinition getService() {
-    return bindService();
-  }
-
-  @Override
   public void connectService(ManagedChannel channel) {
     myPollingService = ProfilerServiceGrpc.newBlockingStub(channel);
   }
@@ -132,6 +127,4 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
     return null;
   }
 
-  @Override
-  public RunnableFuture<Void> getRunner() { return null; }
 }
