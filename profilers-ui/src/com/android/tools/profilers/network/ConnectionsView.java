@@ -89,8 +89,8 @@ final class ConnectionsView {
     TYPE(0.25/4, String.class) {
       @Override
       Object getValueFrom(@NotNull HttpData data) {
-        String contentType = data.getResponseField(HttpData.FIELD_CONTENT_TYPE);
-        return StringUtil.notNullize(contentType);
+        HttpData.ContentType type = data.getContentType();
+        return type == null ? "" : type.getMimeType();
       }
     },
     STATUS(0.25/4, Integer.class) {
