@@ -31,6 +31,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -75,7 +76,7 @@ class BuildVariantUpdater {
 
       PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
       setupRequest.setGenerateSourcesAfterSync(false).setCleanProjectAfterSync(false);
-      PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest, null);
+      PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest, new EmptyProgressIndicator());
 
       generateSourcesIfNeeded(affectedAndroidFacets);
     });

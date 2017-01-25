@@ -31,8 +31,6 @@ import org.mockito.Mock;
 
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -65,9 +63,6 @@ public class JavaModuleSetupTest extends IdeaTestCase {
 
     verify(mySetupStep1, times(1)).setUpModule(module, modelsProvider, myJavaModel, myModuleModels, myProgressIndicator);
     verify(mySetupStep2, times(1)).setUpModule(module, modelsProvider, myJavaModel, myModuleModels, myProgressIndicator);
-
-    verify(mySetupStep1, times(1)).displayDescription(module, myProgressIndicator);
-    verify(mySetupStep2, times(1)).displayDescription(module, myProgressIndicator);
   }
 
   public void testSetUpModuleWithoutProgressIndicator() {
@@ -80,9 +75,6 @@ public class JavaModuleSetupTest extends IdeaTestCase {
 
     verify(mySetupStep1, times(1)).setUpModule(module, modelsProvider, myJavaModel, myModuleModels, null);
     verify(mySetupStep2, times(1)).setUpModule(module, modelsProvider, myJavaModel, myModuleModels, null);
-
-    verify(mySetupStep1, never()).displayDescription(same(module), any());
-    verify(mySetupStep2, never()).displayDescription(same(module), any());
   }
 
   public void testSetUpAndroidModuleWithSyncSkipped() {

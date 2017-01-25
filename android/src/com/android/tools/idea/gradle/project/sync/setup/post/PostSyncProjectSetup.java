@@ -40,6 +40,7 @@ import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.compiler.options.CompileStepBeforeRun;
+import com.intellij.concurrency.JobLauncher;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.ExecutionBundle;
@@ -57,12 +58,8 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflicts;
@@ -132,7 +129,7 @@ public class PostSyncProjectSetup {
   /**
    * Invoked after a project has been synced with Gradle.
    */
-  public void setUpProject(@NotNull Request request, @Nullable ProgressIndicator progressIndicator) {
+  public void setUpProject(@NotNull Request request, @NotNull ProgressIndicator progressIndicator) {
     boolean syncFailed = mySyncState.lastSyncFailedOrHasIssues();
 
     if (syncFailed && request.isUsingCachedGradleModels()) {
@@ -143,11 +140,13 @@ public class PostSyncProjectSetup {
     myDependencySetupErrors.reportErrors();
     myVersionCompatibilityChecker.checkAndReportComponentIncompatibilities(myProject);
 
-    CommonModuleValidator moduleValidator = myModuleValidatorFactory.create(myProject);
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    for (Module module : moduleManager.getModules()) {
+    List<Module> modules = Arrays.asList(moduleManager.getModules());
+    CommonModuleValidator moduleValidator = myModuleValidatorFactory.create(myProject);
+    JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, progressIndicator, true, module -> {
       moduleValidator.validate(module);
-    }
+      return true;
+    });
     moduleValidator.fixAndReportFoundIssues();
 
     if (syncFailed) {

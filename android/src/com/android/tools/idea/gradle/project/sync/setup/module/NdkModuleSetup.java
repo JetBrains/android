@@ -43,9 +43,6 @@ public class NdkModuleSetup {
                           @Nullable ProgressIndicator indicator,
                           boolean syncSkipped) {
     for (NdkModuleSetupStep step : mySetupSteps) {
-      if (indicator != null) {
-        step.displayDescription(module, indicator);
-      }
       if (syncSkipped && !step.invokeOnSkippedSync()) {
         continue;
       }

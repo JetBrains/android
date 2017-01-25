@@ -68,9 +68,6 @@ public class JavaModuleSetup {
       if (syncSkipped && !step.invokeOnSkippedSync()) {
         continue;
       }
-      if (indicator != null) {
-        step.displayDescription(module, indicator);
-      }
       step.setUpModule(module, ideModelsProvider, javaModuleModel, models, indicator);
     }
   }
