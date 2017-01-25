@@ -249,4 +249,8 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
 
     return xmlFile;
   }
+
+  public void testGetValidResourceFileName() {
+    assertEquals("my_file_name.png", AndroidResourceUtil.getValidResourceFileName("My File-Name.png"));
+  }
 }
