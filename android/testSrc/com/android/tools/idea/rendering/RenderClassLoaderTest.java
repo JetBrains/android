@@ -26,10 +26,7 @@ import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -49,6 +46,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 
+@Ignore("https://android-devtools-builder.corp.google.com/builders/studio_master-dev/builds/7962")
 public class RenderClassLoaderTest {
   private static Logger ourLoggerInstance;
   private Logger.Factory myOriginalFactory;
