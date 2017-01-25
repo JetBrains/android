@@ -66,6 +66,13 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     .setEndTimestamp(BASE_TIME_NS)
     .build();
 
+  // Adding a second info to create a unique dataset to query on. Using the STARTUP_BASIC_INFO
+  // creates a primary_key constraint violation.
+  private static final Common.CommonData STARTUP_BASIC_INFO_DELAY = Common.CommonData.newBuilder()
+    .setProcessId(TEST_APP_ID)
+    .setEndTimestamp(delayFromBase(1))
+    .build();
+
   private static final CpuProfiler.CpuUsageData CPU_USAGE_DATA = CpuProfiler.CpuUsageData.newBuilder()
     .setAppCpuTimeInMillisec(ONE_SECOND_MS)
     .setElapsedTimeInMillisec(TEN_SECONDS_MS)
@@ -81,7 +88,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     CpuProfiler.CpuDataRequest request = CpuProfiler.CpuDataRequest.newBuilder()
       .setProcessId(TEST_APP_ID)
       .setStartTimestamp(0)
-      .setEndTimestamp(BASE_TIME_NS)
+      .setEndTimestamp(delayFromBase(1))
       .build();
     CpuProfiler.CpuDataResponse expectedResponse = CpuProfiler.CpuDataResponse.newBuilder()
       .addData(CpuProfiler.CpuProfilerData.newBuilder()
@@ -89,7 +96,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
                  .setCpuUsage(CPU_USAGE_DATA)
                  .build())
       .addData(CpuProfiler.CpuProfilerData.newBuilder()
-                 .setBasicInfo(STARTUP_BASIC_INFO)
+                 .setBasicInfo(STARTUP_BASIC_INFO_DELAY)
                  .setThreadActivities(THREAD_ACTIVITIES)
                  .build())
       .build();
@@ -102,7 +109,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   public void testGetDataExcludeStart() {
     CpuProfiler.CpuDataRequest request = CpuProfiler.CpuDataRequest.newBuilder()
       .setProcessId(TEST_APP_ID)
-      .setStartTimestamp(BASE_TIME_NS)
+      .setStartTimestamp(delayFromBase(1))
       .setEndTimestamp(Long.MAX_VALUE)
       .build();
     CpuProfiler.CpuDataResponse expectedResponse = CpuProfiler.CpuDataResponse.newBuilder()
@@ -137,17 +144,10 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   public void testGetThreadsInRange() {
     CpuProfiler.GetThreadsRequest request = CpuProfiler.GetThreadsRequest.newBuilder()
       .setProcessId(TEST_APP_ID)
-      .setStartTimestamp(BASE_TIME_NS)
+      .setStartTimestamp(delayFromBase(1))
       .setEndTimestamp(Long.MAX_VALUE)
       .build();
     CpuProfiler.GetThreadsResponse expectedResponse = CpuProfiler.GetThreadsResponse.newBuilder()
-      .addThreads(CpuProfiler.GetThreadsResponse.Thread.newBuilder()
-                    .setTid(THREAD_ID_2)
-                    .setName(THREAD_NAME_2)
-                    .addActivities(CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
-                                     .setNewState(CpuProfiler.GetThreadsResponse.State.RUNNING)
-                                     .build())
-                    .build())
       .addThreads(CpuProfiler.GetThreadsResponse.Thread.newBuilder()
                     .setTid(THREAD_ID)
                     .setName(THREAD_NAME)
@@ -156,6 +156,13 @@ public class CpuDataPollerTest extends DataStorePollerTest {
                                      .build())
                     .addActivities(CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
                                      .setNewState(CpuProfiler.GetThreadsResponse.State.STOPPED)
+                                     .build())
+                    .build())
+      .addThreads(CpuProfiler.GetThreadsResponse.Thread.newBuilder()
+                    .setTid(THREAD_ID_2)
+                    .setName(THREAD_NAME_2)
+                    .addActivities(CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
+                                     .setNewState(CpuProfiler.GetThreadsResponse.State.RUNNING)
                                      .build())
                     .build())
       .build();
@@ -188,6 +195,10 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     validateResponse(observer, expectedResponse);
   }
 
+  private static final long delayFromBase(int seconds) {
+    return BASE_TIME_NS + TimeUnit.SECONDS.toNanos(seconds);
+  }
+
   private static class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
 
     @Override
@@ -208,7 +219,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
                    .build()
         )
         .addData(CpuProfiler.CpuProfilerData.newBuilder()
-                   .setBasicInfo(STARTUP_BASIC_INFO)
+                   .setBasicInfo(STARTUP_BASIC_INFO_DELAY)
                    .setThreadActivities(THREAD_ACTIVITIES)
                    .build())
         .build();
