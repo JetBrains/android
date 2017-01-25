@@ -22,10 +22,10 @@ import java.lang.reflect.InvocationTargetException;
 
 import static org.junit.Assert.assertEquals;
 
-public class ProfilerColorsTest {
+public class ProfilerIconsTest {
 
   @Test
-  public void testCannotInstantiate() throws IllegalAccessException, InvocationTargetException, InstantiationException {
+  public void cannotInstantiate() throws IllegalAccessException, InvocationTargetException, InstantiationException {
     Constructor<?>[] constructors = ProfilerColors.class.getDeclaredConstructors();
     assertEquals(1, constructors.length);
     assertEquals(false, constructors[0].isAccessible());

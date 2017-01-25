@@ -31,11 +31,9 @@ import com.android.tools.profilers.memory.adapters.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
-import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.PlatformIcons;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,11 +43,6 @@ import java.awt.*;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
-
-  @NotNull private final Icon myGcIcon =
-    IconLoader
-      .findIcon(UIUtil.isUnderDarcula() ? "/icons/garbage-event_dark.png" : "/icons/garbage-event.png", MemoryProfilerStageView.class);
-
   @NotNull private final MemoryCaptureView myCaptureView = new MemoryCaptureView(getStage());
   @NotNull private final MemoryHeapView myHeapView = new MemoryHeapView(getStage());
   @NotNull private final MemoryClassView myClassView = new MemoryClassView(getStage(), getIdeComponents());
@@ -240,7 +233,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .setClickHander(data -> getStage().selectCapture(data.getCaptureObject(), SwingUtilities::invokeLater))
         .build();
     DurationDataRenderer<GcDurationData> gcRenderer = new DurationDataRenderer.Builder<>(getStage().getGcCount(), Color.BLACK)
-      .setIcon(myGcIcon)
+      .setIcon(ProfilerIcons.GARBAGE_EVENT)
       .build();
 
     lineChart.addCustomRenderer(heapDumpRenderer);
