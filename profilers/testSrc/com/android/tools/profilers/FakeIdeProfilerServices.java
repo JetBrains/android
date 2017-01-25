@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public final class FakeIdeProfilerServices implements IdeProfilerServices {
   /**
@@ -29,13 +30,19 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   @NotNull
   @Override
-  public Executor getProfilerExecutor() {
+  public Executor getMainExecutor() {
     return (runnable) -> {
       runnable.run();
       if (myOnExecute != null) {
         myOnExecute.run();
       }
     };
+  }
+
+  @NotNull
+  @Override
+  public Executor getPoolExecutor() {
+    return Executors.newSingleThreadExecutor();
   }
 
   public void setOnExecute(@Nullable Runnable onExecute) {

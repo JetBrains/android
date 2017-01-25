@@ -25,9 +25,6 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
-import static com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartResponse;
-import static com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopResponse;
-import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.*;
 
 public class CpuProfilerStageTest extends AspectObserver {
@@ -62,82 +59,93 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertNotNull(myStage.getThreadStates());
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
     assertNull(myStage.getCapture());
-    assertFalse(myStage.isCapturing());
+    assertEquals(CpuProfilerStage.CaptureState.IDLE, myStage.getCaptureState());
     assertNotNull(myStage.getAspect());
   }
 
   @Test
   public void testStartCapturing() throws InterruptedException {
-    assertFalse(myStage.isCapturing());
+    assertEquals(CpuProfilerStage.CaptureState.IDLE, myStage.getCaptureState());
     myGetProcessesLatch.await();
 
     // Start a successful capture
-    myCpuService.setStartProfilingStatus(CpuProfilingAppStartResponse.Status.SUCCESS);
-    myStage.startCapturing();
-    assertTrue(myStage.isCapturing());
+    startCapturingSuccess();
 
     // Start a failing capture
-    myCpuService.setStartProfilingStatus(CpuProfilingAppStartResponse.Status.FAILURE);
+    myCpuService.setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status.FAILURE);
+    CountDownLatch startCapturingFailureCompleted = new CountDownLatch(1);
+    myServices.setOnExecute(startCapturingFailureCompleted::countDown);
     myStage.startCapturing();
-    assertFalse(myStage.isCapturing());
+    assertEquals(CpuProfilerStage.CaptureState.STARTING, myStage.getCaptureState());
+    startCapturingFailureCompleted.await();
+    assertEquals(CpuProfilerStage.CaptureState.IDLE, myStage.getCaptureState());
   }
 
   @Test
   public void testStopCapturingInvalidTrace() throws InterruptedException {
-    assertFalse(myStage.isCapturing());
+    assertEquals(CpuProfilerStage.CaptureState.IDLE, myStage.getCaptureState());
     myGetProcessesLatch.await();
 
     // Start a successful capture
-    myCpuService.setStartProfilingStatus(CpuProfilingAppStartResponse.Status.SUCCESS);
-    myStage.startCapturing();
-    assertTrue(myStage.isCapturing());
+    startCapturingSuccess();
 
     // Stop capturing, but don't include a trace in the response.
     CountDownLatch captureTreeLatch = new CountDownLatch(1);
-    myServices.setOnExecute(captureTreeLatch::countDown);
-    myCpuService.setStopProfilingStatus(CpuProfilingAppStopResponse.Status.SUCCESS);
+    CountDownLatch stopProfilingCallbackLatch = new CountDownLatch(1);
+    myServices.setOnExecute(() -> {
+      stopProfilingCallbackLatch.countDown();
+      myServices.setOnExecute(captureTreeLatch::countDown);
+    });
+    myCpuService.setStopProfilingStatus(com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
     myCpuService.setValidTrace(false);
     myStage.stopCapturing();
-    assertFalse(myStage.isCapturing());
-    assertTrue(myStage.isParsingCapture());
+    assertEquals(CpuProfilerStage.CaptureState.STOPPING, myStage.getCaptureState());
+    stopProfilingCallbackLatch.await();
+    assertEquals(CpuProfilerStage.CaptureState.PARSING, myStage.getCaptureState());
     captureTreeLatch.await();
-    assertFalse(myStage.isParsingCapture());
+    assertEquals(CpuProfilerStage.CaptureState.IDLE, myStage.getCaptureState());
     // Capture was stopped successfully, but capture should still be null as the response has no valid trace
     assertNull(myStage.getCapture());
   }
 
   @Test
   public void testStopCapturingInvalidTraceFailureStatus() throws InterruptedException {
-    assertFalse(myStage.isCapturing());
+    assertEquals(CpuProfilerStage.CaptureState.IDLE, myStage.getCaptureState());
     myGetProcessesLatch.await();
 
     // Start a successful capture
-    myStage.startCapturing();
-    assertTrue(myStage.isCapturing());
+    startCapturingSuccess();
 
     // Stop a capture unsuccessfully
-    myCpuService.setStopProfilingStatus(CpuProfilingAppStopResponse.Status.FAILURE);
+    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.FAILURE);
     myCpuService.setValidTrace(false);
+    CountDownLatch stopCapturingFailureCompleted = new CountDownLatch(1);
+    myServices.setOnExecute(stopCapturingFailureCompleted::countDown);
     myStage.stopCapturing();
-    assertFalse(myStage.isCapturing());
+    assertEquals(CpuProfilerStage.CaptureState.STOPPING, myStage.getCaptureState());
+    stopCapturingFailureCompleted.await();
+    assertEquals(CpuProfilerStage.CaptureState.IDLE, myStage.getCaptureState());
     assertNull(myStage.getCapture());
   }
 
   @Test
   public void testStopCapturingValidTraceFailureStatus() throws InterruptedException {
-    assertFalse(myStage.isCapturing());
+    assertEquals(CpuProfilerStage.CaptureState.IDLE, myStage.getCaptureState());
     myGetProcessesLatch.await();
 
     // Start a successful capture
-    myStage.startCapturing();
-    assertTrue(myStage.isCapturing());
+    startCapturingSuccess();
 
     // Stop a capture unsuccessfully, but with a valid trace
-    myCpuService.setStopProfilingStatus(CpuProfilingAppStopResponse.Status.FAILURE);
+    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.FAILURE);
     myCpuService.setValidTrace(true);
     myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
+    CountDownLatch stopProfilingCallbackLatch = new CountDownLatch(1);
+    myServices.setOnExecute(stopProfilingCallbackLatch::countDown);
     myStage.stopCapturing();
-    assertFalse(myStage.isCapturing());
+    assertEquals(CpuProfilerStage.CaptureState.STOPPING, myStage.getCaptureState());
+    stopProfilingCallbackLatch.await();
+    assertEquals(CpuProfilerStage.CaptureState.IDLE, myStage.getCaptureState());
     // Despite the fact of having a valid trace, we first check for the response status.
     // As it wasn't SUCCESS, capture should not be set.
     assertNull(myStage.getCapture());
@@ -145,24 +153,28 @@ public class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void testStopCapturingSuccessfully() throws InterruptedException {
-    assertFalse(myStage.isCapturing());
+    assertEquals(CpuProfilerStage.CaptureState.IDLE, myStage.getCaptureState());
     myGetProcessesLatch.await();
 
     // Start a successful capture
-    myStage.startCapturing();
-    assertTrue(myStage.isCapturing());
+    startCapturingSuccess();
 
     // Stop a capture successfully with a valid trace
     CountDownLatch captureTreeLatch = new CountDownLatch(1);
-    myServices.setOnExecute(captureTreeLatch::countDown);
-    myCpuService.setStopProfilingStatus(CpuProfilingAppStopResponse.Status.SUCCESS);
+    CountDownLatch stopProfilingCallbackLatch = new CountDownLatch(1);
+    myServices.setOnExecute(() -> {
+      stopProfilingCallbackLatch.countDown();
+      myServices.setOnExecute(captureTreeLatch::countDown);
+    });
+    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
     myCpuService.setValidTrace(true);
     myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
     myStage.stopCapturing();
-    assertFalse(myStage.isCapturing());
-    assertTrue(myStage.isParsingCapture());
+    assertEquals(CpuProfilerStage.CaptureState.STOPPING, myStage.getCaptureState());
+    stopProfilingCallbackLatch.await();
+    assertEquals(CpuProfilerStage.CaptureState.PARSING, myStage.getCaptureState());
     captureTreeLatch.await();
-    assertFalse(myStage.isParsingCapture());
+    assertEquals(CpuProfilerStage.CaptureState.IDLE, myStage.getCaptureState());
     assertNotNull(myStage.getCapture());
   }
 
@@ -173,5 +185,16 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     myStage.setSelectedThread(42);
     assertEquals(42, myStage.getSelectedThread());
+  }
+
+  private void startCapturingSuccess() throws InterruptedException {
+    assertEquals(CpuProfilerStage.CaptureState.IDLE, myStage.getCaptureState());
+    myCpuService.setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS);
+    CountDownLatch startCapturingSuccessCompleted = new CountDownLatch(1);
+    myServices.setOnExecute(startCapturingSuccessCompleted::countDown);
+    myStage.startCapturing();
+    assertEquals(CpuProfilerStage.CaptureState.STARTING, myStage.getCaptureState());
+    startCapturingSuccessCompleted.await();
+    assertEquals(CpuProfilerStage.CaptureState.CAPTURING, myStage.getCaptureState());
   }
 }

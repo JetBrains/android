@@ -21,8 +21,14 @@ import java.util.concurrent.Executor;
 
 public interface IdeProfilerServices {
   /**
-   * Executor to run the tasks that should get back to the profiler main thread.
+   * Executor to run the tasks that should get back to the main thread.
    */
   @NotNull
-  Executor getProfilerExecutor();
+  Executor getMainExecutor();
+
+  /**
+   * Executor to run the tasks that should run in a thread from the pool.
+   */
+  @NotNull
+  Executor getPoolExecutor();
 }
