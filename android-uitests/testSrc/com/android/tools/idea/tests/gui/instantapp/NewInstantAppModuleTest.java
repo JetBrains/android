@@ -41,7 +41,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
-import static com.android.tools.idea.npw.deprecated.NewFormFactorModulePath.setWHSdkLocation;
+import static com.android.tools.idea.npw.deprecated.NewFormFactorModulePath.setAiaSdkLocation;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
@@ -58,12 +58,12 @@ public class NewInstantAppModuleTest {
 
   @Before
   public void before() {
-    setWHSdkLocation("TestValue");
+    setAiaSdkLocation("TestValue");
   }
 
   @After
   public void after() {
-    setWHSdkLocation(getenv("WH_SDK"));
+    setAiaSdkLocation(getenv("WH_SDK"));
   }
 
   // TODO: add tests for warnings in code - requires way to separate warnings from SimpleApplication out from warnings in new module

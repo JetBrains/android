@@ -24,10 +24,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.swing.*;
-
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
-import static com.android.tools.idea.npw.deprecated.NewFormFactorModulePath.setWHSdkLocation;
+import static com.android.tools.idea.npw.deprecated.NewFormFactorModulePath.setAiaSdkLocation;
 import static com.google.common.truth.Truth.assertThat;
 import static java.lang.System.getenv;
 
@@ -58,7 +56,7 @@ public class EnableInstantAppUiTest {
 
   @Test
   public void testNewProjectInstantAppUIShown() {
-    setWHSdkLocation("TestValue");
+    setAiaSdkLocation("TestValue");
 
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
       .createNewProject()
@@ -72,6 +70,6 @@ public class EnableInstantAppUiTest {
     newProjectWizard
       .clickCancel();
 
-    setWHSdkLocation(getenv("WH_SDK"));
+    setAiaSdkLocation(getenv("WH_SDK"));
   }
 }
