@@ -22,6 +22,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 class MockClassInstance extends ClassInstance {
   @Nullable private final ArrayList<Instance> mySoftReferences;
   @NotNull private final ArrayList<Instance> myHardReferences;
@@ -40,6 +43,13 @@ class MockClassInstance extends ClassInstance {
   @Override
   public long getUniqueId() {
     return getId();
+  }
+
+  @Override
+  public Heap getHeap() {
+    Heap mockHeap = mock(Heap.class);
+    when(mockHeap.getId()).thenReturn(-1);
+    return mockHeap;
   }
 
   @Override

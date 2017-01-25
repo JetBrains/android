@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.perflib.heap.ClassObj;
+import com.android.tools.perflib.heap.Instance;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,13 +29,19 @@ import java.util.stream.Collectors;
  */
 final class HeapDumpClassObject extends ClassObject {
   private final ClassObj myClassObj;
+  private final int myHeapId;
+  private long myRetainedSize;
 
   @Nullable
   private List<InstanceObject> myInstanceObjects = null;
 
-  public HeapDumpClassObject(@NotNull ClassObj classObj) {
+  public HeapDumpClassObject(@NotNull ClassObj classObj, int heapId) {
     super(classObj.getClassName());
     myClassObj = classObj;
+    myHeapId = heapId;
+    for (Instance instance : myClassObj.getHeapInstances(heapId)) {
+      myRetainedSize += instance.getTotalRetainedSize();
+    }
   }
 
   @Override
@@ -53,23 +60,28 @@ final class HeapDumpClassObject extends ClassObject {
   }
 
   @Override
-  public int getInstanceCount() {
+  public int getTotalCount() {
     return myClassObj.getInstanceCount();
   }
 
   @Override
-  public int getElementSize() {
-    return myClassObj.getSize();
+  public int getHeapCount() {
+    return myClassObj.getHeapInstancesCount(myHeapId);
+  }
+
+  @Override
+  public int getInstanceSize() {
+    return myClassObj.getInstanceSize();
   }
 
   @Override
   public int getShallowSize() {
-    return myClassObj.getShallowSize();
+    return myClassObj.getShallowSize(myHeapId);
   }
 
   @Override
   public long getRetainedSize() {
-    return myClassObj.getTotalRetainedSize();
+    return myRetainedSize;
   }
 
   @NotNull
@@ -77,7 +89,8 @@ final class HeapDumpClassObject extends ClassObject {
   public List<InstanceObject> getInstances() {
     if (myInstanceObjects == null) {
       myInstanceObjects =
-        myClassObj.getInstancesList().stream().map(instance -> new HeapDumpInstanceObject(this, instance)).collect(Collectors.toList());
+        myClassObj.getHeapInstances(myHeapId).stream().map(instance -> new HeapDumpInstanceObject(this, instance))
+          .collect(Collectors.toList());
     }
     return myInstanceObjects;
   }
