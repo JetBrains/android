@@ -78,7 +78,14 @@ public class EmbeddedDistributionPaths {
 
   @NotNull
   public File findEmbeddedProfilerTransform() {
-    String relativePath = toSystemDependentName("/../../out/studio/transform/libs/studio-profilers.jar");
+
+    File file = new File(PathManager.getHomePath(), "plugins/android/resources/profilers-transform.jar");
+    if (file.exists()) {
+      return file;
+    }
+
+    // Development build
+    String relativePath = toSystemDependentName("/../../out/studio/transform/libs/profilers-transform.jar");
     return new File(PathManager.getHomePath() + relativePath);
   }
 
