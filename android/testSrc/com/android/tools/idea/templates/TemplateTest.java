@@ -301,6 +301,10 @@ public class TemplateTest extends AndroidGradleTestCase {
     checkCreateTemplate("activities", "TabbedActivity", true);
   }
 
+  public void testNewProjectWithBlankWearActivity() throws Exception {
+    checkCreateTemplate("activities", "BlankWearActivity", true);
+  }
+
   public void testNewNavigationDrawerActivity() throws Exception {
     checkCreateTemplate("activities", "NavigationDrawerActivity", false);
   }
