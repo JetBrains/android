@@ -52,11 +52,7 @@ public class NlReferenceEditorTest extends PropertyTestCase {
     }
   }
 
-  public void testIgnore() {
-
-  }
-
-  public void disable_testEscapeRestoresOriginalAfterTyping() {
+  public void testEscapeRestoresOriginalAfterTyping() {
     myFixture
       .setProperty(getProperty(myTextView, ATTR_TEXT))
       .expectText("SomeText")
@@ -70,7 +66,7 @@ public class NlReferenceEditorTest extends PropertyTestCase {
       .expectSelectedText("SomeText");
   }
 
-  public void disable_testFocusLoss() {
+  public void testFocusLoss() {
     myFixture
       .setProperty(getProperty(myTextView, ATTR_TEXT))
       .expectText("SomeText")
@@ -88,7 +84,7 @@ public class NlReferenceEditorTest extends PropertyTestCase {
       .expectValue("Hello");
   }
 
-  public void disable_testReplaceAddedValue() {
+  public void testReplaceAddedValue() {
     myFixture
       .setProperty(getProperty(myTextView, ATTR_ELEVATION))
       .expectText("2dp")
@@ -109,7 +105,7 @@ public class NlReferenceEditorTest extends PropertyTestCase {
       .expectValue("6dp");
   }
 
-  public void disable_testEnterSimpleDimension() {
+  public void testEnterSimpleDimension() {
     myFixture
       .setProperty(getProperty(myTextView, ATTR_ELEVATION))
       .expectText("2dp")
@@ -125,14 +121,14 @@ public class NlReferenceEditorTest extends PropertyTestCase {
       .expectValue("4dp");
   }
 
-  public void disable_testTextHasNoSlider() {
+  public void testTextHasNoSlider() {
     myFixture
       .setProperty(getProperty(myTextView, ATTR_TEXT))
       .gainFocus()
       .expectSliderVisible(false);
   }
 
-  public void disable_testSliderHidesDependingOnTotalWidth() {
+  public void testSliderHidesDependingOnTotalWidth() {
     myFixture
       .setWidth(100)
       .setProperty(getProperty(myTextView, ATTR_ELEVATION))
@@ -144,7 +140,7 @@ public class NlReferenceEditorTest extends PropertyTestCase {
       .expectSliderVisible(false);
   }
 
-  public void disable_testSliderClicksAreNotImmediatelyRecognized() throws Exception {
+  public void testSliderClicksAreNotImmediatelyRecognized() throws Exception {
     myFixture
       .setWidth(150)
       .setProperty(getProperty(myTextView, ATTR_ELEVATION))
@@ -154,7 +150,7 @@ public class NlReferenceEditorTest extends PropertyTestCase {
       .expectText("2dp");
   }
 
-  public void disable_testClickOnSliderChangesInspectorValue() throws Exception {
+  public void testClickOnSliderChangesInspectorValue() throws Exception {
     myFixture
       .setWidth(150)
       .setProperty(getProperty(myTextView, ATTR_ELEVATION))
@@ -167,7 +163,7 @@ public class NlReferenceEditorTest extends PropertyTestCase {
       .expectValue("24dp");
   }
 
-  public void disable_testClickOnSliderDoesNotChangeTableValueBeforeFocusLoss() throws Exception {
+  public void testClickOnSliderDoesNotChangeTableValueBeforeFocusLoss() throws Exception {
     myFixture.tearDown();
     myFixture = NlReferenceEditorFixture.createForTable(getProject());
     myFixture
@@ -184,7 +180,7 @@ public class NlReferenceEditorTest extends PropertyTestCase {
       .expectValue("24dp");
   }
 
-  public void disable_testClickOnSliderForMinHeight() throws Exception {
+  public void testClickOnSliderForMinHeight() throws Exception {
     myFixture
       .setWidth(150)
       .setProperty(getProperty(myTextView, ATTR_MIN_HEIGHT))
@@ -199,7 +195,7 @@ public class NlReferenceEditorTest extends PropertyTestCase {
       .expectValue("250dp");
   }
 
-  public void disable_testClickOnSliderForCollapseParallaxMultiplier() throws Exception {
+  public void testClickOnSliderForCollapseParallaxMultiplier() throws Exception {
     myFixture
       .setWidth(150)
       .setProperty(createCollapseParallaxProperty(myImageViewInCollapsingToolbarLayout))
@@ -217,7 +213,7 @@ public class NlReferenceEditorTest extends PropertyTestCase {
       .expectValue("1.0");
   }
 
-  public void disable_testSetEmptyProperty() {
+  public void testSetEmptyProperty() {
     myFixture
       .setProperty(getProperty(myTextView, ATTR_ELEVATION))
       .setProperty(EmptyProperty.INSTANCE);
