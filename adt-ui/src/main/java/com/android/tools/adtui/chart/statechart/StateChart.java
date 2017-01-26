@@ -182,7 +182,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
         }
       }
       // The last data point continues till max
-      if (previousX < max) {
+      if (previousX < max && previousValue != null) {
         setRectangleAndValueData(rectCount,
                                  Math.max(min, previousX),
                                  max,
