@@ -167,8 +167,6 @@ public class PostSyncProjectSetup {
     new ProjectStructureUsageTracker(myProject).trackProjectStructure();
 
     DisposedModules.getInstance(myProject).deleteImlFilesForDisposedModules();
-    removeAllModuleCompiledArtifacts(myProject);
-
     AndroidGradleProjectComponent.getInstance(myProject).checkForSupportedModules();
 
     findAndShowVariantConflicts();
