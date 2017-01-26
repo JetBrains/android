@@ -35,7 +35,7 @@ import javax.swing.*;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
-public class AndroidMonitorToolWindow extends AspectObserver implements Disposable {
+public class AndroidProfilerToolWindow extends AspectObserver implements Disposable {
 
   @NotNull
   private final StudioProfilersView myView;
@@ -44,7 +44,7 @@ public class AndroidMonitorToolWindow extends AspectObserver implements Disposab
   @NotNull
   private final Project myProject;
 
-  public AndroidMonitorToolWindow(@NotNull final Project project) {
+  public AndroidProfilerToolWindow(@NotNull final Project project) {
     try {
       myProject = project;
       Disposer.register(project, this);
@@ -65,7 +65,7 @@ public class AndroidMonitorToolWindow extends AspectObserver implements Disposab
 
   public void updateToolWindow() {
     ToolWindowManager manager = ToolWindowManager.getInstance(myProject);
-    ToolWindow window = manager.getToolWindow(AndroidMonitorToolWindowFactory.ID);
+    ToolWindow window = manager.getToolWindow(AndroidProfilerToolWindowFactory.ID);
     boolean maximize = myProfilers.getMode() == ProfilerMode.EXPANDED;
     if (maximize != manager.isMaximized(window)) {
       manager.setMaximized(window, maximize);

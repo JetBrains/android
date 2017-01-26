@@ -846,11 +846,16 @@
     <xml.elementDescriptorProvider implementation="org.jetbrains.android.dom.AndroidDomElementDescriptorProvider" order="first"/>
     <xml.tagNameProvider implementation="org.jetbrains.android.dom.AndroidLayoutXmlTagNameProvider" order="first" />
 
-    <facet.toolWindow id="Android Monitor"
-                      facetIdList="android"
-                      anchor="bottom"
-                      icon="AndroidIcons.AndroidToolWindow"
-                      factoryClass="com.android.tools.idea.monitor.AndroidToolWindowFactory"/>
+    <toolWindow id="Android Monitor"
+                anchor="bottom"
+                icon="AndroidIcons.AndroidToolWindow"
+                conditionClass="com.android.tools.idea.monitor.AndroidMonitorCondition"
+                factoryClass="com.android.tools.idea.monitor.AndroidToolWindowFactory"/>
+    <toolWindow id="Logcat"
+                anchor="bottom"
+                icon="AndroidIcons.Ddms.Logcat"
+                conditionClass="com.android.tools.idea.monitor.AndroidToolWindowFactory"
+                factoryClass="com.android.tools.idea.monitor.AndroidToolWindowFactory"/>
     <facet.toolWindow id="Build Variants"
                       facetIdList="android,android-gradle"
                       anchor="left"
