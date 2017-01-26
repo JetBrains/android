@@ -25,9 +25,7 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Data of http url connection. Each {@code HttpData} object matches a http connection with a unique id, and it includes both request data
@@ -46,6 +44,7 @@ public class HttpData {
 
   public static final String FIELD_CONTENT_TYPE = "Content-Type";
   public static final String FIELD_CONTENT_LENGTH = "Content-Length";
+  public static final int NO_STATUS_CODE = -1;
 
   private final long myId;
   private final long myStartTimeUs;
@@ -57,8 +56,9 @@ public class HttpData {
 
   @Nullable private final String myResponsePayloadId;
 
-  private int myStatusCode = -1;
+  private int myStatusCode = NO_STATUS_CODE;
   private final Map<String, String> myResponseFields = new HashMap<>();
+  private final Map<String, String> myRequestFields = new HashMap<>();
   // TODO: Move it to datastore, for now virtual file creation cannot select file type.
   private File myResponsePayloadFile;
 
@@ -74,6 +74,9 @@ public class HttpData {
 
     if (builder.myResponseFields != null) {
       parseResponseFields(builder.myResponseFields);
+    }
+    if (builder.myRequestFields != null) {
+      parseRequestFields(builder.myRequestFields);
     }
   }
 
@@ -134,31 +137,41 @@ public class HttpData {
     return ImmutableMap.copyOf(myResponseFields);
   }
 
+  @NotNull
+  public ImmutableMap<String, String> getRequestHeaders() {
+    return ImmutableMap.copyOf(myRequestFields);
+  }
+
   private void parseResponseFields(@NotNull String fields) {
-    List<String> lines = Arrays.stream(fields.split("\\n")).filter(line -> !line.trim().isEmpty()).collect(Collectors.toList());
-
-    if (lines.isEmpty()) {
-      // This may happen when a connection is aborted
-      return;
-    }
-
-    String firstLine = lines.remove(0);
-    String[] tokens = firstLine.split("=", 2);
-    String status = tokens[tokens.length - 1].trim();
     // The status-line - should be formatted as per
     // section 6.1 of RFC 2616.
     // https://www.w3.org/Protocols/rfc2616/rfc2616-sec6.html
     //
     // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase
-    assert status.startsWith("HTTP/1.") : String.format("Unexpected http response status-line (%s)", status);
-    myStatusCode = Integer.parseInt(status.split(" ")[1]);
-
-    myResponseFields.clear();
-    for (String line: lines) {
-      String[] keyAndValue = line.split("=", 2);
-      assert keyAndValue.length == 2 : String.format("Unexpected http response field (%s)", line);
-      myResponseFields.put(keyAndValue[0].trim(), StringUtil.trimEnd(keyAndValue[1].trim(), ';'));
+    String[] firstLineSplit = fields.trim().split("\\n", 2);
+    String status = firstLineSplit[0].trim();
+    fields = firstLineSplit.length > 1 ? firstLineSplit[1] : "";
+    if (!status.isEmpty()) {
+      String[] tokens = status.split("=", 2);
+      status = tokens[tokens.length - 1].trim();
+      assert status.startsWith("HTTP/1.") : String.format("Unexpected http response status-line (%s)", status);
+      myStatusCode = Integer.parseInt(status.split(" ")[1]);
     }
+
+    parseHeaderFields(fields, myResponseFields);
+  }
+
+  private void parseRequestFields(@NotNull String fields) {
+    parseHeaderFields(fields, myRequestFields);
+  }
+
+  private static void parseHeaderFields(@NotNull String fields, @NotNull Map<String, String> map) {
+    map.clear();
+    Arrays.stream(fields.split("\\n")).filter(line -> !line.trim().isEmpty()).forEach(line -> {
+      String[] keyAndValue = line.split("=", 2);
+      assert keyAndValue.length == 2 : String.format("Unexpected http header field (%s)", line);
+      map.put(keyAndValue[0].trim(), StringUtil.trimEnd(keyAndValue[1].trim(), ';'));
+    });
   }
 
   /**
@@ -216,6 +229,7 @@ public class HttpData {
     private String myMethod;
 
     private String myResponseFields;
+    private String myRequestFields;
     private String myResponsePayloadId;
     private String myTrace;
 
@@ -253,6 +267,12 @@ public class HttpData {
     @NotNull
     public Builder setResponsePayloadId(@NotNull String payloadId) {
       myResponsePayloadId = payloadId;
+      return this;
+    }
+
+    @NotNull
+    public Builder setRequestFields(@NotNull String requestFields) {
+      myRequestFields = requestFields;
       return this;
     }
 
