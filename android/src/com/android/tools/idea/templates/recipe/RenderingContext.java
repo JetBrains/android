@@ -259,7 +259,7 @@ public class RenderingContext {
    * @return true if the target files should be reformatted after the template is rendered
    */
   public boolean shouldReformat() {
-    return !myDryRun && myProject.isInitialized();
+    return !myDryRun;
   }
 
   /**
