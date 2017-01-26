@@ -55,9 +55,6 @@ public class AndroidModuleSetupTest {
 
     verify(mySetupStep1, times(1)).setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, myProgressIndicator);
     verify(mySetupStep2, times(1)).setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, myProgressIndicator);
-
-    verify(mySetupStep1, times(1)).displayDescription(myModule, myProgressIndicator);
-    verify(mySetupStep2, times(1)).displayDescription(myModule, myProgressIndicator);
   }
 
   @Test
@@ -66,9 +63,6 @@ public class AndroidModuleSetupTest {
 
     verify(mySetupStep1, times(1)).setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, null);
     verify(mySetupStep2, times(1)).setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, null);
-
-    verify(mySetupStep1, never()).displayDescription(same(myModule), any());
-    verify(mySetupStep2, never()).displayDescription(same(myModule), any());
   }
 
   @Test

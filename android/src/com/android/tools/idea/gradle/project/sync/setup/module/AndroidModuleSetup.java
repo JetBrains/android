@@ -46,9 +46,6 @@ public class AndroidModuleSetup {
       if (syncSkipped && !step.invokeOnSkippedSync()) {
         continue;
       }
-      if (indicator != null) {
-        step.displayDescription(module, indicator);
-      }
       step.setUpModule(module, ideModelsProvider, androidModel, models, indicator);
     }
   }
