@@ -61,7 +61,7 @@ public class ShowLogcatTask implements LaunchTask {
       @Override
       public void run() {
         final ToolWindow androidToolWindow = ToolWindowManager.getInstance(project).
-          getToolWindow(AndroidToolWindowFactory.TOOL_WINDOW_ID);
+          getToolWindow(AndroidToolWindowFactory.getToolWindowId());
 
         // Activate the tool window, and once activated, make sure the right device is selected
         androidToolWindow.activate(new Runnable() {
