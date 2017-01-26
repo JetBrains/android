@@ -313,7 +313,7 @@ public final class ModelWizard implements Disposable {
       showCurrentStep();
     }
     else {
-      handleFinished(true);
+      handleFinished(WizardResult.FINISHED);
     }
   }
 
@@ -348,7 +348,7 @@ public final class ModelWizard implements Disposable {
   public void cancel() {
     ensureWizardIsRunning();
 
-    handleFinished(false);
+    handleFinished(WizardResult.CANCELLED);
   }
 
   public void addResultListener(@NotNull WizardListener listener) {
@@ -369,9 +369,9 @@ public final class ModelWizard implements Disposable {
     }
   }
 
-  private void handleFinished(boolean success) {
+  private void handleFinished(WizardResult result) {
     try {
-      if (success) {
+      if (result == WizardResult.FINISHED) {
         Set<WizardModel> seenModels = Sets.newHashSet();
         for (ModelWizardStep step : myPrevSteps) {
           WizardModel model = step.getModel();
@@ -399,7 +399,7 @@ public final class ModelWizard implements Disposable {
       // Make a copy of the event list, as a listener may attempt to remove their listener when this
       // is fired.
       for (WizardListener listener : getListeners()) {
-        listener.onWizardFinished(success);
+        listener.onWizardFinished(result);
       }
     }
   }
@@ -467,15 +467,23 @@ public final class ModelWizard implements Disposable {
     return Lists.newArrayList(myWizardListeners);
   }
 
+  public enum WizardResult {
+    FINISHED,
+    CANCELLED;
+
+    public boolean isFinished() {
+      return this == FINISHED;
+    }
+  }
+
   /**
    * Listener interface which is fired when an important wizard event occurs.
    */
   public interface WizardListener {
     /**
      * Fired when the wizard is finished or cancelled.
-     * @param success {@code true} if finished, {@code false} if cancelled.
      */
-    void onWizardFinished(boolean success);
+    void onWizardFinished(ModelWizard.WizardResult result);
 
     /**
      * Fired when an unexpected exception happens while trying to move to the next step. Note that
