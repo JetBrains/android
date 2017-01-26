@@ -20,7 +20,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.wm.impl.StripeButton;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,7 +32,6 @@ public class DeviceExplorerTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
-  @Ignore("http://b.android.com/232911")
   public void buttonShows() throws IOException {
     DeviceExplorer.enableFeature(true);
     guiTest.importSimpleApplication()
