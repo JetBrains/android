@@ -417,6 +417,125 @@ public class ModelWizardTest {
     assertThat(modelC.myIsDisposed).isTrue();
   }
 
+  @Test
+  public void wizardCanRecoverFromOnProceedingThrowingException() throws Exception {
+    DummyModel modelA = new DummyModel();
+    DummyModel modelB = new DummyModel();
+    DummyModel modelC = new DummyModel();
+
+    DummyStep step1 = new DummyStep(modelA);
+    ExceptionThrowingStep step2 = new ExceptionThrowingStep(modelB).throwOnProceeding(true);
+    DummyStep step3 = new DummyStep(modelC);
+
+    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder(step1, step2, step3);
+    ModelWizard wizard = wizardBuilder.build();
+
+    final ModelWizardStep<?>[] badStep = {null};
+    wizard.addResultListener(new ModelWizard.WizardListener() {
+      @Override
+      public void onWizardFinished(boolean success) {
+      }
+
+      @Override
+      public void onWizardAdvanceError(Exception e) {
+        badStep[0] = ((FakeStepException)e).getStep();
+      }
+    });
+
+    wizard.goForward();
+    assertThat(badStep[0]).isNull();
+    try {
+      wizard.goForward();
+      fail(); // Guarantees that a exception is thrown, as expected.
+    }
+    catch (FakeStepException ignored) {
+    }
+
+    assertThat(badStep[0]).isEqualTo(step2);
+    assertThat(wizard.getCurrentStep()).isEqualTo(step2);
+
+    step2.throwOnProceeding(false);
+    wizard.goForward();
+    assertThat(wizard.getCurrentStep()).isEqualTo(step3);
+  }
+
+  @Test
+  public void wizardCanRecoverFromOnEnteringThrowingException() throws Exception {
+    DummyModel modelA = new DummyModel();
+    DummyModel modelB = new DummyModel();
+    DummyModel modelC = new DummyModel();
+
+    DummyStep step1 = new DummyStep(modelA);
+    ExceptionThrowingStep step2 = new ExceptionThrowingStep(modelB).throwOnEntering(true);
+    DummyStep step3 = new DummyStep(modelC);
+
+    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder(step1, step2, step3);
+    ModelWizard wizard = wizardBuilder.build();
+
+    final ModelWizardStep<?>[] badStep = {null};
+    wizard.addResultListener(new ModelWizard.WizardListener() {
+      @Override
+      public void onWizardFinished(boolean success) {
+      }
+
+      @Override
+      public void onWizardAdvanceError(Exception e) {
+        badStep[0] = ((FakeStepException)e).getStep();
+      }
+    });
+
+    try {
+      wizard.goForward();
+      fail(); // Guarantees that a exception is thrown, as expected.
+    }
+    catch (FakeStepException ignored) {
+    }
+
+    assertThat(badStep[0]).isEqualTo(step2);
+    assertThat(wizard.getCurrentStep()).isEqualTo(step1);
+
+    step2.throwOnEntering(false);
+    wizard.goForward();
+    assertThat(wizard.getCurrentStep()).isEqualTo(step2);
+  }
+
+  @Test
+  public void wizardStaysClosedEvenIfModelThrowsException() throws Exception {
+    DummyModel modelA = new DummyModel();
+    DummyExceptionModel modelB = new DummyExceptionModel();
+    DummyModel modelC = new DummyModel();
+
+    DummyStep step1 = new DummyStep(modelA);
+    DummyStep step2 = new DummyStep(modelB);
+    DummyStep step3 = new DummyStep(modelC);
+
+    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder(step1, step2, step3);
+    ModelWizard wizard = wizardBuilder.build();
+    final boolean[] onFinished = {false};
+    wizard.addResultListener(new ModelWizard.WizardListener() {
+      @Override
+      public void onWizardFinished(boolean success) {
+        onFinished[0] = true;
+      }
+
+      @Override
+      public void onWizardAdvanceError(Exception e) { }
+    });
+
+    wizard.goForward();
+    wizard.goForward();
+
+    try {
+      wizard.goForward();
+      fail();
+    }
+    catch (FakeModelException e) {
+      assertThat(e.getModel()).isEqualTo(modelB);
+    }
+
+    assertThat(onFinished[0]).isTrue();
+  }
+
   private static class DummyModel extends WizardModel {
     private boolean myIsFinished;
     private boolean myIsDisposed;
@@ -429,6 +548,29 @@ public class ModelWizardTest {
     @Override
     public void dispose() {
       myIsDisposed = true;
+    }
+  }
+
+  private static class FakeModelException extends RuntimeException {
+    private final WizardModel myModel;
+
+    public FakeModelException(WizardModel model) {
+      myModel = model; }
+
+    public WizardModel getModel() {
+      return myModel;
+    }
+  }
+
+
+  /**
+   * Extends {@link DummyModel} so it can be used with {@link DummyStep}
+   */
+  private static class DummyExceptionModel extends DummyModel {
+    @Override
+    public void handleFinished() {
+      super.handleFinished();
+      throw new FakeModelException(this);
     }
   }
 
@@ -682,6 +824,51 @@ public class ModelWizardTest {
 
     public void setShouldSkip() {
       myShouldShow = false;
+    }
+  }
+
+  private static class FakeStepException extends RuntimeException {
+    private final ModelWizardStep<?> myStep;
+
+    public FakeStepException(ModelWizardStep<?> step) {
+      myStep = step;
+    }
+
+    public ModelWizardStep<?> getStep() {
+      return myStep;
+    }
+  }
+
+  private static class ExceptionThrowingStep extends NoUiStep<DummyModel> {
+    private boolean myThrowOnProceeding;
+    private boolean myThrowOnEntering;
+
+    protected ExceptionThrowingStep(@NotNull DummyModel model) {
+      super(model);
+    }
+
+    public ExceptionThrowingStep throwOnProceeding(boolean throwOnProceeding) {
+      myThrowOnProceeding = throwOnProceeding;
+      return this;
+    }
+
+    public ExceptionThrowingStep throwOnEntering(boolean throwOnEntering) {
+      myThrowOnEntering = throwOnEntering;
+      return this;
+    }
+
+    @Override
+    protected void onProceeding() {
+      if (myThrowOnProceeding) {
+        throw new FakeStepException(this);
+      }
+    }
+
+    @Override
+    protected void onEntering() {
+      if (myThrowOnEntering) {
+        throw new FakeStepException(this);
+      }
     }
   }
 }
