@@ -95,7 +95,7 @@ public class NewInstantAppTest {
 
   @Test
   public void testNoWarningsInDefaultNewInstantAppProjects() throws IOException {
-    String projectName = "WarningApp";
+    String projectName = "Warning";
     createAndOpenDefaultAIAProject(projectName);
 
     String inspectionResults = guiTest.ideFrame()
@@ -114,9 +114,14 @@ public class NewInstantAppTest {
       .clickOk()
       .getResults();
 
-    //Eventually this will be empty ( or almost empty) for now we are just checking that there are no unexpected errors...
+    //Eventually this will be empty (or almost empty) for now we are just checking that there are no unexpected errors...
     assertThat(inspectionResults).isEqualTo(
       "Project '" + guiTest.getProjectPath() + "' " + projectName + "\n" +
+      // TODO: Linting for splits needs to be implemented
+      "    Android\n" +
+      "        Unknown Android XML attribute\n" +
+      "            AndroidManifest.xml\n" +
+      "                Unknown attribute split\n" +
       // TODO: Linting for Android Instant Apps needs to be updated as it isn't correctly picking up the dependencies
       "    Android > Lint > Correctness\n" +
       "        Menu namespace\n" +
@@ -139,7 +144,21 @@ public class NewInstantAppTest {
       "    Declaration redundancy\n" +
       "        Unnecessary module dependency\n" +
       "            instant-app\n" +
-      "                Module 'instant-app' sources do not depend on module 'atom' sources\n");
+      "                Module 'instant-app' sources do not depend on module 'atom' sources\n" +
+      // TODO: harmless spelling in namespace declaration - dictionary needs updating
+      "    Spelling\n" +
+      "        Typo\n" +
+      "            AndroidManifest.xml\n" +
+      "                Typo: In word 'instantapps'\n" +
+      "            AndroidManifest.xml\n" +
+      "                Typo: In word 'instantapp'\n" +
+      "                Typo: In word 'instantapps'\n" +
+      // TODO: these namespace declarations are required for manifest merging at the moment
+      "    XML\n" +
+      "        Unused XML schema declaration\n" +
+      "            AndroidManifest.xml\n" +
+      "                Namespace declaration is never used\n" +
+      "                Namespace declaration is never used\n");
   }
 
   @Test
