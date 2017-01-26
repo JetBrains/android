@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -102,7 +103,9 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     RunConfiguration runConfiguration = junitRunConfigurations[0];
     List<BeforeRunTask> tasks = new LinkedList<>(myRunManager.getBeforeRunTasks(runConfiguration));
 
-    BeforeRunTask newTask = new MakeBeforeRunTaskProvider(project, AndroidProjectInfo.getInstance(project)).createTask(runConfiguration);
+    MakeBeforeRunTaskProvider taskProvider = new MakeBeforeRunTaskProvider(project, AndroidProjectInfo.getInstance(project),
+                                                                           GradleProjectInfo.getInstance(project));
+    BeforeRunTask newTask = taskProvider.createTask(runConfiguration);
     newTask.setEnabled(true);
     tasks.add(newTask);
     myRunManager.setBeforeRunTasks(runConfiguration, tasks, false);
