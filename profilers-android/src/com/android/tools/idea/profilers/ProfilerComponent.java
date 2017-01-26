@@ -15,16 +15,7 @@
  */
 package com.android.tools.idea.profilers;
 
-import com.android.tools.idea.run.editor.ProfilerState;
 import com.intellij.openapi.components.ApplicationComponent;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ProjectManagerAdapter;
-import com.intellij.openapi.startup.StartupManager;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowAnchor;
-import com.intellij.openapi.wm.ToolWindowManager;
-import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 public class ProfilerComponent implements ApplicationComponent {
@@ -36,22 +27,7 @@ public class ProfilerComponent implements ApplicationComponent {
 
   @Override
   public void initComponent() {
-    if (ProfilerState.EXPERIMENTAL_PROFILING_FLAG_ENABLED) {
-      ProjectManager.getInstance().addProjectManagerListener(new ProjectManagerAdapter() {
-        @Override
-        public void projectOpened(final Project project) {
-          StartupManager.getInstance(project).runWhenProjectIsInitialized(
-            () -> {
-              ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
-              ToolWindow toolWindow = toolWindowManager.registerToolWindow(AndroidMonitorToolWindowFactory.ID, false, ToolWindowAnchor.BOTTOM, project, true);
-              toolWindow.setIcon(AndroidIcons.AndroidToolWindow);
-              new AndroidMonitorToolWindowFactory().createToolWindowContent(project, toolWindow);
-              toolWindow.show(null);
-            }
-          );
-        }
-      });
-    }
+    // TODO: Initialize the datastore here
   }
 
   @Override
