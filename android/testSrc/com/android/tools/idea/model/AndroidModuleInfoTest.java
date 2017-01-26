@@ -30,7 +30,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
-import junit.framework.AssertionFailedError;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.w3c.dom.Element;
@@ -220,11 +219,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   }
 
   public void testManifestError() throws Exception {
-    try {
-      loadProject(MODULE_INFO_MANIFEST_ERROR);
-      fail();
-    } catch (AssertionFailedError e) {
-      assertThat(e.getMessage()).contains("Exception while parsing the supplied manifest file");
-    }
+    String syncError = loadProjectAndExpectSyncError(MODULE_INFO_MANIFEST_ERROR);
+    assertThat(syncError).contains("The element type \"activity\" must be terminated by the matching end-tag \"</activity>\"");
   }
 }
