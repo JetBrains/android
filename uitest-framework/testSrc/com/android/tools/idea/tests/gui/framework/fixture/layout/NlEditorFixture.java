@@ -26,7 +26,6 @@ import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid;
 import com.android.tools.idea.uibuilder.palette.Palette;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.ActionToolbar;
@@ -97,6 +96,23 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     TreeGrid<Palette.Item> grid = (TreeGrid<Palette.Item>)robot.finder().findByName(target(), "itemTreeGrid");
 
     JListFixture fixture = new JListFixture(robot, grid.getLists().get(i));
+    fixture.replaceCellReader((list, listIndex) -> ((Palette.Item)list.getModel().getElementAt(listIndex)).getTitle());
+
+    return fixture;
+  }
+
+  @Nullable
+  public JListFixture getSelectedItemList() {
+    Robot robot = robot();
+
+    @SuppressWarnings("unchecked")
+    TreeGrid<Palette.Item> grid = (TreeGrid<Palette.Item>)robot.finder().findByName(target(), "itemTreeGrid");
+
+    JList<Palette.Item> selectedList = grid.getSelectedList();
+    if (selectedList == null) {
+      return null;
+    }
+    JListFixture fixture = new JListFixture(robot, selectedList);
     fixture.replaceCellReader((list, listIndex) -> ((Palette.Item)list.getModel().getElementAt(listIndex)).getTitle());
 
     return fixture;
