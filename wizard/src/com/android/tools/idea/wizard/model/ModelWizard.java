@@ -69,7 +69,7 @@ public final class ModelWizard implements Disposable {
   private final StringProperty myTitle = new StringValueProperty();
   private final JPanel myContentPanel = new JPanel(new CardLayout());
 
-  private final List<ResultListener> myResultListeners = Lists.newArrayListWithExpectedSize(1);
+  private final List<WizardListener> myWizardListeners = Lists.newArrayListWithExpectedSize(1);
 
   private int myCurrIndex = -1;
 
@@ -259,30 +259,61 @@ public final class ModelWizard implements Disposable {
   public void goForward() {
     ensureWizardIsRunning();
 
+    ModelWizardStep prevStep = null;
+    ModelWizardStep nextStep = null;
+
     if (myCurrIndex >= 0) {
       ModelWizardStep currStep = mySteps.get(myCurrIndex);
       if (!currStep.canGoForward().get()) {
         throw new IllegalStateException("Can't call goForward on wizard when the step prevents it");
       }
-
-      myPrevSteps.add(currStep);
-      currStep.onProceeding();
+      prevStep = currStep;
     }
 
+    int nextIndex = myCurrIndex;
     while (true) {
-      myCurrIndex++;
-      if (myCurrIndex >= mySteps.size()) {
-        handleFinished(true);
+      nextIndex++;
+      if (nextIndex >= mySteps.size()) {
         break;
       }
 
-      ModelWizardStep step = mySteps.get(myCurrIndex);
+      ModelWizardStep step = mySteps.get(nextIndex);
       if (shouldShowStep(step)) {
-        updateNavigationProperties();
-        step.onEntering();
-        showCurrentStep();
+        // Prepare to go to the next step but don't assume we'll make it - an exception may
+        // interrupt.
+        nextStep = step;
         break;
       }
+    }
+
+    try {
+      // Try to go to the next step. Methods here are not safe and may throw an exception.
+      if (prevStep != null) {
+        prevStep.onProceeding();
+      }
+      if (nextStep != null) {
+        nextStep.onEntering();
+      }
+    }
+    catch (Exception e) {
+      for (WizardListener listener : getListeners()) {
+        listener.onWizardAdvanceError(e);
+      }
+      throw e;
+    }
+
+    // If here, we've validated the next step, so enter it!
+    if (prevStep != null) {
+      myPrevSteps.add(prevStep);
+    }
+
+    if (nextStep != null) {
+      myCurrIndex = nextIndex; // Note: No need to set in else block; handleFinished sets it
+      updateNavigationProperties();
+      showCurrentStep();
+    }
+    else {
+      handleFinished(WizardResult.FINISHED);
     }
   }
 
@@ -317,15 +348,15 @@ public final class ModelWizard implements Disposable {
   public void cancel() {
     ensureWizardIsRunning();
 
-    handleFinished(false);
+    handleFinished(WizardResult.CANCELLED);
   }
 
-  public void addResultListener(@NotNull ResultListener listener) {
-    myResultListeners.add(listener);
+  public void addResultListener(@NotNull WizardListener listener) {
+    myWizardListeners.add(listener);
   }
 
-  public void removeResultListener(@NotNull ResultListener listener) {
-    myResultListeners.remove(listener);
+  public void removeResultListener(@NotNull WizardListener listener) {
+    myWizardListeners.remove(listener);
   }
 
   public boolean isFinished() {
@@ -338,30 +369,38 @@ public final class ModelWizard implements Disposable {
     }
   }
 
-  private void handleFinished(boolean success) {
-    if (success) {
-      Set<WizardModel> seenModels = Sets.newHashSet();
-      for (ModelWizardStep step : myPrevSteps) {
-        WizardModel model = step.getModel();
-        if (seenModels.contains(model)) {
-          continue;
+  private void handleFinished(WizardResult result) {
+    try {
+      if (result == WizardResult.FINISHED) {
+        Set<WizardModel> seenModels = Sets.newHashSet();
+        for (ModelWizardStep step : myPrevSteps) {
+          WizardModel model = step.getModel();
+          if (seenModels.contains(model)) {
+            continue;
+          }
+          seenModels.add(model);
+          model.handleFinished();
         }
-        seenModels.add(model);
-        model.handleFinished();
       }
     }
+    finally {
+      // Note: If any model.handleFinished() above throws an exception, that's bad. But we should
+      // NOT attempt to recover, as models are not designed to be reentrant. Instead, the best we
+      // can do is move forward by marking this wizard as "done" and then propagate the error
+      // outward (so the user might see it and report it, or at least know that the wizard result
+      // is suspicious).
 
-    myCurrIndex = mySteps.size(); // Magic value indicates done. See: isFinished
-    myPrevSteps.clear();
-    myCanGoBack.set(false);
-    myCanGoForward.set(false);
-    myOnLastStep.set(false);
+      myCurrIndex = mySteps.size(); // Magic value indicates done. See: isFinished
+      myPrevSteps.clear();
+      myCanGoBack.set(false);
+      myCanGoForward.set(false);
+      myOnLastStep.set(false);
 
-    // Make a copy of the event list, as a listener may attempt to remove their listener when this
-    // is fired.
-    List<ResultListener> listenersCopy = Lists.newArrayList(myResultListeners);
-    for (ResultListener listener : listenersCopy) {
-      listener.onWizardFinished(success);
+      // Make a copy of the event list, as a listener may attempt to remove their listener when this
+      // is fired.
+      for (WizardListener listener : getListeners()) {
+        listener.onWizardFinished(result);
+      }
     }
   }
 
@@ -419,14 +458,41 @@ public final class ModelWizard implements Disposable {
   @Override
   public void dispose() {
     myBindings.releaseAll();
-    myResultListeners.clear();
+    myWizardListeners.clear();
+  }
+
+  private Iterable<WizardListener> getListeners() {
+    // Make a copy of the event list, as a listener may attempt to remove their listener when this
+    // is fired.
+    return Lists.newArrayList(myWizardListeners);
+  }
+
+  public enum WizardResult {
+    FINISHED,
+    CANCELLED;
+
+    public boolean isFinished() {
+      return this == FINISHED;
+    }
   }
 
   /**
-   * Listener interface which is fired when the wizard is either finished or canceled.
+   * Listener interface which is fired when an important wizard event occurs.
    */
-  public interface ResultListener {
-    void onWizardFinished(boolean success);
+  public interface WizardListener {
+    /**
+     * Fired when the wizard is finished or cancelled.
+     */
+    void onWizardFinished(ModelWizard.WizardResult result);
+
+    /**
+     * Fired when an unexpected exception happens while trying to move to the next step. Note that
+     * the wizard tries to recover gracefully, but it could be good to handle this event and give
+     * the user some visual indication that a problem occurred.
+     *
+     * @param e The exception that occurred during the course of running the wizard.
+     */
+    void onWizardAdvanceError(Exception e);
   }
 
   /**
