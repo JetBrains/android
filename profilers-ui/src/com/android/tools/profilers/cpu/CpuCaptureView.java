@@ -27,13 +27,16 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.PlatformIcons;
+import com.intellij.util.ui.tree.TreeModelAdapter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.ExpandVetoException;
+import javax.swing.tree.TreePath;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -232,6 +235,7 @@ class CpuCaptureView {
 
       JTree tree = new JTree();
       myComponent = setUpCpuTree(tree, model);
+      tree.setRootVisible(false);
 
       tree.addTreeWillExpandListener(new TreeWillExpandListener() {
         @Override
@@ -242,6 +246,21 @@ class CpuCaptureView {
 
         @Override
         public void treeWillCollapse(TreeExpansionEvent event) throws ExpandVetoException {
+        }
+      });
+
+      model.addTreeModelListener(new TreeModelAdapter() {
+        @Override
+        protected void process(TreeModelEvent event, EventType type) {
+          // When the root loses all of its children it can't be expanded and when they're added it is still collapsed.
+          // As a result, nothing will be visible as the root itself isn't visible. So, expand it if it's the case.
+          if (type == EventType.NodesInserted && event.getTreePath().getPathCount() == 1) {
+            DefaultMutableTreeNode root = (DefaultMutableTreeNode)model.getRoot();
+            Object[] inserted = event.getChildren();
+            if (inserted != null && inserted.length == root.getChildCount()) {
+              tree.expandPath(new TreePath(root));
+            }
+          }
         }
       });
     }
