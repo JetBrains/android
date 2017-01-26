@@ -51,7 +51,8 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.getTargetPresentableName
  */
 public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType {
   @NonNls public static final String SDK_NAME = "Android SDK";
-  @NonNls public static final String DEFAULT_EXTERNAL_DOCUMENTATION_URL = "http://developer.android.com/reference/";
+  @NonNls public static final String DEFAULT_EXTERNAL_DOCUMENTATION_PATH = "developer.android.com/reference/";
+  @NonNls public static final String DEFAULT_EXTERNAL_DOCUMENTATION_URL = "http://" + DEFAULT_EXTERNAL_DOCUMENTATION_PATH;
 
   public AndroidSdkType() {
     super(SDK_NAME);
