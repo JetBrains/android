@@ -21,10 +21,7 @@ import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
@@ -33,9 +30,7 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.PROJECT_STRUCTURE_ISSUES;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
@@ -44,7 +39,7 @@ import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
 
 class UniquePathModuleValidatorStrategy extends CommonProjectValidationStrategy {
-  @NotNull private final Multimap<String, Module> myModulesByPath = ArrayListMultimap.create();
+  @NotNull private final Multimap<String, Module> myModulesByPath = HashMultimap.create();
 
   UniquePathModuleValidatorStrategy(@NotNull Project project) {
     super(project);
@@ -62,7 +57,9 @@ class UniquePathModuleValidatorStrategy extends CommonProjectValidationStrategy 
   void fixAndReportFoundIssues() {
     Set<String> modulePaths = myModulesByPath.keySet();
     for (String modulePath : modulePaths) {
-      Collection<Module> modules = myModulesByPath.get(modulePath);
+      List<Module> modules = new ArrayList<>(myModulesByPath.get(modulePath));
+      modules.sort(Comparator.comparing(Module::getName));
+
       int moduleCount = modules.size();
       if (moduleCount <= 1) {
         continue;
@@ -71,7 +68,7 @@ class UniquePathModuleValidatorStrategy extends CommonProjectValidationStrategy 
       msg.append("The modules [");
 
       int i = 0;
-      Set<String> moduleNames = Sets.newHashSet();
+      Set<String> moduleNames = new HashSet<>();
       for (Module module : modules) {
         if (i++ != 0) {
           msg.append(", ");
@@ -80,9 +77,9 @@ class UniquePathModuleValidatorStrategy extends CommonProjectValidationStrategy 
         moduleNames.add(name);
         msg.append("'").append(name).append("'");
       }
-      msg.append("] point to same directory in the file system.");
+      msg.append("] point to the same directory in the file system.");
 
-      String[] lines = {msg.toString(), "Each module has to have a unique path."};
+      String[] lines = {msg.toString(), "Each module must have a unique path."};
       SyncMessage message = new SyncMessage(PROJECT_STRUCTURE_ISSUES, ERROR, lines);
 
       List<DataNode<ModuleData>> modulesToDisplayInDialog = Lists.newArrayList();
