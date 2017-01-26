@@ -24,10 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -56,9 +53,6 @@ public class NdkModuleSetupTest {
 
     verify(mySetupStep1, times(1)).setUpModule(myModule, myModelsProvider, myNdkModel, myModuleModels, myProgressIndicator);
     verify(mySetupStep2, times(1)).setUpModule(myModule, myModelsProvider, myNdkModel, myModuleModels, myProgressIndicator);
-
-    verify(mySetupStep1, times(1)).displayDescription(myModule, myProgressIndicator);
-    verify(mySetupStep2, times(1)).displayDescription(myModule, myProgressIndicator);
   }
 
   @Test
@@ -67,9 +61,6 @@ public class NdkModuleSetupTest {
 
     verify(mySetupStep1, times(1)).setUpModule(myModule, myModelsProvider, myNdkModel, myModuleModels, null);
     verify(mySetupStep2, times(1)).setUpModule(myModule, myModelsProvider, myNdkModel, myModuleModels, null);
-
-    verify(mySetupStep1, never()).displayDescription(same(myModule), any());
-    verify(mySetupStep2, never()).displayDescription(same(myModule), any());
   }
 
   @Test
