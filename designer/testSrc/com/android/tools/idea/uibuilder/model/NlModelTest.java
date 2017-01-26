@@ -30,6 +30,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlTag;
 
 import java.util.Arrays;
@@ -327,6 +328,47 @@ public class NlModelTest extends LayoutTestCase {
     assertThat(model.canAddComponents(Collections.singletonList(linearLayout), linearLayout, null)).isFalse();
   }
 
+  public void testCreateComponentWithDependencyCheck() {
+    NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
+      .withBounds(0, 0, 1000, 1000)
+      .matchParentWidth()
+      .matchParentHeight()
+      .children(
+        component(FRAME_LAYOUT)
+          .withBounds(100, 100, 100, 100)
+          .width("100dp")
+          .height("100dp")
+      ))
+      .build();
+
+    NlComponent linearLayout = model.getComponents().get(0);
+    NlComponent frameLayout = linearLayout.getChild(0);
+    assertThat(frameLayout).isNotNull();
+
+    GradleDependencyManager gradleDependencyManager = mock(GradleDependencyManager.class);
+    List<GradleCoordinate> expectedDependencies =
+      Collections.singletonList(GradleCoordinate.parseCoordinateString(RECYCLER_VIEW_LIB_ARTIFACT + ":+"));
+    when(gradleDependencyManager.ensureLibraryIsIncluded(eq(myModule), eq(expectedDependencies), any())).thenReturn(true);
+    registerProjectComponent(GradleDependencyManager.class, gradleDependencyManager);
+    XmlTag recyclerViewTag =
+      XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW + " xmlns:android=\"" + NS_RESOURCES + "\"/>");
+
+    WriteCommandAction.runWriteCommandAction(
+      model.getProject(), null, null,
+      () -> model.createComponent(surface().screen(model).getScreen(), recyclerViewTag, frameLayout, null, InsertType.CREATE),
+      model.getFile());
+    model.notifyModified(NlModel.ChangeType.ADD_COMPONENTS);
+    when(gradleDependencyManager.ensureLibraryIsIncluded(eq(myModule), eq(expectedDependencies), isNull(Runnable.class)))
+      .thenReturn(true);
+
+    verify(gradleDependencyManager, atLeastOnce()).ensureLibraryIsIncluded(eq(myModule), eq(expectedDependencies), isNull(Runnable.class));
+
+    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,150:768x1034, instance=0}\n" +
+                 "    NlComponent{tag=<FrameLayout>, bounds=[0,150:200x200, instance=1}\n" +
+                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,150:200x66, instance=2}",
+                 myTreeDumper.toTree(model.getComponents()));
+  }
+
   public void testAddComponentsWithDependencyCheck() {
     NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
@@ -346,8 +388,11 @@ public class NlModelTest extends LayoutTestCase {
 
     GradleDependencyManager gradleDependencyManager = mock(GradleDependencyManager.class);
     registerProjectComponent(GradleDependencyManager.class, gradleDependencyManager);
+    XmlTag recyclerViewTag =
+      XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW + " xmlns:android=\"" + NS_RESOURCES + "\"/>");
+
     NlComponent recyclerView = model.createComponent(
-      surface().screen(model).getScreen(), CLASS_RECYCLER_VIEW, null, null, InsertType.CREATE);
+      surface().screen(model).getScreen(), recyclerViewTag, null, null, InsertType.CREATE);
     List<GradleCoordinate> expectedDependencies =
       Collections.singletonList(GradleCoordinate.parseCoordinateString(RECYCLER_VIEW_LIB_ARTIFACT + ":+"));
     when(gradleDependencyManager.ensureLibraryIsIncluded(eq(myModule), eq(expectedDependencies), isNull(Runnable.class)))

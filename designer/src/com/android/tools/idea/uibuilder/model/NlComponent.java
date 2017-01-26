@@ -783,7 +783,10 @@ public class NlComponent implements NlAttributesHolder {
                                  @NotNull String fqcn,
                                  @Nullable NlComponent before,
                                  @NotNull InsertType insertType) {
-    return myModel.createComponent(((ViewEditorImpl)editor).getSceneView(), fqcn, this, before, insertType);
+    String tagName = viewClassToTag(fqcn);
+    XmlTag tag = getTag().createChildTag(tagName, null, null, false);
+
+    return myModel.createComponent(((ViewEditorImpl)editor).getSceneView(), tag, this, before, insertType);
   }
 
   /**
