@@ -67,21 +67,6 @@ public class GradleInitScripts {
     return null;
   }
 
-  public void addProfilerClasspathInitScriptCommandLineArgTo(@NotNull List<String> allArgs) {
-    String content = "allprojects {\n" +
-                     "  buildscript {\n" +
-                     "    dependencies {\n" +
-                     "      classpath 'com.android.tools:studio-profiler-plugin:1.0'\n" +
-                     "    }\n" +
-                     "  }\n" +
-                     "}\n";
-
-    File initScriptFile = createInitScriptFile("asPerfClasspath", content);
-    if (initScriptFile != null) {
-      addInitScriptCommandLineArg(initScriptFile, allArgs);
-    }
-  }
-
   private static String escapeAsStringLiteral(@NotNull String s) {
     // JLS 3.10.6: Escape Sequences for Character and String Literals
     return "\"" + Escapers.builder()

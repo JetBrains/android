@@ -34,6 +34,7 @@ import com.android.tools.idea.gradle.project.build.invoker.messages.GradleBuildT
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.google.common.annotations.VisibleForTesting;
@@ -187,8 +188,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
     private static final String GRADLE_RUNNING_MSG_TITLE = "Gradle Running";
     private static final String PASSWORD_KEY_SUFFIX = ".password=";
 
-    public static final String ANDROID_ADDITIONAL_PLUGINS = "android.additional.plugins";
-    public static final String COM_ANDROID_TOOLS_PROFILER = "com.android.tools.profiler";
+    public static final String ANDROID_CUSTOM_CLASS_TRANSFORMS = "android.custom.class.transforms";
 
     @NotNull private final Key<Key<?>> myContentId = Key.create("compile_content");
 
@@ -356,8 +356,8 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           attemptToUseEmbeddedGradle(project);
 
           if (EXPERIMENTAL_PROFILING_FLAG_ENABLED) {
-            initScripts.addProfilerClasspathInitScriptCommandLineArgTo(commandLineArguments);
-            commandLineArguments.add(createProjectProperty(ANDROID_ADDITIONAL_PLUGINS, COM_ANDROID_TOOLS_PROFILER));
+            File file = EmbeddedDistributionPaths.getInstance().findEmbeddedProfilerTransform();
+            commandLineArguments.add(createProjectProperty(ANDROID_CUSTOM_CLASS_TRANSFORMS, file.getAbsolutePath()));
           }
 
           // Don't include passwords in the log
