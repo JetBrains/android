@@ -204,10 +204,8 @@ public class NewProjectModel extends WizardModel {
     SwingUtilities.invokeLater(this::performGradleImport);
   }
 
-  private Collection<File> myTargetFiles = new ArrayList<>();
   private boolean performCreateProject(boolean dryRun, @NotNull Map<String, Object> params) {
     Project project = project().getValue();
-    myTargetFiles.clear();
 
     Template projectTemplate = Template.createFromName(Template.CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME);
     // @formatter:off
@@ -216,7 +214,6 @@ public class NewProjectModel extends WizardModel {
         .withDryRun(dryRun)
         .withShowErrors(true)
         .withParams(params)
-        .intoTargetFiles(myTargetFiles)
         .build();
       // @formatter:on
     return projectTemplate.render(context);
@@ -267,25 +264,9 @@ public class NewProjectModel extends WizardModel {
       }
     }
     try {
-      // TODO: Need to find out what is the best way to deal with TARGET_FILES and FILES_TO_OPEN. In the old wizard, this was a "global"
-      // entry on the hash table, and opening/formatting was done only once per wizard. In the new version we are letting the
-      // opening/formatting be done by each Model? At the moment when creating a project with a single module, the output is very similar
-      // to the old wizard, but with multiple modules, the output (specially file formatting) is still a bit away...
-      GradleSyncListener listener = new PostStartupGradleSyncListener(() -> {
-        //  Iterable<File> targetFiles = myState.get(TARGET_FILES_KEY);
-        //  assert targetFiles != null;
-        //
-        TemplateUtils.reformatAndRearrange(myProject.getValue(), myTargetFiles);
-        //
-        //  Collection<File> filesToOpen = myState.get(FILES_TO_OPEN_KEY);
-        //  assert filesToOpen != null;
-        //
-        //  TemplateUtils.openEditors(myProject, filesToOpen, true);
-      });
-
       GradleProjectImporter.Request request = new GradleProjectImporter.Request();
       request.setLanguageLevel(initialLanguageLevel).setProject(project().getValue());
-      projectImporter.importProject(applicationName().get(), rootLocation, request, listener);
+      projectImporter.importProject(applicationName().get(), rootLocation, request, null);
     }
     catch (IOException | ConfigurationException e) {
       Messages.showErrorDialog(e.getMessage(), message("android.wizard.project.create.error"));
