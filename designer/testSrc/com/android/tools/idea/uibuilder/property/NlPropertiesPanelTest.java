@@ -25,7 +25,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.testFramework.LeakHunter;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -68,7 +67,6 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     }
     finally {
       super.tearDown();
-      LeakHunter.checkProjectLeak();
     }
   }
 
