@@ -27,6 +27,7 @@ import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.android.tools.idea.uibuilder.scene.decorator.SceneDecorator;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 
+import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -367,6 +368,9 @@ public class SceneComponent {
   }
 
   public ArrayList<Target> getTargets() {
+    // myTargets is only modified in the dispatch thread so make sure we do not call this method from other threads.
+    assert ApplicationManager.getApplication().isDispatchThread();
+
     return myTargets;
   }
 
