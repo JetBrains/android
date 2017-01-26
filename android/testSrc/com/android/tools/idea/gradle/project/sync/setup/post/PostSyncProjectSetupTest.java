@@ -31,6 +31,7 @@ import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
+import com.intellij.mock.MockProgressIndicator;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -61,14 +62,16 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   @Mock private CommonModuleValidator.Factory myModuleValidatorFactory;
   @Mock private CommonModuleValidator myModuleValidator;
   @Mock private RunManagerImpl myRunManager;
-  @Mock private ProgressIndicator myProgressIndicator;
 
+  private ProgressIndicator myProgressIndicator;
   private PostSyncProjectSetup mySetup;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
+
+    myProgressIndicator = new MockProgressIndicator();
 
     Project project = getProject();
     myRunManager = RunManagerImpl.getInstanceImpl(project);

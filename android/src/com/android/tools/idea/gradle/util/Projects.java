@@ -42,6 +42,7 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
@@ -170,14 +171,14 @@ public final class Projects {
     invokeAndWaitIfNeeded((Runnable)() -> SyncMessages.getInstance(project).removeProjectMessages());
 
     if (ApplicationManager.getApplication().isUnitTestMode()) {
-      populate(project, projectInfo, modulesToImport, setupRequest, null);
+      populate(project, projectInfo, modulesToImport, new EmptyProgressIndicator(), setupRequest);
       return;
     }
 
     Task.Backgroundable task = new Task.Backgroundable(project, "Project Setup", false) {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
-        populate(project, projectInfo, modulesToImport, setupRequest, indicator);
+        populate(project, projectInfo, modulesToImport, indicator, setupRequest);
       }
     };
     task.queue();
@@ -186,8 +187,8 @@ public final class Projects {
   private static void populate(@NotNull Project project,
                                @NotNull DataNode<ProjectData> projectInfo,
                                @NotNull Collection<DataNode<ModuleData>> modulesToImport,
-                               @Nullable PostSyncProjectSetup.Request setupRequest,
-                               @Nullable ProgressIndicator indicator) {
+                               @NotNull ProgressIndicator indicator,
+                               @Nullable PostSyncProjectSetup.Request setupRequest) {
     disableExcludedModules(projectInfo, modulesToImport);
     doSelectiveImport(modulesToImport, project);
     if (setupRequest != null) {
