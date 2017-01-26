@@ -55,7 +55,6 @@ import static com.android.tools.idea.gradle.project.sync.setup.module.dependency
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.DOCUMENTATION;
 import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
-import static com.android.tools.idea.gradle.util.Projects.setModuleCompiledArtifact;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.*;
@@ -127,10 +126,6 @@ public class DependenciesModuleSetupStep extends AndroidModuleSetupStep {
       ModuleOrderEntry orderEntry = modelsProvider.getModifiableRootModel(module).addModuleOrderEntry(moduleDependency);
       orderEntry.setScope(dependency.getScope());
       orderEntry.setExported(true);
-
-      if (compiledArtifact != null) {
-        setModuleCompiledArtifact(moduleDependency, compiledArtifact);
-      }
       return;
     }
 
