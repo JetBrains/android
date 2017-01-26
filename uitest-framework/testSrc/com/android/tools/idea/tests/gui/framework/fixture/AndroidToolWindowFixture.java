@@ -39,7 +39,7 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
   @NotNull private final ProcessListFixture myProcessListFixture;
 
   public AndroidToolWindowFixture(@NotNull Project project, final @NotNull Robot robot) {
-    super(AndroidToolWindowFactory.TOOL_WINDOW_ID, project, robot);
+    super(AndroidToolWindowFactory.getToolWindowId(), project, robot);
     show();
 
     final JPanel contentPanel = getContentPanel();
