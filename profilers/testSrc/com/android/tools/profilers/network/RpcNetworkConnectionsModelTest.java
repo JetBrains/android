@@ -21,6 +21,7 @@ import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.StudioProfilers;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.protobuf3jarjar.ByteString;
 import org.junit.Before;
 import org.junit.Rule;
@@ -33,13 +34,14 @@ import static org.junit.Assert.assertEquals;
 
 public class RpcNetworkConnectionsModelTest {
   private static final String FAKE_PAYLOAD_ID = "Test Payload";
+  private static final String FAKE_REQUEST_HEADERS = "User-Agent = Customized\n Accept = text/plain";
 
   private static final ImmutableList<HttpData> FAKE_DATA =
     new ImmutableList.Builder<HttpData>()
-      .add(FakeNetworkService.newHttpData(0, 0, 7, 14))
-      .add(FakeNetworkService.newHttpData(1, 2, 3, 6))
-      .add(FakeNetworkService.newHttpData(2, 4, 0, 0))
-      .add(FakeNetworkService.newHttpData(3, 8, 10, 12))
+      .add(FakeNetworkService.newHttpDataBuilder(0, 0, 7, 14).setRequestFields(FAKE_REQUEST_HEADERS).build())
+      .add(FakeNetworkService.newHttpDataBuilder(1, 2, 3, 6).setRequestFields(FAKE_REQUEST_HEADERS).build())
+      .add(FakeNetworkService.newHttpDataBuilder(2, 4, 0, 0).setRequestFields(FAKE_REQUEST_HEADERS).build())
+      .add(FakeNetworkService.newHttpDataBuilder(3, 8, 10, 12).setRequestFields(FAKE_REQUEST_HEADERS).build())
       .build();
 
   private FakeProfilerService myProfilerService = new FakeProfilerService(false);
@@ -112,6 +114,10 @@ public class RpcNetworkConnectionsModelTest {
       assertEquals(FAKE_DATA.get((int)id).getTrace(), data.getTrace());
       assertEquals(FAKE_DATA.get((int)id).getResponsePayloadId(), data.getResponsePayloadId());
       assertEquals(FAKE_DATA.get((int)id).getResponseField("connId"), data.getResponseField("connId"));
+      ImmutableMap<String, String> requestHeaders = data.getRequestHeaders();
+      assertEquals(2, requestHeaders.size());
+      assertEquals("Customized", requestHeaders.get("User-Agent"));
+      assertEquals("text/plain", requestHeaders.get("Accept"));
     }
   }
 }

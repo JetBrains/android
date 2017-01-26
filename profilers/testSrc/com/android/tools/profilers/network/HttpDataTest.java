@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -36,7 +37,7 @@ public class HttpDataTest {
   }
 
   @Test
-  public void testResponseStatusLineWithKey() {
+  public void testResponseStatusLine() {
     HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
     builder.setResponseFields("   \n" +
                               "null  =  HTTP/1.1 302 Found  \n  " +
@@ -57,14 +58,14 @@ public class HttpDataTest {
     assertThat(data.getResponseField("Content-Type"), equalTo("text/html; charset=UTF-8"));
   }
 
-  @Test()
+  @Test
   public void emptyResponseFields() {
     HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
     builder.setResponseFields("");
     assertEquals(-1, builder.build().getStatusCode());
   }
 
-  @Test()
+  @Test
   public void emptyResponseFields2() {
     HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
     builder.setResponseFields("   \n  \n  \n\n   \n  ");
@@ -76,6 +77,24 @@ public class HttpDataTest {
     HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
     builder.setResponseFields("Invalid response fields");
     builder.build();
+  }
+
+  @Test
+  public void emptyRequestFields() {
+    HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
+    builder.setRequestFields("");
+    assertTrue(builder.build().getRequestHeaders().isEmpty());
+  }
+
+  @Test
+  public void testSetRequestFields() {
+    HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
+    builder.setRequestFields("\nfirst=1 \n  second  = 2\n equation=x+y=10");
+    ImmutableMap<String, String> requestFields = builder.build().getRequestHeaders();
+    assertEquals(3, requestFields.size());
+    assertEquals("1", requestFields.get("first"));
+    assertEquals("2", requestFields.get("second"));
+    assertEquals("x+y=10", requestFields.get("equation"));
   }
 
   @Test
