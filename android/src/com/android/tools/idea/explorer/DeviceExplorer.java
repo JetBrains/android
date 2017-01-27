@@ -36,7 +36,7 @@ public class DeviceExplorer {
   private static boolean myEnabled;
 
   public static boolean isFeatureEnabled(@NotNull Project project) {
-    boolean enabled = myEnabled || SystemProperties.getBooleanProperty(DEVICE_EXPLORER_ENABLED, false);
+    boolean enabled = myEnabled || SystemProperties.getBooleanProperty(DEVICE_EXPLORER_ENABLED, true);
     if (!enabled) {
       return false;
     }
