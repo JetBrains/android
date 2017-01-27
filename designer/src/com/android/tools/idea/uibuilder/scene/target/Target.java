@@ -23,6 +23,8 @@ import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
+
 public interface Target {
   // List of preference levels
   int LASSO_LEVEL = 10;
@@ -46,7 +48,7 @@ public interface Target {
 
   SceneComponent getComponent();
 
-  int getMouseCursor();
+  Cursor getMouseCursor();
 
   float getCenterX();
   float getCenterY();

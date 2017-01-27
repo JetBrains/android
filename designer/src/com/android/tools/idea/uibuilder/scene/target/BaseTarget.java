@@ -75,8 +75,8 @@ public abstract class BaseTarget implements Target {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public int getMouseCursor() {
-    return Cursor.DEFAULT_CURSOR;
+  public Cursor getMouseCursor() {
+    return Cursor.getDefaultCursor();
   }
 
   @Override

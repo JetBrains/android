@@ -28,11 +28,11 @@ public class GuidelineAnchorTarget extends AnchorTarget {
   boolean myIsHorizontal;
 
   @Override
-  public int getMouseCursor() {
+  public Cursor getMouseCursor() {
     if (myIsHorizontal) {
-      return Cursor.N_RESIZE_CURSOR;
+      return Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR);
     }
-    return Cursor.E_RESIZE_CURSOR;
+    return Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR);
   }
 
   @Override

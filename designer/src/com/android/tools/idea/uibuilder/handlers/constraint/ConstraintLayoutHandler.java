@@ -17,15 +17,12 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import android.support.constraint.solver.widgets.ConstraintAnchor;
-import android.support.constraint.solver.widgets.ConstraintWidget;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.*;
 import com.android.tools.idea.uibuilder.scene.draw.ConstraintLayoutComponentNotchProvider;
@@ -470,31 +467,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                        @NotNull java.util.List<NlComponent> components,
                                        @NotNull DragType type) {
     return new SceneDragHandler(editor, this, layout, components, type);
-  }
-
-  /**
-   * Update the mouse cursor if the (x, y) coordinates hit a resize handle or constraint handle
-   *
-   * @param screenView the ScreenView we are working on
-   * @param x          the current x mouse coordinate
-   * @param y          the current y mouse coordinate
-   * @return true if we modified the cursor
-   */
-  @Override
-  public boolean updateCursor(@NotNull ScreenView screenView,
-                              @AndroidCoordinate int x, @AndroidCoordinate int y) {
-    Scene scene = screenView.getScene();
-    int dpX = Coordinates.pxToDp(screenView, x);
-    int dpY = Coordinates.pxToDp(screenView, y);
-    scene.mouseHover(SceneContext.get(screenView), dpX, dpY);
-    int cursor = scene.getMouseCursor();
-
-    // Set the mouse cursor
-    // TODO: we should only update if we are above a component we manage, not simply all component that
-    // is a child of this viewgroup
-    screenView.getSurface().setCursor(Cursor.getPredefinedCursor(cursor));
-    screenView.getSurface().repaint();
-    return true;
   }
 
   /**

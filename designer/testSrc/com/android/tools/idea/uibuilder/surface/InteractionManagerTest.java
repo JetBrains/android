@@ -16,12 +16,19 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
 import org.intellij.lang.annotations.Language;
+import org.mockito.Matchers;
+import org.mockito.Mockito;
 
+import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 
@@ -75,5 +82,144 @@ public class InteractionManagerTest extends LayoutTestCase {
                       "        android:text=\"Hello World\" />\n" +
                       "</LinearLayout>\n";
     assertEquals(expected, xmlFile.getText());
+  }
+
+  public void testLinearLayoutCursorHoverComponent() throws Exception {
+    InteractionManager manager = setupLinearLayoutCursorTest();
+    DesignSurface surface = manager.getSurface();
+    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    SceneComponent textView = screenView.getScene().getSceneComponent("textView");
+    manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getCenterX()),
+                         Coordinates.getSwingYDip(screenView, textView.getCenterY()));
+    Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+  }
+
+  public void testLinearLayoutCursorHoverComponentHandle() throws Exception {
+    InteractionManager manager = setupLinearLayoutCursorTest();
+    DesignSurface surface = manager.getSurface();
+    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    SceneComponent textView = screenView.getScene().getSceneComponent("textView");
+    SelectionModel selectionModel = screenView.getModel().getSelectionModel();
+    selectionModel.setSelection(ImmutableList.of(textView.getNlComponent()));
+    selectionModel.getHandles(textView.getNlComponent());
+    manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getDrawX() + textView.getDrawWidth()),
+                         Coordinates.getSwingYDip(screenView, textView.getDrawY() + textView.getDrawHeight()));
+    Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+  }
+
+  public void testLinearLayoutCursorHoverRoot() throws Exception {
+    InteractionManager manager = setupLinearLayoutCursorTest();
+    DesignSurface surface = manager.getSurface();
+    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    SceneComponent textView = screenView.getScene().getSceneComponent("textView");
+    manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getDrawHeight() + textView.getDrawY() + 20),
+                         Coordinates.getSwingYDip(screenView, textView.getCenterY()));
+    Mockito.verify(surface).setCursor(Cursor.getDefaultCursor());
+  }
+
+  public void testLinearLayoutCursorHoverSceneHandle() throws Exception {
+    InteractionManager manager = setupLinearLayoutCursorTest();
+    DesignSurface surface = manager.getSurface();
+    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    manager.updateCursor(screenView.getX() + screenView.getSize().width,
+                         screenView.getY() + screenView.getSize().height);
+    Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+  }
+
+  private InteractionManager setupLinearLayoutCursorTest() {
+    @Language("XML")
+    String source = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                    "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                    "    android:id=\"@+id/linearLayout\"\n" +
+                    "    android:layout_width=\"100dp\"\n" +
+                    "    android:layout_height=\"100dp\"\n" +
+                    "    android:orientation=\"vertical\">\n" +
+                    "<TextView xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                    "    android:id=\"@+id/textView\"\n" +
+                    "     android:layout_width=\"wrap_content\"\n" +
+                    "     android:layout_height=\"wrap_content\"\n" +
+                    "     android:text=\"Hello World\"\n" +
+                    "/>" +
+                    "</LinearLayout>\n";
+    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", source);
+
+    NlDesignSurface surface = createSurface();
+    Mockito.when(surface.getScale()).thenReturn(1.0);
+    NlModel model = createModel(surface, myFacet, xmlFile);
+
+    ScreenView screenView = new ScreenView(surface, ScreenView.ScreenViewType.NORMAL, model);
+    Mockito.when(surface.getSceneView(Matchers.anyInt(), Matchers.anyInt())).thenReturn(screenView);
+    InteractionManager manager = createManager(surface);
+    screenView.getScene().buildDisplayList(new DisplayList(), 0);
+    return manager;
+  }
+
+  public void testConstraintLayoutCursorHoverComponent() throws Exception {
+    InteractionManager manager = setupLinearLayoutCursorTest();
+    DesignSurface surface = manager.getSurface();
+    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    SceneComponent textView = screenView.getScene().getSceneComponent("textView");
+    manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getCenterX()),
+                         Coordinates.getSwingYDip(screenView, textView.getCenterY()));
+    Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+  }
+
+  public void testConstraintLayoutCursorHoverComponentHandle() throws Exception {
+    InteractionManager manager = setupLinearLayoutCursorTest();
+    DesignSurface surface = manager.getSurface();
+    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    SceneComponent textView = screenView.getScene().getSceneComponent("textView");
+    SelectionModel selectionModel = screenView.getModel().getSelectionModel();
+    selectionModel.setSelection(ImmutableList.of(textView.getNlComponent()));
+    selectionModel.getHandles(textView.getNlComponent());
+    manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getDrawX() + textView.getDrawWidth()),
+                         Coordinates.getSwingYDip(screenView, textView.getDrawY() + textView.getDrawHeight()));
+    Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+  }
+
+  public void testConstraintLayoutCursorHoverRoot() throws Exception {
+    InteractionManager manager = setupLinearLayoutCursorTest();
+    DesignSurface surface = manager.getSurface();
+    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    SceneComponent textView = screenView.getScene().getSceneComponent("textView");
+    manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getDrawHeight() + textView.getDrawY() + 20),
+                         Coordinates.getSwingYDip(screenView, textView.getCenterY()));
+    Mockito.verify(surface).setCursor(Cursor.getDefaultCursor());
+  }
+
+  public void testConstraintLayoutCursorHoverSceneHandle() throws Exception {
+    InteractionManager manager = setupLinearLayoutCursorTest();
+    DesignSurface surface = manager.getSurface();
+    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    manager.updateCursor(screenView.getX() + screenView.getSize().width,
+                         screenView.getY() + screenView.getSize().height);
+    Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+  }
+
+  private InteractionManager setupConstraintLayoutCursorTest() {
+    @Language("XML")
+    String source = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                    "<ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                    "    android:id=\"@+id/constraintLayout\"\n" +
+                    "    android:layout_width=\"100dp\"\n" +
+                    "    android:layout_height=\"100dp\">\n" +
+                    "<TextView xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                    "    android:id=\"@+id/textView\"\n" +
+                    "     android:layout_width=\"wrap_content\"\n" +
+                    "     android:layout_height=\"wrap_content\"\n" +
+                    "     android:text=\"Hello World\"\n" +
+                    "/>" +
+                    "</LinearLayout>\n";
+    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", source);
+
+    NlDesignSurface surface = createSurface();
+    Mockito.when(surface.getScale()).thenReturn(1.0);
+    NlModel model = createModel(surface, myFacet, xmlFile);
+
+    ScreenView screenView = new ScreenView(surface, ScreenView.ScreenViewType.NORMAL, model);
+    Mockito.when(surface.getSceneView(Matchers.anyInt(), Matchers.anyInt())).thenReturn(screenView);
+    InteractionManager manager = createManager(surface);
+    screenView.getScene().buildDisplayList(new DisplayList(), 0);
+    return manager;
   }
 }

@@ -23,6 +23,8 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.SceneInteraction;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -289,100 +291,14 @@ public class InteractionManager {
    * </ul>
    */
   void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
-    // Set cursor for the canvas resizing interaction. If both screen views are present, only set it next to the normal one.
-    SceneView sceneView = mySurface.getCurrentSceneView(); // Gets the preview screen view if both are present
+    SceneView sceneView = mySurface.getSceneView(x, y);
     if (sceneView != null) {
-      Dimension size = sceneView.getSize();
-      Rectangle resizeZone =
-        new Rectangle(sceneView.getX() + size.width, sceneView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
-      if (resizeZone.contains(x, y)) {
-        mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+      sceneView.updateCursor(x, y);
+      if (mySurface.getCursor() != Cursor.getDefaultCursor()) {
         return;
       }
     }
-
-    // We don't hover on the root since it's not a widget per see and it is always there.
-    sceneView = mySurface.getSceneView(x, y);
-    if (sceneView == null) {
-      mySurface.setCursor(null);
-      return;
-    }
-    SelectionModel selectionModel = sceneView.getSelectionModel();
-    if (!selectionModel.isEmpty()) {
-      // Gives a chance to the ViewGroupHandlers to update the cursor
-      int mx = Coordinates.getAndroidX(sceneView, x);
-      int my = Coordinates.getAndroidY(sceneView, y);
-
-      // TODO: find a way to move layout-specific logic elsewhere.
-      if (sceneView instanceof ScreenView) {
-        if (!selectionModel.isEmpty()) {
-          NlComponent primary = selectionModel.getPrimary();
-          NlComponent parent = primary != null ? primary.getParent() : null;
-          if (parent != null) {
-            ViewGroupHandler handler = parent.getViewGroupHandler();
-            if (handler != null) {
-              if (handler.updateCursor((ScreenView)sceneView, mx, my)) {
-                return;
-              }
-            }
-          }
-        }
-
-        // TODO: we should have a better model for keeping track of regions handled
-        // by different view group handlers. This would let us better handles
-        // picking a handler over another one, as well as allowing mouse over behaviour
-        // in other cases than just for the currently selected widgets.
-        for (NlComponent component : selectionModel.getSelection()) {
-          ViewGroupHandler viewGroupHandler = component.getViewGroupHandler();
-          if (viewGroupHandler != null) {
-            if (viewGroupHandler.updateCursor((ScreenView)sceneView, mx, my)) {
-              return;
-            }
-          }
-        }
-      }
-      int max = Coordinates.getAndroidDimension(sceneView, PIXEL_RADIUS + PIXEL_MARGIN);
-      SelectionHandle handle = selectionModel.findHandle(mx, my, max);
-      if (handle != null) {
-        Cursor cursor = handle.getCursor();
-        if (cursor != mySurface.getCursor()) {
-          mySurface.setCursor(cursor);
-        }
-        return;
-      }
-
-      // See if it's over a selected view
-      NlComponent component = selectionModel.findComponent(mx, my);
-      if (component == null || component.isRoot()) {
-        // Finally pick any unselected component in the model under the cursor
-        component = sceneView.getModel().findLeafAt(mx, my, false);
-      }
-
-      if (component != null && !component.isRoot()) {
-        Cursor cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
-        if (cursor != mySurface.getCursor()) {
-          mySurface.setCursor(cursor);
-        }
-        return;
-      }
-    }
-    else {
-      // Allow a view group handler to update the cursor
-      NlComponent component = Coordinates.findComponent(sceneView, x, y);
-      if (component != null) {
-        // TODO: find a way to move layout-specific logic elsewhere.
-        if (sceneView instanceof ScreenView) {
-          ViewGroupHandler viewGroupHandler = component.getViewGroupHandler();
-          if (viewGroupHandler != null) {
-            int mx = Coordinates.getAndroidX(sceneView, x);
-            int my = Coordinates.getAndroidY(sceneView, y);
-            if (viewGroupHandler.updateCursor((ScreenView)sceneView, mx, my)) {
-              mySurface.repaint();
-            }
-          }
-        }
-      }
-    }
+    mySurface.setCursor(null);
   }
 
   /**
@@ -622,6 +538,7 @@ public class InteractionManager {
         //noinspection AssignmentToStaticFieldFromInstanceMethod
         ourLastStateMask = event.getModifiers();
         myCurrentInteraction.update(myLastMouseX, myLastMouseY, ourLastStateMask);
+        updateCursor(x, y);
         mySurface.getLayeredPane().scrollRectToVisible(
           new Rectangle(x - NlConstants.DEFAULT_SCREEN_OFFSET_X, y - NlConstants.DEFAULT_SCREEN_OFFSET_Y,
                         2 * NlConstants.DEFAULT_SCREEN_OFFSET_X, 2 * NlConstants.DEFAULT_SCREEN_OFFSET_Y));
@@ -704,6 +621,7 @@ public class InteractionManager {
           }
         }
         startInteraction(x, y, interaction, modifiers);
+        updateCursor(x, y);
       }
 
       myHoverTimer.restart();

@@ -19,22 +19,20 @@ import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.draw.Notch;
-import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
-import com.android.tools.idea.uibuilder.scene.target.DragDndTarget;
-import com.android.tools.idea.uibuilder.scene.target.ResizeTarget;
-import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.android.tools.idea.uibuilder.scene.decorator.SceneDecorator;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-
+import com.android.tools.idea.uibuilder.scene.draw.Notch;
+import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
+import com.android.tools.idea.uibuilder.scene.target.ResizeTarget;
+import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * A SceneComponent represents the bounds of a widget (backed by NlComponent).
@@ -358,7 +356,9 @@ public class SceneComponent {
   }
 
   public void setDragging(boolean dragging) {
-    myDragging = dragging;
+    if (!getNlComponent().isRoot()) {
+      myDragging = dragging;
+    }
   }
 
   public boolean isDragging() { return myDragging; }

@@ -172,20 +172,6 @@ public class ViewGroupHandler extends ViewHandler {
                               @NotNull InsertType insertType) {
   }
 
-  /**
-   * Allows a ViewGroupHandler to update the mouse cursor
-   *
-   * @param screenView the ScreenView we are working on
-   * @param x          the current x mouse coordinate
-   * @param y          the current y mouse coordinate
-   * @return true if we modified the cursor
-   */
-  public boolean updateCursor(@NotNull ScreenView screenView,
-                              @AndroidCoordinate int x,
-                              @AndroidCoordinate int y) {
-    return false;
-  }
-
   @Override
   public FillPolicy getFillPolicy() {
     return FillPolicy.BOTH;
