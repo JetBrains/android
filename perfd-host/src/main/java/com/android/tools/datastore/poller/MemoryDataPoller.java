@@ -15,46 +15,25 @@
  */
 package com.android.tools.datastore.poller;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.DurationData;
-import com.android.tools.datastore.DataStoreService;
-import com.android.tools.datastore.LegacyAllocationTrackingService;
-import com.android.tools.datastore.ServicePassThrough;
-import com.android.tools.datastore.database.DatastoreTable;
 import com.android.tools.datastore.database.MemoryTable;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.google.protobuf3jarjar.ByteString;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import gnu.trove.TIntObjectHashMap;
-import io.grpc.ManagedChannel;
-import io.grpc.ServerServiceDefinition;
-import io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.RunnableFuture;
 import java.util.function.Consumer;
 
-import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.COMPLETED;
 import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.POST_PROCESS;
-import static com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse.Status.SUCCESS;
 
 public class MemoryDataPoller extends PollRunner {
 
   private long myDataRequestStartTimestampNs = Long.MIN_VALUE;
 
   private MemoryServiceGrpc.MemoryServiceBlockingStub myPollingService;
-  /**
-   * Legacy allocation tracking needs a post-process stage to wait and convert the jdwp data after stopping allocation tracking.
-   * However this step is done in perfd-host instead of perfd, so we take a shortcut to update the statuses in our cached
-   * {@link #myAllocationsInfos} directly (The current architecture does not query the same AllocationInfos sample from perfd after it has
-   * completed, so even if we update the status in perfd, the poller might not see it again).
-   *
-   * These latches ensure we see the samples in the cache first before trying to update their statuses.
-   */
+
   private final TIntObjectHashMap<CountDownLatch> myLegacyAllocationsInfoLatches;
 
   /**
@@ -67,8 +46,12 @@ public class MemoryDataPoller extends PollRunner {
   private int myProcessId = -1;
   private Consumer<Runnable> myFetchExecutor;
 
-
-  public MemoryDataPoller(int processId, MemoryTable table, MemoryServiceGrpc.MemoryServiceBlockingStub pollingService, TIntObjectHashMap<CountDownLatch> allocationLatches, TIntObjectHashMap<CountDownLatch> heapDumpLatches, Consumer<Runnable> fetchExecutor) {
+  public MemoryDataPoller(int processId,
+                          MemoryTable table,
+                          MemoryServiceGrpc.MemoryServiceBlockingStub pollingService,
+                          TIntObjectHashMap<CountDownLatch> allocationLatches,
+                          TIntObjectHashMap<CountDownLatch> heapDumpLatches,
+                          Consumer<Runnable> fetchExecutor) {
     super(POLLING_DELAY_NS);
     myProcessId = processId;
     myMemoryTable = table;
@@ -133,8 +116,8 @@ public class MemoryDataPoller extends PollRunner {
       Runnable query = () -> {
         for (HeapDumpInfo sample : dumpsToFetch) {
           DumpDataResponse dumpDataResponse = myPollingService.getHeapDump(
-            HeapDumpDataRequest.newBuilder().setProcessId(myProcessId).setDumpId(sample.getDumpId()).build());
-          myMemoryTable.insertDumpData(dumpDataResponse.getStatus(), sample, dumpDataResponse.getData());
+            DumpDataRequest.newBuilder().setProcessId(myProcessId).setDumpId(sample.getDumpId()).build());
+          myMemoryTable.insertHeapDumpData(dumpDataResponse.getStatus(), sample, dumpDataResponse.getData());
           myHeapDumpDataLatches.get(sample.getDumpId()).countDown();
         }
       };
