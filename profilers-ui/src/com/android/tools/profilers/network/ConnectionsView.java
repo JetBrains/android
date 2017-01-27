@@ -19,7 +19,6 @@ import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.google.common.annotations.VisibleForTesting;
@@ -62,11 +61,6 @@ final class ConnectionsView {
   public interface DetailedViewListener {
     void showDetailedConnection(HttpData data);
   }
-
-  private enum NetworkState {
-    SENDING, RECEIVING, WAITING, NONE
-  }
-
 
   /**
    * Columns for each connection information
@@ -313,18 +307,11 @@ final class ConnectionsView {
   }
 
   private final class TimelineRenderer implements TableCellRenderer, TableModelListener {
-    private final EnumColors<NetworkState> NETWORK_STATE_COLORS = new EnumColors.Builder<NetworkState>(2)
-      .add(NetworkState.SENDING, NETWORK_SENDING_COLOR, NETWORK_SENDING_COLOR)
-      .add(NetworkState.RECEIVING, NETWORK_RECEIVING_COLOR, NETWORK_RECEIVING_SELECTED_COLOR)
-      .add(NetworkState.WAITING, NETWORK_WAITING_COLOR, NETWORK_WAITING_COLOR)
-      .add(NetworkState.NONE, TRANSPARENT_COLOR, TRANSPARENT_COLOR)
-      .build();
-
     /**
      * Keep in sync 1:1 with {@link ConnectionsTableModel#myDataList}. When the table asks for the
      * chart to render, it will be converted from model index to view index.
      */
-    @NotNull private final List<StateChart<NetworkState>> myCharts = new ArrayList<>();
+    @NotNull private final List<RequestTimeline> myTimelines = new ArrayList<>();
     @NotNull private final JTable myTable;
     @NotNull private final Range myRange;
 
@@ -337,40 +324,27 @@ final class ConnectionsView {
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-      StateChart<NetworkState> chart = myCharts.get(myTable.convertRowIndexToModel(row));
-      chart.getColors().setColorIndex(isSelected ? 1 : 0);
+      RequestTimeline timeline = myTimelines.get(myTable.convertRowIndexToModel(row));
+      timeline.getColors().setColorIndex(isSelected ? 1 : 0);
       JPanel panel = new JBPanel(new TabularLayout("*" , "*"));
       if (row == 0) {
         AxisComponent axis = createAxis();
         axis.setForeground(isSelected ? NETWORK_TABLE_AXIS_SELECTED : NETWORK_TABLE_AXIS);
         panel.add(axis, new TabularLayout.Constraint(0, 0));
       }
-      panel.add(chart, new TabularLayout.Constraint(0, 0));
+      panel.add(timeline.getComponent(), new TabularLayout.Constraint(0, 0));
 
       return panel;
     }
 
     @Override
     public void tableChanged(TableModelEvent e) {
-      myCharts.clear();
+      myTimelines.clear();
       ConnectionsTableModel model = (ConnectionsTableModel)myTable.getModel();
       for (int i = 0; i < model.getRowCount(); ++i) {
-        HttpData data = model.getHttpData(i);
-        DefaultDataSeries<NetworkState> series = new DefaultDataSeries<>();
-        series.add(0, NetworkState.NONE);
-        series.add(data.getStartTimeUs(), NetworkState.SENDING);
-        if (data.getDownloadingTimeUs() > 0) {
-          series.add(data.getDownloadingTimeUs(), NetworkState.RECEIVING);
-        }
-        if (data.getEndTimeUs() > 0) {
-          series.add(data.getEndTimeUs(), NetworkState.NONE);
-        }
-
-        StateChartModel<NetworkState> stateModel = new StateChartModel<>();
-        StateChart<NetworkState> chart = new StateChart<>(stateModel, NETWORK_STATE_COLORS);
-        chart.setHeightGap(0.3f);
-        stateModel.addSeries(new RangedSeries<>(myRange, series));
-        myCharts.add(chart);
+        RequestTimeline timeline = new RequestTimeline(model.getHttpData(i), myRange);
+        timeline.setHeightGap(0.3f);
+        myTimelines.add(timeline);
       }
     }
 
