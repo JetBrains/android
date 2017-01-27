@@ -17,6 +17,7 @@ package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.TestGrpcService;
+import com.android.tools.datastore.service.NetworkService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
@@ -89,7 +90,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
                .build())
     .build();
 
-  private NetworkDataPoller myNetworkDataPoller = new NetworkDataPoller();
+  private NetworkService myNetworkDataPoller = new NetworkService(getPollTicker()::run);
 
   @Rule
   public TestGrpcService<FakeNetworkService> myService = new TestGrpcService<>(myNetworkDataPoller, new FakeNetworkService());
@@ -98,7 +99,6 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   public void setUp() throws Exception {
     myNetworkDataPoller
       .startMonitoringApp(NetworkProfiler.NetworkStartRequest.newBuilder().setProcessId(TEST_APP_ID).build(), mock(StreamObserver.class));
-    myNetworkDataPoller.poll();
   }
 
   @After
