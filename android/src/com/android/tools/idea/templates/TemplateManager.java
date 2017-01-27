@@ -487,7 +487,8 @@ public class TemplateManager {
 
             // TODO: Missing logic to select the default template
             RenderTemplateModel renderModel = new RenderTemplateModel(
-              project, templateList.get(0), initialPackageSuggestion, sourceSets.get(0), AndroidBundle.message("android.wizard.activity.add"));
+              project, templateList.get(0), initialPackageSuggestion, sourceSets.get(0),
+              AndroidBundle.message("android.wizard.activity.add", FormFactor.MOBILE.id));
 
             NewModuleModel moduleModel = new NewModuleModel(project);
             ChooseActivityTypeStep chooseActivityTypeStep = new ChooseActivityTypeStep(moduleModel, renderModel, facet, templateList, targetDirectory);
