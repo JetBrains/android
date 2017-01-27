@@ -15,7 +15,6 @@
  */
 package com.android.tools.datastore.service;
 
-import com.android.tools.datastore.DataStoreDatabase;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.DatastoreTable;
 import com.android.tools.datastore.database.EventsTable;
@@ -24,12 +23,11 @@ import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import io.grpc.ManagedChannel;
-import io.grpc.ServerServiceDefinition;
-import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 
-import java.util.*;
-import java.util.concurrent.RunnableFuture;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**

@@ -61,9 +61,9 @@ public class NetworkMonitorView extends ProfilerMonitorView<NetworkMonitor> {
 
     NetworkUsage usage = getMonitor().getNetworkUsage();
     final LineChart lineChart = new LineChart(usage);
-    LineConfig receivedConfig = new LineConfig(ProfilerColors.NETWORK_RECEIVING_COLOR);
+    LineConfig receivedConfig = new LineConfig(ProfilerColors.NETWORK_RECEIVING_COLOR).setLegendIconType(LegendConfig.IconType.LINE);
     lineChart.configure(usage.getRxSeries(), receivedConfig);
-    LineConfig sentConfig = new LineConfig(ProfilerColors.NETWORK_SENDING_COLOR);
+    LineConfig sentConfig = new LineConfig(ProfilerColors.NETWORK_SENDING_COLOR).setLegendIconType(LegendConfig.IconType.LINE);
     lineChart.configure(usage.getTxSeries(), sentConfig);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
