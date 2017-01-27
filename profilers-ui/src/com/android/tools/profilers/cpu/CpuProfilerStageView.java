@@ -122,10 +122,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     DetailedCpuUsage cpuUsage = getStage().getCpuUsage();
     LineChart lineChart = new LineChart(cpuUsage);
-    lineChart.configure(cpuUsage.getCpuSeries(), new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true).setStacked(true));
-    lineChart.configure(cpuUsage.getOtherCpuSeries(), new LineConfig(ProfilerColors.CPU_OTHER_USAGE).setFilled(true).setStacked(true));
+    lineChart.configure(cpuUsage.getCpuSeries(), new LineConfig(ProfilerColors.CPU_USAGE)
+      .setFilled(true).setStacked(true).setLegendIconType(LegendConfig.IconType.BOX));
+    lineChart.configure(cpuUsage.getOtherCpuSeries(), new LineConfig(ProfilerColors.CPU_OTHER_USAGE)
+      .setFilled(true).setStacked(true).setLegendIconType(LegendConfig.IconType.BOX));
     lineChart.configure(cpuUsage.getThreadsCountSeries(), new LineConfig(ProfilerColors.THREADS_COUNT_COLOR)
-      .setStepped(true).setStroke(LineConfig.DEFAULT_DASH_STROKE));
+      .setStepped(true).setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE));
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
     monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
 
