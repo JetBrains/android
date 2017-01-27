@@ -25,18 +25,35 @@ import static org.mockito.Mockito.verify;
 
 public class DataStorePollerTest {
 
+  private PollTicker myPollTicker = new PollTicker();
+
+  protected PollTicker getPollTicker() {
+    return myPollTicker;
+  }
+
   protected <E> void validateResponse(StreamObserver<E> observer, E expected) {
     verify(observer, times(1)).onNext(expected);
     verify(observer, times(1)).onCompleted();
     verify(observer, never()).onError(any(Throwable.class));
   }
 
-  protected static class StaticPollTicker {
-    public static void run(Runnable runner) {
-      if (runner instanceof PollRunner) {
-        ((PollRunner)runner).tick();
-      } else {
-        runner.run();
+  protected static class PollTicker {
+    private Runnable myLastRunner;
+
+    public void run(Runnable runner) {
+      myLastRunner = runner;
+      run();
+    }
+
+    public void run() {
+      if (myLastRunner != null) {
+        if (myLastRunner instanceof PollRunner) {
+          PollRunner poller = ((PollRunner)myLastRunner);
+          poller.poll();
+        }
+        else {
+          myLastRunner.run();
+        }
       }
     }
   }

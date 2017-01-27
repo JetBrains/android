@@ -16,8 +16,7 @@
 package com.android.tools.datastore;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.datastore.poller.*;
-import com.android.tools.datastore.service.EventService;
+import com.android.tools.datastore.service.*;
 import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -28,12 +27,9 @@ import io.grpc.netty.NettyChannelBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.RunnableFuture;
 import java.util.function.Consumer;
 
 /**
@@ -76,9 +72,9 @@ public class DataStoreService {
   public void createPollers() {
     registerService(new ProfilerService(this));
     registerService(new EventService(myFetchExecutor));
-    registerService(new CpuDataPoller());
-    registerService(new MemoryDataPoller(this));
-    registerService(new NetworkDataPoller());
+    registerService(new CpuService(myFetchExecutor));
+    registerService(new MemoryService(this, myFetchExecutor));
+    registerService(new NetworkService(myFetchExecutor));
   }
 
   /**
@@ -90,7 +86,7 @@ public class DataStoreService {
     myServices.add(service);
     myDatabase.registerTable(service.getDatastoreTable());
     // Build server and start listening for RPC calls for the registered service
-    myServerBuilder.addService(service.getService());
+    myServerBuilder.addService(service.bindService());
   }
 
   /**
@@ -100,10 +96,6 @@ public class DataStoreService {
     for (ServicePassThrough service : myServices) {
       // Tell service how to connect to device RPC to start polling.
       service.connectService(myChannel);
-      RunnableFuture<Void> runner = service.getRunner();
-      if (runner != null) {
-        myFetchExecutor.accept(runner);
-      }
     }
   }
 
