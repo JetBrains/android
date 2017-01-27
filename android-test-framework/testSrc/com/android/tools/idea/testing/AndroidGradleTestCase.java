@@ -522,6 +522,11 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     return "";
   }
 
+  @NotNull
+  protected Module getModule(@NotNull String moduleName) {
+    return myModules.getModule(moduleName);
+  }
+
   protected void requestSyncAndWait(@NotNull GradleSyncInvoker.Request request) throws Exception {
     SyncListener syncListener = requestSync(request);
     checkStatus(syncListener);

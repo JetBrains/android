@@ -15,60 +15,38 @@
  */
 package com.android.tools.idea.instantapp;
 
-import com.android.builder.model.AndroidAtom;
 import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.openapi.module.Module;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 
 import java.io.File;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_ATOM;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.fd.gradle.InstantRunGradleUtils.getIrSupportStatus;
+import static com.android.tools.idea.instantapp.AIAProjectStructureAssertions.assertModuleIsValidAIABaseSplit;
+import static com.android.tools.idea.instantapp.AIAProjectStructureAssertions.assertModuleIsValidAIAInstantApp;
 import static com.android.tools.idea.testing.HighlightInfos.assertFileHasNoErrors;
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
 
 public class InstantAppSupportTest extends AndroidGradleTestCase {
 
-  private static final String APP_NAME = "instant-app";
-  private static final String BASE_ATOM_NAME = "baseatom";
-
   public void testLoadInstantAppProject() throws Exception {
     loadProject(INSTANT_APP);
-
-    Module appModule = myModules.getModule(APP_NAME);
-    AndroidModuleModel appModel = AndroidModuleModel.get(appModule);
-    assertNotNull(appModel);
-    assertEquals(PROJECT_TYPE_INSTANTAPP, appModel.getProjectType());
-    AndroidAtom baseAtom = appModel.getMainArtifact().getDependencies().getBaseAtom();
-    assertNotNull(baseAtom);
-    assertEquals(BASE_ATOM_NAME, baseAtom.getAtomName());
-
-    Module baseAtomModule = myModules.getModule(BASE_ATOM_NAME);
-    AndroidModuleModel baseAtomModel = AndroidModuleModel.get(baseAtomModule);
-    assertNotNull(baseAtomModel);
-    assertEquals(PROJECT_TYPE_ATOM, baseAtomModel.getProjectType());
-
     generateSources();
 
-    Project project = getProject();
-    assertFileHasNoErrors(project, new File("instant-app/src/main/AndroidManifest.xml"));
-    assertFileHasNoErrors(project, new File("baseatom/src/main/AndroidManifest.xml"));
+    assertModuleIsValidAIAInstantApp(getModule("instant-app"), "baseatom", ImmutableList.of(":baseatom"));
+    assertModuleIsValidAIABaseSplit(getModule("baseatom"), ImmutableList.of());
 
+    Project project = getProject();
     assertFileHasNoErrors(project, new File("baseatom/src/main/java/com/example/instantapp/MainActivity.java"));
     assertFileHasNoErrors(project, new File("baseatom/src/androidTest/java/com/example/instantapp/ExampleInstrumentedTest.java"));
     assertFileHasNoErrors(project, new File("baseatom/src/test/java/com/example/instantapp/ExampleUnitTest.java"));
   }
 
   public void testInstantRunDisabled() throws Exception {
-    loadProject(INSTANT_APP);
+    loadProject(INSTANT_APP, "instant-app");
 
-    Module appModule = myModules.getModule(APP_NAME);
-    AndroidModuleModel appModel = AndroidModuleModel.get(appModule);
-    assertNotNull(appModel);
     // by definition, InstantRunGradleSupport.INSTANT_APP != InstantRunGradleSupport.SUPPORTED
-    assertEquals(InstantRunGradleSupport.INSTANT_APP, getIrSupportStatus(appModel, null));
+    assertEquals(InstantRunGradleSupport.INSTANT_APP, getIrSupportStatus(getModel(), null));
   }
 }
