@@ -21,6 +21,7 @@ import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import com.android.tools.datastore.TestGrpcService;
 import io.grpc.stub.StreamObserver;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -78,7 +79,7 @@ public class EventDataPollerTest extends DataStorePollerTest {
         .build())
     .build();
 
-  private EventService myEventDataPoller = new EventService(StaticPollTicker::run);
+  private EventService myEventDataPoller = new EventService(getPollTicker()::run);
 
   @Rule
   public TestGrpcService<EventServiceMock> myService = new TestGrpcService<>(myEventDataPoller, new EventServiceMock());
@@ -89,6 +90,14 @@ public class EventDataPollerTest extends DataStorePollerTest {
       .setProcessId(TEST_APP_ID)
       .build();
     myEventDataPoller.startMonitoringApp(request, mock(StreamObserver.class));
+  }
+
+  @After
+  public void tearDown() {
+    EventProfiler.EventStopRequest request = EventProfiler.EventStopRequest.newBuilder()
+      .setProcessId(TEST_APP_ID)
+      .build();
+    myEventDataPoller.stopMonitoringApp(request, mock(StreamObserver.class));
   }
 
   @Test
@@ -203,6 +212,13 @@ public class EventDataPollerTest extends DataStorePollerTest {
     public void startMonitoringApp(EventProfiler.EventStartRequest request,
                                    StreamObserver<EventProfiler.EventStartResponse> responseObserver) {
       responseObserver.onNext(EventProfiler.EventStartResponse.getDefaultInstance());
+      responseObserver.onCompleted();
+    }
+
+    @Override
+    public void stopMonitoringApp(EventProfiler.EventStopRequest request,
+                                  StreamObserver<EventProfiler.EventStopResponse> responseObserver) {
+      responseObserver.onNext(EventProfiler.EventStopResponse.getDefaultInstance());
       responseObserver.onCompleted();
     }
   }

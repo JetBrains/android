@@ -45,17 +45,15 @@ public final class TestGrpcService<S extends BindableService> extends ExternalRe
   private ServicePassThrough myDataStoreService;
   private File myTestFile;
   private DataStoreDatabase myDatabase;
-  private BeforeTick myBeforeTickCallback;
 
   public TestGrpcService(ServicePassThrough dataStoreService, S service) {
-    this(dataStoreService, service, null, null);
+    this(dataStoreService, service, null);
   }
 
-  public TestGrpcService(ServicePassThrough dataStoreService, S service, BindableService secondaryService, BeforeTick callback) {
+  public TestGrpcService(ServicePassThrough dataStoreService, S service, BindableService secondaryService) {
     myService = service;
     mySecondaryService = secondaryService;
     myDataStoreService = dataStoreService;
-    myBeforeTickCallback = callback;
   }
 
   @Override
@@ -73,12 +71,6 @@ public final class TestGrpcService<S extends BindableService> extends ExternalRe
     myDatabase = new DataStoreDatabase(myTestFile.getAbsolutePath());
     myDatabase.registerTable(myDataStoreService.getDatastoreTable());
     myDataStoreService.connectService(getChannel());
-    if (myBeforeTickCallback != null) {
-      myBeforeTickCallback.apply();
-    }
-    if (myDataStoreService.getRunner() != null) {
-      ((PollRunner)myDataStoreService.getRunner()).tick();
-    }
   }
 
   @Override
@@ -92,9 +84,5 @@ public final class TestGrpcService<S extends BindableService> extends ExternalRe
     return InProcessChannelBuilder.forName(myGrpcName)
       .usePlaintext(true)
       .build();
-  }
-
-  public S getService() {
-    return myService;
   }
 }

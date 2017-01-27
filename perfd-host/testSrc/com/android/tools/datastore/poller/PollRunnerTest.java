@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,15 +27,14 @@ public class PollRunnerTest {
 
   @Test
   public void testRun() throws Exception {
-    TestCallback testCallback = new TestCallback(10, TEST_PERIOD_NS);
-    PollRunner runner = new PollRunner(testCallback, TEST_PERIOD_NS);
+    PollRunnerMinimalImpl runner = new PollRunnerMinimalImpl(10, TEST_PERIOD_NS);
     new Thread(runner).start();
     assertEquals(runner.isDone(), false);
     assertEquals(runner.isCancelled(), false);
-    while(!testCallback.isDone() && !runner.isDone()) {
+    while(!runner.isDone()) {
       Thread.yield();
     }
-    assertEquals(testCallback.passed(), true);
+    assertEquals(runner.passed(), true);
     runner.stop();
     assertEquals(runner.isDone(), true);
     assertEquals(runner.isCancelled(), true);
@@ -43,21 +42,24 @@ public class PollRunnerTest {
     assertEquals(runner.get(1, TimeUnit.SECONDS), null); // For code completion
   }
 
-  private static class TestCallback implements PollRunner.PollingCallback {
+  private static class PollRunnerMinimalImpl extends PollRunner {
     private long myLastCallbackTime = 0;
     private long myTickCallCount = 0;
     private long myMinimumDelayNs = 0;
     private boolean myTestDone = false;
     private boolean myTestPassed = true;
 
-    public TestCallback(int count, long minimumDelayNs) {
+    public PollRunnerMinimalImpl(int count, long minimumDelayNs) {
+      super(POLLING_DELAY_NS);
       myTickCallCount = count;
       myMinimumDelayNs = minimumDelayNs;
     }
 
+    @Override
     public boolean isDone() {
       return myTestDone;
     }
+
     public boolean passed() {
       return myTestPassed;
     }
