@@ -54,7 +54,9 @@ public class DeviceExplorerPanel {
   private Tree myTree;
 
   public DeviceExplorerPanel() {
-    createToolbar();
+    // Disable toolbar until implementation is complete, as the "Device Explorer"
+    // feature is enabled by default.
+    //createToolbar();
   }
 
   @NotNull
