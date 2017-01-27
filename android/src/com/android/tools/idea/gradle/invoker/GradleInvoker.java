@@ -318,7 +318,8 @@ public class GradleInvoker {
    * Saves all edited documents. This method can be called from any thread.
    */
   public static void saveAllFilesSafely() {
-    invokeAndWaitIfNeeded((Runnable)() -> FileDocumentManager.getInstance().saveAllDocuments());
+    ApplicationManager.getApplication().invokeAndWait(
+      () -> ApplicationManager.getApplication().runWriteAction(() -> FileDocumentManager.getInstance().saveAllDocuments()));
   }
 
   public void clearConsoleAndBuildMessages() {
