@@ -15,21 +15,22 @@
  */
 package com.android.tools.profilers;
 
-import org.junit.Test;
+import com.intellij.openapi.util.IconLoader;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+import javax.swing.*;
 
-import static org.junit.Assert.assertEquals;
+public class ProfilerIcons {
 
-public class ProfilerColorsTest {
+  public static final Icon RECORD = load("/icons/record.png");
 
-  @Test
-  public void testCannotInstantiate() throws IllegalAccessException, InvocationTargetException, InstantiationException {
-    Constructor<?>[] constructors = ProfilerColors.class.getDeclaredConstructors();
-    assertEquals(1, constructors.length);
-    assertEquals(false, constructors[0].isAccessible());
-    constructors[0].setAccessible(true);
-    constructors[0].newInstance();
+  public static final Icon STOP_RECORDING = load("/icons/stop-recording.png");
+
+  public static final Icon GARBAGE_EVENT = load("/icons/garbage-event.png");
+
+  // Collections of constant, do not instantiate.
+  private ProfilerIcons() {}
+
+  private static Icon load(String path) {
+    return IconLoader.getIcon(path, ProfilerIcons.class);
   }
 }
