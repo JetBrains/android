@@ -5,6 +5,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.projectView.BaseProjectViewTestCase;
 import com.intellij.psi.PsiDirectory;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
@@ -20,6 +21,7 @@ public class ResourceMergerTest extends BaseProjectViewTestCase {
     return AndroidTestCase.getTestDataPath();
   }
 
+  @NotNull
   @Override
   protected Module createMainModule() throws IOException {
     Module result = super.createMainModule();
