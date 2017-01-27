@@ -169,11 +169,19 @@ public class HttpDataTest {
 
   @Test
   public void guessFileExtensionFromContentType() {
-    assertEquals(".html", HttpData.guessFileExtensionFromContentType("text/html"));
-    assertEquals(".jpg", HttpData.guessFileExtensionFromContentType("image/jpeg"));
-    assertEquals(".json", HttpData.guessFileExtensionFromContentType("application/json"));
-    assertEquals(".xml", HttpData.guessFileExtensionFromContentType("application/xml"));
-    assertNull(HttpData.guessFileExtensionFromContentType("application/text"));
-    assertNull(HttpData.guessFileExtensionFromContentType(""));
+    assertEquals(".html", new HttpData.ContentType("text/html").guessFileExtension());
+    assertEquals(".jpg", new HttpData.ContentType("image/jpeg").guessFileExtension());
+    assertEquals(".json", new HttpData.ContentType("application/json").guessFileExtension());
+    assertEquals(".xml", new HttpData.ContentType("application/xml").guessFileExtension());
+    assertNull(new HttpData.ContentType("application/text").guessFileExtension());
+    assertNull(new HttpData.ContentType("").guessFileExtension());
+  }
+
+  @Test
+  public void getMimeTypeFromContentType() {
+    assertEquals("text/html", new HttpData.ContentType("text/html; charset=utf-8").getMimeType());
+    assertEquals("text/html", new HttpData.ContentType("text/html").getMimeType());
+    assertEquals("text/html", new HttpData.ContentType("text/html;").getMimeType());
+    assertEquals("", new HttpData.ContentType("").getMimeType());
   }
 }
