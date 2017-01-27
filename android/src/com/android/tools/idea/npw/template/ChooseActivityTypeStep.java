@@ -17,9 +17,17 @@ package com.android.tools.idea.npw.template;
 
 
 import com.android.tools.idea.npw.ActivityGalleryStep;
+import com.android.tools.idea.npw.ThemeHelper;
 import com.android.tools.idea.npw.module.NewModuleModel;
+import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
+import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.ui.ASGallery;
+import com.android.tools.idea.ui.properties.core.ObservableBool;
+import com.android.tools.idea.ui.properties.core.StringProperty;
+import com.android.tools.idea.ui.properties.core.StringValueProperty;
+import com.android.tools.idea.ui.validation.Validator;
+import com.android.tools.idea.ui.validation.ValidatorPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
@@ -32,7 +40,6 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +53,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
+import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
  * This step allows the user to select which type of Activity they want to create.
@@ -54,11 +62,9 @@ import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUM
  * so instead {@link ActivityGalleryStep} was always shown with three options ("Add no Activity", "Basic Activity" and "Empty Activity").
  * The code to filter out the activities is {@link TemplateListProvider}
  * TODO: ATTR_IS_LAUNCHER seems to be dead code, it was one option in the old UI flow. Find out if we can remove it.
- * TODO: CircularParameterDependencyException when selecting "Empty Activity" > "Cancel" (OK with all others!)
- * TODO: Missing error messages for "missing theme", "incompatible API", ect. See {@link ActivityGalleryStep#validate()}
  * TODO: Extending RenderTemplateModel don't seem to match with the things ChooseActivityTypeStep needs to be configured... For example,
  * it needs to know "Is Cpp Project" (to adjust the list of templates or hide itself).
- * TODO: This class and future ChooseModuleTypeStep look to have a lot in common. Should we have something more specific than a ASGallery,
+ * TODO: This class and ChooseModuleTypeStep looks to have a lot in common. Should we have something more specific than a ASGallery,
  * that renders "Gallery items"?
  */
 public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> {
@@ -67,9 +73,11 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
   private @NotNull List<AndroidSourceSet> mySourceSets;
 
   private @NotNull ASGallery<TemplateHandle> myActivityGallery;
-  private @NotNull JComponent myRootPanel;
+  private @NotNull ValidatorPanel myValidatorPanel;
+  private final StringProperty myInvalidParameterMessage = new StringValueProperty();
 
   private @Nullable AndroidFacet myFacet;
+  private boolean myAppThemeExists;
 
   public ChooseActivityTypeStep(@NotNull NewModuleModel moduleModel,
                                 @NotNull RenderTemplateModel renderModel,
@@ -90,7 +98,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
   }
 
   private ChooseActivityTypeStep(@NotNull NewModuleModel moduleModel, @NotNull RenderTemplateModel renderModel) {
-    super(moduleModel, "Add an Activity to " + renderModel.getTemplateHandle().getMetadata().getFormFactor());
+    super(moduleModel, message("android.wizard.activity.add", renderModel.getTemplateHandle().getMetadata().getFormFactor()));
     this.myRenderModel = renderModel;
   }
 
@@ -101,15 +109,16 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
     mySourceSets = sourceSets;
 
     myActivityGallery = createGallery(getTitle());
-    myRootPanel = new JBScrollPane(myActivityGallery);
-    FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
+    myValidatorPanel = new ValidatorPanel(this, new JBScrollPane(myActivityGallery));
+    FormScalingUtil.scaleComponentTree(this.getClass(), myValidatorPanel);
     myFacet = facet;
+    myAppThemeExists = (facet == null) ? true : new ThemeHelper(facet.getModule()).getAppThemeName() != null;
   }
 
   @NotNull
   @Override
   protected JComponent getComponent() {
-    return myRootPanel;
+    return myValidatorPanel;
   }
 
   @Nullable
@@ -121,7 +130,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
   @NotNull
   @Override
   public Collection<? extends ModelWizardStep> createDependentSteps() {
-    String title = AndroidBundle.message("android.wizard.config.activity.title");
+    String title = message("android.wizard.config.activity.title");
     return Lists.newArrayList(new ConfigureTemplateParametersStep(myRenderModel, title, mySourceSets, myFacet));
   }
 
@@ -152,6 +161,9 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
+    myValidatorPanel.registerValidator(myInvalidParameterMessage, message ->
+      (message.isEmpty() ? Validator.Result.OK : new Validator.Result(Validator.Severity.ERROR, message)));
+
     myActivityGallery.setModel(JBList.createDefaultListModel((Object[])myTemplateList));
     myActivityGallery.setDefaultAction(new AbstractAction() {
       @Override
@@ -165,10 +177,22 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
       if (selectedTemplate != null) {
         myRenderModel.setTemplateHandle(selectedTemplate);
       }
+      validateTemplate();
     });
 
     int defaultSelection = getDefaultSelectedTemplateIndex(myTemplateList);
     myActivityGallery.setSelectedIndex(defaultSelection); // Also fires the Selection Listener
+  }
+
+  @NotNull
+  @Override
+  protected ObservableBool canGoForward() {
+    return myValidatorPanel.hasErrors().not();
+  }
+
+  @Override
+  protected void onEntering() {
+    validateTemplate();
   }
 
   @Override
@@ -203,7 +227,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
 
   @NotNull
   private static String getTemplateTitle(TemplateHandle templateHandle) {
-    return templateHandle == null ? "<none>" : templateHandle.getMetadata().getTitle();
+    return templateHandle == null ? message("android.wizard.gallery.item.none") : templateHandle.getMetadata().getTitle();
   }
 
   private static int getDefaultSelectedTemplateIndex(@NotNull TemplateHandle[] templateList) {
@@ -213,5 +237,37 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
       }
     }
     return 0;
+  }
+
+  private void validateTemplate() {
+    TemplateHandle template = myRenderModel.getTemplateHandle();
+    TemplateMetadata templateData = (template == null) ? null : template.getMetadata();
+    AndroidVersionsInfo.VersionItem androidSdkInfo = myRenderModel.androidSdkInfo().getValueOrNull();
+
+    myInvalidParameterMessage.set(validateTemplate(templateData, androidSdkInfo, myAppThemeExists));
+  }
+
+  private static String validateTemplate(@Nullable TemplateMetadata template,
+                                         @Nullable AndroidVersionsInfo.VersionItem androidSdkInfo,
+                                         boolean appThemeExists) {
+    if (template == null) {
+      return message("android.wizard.activity.not.found");
+    }
+
+    if (androidSdkInfo != null) {
+      if (androidSdkInfo.getApiLevel() < template.getMinSdk()) {
+        return message("android.wizard.activity.invalid.min.sdk", template.getMinSdk());
+      }
+
+      if (androidSdkInfo.getBuildApiLevel() < template.getMinBuildApi()) {
+        return message("android.wizard.activity.invalid.min.build", template.getMinBuildApi());
+      }
+
+      if (!appThemeExists && template.isAppThemeRequired()) {
+        return message("android.wizard.activity.invalid.app.theme");
+      }
+    }
+
+    return "";
   }
 }
