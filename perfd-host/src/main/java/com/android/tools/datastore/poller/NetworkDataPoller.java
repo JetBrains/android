@@ -17,19 +17,14 @@ package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.DatastoreTable;
-import com.android.tools.profiler.proto.Common;
+import com.android.tools.datastore.database.NetworkTable;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.StreamObserver;
-import net.jcip.annotations.GuardedBy;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.RunnableFuture;
 
 // TODO: Implement a storage container that can read/write data to disk
@@ -41,10 +36,7 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
   private long myHttpRangeRequestStartTimeNs = Long.MIN_VALUE;
   private NetworkServiceGrpc.NetworkServiceBlockingStub myPollingService;
   private int myProcessId = -1;
-
-  private final Object myLock = new Object();
-  @GuardedBy("myLock") private final List<NetworkProfiler.NetworkProfilerData> myData = new ArrayList<>();
-  @GuardedBy("myLock") private final Map<Long, ConnectionData> myConnectionData = new LinkedHashMap<>();
+  private NetworkTable myNetworkTable = new NetworkTable();
 
   public NetworkDataPoller() {
   }
@@ -65,57 +57,17 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
   }
 
   @Override
-  public DatastoreTable getDatastoreTable() {
-    return null;
-  }
-
-  @Override
   public void getData(NetworkProfiler.NetworkDataRequest request, StreamObserver<NetworkProfiler.NetworkDataResponse> responseObserver) {
     NetworkProfiler.NetworkDataResponse.Builder response = NetworkProfiler.NetworkDataResponse.newBuilder();
-
-    //TODO: Optimize so we do not need to loop all the data every request, ideally binary search to start time and loop till end.
-    synchronized (myLock) {
-      if (myData.size() == 0) {
-        responseObserver.onNext(response.build());
-        responseObserver.onCompleted();
-        return;
-      }
-
-      long startTime = request.getStartTimestamp();
-      long endTime = request.getEndTimestamp();
-
-      for (NetworkProfiler.NetworkProfilerData data : myData) {
-        if (data.getBasicInfo().getProcessId() != Common.AppId.ANY_VALUE && data.getBasicInfo().getProcessId() != request.getProcessId()) {
-          continue;
-        }
-
-        long current = data.getBasicInfo().getEndTimestamp();
-        if (current > startTime && current <= endTime) {
-          if ((request.getType() == NetworkProfiler.NetworkDataRequest.Type.ALL) ||
-              (request.getType() == NetworkProfiler.NetworkDataRequest.Type.SPEED &&
-               data.getDataCase() == NetworkProfiler.NetworkProfilerData.DataCase.SPEED_DATA) ||
-              (request.getType() == NetworkProfiler.NetworkDataRequest.Type.CONNECTIONS &&
-               data.getDataCase() == NetworkProfiler.NetworkProfilerData.DataCase.CONNECTION_DATA) ||
-              (request.getType() == NetworkProfiler.NetworkDataRequest.Type.CONNECTIVITY &&
-               data.getDataCase() == NetworkProfiler.NetworkProfilerData.DataCase.CONNECTIVITY_DATA)) {
-            response.addData(data);
-          }
-        }
-      }
-      responseObserver.onNext(response.build());
-      responseObserver.onCompleted();
-    }
+    List<NetworkProfiler.NetworkProfilerData> datas = myNetworkTable.getNetworkDataByRequest(request);
+    response.addAllData(datas);
+    responseObserver.onNext(response.build());
+    responseObserver.onCompleted();
   }
 
   @Override
   public void startMonitoringApp(NetworkProfiler.NetworkStartRequest request,
                                  StreamObserver<NetworkProfiler.NetworkStartResponse> responseObserver) {
-
-    synchronized (myLock) {
-      myData.clear();
-      myConnectionData.clear();
-    }
-
     myProcessId = request.getProcessId();
     responseObserver.onNext(myPollingService.startMonitoringApp(request));
     responseObserver.onCompleted();
@@ -132,27 +84,8 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
   @Override
   public void getHttpRange(NetworkProfiler.HttpRangeRequest request, StreamObserver<NetworkProfiler.HttpRangeResponse> responseObserver) {
     NetworkProfiler.HttpRangeResponse.Builder response = NetworkProfiler.HttpRangeResponse.newBuilder();
-    long startTime = request.getStartTimestamp();
-    long endTime = request.getEndTimestamp();
-
-    synchronized (myLock) {
-      // Because myConnectionRangeData.values is in sorted order (by start time), then,
-      // based on the requested range, we can exclude older connections and stop if we get to newer connections.
-      for (ConnectionData allData: myConnectionData.values()) {
-        if (allData.myProcessId != request.getProcessId()) {
-          continue;
-        }
-
-        NetworkProfiler.HttpConnectionData data = allData.myCommonData;
-        if (endTime < data.getStartTimestamp()) {
-          break;
-        }
-        if (data.getEndTimestamp() != 0 && data.getEndTimestamp() <= startTime) {
-          continue;
-        }
-        response.addData(data);
-      }
-    }
+    List<NetworkProfiler.HttpConnectionData> datas = myNetworkTable.getNetworkConnectionDataByRequest(request);
+    response.addAllData(datas);
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
   }
@@ -160,25 +93,26 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
   @Override
   public void getHttpDetails(NetworkProfiler.HttpDetailsRequest request,
                              StreamObserver<NetworkProfiler.HttpDetailsResponse> responseObserver) {
+    NetworkProfiler.HttpDetailsResponse storedResponse = myNetworkTable.getHttpDetailsResponseById(request.getConnId(), request.getType());
     NetworkProfiler.HttpDetailsResponse.Builder response = NetworkProfiler.HttpDetailsResponse.newBuilder();
-    synchronized (myLock) {
-      ConnectionData details = myConnectionData.get(request.getConnId());
-      switch (request.getType()) {
-        case REQUEST:
-          response.setRequest(details.myRequest);
-          break;
-        case RESPONSE:
-          response.setResponse(details.myResponse);
-          break;
-        case RESPONSE_BODY:
-          response.setResponseBody(details.myResponseBody);
-          break;
-        default:
-          assert false : "Unsupported request type " + request.getType();
-      }
+    switch (request.getType()) {
+      case REQUEST:
+        response.setRequest(storedResponse.getRequest());
+        break;
+      case RESPONSE:
+        response.setResponse(storedResponse.getResponse());
+        break;
+      case RESPONSE_BODY:
+        response.setResponseBody(storedResponse.getResponseBody());
+        break;
     }
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
+  }
+
+  @Override
+  public ServerServiceDefinition bindService() {
+    return super.bindService();
   }
 
   @Override
@@ -192,11 +126,9 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
       .setEndTimestamp(Long.MAX_VALUE);
     NetworkProfiler.NetworkDataResponse response = myPollingService.getData(dataRequestBuilder.build());
 
-    synchronized (myLock) {
-      for (NetworkProfiler.NetworkProfilerData data : response.getDataList()) {
-        myDataRequestStartTimestampNs = data.getBasicInfo().getEndTimestamp();
-        myData.add(data);
-      }
+    for (NetworkProfiler.NetworkProfilerData data : response.getDataList()) {
+      myDataRequestStartTimestampNs = data.getBasicInfo().getEndTimestamp();
+      myNetworkTable.insert(data.getBasicInfo().getProcessId(), data);
       pollHttpRange();
     }
   }
@@ -208,61 +140,37 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
       .setEndTimestamp(Long.MAX_VALUE);
     NetworkProfiler.HttpRangeResponse response = myPollingService.getHttpRange(requestBuilder.build());
 
-    synchronized (myLock) {
-      for (NetworkProfiler.HttpConnectionData data : response.getDataList()) {
-        myHttpRangeRequestStartTimeNs = Math.max(myHttpRangeRequestStartTimeNs, data.getStartTimestamp() + 1);
-        myHttpRangeRequestStartTimeNs = Math.max(myHttpRangeRequestStartTimeNs, data.getEndTimestamp() + 1);
+    for (NetworkProfiler.HttpConnectionData data : response.getDataList()) {
+      myHttpRangeRequestStartTimeNs = Math.max(myHttpRangeRequestStartTimeNs, data.getStartTimestamp() + 1);
+      myHttpRangeRequestStartTimeNs = Math.max(myHttpRangeRequestStartTimeNs, data.getEndTimestamp() + 1);
+      NetworkProfiler.HttpDetailsResponse initialData = myNetworkTable.getHttpDetailsResponseById(data.getConnId(),
+                                                                                                  NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
 
-        if (!myConnectionData.containsKey(data.getConnId())) {
-          myConnectionData.put(data.getConnId(), new ConnectionData(myProcessId, data));
-          pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
-        } else {
-          myConnectionData.get(data.getConnId()).myCommonData = data;
-        }
-
-        if (data.getEndTimestamp() != 0) {
-          pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.RESPONSE);
-          pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.RESPONSE_BODY);
-        }
+      NetworkProfiler.HttpDetailsResponse request = initialData;
+      NetworkProfiler.HttpDetailsResponse responseData = null;
+      NetworkProfiler.HttpDetailsResponse body = null;
+      if (initialData == null) {
+        request = pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
       }
+      if (data.getEndTimestamp() != 0) {
+        responseData = pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.RESPONSE);
+        body = pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.RESPONSE_BODY);
+      }
+      myNetworkTable.insertOrReplace(myProcessId, request, responseData, body, data);
     }
   }
 
-  private void pollHttpDetails(long connectionId, NetworkProfiler.HttpDetailsRequest.Type type) {
+  private NetworkProfiler.HttpDetailsResponse pollHttpDetails(long id, NetworkProfiler.HttpDetailsRequest.Type type) {
     NetworkProfiler.HttpDetailsRequest request = NetworkProfiler.HttpDetailsRequest.newBuilder()
-      .setConnId(connectionId)
+      .setConnId(id)
       .setType(type)
       .build();
     NetworkProfiler.HttpDetailsResponse response = myPollingService.getHttpDetails(request);
-
-    synchronized (myLock) {
-      ConnectionData data = myConnectionData.get(connectionId);
-      switch (type) {
-        case REQUEST:
-          data.myRequest = response.getRequest();
-          break;
-        case RESPONSE:
-          data.myResponse = response.getResponse();
-          break;
-        case RESPONSE_BODY:
-          data.myResponseBody = response.getResponseBody();
-          break;
-        default:
-          assert false : "Unsupported response type " + type;
-      }
-    }
+    return response;
   }
 
-  private static final class ConnectionData {
-    private int myProcessId;
-    @NotNull private NetworkProfiler.HttpConnectionData myCommonData;
-    private NetworkProfiler.HttpDetailsResponse.Body myResponseBody;
-    private NetworkProfiler.HttpDetailsResponse.Request myRequest;
-    private NetworkProfiler.HttpDetailsResponse.Response myResponse;
-
-    private ConnectionData(int processId, @NotNull NetworkProfiler.HttpConnectionData commonData) {
-      myProcessId = processId;
-      myCommonData = commonData;
-    }
+  @Override
+  public DatastoreTable getDatastoreTable() {
+    return myNetworkTable;
   }
 }
