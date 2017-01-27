@@ -226,11 +226,11 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
       myAddedValueIndex = findBestInsertionPoint(value);
       model.insertElementAt(value, myAddedValueIndex);
     }
+    value.setUseValueForToString(myDisplayRealValue);
     if (!value.equals(model.getSelectedItem())) {
-      value.setUseValueForToString(myDisplayRealValue);
       model.setSelectedItem(value);
-      myEditor.setText(value.toString());
     }
+    myEditor.setText(value.toString());
     myEditor.setForeground(value.getValue() != null ? CHANGED_VALUE_TEXT_COLOR : DEFAULT_VALUE_TEXT_COLOR);
   }
 
