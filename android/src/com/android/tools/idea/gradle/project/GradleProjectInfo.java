@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -54,6 +55,22 @@ public class GradleProjectInfo {
     myProjectInfo = projectInfo;
   }
 
+  /**
+   * Indicates whether the IDE should build the project by invoking Gradle directly, or through IDEA's JPS. By default Android Studio
+   * invokes Gradle directly.
+   *
+   * @return {@code true} if the IDE should build the project by invoking Gradle directly; {@code false} otherwise.
+   */
+  public boolean isDirectGradleBuildEnabled() {
+    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(myProject);
+    return buildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD;
+  }
+
+  /**
+   * Indicates whether the project has a build.gradle file in the project's root folder.
+   *
+   * @return {@code true} if the project has a build.gradle file in the project's root folder; {@code false} otherwise.
+   */
   public boolean hasTopLevelGradleBuildFile() {
     File projectFolderPath = getBaseDirPath(myProject);
     File buildFilePath = new File(projectFolderPath, FN_BUILD_GRADLE);
@@ -85,7 +102,7 @@ public class GradleProjectInfo {
   public List<Module> getAndroidModules() {
     ImmutableList.Builder<Module> modules = ImmutableList.builder();
 
-    for (Module module :  ModuleManager.getInstance(myProject).getModules()) {
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       if (AndroidFacet.getInstance(module) != null && GradleFacet.getInstance(module) != null) {
         modules.add(module);
       }
@@ -93,6 +110,11 @@ public class GradleProjectInfo {
     return modules.build();
   }
 
+  /**
+   * Applies the given {@link Consumer} to each module in the project that contains an {@code AndroidFacet}.
+   *
+   * @param consumer the {@code Consumer} to apply.
+   */
   public void forEachAndroidModule(@NotNull Consumer<AndroidFacet> consumer) {
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
@@ -102,6 +124,14 @@ public class GradleProjectInfo {
     }
   }
 
+  /**
+   * Attempts to retrieve the {@link AndroidModuleModel} for the module containing the given file. If the module is not an Android module,
+   * this method will return {@code null}.
+   *
+   * @param file the given file.
+   * @return the {@code AndroidModuleModel} for the module containing the given file, or {@code null} if the module is not an Android
+   * module.
+   */
   @Nullable
   public AndroidModuleModel findAndroidModelInModule(@NotNull VirtualFile file) {
     Module module = findModuleForFile(file, myProject);
