@@ -123,7 +123,7 @@ public class ConnectionDetailsViewTest {
   @Test
   public void contentTypeHasProperValueFromData() {
     assertEquals(-1, myView.getFieldComponentIndex("Content type"));
-    when(myHttpData.getResponseField(eq(HttpData.FIELD_CONTENT_TYPE))).thenReturn("testContentTypeValue");
+    when(myHttpData.getContentType()).thenReturn(new HttpData.ContentType("testContentTypeValue"));
     myView.update(myHttpData);
     int contentTypeFieldIndex = myView.getFieldComponentIndex("Content type");
     assertNotEquals(-1, contentTypeFieldIndex);

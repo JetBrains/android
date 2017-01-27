@@ -147,14 +147,10 @@ public class ConnectionDetailsView extends JPanel {
       myFieldsPanel.add(new JLabel(String.valueOf(httpData.getStatusCode())), new TabularLayout.Constraint(row, 2));
     }
 
-    String contentType = httpData.getResponseField(HttpData.FIELD_CONTENT_TYPE);
-    if (contentType != null) {
+    if (httpData.getContentType() != null) {
       row++;
       myFieldsPanel.add(new NoWrapBoldLabel("Content type"), new TabularLayout.Constraint(row, 0));
-      // Content type looks like "type/subtype;" or "type/subtype; parameters".
-      // Always convert to "type"
-      contentType = contentType.split(";")[0];
-      myFieldsPanel.add(new JLabel(contentType), new TabularLayout.Constraint(row, 2));
+      myFieldsPanel.add(new JLabel(httpData.getContentType().getMimeType()), new TabularLayout.Constraint(row, 2));
     }
 
     String contentLength = httpData.getResponseField(HttpData.FIELD_CONTENT_LENGTH);
