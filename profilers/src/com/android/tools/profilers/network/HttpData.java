@@ -132,6 +132,12 @@ public class HttpData {
     return myResponseFields.get(field);
   }
 
+  @Nullable
+  public ContentType getContentType() {
+    String type = getResponseField(FIELD_CONTENT_TYPE);
+    return (type == null) ? null : new ContentType(type);
+  }
+
   @NotNull
   public ImmutableMap<String, String> getResponseHeaders() {
     return ImmutableMap.copyOf(myResponseFields);
@@ -205,18 +211,49 @@ public class HttpData {
     return path;
   }
 
-  /**
-   * Returns file extension based on the response Content-Type header field.
-   * If type is absent or not supported, returns null.
-   */
-  @Nullable
-  public static String guessFileExtensionFromContentType(@NotNull String contentType) {
-    for (Map.Entry<String, String> entry : CONTENT_EXTENSIONS_MAP.entrySet()) {
-      if (contentType.contains(entry.getKey())) {
-        return entry.getValue();
-      }
+  public static final class ContentType {
+    @NotNull private final String myContentType;
+
+    public ContentType(@NotNull String contentType) {
+      myContentType = contentType;
     }
-    return null;
+
+    /**
+     * @return MIME type related information from Content-Type because Content-Type may contain
+     * other information such as charset or boundary.
+     *
+     * Examples:
+     * "text/html; charset=utf-8" => "text/html"
+     * "text/html" => "text/html"
+     */
+    @NotNull
+    public String getMimeType() {
+      return myContentType.split(";")[0];
+    }
+
+    /**
+     * Returns file extension based on the response Content-Type header field.
+     * If type is absent or not supported, returns null.
+     */
+    @Nullable
+    public String guessFileExtension() {
+      for (Map.Entry<String, String> entry : CONTENT_EXTENSIONS_MAP.entrySet()) {
+        if (myContentType.contains(entry.getKey())) {
+          return entry.getValue();
+        }
+      }
+      return null;
+    }
+
+    @NotNull
+    public String getContentType() {
+      return myContentType;
+    }
+
+    @Override
+    public String toString() {
+      return getContentType();
+    }
   }
 
   public static final class Builder {
