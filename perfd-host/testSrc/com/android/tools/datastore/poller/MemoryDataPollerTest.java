@@ -17,6 +17,7 @@ package com.android.tools.datastore.poller;
 
 import com.android.tools.adtui.model.DurationData;
 import com.android.tools.datastore.*;
+import com.android.tools.datastore.database.MemoryTable;
 import com.android.tools.datastore.service.MemoryService;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
@@ -43,6 +44,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   private static final int NOT_READY_TEST_DUMP_ID = 4322;
   private static final int FINISHED_ALLOC_INFO_ID = 1;
   private static final int POST_PROCESS_ALLOC_INFO_ID = 2;
+  private static final int ERROR_ALLOC_INFO_ID = 3;
   private static final long BASE_TIME_NS = System.nanoTime();
   private static final ByteString DUMP_DATA = ByteString.copyFrom("Test Data", Charset.defaultCharset());
 
@@ -92,51 +94,51 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     .build();
 
   private DataStoreService myDataStore = mock(DataStoreService.class);
-  private MemoryService myMemoryDataPoller = new MemoryService(myDataStore, getPollTicker()::run);
-  private FakeMemoryService myMemoryService = new FakeMemoryService();
+  private MemoryService myMemoryService = new MemoryService(myDataStore, getPollTicker()::run);
+  private FakeMemoryService myFakeMemoryService = new FakeMemoryService();
 
   @Rule
-  public TestGrpcService<FakeMemoryService> myService = new TestGrpcService<>(myMemoryDataPoller, myMemoryService);
+  public TestGrpcService<FakeMemoryService> myService = new TestGrpcService<>(myMemoryService, myFakeMemoryService);
 
   @Before
   public void setUp() throws Exception {
     when(myDataStore.getLegacyAllocationTracker()).thenReturn(new FakeLegacyAllocationTracker());
     // TODO: Abstract to TestGrpcService
-    myMemoryDataPoller.connectService(myService.getChannel());
+    myMemoryService.connectService(myService.getChannel());
     startMonitoringApp();
     getPollTicker().run();
   }
 
   private void startMonitoringApp() {
-    myMemoryDataPoller
+    myMemoryService
       .startMonitoringApp(MemoryProfiler.MemoryStartRequest.newBuilder().setProcessId(TEST_APP_ID).build(), mock(StreamObserver.class));
 
     // First trigger heap dumps on the MemoryDataPoller to create the latching mechanism which both GetData and GetHeapDump depend on.
-    myMemoryService.setTriggerHeapDumpInfo(DEFAULT_DUMP_INFO);
-    myMemoryDataPoller.triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.getDefaultInstance(), mock(StreamObserver.class));
-    myMemoryService.setTriggerHeapDumpInfo(ERROR_DUMP_INFO);
-    myMemoryDataPoller.triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.getDefaultInstance(), mock(StreamObserver.class));
-    myMemoryService.setTriggerHeapDumpInfo(NOT_READY_DUMP_INFO);
-    myMemoryDataPoller.triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.getDefaultInstance(), mock(StreamObserver.class));
+    myFakeMemoryService.setTriggerHeapDumpInfo(DEFAULT_DUMP_INFO);
+    myMemoryService.triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.getDefaultInstance(), mock(StreamObserver.class));
+    myFakeMemoryService.setTriggerHeapDumpInfo(ERROR_DUMP_INFO);
+    myMemoryService.triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.getDefaultInstance(), mock(StreamObserver.class));
+    myFakeMemoryService.setTriggerHeapDumpInfo(NOT_READY_DUMP_INFO);
+    myMemoryService.triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.getDefaultInstance(), mock(StreamObserver.class));
   }
 
   @After
   public void tearDown() throws Exception {
     myDataStore.shutdown();
-    myMemoryDataPoller
+    myMemoryService
       .stopMonitoringApp(MemoryProfiler.MemoryStopRequest.newBuilder().setProcessId(TEST_APP_ID).build(), mock(StreamObserver.class));
   }
 
   @Test
   public void testGetDataInRange() throws Exception {
-    myMemoryService.addMemorySample(DEFAULT_MEMORY_SAMPLE);
-    myMemoryService.addVmStatsSample(DEFAULT_VM_STATS);
-    myMemoryService.addAllocationEvents(DEFAULT_ALLOCATION);
-    myMemoryService.addAllocationInfo(FINISHED_ALLOCATION_INFO);
-    myMemoryService.addAllocationInfo(POST_PROCESS_ALLOCATION_INFO);
-    myMemoryService.addHeapDumpInfos(DEFAULT_DUMP_INFO);
-    myMemoryService.addHeapDumpInfos(ERROR_DUMP_INFO);
-    myMemoryService.addHeapDumpInfos(NOT_READY_DUMP_INFO);
+    myFakeMemoryService.addMemorySample(DEFAULT_MEMORY_SAMPLE);
+    myFakeMemoryService.addVmStatsSample(DEFAULT_VM_STATS);
+    myFakeMemoryService.addAllocationEvents(DEFAULT_ALLOCATION);
+    myFakeMemoryService.addAllocationInfo(FINISHED_ALLOCATION_INFO);
+    myFakeMemoryService.addAllocationInfo(POST_PROCESS_ALLOCATION_INFO);
+    myFakeMemoryService.addHeapDumpInfos(DEFAULT_DUMP_INFO);
+    myFakeMemoryService.addHeapDumpInfos(ERROR_DUMP_INFO);
+    myFakeMemoryService.addHeapDumpInfos(NOT_READY_DUMP_INFO);
     getPollTicker().run();
 
     MemoryProfiler.MemoryRequest request = MemoryProfiler.MemoryRequest.newBuilder()
@@ -155,20 +157,20 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       .addHeapDumpInfos(NOT_READY_DUMP_INFO)
       .build();
     StreamObserver<MemoryProfiler.MemoryData> observer = mock(StreamObserver.class);
-    myMemoryDataPoller.getData(request, observer);
+    myMemoryService.getData(request, observer);
     validateResponse(observer, expected);
   }
 
   @Test
   public void testGetDataOutOfRange() throws Exception {
-    myMemoryService.addMemorySample(DEFAULT_MEMORY_SAMPLE);
-    myMemoryService.addVmStatsSample(DEFAULT_VM_STATS);
-    myMemoryService.addAllocationEvents(DEFAULT_ALLOCATION);
-    myMemoryService.addAllocationInfo(FINISHED_ALLOCATION_INFO);
-    myMemoryService.addAllocationInfo(POST_PROCESS_ALLOCATION_INFO);
-    myMemoryService.addHeapDumpInfos(DEFAULT_DUMP_INFO);
-    myMemoryService.addHeapDumpInfos(ERROR_DUMP_INFO);
-    myMemoryService.addHeapDumpInfos(NOT_READY_DUMP_INFO);
+    myFakeMemoryService.addMemorySample(DEFAULT_MEMORY_SAMPLE);
+    myFakeMemoryService.addVmStatsSample(DEFAULT_VM_STATS);
+    myFakeMemoryService.addAllocationEvents(DEFAULT_ALLOCATION);
+    myFakeMemoryService.addAllocationInfo(FINISHED_ALLOCATION_INFO);
+    myFakeMemoryService.addAllocationInfo(POST_PROCESS_ALLOCATION_INFO);
+    myFakeMemoryService.addHeapDumpInfos(DEFAULT_DUMP_INFO);
+    myFakeMemoryService.addHeapDumpInfos(ERROR_DUMP_INFO);
+    myFakeMemoryService.addHeapDumpInfos(NOT_READY_DUMP_INFO);
     getPollTicker().run();
 
     MemoryProfiler.MemoryRequest request = MemoryProfiler.MemoryRequest.newBuilder()
@@ -178,7 +180,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       .build();
     MemoryProfiler.MemoryData expected = MemoryProfiler.MemoryData.getDefaultInstance();
     StreamObserver<MemoryProfiler.MemoryData> observer = mock(StreamObserver.class);
-    myMemoryDataPoller.getData(request, observer);
+    myMemoryService.getData(request, observer);
     validateResponse(observer, expected);
   }
 
@@ -192,7 +194,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       .build();
     MemoryProfiler.MemoryData expected = MemoryProfiler.MemoryData.getDefaultInstance();
     StreamObserver<MemoryProfiler.MemoryData> observer = mock(StreamObserver.class);
-    myMemoryDataPoller.getData(request, observer);
+    myMemoryService.getData(request, observer);
     validateResponse(observer, expected);
   }
 
@@ -206,7 +208,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       .setStatus(MemoryProfiler.TrackAllocationsResponse.Status.SUCCESS)
       .build();
     StreamObserver<MemoryProfiler.TrackAllocationsResponse> observer = mock(StreamObserver.class);
-    myMemoryDataPoller.trackAllocations(request, observer);
+    myMemoryService.trackAllocations(request, observer);
     validateResponse(observer, expected);
   }
 
@@ -219,7 +221,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       .build();
     MemoryProfiler.AllocationContextsResponse expected = MemoryProfiler.AllocationContextsResponse.getDefaultInstance();
     StreamObserver<MemoryProfiler.AllocationContextsResponse> observer = mock(StreamObserver.class);
-    myMemoryDataPoller.listAllocationContexts(request, observer);
+    myMemoryService.listAllocationContexts(request, observer);
     validateResponse(observer, expected);
   }
 
@@ -229,7 +231,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     MemoryProfiler.GetAllocationsInfoStatusRequest getRequest = MemoryProfiler.GetAllocationsInfoStatusRequest.newBuilder()
       .setInfoId(1).build();
     StreamObserver<MemoryProfiler.GetAllocationsInfoStatusResponse> getObserver = mock(StreamObserver.class);
-    myMemoryDataPoller.getAllocationsInfoStatus(getRequest, getObserver);
+    myMemoryService.getAllocationsInfoStatus(getRequest, getObserver);
     validateResponse(getObserver, MemoryProfiler.GetAllocationsInfoStatusResponse.getDefaultInstance());
   }
 
@@ -242,28 +244,28 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     MemoryProfiler.AllocationsInfo info = MemoryProfiler.AllocationsInfo.newBuilder()
       .setInfoId(1).setStartTime(0).setEndTime(DurationData.UNSPECIFIED_DURATION).setLegacyTracking(true)
       .setStatus(MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS).build();
-    myMemoryService.setTrackAllocationsInfo(info);
+    myFakeMemoryService.setTrackAllocationsInfo(info);
 
     // First enable allocation tracking.
     MemoryProfiler.TrackAllocationsRequest request = MemoryProfiler.TrackAllocationsRequest.newBuilder()
       .setProcessId(TEST_APP_ID).setEnabled(true).setLegacyTracking(true).build();
     StreamObserver<MemoryProfiler.TrackAllocationsResponse> observer = mock(StreamObserver.class);
-    myMemoryDataPoller.trackAllocations(request, observer);
-    myMemoryService.addAllocationInfo(info);
+    myMemoryService.trackAllocations(request, observer);
+    myFakeMemoryService.addAllocationInfo(info);
     getPollTicker().run();
 
     // Ensures that status returns IN_PROGRESS
     MemoryProfiler.GetAllocationsInfoStatusRequest getRequest = MemoryProfiler.GetAllocationsInfoStatusRequest.newBuilder()
       .setInfoId(1).build();
     StreamObserver<MemoryProfiler.GetAllocationsInfoStatusResponse> getObserver = mock(StreamObserver.class);
-    myMemoryDataPoller.getAllocationsInfoStatus(getRequest, getObserver);
+    myMemoryService.getAllocationsInfoStatus(getRequest, getObserver);
     validateResponse(getObserver, MemoryProfiler.GetAllocationsInfoStatusResponse.newBuilder().setInfoId(1).setStatus(
       MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS).build());
 
     // Disable allocation tracking on a separate thread, which will block until the AllocationsInfo sample is received
     // via poll() before changing the status to COMPLETED.
     info = info.toBuilder().setEndTime(1).setStatus(MemoryProfiler.AllocationsInfo.Status.POST_PROCESS).build();
-    myMemoryService.setTrackAllocationsInfo(info);
+    myFakeMemoryService.setTrackAllocationsInfo(info);
     final CountDownLatch threadWaitLatch = new CountDownLatch(1);
     final CountDownLatch threadDoneLatch = new CountDownLatch(1);
     new Thread(() -> {
@@ -271,7 +273,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       StreamObserver<MemoryProfiler.TrackAllocationsResponse> threadObserver = mock(StreamObserver.class);
       MemoryProfiler.TrackAllocationsRequest threadRequest = MemoryProfiler.TrackAllocationsRequest.newBuilder()
         .setProcessId(TEST_APP_ID).setEnabled(false).setLegacyTracking(true).build();
-      myMemoryDataPoller.trackAllocations(threadRequest, threadObserver);
+      myMemoryService.trackAllocations(threadRequest, threadObserver);
       threadDoneLatch.countDown();
     }).start();
 
@@ -280,8 +282,8 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     }
     catch (InterruptedException ignored) {
     }
-    myMemoryService.resetGetDataResponse();
-    myMemoryService.addAllocationInfo(info);
+    myFakeMemoryService.resetGetDataResponse();
+    myFakeMemoryService.addAllocationInfo(info);
     getPollTicker().run();
 
     try {
@@ -290,16 +292,16 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     catch (InterruptedException ignored) {
     }
     getObserver = mock(StreamObserver.class);
-    myMemoryDataPoller.getAllocationsInfoStatus(getRequest, getObserver);
+    myMemoryService.getAllocationsInfoStatus(getRequest, getObserver);
     validateResponse(getObserver, MemoryProfiler.GetAllocationsInfoStatusResponse.newBuilder().setInfoId(1).setStatus(
       MemoryProfiler.AllocationsInfo.Status.COMPLETED).build());
   }
 
   @Test
   public void testListHeapDumpInfos() throws Exception {
-    myMemoryService.addHeapDumpInfos(DEFAULT_DUMP_INFO);
-    myMemoryService.addHeapDumpInfos(ERROR_DUMP_INFO);
-    myMemoryService.addHeapDumpInfos(NOT_READY_DUMP_INFO);
+    myFakeMemoryService.addHeapDumpInfos(DEFAULT_DUMP_INFO);
+    myFakeMemoryService.addHeapDumpInfos(ERROR_DUMP_INFO);
+    myFakeMemoryService.addHeapDumpInfos(NOT_READY_DUMP_INFO);
     getPollTicker().run();
 
     MemoryProfiler.ListDumpInfosRequest request = MemoryProfiler.ListDumpInfosRequest.newBuilder()
@@ -311,7 +313,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       .addInfos(DEFAULT_DUMP_INFO)
       .build();
     StreamObserver<MemoryProfiler.ListHeapDumpInfosResponse> observer = mock(StreamObserver.class);
-    myMemoryDataPoller.listHeapDumpInfos(request, observer);
+    myMemoryService.listHeapDumpInfos(request, observer);
     validateResponse(observer, expected);
 
     request = MemoryProfiler.ListDumpInfosRequest.newBuilder()
@@ -324,7 +326,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       .addInfos(ERROR_DUMP_INFO)
       .build();
     observer = mock(StreamObserver.class);
-    myMemoryDataPoller.listHeapDumpInfos(request, observer);
+    myMemoryService.listHeapDumpInfos(request, observer);
     validateResponse(observer, expected);
 
     request = MemoryProfiler.ListDumpInfosRequest.newBuilder()
@@ -337,15 +339,15 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       .addInfos(NOT_READY_DUMP_INFO)
       .build();
     observer = mock(StreamObserver.class);
-    myMemoryDataPoller.listHeapDumpInfos(request, observer);
+    myMemoryService.listHeapDumpInfos(request, observer);
     validateResponse(observer, expected);
   }
 
   @Test
   public void testListHeapDumpInfosOutOfRange() throws Exception {
-    myMemoryService.addHeapDumpInfos(DEFAULT_DUMP_INFO);
-    myMemoryService.addHeapDumpInfos(ERROR_DUMP_INFO);
-    myMemoryService.addHeapDumpInfos(NOT_READY_DUMP_INFO);
+    myFakeMemoryService.addHeapDumpInfos(DEFAULT_DUMP_INFO);
+    myFakeMemoryService.addHeapDumpInfos(ERROR_DUMP_INFO);
+    myFakeMemoryService.addHeapDumpInfos(NOT_READY_DUMP_INFO);
     getPollTicker().run();
 
     MemoryProfiler.ListDumpInfosRequest request = MemoryProfiler.ListDumpInfosRequest.newBuilder()
@@ -357,7 +359,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       .addInfos(NOT_READY_DUMP_INFO)
       .build();
     StreamObserver<MemoryProfiler.ListHeapDumpInfosResponse> observer = mock(StreamObserver.class);
-    myMemoryDataPoller.listHeapDumpInfos(request, observer);
+    myMemoryService.listHeapDumpInfos(request, observer);
     validateResponse(observer, expected);
   }
 
@@ -368,14 +370,14 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
   @Test
   public void testGetHeapDumpNotReady() throws Exception {
-    myMemoryService.addHeapDumpInfos(NOT_READY_DUMP_INFO);
+    myFakeMemoryService.addHeapDumpInfos(NOT_READY_DUMP_INFO);
     getPollTicker().run();
     getHeapDumpError(NOT_READY_TEST_DUMP_ID, MemoryProfiler.DumpDataResponse.Status.NOT_READY);
   }
 
   @Test
   public void testGetHeapDumpUnknown() throws Exception {
-    myMemoryService.addHeapDumpInfos(ERROR_DUMP_INFO);
+    myFakeMemoryService.addHeapDumpInfos(ERROR_DUMP_INFO);
     getPollTicker().run();
     getHeapDumpError(ERROR_TEST_DUMP_ID, MemoryProfiler.DumpDataResponse.Status.FAILURE_UNKNOWN);
   }
@@ -383,10 +385,10 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   @Test
   public void testGetHeapDump() throws Exception {
     // First adds and polls the HeapDumpInfo sample we are testing, which counts down the latch
-    myMemoryService.addHeapDumpInfos(DEFAULT_DUMP_INFO);
+    myFakeMemoryService.addHeapDumpInfos(DEFAULT_DUMP_INFO);
     getPollTicker().run();
 
-    MemoryProfiler.HeapDumpDataRequest request = MemoryProfiler.HeapDumpDataRequest.newBuilder()
+    MemoryProfiler.DumpDataRequest request = MemoryProfiler.DumpDataRequest.newBuilder()
       .setProcessId(TEST_APP_ID)
       .setDumpId(TEST_DUMP_ID)
       .build();
@@ -395,12 +397,31 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       .setData(DUMP_DATA)
       .build();
     StreamObserver<MemoryProfiler.DumpDataResponse> observer = mock(StreamObserver.class);
-    myMemoryDataPoller.getHeapDump(request, observer);
+    myMemoryService.getHeapDump(request, observer);
+    validateResponse(observer, expected);
+  }
+
+  @Test
+  public void testGetAllocationDump() {
+    myFakeMemoryService.addAllocationInfo(FINISHED_ALLOCATION_INFO);
+    ((MemoryTable)myMemoryService.getDatastoreTable()).insertAllocationDumpData(FINISHED_ALLOCATION_INFO, DUMP_DATA.toByteArray());
+    getPollTicker().run();
+
+    MemoryProfiler.DumpDataRequest request = MemoryProfiler.DumpDataRequest.newBuilder()
+      .setProcessId(TEST_APP_ID)
+      .setDumpId(FINISHED_ALLOC_INFO_ID)
+      .build();
+    MemoryProfiler.DumpDataResponse expected = MemoryProfiler.DumpDataResponse.newBuilder()
+      .setStatus(MemoryProfiler.DumpDataResponse.Status.SUCCESS)
+      .setData(DUMP_DATA)
+      .build();
+    StreamObserver<MemoryProfiler.DumpDataResponse> observer = mock(StreamObserver.class);
+    myMemoryService.getAllocationDump(request, observer);
     validateResponse(observer, expected);
   }
 
   private void getHeapDumpError(int id, MemoryProfiler.DumpDataResponse.Status error) {
-    MemoryProfiler.HeapDumpDataRequest request = MemoryProfiler.HeapDumpDataRequest.newBuilder()
+    MemoryProfiler.DumpDataRequest request = MemoryProfiler.DumpDataRequest.newBuilder()
       .setProcessId(TEST_APP_ID)
       .setDumpId(id)
       .build();
@@ -408,7 +429,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       .setStatus(error)
       .build();
     StreamObserver<MemoryProfiler.DumpDataResponse> observer = mock(StreamObserver.class);
-    myMemoryDataPoller.getHeapDump(request, observer);
+    myMemoryService.getHeapDump(request, observer);
     validateResponse(observer, expected);
   }
 
@@ -473,7 +494,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     }
 
     @Override
-    public void getHeapDump(MemoryProfiler.HeapDumpDataRequest request, StreamObserver<MemoryProfiler.DumpDataResponse> responseObserver) {
+    public void getHeapDump(MemoryProfiler.DumpDataRequest request, StreamObserver<MemoryProfiler.DumpDataResponse> responseObserver) {
       MemoryProfiler.DumpDataResponse.Builder response = MemoryProfiler.DumpDataResponse.newBuilder();
       switch (request.getDumpId()) {
         case TEST_DUMP_ID:
@@ -484,6 +505,26 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
           response.setStatus(MemoryProfiler.DumpDataResponse.Status.NOT_READY);
           break;
         case ERROR_TEST_DUMP_ID:
+          response.setStatus(MemoryProfiler.DumpDataResponse.Status.FAILURE_UNKNOWN);
+          break;
+      }
+      responseObserver.onNext(response.build());
+      responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getAllocationDump(MemoryProfiler.DumpDataRequest request,
+                                  StreamObserver<MemoryProfiler.DumpDataResponse> responseObserver) {
+      MemoryProfiler.DumpDataResponse.Builder response = MemoryProfiler.DumpDataResponse.newBuilder();
+      switch (request.getDumpId()) {
+        case FINISHED_ALLOC_INFO_ID:
+          response.setData(DUMP_DATA);
+          response.setStatus(MemoryProfiler.DumpDataResponse.Status.SUCCESS);
+          break;
+        case POST_PROCESS_ALLOC_INFO_ID:
+          response.setStatus(MemoryProfiler.DumpDataResponse.Status.NOT_READY);
+          break;
+        case ERROR_ALLOC_INFO_ID:
           response.setStatus(MemoryProfiler.DumpDataResponse.Status.FAILURE_UNKNOWN);
           break;
       }
