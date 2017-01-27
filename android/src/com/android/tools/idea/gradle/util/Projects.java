@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.util;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
@@ -109,11 +108,6 @@ public final class Projects {
       }
     }
     ProjectManagerEx.getInstanceEx().openProject(project);
-  }
-
-  public static boolean isDirectGradleInvocationEnabled(@NotNull Project project) {
-    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
-    return buildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD;
   }
 
   public static boolean isOfflineBuildModeEnabled(@NotNull Project project) {
