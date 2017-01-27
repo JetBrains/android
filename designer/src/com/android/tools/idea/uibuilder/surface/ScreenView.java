@@ -27,6 +27,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOVERING_SIZE;
+
 /**
  * View of a device/screen/layout.
  * This is actually painted by {@link ScreenViewLayer}.
@@ -104,5 +106,18 @@ public class ScreenView extends SceneView {
   @Nullable
   public Shape getScreenShape() {
     return getScreenShape(getX(), getY());
+  }
+
+  @Override
+  public void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
+    if (getScreenViewType() == ScreenViewType.NORMAL) {
+      Rectangle resizeZone =
+        new Rectangle(getX() + getSize().width, getY() + getSize().height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
+      if (resizeZone.contains(x, y)) {
+        mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+        return;
+      }
+    }
+    super.updateCursor(x, y);
   }
 }

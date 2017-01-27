@@ -39,6 +39,8 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DEVICE;
+import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_MARGIN;
+import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIUS;
 
 /**
  * A Scene contains a hierarchy of SceneComponent representing the bounds
@@ -76,7 +78,7 @@ public class Scene implements ModelListener, SelectionListener {
   private HitListener myHoverListener = new HitListener();
   private HitListener myHitListener = new HitListener();
   private Target myHitTarget = null;
-  private int myMouseCursor;
+  private Cursor myMouseCursor;
   private SceneComponent myHitComponent;
   ArrayList<SceneComponent> myNewSelectedComponents = new ArrayList<>();
   private boolean myIsControlDown;
@@ -213,7 +215,7 @@ public class Scene implements ModelListener, SelectionListener {
     return myRoot;
   }
 
-  public int getMouseCursor() {
+  public Cursor getMouseCursor() {
     return myMouseCursor;
   }
 
@@ -850,7 +852,6 @@ public class Scene implements ModelListener, SelectionListener {
   public void mouseHover(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myLastMouseX = x;
     myLastMouseY = y;
-    myMouseCursor = Cursor.DEFAULT_CURSOR;
     if (myRoot != null) {
       myHoverListener.find(transform, myRoot, x, y);
     }
@@ -878,8 +879,36 @@ public class Scene implements ModelListener, SelectionListener {
         myCurrentComponent = closestComponent;
       }
     }
+
+    setCursor(x, y);
+  }
+
+  private void setCursor(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+    myMouseCursor = Cursor.getDefaultCursor();
+    if (myCurrentComponent != null && myCurrentComponent.isDragging()) {
+      myMouseCursor = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
+      return;
+    }
     if (myOverTarget != null) {
       myMouseCursor = myOverTarget.getMouseCursor();
+      return;
+    }
+
+    SelectionModel selectionModel = mySceneView.getSelectionModel();
+    int mx = dpToPx(x);
+    int my = dpToPx(y);
+
+    if (!selectionModel.isEmpty()) {
+      int max = Coordinates.getAndroidDimension(mySceneView, PIXEL_RADIUS + PIXEL_MARGIN);
+      SelectionHandle handle = selectionModel.findHandle(mx, my, max);
+      if (handle != null) {
+        myMouseCursor = handle.getCursor();
+        return;
+      }
+    }
+    NlComponent component = myModel.findLeafAt(mx, my, false);
+    if (component != null && !component.isRoot()) {
+      myMouseCursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
     }
   }
 
@@ -1002,7 +1031,7 @@ public class Scene implements ModelListener, SelectionListener {
     if (myHitTarget != null) {
       myHitListener.find(transform, myRoot, x, y);
       myHitTarget.mouseDrag(x, y, myHitListener.getClosestTarget());
-      myHitTarget.getComponent().setDragging(true);
+      myHitComponent.setDragging(true);
       if (myHitTarget instanceof DragTarget) {
         delegateMouseDragToSelection(x, y, myHitListener.getClosestTarget(), myHitTarget.getComponent());
       }
