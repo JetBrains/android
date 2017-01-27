@@ -24,7 +24,7 @@ import io.grpc.StatusRuntimeException;
  * This class host an EventService that will provide callers access to all cached EventData. The data is populated from polling the service
  * passed into the connectService function.
  */
-public class EventDataPoller extends PollRunner implements PollRunner.PollingCallback {
+public class EventDataPoller extends PollRunner {
 
   private long myDataRequestStartTimestampNs = Long.MIN_VALUE;
   private EventServiceGrpc.EventServiceBlockingStub myEventPollingService;
@@ -36,7 +36,6 @@ public class EventDataPoller extends PollRunner implements PollRunner.PollingCal
     myProcessId = processId;
     myEventsTable = eventTable;
     myEventPollingService = pollingService;
-    setPollingCallback(this);
   }
 
   @Override

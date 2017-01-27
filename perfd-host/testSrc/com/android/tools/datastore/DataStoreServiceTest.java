@@ -16,9 +16,8 @@
 package com.android.tools.datastore;
 
 import com.android.tools.datastore.poller.*;
-import com.android.tools.datastore.service.EventService;
+import com.android.tools.datastore.service.*;
 import com.android.tools.profiler.proto.*;
-import com.intellij.openapi.util.io.FileUtil;
 import io.grpc.ManagedChannel;
 import io.grpc.Server;
 import io.grpc.StatusRuntimeException;
@@ -31,7 +30,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.io.File;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -82,9 +80,9 @@ public class DataStoreServiceTest {
     Set<Class> expectedServices = new HashSet<>();
     expectedServices.add(ProfilerService.class);
     expectedServices.add(EventService.class);
-    expectedServices.add(CpuDataPoller.class);
-    expectedServices.add(NetworkDataPoller.class);
-    expectedServices.add(MemoryDataPoller.class);
+    expectedServices.add(CpuService.class);
+    expectedServices.add(NetworkService.class);
+    expectedServices.add(MemoryService.class);
 
     List<ServicePassThrough> services = myDataStore.getRegisteredServices();
     for(ServicePassThrough service : services) {

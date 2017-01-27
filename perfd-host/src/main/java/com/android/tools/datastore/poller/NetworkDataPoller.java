@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.concurrent.RunnableFuture;
 
 // TODO: Implement a storage container that can read/write data to disk
-public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase implements ServicePassThrough, PollRunner.PollingCallback {
+public class NetworkDataPoller extends PollRunner {
   // Intentionally accessing this field out of sync block because it's OK for it to be o
   // off by a frame; we'll pick up all data eventually
   @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
@@ -38,81 +38,11 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
   private int myProcessId = -1;
   private NetworkTable myNetworkTable = new NetworkTable();
 
-  public NetworkDataPoller() {
-  }
-
-  @Override
-  public RunnableFuture<Void> getRunner() {
-    return new PollRunner(this, PollRunner.POLLING_DELAY_NS);
-  }
-
-  @Override
-  public ServerServiceDefinition getService() {
-    return bindService();
-  }
-
-  @Override
-  public void connectService(ManagedChannel channel) {
-    myPollingService = NetworkServiceGrpc.newBlockingStub(channel);
-  }
-
-  @Override
-  public void getData(NetworkProfiler.NetworkDataRequest request, StreamObserver<NetworkProfiler.NetworkDataResponse> responseObserver) {
-    NetworkProfiler.NetworkDataResponse.Builder response = NetworkProfiler.NetworkDataResponse.newBuilder();
-    List<NetworkProfiler.NetworkProfilerData> datas = myNetworkTable.getNetworkDataByRequest(request);
-    response.addAllData(datas);
-    responseObserver.onNext(response.build());
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void startMonitoringApp(NetworkProfiler.NetworkStartRequest request,
-                                 StreamObserver<NetworkProfiler.NetworkStartResponse> responseObserver) {
-    myProcessId = request.getProcessId();
-    responseObserver.onNext(myPollingService.startMonitoringApp(request));
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void stopMonitoringApp(NetworkProfiler.NetworkStopRequest request,
-                                StreamObserver<NetworkProfiler.NetworkStopResponse> responseObserver) {
-    myProcessId = -1;
-    responseObserver.onNext(myPollingService.stopMonitoringApp(request));
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void getHttpRange(NetworkProfiler.HttpRangeRequest request, StreamObserver<NetworkProfiler.HttpRangeResponse> responseObserver) {
-    NetworkProfiler.HttpRangeResponse.Builder response = NetworkProfiler.HttpRangeResponse.newBuilder();
-    List<NetworkProfiler.HttpConnectionData> datas = myNetworkTable.getNetworkConnectionDataByRequest(request);
-    response.addAllData(datas);
-    responseObserver.onNext(response.build());
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void getHttpDetails(NetworkProfiler.HttpDetailsRequest request,
-                             StreamObserver<NetworkProfiler.HttpDetailsResponse> responseObserver) {
-    NetworkProfiler.HttpDetailsResponse storedResponse = myNetworkTable.getHttpDetailsResponseById(request.getConnId(), request.getType());
-    NetworkProfiler.HttpDetailsResponse.Builder response = NetworkProfiler.HttpDetailsResponse.newBuilder();
-    switch (request.getType()) {
-      case REQUEST:
-        response.setRequest(storedResponse.getRequest());
-        break;
-      case RESPONSE:
-        response.setResponse(storedResponse.getResponse());
-        break;
-      case RESPONSE_BODY:
-        response.setResponseBody(storedResponse.getResponseBody());
-        break;
-    }
-    responseObserver.onNext(response.build());
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public ServerServiceDefinition bindService() {
-    return super.bindService();
+  public NetworkDataPoller(int processId, NetworkTable table, NetworkServiceGrpc.NetworkServiceBlockingStub pollingService) {
+    super(POLLING_DELAY_NS);
+    myProcessId = processId;
+    myNetworkTable = table;
+    myPollingService = pollingService;
   }
 
   @Override
@@ -124,7 +54,7 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
       .setProcessId(myProcessId)
       .setStartTimestamp(myDataRequestStartTimestampNs)
       .setEndTimestamp(Long.MAX_VALUE);
-    NetworkProfiler.NetworkDataResponse response = myPollingService.getData(dataRequestBuilder.build());
+     NetworkProfiler.NetworkDataResponse response = myPollingService.getData(dataRequestBuilder.build());
 
     for (NetworkProfiler.NetworkProfilerData data : response.getDataList()) {
       myDataRequestStartTimestampNs = data.getBasicInfo().getEndTimestamp();
@@ -167,10 +97,5 @@ public class NetworkDataPoller extends NetworkServiceGrpc.NetworkServiceImplBase
       .build();
     NetworkProfiler.HttpDetailsResponse response = myPollingService.getHttpDetails(request);
     return response;
-  }
-
-  @Override
-  public DatastoreTable getDatastoreTable() {
-    return myNetworkTable;
   }
 }
