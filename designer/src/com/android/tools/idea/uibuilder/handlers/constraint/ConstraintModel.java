@@ -201,46 +201,23 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    */
   @Override
   public void modelChanged(@NotNull NlModel model) {
-    if (!ConstraintLayoutHandler.USE_SCENE_INTERACTION) {
-      ApplicationManager.getApplication().invokeLater(() -> {
-        ourLock.lock();
-        if (DEBUG) {
-          System.out.println("*** Model Changed " + model.getResourceVersion()
-                             + " vs our " + myModificationCount);
-        }
+    ApplicationManager.getApplication().invokeLater(() -> {
+      ourLock.lock();
+      if (DEBUG) {
+        System.out.println("*** Model Changed " + model.getResourceVersion()
+                           + " vs our " + myModificationCount);
+      }
 
-        int dpi = model.getConfiguration().getDensity().getDpiValue();
-        setDpiValue(dpi);
-        updateNlModel(null, model.getComponents(), true);
+      int dpi = model.getConfiguration().getDensity().getDpiValue();
+      setDpiValue(dpi);
+      updateNlModel(null, model.getComponents(), true);
 
-        myModificationCount = model.getResourceVersion();
-        if (DEBUG) {
-          System.out.println("-> updated to " + myModificationCount);
-        }
-        for (DrawConstraintModel drawConstraintModel : getDrawConstraintModels()) {
-          drawConstraintModel.repaint();
-        }
-        ourLock.unlock();
-      }, model.getModule().getDisposed());
-    } else {
-      ApplicationManager.getApplication().invokeLater(() -> {
-        ourLock.lock();
-        if (DEBUG) {
-          System.out.println("*** Model Changed " + model.getResourceVersion()
-                             + " vs our " + myModificationCount);
-        }
-
-        int dpi = model.getConfiguration().getDensity().getDpiValue();
-        setDpiValue(dpi);
-        updateNlModel(null, model.getComponents(), true);
-
-        myModificationCount = model.getResourceVersion();
-        if (DEBUG) {
-          System.out.println("-> updated to " + myModificationCount);
-        }
-        ourLock.unlock();
-      }, model.getModule().getDisposed());
-    }
+      myModificationCount = model.getResourceVersion();
+      if (DEBUG) {
+        System.out.println("-> updated to " + myModificationCount);
+      }
+      ourLock.unlock();
+    }, model.getModule().getDisposed());
   }
 
   @Override
@@ -469,10 +446,8 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    * @param animate animate the result or not
    */
   public void requestLayout(boolean animate) {
-    if (!ConstraintLayoutHandler.USE_SOLVER) {
-      updateMemoryXML(); // Send changes to the XML without committing them
-      getNlModel().requestLayout(animate);
-    }
+    updateMemoryXML(); // Send changes to the XML without committing them
+    getNlModel().requestLayout(animate);
   }
 
   /**
@@ -603,18 +578,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
     if (!saveXML) {
       updateConstraintLayoutRoots(myWidgetsScene.getRoot());
     }
-
-    if (ConstraintLayoutHandler.USE_SOLVER) {
-      // Finally, layout using our model.
-      WidgetContainer root = myWidgetsScene.getRoot();
-      if (root != null) {
-        root = root.getRootWidgetContainer();
-        if (root != null) {
-          root.layout();
-        }
-      }
-    }
-    if (saveXML) {
+    else {
       saveToXML(true);
     }
   }

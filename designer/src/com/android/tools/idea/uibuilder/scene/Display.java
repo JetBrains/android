@@ -30,6 +30,7 @@ public class Display {
   private DisplayList myDisplayList = new DisplayList();
   private boolean myNeedsDisplayListRebuild;
   double myScale = 0;
+
   void reLayout() {
     myNeedsDisplayListRebuild = true;
   }
@@ -49,9 +50,7 @@ public class Display {
       myNeedsDisplayListRebuild = scene.buildDisplayList(myDisplayList, mTime, sceneContext);
       scene.clearNeedsRebuildList();
     }
-    if (ConstraintLayoutHandler.USE_SCENE_INTERACTION) {
-      draw(sceneContext, g, myDisplayList);
-    }
+    draw(sceneContext, g, myDisplayList);
     if (myNeedsDisplayListRebuild) {
       DesignSurface designSurface = sceneContext.getSurface();
       if (designSurface != null) {
