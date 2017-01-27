@@ -45,15 +45,12 @@ import java.util.List;
 public abstract class SceneView {
   protected final DesignSurface mySurface;
   protected final NlModel myModel;
-  protected Scene myScene = null;
+  protected final Scene myScene;
 
   public SceneView(@NotNull DesignSurface surface, @NotNull NlModel model) {
     mySurface = surface;
     myModel = model;
-
-    if (!ConstraintLayoutHandler.USE_SOLVER) {
-      myScene = Scene.createScene(myModel, this);
-    }
+    myScene = Scene.createScene(myModel, this);
 
     myModel.getSelectionModel().addListener((model1, selection) -> ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
@@ -63,8 +60,10 @@ public abstract class SceneView {
     }));
   }
 
-  @Nullable
-  public Scene getScene() { return myScene; }
+  @NotNull
+  public Scene getScene() {
+    return myScene;
+  }
 
   @Nullable
   public RenderResult getResult() {
