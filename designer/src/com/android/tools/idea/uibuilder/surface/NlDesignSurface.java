@@ -206,9 +206,7 @@ public class NlDesignSurface extends DesignSurface {
       myLayers.add(new ConstraintsLayer(this, myScreenView, true));
     }
 
-    if (ConstraintLayoutHandler.USE_SCENE_INTERACTION) {
-      myLayers.add(new SceneLayer(this, myScreenView, false));
-    }
+    myLayers.add(new SceneLayer(this, myScreenView, false));
     myLayers.add(new WarningLayer(myScreenView));
     if (getLayoutType().isSupportedByDesigner()) {
       myLayers.add(new CanvasResizeLayer(this, myScreenView));
@@ -216,15 +214,10 @@ public class NlDesignSurface extends DesignSurface {
   }
 
   private void addBlueprintLayers(@NotNull ScreenView view) {
-    if (!ConstraintLayoutHandler.USE_SCENE_INTERACTION) {
-      myLayers.add(new BlueprintLayer(view));
-    }
     myLayers.add(new SelectionLayer(view));
     myLayers.add(new MockupLayer(view));
     myLayers.add(new CanvasResizeLayer(this, view));
-    if (ConstraintLayoutHandler.USE_SCENE_INTERACTION) {
-      myLayers.add(new SceneLayer(this, view, true));
-    }
+    myLayers.add(new SceneLayer(this, view, true));
   }
 
   @Nullable
@@ -367,11 +360,11 @@ public class NlDesignSurface extends DesignSurface {
         myBlueprintView.setLocation(myScreenX + screenViewSize.width + SCREEN_DELTA, myScreenY);
       }
     }
-    if (myScreenView != null && myScreenView.getScene() != null) {
+    if (myScreenView != null) {
       Scene scene = myScreenView.getScene();
       scene.needsRebuildList();
     }
-    if (myBlueprintView != null && myBlueprintView.getScene() != null) {
+    if (myBlueprintView != null) {
       Scene scene = myBlueprintView.getScene();
       scene.needsRebuildList();
     }

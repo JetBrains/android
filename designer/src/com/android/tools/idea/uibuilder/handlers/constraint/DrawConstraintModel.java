@@ -216,12 +216,10 @@ class DrawConstraintModel implements MouseInteraction.NeedsLayoutCallback {
     Graphics2D g = (Graphics2D)gc.create();
     WidgetDecorator.setShowFakeUI(mShowFakeUI);
 
-    if (!ConstraintLayoutHandler.USE_SOLVER) {
-      int dpi = myConstraintModel.getNlModel().getConfiguration().getDensity().getDpiValue();
-      myConstraintModel.setDpiValue(dpi);
-      Scene scene = screenView.getScene();
-      myConstraintModel.updateNlModel(scene, myConstraintModel.getNlModel().getComponents(), true);
-    }
+    int dpi = myConstraintModel.getNlModel().getConfiguration().getDensity().getDpiValue();
+    myConstraintModel.setDpiValue(dpi);
+    Scene scene = screenView.getScene();
+    myConstraintModel.updateNlModel(scene, myConstraintModel.getNlModel().getComponents(), true);
 
     if (mySceneDraw.getCurrentStyle() == WidgetDecorator.BLUEPRINT_STYLE) {
        mySceneDraw.drawBackground(myConstraintModel.getScene().getWidget(component),
@@ -231,7 +229,6 @@ class DrawConstraintModel implements MouseInteraction.NeedsLayoutCallback {
       mySceneDraw.animateConstraints(myConstraintModel.getNeedsAnimateConstraints());
       myConstraintModel.setNeedsAnimateConstraints(-1);
     }
-    mySceneDraw.setApplyConstraints(ConstraintLayoutHandler.USE_SOLVER);
     boolean ret = mySceneDraw.paintWidgets(component, width, height, myViewTransform, g, showAllConstraints, myMouseInteraction);
     g.dispose();
     return ret;
