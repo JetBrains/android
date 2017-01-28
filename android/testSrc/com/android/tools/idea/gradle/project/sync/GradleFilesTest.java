@@ -19,6 +19,8 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.impl.PsiManagerEx;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
@@ -26,8 +28,7 @@ import org.mockito.Mock;
 import java.io.File;
 import java.io.IOException;
 
-import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
-import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.intellij.openapi.util.io.FileUtil.appendToFile;
@@ -104,21 +105,6 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     assertTrue(filesModified);
   }
 
-  @NotNull
-  private VirtualFile findOrCreateFileInProjectRootFolder(@NotNull String fileName) {
-    File filePath = findOrCreateFilePathInProjectRootFolder(fileName);
-    VirtualFile file = findFileByIoFile(filePath, true);
-    assertNotNull(file);
-    return file;
-  }
-
-  @NotNull
-  private File findOrCreateFilePathInProjectRootFolder(@NotNull String fileName) {
-    File filePath = new File(getBaseDirPath(getProject()), fileName);
-    assertTrue(createIfNotExists(filePath));
-    return filePath;
-  }
-
   public void testAreGradleFilesModifiedWithModifiedBuildDotGradleFile() throws Exception {
     loadSimpleApplication();
 
@@ -150,6 +136,39 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     VirtualFile buildFile = getGradleBuildFile(appModule);
     assertNotNull(buildFile);
     return buildFile;
+  }
+
+  public void testIsGradleFileWithBuildDotGradleFile() {
+    PsiFile psiFile = findOrCreatePsiFileInProjectRootFolder(FN_BUILD_GRADLE);
+    assertTrue(myGradleFiles.isGradleFile(psiFile));
+  }
+
+  public void testIsGradleFileWithGradleDotPropertiesFile() {
+    PsiFile psiFile = findOrCreatePsiFileInProjectRootFolder(FN_GRADLE_PROPERTIES);
+    assertTrue(myGradleFiles.isGradleFile(psiFile));
+  }
+
+  @NotNull
+  private PsiFile findOrCreatePsiFileInProjectRootFolder(@NotNull String fileName) {
+    VirtualFile file = findOrCreateFileInProjectRootFolder(fileName);
+    PsiFile psiFile = PsiManagerEx.getInstanceEx(getProject()).findFile(file);
+    assertNotNull(psiFile);
+    return psiFile;
+  }
+
+  @NotNull
+  private VirtualFile findOrCreateFileInProjectRootFolder(@NotNull String fileName) {
+    File filePath = findOrCreateFilePathInProjectRootFolder(fileName);
+    VirtualFile file = findFileByIoFile(filePath, true);
+    assertNotNull(file);
+    return file;
+  }
+
+  @NotNull
+  private File findOrCreateFilePathInProjectRootFolder(@NotNull String fileName) {
+    File filePath = new File(getBaseDirPath(getProject()), fileName);
+    assertTrue(createIfNotExists(filePath));
+    return filePath;
   }
 
   private void simulateUnsavedChanges(@NotNull VirtualFile file) {

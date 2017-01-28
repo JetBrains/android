@@ -27,7 +27,6 @@ import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -98,19 +97,18 @@ public class GradleSyncState {
 
   public GradleSyncState(@NotNull Project project,
                          @NotNull GradleProjectInfo gradleProjectInfo,
-                         @NotNull MessageBus messageBus,
-                         @NotNull FileDocumentManager documentManager) {
-    this(project, gradleProjectInfo, messageBus, new StateChangeNotification(project), new GradleSyncSummary(project),
-         new GradleFiles(project, documentManager));
+                         @NotNull GradleFiles gradleFiles,
+                         @NotNull MessageBus messageBus) {
+    this(project, gradleProjectInfo, gradleFiles, messageBus, new StateChangeNotification(project), new GradleSyncSummary(project));
   }
 
   @VisibleForTesting
   GradleSyncState(@NotNull Project project,
                   @NotNull GradleProjectInfo gradleProjectInfo,
+                  @NotNull GradleFiles gradleFiles,
                   @NotNull MessageBus messageBus,
                   @NotNull StateChangeNotification changeNotification,
-                  @NotNull GradleSyncSummary summary,
-                  @NotNull GradleFiles gradleFiles) {
+                  @NotNull GradleSyncSummary summary) {
     myProject = project;
     myGradleProjectInfo = gradleProjectInfo;
     myMessageBus = messageBus;
@@ -335,10 +333,6 @@ public class GradleSyncState {
       return ThreeState.UNSURE;
     }
     return myGradleFiles.areGradleFilesModified(lastSync) ? ThreeState.YES : ThreeState.NO;
-  }
-
-  public boolean areExternalBuildFilesModified() {
-    return myGradleFiles.areExternalBuildFilesModified();
   }
 
   @NotNull

@@ -16,30 +16,38 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.intellij.lang.properties.PropertiesFileType;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.groovy.GroovyFileType;
 
 import java.io.File;
 
-import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
-import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
-class GradleFiles {
+public class GradleFiles {
   private static final Key<Boolean> EXTERNAL_BUILD_FILES_MODIFIED = Key.create("android.gradle.project.external.build.files.modified");
 
   @NotNull private final Project myProject;
   @NotNull private final FileDocumentManager myDocumentManager;
 
-  GradleFiles(@NotNull Project project, @NotNull FileDocumentManager documentManager) {
+  @NotNull
+  public static GradleFiles getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, GradleFiles.class);
+  }
+
+  public GradleFiles(@NotNull Project project, @NotNull FileDocumentManager documentManager) {
     myProject = project;
     myDocumentManager = documentManager;
   }
@@ -58,7 +66,7 @@ class GradleFiles {
    * @return {@code true} if any of the Gradle files changed, {@code false} otherwise.
    * @throws IllegalArgumentException if the given time is less than or equal to zero.
    */
-  boolean areGradleFilesModified(long referenceTimeInMillis) {
+  public boolean areGradleFilesModified(long referenceTimeInMillis) {
     if (referenceTimeInMillis <= 0) {
       throw new IllegalArgumentException("Reference time (in milliseconds) should be greater than zero");
     }
@@ -124,7 +132,24 @@ class GradleFiles {
     myProject.putUserData(EXTERNAL_BUILD_FILES_MODIFIED, changed ? true : null);
   }
 
-  boolean areExternalBuildFilesModified() {
+  public boolean areExternalBuildFilesModified() {
     return EXTERNAL_BUILD_FILES_MODIFIED.get(myProject, false);
+  }
+
+  public boolean isGradleFile(@NotNull PsiFile psiFile) {
+    if (psiFile.getFileType() == GroovyFileType.GROOVY_FILE_TYPE) {
+      VirtualFile file = psiFile.getVirtualFile();
+      if (file != null && EXT_GRADLE.equals(file.getExtension())) {
+        return true;
+      }
+    }
+    if (psiFile.getFileType() == PropertiesFileType.INSTANCE) {
+      VirtualFile file = psiFile.getVirtualFile();
+      if (file != null && FN_GRADLE_PROPERTIES.equals(file.getName())) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }
