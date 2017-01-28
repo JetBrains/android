@@ -908,6 +908,7 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncState"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleFiles"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleNotification"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.messages.SyncMessages"/>

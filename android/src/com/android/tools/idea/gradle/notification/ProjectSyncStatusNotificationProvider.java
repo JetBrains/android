@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.notification;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.intellij.ide.actions.ShowFilePathAction;
@@ -131,7 +132,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
         @Override
         @NotNull
         NotificationPanel create(@NotNull Project project) {
-          boolean buildFilesModified = GradleSyncState.getInstance(project).areExternalBuildFilesModified();
+          boolean buildFilesModified = GradleFiles.getInstance(project).areExternalBuildFilesModified();
           String text = (buildFilesModified ? "External build files" : "Gradle files") +
                         " have changed since last project sync. A project sync may be necessary for the IDE to work properly.";
           return new StaleGradleModelNotificationPanel(project, this, text);
