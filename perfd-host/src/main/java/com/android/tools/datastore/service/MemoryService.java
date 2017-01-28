@@ -16,7 +16,6 @@
 package com.android.tools.datastore.service;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.adtui.model.DurationData;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.LegacyAllocationTrackingService;
 import com.android.tools.datastore.ServicePassThrough;
@@ -27,21 +26,19 @@ import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.google.protobuf3jarjar.ByteString;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import gnu.trove.TIntObjectHashMap;
 import io.grpc.ManagedChannel;
-import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.RunnableFuture;
 import java.util.function.Consumer;
 
 import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.COMPLETED;
-import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.POST_PROCESS;
 import static com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse.Status.SUCCESS;
 
 public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase implements ServicePassThrough {
@@ -89,7 +86,9 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
     observer.onNext(myPollingService.startMonitoringApp(request));
     observer.onCompleted();
     int processId = request.getProcessId();
-    myRunners.put(processId, new MemoryDataPoller(processId, myMemoryTable, myPollingService, myLegacyAllocationsInfoLatches, myHeapDumpDataLatches, myFetchExecutor));
+    myRunners.put(processId,
+                  new MemoryDataPoller(processId, myMemoryTable, myPollingService, myLegacyAllocationsInfoLatches, myHeapDumpDataLatches,
+                                       myFetchExecutor));
     myFetchExecutor.accept(myRunners.get(processId));
   }
 
@@ -114,7 +113,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   }
 
   @Override
-  public void getHeapDump(HeapDumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
+  public void getHeapDump(DumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
     DumpDataResponse.Builder responseBuilder = DumpDataResponse.newBuilder();
 
     HeapDumpInfo.Builder infoBuilder = HeapDumpInfo.newBuilder();
@@ -166,7 +165,9 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       }
       else {
         myLegacyAllocationTrackingService
-          .trackAllocations(processId, response.getTimestamp(), request.getEnabled(), (classes, stacks, allocations) -> {
+          .trackAllocations(processId, response.getTimestamp(), request.getEnabled(), (data, classes, stacks, allocations) -> {
+            myMemoryTable.insertAllocationDumpData(response.getInfo(), data);
+
             classes.forEach(allocatedClass -> myMemoryTable.insertIfNotExist(allocatedClass.getClassName(), allocatedClass));
             stacks.forEach(allocationStack -> myMemoryTable.insertIfNotExist(allocationStack.getStackId(), allocationStack));
             allocations.forEach(allocationEvent -> myMemoryTable.insert(allocationEvent));
@@ -207,6 +208,31 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
     List<AllocatedClass> classes = myMemoryTable.getAllocatedClassesForRequest(request);
     responseBuilder.addAllAllocationStacks(stacks);
     responseBuilder.addAllAllocatedClasses(classes);
+    responseObserver.onNext(responseBuilder.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void getAllocationDump(DumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
+    DumpDataResponse.Builder responseBuilder = DumpDataResponse.newBuilder();
+
+    GetAllocationsInfoStatusResponse response = myMemoryTable.getAllocationInfoStatus(request.getDumpId());
+    byte[] data = myMemoryTable.getAllocationDumpData(request.getDumpId());
+    if (response.getStatus() == COMPLETED && data == null) {
+      responseBuilder.setStatus(DumpDataResponse.Status.NOT_FOUND);
+    }
+    else if (response.getStatus() == AllocationsInfo.Status.FAILURE_UNKNOWN) {
+      responseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
+    }
+    else {
+      if (data == null) {
+        responseBuilder.setStatus(DumpDataResponse.Status.NOT_READY);
+      }
+      else {
+        responseBuilder.setStatus(DumpDataResponse.Status.SUCCESS);
+        responseBuilder.setData(ByteString.copyFrom(data));
+      }
+    }
     responseObserver.onNext(responseBuilder.build());
     responseObserver.onCompleted();
   }
