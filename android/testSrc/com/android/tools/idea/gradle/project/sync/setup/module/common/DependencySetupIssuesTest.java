@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.common;
 
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
+import org.mockito.Mock;
 
 import java.util.List;
 
@@ -27,36 +30,44 @@ import static com.android.tools.idea.gradle.project.sync.messages.MessageType.WA
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * Tests for {@link DependencySetupErrors}.
+ * Tests for {@link DependencySetupIssues}.
  */
-public class DependencySetupErrorsTest extends IdeaTestCase {
+public class DependencySetupIssuesTest extends IdeaTestCase {
+  @Mock private GradleSyncState mySyncState;
+  @Mock private GradleSyncSummary mySyncSummary;
+
   private SyncMessagesStub mySyncMessages;
-  private DependencySetupErrors myErrors;
+  private DependencySetupIssues myIssues;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    initMocks(this);
+    when(mySyncState.getSummary()).thenReturn(mySyncSummary);
+
     Project project = getProject();
     mySyncMessages = SyncMessagesStub.replaceSyncMessagesService(project);
-    myErrors = new DependencySetupErrors(project, mySyncMessages);
+    myIssues = new DependencySetupIssues(project, mySyncState, mySyncMessages);
   }
 
   public void testAddMissingModule() {
-    myErrors.addMissingModule(":lib2", "app2", "library2.jar");
-    myErrors.addMissingModule(":lib2", "app1", "library2.jar");
-    myErrors.addMissingModule(":lib3", "app1", "library3.jar");
-    myErrors.addMissingModule(":lib1", "app1", null);
+    myIssues.addMissingModule(":lib2", "app2", "library2.jar");
+    myIssues.addMissingModule(":lib2", "app1", "library2.jar");
+    myIssues.addMissingModule(":lib3", "app1", "library3.jar");
+    myIssues.addMissingModule(":lib1", "app1", null);
 
-    List<DependencySetupErrors.MissingModule> missingModules = myErrors.getMissingModules();
+    List<DependencySetupIssues.MissingModule> missingModules = myIssues.getMissingModules();
     assertThat(missingModules).hasSize(1);
 
-    DependencySetupErrors.MissingModule missingModule = missingModules.get(0);
+    DependencySetupIssues.MissingModule missingModule = missingModules.get(0);
     assertThat(missingModule.dependencyPath).isEqualTo(":lib1");
     assertThat(missingModule.dependentNames).containsExactly("app1");
 
-    missingModules = myErrors.getMissingModulesWithBackupLibraries();
+    missingModules = myIssues.getMissingModulesWithBackupLibraries();
     assertThat(missingModules).hasSize(2);
 
     missingModule = missingModules.get(0);
@@ -66,36 +77,41 @@ public class DependencySetupErrorsTest extends IdeaTestCase {
     missingModule = missingModules.get(1);
     assertThat(missingModule.dependencyPath).isEqualTo(":lib3");
     assertThat(missingModule.dependentNames).containsExactly("app1");
+
+    verify(mySyncSummary, times(1)).setSyncErrorsFound(true);
   }
 
-  public void testAddDependentOnModuleWithoutName() {
-    myErrors.addMissingName("app2");
-    myErrors.addMissingName("app2");
-    myErrors.addMissingName("app1");
-    assertThat(myErrors.getMissingNames()).containsExactly("app1", "app2").inOrder();
+  public void testAddMissingModuleWithBackupLibrary() {
+    myIssues.addMissingModule(":lib2", "app2", "library2.jar");
+    verify(mySyncSummary, never()).setSyncErrorsFound(true);
+  }
+
+  public void testAddMissingModuleWithoutBackupLibrary() {
+    myIssues.addMissingModule(":lib2", "app2", null);
+    verify(mySyncSummary, times(1)).setSyncErrorsFound(true);
   }
 
   public void testAddDependentOnLibraryWithoutBinaryPath() {
-    myErrors.addMissingBinaryPath("app2");
-    myErrors.addMissingBinaryPath("app2");
-    myErrors.addMissingBinaryPath("app1");
-    assertThat(myErrors.getDependentsOnLibrariesWithoutBinaryPath()).containsExactly("app1", "app2").inOrder();
+    myIssues.addMissingBinaryPath("app2");
+    myIssues.addMissingBinaryPath("app2");
+    myIssues.addMissingBinaryPath("app1");
+    assertThat(myIssues.getDependentsOnLibrariesWithoutBinaryPath()).containsExactly("app1", "app2").inOrder();
+
+    verify(mySyncSummary, times(3)).setSyncErrorsFound(true);
   }
 
-  public void testReportErrors() {
-    myErrors.addMissingModule(":lib1", "app1", null);
-    myErrors.addMissingModule(":lib2", "app2", "library2.jar");
-    myErrors.addMissingModule(":lib2", "app1", "library2.jar");
-    myErrors.addMissingModule(":lib3", "app1", "library3.jar");
-    myErrors.addMissingName("app2");
-    myErrors.addMissingName("app1");
-    myErrors.addMissingBinaryPath("app2");
-    myErrors.addMissingBinaryPath("app1");
+  public void testReportIssues() {
+    myIssues.addMissingModule(":lib1", "app1", null);
+    myIssues.addMissingModule(":lib2", "app2", "library2.jar");
+    myIssues.addMissingModule(":lib2", "app1", "library2.jar");
+    myIssues.addMissingModule(":lib3", "app1", "library3.jar");
+    myIssues.addMissingBinaryPath("app2");
+    myIssues.addMissingBinaryPath("app1");
 
-    myErrors.reportErrors();
+    myIssues.reportIssues();
 
     List<SyncMessage> messages = mySyncMessages.getReportedMessages();
-    assertThat(messages).hasSize(7);
+    assertThat(messages).hasSize(5);
 
     SyncMessage message = messages.get(0);
     // @formatter:off
@@ -105,34 +121,19 @@ public class DependencySetupErrorsTest extends IdeaTestCase {
     // @formatter:on
 
     message = messages.get(1);
-    // @formatter:off
     assertAbout(syncMessage()).that(message).hasGroup("Missing Dependencies")
                                             .hasType(ERROR)
-                                            .hasMessageLine("Module 'app1' depends on modules that do not have a name.", 0);
+                                            .hasMessageLine("Module 'app1' depends on libraries that do not have a 'binary' path.", 0);
     // @formatter:on
 
     message = messages.get(2);
     // @formatter:off
     assertAbout(syncMessage()).that(message).hasGroup("Missing Dependencies")
                                             .hasType(ERROR)
-                                            .hasMessageLine("Module 'app2' depends on modules that do not have a name.", 0);
-    // @formatter:on
-
-    message = messages.get(3);
-    // @formatter:off
-    assertAbout(syncMessage()).that(message).hasGroup("Missing Dependencies")
-                                            .hasType(ERROR)
-                                            .hasMessageLine("Module 'app1' depends on libraries that do not have a 'binary' path.", 0);
-    // @formatter:on
-
-    message = messages.get(4);
-    // @formatter:off
-    assertAbout(syncMessage()).that(message).hasGroup("Missing Dependencies")
-                                            .hasType(ERROR)
                                             .hasMessageLine("Module 'app2' depends on libraries that do not have a 'binary' path.", 0);
     // @formatter:on
 
-    message = messages.get(5);
+    message = messages.get(3);
     // @formatter:off
     assertAbout(syncMessage()).that(message).hasGroup("Missing Dependencies")
                                             .hasType(WARNING)
@@ -140,7 +141,7 @@ public class DependencySetupErrorsTest extends IdeaTestCase {
                                             .hasMessageLine("Linking to library 'library2.jar' instead.", 1) ;
     // @formatter:on
 
-    message = messages.get(6);
+    message = messages.get(4);
     // @formatter:off
     assertAbout(syncMessage()).that(message).hasGroup("Missing Dependencies")
                                             .hasType(WARNING)
