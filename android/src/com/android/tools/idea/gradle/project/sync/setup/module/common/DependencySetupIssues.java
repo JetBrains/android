@@ -16,10 +16,11 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.common;
 
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.MessageType;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -30,56 +31,54 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.MISSING_DEPENDENCIES;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.WARNING;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ArrayUtil.toStringArray;
-import static java.util.Collections.sort;
 
 /**
  * Collects and reports dependencies that were not correctly set up during a Gradle sync.
  */
-public class DependencySetupErrors {
+public class DependencySetupIssues {
   @NotNull private final Project myProject;
+  @NotNull private final GradleSyncState mySyncState;
   @NotNull private final SyncMessages mySyncMessages;
 
-  @NotNull private final Map<String, MissingModule> myMissingModules = new HashMap<>();
-  @NotNull private final Map<String, MissingModule> myMissingModulesWithBackupLibraries = new HashMap<>();
+  @NotNull private final Map<String, MissingModule> myMissingModules = new ConcurrentHashMap<>();
+  @NotNull private final Map<String, MissingModule> myMissingModulesWithBackupLibraries = new ConcurrentHashMap<>();
 
-  @NotNull private final Set<String> myDependentsOnModulesWithoutName = new HashSet<>();
-  @NotNull private final Set<String> myDependentsOnLibrariesWithoutBinaryPath = new HashSet<>();
-
-  @NotNull private final Set<InvalidModuleDependency> myInvalidModuleDependencies = new HashSet<>();
+  @NotNull private final Set<String> myDependentsOnLibrariesWithoutBinaryPath = new CopyOnWriteArraySet<>();
+  @NotNull private final Set<InvalidModuleDependency> myInvalidModuleDependencies = new CopyOnWriteArraySet<>();
 
   @NotNull
-  public static DependencySetupErrors getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, DependencySetupErrors.class);
+  public static DependencySetupIssues getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, DependencySetupIssues.class);
   }
 
-  public DependencySetupErrors(@NotNull Project project, @NotNull SyncMessages syncMessages) {
+  public DependencySetupIssues(@NotNull Project project, @NotNull GradleSyncState syncState, @NotNull SyncMessages syncMessages) {
     myProject = project;
+    mySyncState = syncState;
     mySyncMessages = syncMessages;
   }
 
-  public void reportErrors() {
+  public void reportIssues() {
     reportModulesNotFoundIssues(getMissingModules());
-
-    for (String dependent : getMissingNames()) {
-      String msg = String.format("Module '%1$s' depends on modules that do not have a name.", dependent);
-      mySyncMessages.report(new SyncMessage(MISSING_DEPENDENCIES, ERROR, msg));
-    }
 
     for (String dependent : getDependentsOnLibrariesWithoutBinaryPath()) {
       String msg = String.format("Module '%1$s' depends on libraries that do not have a 'binary' path.", dependent);
       mySyncMessages.report(new SyncMessage(MISSING_DEPENDENCIES, ERROR, msg));
     }
 
-    for (DependencySetupErrors.InvalidModuleDependency dependency : myInvalidModuleDependencies) {
+    for (DependencySetupIssues.InvalidModuleDependency dependency : myInvalidModuleDependencies) {
       String msg = String.format("Ignoring dependency of module '%1$s' on module '%2$s'. %3$s",
-                                 dependency.dependent, dependency.dependency.getName(), dependency.causeDescription);
+                                 dependency.dependent, dependency.dependency.getName(), dependency.cause);
       VirtualFile buildFile = getGradleBuildFile(dependency.dependency);
       assert buildFile != null;
       OpenFileDescriptor navigatable = new OpenFileDescriptor(dependency.dependency.getProject(), buildFile, 0);
@@ -110,7 +109,7 @@ public class DependencySetupErrors {
     List<MissingModule> missingModules = new ArrayList<>();
     List<String> names = new ArrayList<>(missingModulesByName.keySet());
     if (names.size() > 1) {
-      sort(names);
+      names.sort(String::compareTo);
     }
     for (String name : names) {
       MissingModule missingModule = missingModulesByName.get(name);
@@ -118,12 +117,6 @@ public class DependencySetupErrors {
       missingModules.add(missingModule);
     }
     return missingModules;
-  }
-
-  @VisibleForTesting
-  @NotNull
-  List<String> getMissingNames() {
-    return sortSet(myDependentsOnModulesWithoutName);
   }
 
   @VisibleForTesting
@@ -139,15 +132,14 @@ public class DependencySetupErrors {
     }
     List<String> sorted = new ArrayList<>(set);
     if (sorted.size() > 1) {
-      sort(sorted);
+      sorted.sort(String::compareTo);
     }
     return sorted;
   }
 
   private void reportModulesNotFoundIssues(@NotNull List<MissingModule> missingModules) {
     if (!missingModules.isEmpty()) {
-      MessageType type = ERROR;
-
+      boolean hasError = false;
       for (MissingModule missingModule : missingModules) {
         List<String> messageLines = new ArrayList<>();
 
@@ -160,18 +152,20 @@ public class DependencySetupErrors {
 
         String backupLibraryName = missingModule.backupLibraryName;
         if (isNotEmpty(backupLibraryName)) {
-          type = WARNING;
           String msg = String.format("Linking to library '%1$s' instead.", backupLibraryName);
           messageLines.add(msg);
         }
-        mySyncMessages.report(new SyncMessage(MISSING_DEPENDENCIES, type, toStringArray(messageLines)));
+        if (missingModule.isError()) {
+          hasError = true;
+        }
+        mySyncMessages.report(new SyncMessage(MISSING_DEPENDENCIES, missingModule.issueType, toStringArray(messageLines)));
       }
 
       // If the project is really a subset of the project, attempt to find and include missing modules.
       ProjectSubset projectSubset = ProjectSubset.getInstance(myProject);
       String[] selection = projectSubset.getSelection();
       boolean hasSelection = selection != null && selection.length > 0;
-      if (type == ERROR && hasSelection && projectSubset.hasCachedModules()) {
+      if (hasError && hasSelection && projectSubset.hasCachedModules()) {
         String text = "The missing modules may have been excluded from the project subset.";
         SyncMessage message = new SyncMessage(MISSING_DEPENDENCIES, MessageType.INFO, text);
         message.add(new IncludeMissingModulesHyperlink(missingModules));
@@ -201,52 +195,51 @@ public class DependencySetupErrors {
   private void clear() {
     myMissingModules.clear();
     myMissingModulesWithBackupLibraries.clear();
-    myDependentsOnModulesWithoutName.clear();
     myDependentsOnLibrariesWithoutBinaryPath.clear();
     myInvalidModuleDependencies.clear();
   }
 
   public void addMissingModule(@NotNull String dependencyName, @NotNull String dependentName, @Nullable String backupLibraryName) {
     Map<String, MissingModule> mapping = isNotEmpty(backupLibraryName) ? myMissingModulesWithBackupLibraries : myMissingModules;
-    MissingModule missingModule = mapping.get(dependencyName);
-    if (missingModule == null) {
-      missingModule = new MissingModule(dependencyName, backupLibraryName);
-      mapping.put(dependencyName, missingModule);
-    }
+    MissingModule missingModule = mapping.computeIfAbsent(dependencyName, name -> new MissingModule(name, backupLibraryName));
     missingModule.addDependent(dependentName);
-  }
-
-  /**
-   * Adds the name of a module that depends on another module that does not have a name.
-   * @param dependentName the name of the module.
-   */
-  public void addMissingName(@NotNull String dependentName) {
-    myDependentsOnModulesWithoutName.add(dependentName);
+    if (missingModule.isError()) {
+      registerSyncError();
+    }
   }
 
   /**
    * Adds the name of a module that depends on a library, but the library is missing the path of the binary file.
+   *
    * @param dependentName the name of the module.
    */
   public void addMissingBinaryPath(@NotNull String dependentName) {
     myDependentsOnLibrariesWithoutBinaryPath.add(dependentName);
+    registerSyncError();
   }
 
-  public void addInvalidModuleDependency(@NotNull Module module, @NotNull String targetModuleName, @NotNull String causeDescription) {
-    myInvalidModuleDependencies.add(new InvalidModuleDependency(module, targetModuleName, causeDescription));
+  private void registerSyncError() {
+    mySyncState.getSummary().setSyncErrorsFound(true);
+  }
+
+  public void addInvalidModuleDependency(@NotNull Module dependency,
+                                         @NotNull String dependent,
+                                         @SuppressWarnings("SameParameterValue") @NotNull String cause) {
+    myInvalidModuleDependencies.add(new InvalidModuleDependency(dependency, dependent, cause));
   }
 
   @VisibleForTesting
   static class MissingModule {
     @NotNull final String dependencyPath;
-    @NotNull final List<String> dependentNames;
-
+    @NotNull final MessageType issueType;
     @Nullable final String backupLibraryName;
+
+    @NotNull final List<String> dependentNames = new CopyOnWriteArrayList<>();
 
     MissingModule(@NotNull String dependencyPath, @Nullable String backupLibraryName) {
       this.dependencyPath = dependencyPath;
-      dependentNames = new ArrayList<>();
       this.backupLibraryName = backupLibraryName;
+      issueType = isEmpty(backupLibraryName) ? ERROR : WARNING;
     }
 
     void addDependent(@NotNull String dependentName) {
@@ -255,8 +248,12 @@ public class DependencySetupErrors {
 
     void sortDependentNames() {
       if (!dependentNames.isEmpty()) {
-        sort(dependentNames);
+        dependentNames.sort(String::compareTo);
       }
+    }
+
+    boolean isError() {
+      return issueType == ERROR;
     }
   }
 
@@ -264,12 +261,12 @@ public class DependencySetupErrors {
   static class InvalidModuleDependency {
     @NotNull final Module dependency;
     @NotNull final String dependent;
-    @NotNull final String causeDescription;
+    @NotNull final String cause;
 
-    InvalidModuleDependency(@NotNull Module dependency, @NotNull String dependent, @NotNull String causeDescription) {
+    InvalidModuleDependency(@NotNull Module dependency, @NotNull String dependent, @NotNull String cause) {
       this.dependency = dependency;
       this.dependent = dependent;
-      this.causeDescription = causeDescription;
+      this.cause = cause;
     }
   }
 
