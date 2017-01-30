@@ -611,11 +611,14 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     getRenderingQueue().queue(new Update("model.render", LOW_PRIORITY) {
       @Override
       public void run() {
-        if (myFacet.isDisposed()) {
-          return;
+        try {
+          render();
         }
-
-        render();
+        catch (Throwable e) {
+          if (!myFacet.isDisposed()) {
+            throw e;
+          }
+        }
       }
 
       @Override
