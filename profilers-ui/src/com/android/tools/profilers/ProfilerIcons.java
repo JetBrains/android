@@ -27,6 +27,8 @@ public class ProfilerIcons {
 
   public static final Icon GARBAGE_EVENT = load("/icons/garbage-event.png");
 
+  public static final Icon BACK_ARROW = load("/icons/back-arrow.png");
+
   // Collections of constant, do not instantiate.
   private ProfilerIcons() {}
 
