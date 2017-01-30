@@ -125,7 +125,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     AndroidSourceSet dummySourceSet = new AndroidSourceSet("main", new AndroidProjectPaths(new File("")));
 
     myRenderModel = new RenderTemplateModel(moduleModel, templateList.get(0), dummySourceSet,
-                                            message("android.wizard.activity.add"));
+                                            message("android.wizard.activity.add", myFormFactor.id));
 
     // Some changes on this step model trigger changes on the Render Model
     myListeners.listenAll(moduleModel.getProject(), moduleModel.moduleName()).withAndFire(() -> {
