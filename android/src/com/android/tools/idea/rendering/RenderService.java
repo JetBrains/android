@@ -41,6 +41,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
@@ -79,7 +80,11 @@ public class RenderService extends AndroidFacetScopedService {
   public static final boolean MOCKUP_EDITOR_ENABLED = false;
 
   /** Number of ms that we will wait for the rendering thread to return before timing out */
-  private static final long DEFAULT_RENDER_THREAD_TIMEOUT_MS = Integer.getInteger("layoutlib.thread.timeout", 6000);
+  private static final long DEFAULT_RENDER_THREAD_TIMEOUT_MS = Long.getLong("layoutlib.thread.timeout",
+                                                                            TimeUnit.SECONDS.toMillis(
+                                                                              ApplicationManager.getApplication().isUnitTestMode()
+                                                                              ? 60
+                                                                              : 6));
   /** Number of ms that we will keep the render thread alive when idle */
   private static final long RENDER_THREAD_IDLE_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(10);
 
@@ -416,7 +421,6 @@ public class RenderService extends AndroidFacetScopedService {
       if (ourTimeoutExceptionCounter.get() > 3) {
         ourRenderingExecutor.submit(() -> ourTimeoutExceptionCounter.set(0)).get(50, TimeUnit.MILLISECONDS);
       }
-
       T result = ourRenderingExecutor.submit(callable).get(DEFAULT_RENDER_THREAD_TIMEOUT_MS, TimeUnit.MILLISECONDS);
       // The executor seems to be taking tasks so reset the counter
       ourTimeoutExceptionCounter.set(0);
