@@ -34,6 +34,7 @@ public class GradleTaskStub implements GradleTask {
   }
 
   @Override
+  @NotNull
   public String getName() {
     return myName;
   }
@@ -49,6 +50,7 @@ public class GradleTaskStub implements GradleTask {
   }
 
   @Override
+  @NotNull
   public GradleProjectStub getProject() {
     return myProject;
   }

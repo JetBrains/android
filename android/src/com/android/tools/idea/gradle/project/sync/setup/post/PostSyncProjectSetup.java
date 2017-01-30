@@ -27,7 +27,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
-import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
+import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.setup.post.project.DisposedModules;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
@@ -70,7 +70,7 @@ public class PostSyncProjectSetup {
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final GradleSyncInvoker mySyncInvoker;
   @NotNull private final GradleSyncState mySyncState;
-  @NotNull private final DependencySetupErrors myDependencySetupErrors;
+  @NotNull private final DependencySetupIssues myDependencySetupIssues;
   @NotNull private final ProjectSetup myProjectSetup;
   @NotNull private final ModuleSetup myModuleSetup;
   @NotNull private final PluginVersionUpgrade myPluginVersionUpgrade;
@@ -91,10 +91,10 @@ public class PostSyncProjectSetup {
                               @NotNull GradleSyncInvoker syncInvoker,
                               @NotNull GradleSyncState syncState,
                               @NotNull SyncMessages syncMessages,
-                              @NotNull DependencySetupErrors dependencySetupErrors,
+                              @NotNull DependencySetupIssues dependencySetupIssues,
                               @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                               @NotNull GradleProjectBuilder projectBuilder) {
-    this(project, ideInfo, syncInvoker, syncState, dependencySetupErrors, new ProjectSetup(project), new ModuleSetup(project),
+    this(project, ideInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project), new ModuleSetup(project),
          new PluginVersionUpgrade(project), versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(),
          RunManagerImpl.getInstanceImpl(project));
   }
@@ -104,7 +104,7 @@ public class PostSyncProjectSetup {
                        @NotNull IdeInfo ideInfo,
                        @NotNull GradleSyncInvoker syncInvoker,
                        @NotNull GradleSyncState syncState,
-                       @NotNull DependencySetupErrors dependencySetupErrors,
+                       @NotNull DependencySetupIssues dependencySetupIssues,
                        @NotNull ProjectSetup projectSetup,
                        @NotNull ModuleSetup moduleSetup,
                        @NotNull PluginVersionUpgrade pluginVersionUpgrade,
@@ -116,7 +116,7 @@ public class PostSyncProjectSetup {
     myIdeInfo = ideInfo;
     mySyncInvoker = syncInvoker;
     mySyncState = syncState;
-    myDependencySetupErrors = dependencySetupErrors;
+    myDependencySetupIssues = dependencySetupIssues;
     myProjectSetup = projectSetup;
     myModuleSetup = moduleSetup;
     myPluginVersionUpgrade = pluginVersionUpgrade;
@@ -137,7 +137,7 @@ public class PostSyncProjectSetup {
       return;
     }
 
-    myDependencySetupErrors.reportErrors();
+    myDependencySetupIssues.reportIssues();
     myVersionCompatibilityChecker.checkAndReportComponentIncompatibilities(myProject);
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
@@ -392,6 +392,26 @@ public class PostSyncProjectSetup {
     public Request setLastSyncTimestamp(long lastSyncTimestamp) {
       myLastSyncTimestamp = lastSyncTimestamp;
       return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      Request request = (Request)o;
+      return myUsingCachedGradleModels == request.myUsingCachedGradleModels &&
+             myCleanProjectAfterSync == request.myCleanProjectAfterSync &&
+             myGenerateSourcesAfterSync == request.myGenerateSourcesAfterSync &&
+             myLastSyncTimestamp == request.myLastSyncTimestamp;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(myUsingCachedGradleModels, myCleanProjectAfterSync, myGenerateSourcesAfterSync, myLastSyncTimestamp);
     }
   }
 }
