@@ -25,6 +25,8 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.npw.ThemeHelper;
 import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
@@ -82,6 +84,9 @@ public final class TemplateValueInjector {
 
     myTemplateValues.put(ATTR_IS_NEW_PROJECT, false); // Android Modules are called Gradle Projects
     myTemplateValues.put(ATTR_IS_LIBRARY_MODULE, facet.isLibraryProject());
+
+    String appTheme = MergedManifest.get(facet).getManifestTheme();
+    myTemplateValues.put(ATTR_HAS_APPLICATION_THEME, appTheme != null);
 
     AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
     if (platform != null) {
