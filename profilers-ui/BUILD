@@ -5,6 +5,7 @@ iml_module(
     srcs = ["src"],
     resources = ["resources"],
     tags = ["managed"],
+    test_data = glob(["testData/**"]),
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
