@@ -330,6 +330,7 @@ public class DragTarget extends ConstraintTarget {
     if (myComponent.getParent() == null) {
       return;
     }
+    myComponent.setDragging(true);
     NlComponent component = myComponent.getNlComponent();
     AttributesTransaction attributes = component.startAttributeTransaction();
     int dx = x - myOffsetX;
@@ -374,6 +375,7 @@ public class DragTarget extends ConstraintTarget {
 
   @Override
   public void mouseRelease(int x, int y, @Nullable Target closestTarget) {
+    myComponent.setDragging(false);
     if (myComponent.getParent() != null) {
       boolean commitChanges = true;
       if (Math.abs(x - myFirstMouseX) <= 1 && Math.abs(y - myFirstMouseY) <= 1) {
@@ -423,6 +425,11 @@ public class DragTarget extends ConstraintTarget {
 
   public boolean hasChangedComponent() {
     return myChangedComponent;
+  }
+
+  @Override
+  public Cursor getMouseCursor() {
+    return Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
   }
 
   //endregion
