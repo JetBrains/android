@@ -22,6 +22,7 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SelectionModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.*;
@@ -200,17 +201,15 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     DetailedMemoryUsage memoryUsage = getStage().getDetailedMemoryUsage();
     final LineChart lineChart = new LineChart(memoryUsage);
-    lineChart.configure(memoryUsage.getJavaSeries(), new LineConfig(ProfilerColors.MEMORY_JAVA).setFilled(true).setStacked(true));
-    lineChart.configure(memoryUsage.getNativeSeries(), new LineConfig(ProfilerColors.MEMORY_NATIVE).setFilled(true).setStacked(true));
-    lineChart.configure(memoryUsage.getGraphicsSeries(), new LineConfig(ProfilerColors.MEMORY_GRAPHCIS).setFilled(true).setStacked(true));
-    lineChart.configure(memoryUsage.getStackSeries(), new LineConfig(ProfilerColors.MEMORY_STACK).setFilled(true).setStacked(true));
-    lineChart.configure(memoryUsage.getCodeSeries(), new LineConfig(ProfilerColors.MEMORY_CODE).setFilled(true).setStacked(true));
-    lineChart.configure(memoryUsage.getOtherSeries(), new LineConfig(ProfilerColors.MEMORY_OTHERS).setFilled(true).setStacked(true));
+    configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_JAVA, memoryUsage.getJavaSeries());
+    configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_NATIVE, memoryUsage.getNativeSeries());
+    configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_GRAPHCIS, memoryUsage.getGraphicsSeries());
+    configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_STACK, memoryUsage.getStackSeries());
+    configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_CODE, memoryUsage.getCodeSeries());
+    configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_OTHERS, memoryUsage.getOtherSeries());
     lineChart.configure(memoryUsage.getTotalMemorySeries(), new LineConfig(ProfilerColors.MEMORY_TOTAL));
-    lineChart
-      .configure(memoryUsage.getObjectsSeries(),
-                 new LineConfig(ProfilerColors.MEMORY_OBJECTS).setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(
-                   LegendConfig.IconType.DOTTED_LINE));
+    lineChart.configure(memoryUsage.getObjectsSeries(), new LineConfig(ProfilerColors.MEMORY_OBJECTS)
+      .setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE));
 
     // TODO set proper colors / icons
     DurationDataRenderer<CaptureDurationData<HeapDumpCaptureObject>> heapDumpRenderer =
@@ -351,6 +350,10 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     myCaptureLoadingPanel.stopLoading();
     myCaptureLoadingPanel = null;
     myChartCaptureSplitter.setSecondComponent(null);
+  }
+
+  private static void configureStackedFilledLine(LineChart chart, Color color, RangedContinuousSeries series) {
+    chart.configure(series, new LineConfig(color).setFilled(true).setStacked(true).setLegendIconType(LegendConfig.IconType.BOX));
   }
 
   /**
