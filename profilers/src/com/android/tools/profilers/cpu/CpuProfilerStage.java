@@ -107,6 +107,9 @@ public class CpuProfilerStage extends Stage {
    */
   private int mySelectedThread;
 
+  @NotNull
+  private CpuProfiler.CpuProfilingAppStartRequest.Mode myProfilingMode;
+
   /**
    * A cache of already parsed captures, indexed by trace_id.
    */
@@ -138,6 +141,7 @@ public class CpuProfilerStage extends Stage {
 
     myEventMonitor = new EventMonitor(profilers);
     myCaptureState = CaptureState.IDLE;
+    myProfilingMode = CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED;
   }
 
   public AxisComponentModel getCpuUsageAxis() {
@@ -204,7 +208,7 @@ public class CpuProfilerStage extends Stage {
     CpuProfiler.CpuProfilingAppStartRequest request = CpuProfiler.CpuProfilingAppStartRequest.newBuilder()
       .setAppPkgName(getStudioProfilers().getProcess().getName()) // TODO: Investigate if this is the right way of choosing the app
       .setProfiler(CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART) // TODO: support simpleperf
-      .setMode(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED) // TODO: support instrumented mode
+      .setMode(myProfilingMode)
       .build();
 
     setCaptureState(CaptureState.STARTING);
@@ -301,6 +305,22 @@ public class CpuProfilerStage extends Stage {
   public void setCaptureState(CaptureState captureState) {
     myCaptureState = captureState;
     myAspect.changed(CpuProfilerAspect.CAPTURE);
+  }
+
+  @NotNull
+  public CpuProfiler.CpuProfilingAppStartRequest.Mode getProfilingMode() {
+    return myProfilingMode;
+  }
+
+  public void setProfilingMode(@NotNull CpuProfiler.CpuProfilingAppStartRequest.Mode mode) {
+    myProfilingMode = mode;
+    myAspect.changed(CpuProfilerAspect.PROFILING_MODE);
+  }
+
+  @NotNull
+  public ImmutableList<CpuProfiler.CpuProfilingAppStartRequest.Mode> getProfilingModes() {
+    return ContainerUtil.immutableList(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED,
+                                       CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
   }
 
   @NotNull
