@@ -103,7 +103,7 @@ public class AndroidInitialConfigurator {
   private static void customizeSettings(PropertiesComponent propertiesComponent) {
     if (!propertiesComponent.getBoolean(CONFIG_V4)) {
       propertiesComponent.setValue(CONFIG_V4, "true");
-      UISettings.getInstance().HIDE_TOOL_STRIPES = false;
+      UISettings.getInstance().setHideToolStripes(false);
 
       if (!propertiesComponent.getBoolean(CONFIG_V3)) {
         propertiesComponent.setValue(CONFIG_V3, "true");
