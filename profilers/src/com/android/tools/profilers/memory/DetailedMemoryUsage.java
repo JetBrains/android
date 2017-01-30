@@ -97,4 +97,9 @@ public class DetailedMemoryUsage extends MemoryUsage {
   public RangedContinuousSeries getObjectsSeries() {
     return myObjectsSeries;
   }
+
+  @Override
+  protected String getTotalSeriesLabel() {
+    return "Total";
+  }
 }

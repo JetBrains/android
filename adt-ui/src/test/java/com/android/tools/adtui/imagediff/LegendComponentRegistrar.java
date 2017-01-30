@@ -47,7 +47,7 @@ class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
       protected void generateComponent() {
         // Create a simple legend component with different icon types.
         addLine("", new LineConfig(Color.YELLOW).setLegendIconType(LegendConfig.IconType.NONE), MEMORY_AXIS_FORMATTER);
-        addLine("L", new LineConfig(Color.BLUE), MEMORY_AXIS_FORMATTER);
+        addLine("L", new LineConfig(Color.BLUE).setLegendIconType(LegendConfig.IconType.LINE), MEMORY_AXIS_FORMATTER);
         addLine("B", new LineConfig(Color.RED).setLegendIconType(LegendConfig.IconType.BOX), NETWORK_AXIS_FORMATTER);
       }
     });

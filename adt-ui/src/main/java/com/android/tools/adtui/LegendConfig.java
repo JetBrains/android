@@ -25,16 +25,8 @@ import java.awt.*;
  */
 public class LegendConfig {
 
-  public enum IconType {
-    NONE,
-    LINE,
-    DOTTED_LINE,
-    BOX
-  }
-
   @NotNull
   private final Color mColor;
-
   @NotNull
   private final IconType mIcon;
 
@@ -50,22 +42,23 @@ public class LegendConfig {
   }
 
   public LegendConfig(@NotNull LineConfig config) {
-    mColor = config.getColor();
-    IconType icon = config.getLegendIconType();
-    // Use a default icon type for the line in case there is no icon set in line config.
-    if (icon == null) {
-      mIcon = config.isFilled() ? IconType.BOX : IconType.LINE;
-    }
-    else {
-      mIcon = icon;
-    }
+    this (config.getLegendIconType(), config.getColor());
   }
 
+  @NotNull
   public Color getColor() {
     return mColor;
   }
 
+  @NotNull
   public IconType getIcon() {
     return mIcon;
+  }
+
+  public enum IconType {
+    NONE,
+    LINE,
+    DASHED_LINE,
+    BOX
   }
 }
