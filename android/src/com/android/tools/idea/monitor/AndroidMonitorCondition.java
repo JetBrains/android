@@ -28,6 +28,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 public class AndroidMonitorCondition implements Condition<Project> {
   @Override
   public boolean value(Project project) {
-    return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID) && AndroidToolWindowFactory.showMonitors();
+    return AndroidToolWindowFactory.showMonitors();
   }
 }
