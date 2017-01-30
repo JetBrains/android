@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
-import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
+import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
@@ -129,9 +129,9 @@ public class DependenciesModuleSetupStep extends AndroidModuleSetupStep {
       return;
     }
 
-    DependencySetupErrors dependencySetupErrors = DependencySetupErrors.getInstance(module.getProject());
+    DependencySetupIssues dependencySetupIssues = DependencySetupIssues.getInstance(module.getProject());
     String backupName = compiledArtifact != null ? compiledArtifact.getName() : null;
-    dependencySetupErrors.addMissingModule(dependency.getGradlePath(), module.getName(), backupName);
+    dependencySetupIssues.addMissingModule(dependency.getGradlePath(), module.getName(), backupName);
 
     // fall back to library dependency, if available.
     if (compiledArtifact != null) {

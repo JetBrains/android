@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker;
-import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
+import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.project.AndroidProjectInfo;
@@ -53,7 +53,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   @Mock private IdeInfo myIdeInfo;
   @Mock private GradleSyncInvoker mySyncInvoker;
   @Mock private GradleSyncState mySyncState;
-  @Mock private DependencySetupErrors myDependencySetupErrors;
+  @Mock private DependencySetupIssues myDependencySetupIssues;
   @Mock private ProjectSetup myProjectSetup;
   @Mock private ModuleSetup myModuleSetup;
   @Mock private GradleSyncSummary mySyncSummary;
@@ -79,7 +79,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     when(mySyncState.getSummary()).thenReturn(mySyncSummary);
     when(myModuleValidatorFactory.create(project)).thenReturn(myModuleValidator);
 
-    mySetup = new PostSyncProjectSetup(project, myIdeInfo, mySyncInvoker, mySyncState, myDependencySetupErrors, myProjectSetup,
+    mySetup = new PostSyncProjectSetup(project, myIdeInfo, mySyncInvoker, mySyncState, myDependencySetupIssues, myProjectSetup,
                                        myModuleSetup, myVersionUpgrade, myVersionCompatibilityChecker, myProjectBuilder,
                                        myModuleValidatorFactory, myRunManager);
   }
@@ -146,7 +146,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     mySetup.setUpProject(request, myProgressIndicator);
 
     Project project = getProject();
-    verify(myDependencySetupErrors, times(1)).reportErrors();
+    verify(myDependencySetupIssues, times(1)).reportIssues();
     verify(myVersionCompatibilityChecker, times(1)).checkAndReportComponentIncompatibilities(project);
 
     for (Module module : ModuleManager.getInstance(project).getModules()) {
