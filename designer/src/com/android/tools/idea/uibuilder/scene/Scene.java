@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,6 +44,8 @@ import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DE
  * A Scene contains a hierarchy of SceneComponent representing the bounds
  * of the widgets being layed out. Multiple NlModel can be used to populate
  * a Scene.
+ * <p/>
+ * Methods in this class must be called in the dispatch thread.
  */
 public class Scene implements ModelListener, SelectionListener {
 
@@ -344,11 +347,13 @@ public class Scene implements ModelListener, SelectionListener {
   }
 
   /**
-   * Update the Scene with the components in the given NlModel
+   * Update the Scene with the components in the given NlModel. This method needs to be called in the dispatch thread.
    *
    * @param model the NlModel to udpate from
    */
   public void updateFrom(@NotNull NlModel model) {
+    assert ApplicationManager.getApplication().isDispatchThread();
+
     List<NlComponent> components = model.getComponents();
     if (components.size() == 0) {
       mySceneComponents.clear();
@@ -488,14 +493,16 @@ public class Scene implements ModelListener, SelectionListener {
 
   @Override
   public void modelChanged(@NotNull NlModel model) {
-    ApplicationManager.getApplication().runReadAction(() -> {
+    // updateFrom needs to be called in the dispatch thread
+    UIUtil.invokeLaterIfNeeded(() -> {
       updateFrom(model);
     });
   }
 
   @Override
   public void modelRendered(@NotNull NlModel model) {
-    ApplicationManager.getApplication().runReadAction(() -> {
+    // updateFrom needs to be called in the dispatch thread
+    UIUtil.invokeLaterIfNeeded(() -> {
       updateFrom(model);
     });
   }
