@@ -46,7 +46,8 @@ public class GradleModuleSetup {
   @NotNull
   private static GradleModuleModel createGradleModel(@NotNull Module module,
                                                      @NotNull SyncAction.ModuleModels models) {
-    GradleProject gradleProject = models.getModule().getGradleProject();
+    GradleProject gradleProject = models.findModel(GradleProject.class);
+    assert gradleProject != null;
     GradleScript buildScript = null;
     try {
       buildScript = gradleProject.getBuildScript();
@@ -63,7 +64,9 @@ public class GradleModuleSetup {
     return new GradleModuleModel(module.getName(), gradleProject, buildFilePath, gradleVersion);
   }
 
-  public void setUpModule(@NotNull Module module, @NotNull IdeModifiableModelsProvider ideModelsProvider, @NotNull GradleModuleModel model) {
+  public void setUpModule(@NotNull Module module,
+                          @NotNull IdeModifiableModelsProvider ideModelsProvider,
+                          @NotNull GradleModuleModel model) {
     GradleFacet facet = findFacet(module, ideModelsProvider, GradleFacet.getFacetTypeId());
     if (facet == null) {
       ModifiableFacetModel facetModel = ideModelsProvider.getModifiableFacetModel(module);
