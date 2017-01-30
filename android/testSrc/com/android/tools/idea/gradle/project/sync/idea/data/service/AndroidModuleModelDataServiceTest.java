@@ -17,6 +17,9 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
+import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.android.ContentRootsModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesAndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
@@ -31,6 +34,7 @@ import org.mockito.Mock;
 import java.util.Collections;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -87,5 +91,27 @@ public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
     verify(myModuleSetup).setUpModule(module, modelsProvider, null, null, null, false);
     verify(myValidator, never()).validate(same(module), any());
     verify(myValidator, never()).fixAndReportFoundIssues();
+  }
+
+  public void testAndroidModuleSetupSteps() {
+    myService = new AndroidModuleModelDataService();
+
+    int indexOfContentRootsModuleSetupStep = -1;
+    int indexOfDependenciesModuleSetupStep = -1;
+    AndroidModuleSetupStep[] setupSteps = myService.getModuleSetup().getSetupSteps();
+    for (int i = 0; i < setupSteps.length; i++) {
+      AndroidModuleSetupStep setupStep = setupSteps[i];
+      if (setupStep instanceof ContentRootsModuleSetupStep) {
+        indexOfContentRootsModuleSetupStep = i;
+        continue;
+      }
+      if (setupStep instanceof DependenciesAndroidModuleSetupStep) {
+        indexOfDependenciesModuleSetupStep = i;
+      }
+    }
+
+    // ContentRootsModuleSetupStep should go before DependenciesModuleSetupStep, otherwise any excluded jars set up by
+    // DependenciesModuleSetupStep will be ignored.
+    assertThat(indexOfContentRootsModuleSetupStep).isLessThan(indexOfDependenciesModuleSetupStep);
   }
 }
