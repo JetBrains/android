@@ -18,21 +18,16 @@ package com.android.tools.idea.gradle.project.sync.setup.module;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 public class AndroidModuleSetup {
   @NotNull private final AndroidModuleSetupStep[] mySetupSteps;
 
-  public AndroidModuleSetup() {
-    this(AndroidModuleSetupStep.getExtensions());
-  }
-
-  @VisibleForTesting
-  AndroidModuleSetup(@NotNull AndroidModuleSetupStep... setupSteps) {
+  public AndroidModuleSetup(@NotNull AndroidModuleSetupStep... setupSteps) {
     mySetupSteps = setupSteps;
   }
 
@@ -48,5 +43,11 @@ public class AndroidModuleSetup {
       }
       step.setUpModule(module, ideModelsProvider, androidModel, models, indicator);
     }
+  }
+
+  @TestOnly
+  @NotNull
+  public AndroidModuleSetupStep[] getSetupSteps() {
+    return mySetupSteps;
   }
 }
