@@ -19,12 +19,12 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ddmlib.*;
 import com.android.tools.datastore.DataStoreService;
-import com.android.tools.datastore.LegacyAllocationConverter.CallStack;
 import com.android.tools.datastore.LegacyAllocationConverter;
+import com.android.tools.datastore.LegacyAllocationConverter.CallStack;
 import com.android.tools.datastore.LegacyAllocationTracker;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.ddms.adb.AdbService;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.idea.profilers.perfd.PerfdProxy;
 import com.android.tools.profilers.ProfilerClient;
 import com.google.common.base.Charsets;
 import com.google.common.util.concurrent.FutureCallback;
@@ -36,6 +36,9 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Consumer;
 import com.intellij.util.net.NetUtils;
+import io.grpc.ManagedChannel;
+import io.grpc.inprocess.InProcessChannelBuilder;
+import io.grpc.netty.NettyChannelBuilder;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,7 +46,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 import static com.android.ddmlib.Client.CHANGE_NAME;
@@ -58,8 +62,15 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
                                              AndroidDebugBridge.IDeviceChangeListener,
                                              AndroidDebugBridge.IDebugBridgeChangeListener {
 
+  private static Logger getLogger() {
+    return Logger.getInstance(StudioProfilerDeviceManager.class);
+  }
+
+  private static final int MAX_MESSAGE_SIZE = 512 * 1024 * 1024 - 1;
   private static final int DEVICE_PORT = 12389;
   private static final String DATASTORE_NAME = "DataStoreService";
+  private static final String PROXY_PERFD_NAME = "ProxyPerfdService";
+
   private final ProfilerClient myClient;
   private final DataStoreService myDataStoreService;
   private final StudioLegacyAllocationTracker myLegacyAllocationTracker;
@@ -94,6 +105,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
       }
     }, EdtExecutor.INSTANCE);
 
+    // TODO remove listeners when this class instance goes away.
     AndroidDebugBridge.addClientChangeListener(this);
     AndroidDebugBridge.addDeviceChangeListener(this);
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
@@ -102,33 +114,14 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
     myDataStoreService.setLegacyAllocationTracker(myLegacyAllocationTracker);
   }
 
-  private static Logger getLogger() {
-    return Logger.getInstance(StudioProfilerDeviceManager.class);
-  }
-
   public void updateDevices() {
     if (myBridge != null) {
-      Profiler.SetProcessesRequest.Builder builder = Profiler.SetProcessesRequest.newBuilder();
       for (IDevice device : myBridge.getDevices()) {
         if (device.isOnline()) {
-          Profiler.Device profilerDevice = Profiler.Device.newBuilder()
-            .setSerial(device.getSerialNumber())
-            .setModel(device.getName())
-            .build();
-          Profiler.DeviceProcesses.Builder deviceProcesses = Profiler.DeviceProcesses.newBuilder();
-          deviceProcesses.setDevice(profilerDevice);
-          for (Client client : device.getClients()) {
-            String description = client.getClientData().getClientDescription();
-            deviceProcesses.addProcess(Profiler.Process.newBuilder()
-                                         .setName(description == null ? "[UNKNOWN]" : description)
-                                         .setPid(client.getClientData().getPid())
-                                         .build());
-          }
-          builder.addDeviceProcesses(deviceProcesses.build());
+          // TODO fix this - this currently does not work for multiple devices, plus this should go to the MemoryServiceProxy
           myLegacyAllocationTracker.setDevice(device);
         }
       }
-      myClient.getProfilerClient().setProcesses(builder.build());
     }
   }
 
@@ -170,35 +163,20 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
   }
 
   private void spawnPerfd(@NonNull IDevice device) {
-    PerfdThread thread = new PerfdThread(device, myClient);
+    PerfdThread thread = new PerfdThread(device, myDataStoreService);
     thread.start();
   }
 
-  private static class NullReceiver implements IShellOutputReceiver {
-
-    @Override
-    public void addOutput(byte[] data, int offset, int length) {
-    }
-
-    @Override
-    public void flush() {
-    }
-
-    @Override
-    public boolean isCancelled() {
-      return false;
-    }
-  }
-
   private static class PerfdThread extends Thread {
+    private final DataStoreService myDataStore;
     private final IDevice myDevice;
-    private final ProfilerClient myClient;
     private int myLocalPort;
+    private PerfdProxy myPerfdProxy;
 
-    public PerfdThread(IDevice device, ProfilerClient client) {
+    public PerfdThread(@NotNull IDevice device, @NotNull DataStoreService datastore) {
       super("Perfd Thread: " + device.getSerialNumber());
+      myDataStore = datastore;
       myDevice = device;
-      myClient = client;
       myLocalPort = 0;
     }
 
@@ -218,13 +196,16 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
             perfd = candidate;
           }
         }
+
+        ManagedChannel proxyChannel = null;
+
         // TODO: Handle the case where we don't have perfd for this platform.
         assert perfd != null;
         // TODO: Add debug support for development
         String devicePath = "/data/local/tmp/perfd/";
-        myDevice.executeShellCommand("mkdir -p " + devicePath, new NullReceiver());
+        myDevice.executeShellCommand("mkdir -p " + devicePath, new NullOutputReceiver());
         myDevice.pushFile(perfd.getAbsolutePath(), devicePath + "/perfd");
-        myDevice.executeShellCommand("chmod +x " + devicePath + "perfd", new NullReceiver());
+        myDevice.executeShellCommand("chmod +x " + devicePath + "perfd", new NullOutputReceiver());
         myDevice.executeShellCommand(devicePath + "perfd", new IShellOutputReceiver() {
           @Override
           public void addOutput(byte[] data, int offset, int length) {
@@ -234,7 +215,24 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
               try {
                 myLocalPort = NetUtils.findAvailableSocketPort();
                 myDevice.createForward(myLocalPort, DEVICE_PORT);
-                myClient.getProfilerClient().connect(Profiler.ConnectRequest.newBuilder().setPort(myLocalPort).build());
+                if (myLocalPort < 0) {
+                  return;
+                }
+
+                // Creates the channel that is used to connect to the device perfd.
+                ManagedChannel perfdChannel = NettyChannelBuilder
+                  .forAddress("localhost", myLocalPort)
+                  .usePlaintext(true)
+                  .maxMessageSize(MAX_MESSAGE_SIZE)
+                  .build();
+
+                // Creates a proxy server that the datastore connects to.
+                myPerfdProxy = new PerfdProxy(myDevice, perfdChannel, PROXY_PERFD_NAME);
+                myPerfdProxy.connect();
+                // TODO using directexecutor for this channel freezes up grpc calls that are redirected to the device (e.g. GetTimes)
+                // We should otherwise do it for performance reasons, so we should investigate why.
+                ManagedChannel proxyChannel = InProcessChannelBuilder.forName(PROXY_PERFD_NAME).build();
+                myDataStore.connect(proxyChannel);
               }
               catch (TimeoutException | AdbCommandRejectedException | IOException e) {
                 throw new RuntimeException(e);
@@ -244,6 +242,10 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
 
           @Override
           public void flush() {
+            if (myPerfdProxy != null) {
+              myPerfdProxy.disconnect();
+              myPerfdProxy = null;
+            }
           }
 
           @Override
@@ -251,10 +253,12 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
             return false;
           }
         }, 0, null);
-        if (myLocalPort > 0) {
-          myClient.getProfilerClient().disconnect(Profiler.DisconnectRequest.newBuilder().setPort(myLocalPort).build());
-          getLogger().info("Terminating perfd thread");
+
+        if (proxyChannel != null) {
+          myDataStore.disconnect(proxyChannel);
         }
+
+        getLogger().info("Terminating perfd thread");
       }
       catch (TimeoutException | AdbCommandRejectedException | SyncException | ShellCommandUnresponsiveException | IOException e) {
         throw new RuntimeException(e);
