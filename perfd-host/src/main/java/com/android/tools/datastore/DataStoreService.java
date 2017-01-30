@@ -42,6 +42,7 @@ public class DataStoreService {
   private List<ServicePassThrough> myServices = new ArrayList<>();
   private LegacyAllocationTracker myLegacyAllocationTracker;
   private Consumer<Runnable> myFetchExecutor;
+  private ProfilerService myProfilerService;
 
   /**
    * @param fetchExecutor A callback which is given a {@link Runnable} for each datastore service.
@@ -67,7 +68,8 @@ public class DataStoreService {
    * and registered as the set of features the datastore supports.
    */
   public void createPollers() {
-    registerService(new ProfilerService());
+    myProfilerService = new ProfilerService(this, myFetchExecutor);
+    registerService(myProfilerService);
     registerService(new EventService(myFetchExecutor));
     registerService(new CpuService(myFetchExecutor));
     registerService(new MemoryService(this, myFetchExecutor));
@@ -103,6 +105,7 @@ public class DataStoreService {
   public void connect(@NotNull ManagedChannel channel) {
     disconnect(myChannel);
     myChannel = channel;
+    myProfilerService.startMonitoring(channel);
     connectServices();
   }
 
@@ -111,9 +114,10 @@ public class DataStoreService {
    * TODO: currently we just support the same channel that was passed into connect. mutli-device workflow needs to handle this.
    */
   public void disconnect(@Nullable ManagedChannel channel) {
-    // TODO: Shutdown service connections.
+    assert channel == myChannel;
+    myProfilerService.stopMonitoring(channel);
     if (myChannel != null) {
-      myChannel.shutdown();
+      myChannel.shutdownNow();
     }
     myChannel = null;
   }

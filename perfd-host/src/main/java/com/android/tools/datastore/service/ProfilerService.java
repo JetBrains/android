@@ -15,22 +15,37 @@
  */
 package com.android.tools.datastore.service;
 
+import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.DatastoreTable;
+import com.android.tools.datastore.database.ProfilerTable;
+import com.android.tools.datastore.poller.ProfilerDevicePoller;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
+import com.google.common.collect.Maps;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * This class hosts an EventService that will provide callers access to all cached EventData.
  * The data is populated from polling the service passed into the connectService function.
  */
-public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase implements ServicePassThrough {
+public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase implements ServicePassThrough  {
 
   private ProfilerServiceGrpc.ProfilerServiceBlockingStub myPollingService;
+  private Map<ManagedChannel, ProfilerDevicePoller> myPollers = Maps.newHashMap();
+  private Consumer<Runnable> myFetchExecutor;
+  private ProfilerTable myTable = new ProfilerTable();
+  private DataStoreService myService;
 
-  public ProfilerService() {
+
+  public ProfilerService(@NotNull DataStoreService service, Consumer<Runnable> fetchExecutor) {
+    myService = service;
+    myFetchExecutor = fetchExecutor;
   }
 
   @Override
@@ -53,11 +68,29 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
 
   @Override
   public void getDevices(Profiler.GetDevicesRequest request, StreamObserver<Profiler.GetDevicesResponse> observer) {
-    if (myPollingService != null) {
-      observer.onNext(myPollingService.getDevices(request));
-    }
-
+    Profiler.GetDevicesResponse response = myTable.getDevices(request);
+    observer.onNext(response);
     observer.onCompleted();
+  }
+
+  @Override
+  public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> observer) {
+    Profiler.GetProcessesResponse response = myTable.getProcesses(request);
+    observer.onNext(response);
+    observer.onCompleted();
+  }
+
+  public void startMonitoring(ManagedChannel channel) {
+    myPollingService = ProfilerServiceGrpc.newBlockingStub(channel);
+    myPollers.put(channel, new ProfilerDevicePoller(myService, myTable, myPollingService));
+    myFetchExecutor.accept(myPollers.get(channel));
+  }
+
+  public void stopMonitoring(ManagedChannel channel) {
+    if (myPollers.containsKey(channel)) {
+      ProfilerDevicePoller poller = myPollers.remove(channel);
+      poller.stop();
+    }
   }
 
   @Override
@@ -69,21 +102,12 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   }
 
   @Override
-  public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> observer) {
-    if (myPollingService != null) {
-      observer.onNext(myPollingService.getProcesses(request));
-    }
-
-    observer.onCompleted();
-  }
-
-  @Override
   public void connectService(ManagedChannel channel) {
-    myPollingService = ProfilerServiceGrpc.newBlockingStub(channel);
+    //Handled via startMonitoring.
   }
 
   @Override
   public DatastoreTable getDatastoreTable() {
-    return null;
+    return myTable;
   }
 }
