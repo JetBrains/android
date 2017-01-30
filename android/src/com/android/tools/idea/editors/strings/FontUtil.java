@@ -57,10 +57,7 @@ public class FontUtil {
         }
       }
 
-      if (supportedChars == s.length()) {
-        return f;
-      }
-      else if (supportedChars > max) {
+      if (supportedChars > max) {
         max = supportedChars;
         bestFont = f;
       }
