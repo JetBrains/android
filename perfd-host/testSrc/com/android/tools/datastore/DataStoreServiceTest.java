@@ -15,14 +15,13 @@
  */
 package com.android.tools.datastore;
 
-import com.android.tools.datastore.poller.*;
 import com.android.tools.datastore.service.*;
 import com.android.tools.profiler.proto.*;
 import io.grpc.ManagedChannel;
 import io.grpc.Server;
 import io.grpc.StatusRuntimeException;
 import io.grpc.inprocess.InProcessChannelBuilder;
-import io.grpc.netty.NettyServerBuilder;
+import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.stub.StreamObserver;
 import org.junit.After;
 import org.junit.Before;
@@ -40,7 +39,7 @@ public class DataStoreServiceTest {
 
   private static final String SERVICE_PATH = "/tmp/DataStoreServiceTest.sql";
   private static final String SERVICE_NAME = "DataStoreServiceTest";
-  private static final int TEST_PORT = 31313;
+  private static final String SERVER_NAME = "TestServer";
   private static final Profiler.VersionResponse EXPECTED_VERSION = Profiler.VersionResponse.newBuilder().setVersion("TEST").build();
   private DataStoreService myDataStore;
   private Server myService;
@@ -50,17 +49,16 @@ public class DataStoreServiceTest {
 
   @Before
   public void setUp() throws Exception {
-
-    myDataStore = new DataStoreService(SERVICE_NAME, SERVICE_PATH, r -> {});
-    myService = NettyServerBuilder.forPort(TEST_PORT)
+    myDataStore = new DataStoreService(SERVICE_NAME, SERVICE_PATH, r -> {
+    });
+    myService = InProcessServerBuilder.forName(SERVER_NAME)
       .addService(new FakeProfilerService().bindService())
       .addService(new EventServiceStub().bindService())
       .addService(new CpuServiceStub().bindService())
       .addService(new MemoryServiceStub().bindService())
       .addService(new NetworkServiceStub().bindService())
-    .build();
+      .build();
     myService.start();
-
   }
 
   @After
@@ -85,7 +83,7 @@ public class DataStoreServiceTest {
     expectedServices.add(MemoryService.class);
 
     List<ServicePassThrough> services = myDataStore.getRegisteredServices();
-    for(ServicePassThrough service : services) {
+    for (ServicePassThrough service : services) {
       assertEquals(expectedServices.contains(service.getClass()), true);
       expectedServices.remove(service.getClass());
     }
@@ -94,19 +92,23 @@ public class DataStoreServiceTest {
 
   @Test
   public void testConnectServices() {
-    myDataStore.connect(TEST_PORT);
-    ProfilerServiceGrpc.ProfilerServiceBlockingStub stub = ProfilerServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName(SERVICE_NAME).usePlaintext(true).build());
+    ManagedChannel channel = InProcessChannelBuilder.forName(SERVER_NAME).build();
+    myDataStore.connect(channel);
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub stub =
+      ProfilerServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName(SERVICE_NAME).usePlaintext(true).build());
     Profiler.VersionResponse response = stub.getVersion(Profiler.VersionRequest.getDefaultInstance());
     assertEquals(response, EXPECTED_VERSION);
   }
 
   @Test
   public void testDisconnectServices() {
-    myDataStore.connect(TEST_PORT);
-    ProfilerServiceGrpc.ProfilerServiceBlockingStub stub = ProfilerServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName(SERVICE_NAME).usePlaintext(true).build());
+    ManagedChannel channel = InProcessChannelBuilder.forName(SERVER_NAME).build();
+    myDataStore.connect(channel);
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub stub =
+      ProfilerServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName(SERVICE_NAME).usePlaintext(true).build());
     Profiler.VersionResponse response = stub.getVersion(Profiler.VersionRequest.getDefaultInstance());
     assertEquals(response, EXPECTED_VERSION);
-    myDataStore.disconnect();
+    myDataStore.disconnect(channel);
     myExpectedException.expect(StatusRuntimeException.class);
     stub.getVersion(Profiler.VersionRequest.getDefaultInstance());
   }
