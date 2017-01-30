@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
 import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep;
-import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
+import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -83,15 +83,10 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
   private static void updateDependency(@NotNull Module module,
                                        @NotNull IdeModifiableModelsProvider modelsProvider,
                                        @NotNull JavaModuleDependency dependency) {
-    DependencySetupErrors setupErrors = DependencySetupErrors.getInstance(module.getProject());
+    DependencySetupIssues setupIssues = DependencySetupIssues.getInstance(module.getProject());
 
     String moduleName = dependency.getModuleName();
-    Module found = null;
-    for (Module m : modelsProvider.getModules()) {
-      if (moduleName.equals(m.getName())) {
-        found = m;
-      }
-    }
+    Module found = modelsProvider.findIdeModule(moduleName);
 
     ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
     if (found != null) {
@@ -102,11 +97,11 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
       }
       else {
         // If it depends on an android module, we should skip that.
-        setupErrors.addInvalidModuleDependency(moduleModel.getModule(), found.getName(), "Java modules cannot depend on Android modules");
+        setupIssues.addInvalidModuleDependency(moduleModel.getModule(), found.getName(), "Java modules cannot depend on Android modules");
       }
       return;
     }
-    setupErrors.addMissingModule(moduleName, module.getName(), null);
+    setupIssues.addMissingModule(moduleName, module.getName(), null);
   }
 
   private void updateDependency(@NotNull Module module,
@@ -115,8 +110,8 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
     DependencyScope scope = parseScope(dependency.getScope());
     File binaryPath = dependency.getBinaryPath();
     if (binaryPath == null) {
-      DependencySetupErrors setupErrors = DependencySetupErrors.getInstance(module.getProject());
-      setupErrors.addMissingBinaryPath(module.getName());
+      DependencySetupIssues setupIssues = DependencySetupIssues.getInstance(module.getProject());
+      setupIssues.addMissingBinaryPath(module.getName());
       return;
     }
 
