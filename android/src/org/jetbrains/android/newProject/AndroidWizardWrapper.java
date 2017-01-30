@@ -2,6 +2,7 @@ package org.jetbrains.android.newProject;
 
 import com.android.tools.idea.npw.NewModuleWizardDynamic;
 import com.android.tools.idea.npw.NewProjectWizardDynamic;
+import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.dynamic.AndroidStudioWizardPath;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
@@ -52,7 +53,7 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
 
   @Override
   public String getPresentableName() {
-    if (Boolean.getBoolean("use.npw.modelwizard"))
+    if (WizardUtils.isNpwModelWizardEnabled())
     {
       return "Android (Legacy)";
     }
