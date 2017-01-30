@@ -20,5 +20,6 @@ iml_module(
         "//tools/adt/idea/android[module]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/platform/lang-api[module]",
+        "//tools/base/ddmlib:studio.ddmlib[module]",
     ],
 )

@@ -19,11 +19,9 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.datastore.service.*;
 import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
-import io.grpc.netty.NettyChannelBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,7 +35,6 @@ import java.util.function.Consumer;
  */
 public class DataStoreService {
   private static final Logger LOG = Logger.getInstance(DataStoreService.class.getCanonicalName());
-  private static final int MAX_MESSAGE_SIZE = 512 * 1024 * 1024 - 1;
   private DataStoreDatabase myDatabase;
   private ManagedChannel myChannel;
   private ServerBuilder myServerBuilder;
@@ -55,7 +52,7 @@ public class DataStoreService {
     try {
       myFetchExecutor = fetchExecutor;
       myDatabase = new DataStoreDatabase(dbPath);
-      myServerBuilder = InProcessServerBuilder.forName(serviceName);
+      myServerBuilder = InProcessServerBuilder.forName(serviceName).directExecutor();
       createPollers();
       myServer = myServerBuilder.build();
       myServer.start();
@@ -70,7 +67,7 @@ public class DataStoreService {
    * and registered as the set of features the datastore supports.
    */
   public void createPollers() {
-    registerService(new ProfilerService(this));
+    registerService(new ProfilerService());
     registerService(new EventService(myFetchExecutor));
     registerService(new CpuService(myFetchExecutor));
     registerService(new MemoryService(this, myFetchExecutor));
@@ -100,27 +97,20 @@ public class DataStoreService {
   }
 
   /**
-   * When a new device is connected this function tells the DataStore how to connect to that device and creates a channel for the device.
-   *
-   * @param devicePort forwarded port for the datastore to connect to perfd on.
+   * Note - Previously connect/disconnect was done through a ProfilerService rpc call in which this receives only a port number. Passing
+   * in a ManagedChannel directly allows the caller to optimize the channel best suited for the server (In-process vs Netty channels).
    */
-  public void connect(int devicePort) {
-    disconnect();
-    ClassLoader stashedContextClassLoader = Thread.currentThread().getContextClassLoader();
-    Thread.currentThread().setContextClassLoader(ManagedChannelBuilder.class.getClassLoader());
-    myChannel = NettyChannelBuilder
-      .forAddress("localhost", devicePort)
-      .usePlaintext(true)
-      .maxMessageSize(MAX_MESSAGE_SIZE)
-      .build();
-    Thread.currentThread().setContextClassLoader(stashedContextClassLoader);
+  public void connect(@NotNull ManagedChannel channel) {
+    disconnect(myChannel);
+    myChannel = channel;
     connectServices();
   }
 
   /**
-   * Disconnect the datastore from the connected device.
+   * Disconnect from the specified channel.
+   * TODO: currently we just support the same channel that was passed into connect. mutli-device workflow needs to handle this.
    */
-  public void disconnect() {
+  public void disconnect(@Nullable ManagedChannel channel) {
     // TODO: Shutdown service connections.
     if (myChannel != null) {
       myChannel.shutdown();
