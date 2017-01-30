@@ -50,6 +50,7 @@ public class DragDndTarget extends DragTarget {
   }
 
   public void mouseRelease(int x, int y, @NotNull NlComponent component) {
+    myComponent.setDragging(false);
     if (myComponent.getParent() != null) {
       AttributesTransaction attributes = component.startAttributeTransaction();
       int dx = x - myOffsetX;
