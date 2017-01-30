@@ -61,27 +61,16 @@ import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
-public class DependenciesModuleSetupStep extends AndroidModuleSetupStep {
+public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
   @NotNull private final DependenciesExtractor myDependenciesExtractor;
   @NotNull private final AndroidModuleDependenciesSetup myDependenciesSetup;
 
-  @NotNull
-  public static DependenciesModuleSetupStep getInstance() {
-    for (AndroidModuleSetupStep step : AndroidModuleSetupStep.getExtensions()) {
-      if (step instanceof DependenciesModuleSetupStep) {
-        return (DependenciesModuleSetupStep)step;
-      }
-    }
-    throw new AssertionError("Unable to find an instance of " + DependenciesModuleSetupStep.class.getSimpleName());
-  }
-
-  @SuppressWarnings("unused") // Instantiated by IDEA
-  public DependenciesModuleSetupStep(@NotNull DependenciesExtractor dependenciesExtractor, @NotNull LibraryFilePaths libraryFilePaths) {
-    this(dependenciesExtractor, new AndroidModuleDependenciesSetup(libraryFilePaths));
+  public DependenciesAndroidModuleSetupStep() {
+    this(DependenciesExtractor.getInstance(), new AndroidModuleDependenciesSetup(LibraryFilePaths.getInstance()));
   }
 
   @VisibleForTesting
-  DependenciesModuleSetupStep(@NotNull DependenciesExtractor dependenciesExtractor, @NotNull AndroidModuleDependenciesSetup dependenciesSetup) {
+  DependenciesAndroidModuleSetupStep(@NotNull DependenciesExtractor dependenciesExtractor, @NotNull AndroidModuleDependenciesSetup dependenciesSetup) {
     myDependenciesExtractor = dependenciesExtractor;
     myDependenciesSetup = dependenciesSetup;
   }

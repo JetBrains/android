@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
 import com.intellij.openapi.application.ApplicationManager;
@@ -42,33 +41,19 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * Tests for {@link DependenciesModuleSetupStep}.
+ * Tests for {@link DependenciesAndroidModuleSetupStep}.
  */
-public class DependenciesModuleSetupStepTest extends IdeaTestCase {
+public class DependenciesAndroidModuleSetupStepTest extends IdeaTestCase {
   @Mock private DependenciesExtractor myDependenciesExtractor;
   @Mock private AndroidModuleDependenciesSetup myDependenciesSetup;
 
-  private DependenciesModuleSetupStep mySetupStep;
+  private DependenciesAndroidModuleSetupStep mySetupStep;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    mySetupStep = new DependenciesModuleSetupStep(myDependenciesExtractor, myDependenciesSetup);
-  }
-
-  public void testGetInstance() {
-    DependenciesModuleSetupStep actual = DependenciesModuleSetupStep.getInstance();
-    assertNotNull(actual);
-
-    DependenciesModuleSetupStep expected = null;
-    for (AndroidModuleSetupStep step : AndroidModuleSetupStep.getExtensions()) {
-      if (step instanceof DependenciesModuleSetupStep) {
-        expected = (DependenciesModuleSetupStep)step;
-        break;
-      }
-    }
-    assertSame(expected, actual);
+    mySetupStep = new DependenciesAndroidModuleSetupStep(myDependenciesExtractor, myDependenciesSetup);
   }
 
   public void testUpdateLibraryDependencyWithLibraryInModule() throws IOException {
@@ -112,12 +97,8 @@ public class DependenciesModuleSetupStepTest extends IdeaTestCase {
 
   @NotNull
   private VirtualFile createFolder(@NotNull VirtualFile parent, @NotNull String name) throws IOException {
-    return ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<VirtualFile, IOException>() {
-      @Override
-      public VirtualFile compute() throws IOException {
-        return parent.createChildDirectory(DependenciesModuleSetupStepTest.this, name);
-      }
-    });
+    return ApplicationManager.getApplication().runWriteAction(
+      (ThrowableComputable<VirtualFile, IOException>)() -> parent.createChildDirectory(this, name));
   }
 
   @NotNull
