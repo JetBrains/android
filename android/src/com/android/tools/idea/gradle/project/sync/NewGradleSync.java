@@ -79,7 +79,7 @@ public class NewGradleSync implements GradleSync {
   }
 
   private void sync(@Nullable GradleSyncListener syncListener, @NotNull ProgressIndicator indicator) {
-    SyncExecutionCallback callback = mySyncExecutor.syncProject();
+    SyncExecutionCallback callback = mySyncExecutor.syncProject(indicator);
     // @formatter:off
     callback.doWhenDone(() -> myResultHandler.onSyncFinished(callback, indicator, syncListener))
             .doWhenRejected(() -> myResultHandler.onSyncFailed(callback, syncListener));

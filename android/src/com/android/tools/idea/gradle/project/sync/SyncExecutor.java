@@ -19,8 +19,9 @@ import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandlerManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationEvent;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Function;
 import org.gradle.tooling.BuildActionExecuter;
@@ -33,6 +34,7 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.project.sync.GradleSyncProgress.notifyProgress;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.getOrCreateGradleExecutionSettings;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
@@ -59,7 +61,7 @@ class SyncExecutor {
   }
 
   @NotNull
-  SyncExecutionCallback syncProject() {
+  SyncExecutionCallback syncProject(@NotNull ProgressIndicator indicator) {
     SyncExecutionCallback callback = new SyncExecutionCallback();
 
     if (myProject.isDisposed()) {
@@ -67,23 +69,20 @@ class SyncExecutor {
     }
 
     // TODO: Handle sync cancellation.
-    // TODO: Show Gradle output.
 
     GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(myProject, useEmbeddedGradle());
 
     Function<ProjectConnection, Void> syncFunction = connection -> {
       BuildActionExecuter<SyncAction.ProjectModels> executor = connection.action(new SyncAction());
 
-      ExternalSystemTaskNotificationListener listener = new ExternalSystemTaskNotificationListenerAdapter() {
-        // TODO: implement
-      };
       List<String> commandLineArgs = myCommandLineArgs.get(myProject);
 
       // We try to avoid passing JVM arguments, to share Gradle daemons between Gradle sync and Gradle build.
       // If JVM arguments from Gradle sync are different than the ones from Gradle build, Gradle won't reuse daemons. This is bad because
       // daemons are expensive (memory-wise) and slow to start.
       ExternalSystemTaskId id = createId(myProject);
-      prepare(executor, id, executionSettings, listener, Collections.emptyList() /* JVM args */, commandLineArgs, connection);
+      prepare(executor, id, executionSettings, new GradleSyncNotificationListener(indicator), Collections.emptyList() /* JVM args */,
+              commandLineArgs, connection);
 
       CancellationTokenSource cancellationTokenSource = newCancellationTokenSource();
       executor.withCancellationToken(cancellationTokenSource.token());
@@ -112,5 +111,19 @@ class SyncExecutor {
   private static boolean useEmbeddedGradle() {
     // Do not use the Gradle distribution embedded in Android Studio, but the one set in the project's preference ("local" or "wrapper.")
     return false;
+  }
+
+  @VisibleForTesting
+  static class GradleSyncNotificationListener extends ExternalSystemTaskNotificationListenerAdapter {
+    @NotNull private final ProgressIndicator myIndicator;
+
+    GradleSyncNotificationListener(@NotNull ProgressIndicator indicator) {
+      myIndicator = indicator;
+    }
+
+    @Override
+    public void onStatusChange(@NotNull ExternalSystemTaskNotificationEvent event) {
+      notifyProgress(myIndicator, event.getDescription());
+    }
   }
 }
