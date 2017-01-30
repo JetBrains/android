@@ -38,7 +38,8 @@ public class ProfilerServiceTest extends DataStorePollerTest {
   private static final String DEVICE_SERIAL = "SomeSerialId";
 
   private DataStoreService myDataStore = mock(DataStoreService.class);
-  private ProfilerService myProfilerService = new ProfilerService();
+
+  private ProfilerService myProfilerService = new ProfilerService(myDataStore, getPollTicker()::run);
 
   private static final String BYTES_ID_1 = "0123456789";
   private static final String BYTES_ID_2 = "9876543210";
@@ -56,7 +57,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
 
   @Before
   public void setUp() throws Exception {
-    myProfilerService.connectService(myService.getChannel());
+    myProfilerService.startMonitoring(myService.getChannel());
   }
 
   @After
