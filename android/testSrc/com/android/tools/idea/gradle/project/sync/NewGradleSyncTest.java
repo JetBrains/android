@@ -46,7 +46,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
   public void testSyncWithSuccessfulSync() {
     // Simulate successful sync.
     myCallback.setDone(mock(SyncAction.ProjectModels.class));
-    when(mySyncExecutor.syncProject()).thenReturn(myCallback);
+    when(mySyncExecutor.syncProject(any())).thenReturn(myCallback);
 
     myGradleSync.sync(new GradleSyncInvoker.Request(), mySyncListener);
 
@@ -57,7 +57,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
   public void testSyncWithFailedSync() {
     // Simulate failed sync.
     myCallback.setRejected(new Throwable("Test error"));
-    when(mySyncExecutor.syncProject()).thenReturn(myCallback);
+    when(mySyncExecutor.syncProject(any())).thenReturn(myCallback);
 
     myGradleSync.sync(new GradleSyncInvoker.Request(), mySyncListener);
 
