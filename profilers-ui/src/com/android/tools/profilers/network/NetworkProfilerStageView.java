@@ -25,6 +25,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
@@ -47,6 +48,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
       .onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, this::updateConnectionDetailsView);
 
     myConnectionDetails = new ConnectionDetailsView(this);
+    myConnectionDetails.setMinimumSize(new Dimension(JBUI.scale(450), (int) myConnectionDetails.getMinimumSize().getHeight()));
     myConnectionsView = new ConnectionsView(this, stage::setSelectedConnection);
     myConnectionsScroller = new JBScrollPane(myConnectionsView.getComponent());
     myConnectionsScroller.setVisible(false);
@@ -58,6 +60,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     Splitter splitter = new Splitter(false, 0.6f);
     splitter.setFirstComponent(leftSplitter);
     splitter.setSecondComponent(myConnectionDetails);
+    splitter.setHonorComponentsMinimumSize(true);
 
     getComponent().add(splitter, BorderLayout.CENTER);
 
