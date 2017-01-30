@@ -50,6 +50,7 @@ public class ConstraintComponentUtilities {
   protected static final ArrayList<String> ourTopAttributes;
   protected static final ArrayList<String> ourRightAttributes;
   protected static final ArrayList<String> ourBottomAttributes;
+  protected static final ArrayList<String> ourBaselineAttributes;
   protected static final ArrayList<String> ourMarginAttributes;
   protected static final ArrayList<String> ourHorizontalAttributes;
   protected static final ArrayList<String> ourVerticalAttributes;
@@ -113,6 +114,9 @@ public class ConstraintComponentUtilities {
     ourBottomAttributes = new ArrayList<>();
     ourBottomAttributes.add(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
     ourBottomAttributes.add(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
+
+    ourBaselineAttributes = new ArrayList<>();
+    ourBaselineAttributes.add(SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
 
     ourMarginAttributes = new ArrayList<>();
     ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN);
@@ -329,6 +333,8 @@ public class ConstraintComponentUtilities {
     transaction = updateOnDelete(component, ourTopAttributes, transaction, targetId);
     transaction = updateOnDelete(component, ourRightAttributes, transaction, targetId);
     transaction = updateOnDelete(component, ourBottomAttributes, transaction, targetId);
+    transaction = updateOnDelete(component, ourBaselineAttributes, transaction, targetId);
+
     if (transaction != null) {
       transaction.apply();
       NlModel nlModel = component.getModel();
