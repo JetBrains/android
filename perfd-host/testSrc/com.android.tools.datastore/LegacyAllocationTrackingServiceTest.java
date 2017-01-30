@@ -103,7 +103,7 @@ public class LegacyAllocationTrackingServiceTest {
     myOutputTrackingData = true;
     boolean value = trackingService.trackAllocations(TEST_PROCESS_ID, TEST_TIME_NS, true, null);
     assertTrue(value);
-    value = trackingService.trackAllocations(TEST_PROCESS_ID, TEST_TIME_NS, false, (classes, stacks, events) -> {
+    value = trackingService.trackAllocations(TEST_PROCESS_ID, TEST_TIME_NS, false, (data, classes, stacks, events) -> {
       assertEquals(classes.size(), 1);
       assertEquals(classes.get(0).getClassName(), CLASS_NAME);
       assertEquals(stacks.size(), 1);
@@ -150,7 +150,7 @@ public class LegacyAllocationTrackingServiceTest {
         LegacyAllocationConverter converter = new LegacyAllocationConverter();
         converter.addClassName(CLASS_NAME);
         converter.addAllocation(new LegacyAllocationConverter.Allocation(CLASS_ID, SIZE, THREAD_ID, TEST_DATA));
-        List<StackTraceElement> stackTraceList = new ArrayList();
+        List<StackTraceElement> stackTraceList = new ArrayList<>();
         stackTraceList.add(new StackTraceElement(CLASS_NAME, METHOD_NAME, FILE_NAME, LINE_NUMBER));
         converter.addCallStack(stackTraceList);
         return converter;

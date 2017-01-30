@@ -82,7 +82,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   }
 
   @Override
-  public void getHeapDump(HeapDumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
+  public void getHeapDump(DumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
     DumpDataResponse.Builder response = DumpDataResponse.newBuilder();
     if (myExplicitDumpDataStatus != null) {
       response.setStatus(myExplicitDumpDataStatus);

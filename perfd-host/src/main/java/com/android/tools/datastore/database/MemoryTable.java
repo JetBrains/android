@@ -17,11 +17,13 @@ package com.android.tools.datastore.database;
 
 import com.android.tools.adtui.model.DurationData;
 import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.google.protobuf3jarjar.ByteString;
 import com.google.protobuf3jarjar.GeneratedMessageV3;
 import com.google.protobuf3jarjar.InvalidProtocolBufferException;
 import com.google.protobuf3jarjar.Message;
 import com.intellij.openapi.diagnostic.Logger;
+import gnu.trove.TIntObjectHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,11 +42,15 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
   //TODO: Remove when we update SQLite database
   protected final List<MemoryProfiler.MemoryData.MemorySample> myMemoryData = new ArrayList<>();
   protected final List<MemoryProfiler.MemoryData.VmStatsSample> myStatsData = new ArrayList<>();
+
   protected final List<HeapDumpSample> myHeapData = new ArrayList<>();
+  protected final TIntObjectHashMap<byte[]> myAllocationData = new TIntObjectHashMap<>();
+
   protected final List<MemoryProfiler.MemoryData.AllocationEvent> myAllocationEvents = new ArrayList<>();
-  protected final List<MemoryProfiler.AllocationsInfo> myAllocationsInfos = new ArrayList<>();
+  protected final List<AllocationsInfo> myAllocationsInfos = new ArrayList<>();
   protected final Map<String, MemoryProfiler.AllocatedClass> myAllocatedClasses = new HashMap<>();
   protected final Map<ByteString, MemoryProfiler.AllocationStack> myAllocationStacks = new HashMap<>();
+
   private final Object myUpdatingDataLock = new Object();
   private final Object myUpdatingAllocationsLock = new Object();
 
@@ -64,16 +70,16 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     QUERY_ALLOCATION_STACK,
     QUERY_ALLOCATED_CLASS,
     UPDATE_HEAP_INFO,
+    UPDATE_ALLOCATIONS_INFO,
     FIND_HEAP_STATUS,
-    FIND_ALLOCATION_INFO
-
+    FIND_ALLOCATION_INFO,
+    FIND_ALLOCATION_DATA
   }
 
   public enum MemorySamplesType {
     MEMORY,
     VMSTATS,
     ALLOCATION_EVENT
-
   }
 
   @Override
@@ -81,13 +87,14 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     super.initialize(connection);
     try {
       createTable("Memory_Samples", "Type INTEGER", "Timestamp INTEGER", "Data BLOB");
-      createTable("Memory_AllocationInfo", "Id INTEGER, StartTime INTEGER", "EndTime INTEGER", "Data BLOB", "PRIMARY KEY(Id)");
+      createTable("Memory_AllocationInfo", "DumpId INTEGER, StartTime INTEGER", "EndTime INTEGER", "InfoData BLOB",
+                  "DumpData BLOB", "PRIMARY KEY(DumpId)");
       createTable("Memory_AllocationStack", "Id BLOB", "Data BLOB");
       createTable("Memory_AllocatedClass", "Name TEXT", "Data BLOB");
       createTable("Memory_HeapDump", "DumpId, INTEGER", "StartTime INTEGER", "EndTime INTEGER", "Status INTEGER", "InfoData BLOB",
                   "DumpData BLOB", "PRIMARY KEY(DumpId)");
       createIndex("Memory_HeapDump", "DumpId");
-      createIndex("Memory_AllocationInfo", "Id");
+      createIndex("Memory_AllocationInfo", "DumpId");
     }
     catch (SQLException ex) {
       getLogger().error(ex);
@@ -115,8 +122,11 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
                       "SELECT InfoData FROM Memory_HeapDump where (EndTime = ? OR EndTime > ?) AND StartTime <= ?");
 
       createStatement(MemoryStatements.INSERT_ALLOCATION_INFO,
-                      "INSERT OR REPLACE INTO Memory_AllocationInfo (Id, StartTime, EndTime, Data) VALUES (?, ?, ?, ?)");
-      createStatement(MemoryStatements.FIND_ALLOCATION_INFO, "SELECT Data from Memory_AllocationInfo WHERE Id = ?");
+                      "INSERT OR REPLACE INTO Memory_AllocationInfo (DumpId, StartTime, EndTime, InfoData) VALUES (?, ?, ?, ?)");
+      createStatement(MemoryStatements.UPDATE_ALLOCATIONS_INFO,
+                      "UPDATE Memory_AllocationInfo SET InfoData = ?, DumpData = ? WHERE DumpId = ?");
+      createStatement(MemoryStatements.FIND_ALLOCATION_INFO, "SELECT InfoData from Memory_AllocationInfo WHERE DumpId = ?");
+      createStatement(MemoryStatements.FIND_ALLOCATION_DATA, "SELECT DumpData from Memory_AllocationInfo WHERE DumpId = ?");
       createStatement(MemoryStatements.REMOVE_UNFINISHED_ALLOCAITON_INFO, "DELETE FROM Memory_AllocationInfo WHERE EndTime = ?");
 
       createStatement(MemoryStatements.INSERT_ALLOCATION_STACK, "INSERT INTO Memory_AllocationStack (Id, Data) VALUES (?, ?)");
@@ -126,7 +136,7 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
       createStatement(MemoryStatements.QUERY_ALLOCATED_CLASS, "Select Data FROM Memory_AllocatedClass");
 
       createStatement(MemoryStatements.QUERY_ALLOCATION_INFO,
-                      "SELECT Data FROM Memory_AllocationInfo WHERE (EndTime = ? OR EndTime > ?) AND StartTime <= ?");
+                      "SELECT InfoData FROM Memory_AllocationInfo WHERE (EndTime = ? OR EndTime > ?) AND StartTime <= ?");
     }
     catch (SQLException ex) {
       getLogger().error(ex);
@@ -135,20 +145,39 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
 
   public byte[] getHeapDumpData(int dumpId, MemoryProfiler.HeapDumpInfo.Builder out_info) {
     int index = Collections
-      .binarySearch(myHeapData, new HeapDumpSample(dumpId), (o1, o2) -> o1.myInfo.getDumpId() - o2.myInfo.getDumpId());
+      .binarySearch(myHeapData, new HeapDumpSample(dumpId), Comparator.comparingInt(o -> o.myInfo.getDumpId()));
     if (index < 0) {
       return null;
     }
     else {
       HeapDumpSample sample = myHeapData.get(index);
       out_info.mergeFrom(sample.myInfo);
-      if (sample.myData != null) {
-        return sample.myData.toByteArray();
+      ByteString data = sample.myData;
+      if (data != null) {
+        return data.toByteArray();
       }
       return null;
     }
     //try {
     //  ResultSet resultSet = executeQuery(MemoryStatements.FIND_HEAP_DATA, dumpId);
+    //  if (resultSet.next()) {
+    //    out_info.mergeFrom(resultSet.getBytes(1));
+    //    return resultSet.getBytes(2);
+    //  }
+    //} catch (InvalidProtocolBufferException | SQLException ex) {
+    //  getLogger().error(ex);
+    //}
+    //return null;
+  }
+
+  public byte[] getAllocationDumpData(int dumpId) {
+    if (myAllocationData.contains(dumpId)) {
+      return myAllocationData.get(dumpId);
+    }
+
+    return null;
+    //try {
+    //  ResultSet resultSet = executeQuery(MemoryStatements.FIND_ALLOCATION_DATA, dumpId);
     //  if (resultSet.next()) {
     //    out_info.mergeFrom(resultSet.getBytes(1));
     //    return resultSet.getBytes(2);
@@ -223,8 +252,8 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     //return getResultsInfo(MemoryStatements.QUERY_VMSTATS, true, request.getStartTime(), request.getEndTime(), MemoryProfiler.MemoryData.VmStatsSample.getDefaultInstance());
   }
 
-  public List<MemoryProfiler.AllocationsInfo> getAllocationInfoByRequest(MemoryProfiler.MemoryRequest request) {
-    List<MemoryProfiler.AllocationsInfo> results = new ArrayList<>();
+  public List<AllocationsInfo> getAllocationInfoByRequest(MemoryProfiler.MemoryRequest request) {
+    List<AllocationsInfo> results = new ArrayList<>();
     synchronized (myUpdatingAllocationsLock) {
       // TODO: Handle the case where info.getEndTime() == UNSPECIFIED_DURATION
       myAllocationsInfos.stream()
@@ -250,7 +279,7 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
   public MemoryProfiler.GetAllocationsInfoStatusResponse getAllocationInfoStatus(int id) {
     MemoryProfiler.GetAllocationsInfoStatusResponse response = MemoryProfiler.GetAllocationsInfoStatusResponse.getDefaultInstance();
     synchronized (myUpdatingAllocationsLock) {
-      for (MemoryProfiler.AllocationsInfo info : myAllocationsInfos) {
+      for (AllocationsInfo info : myAllocationsInfos) {
         if (id == info.getInfoId()) {
           response =
             MemoryProfiler.GetAllocationsInfoStatusResponse.newBuilder().setInfoId(info.getInfoId()).setStatus(info.getStatus()).build();
@@ -275,11 +304,11 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     */
   }
 
-  public void updateAllocationInfo(int id, MemoryProfiler.AllocationsInfo.Status status) {
+  public void updateAllocationInfo(int id, AllocationsInfo.Status status) {
     // Find the cached AllocationInfo and update its status.
     synchronized (myUpdatingAllocationsLock) {
       for (int i = myAllocationsInfos.size() - 1; i >= 0; i--) {
-        MemoryProfiler.AllocationsInfo info = myAllocationsInfos.get(i);
+        AllocationsInfo info = myAllocationsInfos.get(i);
         if (id == info.getInfoId()) {
           assert info.getLegacyTracking();
           info = info.toBuilder().setStatus(status).build();
@@ -330,6 +359,12 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     //}
   }
 
+  public void insertAllocationDumpData(AllocationsInfo info, byte[] data) {
+    myAllocationData.put(info.getInfoId(), data);
+
+    //execute(MemoryStatements.UPDATE_ALLOCATIONS_INFO, info.toByteArray(), data, info.getInfoId());
+  }
+
   public void insert(MemoryProfiler.HeapDumpInfo info) {
     HeapDumpSample sample = new HeapDumpSample(info);
     myHeapData.add(sample);
@@ -363,20 +398,20 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     //execute(MemoryStatements.INSERT_ALLOCATION_STACK, id.toByteArray(), stack.toByteArray());
   }
 
-  public void insertAndUpdateAllocationInfo(List<MemoryProfiler.AllocationsInfo> infos) {
+  public void insertAndUpdateAllocationInfo(List<AllocationsInfo> infos) {
     int startAppendIndex = 0;
     synchronized (myUpdatingAllocationsLock) {
       int lastEntryIndex = myAllocationsInfos.size() - 1;
       if (lastEntryIndex >= 0 && myAllocationsInfos.get(lastEntryIndex).getEndTime() == DurationData.UNSPECIFIED_DURATION) {
-        MemoryProfiler.AllocationsInfo lastOriginalEntry = myAllocationsInfos.get(lastEntryIndex);
-        MemoryProfiler.AllocationsInfo firstIncomingEntry = infos.get(0);
+        AllocationsInfo lastOriginalEntry = myAllocationsInfos.get(lastEntryIndex);
+        AllocationsInfo firstIncomingEntry = infos.get(0);
         assert infos.get(0).getInfoId() == lastOriginalEntry.getInfoId();
         assert infos.get(0).getStartTime() == lastOriginalEntry.getStartTime();
         myAllocationsInfos.set(lastEntryIndex, firstIncomingEntry);
         startAppendIndex = 1;
       }
       for (int i = startAppendIndex; i < infos.size(); i++) {
-        MemoryProfiler.AllocationsInfo info = infos.get(i);
+        AllocationsInfo info = infos.get(i);
         myAllocationsInfos.add(info);
       }
     }
@@ -389,7 +424,7 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
 
   public List<MemoryProfiler.AllocationStack> getAllocationStacksForRequest(MemoryProfiler.AllocationContextsRequest request) {
     synchronized (myUpdatingAllocationsLock) {
-      return new ArrayList(myAllocationStacks.values());
+      return new ArrayList<>(myAllocationStacks.values());
     }
     //List<MemoryProfiler.AllocationStack> datas = new ArrayList<>();
     //try {
@@ -424,7 +459,7 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
 
   public MemoryProfiler.DumpDataResponse.Status getHeapDumpStatus(int dumpId) {
     int index = Collections
-      .binarySearch(myHeapData, new HeapDumpSample(dumpId), (o1, o2) -> o1.myInfo.getDumpId() - o2.myInfo.getDumpId());
+      .binarySearch(myHeapData, new HeapDumpSample(dumpId), Comparator.comparingInt(o -> o.myInfo.getDumpId()));
     assert index >= 0;
     HeapDumpSample dump = myHeapData.get(index);
     if (dump == null) {
@@ -444,9 +479,9 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     //return MemoryProfiler.DumpDataResponse.Status.FAILURE_UNKNOWN;
   }
 
-  public void insertDumpData(MemoryProfiler.DumpDataResponse.Status status, MemoryProfiler.HeapDumpInfo info, ByteString data) {
+  public void insertHeapDumpData(MemoryProfiler.DumpDataResponse.Status status, MemoryProfiler.HeapDumpInfo info, ByteString data) {
     int index = Collections
-      .binarySearch(myHeapData, new HeapDumpSample(info.getDumpId()), (o1, o2) -> o1.myInfo.getDumpId() - o2.myInfo.getDumpId());
+      .binarySearch(myHeapData, new HeapDumpSample(info.getDumpId()), Comparator.comparingInt(o -> o.myInfo.getDumpId()));
     assert index >= 0;
     HeapDumpSample dump = myHeapData.get(index);
     dump.myInfo = info;
