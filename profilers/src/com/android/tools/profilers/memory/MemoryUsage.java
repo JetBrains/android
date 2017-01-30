@@ -33,7 +33,7 @@ public class MemoryUsage extends LineChartModel {
   public MemoryUsage(@NotNull StudioProfilers profilers) {
 
     myMemoryRange = new Range(0, 0);
-    myTotalMemorySeries = createRangedSeries(profilers, "Memory", myMemoryRange, MemorySample::getTotalMem);
+    myTotalMemorySeries = createRangedSeries(profilers, getTotalSeriesLabel(), myMemoryRange, MemorySample::getTotalMem);
 
     add(myTotalMemorySeries);
   }
@@ -52,5 +52,9 @@ public class MemoryUsage extends LineChartModel {
   @NotNull
   public RangedContinuousSeries getTotalMemorySeries() {
     return myTotalMemorySeries;
+  }
+
+  protected String getTotalSeriesLabel() {
+    return "";
   }
 }

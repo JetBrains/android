@@ -25,19 +25,31 @@ import static org.junit.Assert.assertEquals;
 public class LegendConfigTest {
 
   @Test
-  public void testCorrectSettingsFromLineConfig() throws Exception {
-    LineConfig line = new LineConfig(Color.PINK).setFilled(true);
+  public void correctSettingsFromLineConfigConstructor() {
+    LineConfig line = new LineConfig(Color.PINK).setFilled(true).setLegendIconType(LegendConfig.IconType.BOX);
     LegendConfig legend = new LegendConfig(line);
     assertEquals(Color.PINK, legend.getColor());
     assertEquals(LegendConfig.IconType.BOX, legend.getIcon());
 
-    line.setFilled(false).setColor(Color.ORANGE);
+    line.setColor(Color.ORANGE).setLegendIconType(LegendConfig.IconType.LINE);
     legend = new LegendConfig(line);
     assertEquals(Color.ORANGE, legend.getColor());
     assertEquals(LegendConfig.IconType.LINE, legend.getIcon());
 
-    line.setLegendIconType(LegendConfig.IconType.DOTTED_LINE);
+    line.setLegendIconType(LegendConfig.IconType.DASHED_LINE);
     legend = new LegendConfig(line);
-    assertEquals(LegendConfig.IconType.DOTTED_LINE, legend.getIcon());
+    assertEquals(Color.ORANGE, legend.getColor());
+    assertEquals(LegendConfig.IconType.DASHED_LINE, legend.getIcon());
+
+    legend = new LegendConfig(new LineConfig(Color.PINK));
+    // If legendIconType is not set, LegendConfig.IconType.NONE should be used
+    assertEquals(LegendConfig.IconType.NONE, legend.getIcon());
+  }
+
+  @Test
+  public void correctSettingsFromDefaultConstructor() {
+    LegendConfig legend = new LegendConfig(LegendConfig.IconType.DASHED_LINE, Color.BLACK);
+    assertEquals(LegendConfig.IconType.DASHED_LINE, legend.getIcon());
+    assertEquals(Color.BLACK, legend.getColor());
   }
 }
