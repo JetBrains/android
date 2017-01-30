@@ -113,7 +113,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
 
       NewModuleModel moduleModel = new NewModuleModel(getModel(), formFactorInfo.templateFile);
       RenderTemplateModel renderModel = new RenderTemplateModel(moduleModel, templateList.get(0), dummySourceSet,
-                                                                message("android.wizard.activity.add"));
+                                                                message("android.wizard.activity.add", formFactor.id));
 
       moduleModel.getRenderTemplateValues().setValue(renderModel.getTemplateValues());
       formFactorInfo.newModuleModel = moduleModel;
