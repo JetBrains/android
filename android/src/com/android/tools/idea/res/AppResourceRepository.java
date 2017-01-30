@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.util.Pair;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TObjectIntHashMap;
@@ -44,6 +45,7 @@ import java.util.*;
 
 import static com.android.SdkConstants.DOT_AAR;
 import static com.android.SdkConstants.FD_RES;
+import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 import static org.jetbrains.android.facet.ResourceFolderManager.addAarsFromModuleLibraries;
 
 /**
@@ -51,6 +53,8 @@ import static org.jetbrains.android.facet.ResourceFolderManager.addAarsFromModul
  * transitive dependencies of the given AndroidFacet / module.
  */
 public class AppResourceRepository extends MultiResourceRepository {
+  private static final Logger LOG = Logger.getInstance(AppResourceRepository.class);
+
   private final AndroidFacet myFacet;
   private List<FileResourceRepository> myLibraries;
   private long myIdsModificationCount;
@@ -130,9 +134,18 @@ public class AppResourceRepository extends MultiResourceRepository {
   }
 
   private static List<FileResourceRepository> computeLibraries(@NotNull final AndroidFacet facet) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("computeLibraries");
+    }
+
     List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
     Map<File, String> aarDirs = findAarLibraries(facet, dependentFacets);
+
     if (aarDirs.isEmpty()) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("  No AARs");
+      }
+
       return Collections.emptyList();
     }
 
@@ -143,6 +156,12 @@ public class AppResourceRepository extends MultiResourceRepository {
     // to gradle project state, the order difference will cause the merged project resource
     // maps to have to be recomputed
     Collections.sort(dirs);
+
+    if (LOG.isDebugEnabled()) {
+      for (File root : dirs) {
+        LOG.debug("  Dependency: " + anonymizeClassName(aarDirs.get(root)));
+      }
+    }
 
     List<FileResourceRepository> resources = Lists.newArrayListWithExpectedSize(aarDirs.size());
     for (File root : dirs) {
