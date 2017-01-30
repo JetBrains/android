@@ -70,5 +70,12 @@ public class NewVectorAssetTest {
     assertThat(myStep.getError()).isEqualTo("' ' is not a valid resource name character");
   }
 
+  @Test
+  public void testSaveDefaultMaterialIcon() {
+    myDialog.clickNext();
+    myDialog.clickFinish();
+    guiTest.ideFrame().getEditor().open("app/src/main/res/drawable/ic_android_black_24dp.xml");
+  }
+
   // TODO: There is no tests to cover non default icons, different sizes or a Local SVG File
 }
