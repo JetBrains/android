@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.startup;
 
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
@@ -29,6 +30,7 @@ import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.lang.injection.MultiHostInjector;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
@@ -112,6 +114,8 @@ public class AndroidStudioInitializer implements Runnable {
    */
   private static void setupAnalytics() {
     AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
+    ApplicationInfo application = ApplicationInfo.getInstance();
+    UsageTracker.getInstance().setVersion(application.getStrictVersion());
   }
 
   private static void checkInstallation() {
