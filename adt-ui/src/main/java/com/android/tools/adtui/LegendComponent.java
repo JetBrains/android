@@ -168,7 +168,7 @@ public class LegendComponent extends AnimatedComponent {
           xOffset = ICON_WIDTH_PX + ICON_MARGIN_PX;
           break;
         case LINE:
-        case DOTTED_LINE:
+        case DASHED_LINE:
           g2d.setColor(config.getColor());
           g2d.setStroke(config.getIcon() == LegendConfig.IconType.LINE ? LINE_STROKE : DASH_STROKE);
           int lineY = LEGEND_VERTICAL_PADDING_PX + labelPreferredSize.height / 2;

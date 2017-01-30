@@ -104,11 +104,12 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
     DetailedNetworkUsage usage = getStage().getDetailedNetworkUsage();
     final LineChart lineChart = new LineChart(usage);
-    LineConfig receivedConfig = new LineConfig(ProfilerColors.NETWORK_RECEIVING_COLOR);
+    LineConfig receivedConfig = new LineConfig(ProfilerColors.NETWORK_RECEIVING_COLOR).setLegendIconType(LegendConfig.IconType.LINE);
     lineChart.configure(usage.getRxSeries(), receivedConfig);
-    LineConfig sentConfig = new LineConfig(ProfilerColors.NETWORK_SENDING_COLOR);
+    LineConfig sentConfig = new LineConfig(ProfilerColors.NETWORK_SENDING_COLOR).setLegendIconType(LegendConfig.IconType.LINE);
     lineChart.configure(usage.getTxSeries(), sentConfig);
-    LineConfig connectionConfig = new LineConfig(ProfilerColors.NETWORK_CONNECTIONS_COLOR).setStroke(LineConfig.DEFAULT_DASH_STROKE);
+    LineConfig connectionConfig = new LineConfig(ProfilerColors.NETWORK_CONNECTIONS_COLOR)
+      .setLegendIconType(LegendConfig.IconType.DASHED_LINE).setStroke(LineConfig.DEFAULT_DASH_STROKE);
     lineChart.configure(usage.getConnectionSeries(), connectionConfig);
 
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
