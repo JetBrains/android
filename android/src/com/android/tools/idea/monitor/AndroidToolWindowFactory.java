@@ -291,7 +291,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
 
   @Override
   public boolean value(Project project) {
-    return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID) && !showMonitors();
+    return !showMonitors();
   }
 
   private static class MyAndroidPlatformListener extends ModuleRootAdapter {
