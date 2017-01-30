@@ -190,6 +190,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         }
         else {
           layoutContent();
+          if (myZoomFitted) {
+            zoomToFit();
+          }
         }
       }
 
@@ -609,6 +612,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         myZoomListener.zoomChanged(this);
       }
     }
+
   }
 
   private void notifyPanningChanged(AdjustmentEvent adjustmentEvent) {
