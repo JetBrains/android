@@ -17,7 +17,8 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetup;
+import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
+import com.android.tools.idea.gradle.project.sync.setup.module.idea.java.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
@@ -36,7 +37,9 @@ public class JavaModuleModelDataService extends ModuleModelDataService<JavaModul
 
   @SuppressWarnings("unused") // Instantiated by IDEA
   public JavaModuleModelDataService() {
-    this(new JavaModuleSetup());
+    this(new JavaModuleSetup(new JavaFacetModuleSetupStep(), new ContentRootsModuleSetupStep(), new DependenciesModuleSetupStep(),
+                             new ArtifactsByConfigurationModuleSetupStep(), new CompilerOutputModuleSetupStep(),
+                             new JavaLanguageLevelModuleSetupStep()));
   }
 
   @VisibleForTesting
