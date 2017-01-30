@@ -28,7 +28,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import org.gradle.tooling.model.idea.IdeaModule;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.project.sync.GradleSyncProgress.notifyProgress;
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 
@@ -95,17 +95,21 @@ abstract class ProjectSetup {
     }
 
     private void createModules(@NotNull SyncAction.ProjectModels projectModels, @NotNull ProgressIndicator indicator) {
-      indicator.setText("Creating modules");
+      notifyProgress(indicator, "Creating modules");
 
-      for (IdeaModule ideaModule : projectModels.getProject().getModules()) {
-        // We need to create all modules before setting them up, in case we find inter-module dependencies.
-        SyncAction.ModuleModels moduleModels = projectModels.getModels(ideaModule);
-        Module module = myModuleFactory.createModule(ideaModule, moduleModels);
-        module.putUserData(MODULE_GRADLE_MODELS_KEY, moduleModels);
+      for (String gradlePath : projectModels.getProjectPaths()) {
+        SyncAction.ModuleModels moduleModels = projectModels.getModels(gradlePath);
+
+        if (moduleModels != null) {
+          Module module = myModuleFactory.createModule(moduleModels);
+          module.putUserData(MODULE_GRADLE_MODELS_KEY, moduleModels);
+        }
       }
     }
 
     private void setUpModules(@NotNull ProgressIndicator indicator) {
+      notifyProgress(indicator, "Configuring modules");
+
       List<Module> modulesToDispose = new ArrayList<>();
       AndroidModuleValidator moduleValidator = myModuleValidatorFactory.create(myProject);
       for (Module module : myModelsProvider.getModules()) {

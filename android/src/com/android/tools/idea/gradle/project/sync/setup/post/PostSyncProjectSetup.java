@@ -393,5 +393,25 @@ public class PostSyncProjectSetup {
       myLastSyncTimestamp = lastSyncTimestamp;
       return this;
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      Request request = (Request)o;
+      return myUsingCachedGradleModels == request.myUsingCachedGradleModels &&
+             myCleanProjectAfterSync == request.myCleanProjectAfterSync &&
+             myGenerateSourcesAfterSync == request.myGenerateSourcesAfterSync &&
+             myLastSyncTimestamp == request.myLastSyncTimestamp;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(myUsingCachedGradleModels, myCleanProjectAfterSync, myGenerateSourcesAfterSync, myLastSyncTimestamp);
+    }
   }
 }
