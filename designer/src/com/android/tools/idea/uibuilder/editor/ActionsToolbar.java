@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
+import com.android.tools.idea.uibuilder.surface.PanZoomListener;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -34,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.AdjustmentEvent;
 import java.util.Collections;
 import java.util.List;
 
@@ -98,6 +100,17 @@ abstract public class ActionsToolbar implements DesignSurfaceListener, ModelList
     panel.add(bottom, BorderLayout.SOUTH);
 
     mySurface.addListener(this);
+    mySurface.addPanZoomListener(new PanZoomListener() {
+      @Override
+      public void zoomChanged(DesignSurface designSurface) {
+        zoomToolBar.updateActionsImmediately();
+      }
+
+      @Override
+      public void panningChanged(AdjustmentEvent adjustmentEvent) {
+
+      }
+    });
 
     updateActions();
 
