@@ -18,8 +18,8 @@ package com.android.tools.profilers.memory.adapters;
 import com.android.tools.perflib.heap.ProguardMap;
 import com.android.tools.perflib.heap.Snapshot;
 import com.android.tools.perflib.heap.io.InMemoryBuffer;
+import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpDataRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.google.common.annotations.VisibleForTesting;
@@ -110,7 +110,7 @@ public final class HeapDumpCaptureObject implements CaptureObject {
     DumpDataResponse response;
     while (true) {
       // TODO move this to another thread and complete before we notify
-      response = myClient.getHeapDump(HeapDumpDataRequest.newBuilder()
+      response = myClient.getHeapDump(DumpDataRequest.newBuilder()
                                         .setProcessId(myProcessId)
                                         .setDeviceSerial(myDeviceSerial)
                                         .setDumpId(myHeapDumpInfo.getDumpId()).build());

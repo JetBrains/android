@@ -29,8 +29,8 @@ import java.util.function.Supplier;
 
 // TODO find a better place for Legacy* classes.
 public class LegacyAllocationTrackingService {
-  public interface LegacyAllocationTrackingCallback {
-    void accept(List<AllocatedClass> classes, List<AllocationStack> stacks, List<AllocationEvent> events);
+  public interface LegacyAllocationConsumer {
+    void accept(byte[] data, List<AllocatedClass> classes, List<AllocationStack> stacks, List<AllocationEvent> events);
   }
 
   @NotNull
@@ -48,10 +48,7 @@ public class LegacyAllocationTrackingService {
   /**
    * @return true if the AllocationTracking state has successfully changed to the specified state. False otherwise.
    */
-  public boolean trackAllocations(int processId,
-                                  long time,
-                                  boolean enabled,
-                                  @Nullable LegacyAllocationTrackingCallback allocationConsumer) {
+  public boolean trackAllocations(int processId, long time, boolean enabled, @Nullable LegacyAllocationConsumer allocationConsumer) {
     // TODO ensure only legacy or non-instrumented devices go through this path
     LegacyAllocationTracker tracker = myTrackerSupplier.get();
     if (tracker == null) {
@@ -70,7 +67,7 @@ public class LegacyAllocationTrackingService {
           assert allocationConsumer != null;
           LegacyAllocationConverter converter = tracker.parseDump(data);
           // timestamp of allocations is set to the end of allocation tracking
-          allocationConsumer.accept(converter.getClassNames(), converter.getAllocationStacks(), converter.getAllocationEvents(time));
+          allocationConsumer.accept(data, converter.getClassNames(), converter.getAllocationStacks(), converter.getAllocationEvents(time));
         }
       });
     }
