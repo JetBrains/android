@@ -16,15 +16,23 @@
 package com.android.tools.idea.instantapp;
 
 import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
+import com.android.tools.idea.run.AndroidRunConfiguration;
+import com.android.tools.idea.run.AndroidRunConfigurationType;
+import com.android.tools.idea.run.editor.DeepLinkLaunch;
+import com.android.tools.idea.run.editor.LaunchOptionState;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
+import com.intellij.execution.RunManager;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.project.Project;
 
 import java.io.File;
+import java.util.List;
 
 import static com.android.tools.idea.fd.gradle.InstantRunGradleUtils.getIrSupportStatus;
 import static com.android.tools.idea.instantapp.AIAProjectStructureAssertions.assertModuleIsValidAIABaseSplit;
 import static com.android.tools.idea.instantapp.AIAProjectStructureAssertions.assertModuleIsValidAIAInstantApp;
+import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
 import static com.android.tools.idea.testing.HighlightInfos.assertFileHasNoErrors;
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
 
@@ -48,5 +56,24 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
 
     // by definition, InstantRunGradleSupport.INSTANT_APP != InstantRunGradleSupport.SUPPORTED
     assertEquals(InstantRunGradleSupport.INSTANT_APP, getIrSupportStatus(getModel(), null));
+  }
+
+  public void testCorrectRunConfigurationsCreated() throws Exception {
+    loadProject(INSTANT_APP, "instant-app");
+
+    // Create one run configuration
+    List<RunConfiguration> configurations =
+      RunManager.getInstance(getProject()).getConfigurationsList(AndroidRunConfigurationType.getInstance().getFactory().getType());
+    assertEquals(1, configurations.size());
+    RunConfiguration configuration = configurations.get(0);
+    assertInstanceOf(configuration, AndroidRunConfiguration.class);
+    AndroidRunConfiguration runConfig = (AndroidRunConfiguration)configuration;
+
+    // Check it is a deep link with the correct URL
+    assertEquals(LAUNCH_DEEP_LINK, runConfig.MODE);
+    LaunchOptionState launchOptionState = runConfig.getLaunchOptionState(LAUNCH_DEEP_LINK);
+    assertInstanceOf(launchOptionState, DeepLinkLaunch.State.class);
+    DeepLinkLaunch.State deepLinkLaunchState = (DeepLinkLaunch.State)launchOptionState;
+    assertEquals("http://example.com/parameter", deepLinkLaunchState.DEEP_LINK);
   }
 }

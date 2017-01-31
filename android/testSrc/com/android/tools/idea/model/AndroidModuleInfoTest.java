@@ -71,6 +71,13 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     assertEquals("from.gradle", androidModuleInfo.getPackage());
   }
 
+  public void testInstantApp() throws Exception {
+    loadProject(INSTANT_APP);
+    assertNotNull(myAndroidFacet);
+    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(myAndroidFacet);
+    assertEquals("com.example.instantapp", androidModuleInfo.getPackage());
+  }
+
   public void testFlavors() throws Exception {
     loadProject(MODULE_INFO_FLAVORS);
     assertNotNull(myAndroidFacet);
