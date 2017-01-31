@@ -186,17 +186,17 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     });
 
 
-    myValidatorPanel.registerValidator(deviceModel.name().isEmpty().not(),
-      "Please write a name for the new device.");
+    myValidatorPanel.registerTest(deviceModel.name().isEmpty().not(),
+                                  "Please write a name for the new device.");
 
-    myValidatorPanel.registerValidator(
+    myValidatorPanel.registerTest(
       myDiagScreenSizeAdapter.inSync().and(deviceModel.diagonalScreenSize().isEqualTo(myDiagScreenSizeAdapter)),
       "Please enter a non-zero positive floating point value for the screen size.");
 
-    myValidatorPanel.registerValidator(
+    myValidatorPanel.registerTest(
       myScreenResWidthAdapter.inSync().and(deviceModel.screenResolutionWidth().isEqualTo(myScreenResWidthAdapter)),
       "Please enter a valid value for the screen width.");
-    myValidatorPanel.registerValidator(
+    myValidatorPanel.registerTest(
       myScreenResHeightAdapter.inSync().and(deviceModel.screenResolutionHeight().isEqualTo(myScreenResHeightAdapter)),
       "Please enter a valid value for the screen height.");
 
@@ -204,11 +204,11 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
       deviceModel.ramStorage(),
       value -> (value.getSize() > 0) ? Result.OK : new Result(Validator.Severity.ERROR, "Please specify a non-zero amount of RAM."));
 
-    myValidatorPanel.registerValidator(deviceModel.screenDpi().isGreaterThan(0),
-      "The given resolution and screen size specified have a DPI that is too low.");
+    myValidatorPanel.registerTest(deviceModel.screenDpi().isGreaterThan(0),
+                                  "The given resolution and screen size specified have a DPI that is too low.");
 
-    myValidatorPanel.registerValidator(deviceModel.supportsLandscape().or(deviceModel.supportsPortrait()),
-      "A device must support at least one orientation (Portrait or Landscape).");
+    myValidatorPanel.registerTest(deviceModel.supportsLandscape().or(deviceModel.supportsPortrait()),
+                                  "A device must support at least one orientation (Portrait or Landscape).");
 
     myValidatorPanel.registerValidator(deviceModel.customSkinFile(), value -> {
       File skinPath = value.orElse(null);
@@ -222,8 +222,8 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
       return Result.OK;
     });
 
-    myValidatorPanel.registerValidator(getModel().getDeviceData().compatibleSkinSize(),
-      Validator.Severity.WARNING, "The selected skin is not large enough to view the entire screen.");
+    myValidatorPanel.registerTest(getModel().getDeviceData().compatibleSkinSize(),
+                                  Validator.Severity.WARNING, "The selected skin is not large enough to view the entire screen.");
   }
 
   private void createUIComponents() {
