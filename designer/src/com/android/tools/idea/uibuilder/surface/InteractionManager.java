@@ -21,10 +21,7 @@ import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.scene.Scene;
-import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.SceneInteraction;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -581,10 +578,10 @@ public class InteractionManager {
           if (primary != null && !primary.isRoot() && primary.containsX(ax) && primary.containsY(ay)) {
             component = primary;
           } else if (primary != null) {
-            component = primary.findImmediateLeafAt(ax, ay);
+            component = Coordinates.findComponent(sceneView, x, y);
           }
           if (component == null) {
-            component = model.findLeafAt(ax, ay, false);
+            component = Coordinates.findComponent(sceneView, x, y);
           }
 
           if (component == null || component.isRoot()) {

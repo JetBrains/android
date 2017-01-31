@@ -119,4 +119,13 @@ public class SceneSelectionTest extends SceneTest {
     assertEquals(1, componentList.size());
     assertEquals(myScene.getSceneComponent("button2").getNlComponent(), componentList.get(0));
   }
+
+  public void testFindComponent() {
+    assertEquals(myScene.getSceneComponent(myScreen.findById("@id/button").getComponent()),
+                 myScene.findComponent(SceneContext.get(myScreen.getScreen()), 101, 201));
+    assertEquals(myScene.getSceneComponent(myScreen.findById("@id/button2").getComponent()),
+                 myScene.findComponent(SceneContext.get(myScreen.getScreen()), 101, 501));
+    assertEquals(myScene.getSceneComponent(myScreen.findById("@id/root").getComponent()),
+                 myScene.findComponent(SceneContext.get(myScreen.getScreen()), 101, 101));
+  }
 }
