@@ -45,7 +45,6 @@ import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.stream.IntStream;
@@ -92,9 +91,9 @@ public final class TranslationsEditorTest {
       "Chinese (zh) in China (CN)");
     assertEquals(expected, myTranslationsEditor.locales());
 
-    assertEquals(Arrays.asList("action_settings", "app_name", "cancel", "hello_world"), myTranslationsEditor.keys());
+    assertEquals(Arrays.asList("action_settings", "app_name", "app_name", "cancel", "hello_world"), myTranslationsEditor.keys());
 
-    JTableCellFixture cancel = myTranslationsEditor.getTable().cell(TableCell.row(2).column(7)); // Cancel in zh-rCN
+    JTableCellFixture cancel = myTranslationsEditor.getTable().cell(TableCell.row(3).column(7)); // Cancel in zh-rCN
     assertEquals("取消", cancel.value());
     assertEquals(-1, cancel.font().target().canDisplayUpTo("取消")); // requires DroidSansFallbackFull.ttf
   }
@@ -102,7 +101,7 @@ public final class TranslationsEditorTest {
   @Test
   public void showKeysNeedingTranslationForEnglish() {
     myTranslationsEditor.clickFilterKeysComboBoxItem("Show Keys Needing a Translation for English (en)");
-    assertEquals(Collections.singletonList("cancel"), myTranslationsEditor.keys());
+    assertEquals(Arrays.asList("app_name", "cancel"), myTranslationsEditor.keys());
   }
 
   @Test
@@ -152,6 +151,32 @@ public final class TranslationsEditorTest {
   }
 
   @Test
+  public void enteringValueUpdatesDebugStringsXml() {
+    myTranslationsEditor.getTable().enterValue(TableCell.row(1).column(5), "app_name_debug_iw");
+
+    Object line = myGuiTest.ideFrame().getEditor()
+      .open("app/src/debug/res/values-iw/strings.xml")
+      .moveBetween("app_name", "\"")
+      .getCurrentLine()
+      .trim();
+
+    assertEquals("<string name=\"app_name\">app_name_debug_iw</string>", line);
+  }
+
+  @Test
+  public void enteringValueUpdatesMainStringsXml() {
+    myTranslationsEditor.getTable().enterValue(TableCell.row(2).column(5), "app_name_main_iw");
+
+    Object line = myGuiTest.ideFrame().getEditor()
+      .open("app/src/main/res/values-iw/strings.xml")
+      .moveBetween("app_name", "\"")
+      .getCurrentLine()
+      .trim();
+
+    assertEquals("<string name=\"app_name\">app_name_main_iw</string>", line);
+  }
+
+  @Test
   public void enteringTextInDefaultValueTextFieldUpdatesTableCell() {
     JTableFixture table = myTranslationsEditor.getTable();
     TableCell actionSettingsDefaultValue = TableCell.row(0).column(2);
@@ -173,10 +198,14 @@ public final class TranslationsEditorTest {
   @Test
   public void enteringTextInTranslationTextFieldUpdatesTableCell() {
     JTableFixture table = myTranslationsEditor.getTable();
-    TableCell cell = TableCell.row(2).column(3);
+    TableCell cell = TableCell.row(3).column(3);
 
     table.selectCell(cell);
-    myTranslationsEditor.getTranslationTextField().enterText("cancel_en");
+
+    JTextComponentFixture field = myTranslationsEditor.getTranslationTextField();
+
+    field.selectAll();
+    field.enterText("cancel_en");
 
     // Make the Translation text field lose focus
     myTranslationsEditor.getKeyTextField().focus();
