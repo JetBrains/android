@@ -22,7 +22,6 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.AppBarConfigurationDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,7 +37,6 @@ public class AppBarConfigurationDialogTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Ignore
   @Test
   public void testDependencyDialog() throws Exception {
     EditorFixture editor = guiTest.importSimpleApplication()
@@ -78,7 +76,6 @@ public class AppBarConfigurationDialogTest {
     assertThat(gradleContents).contains("com.android.support:design:");
   }
 
-  @Ignore
   @Test
   public void testAddComponent() throws Exception {
     EditorFixture editor = guiTest.importSimpleApplication()
