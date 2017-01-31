@@ -19,17 +19,19 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.profilers.common.StackTraceView;
 import com.android.tools.profilers.common.TabsPanel;
-import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.ui.popup.IconButton;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.InplaceButton;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.labels.BoldLabel;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.PlatformColors;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,6 +39,11 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.font.TextAttribute;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -51,13 +58,14 @@ public class ConnectionDetailsView extends JPanel {
   private static final int PAGE_VGAP = JBUI.scale(32);
   private static final int SECTION_VGAP = JBUI.scale(10);
   private static final int HGAP = JBUI.scale(22);
+  private static final int SCROLL_UNIT = JBUI.scale(10);
+  private static final float TITLE_FONT_SIZE = 14.f;
   private static final float FIELD_FONT_SIZE = 11.f;
 
-
-  private final JPanel myEditorPanel;
-  private final JPanel myFieldsPanel;
+  @NotNull
+  private final JPanel myResponsePanel;
+  @NotNull
   private final JPanel myHeadersPanel;
-
   @NotNull
   private final StackTraceView myStackTraceView;
 
@@ -77,23 +85,33 @@ public class ConnectionDetailsView extends JPanel {
 
     TabsPanel tabsPanel = stageView.getIdeComponents().createTabsPanel();
 
-    JPanel responsePanel = new JPanel(new BorderLayout());
-    myEditorPanel = new JPanel(new BorderLayout());
-    myEditorPanel.setBorder(BorderFactory.createEmptyBorder(PAGE_VGAP, HGAP, 0, HGAP));
-    responsePanel.add(myEditorPanel, BorderLayout.CENTER);
+    TabularLayout layout = new TabularLayout("*").setVGap(PAGE_VGAP);
+    myResponsePanel = new JPanel(layout);
+    myResponsePanel.setBorder(BorderFactory.createEmptyBorder(PAGE_VGAP, HGAP, 0, HGAP));
+    myResponsePanel.setName("Response");
+    JBScrollPane responseScroll = new JBScrollPane(myResponsePanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                                   ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    responseScroll.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT);
+    responseScroll.addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent e) {
+        layout.setRowSizing(0, new TabularLayout.SizingRule(TabularLayout.SizingRule.Type.FIXED,
+                                                            (int)(responseScroll.getViewport().getHeight() * 0.4f)));
+        layout.layoutContainer(myResponsePanel);
+      }
+    });
 
-    myFieldsPanel = new JPanel(new TabularLayout("Fit,20px,*").setVGap(SECTION_VGAP));
-    myFieldsPanel.setBorder(BorderFactory.createEmptyBorder(PAGE_VGAP, HGAP, PAGE_VGAP, 0));
-    JBScrollPane scrollPane = new JBScrollPane(myFieldsPanel);
-    responsePanel.add(scrollPane, BorderLayout.SOUTH);
-
-    tabsPanel.addTab("Response", responsePanel);
+    tabsPanel.addTab("Response", responseScroll);
 
     myHeadersPanel = new JPanel(new VerticalFlowLayout(0, PAGE_VGAP));
     myHeadersPanel.setName("Headers");
-    tabsPanel.addTab("Headers", new JBScrollPane(myHeadersPanel));
+    JBScrollPane headersScroll = new JBScrollPane(myHeadersPanel);
+    headersScroll.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT);
+    headersScroll.getHorizontalScrollBar().setUnitIncrement(SCROLL_UNIT);
+    tabsPanel.addTab("Headers", headersScroll);
 
     myStackTraceView = myStageView.getIdeComponents().createStackView(null);
+    myStackTraceView.getComponent().setName("StackTrace");
     tabsPanel.addTab("Call Stack", myStackTraceView.getComponent());
 
     IconButton closeIcon = new IconButton("Close", AllIcons.Actions.Close, AllIcons.Actions.CloseHovered);
@@ -112,31 +130,28 @@ public class ConnectionDetailsView extends JPanel {
    */
   public void update(@Nullable HttpData httpData) {
     setBackground(JBColor.background());
-    myEditorPanel.removeAll();
-    myFieldsPanel.removeAll();
+    myResponsePanel.removeAll();
     myHeadersPanel.removeAll();
     myStackTraceView.clearStackFrames();
 
-    JComponent fileViewer = getFileViewer(httpData);
-    if (fileViewer != null) {
-      myEditorPanel.add(fileViewer, BorderLayout.CENTER);
-    }
-
     if (httpData != null) {
-      updateFields(httpData);
+      FileViewer fileViewer = createFileViewer(httpData);
+      myResponsePanel.add(fileViewer.getComponent(), new TabularLayout.Constraint(0, 0));
+      myResponsePanel.add(createFields(httpData, fileViewer.getDimension()), new TabularLayout.Constraint(1, 0));
 
       myHeadersPanel.add(createHeaderSection("Response Headers", httpData.getResponseHeaders()));
       myHeadersPanel.add(new JSeparator());
       myHeadersPanel.add(createHeaderSection("Request Headers", httpData.getRequestHeaders()));
 
       myStackTraceView.setStackFrames(httpData.getTrace());
-      repaint();
     }
     setVisible(httpData != null);
     revalidate();
   }
 
-  private void updateFields(@NotNull HttpData httpData) {
+  private static JComponent createFields(@NotNull HttpData httpData, @Nullable Dimension payloadDimension) {
+    JPanel myFieldsPanel = new JPanel(new TabularLayout("Fit,20px,*").setVGap(SECTION_VGAP));
+
     int row = 0;
     myFieldsPanel.add(new NoWrapBoldLabel("Request"), new TabularLayout.Constraint(row, 0));
     myFieldsPanel.add(new JLabel(HttpData.getUrlName(httpData.getUrl())), new TabularLayout.Constraint(row, 2));
@@ -148,33 +163,55 @@ public class ConnectionDetailsView extends JPanel {
     if (httpData.getStatusCode() != HttpData.NO_STATUS_CODE) {
       row++;
       myFieldsPanel.add(new NoWrapBoldLabel("Status"), new TabularLayout.Constraint(row, 0));
-      myFieldsPanel.add(new JLabel(String.valueOf(httpData.getStatusCode())), new TabularLayout.Constraint(row, 2));
+      JLabel statusCode = new JLabel(String.valueOf(httpData.getStatusCode()));
+      statusCode.setName("StatusCode");
+      myFieldsPanel.add(statusCode, new TabularLayout.Constraint(row, 2));
+    }
+
+    if (payloadDimension != null) {
+      row++;
+      myFieldsPanel.add(new NoWrapBoldLabel("Dimension"), new TabularLayout.Constraint(row, 0));
+      JLabel dimension = new JLabel(String.format("%d x %d", (int) payloadDimension.getWidth(), (int) payloadDimension.getHeight()));
+      dimension.setName("Dimension");
+      myFieldsPanel.add(dimension, new TabularLayout.Constraint(row, 2));
     }
 
     if (httpData.getContentType() != null) {
       row++;
       myFieldsPanel.add(new NoWrapBoldLabel("Content type"), new TabularLayout.Constraint(row, 0));
-      myFieldsPanel.add(new JLabel(httpData.getContentType().getMimeType()), new TabularLayout.Constraint(row, 2));
+      JLabel contentTypeLabel = new JLabel(httpData.getContentType().getMimeType());
+      contentTypeLabel.setName("Content type");
+      myFieldsPanel.add(contentTypeLabel, new TabularLayout.Constraint(row, 2));
     }
 
     String contentLength = httpData.getResponseField(HttpData.FIELD_CONTENT_LENGTH);
     if (contentLength != null) {
       contentLength = contentLength.split(";")[0];
-      row++;
-      myFieldsPanel.add(new NoWrapBoldLabel("Content length"), new TabularLayout.Constraint(row, 0));
-      myFieldsPanel.add(new JLabel(contentLength), new TabularLayout.Constraint(row, 2));
+      try {
+        long number = Long.parseUnsignedLong(contentLength);
+        row++;
+        myFieldsPanel.add(new NoWrapBoldLabel("Size"), new TabularLayout.Constraint(row, 0));
+        JLabel contentLengthLabel = new JLabel(StringUtil.formatFileSize(number));
+        contentLengthLabel.setName("Size");
+        myFieldsPanel.add(contentLengthLabel, new TabularLayout.Constraint(row, 2));
+      } catch (NumberFormatException ignored) {}
     }
 
-    HyperlinkLabel urlLabel = new HyperlinkLabel(httpData.getUrl());
-    urlLabel.setHyperlinkTarget(httpData.getUrl());
     row++;
-    myFieldsPanel.add(new NoWrapBoldLabel("URL"), new TabularLayout.Constraint(row, 0));
-    myFieldsPanel.add(urlLabel, new TabularLayout.Constraint(row, 2));
+    NoWrapBoldLabel urlLabel = new NoWrapBoldLabel("URL");
+    urlLabel.setVerticalAlignment(SwingConstants.TOP);
+    myFieldsPanel.add(urlLabel, new TabularLayout.Constraint(row, 0));
+    WrappedHyperlink hyperlink = new WrappedHyperlink(httpData.getUrl());
+    hyperlink.setName("URL");
+    myFieldsPanel.add(hyperlink, new TabularLayout.Constraint(row, 2));
 
     new TreeWalker(myFieldsPanel).descendantStream().forEach(c -> {
       Font font = c.getFont();
       c.setFont(font.deriveFont(FIELD_FONT_SIZE));
     });
+
+    myFieldsPanel.setName("Response fields");
+    return myFieldsPanel;
   }
 
   @NotNull
@@ -183,7 +220,7 @@ public class ConnectionDetailsView extends JPanel {
     panel.setBorder(BorderFactory.createEmptyBorder(0, HGAP, 0, 0));
 
     JLabel titleLabel = new NoWrapBoldLabel(title);
-    titleLabel.setFont(titleLabel.getFont().deriveFont(14.f));
+    titleLabel.setFont(titleLabel.getFont().deriveFont(TITLE_FONT_SIZE));
     panel.add(titleLabel);
 
     if (map.isEmpty()) {
@@ -216,85 +253,206 @@ public class ConnectionDetailsView extends JPanel {
     return panel;
   }
 
-  @VisibleForTesting
-  @Nullable
-  Component getFileViewer() {
-    return myEditorPanel.getComponentCount() > 0 ? myEditorPanel.getComponent(0) : null;
-  }
-
   @NotNull
   public StackTraceView getStackTraceView() {
     return myStackTraceView;
   }
 
-  @VisibleForTesting
-  int getFieldComponentIndex(String labelText) {
-    for (int i = 0; i < myFieldsPanel.getComponentCount(); i += 2) {
-      if (myFieldsPanel.getComponent(i) instanceof JLabel) {
-        JLabel label = (JLabel)myFieldsPanel.getComponent(i);
-        if (label.getText().contains(labelText)) {
-          return i;
-        }
-      }
-    }
-    return -1;
-  }
-
-  @VisibleForTesting
-  @Nullable
-  Component getFieldComponent(int index) {
-    return index >= 0 && index < myFieldsPanel.getComponentCount() ? myFieldsPanel.getComponent(index) : null;
-  }
-
+  /**
+   * This is a label with bold font and does not wrap.
+   */
   private static final class NoWrapBoldLabel extends BoldLabel {
     public NoWrapBoldLabel(String text) {
       super("<nobr>" + text + "</nobr>");
     }
   }
 
-  @Nullable
-  private static JComponent getFileViewer(@Nullable HttpData httpData) {
-    if (httpData == null || httpData.getResponsePayloadFile() == null) {
-      return null;
+  @NotNull
+  private static FileViewer createFileViewer(@NotNull HttpData httpData) {
+    JComponent component = null;
+    Dimension dimension = null;
+    if (httpData.getResponsePayloadFile() == null) {
+      component = new JLabel("No preview available");
+      component.setFont(component.getFont().deriveFont(TITLE_FONT_SIZE));
     }
 
     String contentType = httpData.getResponseField(HttpData.FIELD_CONTENT_TYPE);
-    if (contentType != null && StringUtil.containsIgnoreCase(contentType, "image")) {
-      BufferedImage image = null;
+    if (component == null && contentType != null && StringUtil.containsIgnoreCase(contentType, "image")) {
       try {
-        image = httpData.getResponsePayloadFile() != null ? ImageIO.read(httpData.getResponsePayloadFile()) : null;
+        BufferedImage image = ImageIO.read(httpData.getResponsePayloadFile());
+        component = new ResizableImage(image);
+        dimension = new Dimension(image.getWidth(), image.getHeight());
       }
       catch (IOException ignored) {
       }
-      return image != null ? new ImageComponent(image) : null;
     }
 
-    // TODO: Fix the viewer for html, json and etc.
-    JTextArea textArea = new JTextArea();
-    try {
-      BufferedReader reader = new BufferedReader(new FileReader(httpData.getResponsePayloadFile()));
-      textArea.read(reader, null);
-      reader.close();
+    if (component == null) {
+      // TODO: Fix the viewer for html, json and etc.
+      JTextArea textArea = new JTextArea();
+      try {
+        BufferedReader reader = new BufferedReader(new FileReader(httpData.getResponsePayloadFile()));
+        textArea.read(reader, null);
+        reader.close();
+      }
+      catch (IOException ignored) {}
+      textArea.setEditable(false);
+      textArea.setLineWrap(true);
+      component = new JBScrollPane(textArea);
     }
-    catch (IOException ignored) {
-    }
-    textArea.setEditable(false);
-    return new JBScrollPane(textArea);
+
+    return new FileViewer(component, dimension);
   }
 
-  private static final class ImageComponent extends JComponent {
+  private static class FileViewer {
     @NotNull
-    private final Image myImage;
+    private final JComponent myComponent;
+    @Nullable
+    private final Dimension myDimension;
 
-    public ImageComponent(@NotNull Image image) {
-      myImage = image;
+    public FileViewer(@NotNull JComponent component, @Nullable Dimension dimension) {
+      myComponent = component;
+      myDimension = dimension;
+      myComponent.setName("FileViewer");
     }
 
-    @Override
-    protected void paintComponent(Graphics g) {
-      super.paintComponent(g);
-      Image scaledInstance = myImage.getScaledInstance(getParent().getWidth(), getParent().getHeight(), Image.SCALE_SMOOTH);
-      g.drawImage(scaledInstance, 0, 0, this);
+    @NotNull
+    public JComponent getComponent() {
+      return myComponent;
+    }
+
+    /**
+     * The (width x height) size of the target file, or {@code null} if the concept of a size
+     * doesn't make sense for the file type (e.g. txt, xml)
+     */
+    @Nullable
+    public Dimension getDimension() {
+      return myDimension;
+    }
+  }
+
+  /**
+   * This is an image which can be resized but maintains its aspect ratio.
+   */
+  public static class ResizableImage extends JLabel {
+
+    @NotNull private final BufferedImage myImage;
+    @Nullable private Dimension myLastSize;
+
+    /**
+     * Check if two dimension objects are basically the same size, plus or minus a pixel. This
+     * works around the fact that calculating the rescaled size of an image occasionally produces
+     * off-by-one rounding errors, letting us avoid triggering an expensive image regeneration for
+     * such a small change.
+     */
+    private static boolean areSimilarSizes(@NotNull Dimension d1, @NotNull Dimension d2) {
+      return Math.abs(d2.width - d1.width) <= 1 && Math.abs(d2.height - d1.height) <= 1;
+    }
+
+    public ResizableImage(@NotNull BufferedImage image) {
+      super("", CENTER);
+      myImage = image;
+
+      addComponentListener(new ComponentAdapter() {
+        @Override
+        public void componentResized(ComponentEvent e) {
+          resize();
+        }
+      });
+    }
+
+    private void resize() {
+      Dimension d = calculateScaledSize();
+
+      if (d.width == 0 || d.height == 0) {
+        setIcon(null);
+        myLastSize = null;
+      }
+      else if (myLastSize == null || !areSimilarSizes(myLastSize, d)) {
+        Image image = d.getWidth() == myImage.getWidth() ? myImage : myImage.getScaledInstance(d.width, d.height, Image.SCALE_SMOOTH);
+        setIcon(new ImageIcon(image));
+        myLastSize = d;
+      }
+    }
+
+    @NotNull
+    private Dimension calculateScaledSize() {
+      if (getWidth() == 0 || getHeight() == 0) {
+        return new Dimension();
+      }
+
+      float sourceRatio = (float)myImage.getWidth() / myImage.getHeight();
+      int finalWidth = getWidth();
+      int finalHeight = (int) (finalWidth / sourceRatio);
+
+      // Don't allow the final size to be larger than the original image, in order to prevent small
+      // images from stretching into a blurry mess.
+      int maxWidth = Math.min(getWidth(), myImage.getWidth());
+      int maxHeight = Math.min(getHeight(), myImage.getHeight());
+
+      if (finalWidth > maxWidth) {
+        float scale = (float)maxWidth / finalWidth;
+        finalWidth *= scale;
+        finalHeight *= scale;
+      }
+      if (finalHeight > maxHeight) {
+        float scale = (float)maxHeight / finalHeight;
+        finalWidth *= scale;
+        finalHeight *= scale;
+      }
+
+      return new Dimension(finalWidth, finalHeight);
+    }
+  }
+
+  /**
+   * This is a hyperlink which will break and wrap when it hits the right border of its container.
+   */
+  private static class WrappedHyperlink extends JTextArea {
+
+    public WrappedHyperlink(@NotNull String url) {
+      super(url);
+      setLineWrap(true);
+      setEditable(false);
+      setBackground(UIUtil.getLabelBackground());
+      setFont(getFont().deriveFont(ImmutableMap.of(
+        TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON,
+        TextAttribute.FOREGROUND, PlatformColors.BLUE,
+        TextAttribute.BACKGROUND, UIUtil.getLabelBackground())));
+
+      MouseAdapter mouseAdapter = getMouseAdapter(url);
+      addMouseListener(mouseAdapter);
+      addMouseMotionListener(mouseAdapter);
+    }
+
+    private MouseAdapter getMouseAdapter(String url) {
+      return new MouseAdapter() {
+        @Override
+        public void mouseEntered(MouseEvent e) {
+          mouseMoved(e);
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+          setCursor(Cursor.getDefaultCursor());
+        }
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+          if (isMouseOverText(e)) {
+            BrowserUtil.browse(url);
+          }
+        }
+
+        @Override
+        public void mouseMoved(MouseEvent e) {
+          setCursor(isMouseOverText(e) ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) : Cursor.getDefaultCursor());
+        }
+
+        private boolean isMouseOverText(MouseEvent e) {
+          return viewToModel(e.getPoint()) < getDocument().getLength();
+        }
+      };
     }
   }
 }

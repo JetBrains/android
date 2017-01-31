@@ -277,6 +277,17 @@ public class HttpData {
       myDownloadingTimeUs = downloadingTimeUS;
     }
 
+    public Builder(HttpData data) {
+      myId = data.myId;
+      myStartTimeUs = data.getStartTimeUs();
+      myDownloadingTimeUs = data.getDownloadingTimeUs();
+      myEndTimeUs = data.getEndTimeUs();
+      myUrl = data.getUrl();
+      myMethod = data.getMethod();
+      myTrace = data.getTrace();
+      myResponsePayloadId = data.getResponsePayloadId();
+    }
+
     @NotNull
     public Builder setUrl(@NotNull String url) {
       myUrl = url;
