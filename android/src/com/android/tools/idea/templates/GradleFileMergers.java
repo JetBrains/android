@@ -47,7 +47,7 @@ public class GradleFileMergers {
   static final Ordering<String> CONFIGURATION_ORDERING =
     Ordering
       .natural()
-      .onResultOf((String input) -> {
+      .onResultOf((@NotNull String input) -> {
         switch (input) {
           case SdkConstants.GRADLE_COMPILE_CONFIGURATION:
             return 1;
@@ -68,8 +68,8 @@ public class GradleFileMergers {
                                                 @NotNull Map<String, Multimap<String, GradleCoordinate>> existingDependencies) {
     for (String configuration : newDependencies.keySet()) {
       if (existingDependencies.containsKey(configuration)) {
-        for (Map.Entry<String, GradleCoordinate> entry : existingDependencies.get(configuration).entries()) {
-          newDependencies.get(configuration).remove(entry.getKey(), entry.getValue());
+        for (String coordinateId: existingDependencies.get(configuration).keySet()) {
+          newDependencies.get(configuration).removeAll(coordinateId);
         }
       }
     }
