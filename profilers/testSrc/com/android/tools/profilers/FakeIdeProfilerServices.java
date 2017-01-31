@@ -19,7 +19,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 public final class FakeIdeProfilerServices implements IdeProfilerServices {
   /**
@@ -27,6 +26,13 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
    */
   @Nullable
   Runnable myOnExecute;
+
+  /**
+   * The pool executor runs code in a separate thread. Sometimes is useful to check the state of the profilers
+   * just before calling pool executor's execute method (e.g. verifying Stage's transient status before making a gRPC call).
+   */
+  @Nullable
+  Runnable myPrePoolExecute;
 
   @NotNull
   @Override
@@ -42,10 +48,19 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @NotNull
   @Override
   public Executor getPoolExecutor() {
-    return Executors.newSingleThreadExecutor();
+    return (runnable) -> {
+      if (myPrePoolExecute != null) {
+        myPrePoolExecute.run();
+      }
+      runnable.run();
+    };
   }
 
   public void setOnExecute(@Nullable Runnable onExecute) {
     myOnExecute = onExecute;
+  }
+
+  public void setPrePoolExecutor(@Nullable Runnable prePoolExecute) {
+    myPrePoolExecute = prePoolExecute;
   }
 }
