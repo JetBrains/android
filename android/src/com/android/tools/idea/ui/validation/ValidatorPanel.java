@@ -53,7 +53,7 @@ public final class ValidatorPanel extends JPanel implements Disposable {
   private JPanel mySouthPanel;
   private JBLabel myValidationLabel;
 
-  public ValidatorPanel(@NotNull Disposable parentDisposable, @NotNull JPanel innerPanel) {
+  public ValidatorPanel(@NotNull Disposable parentDisposable, @NotNull JComponent innerPanel) {
     super(new BorderLayout());
 
     add(myRootPanel);
