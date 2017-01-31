@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.wizard;
 
 import com.intellij.ide.RecentProjectsManager;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.SystemProperties;
@@ -24,6 +25,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.event.InputEvent;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -32,6 +34,18 @@ import java.net.URL;
  * Static utility methods useful across wizards
  */
 public final class WizardUtils {
+  // TODO: This a temporary method, until all the new wizard code can be enabled and the old code deleted.
+  @Deprecated
+  public static boolean isNpwModelWizardEnabled() {
+    return Boolean.getBoolean("use.npw.modelwizard");
+  }
+
+  // TODO: This a temporary method, until all the new wizard code can be enabled and the old code deleted.
+  @Deprecated
+  public static boolean isNpwModelWizardEnabled(AnActionEvent e) {
+    return isNpwModelWizardEnabled() && (e.getInputEvent().getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) == 0;
+  }
+
   /**
    * The package is used to create a directory (eg: MyApplication/app/src/main/java/src/my/package/name)
    * A windows directory path cannot be longer than 250 chars
