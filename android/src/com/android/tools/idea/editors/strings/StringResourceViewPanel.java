@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.ide.common.res2.ResourceItem;
-import com.android.resources.ResourceType;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
@@ -26,6 +24,7 @@ import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.MultiResourceRepository;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.Reason;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
@@ -43,6 +42,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -64,13 +64,15 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntSupplier;
-import java.util.stream.Stream;
 
 final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   private static final boolean HIDE_TRANSLATION_ORDER_LINK = Boolean.getBoolean("hide.order.translations");
@@ -84,8 +86,8 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   private JPanel myToolbarPanel;
 
   private final AndroidFacet myFacet;
-  private LocalResourceRepository myResourceRepository;
-  private long myModificationCount;
+
+  private StringResourceRepository myResourceRepository;
   private ResourceChangeListener myResourceChangeListener;
 
   StringResourceViewPanel(AndroidFacet facet, Disposable parentDisposable) {
@@ -262,17 +264,11 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
       PsiElement[] elements = Arrays.stream(myTable.getSelectedRowModelIndices())
         .mapToObj(index -> ((StringResourceTableModel)myTable.getModel()).getStringResourceAt(index).getKey())
-        .flatMap(this::getResourceItemStream)
+        .flatMap(key -> myResourceRepository.getItems(key).stream())
         .map(item -> LocalResourceRepository.getItemTag(project, item))
         .toArray(PsiElement[]::new);
 
       SafeDeleteHandler.invoke(project, elements, LangDataKeys.MODULE.getData(event.getDataContext()), true, null);
-    }
-
-    @NotNull
-    private Stream<ResourceItem> getResourceItemStream(@NotNull String key) {
-      Collection<ResourceItem> items = myResourceRepository.getResourceItem(ResourceType.STRING, key);
-      return items == null ? Stream.empty() : items.stream();
     }
   }
 
@@ -286,8 +282,11 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
     @Override
     public void update(@NotNull AnActionEvent event) {
-      StringResourceData data = myTable.getData();
-      event.getPresentation().setEnabled(data != null && !data.getResources().isEmpty());
+      long count = ((StringResourceTableModel)myTable.getModel()).getKeys().stream()
+        .filter(key -> key.getDirectory() != null)
+        .count();
+
+      event.getPresentation().setEnabled(count != 0);
     }
 
     @Override
@@ -323,19 +322,14 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
     private void showPopupUnderneathOf(@NotNull JList list) {
       Runnable runnable = () -> {
-        // TODO Ask the user to pick a source set instead of defaulting to the primary resource directory
-        VirtualFile primaryResourceDir = myFacet.getPrimaryResourceDir();
-        assert primaryResourceDir != null;
+        StringResource resource = findResource();
+        StringResourceKey key = resource.getKey();
 
-        StringResourceData data = myTable.getData();
-        assert data != null;
+        VirtualFile directory = key.getDirectory();
+        assert directory != null;
 
-        // Pick a value to add to this locale
-        String key = "app_name";
-        StringResource resource = data.containsKey(key) ? data.getStringResource(key) : data.getResources().iterator().next();
-        String string = resource.getDefaultValueAsString();
-
-        StringsWriteUtils.createItem(myFacet, primaryResourceDir, (Locale)list.getSelectedValue(), resource.getKey(), string, true);
+        String value = resource.getDefaultValueAsString();
+        StringsWriteUtils.createItem(myFacet, directory, (Locale)list.getSelectedValue(), key.getName(), value, true);
       };
 
       JBPopup popup = JBPopupFactory.getInstance().createListPopupBuilder(list)
@@ -344,10 +338,29 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
       popup.showUnderneathOf(myComponent);
     }
+
+    @NotNull
+    private StringResource findResource() {
+      StringResourceData data = myTable.getData();
+      assert data != null;
+
+      StringResourceKey key = new StringResourceKey("app_name", myFacet.getAllResourceDirectories().get(0));
+
+      if (data.containsKey(key)) {
+        return data.getStringResource(key);
+      }
+
+      Optional<StringResource> optionalResource = data.getResources().stream()
+        .filter(resource -> resource.getKey().getDirectory() != null)
+        .findFirst();
+
+      return optionalResource.orElseThrow(IllegalStateException::new);
+    }
   }
 
-  public boolean dataIsCurrent() {
-    return myResourceRepository != null && myModificationCount >= myResourceRepository.getModificationCount();
+  // TODO Delete this
+  boolean dataIsCurrent() {
+    return true;
   }
 
   private void initTable() {
@@ -426,7 +439,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   }
 
   private class ParseTask extends Task.Backgroundable {
-    private final AtomicReference<LocalResourceRepository> myResourceRepositoryRef = new AtomicReference<>(null);
+    private final AtomicReference<StringResourceRepository> myResourceRepositoryRef = new AtomicReference<>(null);
     private final AtomicReference<StringResourceData> myResourceDataRef = new AtomicReference<>(null);
 
     public ParseTask(String description) {
@@ -436,33 +449,28 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     @Override
     public void run(@NotNull ProgressIndicator indicator) {
       indicator.setIndeterminate(true);
-      LocalResourceRepository moduleResources = ModuleResourceRepository.getOrCreateInstance(myFacet);
-      myResourceRepositoryRef.set(moduleResources);
-      myResourceDataRef.set(StringResourceParser.parse(myFacet, moduleResources));
+
+      MultiResourceRepository parent = (MultiResourceRepository)ModuleResourceRepository.getOrCreateInstance(myFacet);
+      StringResourceRepository repository = new StringResourceRepository(parent);
+
+      myResourceRepositoryRef.set(repository);
+
+      Computable<StringResourceData> getData = () -> repository.getData(myFacet);
+      myResourceDataRef.set(ApplicationManager.getApplication().runReadAction(getData));
     }
 
     @Override
     public void onSuccess() {
-      parse(myResourceRepositoryRef.get(), myResourceDataRef.get());
+      myResourceRepository = myResourceRepositoryRef.get();
+      myTable.setModel(new StringResourceTableModel(myResourceDataRef.get()));
+
+      myLoadingPanel.stopLoading();
     }
 
     @Override
     public void onCancel() {
       myLoadingPanel.stopLoading();
     }
-  }
-
-  @VisibleForTesting
-  void parse(@NotNull LocalResourceRepository resourceRepository) {
-    parse(resourceRepository, StringResourceParser.parse(myFacet, resourceRepository));
-  }
-
-  private void parse(@NotNull LocalResourceRepository resourceRepository, @NotNull StringResourceData data) {
-    myResourceRepository = resourceRepository;
-    myModificationCount = resourceRepository.getModificationCount();
-
-    myTable.setModel(new StringResourceTableModel(data));
-    myLoadingPanel.stopLoading();
   }
 
   private class CellSelectionListener implements ListSelectionListener {
@@ -490,7 +498,8 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
       int column = myTable.getSelectedColumnModelIndex();
       Object locale = model.getLocale(column);
 
-      setTextAndEditable(myKeyTextField, model.getKey(row), false); // TODO: keys are not editable, we want them to be refactor operations
+      // TODO: Keys are not editable; we want them to be refactor operations
+      setTextAndEditable(myKeyTextField, model.getKey(row).getName(), false);
 
       String defaultValue = (String)model.getValueAt(row, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
       boolean defaultValueEditable = isValueEditableInline(defaultValue); // don't allow editing multiline chars in a text field
@@ -547,7 +556,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
       Locale locale = model.getLocale(column);
       String translation = locale == null ? null : (String)model.getValueAt(row, column);
 
-      MultilineStringEditorDialog d = new MultilineStringEditorDialog(myFacet, model.getKey(row), value, locale, translation);
+      MultilineStringEditorDialog d = new MultilineStringEditorDialog(myFacet, model.getKey(row).getName(), value, locale, translation);
       if (d.showAndGet()) {
         if (!StringUtil.equals(value, d.getDefaultValue())) {
           model.setValueAt(d.getDefaultValue(), row, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
