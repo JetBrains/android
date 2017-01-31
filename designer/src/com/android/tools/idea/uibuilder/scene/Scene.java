@@ -77,6 +77,7 @@ public class Scene implements ModelListener, SelectionListener {
 
   private HitListener myHoverListener = new HitListener();
   private HitListener myHitListener = new HitListener();
+  private HitListener myFindListener = new HitListener();
   private Target myHitTarget = null;
   private Cursor myMouseCursor;
   private SceneComponent myHitComponent;
@@ -882,10 +883,10 @@ public class Scene implements ModelListener, SelectionListener {
       }
     }
 
-    setCursor(x, y);
+    setCursor(transform, x, y);
   }
 
-  private void setCursor(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+  private void setCursor(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myMouseCursor = Cursor.getDefaultCursor();
     if (myCurrentComponent != null && myCurrentComponent.isDragging()) {
       myMouseCursor = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
@@ -908,8 +909,8 @@ public class Scene implements ModelListener, SelectionListener {
         return;
       }
     }
-    NlComponent component = myModel.findLeafAt(mx, my, false);
-    if (component != null && !component.isRoot()) {
+    SceneComponent component = findComponent(transform, x, y);
+    if (component != null && component.getParent() != null) {
       myMouseCursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
     }
   }
@@ -1127,4 +1128,13 @@ public class Scene implements ModelListener, SelectionListener {
   }
   //endregion
   /////////////////////////////////////////////////////////////////////////////
+
+  @Nullable
+  public SceneComponent findComponent(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+    if (myRoot == null) {
+      return null;
+    }
+    myFindListener.find(transform, myRoot, x, y);
+    return myFindListener.getClosestComponent();
+  }
 }
