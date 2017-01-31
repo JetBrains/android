@@ -49,6 +49,8 @@ import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static java.lang.System.getenv;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * Test that newly created Instant App modules do not have errors in them
@@ -139,7 +141,7 @@ public class NewInstantAppModuleTest {
   public void testApplicationPackageGeneratedCorrectly() throws IOException {
     guiTest.importSimpleApplication();
     addNewInstantAppModule(true, false, "instantapp");
-    assertCorrectPackageAndSplit("instantapp", "instantapp");
+    assertNull(getManifest("instantapp"));
   }
 
   @Test
@@ -190,17 +192,21 @@ public class NewInstantAppModuleTest {
       .waitForBuildToFinish(SOURCE_GEN);
   }
 
-  private void assertCorrectPackageAndSplit(@NotNull String moduleName, @Nullable String splitName) {
-
+  @Nullable
+  private Manifest getManifest(@NotNull String moduleName) {
     Module module = guiTest.ideFrame().getModule(moduleName);
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    assertThat(facet).isNotNull();
-    Manifest manifest = facet.getManifest();
-    assertThat(manifest).isNotNull();
+    assertNotNull(facet);
+    return facet.getManifest();
+  }
+
+  private void assertCorrectPackageAndSplit(@NotNull String moduleName, @Nullable String splitName) {
+    Manifest manifest = getManifest(moduleName);
+    assertNotNull(manifest);
 
     ApplicationManager.getApplication().runReadAction(() -> {
       GenericAttributeValue<String> packageAttribute = manifest.getPackage();
-      assertThat(packageAttribute).isNotNull();
+      assertNotNull(packageAttribute);
       assertThat(packageAttribute.isValid()).isTrue();
       assertThat(packageAttribute.getStringValue()).isEqualTo("com.example.aia");
 

@@ -115,6 +115,8 @@ public class AIAProjectStructureAssertions {
     assertEquals(libraryDependencies.size(), libraries.size());
     assertTrue(libraries.stream().allMatch(libraryDependencies::contains));
 
-    assertFileHasNoErrors(module.getProject(), new File(module.getName(), "/src/main/AndroidManifest.xml"));
+    if (moduleType != PROJECT_TYPE_INSTANTAPP) {
+      assertFileHasNoErrors(module.getProject(), new File(module.getName(), "/src/main/AndroidManifest.xml"));
+    }
   }
 }
