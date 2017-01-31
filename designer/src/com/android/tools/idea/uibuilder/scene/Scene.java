@@ -22,8 +22,8 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.scene.target.*;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.scene.target.*;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.ide.util.PropertiesComponent;
@@ -512,9 +512,11 @@ public class Scene implements ModelListener, SelectionListener {
   @Override
   public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
     boolean previous = myAnimate;
-    myAnimate = animate;
-    updateFrom(model);
-    myAnimate = previous;
+    UIUtil.invokeLaterIfNeeded(() -> {
+      myAnimate = animate;
+      updateFrom(model);
+      myAnimate = previous;
+    });
   }
 
   //endregion

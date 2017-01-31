@@ -606,7 +606,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * method will be called.
    */
   public void requestRender() {
-    // This method will be removed once we only do direct rendering (see RenderTask.render(Graphics2D))
     // This update is low priority so the model updates take precedence
     getRenderingQueue().queue(new Update("model.render", LOW_PRIORITY) {
       @Override
@@ -631,25 +630,31 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   /**
    * Request a layout pass
    *
-   * @param animate if true, the resuting layout should be animated
+   * @param animate if true, the resulting layout should be animated
    */
   public void requestLayout(boolean animate) {
-    if (myRenderTask != null) {
-      synchronized (RENDERING_LOCK) {
-        RenderResult result = null;
-        try {
-          result = myRenderTask.layout().get();
+    getRenderingQueue().queue(new Update("model.layout", LOW_PRIORITY) {
 
-          if (result != null) {
-            updateHierarchy(result);
-            notifyListenersModelLayoutComplete(animate);
+      @Override
+      public void run() {
+        if (myRenderTask != null) {
+          synchronized (RENDERING_LOCK) {
+            RenderResult result = null;
+            try {
+              result = myRenderTask.layout().get();
+
+              if (result != null) {
+                updateHierarchy(result);
+                notifyListenersModelLayoutComplete(animate);
+              }
+            }
+            catch (InterruptedException | ExecutionException e) {
+              LOG.warn("Unable to run layout()", e);
+            }
           }
         }
-        catch (InterruptedException | ExecutionException e) {
-          LOG.warn("Unable to run layout()", e);
-        }
       }
-    }
+    });
   }
 
   /**
