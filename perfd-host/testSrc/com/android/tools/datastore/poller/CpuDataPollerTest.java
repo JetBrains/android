@@ -16,11 +16,10 @@
 package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.DataStorePollerTest;
+import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.CpuService;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.profiler.proto.*;
-import com.android.tools.datastore.TestGrpcService;
-import com.android.tools.profiler.proto.CpuProfiler;
 import com.google.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
 import org.junit.After;
@@ -31,8 +30,9 @@ import org.junit.Test;
 import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class CpuDataPollerTest extends DataStorePollerTest {
 
@@ -46,34 +46,38 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   private static final long BASE_TIME_NS = System.nanoTime();
   private static final long ONE_SECOND_MS = TimeUnit.SECONDS.toMillis(1);
   private static final long TEN_SECONDS_MS = TimeUnit.SECONDS.toMillis(10);
-  private static final CpuProfiler.ThreadActivities THREAD_ACTIVITIES = CpuProfiler.ThreadActivities.newBuilder()
-    .addActivities(CpuProfiler.ThreadActivity.newBuilder()
-                     .setNewState(CpuProfiler.ThreadActivity.State.WAITING)
-                     .setName(THREAD_NAME)
-                     .setTid(THREAD_ID)
+  private static final CpuProfiler.GetThreadsResponse.Thread THREAD1 = CpuProfiler.GetThreadsResponse.Thread.newBuilder()
+    .setTid(THREAD_ID)
+    .setName(THREAD_NAME)
+    .addActivities(CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
+                     .setNewState(CpuProfiler.GetThreadsResponse.State.WAITING)
+                     .setTimestamp(delayFromBase(0))
                      .build())
-    .addActivities(CpuProfiler.ThreadActivity.newBuilder()
-                     .setNewState(CpuProfiler.ThreadActivity.State.STOPPED)
-                     .setName(THREAD_NAME)
-                     .setTid(THREAD_ID)
+    .addActivities(CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
+                     .setNewState(CpuProfiler.GetThreadsResponse.State.RUNNING)
+                     .setTimestamp(delayFromBase(4))
                      .build())
-    .addActivities(CpuProfiler.ThreadActivity.newBuilder()
-                     .setNewState(CpuProfiler.ThreadActivity.State.RUNNING)
-                     .setName(THREAD_NAME_2)
-                     .setTid(THREAD_ID_2)
+    .addActivities(CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
+                     .setNewState(CpuProfiler.GetThreadsResponse.State.STOPPED)
+                     .setTimestamp(delayFromBase(5))
+                     .build())
+    .addActivities(CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
+                     .setNewState(CpuProfiler.GetThreadsResponse.State.DEAD)
+                     .setTimestamp(delayFromBase(15))
+                     .build())
+    .build();
+  private static final CpuProfiler.GetThreadsResponse.Thread THREAD2 = CpuProfiler.GetThreadsResponse.Thread.newBuilder()
+    .setTid(THREAD_ID_2)
+    .setName(THREAD_NAME_2)
+    .addActivities(CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
+                     .setNewState(CpuProfiler.GetThreadsResponse.State.RUNNING)
+                     .setTimestamp(delayFromBase(3))
                      .build())
     .build();
 
   private static final Common.CommonData STARTUP_BASIC_INFO = Common.CommonData.newBuilder()
     .setProcessId(TEST_APP_ID)
     .setEndTimestamp(BASE_TIME_NS)
-    .build();
-
-  // Adding a second info to create a unique dataset to query on. Using the STARTUP_BASIC_INFO
-  // creates a primary_key constraint violation.
-  private static final Common.CommonData STARTUP_BASIC_INFO_DELAY = Common.CommonData.newBuilder()
-    .setProcessId(TEST_APP_ID)
-    .setEndTimestamp(delayFromBase(1))
     .build();
 
   private static final CpuProfiler.CpuUsageData CPU_USAGE_DATA = CpuProfiler.CpuUsageData.newBuilder()
@@ -100,12 +104,14 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     stopMonitoringApp();
   }
   private void startMonitoringApp() {
-    CpuProfiler.CpuStartRequest request = CpuProfiler.CpuStartRequest.newBuilder().setSession(DataStorePollerTest.SESSION).build();
+    CpuProfiler.CpuStartRequest request = CpuProfiler.CpuStartRequest.newBuilder()
+      .setProcessId(TEST_APP_ID).setSession(DataStorePollerTest.SESSION).build();
     myCpuService.startMonitoringApp(request, mock(StreamObserver.class));
   }
 
   private void stopMonitoringApp() {
-    CpuProfiler.CpuStopRequest request = CpuProfiler.CpuStopRequest.newBuilder().setSession(DataStorePollerTest.SESSION).build();
+    CpuProfiler.CpuStopRequest request = CpuProfiler.CpuStopRequest.newBuilder()
+      .setProcessId(TEST_APP_ID).setSession(DataStorePollerTest.SESSION).build();
     myCpuService.stopMonitoringApp(request, mock(StreamObserver.class));
   }
 
@@ -114,16 +120,12 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     CpuProfiler.CpuDataRequest request = CpuProfiler.CpuDataRequest.newBuilder()
       .setProcessId(TEST_APP_ID)
       .setStartTimestamp(0)
-      .setEndTimestamp(delayFromBase(1))
+      .setEndTimestamp(delayFromBase(10))
       .build();
     CpuProfiler.CpuDataResponse expectedResponse = CpuProfiler.CpuDataResponse.newBuilder()
       .addData(CpuProfiler.CpuProfilerData.newBuilder()
                  .setBasicInfo(STARTUP_BASIC_INFO)
                  .setCpuUsage(CPU_USAGE_DATA)
-                 .build())
-      .addData(CpuProfiler.CpuProfilerData.newBuilder()
-                 .setBasicInfo(STARTUP_BASIC_INFO_DELAY)
-                 .setThreadActivities(THREAD_ACTIVITIES)
                  .build())
       .build();
     StreamObserver<CpuProfiler.CpuDataResponse> observer = mock(StreamObserver.class);
@@ -135,7 +137,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   public void testGetDataExcludeStart() {
     CpuProfiler.CpuDataRequest request = CpuProfiler.CpuDataRequest.newBuilder()
       .setProcessId(TEST_APP_ID)
-      .setStartTimestamp(delayFromBase(1))
+      .setStartTimestamp(delayFromBase(11))
       .setEndTimestamp(Long.MAX_VALUE)
       .build();
     CpuProfiler.CpuDataResponse expectedResponse = CpuProfiler.CpuDataResponse.newBuilder()
@@ -170,25 +172,65 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   public void testGetThreadsInRange() {
     CpuProfiler.GetThreadsRequest request = CpuProfiler.GetThreadsRequest.newBuilder()
       .setProcessId(TEST_APP_ID)
-      .setStartTimestamp(delayFromBase(1))
-      .setEndTimestamp(Long.MAX_VALUE)
+      .setStartTimestamp(BASE_TIME_NS)
+      .setEndTimestamp(delayFromBase(20))
       .build();
     CpuProfiler.GetThreadsResponse expectedResponse = CpuProfiler.GetThreadsResponse.newBuilder()
+      // Threads are returned ordered by id
+      .addThreads(CpuProfiler.GetThreadsResponse.Thread.newBuilder()
+                    .setTid(THREAD_ID_2)
+                    .setName(THREAD_NAME_2)
+                    // Actual activity
+                    .addActivities(CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
+                                     .setNewState(CpuProfiler.GetThreadsResponse.State.RUNNING)
+                                     .setTimestamp(delayFromBase(3))
+                                     .build())
+                    .build())
       .addThreads(CpuProfiler.GetThreadsResponse.Thread.newBuilder()
                     .setTid(THREAD_ID)
                     .setName(THREAD_NAME)
                     .addActivities(CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
                                      .setNewState(CpuProfiler.GetThreadsResponse.State.WAITING)
+                                     .setTimestamp(delayFromBase(0))
+                                     .build())
+                    .addActivities(CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
+                                     .setNewState(CpuProfiler.GetThreadsResponse.State.RUNNING)
+                                     .setTimestamp(delayFromBase(4))
                                      .build())
                     .addActivities(CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
                                      .setNewState(CpuProfiler.GetThreadsResponse.State.STOPPED)
+                                     .setTimestamp(delayFromBase(5))
+                                     .build())
+                    .addActivities(CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
+                                     .setNewState(CpuProfiler.GetThreadsResponse.State.DEAD)
+                                     .setTimestamp(delayFromBase(15))
                                      .build())
                     .build())
+      .build();
+    StreamObserver<CpuProfiler.GetThreadsResponse> observer = mock(StreamObserver.class);
+    myCpuService.getThreads(request, observer);
+    validateResponse(observer, expectedResponse);
+  }
+
+  @Test
+  public void getDeadThreadBeforeRange() {
+    long startTimestamp = delayFromBase(20);
+    CpuProfiler.GetThreadsRequest request = CpuProfiler.GetThreadsRequest.newBuilder()
+      .setProcessId(TEST_APP_ID)
+      .setStartTimestamp(startTimestamp)
+      .setEndTimestamp(delayFromBase(40))
+      .build();
+    CpuProfiler.GetThreadsResponse expectedResponse = CpuProfiler.GetThreadsResponse.newBuilder()
+      // THREAD_ID is not returned because it died before the requested range start
       .addThreads(CpuProfiler.GetThreadsResponse.Thread.newBuilder()
                     .setTid(THREAD_ID_2)
                     .setName(THREAD_NAME_2)
                     .addActivities(CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
                                      .setNewState(CpuProfiler.GetThreadsResponse.State.RUNNING)
+                                     // As there was no activity during the request range, the state of the thread
+                                     // in the last initial states snapshot is set to the start timestamp of the
+                                     // request.
+                                     .setTimestamp(startTimestamp)
                                      .build())
                     .build())
       .build();
@@ -221,7 +263,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     validateResponse(observer, expectedResponse);
   }
 
-  private static final long delayFromBase(int seconds) {
+  private static long delayFromBase(int seconds) {
     return BASE_TIME_NS + TimeUnit.SECONDS.toNanos(seconds);
   }
 
@@ -244,12 +286,17 @@ public class CpuDataPollerTest extends DataStorePollerTest {
                    .setCpuUsage(CPU_USAGE_DATA)
                    .build()
         )
-        .addData(CpuProfiler.CpuProfilerData.newBuilder()
-                   .setBasicInfo(STARTUP_BASIC_INFO_DELAY)
-                   .setThreadActivities(THREAD_ACTIVITIES)
-                   .build())
         .build();
       responseObserver.onNext(response);
+      responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getThreads(CpuProfiler.GetThreadsRequest request, StreamObserver<CpuProfiler.GetThreadsResponse> responseObserver) {
+      CpuProfiler.GetThreadsResponse.Builder response = CpuProfiler.GetThreadsResponse.newBuilder();
+      response.addThreads(THREAD1).addThreads(THREAD2);
+
+      responseObserver.onNext(response.build());
       responseObserver.onCompleted();
     }
 
