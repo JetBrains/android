@@ -27,6 +27,7 @@ import com.android.tools.idea.npw.template.RenderTemplateModel;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
+import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
@@ -54,7 +55,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 
-import java.awt.event.InputEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -460,8 +460,7 @@ public class TemplateManager {
 
         @Override
         public void actionPerformed(AnActionEvent e) {
-          // TODO: before submitting this code, change this to only use the new wizard
-          if (Boolean.getBoolean("use.npw.modelwizard") && (e.getModifiers() & InputEvent.SHIFT_MASK) == 0) {
+          if (WizardUtils.isNpwModelWizardEnabled(e)) {
             DataContext dataContext = e.getDataContext();
             Module module = LangDataKeys.MODULE.getData(dataContext);
             assert module != null;

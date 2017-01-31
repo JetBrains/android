@@ -19,6 +19,7 @@ import com.android.tools.idea.npw.TemplateEntry;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.ui.ASGallery;
+import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.intellij.openapi.progress.ProgressManager;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
@@ -63,7 +64,7 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
 
   @NotNull
   public ChooseOptionsForNewFileStepFixture getChooseOptionsForNewFileStep() {
-    JRootPane rootPane = findStepWithTitle(Boolean.getBoolean("use.npw.modelwizard") ? "Configure Activity" : "Customize the Activity");
+    JRootPane rootPane = findStepWithTitle(WizardUtils.isNpwModelWizardEnabled() ? "Configure Activity" : "Customize the Activity");
     return new ChooseOptionsForNewFileStepFixture(robot(), rootPane);
   }
 
