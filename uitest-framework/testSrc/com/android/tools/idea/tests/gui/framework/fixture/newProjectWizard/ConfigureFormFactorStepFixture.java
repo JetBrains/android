@@ -16,13 +16,9 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import com.android.tools.idea.npw.FormFactor;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.driver.AbstractButtonDriver;
-import org.fest.swing.driver.BasicJComboBoxCellReader;
-import org.fest.swing.driver.JComboBoxDriver;
-import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.fixture.JCheckBoxFixture;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,17 +31,17 @@ public class ConfigureFormFactorStepFixture extends AbstractWizardStepFixture<Co
 
   @NotNull
   public ConfigureFormFactorStepFixture selectMinimumSdkApi(@NotNull FormFactor formFactor, @NotNull String api) {
-    JCheckBox checkBox = robot().finder().find(target(), new GenericTypeMatcher<JCheckBox>(JCheckBox.class) {
-      @Override
-      protected boolean isMatching(@NotNull JCheckBox checkBox) {
-        String text = checkBox.getText();
-        // "startsWith" instead of "equals" because the UI may add "(Not installed)" at the end.
-        return text != null && text.startsWith(formFactor.toString());
-      }
-    });
-    AbstractButtonDriver buttonDriver = new AbstractButtonDriver(robot());
-    buttonDriver.requireEnabled(checkBox);
-    buttonDriver.select(checkBox);
+    String formFactorName = formFactor.toString();
+    JCheckBoxFixture checkBox =
+      new JCheckBoxFixture(robot(), GuiTests.waitUntilShowing(robot(), target(), new GenericTypeMatcher<JCheckBox>(JCheckBox.class) {
+        @Override
+        protected boolean isMatching(@NotNull JCheckBox checkBox) {
+          String text = checkBox.getText();
+          // "startsWith" instead of "equals" because the UI may add "(Not installed)" at the end.
+          return text != null && text.startsWith(formFactorName);
+        }
+      }));
+    checkBox.requireEnabled().select();
 
     ApiLevelComboBoxFixture apiLevelComboBox =
       new ApiLevelComboBoxFixture(robot(), robot().finder().findByName(target(), formFactor.id + ".minSdk", JComboBox.class));
@@ -59,8 +55,8 @@ public class ConfigureFormFactorStepFixture extends AbstractWizardStepFixture<Co
     return this;
   }
 
-  public ConfigureFormFactorStepFixture requireErrorMessage(@NotNull String errorMessage) {
-    robot().finder().find(target(), new GenericTypeMatcher<JLabel>(JLabel.class) {
+  public ConfigureFormFactorStepFixture waitForErrorMessageToContain(@NotNull String errorMessage) {
+    GuiTests.waitUntilShowing(robot(), new GenericTypeMatcher<JLabel>(JLabel.class) {
       @Override
       protected boolean isMatching(@NotNull JLabel label) {
         String text = label.getText();
