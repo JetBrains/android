@@ -66,7 +66,7 @@ public abstract class PollRunner implements RunnableFuture<Void> {
         myRunning.await(sleepTime, TimeUnit.NANOSECONDS);
       }
     }
-    catch (InterruptedException e) {
+    catch (InterruptedException | StatusRuntimeException e) {
       Thread.currentThread().interrupt();
     }
     finally {
