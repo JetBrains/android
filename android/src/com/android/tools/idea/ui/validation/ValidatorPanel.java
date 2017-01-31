@@ -112,6 +112,27 @@ public final class ValidatorPanel extends JPanel implements Disposable {
   }
 
   /**
+   * Registers a target observable string which represents an invalidation message. If the string
+   * is set to some value, this panel will display it with the specified {@code severity}.
+   **/
+  public void registerMessageSource(@NotNull ObservableValue<String> message, @NotNull Validator.Severity severity) {
+    registerValidator(message, value -> {
+      if (value.isEmpty()) {
+        return Validator.Result.OK;
+      }
+      return new Validator.Result(severity, value);
+    });
+  }
+
+  /**
+   * Calls {@link #registerMessageSource(ObservableValue, Validator.Severity)} with an error
+   * severity.
+   */
+  public void registerMessageSource(@NotNull ObservableValue<String> message) {
+    registerMessageSource(message, Validator.Severity.ERROR);
+  }
+
+  /**
    * Returns a property which indicates if any of the components in this panel are invalid.
    *
    * This is a useful property for UIs to listen to, as they can bind various components (such as a

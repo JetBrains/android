@@ -26,7 +26,6 @@ import com.android.tools.idea.ui.ASGallery;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.properties.core.StringProperty;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
-import com.android.tools.idea.ui.validation.Validator;
 import com.android.tools.idea.ui.validation.ValidatorPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -161,9 +160,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    myValidatorPanel.registerValidator(myInvalidParameterMessage, message ->
-      (message.isEmpty() ? Validator.Result.OK : new Validator.Result(Validator.Severity.ERROR, message)));
-
+    myValidatorPanel.registerMessageSource(myInvalidParameterMessage);
     myActivityGallery.setModel(JBList.createDefaultListModel((Object[])myTemplateList));
     myActivityGallery.setDefaultAction(new AbstractAction() {
       @Override
