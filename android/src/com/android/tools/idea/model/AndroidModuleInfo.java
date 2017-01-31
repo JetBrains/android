@@ -24,6 +24,9 @@ import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static org.jetbrains.android.util.InstantApps.findInstantAppBaseSplit;
+
 /**
  * Android information about a module, such as its application package, its minSdkVersion, and so on. This
  * is derived by querying the gradle model, or the manifest file if the model doesn't exist (not constructed, or
@@ -40,7 +43,18 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
   public static AndroidModuleInfo getInstance(@NotNull AndroidFacet facet) {
     AndroidModuleInfo androidModuleInfo = facet.getUserData(KEY);
     if (androidModuleInfo == null) {
-      androidModuleInfo = new AndroidModuleInfo(facet);
+      if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+        // If this is an AIA app module the info about the app module is actually held in the base split module. Try to set up a
+        // redirection to the AndroidModuleInfo of the base split.
+        Module baseSplit = findInstantAppBaseSplit(facet);
+        if (baseSplit != null) {
+          androidModuleInfo = getInstance(baseSplit);
+        }
+      }
+
+      if (androidModuleInfo == null) {
+        androidModuleInfo = new AndroidModuleInfo(facet);
+      }
       facet.putUserData(KEY, androidModuleInfo);
     }
     return androidModuleInfo;
