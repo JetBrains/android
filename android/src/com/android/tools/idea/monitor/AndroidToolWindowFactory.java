@@ -110,6 +110,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
 
     final AndroidLogcatView logcatView = new AndroidLogcatView(project, deviceContext, getToolWindowId());
     Content logcatContent = createLogcatContent(layoutUi, project, logcatView);
+    layoutUi.addContent(logcatContent, 0, PlaceInGrid.center, false);
     JPanel searchComponent = logcatView.createSearchComponent();
 
     DevicePanel devicePanel = new DevicePanel(project, deviceContext);
@@ -137,7 +138,6 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
     } else {
       northPanel.add(searchComponent, BorderLayout.EAST);
     }
-    layoutUi.addContent(logcatContent, 0, PlaceInGrid.center, false);
 
     final JBLoadingPanel loadingPanel = new JBLoadingPanel(new BorderLayout(), project);
     northPanel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
