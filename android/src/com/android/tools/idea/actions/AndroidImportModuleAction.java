@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.actions;
 
+import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.deprecated.ImportModuleWizard;
 import com.android.tools.idea.npw.importing.SourceToGradleModuleModel;
 import com.android.tools.idea.npw.importing.SourceToGradleModuleStep;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
-import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAware;
