@@ -846,16 +846,18 @@
     <xml.elementDescriptorProvider implementation="org.jetbrains.android.dom.AndroidDomElementDescriptorProvider" order="first"/>
     <xml.tagNameProvider implementation="org.jetbrains.android.dom.AndroidLayoutXmlTagNameProvider" order="first" />
 
-    <toolWindow id="Android Monitor"
-                anchor="bottom"
-                icon="AndroidIcons.AndroidToolWindow"
-                conditionClass="com.android.tools.idea.monitor.AndroidMonitorCondition"
-                factoryClass="com.android.tools.idea.monitor.AndroidToolWindowFactory"/>
-    <toolWindow id="Logcat"
-                anchor="bottom"
-                icon="AndroidIcons.Ddms.Logcat"
-                conditionClass="com.android.tools.idea.monitor.AndroidToolWindowFactory"
-                factoryClass="com.android.tools.idea.monitor.AndroidToolWindowFactory"/>
+    <facet.toolWindow id="Android Monitor"
+                      facetIdList="android"
+                      anchor="bottom"
+                      icon="AndroidIcons.AndroidToolWindow"
+                      conditionClass="com.android.tools.idea.monitor.AndroidMonitorCondition"
+                      factoryClass="com.android.tools.idea.monitor.AndroidToolWindowFactory"/>
+    <facet.toolWindow id="Logcat"
+                      facetIdList="android"
+                      anchor="bottom"
+                      icon="AndroidIcons.Ddms.Logcat"
+                      conditionClass="com.android.tools.idea.monitor.AndroidToolWindowFactory"
+                      factoryClass="com.android.tools.idea.monitor.AndroidToolWindowFactory"/>
     <facet.toolWindow id="Build Variants"
                       facetIdList="android,android-gradle"
                       anchor="left"
@@ -874,12 +876,13 @@
                 conditionClass="com.android.tools.idea.gradle.InternalAndroidModelViewCondition"
                 icon="AndroidIcons.AndroidToolWindow"
                 factoryClass="com.android.tools.idea.gradle.InternalAndroidModelToolWindowFactory"/>
-    <toolWindow id="Device Explorer"
-                anchor="right"
-                secondary="true"
-                conditionClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowCondition"
-                icon="AndroidIcons.AndroidToolWindow"
-                factoryClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory"/>
+    <facet.toolWindow id="Device Explorer"
+                      facetIdList="android"
+                      anchor="right"
+                      secondary="true"
+                      conditionClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowCondition"
+                      icon="AndroidIcons.AndroidToolWindow"
+                      factoryClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory"/>
     <toolWindow id="Gradle Console"
                 anchor="bottom"
                 secondary="true"
