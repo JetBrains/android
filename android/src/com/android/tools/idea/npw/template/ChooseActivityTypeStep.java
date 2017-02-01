@@ -26,6 +26,7 @@ import com.android.tools.idea.ui.ASGallery;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.properties.core.StringProperty;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
+import com.android.tools.idea.ui.validation.Validator;
 import com.android.tools.idea.ui.validation.ValidatorPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -48,7 +49,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
 
 import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
@@ -68,10 +69,10 @@ import static org.jetbrains.android.util.AndroidBundle.message;
  */
 public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> {
   private final RenderTemplateModel myRenderModel;
-  private @NotNull TemplateHandle[] myTemplateList;
+  private @NotNull TemplateRenderer[] myTemplateList;
   private @NotNull List<AndroidSourceSet> mySourceSets;
 
-  private @NotNull ASGallery<TemplateHandle> myActivityGallery;
+  private @NotNull ASGallery<TemplateRenderer> myActivityGallery;
   private @NotNull ValidatorPanel myValidatorPanel;
   private final StringProperty myInvalidParameterMessage = new StringValueProperty();
 
@@ -104,14 +105,24 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
   private void init(@NotNull List<TemplateHandle> templateList,
                     @NotNull List<AndroidSourceSet> sourceSets,
                     @Nullable AndroidFacet facet) {
-    myTemplateList = templateList.toArray(new TemplateHandle[templateList.size()]);
     mySourceSets = sourceSets;
+    myFacet = facet;
+    myAppThemeExists = isNewModule() || new ThemeHelper(facet.getModule()).getAppThemeName() != null;
+
+    // For any new module, we need a "Add No Activity" entry.
+    int i = isNewModule() ? 1 : 0;
+    myTemplateList = new TemplateRenderer[templateList.size() + i];
+    if (isNewModule()) {
+      myTemplateList[0] = new TemplateRenderer(null);
+    }
+    for (TemplateHandle templateHandle : templateList) {
+      myTemplateList[i] = new TemplateRenderer(templateHandle);
+      i++;
+    }
 
     myActivityGallery = createGallery(getTitle());
     myValidatorPanel = new ValidatorPanel(this, new JBScrollPane(myActivityGallery));
     FormScalingUtil.scaleComponentTree(this.getClass(), myValidatorPanel);
-    myFacet = facet;
-    myAppThemeExists = (facet == null) ? true : new ThemeHelper(facet.getModule()).getAppThemeName() != null;
   }
 
   @NotNull
@@ -133,11 +144,11 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
     return Lists.newArrayList(new ConfigureTemplateParametersStep(myRenderModel, title, mySourceSets, myFacet));
   }
 
-  private static ASGallery<TemplateHandle> createGallery(String title) {
-    ASGallery<TemplateHandle> gallery = new ASGallery<TemplateHandle>(
+  private static ASGallery<TemplateRenderer> createGallery(String title) {
+    ASGallery<TemplateRenderer> gallery = new ASGallery<TemplateRenderer>(
       JBList.createDefaultListModel(),
-      ChooseActivityTypeStep::getImage,
-      ChooseActivityTypeStep::getTemplateTitle,
+      TemplateRenderer::getImage,
+      TemplateRenderer::getTitle,
       DEFAULT_GALLERY_THUMBNAIL_SIZE,
       null
     ) {
@@ -161,6 +172,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
     myValidatorPanel.registerMessageSource(myInvalidParameterMessage);
+
     myActivityGallery.setModel(JBList.createDefaultListModel((Object[])myTemplateList));
     myActivityGallery.setDefaultAction(new AbstractAction() {
       @Override
@@ -170,9 +182,10 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
     });
 
     myActivityGallery.addListSelectionListener(listSelectionEvent -> {
-      TemplateHandle selectedTemplate = myActivityGallery.getSelectedElement();
+      TemplateRenderer selectedTemplate = myActivityGallery.getSelectedElement();
       if (selectedTemplate != null) {
-        myRenderModel.setTemplateHandle(selectedTemplate);
+        myRenderModel.setTemplateHandle(selectedTemplate.getTemplate());
+        wizard.updateNavigationProperties();
       }
       validateTemplate();
     });
@@ -198,42 +211,29 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
     // There should be multiple hashtables that a model points to, which gets merged at the last second. That way, we can clear one of the
     // hashtables.
 
-    getModel().getRenderTemplateValues().setValue(myRenderModel.getTemplateValues());
-
-    new TemplateValueInjector(getModel().getTemplateValues())
-      .setProjectDefaults(getModel().getProject().getValueOrNull(), getModel().applicationName().get());
-  }
-
-  /**
-   * Return the image associated with the current template, if it specifies one, or null otherwise.
-   */
-  @Nullable
-  private static Image getImage(TemplateHandle template) {
-    String thumb = template.getMetadata().getThumbnailPath();
-    if (thumb != null && !thumb.isEmpty()) {
-      try {
-        File file = new File(template.getRootPath(), thumb.replace('/', File.separatorChar));
-        return file.isFile() ? ImageIO.read(file) : null;
-      }
-      catch (IOException e) {
-        Logger.getInstance(ActivityGalleryStep.class).warn(e);
-      }
+    NewModuleModel moduleModel = getModel();
+    if (myRenderModel.getTemplateHandle() == null) { // "Add No Activity" selected
+      moduleModel.setDefaultRenderTemplateValues(myRenderModel);
     }
-    return null;
+    else {
+      moduleModel.getRenderTemplateValues().setValue(myRenderModel.getTemplateValues());
+    }
+
+    new TemplateValueInjector(moduleModel.getTemplateValues())
+      .setProjectDefaults(moduleModel.getProject().getValueOrNull(), moduleModel.applicationName().get());
   }
 
-  @NotNull
-  private static String getTemplateTitle(TemplateHandle templateHandle) {
-    return templateHandle == null ? message("android.wizard.gallery.item.none") : templateHandle.getMetadata().getTitle();
-  }
-
-  private static int getDefaultSelectedTemplateIndex(@NotNull TemplateHandle[] templateList) {
+  private static int getDefaultSelectedTemplateIndex(@NotNull TemplateRenderer[] templateList) {
     for (int i = 0; i < templateList.length; i++) {
-      if (getTemplateTitle(templateList[i]).equals("Empty Activity")) {
+      if (templateList[i].getTitle().equals("Empty Activity")) {
         return i;
       }
     }
     return 0;
+  }
+
+  private boolean isNewModule() {
+    return myFacet == null;
   }
 
   private void validateTemplate() {
@@ -241,14 +241,14 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
     TemplateMetadata templateData = (template == null) ? null : template.getMetadata();
     AndroidVersionsInfo.VersionItem androidSdkInfo = myRenderModel.androidSdkInfo().getValueOrNull();
 
-    myInvalidParameterMessage.set(validateTemplate(templateData, androidSdkInfo, myAppThemeExists));
+    myInvalidParameterMessage.set(validateTemplate(templateData, androidSdkInfo, myAppThemeExists, isNewModule()));
   }
 
   private static String validateTemplate(@Nullable TemplateMetadata template,
                                          @Nullable AndroidVersionsInfo.VersionItem androidSdkInfo,
-                                         boolean appThemeExists) {
+                                         boolean appThemeExists, boolean isNewModule) {
     if (template == null) {
-      return message("android.wizard.activity.not.found");
+      return isNewModule ? "" : message("android.wizard.activity.not.found");
     }
 
     if (androidSdkInfo != null) {
@@ -266,5 +266,41 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
     }
 
     return "";
+  }
+
+  private static class TemplateRenderer {
+    @Nullable private final TemplateHandle myTemplate;
+
+    TemplateRenderer(@Nullable TemplateHandle template) {
+      this.myTemplate = template;
+    }
+
+    @Nullable
+    TemplateHandle getTemplate() {
+      return myTemplate;
+    }
+
+    @NotNull
+    String getTitle() {
+      return myTemplate == null ? message("android.wizard.gallery.item.add.no.activity") : myTemplate.getMetadata().getTitle();
+    }
+
+    /**
+     * Return the image associated with the current template, if it specifies one, or null otherwise.
+     */
+    @Nullable
+    Image getImage() {
+      String thumb = myTemplate == null ? null : myTemplate.getMetadata().getThumbnailPath();
+      if (thumb != null && !thumb.isEmpty()) {
+        try {
+          File file = new File(myTemplate.getRootPath(), thumb.replace('/', File.separatorChar));
+          return file.isFile() ? ImageIO.read(file) : null;
+        }
+        catch (IOException e) {
+          Logger.getInstance(ActivityGalleryStep.class).warn(e);
+        }
+      }
+      return null;
+    }
   }
 }
