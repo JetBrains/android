@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.common.datareducer;
-
-import com.android.tools.adtui.chart.linechart.LineConfig;
+package com.android.tools.adtui.chart.linechart;
 
 import java.awt.geom.Path2D;
 
 /**
- * The {@link DataReducer} interface can be implemented by classes that
- * are responsible for reducing data for ui components to optimize their rendering.
+ * This interface is used by {@link LineChart} component to be able
+ * to render faster by reducing its data before drawing.
  */
-public interface DataReducer {
+public interface LineChartReducer {
   Path2D reduce(Path2D path, LineConfig config);
 }
