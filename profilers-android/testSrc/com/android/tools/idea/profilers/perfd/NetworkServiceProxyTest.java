@@ -45,7 +45,7 @@ public class NetworkServiceProxyTest {
     ManagedChannel channel = InProcessChannelBuilder.forName("NetworkServiceProxyTest").build();
     NetworkServiceProxy proxy = new NetworkServiceProxy(mockDevice, channel);
 
-    ServerServiceDefinition serverDefinition = proxy.bindService();
+    ServerServiceDefinition serverDefinition = proxy.getServiceDefinition();
     Collection<MethodDescriptor<?, ?>> allMethods = NetworkServiceGrpc.getServiceDescriptor().getMethods();
     Set<MethodDescriptor<?, ?>> definedMethods =
       serverDefinition.getMethods().stream().map(method -> method.getMethodDescriptor()).collect(Collectors.toSet());

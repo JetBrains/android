@@ -19,8 +19,9 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ServerServiceDefinition;
-import io.grpc.stub.ServerCalls;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collections;
 
 /**
  * A proxy MemoryService on host that intercepts grpc requests from perfd-host to device perfd.
@@ -28,67 +29,17 @@ import org.jetbrains.annotations.NotNull;
  *
  * TODO move legacy allocation logic in here.
  */
-public class MemoryServiceProxy extends MemoryServiceGrpc.MemoryServiceImplBase {
+public class MemoryServiceProxy extends PerfdProxyService {
 
   private MemoryServiceGrpc.MemoryServiceBlockingStub myServiceStub;
 
   public MemoryServiceProxy(@NotNull IDevice device, @NotNull ManagedChannel channel) {
+    super(MemoryServiceGrpc.getServiceDescriptor());
     myServiceStub = MemoryServiceGrpc.newBlockingStub(channel);
   }
 
   @Override
-  public ServerServiceDefinition bindService() {
-    return ServerServiceDefinition.builder(MemoryServiceGrpc.getServiceDescriptor())
-      .addMethod(MemoryServiceGrpc.METHOD_START_MONITORING_APP,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.startMonitoringApp(request));
-                   observer.onCompleted();
-                 }))
-      .addMethod(MemoryServiceGrpc.METHOD_STOP_MONITORING_APP,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.stopMonitoringApp(request));
-                   observer.onCompleted();
-                 }))
-      .addMethod(MemoryServiceGrpc.METHOD_GET_DATA,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.getData(request));
-                   observer.onCompleted();
-                 }))
-      .addMethod(MemoryServiceGrpc.METHOD_TRIGGER_HEAP_DUMP,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.triggerHeapDump(request));
-                   observer.onCompleted();
-                 }))
-      .addMethod(MemoryServiceGrpc.METHOD_GET_HEAP_DUMP,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.getHeapDump(request));
-                   observer.onCompleted();
-                 }))
-      .addMethod(MemoryServiceGrpc.METHOD_LIST_HEAP_DUMP_INFOS,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.listHeapDumpInfos(request));
-                   observer.onCompleted();
-                 }))
-      .addMethod(MemoryServiceGrpc.METHOD_TRACK_ALLOCATIONS,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.trackAllocations(request));
-                   observer.onCompleted();
-                 }))
-      .addMethod(MemoryServiceGrpc.METHOD_LIST_ALLOCATION_CONTEXTS,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.listAllocationContexts(request));
-                   observer.onCompleted();
-                 }))
-      .addMethod(MemoryServiceGrpc.METHOD_GET_ALLOCATIONS_INFO_STATUS,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.getAllocationsInfoStatus(request));
-                   observer.onCompleted();
-                 }))
-      .addMethod(MemoryServiceGrpc.METHOD_GET_ALLOCATION_DUMP,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.getAllocationDump(request));
-                   observer.onCompleted();
-                 }))
-      .build();
+  public ServerServiceDefinition getServiceDefinition() {
+    return generatePassThroughDefinitions(Collections.emptyMap(), myServiceStub);
   }
 }

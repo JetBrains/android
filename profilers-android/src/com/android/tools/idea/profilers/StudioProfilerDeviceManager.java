@@ -22,24 +22,17 @@ import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.LegacyAllocationConverter;
 import com.android.tools.datastore.LegacyAllocationConverter.CallStack;
 import com.android.tools.datastore.LegacyAllocationTracker;
-import com.android.tools.idea.ddms.EdtExecutor;
-import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.profilers.perfd.PerfdProxy;
 import com.android.tools.profilers.ProfilerClient;
 import com.google.common.base.Charsets;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
 import com.intellij.util.Consumer;
 import com.intellij.util.net.NetUtils;
 import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.netty.NettyChannelBuilder;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -230,10 +223,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
 
           @Override
           public void flush() {
-            if (myPerfdProxy != null) {
-              myPerfdProxy.disconnect();
-              myPerfdProxy = null;
-            }
+            // flush does not always get called. So we need to perform the proxy server/channel clean up after the perfd process has died.
           }
 
           @Override
@@ -244,6 +234,11 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
 
         if (proxyChannel != null) {
           myDataStore.disconnect(proxyChannel);
+        }
+
+        if (myPerfdProxy != null) {
+          myPerfdProxy.disconnect();
+          myPerfdProxy = null;
         }
 
         getLogger().info("Terminating perfd thread");
