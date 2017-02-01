@@ -16,10 +16,7 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.profilers.IdeProfilerServices;
-import com.android.tools.profilers.common.CodeLocation;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.pom.Navigatable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.Executor;
