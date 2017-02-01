@@ -23,6 +23,8 @@ import io.grpc.inprocess.InProcessServerBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Manages the start/stop of a proxy layer that run services bridging between the perfd-host and device perfd.
@@ -30,14 +32,18 @@ import java.io.IOException;
 final public class PerfdProxy {
 
   @NotNull private Server myProxyServer;
+  @NotNull private final List<PerfdProxyService> myProxyServices;
 
   public PerfdProxy(@NotNull IDevice device, @NotNull ManagedChannel perfdChannel, @NotNull String proxyServerName) {
+    myProxyServices = new LinkedList<>();
+    myProxyServices.add(new ProfilerServiceProxy(device, perfdChannel));
+    myProxyServices.add(new EventServiceProxy(device, perfdChannel));
+    myProxyServices.add(new CpuServiceProxy(device, perfdChannel));
+    myProxyServices.add(new MemoryServiceProxy(device, perfdChannel));
+    myProxyServices.add(new NetworkServiceProxy(device, perfdChannel));
+
     ServerBuilder builder = InProcessServerBuilder.forName(proxyServerName);
-    builder.addService(new ProfilerServiceProxy(device, perfdChannel));
-    builder.addService(new EventServiceProxy(device, perfdChannel));
-    builder.addService(new CpuServiceProxy(device, perfdChannel));
-    builder.addService(new MemoryServiceProxy(device, perfdChannel));
-    builder.addService(new NetworkServiceProxy(device, perfdChannel));
+    myProxyServices.forEach(service -> builder.addService(service.getServiceDefinition()));
     myProxyServer = builder.build();
   }
 
@@ -46,6 +52,7 @@ final public class PerfdProxy {
   }
 
   public void disconnect() {
-    myProxyServer.shutdown();
+    myProxyServices.forEach(service -> service.disconnect());
+    myProxyServer.shutdownNow();
   }
 }
