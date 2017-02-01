@@ -558,58 +558,54 @@ public class RenderTask implements IImageFactory {
       myLayoutlibCallback.setLogger(myLogger);
       myLayoutlibCallback.setResourceResolver(resolver);
 
-      RenderResult result = ApplicationManager.getApplication().runReadAction(new Computable<RenderResult>() {
-        @NotNull
-        @Override
-        public RenderResult compute() {
-          Module module = myRenderService.getFacet().getModule();
-          RenderSecurityManager securityManager =
-            isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module, getPlatform()) : null;
-          if (securityManager != null) {
-            securityManager.setActive(true, myCredential);
-          }
+      RenderSecurityManager securityManager =
+        isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module, getPlatform()) : null;
+      if (securityManager != null) {
+        securityManager.setActive(true, myCredential);
+      }
 
-          try {
-            int retries = 0;
-            RenderSession session = null;
-            while (retries < 10) {
-              if (session != null) {
-                session.dispose();
-              }
-              session = myLayoutLib.createSession(params);
-              Result result = session.getResult();
-              if (result.getStatus() != Result.Status.ERROR_TIMEOUT) {
-                // Sometimes happens at startup; treat it as a timeout; typically a retry fixes it
-                if (!result.isSuccess() && "The main Looper has already been prepared.".equals(result.getErrorMessage())) {
-                  retries++;
-                  continue;
-                }
-                break;
-              }
+      try {
+        int retries = 0;
+        RenderSession session = null;
+        while (retries < 10) {
+          if (session != null) {
+            session.dispose();
+          }
+          session = myLayoutLib.createSession(params);
+          Result result = session.getResult();
+          if (result.getStatus() != Result.Status.ERROR_TIMEOUT) {
+            // Sometimes happens at startup; treat it as a timeout; typically a retry fixes it
+            if (!result.isSuccess() && "The main Looper has already been prepared.".equals(result.getErrorMessage())) {
+              // Added this assertion to check if we can remove this retries loop. I suspect this is not happening anymore.
+              // TODO: Remove assertion and retries loop
+              assert false : "createSession time";
+
               retries++;
+              continue;
             }
-
-            if (session.getResult().isSuccess()) {
-              long now = System.nanoTime();
-              session.setSystemBootTimeNanos(now);
-              session.setSystemTimeNanos(now);
-              // Advance the frame time to display the material progress bars
-              session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
-            }
-            RenderResult result =
-              RenderResult.create(RenderTask.this, session, myPsiFile, myLogger, myImagePool.copyOf(session.getImage()));
-            myRenderSession = session;
-            return result;
+            break;
           }
-          finally {
-            if (securityManager != null) {
-              securityManager.dispose(myCredential);
-            }
-          }
+          retries++;
         }
-      });
-      addDiagnostics(result.getRenderResult());
-      return result;
+
+        if (session.getResult().isSuccess()) {
+          long now = System.nanoTime();
+          session.setSystemBootTimeNanos(now);
+          session.setSystemTimeNanos(now);
+          // Advance the frame time to display the material progress bars
+          session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
+        }
+        RenderResult result =
+          RenderResult.create(RenderTask.this, session, myPsiFile, myLogger, myImagePool.copyOf(session.getImage()));
+        myRenderSession = session;
+        addDiagnostics(result.getRenderResult());
+        return result;
+      }
+      finally {
+        if (securityManager != null) {
+          securityManager.dispose(myCredential);
+        }
+      }
     }
     catch (RuntimeException t) {
       // Exceptions from the bridge
@@ -1137,30 +1133,28 @@ public class RenderTask implements IImageFactory {
       myLayoutlibCallback.setLogger(myLogger);
       myLayoutlibCallback.setResourceResolver(resolver);
 
-      return ApplicationManager.getApplication().runReadAction(new Computable<RenderSession>() {
-        @Nullable
-        @Override
-        public RenderSession compute() {
-          int retries = 0;
-          while (retries < 10) {
-            RenderSession session = myLayoutLib.createSession(params);
-            Result result = session.getResult();
-            if (result.getStatus() != Result.Status.ERROR_TIMEOUT) {
-              // Sometimes happens at startup; treat it as a timeout; typically a retry fixes it
-              if (!result.isSuccess() && "The main Looper has already been prepared.".equals(result.getErrorMessage())) {
-                retries++;
-                session.dispose();
-                continue;
-              }
+      int retries = 0;
+      while (retries < 10) {
+        RenderSession session = myLayoutLib.createSession(params);
+        Result result = session.getResult();
+        if (result.getStatus() != Result.Status.ERROR_TIMEOUT) {
+          // Sometimes happens at startup; treat it as a timeout; typically a retry fixes it
+          if (!result.isSuccess() && "The main Looper has already been prepared.".equals(result.getErrorMessage())) {
+            // Added this assertion to check if we can remove this retries loop. I suspect this is not happening anymore.
+            // TODO: Remove assertion and retries loop
+            assert false : "createSession time";
 
-              return session;
-            }
             retries++;
+            session.dispose();
+            continue;
           }
 
-          return null;
+          return session;
         }
-      });
+        retries++;
+      }
+
+      return null;
     }
     catch (RuntimeException t) {
       // Exceptions from the bridge
