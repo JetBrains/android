@@ -18,7 +18,6 @@ package com.android.tools.idea.npw.template;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
-import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
@@ -162,6 +161,11 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     else {
       return super.createDependentSteps();
     }
+  }
+
+  @Override
+  protected boolean shouldShow() {
+    return getModel().getTemplateHandle() != null;
   }
 
   @Override
