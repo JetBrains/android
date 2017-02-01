@@ -22,6 +22,6 @@ import org.jetbrains.annotations.NotNull;
 public class DeviceExplorerToolWindowCondition implements Condition<Project> {
   @Override
   public boolean value(@NotNull Project project) {
-    return DeviceExplorer.isFeatureEnabled(project);
+    return DeviceExplorer.isFeatureEnabled();
   }
 }
