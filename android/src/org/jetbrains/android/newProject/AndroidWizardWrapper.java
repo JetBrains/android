@@ -2,7 +2,7 @@ package org.jetbrains.android.newProject;
 
 import com.android.tools.idea.npw.NewModuleWizardDynamic;
 import com.android.tools.idea.npw.NewProjectWizardDynamic;
-import com.android.tools.idea.ui.wizard.WizardUtils;
+import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.wizard.dynamic.AndroidStudioWizardPath;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
