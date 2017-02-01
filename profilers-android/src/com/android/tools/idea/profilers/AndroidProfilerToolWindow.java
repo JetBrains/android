@@ -17,11 +17,9 @@ package com.android.tools.idea.profilers;
 
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.profilers.ProfilerAspect;
-import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.*;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -48,8 +46,11 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
     try {
       myProject = project;
       Disposer.register(project, this);
-      StudioProfilerDeviceManager manager = new StudioProfilerDeviceManager(project);
-      myProfilers = new StudioProfilers(manager.getClient(), new IntellijProfilerServices());
+
+
+      ProfilerService service = ServiceManager.getService(ProfilerService.class);
+      ProfilerClient client = service.getProfilerClient(project);
+      myProfilers = new StudioProfilers(client, new IntellijProfilerServices());
 
       myProfilers.setPreferredProcessName(getPreferredProcessName(project));
       myView = new StudioProfilersView(myProfilers, new IntellijProfilerComponents(myProject));
@@ -74,6 +75,7 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
 
   @Override
   public void dispose() {
+    myProfilers.removeDependencies(this);
   }
 
   public JComponent getComponent() {

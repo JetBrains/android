@@ -76,12 +76,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
   private final StudioLegacyAllocationTracker myLegacyAllocationTracker;
   private AndroidDebugBridge myBridge;
 
-  public StudioProfilerDeviceManager(@NotNull Project project) throws IOException {
-    final File adb = AndroidSdkUtils.getAdb(project);
-    if (adb == null) {
-      throw new IllegalStateException("No adb found");
-    }
-
+  public StudioProfilerDeviceManager() throws IOException {
     //TODO: Spawn the datastore in the right place (service)?
     String directory = Paths.get(System.getProperty("user.home"), ".android").toString() + File.separator;
 
@@ -93,25 +88,18 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
     // ourself as a listener for this callback. Otherwise we may get the callback before we are fully constructed
     myClient = new ProfilerClient(DATASTORE_NAME);
 
-    ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb);
-    Futures.addCallback(future, new FutureCallback<AndroidDebugBridge>() {
-      @Override
-      public void onSuccess(@Nullable AndroidDebugBridge bridge) {
-        myBridge = bridge;
-      }
-
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-      }
-    }, EdtExecutor.INSTANCE);
-
-    // TODO remove listeners when this class instance goes away.
     AndroidDebugBridge.addClientChangeListener(this);
     AndroidDebugBridge.addDeviceChangeListener(this);
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
 
     myLegacyAllocationTracker = new StudioLegacyAllocationTracker();
     myDataStoreService.setLegacyAllocationTracker(myLegacyAllocationTracker);
+  }
+
+  public void dispose() {
+    AndroidDebugBridge.removeClientChangeListener(this);
+    AndroidDebugBridge.removeDeviceChangeListener(this);
+    AndroidDebugBridge.removeDebugBridgeChangeListener(this);
   }
 
   public void updateDevices() {
@@ -322,10 +310,6 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
 
     @Nullable
     private Client getClient(@NotNull IDevice device, int processId) {
-      if (myBridge == null) {
-        return null;
-      }
-
       return device.getClient(device.getClientName(processId));
     }
   }

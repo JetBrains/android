@@ -27,7 +27,7 @@ public class ProfilerComponent implements ApplicationComponent {
 
   @Override
   public void initComponent() {
-    // TODO: Initialize the datastore here
+    // TODO: Initialize facet-dependent conditional toolwindows here
   }
 
   @Override
