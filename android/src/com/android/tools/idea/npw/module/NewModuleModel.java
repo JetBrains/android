@@ -15,6 +15,8 @@
 package com.android.tools.idea.npw.module;
 
 import com.android.tools.idea.npw.project.NewProjectModel;
+import com.android.tools.idea.npw.template.RenderTemplateModel;
+import com.android.tools.idea.npw.template.TemplateValueInjector;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.ui.properties.core.*;
@@ -111,6 +113,19 @@ public final class NewModuleModel extends WizardModel {
   @NotNull
   public OptionalProperty<Map<String, Object>> getRenderTemplateValues() {
     return myRenderTemplateValues;
+  }
+
+  /**
+   * This method should be called if there is no "Activity Render Template" step (For example when creating a Library, or the activity
+   * creation is skipped by the user)
+   */
+  public void setDefaultRenderTemplateValues(@NotNull RenderTemplateModel renderModel) {
+    Map<String, Object> renderTemplateValues = Maps.newHashMap();
+    new TemplateValueInjector(renderTemplateValues)
+      .setBuildVersion(renderModel.androidSdkInfo().getValue())
+      .setModuleRoots(renderModel.getSourceSet().get().getPaths(), packageName().get());
+
+    getRenderTemplateValues().setValue(renderTemplateValues);
   }
 
   @Override
