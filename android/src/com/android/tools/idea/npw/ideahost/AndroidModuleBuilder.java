@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.npw.ideahost;
 
+import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.project.ConfigureAndroidProjectStep;
 import com.android.tools.idea.npw.project.NewProjectModel;
-import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.google.common.base.Preconditions;
 import com.intellij.ide.projectWizard.ProjectTypeStep;

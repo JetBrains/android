@@ -17,10 +17,10 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.npw.NewProjectWizardDynamic;
+import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.project.ConfigureAndroidProjectStep;
 import com.android.tools.idea.npw.project.NewProjectModel;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
-import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;

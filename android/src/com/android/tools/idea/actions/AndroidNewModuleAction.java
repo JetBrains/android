@@ -21,7 +21,6 @@ import com.android.tools.idea.npw.module.ChooseModuleTypeStep;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
-import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
 import com.intellij.openapi.actionSystem.AnAction;
