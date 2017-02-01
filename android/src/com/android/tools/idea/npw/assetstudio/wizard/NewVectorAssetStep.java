@@ -200,7 +200,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       });
 
       myValidatorPanel.registerValidator(name, value -> Validator.Result.fromNullableMessage(myNameValidator.getErrorText(value)));
-      myValidatorPanel.registerValidator(isValidAsset, "The specified asset could not be parsed. Please choose another asset.");
+      myValidatorPanel.registerTest(isValidAsset, "The specified asset could not be parsed. Please choose another asset.");
 
       myActiveAssetBindings.bind(myActiveAsset.get().opacity(), opacityValue);
       myActiveAssetBindings.bind(myActiveAsset.get().autoMirrored(), autoMirrored);
