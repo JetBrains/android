@@ -39,7 +39,7 @@ import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.Projects.open;
-import static com.android.tools.idea.project.NewProjects.activateProjectView;
+import static com.android.tools.idea.util.ToolWindows.activateProjectView;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY;
 import static com.intellij.openapi.module.StdModuleTypes.JAVA;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
