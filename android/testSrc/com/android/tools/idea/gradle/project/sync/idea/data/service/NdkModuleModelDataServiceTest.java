@@ -72,12 +72,4 @@ public class NdkModuleModelDataServiceTest extends IdeaTestCase {
     verify(mySyncState).isSyncSkipped();
     verify(myModuleSetup).setUpModule(appModule, myModelsProvider, model, null, null, false);
   }
-
-  public void testImportDataWithEmptyNodesToImport() {
-    Collection<DataNode<NdkModuleModel>> dataNodes = Collections.emptyList();
-    myDataService.importData(dataNodes, null, getProject(), myModelsProvider);
-
-    verify(mySyncState).isSyncSkipped();
-    verify(myModuleSetup).setUpModule(myModule, myModelsProvider, null, null, null, false);
-  }
 }
