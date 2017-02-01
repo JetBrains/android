@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.palette;
 import com.android.tools.adtui.splitter.ComponentsSplitter;
 import com.android.tools.adtui.treegrid.TreeGrid;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
+import com.android.tools.adtui.treegrid.TreeGridSpeedSearch;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -79,6 +80,7 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     myMode = PaletteMode.ICON_AND_NAME;
     myIconPreviewFactory = iconFactory;
     myTree = createItemTreeGrid(project);
+    myTree.addListSelectionListener(event -> fireSelectionChanged(myTree.getSelectedElement()));
 
     //noinspection unchecked
     myCategoryList = new JBList();
@@ -120,6 +122,7 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
       return item != null ? item.getTagName() : null;
     });
     help.registerCustomShortcutSet(KeyEvent.VK_F1, InputEvent.SHIFT_MASK, grid);
+    new TreeGridSpeedSearch<>(grid, Palette.Item::getTitle);
     return grid;
   }
 
@@ -162,6 +165,9 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     mySurface = designSurface;
     myPalette = palette;
     myCategoryList.setModel(new TreeCategoryProvider(palette));
+    if (myCategoryList.getSelectedValue() == null) {
+      myCategoryList.setSelectedValue(ALL, true);
+    }
     updateTreeModel();
   }
 
@@ -170,7 +176,6 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
                                      ? new TreeProvider(myProject, myPalette)
                                      : new SingleListTreeProvider(myProject, myPalette);
     myTree.setModel(provider);
-    myTree.addListSelectionListener(event -> fireSelectionChanged(myTree.getSelectedElement()));
     myTree.setVisibleSection(myCategoryList.getSelectedValue());
     myTree.setTransferHandler(new MyItemTransferHandler(mySurface, myDependencyManager, this::getSelectedItem, myIconPreviewFactory));
     setMode(myMode);
