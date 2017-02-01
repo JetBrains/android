@@ -404,8 +404,10 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   @Test
   public void testGetAllocationDump() {
     myFakeMemoryService.addAllocationInfo(FINISHED_ALLOCATION_INFO);
-    ((MemoryTable)myMemoryService.getDatastoreTable()).insertAllocationDumpData(FINISHED_ALLOCATION_INFO, DUMP_DATA.toByteArray());
     getPollTicker().run();
+    //Needs to happen after poll, poll will take the existing data and apply an end time assuming that the data will
+    //be set after in the normal work flow.
+    ((MemoryTable)myMemoryService.getDatastoreTable()).insertAllocationDumpData(FINISHED_ALLOCATION_INFO, DUMP_DATA.toByteArray());
 
     MemoryProfiler.DumpDataRequest request = MemoryProfiler.DumpDataRequest.newBuilder()
       .setProcessId(TEST_APP_ID)
