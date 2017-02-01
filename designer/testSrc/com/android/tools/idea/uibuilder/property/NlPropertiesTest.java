@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.handlers.ImageViewHandler;
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.ptable.StarState;
 import com.google.common.base.Joiner;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
 import com.intellij.psi.xml.XmlFile;
@@ -32,6 +34,8 @@ import java.util.stream.Collectors;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.property.NlProperties.STARRED_PROP;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -46,12 +50,9 @@ public class NlPropertiesTest extends PropertyTestCase {
   private static final String[] LINEAR_LAYOUT_ATTRS = {"layout_weight"};
   private static final String[] RELATIVE_LAYOUT_ATTRS = {"layout_toLeftOf", "layout_above", "layout_alignTop"};
 
-  private GradleDependencyManager myDependencyManager;
-
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myDependencyManager = mock(GradleDependencyManager.class);
     myFixture.addFileToProject("AndroidManifest.xml", MANIFEST_SOURCE);
   }
 
@@ -299,113 +300,34 @@ public class NlPropertiesTest extends PropertyTestCase {
     return Joiner.on(";").join(propertyNames) + ";";
   }
 
+  private void setupImageViewNeedsSrcCompat(boolean useSrcCompat) {
+    ViewHandlerManager manager = mock(ViewHandlerManager.class);
+    ImageViewHandler handler = mock(ImageViewHandler.class);
+    ViewHandler other = mock(ViewHandler.class);
+    when(manager.getHandler(anyString())).thenReturn(other);
+    when(manager.getHandler(IMAGE_VIEW)).thenReturn(handler);
+    when(handler.shouldUseSrcCompat(any(NlModel.class))).thenReturn(useSrcCompat);
+    registerProjectComponentImplementation(ViewHandlerManager.class, manager);
+  }
+
   public void testSrcCompatIncluded() {
-    when(myDependencyManager.dependsOn(myModule, APPCOMPAT_LIB_ARTIFACT)).thenReturn(true);
-    addAppCompatActivity();
-    addMyActivityAsAppCompatActivity();
+    setupImageViewNeedsSrcCompat(true);
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myImageView), myDependencyManager);
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myImageView));
 
     assertPresent("ImageView", properties, ANDROID_URI, ATTR_SRC);
     assertPresent("ImageView", properties, AUTO_URI, ATTR_SRC_COMPAT);
   }
 
-  // Temporarily disable this test as it is failing on studio builder as of 2016-12-05.
-  public void disabled_testSrcCompatIncludedWithRelativeContextName() {
-    Configuration configuration = myModel.getConfiguration();
-    configuration.setActivity(".MyActivity");
-    when(myDependencyManager.dependsOn(myModule, APPCOMPAT_LIB_ARTIFACT)).thenReturn(true);
-    addAppCompatActivity();
-    addMyActivityAsAppCompatActivity();
+  public void testSrcNotCompatIncluded() {
+    setupImageViewNeedsSrcCompat(false);
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myImageView), myDependencyManager);
-
-    assertPresent("ImageView", properties, ANDROID_URI, ATTR_SRC);
-    assertPresent("ImageView", properties, AUTO_URI, ATTR_SRC_COMPAT);
-  }
-
-  public void testSrcCompatNotIncludedIfActivityIsNotAppCompatActivity() {
-    when(myDependencyManager.dependsOn(myModule, APPCOMPAT_LIB_ARTIFACT)).thenReturn(true);
-    addMyActivityAsSystemActivity();
-
-    Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myImageView), myDependencyManager);
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myImageView));
 
     assertPresent("ImageView", properties, ANDROID_URI, ATTR_SRC);
     assertAbsent("ImageView", properties, AUTO_URI, ATTR_SRC_COMPAT);
-  }
-
-  public void testSrcCompatNotIncludedIfAppCompatArtifactIsNotIncludedInModule() {
-    when(myDependencyManager.dependsOn(myModule, APPCOMPAT_LIB_ARTIFACT)).thenReturn(false);
-    addAppCompatActivity();
-    addMyActivityAsAppCompatActivity();
-
-    Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myImageView), myDependencyManager);
-
-    assertPresent("ImageView", properties, ATTR_SRC);
-    assertAbsent("ImageView", properties, ATTR_SRC_COMPAT);
-  }
-
-  public void testSrcCompatNotIncludedIfNotAllComponentsAreImageViews() {
-    when(myDependencyManager.dependsOn(myModule, APPCOMPAT_LIB_ARTIFACT)).thenReturn(true);
-    addAppCompatActivity();
-    addMyActivityAsAppCompatActivity();
-
-    Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myImageView), myDependencyManager);
-
-    assertPresent("ImageView", properties, ATTR_SRC);
-    assertAbsent("ImageView", properties, ATTR_SRC_COMPAT);
-  }
-
-  private void addMyActivityAsAppCompatActivity() {
-    @Language("JAVA")
-    String javaFile = "package com.example;\n" +
-                      "\n" +
-                      "import android.support.v7.app.AppCompatActivity;\n" +
-                      "import android.os.Bundle;\n" +
-                      "\n" +
-                      "public class MyActivity extends AppCompatActivity {\n" +
-                      "    @Override\n" +
-                      "    protected void onCreate(Bundle savedInstanceState) {\n" +
-                      "        super.onCreate(savedInstanceState);\n" +
-                      "        setContentView(R.layout.activity_main);\n" +
-                      "    }\n" +
-                      "\n" +
-                      "}\n";
-    myFixture.addFileToProject("src/com/example/MyActivity.java", javaFile);
-  }
-
-  private void addAppCompatActivity() {
-    @Language("JAVA")
-    String javaFile = "package android.support.v7.app;\n" +
-                      "\n" +
-                      "import android.app.Activity;\n" +
-                      "\n" +
-                      "public class AppCompatActivity extends Activity {\n" +
-                      "}\n";
-    myFixture.addFileToProject("src/android/support/v7/app/AppCompatActivity.java", javaFile);
-  }
-
-  private void addMyActivityAsSystemActivity() {
-    @Language("JAVA")
-    String javaFile = "package com.example;\n" +
-                      "\n" +
-                      "import android.app.Activity;\n" +
-                      "import android.os.Bundle;\n" +
-                      "\n" +
-                      "public class MyActivity extends Activity {\n" +
-                      "\n" +
-                      "    @Override\n" +
-                      "    protected void onCreate(Bundle savedInstanceState) {\n" +
-                      "        super.onCreate(savedInstanceState);\n" +
-                      "        setContentView(R.layout.merge);\n" +
-                      "    }\n" +
-                      "}\n";
-    myFixture.addFileToProject("src/com/example/MyActivity.java", javaFile);
   }
 
   private static void assertPresent(String tag, Table<String, String, NlPropertyItem> properties, String namespace, String... names) {
