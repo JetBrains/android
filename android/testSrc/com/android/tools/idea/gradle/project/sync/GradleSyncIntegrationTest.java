@@ -29,6 +29,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
@@ -54,6 +55,7 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.ORIGINAL;
 import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static com.google.common.truth.Truth.assertAbout;
@@ -93,6 +95,19 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setDistributionType(DEFAULT_WRAPPED);
     GradleSettings.getInstance(project).setLinkedProjectsSettings(Collections.singletonList(projectSettings));
+  }
+
+  // https://code.google.com/p/android/issues/detail?id=233038
+  public void /*test*/LoadPlainJavaProject() throws Exception {
+    prepareProjectForImport(PURE_JAVA_PROJECT);
+    Project project = getProject();
+    importProject(project.getName(), getBaseDirPath(project), null);
+
+    Module[] modules = ModuleManager.getInstance(project).getModules();
+    for (Module module : modules) {
+      ContentEntry[] entries = ModuleRootManager.getInstance(module).getContentEntries();
+      assertThat(entries).named(module.getName() + " should have content entries").isNotEmpty();
+    }
   }
 
   // See https://code.google.com/p/android/issues/detail?id=226802
