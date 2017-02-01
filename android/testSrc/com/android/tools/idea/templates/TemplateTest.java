@@ -349,6 +349,14 @@ public class TemplateTest extends AndroidGradleTestCase {
     checkCreateTemplate("activities", "SettingsActivity", true);
   }
 
+  public void testBottomNavigationActivity() throws Exception {
+    checkCreateTemplate("activities", "BottomNavigationActivity", false);
+  }
+
+  public void testNewProjectWithBottomNavigationActivity() throws Exception {
+    checkCreateTemplate("activities", "BottomNavigationActivity", true);
+  }
+
   public void testNewProjectWithTvActivity() throws Exception {
     checkCreateTemplate("activities", "AndroidTvActivity", true);
   }
