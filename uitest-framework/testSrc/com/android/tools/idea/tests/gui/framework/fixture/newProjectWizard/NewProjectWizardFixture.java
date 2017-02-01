@@ -16,10 +16,10 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import com.android.tools.idea.npw.TemplateEntry;
+import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.ui.ASGallery;
-import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.intellij.openapi.progress.ProgressManager;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;

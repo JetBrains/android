@@ -34,18 +34,6 @@ import java.net.URL;
  * Static utility methods useful across wizards
  */
 public final class WizardUtils {
-  // TODO: This a temporary method, until all the new wizard code can be enabled and the old code deleted.
-  @Deprecated
-  public static boolean isNpwModelWizardEnabled() {
-    return Boolean.getBoolean("use.npw.modelwizard");
-  }
-
-  // TODO: This a temporary method, until all the new wizard code can be enabled and the old code deleted.
-  @Deprecated
-  public static boolean isNpwModelWizardEnabled(AnActionEvent e) {
-    return isNpwModelWizardEnabled() && (e.getInputEvent().getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) == 0;
-  }
-
   /**
    * The package is used to create a directory (eg: MyApplication/app/src/main/java/src/my/package/name)
    * A windows directory path cannot be longer than 250 chars
