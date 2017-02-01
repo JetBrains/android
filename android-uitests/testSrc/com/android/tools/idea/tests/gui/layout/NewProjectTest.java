@@ -194,7 +194,7 @@ public class NewProjectTest {
     assertThat(editor.getCurrentFileName()).isEqualTo("activity_a.xml");
 
     NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
-    layoutEditor.waitForRenderToFinish();
+    layoutEditor.waitForRenderToFinish(Wait.seconds(10));
     guiTest.ideFrame().invokeProjectMake();
     layoutEditor.waitForRenderToFinish();
     assertFalse(layoutEditor.hasRenderErrors());
