@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleWrapper;
-import com.android.tools.idea.npw.cpp.ConfigureCppSupportPath;
+import com.android.tools.idea.npw.deprecated.ConfigureCppSupportPath;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep;
 import com.android.tools.idea.npw.deprecated.NewFormFactorModulePath;
