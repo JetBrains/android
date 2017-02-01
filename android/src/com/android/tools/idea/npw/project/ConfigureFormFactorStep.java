@@ -80,8 +80,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
     populateAdditionalFormFactors();
 
     myValidatorPanel = new ValidatorPanel(this, myPanel);
-    myValidatorPanel.registerValidator(myInvalidParameterMessage, message ->
-      (message.isEmpty() ? Validator.Result.OK : new Validator.Result(Validator.Severity.ERROR, message)));
+    myValidatorPanel.registerMessageSource(myInvalidParameterMessage);
 
     myRootPanel = new StudioWizardStepPanel(myValidatorPanel, message("android.wizard.project.select.form"));
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);

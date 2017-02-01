@@ -251,8 +251,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       sourceSet.addListener(sender -> enqueueEvaluateParameters());
     }
 
-    myValidatorPanel.registerValidator(myInvalidParameterMessage, message ->
-      (message.isEmpty() ? Validator.Result.OK : new Validator.Result(Validator.Severity.ERROR, message)));
+    myValidatorPanel.registerMessageSource(myInvalidParameterMessage);
 
     // TODO: This code won't be needed until we migrate this enough to support
     // NewAndroidApplication/template.xml and NewAndroidLibrary/template.xml
