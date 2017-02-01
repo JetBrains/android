@@ -24,6 +24,7 @@ import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.ui.ASGallery;
+import com.android.tools.idea.ui.properties.ListenerManager;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.properties.core.StringProperty;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
@@ -51,30 +52,27 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
  * This step allows the user to select which type of Activity they want to create.
- * TODO: This step can be used as part of the "New Project" flow. In that flow, if the "Has CPP support" is selected, we should not show
- * this step, but the next step should be "Basic Activity". In the current work flow (using the dynamic wizard), this was difficult to do,
- * so instead {@link ActivityGalleryStep} was always shown with three options ("Add no Activity", "Basic Activity" and "Empty Activity").
- * The code to filter out the activities is {@link TemplateListProvider}
+ *
  * TODO: ATTR_IS_LAUNCHER seems to be dead code, it was one option in the old UI flow. Find out if we can remove it.
- * TODO: Extending RenderTemplateModel don't seem to match with the things ChooseActivityTypeStep needs to be configured... For example,
- * it needs to know "Is Cpp Project" (to adjust the list of templates or hide itself).
  * TODO: This class and ChooseModuleTypeStep looks to have a lot in common. Should we have something more specific than a ASGallery,
  * that renders "Gallery items"?
  */
 public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> {
   private final RenderTemplateModel myRenderModel;
-  private @NotNull TemplateRenderer[] myTemplateList;
+  private @NotNull List<TemplateRenderer> myTemplateRenderers;
   private @NotNull List<AndroidSourceSet> mySourceSets;
 
   private @NotNull ASGallery<TemplateRenderer> myActivityGallery;
   private @NotNull ValidatorPanel myValidatorPanel;
   private final StringProperty myInvalidParameterMessage = new StringValueProperty();
+  private final ListenerManager myListeners = new ListenerManager();
 
   private @Nullable AndroidFacet myFacet;
 
@@ -107,17 +105,14 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
                     @Nullable AndroidFacet facet) {
     mySourceSets = sourceSets;
     myFacet = facet;
-    List<TemplateHandle> templateList = TemplateManager.getInstance().getTemplateList(formFactor);
+    List<TemplateHandle> templateHandles = TemplateManager.getInstance().getTemplateList(formFactor);
 
-    // For any new module, we need a "Add No Activity" entry.
-    int i = isNewModule() ? 1 : 0;
-    myTemplateList = new TemplateRenderer[templateList.size() + i];
+    myTemplateRenderers = Lists.newArrayListWithExpectedSize(templateHandles.size() + 1);  // Extra entry for "Add No Activity" template
     if (isNewModule()) {
-      myTemplateList[0] = new TemplateRenderer(null);
+      myTemplateRenderers.add(new TemplateRenderer(null)); // New modules need a "Add No Activity" entry
     }
-    for (TemplateHandle templateHandle : templateList) {
-      myTemplateList[i] = new TemplateRenderer(templateHandle);
-      i++;
+    for (TemplateHandle templateHandle : templateHandles) {
+      myTemplateRenderers.add(new TemplateRenderer(templateHandle));
     }
 
     myActivityGallery = createGallery(getTitle());
@@ -142,6 +137,11 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
   public Collection<? extends ModelWizardStep> createDependentSteps() {
     String title = message("android.wizard.config.activity.title");
     return Lists.newArrayList(new ConfigureTemplateParametersStep(myRenderModel, title, mySourceSets, myFacet));
+  }
+
+  @Override
+  public void dispose() {
+    myListeners.releaseAll();
   }
 
   private static ASGallery<TemplateRenderer> createGallery(String title) {
@@ -173,7 +173,6 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
     myValidatorPanel.registerMessageSource(myInvalidParameterMessage);
 
-    myActivityGallery.setModel(JBList.createDefaultListModel((Object[])myTemplateList));
     myActivityGallery.setDefaultAction(new AbstractAction() {
       @Override
       public void actionPerformed(ActionEvent actionEvent) {
@@ -190,8 +189,11 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
       validateTemplate();
     });
 
-    int defaultSelection = getDefaultSelectedTemplateIndex(myTemplateList);
-    myActivityGallery.setSelectedIndex(defaultSelection); // Also fires the Selection Listener
+    myListeners.receiveAndFire(getModel().enableCppSupport(), src -> {
+      TemplateRenderer[] listItems = createGalleryList(myTemplateRenderers, src.booleanValue());
+      myActivityGallery.setModel(JBList.createDefaultListModel(listItems));
+      myActivityGallery.setSelectedIndex(getDefaultSelectedTemplateIndex(listItems, isNewModule())); // Also fires the Selection Listener
+    });
   }
 
   @NotNull
@@ -223,17 +225,37 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
       .setProjectDefaults(moduleModel.getProject().getValueOrNull(), moduleModel.applicationName().get());
   }
 
-  private static int getDefaultSelectedTemplateIndex(@NotNull TemplateRenderer[] templateList) {
-    for (int i = 0; i < templateList.length; i++) {
-      if (templateList[i].getTitle().equals("Empty Activity")) {
+  private static int getDefaultSelectedTemplateIndex(@NotNull TemplateRenderer[] templateRenderers, boolean isNewModule) {
+    for (int i = 0; i < templateRenderers.length; i++) {
+      if (templateRenderers[i].getTitle().equals("Empty Activity")) {
         return i;
       }
     }
+
+    // Default template not found. Instead, return the index to the first valid template renderer (e.g. skip "Add No Activity", etc.)
+    for (int i = 0; i < templateRenderers.length; i++) {
+      if (templateRenderers[i].getTemplate() != null) {
+        return i;
+      }
+    }
+
+    assert false; // "We should never get here - there should always be at least one valid template
     return 0;
   }
 
   private boolean isNewModule() {
     return myFacet == null;
+  }
+
+  private static TemplateRenderer[] createGalleryList(@NotNull List<TemplateRenderer> templateRenderers, boolean isCppProject) {
+    if (isCppProject) {
+      List<TemplateRenderer> filteredTemplates = templateRenderers.stream().filter(TemplateRenderer::isCppTemplate).collect(Collectors.toList());
+      if (filteredTemplates.size() > 1) {
+        return filteredTemplates.toArray(new TemplateRenderer[filteredTemplates.size()]);
+      }
+    }
+
+    return templateRenderers.toArray(new TemplateRenderer[templateRenderers.size()]);
   }
 
   private void validateTemplate() {
@@ -279,6 +301,18 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
     @NotNull
     String getTitle() {
       return myTemplate == null ? message("android.wizard.gallery.item.add.no.activity") : myTemplate.getMetadata().getTitle();
+    }
+
+    boolean isCppTemplate() {
+      if (myTemplate == null) {
+        return true;
+      }
+
+      // TODO: This is not a good way to find Cpp templates. However, the cpp design needs to be reviewed, and probably updated.
+      // TODO: 1 - The Cpp check-box is at the project level, but should probably be at the Module level (like instant apps)
+      // TODO: 2 - We should have a dedicated list for Cpp files, or at least add a specific flag to the Templates that are allowed.
+      String title = myTemplate.getMetadata().getTitle();
+      return "Empty Activity".equals(title) || "Basic Activity".equals(title);
     }
 
     /**
