@@ -69,8 +69,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
   private List<String> myAllowedRoots = new ArrayList<>();
   private boolean myUseCustomSettings;
-  private PicoComponentStack myApplicationPicoComponentStack;
-  private PicoComponentStack myProjectPicoComponentStack;
+  private ComponentStack myApplicationComponentStack;
+  private ComponentStack myProjectComponentStack;
 
   @Override
   protected void setUp() throws Exception {
@@ -144,17 +144,17 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
     ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
 
-    myApplicationPicoComponentStack = new PicoComponentStack(ApplicationManager.getApplication().getPicoContainer());
-    myProjectPicoComponentStack = new PicoComponentStack(getProject().getPicoContainer());
+    myApplicationComponentStack = new ComponentStack(ApplicationManager.getApplication());
+    myProjectComponentStack = new ComponentStack(getProject());
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
-      myApplicationPicoComponentStack.restoreComponents();
-      myApplicationPicoComponentStack = null;
-      myProjectPicoComponentStack.restoreComponents();
-      myProjectPicoComponentStack = null;
+      myApplicationComponentStack.restoreComponents();
+      myApplicationComponentStack = null;
+      myProjectComponentStack.restoreComponents();
+      myProjectComponentStack = null;
       CodeStyleSettingsManager.getInstance(getProject()).dropTemporarySettings();
       myModule = null;
       myAdditionalModules = null;
@@ -346,11 +346,15 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   }
 
   public <T> void registerApplicationComponent(@NotNull Class<T> key, @NotNull T instance) {
-    myApplicationPicoComponentStack.registerComponent(key, instance);
+    myApplicationComponentStack.registerComponentInstance(key, instance);
   }
 
   public <T> void registerProjectComponent(@NotNull Class<T> key, @NotNull T instance) {
-    myProjectPicoComponentStack.registerComponent(key, instance);
+    myProjectComponentStack.registerComponentInstance(key, instance);
+  }
+
+  public <T> void registerProjectComponentImplementation(@NotNull Class<T> key, @NotNull T instance) {
+    myProjectComponentStack.registerComponentImplementation(key, instance);
   }
 
   protected static class MyAdditionalModuleData {
