@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.layout;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
 import org.fest.swing.fixture.JListFixture;
@@ -36,6 +38,7 @@ import static java.awt.event.KeyEvent.VK_ESCAPE;
 public class NlPaletteTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testSpeedSearchAcrossGroups() throws Exception {
     NlEditorFixture layout = guiTest.importSimpleApplication()
