@@ -103,6 +103,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
@@ -162,6 +163,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private String myPreviousTheme;
   // Variable to track what triggered the latest render (if known)
   private ChangeType myModificationTrigger;
+  private long myElapsedFrameTimeMs = -1;
 
   @NotNull
   public static NlModel create(@NotNull DesignSurface surface,
@@ -574,6 +576,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
     synchronized (RENDERING_LOCK) {
       if (myRenderTask != null) {
+        if (myElapsedFrameTimeMs != -1) {
+          myRenderTask.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(myElapsedFrameTimeMs));
+        }
         RenderResult result = Futures.getUnchecked(myRenderTask.render());
         // When the layout was inflated in this same call, we do not have to update the hierarchy again
         if (!inflated) {
@@ -625,6 +630,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         return this.equals(update);
       }
     });
+  }
+
+  public void setElapsedFrameTimeMs(long ms) {
+    myElapsedFrameTimeMs = ms;
   }
 
   /**
