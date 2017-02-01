@@ -133,7 +133,7 @@ public class BrowsePanel extends JPanel {
       myContext = context;
       Presentation presentation = getTemplatePresentation();
       presentation.setIcon(AllIcons.General.Ellipsis);
-      presentation.setText("Click to pick a resource");
+      presentation.setText("Pick a Resource");
     }
 
     @Override
@@ -186,13 +186,13 @@ public class BrowsePanel extends JPanel {
         switch (checkDesignState()) {
           case MISSING_DESIGN_PROPERTY:
             presentation.setIcon(AndroidIcons.NeleIcons.DesignProperty);
-            presentation.setText("Click to specify design property");
+            presentation.setText("Specify Design Property");
             presentation.setVisible(true);
             presentation.setEnabled(true);
             break;
           case IS_REMOVABLE_DESIGN_PROPERTY:
             presentation.setIcon(AllIcons.Actions.Delete);
-            presentation.setText("Click to remove this design property");
+            presentation.setText("Remove this Design Property");
             presentation.setVisible(true);
             presentation.setEnabled(true);
             break;
