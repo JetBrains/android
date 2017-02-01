@@ -96,6 +96,7 @@ public final class TranslationsEditorTest {
 
     JTableCellFixture cancel = myTranslationsEditor.getTable().cell(TableCell.row(2).column(7)); // Cancel in zh-rCN
     assertEquals("取消", cancel.value());
+    assertEquals(-1, cancel.font().target().canDisplayUpTo("取消")); // requires DroidSansFallbackFull.ttf
   }
 
   @Test
