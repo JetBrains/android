@@ -35,7 +35,7 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import java.io.File;
 import java.io.IOException;
 
-import static com.android.tools.idea.project.NewProjects.activateProjectView;
+import static com.android.tools.idea.util.ToolWindows.activateProjectView;
 import static com.intellij.ide.impl.ProjectUtil.focusProjectWindow;
 import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpenedFile;
 import static com.intellij.openapi.ui.Messages.showErrorDialog;
