@@ -53,8 +53,8 @@ public class AbsoluteLayoutHandlerTest extends LayoutTestCase {
       .resize(BOTTOM, RIGHT)
       .drag(20, 30)
       .release()
-      .expectWidth("120dp")
-      .expectHeight("130dp");
+      .expectWidth("60dp")
+      .expectHeight("65dp");
   }
 
   public void testResizeTopLeft() throws Exception {
@@ -63,10 +63,10 @@ public class AbsoluteLayoutHandlerTest extends LayoutTestCase {
       .resize(TOP, LEFT)
       .drag(-20, -30)
       .release()
-      .expectWidth("120dp")
-      .expectHeight("130dp")
-      .expectAttribute(ANDROID_URI, ATTR_LAYOUT_X, "80dp")
-      .expectAttribute(ANDROID_URI, ATTR_LAYOUT_Y, "70dp");
+      .expectWidth("60dp")
+      .expectHeight("65dp")
+      .expectAttribute(ANDROID_URI, ATTR_LAYOUT_X, "40dp")
+      .expectAttribute(ANDROID_URI, ATTR_LAYOUT_Y, "35dp");
   }
 
   public void testDrag() throws Exception {
@@ -76,16 +76,16 @@ public class AbsoluteLayoutHandlerTest extends LayoutTestCase {
       .drag(20, 30)
       .release()
       .primary()
-      .expectAttribute(ANDROID_URI, ATTR_LAYOUT_X, "120dp")
-      .expectAttribute(ANDROID_URI, ATTR_LAYOUT_Y, "130dp")
+      .expectAttribute(ANDROID_URI, ATTR_LAYOUT_X, "60dp")
+      .expectAttribute(ANDROID_URI, ATTR_LAYOUT_Y, "65dp")
       .expectWidth("100dp")
       .expectHeight("100dp")
       .expectXml("<TextView\n" +
                  "        android:id=\"@id/myText\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"100dp\"\n" +
-                 "        android:layout_x=\"120dp\"\n" +
-                 "        android:layout_y=\"130dp\" />");
+                 "        android:layout_x=\"60dp\"\n" +
+                 "        android:layout_y=\"65dp\" />");
   }
 
   public void testDragToLayout() throws Exception {
@@ -121,8 +121,8 @@ public class AbsoluteLayoutHandlerTest extends LayoutTestCase {
                           "        android:id=\"@id/myText\"\n" +
                           "        android:layout_width=\"100dp\"\n" +
                           "        android:layout_height=\"100dp\"\n" +
-                          "        android:layout_x=\"150dp\"\n" +
-                          "        android:layout_y=\"400dp\" />\n" +
+                          "        android:layout_x=\"75dp\"\n" +
+                          "        android:layout_y=\"200dp\" />\n" +
                           "\n" +
                           "</AbsoluteLayout>");
   }
@@ -186,8 +186,8 @@ public class AbsoluteLayoutHandlerTest extends LayoutTestCase {
                  "          android:id=\"@id/myText\"\n" +
                  "          android:layout_width=\"1000px\"\n" +
                  "          android:layout_height=\"150px\"\n" +
-                 "          android:layout_x=\"50dp\"\n" +
-                 "          android:layout_y=\"550dp\" />\n" +
+                 "          android:layout_x=\"25dp\"\n" +
+                 "          android:layout_y=\"275dp\" />\n" +
                  "  </AbsoluteLayout>\n" +
                  "\n" +
                  "</LinearLayout>");
