@@ -590,11 +590,10 @@ public class RenderTask implements IImageFactory {
             }
 
             if (session.getResult().isSuccess()) {
-              // Advance the frame time to display the material progress bars
-              // TODO: Expose this through the RenderTask API to allow callers to customize this value
               long now = System.nanoTime();
               session.setSystemBootTimeNanos(now);
               session.setSystemTimeNanos(now);
+              // Advance the frame time to display the material progress bars
               session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
             }
             RenderResult result =
@@ -835,6 +834,16 @@ public class RenderTask implements IImageFactory {
   @NotNull
   public ListenableFuture<RenderResult> render() {
     return render(this);
+  }
+
+  /**
+   * Sets the time for which the next frame will be selected. The time is the elapsed time from
+   * the current system nanos time.
+   */
+  public void setElapsedFrameTimeNanos(long nanos) {
+    if (myRenderSession != null) {
+      myRenderSession.setElapsedFrameTimeNanos(nanos);
+    }
   }
 
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")

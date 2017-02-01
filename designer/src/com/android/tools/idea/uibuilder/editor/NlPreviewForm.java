@@ -51,6 +51,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class NlPreviewForm implements Disposable, CaretListener {
+  private static final boolean ANIMATIONS_PREVIEW_ENABLED = Boolean.getBoolean("enable.animated.preview");
+
   private final NlPreviewManager myManager;
   private final NlDesignSurface mySurface;
   private final WorkBench<DesignSurface> myWorkBench;
@@ -62,6 +64,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
   private XmlFile myFile;
   private boolean isActive = true;
   private final NlActionsToolbar myActionsToolbar;
+  private final AnimationToolbar myAnimationToolbar;
 
   /**
    * When {@link #deactivate()} is called, the file will be saved here and the preview will not be rendered anymore.
@@ -114,6 +117,21 @@ public class NlPreviewForm implements Disposable, CaretListener {
     JPanel contentPanel = new JPanel(new BorderLayout());
     contentPanel.add(myActionsToolbar.getToolbarComponent(), BorderLayout.NORTH);
     contentPanel.add(mySurface, BorderLayout.CENTER);
+
+    if (ANIMATIONS_PREVIEW_ENABLED) {
+      myAnimationToolbar = new AnimationToolbar(this, (timeMs) -> {
+        ScreenView screenView = mySurface.getCurrentSceneView();
+        NlModel model = screenView != null ? screenView.getModel() : null;
+        if (model != null) {
+          model.setElapsedFrameTimeMs(timeMs);
+          mySurface.getCurrentSceneView().getModel().requestRender();
+        }
+      }, 16);
+      contentPanel.add(myAnimationToolbar, BorderLayout.SOUTH);
+    }
+    else {
+      myAnimationToolbar = null;
+    }
 
     myWorkBench = new WorkBench<>(project, "Preview", null);
     myWorkBench.init(contentPanel, mySurface, Collections.singletonList(
@@ -263,6 +281,10 @@ public class NlPreviewForm implements Disposable, CaretListener {
   }
 
   public boolean setFile(@Nullable PsiFile file) {
+    if (myAnimationToolbar != null) {
+      myAnimationToolbar.stop();
+    }
+
     if (!isActive) {
       // The form is not active so we just save the file to show once activate() is called
       myInactiveFile = (XmlFile)file;
