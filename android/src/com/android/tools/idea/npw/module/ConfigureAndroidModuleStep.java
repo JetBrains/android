@@ -168,14 +168,10 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   protected void onProceeding() {
     if (myIsLibrary) {
       NewModuleModel moduleModel = getModel();
-      new TemplateValueInjector(myRenderModel.getTemplateValues())
-        .setBuildVersion(myRenderModel.androidSdkInfo().getValue())
-        .setModuleRoots(myRenderModel.getSourceSet().get().getPaths(), moduleModel.packageName().get());
+      moduleModel.setDefaultRenderTemplateValues(myRenderModel);
 
       new TemplateValueInjector(moduleModel.getTemplateValues())
         .setProjectDefaults(moduleModel.getProject().getValueOrNull(), moduleModel.applicationName().get());
-
-      moduleModel.getRenderTemplateValues().setValue(myRenderModel.getTemplateValues());
     }
   }
 
