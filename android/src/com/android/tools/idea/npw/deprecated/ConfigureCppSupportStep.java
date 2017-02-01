@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.cpp;
+package com.android.tools.idea.npw.deprecated;
 
+import com.android.tools.idea.npw.cpp.CppStandardType;
+import com.android.tools.idea.npw.cpp.RuntimeLibraryType;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
@@ -37,6 +39,7 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 /**
  * Step for configuring native (C++) related parameters in new project wizard
  */
+@Deprecated
 public class ConfigureCppSupportStep extends DynamicWizardStepWithDescription {
   private static final ScopedStateStore.Key<CppStandardType> KEY_STANDARD_TYPE = createKey("cppStandard", STEP, CppStandardType.class);
   private static final ScopedStateStore.Key<Boolean> KEY_ENABLE_EXCEPTIONS = createKey("cppEnableExceptions", STEP, Boolean.class);
