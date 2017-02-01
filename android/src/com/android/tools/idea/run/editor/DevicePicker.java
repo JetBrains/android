@@ -227,14 +227,14 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
                 }
                 myNotificationPanel.add(new AccelerationErrorNotificationPanel(error, myFacet.getModule().getProject(),
                                                                                () -> updateErrorCheck()));
-                myPanel.revalidate();
-                myPanel.repaint();
               }
             });
           }
         }
       });
     }
+    myPanel.revalidate();
+    myPanel.repaint();
   }
 
   private void postUpdate() {
