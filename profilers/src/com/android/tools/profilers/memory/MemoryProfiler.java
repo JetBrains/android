@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfiler;
@@ -34,16 +35,16 @@ public class MemoryProfiler extends StudioProfiler {
   }
 
   @Override
-  public void startProfiling(String deviceSerial, Profiler.Process process) {
+  public void startProfiling(Common.Session session, Profiler.Process process) {
     myProfilers.getClient().getMemoryClient().startMonitoringApp(MemoryStartRequest.newBuilder()
                                                                    .setProcessId(process.getPid())
-                                                                   .setDeviceSerial(deviceSerial).build());
+                                                                   .setSession(session).build());
   }
 
   @Override
-  public void stopProfiling(String deviceSerial, Profiler.Process process) {
+  public void stopProfiling(Common.Session session, Profiler.Process process) {
     myProfilers.getClient().getMemoryClient().stopMonitoringApp(MemoryStopRequest.newBuilder()
                                                                   .setProcessId(process.getPid())
-                                                                  .setDeviceSerial(deviceSerial).build());
+                                                                  .setSession(session).build());
   }
 }

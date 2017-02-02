@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.intellij.util.containers.ContainerUtil;
@@ -39,12 +40,12 @@ public class CpuThreadCountDataSeries implements DataSeries<Long> {
 
   private final int myProcessId;
 
-  private final String myDeviceSerial;
+  private final Common.Session mySession;
 
-  public CpuThreadCountDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, int id, String serial) {
+  public CpuThreadCountDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, int id, Common.Session session) {
     myClient = client;
     myProcessId = id;
-    myDeviceSerial = serial;
+    mySession = session;
   }
 
   @Override
@@ -52,7 +53,7 @@ public class CpuThreadCountDataSeries implements DataSeries<Long> {
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     CpuProfiler.GetThreadsRequest.Builder request = CpuProfiler.GetThreadsRequest.newBuilder()
       .setProcessId(myProcessId)
-      .setDeviceSerial(myDeviceSerial)
+      .setSession(mySession)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
 

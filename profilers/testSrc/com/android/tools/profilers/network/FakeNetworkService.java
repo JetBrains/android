@@ -30,7 +30,6 @@ import static com.android.tools.profiler.proto.NetworkProfiler.*;
 
 public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceImplBase {
   public static final int FAKE_APP_ID = 1111;
-  public static final String FAKE_DEVICE_SERIAL = "Test Device Serial";
 
   private int myAppId;
 

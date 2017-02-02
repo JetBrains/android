@@ -221,8 +221,8 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   private static class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
 
     @Override
-    public void getTimes(Profiler.TimesRequest request, StreamObserver<Profiler.TimesResponse> responseObserver) {
-      responseObserver.onNext(Profiler.TimesResponse.newBuilder().setTimestampNs(BASE_TIME_NS).build());
+    public void getCurrentTime(Profiler.TimeRequest request, StreamObserver<Profiler.TimeResponse> responseObserver) {
+      responseObserver.onNext(Profiler.TimeResponse.newBuilder().setTimestampNs(BASE_TIME_NS).build());
       responseObserver.onCompleted();
     }
   }

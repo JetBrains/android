@@ -16,10 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.ProfilerMonitor;
-import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.*;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,8 +26,6 @@ import static org.junit.Assert.*;
 public class CpuProfilerTest {
 
   private static final int FAKE_PID = 42;
-
-  private static final String FAKE_DEVICE_SERIAL = "Test Device Serial";
 
   private final FakeCpuService myService = new FakeCpuService();
 
@@ -55,14 +50,14 @@ public class CpuProfilerTest {
 
   @Test
   public void startProfilingCallStartMonitoringAppId() throws InterruptedException {
-    myCpuProfiler.startProfiling(FAKE_DEVICE_SERIAL, FAKE_PROCESS);
+    myCpuProfiler.startProfiling(ProfilersTestData.SESSION_DATA, FAKE_PROCESS);
     // Make sure the pid of the service was set to FAKE_PID by the start monitoring request
     assertEquals(FAKE_PID, myService.getProcessId());
   }
 
   @Test
   public void stopProfilingCallStopMonitoringAppId() throws InterruptedException {
-    myCpuProfiler.stopProfiling(FAKE_DEVICE_SERIAL, FAKE_PROCESS);
+    myCpuProfiler.stopProfiling(ProfilersTestData.SESSION_DATA, FAKE_PROCESS);
     // Make sure the pid of the service was set to FAKE_PID by the stop monitoring request
     assertEquals(FAKE_PID, myService.getProcessId());
   }
