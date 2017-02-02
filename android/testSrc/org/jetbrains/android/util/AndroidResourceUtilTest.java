@@ -211,6 +211,7 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
 
   public void testValidResourceFileName() {
     assertEquals("ic_my_icon", AndroidResourceUtil.getValidResourceFileName("ic_My-icon"));
+    assertEquals("my_file_name.png", AndroidResourceUtil.getValidResourceFileName("My File-Name.png"));
   }
 
   public void testEnsureNamespaceImportedAddAuto() {
@@ -248,9 +249,5 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     }), "", "");
 
     return xmlFile;
-  }
-
-  public void testGetValidResourceFileName() {
-    assertEquals("my_file_name.png", AndroidResourceUtil.getValidResourceFileName("My File-Name.png"));
   }
 }
