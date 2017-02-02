@@ -41,7 +41,7 @@ public class ScreenFixture {
   private double myScale = 0.5;
   private int myTranslateX = 0;
   private int myTranslateY = 0;
-  private Density myDensity = Density.MEDIUM;
+  private Density myDensity = Density.XHIGH;
 
   public ScreenFixture(@NotNull SurfaceFixture surface, @NotNull NlModel model) {
     mySurface = surface;

@@ -139,7 +139,7 @@ public class LayoutTestUtilities {
   }
 
   public static ScreenView createScreen(NlDesignSurface surface, NlModel model, SelectionModel selectionModel) {
-    return createScreen(surface, model, selectionModel, 1, 0, 0, Density.MEDIUM);
+    return createScreen(surface, model, selectionModel, 1, 0, 0, Density.XHIGH);
   }
 
   public static ScreenView createScreen(NlDesignSurface surface, NlModel model, SelectionModel selectionModel, double scale,
