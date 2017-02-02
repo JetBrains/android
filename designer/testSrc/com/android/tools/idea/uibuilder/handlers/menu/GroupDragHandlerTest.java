@@ -16,227 +16,236 @@
 package com.android.tools.idea.uibuilder.handlers.menu;
 
 import com.android.ide.common.rendering.api.ViewType;
+import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.api.DragType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.handlers.HandlerTestFactory;
+import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
+import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
+import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
-public final class GroupDragHandlerTest {
-  @Test
-  public void updateUsingActionBarGroup() {
-    NlComponent group = newGroup(670, 58, 98, 96);
-    group.addChild(newActionBarItem(670, 58, 98, 96));
+public final class GroupDragHandlerTest extends LayoutTestCase {
 
-    NlComponent menu = newMenu(572, 58, 196, 96);
-    menu.addChild(newActionBarItem(572, 58, 98, 96));
-    menu.addChild(group);
+  public void testUpdateUsingActionBarGroup() {
+    NlModel model = model("model.xml", menu(572, 58, 196, 96)
+      .children(
+        menuItem(572, 58, 98, 96),
+        group(670, 58, 98, 96).children(
+          menuItem(670, 58, 98, 96))
+      )).build();
 
-    GroupDragHandler handler = newGroupDragHandler(menu);
-    handler.update(793, 0, 0);
+    GroupDragHandler handler = getMenuHandler(model);
+    handler.update(397, 0, 0);
 
     assertEquals(-1, handler.getInsertIndex());
   }
 
-  @Test
-  public void updateUsingOverflowGroup() {
-    NlComponent menu = newMenu(366, 162, 392, 288);
+  public void testUpdateUsingOverflowGroup() {
+    NlModel model = model("model.xml", menu(366, 162, 392, 288)
+      .children(
+        overflowItem(366, 162, 392, 96),
+        overflowItem(366, 258, 392, 96),
+        overflowItem(366, 354, 392, 96))).build();
 
-    menu.addChild(newOverflowItem(366, 162, 392, 96));
-    menu.addChild(newOverflowItem(366, 258, 392, 96));
-    menu.addChild(newOverflowItem(366, 354, 392, 96));
+    GroupDragHandler handler = getMenuHandler(model);
+    @AndroidDpCoordinate int y = 45;
 
-    GroupDragHandler handler = newGroupDragHandler(menu);
-    int y = 90;
-
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(0, handler.getInsertIndex());
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(0, handler.getInsertIndex());
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(1, handler.getInsertIndex());
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(1, handler.getInsertIndex());
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(2, handler.getInsertIndex());
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(2, handler.getInsertIndex());
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(-1, handler.getInsertIndex());
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(-1, handler.getInsertIndex());
   }
 
-  @Test
-  public void updateUsingOverflowGroupEmptyGroupInFront() {
-    NlComponent menu = newMenu(366, 162, 392, 192);
+  public void testUpdateUsingOverflowGroupEmptyGroupInFront() {
+    NlModel model = model("model.xml", menu(366, 162, 392, 192)
+      .children(
+        group(368, 164, 1, 1).id("@+id/group"),
+        overflowItem(366, 162, 392, 96),
+        overflowItem(366, 258, 392, 96))).build();
 
-    menu.addChild(newGroup(0, 0, -1, -1));
-    menu.addChild(newOverflowItem(366, 162, 392, 96));
-    menu.addChild(newOverflowItem(366, 258, 392, 96));
+    NlComponent group = model.find("group");
+    group.setBounds(0, 0, -1, -1);
+    GroupDragHandler handler = getMenuHandler(model);
 
-    GroupDragHandler handler = newGroupDragHandler(menu);
-    int y = 90;
+    @AndroidDpCoordinate int y = 45;
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(0, handler.getInsertIndex());
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(1, handler.getInsertIndex());
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(2, handler.getInsertIndex());
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(2, handler.getInsertIndex());
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(-1, handler.getInsertIndex());
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(-1, handler.getInsertIndex());
   }
 
-  @Test
-  public void updateUsingOverflowGroupEmptyGroupInMiddle() {
-    NlComponent menu = newMenu(366, 162, 392, 192);
+  public void testUpdateUsingOverflowGroupEmptyGroupInMiddle() {
+    NlModel model = model("model.xml", menu(366, 162, 392, 192)
+      .children(
+        overflowItem(366, 162, 392, 96),
+        group(368, 164, 1, 1).id("@+id/group"),
+        overflowItem(366, 258, 392, 96))).build();
 
-    menu.addChild(newOverflowItem(366, 162, 392, 96));
-    menu.addChild(newGroup(0, 0, -1, -1));
-    menu.addChild(newOverflowItem(366, 258, 392, 96));
+    NlComponent group = model.flattenComponents().filter(c -> "group".equals(c.getId())).findFirst().get();
+    group.setBounds(0, 0, -1, -1);
+    GroupDragHandler handler = getMenuHandler(model);
 
-    GroupDragHandler handler = newGroupDragHandler(menu);
-    int y = 90;
+    @AndroidDpCoordinate int y = 45;
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(0, handler.getInsertIndex());
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(0, handler.getInsertIndex());
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(1, handler.getInsertIndex());
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(2, handler.getInsertIndex());
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(-1, handler.getInsertIndex());
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(-1, handler.getInsertIndex());
   }
 
-  @Test
-  public void updateUsingOverflowGroupEmptyGroupInBack() {
-    NlComponent menu = newMenu(366, 162, 392, 192);
+  public void testUpdateUsingOverflowGroupEmptyGroupInBack() {
+    NlModel model = model("model.xml", menu(366, 162, 392, 192)
+      .children(
+        overflowItem(366, 162, 392, 96),
+        overflowItem(366, 258, 392, 96),
+        group(368, 164, 1, 1).id("@+id/group"))).build();
 
-    menu.addChild(newOverflowItem(366, 162, 392, 96));
-    menu.addChild(newOverflowItem(366, 258, 392, 96));
-    menu.addChild(newGroup(0, 0, -1, -1));
+    NlComponent group = model.flattenComponents().filter(c -> "group".equals(c.getId())).findFirst().get();
+    group.setBounds(0, 0, -1, -1);
+    GroupDragHandler handler = getMenuHandler(model);
 
-    GroupDragHandler handler = newGroupDragHandler(menu);
-    int y = 90;
+    @AndroidDpCoordinate int y = 45;
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(0, handler.getInsertIndex());
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(0, handler.getInsertIndex());
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(1, handler.getInsertIndex());
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(1, handler.getInsertIndex());
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(2, handler.getInsertIndex());
 
-    y += 48;
+    y += 24;
     handler.update(0, y, 0);
     assertEquals(-1, handler.getInsertIndex());
+  }
+
+  private ComponentDescriptor group(@AndroidCoordinate int x,
+                                    @AndroidCoordinate int y,
+                                    @AndroidCoordinate int width,
+                                    @AndroidCoordinate int height) {
+    return component("group").withBounds(x, y, width, height);
+  }
+
+  private ComponentDescriptor menuItem(@AndroidCoordinate int x,
+                                       @AndroidCoordinate int y,
+                                       @AndroidCoordinate int width,
+                                       @AndroidCoordinate int height) {
+    return component("item").withBounds(x, y, width, height).viewType(ViewType.ACTION_BAR_MENU);
+  }
+
+  private ComponentDescriptor overflowItem(@AndroidCoordinate int x,
+                                           @AndroidCoordinate int y,
+                                           @AndroidCoordinate int width,
+                                           @AndroidCoordinate int height) {
+    return component("item").withBounds(x, y, width, height).viewType(ViewType.ACTION_BAR_OVERFLOW_MENU);
+  }
+
+  private ComponentDescriptor menu(@AndroidCoordinate int x,
+                                   @AndroidCoordinate int y,
+                                   @AndroidCoordinate int width,
+                                   @AndroidCoordinate int height) {
+    return component("menu")
+      .withBounds(x, y, width, height)
+      .id("@+id/menu");
   }
 
   @NotNull
-  private static NlComponent newMenu(int x, int y, int width, int height) {
-    NlComponent menu = HandlerTestFactory.newNlComponent("menu");
-    menu.setBounds(x, y, width, height);
+  private GroupDragHandler getMenuHandler(NlModel model) {
+    ScreenFixture screenFixture = surface().screen(model).withScale(1);
+    Scene scene = Scene.createScene(model, screenFixture.getScreen());
+    scene.buildDisplayList(new DisplayList(), 0);
 
-    return menu;
-  }
-
-  @NotNull
-  @SuppressWarnings("SameParameterValue")
-  private static NlComponent newActionBarItem(int x, int y, int width, int height) {
-    NlComponent item = HandlerTestFactory.newNlComponent("item");
-    item.viewInfo = MenuTestFactory.mockViewInfo(ViewType.ACTION_BAR_MENU);
-    item.setBounds(x, y, width, height);
-
-    return item;
-  }
-
-  @NotNull
-  @SuppressWarnings("SameParameterValue")
-  private static NlComponent newOverflowItem(int x, int y, int width, int height) {
-    NlComponent item = HandlerTestFactory.newNlComponent("item");
-    item.viewInfo = MenuTestFactory.mockViewInfo(ViewType.ACTION_BAR_OVERFLOW_MENU);
-    item.setBounds(x, y, width, height);
-
-    return item;
-  }
-
-  @NotNull
-  private static NlComponent newGroup(int x, int y, int width, int height) {
-    NlComponent group = HandlerTestFactory.newNlComponent("group");
-    group.setBounds(x, y, width, height);
-
-    return group;
-  }
-
-  @NotNull
-  private static GroupDragHandler newGroupDragHandler(@NotNull NlComponent group) {
-    List<NlComponent> items = Collections.singletonList(Mockito.mock(NlComponent.class));
-    return new GroupDragHandler(Mockito.mock(ViewEditor.class), new ViewGroupHandler(), group, items, DragType.CREATE);
+    List<SceneComponent> items = Collections.singletonList(mock(SceneComponent.class));
+    return new GroupDragHandler(editor(screenFixture.getScreen()), new ViewGroupHandler(), scene.getSceneComponent("menu"), items,
+                                DragType.CREATE);
   }
 }
