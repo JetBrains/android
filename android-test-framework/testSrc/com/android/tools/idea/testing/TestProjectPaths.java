@@ -31,6 +31,7 @@ public final class TestProjectPaths {
   public static final String PROJECT_WITH_APPAND_LIB = "projects/projectWithAppandLib";
   public static final String PROJECT_WITH_DATA_BINDING = "projects/projectWithDataBinding";
   public static final String PROJECT_WITH_DATA_BINDING_AND_SIMPLE_LIB = "projects/projectWithDataBindingAndSimpleLib";
+  public static final String PURE_JAVA_PROJECT = "projects/pureJavaProject";
   public static final String RESOLVE = "projects/resolve";
   public static final String RUN_CONFIG_ACTIVITY = "projects/runConfig/activity";
   public static final String RUN_CONFIG_ALIAS = "projects/runConfig/alias";

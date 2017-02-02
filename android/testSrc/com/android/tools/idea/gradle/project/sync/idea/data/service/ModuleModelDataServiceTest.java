@@ -30,8 +30,9 @@ import java.util.Collection;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.same;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link ModuleModelDataService}.
@@ -42,22 +43,13 @@ public class ModuleModelDataServiceTest extends IdeaTestCase {
     Project project = getProject();
     IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(project);
 
-    MyModuleModelDataService dataService = new MyModuleModelDataService();
+    MyModuleModelDataService dataService = mock(MyModuleModelDataService.class);
     dataService.importData(toImport, mock(ProjectData.class), project, modelsProvider);
 
-    // Verify that project was configured even if data nodes is empty.
-    assertSame(toImport, dataService.toImport);
-    assertSame(project, dataService.project);
-    assertSame(modelsProvider, dataService.modelsProvider);
-    assertThat(dataService.modelsByName).isEmpty();
+    verify(dataService, never()).importData(same(toImport), same(project), same(modelsProvider), any());
   }
 
   private static class MyModuleModelDataService extends ModuleModelDataService<NdkModuleModel> {
-    Collection<DataNode<NdkModuleModel>> toImport;
-    Project project;
-    IdeModifiableModelsProvider modelsProvider;
-    Map<String, NdkModuleModel> modelsByName;
-
     @Override
     @NotNull
     public Key<NdkModuleModel> getTargetDataKey() {
@@ -69,10 +61,6 @@ public class ModuleModelDataServiceTest extends IdeaTestCase {
                               @NotNull Project project,
                               @NotNull IdeModifiableModelsProvider modelsProvider,
                               @NotNull Map<String, NdkModuleModel> modelsByName) {
-      this.toImport = toImport;
-      this.project = project;
-      this.modelsProvider = modelsProvider;
-      this.modelsByName = modelsByName;
     }
   }
 }
