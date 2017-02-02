@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -27,12 +26,7 @@ import org.jetbrains.annotations.Nullable;
 public class NdkModuleSetup {
   @NotNull private final NdkModuleSetupStep[] mySetupSteps;
 
-  public NdkModuleSetup() {
-    this(NdkModuleSetupStep.getExtensions());
-  }
-
-  @VisibleForTesting
-  NdkModuleSetup(@NotNull NdkModuleSetupStep... extensions) {
+  public NdkModuleSetup(@NotNull NdkModuleSetupStep... extensions) {
     mySetupSteps = extensions;
   }
 
