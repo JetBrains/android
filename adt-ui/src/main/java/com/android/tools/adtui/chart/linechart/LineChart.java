@@ -279,12 +279,6 @@ public class LineChart extends AnimatedComponent {
     addDebugInfo("Draws in the last second %d", myLastDraws);
     addDebugInfo("Redraws in the last second %d", myLastRedraws);
 
-    if (myLinePaths.size() != myLinesConfig.size()) {
-      // Early return if the cached paths have not been sync'd with the configs.
-      // e.g. updateData/postAnimate has not been invoked before this draw call.
-      return;
-    }
-
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     AffineTransform scale = AffineTransform.getScaleInstance(dim.getWidth(), dim.getHeight());
 
