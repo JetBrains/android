@@ -111,6 +111,7 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
 
   // ------------------------------------------------------------------------------ //
 
+  @SuppressWarnings("all") // Sample code
   @Language("JAVA")
   private static final String SIMPLE_SOURCE =
           "package com.example;\n" +
@@ -139,6 +140,7 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
                   "    }\n" +
                   "}\n";
 
+  @SuppressWarnings("all") // Sample code
   @Language("JAVA")
   private static final String SIMPLE_EXPECTED =
           "package com.example;\n" +
@@ -193,6 +195,7 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
 
   // ------------------------------------------------------------------------------ //
 
+  @SuppressWarnings("all") // Sample code
   @Language("JAVA")
   private static final String ALLTYPES_SOURCE =
           "package com.example;\n" +
@@ -256,6 +259,7 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
                   "\n" +
                   "}\n";
 
+  @SuppressWarnings("all") // Sample code
   @Language("JAVA")
   private static final String ALLTYPES_EXPECTED =
           "package com.example;\n" +
@@ -483,6 +487,7 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
 
   // ------------------------------------------------------------------------------ //
 
+  @SuppressWarnings("all") // Sample code
   @Language("JAVA")
   private static final String REMOVAL_SOURCE =
           "package com.example;\n" +
@@ -531,6 +536,7 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
                   "    }\n" +
                   "}\n";
 
+  @SuppressWarnings("all") // Sample code
   @Language("JAVA")
   private static final String REMOVAL_EXPECTED =
           "package com.example;\n" +
@@ -553,6 +559,7 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
 
   // ------------------------------------------------------------------------------ //
 
+  @SuppressWarnings("all") // Sample code
   @Language("JAVA")
   private static final String REDO_SOURCE =
           "package com.example;\n" +
@@ -601,6 +608,7 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
                   "    }\n" +
                   "}\n";
 
+  @SuppressWarnings("all") // Sample code
   @Language("JAVA")
   private static final String REDO_EXPECTED =
           "package com.example;\n" +
@@ -655,6 +663,7 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
 
   // ------------------------------------------------------------------------------ //
 
+  @SuppressWarnings("all") // Sample code
   @Language("JAVA")
   private static final String INHERIT_SOURCE =
           "package com.example;\n" +
@@ -671,6 +680,7 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
                   "    }\n" +
                   "}\n";
 
+  @SuppressWarnings("all") // Sample code
   @Language("JAVA")
   private static final String INHERIT_EXPECTED =
           "package com.example;\n" +
@@ -718,5 +728,167 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
   public void testInheritance() throws Exception {
     myFixture.addFileToProject("src/com/expected/Simple.java", SIMPLE_EXPECTED);
     doTestApply(IMPLEMENT, INHERIT_SOURCE, INHERIT_EXPECTED, "Inherit");
+  }
+
+  @SuppressWarnings("all") // Sample code
+  @Language("JAVA")
+  private static final String WRAPPER_OBJECTS_SOURCE =
+    "package test.pkg;\n" +
+    "\n" +
+    "import android.os.Parcelable;\n" +
+    "\n" +
+    "public class ParcelableTest implements Parcelable {\n" +
+    "    private boolean myPrimitiveBoolean;\n" +
+    "    private Boolean myBoolean;\n" +
+    "    private int myPrimitiveInt;\n" +
+    "    private Integer myInt;\n" +
+    "    private long myPrimitiveLong;\n" +
+    "    private Long myLong;\n" +
+    "    private float myPrimitiveFloat;\n" +
+    "    private Float myFloat;\n" +
+    "    private double myPrimitiveDouble;\n" +
+    "    private Double myDouble;\n" +
+    "    private byte myPrimitiveByte;\n" +
+    "    private Byte myByte;\n" +
+    "    private short myPrimitiveShort;\n" +
+    "    private Short myShort;\n" +
+    "    private char myPrimitiveChar;\n" +
+    "    private Character myCharacter;\n" +
+    "}\n";
+
+  @SuppressWarnings("all") // Sample code
+  @Language("JAVA")
+  private static final String WRAPPER_OBJECTS_GENERATED =
+    "package test.pkg;\n" +
+    "\n" +
+    "import android.os.Parcel;\n" +
+    "import android.os.Parcelable;\n" +
+    "\n" +
+    "public class ParcelableTest implements Parcelable {\n" +
+    "    private boolean myPrimitiveBoolean;\n" +
+    "    private Boolean myBoolean;\n" +
+    "    private int myPrimitiveInt;\n" +
+    "    private Integer myInt;\n" +
+    "    private long myPrimitiveLong;\n" +
+    "    private Long myLong;\n" +
+    "    private float myPrimitiveFloat;\n" +
+    "    private Float myFloat;\n" +
+    "    private double myPrimitiveDouble;\n" +
+    "    private Double myDouble;\n" +
+    "    private byte myPrimitiveByte;\n" +
+    "    private Byte myByte;\n" +
+    "    private short myPrimitiveShort;\n" +
+    "    private Short myShort;\n" +
+    "    private char myPrimitiveChar;\n" +
+    "    private Character myCharacter;\n" +
+    "\n" +
+    "    protected ParcelableTest(Parcel in) {\n" +
+    "        myPrimitiveBoolean = in.readByte() != 0;\n" +
+    "        byte tmpMyBoolean = in.readByte();\n" +
+    "        myBoolean = tmpMyBoolean == 0 ? null : tmpMyBoolean == 1;\n" +
+    "        myPrimitiveInt = in.readInt();\n" +
+    "        if (in.readByte() == 0) {\n" +
+    "            myInt = null;\n" +
+    "        } else {\n" +
+    "            myInt = in.readInt();\n" +
+    "        }\n" +
+    "        myPrimitiveLong = in.readLong();\n" +
+    "        if (in.readByte() == 0) {\n" +
+    "            myLong = null;\n" +
+    "        } else {\n" +
+    "            myLong = in.readLong();\n" +
+    "        }\n" +
+    "        myPrimitiveFloat = in.readFloat();\n" +
+    "        if (in.readByte() == 0) {\n" +
+    "            myFloat = null;\n" +
+    "        } else {\n" +
+    "            myFloat = in.readFloat();\n" +
+    "        }\n" +
+    "        myPrimitiveDouble = in.readDouble();\n" +
+    "        if (in.readByte() == 0) {\n" +
+    "            myDouble = null;\n" +
+    "        } else {\n" +
+    "            myDouble = in.readDouble();\n" +
+    "        }\n" +
+    "        myPrimitiveByte = in.readByte();\n" +
+    "        if (in.readByte() == 0) {\n" +
+    "            myByte = null;\n" +
+    "        } else {\n" +
+    "            myByte = in.readByte();\n" +
+    "        }\n" +
+    "        myPrimitiveShort = (short) in.readInt();\n" +
+    "        int tmpMyShort = in.readInt();\n" +
+    "        myShort = tmpMyShort != Integer.MAX_VALUE ? (short) tmpMyShort : null;\n" +
+    "        myPrimitiveChar = (char) in.readInt();\n" +
+    "        int tmpMyCharacter = in.readInt();\n" +
+    "        myCharacter = tmpMyCharacter != Integer.MAX_VALUE ? (char) tmpMyCharacter : null;\n" +
+    "    }\n" +
+    "\n" +
+    "    @Override\n" +
+    "    public void writeToParcel(Parcel dest, int flags) {\n" +
+    "        dest.writeByte((byte) (myPrimitiveBoolean ? 1 : 0));\n" +
+    "        dest.writeByte((byte) (myBoolean == null ? 0 : myBoolean ? 1 : 2));\n" +
+    "        dest.writeInt(myPrimitiveInt);\n" +
+    "        if (myInt == null) {\n" +
+    "            dest.writeByte((byte) 0);\n" +
+    "        } else {\n" +
+    "            dest.writeByte((byte) 1);\n" +
+    "            dest.writeInt(myInt);\n" +
+    "        }\n" +
+    "        dest.writeLong(myPrimitiveLong);\n" +
+    "        if (myLong == null) {\n" +
+    "            dest.writeByte((byte) 0);\n" +
+    "        } else {\n" +
+    "            dest.writeByte((byte) 1);\n" +
+    "            dest.writeLong(myLong);\n" +
+    "        }\n" +
+    "        dest.writeFloat(myPrimitiveFloat);\n" +
+    "        if (myFloat == null) {\n" +
+    "            dest.writeByte((byte) 0);\n" +
+    "        } else {\n" +
+    "            dest.writeByte((byte) 1);\n" +
+    "            dest.writeFloat(myFloat);\n" +
+    "        }\n" +
+    "        dest.writeDouble(myPrimitiveDouble);\n" +
+    "        if (myDouble == null) {\n" +
+    "            dest.writeByte((byte) 0);\n" +
+    "        } else {\n" +
+    "            dest.writeByte((byte) 1);\n" +
+    "            dest.writeDouble(myDouble);\n" +
+    "        }\n" +
+    "        dest.writeByte(myPrimitiveByte);\n" +
+    "        if (myByte == null) {\n" +
+    "            dest.writeByte((byte) 0);\n" +
+    "        } else {\n" +
+    "            dest.writeByte((byte) 1);\n" +
+    "            dest.writeByte(myByte);\n" +
+    "        }\n" +
+    "        dest.writeInt((int) myPrimitiveShort);\n" +
+    "        dest.writeInt(myShort != null ? (int) myShort : Integer.MAX_VALUE);\n" +
+    "        dest.writeInt((int) myPrimitiveChar);\n" +
+    "        dest.writeInt(myCharacter != null ? (int) myCharacter : Integer.MAX_VALUE);\n" +
+    "    }\n" +
+    "\n" +
+    "    @Override\n" +
+    "    public int describeContents() {\n" +
+    "        return 0;\n" +
+    "    }\n" +
+    "\n" +
+    "    public static final Creator<ParcelableTest> CREATOR = new Creator<ParcelableTest>() {\n" +
+    "        @Override\n" +
+    "        public ParcelableTest createFromParcel(Parcel in) {\n" +
+    "            return new ParcelableTest(in);\n" +
+    "        }\n" +
+    "\n" +
+    "        @Override\n" +
+    "        public ParcelableTest[] newArray(int size) {\n" +
+    "            return new ParcelableTest[size];\n" +
+    "        }\n" +
+    "    };\n" +
+    "}\n";
+
+  public void testPrimitiveWrappers() throws Exception {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=233034
+    doTestApply(IMPLEMENT, WRAPPER_OBJECTS_SOURCE, WRAPPER_OBJECTS_GENERATED, "ParcelableTest");
   }
 }
