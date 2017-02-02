@@ -83,7 +83,7 @@ public class IntelliJStackTraceView implements StackTraceView {
 
     myListView.addListSelectionListener(e -> {
       int index = myListView.getLeadSelectionIndex();
-      if (index < 0 || myListView.getItemsCount() == 0) {
+      if (index < 0 || index >= myListView.getItemsCount() || myListView.getItemsCount() == 0) {
         return;
       }
 
