@@ -38,6 +38,8 @@ public class CpuProfilerStageTest extends AspectObserver {
 
   private FakeIdeProfilerServices myServices;
 
+  private boolean myCaptureDetailsCalled;
+
   @Before
   public void setUp() throws Exception {
     FakeTimer timer = new FakeTimer();
@@ -136,7 +138,73 @@ public class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void testStopCapturingSuccessfully() throws InterruptedException {
     assertEquals(CpuProfilerStage.CaptureState.IDLE, myStage.getCaptureState());
+    captureSuccessfully();
+  }
 
+  @Test
+  public void testSelectedThread() {
+    myStage.setSelectedThread(0);
+    assertEquals(0, myStage.getSelectedThread());
+
+    myStage.setSelectedThread(42);
+    assertEquals(42, myStage.getSelectedThread());
+  }
+
+  @Test
+  public void testCaptureDetails() throws InterruptedException {
+    assertEquals(CpuProfilerStage.CaptureState.IDLE, myStage.getCaptureState());
+
+    captureSuccessfully();
+
+    myStage.setSelectedThread(myStage.getCapture().getMainThreadId());
+
+    AspectObserver observer = new AspectObserver();
+    myStage.getAspect().addDependency(observer).onChange(CpuProfilerAspect.CAPTURE_DETAILS, () -> myCaptureDetailsCalled = true);
+
+    // Top Down
+    myCaptureDetailsCalled = false;
+    myStage.changeCaptureDetails(CpuProfilerStage.TopDown::new);
+    assertTrue(myCaptureDetailsCalled = true);
+
+    CpuProfilerStage.CaptureDetails details = myStage.getCaptureDetails();
+    assertTrue(details instanceof CpuProfilerStage.TopDown);
+    assertNotNull(((CpuProfilerStage.TopDown)details).getModel());
+
+    // Bottom Up
+    myCaptureDetailsCalled = false;
+    myStage.changeCaptureDetails(CpuProfilerStage.BottomUp::new);
+    assertTrue(myCaptureDetailsCalled);
+
+    details = myStage.getCaptureDetails();
+    assertTrue(details instanceof CpuProfilerStage.BottomUp);
+    assertNotNull(((CpuProfilerStage.BottomUp)details).getModel());
+
+    // Chart
+    myCaptureDetailsCalled = false;
+    myStage.changeCaptureDetails(CpuProfilerStage.TreeChart::new);
+    assertTrue(myCaptureDetailsCalled);
+
+    details = myStage.getCaptureDetails();
+    assertTrue(details instanceof CpuProfilerStage.TreeChart);
+    assertNotNull(((CpuProfilerStage.TreeChart)details).getNode());
+
+    // null
+    myCaptureDetailsCalled = false;
+    myStage.changeCaptureDetails(null);
+    assertTrue(myCaptureDetailsCalled);
+    assertNull(myStage.getCaptureDetails());
+
+    // HNode is null, as a result the model is null as well
+    myStage.setSelectedThread(-1);
+    myCaptureDetailsCalled = false;
+    myStage.changeCaptureDetails(CpuProfilerStage.BottomUp::new);
+    assertTrue(myCaptureDetailsCalled);
+    details = myStage.getCaptureDetails();
+    assertTrue(details instanceof CpuProfilerStage.BottomUp);
+    assertNull(((CpuProfilerStage.BottomUp)details).getModel());
+  }
+
+  private void captureSuccessfully() throws InterruptedException {
     // Start a successful capture
     startCapturingSuccess();
 
@@ -158,6 +226,14 @@ public class CpuProfilerStageTest extends AspectObserver {
     stopCapturing();
   }
 
+  private void startCapturingSuccess() throws InterruptedException {
+    assertEquals(CpuProfilerStage.CaptureState.IDLE, myStage.getCaptureState());
+    myCpuService.setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS);
+    myServices.setPrePoolExecutor(() -> assertEquals(CpuProfilerStage.CaptureState.STARTING, myStage.getCaptureState()));
+    startCapturing();
+    assertEquals(CpuProfilerStage.CaptureState.CAPTURING, myStage.getCaptureState());
+  }
+
   private void startCapturing() {
     myServices.setPrePoolExecutor(() -> assertEquals(CpuProfilerStage.CaptureState.STARTING, myStage.getCaptureState()));
     myStage.startCapturing();
@@ -168,20 +244,4 @@ public class CpuProfilerStageTest extends AspectObserver {
     myStage.stopCapturing();
   }
 
-  @Test
-  public void testSelectedThread() {
-    myStage.setSelectedThread(0);
-    assertEquals(0, myStage.getSelectedThread());
-
-    myStage.setSelectedThread(42);
-    assertEquals(42, myStage.getSelectedThread());
-  }
-
-  private void startCapturingSuccess() throws InterruptedException {
-    assertEquals(CpuProfilerStage.CaptureState.IDLE, myStage.getCaptureState());
-    myCpuService.setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS);
-    myServices.setPrePoolExecutor(() -> assertEquals(CpuProfilerStage.CaptureState.STARTING, myStage.getCaptureState()));
-    startCapturing();
-    assertEquals(CpuProfilerStage.CaptureState.CAPTURING, myStage.getCaptureState());
-  }
 }
