@@ -269,7 +269,7 @@ public class RenderService extends AndroidFacetScopedService {
       return task;
     } catch (IncorrectOperationException | AssertionError e) {
       // We can get this exception if the module/project is closed while we are updating the model. Ignore it.
-      assert getFacet().isDisposed();
+      assert isDisposed() || getFacet().isDisposed();
     }
 
     return null;
