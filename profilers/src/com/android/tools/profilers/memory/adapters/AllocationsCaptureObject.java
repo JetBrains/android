@@ -15,8 +15,10 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
+import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.memory.adapters.ClassObject.ClassAttribute;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf3jarjar.ByteString;
@@ -30,6 +32,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
   @NotNull private final MemoryServiceBlockingStub myClient;
   private final int myProcessId;
   private final String myDeviceSerial;
+  @NotNull private final String myLabel;
   private final int myInfoId;
   private long myStartTimeNs;
   private long myEndTimeNs;
@@ -41,7 +44,8 @@ public final class AllocationsCaptureObject implements CaptureObject {
   public AllocationsCaptureObject(@NotNull MemoryServiceBlockingStub client,
                                   int processId,
                                   String serial,
-                                  @NotNull MemoryProfiler.AllocationsInfo info) {
+                                  @NotNull MemoryProfiler.AllocationsInfo info,
+                                  @NotNull RelativeTimeConverter converter) {
     myClient = client;
     myProcessId = processId;
     myDeviceSerial = serial;
@@ -49,6 +53,15 @@ public final class AllocationsCaptureObject implements CaptureObject {
     myStartTimeNs = info.getStartTime();
     myEndTimeNs = info.getEndTime();
     myFakeHeapObject = new AllocationsHeapObject();
+    myLabel = "Allocations" +
+              (myStartTimeNs != Long.MAX_VALUE ?
+               " from " + TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
+                 TimeUnit.MILLISECONDS.toMicros(1), TimeUnit.NANOSECONDS.toMicros(converter.convertToRelativeTime(myStartTimeNs))) :
+               "") +
+              (myEndTimeNs != Long.MIN_VALUE ?
+               " to " + TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
+                 TimeUnit.MILLISECONDS.toMicros(1), TimeUnit.NANOSECONDS.toMicros(converter.convertToRelativeTime(myEndTimeNs))) :
+               "");
   }
 
   @Override
@@ -64,9 +77,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
   @NotNull
   @Override
   public String getLabel() {
-    return "Allocations" +
-           (myStartTimeNs != Long.MAX_VALUE ? " from " + TimeUnit.NANOSECONDS.toMillis(myStartTimeNs) + "ms" : "") +
-           (myEndTimeNs != Long.MIN_VALUE ? " to " + TimeUnit.NANOSECONDS.toMillis(myEndTimeNs) + "ms" : "");
+    return myLabel;
   }
 
   @NotNull
