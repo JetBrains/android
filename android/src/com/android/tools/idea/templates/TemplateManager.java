@@ -429,7 +429,7 @@ public class TemplateManager {
       NonEmptyActionGroup categoryGroup = new NonEmptyActionGroup() {
         @Override
         public void update(AnActionEvent e) {
-          updateAction(e, category, getChildrenCount() > 0);
+          updateAction(e, category, getChildrenCount() > 0, false);
         }
       };
       categoryGroup.setPopup(true);
@@ -439,7 +439,7 @@ public class TemplateManager {
     }
   }
 
-  private static void updateAction(AnActionEvent event, String text, boolean visible) {
+  private static void updateAction(AnActionEvent event, String text, boolean visible, boolean disableIfNotReady) {
     IdeView view = LangDataKeys.IDE_VIEW.getData(event.getDataContext());
     final Module module = LangDataKeys.MODULE.getData(event.getDataContext());
     final AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
@@ -447,6 +447,7 @@ public class TemplateManager {
     boolean isProjectReady = facet != null && facet.getAndroidModel() != null;
     presentation.setText(text + (isProjectReady ? "" : " (Project not ready)"));
     presentation.setVisible(visible && view != null && facet != null && facet.requiresAndroidModel());
+    presentation.setEnabled(disableIfNotReady ? isProjectReady : true);
   }
 
   private void fillCategory(NonEmptyActionGroup categoryGroup, final String category, ActionManager am) {
@@ -455,7 +456,7 @@ public class TemplateManager {
       AnAction galleryAction = new AnAction() {
         @Override
         public void update(AnActionEvent e) {
-          updateAction(e, "Gallery...", true);
+          updateAction(e, "Gallery...", true, true);
         }
 
         @Override
