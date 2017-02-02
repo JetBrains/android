@@ -71,7 +71,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     stage.getAspect().addDependency(this)
       .onChange(CpuProfilerAspect.CAPTURE, this::updateCaptureState)
-      .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection);
+      .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection)
+      .onChange(CpuProfilerAspect.CAPTURE_DETAILS, this::updateCaptureView);
 
     StudioProfilers profilers = stage.getStudioProfilers();
     ProfilerTimeline timeline = profilers.getTimeline();
@@ -302,7 +303,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       myCaptureView = null;
     }
     else {
-      myCaptureView = new CpuCaptureView(capture, this);
+      myCaptureView = new CpuCaptureView(this);
       mySplitter.setSecondComponent(myCaptureView.getComponent());
     }
   }
@@ -325,7 +326,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       }
     }
     if (myCaptureView != null) {
-      myCaptureView.updateThread();
+      myCaptureView.updateCaptureDetails();
+    }
+  }
+
+  private void updateCaptureView() {
+    if (myCaptureView != null) {
+      myCaptureView.updateView();
     }
   }
 
