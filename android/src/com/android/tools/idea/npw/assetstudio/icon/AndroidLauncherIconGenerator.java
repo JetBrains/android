@@ -41,6 +41,10 @@ public final class AndroidLauncherIconGenerator extends AndroidIconGenerator {
   private final ObjectProperty<GraphicGenerator.Shape> myShape = new ObjectValueProperty<>(GraphicGenerator.Shape.SQUARE);
   private final BoolProperty myDogEared = new BoolValueProperty();
 
+  public AndroidLauncherIconGenerator(int minSdkVersion) {
+    super(minSdkVersion);
+  }
+
   /**
    * Whether to use the foreground color. When using images as the source asset for our icons,
    * you shouldn't apply the foreground color, which would paint over it and obscure the image.

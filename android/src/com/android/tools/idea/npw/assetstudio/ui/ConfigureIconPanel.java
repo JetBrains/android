@@ -169,11 +169,11 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
    * presented to the user in a pulldown menu (unless there's only one supported type). If no
    * supported types are passed in, then all types will be supported by default.
    */
-  public ConfigureIconPanel(@NotNull Disposable disposableParent, @NotNull AndroidIconType iconType) {
+  public ConfigureIconPanel(@NotNull Disposable disposableParent, @NotNull AndroidIconType iconType, int minSdkVersion) {
     super(new BorderLayout());
 
     myIconType = iconType;
-    myIconGenerator = AndroidIconType.createIconGenerator(iconType);
+    myIconGenerator = AndroidIconType.createIconGenerator(iconType, minSdkVersion);
 
     DefaultComboBoxModel themesModel = new DefaultComboBoxModel(ActionBarIconGenerator.Theme.values());
     myThemeComboBox.setModel(themesModel);
