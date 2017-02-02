@@ -72,7 +72,7 @@ import static com.android.tools.idea.uibuilder.palette.NlPaletteModel.PALETTE_VE
  */
 public class IconPreviewFactory implements Disposable {
   private static final Logger LOG = Logger.getInstance(IconPreviewFactory.class);
-  @AndroidDpCoordinate
+  @AndroidCoordinate
   private static final int SHADOW_SIZE = 6;
   private static final int PREVIEW_LIMIT = 4000;
   private static final int DEFAULT_X_DIMENSION = 1080;
@@ -177,10 +177,8 @@ public class IconPreviewFactory implements Disposable {
     view.getBottom() <= view.getTop() || view.getRight() <= view.getLeft()) {
       return null;
     }
-    @AndroidCoordinate
-    int shadowWitdh = SHADOW_SIZE * sceneView.getConfiguration().getDensity().getDpiValue() / Density.DEFAULT_DENSITY;
     @SwingCoordinate
-    int shadowIncrement = 1 + Coordinates.getSwingDimension(sceneView, shadowWitdh);
+    int shadowIncrement = 1 + Coordinates.getSwingDimension(sceneView, SHADOW_SIZE);
 
     BufferedImage imageCopy = image.getCopy();
     if (imageCopy == null) {

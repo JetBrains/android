@@ -25,6 +25,8 @@ import com.android.tools.idea.uibuilder.fixtures.MouseEventBuilder;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.InteractionManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -139,18 +141,13 @@ public class LayoutTestUtilities {
   }
 
   public static ScreenView createScreen(NlDesignSurface surface, NlModel model, SelectionModel selectionModel) {
-    return createScreen(surface, model, selectionModel, 1, 0, 0, Density.MEDIUM);
+    return createScreen(surface, model, selectionModel, 1, 0, 0);
   }
 
   public static ScreenView createScreen(NlDesignSurface surface, NlModel model, SelectionModel selectionModel, double scale,
-                                        @SwingCoordinate int x, @SwingCoordinate int y, Density density) {
-    Configuration configuration = mock(Configuration.class);
-    when(configuration.getDensity()).thenReturn(density);
-    when(configuration.getFile()).thenReturn(model.getFile().getVirtualFile());
-    when(configuration.getFullConfig()).thenReturn(new FolderConfiguration());
-
+                                        @SwingCoordinate int x, @SwingCoordinate int y) {
     ScreenView screenView = mock(ScreenView.class);
-    when(screenView.getConfiguration()).thenReturn(configuration);
+    when(screenView.getConfiguration()).thenReturn(model.getConfiguration());
     when(screenView.getModel()).thenReturn(model);
     when(screenView.getScale()).thenReturn(scale);
     when(screenView.getSelectionModel()).thenReturn(selectionModel);
@@ -160,6 +157,9 @@ public class LayoutTestUtilities {
     when(screenView.getY()).thenReturn(y);
 
     when(surface.getSceneView(anyInt(), anyInt())).thenReturn(screenView);
+    Scene scene = Scene.createScene(model, screenView);
+    scene.buildDisplayList(new DisplayList(), 0);
+    when(screenView.getScene()).thenReturn(scene);
     return screenView;
   }
 
