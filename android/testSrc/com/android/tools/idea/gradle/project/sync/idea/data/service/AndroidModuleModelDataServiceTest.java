@@ -28,8 +28,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.mockito.Mock;
 
-import java.util.Collections;
-
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -74,18 +72,5 @@ public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
     verify(myModuleSetup).setUpModule(appModule, modelsProvider, androidModel, null, null, false);
     verify(myValidator).validate(appModule, androidModel);
     verify(myValidator).fixAndReportFoundIssues();
-  }
-
-  public void testImportDataWithEmptyDataNodes() throws Exception {
-    Project project = getProject();
-    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(project);
-
-    Module module = createModule("app");
-
-    myService.importData(Collections.emptyList(), mock(ProjectData.class), project, modelsProvider);
-
-    verify(myModuleSetup).setUpModule(module, modelsProvider, null, null, null, false);
-    verify(myValidator, never()).validate(same(module), any());
-    verify(myValidator, never()).fixAndReportFoundIssues();
   }
 }
