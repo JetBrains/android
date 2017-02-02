@@ -82,7 +82,7 @@ public class ResizeFixture {
     }
     NlComponent component = componentFixture.getComponent();
     SelectionHandle handle = new SelectionHandle(component, position);
-    myInteraction = new ResizeInteraction(myScreen, component, handle);
+    myInteraction = new ResizeInteraction(myScreen, componentFixture.getSceneComponent(), handle);
 
     int startX = Coordinates.getSwingX(myScreen, handle.getCenterX());
     int startY = Coordinates.getSwingY(myScreen, handle.getCenterY());
