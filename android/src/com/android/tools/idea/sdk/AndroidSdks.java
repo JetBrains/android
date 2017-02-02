@@ -277,8 +277,6 @@ public class AndroidSdks {
     AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(androidSdk, jdk);
     data.setBuildTarget(target);
 
-    findAndSetPlatformSources(target, androidSdkModificator);
-
     String name = createUniqueSdkName(sdkName, allSdks);
     androidSdkModificator.setName(name);
     if (jdk != null) {
@@ -295,6 +293,10 @@ public class AndroidSdks {
       // TODO move this method to Jdks.
       attachJdkAnnotations(androidSdkModificator);
     }
+
+    // Add sources at the end, otherwise if 'addRoots' is true, removing all existing roots will delete sources as well.
+    // https://code.google.com/p/android/issues/detail?id=233221
+    findAndSetPlatformSources(target, androidSdkModificator);
   }
 
   public void findAndSetPlatformSources(@NotNull IAndroidTarget target, @NotNull SdkModificator sdkModificator) {
