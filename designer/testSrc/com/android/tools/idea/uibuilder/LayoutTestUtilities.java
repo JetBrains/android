@@ -139,18 +139,13 @@ public class LayoutTestUtilities {
   }
 
   public static ScreenView createScreen(NlDesignSurface surface, NlModel model, SelectionModel selectionModel) {
-    return createScreen(surface, model, selectionModel, 1, 0, 0, Density.XHIGH);
+    return createScreen(surface, model, selectionModel, 1, 0, 0);
   }
 
   public static ScreenView createScreen(NlDesignSurface surface, NlModel model, SelectionModel selectionModel, double scale,
-                                        @SwingCoordinate int x, @SwingCoordinate int y, Density density) {
-    Configuration configuration = mock(Configuration.class);
-    when(configuration.getDensity()).thenReturn(density);
-    when(configuration.getFile()).thenReturn(model.getFile().getVirtualFile());
-    when(configuration.getFullConfig()).thenReturn(new FolderConfiguration());
-
+                                        @SwingCoordinate int x, @SwingCoordinate int y) {
     ScreenView screenView = mock(ScreenView.class);
-    when(screenView.getConfiguration()).thenReturn(configuration);
+    when(screenView.getConfiguration()).thenReturn(model.getConfiguration());
     when(screenView.getModel()).thenReturn(model);
     when(screenView.getScale()).thenReturn(scale);
     when(screenView.getSelectionModel()).thenReturn(selectionModel);
