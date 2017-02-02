@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuCaptureTest;
@@ -79,9 +80,13 @@ final public class StudioProfilersTest {
 
     assertEquals("FakeDevice", profilers.getDevice().getSerial());
     assertNull(profilers.getProcess());
+    Common.Session session = Common.Session.newBuilder()
+      .setBootId(device.getBootId())
+      .setDeviceSerial(device.getSerial())
+      .build();
 
     Profiler.Process process = Profiler.Process.newBuilder().setPid(20).setName("FakeProcess").build();
-    myProfilerService.addProcess(device.getSerial(), process);
+    myProfilerService.addProcess(session, process);
 
     timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
 
@@ -91,7 +96,7 @@ final public class StudioProfilersTest {
     profilers.setPreferredProcessName("Preferred");
 
     Profiler.Process preferred = Profiler.Process.newBuilder().setPid(20).setName("Preferred").build();
-    myProfilerService.addProcess(device.getSerial(), preferred);
+    myProfilerService.addProcess(session, preferred);
 
     timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
 
@@ -109,9 +114,13 @@ final public class StudioProfilersTest {
 
     Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
     Profiler.Process process = Profiler.Process.newBuilder().setPid(20).setName("FakeProcess").build();
+    Common.Session session = Common.Session.newBuilder()
+      .setBootId(device.getBootId())
+      .setDeviceSerial(device.getSerial())
+      .build();
 
     myProfilerService.addDevice(device);
-    myProfilerService.addProcess(device.getSerial(), process);
+    myProfilerService.addProcess(session, process);
 
     // This should fail and not find any devices
     myProfilerService.setThrowErrorOnGetDevices(true);
@@ -134,7 +143,11 @@ final public class StudioProfilersTest {
     Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
     Profiler.Process process = Profiler.Process.newBuilder().setPid(20).setName("FakeProcess").build();
     myProfilerService.addDevice(device);
-    myProfilerService.addProcess(device.getSerial(), process);
+    Common.Session session = Common.Session.newBuilder()
+      .setBootId(device.getBootId())
+      .setDeviceSerial(device.getSerial())
+      .build();
+    myProfilerService.addProcess(session, process);
 
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);

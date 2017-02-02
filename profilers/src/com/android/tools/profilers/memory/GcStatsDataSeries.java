@@ -18,6 +18,7 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.intellij.util.containers.ContainerUtil;
@@ -34,12 +35,12 @@ public final class GcStatsDataSeries implements DataSeries<GcDurationData> {
 
   private final int myProcessId;
 
-  private final String myDeviceSerial;
+  private final Common.Session mySession;
 
-  public GcStatsDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, int id, String serial) {
+  public GcStatsDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, int id, Common.Session session) {
     myClient = client;
     myProcessId = id;
-    myDeviceSerial = serial;
+    mySession = session;
   }
 
   @Override
@@ -48,7 +49,7 @@ public final class GcStatsDataSeries implements DataSeries<GcDurationData> {
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()
       .setProcessId(myProcessId)
-      .setDeviceSerial(myDeviceSerial)
+      .setSession(mySession)
       .setStartTime(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTime(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
     MemoryProfiler.MemoryData response = myClient.getData(dataRequestBuilder.build());

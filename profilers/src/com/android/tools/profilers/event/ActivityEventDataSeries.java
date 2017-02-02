@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.EventAction;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import com.android.tools.profilers.ProfilerClient;
@@ -27,24 +28,20 @@ import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.profiler.proto.EventProfiler.ActivityStateData.ActivityState.*;
 
 public class ActivityEventDataSeries implements DataSeries<EventAction<EventAction.ActivityAction, String>> {
 
   @NotNull
   private ProfilerClient myClient;
   private final int myProcessId;
-  private final String myDeviceSerial;
+  private final Common.Session mySession;
 
-  public ActivityEventDataSeries(@NotNull ProfilerClient client, int id, String serial) {
+  public ActivityEventDataSeries(@NotNull ProfilerClient client, int id, Common.Session session) {
     myClient = client;
     myProcessId = id;
-    myDeviceSerial = serial;
+    mySession = session;
   }
 
   @Override
@@ -53,7 +50,7 @@ public class ActivityEventDataSeries implements DataSeries<EventAction<EventActi
     EventServiceGrpc.EventServiceBlockingStub eventService = myClient.getEventClient();
     EventProfiler.EventDataRequest.Builder dataRequestBuilder = EventProfiler.EventDataRequest.newBuilder()
       .setProcessId(myProcessId)
-      .setDeviceSerial(myDeviceSerial)
+      .setSession(mySession)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()));
     EventProfiler.ActivityDataResponse response = eventService.getActivityData(dataRequestBuilder.build());

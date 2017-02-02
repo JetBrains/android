@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ImmutableList;
@@ -37,12 +38,12 @@ public class NetworkRadioDataSeries implements DataSeries<NetworkRadioDataSeries
 
   @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myClient;
   private final int myProcessId;
-  private final String myDeviceSerial;
+  private final Common.Session mySession;
 
-  public NetworkRadioDataSeries(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub client, int processId, String serial) {
+  public NetworkRadioDataSeries(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub client, int processId, Common.Session session) {
     myClient = client;
     myProcessId = processId;
-    myDeviceSerial = serial;
+    mySession = session;
   }
 
   @Override
@@ -52,7 +53,7 @@ public class NetworkRadioDataSeries implements DataSeries<NetworkRadioDataSeries
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     NetworkDataRequest.Builder dataRequestBuilder = NetworkDataRequest.newBuilder()
       .setProcessId(myProcessId)
-      .setDeviceSerial(myDeviceSerial)
+      .setSession(mySession)
       .setType(NetworkDataRequest.Type.CONNECTIVITY)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);

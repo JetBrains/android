@@ -18,6 +18,7 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.intellij.util.containers.ContainerUtil;
@@ -66,13 +67,13 @@ public class NetworkTrafficDataSeries implements DataSeries<Long> {
   @NotNull
   private NetworkServiceGrpc.NetworkServiceBlockingStub myClient;
   private final int myProcessId;
-  private final String myDeviceSerial;
+  private final Common.Session mySession;
   private final Type myType;
 
-  public NetworkTrafficDataSeries(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub client, int id, String serial, Type type) {
+  public NetworkTrafficDataSeries(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub client, int id, Common.Session session, Type type) {
     myClient = client;
     myProcessId = id;
-    myDeviceSerial = serial;
+    mySession = session;
     myType = type;
   }
 
@@ -84,7 +85,7 @@ public class NetworkTrafficDataSeries implements DataSeries<Long> {
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     NetworkProfiler.NetworkDataRequest.Builder dataRequestBuilder = NetworkProfiler.NetworkDataRequest.newBuilder()
       .setProcessId(myProcessId)
-      .setDeviceSerial(myDeviceSerial)
+      .setSession(mySession)
       .setType(NetworkProfiler.NetworkDataRequest.Type.SPEED)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);

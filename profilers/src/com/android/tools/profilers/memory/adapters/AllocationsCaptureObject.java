@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profilers.RelativeTimeConverter;
@@ -31,8 +32,8 @@ import java.util.concurrent.TimeUnit;
 public final class AllocationsCaptureObject implements CaptureObject {
   @NotNull private final MemoryServiceBlockingStub myClient;
   private final int myProcessId;
-  private final String myDeviceSerial;
   @NotNull private final String myLabel;
+  private final Common.Session mySession;
   private final int myInfoId;
   private long myStartTimeNs;
   private long myEndTimeNs;
@@ -43,12 +44,12 @@ public final class AllocationsCaptureObject implements CaptureObject {
 
   public AllocationsCaptureObject(@NotNull MemoryServiceBlockingStub client,
                                   int processId,
-                                  String serial,
+                                  Common.Session session,
                                   @NotNull MemoryProfiler.AllocationsInfo info,
                                   @NotNull RelativeTimeConverter converter) {
     myClient = client;
     myProcessId = processId;
-    myDeviceSerial = serial;
+    mySession = session;
     myInfoId = info.getInfoId();
     myStartTimeNs = info.getStartTime();
     myEndTimeNs = info.getEndTime();
@@ -109,7 +110,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
       MemoryProfiler.GetAllocationsInfoStatusResponse response = myClient.getAllocationsInfoStatus(
         MemoryProfiler.GetAllocationsInfoStatusRequest.newBuilder()
           .setProcessId(myProcessId)
-          .setDeviceSerial(myDeviceSerial)
+          .setSession(mySession)
           .setInfoId(myInfoId).build());
 
       if (response.getStatus() == MemoryProfiler.AllocationsInfo.Status.COMPLETED) {
@@ -135,7 +136,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
     MemoryProfiler.AllocationContextsResponse contextsResponse = myClient.listAllocationContexts(
       MemoryProfiler.AllocationContextsRequest.newBuilder()
         .setProcessId(myProcessId)
-        .setDeviceSerial(myDeviceSerial)
+        .setSession(mySession)
         .setStartTime(myStartTimeNs)
         .setEndTime(myEndTimeNs).build());
 
@@ -150,7 +151,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
     MemoryProfiler.MemoryData response = myClient
       .getData(MemoryProfiler.MemoryRequest.newBuilder()
                  .setProcessId(myProcessId)
-                 .setDeviceSerial(myDeviceSerial)
+                 .setSession(mySession)
                  .setStartTime(myStartTimeNs)
                  .setEndTime(myEndTimeNs).build());
     LinkedHashSet<Integer> allocatedClasses = new LinkedHashSet<>();

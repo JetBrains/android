@@ -26,7 +26,6 @@ import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -41,12 +40,12 @@ public class NetworkOpenConnectionsDataSeries implements DataSeries<Long> {
   @NotNull
   private NetworkServiceGrpc.NetworkServiceBlockingStub myClient;
   private final int myProcessId;
-  private final String myDeviceSerial;
+  private final Common.Session mySession;
 
-  public NetworkOpenConnectionsDataSeries(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub client, int id, String serial) {
+  public NetworkOpenConnectionsDataSeries(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub client, int id, Common.Session session) {
     myClient = client;
     myProcessId = id;
-    myDeviceSerial = serial;
+    mySession = session;
   }
 
   @Override
@@ -57,7 +56,7 @@ public class NetworkOpenConnectionsDataSeries implements DataSeries<Long> {
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     NetworkProfiler.NetworkDataRequest.Builder dataRequestBuilder = NetworkProfiler.NetworkDataRequest.newBuilder()
       .setProcessId(myProcessId)
-      .setDeviceSerial(myDeviceSerial)
+      .setSession(mySession)
       .setType(NetworkProfiler.NetworkDataRequest.Type.CONNECTIONS)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);

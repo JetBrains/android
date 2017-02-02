@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.ProfilersTestData;
 import com.intellij.util.containers.ImmutableList;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,8 +28,6 @@ import static org.junit.Assert.*;
 public class CpuUsageDataSeriesTest {
 
   private static final int FAKE_PID = 42;
-
-  private static final String FAKE_DEVICE_SERIAL = "Test Device Serial";
 
   private static final Range ANY_RANGE = new Range(0, 100);
 
@@ -41,7 +40,7 @@ public class CpuUsageDataSeriesTest {
 
   @Test
   public void thisProcessCpuUsage() {
-    mySeries = new CpuUsageDataSeries(myGrpcChannel.getClient().getCpuClient(), false, FAKE_PID, FAKE_DEVICE_SERIAL);
+    mySeries = new CpuUsageDataSeries(myGrpcChannel.getClient().getCpuClient(), false, FAKE_PID, ProfilersTestData.SESSION_DATA);
     int systemTime = (int) (0.6 * FakeCpuService.TOTAL_ELAPSED_TIME);
     int appTime = (int) (0.4 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setSystemTimeMs(systemTime);
@@ -67,7 +66,7 @@ public class CpuUsageDataSeriesTest {
 
   @Test
   public void otherProcessesCpuUsage() {
-    mySeries = new CpuUsageDataSeries(myGrpcChannel.getClient().getCpuClient(), true, FAKE_PID, FAKE_DEVICE_SERIAL);
+    mySeries = new CpuUsageDataSeries(myGrpcChannel.getClient().getCpuClient(), true, FAKE_PID, ProfilersTestData.SESSION_DATA);
     int systemTime = (int) (0.6 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setSystemTimeMs(systemTime);
     ImmutableList<SeriesData<Long>> seriesData = mySeries.getDataForXRange(ANY_RANGE);
@@ -88,7 +87,7 @@ public class CpuUsageDataSeriesTest {
 
   @Test
   public void emptyData() {
-    mySeries = new CpuUsageDataSeries(myGrpcChannel.getClient().getCpuClient(), false, FAKE_PID, FAKE_DEVICE_SERIAL);
+    mySeries = new CpuUsageDataSeries(myGrpcChannel.getClient().getCpuClient(), false, FAKE_PID, ProfilersTestData.SESSION_DATA);
     assertNotNull(mySeries);
     assertFalse(mySeries.getDataForXRange(ANY_RANGE).isEmpty());
     myService.setEmptyUsageData(true);

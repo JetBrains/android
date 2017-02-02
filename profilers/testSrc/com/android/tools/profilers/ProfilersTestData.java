@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,11 @@
  */
 package com.android.tools.profilers;
 
-
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler;
-import org.jetbrains.annotations.NotNull;
 
-public abstract class StudioProfiler {
-  protected final StudioProfilers myProfilers;
-
-  protected StudioProfiler(@NotNull StudioProfilers profilers) {
-    myProfilers = profilers;
-  }
-
-  abstract public ProfilerMonitor newMonitor();
-
-  public abstract void startProfiling(Common.Session session, Profiler.Process process);
-
-  public abstract void stopProfiling(Common.Session session, Profiler.Process process);
+public class ProfilersTestData {
+  public static final Common.Session SESSION_DATA = Common.Session.newBuilder()
+    .setBootId("SOME_RANDOM_BOOT_ID")
+    .setDeviceSerial("TEST_DEVICE_SERIAL")
+    .build();
 }
