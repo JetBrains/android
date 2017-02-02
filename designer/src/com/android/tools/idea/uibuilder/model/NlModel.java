@@ -1291,6 +1291,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @Nullable
+  public NlComponent find(@NotNull String id) {
+    return flattenComponents().filter(c -> id.equals(c.getId())).findFirst().orElse(null);
+  }
+
+  @Nullable
   private List<NlComponent> findViewsByTag(@NotNull XmlTag tag) {
     List<NlComponent> result = null;
     for (NlComponent view : myComponents) {

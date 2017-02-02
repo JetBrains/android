@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.preference;
 import com.android.tools.idea.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,8 +50,8 @@ public final class PreferenceCategoryHandler extends ViewGroupHandler {
   @NotNull
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
-                                       @NotNull NlComponent preferenceCategory,
-                                       @NotNull List<NlComponent> preferences,
+                                       @NotNull SceneComponent preferenceCategory,
+                                       @NotNull List<SceneComponent > preferences,
                                        @NotNull DragType type) {
     return new PreferenceCategoryDragHandler(editor, this, preferenceCategory, preferences, type);
   }

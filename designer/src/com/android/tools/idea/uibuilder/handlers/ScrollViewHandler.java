@@ -20,9 +20,10 @@ import com.android.tools.idea.uibuilder.api.actions.ToggleViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.google.common.collect.ImmutableList;
 import icons.AndroidDesignerIcons;
 import org.jetbrains.annotations.NotNull;
@@ -73,8 +74,8 @@ public class ScrollViewHandler extends ViewGroupHandler {
   @Nullable
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
-                                       @NotNull NlComponent layout,
-                                       @NotNull List<NlComponent> components,
+                                       @NotNull SceneComponent layout,
+                                       @NotNull List<SceneComponent> components,
                                        @NotNull DragType type) {
     return new OneChildDragHandler(editor, this, layout, components, type);
   }
@@ -101,15 +102,15 @@ public class ScrollViewHandler extends ViewGroupHandler {
   static class OneChildDragHandler extends DragHandler {
     public OneChildDragHandler(@NotNull ViewEditor editor,
                                @NotNull ViewGroupHandler handler,
-                               @NotNull NlComponent layout,
-                               @NotNull List<NlComponent> components,
+                               @NotNull SceneComponent layout,
+                               @NotNull List<SceneComponent> components,
                                @NotNull DragType type) {
       super(editor, handler, layout, components, type);
     }
 
     @Nullable
     @Override
-    public String update(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
+    public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers) {
       super.update(x, y, modifiers);
 
       if (layout.getChildCount() > 0 || components.size() > 1) {
@@ -123,7 +124,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
     public void paint(@NotNull NlGraphics graphics) {
       if (layout.getChildCount() == 0) {
         graphics.useStyle(NlDrawingStyle.DROP_RECIPIENT);
-        graphics.drawRect(layout.x, layout.y, layout.w, layout.h);
+        graphics.drawRectDp(layout.getDrawX(), layout.getDrawY(), layout.getDrawWidth(), layout.getDrawHeight());
       }
     }
   }
