@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.template;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
@@ -156,7 +157,12 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
 
     if (getModel().getTemplateHandle().getMetadata().getIconType() == AndroidIconType.NOTIFICATION) {
-      return Collections.singletonList(new GenerateIconsStep(getModel()));
+      // myFacet will only be null if this step is being shown for a brand new, not-yet-created project (a project must exist
+      // before it gets a facet associated with it). However, there are currently no activities in the "new project" flow that
+      // need to create notification icons, so we can always assume that myFacet will be non-null here.
+      assert myFacet != null;
+      int minSdkVersion = AndroidModuleInfo.getInstance(myFacet).getMinSdkVersion().getApiLevel();
+      return Collections.singletonList(new GenerateIconsStep(getModel(), minSdkVersion));
     }
     else {
       return super.createDependentSteps();
