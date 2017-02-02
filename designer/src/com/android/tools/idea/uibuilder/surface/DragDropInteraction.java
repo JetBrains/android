@@ -243,8 +243,13 @@ public class DragDropInteraction extends Interaction {
     if (sceneView == null) {
       return null;
     }
-    NlModel model = sceneView.getModel();
-    NlComponent component = model.findLeafAt(x, y, true);
+    NlComponent component = Coordinates.findComponent(sceneView, Coordinates.getSwingX(sceneView, x), Coordinates.getSwingY(sceneView, y));
+    if (component == null) {
+      List<NlComponent> children = sceneView.getModel().getComponents();
+      if (children.size() == 1) {
+        component = children.get(0);
+      }
+    }
     component = excludeDraggedComponents(component);
     if (component == myCachedComponent && myCachedHandler != null) {
       return myCachedHandler;
@@ -253,7 +258,7 @@ public class DragDropInteraction extends Interaction {
     myCachedComponent = component;
     myCachedHandler = null;
 
-    ViewHandlerManager handlerManager = ViewHandlerManager.get(model.getFacet());
+    ViewHandlerManager handlerManager = ViewHandlerManager.get(sceneView.getModel().getFacet());
     while (component != null) {
       Object handler = handlerManager.getHandler(component);
 

@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.model;
 
 import com.android.resources.Density;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -168,38 +170,16 @@ public class Coordinates {
 
   /**
    * Returns the component at the given (x,y) coordinate in the Swing coordinate system
+   *
+   * @deprecated If you're interacting with the UI (as is implied by {@code @SwingCoordinate} you should probably be using SceneComponents
+   * directly, rather than NlComponents.
    */
   @Nullable
   public static NlComponent findComponent(@NotNull SceneView view,
                                           @SwingCoordinate int swingX,
                                           @SwingCoordinate int swingY) {
-    return view.getModel().findLeafAt(getAndroidX(view, swingX), getAndroidY(view, swingY), false);
-  }
-
-  /**
-   * Returns the component at the given (x,y) coordinate in the Swing coordinate system which is the
-   * immediate child of the current selection (or the selection itself if no children found and the
-   * selection intersects).
-   */
-  @Nullable
-  public static NlComponent findImmediateComponent(@NotNull SceneView view,
-                                                   @SwingCoordinate int swingX,
-                                                   @SwingCoordinate int swingY) {
-    if (view.getModel().getComponents().isEmpty()) {
-      return null;
-    }
-    SelectionModel selectionModel = view.getSelectionModel();
-    NlComponent start = null;
-    if (selectionModel.isEmpty()) {
-      // If we don't have a selection, start the search from root
-      start = view.getModel().getComponents().get(0).getRoot();
-    } else {
-      start = selectionModel.getPrimary();
-    }
-    NlComponent found = start.findImmediateLeafAt(getAndroidX(view, swingX), getAndroidY(view, swingY));
-    if (found == null) {
-      found = findComponent(view, swingX, swingY);
-    }
-    return found;
+    SceneComponent sceneComponent =
+      view.getScene().findComponent(SceneContext.get(view), getAndroidXDip(view, swingX), getAndroidYDip(view, swingY));
+    return sceneComponent != null ? sceneComponent.getNlComponent() : null;
   }
 }
