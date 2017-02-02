@@ -49,7 +49,7 @@ public class NlPaletteTest {
 
     layout.getPaletteItemList(0).clickItem(0);
     guiTest.robot().enterText("email");
-    guiTest.robot().pressKey(VK_ESCAPE);
+    guiTest.robot().pressAndReleaseKey(VK_ESCAPE);
 
     JListFixture selectedList = layout.getSelectedItemList();
     assertThat(selectedList).isNotNull();
