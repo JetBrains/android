@@ -1273,45 +1273,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return (tag != null) ? findViewsByTag(tag) : null;
   }
 
-  /**
-   * Looks up the point at the given pixel coordinates in the Android screen coordinate system, and
-   * finds the leaf component there and returns it, if any. If the point is outside the screen bounds,
-   * it will either return null, or the root view if {@code useRootOutsideBounds} is set and there is
-   * precisely one parent.
-   *
-   * @param x                    the x pixel coordinate
-   * @param y                    the y pixel coordinate
-   * @param useRootOutsideBounds if true, return the root component when pointing outside the screen, otherwise null
-   * @return the leaf component at the coordinate
-   */
-  @Nullable
-  public NlComponent findLeafAt(@AndroidCoordinate int x, @AndroidCoordinate int y, boolean useRootOutsideBounds) {
-    // Search BACKWARDS such that if the children are painted on top of each
-    // other (as is the case in a FrameLayout) I pick the last one which will
-    // be topmost!
-    for (int i = myComponents.size() - 1; i >= 0; i--) {
-      NlComponent component = myComponents.get(i);
-      NlComponent leaf = component.findLeafAt(x, y);
-      if (leaf != null) {
-        return leaf;
-      }
-    }
-
-    if (useRootOutsideBounds) {
-      // If dragging outside of the screen, associate it with the
-      // root widget (if there is one, and at most one (e.g. not a <merge> tag)
-      List<NlComponent> components = myComponents;
-      if (components.size() == 1) {
-        return components.get(0);
-      }
-      else {
-        return null;
-      }
-    }
-
-    return null;
-  }
-
   @Nullable
   private NlComponent findViewByTag(@NotNull XmlTag tag) {
     // TODO: Consider using lookup map

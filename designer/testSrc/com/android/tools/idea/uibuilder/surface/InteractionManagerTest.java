@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
@@ -32,6 +33,7 @@ import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 
+import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.*;
 
 public class InteractionManagerTest extends LayoutTestCase {
@@ -155,7 +157,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testConstraintLayoutCursorHoverComponent() throws Exception {
-    InteractionManager manager = setupLinearLayoutCursorTest();
+    InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
@@ -165,7 +167,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testConstraintLayoutCursorHoverComponentHandle() throws Exception {
-    InteractionManager manager = setupLinearLayoutCursorTest();
+    InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
@@ -178,7 +180,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testConstraintLayoutCursorHoverRoot() throws Exception {
-    InteractionManager manager = setupLinearLayoutCursorTest();
+    InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
@@ -188,7 +190,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testConstraintLayoutCursorHoverSceneHandle() throws Exception {
-    InteractionManager manager = setupLinearLayoutCursorTest();
+    InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     manager.updateCursor(screenView.getX() + screenView.getSize().width,
@@ -197,24 +199,19 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   private InteractionManager setupConstraintLayoutCursorTest() {
-    @Language("XML")
-    String source = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                    "<ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                    "    android:id=\"@+id/constraintLayout\"\n" +
-                    "    android:layout_width=\"100dp\"\n" +
-                    "    android:layout_height=\"100dp\">\n" +
-                    "<TextView xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                    "    android:id=\"@+id/textView\"\n" +
-                    "     android:layout_width=\"wrap_content\"\n" +
-                    "     android:layout_height=\"wrap_content\"\n" +
-                    "     android:text=\"Hello World\"\n" +
-                    "/>" +
-                    "</LinearLayout>\n";
-    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", source);
+      NlModel model = model("constraint.xml", component(CONSTRAINT_LAYOUT)
+        .withBounds(0, 0, 1000, 1000)
+        .matchParentWidth()
+        .matchParentHeight()
+        .children(
+          component(TEXT_VIEW)
+            .id("@+id/textView")
+            .withBounds(0, 0, 100, 100)
+            .wrapContentWidth()
+            .wrapContentHeight())).build();
 
     NlDesignSurface surface = createSurface();
     Mockito.when(surface.getScale()).thenReturn(1.0);
-    NlModel model = createModel(surface, myFacet, xmlFile);
 
     ScreenView screenView = new ScreenView(surface, ScreenView.ScreenViewType.NORMAL, model);
     Mockito.when(surface.getSceneView(Matchers.anyInt(), Matchers.anyInt())).thenReturn(screenView);
