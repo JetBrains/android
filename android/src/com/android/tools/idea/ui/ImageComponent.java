@@ -60,6 +60,11 @@ public class ImageComponent extends OpaquePanel {
     repaint();
   }
 
+  @Nullable
+  public BufferedImage getImage() {
+    return myImage;
+  }
+
   private static void setRenderingHints(Graphics2D gg) {
     gg.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     gg.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);

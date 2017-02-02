@@ -27,6 +27,10 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class AndroidNotificationIconGenerator extends AndroidIconGenerator {
 
+  public AndroidNotificationIconGenerator(int minSdkVersion) {
+    super(minSdkVersion);
+  }
+
   @NotNull
   @Override
   protected GraphicGenerator createGenerator() {
