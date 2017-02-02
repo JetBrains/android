@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.perflib.heap.ProguardMap;
 import com.android.tools.perflib.heap.Snapshot;
 import com.android.tools.perflib.heap.io.InMemoryBuffer;
@@ -22,17 +23,17 @@ import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
+import com.android.tools.profilers.RelativeTimeConverter;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public final class HeapDumpCaptureObject implements CaptureObject {
-
-  static final String LABEL_FORMATTER = "Heap Dump %d @ %d";
 
   @NotNull
   private final MemoryServiceBlockingStub myClient;
@@ -40,6 +41,9 @@ public final class HeapDumpCaptureObject implements CaptureObject {
   private final int myProcessId;
 
   private final String myDeviceSerial;
+
+  @NotNull
+  private final String myLabel;
 
   @NotNull
   private final HeapDumpInfo myHeapDumpInfo;
@@ -53,15 +57,20 @@ public final class HeapDumpCaptureObject implements CaptureObject {
   private volatile boolean myIsLoadingError = false;
 
   public HeapDumpCaptureObject(@NotNull MemoryServiceBlockingStub client,
-                               int appId,
-                               String serial,
+                               String serial, int appId,
                                @NotNull HeapDumpInfo heapDumpInfo,
-                               @Nullable ProguardMap proguardMap) {
+                               @Nullable ProguardMap proguardMap,
+                               @NotNull RelativeTimeConverter converter) {
     myClient = client;
     myProcessId = appId;
     myDeviceSerial = serial;
     myHeapDumpInfo = heapDumpInfo;
     myProguardMap = proguardMap;
+    myLabel =
+      "Heap Dump @ " +
+      TimeAxisFormatter.DEFAULT
+        .getFixedPointFormattedString(TimeUnit.MILLISECONDS.toMicros(1),
+                                      TimeUnit.NANOSECONDS.toMicros(converter.convertToRelativeTime(myHeapDumpInfo.getStartTime())));
   }
 
   @Override
@@ -77,7 +86,7 @@ public final class HeapDumpCaptureObject implements CaptureObject {
   @NotNull
   @Override
   public String getLabel() {
-    return String.format(LABEL_FORMATTER, myHeapDumpInfo.getDumpId(), myHeapDumpInfo.getStartTime());
+    return myLabel;
   }
 
   @NotNull

@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ImmutableList;
@@ -35,11 +36,16 @@ class HeapDumpSampleDataSeries implements DataSeries<CaptureDurationData<HeapDum
   @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
   private final int myProcessId;
   private final String myDeviceSerial;
+  @NotNull private final RelativeTimeConverter myConverter;
 
-  public HeapDumpSampleDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, int processId, String serial) {
+  public HeapDumpSampleDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
+                                  String serial,
+                                  int processId,
+                                  @NotNull RelativeTimeConverter converter) {
     myClient = client;
     myProcessId = processId;
     myDeviceSerial = serial;
+    myConverter = converter;
   }
 
   @Override
@@ -55,7 +61,7 @@ class HeapDumpSampleDataSeries implements DataSeries<CaptureDurationData<HeapDum
       long endTime = TimeUnit.NANOSECONDS.toMicros(info.getEndTime());
       seriesData.add(new SeriesData<>(startTime, new CaptureDurationData<>(
         info.getEndTime() == UNSPECIFIED_DURATION ? UNSPECIFIED_DURATION : endTime - startTime,
-        new HeapDumpCaptureObject(myClient, myProcessId, myDeviceSerial, info, null))));
+        new HeapDumpCaptureObject(myClient, myDeviceSerial, myProcessId, info, null, myConverter))));
     }
 
     return ContainerUtil.immutableList(seriesData);
