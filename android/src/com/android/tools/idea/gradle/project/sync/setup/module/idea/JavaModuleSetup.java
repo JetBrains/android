@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.module;
+package com.android.tools.idea.gradle.project.sync.setup.module.idea;
 
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -36,12 +35,7 @@ import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllF
 public class JavaModuleSetup {
   @NotNull private final JavaModuleSetupStep[] mySetupSteps;
 
-  public JavaModuleSetup() {
-    this(JavaModuleSetupStep.getExtensions());
-  }
-
-  @VisibleForTesting
-  JavaModuleSetup(@NotNull JavaModuleSetupStep... setupSteps) {
+  public JavaModuleSetup(@NotNull JavaModuleSetupStep... setupSteps) {
     mySetupSteps = setupSteps;
   }
 
