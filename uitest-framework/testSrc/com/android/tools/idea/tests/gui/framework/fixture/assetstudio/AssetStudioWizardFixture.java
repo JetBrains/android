@@ -40,4 +40,9 @@ public class AssetStudioWizardFixture extends AbstractWizardFixture<AssetStudioW
     JRootPane rootPane = findStepWithTitle("Configure Vector Asset");
     return new NewVectorAssetStepFixture(robot(), rootPane);
   }
+
+  public NewImageAssetStepFixture getImageAssetStep() {
+    JRootPane rootPane = findStepWithTitle("Configure Image Asset");
+    return new NewImageAssetStepFixture(robot(), rootPane);
+  }
 }

@@ -27,6 +27,10 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class AndroidVectorIconGenerator extends AndroidIconGenerator {
 
+  public AndroidVectorIconGenerator(int minSdkVersion) {
+    super(minSdkVersion);
+  }
+
   @NotNull
   @Override
   protected GraphicGenerator createGenerator() {
