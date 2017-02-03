@@ -548,6 +548,17 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * <b>Do not call this method from the dispatch thread!</b>
    */
   public void render() {
+    try {
+      renderImpl();
+    }
+    catch (Throwable e) {
+      if (!myFacet.isDisposed()) {
+        throw e;
+      }
+    }
+  }
+
+  private void renderImpl() {
     if (myConfigurationModificationCount != myConfiguration.getModificationCount()) {
       // usage tracking (we only pay attention to individual changes where only one item is affected since those are likely to be triggered
       // by the user
@@ -615,14 +626,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     getRenderingQueue().queue(new Update("model.render", LOW_PRIORITY) {
       @Override
       public void run() {
-        try {
-          render();
-        }
-        catch (Throwable e) {
-          if (!myFacet.isDisposed()) {
-            throw e;
-          }
-        }
+        render();
       }
 
       @Override
