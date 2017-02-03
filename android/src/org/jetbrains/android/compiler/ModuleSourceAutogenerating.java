@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.compiler;
 
-import com.android.tools.idea.apk.AndroidApkFacet;
+import com.android.tools.idea.apk.ApkFacet;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -49,7 +49,7 @@ public class ModuleSourceAutogenerating extends AndroidFacetScopedService {
     if (facet.requiresAndroidModel()) {
       return;
     }
-    if (AndroidApkFacet.getInstance(facet.getModule()) != null) {
+    if (ApkFacet.getInstance(facet.getModule()) != null) {
       return;
     }
 
