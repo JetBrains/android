@@ -23,10 +23,10 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.beans.PropertyChangeEvent;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
+
+import static java.util.Arrays.stream;
 
 /**
  * SpeedSearch for a {@link TreeGrid}
@@ -42,7 +42,7 @@ public class TreeGridSpeedSearch<T> extends SpeedSearchBase<TreeGrid<T>> {
   public TreeGridSpeedSearch(@NotNull TreeGrid<T> grid, @Nullable Function<T, String> converter) {
     super(grid);
     myConverter = converter;
-    addChangeListener(this::popupChange);
+    addChangeListener(event -> popupChange());
   }
 
   @Override
@@ -70,7 +70,7 @@ public class TreeGridSpeedSearch<T> extends SpeedSearchBase<TreeGrid<T>> {
     if (sections == null || sections.length == 0) {
       return ArrayUtil.EMPTY_OBJECT_ARRAY;
     }
-    return Arrays.stream(sections).map(model::getChildElements).toArray();
+    return stream(sections).flatMap(section -> stream(model.getChildElements(section))).toArray();
   }
 
   @Nullable
@@ -92,7 +92,7 @@ public class TreeGridSpeedSearch<T> extends SpeedSearchBase<TreeGrid<T>> {
   // When the SpeedSearch popup goes away we may have moved the selection to a
   // different JList than the JList with the focus. This code moves the focus to the
   // selected JList if the focus is already somewhere in the TreeGrid.
-  private void popupChange(@NotNull PropertyChangeEvent event) {
+  private void popupChange() {
     boolean isPopupCurrentlyActive = isPopupActive();
     if (!isPopupCurrentlyActive && myWasPopupRecentlyActive && focusInTreeGrid()) {
       myComponent.requestFocus();
