@@ -477,20 +477,18 @@ public class TemplateManager {
             AndroidFacet facet = AndroidFacet.getInstance(module);
             assert facet != null && facet.getAndroidModel() != null;
 
-            List<TemplateHandle> templateList = getTemplateList(FormFactor.MOBILE);
             List<AndroidSourceSet> sourceSets = AndroidSourceSet.getSourceSets(facet, targetDirectory);
             assert (sourceSets.size() > 0);
 
             String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, sourceSets, targetDirectory);
             Project project = facet.getModule().getProject();
 
-            // TODO: Missing logic to select the default template
-            RenderTemplateModel renderModel = new RenderTemplateModel(
-              project, templateList.get(0), initialPackageSuggestion, sourceSets.get(0),
+            RenderTemplateModel renderModel = new RenderTemplateModel(project, null, initialPackageSuggestion, sourceSets.get(0),
               AndroidBundle.message("android.wizard.activity.add", FormFactor.MOBILE.id));
 
             NewModuleModel moduleModel = new NewModuleModel(project);
-            ChooseActivityTypeStep chooseActivityTypeStep = new ChooseActivityTypeStep(moduleModel, renderModel, facet, templateList, targetDirectory);
+            ChooseActivityTypeStep chooseActivityTypeStep =
+              new ChooseActivityTypeStep(moduleModel, renderModel, FormFactor.MOBILE, facet, targetDirectory);
             ModelWizard wizard = new ModelWizard.Builder().addStep(chooseActivityTypeStep).build();
 
             new StudioWizardDialogBuilder(wizard, "New Android Activity").build().show();

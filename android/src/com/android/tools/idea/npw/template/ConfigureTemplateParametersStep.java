@@ -35,7 +35,6 @@ import com.android.tools.idea.ui.properties.swing.IconProperty;
 import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.android.tools.idea.ui.properties.swing.VisibleProperty;
-import com.android.tools.idea.ui.validation.Validator;
 import com.android.tools.idea.ui.validation.ValidatorPanel;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
@@ -156,7 +155,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
 
-    if (getModel().getTemplateHandle().getMetadata().getIconType() == AndroidIconType.NOTIFICATION) {
+    TemplateHandle template = getModel().getTemplateHandle();
+    if (template != null && template.getMetadata().getIconType() == AndroidIconType.NOTIFICATION) {
       // myFacet will only be null if this step is being shown for a brand new, not-yet-created project (a project must exist
       // before it gets a facet associated with it). However, there are currently no activities in the "new project" flow that
       // need to create notification icons, so we can always assume that myFacet will be non-null here.
