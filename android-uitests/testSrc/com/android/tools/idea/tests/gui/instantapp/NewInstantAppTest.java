@@ -117,19 +117,18 @@ public class NewInstantAppTest {
     //Eventually this will be empty (or almost empty) for now we are just checking that there are no unexpected errors...
     assertThat(inspectionResults).isEqualTo(
       "Project '" + guiTest.getProjectPath() + "' " + projectName + "\n" +
-      // TODO: Linting for splits needs to be implemented
-      "    Android\n" +
-      "        Unknown Android XML attribute\n" +
-      "            AndroidManifest.xml\n" +
-      "                Unknown attribute split\n" +
       // TODO: Linting for Android Instant Apps needs to be updated as it isn't correctly picking up the dependencies
       "    Android > Lint > Correctness\n" +
       "        Menu namespace\n" +
       "            menu_main.xml\n" +
       "                Should use 'android:showAsAction' when not using the appcompat library\n" +
-      "        Missing Android XML namespace\n" +
-      "            AndroidManifest.xml\n" +
-      "                Attribute is missing the Android namespace prefix\n" +
+      // These warnings currently appear when testing locally but not on the buildbot. They should go away properly when prebuilts are
+      // updated to the latest build tools.
+      //"        Obsolete Gradle Dependency\n" +
+      //"            build.gradle\n" +
+      //"                Old buildToolsVersion 25.0.1; recommended version is 25.0.2 or later\n" +
+      //"            build.gradle\n" +
+      //"                Old buildToolsVersion 25.0.1; recommended version is 25.0.2 or later\n" +
       // This warning is unfortunate. We may want to get rid of it.
       "    Android > Lint > Security\n" +
       "        AllowBackup/FullBackupContent Problems\n" +
@@ -149,16 +148,8 @@ public class NewInstantAppTest {
       "    Spelling\n" +
       "        Typo\n" +
       "            AndroidManifest.xml\n" +
-      "                Typo: In word 'instantapps'\n" +
-      "            AndroidManifest.xml\n" +
       "                Typo: In word 'instantapp'\n" +
-      "                Typo: In word 'instantapps'\n" +
-      // TODO: these namespace declarations are required for manifest merging at the moment
-      "    XML\n" +
-      "        Unused XML schema declaration\n" +
-      "            AndroidManifest.xml\n" +
-      "                Namespace declaration is never used\n" +
-      "                Namespace declaration is never used\n");
+      "                Typo: In word 'instantapps'\n");
   }
 
   @Test
