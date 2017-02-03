@@ -20,6 +20,7 @@ import com.android.tools.idea.rendering.errors.ui.RenderErrorPanel;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
@@ -35,6 +36,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.assertTrue;
 
 public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture, NlDesignSurface> {
@@ -63,7 +65,8 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
       }
       return target().isShowing() && !myRenderErrorPanel.isShowing();
     });
-    robot().waitForIdle(); // After render finishes, wait for the layout animation to finish too.
+    // Wait for the animation to finish
+    pause(SceneComponent.ANIMATION_DURATION);
   }
 
   public boolean hasRenderErrors() {
