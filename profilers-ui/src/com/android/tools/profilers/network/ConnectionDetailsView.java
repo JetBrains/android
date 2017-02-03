@@ -272,7 +272,7 @@ public class ConnectionDetailsView extends JPanel {
     JComponent component = null;
     Dimension dimension = null;
     if (httpData.getResponsePayloadFile() == null) {
-      component = new JLabel("No preview available");
+      component = new JLabel("No preview available", SwingConstants.CENTER);
       component.setFont(component.getFont().deriveFont(TITLE_FONT_SIZE));
     }
 
