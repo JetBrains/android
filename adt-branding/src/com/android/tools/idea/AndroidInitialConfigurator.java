@@ -115,7 +115,7 @@ public class AndroidInitialConfigurator {
       if (!propertiesComponent.getBoolean(CONFIG_V1)) {
         propertiesComponent.setValue(CONFIG_V1, "true");
         CodeInsightSettings.getInstance().AUTO_POPUP_JAVADOC_INFO = true;
-        UISettings.getInstance().SCROLL_TAB_LAYOUT_IN_EDITOR = true;
+        UISettings.getInstance().setScrollTabLayoutInEditor(true);
         EditorSettingsExternalizable.getInstance().setVirtualSpace(false);
 
         // For Macs, use 10.5+ keymap as the default
@@ -126,7 +126,7 @@ public class AndroidInitialConfigurator {
 
       if (!propertiesComponent.getBoolean(CONFIG_V2)) {
         propertiesComponent.setValue(CONFIG_V2, "true");
-        UISettings.getInstance().SHOW_MAIN_TOOLBAR = true;
+        UISettings.getInstance().setShowMainToolbar(true);
       }
     }
   }
