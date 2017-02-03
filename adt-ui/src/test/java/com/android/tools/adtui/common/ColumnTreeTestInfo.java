@@ -76,20 +76,22 @@ public final class ColumnTreeTestInfo {
    * Verify the String contents that have been appended to each cell based on a particular row value.
    *
    * TODO currently this relies on the same content being added as a tag when calling {@link ColoredTreeCellRenderer#append(String, SimpleTextAttributes, Object)},
-   * as we have no public-accessible way to query the appended values. Also, we only check against the first appended content, but this can easily be extended to
-   * checked against everything.
+   * as we have no public-accessible way to query the appended values.
    *
    * @param value          the value which the tree cell tries to render.
-   * @param rendererValues the Strings that were appended to each cell. The length of this argument should match the column count of the tree.
+   * @param rendererValues the String arrays that were appended to each cell. The length of this variadic argument should match the column count of the tree,
+   *                       and the individual elements of the variadic argument should match the number of fragments in each column.
    */
-  public void verifyRendererValues(@NotNull Object value, String... rendererValues) {
+  public void verifyRendererValues(@NotNull Object value, String[]... rendererValues) {
     Container container = (Container)myTree.getCellRenderer().getTreeCellRendererComponent(myTree, value, false, false, true, 0, false);
     assertNotNull(container);
     assertEquals(rendererValues.length, container.getComponentCount());
     for (int i = 0; i < container.getComponentCount(); i++) {
       assertTrue(container.getComponent(i) instanceof ColoredTreeCellRenderer);
       ColoredTreeCellRenderer renderer = (ColoredTreeCellRenderer)container.getComponent(i);
-      assertEquals(rendererValues[i], renderer.getFragmentTag(0));
+      for (int j = 0; j < rendererValues[i].length; j++) {
+        assertEquals(rendererValues[i][j], renderer.getFragmentTag(j));
+      }
     }
   }
 }
