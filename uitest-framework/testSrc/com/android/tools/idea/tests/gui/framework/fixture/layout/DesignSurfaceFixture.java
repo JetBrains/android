@@ -63,6 +63,7 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
       }
       return target().isShowing() && !myRenderErrorPanel.isShowing();
     });
+    robot().waitForIdle(); // After render finishes, wait for the layout animation to finish too.
   }
 
   public boolean hasRenderErrors() {
