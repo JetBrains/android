@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.testing;
 
-import com.android.tools.idea.apk.AndroidApkFacet;
+import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.intellij.facet.*;
@@ -34,8 +34,8 @@ public final class Facets {
   }
 
   @NotNull
-  public static AndroidApkFacet createAndAddApkFacet(@NotNull Module module) {
-    return createAndAddFacet(module, AndroidApkFacet.getFacetType(), AndroidApkFacet.NAME);
+  public static ApkFacet createAndAddApkFacet(@NotNull Module module) {
+    return createAndAddFacet(module, ApkFacet.getFacetType(), ApkFacet.getFacetName());
   }
 
   @NotNull
