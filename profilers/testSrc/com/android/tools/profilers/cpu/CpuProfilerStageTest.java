@@ -74,6 +74,17 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
+  public void startCapturingInstrumented() throws InterruptedException {
+    assertEquals(CpuProfilerStage.CaptureState.IDLE, myStage.getCaptureState());
+    myCpuService.setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS);
+    myServices.setPrePoolExecutor(() -> assertEquals(CpuProfilerStage.CaptureState.STARTING, myStage.getCaptureState()));
+    // Start a capture using INSTRUMENTED mode
+    myStage.setProfilingMode(CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
+    startCapturing();
+    assertEquals(CpuProfilerStage.CaptureState.CAPTURING, myStage.getCaptureState());
+  }
+
+  @Test
   public void testStopCapturingInvalidTrace() throws InterruptedException {
     assertEquals(CpuProfilerStage.CaptureState.IDLE, myStage.getCaptureState());
 

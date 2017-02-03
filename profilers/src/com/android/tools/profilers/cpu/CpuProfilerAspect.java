@@ -22,4 +22,6 @@ public enum CpuProfilerAspect {
   SELECTED_THREADS,
   // The capture details has changed, e.g the user selected "Bottom Up" or "Top Down" tab.
   CAPTURE_DETAILS,
+  // The profiling mode (i.e. sampled or instrumented) has changed
+  PROFILING_MODE,
 }
