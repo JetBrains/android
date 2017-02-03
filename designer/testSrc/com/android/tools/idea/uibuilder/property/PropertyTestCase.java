@@ -65,6 +65,8 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   protected NlComponent myTextViewInLinearLayout;
   protected NlComponent myButtonInLinearLayout;
   protected NlComponent myImageViewInCollapsingToolbarLayout;
+  protected NlComponent myTabLayout;
+  protected NlComponent myRelativeLayout;
   protected NlModel myModel;
   protected NlPropertiesManager myPropertiesManager;
   protected AndroidDomElementDescriptorProvider myDescriptorProvider;
@@ -93,6 +95,8 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     myTextViewInLinearLayout = myComponentMap.get("textview_in_linearlayout");
     myButtonInLinearLayout = myComponentMap.get("button_in_linearlayout");
     myImageViewInCollapsingToolbarLayout = myComponentMap.get("imgv");
+    myTabLayout = myComponentMap.get("tabLayout");
+    myRelativeLayout = myComponentMap.get("relativeLayout");
     myPropertiesManager = new NlPropertiesManager(getProject(), null);
     myDescriptorProvider = new AndroidDomElementDescriptorProvider();
     myPropertiesComponent = new PropertiesComponentMock();
@@ -222,6 +226,16 @@ public abstract class PropertyTestCase extends LayoutTestCase {
                                            .height("wrap_content")
                                            .text("OtherButton")
                                        ),
+                                     component(TAB_LAYOUT)
+                                       .withBounds(300, 0, 700, 1000)
+                                       .id("@id/tabLayout")
+                                       .width("700dp")
+                                       .height("1000dp"),
+                                     component(RELATIVE_LAYOUT)
+                                       .withBounds(300, 0, 700, 1000)
+                                       .id("@id/relativeLayout")
+                                       .width("700dp")
+                                       .height("1000dp"),
                                      component(LINEAR_LAYOUT)
                                        .withBounds(300, 0, 700, 1000)
                                        .id("@id/linearlayout")
