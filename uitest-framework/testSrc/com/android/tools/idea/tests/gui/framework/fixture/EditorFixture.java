@@ -325,7 +325,7 @@ public class EditorFixture {
       return true;
     });
 
-    myFrame.requestFocusIfLost();
+    getFocusedEditor();
     robot.waitForIdle();
 
     return this;
