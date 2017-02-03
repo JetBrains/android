@@ -15,6 +15,7 @@
  */
 package com.android.tools.datastore.database;
 
+import com.android.tools.profiler.proto.Common;
 import com.intellij.openapi.diagnostic.Logger;
 
 import java.sql.Connection;
@@ -111,6 +112,9 @@ public abstract class DatastoreTable<T extends Enum> {
       }
       else if (params[i] instanceof byte[]) {
         statement.setBytes(i + 1, (byte[])params[i]);
+      }
+      else if (params[i] instanceof Common.Session) {
+        statement.setString(i + 1, ((Common.Session)params[i]).toString());
       }
       else {
         //Not implemented type cast

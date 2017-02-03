@@ -19,6 +19,7 @@ import com.android.tools.perflib.heap.SnapshotBuilder;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.RelativeTimeConverter;
+import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
@@ -32,8 +33,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 
 public class HeapDumpCaptureObjectTest {
-
-  private static final String FAKE_DEVICE_SERIAL = "Test Device Serial";
 
   @NotNull private final FakeMemoryService myService = new FakeMemoryService();
 
@@ -55,7 +54,7 @@ public class HeapDumpCaptureObjectTest {
     long endTimeNs = 8;
     MemoryProfiler.HeapDumpInfo dumpInfo =
       MemoryProfiler.HeapDumpInfo.newBuilder().setDumpId(dumpId).setStartTime(startTimeNs).setEndTime(endTimeNs).build();
-    HeapDumpCaptureObject capture = new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), FAKE_DEVICE_SERIAL, appId,
+    HeapDumpCaptureObject capture = new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, appId,
                                                               dumpInfo, null, myRelativeTimeConverter);
 
     // Verify values associated with the HeapDumpInfo object.
@@ -123,7 +122,7 @@ public class HeapDumpCaptureObjectTest {
   public void testLoadingFailure() throws Exception {
     MemoryProfiler.HeapDumpInfo dumpInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setDumpId(1).setStartTime(3).setEndTime(8).build();
     HeapDumpCaptureObject capture =
-      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), FAKE_DEVICE_SERIAL, -1, dumpInfo, null,
+      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, -1, dumpInfo, null,
                                 myRelativeTimeConverter);
 
     assertFalse(capture.isDoneLoading());
@@ -143,25 +142,25 @@ public class HeapDumpCaptureObjectTest {
     MemoryProfiler.HeapDumpInfo dumpInfo2 = MemoryProfiler.HeapDumpInfo.newBuilder().setDumpId(2).setStartTime(9).setEndTime(13).build();
 
     HeapDumpCaptureObject capture =
-      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), FAKE_DEVICE_SERIAL, -1, dumpInfo1, null,
+      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, -1, dumpInfo1, null,
                                 myRelativeTimeConverter);
     // Test inequality with different object type
     assertNotEquals(mock(CaptureObject.class), capture);
 
     HeapDumpCaptureObject captureWithDifferentAppId =
-      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), FAKE_DEVICE_SERIAL, -2, dumpInfo1, null,
+      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, -2, dumpInfo1, null,
                                 myRelativeTimeConverter);
     // Test inequality with different app id
     assertNotEquals(captureWithDifferentAppId, capture);
 
     HeapDumpCaptureObject captureWithDifferentDump =
-      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), FAKE_DEVICE_SERIAL, -1, dumpInfo2, null,
+      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, -1, dumpInfo2, null,
                                 myRelativeTimeConverter);
     // Test inequality with different HeapDumpInfo
     assertNotEquals(captureWithDifferentDump, capture);
 
     HeapDumpCaptureObject captureWithDifferentLoadStatus =
-      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), FAKE_DEVICE_SERIAL, -1, dumpInfo1, null,
+      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, -1, dumpInfo1, null,
                                 myRelativeTimeConverter);
     // Test equality with same HeapDumpInfo and status
     assertEquals(captureWithDifferentLoadStatus, capture);

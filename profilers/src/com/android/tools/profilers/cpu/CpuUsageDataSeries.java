@@ -26,7 +26,6 @@ import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -39,13 +38,13 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
 
   private boolean myOtherProcesses;
   private final int myProcessId;
-  private final String myDeviceSerial;
+  private final Common.Session mySession;
 
-  public CpuUsageDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, boolean otherProcesses, int id, String serial) {
+  public CpuUsageDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, boolean otherProcesses, int id, Common.Session session) {
     myClient = client;
     myOtherProcesses = otherProcesses;
     myProcessId = id;
-    myDeviceSerial = serial;
+    mySession = session;
   }
 
   @Override
@@ -56,7 +55,7 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     CpuProfiler.CpuDataRequest.Builder dataRequestBuilder = CpuProfiler.CpuDataRequest.newBuilder()
       .setProcessId(myProcessId)
-      .setDeviceSerial(myDeviceSerial)
+      .setSession(mySession)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
     CpuProfiler.CpuDataResponse response = myClient.getData(dataRequestBuilder.build());
