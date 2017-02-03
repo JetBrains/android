@@ -966,6 +966,25 @@ public class TemplateTest extends AndroidGradleTestCase {
   private void checkProject(@NonNull String projectName,
                             @NonNull NewProjectWizardState projectValues,
                             @Nullable TemplateWizardState templateValues) throws Exception {
+
+    projectValues.put(ATTR_IS_LIBRARY_MODULE, false);
+    templateValues.put(ATTR_HAS_APPLICATION_THEME, true);
+    checkProjectNow(projectName, projectValues, templateValues);
+
+    // check that new Activities can be created on lib modules as well as app modules.
+    String category = templateValues.getTemplate().getMetadata().getCategory();
+    String formFactor = templateValues.getTemplate().getMetadata().getFormFactor();
+    if ("Activity".equals(category) && "Mobile".equals(formFactor) && !projectValues.getBoolean(ATTR_CREATE_ACTIVITY)) {
+
+      projectValues.put(ATTR_IS_LIBRARY_MODULE, true);
+      templateValues.put(ATTR_HAS_APPLICATION_THEME, false);
+      checkProjectNow(projectName + "_lib", projectValues, templateValues);
+    }
+  }
+
+  private void checkProjectNow(@NonNull String projectName,
+                            @NonNull NewProjectWizardState projectValues,
+                            @Nullable TemplateWizardState templateValues) throws Exception {
     String modifiedProjectName = projectName + "!@#$^&()_+=-,.`~你所有的基地都属于我们";
     ourCount++;
     projectValues.put(ATTR_RES_OUT, null);

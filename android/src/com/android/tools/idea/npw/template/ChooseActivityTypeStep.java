@@ -77,7 +77,6 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
   private final StringProperty myInvalidParameterMessage = new StringValueProperty();
 
   private @Nullable AndroidFacet myFacet;
-  private boolean myAppThemeExists;
 
   public ChooseActivityTypeStep(@NotNull NewModuleModel moduleModel,
                                 @NotNull RenderTemplateModel renderModel,
@@ -107,7 +106,6 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
                     @Nullable AndroidFacet facet) {
     mySourceSets = sourceSets;
     myFacet = facet;
-    myAppThemeExists = isNewModule() || new ThemeHelper(facet.getModule()).getAppThemeName() != null;
 
     // For any new module, we need a "Add No Activity" entry.
     int i = isNewModule() ? 1 : 0;
@@ -241,12 +239,12 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
     TemplateMetadata templateData = (template == null) ? null : template.getMetadata();
     AndroidVersionsInfo.VersionItem androidSdkInfo = myRenderModel.androidSdkInfo().getValueOrNull();
 
-    myInvalidParameterMessage.set(validateTemplate(templateData, androidSdkInfo, myAppThemeExists, isNewModule()));
+    myInvalidParameterMessage.set(validateTemplate(templateData, androidSdkInfo, isNewModule()));
   }
 
   private static String validateTemplate(@Nullable TemplateMetadata template,
                                          @Nullable AndroidVersionsInfo.VersionItem androidSdkInfo,
-                                         boolean appThemeExists, boolean isNewModule) {
+                                         boolean isNewModule) {
     if (template == null) {
       return isNewModule ? "" : message("android.wizard.activity.not.found");
     }
@@ -258,10 +256,6 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
 
       if (androidSdkInfo.getBuildApiLevel() < template.getMinBuildApi()) {
         return message("android.wizard.activity.invalid.min.build", template.getMinBuildApi());
-      }
-
-      if (!appThemeExists && template.isAppThemeRequired()) {
-        return message("android.wizard.activity.invalid.app.theme");
       }
     }
 
