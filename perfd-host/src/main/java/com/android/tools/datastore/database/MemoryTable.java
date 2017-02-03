@@ -39,7 +39,7 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
 
   public enum MemoryStatements {
     INSERT_SAMPLE,
-    INSERT_HEAP,
+    INSERT_OR_REPLACE_HEAP_INFO,
     INSERT_OR_REPLACE_ALLOCATIONS_INFO,
     FIND_HEAP_DATA,
     QUERY_HEAP_INFO,
@@ -100,11 +100,11 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
       createStatement(MemoryStatements.QUERY_MEMORY, String.format(sampleQueryString, MemorySamplesType.MEMORY.ordinal()));
       createStatement(MemoryStatements.QUERY_VMSTATS, String.format(sampleQueryString, MemorySamplesType.VMSTATS.ordinal()));
 
-      createStatement(MemoryStatements.INSERT_HEAP,
-                      "INSERT INTO Memory_HeapDump (DumpId, StartTime, EndTime, Status, InfoData) VALUES (?, ?, ?, ?, ?)");
+      createStatement(MemoryStatements.INSERT_OR_REPLACE_HEAP_INFO,
+                      "INSERT OR REPLACE INTO Memory_HeapDump (DumpId, StartTime, EndTime, Status, InfoData) VALUES (?, ?, ?, ?, ?)");
       createStatement(MemoryStatements.UPDATE_HEAP_INFO,
-                      "UPDATE Memory_HeapDump SET DumpData = ?, InfoData = ?, Status = ? WHERE DumpId = ?");
-      createStatement(MemoryStatements.FIND_HEAP_DATA, "SELECT InfoData, DumpData FROM Memory_HeapDump where DumpId = ?");
+                      "UPDATE Memory_HeapDump SET DumpData = ?, Status = ? WHERE DumpId = ?");
+      createStatement(MemoryStatements.FIND_HEAP_DATA, "SELECT DumpData FROM Memory_HeapDump where DumpId = ?");
       createStatement(MemoryStatements.FIND_HEAP_STATUS, "SELECT Status FROM Memory_HeapDump where DumpId = ?");
       createStatement(MemoryStatements.QUERY_HEAP_INFO,
                       "SELECT InfoData FROM Memory_HeapDump where (EndTime = ? OR EndTime > ?) AND StartTime <= ?");
@@ -133,16 +133,16 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     }
   }
 
-  public byte[] getHeapDumpData(int dumpId, HeapDumpInfo.Builder out_info) {
+  @Nullable
+  public byte[] getHeapDumpData(int dumpId) {
     synchronized (myDataQueryLock) {
       try {
         ResultSet resultSet = executeQuery(MemoryStatements.FIND_HEAP_DATA, dumpId);
         if (resultSet.next()) {
-          out_info.mergeFrom(resultSet.getBytes(1));
-          return resultSet.getBytes(2);
+          return resultSet.getBytes(1);
         }
       }
-      catch (InvalidProtocolBufferException | SQLException ex) {
+      catch (SQLException ex) {
         getLogger().error(ex);
       }
       return null;
@@ -314,14 +314,13 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     }
   }
 
-  public void insertHeapDumpInfo(HeapDumpInfo info) {
+  /**
+   * Note: this would reset the Status and Dump data of the heap to NOT_READY if an info with the same Id already exist.
+   */
+  public void insertOrUpdateHeapInfo(HeapDumpInfo info) {
     synchronized (myDataQueryLock) {
-      DumpDataResponse.Status status = DumpDataResponse.Status.NOT_READY;
-      long startTime = info.getStartTime();
-      if (startTime == 0) {
-        startTime = info.getEndTime();
-      }
-      execute(MemoryStatements.INSERT_HEAP, info.getDumpId(), startTime, info.getEndTime(), status.getNumber(), info.toByteArray());
+      execute(MemoryStatements.INSERT_OR_REPLACE_HEAP_INFO, info.getDumpId(), info.getStartTime(), info.getEndTime(),
+              DumpDataResponse.Status.NOT_READY.ordinal(), info.toByteArray());
     }
   }
 
@@ -329,18 +328,20 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     synchronized (myDataQueryLock) {
       try {
         ResultSet result = executeQuery(MemoryStatements.FIND_HEAP_STATUS, dumpId);
-        return DumpDataResponse.Status.forNumber(result.getInt(1));
+        if (result.next()) {
+          return DumpDataResponse.Status.forNumber(result.getInt(1));
+        }
       }
       catch (SQLException ex) {
         getLogger().error(ex);
       }
-      return DumpDataResponse.Status.FAILURE_UNKNOWN;
+      return DumpDataResponse.Status.NOT_FOUND;
     }
   }
 
-  public void insertHeapDumpData(DumpDataResponse.Status status, HeapDumpInfo info, ByteString data) {
+  public void insertHeapDumpData(int dumpId, DumpDataResponse.Status status, ByteString data) {
     synchronized (myDataQueryLock) {
-      execute(MemoryStatements.UPDATE_HEAP_INFO, data.toByteArray(), info.toByteArray(), status.getNumber(), info.getDumpId());
+      execute(MemoryStatements.UPDATE_HEAP_INFO, data.toByteArray(), status.getNumber(), dumpId);
     }
   }
 
