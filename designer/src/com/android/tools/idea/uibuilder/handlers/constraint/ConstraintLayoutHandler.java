@@ -38,6 +38,7 @@ import com.android.tools.sherpa.interaction.MouseInteraction;
 import com.android.tools.sherpa.scout.Scout;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetsScene;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.ide.util.PropertiesComponent;
@@ -55,8 +56,9 @@ import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT;
+import static com.android.SdkConstants.*;
 
 /**
  * Handles interactions for the ConstraintLayout viewgroups
@@ -141,6 +143,14 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   @NotNull
   public String getGradleCoordinateId(@NotNull String tagName) {
     return CONSTRAINT_LAYOUT_LIB_ARTIFACT;
+  }
+
+  @Override
+  @NotNull
+  public Map<String, Map<String, String>> getEnumPropertyValues(@SuppressWarnings("unused") @NotNull NlComponent component) {
+    Map<String, String> values = ImmutableMap.of("0dp", "match_constraint", VALUE_WRAP_CONTENT, VALUE_WRAP_CONTENT);
+    return ImmutableMap.of(ATTR_LAYOUT_WIDTH, values,
+                           ATTR_LAYOUT_HEIGHT, values);
   }
 
   @Override
