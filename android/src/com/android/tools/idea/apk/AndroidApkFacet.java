@@ -16,7 +16,9 @@
 package com.android.tools.idea.apk;
 
 import com.intellij.facet.*;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,6 +43,17 @@ public class AndroidApkFacet extends Facet<AndroidApkFacetConfiguration> {
     FacetType facetType = FacetTypeRegistry.getInstance().findFacetType(ID);
     assert facetType instanceof AndroidApkFacetType;
     return (AndroidApkFacetType)facetType;
+  }
+
+  @Nullable
+  public static AndroidApkFacet getInstance(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
+    AndroidApkFacet facet = getInstance(module);
+    if (facet == null) {
+      // facet may be present, but not visible if ModifiableFacetModel has not been committed yet (e.g. in the case of a new project.)
+      ModifiableFacetModel facetModel = modelsProvider.getModifiableFacetModel(module);
+      facet = facetModel.getFacetByType(TYPE_ID);
+    }
+    return facet;
   }
 
   @Nullable
