@@ -85,9 +85,9 @@ public class MemoryProfilerStage extends Stage {
     myDeviceSerial = profilers.getDeviceSerial();
     myClient = profilers.getClient().getMemoryClient();
     HeapDumpSampleDataSeries heapDumpSeries =
-      new HeapDumpSampleDataSeries(profilers.getClient().getMemoryClient(), myProcessId, myDeviceSerial);
+      new HeapDumpSampleDataSeries(profilers.getClient().getMemoryClient(), myDeviceSerial, myProcessId, profilers.getRelativeTimeConverter());
     AllocationInfosDataSeries allocationSeries =
-      new AllocationInfosDataSeries(profilers.getClient().getMemoryClient(), myProcessId, myDeviceSerial);
+      new AllocationInfosDataSeries(profilers.getClient().getMemoryClient(), myDeviceSerial, myProcessId, profilers.getRelativeTimeConverter());
     myLoader = loader;
 
     Range viewRange = profilers.getTimeline().getViewRange();
@@ -174,7 +174,8 @@ public class MemoryProfilerStage extends Stage {
       myClient.triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.newBuilder().setProcessId(myProcessId).build());
     switch (response.getStatus()) {
       case SUCCESS:
-        selectCapture(new HeapDumpCaptureObject(myClient, myProcessId, myDeviceSerial, response.getInfo(), null), loadJoiner);
+        selectCapture(new HeapDumpCaptureObject(myClient, myDeviceSerial, myProcessId, response.getInfo(), null,
+                                                getStudioProfilers().getRelativeTimeConverter()), loadJoiner);
         break;
       case IN_PROGRESS:
         getLogger().debug(String.format("A heap dump for %d is already in progress.", myProcessId));
@@ -204,7 +205,8 @@ public class MemoryProfilerStage extends Stage {
       case SUCCESS:
         myTrackingAllocations = enabled;
         if (!myTrackingAllocations) {
-          selectCapture(new AllocationsCaptureObject(myClient, myProcessId, myDeviceSerial, response.getInfo()), loadJoiner);
+          selectCapture(new AllocationsCaptureObject(myClient, myProcessId, myDeviceSerial, response.getInfo(),
+                                                     getStudioProfilers().getRelativeTimeConverter()), loadJoiner);
         }
         break;
       case IN_PROGRESS:
