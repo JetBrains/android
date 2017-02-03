@@ -18,7 +18,6 @@ package com.android.tools.idea.sdk;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.testutils.TestUtils;
 import com.android.tools.idea.IdeInfo;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
@@ -38,11 +37,15 @@ import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.android.sdklib.AndroidTargetHash.getTargetHashString;
-import static com.android.testutils.TestUtils.getLatestAndroidPlatform;
+import static com.android.testutils.TestUtils.getSdk;
 import static com.android.tools.idea.testing.FileSubject.file;
+import static com.android.tools.idea.testing.Sdks.findLatestAndroidTarget;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
@@ -71,7 +74,7 @@ public class AndroidSdksTest extends IdeaTestCase {
     initMocks(this);
     when(myIdeInfo.isAndroidStudio()).thenReturn(true);
 
-    mySdkPath = TestUtils.getSdk();
+    mySdkPath = getSdk();
 
     Jdks jdks = Jdks.getInstance();
     myJdk = jdks.chooseOrCreateJavaSdk();
@@ -98,7 +101,7 @@ public class AndroidSdksTest extends IdeaTestCase {
   }
 
   public void testTryToCreate() {
-    IAndroidTarget target = findLatestAndroidTarget();
+    IAndroidTarget target = findLatestAndroidTarget(mySdkPath);
     String hash = getTargetHashString(target);
 
     Sdk sdk = myAndroidSdks.tryToCreate(mySdkPath, hash);
@@ -110,7 +113,7 @@ public class AndroidSdksTest extends IdeaTestCase {
   }
 
   public void testCreateSdk() {
-    IAndroidTarget target = findLatestAndroidTarget();
+    IAndroidTarget target = findLatestAndroidTarget(mySdkPath);
     String name = "testSdk";
 
     Sdk sdk = myAndroidSdks.create(target, mySdkPath, name, myJdk, true /* add roots */);
@@ -159,7 +162,7 @@ public class AndroidSdksTest extends IdeaTestCase {
   }
 
   public void testCreateSdkWithoutAddingRoots() {
-    IAndroidTarget target = findLatestAndroidTarget();
+    IAndroidTarget target = findLatestAndroidTarget(mySdkPath);
     String name = "testSdk";
 
     Sdk sdk = myAndroidSdks.create(target, mySdkPath, name, myJdk, false /* do *not* add roots */);
@@ -185,7 +188,7 @@ public class AndroidSdksTest extends IdeaTestCase {
   }
 
   public void testCreateSdkAddingRoots() {
-    IAndroidTarget target = findLatestAndroidTarget();
+    IAndroidTarget target = findLatestAndroidTarget(mySdkPath);
     String name = "testSdk";
 
     Sdk sdk = myAndroidSdks.create(target, mySdkPath, name, myJdk, true /* add roots */);
@@ -211,7 +214,7 @@ public class AndroidSdksTest extends IdeaTestCase {
   }
 
   public void testCreateSdkWithoutSpecifyingJdk() {
-    Sdk sdk = myAndroidSdks.create(findLatestAndroidTarget(), mySdkPath, true);
+    Sdk sdk = myAndroidSdks.create(findLatestAndroidTarget(mySdkPath), mySdkPath, true);
 
     assertNotNull(sdk);
     verifyCorrectPath(sdk);
@@ -234,12 +237,12 @@ public class AndroidSdksTest extends IdeaTestCase {
 
     when(jdks.chooseOrCreateJavaSdk()).thenReturn(null);
 
-    Sdk sdk = myAndroidSdks.create(findLatestAndroidTarget(), mySdkPath, true);
+    Sdk sdk = myAndroidSdks.create(findLatestAndroidTarget(mySdkPath), mySdkPath, true);
     assertNull(sdk);
   }
 
   public void testChooseNameForNewLibrary() {
-    IAndroidTarget target = findLatestAndroidTarget();
+    IAndroidTarget target = findLatestAndroidTarget(mySdkPath);
     String name = myAndroidSdks.chooseNameForNewLibrary(target);
     assertEquals("Android " + target.getVersion().toString() + " Platform", name);
   }
@@ -253,14 +256,14 @@ public class AndroidSdksTest extends IdeaTestCase {
   }
 
   public void testTryToChooseAndroidSdk() {
-    myAndroidSdks.create(findLatestAndroidTarget(), mySdkPath, myJdk, false /* do *not* add roots */);
+    myAndroidSdks.create(findLatestAndroidTarget(mySdkPath), mySdkPath, myJdk, false /* do *not* add roots */);
 
     AndroidSdkData sdkData = myAndroidSdks.tryToChooseAndroidSdk();
     assertSame(getSdkData(mySdkPath), sdkData);
   }
 
   public void testTryToChooseSdkHandler() {
-    myAndroidSdks.create(findLatestAndroidTarget(), mySdkPath, myJdk, false /* do *not* add roots */);
+    myAndroidSdks.create(findLatestAndroidTarget(mySdkPath), mySdkPath, myJdk, false /* do *not* add roots */);
 
     AndroidSdkHandler sdkHandler = myAndroidSdks.tryToChooseSdkHandler();
     AndroidSdkData sdkData = getSdkData(mySdkPath);
@@ -269,7 +272,7 @@ public class AndroidSdksTest extends IdeaTestCase {
   }
 
   public void testReplaceLibraries() {
-    Sdk sdk = myAndroidSdks.create(findLatestAndroidTarget(), mySdkPath, myJdk, true /* add roots */);
+    Sdk sdk = myAndroidSdks.create(findLatestAndroidTarget(mySdkPath), mySdkPath, myJdk, true /* add roots */);
     assertNotNull(sdk);
 
     VirtualFile[] currentLibraries = sdk.getRootProvider().getFiles(CLASSES);
@@ -286,7 +289,7 @@ public class AndroidSdksTest extends IdeaTestCase {
   }
 
   public void testFindSuitableAndroidSdk() {
-    IAndroidTarget target = findLatestAndroidTarget();
+    IAndroidTarget target = findLatestAndroidTarget(mySdkPath);
     Sdk sdk = myAndroidSdks.create(target, mySdkPath, myJdk, false /* do *not* add roots */);
     assertNotNull(sdk);
 
@@ -325,7 +328,7 @@ public class AndroidSdksTest extends IdeaTestCase {
   }
 
   public void testHasValidDocsWithValidLocalDocs() throws Exception {
-    IAndroidTarget target = findLatestAndroidTarget();
+    IAndroidTarget target = findLatestAndroidTarget(mySdkPath);
     Sdk sdk = setUpSdkWithDocsRoots(target, ImmutableList.of(), true);
 
     // prebuilt SDK (with docs) - docs root points to local docs - valid
@@ -333,7 +336,7 @@ public class AndroidSdksTest extends IdeaTestCase {
   }
 
   public void testHasValidDocsWithInvalidLocalDocs() throws Exception {
-    IAndroidTarget target = findLatestAndroidTarget();
+    IAndroidTarget target = findLatestAndroidTarget(mySdkPath);
     Sdk sdk = setUpSdkWithDocsRoots(target, ImmutableList.of(), false);
 
     // random dir (no docs) - docs root points to local docs - invalid
@@ -341,7 +344,7 @@ public class AndroidSdksTest extends IdeaTestCase {
   }
 
   public void testHasValidDocsWithInvalidRemoteDocs() throws Exception {
-    IAndroidTarget target = findLatestAndroidTarget();
+    IAndroidTarget target = findLatestAndroidTarget(mySdkPath);
     Sdk sdk = setUpSdkWithDocsRoots(target, ImmutableList.of("https://www.google.com"), false);
 
     // random dir (no docs) - docs root points to random web address - invalid
@@ -349,7 +352,7 @@ public class AndroidSdksTest extends IdeaTestCase {
   }
 
   public void testHasValidDocsWithValidRemoteDocs() throws Exception {
-    IAndroidTarget target = findLatestAndroidTarget();
+    IAndroidTarget target = findLatestAndroidTarget(mySdkPath);
     Sdk sdk = setUpSdkWithDocsRoots(target, ImmutableList.of(DEFAULT_EXTERNAL_DOCUMENTATION_URL), false);
 
     // random dir (no docs) - docs root points to web docs - valid
@@ -357,7 +360,7 @@ public class AndroidSdksTest extends IdeaTestCase {
   }
 
   public void testHasValidDocsWithValidAndInvalidRemoteDocs() throws Exception {
-    IAndroidTarget target = findLatestAndroidTarget();
+    IAndroidTarget target = findLatestAndroidTarget(mySdkPath);
     Sdk sdk = setUpSdkWithDocsRoots(target, ImmutableList.of("https://www.google.com", DEFAULT_EXTERNAL_DOCUMENTATION_URL), false);
 
     // random dir (no docs) - docs root points to random website + web docs - valid
@@ -365,28 +368,12 @@ public class AndroidSdksTest extends IdeaTestCase {
   }
 
   public void testRefreshDocsIn() throws Exception {
-    IAndroidTarget target = findLatestAndroidTarget();
+    IAndroidTarget target = findLatestAndroidTarget(mySdkPath);
     Sdk sdk = setUpSdkWithDocsRoots(target, ImmutableList.of("https://www.google.com"), true);
     assertFalse(myAndroidSdks.hasValidDocs(sdk, target));
 
     myAndroidSdks.refreshDocsIn(sdk);
     assertTrue(myAndroidSdks.hasValidDocs(sdk, target));
-  }
-
-  @NotNull
-  private IAndroidTarget findLatestAndroidTarget() {
-    AndroidSdkData sdkData = getSdkData(mySdkPath);
-    assertNotNull(sdkData);
-    IAndroidTarget[] targets = sdkData.getTargets(false /* do not include add-ons */);
-    assertThat(targets).isNotEmpty();
-
-    // Use the latest platform, which is checked-in as a full SDK. Older platforms may not be checked in full, to save space.
-    Optional<IAndroidTarget> found =
-      Arrays.stream(targets).filter(target -> target.hashString().equals(getLatestAndroidPlatform())).findFirst();
-
-    IAndroidTarget target = found.isPresent() ? found.get() : null;
-    assertNotNull(target);
-    return target;
   }
 
   @NotNull
