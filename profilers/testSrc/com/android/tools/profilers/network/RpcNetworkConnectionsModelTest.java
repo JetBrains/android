@@ -16,10 +16,7 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf3jarjar.ByteString;
@@ -54,7 +51,7 @@ public class RpcNetworkConnectionsModelTest {
   public void setUp() {
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
     myModel = new RpcNetworkConnectionsModel(profilers.getClient().getProfilerClient(), profilers.getClient().getNetworkClient(), 12,
-                                             "Test Device Serial");
+                                             ProfilersTestData.SESSION_DATA);
   }
 
   @Test

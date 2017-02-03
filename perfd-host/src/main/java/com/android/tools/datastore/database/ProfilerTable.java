@@ -15,6 +15,7 @@
  */
 package com.android.tools.datastore.database;
 
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.google.protobuf3jarjar.InvalidProtocolBufferException;
 import com.intellij.openapi.diagnostic.Logger;
@@ -84,7 +85,7 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
 
   public Profiler.GetProcessesResponse getProcesses(Profiler.GetProcessesRequest request) {
     Profiler.GetProcessesResponse.Builder responseBuilder = Profiler.GetProcessesResponse.newBuilder();
-    ResultSet results = executeQuery(ProfilerStatements.SELECT_PROCESS, request.getDeviceSerial().hashCode(), Long.MIN_VALUE, Long.MAX_VALUE);
+    ResultSet results = executeQuery(ProfilerStatements.SELECT_PROCESS, request.getSession().toString().hashCode(), Long.MIN_VALUE, Long.MAX_VALUE);
     try {
       while (results.next()) {
         byte[] data = results.getBytes(1);
@@ -103,9 +104,9 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
     execute(ProfilerStatements.INSERT_DEVICE, device.getSerial().hashCode(), 0L, 0L, device.toByteArray());
   }
 
-  public void insertOrUpdateProcess(String deviceSerial, Profiler.Process process) {
+  public void insertOrUpdateProcess(Common.Session session, Profiler.Process process) {
     //TODO: Properly set end time. Here the end time comes from the device, or is set to now, so we don't leave
     //end times open.
-    execute(ProfilerStatements.INSERT_PROCESS, deviceSerial.hashCode(), process.getPid(), 0L, 0L, process.toByteArray());
+    execute(ProfilerStatements.INSERT_PROCESS, session.toString().hashCode(), process.getPid(), 0L, 0L, process.toByteArray());
   }
 }

@@ -126,7 +126,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   public void startProfilingApp(CpuProfiler.CpuProfilingAppStartRequest request,
                                 StreamObserver<CpuProfiler.CpuProfilingAppStartResponse> observer) {
     // TODO: start time shouldn't be keep in a variable here, but passed through request/response instead.
-    myStartTraceTimestamp = getCurrentDeviceTimeNs();
+    myStartTraceTimestamp = getCurrentDeviceTimeNs(request.getSession().getDeviceSerial());
     observer.onNext(myPollingService.startProfilingApp(request));
     observer.onCompleted();
   }
@@ -138,7 +138,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     CpuProfiler.TraceInfo trace = CpuProfiler.TraceInfo.newBuilder()
       .setTraceId(response.getTraceId())
       .setFromTimestamp(myStartTraceTimestamp)
-      .setToTimestamp(getCurrentDeviceTimeNs())
+      .setToTimestamp(getCurrentDeviceTimeNs(request.getSession().getDeviceSerial()))
       .build();
     myCpuTable.insertTrace(trace, response.getTrace());
     myStartTraceTimestamp = -1;
@@ -162,8 +162,8 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     observer.onCompleted();
   }
 
-  private long getCurrentDeviceTimeNs() {
-    return myProfilerService.getTimes(Profiler.TimesRequest.getDefaultInstance()).getTimestampNs();
+  private long getCurrentDeviceTimeNs(String serial) {
+    return myProfilerService.getCurrentTime(Profiler.TimeRequest.newBuilder().setDeviceSerial(serial).build()).getTimestampNs();
   }
 
   @Override

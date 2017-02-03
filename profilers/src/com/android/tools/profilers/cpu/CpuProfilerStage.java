@@ -137,7 +137,7 @@ public class CpuProfilerStage extends Stage {
 
     // Create an event representing the traces within the range.
     myTraceDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, getCpuTraceDataSeries()));
-    myThreadsStates = new CpuThreadsModel(viewRange, this, getStudioProfilers().getProcessId(), getStudioProfilers().getDeviceSerial());
+    myThreadsStates = new CpuThreadsModel(viewRange, this, getStudioProfilers().getProcessId(), getStudioProfilers().getSession());
 
     myEventMonitor = new EventMonitor(profilers);
     myCaptureState = CaptureState.IDLE;
@@ -338,7 +338,7 @@ public class CpuProfilerStage extends Stage {
     if (capture == null) {
       CpuProfiler.GetTraceRequest request = CpuProfiler.GetTraceRequest.newBuilder()
         .setProcessId(getStudioProfilers().getProcessId())
-        .setDeviceSerial(getStudioProfilers().getDeviceSerial())
+        .setSession(getStudioProfilers().getSession())
         .setTraceId(traceId)
         .build();
       CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
@@ -428,7 +428,7 @@ public class CpuProfilerStage extends Stage {
       CpuProfiler.GetTraceInfoResponse response = cpuService.getTraceInfo(
         CpuProfiler.GetTraceInfoRequest.newBuilder().
         setProcessId(getStudioProfilers().getProcessId()).
-        setDeviceSerial(getStudioProfilers().getDeviceSerial()).
+        setSession(getStudioProfilers().getSession()).
         setFromTimestamp(rangeMin).setToTimestamp(rangeMax).build());
 
       List<SeriesData<CpuCapture>> seriesData = new ArrayList<>();

@@ -17,6 +17,7 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.cpu.CpuProfiler;
 import com.android.tools.profilers.event.EventProfiler;
@@ -40,7 +41,6 @@ import java.util.concurrent.TimeUnit;
 public class StudioProfilers extends AspectModel<ProfilerAspect> implements Updatable {
 
   public static final int INVALID_PROCESS_ID = -1;
-  public static final String INVALID_DEVICE_SERIAL = "";
 
   /**
    * The number of updates per second our simulated object models receive.
@@ -68,6 +68,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   private String myPreferredProcessName;
 
   private Profiler.Device myDevice;
+
+  private Common.Session mySessionData;
 
   @Nullable
   private Stage myStage;
@@ -107,6 +109,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myConnected = false;
     myDevice = null;
     myProcess = null;
+    mySessionData = Common.Session.getDefaultInstance();
 
     myViewAxis = new AxisComponentModel(myTimeline.getViewRange(), TimeAxisFormatter.DEFAULT);
     myViewAxis.setGlobalRange(myTimeline.getDataRange());
@@ -142,7 +145,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       Set<Profiler.Device> devices = new HashSet<>(response.getDeviceList());
       Map<Profiler.Device, List<Profiler.Process>> newProcesses = new HashMap<>();
       for (Profiler.Device device : devices) {
-        Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder().setDeviceSerial(device.getSerial()).build();
+        mySessionData = Common.Session.newBuilder()
+        .setDeviceSerial(device.getSerial())
+        .setBootId(device.getBootId())
+        .build();
+        Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder().setSession(mySessionData).build();
         Profiler.GetProcessesResponse processes = myClient.getProfilerClient().getProcesses(request);
         newProcesses.put(device, processes.getProcessList());
       }
@@ -178,10 +185,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
       if (myDevice != null) {
         // TODO: getTimes should take the device
-        Profiler.TimesResponse times = myClient.getProfilerClient().getTimes(Profiler.TimesRequest.getDefaultInstance());
+        Profiler.TimeResponse times = myClient.getProfilerClient().getCurrentTime(Profiler.TimeRequest.getDefaultInstance());
         myRelativeTimeConverter = new RelativeTimeConverter(times.getTimestampNs() - TimeUnit.SECONDS.toNanos(TIMELINE_BUFFER));
         myTimeline.reset(myRelativeTimeConverter);
         myTimeline.setStreaming(true);
+      } else {
+        mySessionData = null;
       }
 
       // The device has changed, reset the process
@@ -207,14 +216,14 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
     if (!Objects.equals(process, myProcess)) {
       if (myDevice != null && myProcess != null) {
-        myProfilers.forEach(profiler -> profiler.stopProfiling(myDevice.getSerial(), myProcess));
+        myProfilers.forEach(profiler -> profiler.stopProfiling(getSession(), myProcess));
       }
 
       myProcess = process;
       changed(ProfilerAspect.PROCESSES);
 
       if (myDevice != null && myProcess != null) {
-        myProfilers.forEach(profiler -> profiler.startProfiling(myDevice.getSerial(), myProcess));
+        myProfilers.forEach(profiler -> profiler.startProfiling(getSession(), myProcess));
       }
       setStage(new StudioMonitorStage(this));
     }
@@ -263,8 +272,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return myProcess != null ? myProcess.getPid() : INVALID_PROCESS_ID;
   }
 
-  public String getDeviceSerial() {
-    return myDevice != null ? myDevice.getSerial() : INVALID_DEVICE_SERIAL;
+  public Common.Session getSession() {
+    return mySessionData;
   }
 
   public void setStage(Stage stage) {

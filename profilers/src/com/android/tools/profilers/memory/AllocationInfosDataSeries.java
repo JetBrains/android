@@ -18,6 +18,7 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.RelativeTimeConverter;
@@ -35,23 +36,23 @@ import static com.android.tools.adtui.model.DurationData.UNSPECIFIED_DURATION;
 class AllocationInfosDataSeries implements DataSeries<CaptureDurationData<AllocationsCaptureObject>> {
   @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
   private final int myProcessId;
-  private final String myDeviceSerial;
   @NotNull private final RelativeTimeConverter myConverter;
+  private final Common.Session mySession;
 
   public AllocationInfosDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
-                                   String serial, int processId,
+                                   Common.Session session, int processId,
                                    @NotNull RelativeTimeConverter converter) {
     myClient = client;
     myProcessId = processId;
-    myDeviceSerial = serial;
     myConverter = converter;
+    mySession = session;
   }
 
   @NotNull
   private List<MemoryProfiler.AllocationsInfo> getDataForXRange(long rangeMinNs, long rangeMaxNs) {
     MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()
       .setProcessId(myProcessId)
-      .setDeviceSerial(myDeviceSerial)
+      .setSession(mySession)
       .setStartTime(rangeMinNs)
       .setEndTime(rangeMaxNs);
     MemoryProfiler.MemoryData response = myClient.getData(dataRequestBuilder.build());
@@ -74,7 +75,7 @@ class AllocationInfosDataSeries implements DataSeries<CaptureDurationData<Alloca
       seriesData.add(new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(startTimeNs),
                                       new CaptureDurationData<>(
                                         durationUs,
-                                        new AllocationsCaptureObject(myClient, myProcessId, myDeviceSerial, info, myConverter))));
+                                        new AllocationsCaptureObject(myClient, myProcessId, mySession, info, myConverter))));
     }
     return ContainerUtil.immutableList(seriesData);
   }

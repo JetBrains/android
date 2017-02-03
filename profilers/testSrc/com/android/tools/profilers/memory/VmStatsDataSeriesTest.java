@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.ProfilersTestData;
 import com.intellij.util.containers.ImmutableList;
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,7 +29,6 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertEquals;
 
 public class VmStatsDataSeriesTest {
-  private static final String FAKE_DEVICE_SERIAL = "Test Device Serial";
 
   private final FakeMemoryService myService = new FakeMemoryService();
 
@@ -48,7 +48,7 @@ public class VmStatsDataSeriesTest {
     myService.setMemoryData(memoryData);
 
     VmStatsDataSeries series =
-      new VmStatsDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, FAKE_DEVICE_SERIAL, sample -> (long)sample.getJavaAllocationCount());
+      new VmStatsDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, ProfilersTestData.SESSION_DATA, sample -> (long)sample.getJavaAllocationCount());
     ImmutableList<SeriesData<Long>> dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
     assertEquals(2, dataList.size());
     assertEquals(3, dataList.get(0).x);
@@ -56,7 +56,7 @@ public class VmStatsDataSeriesTest {
     assertEquals(14, dataList.get(1).x);
     assertEquals(1500, dataList.get(1).value.longValue());
 
-    series = new VmStatsDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, FAKE_DEVICE_SERIAL, sample -> (long)sample.getJavaFreeCount());
+    series = new VmStatsDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, ProfilersTestData.SESSION_DATA, sample -> (long)sample.getJavaFreeCount());
     dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
     assertEquals(2, dataList.size());
     assertEquals(3, dataList.get(0).x);
