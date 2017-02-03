@@ -44,6 +44,7 @@ import java.util.List;
  * </ul>
  */
 public class SceneComponent {
+  @VisibleForTesting public static final int ANIMATION_DURATION = 350; // ms -- the duration of the animation
   public HashMap<String, Object> myCache = new HashMap<>();
   public SceneDecorator myDecorator;
   private boolean myAllowsAutoconnect = true;
@@ -114,7 +115,7 @@ public class SceneComponent {
     int value;
     int target;
     long startTime;
-    int duration = 350; // ms -- the duration of the animation
+    int duration = ANIMATION_DURATION;
     boolean animating = false;
 
     /**
