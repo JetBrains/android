@@ -45,7 +45,7 @@ public class ProfilerServiceProxyTest {
     ManagedChannel channel = InProcessChannelBuilder.forName("ProfilerServiceProxyTest").build();
     ProfilerServiceProxy proxy = new ProfilerServiceProxy(mockDevice, channel);
 
-    ServerServiceDefinition serverDefinition = proxy.bindService();
+    ServerServiceDefinition serverDefinition = proxy.getServiceDefinition();
     Collection<MethodDescriptor<?, ?>> allMethods = ProfilerServiceGrpc.getServiceDescriptor().getMethods();
     Set<MethodDescriptor<?, ?>> definedMethods =
       serverDefinition.getMethods().stream().map(method -> method.getMethodDescriptor()).collect(Collectors.toSet());

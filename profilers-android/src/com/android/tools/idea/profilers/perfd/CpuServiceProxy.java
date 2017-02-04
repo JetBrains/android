@@ -19,68 +19,25 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ServerServiceDefinition;
-import io.grpc.stub.ServerCalls;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collections;
 
 /**
  * A proxy CpuService on host that intercepts grpc requests from perfd-host to device perfd.
  * This enables us to support legacy workflows based on device's API levels.
  */
-public class CpuServiceProxy extends CpuServiceGrpc.CpuServiceImplBase {
+public class CpuServiceProxy extends PerfdProxyService {
   private CpuServiceGrpc.CpuServiceBlockingStub myServiceStub;
 
   public CpuServiceProxy(@NotNull IDevice device, @NotNull ManagedChannel channel) {
+    super(CpuServiceGrpc.getServiceDescriptor());
+
     myServiceStub = CpuServiceGrpc.newBlockingStub(channel);
   }
 
   @Override
-  public ServerServiceDefinition bindService() {
-    return ServerServiceDefinition.builder(CpuServiceGrpc.getServiceDescriptor())
-      .addMethod(CpuServiceGrpc.METHOD_GET_DATA,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.getData(request));
-                   observer.onCompleted();
-                 }))
-      .addMethod(CpuServiceGrpc.METHOD_GET_THREADS,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.getThreads(request));
-                   observer.onCompleted();
-                 }))
-      .addMethod(CpuServiceGrpc.METHOD_GET_TRACE_INFO,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.getTraceInfo(request));
-                   observer.onCompleted();
-                 }))
-      .addMethod(CpuServiceGrpc.METHOD_GET_TRACE,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.getTrace(request));
-                   observer.onCompleted();
-                 }))
-      .addMethod(CpuServiceGrpc.METHOD_START_MONITORING_APP,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.startMonitoringApp(request));
-                   observer.onCompleted();
-                 }))
-      .addMethod(CpuServiceGrpc.METHOD_STOP_MONITORING_APP,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.stopMonitoringApp(request));
-                   observer.onCompleted();
-                 }))
-      .addMethod(CpuServiceGrpc.METHOD_START_PROFILING_APP,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.startProfilingApp(request));
-                   observer.onCompleted();
-                 }))
-      .addMethod(CpuServiceGrpc.METHOD_STOP_PROFILING_APP,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.stopProfilingApp(request));
-                   observer.onCompleted();
-                 }))
-      .addMethod(CpuServiceGrpc.METHOD_CHECK_APP_PROFILING_STATE,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.checkAppProfilingState(request));
-                   observer.onCompleted();
-                 }))
-      .build();
+  public ServerServiceDefinition getServiceDefinition() {
+    return generatePassThroughDefinitions(Collections.emptyMap(), myServiceStub);
   }
 }

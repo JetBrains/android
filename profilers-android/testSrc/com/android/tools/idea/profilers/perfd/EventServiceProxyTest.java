@@ -45,7 +45,7 @@ public class EventServiceProxyTest {
     ManagedChannel channel = InProcessChannelBuilder.forName("EventServiceProxyTest").build();
     EventServiceProxy proxy = new EventServiceProxy(mockDevice, channel);
 
-    ServerServiceDefinition serverDefinition = proxy.bindService();
+    ServerServiceDefinition serverDefinition = proxy.getServiceDefinition();
     Collection<MethodDescriptor<?, ?>> allMethods = EventServiceGrpc.getServiceDescriptor().getMethods();
     Set<MethodDescriptor<?, ?>> definedMethods =
       serverDefinition.getMethods().stream().map(method -> method.getMethodDescriptor()).collect(Collectors.toSet());

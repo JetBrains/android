@@ -45,7 +45,7 @@ public class CpuServiceProxyTest {
     ManagedChannel channel = InProcessChannelBuilder.forName("CpuServiceProxyTest").build();
     CpuServiceProxy proxy = new CpuServiceProxy(mockDevice, channel);
 
-    ServerServiceDefinition serverDefinition = proxy.bindService();
+    ServerServiceDefinition serverDefinition = proxy.getServiceDefinition();
     Collection<MethodDescriptor<?, ?>> allMethods = CpuServiceGrpc.getServiceDescriptor().getMethods();
     Set<MethodDescriptor<?, ?>> definedMethods =
       serverDefinition.getMethods().stream().map(method -> method.getMethodDescriptor()).collect(Collectors.toSet());
