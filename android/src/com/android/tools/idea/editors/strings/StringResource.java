@@ -24,6 +24,7 @@ import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.google.common.base.Strings;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,6 +39,9 @@ import java.util.Map;
 public final class StringResource {
   @NotNull
   private StringResourceKey myKey;
+
+  @NotNull
+  private final String myResourceFolder;
 
   private boolean myTranslatable;
 
@@ -70,6 +74,10 @@ public final class StringResource {
     }
 
     myKey = key;
+
+    VirtualFile folder = key.getDirectory();
+    myResourceFolder = folder == null ? "" : VirtualFiles.toString(folder, project);
+
     myTranslatable = translatable;
     myDefaultValue = defaultValue;
     myLocaleToTranslationMap = localeToTranslationMap;
@@ -97,6 +105,11 @@ public final class StringResource {
 
   void setKey(@NotNull StringResourceKey key) {
     myKey = key;
+  }
+
+  @NotNull
+  public String getResourceFolder() {
+    return myResourceFolder;
   }
 
   @Nullable
