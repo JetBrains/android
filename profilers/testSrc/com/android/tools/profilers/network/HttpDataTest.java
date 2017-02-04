@@ -106,9 +106,9 @@ public class HttpDataTest {
   }
 
   @Test
-  public void urlNameParsedProperly() {
-    String urlString = "www.google.com/l1/l2/test?query=1";
-    assertThat(HttpData.getUrlName(urlString), equalTo("test"));
+  public void urlNameWithQueryParsedProperly() {
+    String urlString = "www.google.com/l1/l2/test?query=1&other_query=2";
+    assertThat(HttpData.getUrlName(urlString), equalTo("test?query=1&other_query=2"));
   }
 
   @Test
@@ -135,6 +135,13 @@ public class HttpDataTest {
     String tripleEncoded = "https://www.google.com/test%252520test";
     assertThat(HttpData.getUrlName(tripleEncoded), equalTo("test test"));
   }
+
+  @Test
+  public void uryQueryDecoded() {
+    String tripleEncoded = "https://www.google.com/test?query1%25253DHello%252520World%252526query2%25253D%252523Goodbye%252523";
+    assertThat(HttpData.getUrlName(tripleEncoded), equalTo("test?query1=Hello World&query2=#Goodbye#"));
+  }
+
 
   @Test
   public void urlReturnedAsIsIfUnableToDecode() {
