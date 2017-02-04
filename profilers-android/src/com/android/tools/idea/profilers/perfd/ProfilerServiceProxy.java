@@ -100,6 +100,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
       deviceProcesses.addProcess(Profiler.Process.newBuilder()
                                    .setName(description == null ? "[UNKNOWN]" : description)
                                    .setPid(client.getClientData().getPid())
+                                   .setState(Profiler.Process.State.ALIVE)
                                    .build());
     }
 
