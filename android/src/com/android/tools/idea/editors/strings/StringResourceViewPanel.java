@@ -358,11 +358,6 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     }
   }
 
-  // TODO Delete this
-  boolean dataIsCurrent() {
-    return true;
-  }
-
   private void initTable() {
     ListSelectionListener listener = new CellSelectionListener();
 
