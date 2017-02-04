@@ -29,9 +29,10 @@ import java.util.List;
 
 public class StringResourceTableModel extends AbstractTableModel {
   public static final int KEY_COLUMN = 0;
-  public static final int UNTRANSLATABLE_COLUMN = 1;
-  public static final int DEFAULT_VALUE_COLUMN = 2;
-  public static final int FIXED_COLUMN_COUNT = 3;
+  public static final int RESOURCE_FOLDER_COLUMN = 1;
+  public static final int UNTRANSLATABLE_COLUMN = 2;
+  public static final int DEFAULT_VALUE_COLUMN = 3;
+  public static final int FIXED_COLUMN_COUNT = 4;
 
   private final StringResourceData myData;
   private final List<StringResourceKey> myKeys;
@@ -98,6 +99,8 @@ public class StringResourceTableModel extends AbstractTableModel {
         fireTableRowsUpdated(0, myKeys.size());
 
         break;
+      case RESOURCE_FOLDER_COLUMN:
+        break;
       case UNTRANSLATABLE_COLUMN:
         Boolean doNotTranslate = (Boolean)value;
         if (myData.setTranslatable(getKey(row), !doNotTranslate)) {
@@ -120,6 +123,8 @@ public class StringResourceTableModel extends AbstractTableModel {
     switch (column) {
       case KEY_COLUMN:
         return getKey(row).getName();
+      case RESOURCE_FOLDER_COLUMN:
+        return getStringResourceAt(row).getResourceFolder();
       case UNTRANSLATABLE_COLUMN:
         return !getStringResourceAt(row).isTranslatable();
       case DEFAULT_VALUE_COLUMN:
@@ -138,6 +143,8 @@ public class StringResourceTableModel extends AbstractTableModel {
     switch (column) {
       case KEY_COLUMN:
         return "Key";
+      case RESOURCE_FOLDER_COLUMN:
+        return "Resource Folder";
       case UNTRANSLATABLE_COLUMN:
         return "Untranslatable";
       case DEFAULT_VALUE_COLUMN:
@@ -159,6 +166,14 @@ public class StringResourceTableModel extends AbstractTableModel {
 
   @Nullable
   public String getCellProblem(int row, int column) {
-    return column == KEY_COLUMN ? myData.validateKey(getKey(row)) : myData.validateTranslation(getKey(row), getLocale(column));
+    switch (column) {
+      case KEY_COLUMN:
+        return myData.validateKey(getKey(row));
+      case RESOURCE_FOLDER_COLUMN:
+      case UNTRANSLATABLE_COLUMN:
+        return null;
+      default:
+        return myData.validateTranslation(getKey(row), getLocale(column));
+    }
   }
 }
