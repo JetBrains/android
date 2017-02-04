@@ -29,7 +29,6 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.NewImageAssetStepFixture;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -62,13 +61,6 @@ public class NewImageAssetTest {
     myStep = myDialog.getImageAssetStep();
     assertThat(myDialog.findWizardButton("Next").isEnabled()).isTrue();
     // TODO there does not seem to be a error panel in the image asset config
-  }
-
-  @After
-  public void closeAssetStudioWizard() {
-    if (myDialog.target().isShowing()) {
-      myDialog.clickCancel();
-    }
   }
 
   @Test

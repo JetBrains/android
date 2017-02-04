@@ -22,7 +22,6 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.NewVectorAssetStepFixture;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -50,13 +49,6 @@ public class NewVectorAssetTest {
     assertThat(myStep.getError()).isEqualTo("");
   }
 
-  @After
-  public void closeAssetStudioWizard() {
-    if (myDialog.target().isShowing()) {
-      myDialog.clickCancel();
-    }
-  }
-
   @Test
   public void testNameValidation() {
     myStep.setName("");
@@ -68,6 +60,7 @@ public class NewVectorAssetTest {
 
     assertThat(myDialog.findWizardButton("Next").isEnabled()).isFalse();
     assertThat(myStep.getError()).isEqualTo("' ' is not a valid resource name character");
+    myDialog.clickCancel();
   }
 
   @Test
