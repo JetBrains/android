@@ -359,6 +359,7 @@ public class AvdManagerConnection {
     // this error. Either the emulator provides a command to do that, or we learn about its internals (qemu/android/utils/filelock.c) and
     // perform the same action here. If it is not stale, then we should show this error and if possible, bring that window to the front.
     if (myAvdManager.isAvdRunning(info, SDK_LOG)) {
+      myAvdManager.logRunningAvdInfo(info, SDK_LOG);
       String baseFolder;
       try {
         baseFolder = myAvdManager.getBaseAvdFolder().getAbsolutePath();
