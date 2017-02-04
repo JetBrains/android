@@ -19,6 +19,7 @@ package com.android.tools.adtui;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
@@ -119,7 +120,7 @@ public class LegendComponent extends AnimatedComponent {
       Legend legend = myModel.getLegends().get(i);
       String text = legend.getName();
       String value = legend.getValue();
-      if (!text.isEmpty()) {
+      if (!text.isEmpty() && StringUtil.isNotEmpty(value)) {
         text += ": ";
       }
       if (value != null) {
