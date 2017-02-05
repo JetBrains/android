@@ -26,6 +26,7 @@ import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Data of http url connection. Each {@code HttpData} object matches a http connection with a unique id, and it includes both request data
@@ -209,6 +210,19 @@ public class HttpData {
     } catch (Exception ignored) {
     }
     return path;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    HttpData data = (HttpData)o;
+    return myId == data.myId;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myId);
   }
 
   public static final class ContentType {
