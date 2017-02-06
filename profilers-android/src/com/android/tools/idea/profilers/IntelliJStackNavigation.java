@@ -102,6 +102,12 @@ final class IntelliJStackNavigation implements StackNavigation {
       return null;
     }
 
+    // JavaPsiFacade can't deal with inner classes, so we'll need to strip the class name down to just the outer class name.
+    int innerClassSymboldIndex = className.indexOf('$');
+    if (innerClassSymboldIndex > 0) {
+      className = className.substring(0, innerClassSymboldIndex);
+    }
+
     PsiClass psiClass = JavaPsiFacade.getInstance(myProject).findClass(className, GlobalSearchScope.allScope(myProject));
     if (psiClass == null) {
       myCachedClassFile = null;
