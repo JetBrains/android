@@ -24,12 +24,15 @@ import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SelectionModel;
 import com.android.tools.adtui.model.StateChartModel;
+import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.common.LoadingPanel;
 import com.android.tools.profilers.event.EventMonitorView;
-import com.intellij.icons.AllIcons;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
@@ -63,6 +66,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   @Nullable
   private CpuCaptureView myCaptureView;
+
+  @NotNull
+  private final JComboBox<CpuProfiler.CpuProfilingAppStartRequest.Mode> myProfilingModesCombo;
 
   public CpuProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull CpuProfilerStage stage) {
     // TODO: decide if the constructor should be split into multiple methods in order to organize the code and improve readability
@@ -200,6 +206,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myCaptureViewLoading.setLoadingText("Parsing capture...");
 
     updateCaptureState();
+
+    myProfilingModesCombo = new ComboBox<>();
+    JComboBoxView<CpuProfiler.CpuProfilingAppStartRequest.Mode, CpuProfilerAspect> profilingModes =
+      new JComboBoxView<>(myProfilingModesCombo, stage.getAspect(), CpuProfilerAspect.PROFILING_MODE,
+                          stage::getProfilingModes, stage::getProfilingMode, stage::setProfilingMode);
+    profilingModes.bind();
+    myProfilingModesCombo.setRenderer(new ProfilingModeCellRenderer());
   }
 
   // TODO: extract this to a common place as we will probably need it in different profilers.
@@ -241,6 +254,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     }
   }
 
+  private static Logger getLog() {
+    return Logger.getInstance(CpuProfilerStageView.class);
+  }
+
   private static String formatTime(long micro) {
     // TODO unify with TimeAxisFormatter
     long min = micro / (1000000 * 60);
@@ -254,10 +271,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   public JComponent getToolbar() {
     JPanel panel = new JPanel(new BorderLayout());
     JPanel toolbar = new JPanel();
-    JButton button = new JButton();
-    button.setIcon(AllIcons.Actions.Back);
+
+    JButton button = new ProfilerButton();
+    button.setIcon(ProfilerIcons.BACK_ARROW);
     button.addActionListener(action -> myStage.getStudioProfilers().setMonitoringStage());
+
     toolbar.add(button);
+    toolbar.add(myProfilingModesCombo);
     toolbar.add(myCaptureButton);
 
     panel.add(toolbar, BorderLayout.WEST);
@@ -345,6 +365,27 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       // Overrides it because, when not on mac, JBViewport adds the width of the scrollbar to the right inset of the border,
       // which would consequently misplace the threads state chart.
       return new JViewport();
+    }
+  }
+
+  private static class ProfilingModeCellRenderer extends ListCellRendererWrapper<CpuProfiler.CpuProfilingAppStartRequest.Mode> {
+
+    @Override
+    public void customize(JList list,
+                          CpuProfiler.CpuProfilingAppStartRequest.Mode value,
+                          int index,
+                          boolean selected,
+                          boolean hasFocus) {
+      switch (value) {
+        case SAMPLED:
+          setText("Sampled");
+          break;
+        case INSTRUMENTED:
+          setText("Instrumented");
+          break;
+        default:
+          getLog().warn("Unexpected profiling mode received.");
+      }
     }
   }
 
