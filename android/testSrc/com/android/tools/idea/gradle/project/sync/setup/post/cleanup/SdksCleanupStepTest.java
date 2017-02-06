@@ -15,46 +15,51 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.cleanup;
 
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.sdk.Jdks;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.JavadocOrderRootType;
+import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.android.testutils.TestUtils.getSdk;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static com.android.tools.idea.testing.Sdks.findLatestAndroidTarget;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link SdksCleanupStep}.
  */
-public class SdksCleanupStepTest extends AndroidGradleTestCase {
+public class SdksCleanupStepTest extends IdeaTestCase {
   public void testCleanUpSdkWithMissingDocumentation() throws Exception {
-    SdksCleanupStep cleanupStep = new SdksCleanupStep(AndroidSdks.getInstance());
-    loadSimpleApplication();
-
-    // Remove documentation from SDK to ensure it is added later.
-    Module appModule = myModules.getAppModule();
-    Sdk sdk = ModuleRootManager.getInstance(appModule).getSdk();
-    assertNotNull(sdk);
+    Sdk sdk = createSdk();
     removeRoots(sdk, JavadocOrderRootType.getInstance());
 
+    Module module = getModule();
+    setUpModuleAsAndroid(module, sdk);
+
+    SdksCleanupStep cleanupStep = new SdksCleanupStep(AndroidSdks.getInstance());
     Set<Sdk> fixedSdks = new HashSet<>();
     Set<Sdk> invalidSdks = new HashSet<>();
-
-    cleanupStep.cleanUpSdk(appModule, fixedSdks, invalidSdks);
+    cleanupStep.cleanUpSdk(module, fixedSdks, invalidSdks);
 
     String[] urls = sdk.getRootProvider().getUrls(JavadocOrderRootType.getInstance());
     assertThat(urls).asList().containsExactly("http://developer.android.com/reference/");
@@ -64,19 +69,16 @@ public class SdksCleanupStepTest extends AndroidGradleTestCase {
   }
 
   public void testCleanUpSdkWithSdkWithoutAndroidLibrary() throws Exception {
-    SdksCleanupStep cleanupStep = new SdksCleanupStep(AndroidSdks.getInstance());
-    loadSimpleApplication();
-
-    // Remove class jars from SDK to ensure they are added later.
-    Module appModule = myModules.getAppModule();
-    Sdk sdk = ModuleRootManager.getInstance(appModule).getSdk();
-    assertNotNull(sdk);
+    Sdk sdk = createSdk();
     removeRoots(sdk, CLASSES);
 
+    Module module = getModule();
+    setUpModuleAsAndroid(module, sdk);
+
+    SdksCleanupStep cleanupStep = new SdksCleanupStep(AndroidSdks.getInstance());
     Set<Sdk> fixedSdks = new HashSet<>();
     Set<Sdk> invalidSdks = new HashSet<>();
-
-    cleanupStep.cleanUpSdk(appModule, fixedSdks, invalidSdks);
+    cleanupStep.cleanUpSdk(module, fixedSdks, invalidSdks);
 
     // Ensure android.jar was added.
     VirtualFile[] jars = sdk.getRootProvider().getFiles(CLASSES);
@@ -85,12 +87,6 @@ public class SdksCleanupStepTest extends AndroidGradleTestCase {
 
     assertThat(fixedSdks).containsExactly(sdk);
     assertThat(invalidSdks).isEmpty();
-  }
-
-  private static void removeRoots(@NotNull Sdk sdk, @NotNull OrderRootType rootType) {
-    SdkModificator sdkModificator = sdk.getSdkModificator();
-    sdkModificator.removeRoots(rootType);
-    sdkModificator.commitChanges();
   }
 
   public void testCleanUpSdkWithAnAlreadyFixedSdk() throws Exception {
@@ -141,5 +137,54 @@ public class SdksCleanupStepTest extends AndroidGradleTestCase {
 
     assertThat(invalidSdks).containsExactly(sdk);
     assertThat(fixedSdks).isEmpty();
+  }
+
+  // See https://code.google.com/p/android/issues/detail?id=233392
+  public void testCleanUpProjectWithSdkWithUpdatedSources() {
+    Sdk sdk = createSdk();
+    // We could have created the SDK without roots, but better make it explicit that we need an SDK without sources.
+    removeRoots(sdk, SOURCES);
+
+    Module module = getModule();
+    setUpModuleAsAndroid(module, sdk);
+
+    SdksCleanupStep cleanupStep = new SdksCleanupStep(AndroidSdks.getInstance());
+    Set<Sdk> fixedSdks = new HashSet<>();
+    Set<Sdk> invalidSdks = new HashSet<>();
+    cleanupStep.cleanUpSdk(module, fixedSdks, invalidSdks);
+
+    String[] urls = sdk.getRootProvider().getUrls(SOURCES);
+    assertThat(urls).hasLength(1);
+
+    assertThat(fixedSdks).containsExactly(sdk);
+    assertThat(invalidSdks).isEmpty();
+  }
+
+  @NotNull
+  private static Sdk createSdk() {
+    File sdkPath = getSdk();
+    IAndroidTarget target = findLatestAndroidTarget(sdkPath);
+
+    Jdks jdks = Jdks.getInstance();
+    Sdk jdk = jdks.chooseOrCreateJavaSdk();
+
+    Sdk sdk = AndroidSdks.getInstance().create(target, sdkPath, "Test SDK", jdk, true /* add roots */);
+    assertNotNull(sdk);
+    return sdk;
+  }
+
+  private static void removeRoots(@NotNull Sdk sdk, @NotNull OrderRootType rootType) {
+    SdkModificator sdkModificator = sdk.getSdkModificator();
+    sdkModificator.removeRoots(rootType);
+    sdkModificator.commitChanges();
+  }
+
+  private static void setUpModuleAsAndroid(@NotNull Module module, @NotNull Sdk sdk) {
+    AndroidFacet facet = createAndAddAndroidFacet(module);
+    facet.setAndroidModel(mock(AndroidModel.class));
+
+    ModifiableRootModel modifiableModel = ModuleRootManager.getInstance(module).getModifiableModel();
+    modifiableModel.setSdk(sdk);
+    ApplicationManager.getApplication().runWriteAction(modifiableModel::commit);
   }
 }
