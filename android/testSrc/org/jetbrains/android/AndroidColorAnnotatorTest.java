@@ -30,7 +30,7 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.ColorIcon;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import javax.imageio.ImageIO;
@@ -161,14 +161,15 @@ public class AndroidColorAnnotatorTest extends AndroidTestCase {
 
     final List<Annotation> annotations = Lists.newArrayList();
     AnnotationHolder holder = Mockito.mock(AnnotationHolder.class);
-    Mockito.when(holder.createInfoAnnotation(Matchers.any(PsiElement.class), Matchers.anyString())).thenAnswer(invocation -> {
-      PsiElement e = (PsiElement)invocation.getArguments()[0];
-      String message = (String)invocation.getArguments()[1];
-      Annotation annotation = new Annotation(e.getTextRange().getStartOffset(), e.getTextRange().getEndOffset(),
-                                             HighlightSeverity.INFORMATION, message, null);
-      annotations.add(annotation);
-      return annotation;
-    });
+    Mockito.when(holder.createInfoAnnotation(ArgumentMatchers.any(PsiElement.class), ArgumentMatchers.nullable(String.class)))
+      .thenAnswer(invocation -> {
+        PsiElement e = (PsiElement)invocation.getArguments()[0];
+        String message = (String)invocation.getArguments()[1];
+        Annotation annotation = new Annotation(e.getTextRange().getStartOffset(), e.getTextRange().getEndOffset(),
+                                               HighlightSeverity.INFORMATION, message, null);
+        annotations.add(annotation);
+        return annotation;
+      });
 
     AndroidColorAnnotator annotator = new AndroidColorAnnotator();
     annotator.annotate(element, holder);

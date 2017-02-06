@@ -25,6 +25,7 @@ import com.intellij.util.download.DownloadableFileDescription;
 import com.intellij.util.download.FileDownloader;
 import com.intellij.util.download.impl.DownloadableFileDescriptionImpl;
 import org.jetbrains.android.AndroidTestCase;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -73,7 +74,7 @@ public class DistributionServiceTest extends AndroidTestCase {
    */
   public void testSimpleCase() throws Exception {
     FileDownloader downloader = Mockito.mock(FileDownloader.class);
-    Mockito.when(downloader.download(Matchers.any(File.class)))
+    Mockito.when(downloader.download(ArgumentMatchers.any(File.class)))
       .thenReturn(ImmutableList.of(Pair.create(myDistributionFile, myDescription)));
     DistributionService service = new DistributionService(downloader, CACHE_PATH, myDistributionFileUrl);
     assertEquals(0.7, service.getSupportedDistributionForApiLevel(16), 0.0001);
@@ -86,12 +87,12 @@ public class DistributionServiceTest extends AndroidTestCase {
    */
   public void testCache() throws Exception {
     FileDownloader downloader = Mockito.mock(FileDownloader.class);
-    Mockito.when(downloader.download(Matchers.any(File.class)))
+    Mockito.when(downloader.download(ArgumentMatchers.any(File.class)))
       .thenReturn(ImmutableList.of(Pair.create(myDistributionFile, myDescription)));
     DistributionService service = new DistributionService(downloader, CACHE_PATH, myDistributionFileUrl);
     service.getSupportedDistributionForApiLevel(19);
     service.getDistributionForApiLevel(21);
-    Mockito.verify(downloader).download(Matchers.any(File.class));
+    Mockito.verify(downloader).download(ArgumentMatchers.any(File.class));
   }
 
   /**
@@ -101,7 +102,7 @@ public class DistributionServiceTest extends AndroidTestCase {
     final FileDownloader downloader = Mockito.mock(FileDownloader.class);
     final Semaphore s = new Semaphore();
     s.down();
-    Mockito.when(downloader.download(Matchers.any(File.class))).thenAnswer(new Answer<List<Pair<File, DownloadableFileDescription>>>() {
+    Mockito.when(downloader.download(ArgumentMatchers.any(File.class))).thenAnswer(new Answer<List<Pair<File, DownloadableFileDescription>>>() {
       @Override
       public List<Pair<File, DownloadableFileDescription>> answer(InvocationOnMock invocation) throws Throwable {
         assertTrue(s.waitFor(5000));
@@ -114,7 +115,7 @@ public class DistributionServiceTest extends AndroidTestCase {
       service.getDistributionForApiLevel(21);
 
       try {
-        Mockito.verify(downloader).download(Matchers.any(File.class));
+        Mockito.verify(downloader).download(ArgumentMatchers.any(File.class));
       }
       catch (IOException e) {
         throw new RuntimeException(e);
@@ -132,7 +133,7 @@ public class DistributionServiceTest extends AndroidTestCase {
     s.down();
     final Semaphore s2 = new Semaphore();
     s2.down();
-    Mockito.when(downloader.download(Matchers.any(File.class))).thenAnswer(new Answer<List<Pair<File, DownloadableFileDescription>>>() {
+    Mockito.when(downloader.download(ArgumentMatchers.any(File.class))).thenAnswer(new Answer<List<Pair<File, DownloadableFileDescription>>>() {
       @Override
       public List<Pair<File, DownloadableFileDescription>> answer(InvocationOnMock invocation) throws Throwable {
         assertTrue(s.waitFor(5000));
@@ -153,7 +154,7 @@ public class DistributionServiceTest extends AndroidTestCase {
     service.getSupportedDistributionForApiLevel(19);
 
     try {
-      Mockito.verify(downloader).download(Matchers.any(File.class));
+      Mockito.verify(downloader).download(ArgumentMatchers.any(File.class));
     }
     catch (IOException e) {
       throw new RuntimeException(e);
@@ -166,7 +167,7 @@ public class DistributionServiceTest extends AndroidTestCase {
    */
   public void testFailure() throws Exception {
     FileDownloader downloader = Mockito.mock(FileDownloader.class);
-    Mockito.when(downloader.download(Matchers.any(File.class))).thenThrow(new RuntimeException("expected exception"));
+    Mockito.when(downloader.download(ArgumentMatchers.any(File.class))).thenThrow(new RuntimeException("expected exception"));
 
     DistributionService service = new DistributionService(downloader, CACHE_PATH, myDistributionFileUrl);
     final FutureResult<Boolean> result = new FutureResult<>();
@@ -196,7 +197,7 @@ public class DistributionServiceTest extends AndroidTestCase {
     }
 
     FileDownloader downloader = Mockito.mock(FileDownloader.class);
-    Mockito.when(downloader.download(Matchers.any(File.class))).thenThrow(new RuntimeException("expected exception"));
+    Mockito.when(downloader.download(ArgumentMatchers.any(File.class))).thenThrow(new RuntimeException("expected exception"));
     DistributionService service = new DistributionService(downloader, CACHE_PATH, myDistributionFileUrl);
     final FutureResult<Boolean> result = new FutureResult<>();
     service.refresh(() -> result.set(true), () -> {
