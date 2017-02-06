@@ -25,8 +25,6 @@ import com.android.tools.idea.npw.project.NewProjectModel;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
-import com.android.tools.idea.npw.template.TemplateHandle;
-import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.ListenerManager;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
@@ -52,7 +50,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.io.File;
 import java.util.Collection;
-import java.util.List;
 
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -121,10 +118,9 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     validatorPanel.registerValidator(model.packageName(),
                                        value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
 
-    List<TemplateHandle> templateList = TemplateManager.getInstance().getTemplateList(myFormFactor);
     AndroidSourceSet dummySourceSet = new AndroidSourceSet("main", new AndroidProjectPaths(new File("")));
 
-    myRenderModel = new RenderTemplateModel(moduleModel, templateList.get(0), dummySourceSet,
+    myRenderModel = new RenderTemplateModel(moduleModel, null, dummySourceSet,
                                             message("android.wizard.activity.add", myFormFactor.id));
 
     // Some changes on this step model trigger changes on the Render Model
@@ -146,8 +142,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
       // No dependent steps for libraries (no need to choose an activity)
       return Lists.newArrayList();
     }
-    List<TemplateHandle> templateList = TemplateManager.getInstance().getTemplateList(myFormFactor);
-    return Lists.newArrayList(new ChooseActivityTypeStep(getModel(), myRenderModel, templateList, Lists.newArrayList()));
+    return Lists.newArrayList(new ChooseActivityTypeStep(getModel(), myRenderModel, myFormFactor, Lists.newArrayList()));
   }
 
   @Override
