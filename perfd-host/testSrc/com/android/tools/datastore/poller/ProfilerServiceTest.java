@@ -19,6 +19,7 @@ import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.ProfilerService;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.common.collect.ImmutableMap;
@@ -36,6 +37,11 @@ import static org.mockito.Mockito.mock;
 public class ProfilerServiceTest extends DataStorePollerTest {
 
   private static final String DEVICE_SERIAL = "SomeSerialId";
+  private static final String BOOT_ID = "SOME BOOT ID";
+  private static final Common.Session SESSION = Common.Session.newBuilder()
+    .setBootId(BOOT_ID)
+    .setDeviceSerial(DEVICE_SERIAL)
+    .build();
 
   private DataStoreService myDataStore = mock(DataStoreService.class);
 
@@ -67,9 +73,9 @@ public class ProfilerServiceTest extends DataStorePollerTest {
 
   @Test
   public void testGetTimes() throws Exception {
-    StreamObserver<Profiler.TimesResponse> observer = mock(StreamObserver.class);
-    myProfilerService.getTimes(Profiler.TimesRequest.getDefaultInstance(), observer);
-    validateResponse(observer, Profiler.TimesResponse.getDefaultInstance());
+    StreamObserver<Profiler.TimeResponse> observer = mock(StreamObserver.class);
+    myProfilerService.getCurrentTime(Profiler.TimeRequest.getDefaultInstance(), observer);
+    validateResponse(observer, Profiler.TimeResponse.getDefaultInstance());
   }
 
   @Test
@@ -85,6 +91,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     Profiler.GetDevicesResponse expected = Profiler.GetDevicesResponse.newBuilder()
       .addDevice(Profiler.Device.newBuilder()
                    .setSerial(DEVICE_SERIAL)
+                   .setBootId(BOOT_ID)
                    .build())
       .build();
     myProfilerService.getDevices(Profiler.GetDevicesRequest.getDefaultInstance(), observer);
@@ -95,7 +102,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
   public void testGetProcesses() throws Exception {
     StreamObserver<Profiler.GetProcessesResponse> observer = mock(StreamObserver.class);
     Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder()
-      .setDeviceSerial(DEVICE_SERIAL)
+      .setSession(SESSION)
       .build();
     Profiler.GetProcessesResponse expected = Profiler.GetProcessesResponse.newBuilder()
       .addProcess(Profiler.Process.getDefaultInstance())
@@ -127,9 +134,10 @@ public class ProfilerServiceTest extends DataStorePollerTest {
   }
 
   private static class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
+
     @Override
-    public void getTimes(Profiler.TimesRequest request, StreamObserver<Profiler.TimesResponse> responseObserver) {
-      responseObserver.onNext(Profiler.TimesResponse.getDefaultInstance());
+    public void getCurrentTime(Profiler.TimeRequest request, StreamObserver<Profiler.TimeResponse> responseObserver) {
+      responseObserver.onNext(Profiler.TimeResponse.getDefaultInstance());
       responseObserver.onCompleted();
     }
 
@@ -154,6 +162,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     public void getDevices(Profiler.GetDevicesRequest request, StreamObserver<Profiler.GetDevicesResponse> responseObserver) {
       responseObserver.onNext(Profiler.GetDevicesResponse.newBuilder().addDevice(Profiler.Device.newBuilder()
                                                                                    .setSerial(DEVICE_SERIAL)
+                                                                                   .setBootId(BOOT_ID)
                                                                                    .build()).build());
       responseObserver.onCompleted();
     }

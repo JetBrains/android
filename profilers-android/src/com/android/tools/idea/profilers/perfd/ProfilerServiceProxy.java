@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.common.collect.Maps;
@@ -43,7 +44,7 @@ public class ProfilerServiceProxy extends ProfilerServiceGrpc.ProfilerServiceImp
   private final IDevice myDevice;
   private final Profiler.Device myProfilerDevice;
   // TODO synchronize process list.
-  private final Map<String, List<Profiler.Process>> myProcesses = Maps.newHashMap();
+  private final Map<Common.Session, List<Profiler.Process>> myProcesses = Maps.newHashMap();
 
   public ProfilerServiceProxy(@NotNull IDevice device, @NotNull ManagedChannel channel) {
     myDevice = device;
@@ -52,6 +53,8 @@ public class ProfilerServiceProxy extends ProfilerServiceGrpc.ProfilerServiceImp
       .setSerial(device.getSerialNumber())
       .setModel(device.getName())
       .setApi(Integer.toString(device.getVersion().getApiLevel()))
+      //TODO: Change this to use the device boot_id.
+      .setBootId(Integer.toString(device.hashCode()))
       .build();
     updateProcesses();
 
@@ -68,7 +71,7 @@ public class ProfilerServiceProxy extends ProfilerServiceGrpc.ProfilerServiceImp
 
   @Override
   public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> responseObserver) {
-    List<Profiler.Process> processes = myProcesses.get(request.getDeviceSerial());
+    List<Profiler.Process> processes = myProcesses.get(request.getSession());
     Profiler.GetProcessesResponse response = Profiler.GetProcessesResponse.newBuilder().addAllProcess(processes).build();
     responseObserver.onNext(response);
     responseObserver.onCompleted();
@@ -94,8 +97,11 @@ public class ProfilerServiceProxy extends ProfilerServiceGrpc.ProfilerServiceImp
                                    .setPid(client.getClientData().getPid())
                                    .build());
     }
-
-    myProcesses.put(myProfilerDevice.getSerial(), deviceProcesses.getProcessList());
+    Common.Session session = Common.Session.newBuilder()
+      .setBootId(myProfilerDevice.getBootId())
+      .setDeviceSerial(myProfilerDevice.getSerial())
+      .build();
+    myProcesses.put(session, deviceProcesses.getProcessList());
   }
 
   /**
@@ -115,9 +121,9 @@ public class ProfilerServiceProxy extends ProfilerServiceGrpc.ProfilerServiceImp
                    getProcesses(request, observer);
                  }))
       // the rest of the MethodDefinitions are redirected to the connected service if one exists.
-      .addMethod(ProfilerServiceGrpc.METHOD_GET_TIMES,
+      .addMethod(ProfilerServiceGrpc.METHOD_GET_CURRENT_TIME,
                  ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.getTimes(request));
+                   observer.onNext(myServiceStub.getCurrentTime(request));
                    observer.onCompleted();
                  }))
       .addMethod(ProfilerServiceGrpc.METHOD_GET_VERSION,

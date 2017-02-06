@@ -19,6 +19,7 @@ package com.android.tools.profilers.event;
   import com.android.tools.adtui.model.SeriesData;
   import com.android.tools.profiler.proto.EventProfiler;
   import com.android.tools.profilers.FakeGrpcChannel;
+  import com.android.tools.profilers.ProfilersTestData;
   import org.junit.Before;
   import org.junit.Rule;
   import org.junit.Test;
@@ -39,7 +40,7 @@ public class SimpleEventDataSeriesTest {
 
   @Before
   public void setUp() {
-    mySeries = new SimpleEventDataSeries(myGrpcChannel.getClient(), FakeEventService.FAKE_APP_ID, FakeEventService.FAKE_DEVICE_ID);
+    mySeries = new SimpleEventDataSeries(myGrpcChannel.getClient(), FakeEventService.FAKE_APP_ID, ProfilersTestData.SESSION_DATA);
   }
 
   @Test

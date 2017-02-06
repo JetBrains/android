@@ -16,10 +16,8 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profiler.proto.*;
 import com.android.tools.profiler.proto.NetworkProfiler;
-import com.android.tools.profiler.proto.NetworkServiceGrpc;
-import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -37,15 +35,15 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
   private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkService;
 
   private final int myPid;
-  private final String myDeviceSerial;
+  private final Common.Session mySession;
 
   public RpcNetworkConnectionsModel(@NotNull ProfilerServiceGrpc.ProfilerServiceBlockingStub profilerService,
                                     @NotNull NetworkServiceGrpc.NetworkServiceBlockingStub networkService,
-                                    int pid, String serial) {
+                                    int pid, Common.Session session) {
     myProfilerService = profilerService;
     myNetworkService = networkService;
     myPid = pid;
-    myDeviceSerial = serial;
+    mySession = session;
   }
 
   @NotNull
@@ -53,7 +51,7 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
   public List<HttpData> getData(@NotNull Range timeCurrentRangeUs) {
     NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
       .setProcessId(myPid)
-      .setDeviceSerial(myDeviceSerial)
+      .setSession(mySession)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax())).build();
     NetworkProfiler.HttpRangeResponse response = myNetworkService.getHttpRange(request);

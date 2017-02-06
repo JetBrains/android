@@ -18,6 +18,7 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.google.common.collect.ImmutableList;
@@ -48,7 +49,7 @@ public class NetworkOpenConnectionsDataSeriesTest {
   @Before
   public void setUp() {
     StudioProfilers profiler = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
-    mySeries = new NetworkOpenConnectionsDataSeries(profiler.getClient().getNetworkClient(), FakeNetworkService.FAKE_APP_ID, FakeNetworkService.FAKE_DEVICE_SERIAL);
+    mySeries = new NetworkOpenConnectionsDataSeries(profiler.getClient().getNetworkClient(), FakeNetworkService.FAKE_APP_ID, ProfilersTestData.SESSION_DATA);
   }
 
   @Test

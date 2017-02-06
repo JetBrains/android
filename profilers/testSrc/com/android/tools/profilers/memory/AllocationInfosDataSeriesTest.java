@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.RelativeTimeConverter;
+import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.memory.adapters.AllocationsCaptureObject;
 import com.intellij.util.containers.ImmutableList;
 import org.junit.Rule;
@@ -49,7 +50,7 @@ public class AllocationInfosDataSeriesTest {
     myService.setMemoryData(memoryData);
 
     AllocationInfosDataSeries series =
-      new AllocationInfosDataSeries(myGrpcChannel.getClient().getMemoryClient(), "Test Device Serial", 1, new RelativeTimeConverter(0));
+      new AllocationInfosDataSeries(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, 1, new RelativeTimeConverter(0));
     ImmutableList<SeriesData<CaptureDurationData<AllocationsCaptureObject>>> dataList =
       series.getDataForXRange(new Range(0, Double.MAX_VALUE));
 

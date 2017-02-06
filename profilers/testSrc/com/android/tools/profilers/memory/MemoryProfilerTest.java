@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.profiler.proto.*;
 import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.FakeGrpcChannel;
 import org.junit.Before;
@@ -27,7 +28,6 @@ import static org.junit.Assert.*;
 
 public class MemoryProfilerTest {
   private static final int FAKE_PID = 111;
-  private static final String FAKE_DEVICE_SERIAL = "Test Device Serial";
 
   private final FakeMemoryService myService = new FakeMemoryService();
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryProfilerTest", myService);
@@ -42,13 +42,13 @@ public class MemoryProfilerTest {
 
   @Test
   public void startMonitoring() {
-    myProfiler.startProfiling(FAKE_DEVICE_SERIAL, FAKE_PROCESS);
+    myProfiler.startProfiling(ProfilersTestData.SESSION_DATA, FAKE_PROCESS);
     assertEquals(FAKE_PID, myService.getProcessId());
   }
 
   @Test
   public void stopMonitoring() {
-    myProfiler.stopProfiling(FAKE_DEVICE_SERIAL, FAKE_PROCESS);
+    myProfiler.stopProfiling(ProfilersTestData.SESSION_DATA, FAKE_PROCESS);
     assertEquals(FAKE_PID, myService.getProcessId());
   }
 }
