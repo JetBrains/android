@@ -80,6 +80,10 @@ public final class TestGrpcService<S extends BindableService> extends ExternalRe
     myTestFile.delete();
   }
 
+  public void shutdownServer() {
+    myServer.shutdownNow();
+  }
+
   public ManagedChannel getChannel() {
     return InProcessChannelBuilder.forName(myGrpcName)
       .usePlaintext(true)

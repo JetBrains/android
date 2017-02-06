@@ -106,7 +106,15 @@ public class EventService extends EventServiceGrpc.EventServiceImplBase implemen
   public void stopMonitoringApp(EventProfiler.EventStopRequest request, StreamObserver<EventProfiler.EventStopResponse> observer) {
     int processId = request.getProcessId();
     myRunners.remove(processId).stop();
-    observer.onNext(myEventPollingService.stopMonitoringApp(request));
+
+    // Our polling service can get shutdown if we unplug the device.
+    // This should be the only function that gets called as StudioProfilers attempts
+    // to stop monitoring the last app it was monitoring.
+    if (!((ManagedChannel)myEventPollingService.getChannel()).isShutdown()) {
+      observer.onNext(myEventPollingService.stopMonitoringApp(request));
+    } else {
+      observer.onNext(EventProfiler.EventStopResponse.getDefaultInstance());
+    }
     observer.onCompleted();
   }
 
