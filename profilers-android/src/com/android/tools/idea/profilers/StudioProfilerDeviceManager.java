@@ -222,10 +222,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
 
           @Override
           public void flush() {
-            if (myPerfdProxy != null) {
-              myPerfdProxy.disconnect();
-              myPerfdProxy = null;
-            }
+            // flush does not always get called. So we need to perform the proxy server/channel clean up after the perfd process has died.
           }
 
           @Override
@@ -236,6 +233,11 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
 
         if (proxyChannel != null) {
           myDataStore.disconnect(proxyChannel);
+        }
+
+        if (myPerfdProxy != null) {
+          myPerfdProxy.disconnect();
+          myPerfdProxy = null;
         }
 
         getLogger().info("Terminating perfd thread");

@@ -16,48 +16,23 @@
 package com.android.tools.idea.profilers.perfd;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ServerServiceDefinition;
-import io.grpc.stub.ServerCalls;
 import org.jetbrains.annotations.NotNull;
 
-public class NetworkServiceProxy extends NetworkServiceGrpc.NetworkServiceImplBase {
+import java.util.Collections;
+
+public class NetworkServiceProxy extends PerfdProxyService {
   private NetworkServiceGrpc.NetworkServiceBlockingStub myServiceStub;
 
   public NetworkServiceProxy(@NotNull IDevice device, @NotNull ManagedChannel channel) {
+    super(NetworkServiceGrpc.getServiceDescriptor());
     myServiceStub = NetworkServiceGrpc.newBlockingStub(channel);
   }
 
   @Override
-  public ServerServiceDefinition bindService() {
-    return ServerServiceDefinition.builder(NetworkServiceGrpc.getServiceDescriptor())
-      .addMethod(NetworkServiceGrpc.METHOD_GET_DATA,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.getData(request));
-                   observer.onCompleted();
-                 }))
-      .addMethod(NetworkServiceGrpc.METHOD_START_MONITORING_APP,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.startMonitoringApp(request));
-                   observer.onCompleted();
-                 }))
-      .addMethod(NetworkServiceGrpc.METHOD_STOP_MONITORING_APP,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.stopMonitoringApp(request));
-                   observer.onCompleted();
-                 }))
-      .addMethod(NetworkServiceGrpc.METHOD_GET_HTTP_RANGE,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.getHttpRange(request));
-                   observer.onCompleted();
-                 }))
-      .addMethod(NetworkServiceGrpc.METHOD_GET_HTTP_DETAILS,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.getHttpDetails(request));
-                   observer.onCompleted();
-                 }))
-      .build();
+  public ServerServiceDefinition getServiceDefinition() {
+    return generatePassThroughDefinitions(Collections.emptyMap(), myServiceStub);
   }
 }
