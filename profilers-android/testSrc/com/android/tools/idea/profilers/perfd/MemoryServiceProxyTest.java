@@ -45,7 +45,7 @@ public class MemoryServiceProxyTest {
     ManagedChannel channel = InProcessChannelBuilder.forName("MemoryServiceProxyTest").build();
     MemoryServiceProxy proxy = new MemoryServiceProxy(mockDevice, channel);
 
-    ServerServiceDefinition serverDefinition = proxy.bindService();
+    ServerServiceDefinition serverDefinition = proxy.getServiceDefinition();
     Collection<MethodDescriptor<?, ?>> allMethods = MemoryServiceGrpc.getServiceDescriptor().getMethods();
     Set<MethodDescriptor<?, ?>> definedMethods =
       serverDefinition.getMethods().stream().map(method -> method.getMethodDescriptor()).collect(Collectors.toSet());

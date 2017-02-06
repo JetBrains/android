@@ -19,16 +19,18 @@ import com.android.annotations.NonNull;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
-import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.common.collect.Maps;
 import io.grpc.ManagedChannel;
+import io.grpc.MethodDescriptor;
+import io.grpc.ServerCallHandler;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.ServerCalls;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -38,15 +40,16 @@ import static com.android.ddmlib.Client.CHANGE_NAME;
  * A proxy ProfilerService on host that intercepts grpc requests from perfd-host to device perfd.
  * This enables us to support legacy workflows based on device's API levels.
  */
-public class ProfilerServiceProxy extends ProfilerServiceGrpc.ProfilerServiceImplBase implements AndroidDebugBridge.IClientChangeListener {
+public class ProfilerServiceProxy extends PerfdProxyService
+  implements AndroidDebugBridge.IClientChangeListener {
 
   private ProfilerServiceGrpc.ProfilerServiceBlockingStub myServiceStub;
   private final IDevice myDevice;
   private final Profiler.Device myProfilerDevice;
-  // TODO synchronize process list.
-  private final Map<Common.Session, List<Profiler.Process>> myProcesses = Maps.newHashMap();
+  private final List<Profiler.Process> myProcesses;
 
   public ProfilerServiceProxy(@NotNull IDevice device, @NotNull ManagedChannel channel) {
+    super(ProfilerServiceGrpc.getServiceDescriptor());
     myDevice = device;
     myServiceStub = ProfilerServiceGrpc.newBlockingStub(channel);
     myProfilerDevice = Profiler.Device.newBuilder()
@@ -56,23 +59,25 @@ public class ProfilerServiceProxy extends ProfilerServiceGrpc.ProfilerServiceImp
       //TODO: Change this to use the device boot_id.
       .setBootId(Integer.toString(device.hashCode()))
       .build();
+    myProcesses = new ArrayList<>();
     updateProcesses();
 
-    // TODO remove listeners when this class instance goes away.
     AndroidDebugBridge.addClientChangeListener(this);
   }
 
   @Override
+  public void disconnect() {
+    AndroidDebugBridge.removeClientChangeListener(this);
+  }
+
   public void getDevices(Profiler.GetDevicesRequest request, StreamObserver<Profiler.GetDevicesResponse> responseObserver) {
     Profiler.GetDevicesResponse response = Profiler.GetDevicesResponse.newBuilder().addDevice(myProfilerDevice).build();
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }
 
-  @Override
   public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> responseObserver) {
-    List<Profiler.Process> processes = myProcesses.get(request.getSession());
-    Profiler.GetProcessesResponse response = Profiler.GetProcessesResponse.newBuilder().addAllProcess(processes).build();
+    Profiler.GetProcessesResponse response = Profiler.GetProcessesResponse.newBuilder().addAllProcess(myProcesses).build();
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }
@@ -97,46 +102,21 @@ public class ProfilerServiceProxy extends ProfilerServiceGrpc.ProfilerServiceImp
                                    .setPid(client.getClientData().getPid())
                                    .build());
     }
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(myProfilerDevice.getBootId())
-      .setDeviceSerial(myProfilerDevice.getSerial())
-      .build();
-    myProcesses.put(session, deviceProcesses.getProcessList());
+
+    myProcesses.addAll(deviceProcesses.getProcessList());
   }
 
-  /**
-   * TODO: instead of override bindServer(), we should use a generic way to redirect grpc calls to the service stub for all methods
-   * that are not overridden in this proxy service. Same goes for all the proxy service implementation.
-   */
   @Override
-  public ServerServiceDefinition bindService() {
-    return ServerServiceDefinition.builder(ProfilerServiceGrpc.getServiceDescriptor())
-      // getDevices + getProcesses are handled locally in this service.
-      .addMethod(ProfilerServiceGrpc.METHOD_GET_DEVICES,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   getDevices(request, observer);
-                 }))
-      .addMethod(ProfilerServiceGrpc.METHOD_GET_PROCESSES,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   getProcesses(request, observer);
-                 }))
-      // the rest of the MethodDefinitions are redirected to the connected service if one exists.
-      .addMethod(ProfilerServiceGrpc.METHOD_GET_CURRENT_TIME,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.getCurrentTime(request));
-                   observer.onCompleted();
-                 }))
-      .addMethod(ProfilerServiceGrpc.METHOD_GET_VERSION,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.getVersion(request));
-                   observer.onCompleted();
-                 }))
-      .addMethod(ProfilerServiceGrpc.METHOD_GET_BYTES,
-                 ServerCalls.asyncUnaryCall((request, observer) -> {
-                   observer.onNext(myServiceStub.getBytes(request));
-                   observer.onCompleted();
-                 }))
-
-      .build();
+  public ServerServiceDefinition getServiceDefinition() {
+    Map<MethodDescriptor, ServerCallHandler> overrides = Maps.newHashMap();
+    overrides.put(ProfilerServiceGrpc.METHOD_GET_DEVICES,
+                  ServerCalls.asyncUnaryCall((request, observer) -> {
+                    getDevices((Profiler.GetDevicesRequest)request, (StreamObserver)observer);
+                  }));
+    overrides.put(ProfilerServiceGrpc.METHOD_GET_PROCESSES,
+                  ServerCalls.asyncUnaryCall((request, observer) -> {
+                    getProcesses((Profiler.GetProcessesRequest)request, (StreamObserver)observer);
+                  }));
+    return generatePassThroughDefinitions(overrides, myServiceStub);
   }
 }
