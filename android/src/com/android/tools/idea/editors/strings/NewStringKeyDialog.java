@@ -30,12 +30,14 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
+import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class NewStringKeyDialog extends DialogWrapper {
   private JPanel myPanel;
 
-  private JComboBox myResFolderCombo;
+  private JComboBox<VirtualFile> myResFolderCombo;
   private EditorTextField myKeyField;
   private EditorTextField myDefaultValueField;
 
@@ -45,12 +47,14 @@ public class NewStringKeyDialog extends DialogWrapper {
 
   private final ResourceNameValidator myResourceNameValidator;
 
-  public NewStringKeyDialog(@NotNull final AndroidFacet facet, @NotNull Set<String> existing) {
+  NewStringKeyDialog(@NotNull AndroidFacet facet, @NotNull Collection<StringResourceKey> existing) {
     super(facet.getModule().getProject(), false);
 
     final VirtualFile baseDir = facet.getModule().getProject().getBaseDir();
 
-    myResFolderCombo.setModel(new ListComboBoxModel(facet.getAllResourceDirectories()));
+    // noinspection unchecked
+    myResFolderCombo.setModel(new ListComboBoxModel<>(facet.getAllResourceDirectories()));
+
     myResFolderCombo.setRenderer(new ListCellRendererWrapper<VirtualFile>() {
       @Override
       public void customize(JList list, VirtualFile file, int index, boolean selected, boolean hasFocus) {
@@ -59,7 +63,11 @@ public class NewStringKeyDialog extends DialogWrapper {
     });
     myResFolderCombo.setSelectedIndex(0);
 
-    myResourceNameValidator = ResourceNameValidator.create(false, existing, ResourceType.STRING);
+    Set<String> names = existing.stream()
+      .map(StringResourceKey::getName)
+      .collect(Collectors.toSet());
+
+    myResourceNameValidator = ResourceNameValidator.create(false, names, ResourceType.STRING);
 
     init();
   }
@@ -76,6 +84,7 @@ public class NewStringKeyDialog extends DialogWrapper {
     return myKeyField;
   }
 
+  // TODO Allow names that exist in other resource directories
   @Nullable
   @Override
   protected ValidationInfo doValidate() {
