@@ -124,7 +124,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     return myFacet;
   }
 
-  VirtualFile getResourceDir() {
+  @NotNull
+  public VirtualFile getResourceDir() {
     return myResourceDir;
   }
 
@@ -579,7 +580,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     myDataBindingResourceFilesModificationCount = modificationCount;
     Map<String, List<LayoutDataBindingInfo>> infoFilesByConfiguration = myResourceFiles.values().stream()
       .map(resourceFile -> resourceFile instanceof PsiResourceFile ? (((PsiResourceFile)resourceFile).getDataBindingInfo()) : null)
-      .filter(info -> info != null)
+      .filter(Objects::nonNull)
       .collect(Collectors.groupingBy(LayoutDataBindingInfo::getFileName));
 
     Map<String, DataBindingInfo> selected = infoFilesByConfiguration.entrySet().stream().flatMap(entry -> {
