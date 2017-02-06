@@ -43,6 +43,15 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     .setDeviceSerial(DEVICE_SERIAL)
     .build();
 
+  private static final Profiler.Process INITIAL_PROCESS = Profiler.Process.newBuilder()
+    .setPid(1234)
+    .setName("INITAL")
+    .build();
+  private static final Profiler.Process FINAL_PROCESS = Profiler.Process.newBuilder()
+    .setPid(4321)
+    .setName("FINAL")
+    .build();
+
   private DataStoreService myDataStore = mock(DataStoreService.class);
 
   private ProfilerService myProfilerService = new ProfilerService(myDataStore, getPollTicker()::run);
@@ -58,8 +67,9 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     put(BYTES_ID_2, BYTES_2).
     build();
 
+  FakeProfilerService myFakeService = new FakeProfilerService();
   @Rule
-  public TestGrpcService<FakeProfilerService> myService = new TestGrpcService<>(myProfilerService, new FakeProfilerService());
+  public TestGrpcService<FakeProfilerService> myService = new TestGrpcService<>(myProfilerService, myFakeService);
 
   @Before
   public void setUp() throws Exception {
@@ -105,7 +115,33 @@ public class ProfilerServiceTest extends DataStorePollerTest {
       .setSession(SESSION)
       .build();
     Profiler.GetProcessesResponse expected = Profiler.GetProcessesResponse.newBuilder()
-      .addProcess(Profiler.Process.getDefaultInstance())
+      .addProcess(INITIAL_PROCESS)
+      .build();
+    myProfilerService.getProcesses(request, observer);
+    validateResponse(observer, expected);
+  }
+
+  @Test
+  public void testGetDeadProcesses() throws Exception {
+    StreamObserver<Profiler.GetProcessesResponse> observer = mock(StreamObserver.class);
+    Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder()
+      .setSession(SESSION)
+      .build();
+    Profiler.GetProcessesResponse expected = Profiler.GetProcessesResponse.newBuilder()
+      .addProcess(INITIAL_PROCESS)
+      .build();
+    myProfilerService.getProcesses(request, observer);
+    validateResponse(observer, expected);
+
+    // Change the process list for the second tick.
+    // We expect to get back both processes, the initial process
+    // Should be set to a dead state.
+    myFakeService.setProcessToReturn(FINAL_PROCESS);
+    getPollTicker().run();
+    observer = mock(StreamObserver.class);
+    expected = Profiler.GetProcessesResponse.newBuilder()
+      .addProcess(INITIAL_PROCESS.toBuilder().setState(Profiler.Process.State.DEAD))
+      .addProcess(FINAL_PROCESS)
       .build();
     myProfilerService.getProcesses(request, observer);
     validateResponse(observer, expected);
@@ -134,6 +170,12 @@ public class ProfilerServiceTest extends DataStorePollerTest {
   }
 
   private static class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
+
+    Profiler.Process myProcessToReturn = INITIAL_PROCESS;
+
+    public void setProcessToReturn(Profiler.Process process) {
+      myProcessToReturn = process;
+    }
 
     @Override
     public void getCurrentTime(Profiler.TimeRequest request, StreamObserver<Profiler.TimeResponse> responseObserver) {
@@ -169,7 +211,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
 
     @Override
     public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> responseObserver) {
-      responseObserver.onNext(Profiler.GetProcessesResponse.newBuilder().addProcess(Profiler.Process.getDefaultInstance()).build());
+      responseObserver.onNext(Profiler.GetProcessesResponse.newBuilder().addProcess(myProcessToReturn).build());
       responseObserver.onCompleted();
     }
   }
