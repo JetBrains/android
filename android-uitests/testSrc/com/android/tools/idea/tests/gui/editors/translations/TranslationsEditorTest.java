@@ -22,7 +22,8 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MultilineStringEditorDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.TranslationsEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.translations.AddKeyDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
 import com.intellij.notification.Notification;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.util.ui.EmptyClipboardOwner;
@@ -96,6 +97,33 @@ public final class TranslationsEditorTest {
     JTableCellFixture cancel = myTranslationsEditor.getTable().cell(TableCell.row(3).column(7)); // Cancel in zh-rCN
     assertEquals("取消", cancel.value());
     assertEquals(-1, cancel.font().target().canDisplayUpTo("取消")); // requires DroidSansFallbackFull.ttf
+  }
+
+  @Test
+  public void dialogAddsKeyInDifferentFolder() {
+    myTranslationsEditor.getAddKeyButton().click();
+
+    AddKeyDialogFixture dialog = myTranslationsEditor.getAddKeyDialog();
+    dialog.getDefaultValueTextField().enterText("action_settings");
+    dialog.getKeyTextField().enterText("action_settings");
+    dialog.getResourceFolderComboBox().selectItem("app/src/debug/res");
+    dialog.getOkButton().click();
+
+    Object expected = Arrays.asList("action_settings", "action_settings", "app_name", "app_name", "cancel", "hello_world");
+    assertEquals(expected, myTranslationsEditor.keys());
+  }
+
+  @Test
+  public void dialogDoesntAddKeyInSameFolder() {
+    myTranslationsEditor.getAddKeyButton().click();
+
+    AddKeyDialogFixture dialog = myTranslationsEditor.getAddKeyDialog();
+    dialog.getDefaultValueTextField().enterText("action_settings");
+    dialog.getKeyTextField().enterText("action_settings");
+    dialog.getOkButton().click();
+
+    dialog.waitUntilErrorLabelFound("action_settings already exists in app/src/main/res");
+    dialog.getCancelButton().click();
   }
 
   @Test
