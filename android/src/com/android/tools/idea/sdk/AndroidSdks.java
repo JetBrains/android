@@ -317,8 +317,6 @@ public class AndroidSdks {
     IAndroidTarget target = data.getBuildTarget(androidSdkData);
     assert target != null;
 
-    findAndSetPlatformSources(target, sdkModificator);
-
     String name = createUniqueSdkName(sdkName, allSdks);
     sdkModificator.setName(name);
 
@@ -328,6 +326,8 @@ public class AndroidSdks {
       for (OrderRoot orderRoot : newRoots) {
         sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
       }
+      findAndSetPlatformSources(target, sdkModificator);
+
       // TODO move this method to Jdks.
       attachJdkAnnotations(sdkModificator);
     }
