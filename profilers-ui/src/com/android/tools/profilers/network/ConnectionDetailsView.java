@@ -16,6 +16,7 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.TreeWalker;
 import com.android.tools.profilers.common.StackTraceView;
 import com.android.tools.profilers.common.TabsPanel;
 import com.google.common.annotations.VisibleForTesting;
@@ -28,6 +29,7 @@ import com.intellij.ui.InplaceButton;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.labels.BoldLabel;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,9 +48,11 @@ import java.util.TreeMap;
  * View to display a single network request and its response's detailed information.
  */
 public class ConnectionDetailsView extends JPanel {
-  private static final int PAGE_VGAP = 32;
-  private static final int SECTION_VGAP = 16;
-  private static final int HGAP = 22;
+  private static final int PAGE_VGAP = JBUI.scale(32);
+  private static final int SECTION_VGAP = JBUI.scale(10);
+  private static final int HGAP = JBUI.scale(22);
+  private static final float FIELD_FONT_SIZE = 11.f;
+
 
   private final JPanel myEditorPanel;
   private final JPanel myFieldsPanel;
@@ -166,6 +170,11 @@ public class ConnectionDetailsView extends JPanel {
     row++;
     myFieldsPanel.add(new NoWrapBoldLabel("URL"), new TabularLayout.Constraint(row, 0));
     myFieldsPanel.add(urlLabel, new TabularLayout.Constraint(row, 2));
+
+    new TreeWalker(myFieldsPanel).descendantStream().forEach(c -> {
+      Font font = c.getFont();
+      c.setFont(font.deriveFont(FIELD_FONT_SIZE));
+    });
   }
 
   @NotNull
@@ -174,7 +183,7 @@ public class ConnectionDetailsView extends JPanel {
     panel.setBorder(BorderFactory.createEmptyBorder(0, HGAP, 0, 0));
 
     JLabel titleLabel = new NoWrapBoldLabel(title);
-    titleLabel.setFont(titleLabel.getFont().deriveFont(16.f));
+    titleLabel.setFont(titleLabel.getFont().deriveFont(14.f));
     panel.add(titleLabel);
 
     if (map.isEmpty()) {
@@ -183,7 +192,7 @@ public class ConnectionDetailsView extends JPanel {
       panel.add(emptyLabel);
     } else {
       Map<String, String> sortedMap = new TreeMap<>(map);
-      Border rowKeyBorder = BorderFactory.createEmptyBorder(0, 0, 0, HGAP);
+      Border rowKeyBorder = BorderFactory.createEmptyBorder(0, 0, 0, JBUI.scale(18));
       for (Map.Entry<String, String> entry : sortedMap.entrySet()) {
         JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         JLabel keyLabel = new NoWrapBoldLabel(entry.getKey() + ":");
@@ -194,6 +203,13 @@ public class ConnectionDetailsView extends JPanel {
         panel.add(row);
       }
     }
+
+    new TreeWalker(panel).descendantStream().forEach(c -> {
+      if (c != titleLabel) {
+        Font font = c.getFont();
+        c.setFont(font.deriveFont(FIELD_FONT_SIZE));
+      }
+    });
 
     // Set name so tests can get a handle to this panel.
     panel.setName(title);
