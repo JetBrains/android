@@ -17,6 +17,8 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.HNode;
+import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.common.CodeLocation;
@@ -256,7 +258,43 @@ public class CpuProfilerStageTest extends AspectObserver {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     stage = new CpuProfilerStage(profilers);
     assertEquals(CpuProfilerStage.CaptureState.IDLE, stage.getCaptureState());
+  }
 
+  @Test
+  public void setAndSelectCaptureDifferentClockType() throws IOException {
+    CpuCapture capture = new CpuCapture(CpuCaptureTest.readValidTrace());
+    HNode<MethodModel> mainHNode = capture.getCaptureNode(capture.getMainThreadId());
+    assertNotNull(mainHNode);
+    assertTrue(mainHNode instanceof CaptureNode);
+    CaptureNode captureNode = (CaptureNode)mainHNode;
+    myStage.setSelectedThread(capture.getMainThreadId());
+
+    assertEquals(ClockType.GLOBAL, captureNode.getClockType());
+    myStage.setAndSelectCapture(capture);
+    ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
+    double eps = 0.00001;
+    // In GLOBAL clock type, selection should be the main node range
+    assertEquals(timeline.getSelectionRange().getMin(), captureNode.getStartGlobal(), eps);
+    assertEquals(timeline.getSelectionRange().getMax(), captureNode.getEndGlobal(), eps);
+    assertEquals(capture.getRange().getMax(), timeline.getSelectionRange().getMax(), eps);
+
+    myStage.setClockType(ClockType.THREAD);
+    assertEquals(ClockType.THREAD, captureNode.getClockType());
+    myStage.setAndSelectCapture(capture);
+    // In THREAD clock type, selection should scale the interval based on thread-clock/wall-clock ratio [node's startTime, node's endTime].
+    double threadToGlobal = 1 / captureNode.threadGlobalRatio();
+    double threadSelectionStart = captureNode.getStartGlobal() +
+                                  threadToGlobal * (captureNode.getStartThread() - timeline.getSelectionRange().getMin());
+    double threadSelectionEnd = threadSelectionStart +
+                                threadToGlobal * captureNode.duration();
+    assertEquals(timeline.getSelectionRange().getMin(), threadSelectionStart, eps);
+    assertEquals(timeline.getSelectionRange().getMax(), threadSelectionEnd, eps);
+
+    myStage.setClockType(ClockType.GLOBAL);
+    assertEquals(ClockType.GLOBAL, captureNode.getClockType());
+    // Just setting the clock type shouldn't change the selection range
+    assertEquals(timeline.getSelectionRange().getMin(), threadSelectionStart, eps);
+    assertEquals(timeline.getSelectionRange().getMax(), threadSelectionEnd, eps);
   }
 
   private void captureSuccessfully() throws InterruptedException {

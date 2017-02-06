@@ -24,4 +24,6 @@ public enum CpuProfilerAspect {
   CAPTURE_DETAILS,
   // The profiling mode (i.e. sampled or instrumented) has changed
   PROFILING_MODE,
+  // Clock type (i.e. wall or thread) has changed.
+  CLOCK_TYPE,
 }

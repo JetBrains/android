@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.android.tools.perflib.vmtrace.VmTraceData;
 import com.android.tools.perflib.vmtrace.VmTraceParser;
@@ -40,10 +41,13 @@ public class CpuCapture implements DurationData {
   private final int myMainThreadId;
 
   @NotNull
-  private final Map<ThreadInfo, HNode<MethodModel>> myCaptureTrees;
+  private final Map<ThreadInfo, CaptureNode> myCaptureTrees;
 
   @NotNull
-  private final Range myRange;
+  private Range myRange;
+
+  @NotNull
+  private ClockType myClockType;
 
   public CpuCapture(@NotNull ByteString bytes) {
     // TODO: Remove layers, analyze whether we can keep the whole file in memory.
@@ -67,10 +71,10 @@ public class CpuCapture implements DurationData {
 
     // Try to find the main thread. The main thread is called "main" but if we fail
     // to find it we will fall back to the thread with the most information.
-    Map.Entry<ThreadInfo, HNode<MethodModel>> main = null;
+    Map.Entry<ThreadInfo, CaptureNode> main = null;
     boolean foundMainThread = false;
     myRange = new Range();
-    for (Map.Entry<ThreadInfo, HNode<MethodModel>> entry : myCaptureTrees.entrySet()) {
+    for (Map.Entry<ThreadInfo, CaptureNode> entry : myCaptureTrees.entrySet()) {
       if (entry.getKey().getName().equals(MAIN_THREAD_NAME)) {
         main = entry;
         foundMainThread = true;
@@ -85,6 +89,11 @@ public class CpuCapture implements DurationData {
     // If a thread named "main" is not required in the future, we need to double-check the object value for null here instead of asserting.
     assert main != null;
     myMainThreadId = main.getKey().getId();
+
+    // Set clock type
+    HNode<MethodModel> mainNode = getCaptureNode(myMainThreadId);
+    assert mainNode != null && mainNode instanceof CaptureNode;
+    myClockType = ((CaptureNode)mainNode).getClockType();
   }
 
   public int getMainThreadId() {
@@ -98,7 +107,7 @@ public class CpuCapture implements DurationData {
 
   @Nullable
   public HNode<MethodModel> getCaptureNode(int threadId) {
-    for (Map.Entry<ThreadInfo, HNode<MethodModel>> entry : myCaptureTrees.entrySet()) {
+    for (Map.Entry<ThreadInfo, CaptureNode> entry : myCaptureTrees.entrySet()) {
       if (entry.getKey().getId() == threadId) {
         return entry.getValue();
       }
@@ -118,5 +127,29 @@ public class CpuCapture implements DurationData {
   @Override
   public long getDuration() {
     return (long)myRange.getLength();
+  }
+
+  public void updateClockType(@NotNull ClockType clockType) {
+    if (myClockType == clockType) {
+      // Avoid traversing the capture trees if there is no change.
+      return;
+    }
+    myClockType = clockType;
+
+    for(CaptureNode tree : myCaptureTrees.values()) {
+      updateClockType(tree, clockType);
+    }
+  }
+
+  private static void updateClockType(@Nullable CaptureNode node, @NotNull ClockType clockType) {
+    if (node == null) {
+      return;
+    }
+    node.setClockType(clockType);
+    for (HNode<MethodModel> child : node.getChildren()) {
+      // CpuTraceArt should parse the capture into CaptureNode objects
+      assert child instanceof CaptureNode;
+      updateClockType((CaptureNode)child, clockType);
+    }
   }
 }
