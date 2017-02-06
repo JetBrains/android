@@ -17,12 +17,10 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceNameValidator;
-import com.google.common.base.Strings;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.InputValidatorEx;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.ListCellRendererWrapper;
@@ -32,7 +30,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 import java.util.Collection;
 import java.util.Set;
 
@@ -84,7 +81,7 @@ public class NewStringKeyDialog extends DialogWrapper {
     myResourceFolderComboBox.setRenderer(new ListCellRendererWrapper<VirtualFile>() {
       @Override
       public void customize(@NotNull JList list, @NotNull VirtualFile folder, int index, boolean selected, boolean focused) {
-        setText(NewStringKeyDialog.this.toString(folder));
+        setText(VirtualFiles.toString(folder, myFacet.getModule().getProject()));
       }
     });
   }
@@ -115,15 +112,10 @@ public class NewStringKeyDialog extends DialogWrapper {
     VirtualFile folder = (VirtualFile)myResourceFolderComboBox.getSelectedItem();
 
     if (myKeys.contains(new StringResourceKey(key, folder))) {
-      return new ValidationInfo(key + " already exists in " + toString(folder));
+      return new ValidationInfo(key + " already exists in " + VirtualFiles.toString(folder, myFacet.getModule().getProject()));
     }
 
     return null;
-  }
-
-  @NotNull
-  private String toString(@NotNull VirtualFile file) {
-    return Strings.nullToEmpty(VfsUtilCore.getRelativePath(file, myFacet.getModule().getProject().getBaseDir(), File.separatorChar));
   }
 
   @Override
