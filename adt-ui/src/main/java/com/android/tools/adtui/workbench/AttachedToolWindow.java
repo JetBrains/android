@@ -430,8 +430,13 @@ class AttachedToolWindow<T> implements Disposable {
       setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
       setFocusable(false);
       setRolloverEnabled(true);
-      setOpaque(true);
       setSelected(!toolWindow.isMinimized());
+
+      // This is needed on Linux otherwise the button shows
+      // the Metal L&F gradient even though opaque is false
+      setOpaque(false);
+      setBackground(null);
+
       MouseInputAdapter listener = new MouseInputAdapter() {
         @Override
         public void mouseDragged(@NotNull MouseEvent event) {
