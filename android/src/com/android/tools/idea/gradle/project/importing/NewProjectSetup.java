@@ -37,11 +37,11 @@ import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.intellij.openapi.project.ProjectTypeService.setProjectType;
 import static com.intellij.openapi.util.io.FileUtil.join;
 
-class NewProjectSetup {
+public class NewProjectSetup {
   public static final ProjectType ANDROID_PROJECT_TYPE = new ProjectType("Android");
 
   @NotNull
-  Project createProject(@NotNull String projectName, @NotNull String projectPath) throws ConfigurationException {
+  public Project createProject(@NotNull String projectName, @NotNull String projectPath) throws ConfigurationException {
     ProjectManager projectManager = ProjectManager.getInstance();
     Project newProject = projectManager.createProject(projectName, projectPath);
     if (newProject == null) {
