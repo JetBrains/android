@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.datastore;
+package com.android.tools.idea.profilers;
 
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.google.protobuf3jarjar.ByteString;
@@ -50,15 +50,15 @@ public class LegacyAllocationConverterTest {
     LegacyAllocationConverter converter = new LegacyAllocationConverter();
     List<StackTraceElement> stackTraceElementList = new ArrayList<>();
     stackTraceElementList.add(new StackTraceElement(CLASS_NAME, METHOD_NAME, FILE_NAME, LINE_NUMBER));
-    stackTraceElementList.add(new StackTraceElement(CLASS_NAME, METHOD_NAME, FILE_NAME, LINE_NUMBER+1));
-    stackTraceElementList.add(new StackTraceElement(CLASS_NAME, METHOD_NAME, FILE_NAME, LINE_NUMBER+2));
+    stackTraceElementList.add(new StackTraceElement(CLASS_NAME, METHOD_NAME, FILE_NAME, LINE_NUMBER + 1));
+    stackTraceElementList.add(new StackTraceElement(CLASS_NAME, METHOD_NAME, FILE_NAME, LINE_NUMBER + 2));
     LegacyAllocationConverter.CallStack callStack = converter.addCallStack(stackTraceElementList);
     List<MemoryProfiler.AllocationStack> allocated = converter.getAllocationStacks();
     assertEquals(allocated.size(), 1);
-    for(MemoryProfiler.AllocationStack allocation : allocated) {
+    for (MemoryProfiler.AllocationStack allocation : allocated) {
       assertEquals(callStack.getAllocationStack(), allocation);
       assertEquals(stackTraceElementList.size(), allocation.getStackFramesCount());
-      for(int i = 0; i < allocation.getStackFramesCount();i++) {
+      for (int i = 0; i < allocation.getStackFramesCount(); i++) {
         MemoryProfiler.AllocationStack.StackFrame frame = allocation.getStackFrames(i);
         assertEquals(stackTraceElementList.get(i).getClassName(), frame.getClassName());
         assertEquals(stackTraceElementList.get(i).getMethodName(), frame.getMethodName());
@@ -94,14 +94,13 @@ public class LegacyAllocationConverterTest {
     LegacyAllocationConverter converter = new LegacyAllocationConverter();
     int id = converter.addClassName(CLASS_NAME);
     converter.addAllocation(new LegacyAllocationConverter.Allocation(id, SIZE, THREAD_ID, STACK_ID));
-    List<MemoryProfiler.MemoryData.AllocationEvent> allocations = converter.getAllocationEvents(System.nanoTime());
+    List<MemoryProfiler.AllocationEvent> allocations = converter.getAllocationEvents(1, System.nanoTime());
     assertEquals(1, allocations.size());
     assertEquals(id, allocations.get(0).getAllocatedClassId());
     assertEquals(SIZE, allocations.get(0).getSize());
     assertEquals(THREAD_ID, allocations.get(0).getThreadId());
     assertEquals(ByteString.copyFrom(STACK_ID), allocations.get(0).getAllocationStackId());
     converter.prepare();
-    assertEquals(0, converter.getAllocationEvents(System.nanoTime()).size());
+    assertEquals(0, converter.getAllocationEvents(1, System.nanoTime()).size());
   }
-
 }

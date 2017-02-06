@@ -28,8 +28,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 
-import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
 import static org.junit.Assert.*;
 
 public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
@@ -80,13 +80,14 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertEquals(true, myStage.isTrackingAllocations());
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0);
 
-    // Spawn a different thread to stopping a tracking session
-    // This will start loading the CaptureObject but it will loop until the AllocationsInfo returns a COMPLETED status.
+    // Spawn a different thread to stop a tracking session
+    // This will start loading the CaptureObject but it will loop until the AllocationEventsResponse returns a SUCCESS status.
     final CountDownLatch waitLatch = new CountDownLatch(1);
     new Thread(() -> {
       myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
-      myService.setExplicitAllocationsInfo(infoId, MemoryProfiler.AllocationsInfo.Status.POST_PROCESS,
+      myService.setExplicitAllocationsInfo(infoId, MemoryProfiler.AllocationsInfo.Status.COMPLETED,
                                            infoStart, infoEnd, true);
+      myService.setExplicitAllocationEvents(MemoryProfiler.AllocationEventsResponse.Status.NOT_READY, Collections.emptyList());
       myStage.trackAllocations(false, null);
       assertEquals(false, myStage.isTrackingAllocations());
       assertTrue(myStage.getSelectedCapture() instanceof AllocationsCaptureObject);
@@ -109,8 +110,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     // Manually mark the current allocation session as complete, which will trigger the CaptureObject to finish loading
     assertTrue(myStage.getSelectedCapture() instanceof AllocationsCaptureObject);
     AllocationsCaptureObject capture = (AllocationsCaptureObject)myStage.getSelectedCapture();
-    myService.setExplicitAllocationsInfo(infoId, MemoryProfiler.AllocationsInfo.Status.COMPLETED,
-                                         infoStart, infoEnd, true);
+    myService.setExplicitAllocationEvents(MemoryProfiler.AllocationEventsResponse.Status.SUCCESS, Collections.emptyList());
     // Run the CaptureObject.load task
     myMockLoader.runTask();
     assertTrue(capture.isDoneLoading());

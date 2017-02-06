@@ -24,6 +24,8 @@ import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   private Status myExplicitAllocationsStatus = null;
   private AllocationsInfo myExplicitAllocationsInfo = null;
@@ -34,6 +36,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   private long myCurrentTime = 0;
   private MemoryData myMemoryData = null;
   private ListHeapDumpInfosResponse.Builder myHeapDumpInfoBuilder = ListHeapDumpInfosResponse.newBuilder();
+  private AllocationEventsResponse.Builder myAllocationEventsBuilder = AllocationEventsResponse.newBuilder();
   private AllocationContextsResponse.Builder myAllocationContextBuilder = AllocationContextsResponse.newBuilder();
 
   private int myAppId;
@@ -95,6 +98,13 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   }
 
   @Override
+  public void getAllocationEvents(AllocationEventsRequest request,
+                                  StreamObserver<AllocationEventsResponse> responseObserver) {
+    responseObserver.onNext(myAllocationEventsBuilder.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
   public void listAllocationContexts(AllocationContextsRequest request,
                                      StreamObserver<AllocationContextsResponse> responseObserver) {
     responseObserver.onNext(myAllocationContextBuilder.build());
@@ -106,15 +116,6 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
                                 StreamObserver<MemoryProfiler.ListHeapDumpInfosResponse> response) {
     response.onNext(myHeapDumpInfoBuilder.build());
     response.onCompleted();
-  }
-
-  @Override
-  public void getAllocationsInfoStatus(GetAllocationsInfoStatusRequest request,
-                                       StreamObserver<GetAllocationsInfoStatusResponse> responseObserver) {
-    responseObserver.onNext(
-      GetAllocationsInfoStatusResponse.newBuilder().setInfoId(myExplicitAllocationsInfo.getInfoId())
-        .setStatus(myExplicitAllocationsInfo.getStatus()).build());
-    responseObserver.onCompleted();
   }
 
   @Override
@@ -147,9 +148,10 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
                                                       long startTime, long endTime, boolean legacy) {
     myExplicitAllocationsInfo =
       AllocationsInfo.newBuilder().setInfoId(infoId).setStatus(infoStatus).setStartTime(startTime).setEndTime(endTime)
-        .setLegacyTracking(legacy).build();
+        .setLegacy(legacy).build();
     return this;
   }
+
 
   public FakeMemoryService setExplicitHeapDumpStatus(@Nullable TriggerHeapDumpResponse.Status status) {
     myExplicitHeapDumpStatus = status;
@@ -171,16 +173,22 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     return this;
   }
 
+  public FakeMemoryService setExplicitAllocationEvents(AllocationEventsResponse.Status status,
+                                                       @NotNull List<AllocationEvent> events) {
+    myAllocationEventsBuilder.setStatus(status);
+    myAllocationEventsBuilder.addAllEvents(events);
+    return this;
+  }
+
   public FakeMemoryService addExplicitAllocationClass(int id, String name) {
     myAllocationContextBuilder.addAllocatedClasses(AllocatedClass.newBuilder().setClassId(id).setClassName(name).build());
     return this;
   }
 
-  public FakeMemoryService addExplicitAllocationStack(String klass, String method, int line, byte[] stackId) {
-    myAllocationContextBuilder.addAllocationStacks(
-      AllocationStack.newBuilder().setStackId(ByteString.copyFrom(stackId)).addStackFrames(
-        AllocationStack.StackFrame.newBuilder().setClassName(klass).setMethodName(method).setLineNumber(line).build()
-      ));
+  public FakeMemoryService addExplicitAllocationStack(String klass, String method, int line, ByteString stackId) {
+    myAllocationContextBuilder.addAllocationStacks(AllocationStack.newBuilder().setStackId(stackId).addStackFrames(
+      AllocationStack.StackFrame.newBuilder().setClassName(klass).setMethodName(method).setLineNumber(line).build()
+    ));
     return this;
   }
 
