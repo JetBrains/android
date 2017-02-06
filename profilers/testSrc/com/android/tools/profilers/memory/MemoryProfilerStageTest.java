@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.DurationData;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.memory.adapters.*;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
@@ -47,18 +48,22 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   public void testToggleLegacyCapture() throws Exception {
     assertEquals(false, myStage.isTrackingAllocations());
     assertNull(myStage.getSelectedCapture());
+    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
 
     // Test the no-action cases
     myStage.trackAllocations(false, null);
     assertEquals(false, myStage.isTrackingAllocations());
+    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0);
     myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.NOT_ENABLED);
     myStage.trackAllocations(false, null);
     assertEquals(false, myStage.isTrackingAllocations());
+    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0);
     myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.FAILURE_UNKNOWN);
     myStage.trackAllocations(false, null);
     assertEquals(false, myStage.isTrackingAllocations());
+    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0);
 
     // Starting a tracking session
@@ -72,12 +77,14 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.trackAllocations(true, null);
     assertEquals(true, myStage.isTrackingAllocations());
     assertEquals(null, myStage.getSelectedCapture());
+    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0);
 
     // Attempting to start a in-progress session
     myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.IN_PROGRESS);
     myStage.trackAllocations(true, null);
     assertEquals(true, myStage.isTrackingAllocations());
+    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0);
 
     // Spawn a different thread to stop a tracking session
@@ -97,6 +104,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
       assertEquals(infoEnd, capture.getEndTimeNs());
       assertFalse(capture.isDoneLoading());
       assertFalse(capture.isError());
+      assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
       myAspectObserver.assertAndResetCounts(1, 1, 0, 0, 0, 0, 0);
       waitLatch.countDown();
     }).run();
@@ -116,6 +124,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertTrue(capture.isDoneLoading());
     assertFalse(capture.isError());
     myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 0, 0, 0);
+    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
   }
 
   @Test
@@ -127,12 +136,15 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myService.setExplicitHeapDumpStatus(MemoryProfiler.TriggerHeapDumpResponse.Status.FAILURE_UNKNOWN);
     myStage.requestHeapDump(null);
     assertNull(myStage.getSelectedCapture());
+    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
     myService.setExplicitHeapDumpStatus(MemoryProfiler.TriggerHeapDumpResponse.Status.IN_PROGRESS);
     myStage.requestHeapDump(null);
     assertNull(myStage.getSelectedCapture());
+    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
     myService.setExplicitHeapDumpStatus(MemoryProfiler.TriggerHeapDumpResponse.Status.UNSPECIFIED);
     myStage.requestHeapDump(null);
     assertNull(myStage.getSelectedCapture());
+    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
 
     myService.setExplicitHeapDumpStatus(MemoryProfiler.TriggerHeapDumpResponse.Status.SUCCESS);
     myService.setExplicitHeapDumpInfo(1, 5, 10);
@@ -143,6 +155,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertEquals(1, capture.getDumpId());
     assertEquals(5, capture.getStartTimeNs());
     assertEquals(10, capture.getEndTimeNs());
+    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
   }
 
   @Test
@@ -151,7 +164,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     InstanceObject mockInstance = mockInstanceObject(dummyClassName, "DUMMY_INSTANCE", 1, 2, 3);
     ClassObject mockKlass = mockClassObject(dummyClassName, 1, 2, 3, Collections.singletonList(mockInstance));
     HeapObject mockHeap = mockHeapObject("DUMMY_HEAP1", Arrays.asList(mockKlass));
-    CaptureObject mockCapture = mockCaptureObject("DUMMY_CAPTURE1", 5, 10, Arrays.asList(mockHeap));
+    CaptureObject mockCapture = mockCaptureObject("DUMMY_CAPTURE1", 5, 10, Arrays.asList(mockHeap), true);
 
     myStage.selectCapture(mockCapture, null);
     assertEquals(mockCapture, myStage.getSelectedCapture());
@@ -159,8 +172,10 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
     assertNull(myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
+    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0);
     myMockLoader.runTask();
+    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
     myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 0, 0, 0);
 
     // Make sure the same capture selected shouldn't result in aspects getting raised again.
@@ -204,7 +219,6 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertEquals(mockKlass, myStage.getSelectedClass());
     assertNull(myStage.getSelectedInstance());
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 1, 0);
-
 
     myStage.selectClass(mockKlass);
     assertEquals(mockCapture, myStage.getSelectedCapture());
@@ -251,20 +265,38 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testSelectNewCaptureWhileLoading() {
-    CaptureObject mockCapture1 = mockCaptureObject("DUMMY_CAPTURE1", 5, 10, Collections.EMPTY_LIST);
-    CaptureObject mockCapture2 = mockCaptureObject("DUMMY_CAPTURE2", 10, 15, Collections.EMPTY_LIST);
+    CaptureObject mockCapture1 = mockCaptureObject("DUMMY_CAPTURE1", 5, 10, Collections.EMPTY_LIST, true);
+    CaptureObject mockCapture2 = mockCaptureObject("DUMMY_CAPTURE2", 10, 15, Collections.EMPTY_LIST, true);
 
     myStage.selectCapture(mockCapture1, null);
     assertEquals(mockCapture1, myStage.getSelectedCapture());
+    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0);
 
     // Make sure selecting a new capture while the first one is loading will select the new one
     myStage.selectCapture(mockCapture2, null);
     assertEquals(mockCapture2, myStage.getSelectedCapture());
+    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0);
 
     myMockLoader.runTask();
     assertEquals(mockCapture2, myStage.getSelectedCapture());
+    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
     myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 0, 0, 0);
+  }
+
+  @Test
+  public void testCaptureLoadingFailure() {
+    CaptureObject mockCapture1 = mockCaptureObject("DUMMY_CAPTURE1", 5, 10, Collections.EMPTY_LIST, false);
+
+    myStage.selectCapture(mockCapture1, null);
+    assertEquals(mockCapture1, myStage.getSelectedCapture());
+    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
+    myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0);
+
+    myMockLoader.runTask();
+    assertEquals(null, myStage.getSelectedCapture());
+    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+    myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0);
   }
 }

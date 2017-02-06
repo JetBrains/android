@@ -100,15 +100,15 @@ public abstract class MemoryProfilerTestBase {
 
   @NotNull
   static CaptureObject mockCaptureObject(@NotNull String name, long startTimeNs, long endTimeNs,
-                                         @NotNull List<HeapObject> heaps) {
+                                         @NotNull List<HeapObject> heaps, boolean loadSuccess) {
     CaptureObject object = mock(CaptureObject.class);
     when(object.getLabel()).thenReturn(name);
     when(object.getStartTimeNs()).thenReturn(startTimeNs);
     when(object.getEndTimeNs()).thenReturn(endTimeNs);
     when(object.getHeaps()).thenReturn(heaps);
-    when(object.load()).thenReturn(true);
+    when(object.load()).thenReturn(loadSuccess);
     when(object.isDoneLoading()).thenReturn(true);
-    when(object.isError()).thenReturn(false);
+    when(object.isError()).thenReturn(!loadSuccess);
     return object;
   }
 
