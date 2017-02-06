@@ -54,6 +54,11 @@ public abstract class ClassObject extends NamespaceObject {
   }
 
   @NotNull
+  public String getPackageName() {
+    return myPackageName;
+  }
+
+  @NotNull
   public String[] getSplitPackageName() {
     //noinspection SSBasedInspection
     return myPackageName.isEmpty() ? new String[0] : myPackageName.split("\\.");
