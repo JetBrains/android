@@ -22,6 +22,7 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import com.intellij.util.containers.ImmutableList;
 import org.junit.Before;
@@ -38,8 +39,6 @@ public class ThreadStateDataSeriesTest {
 
   private static final int FAKE_PID = 3039;
 
-  private static final String FAKE_DEVICE_SERIAL = "Test Device Serial";
-
   private final FakeCpuService myService = new FakeCpuService();
 
   @Rule
@@ -50,7 +49,7 @@ public class ThreadStateDataSeriesTest {
   @Before
   public void setUp() {
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
-    myThreadsModel = new CpuThreadsModel(new Range(), new CpuProfilerStage(profilers), FAKE_PID, FAKE_DEVICE_SERIAL);
+    myThreadsModel = new CpuThreadsModel(new Range(), new CpuProfilerStage(profilers), FAKE_PID, ProfilersTestData.SESSION_DATA);
   }
 
   @Test

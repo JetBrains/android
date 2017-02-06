@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.perflib.heap.ProguardMap;
 import com.android.tools.perflib.heap.Snapshot;
 import com.android.tools.perflib.heap.io.InMemoryBuffer;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
@@ -40,7 +41,7 @@ public final class HeapDumpCaptureObject implements CaptureObject {
 
   private final int myProcessId;
 
-  private final String myDeviceSerial;
+  private final Common.Session mySession;
 
   @NotNull
   private final String myLabel;
@@ -57,13 +58,14 @@ public final class HeapDumpCaptureObject implements CaptureObject {
   private volatile boolean myIsLoadingError = false;
 
   public HeapDumpCaptureObject(@NotNull MemoryServiceBlockingStub client,
-                               String serial, int appId,
+                               Common.Session session,
+                               int appId,
                                @NotNull HeapDumpInfo heapDumpInfo,
                                @Nullable ProguardMap proguardMap,
                                @NotNull RelativeTimeConverter converter) {
     myClient = client;
     myProcessId = appId;
-    myDeviceSerial = serial;
+    mySession = session;
     myHeapDumpInfo = heapDumpInfo;
     myProguardMap = proguardMap;
     myLabel =
@@ -121,7 +123,7 @@ public final class HeapDumpCaptureObject implements CaptureObject {
       // TODO move this to another thread and complete before we notify
       response = myClient.getHeapDump(DumpDataRequest.newBuilder()
                                         .setProcessId(myProcessId)
-                                        .setDeviceSerial(myDeviceSerial)
+                                        .setSession(mySession)
                                         .setDumpId(myHeapDumpInfo.getDumpId()).build());
       if (response.getStatus() == DumpDataResponse.Status.SUCCESS) {
         break;

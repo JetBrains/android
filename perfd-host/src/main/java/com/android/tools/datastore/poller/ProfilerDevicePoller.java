@@ -17,6 +17,7 @@ package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.database.ProfilerTable;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.Profiler.Device;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
@@ -48,11 +49,16 @@ public class ProfilerDevicePoller extends PollRunner {
       Profiler.GetDevicesResponse deviceResponse = myPollingService.getDevices(devicesRequest);
       for (Device device : deviceResponse.getDeviceList()) {
         myTable.insertOrUpdateDevice(device);
+        // TODO Store off session, and if it changes fix any session specific data in the database.
+        Common.Session session = Common.Session.newBuilder()
+          .setBootId(device.getBootId())
+          .setDeviceSerial(device.getSerial())
+          .build();
         Profiler.GetProcessesRequest processesRequest =
-          Profiler.GetProcessesRequest.newBuilder().setDeviceSerial(device.getSerial()).build();
+          Profiler.GetProcessesRequest.newBuilder().setSession(session).build();
         Profiler.GetProcessesResponse processesResponse = myPollingService.getProcesses(processesRequest);
         for (Profiler.Process process : processesResponse.getProcessList()) {
-          myTable.insertOrUpdateProcess(device.getSerial(), process);
+          myTable.insertOrUpdateProcess(session, process);
         }
       }
     }

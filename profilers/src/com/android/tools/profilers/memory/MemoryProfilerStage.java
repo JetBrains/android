@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
@@ -56,7 +57,7 @@ public class MemoryProfilerStage extends Stage {
   private final MemoryStageLegends myLegends;
 
   private final int myProcessId;
-  private final String myDeviceSerial;
+  private final Common.Session mySessionData;
   private DurationDataModel<GcDurationData> myGcCount;
 
   @NotNull
@@ -82,12 +83,12 @@ public class MemoryProfilerStage extends Stage {
   MemoryProfilerStage(@NotNull StudioProfilers profilers, @NotNull CaptureObjectLoader loader) {
     super(profilers);
     myProcessId = profilers.getProcessId();
-    myDeviceSerial = profilers.getDeviceSerial();
+    mySessionData = profilers.getSession();
     myClient = profilers.getClient().getMemoryClient();
     HeapDumpSampleDataSeries heapDumpSeries =
-      new HeapDumpSampleDataSeries(profilers.getClient().getMemoryClient(), myDeviceSerial, myProcessId, profilers.getRelativeTimeConverter());
+      new HeapDumpSampleDataSeries(profilers.getClient().getMemoryClient(), mySessionData, myProcessId, profilers.getRelativeTimeConverter());
     AllocationInfosDataSeries allocationSeries =
-      new AllocationInfosDataSeries(profilers.getClient().getMemoryClient(), myDeviceSerial, myProcessId, profilers.getRelativeTimeConverter());
+      new AllocationInfosDataSeries(profilers.getClient().getMemoryClient(), mySessionData, myProcessId, profilers.getRelativeTimeConverter());
     myLoader = loader;
 
     Range viewRange = profilers.getTimeline().getViewRange();
@@ -109,7 +110,7 @@ public class MemoryProfilerStage extends Stage {
 
     myLegends = new MemoryStageLegends(myDetailedMemoryUsage, profilers.getTimeline().getDataRange());
 
-    myGcCount = new DurationDataModel<>(new RangedSeries<>(viewRange, new GcStatsDataSeries(myClient, myProcessId, myDeviceSerial)));
+    myGcCount = new DurationDataModel<>(new RangedSeries<>(viewRange, new GcStatsDataSeries(myClient, myProcessId, mySessionData)));
     myGcCount.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries());
 
     myEventMonitor = new EventMonitor(profilers);
@@ -171,10 +172,10 @@ public class MemoryProfilerStage extends Stage {
    */
   public void requestHeapDump(@Nullable Executor loadJoiner) {
     MemoryProfiler.TriggerHeapDumpResponse response =
-      myClient.triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.newBuilder().setProcessId(myProcessId).build());
+      myClient.triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.newBuilder().setSession(mySessionData).setProcessId(myProcessId).build());
     switch (response.getStatus()) {
       case SUCCESS:
-        selectCapture(new HeapDumpCaptureObject(myClient, myDeviceSerial, myProcessId, response.getInfo(), null,
+        selectCapture(new HeapDumpCaptureObject(myClient, mySessionData, myProcessId, response.getInfo(), null,
                                                 getStudioProfilers().getRelativeTimeConverter()), loadJoiner);
         break;
       case IN_PROGRESS:
@@ -200,12 +201,12 @@ public class MemoryProfilerStage extends Stage {
    */
   public void trackAllocations(boolean enabled, @Nullable Executor loadJoiner) {
     TrackAllocationsResponse response = myClient.trackAllocations(
-      MemoryProfiler.TrackAllocationsRequest.newBuilder().setProcessId(myProcessId).setEnabled(enabled).build());
+      MemoryProfiler.TrackAllocationsRequest.newBuilder().setSession(mySessionData).setProcessId(myProcessId).setEnabled(enabled).build());
     switch (response.getStatus()) {
       case SUCCESS:
         myTrackingAllocations = enabled;
         if (!myTrackingAllocations) {
-          selectCapture(new AllocationsCaptureObject(myClient, myProcessId, myDeviceSerial, response.getInfo(),
+          selectCapture(new AllocationsCaptureObject(myClient, myProcessId, mySessionData, response.getInfo(),
                                                      getStudioProfilers().getRelativeTimeConverter()), loadJoiner);
         }
         break;
