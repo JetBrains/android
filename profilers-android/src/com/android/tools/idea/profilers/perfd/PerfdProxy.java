@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers.perfd;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.profilers.StudioLegacyAllocationTracker;
 import io.grpc.ManagedChannel;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -25,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Executors;
 
 /**
  * Manages the start/stop of a proxy layer that run services bridging between the perfd-host and device perfd.
@@ -39,7 +41,10 @@ final public class PerfdProxy {
     myProxyServices.add(new ProfilerServiceProxy(device, perfdChannel));
     myProxyServices.add(new EventServiceProxy(device, perfdChannel));
     myProxyServices.add(new CpuServiceProxy(device, perfdChannel));
-    myProxyServices.add(new MemoryServiceProxy(device, perfdChannel));
+    myProxyServices.add(new MemoryServiceProxy(device,
+                                               perfdChannel,
+                                               Executors.newCachedThreadPool(),
+                                               (d, p) -> new StudioLegacyAllocationTracker(d, p)));
     myProxyServices.add(new NetworkServiceProxy(device, perfdChannel));
 
     ServerBuilder builder = InProcessServerBuilder.forName(proxyServerName);
