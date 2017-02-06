@@ -325,7 +325,13 @@ public class EditorFixture {
       return true;
     });
 
-    getFocusedEditor();
+    Editor editor = GuiQuery.get(() -> FileEditorManager.getInstance(myFrame.getProject()).getSelectedTextEditor());
+    if (editor == null) {
+      myFrame.requestFocusIfLost();
+    }
+    else {
+      new ComponentDriver(robot).focusAndWaitForFocusGain(editor.getContentComponent());
+    }
     robot.waitForIdle();
 
     return this;
