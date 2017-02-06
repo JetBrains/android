@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.fixture;
+package com.android.tools.idea.tests.gui.framework.fixture.translations;
 
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MultilineStringEditorDialogFixture;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import org.fest.swing.core.ComponentFinder;
 import org.fest.swing.core.ComponentMatcher;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.core.matcher.DialogMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JButtonFixture;
@@ -39,9 +44,26 @@ public final class TranslationsEditorFixture {
   private final Robot myRobot;
   private final Container myTranslationsEditor;
 
-  TranslationsEditorFixture(@NotNull Robot robot) {
+  public TranslationsEditorFixture(@NotNull Robot robot) {
     myRobot = robot;
     myTranslationsEditor = (Container)robot.finder().findByName("translationsEditor");
+  }
+
+  @NotNull
+  public ActionButtonFixture getAddKeyButton() {
+    GenericTypeMatcher<ActionButton> matcher = new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull ActionButton button) {
+        return button.getToolTipText().equals("Add Key");
+      }
+    };
+
+    return new ActionButtonFixture(myRobot, GuiTests.waitUntilShowingAndEnabled(myRobot, myTranslationsEditor, matcher));
+  }
+
+  @NotNull
+  public AddKeyDialogFixture getAddKeyDialog() {
+    return new AddKeyDialogFixture(myRobot, myRobot.finder().find(DialogMatcher.withTitle("Add Key")));
   }
 
   public void clickFilterKeysComboBoxItem(@NotNull String text) {
