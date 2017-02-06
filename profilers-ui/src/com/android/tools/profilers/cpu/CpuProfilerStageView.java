@@ -342,7 +342,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   }
 
   private static class ProfilingModeCellRenderer extends ListCellRendererWrapper<CpuProfiler.CpuProfilingAppStartRequest.Mode> {
-
     @Override
     public void customize(JList list,
                           CpuProfiler.CpuProfilingAppStartRequest.Mode value,
