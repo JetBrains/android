@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class AndroidApkFacetConfiguration implements FacetConfiguration {
+public class ApkFacetConfiguration implements FacetConfiguration {
   @NonNls public String APK_PATH;
   @NonNls public List<String> SYMBOL_PATHS = new ArrayList<>();
   public Map<String, String> SOURCE_MAP = new HashMap<>();

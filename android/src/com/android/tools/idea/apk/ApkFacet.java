@@ -18,36 +18,18 @@ package com.android.tools.idea.apk;
 import com.intellij.facet.*;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Facet applied to modules in a project created by importing an APK file.
  */
-public class AndroidApkFacet extends Facet<AndroidApkFacetConfiguration> {
-  @NotNull public static final FacetTypeId<AndroidApkFacet> TYPE_ID = new FacetTypeId<>("android-apk");
-
-  @NonNls public static final String ID = "android-apk";
-  @NonNls public static final String NAME = "Android-APK";
-
-  public AndroidApkFacet(@NotNull Module module,
-                         @NotNull String name,
-                         @NotNull AndroidApkFacetConfiguration configuration) {
-    super(getFacetType(), module, name, configuration, null);
-  }
-
-  @NotNull
-  public static AndroidApkFacetType getFacetType() {
-    FacetType facetType = FacetTypeRegistry.getInstance().findFacetType(ID);
-    assert facetType instanceof AndroidApkFacetType;
-    return (AndroidApkFacetType)facetType;
-  }
+public class ApkFacet extends Facet<ApkFacetConfiguration> {
+  @NotNull private static final FacetTypeId<ApkFacet> TYPE_ID = new FacetTypeId<>("android-apk");
 
   @Nullable
-  public static AndroidApkFacet getInstance(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
-    AndroidApkFacet facet = getInstance(module);
+  public static ApkFacet getInstance(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
+    ApkFacet facet = getInstance(module);
     if (facet == null) {
       // facet may be present, but not visible if ModifiableFacetModel has not been committed yet (e.g. in the case of a new project.)
       ModifiableFacetModel facetModel = modelsProvider.getModifiableFacetModel(module);
@@ -57,10 +39,38 @@ public class AndroidApkFacet extends Facet<AndroidApkFacetConfiguration> {
   }
 
   @Nullable
-  public static AndroidApkFacet getInstance(@NotNull Module module) {
+  public static ApkFacet getInstance(@NotNull Module module) {
     if (module.isDisposed()) {
       return null;
     }
     return FacetManager.getInstance(module).getFacetByType(TYPE_ID);
+  }
+
+  @NotNull
+  public static FacetTypeId<ApkFacet> getFacetTypeId() {
+    return TYPE_ID;
+  }
+
+  public ApkFacet(@NotNull Module module,
+                  @NotNull String name,
+                  @NotNull ApkFacetConfiguration configuration) {
+    super(getFacetType(), module, name, configuration, null);
+  }
+
+  @NotNull
+  public static ApkFacetType getFacetType() {
+    FacetType facetType = FacetTypeRegistry.getInstance().findFacetType(getFacetId());
+    assert facetType instanceof ApkFacetType;
+    return (ApkFacetType)facetType;
+  }
+
+  @NotNull
+  public static String getFacetId() {
+    return "apk";
+  }
+
+  @NotNull
+  public static String getFacetName() {
+    return "APK";
   }
 }

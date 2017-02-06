@@ -21,7 +21,7 @@ import org.jetbrains.android.AndroidTestCase;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class AndroidApkFacetTest extends AndroidTestCase {
+public class ApkFacetTest extends AndroidTestCase {
 
   private Module myDisposedModule;
 
@@ -33,6 +33,6 @@ public class AndroidApkFacetTest extends AndroidTestCase {
   }
 
   public void testDisposedModule() {
-    assertNull(AndroidApkFacet.getInstance(myDisposedModule));
+    assertNull(ApkFacet.getInstance(myDisposedModule));
   }
 }
