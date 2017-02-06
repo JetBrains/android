@@ -58,6 +58,7 @@ import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.openapi.application.ModalityState.NON_MODAL;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static org.jetbrains.android.sdk.AndroidSdkType.DEFAULT_EXTERNAL_DOCUMENTATION_PATH;
 
 public class SdksCleanupStep extends ProjectCleanupStep {
@@ -118,6 +119,13 @@ public class SdksCleanupStep extends ProjectCleanupStep {
             }
             VirtualFile documentationPath = HttpFileSystem.getInstance().findFileByPath(DEFAULT_EXTERNAL_DOCUMENTATION_PATH);
             sdkModificator.addRoot(documentationPath, JavadocOrderRootType.getInstance());
+          }
+          if (!hasSources(sdk)) {
+            // See https://code.google.com/p/android/issues/detail?id=233392
+            if (sdkModificator == null) {
+              sdkModificator = sdk.getSdkModificator();
+            }
+            myAndroidSdks.findAndSetPlatformSources(target, sdkModificator);
           }
           if (sdkModificator != null) {
             ApplicationManager.getApplication().invokeAndWait(sdkModificator::commitChanges, NON_MODAL);
@@ -204,5 +212,10 @@ public class SdksCleanupStep extends ProjectCleanupStep {
       msg.add(new InstallPlatformHyperlink(versionsToInstall));
       SyncMessages.getInstance(project).report(msg);
     }
+  }
+
+  private static boolean hasSources(@NotNull Sdk sdk) {
+    String[] urls = sdk.getRootProvider().getUrls(SOURCES);
+    return urls.length > 0;
   }
 }
