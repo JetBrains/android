@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.diagnostic.Logger;
 import gnu.trove.TObjectIntHashMap;
 import gnu.trove.TObjectIntProcedure;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -35,6 +36,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
+import static com.android.tools.idea.LogAnonymizerUtil.isPublicClass;
 import static org.jetbrains.org.objectweb.asm.Opcodes.*;
 
 /**
@@ -62,6 +65,7 @@ import static org.jetbrains.org.objectweb.asm.Opcodes.*;
  * will break custom libraries that use reflection on the R class, but meh.
  */
 public class ResourceClassGenerator {
+  private static final Logger LOG = Logger.getInstance(ResourceClassGenerator.class);
 
   private Map<ResourceType, TObjectIntHashMap<String>> myCache;
   /** For int[] in styleables. The ints in styleables are stored in {@link #myCache}. */
@@ -89,6 +93,10 @@ public class ResourceClassGenerator {
   @Nullable
   public byte[] generate(String fqcn) {
     String className = fqcn.replace('.', '/');
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(String.format("generate(%s)", anonymizeClassName(className)));
+    }
     ClassWriter cw = new ClassWriter(0);  // Don't compute MAXS and FRAMES.
     cw.visit(V1_6, ACC_PUBLIC + ACC_FINAL + ACC_SUPER, className, null, Type.getInternalName(Object.class), null);
 
@@ -97,6 +105,9 @@ public class ResourceClassGenerator {
       String typeName = className.substring(index + 1);
       ResourceType type = ResourceType.getEnum(typeName);
       if (type == null) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(String.format("  type '%s' doesn't exist", typeName));
+        }
         return null;
       }
 
@@ -163,15 +174,26 @@ public class ResourceClassGenerator {
   }
 
   private void generateStyleable(@NotNull ClassWriter cw, @NotNull TObjectIntHashMap<String> styleableIntCache, String className) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(String.format("generateStyleable(%s)", anonymizeClassName(className)));
+    }
+
+    boolean debug = LOG.isDebugEnabled() && isPublicClass(className);
     Collection<String> declaredStyleables = myAppResources.getItemsOfType(ResourceType.DECLARE_STYLEABLE);
     // Generate all declarations - both int[] and int for the indices into the array.
     for (String styleableName : declaredStyleables) {
       List<ResourceItem> items = myAppResources.getResourceItem(ResourceType.DECLARE_STYLEABLE, styleableName);
       if (items == null || items.isEmpty()) {
+        if (debug) {
+          LOG.debug("  No items for " + styleableName);
+        }
         continue;
       }
       String fieldName = AndroidResourceUtil.getFieldNameByResourceName(styleableName);
       cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, fieldName, "[I", null, null);
+      if (debug) {
+        LOG.debug("  Defined styleable " + fieldName);
+      }
       ResourceValue resourceValue = items.get(0).getResourceValue(false);
       assert resourceValue instanceof DeclareStyleableResourceValue;
       DeclareStyleableResourceValue dv = (DeclareStyleableResourceValue)resourceValue;
@@ -182,6 +204,9 @@ public class ResourceClassGenerator {
         String styleableEntryName = getResourceName(fieldName, value);
         cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, styleableEntryName, "I", null, initialValue);
         styleableIntCache.put(styleableEntryName, initialValue);
+        if (debug) {
+          LOG.debug("  Defined styleable " + styleableEntryName);
+        }
       }
     }
 
