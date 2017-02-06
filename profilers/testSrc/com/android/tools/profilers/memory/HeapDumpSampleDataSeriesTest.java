@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
 import com.intellij.util.containers.ImmutableList;
 import org.junit.Rule;
@@ -44,7 +45,8 @@ public class HeapDumpSampleDataSeriesTest {
     myService.addExplicitHeapDumpInfo(dumpInfo1);
     myService.addExplicitHeapDumpInfo(dumpInfo2);
 
-    HeapDumpSampleDataSeries series = new HeapDumpSampleDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, "TestDeviceSerial");
+    HeapDumpSampleDataSeries series =
+      new HeapDumpSampleDataSeries(myGrpcChannel.getClient().getMemoryClient(), "TestDeviceSerial", 1, new RelativeTimeConverter(0));
     ImmutableList<SeriesData<CaptureDurationData<HeapDumpCaptureObject>>> dataList =
       series.getDataForXRange(new Range(0, Double.MAX_VALUE));
 
