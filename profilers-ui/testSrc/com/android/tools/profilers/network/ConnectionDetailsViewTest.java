@@ -18,51 +18,41 @@ package com.android.tools.profilers.network;
 import com.android.testutils.TestResources;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.profilers.*;
-import com.google.common.collect.ImmutableMap;
-import com.intellij.ui.HyperlinkLabel;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.util.Arrays;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 
 public class ConnectionDetailsViewTest {
-  private static final ImmutableMap<String, String> TEST_HEADERS = ImmutableMap.<String, String>builder()
-    .put("car", "value")
-    .put("border", "value")
-    .put("apple", "value")
-    .put("123", "value").build();
 
-  @Mock private IdeProfilerServices myIdeServices;
-  @Mock private HttpData myHttpData;
+  private static final HttpData DEFAULT_DATA = new HttpData.Builder(1, 10000, 50000, 100000)
+    .setUrl("dumbUrl").setTrace("dumbTrace").setMethod("GET").build();
+  private static final String RESPONSE_HEADERS = "null =  HTTP/1.1 302 Found \n Content-Type = 111 \n Content-Length = 222 \n";
+  private static final String TEST_HEADERS = "car = value \n border = value \n apple = value \n 123 = value \n";
+
   private ConnectionDetailsView myView;
 
-  private final FakeProfilerService myService = new FakeProfilerService();
-
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("StudioProfilerTestChannel", myService);
+  @Rule public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("StudioProfilerTestChannel", new FakeProfilerService(false),
+                        FakeNetworkService.newBuilder().setHttpDataList(Arrays.asList(DEFAULT_DATA)).build());
 
   @Before
   public void before() {
-    MockitoAnnotations.initMocks(this);
-    when(myHttpData.getUrl()).thenReturn("dumbUrl");
-    when(myHttpData.getTrace()).thenReturn("dumbTrace");
-    when(myHttpData.getResponseHeaders()).thenReturn(ImmutableMap.of());
-    when(myHttpData.getRequestHeaders()).thenReturn(ImmutableMap.of());
-
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myIdeServices);
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
     NetworkProfilerStage stage = new NetworkProfilerStage(profilers);
     StudioProfilersView view = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     profilers.setStage(stage);
-
     NetworkProfilerStageView networkView = (NetworkProfilerStageView)view.getStageView();
     myView = new ConnectionDetailsView(networkView);
   }
@@ -70,7 +60,7 @@ public class ConnectionDetailsViewTest {
   @Test
   public void viewIsVisibleWhenDataIsNotNull() {
     myView.setVisible(false);
-    myView.update(myHttpData);
+    myView.update(DEFAULT_DATA);
     assertTrue(myView.isVisible());
   }
 
@@ -80,21 +70,24 @@ public class ConnectionDetailsViewTest {
     myView.update((HttpData)null);
     assertFalse(myView.isVisible());
   }
-
   @Test
   public void contentsAreEmptyWhenDataIsNull() {
     File file = TestResources.getFile(this.getClass(), "/icons/garbage-event.png");
-    when(myHttpData.getResponsePayloadFile()).thenReturn(file);
-    myView.update(myHttpData);
-    assertNotNull(myView.getFileViewer());
-    assertNotNull(myView.getFieldComponent(0));
+    HttpData data = new HttpData.Builder(DEFAULT_DATA).build();
+    data.setResponsePayloadFile(file);
+    myView.update(data);
+
+    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    JComponent response = (JComponent) stream.filter(c -> "Response".equals(c.getName())).findFirst().get();
+    assertNotEquals(0, response.getComponentCount());
     verify(myView.getStackTraceView()).clearStackFrames();
-    verify(myView.getStackTraceView()).setStackFrames(myHttpData.getTrace());
+    verify(myView.getStackTraceView()).setStackFrames(data.getTrace());
     reset(myView.getStackTraceView());
 
     myView.update((HttpData)null);
-    assertNull(myView.getFileViewer());
-    assertNull(myView.getFieldComponent(0));
+    stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    response = (JComponent) stream.filter(c -> "Response".equals(c.getName())).findFirst().get();
+    assertEquals(0, response.getComponentCount());
     verify(myView.getStackTraceView()).clearStackFrames();
     verify(myView.getStackTraceView(), never()).setStackFrames(anyString());
   }
@@ -102,94 +95,81 @@ public class ConnectionDetailsViewTest {
   @Test
   public void fileViewerExistWhenPayloadFileIsNotNull() {
     File file = new File("temp");
-    when(myHttpData.getResponsePayloadFile()).thenReturn(file);
-    when(myHttpData.getResponseField(eq(HttpData.FIELD_CONTENT_TYPE))).thenReturn("test");
-    assertNull(myView.getFileViewer());
-    myView.update(myHttpData);
-    assertNotNull(myView.getFileViewer());
-  }
-
-  @Test
-  public void responseFieldHasProperValueFromData() {
-    assertEquals(-1, myView.getFieldComponentIndex("Request"));
-    myView.update(myHttpData);
-    int responseFieldIndex = myView.getFieldComponentIndex("Request");
-    assertNotEquals(-1, responseFieldIndex);
-    JLabel value = (JLabel)myView.getFieldComponent(responseFieldIndex + 1);
-    assertNotNull(value);
-    assertEquals("dumbUrl", value.getText());
+    HttpData data = new HttpData.Builder(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
+    data.setResponsePayloadFile(file);
+    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    assertFalse(stream.anyMatch(c -> "FileViewer".equals(c.getName())));
+    myView.update(data);
+    stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    assertTrue(stream.anyMatch(c -> "FileViewer".equals(c.getName())));
   }
 
   @Test
   public void contentTypeHasProperValueFromData() {
-    assertEquals(-1, myView.getFieldComponentIndex("Content type"));
-    when(myHttpData.getContentType()).thenReturn(new HttpData.ContentType("testContentTypeValue"));
-    myView.update(myHttpData);
-    int contentTypeFieldIndex = myView.getFieldComponentIndex("Content type");
-    assertNotEquals(-1, contentTypeFieldIndex);
-    JLabel value = (JLabel)myView.getFieldComponent(contentTypeFieldIndex + 1);
-    assertNotNull(value);
-    assertEquals("testContentTypeValue", value.getText());
+    String valueName = "Content type";
+    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    assertFalse(stream.anyMatch(c -> valueName.equals(c.getName())));
+    HttpData data = new HttpData.Builder(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
+    myView.update(data);
+    stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    JLabel value = (JLabel) stream.filter(c -> valueName.equals(c.getName())).findFirst().get();
+    assertEquals("111", value.getText());
   }
 
   @Test
   public void contentTypeIsAbsentWhenDataHasNoContentTypeValue() {
-    when(myHttpData.getResponseField(eq(HttpData.FIELD_CONTENT_TYPE))).thenReturn(null);
-    myView.update(myHttpData);
-    assertEquals(-1, myView.getFieldComponentIndex("Content type"));
+    myView.update(DEFAULT_DATA);
+    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    assertFalse(stream.anyMatch(c -> "Content type".equals(c.getName())));
   }
 
   @Test
   public void urlHasProperValueFromData() {
-    assertEquals(-1, myView.getFieldComponentIndex("URL"));
-    myView.update(myHttpData);
-    int urlFieldIndex = myView.getFieldComponentIndex("URL");
-    assertNotEquals(-1, urlFieldIndex);
-    HyperlinkLabel value = (HyperlinkLabel)myView.getFieldComponent(urlFieldIndex + 1);
-    assertNotNull(value);
-    // Testing hack: HyperLink label doesn't expose its text directly, but does for accessibility
-    // readers, so we use that instead.
-    assertTrue(value.getAccessibleContext().getAccessibleName().contains("dumbUrl"));
+    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    assertFalse(stream.anyMatch(c -> "URL".equals(c.getName())));
+    myView.update(DEFAULT_DATA);
+    stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    JTextArea value = (JTextArea) stream.filter(c -> "URL".equals(c.getName())).findFirst().get();
+    assertEquals("dumbUrl", value.getText());
   }
 
   @Test
-  public void contentLengthHasProperValueFromData() {
-    assertEquals(-1, myView.getFieldComponentIndex("Content length"));
-    when(myHttpData.getResponseField(eq(HttpData.FIELD_CONTENT_LENGTH))).thenReturn("testContentLengthValue");
-    myView.update(myHttpData);
-    int contentLengthFieldIndex = myView.getFieldComponentIndex("Content length");
-    assertNotEquals(-1, contentLengthFieldIndex);
-    JLabel value = (JLabel)myView.getFieldComponent(contentLengthFieldIndex + 1);
-    assertNotNull(value);
-    assertEquals("testContentLengthValue", value.getText());
+  public void sizeHasProperValueFromData() {
+    String valueName = "Size";
+    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    assertFalse(stream.anyMatch(c -> valueName.equals(c.getName())));
+    HttpData data = new HttpData.Builder(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
+    myView.update(data);
+    stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    JLabel value = (JLabel) stream.filter(c -> valueName.equals(c.getName())).findFirst().get();
+    assertEquals("222B", value.getText());
   }
 
   @Test
   public void contentLengthIsAbsentWhenDataHasNoContentLengthValue() {
-    when(myHttpData.getResponseField(eq(HttpData.FIELD_CONTENT_LENGTH))).thenReturn(null);
-    myView.update(myHttpData);
-    assertEquals(-1, myView.getFieldComponentIndex("Content length"));
+    myView.update(DEFAULT_DATA);
+    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    assertFalse(stream.anyMatch(c -> "Content length".equals(c.getName())));
   }
 
   @Test
   public void headersIsUpdated() {
-    when(myHttpData.getResponseHeaders()).thenReturn(TEST_HEADERS);
     Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
     JPanel headers = (JPanel)stream.filter(c -> "Headers".equals(c.getName())).findFirst().get();
     assertEquals(0, headers.getComponentCount());
-    myView.update(myHttpData);
+    HttpData data = new HttpData.Builder(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
+    myView.update(data);
     assertNotEquals(0, headers.getComponentCount());
   }
 
   @Test
   public void headerSectionIsSorted() {
-    when(myHttpData.getResponseHeaders()).thenReturn(TEST_HEADERS);
+    HttpData data = new HttpData.Builder(DEFAULT_DATA).setRequestFields(TEST_HEADERS).build();
+    myView.update(data);
     Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
     JPanel headers = (JPanel)stream.filter(c -> "Headers".equals(c.getName())).findFirst().get();
-    myView.update(myHttpData);
     stream = new TreeWalker(headers).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    JPanel responseHeaders = (JPanel)stream.filter(c -> "Response Headers".equals(c.getName())).findFirst().get();
-    assertNotEquals("123", TEST_HEADERS.entrySet().iterator().next().getKey());
+    JPanel responseHeaders = (JPanel)stream.filter(c -> "Request Headers".equals(c.getName())).findFirst().get();
     assertEquals("123", responseHeaders.getComponent(1).getName());
     assertEquals("apple", responseHeaders.getComponent(2).getName());
     assertEquals("border", responseHeaders.getComponent(3).getName());
@@ -200,8 +180,8 @@ public class ConnectionDetailsViewTest {
   public void callstackViewHasProperValueFromData() {
     assertEquals(0, myView.getStackTraceView().getCodeLocations().size());
 
-    myView.update(myHttpData);
+    myView.update(DEFAULT_DATA);
     verify(myView.getStackTraceView()).clearStackFrames();
-    verify(myView.getStackTraceView()).setStackFrames(myHttpData.getTrace());
+    verify(myView.getStackTraceView()).setStackFrames(DEFAULT_DATA.getTrace());
   }
 }

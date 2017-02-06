@@ -180,6 +180,10 @@ final class ConnectionsView {
 
     myConnectionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myConnectionsTable.getSelectionModel().addListSelectionListener(e -> {
+      if (e.getValueIsAdjusting()) {
+        return; // Only handle listener on last event, not intermediate events
+      }
+
       int selectedRow = myConnectionsTable.getSelectedRow();
       if (0 <= selectedRow && selectedRow < myTableModel.getRowCount()) {
         int modelRow = myConnectionsTable.convertRowIndexToModel(selectedRow);
