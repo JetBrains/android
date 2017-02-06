@@ -77,6 +77,7 @@ public class NewInstantAppModuleTest {
 
   // TODO: add tests for warnings in code - requires way to separate warnings from SimpleApplication out from warnings in new module
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testCanBuildDefaultNewInstantAppApplicationModule() throws IOException {
     guiTest.importSimpleApplication();
