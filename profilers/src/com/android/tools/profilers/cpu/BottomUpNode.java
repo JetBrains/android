@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.HNode;
+import com.android.tools.adtui.model.Range;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -37,13 +38,25 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
     myIsRoot = true;
     myChildrenBuilt = true;
 
-    Map<String, BottomUpNode> children = new HashMap<>();
-    Queue<HNode<MethodModel>> queue = new LinkedList<>();
-    queue.add(node);
-    while (!queue.isEmpty()) {
-      HNode<MethodModel> curNode = queue.poll();
-      assert curNode.getData() != null;
+    List<HNode<MethodModel>> allNodes = new ArrayList<>();
+    allNodes.add(node);
+    int head = 0;
+    while (head < allNodes.size()) {
+      HNode<MethodModel> curNode = allNodes.get(head++);
+      allNodes.addAll(curNode.getChildren());
+    }
 
+    allNodes.sort((o1, o2) -> {
+      int cmp = Long.compare(o1.getStart(), o2.getStart());
+      if (cmp != 0) {
+        return cmp;
+      }
+      return -Long.compare(o1.getEnd(), o2.getEnd());
+    });
+
+    Map<String, BottomUpNode> children = new HashMap<>();
+    for (HNode<MethodModel> curNode : allNodes) {
+      assert curNode.getData() != null;
       String curId = curNode.getData().getId();
       BottomUpNode child = children.get(curId);
       if (child == null) {
@@ -53,8 +66,6 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
       }
       child.addPathNode(curNode);
       child.addNode(curNode);
-
-      queue.addAll(curNode.getChildren());
     }
 
     addNode(node);
@@ -94,6 +105,43 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
 
     myChildrenBuilt = true;
     return true;
+  }
+
+  @Override
+  public void update(@NotNull Range range) {
+    // how much time was spent in this call stack path, and in the functions it called
+    myTotal = 0;
+    // how much time was spent doing work directly in this call stack path
+    double self = 0;
+
+    // The node that is at the top of the call stack, e.g if the call stack looks like B [0..30] -> B [1..20],
+    // then the second method can't be outerSoFar.
+    // It's used to exclude nodes which aren't at the top of the
+    // call stack from the total time calculation.
+    HNode<MethodModel> outerSoFar = null;
+
+    // myNodes is sorted by HNode#getStart() in increasing order,
+    // if they are equal then by HNode#getEnd() in decreasing order
+    for (HNode<MethodModel> node: myNodes) {
+      if (outerSoFar == null || node.getEnd() > outerSoFar.getEnd()) {
+        if (outerSoFar != null) {
+          // |outerSoFar| is at the top of the call stack
+          myTotal += getIntersection(range, outerSoFar);
+        }
+        outerSoFar = node;
+      }
+
+      self += getIntersection(range, node);
+      for (HNode<MethodModel> child : node.getChildren()) {
+        self -= getIntersection(range, child);
+      }
+    }
+
+    if (outerSoFar != null) {
+      // |outerSoFar| is at the top of the call stack
+      myTotal += getIntersection(range, outerSoFar);
+    }
+    myChildrenTotal = myTotal - self;
   }
 
   @Override
