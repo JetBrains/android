@@ -35,7 +35,7 @@ public class ProfilerScrollbarTest {
 
   @Before
   public void setUp() throws Exception {
-    myTimeline = new ProfilerTimeline();
+    myTimeline = new ProfilerTimeline(new RelativeTimeConverter(0));
     myPanel = new JPanel();
     myPanel.setSize(100, 100);
     myScrollbar = new ProfilerScrollbar(myTimeline, myPanel);

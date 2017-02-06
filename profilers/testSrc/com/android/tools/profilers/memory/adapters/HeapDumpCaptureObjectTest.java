@@ -18,6 +18,7 @@ package com.android.tools.profilers.memory.adapters;
 import com.android.tools.perflib.heap.SnapshotBuilder;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
@@ -36,6 +37,8 @@ public class HeapDumpCaptureObjectTest {
 
   @NotNull private final FakeMemoryService myService = new FakeMemoryService();
 
+  @NotNull private final RelativeTimeConverter myRelativeTimeConverter = new RelativeTimeConverter(0);
+
   @Rule
   public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("HeapDumpCaptureObjectTest", myService);
 
@@ -52,13 +55,13 @@ public class HeapDumpCaptureObjectTest {
     long endTimeNs = 8;
     MemoryProfiler.HeapDumpInfo dumpInfo =
       MemoryProfiler.HeapDumpInfo.newBuilder().setDumpId(dumpId).setStartTime(startTimeNs).setEndTime(endTimeNs).build();
-    HeapDumpCaptureObject capture = new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), appId, FAKE_DEVICE_SERIAL, dumpInfo, null);
+    HeapDumpCaptureObject capture = new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), FAKE_DEVICE_SERIAL, appId,
+                                                              dumpInfo, null, myRelativeTimeConverter);
 
     // Verify values associated with the HeapDumpInfo object.
     assertEquals(dumpId, capture.getDumpId());
     assertEquals(startTimeNs, capture.getStartTimeNs());
     assertEquals(endTimeNs, capture.getEndTimeNs());
-    assertEquals(String.format(HeapDumpCaptureObject.LABEL_FORMATTER, dumpId, startTimeNs), capture.getLabel());
     assertFalse(capture.isDoneLoading());
     assertFalse(capture.isError());
 
@@ -119,7 +122,9 @@ public class HeapDumpCaptureObjectTest {
   @Test
   public void testLoadingFailure() throws Exception {
     MemoryProfiler.HeapDumpInfo dumpInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setDumpId(1).setStartTime(3).setEndTime(8).build();
-    HeapDumpCaptureObject capture = new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), -1, FAKE_DEVICE_SERIAL,  dumpInfo, null);
+    HeapDumpCaptureObject capture =
+      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), FAKE_DEVICE_SERIAL, -1, dumpInfo, null,
+                                myRelativeTimeConverter);
 
     assertFalse(capture.isDoneLoading());
     assertFalse(capture.isError());
@@ -137,22 +142,27 @@ public class HeapDumpCaptureObjectTest {
     MemoryProfiler.HeapDumpInfo dumpInfo1 = MemoryProfiler.HeapDumpInfo.newBuilder().setDumpId(1).setStartTime(3).setEndTime(8).build();
     MemoryProfiler.HeapDumpInfo dumpInfo2 = MemoryProfiler.HeapDumpInfo.newBuilder().setDumpId(2).setStartTime(9).setEndTime(13).build();
 
-    HeapDumpCaptureObject capture = new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), -1, FAKE_DEVICE_SERIAL, dumpInfo1, null);
+    HeapDumpCaptureObject capture =
+      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), FAKE_DEVICE_SERIAL, -1, dumpInfo1, null,
+                                myRelativeTimeConverter);
     // Test inequality with different object type
     assertNotEquals(mock(CaptureObject.class), capture);
 
     HeapDumpCaptureObject captureWithDifferentAppId =
-      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), -2, FAKE_DEVICE_SERIAL, dumpInfo1, null);
+      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), FAKE_DEVICE_SERIAL, -2, dumpInfo1, null,
+                                myRelativeTimeConverter);
     // Test inequality with different app id
     assertNotEquals(captureWithDifferentAppId, capture);
 
     HeapDumpCaptureObject captureWithDifferentDump =
-      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), -1, FAKE_DEVICE_SERIAL, dumpInfo2, null);
+      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), FAKE_DEVICE_SERIAL, -1, dumpInfo2, null,
+                                myRelativeTimeConverter);
     // Test inequality with different HeapDumpInfo
     assertNotEquals(captureWithDifferentDump, capture);
 
     HeapDumpCaptureObject captureWithDifferentLoadStatus =
-      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), -1, FAKE_DEVICE_SERIAL, dumpInfo1, null);
+      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), FAKE_DEVICE_SERIAL, -1, dumpInfo1, null,
+                                myRelativeTimeConverter);
     // Test equality with same HeapDumpInfo and status
     assertEquals(captureWithDifferentLoadStatus, capture);
 

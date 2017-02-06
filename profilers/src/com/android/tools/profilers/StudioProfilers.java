@@ -51,30 +51,37 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   public static final int TIMELINE_BUFFER = 1;
 
   private final ProfilerClient myClient;
-  @Nullable
-  private String myPreferredProcessName;
 
   private final ProfilerTimeline myTimeline;
+
   private final List<StudioProfiler> myProfilers;
-
-  private Map<Profiler.Device, List<Profiler.Process>> myProcesses;
-
-  private Profiler.Device myDevice;
-
-  @Nullable
-  private Profiler.Process myProcess;
-
-  private boolean myConnected;
-
-  @Nullable
-  private Stage myStage;
 
   @NotNull
   private final IdeProfilerServices myIdeServices;
 
+  private Map<Profiler.Device, List<Profiler.Process>> myProcesses;
+
+  @Nullable
+  private Profiler.Process myProcess;
+
+  @Nullable
+  private String myPreferredProcessName;
+
+  private Profiler.Device myDevice;
+
+  @Nullable
+  private Stage myStage;
+
   private Updater myUpdater;
+
+  @NotNull
+  private RelativeTimeConverter myRelativeTimeConverter;
+
   private AxisComponentModel myViewAxis;
+
   private long myRefreshDevices;
+
+  private boolean myConnected;
 
   public StudioProfilers(ProfilerClient client, @NotNull IdeProfilerServices ideServices) {
     this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE));
@@ -93,7 +100,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       new MemoryProfiler(this),
       new NetworkProfiler(this));
 
-    myTimeline = new ProfilerTimeline();
+    myRelativeTimeConverter = new RelativeTimeConverter(0);
+    myTimeline = new ProfilerTimeline(myRelativeTimeConverter);
 
     myProcesses = Maps.newHashMap();
     myConnected = false;
@@ -115,7 +123,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   public void setPreferredProcessName(@Nullable String name) {
     myPreferredProcessName = name;
   }
-
 
   @Override
   public void update(long elapsedNs) {
@@ -156,7 +163,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
   }
 
-
   /**
    * Chooses the given device. If the device is not known or null, the first available one will be chosen instead.
    */
@@ -173,7 +179,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       if (myDevice != null) {
         // TODO: getTimes should take the device
         Profiler.TimesResponse times = myClient.getProfilerClient().getTimes(Profiler.TimesRequest.getDefaultInstance());
-        myTimeline.reset(times.getTimestampNs() - TimeUnit.SECONDS.toNanos(TIMELINE_BUFFER));
+        myRelativeTimeConverter = new RelativeTimeConverter(times.getTimestampNs() - TimeUnit.SECONDS.toNanos(TIMELINE_BUFFER));
+        myTimeline.reset(myRelativeTimeConverter);
         myTimeline.setStreaming(true);
       }
 
@@ -272,6 +279,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @NotNull
   public ProfilerTimeline getTimeline() {
     return myTimeline;
+  }
+
+  @NotNull
+  public RelativeTimeConverter getRelativeTimeConverter() {
+    return myRelativeTimeConverter;
   }
 
   public Profiler.Device getDevice() {

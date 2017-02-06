@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.memory.adapters.AllocationsCaptureObject;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ImmutableList;
@@ -35,11 +36,15 @@ class AllocationInfosDataSeries implements DataSeries<CaptureDurationData<Alloca
   @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
   private final int myProcessId;
   private final String myDeviceSerial;
+  @NotNull private final RelativeTimeConverter myConverter;
 
-  public AllocationInfosDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, int processId, String serial) {
+  public AllocationInfosDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
+                                   String serial, int processId,
+                                   @NotNull RelativeTimeConverter converter) {
     myClient = client;
     myProcessId = processId;
     myDeviceSerial = serial;
+    myConverter = converter;
   }
 
   @NotNull
@@ -68,7 +73,8 @@ class AllocationInfosDataSeries implements DataSeries<CaptureDurationData<Alloca
       long durationUs = endTimeNs == UNSPECIFIED_DURATION ? UNSPECIFIED_DURATION : TimeUnit.NANOSECONDS.toMicros(endTimeNs - startTimeNs);
       seriesData.add(new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(startTimeNs),
                                       new CaptureDurationData<>(
-                                        durationUs, new AllocationsCaptureObject(myClient, myProcessId, myDeviceSerial, info))));
+                                        durationUs,
+                                        new AllocationsCaptureObject(myClient, myProcessId, myDeviceSerial, info, myConverter))));
     }
     return ContainerUtil.immutableList(seriesData);
   }
