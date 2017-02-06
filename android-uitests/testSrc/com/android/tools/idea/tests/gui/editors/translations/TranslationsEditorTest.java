@@ -20,6 +20,8 @@ import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MultilineStringEditorDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.AddKeyDialogFixture;
@@ -102,6 +104,7 @@ public final class TranslationsEditorTest {
     assertEquals(-1, cancel.font().target().canDisplayUpTo("取消")); // requires DroidSansFallbackFull.ttf
   }
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void dialogAddsKeyInDifferentFolder() {
     myTranslationsEditor.getAddKeyButton().click();
@@ -116,6 +119,7 @@ public final class TranslationsEditorTest {
     assertEquals(expected, myTranslationsEditor.keys());
   }
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void dialogDoesntAddKeyInSameFolder() {
     myTranslationsEditor.getAddKeyButton().click();
