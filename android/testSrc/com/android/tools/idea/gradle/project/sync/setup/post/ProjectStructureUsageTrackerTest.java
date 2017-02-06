@@ -123,7 +123,7 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
 
   public void testStringToBuildSystemType() {
     assertEquals(GradleNativeAndroidModule.NativeBuildSystemType.NDK_BUILD,
-                 ProjectStructureUsageTracker.stringToBuildSystemType("ndk-build"));
+                 ProjectStructureUsageTracker.stringToBuildSystemType("ndkBuild"));
     assertEquals(GradleNativeAndroidModule.NativeBuildSystemType.CMAKE,
                  ProjectStructureUsageTracker.stringToBuildSystemType("cmake"));
     assertEquals(GradleNativeAndroidModule.NativeBuildSystemType.NDK_COMPILE,
