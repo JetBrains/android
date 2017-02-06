@@ -25,8 +25,8 @@ import javax.swing.*;
 
 import static com.android.SdkConstants.EXT_ANDROID_PACKAGE;
 
-public class AndroidApkFileType implements FileType {
-  public static final AndroidApkFileType INSTANCE = new AndroidApkFileType();
+public class ApkFileType implements FileType {
+  public static final ApkFileType INSTANCE = new ApkFileType();
 
   @NotNull
   @Override
