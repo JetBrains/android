@@ -25,13 +25,17 @@ import com.google.common.collect.Maps;
 import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class ProfilerDevicePoller extends PollRunner {
   private ProfilerTable myTable;
   private DataStoreService myService;
   private ProfilerServiceGrpc.ProfilerServiceBlockingStub myPollingService;
+  private Map<Common.Session, Set<Profiler.Process>> myActiveProcesses = new HashMap<>();
 
   public ProfilerDevicePoller(DataStoreService service,
                               ProfilerTable table,
@@ -54,11 +58,28 @@ public class ProfilerDevicePoller extends PollRunner {
           .setBootId(device.getBootId())
           .setDeviceSerial(device.getSerial())
           .build();
+
         Profiler.GetProcessesRequest processesRequest =
           Profiler.GetProcessesRequest.newBuilder().setSession(session).build();
         Profiler.GetProcessesResponse processesResponse = myPollingService.getProcesses(processesRequest);
+        // Gather the list of last known active processes.
+        Set<Profiler.Process> deadProcesses = myActiveProcesses.containsKey(session) ? myActiveProcesses.get(session) : new HashSet<>();
+        Set<Profiler.Process> newProcesses  = new HashSet<>();
         for (Profiler.Process process : processesResponse.getProcessList()) {
           myTable.insertOrUpdateProcess(session, process);
+          newProcesses.add(process);
+          // Remove any new processes from the list of last known processes.
+          // Any processes that remain in the list is our list of dead processes.
+          deadProcesses.remove(process);
+        }
+
+        //TODO: think about moving this to the device proxy.
+        myActiveProcesses.put(session, newProcesses);
+        for (Profiler.Process process : deadProcesses) {
+          Profiler.Process updatedProcess = process.toBuilder()
+            .setState(Profiler.Process.State.DEAD)
+            .build();
+          myTable.insertOrUpdateProcess(session, updatedProcess);
         }
       }
     }

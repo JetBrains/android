@@ -85,7 +85,11 @@ final public class StudioProfilersTest {
       .setDeviceSerial(device.getSerial())
       .build();
 
-    Profiler.Process process = Profiler.Process.newBuilder().setPid(20).setName("FakeProcess").build();
+    Profiler.Process process = Profiler.Process.newBuilder()
+      .setPid(20)
+      .setName("FakeProcess")
+      .setState(Profiler.Process.State.ALIVE)
+      .build();
     myProfilerService.addProcess(session, process);
 
     timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
@@ -95,7 +99,11 @@ final public class StudioProfilersTest {
 
     profilers.setPreferredProcessName("Preferred");
 
-    Profiler.Process preferred = Profiler.Process.newBuilder().setPid(20).setName("Preferred").build();
+    Profiler.Process preferred = Profiler.Process.newBuilder()
+      .setPid(20)
+      .setName("Preferred")
+      .setState(Profiler.Process.State.ALIVE)
+      .build();
     myProfilerService.addProcess(session, preferred);
 
     timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
@@ -113,7 +121,11 @@ final public class StudioProfilersTest {
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
 
     Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
-    Profiler.Process process = Profiler.Process.newBuilder().setPid(20).setName("FakeProcess").build();
+    Profiler.Process process = Profiler.Process.newBuilder()
+      .setPid(20)
+      .setName("FakeProcess")
+      .setState(Profiler.Process.State.ALIVE)
+      .build();
     Common.Session session = Common.Session.newBuilder()
       .setBootId(device.getBootId())
       .setDeviceSerial(device.getSerial())
@@ -141,7 +153,11 @@ final public class StudioProfilersTest {
   public void testAlreadyConnected() throws Exception {
     FakeTimer timer = new FakeTimer();
     Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
-    Profiler.Process process = Profiler.Process.newBuilder().setPid(20).setName("FakeProcess").build();
+    Profiler.Process process = Profiler.Process.newBuilder()
+      .setPid(20)
+      .setState(Profiler.Process.State.ALIVE)
+      .setName("FakeProcess")
+      .build();
     myProfilerService.addDevice(device);
     Common.Session session = Common.Session.newBuilder()
       .setBootId(device.getBootId())
