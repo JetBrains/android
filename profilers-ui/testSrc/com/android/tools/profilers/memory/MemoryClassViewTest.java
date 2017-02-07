@@ -243,8 +243,8 @@ public class MemoryClassViewTest {
 
   @Test
   public void testCorrectColumnsAndRendererContents() {
-    ClassObject mockClass1 = mockClassObject("abc", 1, 2, 3, Collections.emptyList());
-    ClassObject mockClass2 = mockClassObject("def", 4, 5, 6, Collections.emptyList());
+    ClassObject mockClass1 = mockClassObject("foo.abc", 1, 2, 3, Collections.emptyList());
+    ClassObject mockClass2 = mockClassObject("bar.def", 4, 5, 6, Collections.emptyList());
     ClassObject mockClass3 = mockClassObject("ghi", 7, 8, 9, Collections.emptyList());
     List<ClassObject> fakeClassObjects = Arrays.asList(mockClass1, mockClass2, mockClass3);
     HeapObject mockHeap = MemoryProfilerTestBase.mockHeapObject("Test", fakeClassObjects);
@@ -264,12 +264,13 @@ public class MemoryClassViewTest {
     for (int i = 0; i < root.getChildCount(); i++) {
       ClassObject klass = fakeClassObjects.get(i);
       treeInfo.verifyRendererValues(root.getChildAt(i),
-                                    klass.getName(),
-                                    Integer.toString(klass.getTotalCount()),
-                                    Integer.toString(klass.getHeapCount()),
-                                    Integer.toString(klass.getInstanceSize()),
-                                    Integer.toString(klass.getShallowSize()),
-                                    Long.toString(klass.getRetainedSize()));
+                                    new String[]{klass.getClassName(),
+                                      klass.getPackageName().isEmpty() ? null : " (" + klass.getPackageName() + ")"},
+                                    new String[]{Integer.toString(klass.getTotalCount())},
+                                    new String[]{Integer.toString(klass.getHeapCount())},
+                                    new String[]{Integer.toString(klass.getInstanceSize())},
+                                    new String[]{Integer.toString(klass.getShallowSize())},
+                                    new String[]{Long.toString(klass.getRetainedSize())});
     }
   }
 

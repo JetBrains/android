@@ -201,10 +201,10 @@ public class MemoryInstanceViewTest {
     for (int i = 0; i < root.getChildCount(); i++) {
       InstanceObject instance = INSTANCE_OBJECT_LIST.get(i);
       treeInfo.verifyRendererValues(root.getChildAt(i),
-                                    instance.getDisplayLabel(),
-                                    Integer.toString(instance.getDepth()),
-                                    Integer.toString(instance.getShallowSize()),
-                                    Long.toString(instance.getRetainedSize()));
+                                    new String[]{instance.getDisplayLabel()},
+                                    new String[]{Integer.toString(instance.getDepth())},
+                                    new String[]{Integer.toString(instance.getShallowSize())},
+                                    new String[]{Long.toString(instance.getRetainedSize())});
     }
   }
 }
