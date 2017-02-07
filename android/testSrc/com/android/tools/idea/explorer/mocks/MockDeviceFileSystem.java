@@ -82,7 +82,9 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
 
   @NotNull
   @Override
-  public ListenableFuture<Void> downloadFile(@NotNull DeviceFileEntry entry, @NotNull Path localPath, @NotNull FileTransferProgress progress) {
+  public ListenableFuture<Void> downloadFile(@NotNull DeviceFileEntry entry,
+                                             @NotNull Path localPath,
+                                             @NotNull FileTransferProgress progress) {
     if (myDownloadError != null) {
       return FutureUtils.delayedError(myDownloadError, MockDeviceFileSystemService.OPERATION_TIMEOUT_MILLIS);
     }
@@ -106,15 +108,15 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
   }
 
   public class DownloadWorker implements Disposable {
-    private final MockDeviceFileEntry myEntry;
-    private final Path myPath;
-    private final FileTransferProgress myProgress;
-    private final SettableFuture<Void> myFutureResult;
-    private final Alarm myAlarm;
-    private long myCurrentOffset = -1;
-    private FileOutputStream myOutputStream;
+    @NotNull private final MockDeviceFileEntry myEntry;
+    @NotNull private final Path myPath;
+    @NotNull private final FileTransferProgress myProgress;
+    @NotNull private final SettableFuture<Void> myFutureResult;
+    @NotNull private final Alarm myAlarm;
+    private long myCurrentOffset;
+    @Nullable private FileOutputStream myOutputStream;
 
-    public DownloadWorker(MockDeviceFileEntry entry, Path path, FileTransferProgress progress) {
+    public DownloadWorker(@NotNull MockDeviceFileEntry entry, @NotNull Path path, @NotNull FileTransferProgress progress) {
       myEntry = entry;
       myPath = path;
       myProgress = progress;
@@ -165,15 +167,17 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
     private void done() {
       try {
         Disposer.dispose(this);
-      } finally {
+      }
+      finally {
         myFutureResult.set(null);
       }
     }
 
     private void doneWithError(Throwable t) {
       try {
-      Disposer.dispose(this);
-      } finally {
+        Disposer.dispose(this);
+      }
+      finally {
         myFutureResult.setException(t);
       }
     }
@@ -186,7 +190,7 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
         byte[] bytes = new byte[(int)count];
         // Write ascii characters to that the file is easily auto-detected as a text file
         // in unit tests.
-        for(int i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++) {
           bytes[i] = (byte)((i % 80 == 0) ? '\n' : ('0' + (i % 10)));
         }
         myOutputStream.write(bytes);
@@ -196,11 +200,14 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
     @Override
     public void dispose() {
       myAlarm.cancelAllRequests();
-      try {
-        myOutputStream.close();
-      }
-      catch (IOException e) {
-        throw new RuntimeException(e);
+      if (myOutputStream != null) {
+        try {
+          myOutputStream.close();
+          myOutputStream = null;
+        }
+        catch (IOException e) {
+          throw new RuntimeException(e);
+        }
       }
     }
   }

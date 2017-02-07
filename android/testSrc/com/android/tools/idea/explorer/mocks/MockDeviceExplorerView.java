@@ -20,6 +20,7 @@ import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemRenderer;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemService;
 import com.android.tools.idea.explorer.ui.DeviceExplorerViewImpl;
+import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import org.jetbrains.annotations.NotNull;
@@ -39,8 +40,10 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   @NotNull private final DeviceExplorerViewImpl myViewImpl;
   @NotNull private final FutureValuesTracker<Void> myServiceSetupSuccessTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileSystem> myDeviceSelectedTracker = new FutureValuesTracker<>();
-  @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myTreeNodeActionPerformedTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myTreeNodeExpandingTracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myOpenNodeInEditorInvokedTracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<DeviceFileEntryNode> mySaveNodeAsTracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myCopyNodePathTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileSystem> myDeviceAddedTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileSystem> myDeviceRemovedTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileSystem> myDeviceUpdatedTracker = new FutureValuesTracker<>();
@@ -71,6 +74,10 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
 
   public JTree getTree() {
     return myViewImpl.getFileTree();
+  }
+
+  public ActionGroup getFileTreeActionGroup() {
+    return myViewImpl.getFileTreeActionGroup();
   }
 
   @Override
@@ -122,6 +129,11 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
     myViewImpl.reportErrorRelatedToNode(node, message, t);
   }
 
+  @Override
+  public void reportMessageRelatedToNode(@NotNull DeviceFileEntryNode node, @NotNull String message) {
+    myViewImpl.reportMessageRelatedToNode(node, message);
+  }
+
   @NotNull
   private static String getThrowableMessage(@NotNull Throwable t) {
     return t.getMessage() == null ? "" : ": " + t.getMessage();
@@ -168,8 +180,8 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   }
 
   @NotNull
-  public FutureValuesTracker<DeviceFileEntryNode> getTreeNodeActionPerformedTracker() {
-    return myTreeNodeActionPerformedTracker;
+  public FutureValuesTracker<DeviceFileEntryNode> getOpenNodeInEditorInvokedTracker() {
+    return myOpenNodeInEditorInvokedTracker;
   }
 
   @NotNull
@@ -232,6 +244,16 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
     return myStopTreeBusyIndicatorTacker;
   }
 
+  @NotNull
+  public FutureValuesTracker<DeviceFileEntryNode> getSaveNodeAsTracker() {
+    return mySaveNodeAsTracker;
+  }
+
+  @NotNull
+  public FutureValuesTracker<DeviceFileEntryNode> getCopyNodePathTracker() {
+    return myCopyNodePathTracker;
+  }
+
   private class MyDeviceExplorerViewListener implements DeviceExplorerViewListener {
     @Override
     public void deviceSelected(@Nullable DeviceFileSystem device) {
@@ -240,15 +262,27 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
     }
 
     @Override
-    public void treeNodeActionPerformed(@NotNull DeviceFileEntryNode treeNode) {
-      myTreeNodeActionPerformedTracker.produce(treeNode);
-      myListeners.forEach(l -> l.treeNodeActionPerformed(treeNode));
+    public void openNodeInEditorInvoked(@NotNull DeviceFileEntryNode treeNode) {
+      myOpenNodeInEditorInvokedTracker.produce(treeNode);
+      myListeners.forEach(l -> l.openNodeInEditorInvoked(treeNode));
     }
 
     @Override
     public void treeNodeExpanding(@NotNull DeviceFileEntryNode treeNode) {
       myTreeNodeExpandingTracker.produce(treeNode);
       myListeners.forEach(l -> l.treeNodeExpanding(treeNode));
+    }
+
+    @Override
+    public void saveNodeAsInvoked(@NotNull DeviceFileEntryNode treeNode) {
+      mySaveNodeAsTracker.produce(treeNode);
+      myListeners.forEach(l -> l.saveNodeAsInvoked(treeNode));
+    }
+
+    @Override
+    public void copyNodePathInvoked(@NotNull DeviceFileEntryNode treeNode) {
+      myCopyNodePathTracker.produce(treeNode);
+      myListeners.forEach(l -> l.copyNodePathInvoked(treeNode));
     }
   }
 
