@@ -345,7 +345,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   @NotNull
-  private static GradleInvocationResult invokeGradle(@NotNull Project project, @NotNull Consumer<GradleBuildInvoker> gradleInvocationTask)
+  protected static GradleInvocationResult invokeGradle(@NotNull Project project, @NotNull Consumer<GradleBuildInvoker> gradleInvocationTask)
     throws InterruptedException {
     Ref<GradleInvocationResult> resultRef = new Ref<>();
     CountDownLatch latch = new CountDownLatch(1);
