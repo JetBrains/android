@@ -103,13 +103,13 @@ public class MemoryDataPoller extends PollRunner {
         if (info.getEndTime() == DurationData.UNSPECIFIED_DURATION) {
           throw new RuntimeException("Invalid endTime: " + +info.getEndTime() + " for DumpID: " + info.getDumpId());
         }
-        myPendingHeapDumpSample = myPendingHeapDumpSample.toBuilder().setEndTime(info.getEndTime()).build();
-        heapDumpsToFetch.add(myPendingHeapDumpSample);
+        myMemoryTable.insertOrUpdateHeapInfo(info);
+        heapDumpsToFetch.add(info);
         myPendingHeapDumpSample = null;
       }
       else {
         HeapDumpInfo info = response.getHeapDumpInfos(i);
-        myMemoryTable.insertHeapDumpInfo(info);
+        myMemoryTable.insertOrUpdateHeapInfo(info);
         if (info.getEndTime() == DurationData.UNSPECIFIED_DURATION) {
           // Note - there should be at most one unfinished heap dump request at a time. e.g. the final info from the response.
           assert i == response.getHeapDumpInfosCount() - 1;
@@ -174,7 +174,7 @@ public class MemoryDataPoller extends PollRunner {
       for (HeapDumpInfo sample : dumpsToFetch) {
         DumpDataResponse dumpDataResponse = myPollingService.getHeapDump(
           DumpDataRequest.newBuilder().setProcessId(myProcessId).setDumpId(sample.getDumpId()).build());
-        myMemoryTable.insertHeapDumpData(dumpDataResponse.getStatus(), sample, dumpDataResponse.getData());
+        myMemoryTable.insertHeapDumpData(sample.getDumpId(), dumpDataResponse.getStatus(), dumpDataResponse.getData());
       }
     };
     myFetchExecutor.accept(query);
