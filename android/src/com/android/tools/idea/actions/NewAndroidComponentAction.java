@@ -16,7 +16,6 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.npw.ThemeHelper;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
@@ -83,6 +82,11 @@ public class NewAndroidComponentAction extends AnAction {
     if (myMinSdkVersion > moduleMinSdkVersion) {
       presentation.setText(AndroidBundle.message("android.wizard.action.requires.minsdk", myTemplateName, myMinSdkVersion));
       presentation.setEnabled(false);
+    }
+    else {
+      final AndroidFacet facet = AndroidFacet.getInstance(module);
+      boolean isProjectReady = facet != null && facet.getAndroidModel() != null;
+      presentation.setEnabled(isProjectReady);
     }
   }
 
