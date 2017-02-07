@@ -30,6 +30,9 @@ import static com.android.tools.profiler.proto.NetworkProfiler.*;
 
 public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceImplBase {
   public static final int FAKE_APP_ID = 1111;
+  public static final String FAKE_STACK_TRACE =
+    "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java)\n" +
+    "com.example.android.displayingbitmaps.util.AsyncTask$2.call(AsyncTask.java:%d)";
 
   private int myAppId;
 
@@ -123,7 +126,7 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
         HttpDetailsResponse.Request.Builder requestBuilder = HttpDetailsResponse.Request.newBuilder();
         String requestHeaders = data.getRequestHeaders().entrySet().stream().map(x -> x.getKey() + " = " + x.getValue())
           .collect(Collectors.joining("\n"));
-        requestBuilder.setTrace(data.getTrace())
+        requestBuilder.setTrace(data.getStackTrace().getTrace())
           .setMethod(data.getMethod())
           .setUrl(data.getUrl())
           .setFields(requestHeaders);
@@ -158,7 +161,7 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
     long downloadUs = TimeUnit.SECONDS.toMicros(downloadS);
     long endUs = TimeUnit.SECONDS.toMicros(endS);
     HttpData.Builder builder = new HttpData.Builder(id, startUs, endUs, downloadUs);
-    builder.setTrace("Trace " + id);
+    builder.setTrace(String.format(FAKE_STACK_TRACE, id));
     builder.setUrl("http://example.com/" + id);
     builder.setMethod("method " + id);
     if (endS != 0) {

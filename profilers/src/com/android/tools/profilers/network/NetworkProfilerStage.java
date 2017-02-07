@@ -25,6 +25,7 @@ import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf3jarjar.ByteString;
@@ -45,6 +46,9 @@ public class NetworkProfilerStage extends Stage {
   // If null, means no connection to show in the details pane.
   @Nullable
   private HttpData mySelectedConnection;
+
+  @Nullable
+  private CodeLocation mySelectedCodeLocation;
 
   private AspectModel<NetworkProfilerAspect> myAspect = new AspectModel<>();
 
@@ -81,41 +85,24 @@ public class NetworkProfilerStage extends Stage {
     myEventMonitor = new EventMonitor(profilers);
   }
 
-
-  public static class NetworkStageLegends extends LegendComponentModel {
-
-    private final SeriesLegend myRxLegend;
-    private final SeriesLegend myTxLegend;
-    private final SeriesLegend myConnectionLegend;
-
-    public NetworkStageLegends(DetailedNetworkUsage usage, Range range) {
-      super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
-      myRxLegend = new SeriesLegend(usage.getRxSeries(), TRAFFIC_AXIS_FORMATTER, range);
-      myTxLegend = new SeriesLegend(usage.getTxSeries(), TRAFFIC_AXIS_FORMATTER, range);
-      myConnectionLegend = new SeriesLegend(usage.getConnectionSeries(), CONNECTIONS_AXIS_FORMATTER, range);
-
-      add(myRxLegend);
-      add(myTxLegend);
-      add(myConnectionLegend);
-    }
-
-    public SeriesLegend getRxLegend() {
-      return myRxLegend;
-    }
-
-    public SeriesLegend getTxLegend() {
-      return myTxLegend;
-    }
-
-    public SeriesLegend getConnectionLegend() {
-      return myConnectionLegend;
-    }
-  }
-
   @Override
   public ProfilerMode getProfilerMode() {
+    if (mySelectedCodeLocation != null) {
+      return ProfilerMode.NORMAL;
+    }
     boolean noSelection = getStudioProfilers().getTimeline().getSelectionRange().isEmpty();
     return mySelectedConnection == null && noSelection ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED;
+  }
+
+  public void setSelectedCodeLocation(@Nullable CodeLocation location) {
+    mySelectedCodeLocation = location;
+    getAspect().changed(NetworkProfilerAspect.CODE_LOCATION);
+    getStudioProfilers().modeChanged();
+  }
+
+  @Nullable
+  public CodeLocation getSelectedCodeLocation() {
+    return mySelectedCodeLocation;
   }
 
   @NotNull
@@ -141,6 +128,7 @@ public class NetworkProfilerStage extends Stage {
       }
     }
     mySelectedConnection = data;
+    setSelectedCodeLocation(null);
     getStudioProfilers().modeChanged();
     getAspect().changed(NetworkProfilerAspect.ACTIVE_CONNECTION);
   }
@@ -221,5 +209,35 @@ public class NetworkProfilerStage extends Stage {
   @NotNull
   public EventMonitor getEventMonitor() {
     return myEventMonitor;
+  }
+
+  public static class NetworkStageLegends extends LegendComponentModel {
+
+    private final SeriesLegend myRxLegend;
+    private final SeriesLegend myTxLegend;
+    private final SeriesLegend myConnectionLegend;
+
+    public NetworkStageLegends(DetailedNetworkUsage usage, Range range) {
+      super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
+      myRxLegend = new SeriesLegend(usage.getRxSeries(), TRAFFIC_AXIS_FORMATTER, range);
+      myTxLegend = new SeriesLegend(usage.getTxSeries(), TRAFFIC_AXIS_FORMATTER, range);
+      myConnectionLegend = new SeriesLegend(usage.getConnectionSeries(), CONNECTIONS_AXIS_FORMATTER, range);
+
+      add(myRxLegend);
+      add(myTxLegend);
+      add(myConnectionLegend);
+    }
+
+    public SeriesLegend getRxLegend() {
+      return myRxLegend;
+    }
+
+    public SeriesLegend getTxLegend() {
+      return myTxLegend;
+    }
+
+    public SeriesLegend getConnectionLegend() {
+      return myConnectionLegend;
+    }
   }
 }

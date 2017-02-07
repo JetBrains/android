@@ -28,6 +28,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.tabs.TabInfo;
+import com.intellij.ui.tabs.TabsListener;
 import com.intellij.ui.tabs.impl.JBTabsImpl;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
@@ -80,38 +81,8 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
 
   @NotNull
   @Override
-  public TabsPanel createTabsPanel() {
-    return new TabsPanel() {
-      @NotNull private final JBTabsImpl myTabsImpl = new JBTabsImpl(myProject);
-      @NotNull private final HashMap<JComponent, TabInfo> myTabsCache = new HashMap<>();
-
-      @NotNull
-      @Override
-      public JComponent getComponent() {
-        return myTabsImpl;
-      }
-
-      @Override
-      public void addTab(@NotNull String label, @NotNull JComponent content) {
-        TabInfo info = new TabInfo(content);
-        info.setText(label);
-        myTabsCache.put(content, info);
-        myTabsImpl.addTab(info);
-      }
-
-      @Override
-      public void removeTab(@NotNull JComponent tab) {
-        assert myTabsCache.containsKey(tab);
-        myTabsImpl.removeTab(myTabsCache.get(tab));
-        myTabsCache.remove(tab);
-      }
-
-      @Override
-      public void removeAll() {
-        myTabsImpl.removeAllTabs();
-        myTabsCache.clear();
-      }
-    };
+  public TabsPanel createTabsPanel(@Nullable Runnable onSelectionChange) {
+    return new IntellijTabsPanel(myProject, onSelectionChange);
   }
 
   @NotNull
