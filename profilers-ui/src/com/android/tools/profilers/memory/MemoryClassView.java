@@ -90,7 +90,7 @@ final class MemoryClassView extends AspectObserver {
       ClassAttribute.TOTAL_COUNT,
       new AttributeColumn(
         "Total Count",
-        () -> new DetailColumnRenderer(
+        () -> new SimpleColumnRenderer(
           value -> ((NamespaceObject)value.getAdapter()).getTotalCount() >= 0 ?
                    Integer.toString(((NamespaceObject)value.getAdapter()).getTotalCount()) :
                    "",
@@ -104,7 +104,7 @@ final class MemoryClassView extends AspectObserver {
       ClassAttribute.HEAP_COUNT,
       new AttributeColumn(
         "Heap Count",
-        () -> new DetailColumnRenderer(
+        () -> new SimpleColumnRenderer(
           value -> ((NamespaceObject)value.getAdapter()).getHeapCount() >= 0 ?
                    Integer.toString(((NamespaceObject)value.getAdapter()).getHeapCount()) :
                    "",
@@ -118,7 +118,7 @@ final class MemoryClassView extends AspectObserver {
       ClassAttribute.INSTANCE_SIZE,
       new AttributeColumn(
         "Sizeof",
-        () -> new DetailColumnRenderer(
+        () -> new SimpleColumnRenderer(
           value -> value.getAdapter() instanceof ClassObject && ((ClassObject)value.getAdapter()).getInstanceSize() >= 0 ? Integer
             .toString(((ClassObject)value.getAdapter()).getInstanceSize()) : "", value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
@@ -129,7 +129,7 @@ final class MemoryClassView extends AspectObserver {
       ClassAttribute.SHALLOW_SIZE,
       new AttributeColumn(
         "Shallow Size",
-        () -> new DetailColumnRenderer(
+        () -> new SimpleColumnRenderer(
           value -> value.getAdapter() instanceof ClassObject && ((ClassObject)value.getAdapter()).getShallowSize() >= 0 ? Integer
             .toString(((ClassObject)value.getAdapter()).getShallowSize()) : "",
           value -> null, SwingConstants.RIGHT),
@@ -141,7 +141,7 @@ final class MemoryClassView extends AspectObserver {
       ClassAttribute.RETAINED_SIZE,
       new AttributeColumn(
         "Retained Size",
-        () -> new DetailColumnRenderer(
+        () -> new SimpleColumnRenderer(
           value -> ((NamespaceObject)value.getAdapter()).getRetainedSize() >= 0 ?
                    Long.toString(((NamespaceObject)value.getAdapter()).getRetainedSize()) :
                    "",

@@ -153,12 +153,14 @@ public abstract class MemoryProfilerTestBase {
   @NotNull
   static InstanceObject mockInstanceObject(@NotNull String className,
                                            @NotNull String label,
+                                           @Nullable String toString,
                                            int depth,
                                            int shallowSize,
                                            long retainedSize) {
     InstanceObject object = mock(InstanceObject.class);
     when(object.getClassName()).thenReturn(className);
     when(object.getDisplayLabel()).thenReturn(label);
+    when(object.getToStringText()).thenReturn(toString);
     when(object.getDepth()).thenReturn(depth);
     when(object.getShallowSize()).thenReturn(shallowSize);
     when(object.getRetainedSize()).thenReturn(retainedSize);
@@ -202,7 +204,8 @@ public abstract class MemoryProfilerTestBase {
                                                            long retainedSize,
                                                            int instancesCount) {
     List<InstanceObject> instances = IntStream.range(0, instancesCount)
-      .mapToObj(i -> mockInstanceObject(className, "instance" + i, 0, shallowSize, retainedSize / (long)instancesCount)).collect(toList());
+      .mapToObj(i -> mockInstanceObject(className, "instance" + i, null, 0, shallowSize, retainedSize / (long)instancesCount))
+      .collect(toList());
     return mockClassObject(className, size, shallowSize, retainedSize, instances);
   }
 }

@@ -82,7 +82,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       InstanceObject.InstanceAttribute.LABEL,
       new AttributeColumn(
         "Reference",
-        () -> new DetailColumnRenderer(
+        () -> new SimpleColumnRenderer(
           value -> {
             StringBuilder builder = new StringBuilder();
             assert value.getAdapter() instanceof InstanceObject;
@@ -112,7 +112,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       InstanceObject.InstanceAttribute.DEPTH,
       new AttributeColumn(
         "Depth",
-        () -> new DetailColumnRenderer(value -> {
+        () -> new SimpleColumnRenderer(value -> {
           MemoryObject node = value.getAdapter();
           if (node instanceof InstanceObject) {
             InstanceObject instanceObject = (InstanceObject)value.getAdapter();
@@ -131,7 +131,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       InstanceObject.InstanceAttribute.SHALLOW_SIZE,
       new AttributeColumn(
         "Shallow Size",
-        () -> new DetailColumnRenderer(
+        () -> new SimpleColumnRenderer(
           value -> Integer.toString(((InstanceObject)value.getAdapter()).getShallowSize()), value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
@@ -141,7 +141,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       InstanceObject.InstanceAttribute.RETAINED_SIZE,
       new AttributeColumn(
         "Retained Size",
-        () -> new DetailColumnRenderer(
+        () -> new SimpleColumnRenderer(
           value -> {
             MemoryObject node = value.getAdapter();
             return node instanceof InstanceObject ? Long.toString(((InstanceObject)value.getAdapter()).getRetainedSize()) : "";

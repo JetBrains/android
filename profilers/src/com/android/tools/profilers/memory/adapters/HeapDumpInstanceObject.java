@@ -27,8 +27,12 @@ import java.util.*;
  * A UI representation of a {@link ClassInstance}.
  */
 class HeapDumpInstanceObject implements InstanceObject {
-  public static final String NAME_FORMATTER = "@%d (0x%x)";
+  private static final String NAME_FORMATTER = "%s@%d (0x%x)";
+  private static final int MAX_VALUE_TEXT_LENGTH = 1024;
   private static final Comparator<Instance> DEPTH_COMPARATOR = Comparator.comparingInt(Instance::getDistanceToGcRoot);
+  private static final String INVALID_STRING_VALUE = " ...<invalid string value>...";
+
+  @NotNull protected ClassObject.ValueType myValueType;
 
   @Nullable private final ClassObject myClassObject;
   @Nullable private final Instance myInstance;
@@ -127,10 +131,27 @@ class HeapDumpInstanceObject implements InstanceObject {
     return referrers;
   }
 
-  public HeapDumpInstanceObject(@Nullable ClassObject classObject, @Nullable Instance instance) {
+  public HeapDumpInstanceObject(@Nullable ClassObject classObject, @Nullable Instance instance, @Nullable ClassObject.ValueType precomputedValueType) {
     myClassObject = classObject;
     myInstance = instance;
-    myMemoizedLabel = myInstance == null ? "{null}" : String.format(NAME_FORMATTER, myInstance.getUniqueId(), myInstance.getUniqueId());
+    myMemoizedLabel = myInstance == null
+                      ? "{null}"
+                      : String.format(NAME_FORMATTER,
+                                      myClassObject == null ? "null" : myClassObject.getClassName(),
+                                      myInstance.getUniqueId(),
+                                      myInstance.getUniqueId());
+    if (precomputedValueType != null) {
+      myValueType = precomputedValueType;
+    }
+    else if (instance instanceof ClassObj) {
+      myValueType = ClassObject.ValueType.CLASS;
+    }
+    else if (instance instanceof ClassInstance && instance.getClassObj().getClassName().equals(ClassObject.JAVA_LANG_STRING)) {
+      myValueType = ClassObject.ValueType.STRING;
+    }
+    else {
+      myValueType = ClassObject.ValueType.OBJECT;
+    }
   }
 
   @Override
@@ -153,6 +174,38 @@ class HeapDumpInstanceObject implements InstanceObject {
   public String getDisplayLabel() {
     // TODO show length of array instance
     return myMemoizedLabel;
+  }
+
+  @Nullable
+  @Override
+  public String getToStringText() {
+    if (myInstance == null) {
+      return null;
+    }
+
+    if (myValueType == ClassObject.ValueType.CLASS) {
+      return String.format(" \"class %s\"", ((ClassObj)myInstance).getClassName());
+    }
+    else if (myValueType == ClassObject.ValueType.STRING) {
+      char[] stringChars = ((ClassInstance)myInstance).getStringChars(MAX_VALUE_TEXT_LENGTH);
+      if (stringChars != null) {
+        int charLength = stringChars.length;
+        StringBuilder builder = new StringBuilder(6 + charLength);
+        builder.append(" \"");
+        if (charLength == MAX_VALUE_TEXT_LENGTH) {
+          builder.append(stringChars, 0, charLength - 1).append("...");
+        }
+        else {
+          builder.append(stringChars);
+        }
+        builder.append("\"");
+        return builder.toString();
+      }
+      else {
+        return INVALID_STRING_VALUE;
+      }
+    }
+    return null;
   }
 
   @Nullable
@@ -186,6 +239,12 @@ class HeapDumpInstanceObject implements InstanceObject {
   @Override
   public List<FieldObject> getFields() {
     return myInstance == null ? Collections.emptyList() : extractFields(myInstance);
+  }
+
+  @Override
+  @NotNull
+  public ClassObject.ValueType getValueType() {
+    return myValueType;
   }
 
   @Nullable

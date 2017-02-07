@@ -34,7 +34,7 @@ public class HeapDumpFieldObjectTest {
 
     HeapDumpFieldObject fieldObject = new HeapDumpFieldObject(parentInstance, field, childInstance);
     assertEquals("field0", fieldObject.getFieldName());
-    assertEquals(InstanceObject.ValueType.OBJECT, fieldObject.getValueType());
+    assertEquals(ClassObject.ValueType.OBJECT, fieldObject.getValueType());
     assertEquals(String.format(FieldObject.FIELD_DISPLAY_FORMAT, "field0", childInstance), fieldObject.getDisplayLabel());
     assertEquals(childDepth, fieldObject.getDepth());
     assertEquals(0, fieldObject.getShallowSize());
@@ -51,7 +51,7 @@ public class HeapDumpFieldObjectTest {
 
     HeapDumpFieldObject fieldObject = new HeapDumpFieldObject(parentInstance, field, null);
     assertEquals("field0", fieldObject.getFieldName());
-    assertEquals(InstanceObject.ValueType.NULL, fieldObject.getValueType());
+    assertEquals(ClassObject.ValueType.NULL, fieldObject.getValueType());
     assertEquals(String.format(FieldObject.FIELD_DISPLAY_FORMAT, "field0", "{null}"), fieldObject.getDisplayLabel());
     assertEquals(FieldObject.INVALID_VALUE, fieldObject.getDepth());
     assertEquals(FieldObject.INVALID_VALUE, fieldObject.getShallowSize());
@@ -68,7 +68,7 @@ public class HeapDumpFieldObjectTest {
 
     HeapDumpFieldObject fieldObject = new HeapDumpFieldObject(parentInstance, field, null);
     assertEquals("field0", fieldObject.getFieldName());
-    assertEquals(InstanceObject.ValueType.BOOLEAN, fieldObject.getValueType());
+    assertEquals(ClassObject.ValueType.BOOLEAN, fieldObject.getValueType());
     assertEquals(String.format(FieldObject.FIELD_DISPLAY_FORMAT, "field0", true), fieldObject.getDisplayLabel());
     assertEquals(parentDepth, fieldObject.getDepth());
     assertEquals(Type.BOOLEAN.getSize(), fieldObject.getShallowSize());
