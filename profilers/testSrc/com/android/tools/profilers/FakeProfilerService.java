@@ -46,7 +46,11 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     myCache = new HashMap<>();
     if (connected) {
       Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
-      Profiler.Process process = Profiler.Process.newBuilder().setPid(20).setName("FakeProcess").build();
+      Profiler.Process process = Profiler.Process.newBuilder()
+        .setPid(20)
+        .setState(Profiler.Process.State.ALIVE)
+        .setName("FakeProcess")
+        .build();
       addDevice(device);
       Common.Session session = Common.Session.newBuilder()
         .setBootId(device.getBootId())
