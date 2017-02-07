@@ -55,8 +55,13 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
   public NewProjectWizardFixture chooseActivity(@NotNull String activity) {
     JListFixture listFixture = new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class));
     listFixture.replaceCellReader((jList, index) -> {
-      TemplateEntry templateEntry = ((Optional<TemplateEntry>) jList.getModel().getElementAt(index)).orElse(null);
-      return templateEntry == null ? "none" : templateEntry.getTitle();
+      Object listItem = jList.getModel().getElementAt(index);
+      if (listItem instanceof Optional) {
+        // Old dynamic wizard code
+        TemplateEntry templateEntry = ((Optional<TemplateEntry>)jList.getModel().getElementAt(index)).orElse(null);
+        return templateEntry == null ? "none" : templateEntry.getTitle();
+      }
+      return String.valueOf(listItem);
     });
     listFixture.clickItem(activity);
     return this;
