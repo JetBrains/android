@@ -39,10 +39,10 @@ import java.io.IOException;
 
 import static com.android.SdkConstants.GRADLE_PLUGIN_AIA_VERSION;
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
-import static com.android.tools.idea.npw.deprecated.NewFormFactorModulePath.setAiaPluginVersion;
-import static com.android.tools.idea.npw.deprecated.NewFormFactorModulePath.setAiaSdkLocation;
 import static com.google.common.truth.Truth.assertThat;
 import static java.lang.System.getenv;
+import static org.jetbrains.android.util.InstantApps.setAiaPluginVersion;
+import static org.jetbrains.android.util.InstantApps.setAiaSdkLocation;
 
 /**
  * Test that newly created Instant App projects do not have errors in them
