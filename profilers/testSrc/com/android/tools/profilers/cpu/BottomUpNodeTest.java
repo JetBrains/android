@@ -30,20 +30,21 @@ import static org.junit.Assert.*;
 public class BottomUpNodeTest {
   private final static double EPS = 1e-5;
 
-  private final List<AnswerNode> myAnswerNodes = Arrays.asList(
-    new AnswerNode("Root", 45.0, 15.0),
-    new AnswerNode(":A", 20.0, 10.0),
-    new AnswerNode(":main", 15.0, 5.0),
-    new AnswerNode(":C", 5.0, 5.0),
-    new AnswerNode(":main", 5.0, 5.0),
-    new AnswerNode(":C", 10.0, 5.0),
-    new AnswerNode(":main", 10.0, 5.0),
-    new AnswerNode(":B", 15.0, 0.0),
-    new AnswerNode(":main", 5.0, 0.0),
-    new AnswerNode(":A", 10.0, 0.0),
-    new AnswerNode(":main", 5.0, 0.0),
-    new AnswerNode(":C", 5.0, 0.0),
-    new AnswerNode(":main", 5.0, 0.0));
+  private final List<ExpectedNode> myExpectedNodes = Arrays.asList(
+    new ExpectedNode("Root", 40.0, 30.0),
+    new ExpectedNode(":main", 40.0, 30.0),
+    new ExpectedNode(":A", 20.0, 10.0),
+    new ExpectedNode(":main", 15.0, 5.0),
+    new ExpectedNode(":C", 5.0, 5.0),
+    new ExpectedNode(":main", 5.0, 5.0),
+    new ExpectedNode(":C", 10.0, 5.0),
+    new ExpectedNode(":main", 10.0, 5.0),
+    new ExpectedNode(":B", 15.0, 0.0),
+    new ExpectedNode(":main", 5.0, 0.0),
+    new ExpectedNode(":A", 10.0, 0.0),
+    new ExpectedNode(":main", 5.0, 0.0),
+    new ExpectedNode(":C", 5.0, 0.0),
+    new ExpectedNode(":main", 5.0, 0.0));
 
   private List<BottomUpNode> myTraverseOrder;
 
@@ -58,13 +59,13 @@ public class BottomUpNodeTest {
     BottomUpNode bottomUpNode = new BottomUpNode(createTree());
     traverse(bottomUpNode);
 
-    assertEquals(myAnswerNodes.size(), myTraverseOrder.size());
-    for (int i = 0; i < myAnswerNodes.size(); ++i) {
+    assertEquals(myExpectedNodes.size(), myTraverseOrder.size());
+    for (int i = 0; i < myExpectedNodes.size(); ++i) {
       BottomUpNode node = myTraverseOrder.get(i);
       node.update(viewRange);
-      assertEquals(myAnswerNodes.get(i).myId, node.getId());
-      assertEquals(myAnswerNodes.get(i).myTotal, node.getTotal(), EPS);
-      assertEquals(myAnswerNodes.get(i).myChildrenTotal, node.getChildrenTotal(), EPS);
+      assertEquals(myExpectedNodes.get(i).myId, node.getId());
+      assertEquals(myExpectedNodes.get(i).myTotal, node.getTotal(), EPS);
+      assertEquals(myExpectedNodes.get(i).myChildrenTotal, node.getChildrenTotal(), EPS);
     }
   }
 
@@ -92,12 +93,12 @@ public class BottomUpNodeTest {
     return root;
   }
 
-  private static class AnswerNode {
+  private static class ExpectedNode {
     private String myId;
     private double myTotal;
     private double myChildrenTotal;
 
-    private AnswerNode(String id, double total, double childrenTotal) {
+    private ExpectedNode(String id, double total, double childrenTotal) {
       myId = id;
       myTotal = total;
       myChildrenTotal = childrenTotal;

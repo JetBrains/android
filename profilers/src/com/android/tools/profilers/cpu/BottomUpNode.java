@@ -37,22 +37,13 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
     myIsRoot = true;
     myChildrenBuilt = true;
 
+    Map<String, BottomUpNode> children = new HashMap<>();
     Queue<HNode<MethodModel>> queue = new LinkedList<>();
     queue.add(node);
     while (!queue.isEmpty()) {
       HNode<MethodModel> curNode = queue.poll();
-      if (curNode.getParent() != null) {
-        addPathNode(curNode);
-        addNode(curNode);
-      }
-      for (HNode<MethodModel> child : curNode.getChildren()) {
-        queue.add(child);
-      }
-    }
-
-    Map<String, BottomUpNode> children = new HashMap<>();
-    for (HNode<MethodModel> curNode : getNodes()) {
       assert curNode.getData() != null;
+
       String curId = curNode.getData().getId();
       BottomUpNode child = children.get(curId);
       if (child == null) {
@@ -62,7 +53,11 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
       }
       child.addPathNode(curNode);
       child.addNode(curNode);
+
+      queue.addAll(curNode.getChildren());
     }
+
+    addNode(node);
 
     for (BottomUpNode child : getChildren()) {
       child.buildChildren();
