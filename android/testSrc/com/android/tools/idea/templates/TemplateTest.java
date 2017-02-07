@@ -1045,6 +1045,7 @@ public class TemplateTest extends AndroidGradleTestCase {
 
       assertNotNull(project);
       System.out.println("Checking project " + projectName + " in " + project.getBaseDir());
+      setUpSdks(project);
 
       GradleInvocationResult result = invokeGradleTasks(project, "assembleDebug");
       assertThat(result.isBuildSuccessful()).isTrue();
