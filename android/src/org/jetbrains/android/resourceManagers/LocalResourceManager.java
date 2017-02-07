@@ -17,12 +17,13 @@
 package org.jetbrains.android.resourceManagers;
 
 import com.android.SdkConstants;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AppResourceRepository;
+import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
@@ -59,15 +60,10 @@ public class LocalResourceManager extends ResourceManager {
     return myFacet;
   }
 
-  /**
-   * Gets all resource directories reachable from the facet (modules and libraries).
-   * @return resource directories
-   */
   @NotNull
   @Override
-  public VirtualFile[] getAllResourceDirs() {
-    Set<VirtualFile> result = AppResourceRepository.getOrCreateInstance(myFacet).getResourceDirs();
-    return VfsUtilCore.toVirtualFileArray(result);
+  public Multimap<String, VirtualFile> getAllResourceDirs() {
+    return AppResourceRepository.getOrCreateInstance(myFacet).getAllResourceDirs();
   }
 
   @Override
@@ -103,7 +99,7 @@ public class LocalResourceManager extends ResourceManager {
   }
 
   @NotNull
-  public List<ResourceElement> getValueResources(@NotNull final ResourceType resourceType) {
+  public List<ResourceElement> getValueResources(@NotNull ResourceType resourceType) {
     return getValueResources(resourceType, null);
   }
 
@@ -124,13 +120,7 @@ public class LocalResourceManager extends ResourceManager {
   public AttributeDefinitions getAttributeDefinitions() {
     if (myAttrDefs == null) {
       ApplicationManager.getApplication().runReadAction(() -> {
-        List<XmlFile> xmlResFiles = new ArrayList<>();
-        for (PsiFile file : findResourceFiles("values")) {
-          if (file instanceof XmlFile) {
-            xmlResFiles.add((XmlFile)file);
-          }
-        }
-        myAttrDefs = new AttributeDefinitionsImpl(xmlResFiles.toArray(new XmlFile[xmlResFiles.size()]));
+        myAttrDefs = new AttributeDefinitionsImpl(findResourceFilesByLibraryName(ResourceFolderType.VALUES, XmlFile.class));
       });
     }
     return myAttrDefs;
@@ -144,7 +134,7 @@ public class LocalResourceManager extends ResourceManager {
   public List<Attr> findAttrs(@NotNull String name) {
     List<Attr> list = new ArrayList<>();
     for (Pair<Resources, VirtualFile> pair : getResourceElements()) {
-      final Resources res = pair.getFirst();
+      Resources res = pair.getFirst();
       for (Attr attr : res.getAttrs()) {
         if (name.equals(attr.getName().getValue())) {
           list.add(attr);
@@ -162,9 +152,9 @@ public class LocalResourceManager extends ResourceManager {
   }
 
   public List<DeclareStyleable> findStyleables(@NotNull String name) {
-    List<DeclareStyleable> list = new ArrayList<DeclareStyleable>();
+    List<DeclareStyleable> list = new ArrayList<>();
     for (Pair<Resources, VirtualFile> pair : getResourceElements()) {
-      final Resources res = pair.getFirst();
+      Resources res = pair.getFirst();
       for (DeclareStyleable styleable : res.getDeclareStyleables()) {
         if (name.equals(styleable.getName().getValue())) {
           list.add(styleable);
@@ -200,7 +190,7 @@ public class LocalResourceManager extends ResourceManager {
 
     List<Attr> list = new ArrayList<>();
     for (Pair<Resources, VirtualFile> pair : getResourceElements()) {
-      final Resources res = pair.getFirst();
+      Resources res = pair.getFirst();
       for (DeclareStyleable styleable : res.getDeclareStyleables()) {
         if (styleableName.equals(styleable.getName().getValue())) {
           for (Attr attr : styleable.getAttrs()) {
@@ -217,12 +207,12 @@ public class LocalResourceManager extends ResourceManager {
 
   @NotNull
   public List<PsiElement> findResourcesByField(@NotNull PsiField field) {
-    final String type = AndroidResourceUtil.getResourceClassName(field);
+    String type = AndroidResourceUtil.getResourceClassName(field);
     if (type == null) {
       return Collections.emptyList();
     }
 
-    final String fieldName = field.getName();
+    String fieldName = field.getName();
     if (fieldName == null) {
       return Collections.emptyList();
     }
@@ -235,8 +225,11 @@ public class LocalResourceManager extends ResourceManager {
     if (resClassName.equals(ResourceType.ID.getName())) {
       targets.addAll(findIdDeclarations(fieldName));
     }
-    for (PsiFile file : findResourceFiles(resClassName, fieldName, false)) {
-      targets.add(file);
+    ResourceFolderType folderType = ResourceFolderType.getTypeByName(resClassName);
+    if (folderType != null) {
+      for (PsiFile file : findResourceFiles(folderType, fieldName, false)) {
+        targets.add(file);
+      }
     }
     for (ResourceElement element : findValueResources(resClassName, fieldName, false)) {
       targets.add(element.getName().getXmlAttributeValue());

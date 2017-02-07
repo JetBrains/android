@@ -433,15 +433,15 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
   private static void prepareResourceFileRenaming(PsiFile file, String newName, Map<PsiElement, String> allRenames, AndroidFacet facet) {
     Project project = file.getProject();
     ResourceManager manager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
-    String type = manager.getFileResourceType(file);
+    ResourceFolderType type = manager.getFileResourceFolderType(file);
     if (type == null) return;
     String name = file.getName();
 
-    if (AndroidCommonUtils.getResourceName(type, name).equals(AndroidCommonUtils.getResourceName(type, newName))) {
+    if (AndroidCommonUtils.getResourceName(type.getName(), name).equals(AndroidCommonUtils.getResourceName(type.getName(), newName))) {
       return;
     }
 
-    List<PsiFile> resourceFiles = manager.findResourceFiles(type, AndroidCommonUtils.getResourceName(type, name), true, false);
+    List<PsiFile> resourceFiles = manager.findResourceFiles(type, AndroidCommonUtils.getResourceName(type.getName(), name), true, false);
     List<PsiFile> alternativeResources = new ArrayList<>();
     for (PsiFile resourceFile : resourceFiles) {
       if (!resourceFile.getManager().areElementsEquivalent(file, resourceFile) && resourceFile.getName().equals(name)) {
@@ -465,7 +465,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     }
     PsiField[] resFields = AndroidResourceUtil.findResourceFieldsForFileResource(file, false);
     for (PsiField resField : resFields) {
-      String newFieldName = AndroidCommonUtils.getResourceName(type, newName);
+      String newFieldName = AndroidCommonUtils.getResourceName(type.getName(), newName);
       allRenames.put(resField, AndroidResourceUtil.getFieldNameByResourceName(newFieldName));
     }
   }

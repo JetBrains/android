@@ -337,7 +337,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
         }
         else {
           LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
-          List<PsiFile> files = resourceManager.findResourceFiles(ResourceFolderType.LAYOUT.getName());
+          List<PsiFile> files = resourceManager.findResourceFiles(ResourceFolderType.LAYOUT);
           for (PsiFile psiFile : files) {
             if (ResourceFolderManager.isLibraryResourceFile(psiFile.getVirtualFile())) {
               continue;
