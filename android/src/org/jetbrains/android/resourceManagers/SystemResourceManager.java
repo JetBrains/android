@@ -74,7 +74,7 @@ public class SystemResourceManager extends ResourceManager {
     String resPath = myPlatform.getTarget().getPath(IAndroidTarget.RESOURCES);
     resPath = FileUtil.toSystemIndependentName(resPath);
     VirtualFile dir = LocalFileSystem.getInstance().findFileByPath(resPath);
-    return dir != null ? Collections.singletonList(dir) : Collections.<VirtualFile>emptyList();
+    return dir != null ? Collections.singletonList(dir) : Collections.emptyList();
   }
 
   @Nullable
