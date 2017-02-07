@@ -19,6 +19,7 @@ import com.google.common.truth.FailureStrategy;
 import com.google.common.truth.Subject;
 import com.google.common.truth.SubjectFactory;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
@@ -58,7 +59,7 @@ public class LibraryDependenciesSubject extends Subject<LibraryDependenciesSubje
     for (OrderEntry orderEntry : rootManager.getOrderEntries()) {
       if (orderEntry instanceof LibraryOrderEntry) {
         LibraryOrderEntry libraryOrderEntry = (LibraryOrderEntry)orderEntry;
-        if (libraryOrderEntry.isExported()) {
+        if (libraryOrderEntry.isExported() && libraryOrderEntry.getScope() == DependencyScope.COMPILE) {
           myLibraryDependenciesByName.put(libraryOrderEntry.getLibraryName(), libraryOrderEntry);
         }
       }
