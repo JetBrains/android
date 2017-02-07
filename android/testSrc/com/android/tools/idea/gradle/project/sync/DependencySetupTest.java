@@ -168,9 +168,9 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module appModule = myModules.getAppModule();
 
-    // 'app' module should have 'javawriter' as dependency.
-    // 'app' -> 'library2' -> 'library1' -> 'javawriter'
-    assertAbout(libraryDependencies()).that(appModule).contains("javawriter-2.1.1");
+    // 'app' module should have 'commons-io' as dependency.
+    // 'app' -> 'library2' -> 'library1' -> 'commons-io'
+    assertAbout(libraryDependencies()).that(appModule).containsMatching("commons-io-.*");
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=212557
