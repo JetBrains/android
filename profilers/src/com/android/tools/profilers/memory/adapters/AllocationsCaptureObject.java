@@ -18,12 +18,17 @@ package com.android.tools.profilers.memory.adapters;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationEvent;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.memory.adapters.ClassObject.ClassAttribute;
 import com.google.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -78,6 +83,25 @@ public final class AllocationsCaptureObject implements CaptureObject {
     return myLabel;
   }
 
+  @Nullable
+  @Override
+  public String getExportableExtension() {
+    // TODO only return this if in legacy mode, otherwise return null
+    return "alloc";
+  }
+
+  @Override
+  public void saveToFile(@NotNull OutputStream outputStream) throws IOException {
+    MemoryProfiler.DumpDataResponse response = myClient.getAllocationDump(
+      MemoryProfiler.DumpDataRequest.newBuilder().setProcessId(myProcessId).setSession(mySession).setDumpTime(myStartTimeNs).build());
+    if (response.getStatus() == MemoryProfiler.DumpDataResponse.Status.SUCCESS) {
+      response.getData().writeTo(outputStream);
+    }
+    else {
+      throw new IOException("Could not retrieve allocation dump.");
+    }
+  }
+
   @NotNull
   @Override
   public List<HeapObject> getHeaps() {
@@ -125,8 +149,8 @@ public final class AllocationsCaptureObject implements CaptureObject {
 
     MemoryProfiler.AllocationContextsRequest contextRequest = MemoryProfiler.AllocationContextsRequest.newBuilder()
       .setSession(mySession)
-      .addAllStackIds(response.getEventsList().stream().map(event -> event.getAllocationStackId()).collect(Collectors.toSet()))
-      .addAllClassIds(response.getEventsList().stream().map(event -> event.getAllocatedClassId()).collect(Collectors.toSet()))
+      .addAllStackIds(response.getEventsList().stream().map(AllocationEvent::getAllocationStackId).collect(Collectors.toSet()))
+      .addAllClassIds(response.getEventsList().stream().map(AllocationEvent::getAllocatedClassId).collect(Collectors.toSet()))
       .build();
     MemoryProfiler.AllocationContextsResponse contextsResponse = myClient.listAllocationContexts(contextRequest);
 
@@ -138,7 +162,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
     contextsResponse.getAllocationStacksList().forEach(callStack -> callStacks.putIfAbsent(callStack.getStackId(), callStack));
 
     // TODO make sure class IDs fall into a global pool
-    for (MemoryProfiler.AllocationEvent event : response.getEventsList()) {
+    for (AllocationEvent event : response.getEventsList()) {
       assert classNodes.containsKey(event.getAllocatedClassId());
       assert callStacks.containsKey(event.getAllocationStackId());
       classNodes.get(event.getAllocatedClassId()).addInstance(

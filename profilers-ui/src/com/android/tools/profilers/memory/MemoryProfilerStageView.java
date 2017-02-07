@@ -44,7 +44,7 @@ import java.awt.*;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
-  @NotNull private final MemoryCaptureView myCaptureView = new MemoryCaptureView(getStage());
+  @NotNull private final MemoryCaptureView myCaptureView = new MemoryCaptureView(getStage(), getIdeComponents());
   @NotNull private final MemoryHeapView myHeapView = new MemoryHeapView(getStage());
   @NotNull private final MemoryClassView myClassView = new MemoryClassView(getStage(), getIdeComponents());
   @NotNull private final MemoryClassGrouping myClassGrouping = new MemoryClassGrouping(getStage());
@@ -304,6 +304,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   private JPanel buildCaptureUi() {
     JPanel headingPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
     headingPanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
+    headingPanel.add(myCaptureView.getExportButton());
     headingPanel.add(myCaptureView.getComponent());
 
     JToolBar toolBar = new JToolBar();
