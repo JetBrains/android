@@ -239,6 +239,22 @@ public class NetworkProfilerStageTest extends AspectObserver {
   }
 
   @Test
+  public void testSelectedConnectionWhenIdIsEmpty() {
+    HttpData.Builder builder = new HttpData.Builder(1, 2, 22, 22);
+    builder.setResponseFields("null  =  HTTP/1.1 302 Found \n Content-Type = image/jpeg; ")
+      .setResponsePayloadId("");
+    HttpData data = builder.build();
+
+    final boolean[] connectionChanged = {false};
+    myStage.getAspect().addDependency(this).onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, () ->
+      connectionChanged[0] = true
+    );
+
+    myStage.setSelectedConnection(data);
+    assertNull(data.getResponsePayloadFile());
+  }
+
+  @Test
   public void testIoExceptionThrownWhenSelectConnection() throws IOException {
     HttpData.Builder builder = new HttpData.Builder(1, 2, 22, 22);
     builder.setResponseFields("null  =  HTTP/1.1 302 Found \n Content-Type = image/jpeg; ")
