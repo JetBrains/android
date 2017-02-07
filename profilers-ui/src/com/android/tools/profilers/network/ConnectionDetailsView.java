@@ -15,8 +15,14 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.adtui.LegendComponent;
+import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TreeWalker;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.legend.FixedLegend;
+import com.android.tools.adtui.model.legend.Legend;
+import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profilers.common.StackTraceView;
 import com.android.tools.profilers.common.TabsPanel;
 import com.google.common.collect.ImmutableMap;
@@ -50,6 +56,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
+import java.util.function.LongFunction;
 
 /**
  * View to display a single network request and its response's detailed information.
@@ -61,6 +69,8 @@ public class ConnectionDetailsView extends JPanel {
   private static final int SCROLL_UNIT = JBUI.scale(10);
   private static final float TITLE_FONT_SIZE = 14.f;
   private static final float FIELD_FONT_SIZE = 11.f;
+  private static final LongFunction<String> TIME_FORMATTER =
+    time -> time > 0 ? StringUtil.formatDuration(TimeUnit.MICROSECONDS.toMillis(time)) : "*";
 
   @NotNull
   private final JPanel myResponsePanel;
@@ -205,6 +215,20 @@ public class ConnectionDetailsView extends JPanel {
     hyperlink.setName("URL");
     myFieldsPanel.add(hyperlink, new TabularLayout.Constraint(row, 2));
 
+    row++;
+    JSeparator separator = new JSeparator();
+    separator.setMinimumSize(separator.getPreferredSize());
+    int gap = PAGE_VGAP - SECTION_VGAP - (int) separator.getPreferredSize().getHeight() / 2;
+    JPanel separatorContainer = new JPanel(new VerticalFlowLayout(0, gap));
+    separatorContainer.add(separator);
+    myFieldsPanel.add(separatorContainer, new TabularLayout.Constraint(row, 0, 1, 3));
+
+    row++;
+    NoWrapBoldLabel timingLabel = new NoWrapBoldLabel("Timing");
+    timingLabel.setVerticalAlignment(SwingConstants.TOP);
+    myFieldsPanel.add(timingLabel, new TabularLayout.Constraint(row, 0));
+    myFieldsPanel.add(createTimingBar(httpData), new TabularLayout.Constraint(row, 2));
+
     new TreeWalker(myFieldsPanel).descendantStream().forEach(c -> {
       Font font = c.getFont();
       c.setFont(font.deriveFont(FIELD_FONT_SIZE));
@@ -212,6 +236,38 @@ public class ConnectionDetailsView extends JPanel {
 
     myFieldsPanel.setName("Response fields");
     return myFieldsPanel;
+  }
+
+  @NotNull
+  private static JComponent createTimingBar(@NotNull HttpData httpData) {
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    Range range = new Range(httpData.getStartTimeUs(),
+                            httpData.getEndTimeUs() > 0 ? httpData.getEndTimeUs() : httpData.getStartTimeUs() + 1);
+    RequestTimeline timeline = new RequestTimeline(httpData, range);
+    timeline.getComponent().setMinimumSize(new Dimension(0, 28));
+    panel.add(timeline.getComponent());
+
+    long receivingTime = httpData.getDownloadingTimeUs() > 0 ? httpData.getEndTimeUs() - httpData.getDownloadingTimeUs() : -1;
+    long sendingEndTime = receivingTime > 0 ? httpData.getDownloadingTimeUs() : httpData.getEndTimeUs();
+    long sendingTime = sendingEndTime - httpData.getStartTimeUs();
+    Legend sentLegend = new FixedLegend(String.format("Sent: %s", TIME_FORMATTER.apply(sendingTime)));
+    Legend receivedLegend = new FixedLegend(String.format("Received: %s", TIME_FORMATTER.apply(receivingTime)));
+    LegendComponentModel legendModel = new LegendComponentModel();
+    legendModel.add(sentLegend);
+    legendModel.add(receivedLegend);
+
+    // TODO: Add waiting time in (currently hidden because it's always 0)
+    LegendComponent legend = new LegendComponent(legendModel);
+    legend.configure(sentLegend,
+                     new LegendConfig(LegendConfig.IconType.BOX, timeline.getColors().getColor(NetworkState.SENDING)));
+    legend.configure(receivedLegend,
+                     new LegendConfig(LegendConfig.IconType.BOX, timeline.getColors().getColor(NetworkState.RECEIVING)));
+    legendModel.update(1);
+    panel.add(legend);
+
+    panel.setName("Timing");
+    return panel;
   }
 
   @NotNull
