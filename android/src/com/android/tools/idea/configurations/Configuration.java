@@ -16,7 +16,7 @@
 package com.android.tools.idea.configurations;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.rendering.LayoutLibrary;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
@@ -59,7 +59,6 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.configurations.ConfigurationListener.*;
-import static com.android.tools.idea.layoutlib.LayoutLibraryLoader.USE_SDK_LAYOUTLIB;
 
 /**
  * A {@linkplain Configuration} is a selection of device, orientation, theme,
@@ -1288,15 +1287,17 @@ public class Configuration implements Disposable, ModificationTracker {
    */
   @Nullable
   private static IAndroidTarget getTargetForRendering(@Nullable IAndroidTarget target) {
-    if (target != null && !USE_SDK_LAYOUTLIB) {
-      try {
-        target = StudioEmbeddedRenderTarget.getCompatibilityTarget(target);
-      }
-      catch (IOException e) {
-        assert false : "Unable to load embedded layoutlib";
-      }
+    if (target == null) {
+      return null;
     }
 
-    return target;
+    try {
+      return StudioEmbeddedRenderTarget.getCompatibilityTarget(target);
+    }
+    catch (IOException e) {
+      assert false : "Unable to load embedded layoutlib";
+    }
+
+    return null;
   }
 }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.rendering.LayoutLibrary;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
@@ -62,7 +62,7 @@ import java.net.MalformedURLException;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.ide.common.rendering.RenderParamsFlags.*;
+import static com.android.tools.idea.layoutlib.RenderParamsFlags.*;
 import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
