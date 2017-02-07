@@ -54,7 +54,7 @@ public final class TranslationsEditorFixture {
     GenericTypeMatcher<ActionButton> matcher = new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton button) {
-        return button.getToolTipText().equals("Add Key");
+        return "Add Key".equals(button.getAction().getTemplatePresentation().getText());
       }
     };
 
