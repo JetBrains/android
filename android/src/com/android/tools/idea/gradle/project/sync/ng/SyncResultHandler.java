@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync;
+package com.android.tools.idea.gradle.project.sync.ng;
 
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
@@ -77,7 +79,7 @@ class SyncResultHandler {
 
       ProjectSetup projectSetup = myProjectSetupFactory.create(project);
       projectSetup.setUpProject(models, indicator);
-      projectSetup.commit(true /* synchronous */);
+      projectSetup.commit( /* synchronous */);
 
       if (syncListener != null) {
         syncListener.syncSucceeded(project);
