@@ -30,6 +30,7 @@ import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.PasteProvider;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -60,14 +61,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import static com.android.SdkConstants.TOOLS_URI;
 
 public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction.Model, Disposable,
                                                          DataProvider, DeleteProvider, CutProvider, CopyProvider, PasteProvider {
-  private static final String CARD_ADVANCED = "table";
-  private static final String CARD_DEFAULT = "default";
+  static final String PROPERTY_MODE = "properties.mode";
+  static final String CARD_TABLE = "table";
+  static final String CARD_INSPECTOR = "inspector";
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 50;
   private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 25;
 
@@ -78,6 +79,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   private final JPanel myTablePanel;
   private final PTableModel myModel;
   private final InspectorPanel myInspectorPanel;
+  private final JBCardLayout myCardLayout;
   private final JPanel myCardPanel;
   private final PropertyChangeListener myPropertyChangeListener = this::scrollIntoView;
 
@@ -117,23 +119,25 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
                        ? inspectorPanel
                        : new InspectorPanel(propertiesManager, parentDisposable, createViewAllPropertiesLinkPanel(true));
 
-    myCardPanel = new JPanel(new JBCardLayout());
     Disposer.register(parentDisposable, this);
 
-    add(myCardPanel, BorderLayout.CENTER);
-
-    myCardPanel.add(CARD_DEFAULT, ScrollPaneFactory.createScrollPane(myInspectorPanel,
-                                                                     ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-                                                                     ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER));
+    myCardLayout = new JBCardLayout();
+    myCardPanel = new JPanel(myCardLayout);
+    myCardPanel.add(CARD_INSPECTOR, ScrollPaneFactory.createScrollPane(myInspectorPanel,
+                                                                       ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                                                       ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER));
     JScrollPane tableScrollPane = ScrollPaneFactory.createScrollPane(myTablePanel);
     tableScrollPane.getVerticalScrollBar().setUnitIncrement(VERTICAL_SCROLLING_UNIT_INCREMENT);
     tableScrollPane.getVerticalScrollBar().setBlockIncrement(VERTICAL_SCROLLING_BLOCK_INCREMENT);
     tableScrollPane.setBorder(BorderFactory.createEmptyBorder());
-    myCardPanel.add(CARD_ADVANCED, tableScrollPane);
+    myCardPanel.add(CARD_TABLE, tableScrollPane);
     myCardPanel.setFocusCycleRoot(true);
     myCardPanel.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
+    myAllPropertiesPanelVisible = getAllPropertiesPanelVisibleInitially();
+    myCardLayout.show(myCardPanel, myAllPropertiesPanelVisible ? CARD_TABLE : CARD_INSPECTOR);
     myComponents = Collections.emptyList();
     myProperties = Collections.emptyList();
+    add(myCardPanel, BorderLayout.CENTER);
   }
 
   @Override
@@ -321,10 +325,15 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   @Override
   public void setAllPropertiesPanelVisible(boolean viewAllProperties) {
     myAllPropertiesPanelVisible = viewAllProperties;
-    JBCardLayout cardLayout = (JBCardLayout)myCardPanel.getLayout();
-    String name = viewAllProperties ? CARD_ADVANCED : CARD_DEFAULT;
+    String name = viewAllProperties ? CARD_TABLE : CARD_INSPECTOR;
     Component next = viewAllProperties ? myTable : myInspectorPanel;
-    cardLayout.swipe(myCardPanel, name, JBCardLayout.SwipeDirection.AUTO, next::requestFocus);
+    myCardLayout.swipe(myCardPanel, name, JBCardLayout.SwipeDirection.AUTO, next::requestFocus);
+    PropertiesComponent.getInstance().setValue(PROPERTY_MODE, name);
+  }
+
+  private static boolean getAllPropertiesPanelVisibleInitially() {
+    String value = PropertiesComponent.getInstance().getValue(PROPERTY_MODE, CARD_INSPECTOR);
+    return CARD_TABLE.equals(value);
   }
 
   public boolean activatePreferredEditor(@NotNull String propertyName, boolean afterload) {
