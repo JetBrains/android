@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanup;
 import com.google.common.annotations.VisibleForTesting;
@@ -66,9 +65,6 @@ public class ProjectCleanupDataService extends AbstractProjectDataService<Projec
       return;
     }
 
-    GradleSyncState syncState = GradleSyncState.getInstance(project);
-    if (!syncState.lastSyncFailedOrHasIssues()) {
-      myProjectCleanup.cleanUpProject(project, modelsProvider, null, syncState.isSyncSkipped());
-    }
+    myProjectCleanup.cleanUpProject(project, modelsProvider, null);
   }
 }
