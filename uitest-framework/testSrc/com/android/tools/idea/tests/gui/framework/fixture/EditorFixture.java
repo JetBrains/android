@@ -339,8 +339,6 @@ public class EditorFixture {
         return target.hasFocus();
       });
     }
-    robot.waitForIdle();
-
     return this;
   }
 
@@ -440,7 +438,6 @@ public class EditorFixture {
   public EditorFixture waitUntilErrorAnalysisFinishes() {
     FileFixture file = getCurrentFileFixture();
     file.waitUntilErrorAnalysisFinishes();
-    robot.waitForIdle();
     return this;
   }
 
