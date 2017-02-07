@@ -562,7 +562,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       return null;
     }
     for (ResourceItem item : resourceItems) {
-      final ResourceFile source = item.getSource();
+      ResourceFile source = item.getSource();
       if (source instanceof PsiResourceFile && ((PsiResourceFile) source).getDataBindingInfo() != null) {
         return ((PsiResourceFile) source).getDataBindingInfo();
       }
@@ -608,7 +608,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     if (!(element instanceof XmlFile)) {
       return null;
     }
-    final XmlTag rootTag = ((XmlFile) element).getRootTag();
+    XmlTag rootTag = ((XmlFile) element).getRootTag();
     if (rootTag != null && TAG_LAYOUT.equals(rootTag.getName())) {
       return rootTag;
     }
@@ -953,7 +953,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   }
 
   @VisibleForTesting
-  void rescan(@NonNull final PsiFile psiFile, final @NonNull ResourceFolderType folderType) {
+  void rescan(@NonNull PsiFile psiFile, @NonNull ResourceFolderType folderType) {
     synchronized(SCAN_LOCK) {
       if (isScanPending(psiFile)) {
         return;
@@ -989,7 +989,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   public void sync() {
     super.sync();
 
-    final List<PsiFile> files;
+    List<PsiFile> files;
     synchronized(SCAN_LOCK) {
       if (myPendingScans == null || myPendingScans.isEmpty()) {
         return;
@@ -1013,7 +1013,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     }
   }
 
-  private void rescanImmediately(@NonNull final PsiFile psiFile, final @NonNull ResourceFolderType folderType) {
+  private void rescanImmediately(@NonNull PsiFile psiFile, @NonNull ResourceFolderType folderType) {
     if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
       ApplicationManager.getApplication().runReadAction(() -> rescanImmediately(psiFile, folderType));
       return;
@@ -2340,7 +2340,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         if (otherItemsList == null) {
           return false;
         }
-        final ResourceItem item = itemEntry.getValue();
+        ResourceItem item = itemEntry.getValue();
         if (!ContainerUtil.exists(otherItemsList, resourceItem -> {
           // Use #compareTo instead of #equals because #equals compares pointers of mSource.
           if (resourceItem.compareTo(item) != 0) {
