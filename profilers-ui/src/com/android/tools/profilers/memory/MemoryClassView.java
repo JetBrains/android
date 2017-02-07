@@ -27,6 +27,8 @@ import com.android.tools.profilers.memory.adapters.HeapObject;
 import com.android.tools.profilers.memory.adapters.NamespaceObject;
 import com.android.tools.profilers.memory.adapters.PackageObject;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.containers.HashMap;
@@ -43,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
 
 final class MemoryClassView extends AspectObserver {
@@ -81,23 +84,8 @@ final class MemoryClassView extends AspectObserver {
     myAttributeColumns.put(
       ClassAttribute.LABEL,
       new AttributeColumn(
-        "Class Name",
-        () -> new DetailColumnRenderer(
-          value -> {
-            if (value.getAdapter() instanceof ClassObject && myStage.getConfiguration().getClassGrouping() == ARRANGE_BY_PACKAGE) {
-              return ((ClassObject)value.getAdapter()).getClassName();
-            }
-            else {
-              return ((NamespaceObject)value.getAdapter()).getName();
-            }
-          },
-          value -> value.getAdapter() instanceof ClassObject ? PlatformIcons.CLASS_ICON : PlatformIcons.PACKAGE_ICON,
-          SwingConstants.LEFT),
-        SwingConstants.LEFT,
-        LABEL_COLUMN_WIDTH,
-        SortOrder.ASCENDING,
-        createTreeNodeComparator(Comparator.comparing(NamespaceObject::getName),
-                                 Comparator.comparing(ClassObject::getClassName))));
+        "Class Name", this::getNameColumnRenderer, SwingConstants.LEFT, LABEL_COLUMN_WIDTH, SortOrder.ASCENDING,
+        createTreeNodeComparator(Comparator.comparing(NamespaceObject::getName), Comparator.comparing(ClassObject::getClassName))));
     myAttributeColumns.put(
       ClassAttribute.TOTAL_COUNT,
       new AttributeColumn(
@@ -429,6 +417,46 @@ final class MemoryClassView extends AspectObserver {
         break;
       }
     }
+  }
+
+  @NotNull
+  private ColoredTreeCellRenderer getNameColumnRenderer() {
+    return new ColoredTreeCellRenderer() {
+      @Override
+      public void customizeCellRenderer(@NotNull JTree tree,
+                                        Object value,
+                                        boolean selected,
+                                        boolean expanded,
+                                        boolean leaf,
+                                        int row,
+                                        boolean hasFocus) {
+        if (!(value instanceof MemoryObjectTreeNode)) {
+          return;
+        }
+
+        MemoryObjectTreeNode node = (MemoryObjectTreeNode)value;
+        if (node.getAdapter() instanceof ClassObject) {
+          ClassObject classObject = (ClassObject)node.getAdapter();
+          append(classObject.getClassName(), SimpleTextAttributes.REGULAR_ATTRIBUTES, classObject.getClassName());
+          if (myStage.getConfiguration().getClassGrouping() == ARRANGE_BY_CLASS) {
+            if (!classObject.getPackageName().isEmpty()) {
+              String packageText = " (" + classObject.getPackageName() + ")";
+              append(packageText, SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES, packageText);
+            }
+          }
+        }
+        else {
+          append(((NamespaceObject)node.getAdapter()).getName(), SimpleTextAttributes.REGULAR_ATTRIBUTES,
+                 ((NamespaceObject)node.getAdapter()).getName());
+        }
+
+        Icon icon = node.getAdapter() instanceof ClassObject ? PlatformIcons.CLASS_ICON : PlatformIcons.PACKAGE_ICON;
+        if (icon != null) {
+          setIcon(icon);
+        }
+        setTextAlign(SwingConstants.LEFT);
+      }
+    };
   }
 
   /**

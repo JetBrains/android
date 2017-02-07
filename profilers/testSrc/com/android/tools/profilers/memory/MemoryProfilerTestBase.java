@@ -141,6 +141,7 @@ public abstract class MemoryProfilerTestBase {
     when(object.getRetainedSize()).thenReturn(retainedSize);
     int lastDotIndex = name.lastIndexOf('.');
     when(object.getClassName()).thenReturn(name.substring(lastDotIndex + 1));
+    when(object.getPackageName()).thenReturn(lastDotIndex > 0 ? name.substring(0, lastDotIndex) : "");
     when(object.getSplitPackageName()).thenReturn(lastDotIndex > 0 ? name.substring(0, lastDotIndex).split("\\.") : new String[0]);
     when(object.getTotalCount()).thenReturn(instances.size());
     when(object.getHeapCount()).thenReturn(instances.size());
