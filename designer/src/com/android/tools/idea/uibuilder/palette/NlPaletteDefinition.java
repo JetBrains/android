@@ -37,13 +37,7 @@ public class NlPaletteDefinition extends ToolWindowDefinition<DesignSurface> {
     if (project.isDisposed()) {
       return null;
     }
-    if (!Boolean.getBoolean("use.old.palette")) {
-      // TODO: Remove the code for the old palette
-      return new NlPalettePanel(project, null);
-    }
-    else {
-      return new NlOldPalettePanel(project, null);
-    }
+    return new NlPalettePanel(project, null);
   }
 
   private static int getInitialWidth() {
