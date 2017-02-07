@@ -24,14 +24,12 @@ import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.google.protobuf3jarjar.ByteString;
-import gnu.trove.TIntObjectHashMap;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 
 public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase implements ServicePassThrough {
@@ -40,10 +38,6 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
 
   private MemoryServiceGrpc.MemoryServiceBlockingStub myPollingService;
 
-  /**
-   * Latches to track completion of the retrieval of dump data associated with each HeapDumpInfo.
-   */
-  private final TIntObjectHashMap<CountDownLatch> myHeapDumpDataLatches = new TIntObjectHashMap<>();
   private MemoryTable myMemoryTable = new MemoryTable();
   private Consumer<Runnable> myFetchExecutor;
 
@@ -78,9 +72,11 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   @Override
   public void triggerHeapDump(TriggerHeapDumpRequest request, StreamObserver<TriggerHeapDumpResponse> responseObserver) {
     TriggerHeapDumpResponse response = myPollingService.triggerHeapDump(request);
+    // Saves off the HeapDumpInfo immediately instead of waiting for the MemoryDataPoller to pull it through, which can be delayed
+    // and results in a NOT_FOUND status when the profiler tries to pull the dump's data in quick successions.
     if (response.getStatus() == TriggerHeapDumpResponse.Status.SUCCESS) {
       assert response.getInfo() != null;
-      myHeapDumpDataLatches.put(response.getInfo().getDumpId(), new CountDownLatch(1));
+      myMemoryTable.insertOrUpdateHeapInfo(response.getInfo());
     }
 
     responseObserver.onNext(response);
@@ -91,28 +87,24 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   public void getHeapDump(DumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
     DumpDataResponse.Builder responseBuilder = DumpDataResponse.newBuilder();
 
-    HeapDumpInfo.Builder infoBuilder = HeapDumpInfo.newBuilder();
-    //TODO: Query for heapdump status before query for heap dump data.
-    byte[] data = myMemoryTable.getHeapDumpData(request.getDumpId(), infoBuilder);
-    HeapDumpInfo info = infoBuilder.build();
-    if (info.equals(HeapDumpInfo.getDefaultInstance()) && data == null) {
-      responseBuilder.setStatus(DumpDataResponse.Status.NOT_FOUND);
-    }
-    else if (myMemoryTable.getHeapDumpStatus(request.getDumpId()) == DumpDataResponse.Status.FAILURE_UNKNOWN) {
-      responseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
-    }
-    else {
-      if (data == null) {
-        responseBuilder.setStatus(DumpDataResponse.Status.NOT_READY);
-      }
-      else {
-        responseBuilder.setStatus(DumpDataResponse.Status.SUCCESS);
+    DumpDataResponse.Status status = myMemoryTable.getHeapDumpStatus(request.getDumpId());
+    switch (status) {
+      case SUCCESS:
+        byte[] data = myMemoryTable.getHeapDumpData(request.getDumpId());
         responseBuilder.setData(ByteString.copyFrom(data));
-      }
+      case NOT_READY:
+      case FAILURE_UNKNOWN:
+      case NOT_FOUND:
+        responseBuilder.setStatus(status);
+        break;
+      default:
+        responseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
+        break;
     }
+
     responseObserver.onNext(responseBuilder.build());
     responseObserver.onCompleted();
-  }
+   }
 
   @Override
   public void listHeapDumpInfos(ListDumpInfosRequest request,
@@ -127,7 +119,15 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   @Override
   public void trackAllocations(TrackAllocationsRequest request,
                                StreamObserver<TrackAllocationsResponse> responseObserver) {
-    responseObserver.onNext(myPollingService.trackAllocations(request));
+    TrackAllocationsResponse response = myPollingService.trackAllocations(request);
+    // Saves off the AllocationsInfo immediately instead of waiting for the MemoryDataPoller to pull it through, which can be delayed
+    // and results in a NOT_FOUND status when the profiler tries to pull the info's data in quick successions.
+    if (request.getEnabled() && response.getStatus() == TrackAllocationsResponse.Status.SUCCESS) {
+      assert response.getInfo() != null;
+      myMemoryTable.insertOrReplaceAllocationsInfo(response.getInfo());
+    }
+
+    responseObserver.onNext(response);
     responseObserver.onCompleted();
   }
 
