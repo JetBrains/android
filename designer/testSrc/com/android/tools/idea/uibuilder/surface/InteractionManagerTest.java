@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
@@ -26,14 +25,15 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
 import org.intellij.lang.annotations.Language;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.*;
 
 public class InteractionManagerTest extends LayoutTestCase {
@@ -150,7 +150,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     NlModel model = createModel(surface, myFacet, xmlFile);
 
     ScreenView screenView = new ScreenView(surface, ScreenView.ScreenViewType.NORMAL, model);
-    Mockito.when(surface.getSceneView(Matchers.anyInt(), Matchers.anyInt())).thenReturn(screenView);
+    Mockito.when(surface.getSceneView(ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt())).thenReturn(screenView);
     InteractionManager manager = createManager(surface);
     screenView.getScene().buildDisplayList(new DisplayList(), 0);
     return manager;
@@ -214,7 +214,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     Mockito.when(surface.getScale()).thenReturn(1.0);
 
     ScreenView screenView = new ScreenView(surface, ScreenView.ScreenViewType.NORMAL, model);
-    Mockito.when(surface.getSceneView(Matchers.anyInt(), Matchers.anyInt())).thenReturn(screenView);
+    Mockito.when(surface.getSceneView(ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt())).thenReturn(screenView);
     InteractionManager manager = createManager(surface);
     screenView.getScene().buildDisplayList(new DisplayList(), 0);
     return manager;
