@@ -103,7 +103,7 @@ public class LocalResourceManager extends ResourceManager {
   }
 
   @NotNull
-  public List<ResourceElement> getValueResources(@NotNull final ResourceType resourceType) {
+  public List<ResourceElement> getValueResources(@NotNull ResourceType resourceType) {
     return getValueResources(resourceType, null);
   }
 
@@ -144,7 +144,7 @@ public class LocalResourceManager extends ResourceManager {
   public List<Attr> findAttrs(@NotNull String name) {
     List<Attr> list = new ArrayList<>();
     for (Pair<Resources, VirtualFile> pair : getResourceElements()) {
-      final Resources res = pair.getFirst();
+      Resources res = pair.getFirst();
       for (Attr attr : res.getAttrs()) {
         if (name.equals(attr.getName().getValue())) {
           list.add(attr);
@@ -164,7 +164,7 @@ public class LocalResourceManager extends ResourceManager {
   public List<DeclareStyleable> findStyleables(@NotNull String name) {
     List<DeclareStyleable> list = new ArrayList<>();
     for (Pair<Resources, VirtualFile> pair : getResourceElements()) {
-      final Resources res = pair.getFirst();
+      Resources res = pair.getFirst();
       for (DeclareStyleable styleable : res.getDeclareStyleables()) {
         if (name.equals(styleable.getName().getValue())) {
           list.add(styleable);
@@ -200,7 +200,7 @@ public class LocalResourceManager extends ResourceManager {
 
     List<Attr> list = new ArrayList<>();
     for (Pair<Resources, VirtualFile> pair : getResourceElements()) {
-      final Resources res = pair.getFirst();
+      Resources res = pair.getFirst();
       for (DeclareStyleable styleable : res.getDeclareStyleables()) {
         if (styleableName.equals(styleable.getName().getValue())) {
           for (Attr attr : styleable.getAttrs()) {
@@ -217,12 +217,12 @@ public class LocalResourceManager extends ResourceManager {
 
   @NotNull
   public List<PsiElement> findResourcesByField(@NotNull PsiField field) {
-    final String type = AndroidResourceUtil.getResourceClassName(field);
+    String type = AndroidResourceUtil.getResourceClassName(field);
     if (type == null) {
       return Collections.emptyList();
     }
 
-    final String fieldName = field.getName();
+    String fieldName = field.getName();
     if (fieldName == null) {
       return Collections.emptyList();
     }
