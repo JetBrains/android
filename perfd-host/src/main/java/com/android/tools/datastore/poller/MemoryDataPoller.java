@@ -103,13 +103,13 @@ public class MemoryDataPoller extends PollRunner {
         if (info.getEndTime() == DurationData.UNSPECIFIED_DURATION) {
           throw new RuntimeException("Invalid endTime: " + +info.getEndTime() + " for DumpID: " + info.getDumpId());
         }
-        myMemoryTable.insertOrUpdateHeapInfo(info);
+        myMemoryTable.insertOrReplaceHeapInfo(info);
         heapDumpsToFetch.add(info);
         myPendingHeapDumpSample = null;
       }
       else {
         HeapDumpInfo info = response.getHeapDumpInfos(i);
-        myMemoryTable.insertOrUpdateHeapInfo(info);
+        myMemoryTable.insertOrReplaceHeapInfo(info);
         if (info.getEndTime() == DurationData.UNSPECIFIED_DURATION) {
           // Note - there should be at most one unfinished heap dump request at a time. e.g. the final info from the response.
           assert i == response.getHeapDumpInfosCount() - 1;

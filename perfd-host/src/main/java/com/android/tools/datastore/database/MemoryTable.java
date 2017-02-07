@@ -38,25 +38,48 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
   }
 
   public enum MemoryStatements {
-    INSERT_SAMPLE,
-    INSERT_OR_REPLACE_HEAP_INFO,
-    INSERT_OR_REPLACE_ALLOCATIONS_INFO,
-    FIND_HEAP_DATA,
-    QUERY_HEAP_INFO,
-    QUERY_MEMORY,
-    QUERY_VMSTATS,
-    QUERY_ALLOCATION_INFO,
-    INSERT_ALLOCATION_STACK,
-    INSERT_ALLOCATED_CLASS,
-    QUERY_ALLOCATION_STACK,
-    QUERY_ALLOCATED_CLASS,
-    UPDATE_HEAP_INFO,
-    UPDATE_ALLOCATIONS_INFO_EVENTS,
-    UPDATE_ALLOCATIONS_INFO_DUMP,
-    FIND_HEAP_STATUS,
-    FIND_ALLOCATION_INFO,
-    FIND_ALLOCATION_EVENTS,
-    FIND_ALLOCATION_DUMP
+    INSERT_SAMPLE("INSERT INTO Memory_Samples (Type, Timestamp, Data) VALUES (?, ?, ?)"),
+    QUERY_MEMORY(String.format("SELECT Data FROM Memory_Samples WHERE Type = %d AND TimeStamp > ? AND TimeStamp <= ?",
+                               MemorySamplesType.MEMORY.ordinal())),
+    QUERY_VMSTATS(String.format("SELECT Data FROM Memory_Samples WHERE Type = %d AND TimeStamp > ? AND TimeStamp <= ?",
+                                MemorySamplesType.VMSTATS.ordinal())),
+
+    INSERT_OR_REPLACE_HEAP_INFO(
+      "INSERT OR REPLACE INTO Memory_HeapDump (DumpId, StartTime, EndTime, Status, InfoData) VALUES (?, ?, ?, ?, ?)"),
+    UPDATE_HEAP_DUMP("UPDATE Memory_HeapDump SET DumpData = ?, Status = ? WHERE DumpId = ?"),
+    // EndTime = UNSPECIFIED_DURATION checks for the special case where we have an ongoing duration sample
+    QUERY_HEAP_INFO_BY_TIME(String.format("SELECT InfoData FROM Memory_HeapDump where (EndTime = %d OR EndTime > ?) AND StartTime <= ?",
+                                          DurationData.UNSPECIFIED_DURATION)),
+    QUERY_HEAP_DUMP_BY_ID("SELECT DumpData FROM Memory_HeapDump where DumpId = ?"),
+    QUERY_HEAP_STATUS_BY_ID("SELECT Status FROM Memory_HeapDump where DumpId = ?"),
+
+    INSERT_OR_REPLACE_ALLOCATIONS_INFO(
+      "INSERT OR REPLACE INTO Memory_AllocationInfo (DumpId, StartTime, EndTime, InfoData) VALUES (?, ?, ?, ?)"),
+    UPDATE_ALLOCATIONS_INFO_EVENTS("UPDATE Memory_AllocationInfo SET EventsData = ? WHERE DumpId = ?"),
+    UPDATE_ALLOCATIONS_INFO_DUMP("UPDATE Memory_AllocationInfo SET DumpData = ? WHERE DumpId = ?"),
+    // EndTime = UNSPECIFIED_DURATION checks for the special case where we have an ongoing duration sample
+    QUERY_ALLOCATION_INFO_BY_TIME(String.format(
+      "SELECT InfoData FROM Memory_AllocationInfo WHERE (EndTime = %d OR EndTime > ?) AND StartTime <= ?",
+      DurationData.UNSPECIFIED_DURATION)),
+    QUERY_ALLOCATION_INFO_BY_ID("SELECT InfoData from Memory_AllocationInfo WHERE DumpId = ?"),
+    QUERY_ALLOCATION_EVENTS_BY_ID("SELECT EventsData from Memory_AllocationInfo WHERE DumpId = ?"),
+    QUERY_ALLOCATION_DUMP_BY_ID("SELECT DumpData from Memory_AllocationInfo WHERE DumpId = ?"),
+
+    INSERT_ALLOCATION_STACK("INSERT OR IGNORE INTO Memory_AllocationStack (Id, Data) VALUES (?, ?)"),
+    INSERT_ALLOCATED_CLASS("INSERT OR IGNORE INTO Memory_AllocatedClass (Id, Data) VALUES (?, ?)"),
+    QUERY_ALLOCATION_STACK("Select Data FROM Memory_AllocationStack WHERE Id = ?"),
+    QUERY_ALLOCATED_CLASS("Select Data FROM Memory_AllocatedClass WHERE Id = ?");
+
+    @NotNull private final String mySqlStatement;
+
+    MemoryStatements(@NotNull String sqlStatement) {
+      mySqlStatement = sqlStatement;
+    }
+
+    @NotNull
+    public String getStatement() {
+      return mySqlStatement;
+    }
   }
 
   private enum MemorySamplesType {
@@ -66,7 +89,7 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
 
   /**
    * TODO: currently we are using the same PreparedStatements across different threads. This can lead to a ResultSet resetting/closing
-   * while another thread is still iterating results. For now we use a lock to synchornize queries, but should we ensure each thread
+   * while another thread is still iterating results. For now we use a lock to synchronize queries, but should we ensure each thread
    * execute its own unique PreparedStatements?
    */
   @NotNull
@@ -94,131 +117,35 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
   @Override
   public void prepareStatements(Connection connection) {
     try {
-      createStatement(MemoryStatements.INSERT_SAMPLE, "INSERT INTO Memory_Samples (Type, Timestamp, Data) VALUES (?, ?, ?)");
-      String sampleQueryString =
-        "SELECT Data FROM Memory_Samples WHERE Type = %d AND (TimeStamp = ? OR (TimeStamp > ? AND TimeStamp <= ?))";
-      createStatement(MemoryStatements.QUERY_MEMORY, String.format(sampleQueryString, MemorySamplesType.MEMORY.ordinal()));
-      createStatement(MemoryStatements.QUERY_VMSTATS, String.format(sampleQueryString, MemorySamplesType.VMSTATS.ordinal()));
-
-      createStatement(MemoryStatements.INSERT_OR_REPLACE_HEAP_INFO,
-                      "INSERT OR REPLACE INTO Memory_HeapDump (DumpId, StartTime, EndTime, Status, InfoData) VALUES (?, ?, ?, ?, ?)");
-      createStatement(MemoryStatements.UPDATE_HEAP_INFO,
-                      "UPDATE Memory_HeapDump SET DumpData = ?, Status = ? WHERE DumpId = ?");
-      createStatement(MemoryStatements.FIND_HEAP_DATA, "SELECT DumpData FROM Memory_HeapDump where DumpId = ?");
-      createStatement(MemoryStatements.FIND_HEAP_STATUS, "SELECT Status FROM Memory_HeapDump where DumpId = ?");
-      createStatement(MemoryStatements.QUERY_HEAP_INFO,
-                      "SELECT InfoData FROM Memory_HeapDump where (EndTime = ? OR EndTime > ?) AND StartTime <= ?");
-
-      createStatement(MemoryStatements.INSERT_OR_REPLACE_ALLOCATIONS_INFO,
-                      "INSERT OR REPLACE INTO Memory_AllocationInfo (DumpId, StartTime, EndTime, InfoData) VALUES (?, ?, ?, ?)");
-      createStatement(MemoryStatements.UPDATE_ALLOCATIONS_INFO_EVENTS,
-                      "UPDATE Memory_AllocationInfo SET EventsData = ? WHERE DumpId = ?");
-      createStatement(MemoryStatements.UPDATE_ALLOCATIONS_INFO_DUMP,
-                      "UPDATE Memory_AllocationInfo SET DumpData = ? WHERE DumpId = ?");
-      createStatement(MemoryStatements.FIND_ALLOCATION_INFO, "SELECT InfoData from Memory_AllocationInfo WHERE DumpId = ?");
-      createStatement(MemoryStatements.FIND_ALLOCATION_EVENTS, "SELECT EventsData from Memory_AllocationInfo WHERE DumpId = ?");
-      createStatement(MemoryStatements.FIND_ALLOCATION_DUMP, "SELECT DumpData from Memory_AllocationInfo WHERE DumpId = ?");
-
-      createStatement(MemoryStatements.INSERT_ALLOCATION_STACK, "INSERT OR IGNORE INTO Memory_AllocationStack (Id, Data) VALUES (?, ?)");
-      createStatement(MemoryStatements.INSERT_ALLOCATED_CLASS, "INSERT OR IGNORE INTO Memory_AllocatedClass (Id, Data) VALUES (?, ?)");
-
-      createStatement(MemoryStatements.QUERY_ALLOCATION_STACK, "Select Data FROM Memory_AllocationStack WHERE Id = ?");
-      createStatement(MemoryStatements.QUERY_ALLOCATED_CLASS, "Select Data FROM Memory_AllocatedClass WHERE Id = ?");
-
-      createStatement(MemoryStatements.QUERY_ALLOCATION_INFO,
-                      "SELECT InfoData FROM Memory_AllocationInfo WHERE (EndTime = ? OR EndTime > ?) AND StartTime <= ?");
+      MemoryStatements[] statements = MemoryStatements.values();
+      for (int i = 0; i < statements.length; i++) {
+        createStatement(statements[i], statements[i].getStatement());
+      }
     }
     catch (SQLException ex) {
       getLogger().error(ex);
     }
   }
 
-  @Nullable
-  public byte[] getHeapDumpData(int dumpId) {
-    synchronized (myDataQueryLock) {
-      try {
-        ResultSet resultSet = executeQuery(MemoryStatements.FIND_HEAP_DATA, dumpId);
-        if (resultSet.next()) {
-          return resultSet.getBytes(1);
-        }
-      }
-      catch (SQLException ex) {
-        getLogger().error(ex);
-      }
-      return null;
-    }
-  }
-
-  @Nullable
-  public byte[] getAllocationDumpData(int dumpId) {
-    synchronized (myDataQueryLock) {
-      try {
-        ResultSet resultSet = executeQuery(MemoryStatements.FIND_ALLOCATION_DUMP, dumpId);
-        if (resultSet.next()) {
-          return resultSet.getBytes(1);
-        }
-      }
-      catch (SQLException ex) {
-        getLogger().error(ex);
-      }
-      return null;
-    }
-  }
-
+  @NotNull
   public MemoryData getData(MemoryRequest request) {
     synchronized (myDataQueryLock) {
-      MemoryData.Builder response = MemoryData.newBuilder();
-      response.addAllMemSamples(getMemoryDataByRequest(request));
-      response.addAllVmStatsSamples(getVmStatsDataByRequest(request));
-      response.addAllHeapDumpInfos(getHeapDumpInfoByRequest(request));
-      response.addAllAllocationsInfo(getAllocationInfoByRequest(request));
+      long startTime = request.getStartTime();
+      long endTime = request.getEndTime();
+      List<MemoryData.MemorySample> memorySamples =
+        getResultsInfo(MemoryStatements.QUERY_MEMORY, startTime, endTime, MemoryData.MemorySample.getDefaultInstance());
+      List<MemoryData.VmStatsSample> vmStatsSamples =
+        getResultsInfo(MemoryStatements.QUERY_VMSTATS, startTime, endTime, MemoryData.VmStatsSample.getDefaultInstance());
+      List<HeapDumpInfo> heapDumpSamples =
+        getResultsInfo(MemoryStatements.QUERY_HEAP_INFO_BY_TIME, startTime, endTime, HeapDumpInfo.getDefaultInstance());
+      List<AllocationsInfo> allocationSamples =
+        getResultsInfo(MemoryStatements.QUERY_ALLOCATION_INFO_BY_TIME, startTime, endTime, AllocationsInfo.getDefaultInstance());
+      MemoryData.Builder response = MemoryData.newBuilder()
+        .addAllMemSamples(memorySamples)
+        .addAllVmStatsSamples(vmStatsSamples)
+        .addAllHeapDumpInfos(heapDumpSamples)
+        .addAllAllocationsInfo(allocationSamples);
       return response.build();
-    }
-  }
-
-  public List<HeapDumpInfo> getHeapDumpInfoByRequest(ListDumpInfosRequest request) {
-    synchronized (myDataQueryLock) {
-      return getResultsInfo(MemoryStatements.QUERY_HEAP_INFO, true, request.getStartTime(), request.getEndTime(),
-                            HeapDumpInfo.getDefaultInstance());
-    }
-  }
-
-  private List<HeapDumpInfo> getHeapDumpInfoByRequest(MemoryRequest request) {
-    return getResultsInfo(MemoryStatements.QUERY_HEAP_INFO, true, request.getStartTime(), request.getEndTime(),
-                          HeapDumpInfo.getDefaultInstance());
-  }
-
-  private List<MemoryData.MemorySample> getMemoryDataByRequest(MemoryRequest request) {
-    return getResultsInfo(MemoryStatements.QUERY_MEMORY, true, request.getStartTime(), request.getEndTime(),
-                          MemoryData.MemorySample.getDefaultInstance());
-  }
-
-  private List<MemoryData.VmStatsSample> getVmStatsDataByRequest(MemoryRequest request) {
-    return getResultsInfo(MemoryStatements.QUERY_VMSTATS, true, request.getStartTime(), request.getEndTime(),
-                          MemoryData.VmStatsSample.getDefaultInstance());
-  }
-
-  private List<AllocationsInfo> getAllocationInfoByRequest(MemoryRequest request) {
-    return getResultsInfo(MemoryStatements.QUERY_ALLOCATION_INFO, true, request.getStartTime(), request.getEndTime(),
-                          AllocationsInfo.getDefaultInstance());
-  }
-
-  @NotNull
-  public AllocationsInfo getAllocationsInfo(int infoId) {
-    synchronized (myDataQueryLock) {
-      ResultSet results = executeQuery(MemoryStatements.FIND_ALLOCATION_INFO, infoId);
-      try {
-        if (results.next()) {
-          AllocationsInfo.Builder builder = AllocationsInfo.newBuilder();
-          builder.mergeFrom(results.getBytes(1));
-          return builder.build();
-        }
-      }
-      catch (InvalidProtocolBufferException | SQLException ex) {
-        getLogger().error(ex);
-      }
-
-      return null;
     }
   }
 
@@ -238,6 +165,72 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     }
   }
 
+  /**
+   * Note: this will reset the row's Status and DumpData to NOT_READY and null respectively, if an info with the same DumpId already exist.
+   */
+  public void insertOrReplaceHeapInfo(HeapDumpInfo info) {
+    synchronized (myDataQueryLock) {
+      execute(MemoryStatements.INSERT_OR_REPLACE_HEAP_INFO, info.getDumpId(), info.getStartTime(), info.getEndTime(),
+              DumpDataResponse.Status.NOT_READY.ordinal(), info.toByteArray());
+    }
+  }
+
+  /**
+   * @return the dump status corresponding to a particular dumpId. If the entry does not exist, NOT_FOUND is returned.
+   */
+  public DumpDataResponse.Status getHeapDumpStatus(int dumpId) {
+    synchronized (myDataQueryLock) {
+      try {
+        ResultSet result = executeQuery(MemoryStatements.QUERY_HEAP_STATUS_BY_ID, dumpId);
+        if (result.next()) {
+          return DumpDataResponse.Status.forNumber(result.getInt(1));
+        }
+      }
+      catch (SQLException ex) {
+        getLogger().error(ex);
+      }
+      return DumpDataResponse.Status.NOT_FOUND;
+    }
+  }
+
+  public List<HeapDumpInfo> getHeapDumpInfoByRequest(ListDumpInfosRequest request) {
+    synchronized (myDataQueryLock) {
+      return getResultsInfo(MemoryStatements.QUERY_HEAP_INFO_BY_TIME, request.getStartTime(), request.getEndTime(),
+                            HeapDumpInfo.getDefaultInstance());
+    }
+  }
+
+  /**
+   * Adds/updates the status and raw dump data associated with a dump sample's id.
+   */
+  public void insertHeapDumpData(int dumpId, DumpDataResponse.Status status, ByteString data) {
+    synchronized (myDataQueryLock) {
+      execute(MemoryStatements.UPDATE_HEAP_DUMP, data.toByteArray(), status.getNumber(), dumpId);
+    }
+  }
+
+  /**
+   * @return the raw dump byte content assocaited with a dumpId. Null if an entry does not exist in the database.
+   */
+  @Nullable
+  public byte[] getHeapDumpData(int dumpId) {
+    synchronized (myDataQueryLock) {
+      try {
+        ResultSet resultSet = executeQuery(MemoryStatements.QUERY_HEAP_DUMP_BY_ID, dumpId);
+        if (resultSet.next()) {
+          return resultSet.getBytes(1);
+        }
+      }
+      catch (SQLException ex) {
+        getLogger().error(ex);
+      }
+      return null;
+    }
+  }
+
+  /**
+   * Note: this will reset the allocation events and its raw dump byte content associated with the info's id if an entry already exists.
+   */
   public void insertOrReplaceAllocationsInfo(AllocationsInfo info) {
     synchronized (myDataQueryLock) {
       execute(MemoryStatements.INSERT_OR_REPLACE_ALLOCATIONS_INFO, info.getInfoId(), info.getStartTime(), info.getEndTime(),
@@ -257,21 +250,61 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     }
   }
 
+  /**
+   * @return the AllocationsInfo associated with the InfoId. Null if an entry does not exist.
+   */
+  @Nullable
+  public AllocationsInfo getAllocationsInfo(int infoId) {
+    synchronized (myDataQueryLock) {
+      ResultSet results = executeQuery(MemoryStatements.QUERY_ALLOCATION_INFO_BY_ID, infoId);
+      try {
+        if (results.next()) {
+          return AllocationsInfo.parseFrom(results.getBytes(1));
+        }
+      }
+      catch (InvalidProtocolBufferException | SQLException ex) {
+        getLogger().error(ex);
+      }
+
+      return null;
+    }
+  }
+
+  /**
+   * @return the AllocationEventsResponse associated with the InfoId. Null if an entry does not exist.
+   */
   @Nullable
   public AllocationEventsResponse getAllocationData(int infoId) {
     synchronized (myDataQueryLock) {
       try {
-        ResultSet resultSet = executeQuery(MemoryStatements.FIND_ALLOCATION_EVENTS, infoId);
+        ResultSet resultSet = executeQuery(MemoryStatements.QUERY_ALLOCATION_EVENTS_BY_ID, infoId);
         if (resultSet.next()) {
           byte[] bytes = resultSet.getBytes(1);
           if (bytes != null) {
-            AllocationEventsResponse.Builder builder = AllocationEventsResponse.newBuilder();
-            builder.mergeFrom(resultSet.getBytes(1));
-            return builder.build();
+            return AllocationEventsResponse.parseFrom(resultSet.getBytes(1));
           }
         }
       }
       catch (InvalidProtocolBufferException | SQLException ex) {
+        getLogger().error(ex);
+      }
+      return null;
+    }
+  }
+
+  /**
+   * @return the raw legacy allocation tracking byte data associated with the InfoId. Null if an entry does not exist.
+   */
+  @Nullable
+  public byte[] getAllocationDumpData(int dumpId) {
+    synchronized (myDataQueryLock) {
+      try {
+        ResultSet resultSet = executeQuery(MemoryStatements.QUERY_ALLOCATION_DUMP_BY_ID, dumpId);
+        if (resultSet.next()) {
+          return resultSet.getBytes(1);
+        }
+      }
+      catch (SQLException ex) {
         getLogger().error(ex);
       }
       return null;
@@ -315,45 +348,15 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
   }
 
   /**
-   * Note: this would reset the Status and Dump data of the heap to NOT_READY if an info with the same Id already exist.
+   * A helper method for querying samples for MemorySample, VMStatsSample, HeapDumpInfo and AllocationsInfo
    */
-  public void insertOrUpdateHeapInfo(HeapDumpInfo info) {
-    synchronized (myDataQueryLock) {
-      execute(MemoryStatements.INSERT_OR_REPLACE_HEAP_INFO, info.getDumpId(), info.getStartTime(), info.getEndTime(),
-              DumpDataResponse.Status.NOT_READY.ordinal(), info.toByteArray());
-    }
-  }
-
-  public DumpDataResponse.Status getHeapDumpStatus(int dumpId) {
-    synchronized (myDataQueryLock) {
-      try {
-        ResultSet result = executeQuery(MemoryStatements.FIND_HEAP_STATUS, dumpId);
-        if (result.next()) {
-          return DumpDataResponse.Status.forNumber(result.getInt(1));
-        }
-      }
-      catch (SQLException ex) {
-        getLogger().error(ex);
-      }
-      return DumpDataResponse.Status.NOT_FOUND;
-    }
-  }
-
-  public void insertHeapDumpData(int dumpId, DumpDataResponse.Status status, ByteString data) {
-    synchronized (myDataQueryLock) {
-      execute(MemoryStatements.UPDATE_HEAP_INFO, data.toByteArray(), status.getNumber(), dumpId);
-    }
-  }
-
   private <T extends GeneratedMessageV3> List<T> getResultsInfo(MemoryStatements query,
-                                                                boolean includeUnspecified,
                                                                 long startTime,
                                                                 long endTime,
                                                                 T defaultInstance) {
     List<T> datas = new ArrayList<>();
     try {
-      ResultSet resultSet = includeUnspecified ? executeQuery(query, DurationData.UNSPECIFIED_DURATION, startTime, endTime) :
-                            executeQuery(query, startTime, endTime);
+      ResultSet resultSet = executeQuery(query, startTime, endTime);
       while (resultSet.next()) {
         Message data = defaultInstance.toBuilder().mergeFrom(resultSet.getBytes(1)).build();
         datas.add((T)data);
