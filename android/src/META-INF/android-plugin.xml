@@ -487,6 +487,11 @@
     </intentionAction>
 
     <intentionAction>
+      <className>org.jetbrains.android.intentions.AndroidExtractColorAction</className>
+      <category>Android</category>
+    </intentionAction>
+
+    <intentionAction>
       <className>org.jetbrains.android.intentions.ImplementParcelableAction</className>
       <category>Android</category>
     </intentionAction>
