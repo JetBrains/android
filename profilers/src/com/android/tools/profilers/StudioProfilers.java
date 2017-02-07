@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * The suite of profilers inside Android Studio. This object is responsible for maintaining the information
@@ -151,7 +152,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         .build();
         Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder().setSession(mySessionData).build();
         Profiler.GetProcessesResponse processes = myClient.getProfilerClient().getProcesses(request);
-        newProcesses.put(device, processes.getProcessList());
+
+        //TODO: Have the UI handle dead processes properly
+        newProcesses.put(device, processes.getProcessList()
+          .stream()
+          .filter(process -> process.getState() == Profiler.Process.State.ALIVE)
+          .collect(Collectors.toList()));
       }
       if (!newProcesses.equals(myProcesses)) {
         myProcesses = newProcesses;
