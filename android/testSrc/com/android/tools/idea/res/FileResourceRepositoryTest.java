@@ -36,6 +36,7 @@ import static com.intellij.testFramework.UsefulTestCase.assertSameElements;
 import static java.io.File.separatorChar;
 
 public class FileResourceRepositoryTest extends TestCase {
+  private static final String LIBRARY_NAME = "com.test:test-library:1.0.0";
 
   public void testCacheUseSoftReferences() throws IOException {
     File dir = Files.createTempDir();
@@ -80,6 +81,11 @@ public class FileResourceRepositoryTest extends TestCase {
     assertSameElements(helloVariants, "bonjour", "hello", "hola");
   }
 
+  public void testLibraryNameIsMaintained() throws IOException {
+    FileResourceRepository repository = getTestRepository();
+    assertEquals(LIBRARY_NAME, repository.getLibraryName());
+  }
+
   @NotNull
   static FileResourceRepository getTestRepository() throws IOException {
     String aarPath = AndroidTestBase.getTestDataPath() + separatorChar +
@@ -87,6 +93,6 @@ public class FileResourceRepositoryTest extends TestCase {
                      EXPLODED_AAR + separatorChar +
                      "my_aar_lib" + separatorChar +
                      "res";
-    return FileResourceRepository.get(new File(aarPath), null);
+    return FileResourceRepository.get(new File(aarPath), LIBRARY_NAME);
   }
 }
