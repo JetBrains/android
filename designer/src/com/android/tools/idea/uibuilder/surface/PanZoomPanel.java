@@ -462,12 +462,12 @@ public class PanZoomPanel extends JPanel
 
       final int wheelRotation = e.getWheelRotation();
       if (wheelRotation < 0) {
-        for (int i = 0; i > wheelRotation && myDesignSurface.getScale() <= 2.; i--) {
+        for (int i = 0; i > wheelRotation; i--) {
           myDesignSurface.zoomIn();
         }
       }
       else if (wheelRotation > 0) {
-        for (int i = 0; i < wheelRotation && myDesignSurface.getScale() > 0.1; i++) {
+        for (int i = 0; i < wheelRotation; i++) {
           myDesignSurface.zoomOut();
         }
       }
