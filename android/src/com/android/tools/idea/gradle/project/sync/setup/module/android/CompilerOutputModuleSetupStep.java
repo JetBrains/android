@@ -66,4 +66,10 @@ public class CompilerOutputModuleSetupStep extends AndroidModuleSetupStep {
   public boolean invokeOnBuildVariantChange() {
     return true;
   }
+
+  @Override
+  public boolean invokeOnSkippedSync() {
+    // See bug http://b.android.com/233410
+    return true;
+  }
 }
