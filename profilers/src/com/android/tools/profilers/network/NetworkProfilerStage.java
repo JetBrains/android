@@ -129,7 +129,7 @@ public class NetworkProfilerStage extends Stage {
       return;
     }
 
-    if (data != null && data.getResponsePayloadId() != null && data.getResponsePayloadFile() == null) {
+    if (data != null && StringUtil.isNotEmpty(data.getResponsePayloadId()) && data.getResponsePayloadFile() == null) {
       ByteString payload = getConnectionsModel().requestResponsePayload(data);
       try {
         File file = getConnectionPayload(payload, data);
