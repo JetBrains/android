@@ -181,12 +181,14 @@ public class HttpData {
   }
 
   /**
-   * Return the name of the URL, which is the final complete word in the path portion of the URL. Additionally,
+   * Return the name of the URL, which is the final complete word in the path portion of the URL.
+   * The query is included as it can be useful to disambiguate requests. Additionally,
    * the returned value is URL decoded, so that, say, "Hello%2520World" -> "Hello World".
    *
    * For example,
    * "www.example.com/demo/" -> "demo"
-   * "www.example.com/test.png?res=2" -> "test.png"
+   * "www.example.com/test.png" -> "test.png"
+   * "www.example.com/test.png?res=2" -> "test.png?res=2"
    * "www.example.com" -> "www.example.com"
    */
   @NotNull
@@ -195,20 +197,24 @@ public class HttpData {
     if (uri.getPath().isEmpty()) {
       return uri.getHost();
     }
-    String path = StringUtil.trimTrailing(uri.getPath(), '/');
-    path = path.lastIndexOf('/') != -1 ? path.substring(path.lastIndexOf('/') + 1) : path;
+    String name = StringUtil.trimTrailing(uri.getPath(), '/');
+    name = name.lastIndexOf('/') != -1 ? name.substring(name.lastIndexOf('/') + 1) : name;
+    if (uri.getQuery() != null) {
+      name += "?" + uri.getQuery();
+    }
+
     // URL might be encoded an arbitrarily deep number of times. Keep decoding until we peel away the final layer.
     // Usually this is only expected to loop once or twice.
     // See more: http://stackoverflow.com/questions/3617784/plus-signs-being-replaced-for-252520
     try {
-      String lastPath;
+      String lastName;
       do {
-        lastPath = path;
-        path = URLDecoder.decode(path, "UTF-8");
-      } while (!path.equals(lastPath));
+        lastName = name;
+        name = URLDecoder.decode(name, "UTF-8");
+      } while (!name.equals(lastName));
     } catch (Exception ignored) {
     }
-    return path;
+    return name;
   }
 
   public static final class ContentType {
