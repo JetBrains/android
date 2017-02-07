@@ -51,12 +51,16 @@ public final class RenderTemplateModel extends WizardModel {
   @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myAndroidSdkInfo = new OptionalValueProperty<>();
   @NotNull private final StringProperty myPackageName;
 
+  /**
+   * The target template we want to render. If null, the user is skipping steps that would instantiate a template and this model shouldn't
+   * try to render anything.
+   */
+  @Nullable private TemplateHandle myTemplateHandle;
   @NotNull private final Map<String, Object> myTemplateValues = Maps.newHashMap();
-  @NotNull private TemplateHandle myTemplateHandle;
   @Nullable private AndroidIconGenerator myIconGenerator;
 
   public RenderTemplateModel(@NotNull Project project,
-                             @NotNull TemplateHandle templateHandle,
+                             @Nullable TemplateHandle templateHandle,
                              @NotNull String initialPackageSuggestion,
                              @NotNull AndroidSourceSet sourceSet,
                              @NotNull String commandName) {
@@ -68,7 +72,7 @@ public final class RenderTemplateModel extends WizardModel {
   }
 
   public RenderTemplateModel(@NotNull NewModuleModel moduleModel,
-                             @NotNull TemplateHandle templateHandle,
+                             @Nullable TemplateHandle templateHandle,
                              @NotNull AndroidSourceSet sourceSet,
                              @NotNull String commandName) {
     myProject = moduleModel.getProject();
@@ -104,11 +108,11 @@ public final class RenderTemplateModel extends WizardModel {
     return myPackageName;
   }
 
-  public void setTemplateHandle(@NotNull TemplateHandle templateHandle) {
+  public void setTemplateHandle(@Nullable TemplateHandle templateHandle) {
     myTemplateHandle = templateHandle;
   }
 
-  @NotNull
+  @Nullable
   public TemplateHandle getTemplateHandle() {
     return myTemplateHandle;
   }
@@ -131,7 +135,7 @@ public final class RenderTemplateModel extends WizardModel {
 
   @Override
   protected void handleFinished() {
-    if (!myProject.get().isPresent()) {
+    if (!myProject.get().isPresent() || myTemplateHandle == null) {
       getLog().error("RenderTemplateModel did not collect expected information and will not complete. Please report this error.");
       return;
     }
