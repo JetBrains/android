@@ -23,7 +23,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -34,7 +33,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import static com.android.SdkConstants.FD_RES_DRAWABLE;
@@ -59,7 +59,7 @@ public final class ResourcesUtil {
                                            @NotNull AndroidFacet facet) {
     List<VirtualFile> drawableSubDirs = AndroidResourceUtil.getResourceSubdirs(
       ResourceFolderType.DRAWABLE,
-      VfsUtilCore.toVirtualFileArray(ModuleResourceRepository.getOrCreateInstance(facet).getResourceDirs()));
+      ModuleResourceRepository.getOrCreateInstance(facet).getResourceDirs());
 
     for (VirtualFile dir : drawableSubDirs) {
       if (dir.findChild(String.format("%s.%s", drawableName, drawableType)) != null) {
@@ -71,7 +71,7 @@ public final class ResourcesUtil {
   }
 
   /**
-   * Creates a new drawable in the first folder returned by {@link AndroidResourceUtil#getResourceSubdirs(ResourceFolderType, VirtualFile[])}
+   * Creates a new drawable in the first folder returned by {@link AndroidResourceUtil#getResourceSubdirs}
    * @param drawableName The name of the drawable to create
    * @param drawableType The extension of the drawable file
    * @param doneCallback The callback to call when the creation is done
@@ -92,7 +92,7 @@ public final class ResourcesUtil {
     // Create a new file in the res/drawable folder
     List<VirtualFile> drawableSubDirs = AndroidResourceUtil.getResourceSubdirs(
       ResourceFolderType.DRAWABLE,
-      VfsUtilCore.toVirtualFileArray(ModuleResourceRepository.getOrCreateInstance(facet).getResourceDirs()));
+      ModuleResourceRepository.getOrCreateInstance(facet).getResourceDirs());
 
     try {
       byte[] imageInByte = imageToByteArray(image, drawableType);

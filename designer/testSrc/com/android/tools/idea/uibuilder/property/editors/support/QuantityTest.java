@@ -85,7 +85,7 @@ public class QuantityTest {
   private static NlProperty mockProperty(@NotNull String attribute, @NotNull AttributeFormat format) {
     NlProperty property = Mockito.mock(NlProperty.class);
     Mockito.when(property.getName()).thenReturn(attribute);
-    Mockito.when(property.getDefinition()).thenReturn(new AttributeDefinition(attribute, null, Collections.singleton(format)));
+    Mockito.when(property.getDefinition()).thenReturn(new AttributeDefinition(attribute, null, null, Collections.singleton(format)));
     return property;
   }
 }
