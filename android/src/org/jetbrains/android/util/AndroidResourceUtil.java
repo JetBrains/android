@@ -547,7 +547,8 @@ public class AndroidResourceUtil {
   }
 
   @NotNull
-  public static List<VirtualFile> getResourceSubdirs(@NotNull ResourceFolderType resourceType, @NotNull VirtualFile[] resourceDirs) {
+  public static List<VirtualFile> getResourceSubdirs(@NotNull ResourceFolderType resourceType,
+                                                     @NotNull Collection<VirtualFile> resourceDirs) {
     final List<VirtualFile> dirs = new ArrayList<>();
 
     for (VirtualFile resourcesDir : resourceDirs) {

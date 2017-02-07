@@ -221,8 +221,8 @@ public class NlReferenceEditorTest extends PropertyTestCase {
 
   private NlProperty createCollapseParallaxProperty(@NotNull NlComponent component) {
     XmlName name = new XmlName(ATTR_COLLAPSE_PARALLAX_MULTIPLIER, AUTO_URI);
-    AttributeDefinition definition =
-      new AttributeDefinition(name.getLocalName(), null, ImmutableList.of(AttributeFormat.Dimension, AttributeFormat.Fraction));
+    AttributeDefinition definition = new AttributeDefinition(
+      name.getLocalName(), DESIGN_LIB_ARTIFACT, null, ImmutableList.of(AttributeFormat.Dimension, AttributeFormat.Fraction));
     return NlPropertyItem.create(name, definition, Collections.singletonList(component), myPropertiesManager);
   }
 }

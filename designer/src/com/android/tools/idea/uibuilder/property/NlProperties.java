@@ -283,7 +283,8 @@ public class NlProperties {
     if (srcProperty != null && shouldAddSrcCompat(facet, components)) {
       AttributeDefinition srcDefinition = srcProperty.getDefinition();
       assert srcDefinition != null;
-      AttributeDefinition srcCompatDefinition = new AttributeDefinition(ATTR_SRC_COMPAT, null, srcDefinition.getFormats());
+      AttributeDefinition srcCompatDefinition =
+        new AttributeDefinition(ATTR_SRC_COMPAT, SUPPORT_LIB_ARTIFACT, null, srcDefinition.getFormats());
       srcCompatDefinition.getParentStyleables().addAll(srcDefinition.getParentStyleables());
       NlPropertyItem srcCompatProperty =
         NlPropertyItem.create(new XmlName(ATTR_SRC_COMPAT, AUTO_URI), srcCompatDefinition, components, propertiesManager);
