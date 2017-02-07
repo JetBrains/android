@@ -24,10 +24,6 @@ public class JpsAndroidDexSettingsSerializer extends JpsProjectExtensionSerializ
   public void loadExtension(@NotNull JpsProject element, @NotNull Element componentTag) {
     JpsAndroidDexCompilerConfigurationImpl.MyState state = XmlSerializer.deserialize(
       componentTag, JpsAndroidDexCompilerConfigurationImpl.MyState.class);
-
-    if (state == null) {
-      state = new JpsAndroidDexCompilerConfigurationImpl.MyState();
-    }
     JpsAndroidExtensionService.getInstance().setDexCompilerConfiguration(element, new JpsAndroidDexCompilerConfigurationImpl(state));
   }
 
