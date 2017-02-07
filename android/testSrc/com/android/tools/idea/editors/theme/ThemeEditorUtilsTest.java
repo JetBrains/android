@@ -108,13 +108,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
     IAndroidTarget androidTarget = configuration.getTarget();
     assertNotNull(androidTarget);
-    sdkPlatformPath = androidTarget.getLocation();
-
-    if (LayoutLibraryLoader.USE_SDK_LAYOUTLIB) {
-      if (!sdkPlatformPath.endsWith("/")) sdkPlatformPath += "/";
-      sdkPlatformPath += "platforms/android-" + androidTarget.getVersion().getApiString();
-    }
-    sdkPlatformPath = Files.simplifyPath(sdkPlatformPath);
+    sdkPlatformPath = Files.simplifyPath(androidTarget.getLocation());
     ThemeResolver themeResolver = new ThemeResolver(configuration);
     ConfiguredThemeEditorStyle theme = themeResolver.getTheme("AppTheme");
     assertNotNull(theme);
