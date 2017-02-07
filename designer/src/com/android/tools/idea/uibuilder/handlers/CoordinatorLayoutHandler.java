@@ -28,6 +28,7 @@ import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.Insets;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
@@ -36,12 +37,18 @@ import static com.android.SdkConstants.*;
  * Handler for the {@code <android.support.design.widget.CoordinatorLayout>} layout
  */
 public class CoordinatorLayoutHandler extends FrameLayoutHandler {
-  @Override
   @NotNull
+  @Override
   public List<String> getInspectorProperties() {
     return ImmutableList.of(
       ATTR_CONTEXT,
       ATTR_FITS_SYSTEM_WINDOWS);
+  }
+
+  @NotNull
+  @Override
+  public List<String> getLayoutInspectorProperties() {
+    return Collections.singletonList(ATTR_LAYOUT_BEHAVIOR);
   }
 
   @Nullable
