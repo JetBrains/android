@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.handlers.ui.AppBarConfigurationDialog;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.intellij.psi.xml.XmlFile;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
@@ -37,6 +38,12 @@ public class AppBarLayoutHandler extends LinearLayoutHandler {
       ATTR_THEME,
       ATTR_FITS_SYSTEM_WINDOWS,
       ATTR_EXPANDED);
+  }
+
+  @NotNull
+  @Override
+  public List<String> getLayoutInspectorProperties() {
+    return Collections.singletonList(ATTR_LAYOUT_SCROLL_FLAGS);
   }
 
   @Override
