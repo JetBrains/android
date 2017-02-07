@@ -34,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Objects;
 
 public class NetworkProfilerStage extends Stage {
 
@@ -124,6 +125,10 @@ public class NetworkProfilerStage extends Stage {
    * Sets the active connection, or clears the previously selected active connection if given data is null.
    */
   public void setSelectedConnection(@Nullable HttpData data) {
+    if (Objects.equals(mySelectedConnection, data)) {
+      return;
+    }
+
     if (data != null && data.getResponsePayloadId() != null && data.getResponsePayloadFile() == null) {
       ByteString payload = getConnectionsModel().requestResponsePayload(data);
       try {

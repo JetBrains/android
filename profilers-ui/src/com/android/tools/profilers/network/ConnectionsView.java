@@ -209,24 +209,23 @@ final class ConnectionsView {
 
     // Keep the previously selected row selected if it's still there
 
-    // IJ wants to use Application.invokeLater, but we use SwingUtilities.invokeLater because it's
-    // testable (Application is null in basic unit tests)
-    //noinspection SSBasedInspection
-    myTableModel.addTableModelListener(e ->
-      SwingUtilities.invokeLater(() -> {
-        // Invoke later, because table itself listener of table model.
-        HttpData selectedData = myStage.getSelectedConnection();
-        if (selectedData != null) {
-          for (int i = 0; i < myTableModel.getRowCount(); ++i) {
-            if (myTableModel.getHttpData(i).getId() == selectedData.getId()) {
-              int row = myConnectionsTable.convertRowIndexToView(i);
-              myConnectionsTable.setRowSelectionInterval(row, row);
-              break;
-            }
-          }
+    // We cannot update directly but have to invoke later as otherwise the table in some cases
+    // overwrites our value.
+    //noinspection SSBasedInspection: Prefer SwingUtilities for unit testing; Application is null in unit tests.
+    myTableModel.addTableModelListener(e -> SwingUtilities.invokeLater(this::updateTableSelection));
+  }
+
+  private void updateTableSelection() {
+    HttpData selectedData = myStage.getSelectedConnection();
+    if (selectedData != null) {
+      for (int i = 0; i < myTableModel.getRowCount(); ++i) {
+        if (myTableModel.getHttpData(i).getId() == selectedData.getId()) {
+          int row = myConnectionsTable.convertRowIndexToView(i);
+          myConnectionsTable.setRowSelectionInterval(row, row);
+          break;
         }
-      })
-    );
+      }
+    }
   }
 
   private final class ConnectionsTableModel extends AbstractTableModel {
@@ -277,6 +276,9 @@ final class ConnectionsView {
     public void rangeChanged() {
       myDataList = myStage.getConnectionsModel().getData(myRange);
       fireTableDataChanged();
+      // Although the selected data doesn't change on range moved, we do this here to prevent
+      // flickering that otherwise occurs in our table.
+      updateTableSelection();
     }
   }
 
