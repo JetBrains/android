@@ -137,9 +137,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       myFixture.setUp();
       myFixture.setTestDataPath(getTestDataPath());
       ensureSdkManagerAvailable();
-      setUpSdks();
 
       Project project = getProject();
+      setUpSdks(project);
       myModules = new Modules(project);
     }
     else {
@@ -151,20 +151,20 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
   }
 
-  private void setUpSdks() {
+  protected void setUpSdks(@NotNull Project project) {
     // We seem to have two different locations where the SDK needs to be specified.
     // One is whatever is already defined in the JDK Table, and the other is the global one as defined by IdeSdks.
     // Gradle import will fail if the global one isn't set.
     File androidSdkPath = findSdkPath();
 
     IdeSdks ideSdks = IdeSdks.getInstance();
-    runWriteCommandAction(getProject(), () -> {
+    runWriteCommandAction(project, () -> {
       if (IdeInfo.getInstance().isAndroidStudio()) {
         ideSdks.setUseEmbeddedJdk();
         LOG.info("Set JDK to " + ideSdks.getJdkPath());
       }
 
-      ideSdks.setAndroidSdkPath(androidSdkPath, getProject());
+      ideSdks.setAndroidSdkPath(androidSdkPath, project);
       LOG.info("Set IDE Sdk Path to " + androidSdkPath);
     });
 
