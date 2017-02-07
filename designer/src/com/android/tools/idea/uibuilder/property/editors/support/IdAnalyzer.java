@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -62,6 +63,7 @@ public class IdAnalyzer {
   private void findIdsAmongSiblings() {
     List<NlComponent> parents = myProperty.getComponents().stream()
       .map(NlComponent::getParent)
+      .filter(Objects::nonNull)
       .distinct()
       .collect(Collectors.toList());
     if (parents.size() == 1) {
