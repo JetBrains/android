@@ -16,19 +16,14 @@
 package com.android.tools.idea.profilers;
 
 import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.ddmlib.*;
 import com.android.tools.datastore.DataStoreService;
-import com.android.tools.datastore.LegacyAllocationConverter;
-import com.android.tools.datastore.LegacyAllocationConverter.CallStack;
-import com.android.tools.datastore.LegacyAllocationTracker;
 import com.android.tools.idea.profilers.perfd.PerfdProxy;
 import com.android.tools.profilers.ProfilerClient;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.Consumer;
 import com.intellij.util.net.NetUtils;
 import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
@@ -37,13 +32,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
 
-import static com.android.ddmlib.Client.CHANGE_NAME;
 import static com.android.ddmlib.IDevice.CHANGE_STATE;
 
 /**
@@ -51,9 +41,7 @@ import static com.android.ddmlib.IDevice.CHANGE_STATE;
  * On device connection it will spawn the performance daemon on device, and will notify the profiler system that
  * a new device has been connected. *ALL* interaction with IDevice is encapsulated in this class.
  */
-class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeListener,
-                                             AndroidDebugBridge.IDeviceChangeListener,
-                                             AndroidDebugBridge.IDebugBridgeChangeListener {
+class StudioProfilerDeviceManager implements AndroidDebugBridge.IDeviceChangeListener {
 
   private static Logger getLogger() {
     return Logger.getInstance(StudioProfilerDeviceManager.class);
@@ -65,8 +53,6 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
 
   private final ProfilerClient myClient;
   private final DataStoreService myDataStoreService;
-  private final StudioLegacyAllocationTracker myLegacyAllocationTracker;
-  private AndroidDebugBridge myBridge;
 
   public StudioProfilerDeviceManager() throws IOException {
     //TODO: Spawn the datastore in the right place (service)?
@@ -79,42 +65,15 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
     // The client is referenced in the update devices callback. As such the client needs to be set before we register
     // ourself as a listener for this callback. Otherwise we may get the callback before we are fully constructed
     myClient = new ProfilerClient(DATASTORE_NAME);
-
-    AndroidDebugBridge.addClientChangeListener(this);
     AndroidDebugBridge.addDeviceChangeListener(this);
-    AndroidDebugBridge.addDebugBridgeChangeListener(this);
-
-    myLegacyAllocationTracker = new StudioLegacyAllocationTracker();
-    myDataStoreService.setLegacyAllocationTracker(myLegacyAllocationTracker);
   }
 
   public void dispose() {
-    AndroidDebugBridge.removeClientChangeListener(this);
     AndroidDebugBridge.removeDeviceChangeListener(this);
-    AndroidDebugBridge.removeDebugBridgeChangeListener(this);
-  }
-
-  public void updateDevices() {
-    if (myBridge != null) {
-      for (IDevice device : myBridge.getDevices()) {
-        if (device.isOnline()) {
-          // TODO fix this - this currently does not work for multiple devices, plus this should go to the MemoryServiceProxy
-          myLegacyAllocationTracker.setDevice(device);
-        }
-      }
-    }
-  }
-
-  @Override
-  public void clientChanged(@NonNull Client client, int changeMask) {
-    if ((changeMask & CHANGE_NAME) != 0) {
-      updateDevices();
-    }
   }
 
   @Override
   public void deviceConnected(@NonNull IDevice device) {
-    updateDevices();
     if (device.isOnline()) {
       spawnPerfd(device);
     }
@@ -122,20 +81,13 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
 
   @Override
   public void deviceDisconnected(@NonNull IDevice device) {
-    updateDevices();
   }
 
   @Override
   public void deviceChanged(@NonNull IDevice device, int changeMask) {
-    updateDevices();
     if ((changeMask & CHANGE_STATE) != 0 && device.isOnline()) {
       spawnPerfd(device);
     }
-  }
-
-  @Override
-  public void bridgeChanged(@Nullable AndroidDebugBridge bridge) {
-    myBridge = bridge;
   }
 
   public ProfilerClient getClient() {
@@ -245,66 +197,6 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IClientChangeLis
       catch (TimeoutException | AdbCommandRejectedException | SyncException | ShellCommandUnresponsiveException | IOException e) {
         throw new RuntimeException(e);
       }
-    }
-  }
-
-  private class StudioLegacyAllocationTracker implements LegacyAllocationTracker {
-    private IDevice myDevice;
-    private final LegacyAllocationConverter myConverter = new LegacyAllocationConverter();
-
-    public void setDevice(IDevice device) {
-      myDevice = device;
-    }
-
-    @Override
-    public boolean setAllocationTrackingEnabled(int processId, boolean enabled) {
-      Client client = getClient(myDevice, processId);
-      if (client == null) {
-        return false;
-      }
-      client.enableAllocationTracker(enabled);
-      return true;
-    }
-
-    @Override
-    public void getAllocationTrackingDump(int processId, @NotNull ExecutorService executorService, @NotNull Consumer<byte[]> consumer) {
-      Client targetClient = getClient(myDevice, processId);
-      if (targetClient == null) {
-        return;
-      }
-      AndroidDebugBridge.addClientChangeListener(new AndroidDebugBridge.IClientChangeListener() {
-        @Override
-        public void clientChanged(@NonNull Client client, int changeMask) {
-          if (targetClient == client && (changeMask & Client.CHANGE_HEAP_ALLOCATIONS) != 0) {
-            final byte[] data = client.getClientData().getAllocationsData();
-            executorService.submit(() -> consumer.consume(data));
-            AndroidDebugBridge.removeClientChangeListener(this);
-          }
-        }
-      });
-      targetClient.requestAllocationDetails();
-    }
-
-    @NotNull
-    @Override
-    public LegacyAllocationConverter parseDump(@NotNull byte[] dumpData) {
-      myConverter.prepare();
-
-      // TODO fix allocation file overflow bug
-      AllocationInfo[] rawInfos = AllocationsParser.parse(ByteBuffer.wrap(dumpData));
-
-      for (AllocationInfo info : rawInfos) {
-        List<StackTraceElement> stackTraceElements = Arrays.asList(info.getStackTrace());
-        CallStack callStack = myConverter.addCallStack(stackTraceElements);
-        int classId = myConverter.addClassName(info.getAllocatedClass());
-        myConverter.addAllocation(new LegacyAllocationConverter.Allocation(classId, info.getSize(), info.getThreadId(), callStack.getId()));
-      }
-      return myConverter;
-    }
-
-    @Nullable
-    private Client getClient(@NotNull IDevice device, int processId) {
-      return device.getClient(device.getClientName(processId));
     }
   }
 }
