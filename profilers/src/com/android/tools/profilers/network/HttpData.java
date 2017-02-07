@@ -15,6 +15,10 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.common.StackFrameParser;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -23,10 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.net.URI;
 import java.net.URLDecoder;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Data of http url connection. Each {@code HttpData} object matches a http connection with a unique id, and it includes both request data
@@ -53,7 +54,7 @@ public class HttpData {
   private final long myDownloadingTimeUs;
   @NotNull private final String myUrl;
   @NotNull private final String myMethod;
-  @NotNull private final String myTrace;
+  @NotNull private StackTrace myTrace;
 
   @Nullable private final String myResponsePayloadId;
 
@@ -70,7 +71,7 @@ public class HttpData {
     myDownloadingTimeUs = builder.myDownloadingTimeUs;
     myUrl = builder.myUrl;
     myMethod = builder.myMethod;
-    myTrace = builder.myTrace;
+    myTrace = new StackTrace(builder.myTrace);
     myResponsePayloadId = builder.myResponsePayloadId;
 
     if (builder.myResponseFields != null) {
@@ -108,7 +109,7 @@ public class HttpData {
   }
 
   @NotNull
-  public String getTrace() { return myTrace; }
+  public StackTrace getStackTrace() { return myTrace; }
 
   @Nullable
   public String getResponsePayloadId() {
@@ -231,6 +232,35 @@ public class HttpData {
     return Objects.hash(myId);
   }
 
+  public static final class StackTrace {
+    private final ImmutableList<CodeLocation> myLocations;
+    private final String myTrace;
+
+    private StackTrace(@NotNull String trace) {
+      myTrace = trace;
+      ImmutableList.Builder<CodeLocation> builder = new ImmutableList.Builder<>();
+      for (String line: trace.split("\\n")) {
+        if (line.trim().isEmpty()) {
+          continue;
+        }
+        StackFrameParser parser = new StackFrameParser(line);
+        builder.add(new CodeLocation(parser.getClassName(), parser.getFileName(), parser.getMethodName(), parser.getLineNumber() - 1));
+      }
+      myLocations = builder.build();
+    }
+
+    @NotNull
+    public ImmutableList<CodeLocation> getCodeLocations() {
+      return myLocations;
+    }
+
+    @VisibleForTesting
+    @NotNull
+    public String getTrace() {
+      return myTrace;
+    }
+  }
+
   public static final class ContentType {
     @NotNull private final String myContentType;
 
@@ -288,24 +318,13 @@ public class HttpData {
     private String myResponseFields;
     private String myRequestFields;
     private String myResponsePayloadId;
-    private String myTrace;
+    private String myTrace = "";
 
     public Builder(long id, long startTimeUs, long endTimeUs, long downloadingTimeUS) {
       myId = id;
       myStartTimeUs = startTimeUs;
       myEndTimeUs = endTimeUs;
       myDownloadingTimeUs = downloadingTimeUS;
-    }
-
-    public Builder(HttpData data) {
-      myId = data.myId;
-      myStartTimeUs = data.getStartTimeUs();
-      myDownloadingTimeUs = data.getDownloadingTimeUs();
-      myEndTimeUs = data.getEndTimeUs();
-      myUrl = data.getUrl();
-      myMethod = data.getMethod();
-      myTrace = data.getTrace();
-      myResponsePayloadId = data.getResponsePayloadId();
     }
 
     @NotNull

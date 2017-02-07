@@ -18,6 +18,7 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.common.CodeLocation;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf3jarjar.ByteString;
 import org.junit.Before;
@@ -76,7 +77,7 @@ public class NetworkProfilerStageTest extends AspectObserver {
     assertEquals(FAKE_HTTP_DATA.get(0).getEndTimeUs(), data.getEndTimeUs());
     assertEquals(FAKE_HTTP_DATA.get(0).getMethod(), data.getMethod());
     assertEquals(FAKE_HTTP_DATA.get(0).getUrl(), data.getUrl());
-    assertEquals(FAKE_HTTP_DATA.get(0).getTrace(), data.getTrace());
+    assertEquals(FAKE_HTTP_DATA.get(0).getStackTrace().getTrace(), data.getStackTrace().getTrace());
     assertEquals(FAKE_HTTP_DATA.get(0).getResponsePayloadId(), data.getResponsePayloadId());
     assertEquals(FAKE_HTTP_DATA.get(0).getResponseField("connId"), data.getResponseField("connId"));
   }
@@ -275,6 +276,42 @@ public class NetworkProfilerStageTest extends AspectObserver {
     myStage.getStudioProfilers().getTimeline().getSelectionRange().clear();
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
     myStage.getStudioProfilers().getTimeline().getSelectionRange().set(0, 10);
+    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
+  }
+
+  @Test
+  public void stackLineNavigation() {
+    HttpData data = FAKE_HTTP_DATA.get(0);
+    assertEquals(2, data.getStackTrace().getCodeLocations().size());
+    CodeLocation location = data.getStackTrace().getCodeLocations().get(0);
+
+    final boolean[] navigated = {false};
+    myStage.getAspect().addDependency(this).onChange(NetworkProfilerAspect.CODE_LOCATION, () ->
+      navigated[0] = true
+    );
+
+    final boolean[] modeChanged = {false};
+    myStage.getStudioProfilers().addDependency(this).onChange(ProfilerAspect.MODE, () ->
+      modeChanged[0] = true
+    );
+
+    // This expands profiler mode
+    myStage.getStudioProfilers().getTimeline().getSelectionRange().set(0, 10);
+
+    assertFalse(navigated[0]);
+    assertFalse(modeChanged[0]);
+    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
+    myStage.setSelectedCodeLocation(location);
+    assertTrue(navigated[0]);
+    assertTrue(modeChanged[0]);
+    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+
+    navigated[0] = false;
+    modeChanged[0] = false;
+    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+    myStage.setSelectedCodeLocation(null);
+    assertTrue(navigated[0]);
+    assertTrue(modeChanged[0]);
     assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
   }
 }

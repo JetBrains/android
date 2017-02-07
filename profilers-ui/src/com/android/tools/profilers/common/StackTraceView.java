@@ -16,6 +16,7 @@
 package com.android.tools.profilers.common;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.List;
@@ -29,6 +30,20 @@ public interface StackTraceView {
 
   @NotNull
   JComponent getComponent();
+
+  /**
+   * @return selected {@link CodeLocation} in the view or null if nothing is selected
+   */
+  @Nullable
+  CodeLocation getSelectedLocation();
+
+  /**
+   * Selects the specified {@link CodeLocation}.
+   *
+   * @param location  the CodeLocation to select, if null clears the selection
+   * @return true, if the given CodeLocation can be selected
+   */
+  boolean selectCodeLocation(@Nullable CodeLocation location);
 
   @NotNull
   List<CodeLocation> getCodeLocations();

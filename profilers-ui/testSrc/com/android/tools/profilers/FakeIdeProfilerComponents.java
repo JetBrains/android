@@ -63,7 +63,7 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
 
   @NotNull
   @Override
-  public TabsPanel createTabsPanel() {
+  public TabsPanel createTabsPanel(@Nullable Runnable onSelectionChange) {
     return new TabsPanel() {
       private JTabbedPane myTabbedPane = new JTabbedPane();
 
@@ -87,6 +87,12 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
       public void removeAll() {
         myTabbedPane.removeAll();
       }
+
+      @Nullable
+      @Override
+      public JComponent getSelectedComponent() {
+        return null;
+      }
     };
   }
 
@@ -96,8 +102,8 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
    */
   @NotNull
   @Override
-  public StackTraceView createStackView(@Nullable Runnable prenavigate) {
-    return Mockito.spy(new StackTraceViewStub());
+  public StackTraceView createStackView(@Nullable Runnable preNavigate) {
+    return Mockito.spy(new StackTraceViewStub(preNavigate));
   }
 
   @Override
@@ -157,6 +163,13 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
   }
 
   public static class StackTraceViewStub implements StackTraceView {
+    private Runnable myPreNavigate;
+    private CodeLocation myLocation;
+
+    public StackTraceViewStub(Runnable preNavigate) {
+      myPreNavigate = preNavigate;
+    }
+
     @Override
     public void clearStackFrames() {
 
@@ -176,6 +189,19 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     @Override
     public JComponent getComponent() {
       return new JPanel();
+    }
+
+    @Nullable
+    @Override
+    public CodeLocation getSelectedLocation() {
+      return myLocation;
+    }
+
+    @Override
+    public boolean selectCodeLocation(@Nullable CodeLocation location) {
+      myLocation = location;
+      myPreNavigate.run();
+      return location != null;
     }
 
     @NotNull

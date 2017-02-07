@@ -170,7 +170,7 @@ public class HttpDataTest {
     assertThat(data.getStatusCode(), equalTo(302));
     assertThat(data.getMethod(), equalTo("method"));
     assertThat(data.getResponsePayloadId(), equalTo("payloadId"));
-    assertThat(data.getTrace(), equalTo("trace"));
+    assertThat(data.getStackTrace().getTrace(), equalTo("trace"));
     assertThat(data.getUrl(), equalTo("url"));
   }
 
