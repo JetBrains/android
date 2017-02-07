@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.rendering.ImagePool;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.idea.rendering.RenderResult;
@@ -70,15 +71,35 @@ public class ScreenViewLayer extends Layer {
    */
   private double myCachedScale;
 
-  private final ScheduledExecutorService myScheduledExecutorService = Executors.newScheduledThreadPool(1);
+  private final ScheduledExecutorService myScheduledExecutorService;
   private final RescaleRunnable myRescaleRunnable = new RescaleRunnable();
   @Nullable private ScheduledFuture<?> myScheduledFuture;
   private Rectangle mySizeRectangle = new Rectangle();
   private Dimension myScreenViewSize = new Dimension();
   private boolean myIsRescaling;
 
+  /**
+   * Create a new ScreenView
+   *
+   * @param screenView The screenView containing the model to render
+   */
   public ScreenViewLayer(@NotNull ScreenView screenView) {
+    this(screenView, null);
+  }
+
+  /**
+   * Create a new ScreenView using the provided executor to debounce
+   * the requests for a high quality scaled image.
+   * <p>
+   * This method should only be used for tests
+   *</p>
+   * @param screenView The screenView containing the model to render
+   * @param executor   Executor used to debounce the calls to {@link #requestHighQualityScaledImage()}
+   */
+  @VisibleForTesting
+  ScreenViewLayer(@NotNull ScreenView screenView, @Nullable ScheduledExecutorService executor) {
     myScreenView = screenView;
+    myScheduledExecutorService = executor != null ? executor : Executors.newScheduledThreadPool(1);
     Disposer.register(screenView.getSurface(), this);
   }
 
@@ -205,8 +226,8 @@ public class ScreenViewLayer extends Layer {
       if (image == null) {
         return;
       }
-      BufferedImage myImageCopy = image.getCopy();
-      myScaledDownImage = ImageUtils.scale(myImageCopy, myCachedScale);
+      BufferedImage imageCopy = image.getCopy();
+      myScaledDownImage = ImageUtils.scale(imageCopy, myCachedScale);
       myIsRescaling = false;
       UIUtil.invokeLaterIfNeeded(
         () -> myScreenView.getSurface().repaint());

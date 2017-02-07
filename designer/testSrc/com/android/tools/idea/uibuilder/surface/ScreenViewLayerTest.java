@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.rendering.ImagePool;
 import com.android.tools.idea.rendering.ImageUtils;
@@ -28,6 +29,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
@@ -55,8 +57,9 @@ public class ScreenViewLayerTest {
   @Test
   public void lowHighQualityPainting() throws Exception {
 
-    ScreenViewLayer layer = new ScreenViewLayer(myScreenView);
+    VirtualTimeScheduler timeScheduler = new VirtualTimeScheduler();
     Rectangle rectangle = new Rectangle(SCREEN_VIEW_WIDTH, SCREEN_VIEW_HEIGHT);
+    ScreenViewLayer layer = new ScreenViewLayer(myScreenView, timeScheduler);
 
     when(myScreenView.getScreenShape()).thenReturn(rectangle);
     when(myScreenView.getX()).thenReturn(0);
@@ -90,12 +93,13 @@ public class ScreenViewLayerTest {
     g.dispose();
     ImageDiffUtil.assertImageSimilar("screenviewlayer_result.png", lowQoutput, output, 0.0);
 
-    // We wait more than the debounce delay to ensure that the next call to pain will draw a high quality image
-    Thread.sleep(500);
+
     BufferedImage imageHQScaled = imageHQ.getCopy();
     imageHQScaled = ImageUtils.scale(imageHQScaled, SCALE);
     g.dispose();
 
+    // We wait more than the debounce delay to ensure that the next call to pain will draw a high quality image
+    timeScheduler.advanceBy(600, TimeUnit.MILLISECONDS);
     //noinspection UndesirableClassUsage
     g = (Graphics2D)output.getGraphics();
     g.setColor(Color.WHITE);
