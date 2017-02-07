@@ -18,7 +18,7 @@ package org.jetbrains.android.facet;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.apk.AndroidApkFacet;
+import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.avdmanager.ModuleAvds;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -135,7 +135,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    * @return {@code true} if the project has a {@code AndroidProject}; {@code false} otherwise.
    */
   public boolean requiresAndroidModel() {
-    return !getProperties().ALLOW_USER_CONFIGURATION && AndroidApkFacet.getInstance(getModule()) == null;
+    return !getProperties().ALLOW_USER_CONFIGURATION && ApkFacet.getInstance(getModule()) == null;
   }
 
   /**
