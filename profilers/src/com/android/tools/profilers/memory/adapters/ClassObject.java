@@ -22,6 +22,9 @@ import java.util.Collections;
 import java.util.List;
 
 public abstract class ClassObject extends NamespaceObject {
+  public static final String JAVA_LANG_STRING = "java.lang.String";
+  public static final String JAVA_LANG_CLASS = "java.lang.Class";
+
   public enum ClassAttribute {
     LABEL,
     TOTAL_COUNT,
@@ -29,6 +32,31 @@ public abstract class ClassObject extends NamespaceObject {
     INSTANCE_SIZE,
     SHALLOW_SIZE,
     RETAINED_SIZE
+  }
+
+  public enum ValueType {
+    NULL(false),
+    BOOLEAN(true),
+    BYTE(true),
+    CHAR(true),
+    SHORT(true),
+    INT(true),
+    LONG(true),
+    FLOAT(true),
+    DOUBLE(true),
+    OBJECT(false),
+    CLASS(false),
+    STRING(false); // special case for strings
+
+    private boolean myIsPrimitive;
+
+    ValueType(boolean isPrimitive) {
+      myIsPrimitive = isPrimitive;
+    }
+
+    public boolean getIsPrimitive() {
+      return myIsPrimitive;
+    }
   }
 
   @NotNull

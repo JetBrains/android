@@ -23,8 +23,6 @@ import java.util.Collections;
 import java.util.List;
 
 public interface InstanceObject extends MemoryObject {
-  String STRING_NAMESPACE = "java.lang.String";
-
   enum InstanceAttribute {
     LABEL,
     DEPTH,
@@ -32,33 +30,13 @@ public interface InstanceObject extends MemoryObject {
     RETAINED_SIZE
   }
 
-  enum ValueType {
-    NULL(false),
-    BOOLEAN(true),
-    BYTE(true),
-    CHAR(true),
-    SHORT(true),
-    INT(true),
-    LONG(true),
-    FLOAT(true),
-    DOUBLE(true),
-    OBJECT(false),
-    CLASS(false),
-    STRING(false); // special case for strings
-
-    private boolean myIsPrimitive;
-
-    ValueType(boolean isPrimitive) {
-      myIsPrimitive = isPrimitive;
-    }
-
-    public boolean getIsPrimitive() {
-      return myIsPrimitive;
-    }
-  }
-
   @NotNull
   String getDisplayLabel();
+
+  @Nullable
+  default String getToStringText() {
+    return null;
+  }
 
   @Nullable
   ClassObject getClassObject();
@@ -93,8 +71,9 @@ public interface InstanceObject extends MemoryObject {
     return Collections.emptyList();
   }
 
-  default ValueType getValueType() {
-    return ValueType.NULL;
+  @NotNull
+  default ClassObject.ValueType getValueType() {
+    return ClassObject.ValueType.NULL;
   }
 
   default boolean getIsArray() {

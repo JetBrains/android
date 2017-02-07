@@ -48,29 +48,29 @@ public class HeapDumpInstanceObjectTest {
     List<FieldObject> fields = HeapDumpInstanceObject.extractFields(classInstance);
     assertEquals(12, fields.size());
     assertEquals("objectTest", fields.get(0).getFieldName());
-    assertEquals(InstanceObject.ValueType.OBJECT, fields.get(0).getValueType());
+    assertEquals(ClassObject.ValueType.OBJECT, fields.get(0).getValueType());
     assertEquals("boolTest", fields.get(1).getFieldName());
-    assertEquals(InstanceObject.ValueType.BOOLEAN, fields.get(1).getValueType());
+    assertEquals(ClassObject.ValueType.BOOLEAN, fields.get(1).getValueType());
     assertEquals("charTest", fields.get(2).getFieldName());
-    assertEquals(InstanceObject.ValueType.CHAR, fields.get(2).getValueType());
+    assertEquals(ClassObject.ValueType.CHAR, fields.get(2).getValueType());
     assertEquals("floatTest", fields.get(3).getFieldName());
-    assertEquals(InstanceObject.ValueType.FLOAT, fields.get(3).getValueType());
+    assertEquals(ClassObject.ValueType.FLOAT, fields.get(3).getValueType());
     assertEquals("doubleTest", fields.get(4).getFieldName());
-    assertEquals(InstanceObject.ValueType.DOUBLE, fields.get(4).getValueType());
+    assertEquals(ClassObject.ValueType.DOUBLE, fields.get(4).getValueType());
     assertEquals("byteTest", fields.get(5).getFieldName());
-    assertEquals(InstanceObject.ValueType.BYTE, fields.get(5).getValueType());
+    assertEquals(ClassObject.ValueType.BYTE, fields.get(5).getValueType());
     assertEquals("shortTest", fields.get(6).getFieldName());
-    assertEquals(InstanceObject.ValueType.SHORT, fields.get(6).getValueType());
+    assertEquals(ClassObject.ValueType.SHORT, fields.get(6).getValueType());
     assertEquals("intTest", fields.get(7).getFieldName());
-    assertEquals(InstanceObject.ValueType.INT, fields.get(7).getValueType());
+    assertEquals(ClassObject.ValueType.INT, fields.get(7).getValueType());
     assertEquals("longTest", fields.get(8).getFieldName());
-    assertEquals(InstanceObject.ValueType.LONG, fields.get(8).getValueType());
+    assertEquals(ClassObject.ValueType.LONG, fields.get(8).getValueType());
     assertEquals("classTest", fields.get(9).getFieldName());
-    assertEquals(InstanceObject.ValueType.CLASS, fields.get(9).getValueType());
+    assertEquals(ClassObject.ValueType.CLASS, fields.get(9).getValueType());
     assertEquals("stringTest", fields.get(10).getFieldName());
-    assertEquals(InstanceObject.ValueType.STRING, fields.get(10).getValueType());
+    assertEquals(ClassObject.ValueType.STRING, fields.get(10).getValueType());
     assertEquals("nullTest", fields.get(11).getFieldName());
-    assertEquals(InstanceObject.ValueType.NULL, fields.get(11).getValueType());
+    assertEquals(ClassObject.ValueType.NULL, fields.get(11).getValueType());
   }
 
   /**
@@ -86,11 +86,11 @@ public class HeapDumpInstanceObjectTest {
     List<FieldObject> fields = HeapDumpInstanceObject.extractFields(arrayInstance);
     assertEquals(3, fields.size());
     assertEquals("0", fields.get(0).getFieldName());
-    assertEquals(InstanceObject.ValueType.OBJECT, fields.get(0).getValueType());
+    assertEquals(ClassObject.ValueType.OBJECT, fields.get(0).getValueType());
     assertEquals("1", fields.get(1).getFieldName());
-    assertEquals(InstanceObject.ValueType.OBJECT, fields.get(1).getValueType());
+    assertEquals(ClassObject.ValueType.OBJECT, fields.get(1).getValueType());
     assertEquals("2", fields.get(2).getFieldName());
-    assertEquals(InstanceObject.ValueType.OBJECT, fields.get(2).getValueType());
+    assertEquals(ClassObject.ValueType.OBJECT, fields.get(2).getValueType());
   }
 
   /**
@@ -112,23 +112,23 @@ public class HeapDumpInstanceObjectTest {
     List<FieldObject> fields = HeapDumpInstanceObject.extractFields(classObj);
     assertEquals(9, fields.size());
     assertEquals("staticObj", fields.get(0).getFieldName());
-    assertEquals(InstanceObject.ValueType.OBJECT, fields.get(0).getValueType());
+    assertEquals(ClassObject.ValueType.OBJECT, fields.get(0).getValueType());
     assertEquals("staticBool", fields.get(1).getFieldName());
-    assertEquals(InstanceObject.ValueType.BOOLEAN, fields.get(1).getValueType());
+    assertEquals(ClassObject.ValueType.BOOLEAN, fields.get(1).getValueType());
     assertEquals("staticChar", fields.get(2).getFieldName());
-    assertEquals(InstanceObject.ValueType.CHAR, fields.get(2).getValueType());
+    assertEquals(ClassObject.ValueType.CHAR, fields.get(2).getValueType());
     assertEquals("staticFloat", fields.get(3).getFieldName());
-    assertEquals(InstanceObject.ValueType.FLOAT, fields.get(3).getValueType());
+    assertEquals(ClassObject.ValueType.FLOAT, fields.get(3).getValueType());
     assertEquals("staticDouble", fields.get(4).getFieldName());
-    assertEquals(InstanceObject.ValueType.DOUBLE, fields.get(4).getValueType());
+    assertEquals(ClassObject.ValueType.DOUBLE, fields.get(4).getValueType());
     assertEquals("staticByte", fields.get(5).getFieldName());
-    assertEquals(InstanceObject.ValueType.BYTE, fields.get(5).getValueType());
+    assertEquals(ClassObject.ValueType.BYTE, fields.get(5).getValueType());
     assertEquals("staticShort", fields.get(6).getFieldName());
-    assertEquals(InstanceObject.ValueType.SHORT, fields.get(6).getValueType());
+    assertEquals(ClassObject.ValueType.SHORT, fields.get(6).getValueType());
     assertEquals("staticInt", fields.get(7).getFieldName());
-    assertEquals(InstanceObject.ValueType.INT, fields.get(7).getValueType());
+    assertEquals(ClassObject.ValueType.INT, fields.get(7).getValueType());
     assertEquals("staticLong", fields.get(8).getFieldName());
-    assertEquals(InstanceObject.ValueType.LONG, fields.get(8).getValueType());
+    assertEquals(ClassObject.ValueType.LONG, fields.get(8).getValueType());
   }
 
   /**
@@ -192,8 +192,8 @@ public class HeapDumpInstanceObjectTest {
   @Test
   public void testEqual() throws Exception {
     MockClassInstance mockInstance = new MockClassInstance(-1, 1, "MockClass1");
-    HeapDumpInstanceObject instance1 = new HeapDumpInstanceObject(null, mockInstance);
-    HeapDumpInstanceObject instance2 = new HeapDumpInstanceObject(null, mockInstance);
+    HeapDumpInstanceObject instance1 = new HeapDumpInstanceObject(null, mockInstance, null);
+    HeapDumpInstanceObject instance2 = new HeapDumpInstanceObject(null, mockInstance, null);
     assertEquals(instance1, instance2);
   }
 
@@ -201,8 +201,8 @@ public class HeapDumpInstanceObjectTest {
   public void testNotEqual() throws Exception {
     MockClassInstance mockInstance1 = new MockClassInstance(-1, 1, "MockClass1");
     MockClassInstance mockInstance2 = new MockClassInstance(-1, 1, "MockClass1");
-    HeapDumpInstanceObject instance1 = new HeapDumpInstanceObject(null, mockInstance1);
-    HeapDumpInstanceObject instance2 = new HeapDumpInstanceObject(null, mockInstance2);
+    HeapDumpInstanceObject instance1 = new HeapDumpInstanceObject(null, mockInstance1, null);
+    HeapDumpInstanceObject instance2 = new HeapDumpInstanceObject(null, mockInstance2, null);
     assertNotEquals(instance1, instance2);
   }
 }
