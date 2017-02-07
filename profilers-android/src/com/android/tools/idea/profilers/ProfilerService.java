@@ -58,7 +58,6 @@ public class ProfilerService implements Disposable {
       Futures.addCallback(future, new FutureCallback<AndroidDebugBridge>() {
         @Override
         public void onSuccess(@Nullable AndroidDebugBridge bridge) {
-          myManager.bridgeChanged(bridge);
         }
 
         @Override

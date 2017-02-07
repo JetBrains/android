@@ -16,8 +16,6 @@
 package com.android.tools.datastore.service;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.datastore.DataStoreService;
-import com.android.tools.datastore.LegacyAllocationTrackingService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.DatastoreTable;
 import com.android.tools.datastore.database.MemoryTable;
@@ -26,11 +24,9 @@ import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.google.protobuf3jarjar.ByteString;
-import com.intellij.openapi.diagnostic.Logger;
 import gnu.trove.TIntObjectHashMap;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.List;
@@ -38,29 +34,11 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 
-import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.COMPLETED;
-import static com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse.Status.SUCCESS;
-
 public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase implements ServicePassThrough {
-
-  private static Logger getLogger() {
-    return Logger.getInstance(MemoryService.class);
-  }
-
-  private final LegacyAllocationTrackingService myLegacyAllocationTrackingService;
 
   private Map<Integer, PollRunner> myRunners = new HashMap<>();
 
   private MemoryServiceGrpc.MemoryServiceBlockingStub myPollingService;
-  /**
-   * Legacy allocation tracking needs a post-process stage to wait and convert the jdwp data after stopping allocation tracking.
-   * However this step is done in perfd-host instead of perfd, so we take a shortcut to update the statuses in our cached
-   * {@link #myAllocationsInfos} directly (The current architecture does not query the same AllocationInfos sample from perfd after it has
-   * completed, so even if we update the status in perfd, the poller might not see it again).
-   *
-   * These latches ensure we see the samples in the cache first before trying to update their statuses.
-   */
-  private final TIntObjectHashMap<CountDownLatch> myLegacyAllocationsInfoLatches = new TIntObjectHashMap<>();
 
   /**
    * Latches to track completion of the retrieval of dump data associated with each HeapDumpInfo.
@@ -71,8 +49,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
 
   @VisibleForTesting
   // TODO Revisit fetch mechanism
-  public MemoryService(@NotNull DataStoreService dataStoreService, Consumer<Runnable> fetchExecutor) {
-    myLegacyAllocationTrackingService = new LegacyAllocationTrackingService(dataStoreService::getLegacyAllocationTracker);
+  public MemoryService(Consumer<Runnable> fetchExecutor) {
     myFetchExecutor = fetchExecutor;
   }
 
@@ -86,9 +63,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
     observer.onNext(myPollingService.startMonitoringApp(request));
     observer.onCompleted();
     int processId = request.getProcessId();
-    myRunners.put(processId,
-                  new MemoryDataPoller(processId, myMemoryTable, myPollingService, myLegacyAllocationsInfoLatches, myHeapDumpDataLatches,
-                                       myFetchExecutor));
+    myRunners.put(processId, new MemoryDataPoller(processId, myMemoryTable, myPollingService, myFetchExecutor));
     myFetchExecutor.accept(myRunners.get(processId));
   }
 
@@ -152,63 +127,14 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   @Override
   public void trackAllocations(TrackAllocationsRequest request,
                                StreamObserver<TrackAllocationsResponse> responseObserver) {
-    int processId = request.getProcessId();
-    TrackAllocationsResponse response = myPollingService.trackAllocations(TrackAllocationsRequest.newBuilder()
-                                                                            .setProcessId(processId)
-                                                                            .setEnabled(request.getEnabled())
-                                                                            .setLegacyTracking(true).build());
-    if (response.getStatus() == SUCCESS) {
-      int infoId = response.getInfo().getInfoId();
-      if (request.getEnabled()) {
-        myLegacyAllocationsInfoLatches.put(infoId, new CountDownLatch(1));
-        myLegacyAllocationTrackingService.trackAllocations(processId, response.getTimestamp(), request.getEnabled(), null);
-      }
-      else {
-        myLegacyAllocationTrackingService
-          .trackAllocations(processId, response.getTimestamp(), request.getEnabled(), (data, classes, stacks, allocations) -> {
-            myMemoryTable.insertAllocationDumpData(response.getInfo(), data);
-
-            classes.forEach(allocatedClass -> myMemoryTable.insertIfNotExist(allocatedClass.getClassName(), allocatedClass));
-            stacks.forEach(allocationStack -> myMemoryTable.insertIfNotExist(allocationStack.getStackId(), allocationStack));
-            allocations.forEach(allocationEvent -> myMemoryTable.insert(allocationEvent));
-            try {
-              // Wait until the AllocationsInfo sample is already in the cache.
-              assert myLegacyAllocationsInfoLatches.containsKey(infoId);
-              myLegacyAllocationsInfoLatches.get(infoId).await();
-              myLegacyAllocationsInfoLatches.remove(infoId);
-              myMemoryTable.updateAllocationInfo(infoId, COMPLETED);
-            }
-            catch (InterruptedException e) {
-              getLogger().debug("Exception while waiting on AllocationsInfo data.", e);
-            }
-          });
-      }
-    }
-    responseObserver.onNext(response);
-    responseObserver.onCompleted();
-  }
-
-  /**
-   * perfd-host only. This attempts to return the current status of an AllocationsInfo sample that is already in the cache.
-   * If it is not already in the cache, a default instance of an AllocationsInfoStatusResponse is returned.
-   */
-  @Override
-  public void getAllocationsInfoStatus(GetAllocationsInfoStatusRequest request,
-                                       StreamObserver<GetAllocationsInfoStatusResponse> responseObserver) {
-    GetAllocationsInfoStatusResponse response = myMemoryTable.getAllocationInfoStatus(request.getInfoId());
-    responseObserver.onNext(response);
+    responseObserver.onNext(myPollingService.trackAllocations(request));
     responseObserver.onCompleted();
   }
 
   @Override
   public void listAllocationContexts(AllocationContextsRequest request,
                                      StreamObserver<AllocationContextsResponse> responseObserver) {
-    AllocationContextsResponse.Builder responseBuilder = AllocationContextsResponse.newBuilder();
-    List<AllocationStack> stacks = myMemoryTable.getAllocationStacksForRequest(request);
-    List<AllocatedClass> classes = myMemoryTable.getAllocatedClassesForRequest(request);
-    responseBuilder.addAllAllocationStacks(stacks);
-    responseBuilder.addAllAllocatedClasses(classes);
-    responseObserver.onNext(responseBuilder.build());
+    responseObserver.onNext(myMemoryTable.listAllocationContexts((request)));
     responseObserver.onCompleted();
   }
 
@@ -216,15 +142,15 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   public void getAllocationDump(DumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
     DumpDataResponse.Builder responseBuilder = DumpDataResponse.newBuilder();
 
-    GetAllocationsInfoStatusResponse response = myMemoryTable.getAllocationInfoStatus(request.getDumpId());
-    byte[] data = myMemoryTable.getAllocationDumpData(request.getDumpId());
-    if (response.getStatus() == COMPLETED && data == null) {
+    AllocationsInfo response = myMemoryTable.getAllocationsInfo(request.getDumpId());
+    if (response == null) {
       responseBuilder.setStatus(DumpDataResponse.Status.NOT_FOUND);
     }
     else if (response.getStatus() == AllocationsInfo.Status.FAILURE_UNKNOWN) {
       responseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
     }
     else {
+      byte[] data = myMemoryTable.getAllocationDumpData(request.getDumpId());
       if (data == null) {
         responseBuilder.setStatus(DumpDataResponse.Status.NOT_READY);
       }
@@ -234,6 +160,31 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       }
     }
     responseObserver.onNext(responseBuilder.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void getAllocationEvents(AllocationEventsRequest request,
+                                  StreamObserver<AllocationEventsResponse> responseObserver) {
+    AllocationEventsResponse.Builder builder = AllocationEventsResponse.newBuilder();
+
+    AllocationsInfo response = myMemoryTable.getAllocationsInfo(request.getInfoId());
+    if (response == null) {
+      builder.setStatus(AllocationEventsResponse.Status.NOT_FOUND);
+    }
+    else if (response.getStatus() == AllocationsInfo.Status.FAILURE_UNKNOWN) {
+      builder.setStatus(AllocationEventsResponse.Status.FAILURE_UNKNOWN);
+    }
+    else {
+      AllocationEventsResponse events = myMemoryTable.getAllocationData(request.getInfoId());
+      if (events == null) {
+        builder.setStatus(AllocationEventsResponse.Status.NOT_READY);
+      }
+      else {
+        builder.mergeFrom(events);
+      }
+    }
+    responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
   }
 

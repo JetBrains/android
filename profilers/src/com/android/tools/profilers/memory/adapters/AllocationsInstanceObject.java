@@ -34,12 +34,12 @@ final class AllocationsInstanceObject implements InstanceObject {
     .put("double", ValueType.DOUBLE)
     .build();
 
-  @NotNull private final MemoryProfiler.MemoryData.AllocationEvent myEvent;
+  @NotNull private final MemoryProfiler.AllocationEvent myEvent;
   @NotNull private final AllocationsClassObject myAllocationsClassObject;
   @NotNull private final MemoryProfiler.AllocationStack myCallStack;
   @NotNull private final ValueType myValueType;
 
-  public AllocationsInstanceObject(@NotNull MemoryProfiler.MemoryData.AllocationEvent event,
+  public AllocationsInstanceObject(@NotNull MemoryProfiler.AllocationEvent event,
                                    @NotNull AllocationsClassObject allocationsClassObject,
                                    @NotNull MemoryProfiler.AllocationStack callStack) {
     myEvent = event;
