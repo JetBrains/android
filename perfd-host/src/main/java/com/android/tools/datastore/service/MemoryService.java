@@ -76,7 +76,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
     // and results in a NOT_FOUND status when the profiler tries to pull the dump's data in quick successions.
     if (response.getStatus() == TriggerHeapDumpResponse.Status.SUCCESS) {
       assert response.getInfo() != null;
-      myMemoryTable.insertOrUpdateHeapInfo(response.getInfo());
+      myMemoryTable.insertOrReplaceHeapInfo(response.getInfo());
     }
 
     responseObserver.onNext(response);
