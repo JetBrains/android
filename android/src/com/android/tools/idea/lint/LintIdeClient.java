@@ -475,22 +475,6 @@ public class LintIdeClient extends LintClient implements Disposable {
     return AndroidProjectInfo.getInstance(myProject).requiresAndroidModel();
   }
 
-  // Overridden such that lint doesn't complain about missing a bin dir property in the event
-  // that no SDK is configured
-  @Override
-  @Nullable
-  public File findResource(@NonNull String relativePath) {
-    File top = getSdkHome();
-    if (top != null) {
-      File file = new File(top, relativePath);
-      if (file.exists()) {
-        return file;
-      }
-    }
-
-    return null;
-  }
-
   @Nullable private static volatile String ourSystemPath;
 
   @Override
