@@ -153,6 +153,13 @@ public class ConnectionDetailsViewTest {
   }
 
   @Test
+  public void timingFieldIsPresent() {
+    myView.update(DEFAULT_DATA);
+    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    assertTrue(stream.anyMatch(c -> "Timing".equals(c.getName())));
+  }
+
+  @Test
   public void headersIsUpdated() {
     Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
     JPanel headers = (JPanel)stream.filter(c -> "Headers".equals(c.getName())).findFirst().get();
