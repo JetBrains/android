@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.project;
 
 import com.android.tools.adtui.LabelWithEditLink;
+import com.android.tools.idea.npw.cpp.ConfigureCppSupportStep;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.ListenerManager;
 import com.android.tools.idea.ui.properties.core.*;
@@ -113,7 +114,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModel
   @NotNull
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
-    return Lists.newArrayList(new ConfigureFormFactorStep(getModel()));
+    return Lists.newArrayList(new ConfigureFormFactorStep(getModel()), new ConfigureCppSupportStep(getModel()));
   }
 
   @Override

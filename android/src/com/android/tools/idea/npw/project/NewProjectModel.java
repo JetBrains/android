@@ -19,12 +19,10 @@ import com.android.SdkConstants;
 import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.Template;
-import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -67,6 +65,7 @@ public class NewProjectModel extends WizardModel {
   private final StringProperty myPackageName = new StringValueProperty();
   private final StringProperty myProjectLocation = new StringValueProperty();
   private final BoolProperty myEnableCppSupport = new BoolValueProperty();
+  private final StringProperty myCppFlags = new StringValueProperty();
   private final OptionalProperty<Project> myProject = new OptionalValueProperty<>();
   private final Set<NewModuleModel> myNewModels = new HashSet<>();
 
@@ -104,6 +103,10 @@ public class NewProjectModel extends WizardModel {
 
   public BoolProperty enableCppSupport() {
     return myEnableCppSupport;
+  }
+
+  public StringProperty cppFlags() {
+    return myCppFlags;
   }
 
   public OptionalProperty<Project> project() {
