@@ -24,9 +24,12 @@ import static com.intellij.openapi.wm.ToolWindowId.PROJECT_VIEW;
 
 public class ToolWindows {
   public static void activateProjectView(@NotNull Project project) {
-    ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(PROJECT_VIEW);
-    if (window != null) {
-      window.activate(null, false);
-    }
+    ToolWindowManager manager = ToolWindowManager.getInstance(project);
+    manager.invokeLater(() -> {
+      ToolWindow window = manager.getToolWindow(PROJECT_VIEW);
+      if (window != null) {
+        window.activate(null, false);
+      }
+    });
   }
 }
