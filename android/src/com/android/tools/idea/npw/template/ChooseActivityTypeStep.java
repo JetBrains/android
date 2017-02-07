@@ -303,6 +303,11 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
       return myTemplate == null ? message("android.wizard.gallery.item.add.no.activity") : myTemplate.getMetadata().getTitle();
     }
 
+    @Override
+    public String toString() {
+      return getTitle();
+    }
+
     boolean isCppTemplate() {
       if (myTemplate == null) {
         return true;
