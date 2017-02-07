@@ -245,11 +245,6 @@ public class NetworkProfilerStageTest extends AspectObserver {
       .setResponsePayloadId("");
     HttpData data = builder.build();
 
-    final boolean[] connectionChanged = {false};
-    myStage.getAspect().addDependency(this).onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, () ->
-      connectionChanged[0] = true
-    );
-
     myStage.setSelectedConnection(data);
     assertNull(data.getResponsePayloadFile());
   }
