@@ -26,22 +26,22 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class AndroidApkFacetType extends FacetType<AndroidApkFacet, AndroidApkFacetConfiguration> {
-  public AndroidApkFacetType() {
-    super(AndroidApkFacet.TYPE_ID, AndroidApkFacet.ID, AndroidApkFacet.NAME, null);
+public class ApkFacetType extends FacetType<ApkFacet, ApkFacetConfiguration> {
+  public ApkFacetType() {
+    super(ApkFacet.getFacetTypeId(), ApkFacet.getFacetId(), ApkFacet.getFacetName(), null);
   }
 
   @Override
-  public AndroidApkFacetConfiguration createDefaultConfiguration() {
-    return new AndroidApkFacetConfiguration();
+  public ApkFacetConfiguration createDefaultConfiguration() {
+    return new ApkFacetConfiguration();
   }
 
   @Override
-  public AndroidApkFacet createFacet(@NotNull Module module,
-                                     @NotNull String name,
-                                     @NotNull AndroidApkFacetConfiguration configuration,
-                                     @Nullable Facet underlyingFacet) {
-    return new AndroidApkFacet(module, name, configuration);
+  public ApkFacet createFacet(@NotNull Module module,
+                              @NotNull String name,
+                              @NotNull ApkFacetConfiguration configuration,
+                              @Nullable Facet underlyingFacet) {
+    return new ApkFacet(module, name, configuration);
   }
 
   @Override
