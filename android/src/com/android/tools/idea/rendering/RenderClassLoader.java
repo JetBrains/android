@@ -19,7 +19,6 @@ import com.google.common.io.ByteStreams;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.lang.UrlClassLoader;
-import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,6 +31,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.DOT_CLASS;
 import static com.android.tools.idea.rendering.ClassConverter.isValidClassFile;
+import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 
 /**
  * Class loader which can load classes for rendering and if necessary
@@ -86,13 +86,13 @@ public abstract class RenderClassLoader extends ClassLoader {
 
         byte[] rewritten = convertClass(data);
         try {
-          if (ModuleClassLoader.DEBUG_CLASS_LOADING) {
-            //noinspection UseOfSystemOutOrSystemErr
-            System.out.println("  defining class " + name + " from .jar file");
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Defining class '%s' from .jar file", anonymizeClassName(name)));
           }
           return defineClassAndPackage(name, rewritten, 0, rewritten.length);
         }
         catch (UnsupportedClassVersionError inner) {
+          LOG.debug(inner);
           // Wrap the UnsupportedClassVersionError as a InconvertibleClassError
           // such that clients can look up the actual bytecode version required.
           throw InconvertibleClassError.wrap(inner, name, data);
@@ -100,6 +100,7 @@ public abstract class RenderClassLoader extends ClassLoader {
       }
       return null;
     } catch (IOException ex) {
+      LOG.debug(ex);
       throw new Error("Failed to load class " + name, ex);
     }
     finally {
@@ -146,12 +147,12 @@ public abstract class RenderClassLoader extends ClassLoader {
 
     byte[] rewritten = convertClass(data);
     try {
-      if (ModuleClassLoader.DEBUG_CLASS_LOADING) {
-        //noinspection UseOfSystemOutOrSystemErr
-        System.out.println("  defining class " + fqcn + " from disk file");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(String.format("Defining class '%s' from disk file", anonymizeClassName(fqcn)));
       }
       return defineClassAndPackage(fqcn, rewritten, 0, rewritten.length);
     } catch (UnsupportedClassVersionError inner) {
+      LOG.debug(inner);
       // Wrap the UnsupportedClassVersionError as a InconvertibleClassError
       // such that clients can look up the actual bytecode version required.
       throw InconvertibleClassError.wrap(inner, fqcn, data);
