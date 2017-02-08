@@ -21,5 +21,6 @@ iml_module(
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/platform/lang-api[module]",
         "//tools/base/ddmlib:studio.ddmlib[module]",
+        "//tools/idea:platform-impl_and_others[module]",
     ],
 )

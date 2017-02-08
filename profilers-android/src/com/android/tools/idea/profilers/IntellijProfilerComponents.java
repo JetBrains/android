@@ -23,7 +23,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.components.JBLoadingPanel;
@@ -41,7 +40,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class IntellijProfilerComponents implements IdeProfilerComponents {
-  private final String COMPONENT_CONTEXT_MENU = "ComponentContextMenu";
+  private static final String COMPONENT_CONTEXT_MENU = "ComponentContextMenu";
 
   @NotNull
   private Project myProject;
@@ -176,5 +175,11 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
     }
 
     return actionGroup;
+  }
+
+  @NotNull
+  @Override
+  public FileViewer createFileViewer(@NotNull File file) {
+    return new IntellijFileViewer(file);
   }
 }

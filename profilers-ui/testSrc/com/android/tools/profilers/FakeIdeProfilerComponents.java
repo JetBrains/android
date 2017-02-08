@@ -162,6 +162,26 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     }
   }
 
+  @NotNull
+  @Override
+  public FileViewer createFileViewer(@NotNull File file) {
+    return new FileViewer() {
+      private final JComponent DUMMY_COMPONENT = new JPanel();
+
+      @NotNull
+      @Override
+      public JComponent getComponent() {
+        return DUMMY_COMPONENT;
+      }
+
+      @Nullable
+      @Override
+      public Dimension getDimension() {
+        return null;
+      }
+    };
+  }
+
   public static class StackTraceViewStub implements StackTraceView {
     private Runnable myPreNavigate;
     private CodeLocation myLocation;
