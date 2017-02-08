@@ -69,7 +69,7 @@ public class MemoryDataPoller extends PollRunner {
       if (myPendingAllocationSample != null) {
         assert i == 0;
         AllocationsInfo info = response.getAllocationsInfo(i);
-        assert myPendingAllocationSample.getInfoId() == info.getInfoId();
+        assert myPendingAllocationSample.getStartTime() == info.getStartTime();
         // Deduping - ignoring identical ongoing tracking samples.
         if (info.getEndTime() == DurationData.UNSPECIFIED_DURATION) {
           assert response.getAllocationsInfoCount() == 1;
@@ -99,9 +99,9 @@ public class MemoryDataPoller extends PollRunner {
       if (myPendingHeapDumpSample != null) {
         assert i == 0;
         HeapDumpInfo info = response.getHeapDumpInfos(i);
-        assert myPendingHeapDumpSample.getDumpId() == info.getDumpId();
+        assert myPendingHeapDumpSample.getStartTime() == info.getStartTime();
         if (info.getEndTime() == DurationData.UNSPECIFIED_DURATION) {
-          throw new RuntimeException("Invalid endTime: " + +info.getEndTime() + " for DumpID: " + info.getDumpId());
+          throw new RuntimeException("Invalid endTime: " + info.getEndTime() + " for Dump: " + info.getStartTime());
         }
         myMemoryTable.insertOrReplaceHeapInfo(info);
         heapDumpsToFetch.add(info);
@@ -137,11 +137,12 @@ public class MemoryDataPoller extends PollRunner {
     Runnable query = () -> {
       HashSet<Integer> classesToFetch = new HashSet<>();
       HashSet<ByteString> stacksToFetch = new HashSet<>();
-      HashMap<Integer, AllocationEventsResponse> eventsToSave = new HashMap<>();
+      HashMap<Long, AllocationEventsResponse> eventsToSave = new HashMap<>();
       for (AllocationsInfo sample : dumpsToFetch) {
         AllocationEventsResponse allocEventsResponse = myPollingService.getAllocationEvents(
-          AllocationEventsRequest.newBuilder().setProcessId(myProcessId).setInfoId(sample.getInfoId()).build());
-        eventsToSave.put(sample.getInfoId(), allocEventsResponse);
+          AllocationEventsRequest.newBuilder().setProcessId(myProcessId).setStartTime(sample.getStartTime()).setEndTime(sample.getEndTime())
+            .build());
+        eventsToSave.put(sample.getStartTime(), allocEventsResponse);
 
         allocEventsResponse.getEventsList().forEach(event -> {
           classesToFetch.add(event.getAllocatedClassId());
@@ -150,8 +151,8 @@ public class MemoryDataPoller extends PollRunner {
 
         // Also save out raw dump
         DumpDataResponse allocDumpResponse = myPollingService.getAllocationDump(
-          DumpDataRequest.newBuilder().setProcessId(myProcessId).setDumpId(sample.getInfoId()).build());
-        myMemoryTable.updateAllocationDump(sample.getInfoId(), allocDumpResponse.getData().toByteArray());
+          DumpDataRequest.newBuilder().setProcessId(myProcessId).setDumpTime(sample.getStartTime()).build());
+        myMemoryTable.updateAllocationDump(sample.getStartTime(), allocDumpResponse.getData().toByteArray());
       }
 
       // Note: the class/stack information are saved first to the table to avoid the events referencing yet-to-exist data
@@ -160,7 +161,7 @@ public class MemoryDataPoller extends PollRunner {
         .addAllClassIds(classesToFetch).addAllStackIds(stacksToFetch).build();
       AllocationContextsResponse contextsResponse = myPollingService.listAllocationContexts(contextRequest);
       myMemoryTable.insertAllocationContext(contextsResponse.getAllocatedClassesList(), contextsResponse.getAllocationStacksList());
-      eventsToSave.forEach((id, response) -> myMemoryTable.updateAllocationEvents(id, response));
+      eventsToSave.forEach((startTime, response) -> myMemoryTable.updateAllocationEvents(startTime, response));
     };
     myFetchExecutor.accept(query);
   }
@@ -173,8 +174,8 @@ public class MemoryDataPoller extends PollRunner {
     Runnable query = () -> {
       for (HeapDumpInfo sample : dumpsToFetch) {
         DumpDataResponse dumpDataResponse = myPollingService.getHeapDump(
-          DumpDataRequest.newBuilder().setProcessId(myProcessId).setDumpId(sample.getDumpId()).build());
-        myMemoryTable.insertHeapDumpData(sample.getDumpId(), dumpDataResponse.getStatus(), dumpDataResponse.getData());
+          DumpDataRequest.newBuilder().setProcessId(myProcessId).setDumpTime(sample.getStartTime()).build());
+        myMemoryTable.insertHeapDumpData(sample.getStartTime(), dumpDataResponse.getStatus(), dumpDataResponse.getData());
       }
     };
     myFetchExecutor.accept(query);

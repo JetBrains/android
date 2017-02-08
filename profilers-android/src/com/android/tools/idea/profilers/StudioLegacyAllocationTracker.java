@@ -56,8 +56,8 @@ public class StudioLegacyAllocationTracker implements LegacyAllocationTracker {
    * @return true if the AllocationTracking state has successfully changed to the specified state. False otherwise.
    */
   @Override
-  public boolean trackAllocations(int infoId,
-                                  long time,
+  public boolean trackAllocations(long startTime,
+                                  long endTime,
                                   boolean enabled,
                                   @Nullable Executor executor,
                                   @Nullable LegacyAllocationTrackingCallback allocationConsumer) {
@@ -83,7 +83,7 @@ public class StudioLegacyAllocationTracker implements LegacyAllocationTracker {
           LegacyAllocationConverter converter = parseDump(data);
           // timestamp of allocations is set to the end of allocation tracking
           allocationConsumer
-            .accept(data, converter.getClassNames(), converter.getAllocationStacks(), converter.getAllocationEvents(infoId, time));
+            .accept(data, converter.getClassNames(), converter.getAllocationStacks(), converter.getAllocationEvents(startTime, endTime));
         }
       });
     }

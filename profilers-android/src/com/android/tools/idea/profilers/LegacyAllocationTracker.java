@@ -25,8 +25,8 @@ import java.util.concurrent.Executor;
  * An interface to perform allocation tracking using JDWP.
  */
 public interface LegacyAllocationTracker {
-  boolean trackAllocations(int infoId,
-                           long time,
+  boolean trackAllocations(long startTime,
+                           long endTime,
                            boolean enabled,
                            @Nullable Executor executor,
                            @Nullable LegacyAllocationTrackingCallback allocationConsumer);
