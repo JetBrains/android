@@ -61,6 +61,7 @@ public class GuidelineHandler {
   /**
    * The bounds of the primary child node being dragged
    */
+  @AndroidCoordinate
   protected Rectangle myBounds;
 
   /**

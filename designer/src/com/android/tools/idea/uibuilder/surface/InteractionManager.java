@@ -22,7 +22,8 @@ import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.scene.SceneInteraction;
+import com.android.tools.idea.uibuilder.scene.*;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
@@ -38,8 +39,10 @@ import java.awt.*;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOVERING_SIZE;
 import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_MARGIN;
@@ -401,10 +404,10 @@ public class InteractionManager {
       Interaction interaction = null;
 
       // Give a chance to the current selection's parent handler
-      if (interaction == null && !selectionModel.isEmpty()) {
+      if (!selectionModel.isEmpty()) {
         NlComponent primary = screenView.getSelectionModel().getPrimary();
         NlComponent parent = primary != null ? primary.getParent() : null;
-        if (parent != null && interaction == null) {
+        if (parent != null) {
           int ax = Coordinates.getAndroidX(screenView, myLastMouseX);
           int ay = Coordinates.getAndroidY(screenView, myLastMouseY);
           if (primary.containsX(ax) && primary.containsY(ay)) {
@@ -551,21 +554,23 @@ public class InteractionManager {
         if (sceneView == null) {
           return;
         }
+        Scene scene = sceneView.getScene();
         SelectionModel selectionModel = sceneView.getSelectionModel();
 
-        int ax = Coordinates.getAndroidX(sceneView, x);
-        int ay = Coordinates.getAndroidY(sceneView, y);
+        int xDp = Coordinates.getAndroidXDip(sceneView, x);
+        int yDp = Coordinates.getAndroidYDip(sceneView, y);
 
         Interaction interaction;
         // Dragging on top of a selection handle: start a resize operation
         int max = Coordinates.getAndroidDimension(sceneView, PIXEL_RADIUS + PIXEL_MARGIN);
-        SelectionHandle handle = selectionModel.findHandle(ax, ay, max);
+        SelectionHandle handle =
+          selectionModel.findHandle(Coordinates.getAndroidX(sceneView, x), Coordinates.getAndroidY(sceneView, y), max);
         if (handle != null) {
-          interaction = new ResizeInteraction(sceneView, handle.component, handle);
+          interaction = new ResizeInteraction(sceneView, scene.getSceneComponent(handle.component), handle);
         }
         else {
           NlModel model = sceneView.getModel();
-          NlComponent component = null;
+          SceneComponent component = null;
 
           // Make sure we start from root if we don't have anything selected
           if (selectionModel.isEmpty() && !model.getComponents().isEmpty()) {
@@ -574,31 +579,30 @@ public class InteractionManager {
 
           // See if you're dragging inside a selected parent; if so, drag the selection instead of any
           // leaf nodes inside it
-          NlComponent primary = selectionModel.getPrimary();
-          if (primary != null && !primary.isRoot() && primary.containsX(ax) && primary.containsY(ay)) {
+          NlComponent primaryNlComponent = selectionModel.getPrimary();
+          SceneComponent primary = scene.getSceneComponent(primaryNlComponent);
+          if (primary != null && primary.getParent() != null && primary.containsX(xDp) && primary.containsY(yDp)) {
             component = primary;
-          } else if (primary != null) {
-            component = Coordinates.findComponent(sceneView, x, y);
           }
           if (component == null) {
-            component = Coordinates.findComponent(sceneView, x, y);
+            component = scene.findComponent(SceneContext.get(sceneView), xDp, yDp);
           }
 
-          if (component == null || component.isRoot()) {
+          if (component == null || component.getParent() == null) {
             // Dragging on the background/root view: start a marquee selection
             interaction = new MarqueeInteraction(sceneView, toggle);
           }
           else {
-            List<NlComponent> dragged;
+            List<SceneComponent> dragged;
             // Dragging over a non-root component: move the set of components (if the component dragged over is
             // part of the selection, drag them all, otherwise drag just this component)
-            if (selectionModel.isSelected(component)) {
+            if (selectionModel.isSelected(component.getNlComponent())) {
               dragged = Lists.newArrayList();
 
               // Make sure the primary is the first element
               if (primary != null) {
-                if (primary.isRoot()) {
-                  primary = null;
+                if (primary.getParent() == null) {
+                  primaryNlComponent = null;
                 }
                 else {
                   dragged.add(primary);
@@ -606,15 +610,15 @@ public class InteractionManager {
               }
 
               for (NlComponent selected : selectionModel.getSelection()) {
-                if (!selected.isRoot() && selected != primary) {
-                  dragged.add(selected);
+                if (!selected.isRoot() && selected != primaryNlComponent) {
+                  dragged.add(scene.getSceneComponent(selected));
                 }
               }
             }
             else {
               dragged = Collections.singletonList(component);
             }
-            interaction = new DragDropInteraction(mySurface, dragged);
+            interaction = new DragDropInteraction(mySurface, dragged, ImmutableList.of());
           }
         }
         startInteraction(x, y, interaction, modifiers);
@@ -765,21 +769,34 @@ public class InteractionManager {
         DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
         InsertType insertType = model.determineInsertType(dragType, item, true /* preview */);
 
-        List<NlComponent> dragged = ApplicationManager.getApplication()
+        List<NlComponent> draggedNl = ApplicationManager.getApplication()
           .runWriteAction((Computable<List<NlComponent>>)() -> model.createComponents(sceneView, item, insertType));
 
-        if (dragged == null) {
+        if (draggedNl == null) {
           event.reject();
           return;
         }
-        int yOffset = 0;
-        for (NlComponent component : dragged) {
-          // todo: keep original relative position?
-          component.x = Coordinates.getAndroidX(sceneView, myLastMouseX) - component.w / 2;
-          component.y = Coordinates.getAndroidY(sceneView, myLastMouseY) - component.h / 2 + yOffset;
-          yOffset += component.h;
+
+        List<SceneComponent> dragged = new ArrayList<>();
+        Scene scene = sceneView.getScene();
+        List<SceneComponent> temporaryComponents = new ArrayList<>();
+        for (NlComponent draggedNlComponent : draggedNl) {
+          SceneComponent component = scene.getSceneComponent(draggedNlComponent);
+          if (component == null) {
+            component = new TemporarySceneComponent(scene, draggedNlComponent);
+            temporaryComponents.add(component);
+          }
+          dragged.add(component);
         }
-        DragDropInteraction interaction = new DragDropInteraction(mySurface, dragged);
+
+        @AndroidDpCoordinate int yOffset = 0;
+        for (SceneComponent component : dragged) {
+          // todo: keep original relative position?
+          component.setPosition(Coordinates.getAndroidXDip(sceneView, myLastMouseX) - component.getDrawWidth() / 2,
+                                Coordinates.getAndroidYDip(sceneView, myLastMouseY) - component.getDrawHeight() / 2 + yOffset);
+          yOffset += component.getDrawHeight();
+        }
+        DragDropInteraction interaction = new DragDropInteraction(mySurface, dragged, temporaryComponents);
         interaction.setType(dragType);
         interaction.setTransferItem(item);
         startInteraction(myLastMouseX, myLastMouseY, interaction, 0);
@@ -837,7 +854,8 @@ public class InteractionManager {
         // This determines how the DnD source acts to a completed drop.
         event.accept(insertType == InsertType.COPY ? event.getDropAction() : DnDConstants.ACTION_COPY);
         event.complete();
-      } else {
+      }
+      else {
         event.reject();
       }
     }
@@ -875,7 +893,8 @@ public class InteractionManager {
       interaction.setType(dragType);
       interaction.setTransferItem(item);
 
-      List<NlComponent> dragged = interaction.getDraggedComponents();
+      List<NlComponent> dragged =
+        interaction.getDraggedComponents().stream().map(SceneComponent::getNlComponent).collect(Collectors.toList());
       List<NlComponent> components;
       if (insertType.isMove()) {
         components = model.getSelectionModel().getSelection();
@@ -896,8 +915,6 @@ public class InteractionManager {
         components.get(index).x = dragged.get(index).x;
         components.get(index).y = dragged.get(index).y;
       }
-      dragged.clear();
-      dragged.addAll(components);
       return insertType;
     }
 
@@ -951,7 +968,8 @@ public class InteractionManager {
           // There is no component consuming the scroll
           e.getComponent().getParent().dispatchEvent(e);
           return;
-        } else {
+        }
+        else {
           // If the design surface is zoomed in we should be panning it rather than the
           // designed view
           JScrollPane scrollPane = mySurface.getScrollPane();
@@ -968,7 +986,8 @@ public class InteractionManager {
         startInteraction(x, y, scrollInteraction, 0);
         isScrollInteraction = true;
         myScrollEndTimer.addActionListener(myScrollEndListener);
-      } else {
+      }
+      else {
         isScrollInteraction = myCurrentInteraction instanceof ScrollInteraction;
       }
       myCurrentInteraction.scroll(e.getX(), e.getY(), scrollAmount);
