@@ -717,14 +717,27 @@ public class AvdManagerConnection {
   }
 
   public boolean wipeUserData(@NotNull AvdInfo avdInfo) {
-    if (initIfNecessary()) {
-      File userdataImage = new File(avdInfo.getDataFolderPath(), "userdata-qemu.img");
-      if (userdataImage.isFile()) {
-        return userdataImage.delete();
-      }
-      return true;
+    if (!initIfNecessary()) {
+      return false;
     }
-    return false;
+    // Delete the current user data file
+    File userdataImage = new File(avdInfo.getDataFolderPath(), AvdManager.USERDATA_QEMU_IMG);
+    if (myFileOp.exists(userdataImage)) {
+      if (!myFileOp.delete(userdataImage)) {
+        return false;
+      }
+    }
+    // Re-create the user data file from the static copy.
+    // Do this now so the AVD's first launch happens faster.
+    File userdataImageSrc = new File(avdInfo.getDataFolderPath(), AvdManager.USERDATA_IMG);
+    try {
+      myFileOp.copyFile(userdataImageSrc, userdataImage);
+    }
+    catch (IOException ex) {
+      // The copy failed, but this is not critical. The Emulator
+      // will try the copy again when it boots.
+    }
+    return true;
   }
 
   public static String getAvdDisplayName(@NotNull AvdInfo avdInfo) {
