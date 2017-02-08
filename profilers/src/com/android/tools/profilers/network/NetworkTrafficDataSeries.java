@@ -37,13 +37,13 @@ import java.util.concurrent.TimeUnit;
  */
 public class NetworkTrafficDataSeries implements DataSeries<Long> {
   public enum Type {
-    BYTES_RECEIVED("Receiving") {
+    BYTES_RECEIVED("Receiving", "Received") {
       @Override
       long getBytes(@NotNull NetworkProfiler.SpeedData data) {
         return data.getReceived();
       }
     },
-    BYTES_SENT("Sending") {
+    BYTES_SENT("Sending", "Sent") {
       @Override
       long getBytes(@NotNull NetworkProfiler.SpeedData data) {
         return data.getSent();
@@ -51,14 +51,16 @@ public class NetworkTrafficDataSeries implements DataSeries<Long> {
     };
 
     private final String myLabel;
+    private final String myTooltipLabel;
 
-    Type(String label) {
+    Type(String label, String tooltipLabel) {
       myLabel = label;
+      myTooltipLabel = tooltipLabel;
     }
 
     @NotNull
-    public String getLabel() {
-      return myLabel;
+    public String getLabel(boolean tooltip) {
+      return tooltip ? myTooltipLabel : myLabel;
     }
 
     abstract long getBytes(@NotNull NetworkProfiler.SpeedData data);

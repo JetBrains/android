@@ -64,4 +64,9 @@ public class EventMonitor extends ProfilerMonitor {
   public StackedEventModel getActivityEvents() {
     return myActivityEvents;
   }
+
+  @Override
+  public String getName() {
+    return "EVENTS";
+  }
 }
