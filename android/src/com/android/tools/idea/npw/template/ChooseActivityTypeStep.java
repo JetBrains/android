@@ -50,7 +50,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -191,7 +191,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
 
     myListeners.receiveAndFire(getModel().enableCppSupport(), src -> {
       TemplateRenderer[] listItems = createGalleryList(myTemplateRenderers, src.booleanValue());
-      myActivityGallery.setModel(JBList.createDefaultListModel(listItems));
+      myActivityGallery.setModel(JBList.createDefaultListModel((Object[])listItems));
       myActivityGallery.setSelectedIndex(getDefaultSelectedTemplateIndex(listItems, isNewModule())); // Also fires the Selection Listener
     });
   }
