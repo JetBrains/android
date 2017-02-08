@@ -21,11 +21,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 class HeapDumpReferenceObject extends HeapDumpInstanceObject implements ReferenceObject {
-
   @NotNull private final List<String> myReferencingFieldNames;
 
   public HeapDumpReferenceObject(@NotNull ClassObject klass, @NotNull Instance instance, @NotNull List<String> referencingFieldNames) {
-    super(klass, instance);
+    super(klass, instance, null);
     myReferencingFieldNames = referencingFieldNames;
   }
 

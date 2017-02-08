@@ -20,9 +20,12 @@ import com.android.tools.profilers.memory.adapters.HeapObject;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CancellationException;
@@ -177,6 +180,16 @@ public class CaptureObjectLoaderTest {
     @Override
     public String getLabel() {
       return "";
+    }
+
+    @Nullable
+    @Override
+    public String getExportableExtension() {
+      return null;
+    }
+
+    @Override
+    public void saveToFile(@NotNull OutputStream outputStream) {
     }
 
     @NotNull

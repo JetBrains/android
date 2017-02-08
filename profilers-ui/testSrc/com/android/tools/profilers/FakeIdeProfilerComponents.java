@@ -15,21 +15,19 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.profilers.common.CodeLocation;
-import com.android.tools.profilers.common.ContextMenuItem;
-import com.android.tools.profilers.common.LoadingPanel;
-import com.android.tools.profilers.common.StackTraceView;
-import com.android.tools.profilers.common.TabsPanel;
+import com.android.tools.profilers.common.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mockito;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static org.junit.Assert.assertFalse;
@@ -112,13 +110,20 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
 
   @Override
   public void installContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem) {
-    List<ContextMenuItem> menus = myComponentContextMenus.get(component);
-    if (menus == null) {
-      menus = new ArrayList<>();
-      myComponentContextMenus.put(component, menus);
-    }
-
+    List<ContextMenuItem> menus = myComponentContextMenus.computeIfAbsent(component, k -> new ArrayList<>());
     menus.add(contextMenuItem);
+  }
+
+  @NotNull
+  @Override
+  public JButton createExportButton(@Nullable String buttonText,
+                                    @Nullable String tooltip,
+                                    @NotNull Supplier<String> dialogTitleSupplier,
+                                    @NotNull Supplier<String> extensionSupplier,
+                                    @NotNull Consumer<File> saveToFile) {
+    JButton button = new JButton(buttonText);
+    button.setToolTipText(tooltip);
+    return button;
   }
 
   @Nullable

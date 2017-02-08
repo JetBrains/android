@@ -22,12 +22,12 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.util.function.Function;
 
-class DetailColumnRenderer extends ColoredTreeCellRenderer {
+class SimpleColumnRenderer extends ColoredTreeCellRenderer {
   private final Function<MemoryObjectTreeNode, String> myTextGetter;
   private final Function<MemoryObjectTreeNode, Icon> myIconGetter;
   private final int myAlignment;
 
-  public DetailColumnRenderer(@NotNull Function<MemoryObjectTreeNode, String> textGetter,
+  public SimpleColumnRenderer(@NotNull Function<MemoryObjectTreeNode, String> textGetter,
                               @NotNull Function<MemoryObjectTreeNode, Icon> iconGetter,
                               int alignment) {
     myTextGetter = textGetter;
