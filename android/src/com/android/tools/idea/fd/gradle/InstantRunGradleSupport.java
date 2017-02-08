@@ -17,6 +17,7 @@ package com.android.tools.idea.fd.gradle;
 
 import com.android.builder.model.InstantRun;
 import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.util.AndroidBundle;
@@ -31,7 +32,7 @@ public enum InstantRunGradleSupport {
 
   NO_GRADLE_MODEL,
   GRADLE_PLUGIN_TOO_OLD(AndroidBundle.message("instant.run.notification.ir.disabled.plugin.too.old",
-                                              InstantRunManager.MINIMUM_GRADLE_PLUGIN_VERSION_STRING)),
+                                              AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion())),
   VARIANT_DOES_NOT_SUPPORT_INSTANT_RUN(AndroidBundle.message("instant.run.notification.ir.disabled.for.current.variant")),
   LEGACY_MULTIDEX_REQUIRES_ART(AndroidBundle.message("instant.run.notification.ir.disabled.multidex.requires.21")),
 
