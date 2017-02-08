@@ -36,11 +36,6 @@ import static org.mockito.Mockito.mock;
 public class MemoryDataPollerTest extends DataStorePollerTest {
 
   private static final int TEST_APP_ID = 1234;
-  private static final int TEST_DUMP_ID = 4320;
-  private static final int ERROR_TEST_DUMP_ID = 4321;
-  private static final int NOT_READY_TEST_DUMP_ID = 4322;
-  private static final int FINISHED_ALLOC_INFO_ID = 1;
-  private static final int IN_PROGRESS_ALLOCATION_INFO_ID = 2;
   private static final long BASE_TIME_NS = System.nanoTime();
   private static final ByteString DUMP_DATA = ByteString.copyFrom("Test Data", Charset.defaultCharset());
 
@@ -55,31 +50,26 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     .build();
 
   private static final AllocationsInfo FINISHED_ALLOCATION_INFO = AllocationsInfo.newBuilder()
-    .setInfoId(FINISHED_ALLOC_INFO_ID)
     .setStartTime(BASE_TIME_NS)
     .setEndTime(delayTimeFromBase(1))
     .build();
 
   private static final AllocationsInfo IN_PROGRESS_ALLOCATION_INFO = AllocationsInfo.newBuilder()
-    .setInfoId(IN_PROGRESS_ALLOCATION_INFO_ID)
     .setStartTime(delayTimeFromBase(1))
     .setEndTime(DurationData.UNSPECIFIED_DURATION)
     .build();
 
   private static final HeapDumpInfo DEFAULT_DUMP_INFO = HeapDumpInfo.newBuilder()
-    .setDumpId(TEST_DUMP_ID)
     .setStartTime(BASE_TIME_NS)
     .setEndTime(delayTimeFromBase(1))
     .build();
 
   private static final HeapDumpInfo ERROR_DUMP_INFO = HeapDumpInfo.newBuilder()
-    .setDumpId(ERROR_TEST_DUMP_ID)
     .setStartTime(delayTimeFromBase(1))
     .setEndTime(delayTimeFromBase(2))
     .build();
 
   private static final HeapDumpInfo NOT_READY_DUMP_INFO = HeapDumpInfo.newBuilder()
-    .setDumpId(NOT_READY_TEST_DUMP_ID)
     .setStartTime(delayTimeFromBase(2))
     .setEndTime(DurationData.UNSPECIFIED_DURATION)
     .build();
@@ -323,21 +313,21 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
   @Test
   public void testGetHeapDumpNotFound() throws Exception {
-    getHeapDumpError(0, DumpDataResponse.Status.NOT_FOUND);
+    getHeapDumpError(delayTimeFromBase(-1), DumpDataResponse.Status.NOT_FOUND);
   }
 
   @Test
   public void testGetHeapDumpNotReady() throws Exception {
     myFakeMemoryService.addHeapDumpInfos(NOT_READY_DUMP_INFO);
     getPollTicker().run();
-    getHeapDumpError(NOT_READY_TEST_DUMP_ID, DumpDataResponse.Status.NOT_READY);
+    getHeapDumpError(NOT_READY_DUMP_INFO.getStartTime(), DumpDataResponse.Status.NOT_READY);
   }
 
   @Test
   public void testGetHeapDumpUnknown() throws Exception {
     myFakeMemoryService.addHeapDumpInfos(ERROR_DUMP_INFO);
     getPollTicker().run();
-    getHeapDumpError(ERROR_TEST_DUMP_ID, DumpDataResponse.Status.FAILURE_UNKNOWN);
+    getHeapDumpError(ERROR_DUMP_INFO.getStartTime(), DumpDataResponse.Status.FAILURE_UNKNOWN);
   }
 
   @Test
@@ -347,7 +337,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
     DumpDataRequest request = DumpDataRequest.newBuilder()
       .setProcessId(TEST_APP_ID)
-      .setDumpId(TEST_DUMP_ID)
+      .setDumpTime(DEFAULT_DUMP_INFO.getStartTime())
       .build();
     DumpDataResponse expected = DumpDataResponse.newBuilder()
       .setStatus(DumpDataResponse.Status.SUCCESS)
@@ -365,7 +355,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
     DumpDataRequest request = DumpDataRequest.newBuilder()
       .setProcessId(TEST_APP_ID)
-      .setDumpId(FINISHED_ALLOC_INFO_ID)
+      .setDumpTime(FINISHED_ALLOCATION_INFO.getStartTime())
       .build();
     DumpDataResponse expected = DumpDataResponse.newBuilder()
       .setStatus(DumpDataResponse.Status.SUCCESS)
@@ -376,10 +366,10 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     validateResponse(observer, expected);
   }
 
-  private void getHeapDumpError(int id, DumpDataResponse.Status error) {
+  private void getHeapDumpError(long dumpTime, DumpDataResponse.Status error) {
     DumpDataRequest request = DumpDataRequest.newBuilder()
       .setProcessId(TEST_APP_ID)
-      .setDumpId(id)
+      .setDumpTime(dumpTime)
       .build();
     DumpDataResponse expected = DumpDataResponse.newBuilder()
       .setStatus(error)
@@ -434,18 +424,17 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     @Override
     public void getHeapDump(DumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
       DumpDataResponse.Builder response = DumpDataResponse.newBuilder();
-      switch (request.getDumpId()) {
-        case TEST_DUMP_ID:
-          response.setData(DUMP_DATA);
-          response.setStatus(DumpDataResponse.Status.SUCCESS);
-          break;
-        case NOT_READY_TEST_DUMP_ID:
-          response.setStatus(DumpDataResponse.Status.NOT_READY);
-          break;
-        case ERROR_TEST_DUMP_ID:
-          response.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
-          break;
+      if (request.getDumpTime() == DEFAULT_DUMP_INFO.getStartTime()) {
+        response.setData(DUMP_DATA);
+        response.setStatus(DumpDataResponse.Status.SUCCESS);
       }
+      else if (request.getDumpTime() == NOT_READY_DUMP_INFO.getStartTime()) {
+        response.setStatus(DumpDataResponse.Status.NOT_READY);
+      }
+      else if (request.getDumpTime() == ERROR_DUMP_INFO.getStartTime()) {
+        response.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
+      }
+
       responseObserver.onNext(response.build());
       responseObserver.onCompleted();
     }
@@ -454,15 +443,14 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     public void getAllocationDump(DumpDataRequest request,
                                   StreamObserver<DumpDataResponse> responseObserver) {
       DumpDataResponse.Builder response = DumpDataResponse.newBuilder();
-      switch (request.getDumpId()) {
-        case FINISHED_ALLOC_INFO_ID:
-          response.setData(DUMP_DATA);
-          response.setStatus(DumpDataResponse.Status.SUCCESS);
-          break;
-        case IN_PROGRESS_ALLOCATION_INFO_ID:
-          response.setStatus(DumpDataResponse.Status.NOT_READY);
-          break;
+      if (request.getDumpTime() == FINISHED_ALLOCATION_INFO.getStartTime()) {
+        response.setData(DUMP_DATA);
+        response.setStatus(DumpDataResponse.Status.SUCCESS);
       }
+      else if (request.getDumpTime() == IN_PROGRESS_ALLOCATION_INFO.getStartTime()) {
+        response.setStatus(DumpDataResponse.Status.NOT_READY);
+      }
+
       responseObserver.onNext(response.build());
       responseObserver.onCompleted();
     }

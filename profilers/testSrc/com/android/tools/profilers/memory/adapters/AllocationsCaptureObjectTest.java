@@ -59,13 +59,12 @@ public class AllocationsCaptureObjectTest {
     long startTimeNs = TimeUnit.MILLISECONDS.toNanos(3);
     long endTimeNs = TimeUnit.MILLISECONDS.toNanos(8);
 
-    AllocationsInfo testInfo = AllocationsInfo.newBuilder().setInfoId(infoId).setStartTime(startTimeNs).setEndTime(endTimeNs).build();
+    AllocationsInfo testInfo = AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     AllocationsCaptureObject capture =
       new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), appId, ProfilersTestData.SESSION_DATA, testInfo,
                                    myRelativeTimeConverter);
 
     // Verify values associated with the AllocationsInfo object.
-    assertEquals(infoId, capture.getInfoId());
     assertEquals(startTimeNs, capture.getStartTimeNs());
     assertEquals(endTimeNs, capture.getEndTimeNs());
     assertEquals("Allocations from 3ms to 8ms", capture.getLabel());
@@ -87,8 +86,10 @@ public class AllocationsCaptureObjectTest {
     myService.addExplicitAllocationClass(1, "test.klass1");
     myService.addExplicitAllocationStack("test.klass0", "testMethod0", 3, stackId1);
     myService.addExplicitAllocationStack("test.klass1", "testMethod1", 7, stackId2);
-    AllocationEvent event1 = AllocationEvent.newBuilder().setInfoId(infoId).setAllocatedClassId(0).setAllocationStackId(stackId2).build();
-    AllocationEvent event2 = AllocationEvent.newBuilder().setInfoId(infoId).setAllocatedClassId(1).setAllocationStackId(stackId1).build();
+    AllocationEvent event1 =
+      AllocationEvent.newBuilder().setTrackingStartTime(startTimeNs).setAllocatedClassId(0).setAllocationStackId(stackId2).build();
+    AllocationEvent event2 =
+      AllocationEvent.newBuilder().setTrackingStartTime(startTimeNs).setAllocatedClassId(1).setAllocationStackId(stackId1).build();
     myService.setExplicitAllocationEvents(AllocationEventsResponse.Status.SUCCESS, Arrays.asList(event1, event2));
     doneLatch.await();
 
@@ -124,7 +125,7 @@ public class AllocationsCaptureObjectTest {
     long startTimeNs = TimeUnit.MILLISECONDS.toNanos(3);
     long endTimeNs = TimeUnit.MILLISECONDS.toNanos(8);
 
-    AllocationsInfo testInfo1 = AllocationsInfo.newBuilder().setInfoId(1).setStartTime(startTimeNs).setEndTime(endTimeNs).build();
+    AllocationsInfo testInfo1 = AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     AllocationsCaptureObject capture =
       new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), -1, ProfilersTestData.SESSION_DATA, testInfo1,
                                    myRelativeTimeConverter);
@@ -155,9 +156,9 @@ public class AllocationsCaptureObjectTest {
     long endTimeNs = TimeUnit.MILLISECONDS.toNanos(8);
     long endTimeNs2 = TimeUnit.MILLISECONDS.toNanos(13);
     MemoryProfiler.AllocationsInfo testInfo1 =
-      MemoryProfiler.AllocationsInfo.newBuilder().setInfoId(1).setStartTime(startTimeNs).setEndTime(endTimeNs).build();
+      MemoryProfiler.AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     MemoryProfiler.AllocationsInfo testInfo2 =
-      MemoryProfiler.AllocationsInfo.newBuilder().setInfoId(2).setStartTime(endTimeNs).setEndTime(endTimeNs2).build();
+      MemoryProfiler.AllocationsInfo.newBuilder().setStartTime(endTimeNs).setEndTime(endTimeNs2).build();
     AllocationsCaptureObject capture =
       new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), -1, ProfilersTestData.SESSION_DATA, testInfo1,
                                    myRelativeTimeConverter);
@@ -183,7 +184,7 @@ public class AllocationsCaptureObjectTest {
     // Test equality as long as appId + times are equal
     assertEquals(captureWithDifferentStatus, capture);
 
-    myService.setExplicitAllocationsInfo(1, MemoryProfiler.AllocationsInfo.Status.FAILURE_UNKNOWN, startTimeNs, endTimeNs, true);
+    myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.FAILURE_UNKNOWN, startTimeNs, endTimeNs, true);
     captureWithDifferentStatus.load();
     assertEquals(captureWithDifferentStatus, capture);
   }

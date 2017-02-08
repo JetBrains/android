@@ -72,7 +72,6 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     if (myExplicitAllocationsInfo != null) {
       builder.setInfo(myExplicitAllocationsInfo);
     }
-    builder.setTimestamp(myCurrentTime);
     response.onNext(builder.build());
     response.onCompleted();
   }
@@ -144,10 +143,10 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     return this;
   }
 
-  public FakeMemoryService setExplicitAllocationsInfo(int infoId, AllocationsInfo.Status infoStatus,
+  public FakeMemoryService setExplicitAllocationsInfo(AllocationsInfo.Status infoStatus,
                                                       long startTime, long endTime, boolean legacy) {
     myExplicitAllocationsInfo =
-      AllocationsInfo.newBuilder().setInfoId(infoId).setStatus(infoStatus).setStartTime(startTime).setEndTime(endTime)
+      AllocationsInfo.newBuilder().setStatus(infoStatus).setStartTime(startTime).setEndTime(endTime)
         .setLegacy(legacy).build();
     return this;
   }
@@ -158,8 +157,8 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     return this;
   }
 
-  public FakeMemoryService setExplicitHeapDumpInfo(int dumpId, long startTime, long endTime) {
-    myExplicitHeapDumpInfo = HeapDumpInfo.newBuilder().setDumpId(dumpId).setStartTime(startTime).setEndTime(endTime).build();
+  public FakeMemoryService setExplicitHeapDumpInfo(long startTime, long endTime) {
+    myExplicitHeapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(startTime).setEndTime(endTime).build();
     return this;
   }
 
