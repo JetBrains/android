@@ -25,6 +25,7 @@ import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.diagnostic.Logger;
 import gnu.trove.TIntObjectHashMap;
+import gnu.trove.TLongObjectHashMap;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerCallHandler;
@@ -58,10 +59,8 @@ public class MemoryServiceProxy extends PerfdProxyService {
   private final Object myUpdatingDataLock;
   // Per-process cache of legacy allocation tracker, AllocationsInfo and GetAllocationsResponse
   @Nullable private TIntObjectHashMap<LegacyAllocationTracker> myLegacyTrackers;
-  @Nullable private TIntObjectHashMap<List<AllocationsInfo>> myAllocationsInfos;
-  @Nullable private TIntObjectHashMap<TIntObjectHashMap<AllocationEventsResponse>> myAllocationEvents;
-  @Nullable private TIntObjectHashMap<TIntObjectHashMap<DumpDataResponse>> myAllocationDump;
-  @Nullable private TIntObjectHashMap<TIntObjectHashMap<CountDownLatch>> myDataParsingLatches;
+  @Nullable private TIntObjectHashMap<TLongObjectHashMap<AllocationTrackingData>> myTrackingData;
+  @Nullable private TIntObjectHashMap<AllocationsInfo> myInProgressTrackingInfo;
   @Nullable private TIntObjectHashMap<AllocatedClass> myAllocatedClasses;
   @Nullable private Map<ByteString, AllocationStack> myAllocationStacks;
 
@@ -79,13 +78,11 @@ public class MemoryServiceProxy extends PerfdProxyService {
 
     if (myDevice.getVersion().getFeatureLevel() < 26) {
       myUseLegacyTracking = true;
-      myAllocationsInfos = new TIntObjectHashMap<>();
       myLegacyTrackers = new TIntObjectHashMap<>();
-      myAllocationEvents = new TIntObjectHashMap<>();
-      myAllocationDump = new TIntObjectHashMap<>();
+      myTrackingData = new TIntObjectHashMap<>();
+      myInProgressTrackingInfo = new TIntObjectHashMap<>();
       myAllocatedClasses = new TIntObjectHashMap<>();
       myAllocationStacks = new HashMap<>();
-      myDataParsingLatches = new TIntObjectHashMap<>();
     }
   }
 
@@ -93,10 +90,7 @@ public class MemoryServiceProxy extends PerfdProxyService {
                                  StreamObserver<MemoryProfiler.MemoryStartResponse> responseObserver) {
     if (myUseLegacyTracking && !myLegacyTrackers.contains(request.getProcessId())) {
       myLegacyTrackers.put(request.getProcessId(), myTrackerSupplier.apply(myDevice, request.getProcessId()));
-      myAllocationsInfos.put(request.getProcessId(), new ArrayList<>());
-      myAllocationEvents.put(request.getProcessId(), new TIntObjectHashMap());
-      myAllocationDump.put(request.getProcessId(), new TIntObjectHashMap());
-      myDataParsingLatches.put(request.getProcessId(), new TIntObjectHashMap());
+      myTrackingData.put(request.getProcessId(), new TLongObjectHashMap<>());
     }
 
     responseObserver.onNext(myServiceStub.startMonitoringApp(request));
@@ -108,10 +102,8 @@ public class MemoryServiceProxy extends PerfdProxyService {
     if (myUseLegacyTracking) {
       // TODO: also stop any unfinished tracking session
       myLegacyTrackers.remove(request.getProcessId());
-      myAllocationsInfos.remove(request.getProcessId());
-      myAllocationEvents.remove(request.getProcessId());
-      myAllocationDump.remove(request.getProcessId());
-      myDataParsingLatches.remove(request.getProcessId());
+      myTrackingData.remove(request.getProcessId());
+      myInProgressTrackingInfo.remove(request.getProcessId());
     }
 
     responseObserver.onNext(myServiceStub.stopMonitoringApp(request));
@@ -123,26 +115,28 @@ public class MemoryServiceProxy extends PerfdProxyService {
 
     if (myUseLegacyTracking) {
       synchronized (myUpdatingDataLock) {
-        List<AllocationsInfo> infos = myAllocationsInfos.get(request.getProcessId());
+        TLongObjectHashMap infos = myTrackingData.get(request.getProcessId());
         MemoryProfiler.MemoryData.Builder rebuilder = data.toBuilder();
         long requestStartTime = request.getStartTime();
         long requestEndTime = request.getEndTime();
 
         // Note - the following is going to continuously return any unfinished whose start times are before the request's end time.
         // Dedeup is handled in MemoryDataPoller.
-        AllocationsInfo key = AllocationsInfo.newBuilder().setEndTime(requestStartTime).build();
-        int index =
-          Collections.binarySearch(infos, key, (left, right) -> compareTimes(left.getEndTime(), right.getEndTime()));
-
-        // If there is an exact match, move on to the next index as start time is treated as exclusive.
-        index = index < 0 ? -(index + 1) : index + 1;
-        for (int i = index; i < infos.size(); i++) {
-          AllocationsInfo info = infos.get(i);
-          if (info.getStartTime() > requestEndTime) {
-            // The list is sorted by the info's start time in ascending order. Break as soon as we can.
-            break;
+        List<AllocationsInfo> infosToReturn = new ArrayList<>();
+        infos.forEachValue(object -> {
+          AllocationTrackingData trackingData = (AllocationTrackingData)object;
+          if (trackingData.myInfo.getStartTime() <= requestEndTime &&
+              (trackingData.myInfo.getEndTime() > requestStartTime ||
+               trackingData.myInfo.getEndTime() == DurationData.UNSPECIFIED_DURATION)) {
+            infosToReturn.add(trackingData.myInfo);
           }
 
+          return true;
+        });
+
+        infosToReturn.sort(Comparator.comparingLong(AllocationsInfo::getStartTime));
+        for (int i = 0; i < infosToReturn.size(); i++) {
+          AllocationsInfo info = infosToReturn.get(i);
           rebuilder.addAllocationsInfo(info);
           rebuilder.setEndTimestamp(Math.max(rebuilder.getEndTimestamp(), Math.max(info.getStartTime(), info.getEndTime())));
         }
@@ -158,7 +152,7 @@ public class MemoryServiceProxy extends PerfdProxyService {
   public void trackAllocations(TrackAllocationsRequest request,
                                StreamObserver<TrackAllocationsResponse> responseObserver) {
     int processId = request.getProcessId();
-    long timestamp = request.getTimestamp();
+    long timestamp = request.getRequestTime();
     TrackAllocationsResponse response;
     if (myUseLegacyTracking) {
       response = request.getEnabled() ? enableAllocations(timestamp, processId) : disableAllocations(timestamp, processId);
@@ -181,17 +175,18 @@ public class MemoryServiceProxy extends PerfdProxyService {
   public void getAllocationEvents(AllocationEventsRequest request,
                                   StreamObserver<AllocationEventsResponse> responseObserver) {
     if (myUseLegacyTracking) {
-      TIntObjectHashMap<CountDownLatch> latches = myDataParsingLatches.get(request.getProcessId());
-      if (latches == null || request.getInfoId() >= latches.size()) {
+      TLongObjectHashMap<AllocationTrackingData> datas = myTrackingData.get(request.getProcessId());
+      if (datas == null || !datas.containsKey(request.getStartTime()) || datas.get(request.getStartTime()).myDataParsingLatch == null) {
         responseObserver.onNext(NOT_FOUND_RESPONSE);
       }
       else {
+        AllocationTrackingData data = datas.get(request.getStartTime());
         try {
-          latches.get(request.getInfoId()).await();
+          assert data.myDataParsingLatch != null;
+          data.myDataParsingLatch.await();
           synchronized (myUpdatingDataLock) {
-            TIntObjectHashMap<AllocationEventsResponse> data = myAllocationEvents.get(request.getProcessId());
-            assert data != null && data.size() > request.getInfoId();
-            responseObserver.onNext(data.get(request.getInfoId()));
+            assert data.myEventsResponse != null;
+            responseObserver.onNext(data.myEventsResponse);
           }
         }
         catch (InterruptedException e) {
@@ -211,17 +206,18 @@ public class MemoryServiceProxy extends PerfdProxyService {
    */
   public void getAllocationDump(DumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
     if (myUseLegacyTracking) {
-      TIntObjectHashMap<CountDownLatch> latches = myDataParsingLatches.get(request.getProcessId());
-      if (latches == null || request.getDumpId() >= latches.size()) {
+      TLongObjectHashMap<AllocationTrackingData> datas = myTrackingData.get(request.getProcessId());
+      if (datas == null || !datas.containsKey(request.getDumpTime()) || datas.get(request.getDumpTime()).myDataParsingLatch == null) {
         responseObserver.onNext(DumpDataResponse.newBuilder().setStatus(DumpDataResponse.Status.NOT_FOUND).build());
       }
       else {
+        AllocationTrackingData data = datas.get(request.getDumpTime());
         try {
-          latches.get(request.getDumpId()).await();
+          assert data.myDataParsingLatch != null;
+          data.myDataParsingLatch.await();
           synchronized (myUpdatingDataLock) {
-            TIntObjectHashMap<DumpDataResponse> data = myAllocationDump.get(request.getProcessId());
-            assert data != null && data.size() > request.getDumpId();
-            responseObserver.onNext(data.get(request.getDumpId()));
+            assert data.myDumpDataResponse != null;
+            responseObserver.onNext(data.myDumpDataResponse);
           }
         }
         catch (InterruptedException e) {
@@ -267,20 +263,17 @@ public class MemoryServiceProxy extends PerfdProxyService {
 
   private TrackAllocationsResponse enableAllocations(long startTimeNs, int processId) {
     synchronized (myUpdatingDataLock) {
-      List<AllocationsInfo> infos = myAllocationsInfos.get(processId);
-      AllocationsInfo lastInfo = infos.size() > 0 ? infos.get(infos.size() - 1) : null;
-      if (lastInfo != null && lastInfo.getStatus() == IN_PROGRESS) {
+      if (myInProgressTrackingInfo.get(processId) != null) {
         // A previous tracking is still in-progress, cannot enable a new one.
         return TrackAllocationsResponse.newBuilder().setStatus(TrackAllocationsResponse.Status.IN_PROGRESS).build();
       }
 
+      TLongObjectHashMap<AllocationTrackingData> datas = myTrackingData.get(processId);
       TrackAllocationsResponse.Builder responseBuilder = TrackAllocationsResponse.newBuilder();
       LegacyAllocationTracker tracker = myLegacyTrackers.get(processId);
-      boolean success = tracker.trackAllocations(infos.size(), startTimeNs, true, null, null);
+      boolean success = tracker.trackAllocations(startTimeNs, startTimeNs, true, null, null);
       if (success) {
-        int newInfoId = infos.size();
         AllocationsInfo newInfo = AllocationsInfo.newBuilder()
-          .setInfoId(newInfoId)
           .setStartTime(startTimeNs)
           .setEndTime(DurationData.UNSPECIFIED_DURATION)
           .setStatus(IN_PROGRESS)
@@ -288,7 +281,10 @@ public class MemoryServiceProxy extends PerfdProxyService {
           .build();
         responseBuilder.setInfo(newInfo);
         responseBuilder.setStatus(TrackAllocationsResponse.Status.SUCCESS);
-        infos.add(newInfo);
+        AllocationTrackingData newData = new AllocationTrackingData();
+        newData.myInfo = newInfo;
+        datas.put(startTimeNs, newData);
+        myInProgressTrackingInfo.put(processId, newInfo);
       }
       else {
         responseBuilder.setStatus(TrackAllocationsResponse.Status.FAILURE_UNKNOWN);
@@ -300,19 +296,18 @@ public class MemoryServiceProxy extends PerfdProxyService {
 
   private TrackAllocationsResponse disableAllocations(long endtimeNs, int processId) {
     synchronized (myUpdatingDataLock) {
-      List<AllocationsInfo> infos = myAllocationsInfos.get(processId);
-      TIntObjectHashMap<CountDownLatch> latches = myDataParsingLatches.get(processId);
-      AllocationsInfo lastInfo = infos.size() > 0 ? infos.get(infos.size() - 1) : null;
-      if (lastInfo == null || lastInfo.getStatus() != IN_PROGRESS) {
+      AllocationsInfo lastInfo = myInProgressTrackingInfo.get(processId);
+      if (lastInfo == null) {
         // No in-progress tracking, cannot disable one.
         return TrackAllocationsResponse.newBuilder().setStatus(TrackAllocationsResponse.Status.NOT_ENABLED).build();
       }
 
       LegacyAllocationTracker tracker = myLegacyTrackers.get(processId);
+      TLongObjectHashMap<AllocationTrackingData> datas = myTrackingData.get(processId);
       TrackAllocationsResponse.Builder responseBuilder = TrackAllocationsResponse.newBuilder();
-      boolean success = tracker.trackAllocations(lastInfo.getInfoId(), endtimeNs, false, myFetchExecutor,
+      boolean success = tracker.trackAllocations(lastInfo.getStartTime(), endtimeNs, false, myFetchExecutor,
                                                  (bytes, classes, stacks, allocations) -> saveAllocationData(processId,
-                                                                                                             lastInfo.getInfoId(),
+                                                                                                             lastInfo.getStartTime(),
                                                                                                              bytes, classes,
                                                                                                              stacks,
                                                                                                              allocations));
@@ -321,7 +316,7 @@ public class MemoryServiceProxy extends PerfdProxyService {
       if (success) {
         lastInfoBuilder.setStatus(COMPLETED);
         responseBuilder.setStatus(TrackAllocationsResponse.Status.SUCCESS);
-        latches.put(lastInfo.getInfoId(), new CountDownLatch(1));
+        datas.get(lastInfo.getStartTime()).myDataParsingLatch = new CountDownLatch(1);
       }
       else {
         lastInfoBuilder.setStatus(FAILURE_UNKNOWN);
@@ -330,22 +325,19 @@ public class MemoryServiceProxy extends PerfdProxyService {
 
       AllocationsInfo updatedInfo = lastInfoBuilder.build();
       responseBuilder.setInfo(updatedInfo);
-      infos.set(infos.size() - 1, updatedInfo);
+      datas.get(lastInfo.getStartTime()).myInfo = updatedInfo;
       return responseBuilder.build();
     }
   }
 
-  private void saveAllocationData(int processId, int infoId,
+  private void saveAllocationData(int processId, long infoId,
                                   @Nullable byte[] rawBytes,
                                   @NotNull List<MemoryProfiler.AllocatedClass> classes,
                                   @NotNull List<MemoryProfiler.AllocationStack> stacks,
                                   @NotNull List<MemoryProfiler.AllocationEvent> events) {
     synchronized (myUpdatingDataLock) {
-      TIntObjectHashMap<AllocationEventsResponse> responses = myAllocationEvents.get(processId);
-      TIntObjectHashMap<DumpDataResponse> rawData = myAllocationDump.get(processId);
-      TIntObjectHashMap<CountDownLatch> latches = myDataParsingLatches.get(processId);
-      assert !responses.contains(infoId) && !rawData.contains(infoId) && latches.contains(infoId);
-
+      TLongObjectHashMap<AllocationTrackingData> datas = myTrackingData.get(processId);
+      assert datas.contains(infoId);
       AllocationEventsResponse.Builder eventResponseBuilder = AllocationEventsResponse.newBuilder();
       DumpDataResponse.Builder dumpResponseBuilder = DumpDataResponse.newBuilder();
       try {
@@ -358,14 +350,15 @@ public class MemoryServiceProxy extends PerfdProxyService {
           dumpResponseBuilder.setData(ByteString.copyFrom(rawBytes)).setStatus(DumpDataResponse.Status.SUCCESS);
         }
 
-        responses.put(infoId, eventResponseBuilder.build());
-        rawData.put(infoId, dumpResponseBuilder.build());
+        datas.get(infoId).myEventsResponse = eventResponseBuilder.build();
+        datas.get(infoId).myDumpDataResponse = dumpResponseBuilder.build();
 
         classes.forEach(klass -> myAllocatedClasses.put(klass.getClassId(), klass));
         stacks.forEach(stack -> myAllocationStacks.put(stack.getStackId(), stack));
       }
       finally {
-        latches.get(infoId).countDown();
+        datas.get(infoId).myDataParsingLatch.countDown();
+        myInProgressTrackingInfo.remove(processId);
       }
     }
   }
@@ -405,15 +398,10 @@ public class MemoryServiceProxy extends PerfdProxyService {
     return generatePassThroughDefinitions(overrides, myServiceStub);
   }
 
-  private static int compareTimes(long left, long right) {
-    if (left == DurationData.UNSPECIFIED_DURATION) {
-      return 1;
-    }
-    else if (right == DurationData.UNSPECIFIED_DURATION) {
-      return -1;
-    }
-    else {
-      return Long.compare(left, right);
-    }
+  private static class AllocationTrackingData {
+    @NotNull AllocationsInfo myInfo;
+    AllocationEventsResponse myEventsResponse;
+    DumpDataResponse myDumpDataResponse;
+    CountDownLatch myDataParsingLatch;
   }
 }

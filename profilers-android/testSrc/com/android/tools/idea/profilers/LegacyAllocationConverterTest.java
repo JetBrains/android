@@ -94,13 +94,13 @@ public class LegacyAllocationConverterTest {
     LegacyAllocationConverter converter = new LegacyAllocationConverter();
     int id = converter.addClassName(CLASS_NAME);
     converter.addAllocation(new LegacyAllocationConverter.Allocation(id, SIZE, THREAD_ID, STACK_ID));
-    List<MemoryProfiler.AllocationEvent> allocations = converter.getAllocationEvents(1, System.nanoTime());
+    List<MemoryProfiler.AllocationEvent> allocations = converter.getAllocationEvents(System.nanoTime(), System.nanoTime());
     assertEquals(1, allocations.size());
     assertEquals(id, allocations.get(0).getAllocatedClassId());
     assertEquals(SIZE, allocations.get(0).getSize());
     assertEquals(THREAD_ID, allocations.get(0).getThreadId());
     assertEquals(ByteString.copyFrom(STACK_ID), allocations.get(0).getAllocationStackId());
     converter.prepare();
-    assertEquals(0, converter.getAllocationEvents(1, System.nanoTime()).size());
+    assertEquals(0, converter.getAllocationEvents(System.nanoTime(), System.nanoTime()).size());
   }
 }

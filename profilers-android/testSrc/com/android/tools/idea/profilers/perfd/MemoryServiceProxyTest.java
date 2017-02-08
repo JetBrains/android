@@ -143,17 +143,17 @@ public class MemoryServiceProxyTest {
     int startTime2 = 10;
     // Enable a tracking session on Process 1
     myProxy.trackAllocations(
-      TrackAllocationsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setEnabled(true).setTimestamp(startTime1).build(),
+      TrackAllocationsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setEnabled(true).setRequestTime(startTime1).build(),
       mock(StreamObserver.class));
 
     // Enable a tracking sesion on Process 2
     myProxy.trackAllocations(
-      TrackAllocationsRequest.newBuilder().setProcessId(MONITOR_PROCESS_2).setEnabled(true).setTimestamp(startTime2).build(),
+      TrackAllocationsRequest.newBuilder().setProcessId(MONITOR_PROCESS_2).setEnabled(true).setRequestTime(startTime2).build(),
       mock(StreamObserver.class));
 
     MemoryData expected1 = MemoryData.newBuilder()
-      .addAllocationsInfo(AllocationsInfo.newBuilder().setInfoId(0).setStartTime(startTime1).setEndTime(DurationData.UNSPECIFIED_DURATION)
-                            .setStatus(AllocationsInfo.Status.IN_PROGRESS).setLegacy(true).build())
+      .addAllocationsInfo(AllocationsInfo.newBuilder().setStartTime(startTime1).setEndTime(DurationData.UNSPECIFIED_DURATION)
+                            .setStatus(IN_PROGRESS).setLegacy(true).build())
       .setEndTimestamp(startTime1)
       .build();
     StreamObserver<MemoryData> observer1 = mock(StreamObserver.class);
@@ -162,8 +162,8 @@ public class MemoryServiceProxyTest {
     verify(observer1, times(1)).onCompleted();
 
     MemoryData expected2 = MemoryData.newBuilder()
-      .addAllocationsInfo(AllocationsInfo.newBuilder().setInfoId(0).setStartTime(startTime2).setEndTime(DurationData.UNSPECIFIED_DURATION)
-                            .setStatus(AllocationsInfo.Status.IN_PROGRESS).setLegacy(true).build())
+      .addAllocationsInfo(AllocationsInfo.newBuilder().setStartTime(startTime2).setEndTime(DurationData.UNSPECIFIED_DURATION)
+                            .setStatus(IN_PROGRESS).setLegacy(true).build())
       .setEndTimestamp(startTime2)
       .build();
     StreamObserver<MemoryData> observer2 = mock(StreamObserver.class);
@@ -176,16 +176,17 @@ public class MemoryServiceProxyTest {
   public void testLegacyAllocationTrackingWorkflow() throws Exception {
     int time1 = 5;
     int time2 = 10;
-    AllocationEventsRequest eventRequest = AllocationEventsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setInfoId(0).build();
+    AllocationEventsRequest eventRequest =
+      AllocationEventsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setStartTime(time1).setEndTime(time2).build();
 
     // Enable a tracking session on Process 1
     TrackAllocationsResponse expected1 = TrackAllocationsResponse.newBuilder().setStatus(TrackAllocationsResponse.Status.SUCCESS)
       .setInfo(
-        AllocationsInfo.newBuilder().setInfoId(0).setStartTime(time1).setEndTime(DurationData.UNSPECIFIED_DURATION).setStatus(IN_PROGRESS)
+        AllocationsInfo.newBuilder().setStartTime(time1).setEndTime(DurationData.UNSPECIFIED_DURATION).setStatus(IN_PROGRESS)
           .setLegacy(true).build()).build();
     StreamObserver<TrackAllocationsResponse> observer1 = mock(StreamObserver.class);
     myProxy.trackAllocations(
-      TrackAllocationsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setEnabled(true).setTimestamp(time1).build(),
+      TrackAllocationsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setEnabled(true).setRequestTime(time1).build(),
       observer1);
     assertTrue(myAllocationTrackingState);
     verify(observer1, times(1)).onNext(expected1);
@@ -199,11 +200,11 @@ public class MemoryServiceProxyTest {
 
     // Disable a tracking session on Process 1
     TrackAllocationsResponse expected2 = TrackAllocationsResponse.newBuilder().setStatus(TrackAllocationsResponse.Status.SUCCESS)
-      .setInfo(AllocationsInfo.newBuilder().setInfoId(0).setStartTime(time1).setEndTime(time2).setStatus(COMPLETED).setLegacy(true).build())
+      .setInfo(AllocationsInfo.newBuilder().setStartTime(time1).setEndTime(time2).setStatus(COMPLETED).setLegacy(true).build())
       .build();
     StreamObserver<TrackAllocationsResponse> observer2 = mock(StreamObserver.class);
     myProxy.trackAllocations(
-      TrackAllocationsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setEnabled(false).setTimestamp(time2).build(),
+      TrackAllocationsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setEnabled(false).setRequestTime(time2).build(),
       observer2);
     verify(observer2, times(1)).onNext(expected2);
     verify(observer2, times(1)).onCompleted();
@@ -211,7 +212,7 @@ public class MemoryServiceProxyTest {
     // Mock completion of the parsing process and the resulting data.
     myParsingWaitLatch.countDown();
     myParsingDoneLatch.await();
-    List<AllocationEvent> expectedEvents = myAllocationConverter.getAllocationEvents(0, time2);
+    List<AllocationEvent> expectedEvents = myAllocationConverter.getAllocationEvents(time1, time2);
     AllocationEventsResponse expected3 = AllocationEventsResponse.newBuilder().setStatus(AllocationEventsResponse.Status.SUCCESS)
       .addAllEvents(expectedEvents).build();
     StreamObserver<AllocationEventsResponse> observer3 = mock(StreamObserver.class);
@@ -238,19 +239,20 @@ public class MemoryServiceProxyTest {
 
     // Enable a tracking session on Process 1
     myProxy.trackAllocations(
-      TrackAllocationsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setEnabled(true).setTimestamp(time1).build(),
+      TrackAllocationsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setEnabled(true).setRequestTime(time1).build(),
       mock(StreamObserver.class));
 
     // Disable a tracking session on Process 1
     myProxy.trackAllocations(
-      TrackAllocationsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setEnabled(false).setTimestamp(time2).build(),
+      TrackAllocationsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setEnabled(false).setRequestTime(time2).build(),
       mock(StreamObserver.class));
 
     // Mock completion of the parsing process and returning of null data;
     myReturnNullTrackingData = true;
     myParsingWaitLatch.countDown();
     myParsingDoneLatch.await();
-    AllocationEventsRequest eventRequest = AllocationEventsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setInfoId(0).build();
+    AllocationEventsRequest eventRequest =
+      AllocationEventsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setStartTime(time1).setEndTime(time2).build();
     AllocationEventsResponse expected1 =
       AllocationEventsResponse.newBuilder().setStatus(AllocationEventsResponse.Status.FAILURE_UNKNOWN).build();
     StreamObserver<AllocationEventsResponse> observer1 = mock(StreamObserver.class);
@@ -258,7 +260,8 @@ public class MemoryServiceProxyTest {
     verify(observer1, times(1)).onNext(expected1);
     verify(observer1, times(1)).onCompleted();
 
-    DumpDataRequest dumpRequest = DumpDataRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setDumpId(0).build();
+    DumpDataRequest dumpRequest =
+      DumpDataRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setDumpTime(time1).build();
     DumpDataResponse expected2 =
       DumpDataResponse.newBuilder().setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN).build();
     StreamObserver<DumpDataResponse> observer2 = mock(StreamObserver.class);
@@ -270,8 +273,8 @@ public class MemoryServiceProxyTest {
   private LegacyAllocationTracker getTracker(IDevice device, int processId) {
     return new LegacyAllocationTracker() {
       @Override
-      public boolean trackAllocations(int infoId,
-                                      long time,
+      public boolean trackAllocations(long startTime,
+                                      long endTime,
                                       boolean enabled,
                                       @Nullable Executor executor,
                                       @Nullable LegacyAllocationTrackingCallback allocationConsumer) {
@@ -295,7 +298,7 @@ public class MemoryServiceProxyTest {
             }
             else {
               allocationConsumer.accept(RAW_DATA, myAllocationConverter.getClassNames(), myAllocationConverter.getAllocationStacks(),
-                                        myAllocationConverter.getAllocationEvents(infoId, time));
+                                        myAllocationConverter.getAllocationEvents(startTime, endTime));
             }
 
             myParsingDoneLatch.countDown();
