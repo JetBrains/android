@@ -19,13 +19,14 @@ import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TreeWalker;
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.legend.FixedLegend;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profilers.ProfilerMonitor;
-import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.common.FileViewer;
 import com.android.tools.profilers.common.StackTraceView;
 import com.android.tools.profilers.common.TabsPanel;
 import com.google.common.collect.ImmutableMap;
@@ -44,7 +45,6 @@ import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
@@ -53,12 +53,10 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
-import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.File;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongFunction;
@@ -179,7 +177,9 @@ public class ConnectionDetailsView extends JPanel {
     myStackTraceView.clearStackFrames();
 
     if (httpData != null) {
-      FileViewer fileViewer = createFileViewer(httpData);
+      Optional<File> payloadFile = Optional.ofNullable(httpData.getResponsePayloadFile());
+      FileViewer fileViewer = myStageView.getIdeComponents().createFileViewer(payloadFile.orElse(new File("")));
+      fileViewer.getComponent().setName("FileViewer");
       myResponsePanel.add(fileViewer.getComponent(), new TabularLayout.Constraint(0, 0));
       myResponsePanel.add(createFields(httpData, fileViewer.getDimension()), new TabularLayout.Constraint(1, 0));
 
@@ -354,144 +354,6 @@ public class ConnectionDetailsView extends JPanel {
   private static final class NoWrapBoldLabel extends BoldLabel {
     public NoWrapBoldLabel(String text) {
       super("<nobr>" + text + "</nobr>");
-    }
-  }
-
-  @NotNull
-  private static FileViewer createFileViewer(@NotNull HttpData httpData) {
-    JComponent component = null;
-    Dimension dimension = null;
-    if (httpData.getResponsePayloadFile() == null) {
-      component = new JLabel("No preview available", SwingConstants.CENTER);
-      component.setFont(component.getFont().deriveFont(TITLE_FONT_SIZE));
-    }
-
-    String contentType = httpData.getResponseField(HttpData.FIELD_CONTENT_TYPE);
-    if (component == null && contentType != null && StringUtil.containsIgnoreCase(contentType, "image")) {
-      try {
-        BufferedImage image = ImageIO.read(httpData.getResponsePayloadFile());
-        component = new ResizableImage(image);
-        dimension = new Dimension(image.getWidth(), image.getHeight());
-      }
-      catch (IOException ignored) {
-      }
-    }
-
-    if (component == null) {
-      // TODO: Fix the viewer for html, json and etc.
-      JTextArea textArea = new JTextArea();
-      try {
-        BufferedReader reader = new BufferedReader(new FileReader(httpData.getResponsePayloadFile()));
-        textArea.read(reader, null);
-        reader.close();
-      }
-      catch (IOException ignored) {}
-      textArea.setEditable(false);
-      textArea.setLineWrap(true);
-      component = new JBScrollPane(textArea);
-    }
-
-    return new FileViewer(component, dimension);
-  }
-
-  private static class FileViewer {
-    @NotNull
-    private final JComponent myComponent;
-    @Nullable
-    private final Dimension myDimension;
-
-    public FileViewer(@NotNull JComponent component, @Nullable Dimension dimension) {
-      myComponent = component;
-      myDimension = dimension;
-      myComponent.setName("FileViewer");
-    }
-
-    @NotNull
-    public JComponent getComponent() {
-      return myComponent;
-    }
-
-    /**
-     * The (width x height) size of the target file, or {@code null} if the concept of a size
-     * doesn't make sense for the file type (e.g. txt, xml)
-     */
-    @Nullable
-    public Dimension getDimension() {
-      return myDimension;
-    }
-  }
-
-  /**
-   * This is an image which can be resized but maintains its aspect ratio.
-   */
-  public static class ResizableImage extends JLabel {
-
-    @NotNull private final BufferedImage myImage;
-    @Nullable private Dimension myLastSize;
-
-    /**
-     * Check if two dimension objects are basically the same size, plus or minus a pixel. This
-     * works around the fact that calculating the rescaled size of an image occasionally produces
-     * off-by-one rounding errors, letting us avoid triggering an expensive image regeneration for
-     * such a small change.
-     */
-    private static boolean areSimilarSizes(@NotNull Dimension d1, @NotNull Dimension d2) {
-      return Math.abs(d2.width - d1.width) <= 1 && Math.abs(d2.height - d1.height) <= 1;
-    }
-
-    public ResizableImage(@NotNull BufferedImage image) {
-      super("", CENTER);
-      myImage = image;
-
-      addComponentListener(new ComponentAdapter() {
-        @Override
-        public void componentResized(ComponentEvent e) {
-          resize();
-        }
-      });
-    }
-
-    private void resize() {
-      Dimension d = calculateScaledSize();
-
-      if (d.width == 0 || d.height == 0) {
-        setIcon(null);
-        myLastSize = null;
-      }
-      else if (myLastSize == null || !areSimilarSizes(myLastSize, d)) {
-        Image image = d.getWidth() == myImage.getWidth() ? myImage : myImage.getScaledInstance(d.width, d.height, Image.SCALE_SMOOTH);
-        setIcon(new ImageIcon(image));
-        myLastSize = d;
-      }
-    }
-
-    @NotNull
-    private Dimension calculateScaledSize() {
-      if (getWidth() == 0 || getHeight() == 0) {
-        return new Dimension();
-      }
-
-      float sourceRatio = (float)myImage.getWidth() / myImage.getHeight();
-      int finalWidth = getWidth();
-      int finalHeight = (int) (finalWidth / sourceRatio);
-
-      // Don't allow the final size to be larger than the original image, in order to prevent small
-      // images from stretching into a blurry mess.
-      int maxWidth = Math.min(getWidth(), myImage.getWidth());
-      int maxHeight = Math.min(getHeight(), myImage.getHeight());
-
-      if (finalWidth > maxWidth) {
-        float scale = (float)maxWidth / finalWidth;
-        finalWidth *= scale;
-        finalHeight *= scale;
-      }
-      if (finalHeight > maxHeight) {
-        float scale = (float)maxHeight / finalHeight;
-        finalWidth *= scale;
-        finalHeight *= scale;
-      }
-
-      return new Dimension(finalWidth, finalHeight);
     }
   }
 
