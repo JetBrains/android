@@ -17,9 +17,11 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.EventAction;
+import com.android.tools.adtui.model.event.ActivityAction;
+import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.adtui.model.StackedEventModel;
+import com.android.tools.adtui.model.event.EventModel;
+import com.android.tools.adtui.model.event.StackedEventType;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,7 +46,7 @@ public class StackedEventComponent extends AnimatedComponent {
   private static final int SEGMENT_SPACING = 5;
 
   @NotNull
-  private final StackedEventModel myModel;
+  private final EventModel<StackedEventType> myModel;
 
   private float myLineThickness = 6.0f;
 
@@ -52,14 +54,14 @@ public class StackedEventComponent extends AnimatedComponent {
    * This map is used to pair actions, to their draw location. This is used primarily to store the
    * location where to draw the name of the incoming event.
    */
-  private HashMap<EventAction<EventAction.ActivityAction, String>, EventRenderData> myActionToDrawLocationMap = new HashMap<>();
+  private HashMap<EventAction<StackedEventType>, EventRenderData> myActionToDrawLocationMap = new HashMap<>();
   private List<EventRenderData> myActivities = new ArrayList<>();
   private boolean myRender;
 
-  public StackedEventComponent(@NotNull StackedEventModel model) {
+  public StackedEventComponent(@NotNull EventModel<StackedEventType> model) {
     myModel = model;
     setFont(AdtUiUtils.DEFAULT_FONT);
-    myModel.addDependency(myAspectObserver).onChange(StackedEventModel.Aspect.STACKED_EVENT, this::modelChanged);
+    myModel.addDependency(myAspectObserver).onChange(EventModel.Aspect.EVENT, this::modelChanged);
     myRender = true;
   }
 
@@ -80,7 +82,7 @@ public class StackedEventComponent extends AnimatedComponent {
 
     myActivities.clear();
     myActionToDrawLocationMap.clear();
-    ImmutableList<SeriesData<EventAction<EventAction.ActivityAction, String>>> series = myModel.getRangedSeries().getSeries();
+    ImmutableList<SeriesData<EventAction<StackedEventType>>> series = myModel.getRangedSeries().getSeries();
     int size = series.size();
 
     // Loop through the data series looking at all of the start events, and stop events.
@@ -88,8 +90,8 @@ public class StackedEventComponent extends AnimatedComponent {
     // Once we find a stop event we determine the draw order, name, start and stop locations and
     // cache off a path to draw.
     for (int i = 0; i < size; i++) {
-      SeriesData<EventAction<EventAction.ActivityAction, String>> seriesData = series.get(i);
-      EventAction<EventAction.ActivityAction, String> data = seriesData.value;
+      SeriesData<EventAction<StackedEventType>> seriesData = series.get(i);
+      EventAction<StackedEventType> data = seriesData.value;
       Path2D.Float path = new Path2D.Float();
       // Here we normalize the position to a value between 0 and 1. This allows us to scale the width of the line based on the
       // width of our chart.
@@ -135,7 +137,7 @@ public class StackedEventComponent extends AnimatedComponent {
     while (itor.hasNext()) {
       g2d.setStroke(str);
       EventRenderData renderData = itor.next();
-      EventAction<EventAction.ActivityAction, String> event = renderData.getAction();
+      EventAction<StackedEventType> event = renderData.getAction();
       if (event.getEndUs() != 0) {
         g2d.setColor(DISABLED_ACTION);
       }
@@ -146,7 +148,10 @@ public class StackedEventComponent extends AnimatedComponent {
       g2d.draw(shape);
 
       g2d.setStroke(current);
-      String text = event.getValueData();
+      String text = "";
+      if (event.getType() != StackedEventType.NONE) {
+        text = ((ActivityAction)event).getData();
+      }
       int width = metrics.stringWidth(text);
       int height = metrics.getHeight();
       double normalizedStartPosition = (event.getStartUs() - min) / (max - min);
@@ -188,10 +193,10 @@ public class StackedEventComponent extends AnimatedComponent {
 
   private static class EventRenderData {
 
-    private final EventAction<EventAction.ActivityAction, String> mAction;
+    private final EventAction<StackedEventType> mAction;
     private final Path2D mPath;
 
-    public EventAction<EventAction.ActivityAction, String> getAction() {
+    public EventAction<StackedEventType> getAction() {
       return mAction;
     }
 
@@ -199,7 +204,7 @@ public class StackedEventComponent extends AnimatedComponent {
       return mPath;
     }
 
-    public EventRenderData(EventAction<EventAction.ActivityAction, String> action, Path2D path) {
+    public EventRenderData(EventAction<StackedEventType> action, Path2D path) {
       mAction = action;
       mPath = path;
     }
