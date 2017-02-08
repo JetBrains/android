@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync;
+package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.intellij.openapi.util.ActionCallback;
 import org.jetbrains.annotations.NotNull;

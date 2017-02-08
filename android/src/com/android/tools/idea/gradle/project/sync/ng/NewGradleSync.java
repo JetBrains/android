@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync;
+package com.android.tools.idea.gradle.project.sync.ng;
 
+import com.android.tools.idea.gradle.project.sync.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -31,7 +32,7 @@ public class NewGradleSync implements GradleSync {
   @NotNull private final SyncExecutor mySyncExecutor;
   @NotNull private final SyncResultHandler myResultHandler;
 
-  NewGradleSync(@NotNull Project project) {
+  public NewGradleSync(@NotNull Project project) {
     this(project, new SyncExecutor(project), new SyncResultHandler(project));
   }
 
