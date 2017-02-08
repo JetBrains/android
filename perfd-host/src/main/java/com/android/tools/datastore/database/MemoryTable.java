@@ -45,25 +45,25 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
                                 MemorySamplesType.VMSTATS.ordinal())),
 
     INSERT_OR_REPLACE_HEAP_INFO(
-      "INSERT OR REPLACE INTO Memory_HeapDump (DumpId, StartTime, EndTime, Status, InfoData) VALUES (?, ?, ?, ?, ?)"),
-    UPDATE_HEAP_DUMP("UPDATE Memory_HeapDump SET DumpData = ?, Status = ? WHERE DumpId = ?"),
+      "INSERT OR REPLACE INTO Memory_HeapDump (StartTime, EndTime, Status, InfoData) VALUES (?, ?, ?, ?)"),
+    UPDATE_HEAP_DUMP("UPDATE Memory_HeapDump SET DumpData = ?, Status = ? WHERE StartTime = ?"),
     // EndTime = UNSPECIFIED_DURATION checks for the special case where we have an ongoing duration sample
     QUERY_HEAP_INFO_BY_TIME(String.format("SELECT InfoData FROM Memory_HeapDump where (EndTime = %d OR EndTime > ?) AND StartTime <= ?",
                                           DurationData.UNSPECIFIED_DURATION)),
-    QUERY_HEAP_DUMP_BY_ID("SELECT DumpData FROM Memory_HeapDump where DumpId = ?"),
-    QUERY_HEAP_STATUS_BY_ID("SELECT Status FROM Memory_HeapDump where DumpId = ?"),
+    QUERY_HEAP_DUMP_BY_ID("SELECT DumpData FROM Memory_HeapDump where StartTime = ?"),
+    QUERY_HEAP_STATUS_BY_ID("SELECT Status FROM Memory_HeapDump where StartTime = ?"),
 
     INSERT_OR_REPLACE_ALLOCATIONS_INFO(
-      "INSERT OR REPLACE INTO Memory_AllocationInfo (DumpId, StartTime, EndTime, InfoData) VALUES (?, ?, ?, ?)"),
-    UPDATE_ALLOCATIONS_INFO_EVENTS("UPDATE Memory_AllocationInfo SET EventsData = ? WHERE DumpId = ?"),
-    UPDATE_ALLOCATIONS_INFO_DUMP("UPDATE Memory_AllocationInfo SET DumpData = ? WHERE DumpId = ?"),
+      "INSERT OR REPLACE INTO Memory_AllocationInfo (StartTime, EndTime, InfoData) VALUES (?, ?, ?)"),
+    UPDATE_ALLOCATIONS_INFO_EVENTS("UPDATE Memory_AllocationInfo SET EventsData = ? WHERE StartTime = ?"),
+    UPDATE_ALLOCATIONS_INFO_DUMP("UPDATE Memory_AllocationInfo SET DumpData = ? WHERE StartTime = ?"),
     // EndTime = UNSPECIFIED_DURATION checks for the special case where we have an ongoing duration sample
     QUERY_ALLOCATION_INFO_BY_TIME(String.format(
       "SELECT InfoData FROM Memory_AllocationInfo WHERE (EndTime = %d OR EndTime > ?) AND StartTime <= ?",
       DurationData.UNSPECIFIED_DURATION)),
-    QUERY_ALLOCATION_INFO_BY_ID("SELECT InfoData from Memory_AllocationInfo WHERE DumpId = ?"),
-    QUERY_ALLOCATION_EVENTS_BY_ID("SELECT EventsData from Memory_AllocationInfo WHERE DumpId = ?"),
-    QUERY_ALLOCATION_DUMP_BY_ID("SELECT DumpData from Memory_AllocationInfo WHERE DumpId = ?"),
+    QUERY_ALLOCATION_INFO_BY_ID("SELECT InfoData from Memory_AllocationInfo WHERE StartTime = ?"),
+    QUERY_ALLOCATION_EVENTS_BY_ID("SELECT EventsData from Memory_AllocationInfo WHERE StartTime = ?"),
+    QUERY_ALLOCATION_DUMP_BY_ID("SELECT DumpData from Memory_AllocationInfo WHERE StartTime = ?"),
 
     INSERT_ALLOCATION_STACK("INSERT OR IGNORE INTO Memory_AllocationStack (Id, Data) VALUES (?, ?)"),
     INSERT_ALLOCATED_CLASS("INSERT OR IGNORE INTO Memory_AllocatedClass (Id, Data) VALUES (?, ?)"),
@@ -100,14 +100,14 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     super.initialize(connection);
     try {
       createTable("Memory_Samples", "Type INTEGER", "Timestamp INTEGER", "Data BLOB");
-      createTable("Memory_AllocationInfo", "DumpId INTEGER, StartTime INTEGER", "EndTime INTEGER", "InfoData BLOB",
-                  "EventsData BLOB", "DumpData BLOB", "PRIMARY KEY(DumpId)");
+      createTable("Memory_AllocationInfo", "StartTime INTEGER", "EndTime INTEGER", "InfoData BLOB",
+                  "EventsData BLOB", "DumpData BLOB", "PRIMARY KEY(StartTime)");
       createTable("Memory_AllocationStack", "Id BLOB", "Data BLOB", "PRIMARY KEY(Id)");
       createTable("Memory_AllocatedClass", "Id INTEGER", "Data BLOB", "PRIMARY KEY(Id)");
-      createTable("Memory_HeapDump", "DumpId, INTEGER", "StartTime INTEGER", "EndTime INTEGER", "Status INTEGER", "InfoData BLOB",
-                  "DumpData BLOB", "PRIMARY KEY(DumpId)");
-      createIndex("Memory_HeapDump", "DumpId");
-      createIndex("Memory_AllocationInfo", "DumpId");
+      createTable("Memory_HeapDump", "StartTime INTEGER", "EndTime INTEGER", "Status INTEGER", "InfoData BLOB",
+                  "DumpData BLOB", "PRIMARY KEY(StartTime)");
+      createIndex("Memory_HeapDump", "StartTime");
+      createIndex("Memory_AllocationInfo", "StartTime");
     }
     catch (SQLException ex) {
       getLogger().error(ex);
@@ -170,18 +170,18 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
    */
   public void insertOrReplaceHeapInfo(HeapDumpInfo info) {
     synchronized (myDataQueryLock) {
-      execute(MemoryStatements.INSERT_OR_REPLACE_HEAP_INFO, info.getDumpId(), info.getStartTime(), info.getEndTime(),
+      execute(MemoryStatements.INSERT_OR_REPLACE_HEAP_INFO, info.getStartTime(), info.getEndTime(),
               DumpDataResponse.Status.NOT_READY.ordinal(), info.toByteArray());
     }
   }
 
   /**
-   * @return the dump status corresponding to a particular dumpId. If the entry does not exist, NOT_FOUND is returned.
+   * @return the dump status corresponding to a particular dump. If the entry does not exist, NOT_FOUND is returned.
    */
-  public DumpDataResponse.Status getHeapDumpStatus(int dumpId) {
+  public DumpDataResponse.Status getHeapDumpStatus(long dumpTime) {
     synchronized (myDataQueryLock) {
       try {
-        ResultSet result = executeQuery(MemoryStatements.QUERY_HEAP_STATUS_BY_ID, dumpId);
+        ResultSet result = executeQuery(MemoryStatements.QUERY_HEAP_STATUS_BY_ID, dumpTime);
         if (result.next()) {
           return DumpDataResponse.Status.forNumber(result.getInt(1));
         }
@@ -203,20 +203,20 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
   /**
    * Adds/updates the status and raw dump data associated with a dump sample's id.
    */
-  public void insertHeapDumpData(int dumpId, DumpDataResponse.Status status, ByteString data) {
+  public void insertHeapDumpData(long dumpTime, DumpDataResponse.Status status, ByteString data) {
     synchronized (myDataQueryLock) {
-      execute(MemoryStatements.UPDATE_HEAP_DUMP, data.toByteArray(), status.getNumber(), dumpId);
+      execute(MemoryStatements.UPDATE_HEAP_DUMP, data.toByteArray(), status.getNumber(), dumpTime);
     }
   }
 
   /**
-   * @return the raw dump byte content assocaited with a dumpId. Null if an entry does not exist in the database.
+   * @return the raw dump byte content assocaited with a dump time. Null if an entry does not exist in the database.
    */
   @Nullable
-  public byte[] getHeapDumpData(int dumpId) {
+  public byte[] getHeapDumpData(long dumpTime) {
     synchronized (myDataQueryLock) {
       try {
-        ResultSet resultSet = executeQuery(MemoryStatements.QUERY_HEAP_DUMP_BY_ID, dumpId);
+        ResultSet resultSet = executeQuery(MemoryStatements.QUERY_HEAP_DUMP_BY_ID, dumpTime);
         if (resultSet.next()) {
           return resultSet.getBytes(1);
         }
@@ -229,37 +229,39 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
   }
 
   /**
-   * Note: this will reset the allocation events and its raw dump byte content associated with the info's id if an entry already exists.
+   * Note: this will reset the allocation events and its raw dump byte content associated with a tracking start time if an entry already exists.
    */
   public void insertOrReplaceAllocationsInfo(AllocationsInfo info) {
     synchronized (myDataQueryLock) {
-      execute(MemoryStatements.INSERT_OR_REPLACE_ALLOCATIONS_INFO, info.getInfoId(), info.getStartTime(), info.getEndTime(),
-              info.toByteArray());
+      execute(MemoryStatements.INSERT_OR_REPLACE_ALLOCATIONS_INFO, info.getStartTime(), info.getEndTime(), info.toByteArray());
     }
   }
 
-  public void updateAllocationEvents(int infoId, @NotNull AllocationEventsResponse allocationData) {
+  public void updateAllocationEvents(long trackingStartTime, @NotNull AllocationEventsResponse allocationData) {
     synchronized (myDataQueryLock) {
-      execute(MemoryStatements.UPDATE_ALLOCATIONS_INFO_EVENTS, allocationData.toByteArray(), infoId);
+      execute(MemoryStatements.UPDATE_ALLOCATIONS_INFO_EVENTS, allocationData.toByteArray(), trackingStartTime);
     }
   }
 
-  public void updateAllocationDump(int infoId, byte[] data) {
+  public void updateAllocationDump(long trackingStartTime, byte[] data) {
     synchronized (myDataQueryLock) {
-      execute(MemoryStatements.UPDATE_ALLOCATIONS_INFO_DUMP, data, infoId);
+      execute(MemoryStatements.UPDATE_ALLOCATIONS_INFO_DUMP, data, trackingStartTime);
     }
   }
 
   /**
-   * @return the AllocationsInfo associated with the InfoId. Null if an entry does not exist.
+   * @return the AllocationsInfo associated with the tracking start time. Null if an entry does not exist.
    */
   @Nullable
-  public AllocationsInfo getAllocationsInfo(int infoId) {
+  public AllocationsInfo getAllocationsInfo(long trackingStartTime) {
     synchronized (myDataQueryLock) {
-      ResultSet results = executeQuery(MemoryStatements.QUERY_ALLOCATION_INFO_BY_ID, infoId);
+      ResultSet results = executeQuery(MemoryStatements.QUERY_ALLOCATION_INFO_BY_ID, trackingStartTime);
       try {
         if (results.next()) {
-          return AllocationsInfo.parseFrom(results.getBytes(1));
+          byte[] bytes = results.getBytes(1);
+          if (bytes != null) {
+            return AllocationsInfo.parseFrom(bytes);
+          }
         }
       }
       catch (InvalidProtocolBufferException | SQLException ex) {
@@ -271,13 +273,13 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
   }
 
   /**
-   * @return the AllocationEventsResponse associated with the InfoId. Null if an entry does not exist.
+   * @return the AllocationEventsResponse associated with the tracking start time. Null if an entry does not exist.
    */
   @Nullable
-  public AllocationEventsResponse getAllocationData(int infoId) {
+  public AllocationEventsResponse getAllocationData(long trackingStartTime) {
     synchronized (myDataQueryLock) {
       try {
-        ResultSet resultSet = executeQuery(MemoryStatements.QUERY_ALLOCATION_EVENTS_BY_ID, infoId);
+        ResultSet resultSet = executeQuery(MemoryStatements.QUERY_ALLOCATION_EVENTS_BY_ID, trackingStartTime);
         if (resultSet.next()) {
           byte[] bytes = resultSet.getBytes(1);
           if (bytes != null) {
@@ -293,13 +295,13 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
   }
 
   /**
-   * @return the raw legacy allocation tracking byte data associated with the InfoId. Null if an entry does not exist.
+   * @return the raw legacy allocation tracking byte data associated with the tracking start time. Null if an entry does not exist.
    */
   @Nullable
-  public byte[] getAllocationDumpData(int dumpId) {
+  public byte[] getAllocationDumpData(long trackingStartTime) {
     synchronized (myDataQueryLock) {
       try {
-        ResultSet resultSet = executeQuery(MemoryStatements.QUERY_ALLOCATION_DUMP_BY_ID, dumpId);
+        ResultSet resultSet = executeQuery(MemoryStatements.QUERY_ALLOCATION_DUMP_BY_ID, trackingStartTime);
         if (resultSet.next()) {
           return resultSet.getBytes(1);
         }
