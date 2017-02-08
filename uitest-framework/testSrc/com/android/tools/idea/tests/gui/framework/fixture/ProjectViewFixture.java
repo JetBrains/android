@@ -210,7 +210,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
           return (PsiDirectoryNode)root;
         });
 
-      Wait.seconds(1).expecting("node to be selected").until(() -> GuiQuery.getNonNull(() -> {
+      Wait.seconds(3).expecting("node to be selected").until(() -> GuiQuery.getNonNull(() -> {
         DefaultMutableTreeNode selectedNode = myPane.getSelectedNode();
         return (selectedNode != null) && node.equals(selectedNode.getUserObject());
       }));
