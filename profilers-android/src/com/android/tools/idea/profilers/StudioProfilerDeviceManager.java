@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.ddmlib.*;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.idea.profilers.perfd.PerfdProxy;
@@ -41,7 +42,7 @@ import static com.android.ddmlib.IDevice.CHANGE_STATE;
  * On device connection it will spawn the performance daemon on device, and will notify the profiler system that
  * a new device has been connected. *ALL* interaction with IDevice is encapsulated in this class.
  */
-class StudioProfilerDeviceManager implements AndroidDebugBridge.IDeviceChangeListener {
+class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChangeListener, AndroidDebugBridge.IDeviceChangeListener {
 
   private static Logger getLogger() {
     return Logger.getInstance(StudioProfilerDeviceManager.class);
@@ -65,11 +66,22 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDeviceChangeLis
     // The client is referenced in the update devices callback. As such the client needs to be set before we register
     // ourself as a listener for this callback. Otherwise we may get the callback before we are fully constructed
     myClient = new ProfilerClient(DATASTORE_NAME);
+    AndroidDebugBridge.addDebugBridgeChangeListener(this);
     AndroidDebugBridge.addDeviceChangeListener(this);
   }
 
   public void dispose() {
+    AndroidDebugBridge.removeDebugBridgeChangeListener(this);
     AndroidDebugBridge.removeDeviceChangeListener(this);
+  }
+
+  @Override
+  public void bridgeChanged(@Nullable AndroidDebugBridge bridge) {
+    if (bridge != null) {
+      for (IDevice device : bridge.getDevices()) {
+        deviceConnected(device);
+      }
+    }
   }
 
   @Override
