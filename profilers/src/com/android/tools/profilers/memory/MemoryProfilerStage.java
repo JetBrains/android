@@ -274,8 +274,6 @@ public class MemoryProfilerStage extends Stage {
       return;
     }
 
-    setProfilerMode(ProfilerMode.EXPANDED);
-
     ProfilerTimeline timeline = getStudioProfilers().getTimeline();
     if (captureObject != null) {
       timeline.getSelectionRange().set(TimeUnit.NANOSECONDS.toMicros(captureObject.getStartTimeNs()),
@@ -286,6 +284,10 @@ public class MemoryProfilerStage extends Stage {
                              CaptureObject loadedCaptureObject = future.get();
                              if (loadedCaptureObject != null && loadedCaptureObject == mySelection.getCaptureObject()) {
                                myAspect.changed(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE);
+                             }
+                             else {
+                               // Capture loading failed. TODO: loading has somehow failed - we need to inform users about the error status.
+                               selectCapture(null, null);
                              }
                            }
                            catch (InterruptedException exception) {
@@ -300,9 +302,11 @@ public class MemoryProfilerStage extends Stage {
                            }
                          },
                          joiner == null ? MoreExecutors.directExecutor() : joiner);
+      setProfilerMode(ProfilerMode.EXPANDED);
     }
     else {
       timeline.getSelectionRange().clear();
+      setProfilerMode(ProfilerMode.NORMAL);
     }
   }
 

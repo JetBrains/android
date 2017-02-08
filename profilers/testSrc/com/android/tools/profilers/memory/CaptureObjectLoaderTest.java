@@ -29,6 +29,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 
+import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
 
 public class CaptureObjectLoaderTest {
@@ -42,7 +43,7 @@ public class CaptureObjectLoaderTest {
 
   @Test(expected = AssertionError.class)
   public void loadCaptureBeforeStart() throws Exception {
-    TestCaptureObject capture = new TestCaptureObject(new CountDownLatch(1), true);
+    TestCaptureObject capture = new TestCaptureObject(new CountDownLatch(1), true, false);
     myLoader.loadCapture(capture);
   }
 
@@ -52,7 +53,7 @@ public class CaptureObjectLoaderTest {
 
     CountDownLatch loadLatch = new CountDownLatch(1);
     CountDownLatch doneLatch = new CountDownLatch(1);
-    TestCaptureObject capture = new TestCaptureObject(loadLatch, true);
+    TestCaptureObject capture = new TestCaptureObject(loadLatch, true, false);
     ListenableFuture<CaptureObject> future = myLoader.loadCapture(capture);
 
     future.addListener(() -> {
@@ -84,7 +85,32 @@ public class CaptureObjectLoaderTest {
 
     CountDownLatch loadLatch = new CountDownLatch(1);
     CountDownLatch doneLatch = new CountDownLatch(1);
-    TestCaptureObject capture = new TestCaptureObject(loadLatch, false);
+    TestCaptureObject capture = new TestCaptureObject(loadLatch, false, false);
+    ListenableFuture<CaptureObject> future = myLoader.loadCapture(capture);
+
+    future.addListener(() -> {
+      try {
+        assertNull(future.get());
+      }
+      catch (InterruptedException | ExecutionException | CancellationException exception) {
+        assert false;
+      }
+      finally {
+        doneLatch.countDown();
+      }
+    }, MoreExecutors.directExecutor());
+
+    loadLatch.countDown();
+    doneLatch.await();
+  }
+
+  @Test
+  public void loadCaptureException() throws Exception {
+    myLoader.start();
+
+    CountDownLatch loadLatch = new CountDownLatch(1);
+    CountDownLatch doneLatch = new CountDownLatch(1);
+    TestCaptureObject capture = new TestCaptureObject(loadLatch, true, false);
     ListenableFuture<CaptureObject> future = myLoader.loadCapture(capture);
 
     future.addListener(() -> {
@@ -92,13 +118,10 @@ public class CaptureObjectLoaderTest {
         future.get();
         assert false;
       }
-      catch (InterruptedException exception) {
-        assert false;
-      }
       catch (ExecutionException exception) {
         // No-op - expected path.
       }
-      catch (CancellationException ignored) {
+      catch (CancellationException | InterruptedException ignored) {
         assert false;
       }
       finally {
@@ -116,7 +139,7 @@ public class CaptureObjectLoaderTest {
 
     CountDownLatch loadLatch = new CountDownLatch(1);
     CountDownLatch doneLatch = new CountDownLatch(1);
-    TestCaptureObject capture = new TestCaptureObject(loadLatch, true);
+    TestCaptureObject capture = new TestCaptureObject(loadLatch, true, false);
     ListenableFuture<CaptureObject> future = myLoader.loadCapture(capture);
 
     future.addListener(() -> {
@@ -124,14 +147,11 @@ public class CaptureObjectLoaderTest {
         future.get();
         assert false;
       }
-      catch (InterruptedException exception) {
-        assert false;
-      }
-      catch (ExecutionException exception) {
-        assert false;
-      }
       catch (CancellationException ignored) {
         // No-op - expected path.
+      }
+      catch (InterruptedException | ExecutionException exception) {
+        assert false;
       }
       finally {
         doneLatch.countDown();
@@ -144,11 +164,13 @@ public class CaptureObjectLoaderTest {
 
   private static class TestCaptureObject implements CaptureObject {
     private final CountDownLatch myLoadLatch;
-    private final boolean myLoadSuccess;
+    private final boolean myLoadSuccessful;
+    private final boolean myThrowsException;
 
-    public TestCaptureObject(@NotNull CountDownLatch loadLatch, boolean loadSuccess) {
+    public TestCaptureObject(@NotNull CountDownLatch loadLatch, boolean loadSuccessful, boolean throwsException) {
       myLoadLatch = loadLatch;
-      myLoadSuccess = loadSuccess;
+      myLoadSuccessful = loadSuccessful;
+      myThrowsException = throwsException;
     }
 
     @NotNull
@@ -181,11 +203,11 @@ public class CaptureObjectLoaderTest {
       catch (InterruptedException ignored) {
       }
 
-      if (!myLoadSuccess) {
+      if (myThrowsException) {
         throw new RuntimeException();
       }
 
-      return true;
+      return myLoadSuccessful;
     }
 
     @Override
