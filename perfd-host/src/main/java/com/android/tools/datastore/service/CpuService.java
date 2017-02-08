@@ -26,14 +26,9 @@ import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.protobuf3jarjar.ByteString;
 import io.grpc.ManagedChannel;
-import io.grpc.ServerServiceDefinition;
-import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.RunnableFuture;
 import java.util.function.Consumer;
 
 /**
@@ -118,7 +113,14 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   public void stopMonitoringApp(CpuProfiler.CpuStopRequest request, StreamObserver<CpuProfiler.CpuStopResponse> observer) {
     int processId = request.getProcessId();
     myRunners.remove(processId).stop();
-    observer.onNext(myPollingService.stopMonitoringApp(request));
+    // Our polling service can get shutdown if we unplug the device.
+    // This should be the only function that gets called as StudioProfilers attempts
+    // to stop monitoring the last app it was monitoring.
+    if (!((ManagedChannel)myPollingService.getChannel()).isShutdown()) {
+      observer.onNext(myPollingService.stopMonitoringApp(request));
+    } else {
+      observer.onNext(CpuProfiler.CpuStopResponse.getDefaultInstance());
+    }
     observer.onCompleted();
   }
 

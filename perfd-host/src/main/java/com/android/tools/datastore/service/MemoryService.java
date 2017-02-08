@@ -63,9 +63,17 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
 
   @Override
   public void stopMonitoringApp(MemoryStopRequest request, StreamObserver<MemoryStopResponse> observer) {
+
     int processId = request.getProcessId();
     myRunners.remove(processId).stop();
-    observer.onNext(myPollingService.stopMonitoringApp(request));
+    // Our polling service can get shutdown if we unplug the device.
+    // This should be the only function that gets called as StudioProfilers attempts
+    // to stop monitoring the last app it was monitoring.
+    if (!((ManagedChannel)myPollingService.getChannel()).isShutdown()) {
+      observer.onNext(myPollingService.stopMonitoringApp(request));
+    } else {
+      observer.onNext(MemoryStopResponse.getDefaultInstance());
+    }
     observer.onCompleted();
   }
 
