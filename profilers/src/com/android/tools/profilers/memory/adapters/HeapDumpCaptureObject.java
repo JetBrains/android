@@ -28,6 +28,9 @@ import com.android.tools.profilers.RelativeTimeConverter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -88,6 +91,24 @@ public final class HeapDumpCaptureObject implements CaptureObject {
   @Override
   public String getLabel() {
     return myLabel;
+  }
+
+  @Nullable
+  @Override
+  public String getExportableExtension() {
+    return "hprof";
+  }
+
+  @Override
+  public void saveToFile(@NotNull OutputStream outputStream) throws IOException {
+    DumpDataResponse response = myClient.getHeapDump(
+      DumpDataRequest.newBuilder().setProcessId(myProcessId).setSession(mySession).setDumpTime(myHeapDumpInfo.getStartTime()).build());
+    if (response.getStatus() == DumpDataResponse.Status.SUCCESS) {
+      response.getData().writeTo(outputStream);
+    }
+    else {
+      throw new IOException("Could not retrieve hprof dump.");
+    }
   }
 
   @NotNull

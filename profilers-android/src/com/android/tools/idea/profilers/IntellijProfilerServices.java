@@ -17,11 +17,23 @@ package com.android.tools.idea.profilers;
 
 import com.android.tools.profilers.IdeProfilerServices;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 
 public class IntellijProfilerServices implements IdeProfilerServices {
+  private static Logger getLogger() {
+    return Logger.getInstance(IntellijProfilerServices.class);
+  }
+
   @NotNull
   @Override
   public Executor getMainExecutor() {
@@ -32,5 +44,37 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   @Override
   public Executor getPoolExecutor() {
     return ApplicationManager.getApplication()::executeOnPooledThread;
+  }
+
+  @Override
+  public void saveFile(@NotNull File file, @NotNull Consumer<FileOutputStream> fileOutputStreamConsumer, @Nullable Runnable postRunnable) {
+    File parentDir = file.getParentFile();
+    if (!parentDir.exists()) {
+      //noinspection ResultOfMethodCallIgnored
+      parentDir.mkdirs();
+    }
+    if (!file.exists()) {
+      try {
+        if (!file.createNewFile()) {
+          getLogger().error("Could not create new file at: " + file.getPath());
+          return;
+        }
+      }
+      catch (IOException e) {
+        getLogger().error(e);
+      }
+    }
+
+    try (FileOutputStream fos = new FileOutputStream(file)) {
+      fileOutputStreamConsumer.accept(fos);
+    }
+    catch (IOException e) {
+      getLogger().error(e);
+    }
+
+    VirtualFile virtualFile = VfsUtil.findFileByIoFile(file, true);
+    if (virtualFile != null) {
+      virtualFile.refresh(true, false, postRunnable);
+    }
   }
 }

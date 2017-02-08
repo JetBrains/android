@@ -16,8 +16,12 @@
 package com.android.tools.profilers;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 
 public interface IdeProfilerServices {
   /**
@@ -31,4 +35,13 @@ public interface IdeProfilerServices {
    */
   @NotNull
   Executor getPoolExecutor();
+
+  /**
+   * Saves a file to the file system and have IDE internal state reflect this file addition.
+   *
+   * @param file                     File to save to.
+   * @param fileOutputStreamConsumer {@link Consumer} to write the file contents into the supplied {@link FileOutputStream}.
+   * @param postRunnable             A callback for when the system finally finishes writing to and synchronizing the file.
+   */
+  void saveFile(@NotNull File file, @NotNull Consumer<FileOutputStream> fileOutputStreamConsumer, @Nullable Runnable postRunnable);
 }

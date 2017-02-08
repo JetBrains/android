@@ -19,8 +19,11 @@ import com.android.tools.idea.actions.EditMultipleSourcesAction;
 import com.android.tools.idea.actions.PsiClassNavigation;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.common.*;
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.components.JBLoadingPanel;
@@ -32,6 +35,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class IntellijProfilerComponents implements IdeProfilerComponents {
@@ -161,6 +166,27 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
         contextMenuItem.run();
       }
     });
+  }
+
+  @NotNull
+  @Override
+  public JButton createExportButton(@Nullable String buttonText,
+                                    @Nullable String tooltip,
+                                    @NotNull Supplier<String> dialogTitleSupplier,
+                                    @NotNull Supplier<String> extensionSupplier,
+                                    @NotNull Consumer<File> saveToFile) {
+    JButton button = new JButton(buttonText, AllIcons.Actions.Export);
+    button.setToolTipText(tooltip);
+    button.addActionListener(e -> ApplicationManager.getApplication().invokeLater(() -> {
+      String extension = extensionSupplier.get();
+      if (extension != null) {
+        ExportDialog dialog = new ExportDialog(myProject, dialogTitleSupplier.get(), extension);
+        if (dialog.showAndGet()) {
+          saveToFile.accept(dialog.getFile());
+        }
+      }
+    }));
+    return button;
   }
 
   @NotNull
