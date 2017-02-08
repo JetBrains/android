@@ -107,8 +107,8 @@ public class HeapDumpCaptureObjectTest {
 
     InstanceObject instance0 = testHeapKlasses.get(2).getInstances().get(0);
     InstanceObject instance1 = testHeapKlasses.get(3).getInstances().get(0);
-    verifyInstance(instance0, "@1 (0x1)", 0, 1, 0);
-    verifyInstance(instance1, "@2 (0x2)", 1, 0, 1);
+    verifyInstance(instance0, "Class0@1 (0x1)", 0, 1, 0);
+    verifyInstance(instance1, "Class1@2 (0x2)", 1, 0, 1);
 
     FieldObject field0 = instance0.getFields().get(0);
     verifyField(field0, "field0", "Class1@2 (0x2)");
@@ -116,7 +116,7 @@ public class HeapDumpCaptureObjectTest {
     verifyInstance(field0, String.format(FieldObject.FIELD_DISPLAY_FORMAT, "field0", "Class1@2 (0x2)"), 1, 0, 1);
 
     ReferenceObject reference1 = instance1.getReferences().get(0);
-    verifyReference(reference1, "@1 (0x1)", Arrays.asList("field0"));
+    verifyReference(reference1, "Class0@1 (0x1)", Arrays.asList("field0"));
   }
 
   @Test

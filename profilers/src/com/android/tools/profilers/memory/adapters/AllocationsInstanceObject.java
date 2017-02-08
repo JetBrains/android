@@ -23,21 +23,21 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 
 final class AllocationsInstanceObject implements InstanceObject {
-  @NotNull static final Map<String, ValueType> ourTypeMap = ImmutableMap.<String, ValueType>builder()
-    .put("boolean", ValueType.BOOLEAN)
-    .put("byte", ValueType.BYTE)
-    .put("char", ValueType.CHAR)
-    .put("short", ValueType.SHORT)
-    .put("int", ValueType.INT)
-    .put("long", ValueType.LONG)
-    .put("float", ValueType.FLOAT)
-    .put("double", ValueType.DOUBLE)
+  @NotNull static final Map<String, ClassObject.ValueType> ourTypeMap = ImmutableMap.<String, ClassObject.ValueType>builder()
+    .put("boolean", ClassObject.ValueType.BOOLEAN)
+    .put("byte", ClassObject.ValueType.BYTE)
+    .put("char", ClassObject.ValueType.CHAR)
+    .put("short", ClassObject.ValueType.SHORT)
+    .put("int", ClassObject.ValueType.INT)
+    .put("long", ClassObject.ValueType.LONG)
+    .put("float", ClassObject.ValueType.FLOAT)
+    .put("double", ClassObject.ValueType.DOUBLE)
     .build();
 
   @NotNull private final MemoryProfiler.AllocationEvent myEvent;
   @NotNull private final AllocationsClassObject myAllocationsClassObject;
   @NotNull private final MemoryProfiler.AllocationStack myCallStack;
-  @NotNull private final ValueType myValueType;
+  @NotNull private final ClassObject.ValueType myValueType;
 
   public AllocationsInstanceObject(@NotNull MemoryProfiler.AllocationEvent event,
                                    @NotNull AllocationsClassObject allocationsClassObject,
@@ -48,11 +48,11 @@ final class AllocationsInstanceObject implements InstanceObject {
 
     String className = myAllocationsClassObject.getName();
     if (className.contains(".")) {
-      if (className.equals(STRING_NAMESPACE)) {
-        myValueType = ValueType.STRING;
+      if (className.equals(ClassObject.JAVA_LANG_STRING)) {
+        myValueType = ClassObject.ValueType.STRING;
       }
       else {
-        myValueType = ValueType.OBJECT;
+        myValueType = ClassObject.ValueType.OBJECT;
       }
     }
     else {
@@ -60,7 +60,7 @@ final class AllocationsInstanceObject implements InstanceObject {
       if (getIsArray()) {
         trimmedClassName = className.substring(0, className.length() - "[]".length());
       }
-      myValueType = ourTypeMap.getOrDefault(trimmedClassName, ValueType.OBJECT);
+      myValueType = ourTypeMap.getOrDefault(trimmedClassName, ClassObject.ValueType.OBJECT);
     }
   }
 
@@ -95,7 +95,7 @@ final class AllocationsInstanceObject implements InstanceObject {
 
   @NotNull
   @Override
-  public ValueType getValueType() {
+  public ClassObject.ValueType getValueType() {
     return myValueType;
   }
 

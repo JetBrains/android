@@ -27,7 +27,6 @@ import com.intellij.util.containers.ImmutableList;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import javax.swing.*;
 import javax.swing.tree.TreeNode;
@@ -44,9 +43,9 @@ public class MemoryInstanceViewTest {
   private static final String MOCK_CLASS_NAME = "MockClass";
 
   private static final List<InstanceObject> INSTANCE_OBJECT_LIST = Arrays.asList(
-    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance1", 2, 3, 4),
-    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance2", 5, 6, 7),
-    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance3", 8, 9, 10));
+    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance1", "string1", 2, 3, 4),
+    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance2", "string2", 5, 6, 7),
+    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance3", "string3", 8, 9, 10));
 
   private static final ClassObject MOCK_CLASS = MemoryProfilerTestBase.mockClassObject(MOCK_CLASS_NAME, 1, 2, 3, INSTANCE_OBJECT_LIST);
 
@@ -127,7 +126,7 @@ public class MemoryInstanceViewTest {
     HeapObject fieldHeap = MemoryProfilerTestBase.mockHeapObject("fieldHeap", Collections.singletonList(fieldClass));
     when(field.getClassObject()).thenReturn(fieldClass);
     when(fieldClass.getHeapObject()).thenReturn(fieldHeap);
-    InstanceObject instance = MemoryProfilerTestBase.mockInstanceObject("instanceClass", "instance", 1, 2, 3);
+    InstanceObject instance = MemoryProfilerTestBase.mockInstanceObject("instanceClass", "instance", null, 1, 2, 3);
     when(instance.getFields()).thenReturn(Collections.singletonList(field));
     ClassObject instanceClass = MemoryProfilerTestBase.mockClassObject("instanceClass", 1, 2, 3, Collections.singletonList(instance));
 
@@ -160,7 +159,7 @@ public class MemoryInstanceViewTest {
   @Test
   public void navigationTest() {
     final String testClassName = "com.Foo";
-    InstanceObject mockInstance = MemoryProfilerTestBase.mockInstanceObject(testClassName, "TestInstance", 1, 2, 3);
+    InstanceObject mockInstance = MemoryProfilerTestBase.mockInstanceObject(testClassName, "TestInstance", null, 1, 2, 3);
     ClassObject mockClass = MemoryProfilerTestBase.mockClassObject(testClassName, 4, 5, 6, Collections.singletonList(mockInstance));
     List<ClassObject> mockClassObjects = Collections.singletonList(mockClass);
     HeapObject mockHeap = MemoryProfilerTestBase.mockHeapObject("TestHeap", mockClassObjects);
@@ -201,7 +200,7 @@ public class MemoryInstanceViewTest {
     for (int i = 0; i < root.getChildCount(); i++) {
       InstanceObject instance = INSTANCE_OBJECT_LIST.get(i);
       treeInfo.verifyRendererValues(root.getChildAt(i),
-                                    new String[]{instance.getDisplayLabel()},
+                                    new String[]{instance.getDisplayLabel(), instance.getToStringText()},
                                     new String[]{Integer.toString(instance.getDepth())},
                                     new String[]{Integer.toString(instance.getShallowSize())},
                                     new String[]{Long.toString(instance.getRetainedSize())});

@@ -26,7 +26,6 @@ import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.FieldObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject.InstanceAttribute;
-import com.android.tools.profilers.memory.adapters.InstanceObject.ValueType;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
@@ -82,9 +81,7 @@ final class MemoryInstanceView extends AspectObserver {
       InstanceObject.InstanceAttribute.LABEL,
       new AttributeColumn(
         "Instance",
-        () -> new DetailColumnRenderer(value -> ((InstanceObject)value.getAdapter()).getDisplayLabel(),
-                                       value -> MemoryProfilerStageView.getInstanceObjectIcon((InstanceObject)value.getAdapter()),
-                                       SwingConstants.LEFT),
+        InstanceColumnRenderer::new,
         SwingConstants.LEFT,
         LABEL_COLUMN_WIDTH,
         SortOrder.ASCENDING,
@@ -93,7 +90,7 @@ final class MemoryInstanceView extends AspectObserver {
       InstanceObject.InstanceAttribute.DEPTH,
       new AttributeColumn(
         "Depth",
-        () -> new DetailColumnRenderer(value -> {
+        () -> new SimpleColumnRenderer(value -> {
           MemoryObject node = value.getAdapter();
           if (node instanceof InstanceObject) {
             InstanceObject instanceObject = (InstanceObject)value.getAdapter();
@@ -111,7 +108,7 @@ final class MemoryInstanceView extends AspectObserver {
       InstanceObject.InstanceAttribute.SHALLOW_SIZE,
       new AttributeColumn(
         "Shallow Size",
-        () -> new DetailColumnRenderer(value -> Integer.toString(((InstanceObject)value.getAdapter()).getShallowSize()), value -> null,
+        () -> new SimpleColumnRenderer(value -> Integer.toString(((InstanceObject)value.getAdapter()).getShallowSize()), value -> null,
                                        SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
@@ -121,7 +118,7 @@ final class MemoryInstanceView extends AspectObserver {
       InstanceObject.InstanceAttribute.RETAINED_SIZE,
       new AttributeColumn(
         "Retained Size",
-        () -> new DetailColumnRenderer(value -> {
+        () -> new SimpleColumnRenderer(value -> {
           MemoryObject node = value.getAdapter();
           return node instanceof InstanceObject ? Long.toString(((InstanceObject)value.getAdapter()).getRetainedSize()) : "";
         }, value -> null, SwingConstants.RIGHT),
@@ -233,7 +230,7 @@ final class MemoryInstanceView extends AspectObserver {
           // Anything below the top level should be FieldObjects
           assert childNode.getAdapter() instanceof FieldObject;
           FieldObject childObject = (FieldObject)childNode.getAdapter();
-          if (childObject.getValueType() == ValueType.OBJECT && childNode.getChildCount() == 0) {
+          if (childObject.getValueType() == ClassObject.ValueType.OBJECT && childNode.getChildCount() == 0) {
             populateInstanceFields(childNode);
             myTreeModel.nodeStructureChanged(childNode);
           }
