@@ -126,6 +126,14 @@ public class NlConfigurationToolbarFixture {
     return this;
   }
 
+  /**
+   * Click on the "Orientation in Editor" button
+   */
+  public NlConfigurationToolbarFixture switchOrientation() {
+    new JButtonFixture(myRobot, findToolbarButton("Orientation in Editor")).click();
+    return this;
+  }
+
   @NotNull
   private JButton findToolbarButton(@NotNull final String tooltip) {
     return waitUntilShowing(myRobot, Matchers.byTooltip(JButton.class, tooltip));
