@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.configurations.Configuration;
@@ -22,15 +23,18 @@ import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.util.NlTreeDumper;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.XmlElementFactory;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 
 import java.util.Arrays;
@@ -38,6 +42,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createSurface;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isNull;
@@ -555,6 +560,42 @@ public class NlModelTest extends LayoutTestCase {
     model.deactivate();
     model.activate();
     assertEquals(defaultTheme, configuration.getTheme());
+  }
+
+  public void testMergeTag() {
+    XmlFile parentXml = (XmlFile)myFixture.addFileToProject("res/layout/parent.xml",
+                                                            "<LinearLayout" +
+                                                            "         xmlns:android=\"http://schemas.android.com/apk/res/android\"" +
+                                                            "         android:layout_width=\"match_parent\"" +
+                                                            "         android:layout_height=\"match_parent\">" +
+                                                            " <include layout=\"@layout/merge\" />" +
+                                                            "</LinearLayout>");
+    XmlFile mergeXml = (XmlFile)myFixture.addFileToProject("res/layout/merge.xml",
+                                                  "<merge" +
+                                                  "         xmlns:android=\"http://schemas.android.com/apk/res/android\">" +
+                                                  "   <Button" +
+                                                  "     android:layout_width=\"match_parent\"" +
+                                                  "     android:layout_height=\"match_parent\" />" +
+                                                  "   <TextView" +
+                                                  "     android:layout_width=\"match_parent\"" +
+                                                  "     android:layout_height=\"match_parent\" />" +
+                                                  "</merge>");
+    NlModel model = SyncNlModel.create(createSurface(), myFixture.getProject(), myFacet, mergeXml);
+
+    XmlTag parentRoot = parentXml.getRootTag();
+    TagSnapshot parentRootSnapshot = TagSnapshot.createTagSnapshot(parentRoot, null);
+
+    XmlTag mergeRoot = mergeXml.getRootTag();
+    ImmutableList<ViewInfo> list = ImmutableList.of(
+      new ViewInfo("android.widget.Button", new MergeCookie(parentRootSnapshot), 0, 0, 50, 50),
+      new ViewInfo("android.widget.TextView", new MergeCookie(parentRootSnapshot), 0, 50, 50, 100));
+
+    model.updateHierarchy(mergeRoot, list);
+    NlComponent rootComponent = model.getComponents().get(0);
+    assertNotNull(rootComponent);
+    assertEquals(2, rootComponent.getChildCount());
+    assertNull(rootComponent.getChild(0).viewInfo);
+    assertNull(rootComponent.getChild(1).viewInfo);
   }
 
   @Override
