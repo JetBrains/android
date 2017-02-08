@@ -34,13 +34,13 @@ public class SceneDisplayListTest6 extends SceneTest {
     return model("constraint.xml",
                  component(CONSTRAINT_LAYOUT)
                    .id("@+id/content_main")
-                   .withBounds(0, 0, 1000, 1000)
+                   .withBounds(0, 0, 2000, 2000)
                    .width("1000dp")
                    .height("1000dp")
                    .children(
                      component(TEXT_VIEW)
                        .id("@+id/textview")
-                       .withBounds(450, 490, 100, 20)
+                       .withBounds(900, 980, 200, 40)
                        .width("100dp")
                        .height("20dp")
                        .withAttribute("app:layout_constraintLeft_toLeftOf", "@id/content_main")
@@ -76,7 +76,7 @@ public class SceneDisplayListTest6 extends SceneTest {
     DisplayList disp = DisplayList.getDisplayList(simpleList);
     assertEquals(simpleList, DisplayList.getDisplayList(simpleList).serialize());
     //noinspection UndesirableClassUsage
-    BufferedImage img = new BufferedImage(1000, 1000,BufferedImage.TYPE_INT_ARGB);
+    BufferedImage img = new BufferedImage(2000, 2000,BufferedImage.TYPE_INT_ARGB);
     disp.paint(img.createGraphics(), SceneContext.get());
     assertEquals(10, disp.getCommands().size());
     String result = disp.generateSortedDisplayList(SceneContext.get());

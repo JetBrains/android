@@ -498,9 +498,9 @@ public class InteractionManager {
 
       if (component == null) {
         // Clicked component resize handle?
-        int mx = Coordinates.getAndroidX(sceneView, x);
-        int my = Coordinates.getAndroidY(sceneView, y);
-        int max = Coordinates.getAndroidDimension(sceneView, PIXEL_RADIUS + PIXEL_MARGIN);
+        @AndroidDpCoordinate int mx = Coordinates.getAndroidXDip(sceneView, x);
+        @AndroidDpCoordinate int my = Coordinates.getAndroidYDip(sceneView, y);
+        @AndroidDpCoordinate int max = Coordinates.getAndroidDimensionDip(sceneView, PIXEL_RADIUS + PIXEL_MARGIN);
         SelectionHandle handle = selectionModel.findHandle(mx, my, max);
         if (handle != null) {
           component = handle.component;
@@ -580,9 +580,9 @@ public class InteractionManager {
 
         Interaction interaction;
         // Dragging on top of a selection handle: start a resize operation
-        int max = Coordinates.getAndroidDimension(sceneView, PIXEL_RADIUS + PIXEL_MARGIN);
+        @AndroidDpCoordinate int max = Coordinates.getAndroidDimensionDip(sceneView, PIXEL_RADIUS + PIXEL_MARGIN);
         SelectionHandle handle =
-          selectionModel.findHandle(Coordinates.getAndroidX(sceneView, x), Coordinates.getAndroidY(sceneView, y), max);
+          selectionModel.findHandle(Coordinates.getAndroidXDip(sceneView, x), Coordinates.getAndroidYDip(sceneView, y), max);
         if (handle != null) {
           interaction = new ResizeInteraction(sceneView, scene.getSceneComponent(handle.component), handle);
         }
