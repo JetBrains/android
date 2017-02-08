@@ -86,7 +86,6 @@ public class WizardConstants {
   public static final Key<Boolean> IS_NEW_PROJECT_KEY = createKey(ATTR_IS_NEW_PROJECT, WIZARD, Boolean.class);
   public static final Key<Boolean> THEME_EXISTS_KEY = createKey(ATTR_THEME_EXISTS, WIZARD, Boolean.class);
   public static final Key<String> KEY_SDK_INSTALL_LOCATION = createKey("download.sdk.location", WIZARD, String.class);
-  public static final Key<String> MAVEN_URL_KEY = createKey(ATTR_MAVEN_URL, WIZARD, String.class);
   public static final Key<String> PACKAGE_NAME_KEY = createKey(ATTR_PACKAGE_NAME, WIZARD, String.class);
   public static final Key<String> MANIFEST_PACKAGE_NAME_KEY = createKey(ATTR_MANIFEST_PACKAGE_NAME, WIZARD, String.class);
   public static final Key<String> PROJECT_LOCATION_KEY = createKey(ATTR_TOP_OUT, WIZARD, String.class);
@@ -120,7 +119,6 @@ public class WizardConstants {
 
   @SuppressWarnings("unchecked") public static final Key<Collection<File>> TARGET_FILES_KEY =
     createKey("target.files", WIZARD, (Class<Collection<File>>)(Object)Collection.class);
-  public static final Key<Boolean> USE_PER_MODULE_REPOS_KEY = createKey(ATTR_PER_MODULE_REPOS, WIZARD, Boolean.class);
 
   // Patterns
   /**

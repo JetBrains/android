@@ -15,21 +15,16 @@
  */
 package com.android.tools.idea.npw.deprecated;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.npw.NewModuleWizardDynamic;
-import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
 
 /**
  * {@linkplain ImportModuleWizard} guides the user through adding a new module to an existing project. It has a template-based flow and as the
@@ -56,16 +51,8 @@ public class ImportModuleWizard extends TemplateWizard {
 
   @Override
   protected void init() {
-    boolean haveGlobalRepository = false;
-    VirtualFile buildGradle = myProject.getBaseDir().findChild(FN_BUILD_GRADLE);
-    if (buildGradle != null) {
-      String contents = TemplateUtils.readTextFromDocument(myProject, buildGradle);
-      if (contents != null) {
-        haveGlobalRepository = contents.contains("repositories") && contents.contains(SdkConstants.GRADLE_PLUGIN_NAME);
-      }
-    }
     myModuleBuilder = getModuleBuilder();
-    myModuleBuilder.setupModuleBuilder(haveGlobalRepository);
+    myModuleBuilder.setupModuleBuilder();
     super.init();
   }
 

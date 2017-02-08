@@ -143,11 +143,9 @@ public class ImportWizardModuleBuilder
     return true;
   }
 
-  public void setupModuleBuilder(boolean haveGlobalRepository) {
+  public void setupModuleBuilder() {
     // Hide the library checkbox
     myWizardState.myHidden.add(ATTR_IS_LIBRARY_MODULE);
-
-    myWizardState.put(ATTR_PER_MODULE_REPOS, !haveGlobalRepository);
   }
 
   @Override
