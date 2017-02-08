@@ -1223,36 +1223,29 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       Object cookie = view.getCookie();
       NlComponent component = null;
       if (cookie != null) {
-        if (cookie instanceof MergeCookie) {
-          cookie = ((MergeCookie)cookie).getCookie();
-        }
         if (cookie instanceof TagSnapshot) {
           TagSnapshot snapshot = (TagSnapshot)cookie;
           component = mySnapshotToComponent.get(snapshot);
           if (component == null) {
             component = myTagToComponentMap.get(snapshot.tag);
-            if (component != null) {
-              component.setSnapshot(snapshot);
-              assert snapshot.tag != null;
-              component.setTag(snapshot.tag);
-            }
           }
-          else {
+
+          if (component != null) {
             component.setSnapshot(snapshot);
             assert snapshot.tag != null;
             component.setTag(snapshot.tag);
           }
         }
-      }
 
-      if (component != null) {
-        component.viewInfo = view;
-        int left = parentX + bounds.getLeft();
-        int top = parentY + bounds.getTop();
-        int width = bounds.getRight() - bounds.getLeft();
-        int height = bounds.getBottom() - bounds.getTop();
+        if (component != null) {
+          component.viewInfo = view;
+          int left = parentX + bounds.getLeft();
+          int top = parentY + bounds.getTop();
+          int width = bounds.getRight() - bounds.getLeft();
+          int height = bounds.getBottom() - bounds.getTop();
 
-        component.setBounds(left, top, Math.max(width, VISUAL_EMPTY_COMPONENT_SIZE), Math.max(height, VISUAL_EMPTY_COMPONENT_SIZE));
+          component.setBounds(left, top, Math.max(width, VISUAL_EMPTY_COMPONENT_SIZE), Math.max(height, VISUAL_EMPTY_COMPONENT_SIZE));
+        }
       }
 
       parentX += bounds.getLeft();
