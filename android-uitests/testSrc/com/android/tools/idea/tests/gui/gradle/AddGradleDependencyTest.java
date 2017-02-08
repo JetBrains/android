@@ -226,8 +226,10 @@ public class AddGradleDependencyTest {
 
     editor.moveBetween("@Not", "Null ");
     editor.invokeQuickfixAction("Add 'annotations-java5' to classpath");
-
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+
+    editor.moveBetween("@Not", "Null ");
+    editor.invokeQuickfixAction("Import class", false); // It shows the import class popup instead of the bulb icon
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
     GradleBuildModelFixture appBuildModel = guiTest.ideFrame().parseBuildFileForModule("app");
