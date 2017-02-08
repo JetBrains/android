@@ -32,6 +32,9 @@ import static org.junit.Assert.*;
 
 public class MemoryTableTest {
 
+  private static final int VALID_PID = 1;
+  private static final int INVALID_PID = -1;
+
   private File myDbFile;
   private MemoryTable myTable;
   private DataStoreDatabase myDatabase;
@@ -72,124 +75,112 @@ public class MemoryTableTest {
       AllocationsInfo.newBuilder().setStartTime(6).setEndTime(DurationData.UNSPECIFIED_DURATION).build();
     AllocationsInfo finishedAllocSample = AllocationsInfo.newBuilder().setStartTime(7).setEndTime(8).build();
 
-    myTable.insertMemory(Collections.singletonList(memSample));
-    myTable.insertVmStats(Collections.singletonList(vmStatsSample));
-    myTable.insertOrReplaceHeapInfo(finishedHeapSample);
-    myTable.insertOrReplaceHeapInfo(ongoingHeapSample);
-    myTable.insertOrReplaceAllocationsInfo(ongoingAllocSample);
-    myTable.insertOrReplaceAllocationsInfo(finishedAllocSample);
+    myTable.insertMemory(VALID_PID, Collections.singletonList(memSample));
+    myTable.insertVmStats(VALID_PID, Collections.singletonList(vmStatsSample));
+    myTable.insertOrReplaceHeapInfo(VALID_PID, finishedHeapSample);
+    myTable.insertOrReplaceHeapInfo(VALID_PID, ongoingHeapSample);
+    myTable.insertOrReplaceAllocationsInfo(VALID_PID, ongoingAllocSample);
+    myTable.insertOrReplaceAllocationsInfo(VALID_PID, finishedAllocSample);
 
     // Perform a sequence of queries to ensure we are getting startTime-exclusive and endTime-inclusive data.
-    MemoryData result = myTable.getData(MemoryRequest.newBuilder().setStartTime(-1).setEndTime(0).build());
+    MemoryData result = myTable.getData(MemoryRequest.newBuilder().setProcessId(VALID_PID).setStartTime(-1).setEndTime(0).build());
     verifyMemoryDataResultCounts(result, 0, 0, 0, 0);
 
-    result = myTable.getData(MemoryRequest.newBuilder().setStartTime(0).setEndTime(1).build());
+    result = myTable.getData(MemoryRequest.newBuilder().setProcessId(VALID_PID).setStartTime(0).setEndTime(1).build());
     verifyMemoryDataResultCounts(result, 1, 0, 0, 0);
     assertEquals(memSample, result.getMemSamples(0));
 
-    result = myTable.getData(MemoryRequest.newBuilder().setStartTime(1).setEndTime(2).build());
+    result = myTable.getData(MemoryRequest.newBuilder().setProcessId(VALID_PID).setStartTime(1).setEndTime(2).build());
     verifyMemoryDataResultCounts(result, 0, 1, 0, 0);
     assertEquals(vmStatsSample, result.getVmStatsSamples(0));
 
-    result = myTable.getData(MemoryRequest.newBuilder().setStartTime(2).setEndTime(3).build());
+    result = myTable.getData(MemoryRequest.newBuilder().setProcessId(VALID_PID).setStartTime(2).setEndTime(3).build());
     verifyMemoryDataResultCounts(result, 0, 0, 1, 0);
     assertEquals(ongoingHeapSample, result.getHeapDumpInfos(0));
 
-    result = myTable.getData(MemoryRequest.newBuilder().setStartTime(3).setEndTime(4).build());
+    result = myTable.getData(MemoryRequest.newBuilder().setProcessId(VALID_PID).setStartTime(3).setEndTime(4).build());
     verifyMemoryDataResultCounts(result, 0, 0, 2, 0);
     assertTrue(result.getHeapDumpInfosList().contains(ongoingHeapSample));
     assertTrue(result.getHeapDumpInfosList().contains(finishedHeapSample));
 
-    result = myTable.getData(MemoryRequest.newBuilder().setStartTime(4).setEndTime(5).build());
+    result = myTable.getData(MemoryRequest.newBuilder().setProcessId(VALID_PID).setStartTime(4).setEndTime(5).build());
     verifyMemoryDataResultCounts(result, 0, 0, 2, 0);
     assertTrue(result.getHeapDumpInfosList().contains(ongoingHeapSample));
     assertTrue(result.getHeapDumpInfosList().contains(finishedHeapSample));
 
-    result = myTable.getData(MemoryRequest.newBuilder().setStartTime(5).setEndTime(6).build());
+    result = myTable.getData(MemoryRequest.newBuilder().setProcessId(VALID_PID).setStartTime(5).setEndTime(6).build());
     verifyMemoryDataResultCounts(result, 0, 0, 1, 1);
     assertEquals(ongoingHeapSample, result.getHeapDumpInfos(0));
     assertEquals(ongoingAllocSample, result.getAllocationsInfo(0));
 
-    result = myTable.getData(MemoryRequest.newBuilder().setStartTime(6).setEndTime(7).build());
+    result = myTable.getData(MemoryRequest.newBuilder().setProcessId(VALID_PID).setStartTime(6).setEndTime(7).build());
     verifyMemoryDataResultCounts(result, 0, 0, 1, 2);
     assertEquals(ongoingHeapSample, result.getHeapDumpInfos(0));
     assertTrue(result.getAllocationsInfoList().contains(ongoingAllocSample));
     assertTrue(result.getAllocationsInfoList().contains(finishedAllocSample));
 
-    result = myTable.getData(MemoryRequest.newBuilder().setStartTime(7).setEndTime(8).build());
+    result = myTable.getData(MemoryRequest.newBuilder().setProcessId(VALID_PID).setStartTime(7).setEndTime(8).build());
     verifyMemoryDataResultCounts(result, 0, 0, 1, 2);
     assertEquals(ongoingHeapSample, result.getHeapDumpInfos(0));
     assertTrue(result.getAllocationsInfoList().contains(ongoingAllocSample));
     assertTrue(result.getAllocationsInfoList().contains(finishedAllocSample));
 
-    result = myTable.getData(MemoryRequest.newBuilder().setStartTime(8).setEndTime(9).build());
+    result = myTable.getData(MemoryRequest.newBuilder().setProcessId(VALID_PID).setStartTime(8).setEndTime(9).build());
     verifyMemoryDataResultCounts(result, 0, 0, 1, 1);
     assertEquals(ongoingHeapSample, result.getHeapDumpInfos(0));
     assertEquals(ongoingAllocSample, result.getAllocationsInfo(0));
+
+    // Test that querying for the invalid app id returns no data
+    result = myTable.getData(MemoryRequest.newBuilder().setProcessId(INVALID_PID).setStartTime(0).setEndTime(9).build());
+    verifyMemoryDataResultCounts(result, 0, 0, 0, 0);
   }
 
   @Test
   public void testHeapDumpQueriesAfterInsertion() throws Exception {
     HeapDumpInfo sample = HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(0).build();
-    myTable.insertOrReplaceHeapInfo(sample);
+    myTable.insertOrReplaceHeapInfo(VALID_PID, sample);
 
     // Test that Status is set to NOT_READY and dump data is null
-    assertEquals(DumpDataResponse.Status.NOT_READY, myTable.getHeapDumpStatus(sample.getStartTime()));
-    assertNull(myTable.getHeapDumpData(sample.getStartTime()));
+    assertEquals(DumpDataResponse.Status.NOT_READY, myTable.getHeapDumpStatus(VALID_PID, sample.getStartTime()));
+    assertNull(myTable.getHeapDumpData(VALID_PID, sample.getStartTime()));
 
     // Update the HeapInfo with status and data and test that they returned correctly
     byte[] rawBytes = new byte[]{'a', 'b', 'c'};
-    myTable.insertHeapDumpData(sample.getStartTime(), DumpDataResponse.Status.SUCCESS, ByteString.copyFrom(rawBytes));
+    myTable.insertHeapDumpData(VALID_PID, sample.getStartTime(), DumpDataResponse.Status.SUCCESS, ByteString.copyFrom(rawBytes));
 
-    assertEquals(DumpDataResponse.Status.SUCCESS, myTable.getHeapDumpStatus(sample.getStartTime()));
-    assertTrue(Arrays.equals(rawBytes, myTable.getHeapDumpData(sample.getStartTime())));
-  }
+    assertEquals(DumpDataResponse.Status.SUCCESS, myTable.getHeapDumpStatus(VALID_PID, sample.getStartTime()));
+    assertTrue(Arrays.equals(rawBytes, myTable.getHeapDumpData(VALID_PID, sample.getStartTime())));
 
-  @Test
-  public void testHeapDumpStatusNotFound() throws Exception {
-    assertEquals(DumpDataResponse.Status.NOT_FOUND, myTable.getHeapDumpStatus(1));
-  }
-
-  @Test
-  public void testHeapDumpDataNotFound() throws Exception {
-    assertNull(myTable.getHeapDumpData(1));
+    // Test that querying for the invalid app id returns NOT FOUND
+    assertEquals(DumpDataResponse.Status.NOT_FOUND, myTable.getHeapDumpStatus(INVALID_PID, sample.getStartTime()));
+    assertNull(myTable.getHeapDumpData(INVALID_PID, sample.getStartTime()));
   }
 
   @Test
   public void testAllocationsQueriesAfterInsertion() throws Exception {
     AllocationsInfo sample = AllocationsInfo.newBuilder().setStartTime(1).setEndTime(2).build();
-    myTable.insertOrReplaceAllocationsInfo(sample);
+    myTable.insertOrReplaceAllocationsInfo(VALID_PID, sample);
 
     // Tests that the info has been inserted into table, but the event response + dump data are still null
-    assertEquals(sample, myTable.getAllocationsInfo(sample.getStartTime()));
-    assertNull(myTable.getAllocationData(sample.getStartTime()));
-    assertNull(myTable.getAllocationDumpData(sample.getStartTime()));
+    assertEquals(sample, myTable.getAllocationsInfo(VALID_PID, sample.getStartTime()));
+    assertNull(myTable.getAllocationData(VALID_PID, sample.getStartTime()));
+    assertNull(myTable.getAllocationDumpData(VALID_PID, sample.getStartTime()));
 
     byte[] stackBytes = new byte[]{'a', 'b', 'c'};
     AllocationEventsResponse events = AllocationEventsResponse.newBuilder()
       .addEvents(AllocationEvent.newBuilder().setAllocatedClassId(1).setAllocationStackId(ByteString.copyFrom(stackBytes)))
       .addEvents(AllocationEvent.newBuilder().setAllocatedClassId(2).setAllocationStackId(ByteString.copyFrom(stackBytes))).build();
-    myTable.updateAllocationEvents(sample.getStartTime(), events);
-    assertEquals(events, myTable.getAllocationData(sample.getStartTime()));
+    myTable.updateAllocationEvents(VALID_PID, sample.getStartTime(), events);
+    assertEquals(events, myTable.getAllocationData(VALID_PID, sample.getStartTime()));
 
     byte[] rawBytes = new byte[]{'d', 'e', 'f'};
-    myTable.updateAllocationDump(sample.getStartTime(), rawBytes);
-    assertTrue(Arrays.equals(rawBytes, myTable.getAllocationDumpData(sample.getStartTime())));
-  }
+    myTable.updateAllocationDump(VALID_PID, sample.getStartTime(), rawBytes);
+    assertTrue(Arrays.equals(rawBytes, myTable.getAllocationDumpData(VALID_PID, sample.getStartTime())));
 
-  @Test
-  public void testAllocationsInfoNotFound() throws Exception {
-    assertNull(myTable.getAllocationsInfo(1));
-  }
-
-  @Test
-  public void testAllocationDataNotFound() throws Exception {
-    assertNull(myTable.getAllocationData(1));
-  }
-
-  @Test
-  public void testAllocationDumpNotFound() throws Exception {
-    assertNull(myTable.getAllocationDumpData(1));
+    // Test that querying for the invalid app id returns null
+    assertNull(myTable.getAllocationsInfo(INVALID_PID, sample.getStartTime()));
+    assertNull(myTable.getAllocationData(INVALID_PID, sample.getStartTime()));
+    assertNull(myTable.getAllocationDumpData(INVALID_PID, sample.getStartTime()));
   }
 
   @Test
