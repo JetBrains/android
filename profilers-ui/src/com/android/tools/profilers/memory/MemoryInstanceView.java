@@ -97,7 +97,7 @@ final class MemoryInstanceView extends AspectObserver {
           MemoryObject node = value.getAdapter();
           if (node instanceof InstanceObject) {
             InstanceObject instanceObject = (InstanceObject)value.getAdapter();
-            if (instanceObject.getDepth() >= 0) {
+            if (instanceObject.getDepth() >= 0 && instanceObject.getDepth() < Integer.MAX_VALUE) {
               return Integer.toString(instanceObject.getDepth());
             }
           }
