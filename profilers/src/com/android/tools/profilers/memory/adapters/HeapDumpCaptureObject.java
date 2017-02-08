@@ -25,7 +25,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profilers.RelativeTimeConverter;
-import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -101,11 +100,6 @@ public final class HeapDumpCaptureObject implements CaptureObject {
     return snapshot.getHeaps().stream().map(HeapDumpHeapObject::new).collect(Collectors.toList());
   }
 
-  @VisibleForTesting
-  public int getDumpId() {
-    return myHeapDumpInfo.getDumpId();
-  }
-
   @Override
   public long getStartTimeNs() {
     return myHeapDumpInfo.getStartTime();
@@ -124,7 +118,7 @@ public final class HeapDumpCaptureObject implements CaptureObject {
       response = myClient.getHeapDump(DumpDataRequest.newBuilder()
                                         .setProcessId(myProcessId)
                                         .setSession(mySession)
-                                        .setDumpId(myHeapDumpInfo.getDumpId()).build());
+                                        .setDumpTime(myHeapDumpInfo.getStartTime()).build());
       if (response.getStatus() == DumpDataResponse.Status.SUCCESS) {
         break;
       }

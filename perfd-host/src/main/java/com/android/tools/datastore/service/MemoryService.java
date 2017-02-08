@@ -87,10 +87,10 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   public void getHeapDump(DumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
     DumpDataResponse.Builder responseBuilder = DumpDataResponse.newBuilder();
 
-    DumpDataResponse.Status status = myMemoryTable.getHeapDumpStatus(request.getDumpId());
+    DumpDataResponse.Status status = myMemoryTable.getHeapDumpStatus(request.getDumpTime());
     switch (status) {
       case SUCCESS:
-        byte[] data = myMemoryTable.getHeapDumpData(request.getDumpId());
+        byte[] data = myMemoryTable.getHeapDumpData(request.getDumpTime());
         responseBuilder.setData(ByteString.copyFrom(data));
       case NOT_READY:
       case FAILURE_UNKNOWN:
@@ -142,7 +142,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   public void getAllocationDump(DumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
     DumpDataResponse.Builder responseBuilder = DumpDataResponse.newBuilder();
 
-    AllocationsInfo response = myMemoryTable.getAllocationsInfo(request.getDumpId());
+    AllocationsInfo response = myMemoryTable.getAllocationsInfo(request.getDumpTime());
     if (response == null) {
       responseBuilder.setStatus(DumpDataResponse.Status.NOT_FOUND);
     }
@@ -150,7 +150,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       responseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
     }
     else {
-      byte[] data = myMemoryTable.getAllocationDumpData(request.getDumpId());
+      byte[] data = myMemoryTable.getAllocationDumpData(request.getDumpTime());
       if (data == null) {
         responseBuilder.setStatus(DumpDataResponse.Status.NOT_READY);
       }
@@ -168,7 +168,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
                                   StreamObserver<AllocationEventsResponse> responseObserver) {
     AllocationEventsResponse.Builder builder = AllocationEventsResponse.newBuilder();
 
-    AllocationsInfo response = myMemoryTable.getAllocationsInfo(request.getInfoId());
+    AllocationsInfo response = myMemoryTable.getAllocationsInfo(request.getStartTime());
     if (response == null) {
       builder.setStatus(AllocationEventsResponse.Status.NOT_FOUND);
     }
@@ -176,7 +176,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       builder.setStatus(AllocationEventsResponse.Status.FAILURE_UNKNOWN);
     }
     else {
-      AllocationEventsResponse events = myMemoryTable.getAllocationData(request.getInfoId());
+      AllocationEventsResponse events = myMemoryTable.getAllocationData(request.getStartTime());
       if (events == null) {
         builder.setStatus(AllocationEventsResponse.Status.NOT_READY);
       }

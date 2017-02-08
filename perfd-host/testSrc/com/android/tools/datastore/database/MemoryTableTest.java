@@ -66,11 +66,11 @@ public class MemoryTableTest {
     MemoryData.MemorySample memSample = MemoryData.MemorySample.newBuilder().setTimestamp(1).build();
     MemoryData.VmStatsSample vmStatsSample = MemoryData.VmStatsSample.newBuilder().setTimestamp(2).build();
     HeapDumpInfo ongoingHeapSample =
-      HeapDumpInfo.newBuilder().setDumpId(0).setStartTime(3).setEndTime(DurationData.UNSPECIFIED_DURATION).build();
-    HeapDumpInfo finishedHeapSample = HeapDumpInfo.newBuilder().setDumpId(1).setStartTime(4).setEndTime(5).build();
+      HeapDumpInfo.newBuilder().setStartTime(3).setEndTime(DurationData.UNSPECIFIED_DURATION).build();
+    HeapDumpInfo finishedHeapSample = HeapDumpInfo.newBuilder().setStartTime(4).setEndTime(5).build();
     AllocationsInfo ongoingAllocSample =
-      AllocationsInfo.newBuilder().setInfoId(0).setStartTime(6).setEndTime(DurationData.UNSPECIFIED_DURATION).build();
-    AllocationsInfo finishedAllocSample = AllocationsInfo.newBuilder().setInfoId(1).setStartTime(7).setEndTime(8).build();
+      AllocationsInfo.newBuilder().setStartTime(6).setEndTime(DurationData.UNSPECIFIED_DURATION).build();
+    AllocationsInfo finishedAllocSample = AllocationsInfo.newBuilder().setStartTime(7).setEndTime(8).build();
 
     myTable.insertMemory(Collections.singletonList(memSample));
     myTable.insertVmStats(Collections.singletonList(vmStatsSample));
@@ -130,19 +130,19 @@ public class MemoryTableTest {
 
   @Test
   public void testHeapDumpQueriesAfterInsertion() throws Exception {
-    HeapDumpInfo sample = HeapDumpInfo.newBuilder().setDumpId(1).setStartTime(0).setEndTime(0).build();
+    HeapDumpInfo sample = HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(0).build();
     myTable.insertOrReplaceHeapInfo(sample);
 
     // Test that Status is set to NOT_READY and dump data is null
-    assertEquals(DumpDataResponse.Status.NOT_READY, myTable.getHeapDumpStatus(sample.getDumpId()));
-    assertNull(myTable.getHeapDumpData(sample.getDumpId()));
+    assertEquals(DumpDataResponse.Status.NOT_READY, myTable.getHeapDumpStatus(sample.getStartTime()));
+    assertNull(myTable.getHeapDumpData(sample.getStartTime()));
 
     // Update the HeapInfo with status and data and test that they returned correctly
     byte[] rawBytes = new byte[]{'a', 'b', 'c'};
-    myTable.insertHeapDumpData(sample.getDumpId(), DumpDataResponse.Status.SUCCESS, ByteString.copyFrom(rawBytes));
+    myTable.insertHeapDumpData(sample.getStartTime(), DumpDataResponse.Status.SUCCESS, ByteString.copyFrom(rawBytes));
 
-    assertEquals(DumpDataResponse.Status.SUCCESS, myTable.getHeapDumpStatus(sample.getDumpId()));
-    assertTrue(Arrays.equals(rawBytes, myTable.getHeapDumpData(sample.getDumpId())));
+    assertEquals(DumpDataResponse.Status.SUCCESS, myTable.getHeapDumpStatus(sample.getStartTime()));
+    assertTrue(Arrays.equals(rawBytes, myTable.getHeapDumpData(sample.getStartTime())));
   }
 
   @Test
@@ -157,24 +157,24 @@ public class MemoryTableTest {
 
   @Test
   public void testAllocationsQueriesAfterInsertion() throws Exception {
-    AllocationsInfo sample = AllocationsInfo.newBuilder().setInfoId(1).setStartTime(0).setEndTime(0).build();
+    AllocationsInfo sample = AllocationsInfo.newBuilder().setStartTime(1).setEndTime(2).build();
     myTable.insertOrReplaceAllocationsInfo(sample);
 
     // Tests that the info has been inserted into table, but the event response + dump data are still null
-    assertEquals(sample, myTable.getAllocationsInfo(sample.getInfoId()));
-    assertNull(myTable.getAllocationData(sample.getInfoId()));
-    assertNull(myTable.getAllocationDumpData(sample.getInfoId()));
+    assertEquals(sample, myTable.getAllocationsInfo(sample.getStartTime()));
+    assertNull(myTable.getAllocationData(sample.getStartTime()));
+    assertNull(myTable.getAllocationDumpData(sample.getStartTime()));
 
     byte[] stackBytes = new byte[]{'a', 'b', 'c'};
     AllocationEventsResponse events = AllocationEventsResponse.newBuilder()
       .addEvents(AllocationEvent.newBuilder().setAllocatedClassId(1).setAllocationStackId(ByteString.copyFrom(stackBytes)))
       .addEvents(AllocationEvent.newBuilder().setAllocatedClassId(2).setAllocationStackId(ByteString.copyFrom(stackBytes))).build();
-    myTable.updateAllocationEvents(sample.getInfoId(), events);
-    assertEquals(events, myTable.getAllocationData(sample.getInfoId()));
+    myTable.updateAllocationEvents(sample.getStartTime(), events);
+    assertEquals(events, myTable.getAllocationData(sample.getStartTime()));
 
     byte[] rawBytes = new byte[]{'d', 'e', 'f'};
-    myTable.updateAllocationDump(sample.getInfoId(), rawBytes);
-    assertTrue(Arrays.equals(rawBytes, myTable.getAllocationDumpData(sample.getInfoId())));
+    myTable.updateAllocationDump(sample.getStartTime(), rawBytes);
+    assertTrue(Arrays.equals(rawBytes, myTable.getAllocationDumpData(sample.getStartTime())));
   }
 
   @Test

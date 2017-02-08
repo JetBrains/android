@@ -209,7 +209,7 @@ public class MemoryProfilerStage extends Stage {
     long timeNs = TimeUnit.MICROSECONDS.toNanos((long)getStudioProfilers().getTimeline().getDataRange().getMax()) +
                   TimeUnit.SECONDS.toNanos(TIMELINE_BUFFER);
     TrackAllocationsResponse response = myClient.trackAllocations(
-      MemoryProfiler.TrackAllocationsRequest.newBuilder().setTimestamp(timeNs).setSession(mySessionData).setProcessId(myProcessId)
+      MemoryProfiler.TrackAllocationsRequest.newBuilder().setRequestTime(timeNs).setSession(mySessionData).setProcessId(myProcessId)
         .setEnabled(enabled).build());
     switch (response.getStatus()) {
       case SUCCESS:

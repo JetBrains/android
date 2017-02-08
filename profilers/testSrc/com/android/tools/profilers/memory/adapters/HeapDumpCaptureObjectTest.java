@@ -18,8 +18,8 @@ package com.android.tools.profilers.memory.adapters;
 import com.android.tools.perflib.heap.SnapshotBuilder;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.ProfilersTestData;
+import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
@@ -49,16 +49,15 @@ public class HeapDumpCaptureObjectTest {
   @Test
   public void testHeapDumpObjectsGeneration() throws Exception {
     int appId = -1;
-    int dumpId = 1;
     long startTimeNs = 3;
     long endTimeNs = 8;
     MemoryProfiler.HeapDumpInfo dumpInfo =
-      MemoryProfiler.HeapDumpInfo.newBuilder().setDumpId(dumpId).setStartTime(startTimeNs).setEndTime(endTimeNs).build();
-    HeapDumpCaptureObject capture = new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, appId,
-                                                              dumpInfo, null, myRelativeTimeConverter);
+      MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
+    HeapDumpCaptureObject capture =
+      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, appId,
+                                dumpInfo, null, myRelativeTimeConverter);
 
     // Verify values associated with the HeapDumpInfo object.
-    assertEquals(dumpId, capture.getDumpId());
     assertEquals(startTimeNs, capture.getStartTimeNs());
     assertEquals(endTimeNs, capture.getEndTimeNs());
     assertFalse(capture.isDoneLoading());
@@ -120,7 +119,7 @@ public class HeapDumpCaptureObjectTest {
 
   @Test
   public void testLoadingFailure() throws Exception {
-    MemoryProfiler.HeapDumpInfo dumpInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setDumpId(1).setStartTime(3).setEndTime(8).build();
+    MemoryProfiler.HeapDumpInfo dumpInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(3).setEndTime(8).build();
     HeapDumpCaptureObject capture =
       new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, -1, dumpInfo, null,
                                 myRelativeTimeConverter);
@@ -138,8 +137,8 @@ public class HeapDumpCaptureObjectTest {
 
   @Test
   public void testEquality() throws Exception {
-    MemoryProfiler.HeapDumpInfo dumpInfo1 = MemoryProfiler.HeapDumpInfo.newBuilder().setDumpId(1).setStartTime(3).setEndTime(8).build();
-    MemoryProfiler.HeapDumpInfo dumpInfo2 = MemoryProfiler.HeapDumpInfo.newBuilder().setDumpId(2).setStartTime(9).setEndTime(13).build();
+    MemoryProfiler.HeapDumpInfo dumpInfo1 = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(3).setEndTime(8).build();
+    MemoryProfiler.HeapDumpInfo dumpInfo2 = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(9).setEndTime(13).build();
 
     HeapDumpCaptureObject capture =
       new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, -1, dumpInfo1, null,
