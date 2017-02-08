@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync;
+package com.android.tools.idea.gradle.project.sync.ng;
 
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.intellij.mock.MockProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -65,7 +67,7 @@ public class SyncResultHandlerTest extends IdeaTestCase {
     verify(mySyncState, never()).syncFailed(any());
 
     verify(projectSetup).setUpProject(same(models), any());
-    verify(projectSetup).commit(true);
+    verify(projectSetup).commit();
 
     verify(mySyncListener).setupStarted(project);
     verify(mySyncListener).syncSucceeded(project);

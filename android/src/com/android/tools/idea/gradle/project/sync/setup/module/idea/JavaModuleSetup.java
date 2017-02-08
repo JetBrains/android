@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.module.idea;
 
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.sync.SyncAction;
+import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
