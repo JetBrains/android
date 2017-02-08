@@ -60,7 +60,10 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestUtil;
-import com.intellij.testFramework.fixtures.*;
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
+import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
+import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
+import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
@@ -725,6 +728,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     if (buildTool != null) {
       values.put(ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
     }
+
     return values;
   }
 
@@ -1044,25 +1048,23 @@ public class TemplateTest extends AndroidGradleTestCase {
     projectValues.put(ATTR_MANIFEST_OUT, null);
     projectValues.put(ATTR_TEST_OUT, null);
 
-    JavaCodeInsightTestFixture fixture = null;
+    assertNull(myFixture);
+
     File projectDir = null;
     try {
       projectValues.put(ATTR_MODULE_NAME, modifiedProjectName);
       IdeaTestFixtureFactory factory = IdeaTestFixtureFactory.getFixtureFactory();
       TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = factory.createFixtureBuilder(modifiedProjectName);
-      fixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
-      fixture.setUp();
+      myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
+      myFixture.setUp();
 
-      Project project = fixture.getProject();
+      Project project = myFixture.getProject();
       setUpSdks(project);
       projectDir = Projects.getBaseDirPath(project);
       projectValues.put(ATTR_PROJECT_LOCATION, projectDir.getPath());
 
-      // We only need to sync the model if lint needs to look at the synced project afterwards
-      boolean syncModel = CHECK_LINT;
-
       //noinspection ConstantConditions
-      createProject(fixture, projectValues, syncModel);
+      createProject(projectValues);
 
       if (templateValues != null && !projectValues.getBoolean(ATTR_CREATE_ACTIVITY)) {
         templateValues.put(ATTR_PROJECT_LOCATION, projectDir.getPath());
@@ -1114,8 +1116,9 @@ public class TemplateTest extends AndroidGradleTestCase {
       }
     }
     finally {
-      if (fixture != null) {
-        fixture.tearDown();
+      if (myFixture != null) {
+        myFixture.tearDown();
+        myFixture = null;
       }
 
       Project[] openProjects = ProjectManagerEx.getInstanceEx().getOpenProjects();
@@ -1129,22 +1132,20 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
   }
 
-  private void createProject(@NotNull IdeaProjectTestFixture myFixture,
-                             @NotNull NewProjectWizardState projectWizardState,
-                             boolean syncModel) throws Exception {
+  private void createProject(@NotNull NewProjectWizardState projectWizardState) throws Exception {
     ApplicationManager.getApplication().runWriteAction(() -> {
       AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(projectWizardState);
       createProject(projectWizardState, myFixture.getProject(), assetGenerator);
       FileDocumentManager.getInstance().saveAllDocuments();
     });
 
-    // Sync model
-    if (syncModel) {
-      String projectName = projectWizardState.getString(ATTR_MODULE_NAME);
-      File projectRoot = new File(projectWizardState.getString(ATTR_PROJECT_LOCATION));
-      assertEquals(projectRoot, virtualToIoFile(myFixture.getProject().getBaseDir()));
-      importProject(projectName, projectRoot, null);
-    }
+    // Update to latest plugin / gradle and sync model
+    File projectRoot = new File(projectWizardState.getString(ATTR_PROJECT_LOCATION));
+    assertEquals(projectRoot, virtualToIoFile(myFixture.getProject().getBaseDir()));
+    createGradleWrapper(projectRoot);
+    updateVersionAndDependencies(projectRoot);
+    String projectName = projectWizardState.getString(ATTR_MODULE_NAME);
+    importProject(projectName, projectRoot, null);
   }
 
   private static void createProject(@NotNull final NewModuleWizardState wizardState, @NotNull Project project,
