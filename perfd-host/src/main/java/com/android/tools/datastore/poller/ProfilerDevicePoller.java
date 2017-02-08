@@ -75,16 +75,26 @@ public class ProfilerDevicePoller extends PollRunner {
 
         //TODO: think about moving this to the device proxy.
         myActiveProcesses.put(session, newProcesses);
-        for (Profiler.Process process : deadProcesses) {
-          Profiler.Process updatedProcess = process.toBuilder()
-            .setState(Profiler.Process.State.DEAD)
-            .build();
-          myTable.insertOrUpdateProcess(session, updatedProcess);
-        }
+        killProcesses(session, deadProcesses);
       }
     }
     catch (StatusRuntimeException ex) {
+      // We expect this to get called when connection to the device is lost.
+      // To properly clean up the state we first set all ALIVE processes to DEAD
+      // then we disconnect the channel.
+      for(Common.Session session : myActiveProcesses.keySet()) {
+        killProcesses(session, myActiveProcesses.get(session));
+      }
       myService.disconnect((ManagedChannel)myPollingService.getChannel());
+    }
+  }
+
+  private void killProcesses(Common.Session session, Set<Profiler.Process> processes) {
+    for (Profiler.Process process : processes) {
+      Profiler.Process updatedProcess = process.toBuilder()
+        .setState(Profiler.Process.State.DEAD)
+        .build();
+      myTable.insertOrUpdateProcess(session, updatedProcess);
     }
   }
 }
