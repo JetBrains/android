@@ -180,7 +180,18 @@ final public class StudioProfilersTest {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
+    Profiler.Process process = Profiler.Process.newBuilder()
+      .setPid(20)
+      .setState(Profiler.Process.State.ALIVE)
+      .setName("FakeProcess")
+      .setStartTimestampNs(TimeUnit.SECONDS.toNanos(nowInSeconds))
+      .build();
     myProfilerService.addDevice(device);
+    Common.Session session = Common.Session.newBuilder()
+      .setBootId(device.getBootId())
+      .setDeviceSerial(device.getSerial())
+      .build();
+    myProfilerService.addProcess(session, process);
 
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
 

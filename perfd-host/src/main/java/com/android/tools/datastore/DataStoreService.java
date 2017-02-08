@@ -102,7 +102,6 @@ public class DataStoreService {
    * in a ManagedChannel directly allows the caller to optimize the channel best suited for the server (In-process vs Netty channels).
    */
   public void connect(@NotNull ManagedChannel channel) {
-    disconnect(myChannel);
     myChannel = channel;
     myProfilerService.startMonitoring(channel);
     connectServices();
@@ -114,10 +113,10 @@ public class DataStoreService {
    */
   public void disconnect(@Nullable ManagedChannel channel) {
     assert channel == myChannel;
-    myProfilerService.stopMonitoring(channel);
     if (myChannel != null) {
       myChannel.shutdownNow();
     }
+    myProfilerService.stopMonitoring(channel);
     myChannel = null;
   }
 
