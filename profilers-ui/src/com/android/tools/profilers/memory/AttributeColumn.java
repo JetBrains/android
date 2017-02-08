@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -53,6 +54,7 @@ class AttributeColumn {
       .setHeaderAlignment(myHeaderAlignment)
       .setPreferredWidth(myPreferredWidth)
       .setInitialOrder(mySortOrder)
-      .setComparator(myComparator);
+      .setComparator(myComparator)
+      .setHeaderBorder(JBUI.Borders.empty(2, 3));
   }
 }
