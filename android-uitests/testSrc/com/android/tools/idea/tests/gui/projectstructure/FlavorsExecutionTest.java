@@ -119,7 +119,7 @@ public class FlavorsExecutionTest {
     guiTest.ideFrame()
       .getProjectView()
       .selectProjectPane()
-      .clickPath("SimpleApplication", "app");
+      .selectByPath("SimpleApplication", "app");
     guiTest.ideFrame()
       .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Basic Activity")
       .getConfigureActivityStep()
@@ -132,7 +132,7 @@ public class FlavorsExecutionTest {
     guiTest.ideFrame()
       .getProjectView()
       .selectProjectPane()
-      .clickPath("SimpleApplication", "app");
+      .selectByPath("SimpleApplication", "app");
     guiTest.ideFrame()
       .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Basic Activity")
       .getConfigureActivityStep()
