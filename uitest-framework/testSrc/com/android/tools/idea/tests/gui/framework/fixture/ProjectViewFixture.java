@@ -35,7 +35,6 @@ import com.intellij.openapi.roots.JdkOrderEntry;
 import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
-import com.intellij.psi.PsiDirectory;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
@@ -47,7 +46,6 @@ import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -69,7 +67,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
       changePane("Project");
     }
 
-    return new PaneFixture(projectView.getCurrentProjectViewPane());
+    return new PaneFixture(projectView.getCurrentProjectViewPane(), myRobot);
   }
 
   @NotNull
@@ -81,7 +79,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
       changePane("Android");
     }
 
-    return new PaneFixture(projectView.getCurrentProjectViewPane());
+    return new PaneFixture(projectView.getCurrentProjectViewPane(), myRobot);
   }
 
   @NotNull
@@ -114,9 +112,13 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
   public static class PaneFixture {
     @NotNull private final AbstractProjectViewPane myPane;
+    @NotNull private final Robot myRobot;
+    @NotNull private final JTreeFixture myTree;
 
-    PaneFixture(@NotNull AbstractProjectViewPane pane) {
+    PaneFixture(@NotNull AbstractProjectViewPane pane, @NotNull Robot robot) {
       myPane = pane;
+      myRobot = robot;
+      myTree = new JTreeFixture(myRobot, GuiTests.waitUntilShowing(myRobot, Matchers.byType(ProjectViewTree.class)));
     }
 
     @NotNull
@@ -173,47 +175,18 @@ public class ProjectViewFixture extends ToolWindowFixture {
       return new NodeFixture(node, treeStructure);
     }
 
-    public void selectByPath(@NotNull final String... paths) {
-      final AbstractTreeStructure treeStructure = getTreeStructure();
+    public void clickPath(@NotNull final String... paths) {
+      clickPath(MouseButton.LEFT_BUTTON, paths);
+    }
 
-      PsiDirectoryNode node = GuiQuery.getNonNull(
-        () -> {
-          Object root = treeStructure.getRootElement();
-          final List<Object> treePath = Lists.newArrayList(root);
-
-          for (String path : paths) {
-            Object[] childElements = treeStructure.getChildElements(root);
-            Object newRoot = null;
-            for (Object child : childElements) {
-              if (child instanceof PsiDirectoryNode) {
-                PsiDirectory dir = ((PsiDirectoryNode)child).getValue();
-                if (dir != null && path.equals(dir.getName())) {
-                  newRoot = child;
-                  treePath.add(newRoot);
-                  break;
-                }
-              }
-            }
-            if (newRoot != null) {
-              root = newRoot;
-            }
-            else {
-              return null;
-            }
-          }
-          if (root == treeStructure.getRootElement()) {
-            return null;
-          }
-
-          myPane.expand(treePath.toArray(), true);
-          myPane.select(root, ((PsiDirectoryNode)root).getVirtualFile(), true);
-          return (PsiDirectoryNode)root;
-        });
-
-      Wait.seconds(3).expecting("node to be selected").until(() -> GuiQuery.getNonNull(() -> {
-        DefaultMutableTreeNode selectedNode = myPane.getSelectedNode();
-        return (selectedNode != null) && node.equals(selectedNode.getUserObject());
-      }));
+    public void clickPath(@NotNull MouseButton button, @NotNull final String... paths) {
+      StringBuilder totalPath = new StringBuilder();
+      for (String node : paths) {
+        totalPath.append(node);
+        myTree.expandPath(totalPath.toString());
+        totalPath.append('/');
+      }
+      myTree.clickPath(totalPath.toString(), button);
     }
   }
 

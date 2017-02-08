@@ -5,7 +5,7 @@ android {
     buildToolsVersion "24.0.3"
     defaultConfig {
         applicationId "webp.test"
-        minSdkVersion 17
+        minSdkVersion 18
         targetSdkVersion 24
         versionCode 1
         versionName "1.0"
