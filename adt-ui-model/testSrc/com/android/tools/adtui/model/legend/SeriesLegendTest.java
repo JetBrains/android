@@ -22,8 +22,6 @@ import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
-import java.util.concurrent.TimeUnit;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -46,7 +44,7 @@ public class SeriesLegendTest {
   @Test
   public void legendValueGotFromMatchedTime() {
     TestDataSeries dataSeries = new TestDataSeries(ContainerUtil.immutableList(
-        new SeriesData<>(TimeUnit.MICROSECONDS.toNanos(100), 123L)));
+        new SeriesData<>(100, 123L)));
     RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 100), new Range(0, 100), dataSeries);
     SeriesLegend legend = new SeriesLegend(series, new MockAxisFormatter(1, 1, 1), new Range(0, 100));
     assertEquals("12.3cm", legend.getValue());
@@ -55,7 +53,7 @@ public class SeriesLegendTest {
   @Test
   public void legendValueIsClosestRightGivenNoPreviousData() {
     TestDataSeries dataSeries = new TestDataSeries(ContainerUtil.immutableList(
-        new SeriesData<>(TimeUnit.MICROSECONDS.toNanos(100), 333L), new SeriesData<>(TimeUnit.MICROSECONDS.toNanos(110), 444L)));
+        new SeriesData<>(100, 333L), new SeriesData<>(110, 444L)));
     RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 100), new Range(0, 100), dataSeries);
     SeriesLegend legend = new SeriesLegend(series, new MockAxisFormatter(1, 1, 1), new Range(0, 99));
     assertEquals("33.3cm", legend.getValue());
@@ -64,7 +62,7 @@ public class SeriesLegendTest {
   @Test
   public void legendValueIsClosestLeftGivenNoLaterData() {
     TestDataSeries dataSeries = new TestDataSeries(ContainerUtil.immutableList(
-        new SeriesData<>(0L, 111L), new SeriesData<>(TimeUnit.MICROSECONDS.toNanos(10), 222L)));
+        new SeriesData<>(0L, 111L), new SeriesData<>(10, 222L)));
     RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 100), new Range(0, 100), dataSeries);
     SeriesLegend legend = new SeriesLegend(series, new MockAxisFormatter(1, 1, 1), new Range(1, 100));
     assertEquals("22.2cm", legend.getValue());
