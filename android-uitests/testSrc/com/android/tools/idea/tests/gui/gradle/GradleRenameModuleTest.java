@@ -51,7 +51,7 @@ public class GradleRenameModuleTest {
     guiTest.importSimpleApplication();
 
     ProjectViewFixture.PaneFixture paneFixture = guiTest.ideFrame().getProjectView().selectProjectPane();
-    paneFixture.selectByPath("SimpleApplication", "app");
+    paneFixture.clickPath("SimpleApplication", "app");
     invokeRefactor();
 
     SelectRefactoringDialogFixture selectRefactoringDialog = SelectRefactoringDialogFixture.findByTitle(guiTest.robot());
@@ -72,7 +72,7 @@ public class GradleRenameModuleTest {
     guiTest.importMultiModule();
 
     ProjectViewFixture.PaneFixture paneFixture = guiTest.ideFrame().getProjectView().selectProjectPane();
-    paneFixture.selectByPath("MultiModule", "library");
+    paneFixture.clickPath("MultiModule", "library");
     invokeRefactor();
 
     SelectRefactoringDialogFixture selectRefactoringDialog = SelectRefactoringDialogFixture.findByTitle(guiTest.robot());
@@ -102,7 +102,7 @@ public class GradleRenameModuleTest {
     guiTest.importSimpleApplication();
 
     ProjectViewFixture.PaneFixture paneFixture = guiTest.ideFrame().getProjectView().selectProjectPane();
-    paneFixture.selectByPath("SimpleApplication");
+    paneFixture.clickPath("SimpleApplication");
     invokeRefactor();
 
     InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(guiTest.robot(), "Rename Module");
@@ -119,7 +119,7 @@ public class GradleRenameModuleTest {
     guiTest.importMultiModule();
 
     ProjectViewFixture.PaneFixture paneFixture = guiTest.ideFrame().getProjectView().selectProjectPane();
-    paneFixture.selectByPath("MultiModule", "app");
+    paneFixture.clickPath("MultiModule", "app");
     invokeRefactor();
 
     SelectRefactoringDialogFixture selectRefactoringDialog = SelectRefactoringDialogFixture.findByTitle(guiTest.robot());
