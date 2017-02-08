@@ -300,7 +300,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     refreshProjectFiles();
   }
 
-  protected void prepareProjectForImport(@NotNull String relativePath) throws IOException {
+  @NotNull
+  protected File prepareProjectForImport(@NotNull String relativePath) throws IOException {
     File root = new File(getTestDataPath(), toSystemDependentName(relativePath));
     if (!root.exists()) {
       root = new File(PathManager.getHomePath() + "/../../external", toSystemDependentName(relativePath));
@@ -324,6 +325,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
     updateVersionAndDependencies(projectRoot);
+
+    return projectRoot;
   }
 
   protected void updateVersionAndDependencies(@NotNull File projectRoot) throws IOException {
