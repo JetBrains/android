@@ -27,35 +27,34 @@ import java.util.Map;
  * A UI representation of a {@link Field}.
  */
 final class HeapDumpFieldObject extends HeapDumpInstanceObject implements FieldObject {
-  private static final Map<Type, ValueType> ourValueTypeMap = ImmutableMap.<Type, ValueType>builder()
-    .put(Type.BOOLEAN, ValueType.BOOLEAN)
-    .put(Type.BYTE, ValueType.BYTE)
-    .put(Type.CHAR, ValueType.CHAR)
-    .put(Type.SHORT, ValueType.SHORT)
-    .put(Type.INT, ValueType.INT)
-    .put(Type.LONG, ValueType.LONG)
-    .put(Type.FLOAT, ValueType.FLOAT)
-    .put(Type.DOUBLE, ValueType.DOUBLE)
+  private static final Map<Type, ClassObject.ValueType> ourPrimitiveValueTypeMap = ImmutableMap.<Type, ClassObject.ValueType>builder()
+    .put(Type.BOOLEAN, ClassObject.ValueType.BOOLEAN)
+    .put(Type.BYTE, ClassObject.ValueType.BYTE)
+    .put(Type.CHAR, ClassObject.ValueType.CHAR)
+    .put(Type.SHORT, ClassObject.ValueType.SHORT)
+    .put(Type.INT, ClassObject.ValueType.INT)
+    .put(Type.LONG, ClassObject.ValueType.LONG)
+    .put(Type.FLOAT, ClassObject.ValueType.FLOAT)
+    .put(Type.DOUBLE, ClassObject.ValueType.DOUBLE)
     .build();
 
   @NotNull private final FieldValue myField;
   private final int myDepth;
   private final int myShallowSize;
   private final long myRetainedSize;
-  private final ValueType myValueType;
 
   public HeapDumpFieldObject(@NotNull Instance parentInstance, @NotNull FieldValue field, @Nullable Instance instance) {
     // TODO - is the ClassObj logic correct here? Should a ClassObj instance not have the "java.lang.Class" as its ClassObj?
     super(instance == null ? null
                            : new HeapDumpClassObject(new HeapDumpHeapObject(instance.getHeap()),
                                                      instance instanceof ClassObj ? (ClassObj)instance : instance.getClassObj()),
-          instance);
+          instance, null);
 
     myField = field;
     Type type = myField.getField().getType();
     if (type == Type.OBJECT) {
       if (myField.getValue() == null) {
-        myValueType = ValueType.NULL;
+        myValueType = ClassObject.ValueType.NULL;
         myShallowSize = INVALID_VALUE;
         myRetainedSize = INVALID_VALUE;
         myDepth = INVALID_VALUE;
@@ -63,13 +62,13 @@ final class HeapDumpFieldObject extends HeapDumpInstanceObject implements FieldO
       else {
         assert myField.getValue() == instance;
         if (instance instanceof ClassObj) {
-          myValueType = ValueType.CLASS;
+          myValueType = ClassObject.ValueType.CLASS;
         }
-        else if (instance instanceof ClassInstance && instance.getClassObj().getClassName().equals(STRING_NAMESPACE)) {
-          myValueType = ValueType.STRING;
+        else if (instance instanceof ClassInstance && instance.getClassObj().getClassName().equals(ClassObject.JAVA_LANG_STRING)) {
+          myValueType = ClassObject.ValueType.STRING;
         }
         else {
-          myValueType = ValueType.OBJECT;
+          myValueType = ClassObject.ValueType.OBJECT;
         }
         myShallowSize = instance.getSize();
         myRetainedSize = instance.getTotalRetainedSize();
@@ -77,7 +76,7 @@ final class HeapDumpFieldObject extends HeapDumpInstanceObject implements FieldO
       }
     }
     else {
-      myValueType = ourValueTypeMap.getOrDefault(type, ValueType.NULL);
+      myValueType = ourPrimitiveValueTypeMap.getOrDefault(type, ClassObject.ValueType.NULL);
       myShallowSize = type.getSize();
       myRetainedSize = type.getSize();
       myDepth = parentInstance.getDistanceToGcRoot();
@@ -109,11 +108,6 @@ final class HeapDumpFieldObject extends HeapDumpInstanceObject implements FieldO
   @Override
   public String getFieldName() {
     return myField.getField().getName();
-  }
-
-  @Override
-  public ValueType getValueType() {
-    return myValueType;
   }
 
   @Override
