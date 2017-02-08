@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.graphics;
 
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.Coordinates;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import org.jetbrains.annotations.NotNull;
 
@@ -71,6 +68,13 @@ public class NlGraphics {
     drawLine(rectangle.x, rectangle.y, rectangle.x + rectangle.width, rectangle.y);
   }
 
+  public void drawTopDp(@AndroidDpCoordinate @NotNull Rectangle rectangle) {
+    drawLine(Coordinates.dpToPx(myScene, rectangle.x),
+             Coordinates.dpToPx(myScene, rectangle.y),
+             Coordinates.dpToPx(myScene, rectangle.x + rectangle.width),
+             Coordinates.dpToPx(myScene, rectangle.y));
+  }
+
   public void drawLeft(@NotNull NlComponent component) {
     drawLine(component.x, component.y, component.x, component.y + component.h);
   }
@@ -79,20 +83,41 @@ public class NlGraphics {
     drawLine(rectangle.x, rectangle.y, rectangle.x, rectangle.y + rectangle.height);
   }
 
+  public void drawLeftDp(@AndroidDpCoordinate @NotNull Rectangle rectangle) {
+    drawLine(Coordinates.dpToPx(myScene, rectangle.x),
+             Coordinates.dpToPx(myScene, rectangle.y),
+             Coordinates.dpToPx(myScene, rectangle.x),
+             Coordinates.dpToPx(myScene, rectangle.y + rectangle.height));
+  }
+
   public void drawRight(@NotNull NlComponent component) {
     drawLine(component.x + component.w, component.y, component.x + component.w, component.y + component.h);
   }
 
-  public void drawRight(@NotNull Rectangle rectangle) {
+  public void drawRight(@AndroidCoordinate @NotNull Rectangle rectangle) {
     drawLine(rectangle.x + rectangle.width, rectangle.y, rectangle.x + rectangle.width, rectangle.y + rectangle.height);
+  }
+
+  public void drawRightDp(@AndroidDpCoordinate @NotNull Rectangle rectangle) {
+    drawLine(Coordinates.dpToPx(myScene, rectangle.x + rectangle.width),
+             Coordinates.dpToPx(myScene, rectangle.y),
+             Coordinates.dpToPx(myScene, rectangle.x + rectangle.width),
+             Coordinates.dpToPx(myScene, rectangle.y + rectangle.height));
   }
 
   public void drawBottom(@NotNull NlComponent component) {
     drawLine(component.x, component.y + component.h, component.x + component.w, component.y + component.h);
   }
 
-  public void drawBottom(@NotNull Rectangle rectangle) {
+  public void drawBottom(@AndroidCoordinate @NotNull Rectangle rectangle) {
     drawLine(rectangle.x, rectangle.y + rectangle.height, rectangle.x + rectangle.width, rectangle.y + rectangle.height);
+  }
+
+  public void drawBottomDp(@AndroidDpCoordinate @NotNull Rectangle rectangle) {
+    drawLine(Coordinates.dpToPx(myScene, rectangle.x),
+             Coordinates.dpToPx(myScene, rectangle.y + rectangle.height),
+             Coordinates.dpToPx(myScene, rectangle.x + rectangle.width),
+             Coordinates.dpToPx(myScene, rectangle.y + rectangle.height));
   }
 
   public void drawLine(@AndroidCoordinate int x1,
@@ -107,6 +132,18 @@ public class NlGraphics {
     drawLine(myStyle, myGraphics, x1, y1, x2, y2);
   }
 
+  public void drawLineDp(@AndroidDpCoordinate int x1,
+                         @AndroidDpCoordinate int y1,
+                         @AndroidDpCoordinate int x2,
+                         @AndroidDpCoordinate int y2) {
+    x1 = Coordinates.getSwingXDip(myScene, x1);
+    x2 = Coordinates.getSwingXDip(myScene, x2);
+    y1 = Coordinates.getSwingYDip(myScene, y1);
+    y2 = Coordinates.getSwingYDip(myScene, y2);
+
+    drawLine(myStyle, myGraphics, x1, y1, x2, y2);
+  }
+
   public void drawRect(@AndroidCoordinate int x,
                        @AndroidCoordinate int y,
                        @AndroidCoordinate int width,
@@ -115,6 +152,18 @@ public class NlGraphics {
     y = Coordinates.getSwingY(myScene, y);
     width = Coordinates.getSwingDimension(myScene, width);
     height = Coordinates.getSwingDimension(myScene, height);
+
+    drawRect(myStyle, myGraphics, x, y, width, height);
+  }
+
+  public void drawRectDp(@AndroidDpCoordinate int x,
+                         @AndroidDpCoordinate int y,
+                         @AndroidDpCoordinate int width,
+                         @AndroidDpCoordinate int height) {
+    x = Coordinates.getSwingXDip(myScene, x);
+    y = Coordinates.getSwingYDip(myScene, y);
+    width = Coordinates.getSwingDimensionDip(myScene, width);
+    height = Coordinates.getSwingDimensionDip(myScene, height);
 
     drawRect(myStyle, myGraphics, x, y, width, height);
   }
@@ -238,7 +287,6 @@ public class NlGraphics {
         y1 += delta;
         y2 -= delta;
       }
-
     }
     else if (y1 == y2 && Math.abs(x1 - x2) < MIN_LENGTH) {
       int delta = (MIN_LENGTH - Math.abs(x1 - x2)) / 2;
