@@ -63,7 +63,8 @@ public final class FakeUi {
   private void dump(Component component, String prefix) {
     System.err.println(prefix + component.getClass().getSimpleName() + "@(" +
                        component.getX() + ", " + component.getY() + ") [" +
-                       +component.getSize().getWidth() + "x" + component.getSize().getHeight() + "]");
+                       component.getSize().getWidth() + "x" + component.getSize().getHeight() + "]" +
+                       (isMouseTarget(component) ? " {*}" : ""));
     if (component instanceof Container) {
       Container container = (Container)component;
       for (int i = 0; i < container.getComponentCount(); i++) {
@@ -100,30 +101,21 @@ public final class FakeUi {
           }
         }
       }
-      return new RelativePoint(component, x, y);
+      if (isMouseTarget(component)) {
+        return new RelativePoint(component, x, y);
+      }
     }
     return null;
   }
 
+  private boolean isMouseTarget(Component target) {
+    return target.getMouseListeners().length > 0 ||
+           target.getMouseMotionListeners().length > 0 ||
+           target.getMouseWheelListeners().length > 0;
+  }
+
   public RelativePoint targetMouseEvent(int x, int y) {
-    RelativePoint relative = findTarget(myRoot, x, y);
-    if (relative == null) {
-      return null;
-    }
-
-    Component target = relative.component;
-    x = relative.x;
-    y = relative.y;
-
-    while (target != null &&
-        target.getMouseListeners().length == 0 &&
-        target.getMouseMotionListeners().length == 0 &&
-        target.getMouseWheelListeners().length == 0) {
-      x += target.getX();
-      y += target.getY();
-      target = target.getParent();
-    }
-    return new RelativePoint(target, x, y);
+    return findTarget(myRoot, x, y);
   }
 
   public static class RelativePoint {

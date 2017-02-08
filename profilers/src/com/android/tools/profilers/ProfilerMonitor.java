@@ -22,6 +22,9 @@ import org.jetbrains.annotations.NotNull;
  * when monitoring an app (aka L1).
  */
 public abstract class ProfilerMonitor {
+
+  public static final int LEGEND_UPDATE_FREQUENCY_MS = 100;
+
   @NotNull
   protected final StudioProfilers myProfilers;
 
@@ -37,4 +40,11 @@ public abstract class ProfilerMonitor {
   public abstract void exit();
 
   public abstract void enter();
+
+  @NotNull
+  public StudioProfilers getProfilers() {
+    return myProfilers;
+  }
+
+  public abstract String getName();
 }
