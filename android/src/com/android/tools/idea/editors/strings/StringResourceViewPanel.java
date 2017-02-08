@@ -48,8 +48,9 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.safeDelete.SafeDeleteHandler;
-import com.intellij.ui.*;
-import com.intellij.ui.components.JBList;
+import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.table.JBTable;
@@ -240,7 +241,8 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
     group.add(addKeyAction);
     group.add(new RemoveKeysAction());
-    group.add(new AddLocaleAction(toolbarComponent));
+    group.add(new AddLocaleAction());
+    group.add(new RemoveLocaleAction(myTable, myFacet));
     group.add(new FilterKeysAction(myTable));
     group.add(new BrowserHelpAction("Translations editor", "https://developer.android.com/r/studio-ui/translations-editor.html"));
 
@@ -273,11 +275,13 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   }
 
   private final class AddLocaleAction extends AnAction {
-    private final JComponent myComponent;
-
-    private AddLocaleAction(@NotNull JComponent component) {
+    private AddLocaleAction() {
       super("Add Locale", "", AndroidIcons.Globe);
-      myComponent = component;
+    }
+
+    @Override
+    public boolean displayTextInToolbar() {
+      return true;
     }
 
     @Override
@@ -290,7 +294,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent event) {
       StringResourceData data = myTable.getData();
       assert data != null;
 
@@ -298,45 +302,24 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
       missingLocales.removeAll(data.getLocales());
       missingLocales.sort(Locale.LANGUAGE_NAME_COMPARATOR);
 
-      final JBList list = new JBList(missingLocales);
-      list.setFixedCellHeight(20);
-      list.setCellRenderer(new ColoredListCellRenderer<Locale>() {
-        @Override
-        protected void customizeCellRenderer(@NotNull JList list, Locale value, int index, boolean selected, boolean hasFocus) {
-          append(LocaleMenuAction.getLocaleLabel(value, false));
-          setIcon(value.getFlagImage());
-        }
-      });
-      new ListSpeedSearch(list) {
-        @Override
-        protected String getElementText(Object element) {
-          if (element instanceof Locale) {
-            return LocaleMenuAction.getLocaleLabel((Locale)element, false);
-          }
-          return super.getElementText(element);
-        }
-      };
-
-      showPopupUnderneathOf(list);
-    }
-
-    private void showPopupUnderneathOf(@NotNull JList list) {
-      Runnable runnable = () -> {
-        StringResource resource = findResource();
-        StringResourceKey key = resource.getKey();
-
-        VirtualFile directory = key.getDirectory();
-        assert directory != null;
-
-        String value = resource.getDefaultValueAsString();
-        StringsWriteUtils.createItem(myFacet, directory, (Locale)list.getSelectedValue(), key.getName(), value, true);
-      };
+      JList list = new LocaleList(missingLocales);
 
       JBPopup popup = JBPopupFactory.getInstance().createListPopupBuilder(list)
-        .setItemChoosenCallback(runnable)
+        .setItemChoosenCallback(() -> createItem(list))
         .createPopup();
 
-      popup.showUnderneathOf(myComponent);
+      popup.showUnderneathOf(event.getInputEvent().getComponent());
+    }
+
+    private void createItem(@NotNull JList list) {
+      StringResource resource = findResource();
+      StringResourceKey key = resource.getKey();
+
+      VirtualFile directory = key.getDirectory();
+      assert directory != null;
+
+      String value = resource.getDefaultValueAsString();
+      StringsWriteUtils.createItem(myFacet, directory, (Locale)list.getSelectedValue(), key.getName(), value, true);
     }
 
     @NotNull
