@@ -17,6 +17,7 @@ package com.android.tools.adtui.workbench;
 
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.workbench.AttachedToolWindow.ButtonDragListener;
 import com.android.tools.adtui.workbench.AttachedToolWindow.DragEvent;
 import com.google.common.base.Splitter;
@@ -231,16 +232,31 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   }
 
   @NotNull
-  private String getWidthPropertyName(@NotNull Layout layout, @NotNull Side side) {
+  private String getUnscaledWidthPropertyName(@NotNull Layout layout, @NotNull Side side) {
+    return TOOL_WINDOW_PROPERTY_PREFIX + layout.getPrefix() + myName + "." + side.name() + ".UNSCALED.WIDTH";
+  }
+
+  @NotNull
+  private String getScaledWidthPropertyName(@NotNull Layout layout, @NotNull Side side) {
     return TOOL_WINDOW_PROPERTY_PREFIX + layout.getPrefix() + myName + "." + side.name() + ".WIDTH";
   }
 
   private int getSideWidth(@NotNull Layout layout, @NotNull Side side) {
-    return myPropertiesComponent.getInt(getWidthPropertyName(layout, side), -1);
+    int width = myPropertiesComponent.getInt(getUnscaledWidthPropertyName(layout, side), -1);
+    if (width != -1) {
+      return JBUI.scale(width);
+    }
+    int scaledWidth = myPropertiesComponent.getInt(getScaledWidthPropertyName(layout, side), -1);
+    if (scaledWidth != -1) {
+      return -1;
+    }
+    myPropertiesComponent.unsetValue(getScaledWidthPropertyName(layout, side));
+    setSideWidth(layout, side, scaledWidth);
+    return scaledWidth;
   }
 
   private void setSideWidth(@NotNull Layout layout, @NotNull Side side, int value) {
-    myPropertiesComponent.setValue(getWidthPropertyName(layout, side), value, ToolWindowDefinition.DEFAULT_SIDE_WIDTH);
+    myPropertiesComponent.setValue(getUnscaledWidthPropertyName(layout, side), AdtUiUtils.unscale(value), -1);
   }
 
   private int getInitialSideWidth(@NotNull Side side) {
@@ -307,7 +323,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
       }
       tool.setToolOrder(placement);
     }
-    tools.sort((t1, t2) -> Integer.compare(t1.getToolOrder(), t2.getToolOrder()));
+    tools.sort(Comparator.comparingInt(AttachedToolWindow::getToolOrder));
   }
 
   private void storeToolOrder(@NotNull Layout layout, @NotNull List<AttachedToolWindow<T>> tools) {
@@ -328,7 +344,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     }
   }
 
-  private void modelChanged(@NotNull SideModel model, @NotNull SideModel.EventType type) {
+  private void modelChanged(@SuppressWarnings("unused") @NotNull SideModel model, @NotNull SideModel.EventType type) {
     switch (type) {
       case SWAP:
         mySplitter.setFirstSize(getSideWidth(Layout.CURRENT, Side.RIGHT));

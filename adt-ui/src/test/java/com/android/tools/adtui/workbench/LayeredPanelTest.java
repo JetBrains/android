@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.util.ui.JBUI;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -128,12 +129,12 @@ public class LayeredPanelTest {
     when(myToolWindow1.isLeft()).thenReturn(true);
     myPanel.modelChanged(myModel, myEventType);
 
-    mySplitter.setFirstSize(700);
+    mySplitter.setFirstSize(JBUI.scale(700));
     fireWidthChanged();
-    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.PALETTE.WIDTH", -1)).isEqualTo(700);
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.PALETTE.UNSCALED.WIDTH", -1)).isEqualTo(700);
 
     myPanel.modelChanged(myModel, myEventType);
-    assertThat(mySplitter.getFirstSize()).isEqualTo(700);
+    assertThat(mySplitter.getFirstSize()).isEqualTo(JBUI.scale(700));
   }
 
   private void fireWidthChanged() {

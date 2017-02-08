@@ -18,6 +18,7 @@ package com.android.tools.adtui.common;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBFont;
+import com.intellij.util.ui.JBUI;
 
 import javax.swing.*;
 import java.awt.*;
@@ -97,5 +98,12 @@ public final class AdtUiUtils {
       }
     }
     return new ImageIcon(image);
+  }
+
+  /**
+   * Does the reverse of {@link JBUI#scale(int) }
+   */
+  public static int unscale(int i) {
+    return JBUI.scaleEx(1.0f / JBUI.scale(1.0f), i);
   }
 }
