@@ -21,7 +21,6 @@ import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.memory.adapters.ClassObject.ClassAttribute;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +33,6 @@ public final class AllocationsCaptureObject implements CaptureObject {
   private final int myProcessId;
   @NotNull private final String myLabel;
   private final Common.Session mySession;
-  private final int myInfoId;
   private long myStartTimeNs;
   private long myEndTimeNs;
   private volatile List<ClassObject> myClassObjs;
@@ -50,7 +48,6 @@ public final class AllocationsCaptureObject implements CaptureObject {
     myClient = client;
     myProcessId = processId;
     mySession = session;
-    myInfoId = info.getInfoId();
     myStartTimeNs = info.getStartTime();
     myEndTimeNs = info.getEndTime();
     myFakeHeapObject = new AllocationsHeapObject();
@@ -99,11 +96,6 @@ public final class AllocationsCaptureObject implements CaptureObject {
     return myEndTimeNs;
   }
 
-  @VisibleForTesting
-  public int getInfoId() {
-    return myInfoId;
-  }
-
   @Override
   public boolean load() {
     MemoryProfiler.AllocationEventsResponse response;
@@ -111,7 +103,8 @@ public final class AllocationsCaptureObject implements CaptureObject {
       response = myClient.getAllocationEvents(MemoryProfiler.AllocationEventsRequest.newBuilder()
                                                 .setProcessId(myProcessId)
                                                 .setSession(mySession)
-                                                .setInfoId(myInfoId).build());
+                                                .setStartTime(myStartTimeNs)
+                                                .setEndTime(myEndTimeNs).build());
       if (response.getStatus() == MemoryProfiler.AllocationEventsResponse.Status.SUCCESS) {
         break;
       }

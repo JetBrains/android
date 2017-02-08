@@ -62,12 +62,11 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0);
 
     // Starting a tracking session
-    int infoId = 1;
     int infoStart = 5;
     int infoEnd = 10;
     myService.advanceTime(1);
     myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
-    myService.setExplicitAllocationsInfo(infoId, MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS,
+    myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS,
                                          infoStart, DurationData.UNSPECIFIED_DURATION, true);
     myStage.trackAllocations(true, null);
     assertEquals(true, myStage.isTrackingAllocations());
@@ -85,14 +84,13 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     final CountDownLatch waitLatch = new CountDownLatch(1);
     new Thread(() -> {
       myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
-      myService.setExplicitAllocationsInfo(infoId, MemoryProfiler.AllocationsInfo.Status.COMPLETED,
+      myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.COMPLETED,
                                            infoStart, infoEnd, true);
       myService.setExplicitAllocationEvents(MemoryProfiler.AllocationEventsResponse.Status.NOT_READY, Collections.emptyList());
       myStage.trackAllocations(false, null);
       assertEquals(false, myStage.isTrackingAllocations());
       assertTrue(myStage.getSelectedCapture() instanceof AllocationsCaptureObject);
       AllocationsCaptureObject capture = (AllocationsCaptureObject)myStage.getSelectedCapture();
-      assertEquals(infoId, capture.getInfoId());
       assertEquals(infoStart, capture.getStartTimeNs());
       assertEquals(infoEnd, capture.getEndTimeNs());
       assertFalse(capture.isDoneLoading());
@@ -135,12 +133,11 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertNull(myStage.getSelectedCapture());
 
     myService.setExplicitHeapDumpStatus(MemoryProfiler.TriggerHeapDumpResponse.Status.SUCCESS);
-    myService.setExplicitHeapDumpInfo(1, 5, 10);
+    myService.setExplicitHeapDumpInfo(5, 10);
     myStage.requestHeapDump(null);
     assertNotNull(myStage.getSelectedCapture());
     assertTrue(myStage.getSelectedCapture() instanceof HeapDumpCaptureObject);
     HeapDumpCaptureObject capture = (HeapDumpCaptureObject)myStage.getSelectedCapture();
-    assertEquals(1, capture.getDumpId());
     assertEquals(5, capture.getStartTimeNs());
     assertEquals(10, capture.getEndTimeNs());
   }

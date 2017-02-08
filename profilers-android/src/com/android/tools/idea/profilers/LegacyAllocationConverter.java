@@ -128,9 +128,10 @@ public class LegacyAllocationConverter {
     }
 
     @NotNull
-    public AllocationEvent bindAllocationEventInfos(int infoId, long time) {
-      return AllocationEvent.newBuilder().setAllocatedClassId(myClassId).setSize(mySize).setThreadId(myThreadId).setTimestamp(time)
-        .setAllocationStackId(ByteString.copyFrom(myCallStackId)).setInfoId(infoId).build();
+    public AllocationEvent bindAllocationEventInfos(long startTime, long endTime) {
+      return AllocationEvent.newBuilder().setAllocatedClassId(myClassId).setSize(mySize).setThreadId(myThreadId)
+        .setTrackingStartTime(startTime).setTimestamp(endTime).setAllocationStackId(ByteString.copyFrom(myCallStackId))
+        .build();
     }
   }
 
@@ -179,8 +180,8 @@ public class LegacyAllocationConverter {
     myAllocations.add(allocationInfo);
   }
 
-  public List<AllocationEvent> getAllocationEvents(int infoId, long time) {
-    return myAllocations.stream().map(allocation -> allocation.bindAllocationEventInfos(infoId, time)).collect(Collectors.toList());
+  public List<AllocationEvent> getAllocationEvents(long startTime, long endTime) {
+    return myAllocations.stream().map(allocation -> allocation.bindAllocationEventInfos(startTime, endTime)).collect(Collectors.toList());
   }
 
   public List<AllocationStack> getAllocationStacks() {
