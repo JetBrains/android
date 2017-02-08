@@ -17,10 +17,8 @@ package com.android.tools.idea.uibuilder.handlers.relative;
 
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.SegmentType;
-import com.android.tools.idea.uibuilder.model.TextDirection;
+import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
@@ -44,16 +42,16 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
   @Override
   @Nullable
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
-                                       @NotNull NlComponent layout,
-                                       @NotNull List<NlComponent> components,
+                                       @NotNull SceneComponent layout,
+                                       @NotNull List<SceneComponent> components,
                                        @NotNull DragType type) {
     final RelativeDragHandler moveHandler = new RelativeDragHandler(editor, layout, components);
     return new DragHandler(editor, this, layout, components, type) {
       @Nullable
       @Override
-      public String update(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
+      public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers) {
         super.update(x, y, modifiers);
-        NlComponent primary = components.get(0);
+        SceneComponent primary = components.get(0);
         int deltaX = lastX - startX;
         int deltaY = lastY - startY;
         moveHandler.updateMove(primary, deltaX, deltaY, modifiers);
@@ -70,10 +68,10 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
       public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
         moveHandler.removeCycles();
 
-        NlComponent previous = null;
-        for (NlComponent component : components) {
+        SceneComponent previous = null;
+        for (SceneComponent component : components) {
           if (previous == null) {
-            moveHandler.applyConstraints(component);
+            moveHandler.applyConstraints(component.getNlComponent());
           } else {
             // Arrange the nodes next to each other, depending on which
             // edge we are attaching to. For example, if attaching to the
@@ -87,7 +85,7 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
             // dragging several connected components, which we'd then
             // need to stitch together such that they are all visible.
 
-            moveHandler.attachPrevious(previous, component);
+            moveHandler.attachPrevious(previous.getNlComponent(), component.getNlComponent());
           }
           previous = component;
         }
@@ -98,8 +96,9 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
         List<NlComponent> added = components
           .stream()
           .filter(component -> component.getParent() != layout)
+          .map(SceneComponent::getNlComponent)
           .collect(Collectors.toList());
-        editor.getModel().addComponents(added, layout, null, insertType);
+        editor.getModel().addComponents(added, layout.getNlComponent(), null, insertType);
       }
     };
   }
