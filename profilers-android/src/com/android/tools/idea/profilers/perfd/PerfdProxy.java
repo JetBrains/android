@@ -17,6 +17,7 @@ package com.android.tools.idea.profilers.perfd;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.profilers.StudioLegacyAllocationTracker;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.grpc.ManagedChannel;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -33,6 +34,8 @@ import java.util.concurrent.Executors;
  */
 final public class PerfdProxy {
 
+  @NotNull private static final String MEMORY_PROXY_EXECUTOR_NAME = "MemoryServiceProxy";
+
   @NotNull private Server myProxyServer;
   @NotNull private final List<PerfdProxyService> myProxyServices;
 
@@ -43,7 +46,8 @@ final public class PerfdProxy {
     myProxyServices.add(new CpuServiceProxy(device, perfdChannel));
     myProxyServices.add(new MemoryServiceProxy(device,
                                                perfdChannel,
-                                               Executors.newCachedThreadPool(),
+                                               Executors.newSingleThreadExecutor(
+                                                 new ThreadFactoryBuilder().setNameFormat(MEMORY_PROXY_EXECUTOR_NAME).build()),
                                                (d, p) -> new StudioLegacyAllocationTracker(d, p)));
     myProxyServices.add(new NetworkServiceProxy(device, perfdChannel));
 

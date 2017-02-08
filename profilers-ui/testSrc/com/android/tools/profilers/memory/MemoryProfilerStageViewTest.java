@@ -64,8 +64,8 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     ClassObject mockKlass2 = mockClassObject(dummyClassName2, 4, 5, 6, Collections.singletonList(mockInstance2));
     HeapObject mockHeap1 = mockHeapObject("DUMMY_HEAP1", Arrays.asList(mockKlass1, mockKlass2));
     HeapObject mockHeap2 = mockHeapObject("DUMMY_HEAP2", Arrays.asList(mockKlass1, mockKlass2));
-    CaptureObject mockCapture1 = mockCaptureObject("DUMMY_CAPTURE1", 5, 10, Arrays.asList(mockHeap1, mockHeap2));
-    CaptureObject mockCapture2 = mockCaptureObject("DUMMY_CAPTURE2", 5, 10, Arrays.asList(mockHeap2, mockHeap1));
+    CaptureObject mockCapture1 = mockCaptureObject("DUMMY_CAPTURE1", 5, 10, Arrays.asList(mockHeap1, mockHeap2), true);
+    CaptureObject mockCapture2 = mockCaptureObject("DUMMY_CAPTURE2", 5, 10, Arrays.asList(mockHeap2, mockHeap1), true);
 
     MemoryProfilerStageView stageView = (MemoryProfilerStageView)myView.getStageView();
     JComponent captureComponent = stageView.getChartCaptureSplitter().getSecondComponent();
@@ -125,8 +125,8 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   public void testLoadingNewCaptureWithExistingLoad() throws Exception {
     HeapObject mockHeap1 = mockHeapObject("DUMMY_HEAP1", Collections.emptyList());
     HeapObject mockHeap2 = mockHeapObject("DUMMY_HEAP2", Collections.emptyList());
-    CaptureObject mockCapture1 = mockCaptureObject("DUMMY_CAPTURE1", 5, 10, Collections.singletonList(mockHeap1));
-    CaptureObject mockCapture2 = mockCaptureObject("DUMMY_CAPTURE2", 10, 15, Collections.singletonList(mockHeap2));
+    CaptureObject mockCapture1 = mockCaptureObject("DUMMY_CAPTURE1", 5, 10, Collections.singletonList(mockHeap1), true);
+    CaptureObject mockCapture2 = mockCaptureObject("DUMMY_CAPTURE2", 10, 15, Collections.singletonList(mockHeap2), true);
 
     myStage.selectCapture(mockCapture1, null);
     assertView(mockCapture1, null, null, null, true);
