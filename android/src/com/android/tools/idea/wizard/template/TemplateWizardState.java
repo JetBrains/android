@@ -190,11 +190,6 @@ public class TemplateWizardState implements Function<String, Object> {
     put(ATTR_TOP_OUT, FileUtil.toSystemIndependentName(projectRoot.getPath()));
     put(ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getPath()));
 
-    String mavenUrl = System.getProperty(TemplateWizard.MAVEN_URL_PROPERTY);
-    if (mavenUrl != null) {
-      put(ATTR_MAVEN_URL, mavenUrl);
-    }
-
     populateRelativePackage(null);
   }
 
