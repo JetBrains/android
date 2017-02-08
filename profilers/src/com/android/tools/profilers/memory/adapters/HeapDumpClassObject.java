@@ -93,9 +93,12 @@ final class HeapDumpClassObject extends ClassObject {
   @NotNull
   @Override
   public List<InstanceObject> getInstances() {
+    // One liner to prevent having to declare a final variable just so the closure can use it.
+    ValueType type = JAVA_LANG_STRING.equals(getName()) ? ValueType.STRING : (JAVA_LANG_CLASS.equals(getName()) ? ValueType.CLASS : null);
     if (myInstanceObjects == null) {
       myInstanceObjects =
-        myClassObj.getHeapInstances(myHeapObject.getHeap().getId()).stream().map(instance -> new HeapDumpInstanceObject(this, instance))
+        myClassObj.getHeapInstances(myHeapObject.getHeap().getId()).stream()
+          .map(instance -> new HeapDumpInstanceObject(this, instance, type))
           .collect(Collectors.toList());
     }
     return myInstanceObjects;

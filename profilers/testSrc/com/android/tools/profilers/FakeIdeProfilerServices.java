@@ -18,7 +18,10 @@ package com.android.tools.profilers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 
 public final class FakeIdeProfilerServices implements IdeProfilerServices {
   /**
@@ -54,6 +57,10 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
       runnable.run();
     };
+  }
+
+  @Override
+  public void saveFile(@NotNull File file, @NotNull Consumer<FileOutputStream> fileOutputStreamConsumer, @Nullable Runnable postRunnable) {
   }
 
   public void setOnExecute(@Nullable Runnable onExecute) {

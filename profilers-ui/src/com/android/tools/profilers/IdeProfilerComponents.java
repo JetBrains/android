@@ -15,15 +15,13 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.profilers.common.CodeLocation;
-import com.android.tools.profilers.common.ContextMenuItem;
-import com.android.tools.profilers.common.LoadingPanel;
-import com.android.tools.profilers.common.StackTraceView;
-import com.android.tools.profilers.common.TabsPanel;
+import com.android.tools.profilers.common.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.io.File;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public interface IdeProfilerComponents {
@@ -54,4 +52,20 @@ public interface IdeProfilerComponents {
    * TODO - handles shortcut
    */
   void installContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem);
+
+  /**
+   * Creates an export button placeable in the UI.
+   *
+   * @param buttonText          Text to display for the button.
+   * @param tooltip             Tooltip when the user hovers over the button.
+   * @param dialogTitleSupplier Title supplier for the title of the file chooser popup when the user clicks on the button.
+   * @param extensionSupplier   Extension supplier for the extension of the target file.
+   * @param saveToFile          File consumer for the file to save to (usually method to write to the file).
+   */
+  @NotNull
+  JButton createExportButton(@Nullable String buttonText,
+                             @Nullable String tooltip,
+                             @NotNull Supplier<String> dialogTitleSupplier,
+                             @NotNull Supplier<String> extensionSupplier,
+                             @NotNull Consumer<File> saveToFile);
 }

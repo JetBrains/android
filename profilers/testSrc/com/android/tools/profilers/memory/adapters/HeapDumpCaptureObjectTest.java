@@ -25,6 +25,8 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -105,8 +107,8 @@ public class HeapDumpCaptureObjectTest {
 
     InstanceObject instance0 = testHeapKlasses.get(2).getInstances().get(0);
     InstanceObject instance1 = testHeapKlasses.get(3).getInstances().get(0);
-    verifyInstance(instance0, "@1 (0x1)", 0, 1, 0);
-    verifyInstance(instance1, "@2 (0x2)", 1, 0, 1);
+    verifyInstance(instance0, "Class0@1 (0x1)", 0, 1, 0);
+    verifyInstance(instance1, "Class1@2 (0x2)", 1, 0, 1);
 
     FieldObject field0 = instance0.getFields().get(0);
     verifyField(field0, "field0", "Class1@2 (0x2)");
@@ -114,7 +116,7 @@ public class HeapDumpCaptureObjectTest {
     verifyInstance(field0, String.format(FieldObject.FIELD_DISPLAY_FORMAT, "field0", "Class1@2 (0x2)"), 1, 0, 1);
 
     ReferenceObject reference1 = instance1.getReferences().get(0);
-    verifyReference(reference1, "@1 (0x1)", Arrays.asList("field0"));
+    verifyReference(reference1, "Class0@1 (0x1)", Arrays.asList("field0"));
   }
 
   @Test
@@ -172,6 +174,45 @@ public class HeapDumpCaptureObjectTest {
     // Ensure equality again after statuses have re-aligned.
     capture.load();
     assertEquals(captureWithDifferentLoadStatus, capture);
+  }
+
+  @Test
+  public void testSaveToFile() throws Exception {
+    int appId = -1;
+    long startTimeNs = 3;
+    long endTimeNs = 8;
+    MemoryProfiler.HeapDumpInfo dumpInfo =
+      MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
+    HeapDumpCaptureObject capture = new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, appId,
+                                                              dumpInfo, null, myRelativeTimeConverter);
+
+    final CountDownLatch loadLatch = new CountDownLatch(1);
+    final CountDownLatch doneLatch = new CountDownLatch(1);
+    myService.setExplicitDumpDataStatus(MemoryProfiler.DumpDataResponse.Status.NOT_READY);
+    new Thread(() -> {
+      loadLatch.countDown();
+      capture.load();
+      doneLatch.countDown();
+    }).start();
+
+    loadLatch.await();
+    // Load in a simple Snapshot and verify the MemoryObject hierarchy:
+    // - 1 holds reference to 2
+    // - single root object in default heap
+    SnapshotBuilder snapshotBuilder = new SnapshotBuilder(2, 0, 0)
+      .addReferences(1, 2)
+      .addRoot(1);
+    byte[] buffer = snapshotBuilder.getByteBuffer();
+    myService.setExplicitSnapshotBuffer(buffer);
+    myService.setExplicitDumpDataStatus(MemoryProfiler.DumpDataResponse.Status.SUCCESS);
+    doneLatch.await();
+
+    assertTrue(capture.isDoneLoading());
+    assertFalse(capture.isError());
+
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    capture.saveToFile(baos);
+    assertArrayEquals(buffer, baos.toByteArray());
   }
 
   private void verifyHeap(HeapObject heap, String name, int klassSize) {
