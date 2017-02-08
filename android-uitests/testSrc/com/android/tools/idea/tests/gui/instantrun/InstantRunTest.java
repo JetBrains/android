@@ -44,6 +44,8 @@ public class InstantRunTest {
   private static final String AVD_NAME = "device under test";
   private static final Pattern RUN_OUTPUT =
     Pattern.compile(".*adb shell am start .*google\\.simpleapplication.*Connected to process (\\d+) .*", Pattern.DOTALL);
+  private static final Pattern CMAKE_RUN_OUTPUT =
+    Pattern.compile(".*adb shell am start .*google\\.basiccmake.*Connected to process (\\d+) .*", Pattern.DOTALL);
   private static final Pattern HOT_SWAP_OUTPUT =
     Pattern.compile(".*Hot swapped changes, activity restarted.*", Pattern.DOTALL);
 
@@ -94,7 +96,7 @@ public class InstantRunTest {
 
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
     contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
-    String pid = extractPidFromOutput(contentFixture.getOutput());
+    String pid = extractPidFromOutput(contentFixture.getOutput(), RUN_OUTPUT);
 
     ideFrameFixture
       .getEditor()
@@ -107,7 +109,7 @@ public class InstantRunTest {
       .click();
 
     contentFixture.waitForOutput(new PatternTextMatcher(HOT_SWAP_OUTPUT), 120);
-    String newPid = extractPidFromOutput(contentFixture.getOutput());
+    String newPid = extractPidFromOutput(contentFixture.getOutput(), RUN_OUTPUT);
     // (Hot swap) Verify the equality of PIDs before and after IR.
     assertThat(pid).isEqualTo(newPid);
   }
@@ -148,7 +150,7 @@ public class InstantRunTest {
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
     contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
     String output = contentFixture.getOutput();
-    String pid = extractPidFromOutput(output);
+    String pid = extractPidFromOutput(output, RUN_OUTPUT);
 
     ideFrameFixture
       .getEditor()
@@ -165,7 +167,7 @@ public class InstantRunTest {
     // Studio takes a few seconds to reset Run tool window contents.
     Wait.seconds(10).expecting("Run tool window output has been reset").until(() -> !contentFixture.getOutput().contains(output));
     contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
-    String newPid = extractPidFromOutput(contentFixture.getOutput());
+    String newPid = extractPidFromOutput(contentFixture.getOutput(), RUN_OUTPUT);
     // (Cold swap) Verify the inequality of PIDs before and after IR
     assertThat(pid).isNotEqualTo(newPid);
   }
@@ -206,7 +208,7 @@ public class InstantRunTest {
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
     contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
     String output = contentFixture.getOutput();
-    String pid = extractPidFromOutput(contentFixture.getOutput());
+    String pid = extractPidFromOutput(contentFixture.getOutput(), RUN_OUTPUT);
 
     ideFrameFixture
       .getEditor()
@@ -222,9 +224,62 @@ public class InstantRunTest {
     // Studio takes a few seconds to reset Run tool window contents.
     Wait.seconds(10).expecting("Run tool window output has been reset").until(() -> !contentFixture.getOutput().contains(output));
     contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
-    String newPid = extractPidFromOutput(contentFixture.getOutput());
+    String newPid = extractPidFromOutput(contentFixture.getOutput(), RUN_OUTPUT);
     // (Cold swap) Verify the inequality of PIDs before and after IR
     assertThat(pid).isNotEqualTo(newPid);
+  }
+
+  /**
+   * Verifies that instant run hot swap works as expected on a C++ support project.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TR ID: C14603463
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Import BasicCmake.
+   *   2. Update the gradle plugin version if necessary for testing purpose.
+   *   3. Create an AVD with a system image API 21 or above.
+   *   4. Run on the AVD
+   *   5. Verify 1.
+   *   6. Edit a java file.
+   *   7. Run again.
+   *   8. Verify 2.
+   *   Verify:
+   *   1. Make sure the right app is installed and started in Run tool window.
+   *   2. Make sure the instant run hot swap is applied in Run tool window.
+   *   </pre>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void cmakeHotSwap() throws Exception {
+    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmake");
+    createAVD();
+
+    ideFrameFixture
+      .runApp(APP_NAME)
+      .selectDevice(AVD_NAME)
+      .clickOk();
+
+    ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
+    contentFixture.waitForOutput(new PatternTextMatcher(CMAKE_RUN_OUTPUT), 120);
+    String pid = extractPidFromOutput(contentFixture.getOutput(), CMAKE_RUN_OUTPUT);
+
+    ideFrameFixture
+      .getEditor()
+      .open("app/src/main/java/google/basiccmake/MainActivity.java")
+      .enterText(Strings.repeat("\n", 10));
+
+    ideFrameFixture
+      .waitForGradleProjectSyncToFinish()
+      .findApplyChangesButton()
+      .click();
+
+    contentFixture.waitForOutput(new PatternTextMatcher(HOT_SWAP_OUTPUT), 120);
+    String newPid = extractPidFromOutput(contentFixture.getOutput(), CMAKE_RUN_OUTPUT);
+    // (Hot swap) Verify the equality of PIDs before and after IR.
+    assertThat(pid).isEqualTo(newPid);
   }
 
   private void createAVD() {
@@ -253,8 +308,8 @@ public class InstantRunTest {
   }
 
   @NotNull
-  private static String extractPidFromOutput(@NotNull String output) {
-    Matcher m = RUN_OUTPUT.matcher(output);
+  private static String extractPidFromOutput(@NotNull String output, @NotNull Pattern pattern) {
+    Matcher m = pattern.matcher(output);
     String pid = null;
     if (m.find()) {
       pid = m.group(1);
