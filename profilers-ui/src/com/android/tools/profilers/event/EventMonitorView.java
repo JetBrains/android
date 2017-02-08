@@ -16,6 +16,7 @@
 package com.android.tools.profilers.event;
 
 import com.android.tools.adtui.*;
+import com.android.tools.adtui.model.event.SimpleEventType;
 import com.android.tools.profilers.ProfilerMonitorView;
 import com.android.tools.profilers.StudioProfilersView;
 import org.jetbrains.annotations.NotNull;
@@ -26,12 +27,12 @@ import java.util.Map;
 
 public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
 
-  private static final Map<EventActionType, SimpleEventRenderer> RENDERERS;
+  private static final Map<SimpleEventType, SimpleEventRenderer> RENDERERS;
   static {
     RENDERERS = new HashMap<>();
-    RENDERERS.put(EventActionType.TOUCH, new TouchEventRenderer());
-    RENDERERS.put(EventActionType.ROTATION, new EventIconRenderer("/icons/events/rotate-event.png", "/icons/events/rotate-event_dark.png"));
-    RENDERERS.put(EventActionType.KEYBOARD, new EventIconRenderer("/icons/events/keyboard-event.png", "/icons/events/keyboard-event_dark.png"));
+    RENDERERS.put(SimpleEventType.TOUCH, new TouchEventRenderer());
+    RENDERERS.put(SimpleEventType.ROTATION, new EventIconRenderer("/icons/events/rotate-event.png", "/icons/events/rotate-event_dark.png"));
+    RENDERERS.put(SimpleEventType.KEYBOARD, new KeyboardEventRenderer());
   }
 
   public EventMonitorView(@NotNull StudioProfilersView profilersView, @NotNull EventMonitor monitor) {
@@ -49,7 +50,7 @@ public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
   @Override
   protected void populateUi(JPanel container) {
     container.setLayout(new TabularLayout("*", "*,*"));
-    SimpleEventComponent<EventActionType> events = new SimpleEventComponent<>(getMonitor().getSimpleEvents(), RENDERERS);
+    SimpleEventComponent<SimpleEventType> events = new SimpleEventComponent<>(getMonitor().getSimpleEvents(), RENDERERS);
     container.add(events, new TabularLayout.Constraint(0, 0));
 
     StackedEventComponent component = new StackedEventComponent(getMonitor().getActivityEvents());
