@@ -23,13 +23,11 @@ import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import io.grpc.ManagedChannel;
-import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.StreamObserver;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.RunnableFuture;
 import java.util.function.Consumer;
 
 // TODO: Implement a storage container that can read/write data to disk
@@ -71,7 +69,14 @@ public class NetworkService extends NetworkServiceGrpc.NetworkServiceImplBase im
                                 StreamObserver<NetworkProfiler.NetworkStopResponse> responseObserver) {
     int processId = request.getProcessId();
     myRunners.remove(processId).stop();
-    responseObserver.onNext(myPollingService.stopMonitoringApp(request));
+    // Our polling service can get shutdown if we unplug the device.
+    // This should be the only function that gets called as StudioProfilers attempts
+    // to stop monitoring the last app it was monitoring.
+    if (!((ManagedChannel)myPollingService.getChannel()).isShutdown()) {
+      responseObserver.onNext(myPollingService.stopMonitoringApp(request));
+    } else {
+      responseObserver.onNext(NetworkProfiler.NetworkStopResponse.getDefaultInstance());
+    }
     responseObserver.onCompleted();
   }
 

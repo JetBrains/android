@@ -109,6 +109,21 @@ public class ProfilerServiceTest extends DataStorePollerTest {
   }
 
   @Test
+  public void testDeviceDisconnect() throws Exception {
+    myService.shutdownServer();
+    getPollTicker().run();
+    StreamObserver<Profiler.GetProcessesResponse> observer = mock(StreamObserver.class);
+    Profiler.GetProcessesResponse expected = Profiler.GetProcessesResponse.newBuilder()
+      .addProcess(INITIAL_PROCESS.toBuilder().setState(Profiler.Process.State.DEAD))
+      .build();
+    Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder()
+      .setSession(SESSION)
+      .build();
+    myProfilerService.getProcesses(request, observer);
+    validateResponse(observer, expected);
+  }
+
+  @Test
   public void testGetProcesses() throws Exception {
     StreamObserver<Profiler.GetProcessesResponse> observer = mock(StreamObserver.class);
     Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder()
