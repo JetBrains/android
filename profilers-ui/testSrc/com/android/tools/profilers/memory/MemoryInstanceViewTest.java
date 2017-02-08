@@ -45,7 +45,7 @@ public class MemoryInstanceViewTest {
   private static final List<InstanceObject> INSTANCE_OBJECT_LIST = Arrays.asList(
     MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance1", "string1", 2, 3, 4),
     MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance2", "string2", 5, 6, 7),
-    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance3", "string3", 8, 9, 10));
+    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance3", "string3", Integer.MAX_VALUE, 9, 10));
 
   private static final ClassObject MOCK_CLASS = MemoryProfilerTestBase.mockClassObject(MOCK_CLASS_NAME, 1, 2, 3, INSTANCE_OBJECT_LIST);
 
@@ -201,7 +201,8 @@ public class MemoryInstanceViewTest {
       InstanceObject instance = INSTANCE_OBJECT_LIST.get(i);
       treeInfo.verifyRendererValues(root.getChildAt(i),
                                     new String[]{instance.getDisplayLabel(), instance.getToStringText()},
-                                    new String[]{Integer.toString(instance.getDepth())},
+                                    new String[]{(instance.getDepth() >= 0 && instance.getDepth() < Integer.MAX_VALUE) ?
+                                                 Integer.toString(instance.getDepth()) : ""},
                                     new String[]{Integer.toString(instance.getShallowSize())},
                                     new String[]{Long.toString(instance.getRetainedSize())});
     }
