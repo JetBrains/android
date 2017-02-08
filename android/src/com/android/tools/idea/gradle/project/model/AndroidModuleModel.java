@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.InternalAndroidModelView;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
+import com.android.tools.idea.model.IdeAndroidProject;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -87,9 +88,8 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull private transient AndroidModelFeatures myFeatures;
   @Nullable private transient GradleVersion myModelVersion;
-  @Nullable private transient CountDownLatch myProxyAndroidProjectLatch;
-  @Nullable private AndroidProject myProxyAndroidProject;
-
+  @Nullable private transient CountDownLatch myCopyAndroidProjectLatch;
+  @Nullable private AndroidProject myCopyAndroidProject;
   @NotNull private String mySelectedVariantName;
 
   private transient VirtualFile myRootDir;
@@ -134,14 +134,15 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     parseAndSetModelVersion();
     myFeatures = new AndroidModelFeatures(myModelVersion);
 
-    // Compute the proxy object to avoid re-proxying the model during every serialization operation and also schedule it to run
-    // asynchronously to avoid blocking the project sync operation for re-proxying to complete.
+    // Create a copy of the project to avoid calling its methods during every serialization operation and also schedule it to run
+    // asynchronously to avoid blocking the project sync operation for copy to complete.
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      myProxyAndroidProjectLatch = new CountDownLatch(1);
+      myCopyAndroidProjectLatch = new CountDownLatch(1);
       try {
-        myProxyAndroidProject = reproxy(AndroidProject.class, myAndroidProject);
+        //myCopyAndroidProject = new IdeAndroidProject(myAndroidProject);
+        myCopyAndroidProject = reproxy(AndroidProject.class, myAndroidProject);
       } finally {
-        myProxyAndroidProjectLatch.countDown();
+        myCopyAndroidProjectLatch.countDown();
       }
     });
 
@@ -576,30 +577,32 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   /**
-   * A proxy object of the Android-Gradle project is created and maintained for persisting the Android model data. The same proxy object is
+   * A copy object of the Android-Gradle project is created and maintained for persisting the Android model data. The same copy object is
    * also used to visualize the model information in {@link InternalAndroidModelView}.
    *
-   * <p>If the proxy operation is still going on, this method will be blocked until that is completed.
+   * <p>If the copy operation is still going on, this method will be blocked until that is completed.
    *
-   * @return the proxy object of the imported Android-Gradle project.
+   * @return the copy object of the imported Android-Gradle project.
+   * @see IdeAndroidProject
    */
   @NotNull
-  public AndroidProject waitForAndGetProxyAndroidProject() {
-    waitForProxyAndroidProject();
-    assert myProxyAndroidProject != null;
-    return myProxyAndroidProject;
+  public AndroidProject waitForAndGetCopyAndroidProject() {
+    waitForAndGetCopyAndroidProject();
+
+    assert myCopyAndroidProject != null;
+    return myCopyAndroidProject;
   }
 
   /**
-   * A proxy object of the Android-Gradle project is created and maintained for persisting the Android model data. The same proxy object is
+   * A copy object of the Android-Gradle project is created and maintained for persisting the Android model data. The same copy object is
    * also used to visualize the model information in {@link InternalAndroidModelView}.
    *
-   * <p>This method will return immediately if the proxy operation is already completed, or will be blocked until that is completed.
+   * <p>This method will return immediately if the copy operation is already completed, or will be blocked until that is completed.
    */
-  public void waitForProxyAndroidProject() {
-    if (myProxyAndroidProjectLatch != null) {
+  public void waitForCopyAndroidProject() {
+    if (myCopyAndroidProjectLatch != null) {
       try {
-        myProxyAndroidProjectLatch.await();
+        myCopyAndroidProjectLatch.await();
       }
       catch (InterruptedException e) {
         getLogger().error(e);
@@ -908,12 +911,13 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   private void writeObject(ObjectOutputStream out) throws IOException {
-    waitForProxyAndroidProject();
-
     out.writeObject(myProjectSystemId);
     out.writeObject(myModuleName);
     out.writeObject(myRootDirPath);
-    out.writeObject(myProxyAndroidProject);
+
+    waitForCopyAndroidProject();
+    out.writeObject(myCopyAndroidProject);
+
     out.writeObject(mySelectedVariantName);
   }
 
@@ -922,11 +926,10 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     myModuleName = (String)in.readObject();
     myRootDirPath = (File)in.readObject();
     myAndroidProject = (AndroidProject)in.readObject();
+    myCopyAndroidProject = myAndroidProject;
 
     parseAndSetModelVersion();
     myFeatures = new AndroidModelFeatures(myModelVersion);
-
-    myProxyAndroidProject = myAndroidProject;
 
     myBuildTypesByName = Maps.newHashMap();
     myProductFlavorsByName = Maps.newHashMap();
