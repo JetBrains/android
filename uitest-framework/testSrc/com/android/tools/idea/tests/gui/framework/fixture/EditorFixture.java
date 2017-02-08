@@ -471,7 +471,20 @@ public class EditorFixture {
    */
   @NotNull
   public EditorFixture invokeQuickfixAction(@NotNull String labelPrefix) {
-    waitForQuickfix();
+    return invokeQuickfixAction(labelPrefix, true);
+  }
+
+  /**
+   * Waits for the quickfix bulb to appear before invoking the show intentions action,
+   * then waits for the actions to be displayed and finally picks the one with the given label prefix
+   *
+   * @param labelPrefix the prefix of the action description to be shown
+   */
+  @NotNull
+  public EditorFixture invokeQuickfixAction(@NotNull String labelPrefix, boolean waitForBulbIcon) {
+    if (waitForBulbIcon) {
+      waitForQuickfix();
+    }
     invokeAction(EditorAction.SHOW_INTENTION_ACTIONS);
     JBList popup = waitForPopup(robot);
     clickPopupMenuItem(labelPrefix, popup, robot);
