@@ -48,6 +48,7 @@ import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.stream.IntStream;
@@ -137,6 +138,12 @@ public final class TranslationsEditorTest {
   public void showKeysNeedingTranslationForEnglish() {
     myTranslationsEditor.clickFilterKeysComboBoxItem("Show Keys Needing a Translation for English (en)");
     assertEquals(Arrays.asList("app_name", "cancel"), myTranslationsEditor.keys());
+  }
+
+  @Test
+  public void showOnlyHebrew() {
+    myTranslationsEditor.clickFilterLocalesComboBoxItem("Show Hebrew (iw)");
+    assertEquals(Collections.singletonList("Hebrew (iw)"), myTranslationsEditor.locales());
   }
 
   @Test
