@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import com.android.resources.Density;
+import com.android.tools.idea.configurations.Configuration;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import junit.framework.TestCase;
@@ -22,6 +24,7 @@ import junit.framework.TestCase;
 import java.util.List;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class SelectionHandlesTest extends TestCase {
   public void test() {
@@ -30,6 +33,11 @@ public class SelectionHandlesTest extends TestCase {
     component.y = 110;
     component.w = 500;
     component.h = 400;
+    Configuration configuration = mock(Configuration.class);
+    when(configuration.getDensity()).thenReturn(Density.MEDIUM);
+    NlModel model = mock(NlModel.class);
+    when(model.getConfiguration()).thenReturn(configuration);
+    when(component.getModel()).thenReturn(model);
 
     SelectionHandles handles = new SelectionHandles(component);
     List<SelectionHandle> handleList = Lists.newArrayList();

@@ -17,23 +17,13 @@ package com.android.tools.idea.uibuilder.scene;
 
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
-import java.awt.event.InputEvent;
-import java.util.List;
-
-import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static org.mockito.Mockito.when;
@@ -49,14 +39,14 @@ public class SceneKeepDimensTest extends SceneTest {
     ModelBuilder builder = model("constraint.xml",
                                  component(CONSTRAINT_LAYOUT)
                                    .id("@id/root")
-                                   .withBounds(0, 0, 1000, 1000)
+                                   .withBounds(0, 0, 2000, 2000)
                                    .width("1000dp")
                                    .height("1000dp")
                                    .withAttribute("android:padding", "20dp")
                                    .children(
                                      component(TEXT_VIEW)
                                        .id("@+id/textView1")
-                                       .withBounds(20, 200, 100, 20)
+                                       .withBounds(40, 400, 200, 40)
                                        .width("100dp")
                                        .height("20dp")
                                        .withAttribute("app:layout_constraintLeft_toLeftOf", "parent")
@@ -65,7 +55,7 @@ public class SceneKeepDimensTest extends SceneTest {
                                        .withAttribute("tools:layout_editor_absoluteY", "500dp"),
                                      component(TEXT_VIEW)
                                        .id("@+id/textView2")
-                                       .withBounds(500, 20, 100, 20)
+                                       .withBounds(1000, 40, 200, 40)
                                        .width("100dp")
                                        .height("20dp")
                                        .withAttribute("app:layout_constraintTop_toTopOf", "parent")
@@ -74,7 +64,7 @@ public class SceneKeepDimensTest extends SceneTest {
                                        .withAttribute("tools:layout_editor_absoluteY", "20dp"),
                                      component(TEXT_VIEW)
                                        .id("@+id/textView3")
-                                       .withBounds(880, 500, 100, 20)
+                                       .withBounds(1760, 1000, 200, 40)
                                        .width("100dp")
                                        .height("20dp")
                                        .withAttribute("app:layout_constraintRight_toRightOf", "parent")
@@ -83,7 +73,7 @@ public class SceneKeepDimensTest extends SceneTest {
                                        .withAttribute("tools:layout_editor_absoluteY", "500dp"),
                                      component(TEXT_VIEW)
                                        .id("@+id/textView4")
-                                       .withBounds(500, 960, 100, 20)
+                                       .withBounds(1000, 1920, 200, 40)
                                        .width("100dp")
                                        .height("20dp")
                                        .withAttribute("app:layout_constraintBottom_toBottomOf", "parent")
@@ -99,7 +89,7 @@ public class SceneKeepDimensTest extends SceneTest {
     ResourceResolver resolver = Mockito.mock(ResourceResolver.class);
     ResourceValue resourceValue = Mockito.mock(ResourceValue.class);
     when(configuration.getResourceResolver()).thenReturn(resolver);
-    when(configuration.getDensity()).thenReturn(Density.MEDIUM);
+    when(configuration.getDensity()).thenReturn(Density.XHIGH);
     when(resolver.findResValue(dimension, false)).thenReturn(resourceValue);
     when(resolver.resolveResValue(resourceValue)).thenReturn(resourceValue);
     when(resourceValue.getValue()).thenReturn(value);

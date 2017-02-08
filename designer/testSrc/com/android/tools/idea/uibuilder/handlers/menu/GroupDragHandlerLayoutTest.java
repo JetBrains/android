@@ -44,9 +44,11 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
         item(2, 672),
         item(1, 576));
 
-    NlComponent menuComponent = model("menu.xml", menuDescriptor).build().getComponents().get(0);
+    NlModel model = model("menu.xml", menuDescriptor).build();
+    NlComponent menuComponent = model.getComponents().get(0);
     NlComponent item = Mockito.mock(NlComponent.class);
     Mockito.when(item.getTagName()).thenReturn(TAG_ITEM);
+    Mockito.when(item.getModel()).thenReturn(model);
 
     DragHandler handler = newGroupDragHandler(menuComponent, item);
     handler.update(350, 50, 0);
@@ -68,9 +70,11 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
         item(20, 576),
         item(10, 480));
 
-    NlComponent menuComponent = model("menu.xml", menuDescriptor).build().getComponents().get(0);
+    NlModel model = model("menu.xml", menuDescriptor).build();
+    NlComponent menuComponent = model.getComponents().get(0);
     NlComponent item = Mockito.mock(NlComponent.class);
     Mockito.when(item.getTagName()).thenReturn(TAG_ITEM);
+    Mockito.when(item.getModel()).thenReturn(model);
 
     DragHandler handler = newGroupDragHandler(menuComponent, item);
     handler.update(300, 50, 0);
