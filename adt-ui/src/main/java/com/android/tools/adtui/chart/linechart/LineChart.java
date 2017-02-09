@@ -16,15 +16,14 @@
 
 package com.android.tools.adtui.chart.linechart;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.LegendConfig;
-import com.android.tools.adtui.common.datareducer.DataReducer;
 import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SeriesData;
 import gnu.trove.TDoubleArrayList;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
@@ -63,7 +62,7 @@ public class LineChart extends AnimatedComponent {
   private boolean myRedraw;
 
   @NotNull
-  private DataReducer myReducer;
+  private final LineChartReducer myReducer;
 
   // Debug draw counters. TODO: Move to a framework object
   private long myRedraws;
@@ -72,30 +71,19 @@ public class LineChart extends AnimatedComponent {
   private long myLastDraws;
   private long myLastRedraws;
 
-  @TestOnly
-  public LineChart() {
-    this(new LineChartModel());
-  }
-
-  public LineChart(@NotNull LineChartModel model) {
+  @VisibleForTesting
+  public LineChart(@NotNull LineChartModel model, @NotNull LineChartReducer reducer) {
     myLinePaths = new ArrayList<>();
     myLinePathConfigs = new ArrayList<>();
-    // TODO: Replace with myReducer = new LineChartReducer
-    // Having a real reducer will be important for the final release, but we don't want to risk
-    // unintentional side effects to distract us as we prepare to meet an initial milestone.
-    // (For example, reducing points may make it harder to handle dealing with flickering when
-    // endpoints go off screen). Therefore, we just create a passthru reducer for now.
-    myReducer = (path, config) -> path;
+    myReducer = reducer;
     myModel = model;
     myRedraw = true;
     myModel.addDependency(myAspectObserver)
       .onChange(LineChartModel.Aspect.LINE_CHART, this::modelChanged);
   }
 
-  @TestOnly
-  public LineChart(@NotNull DataReducer reducer, @NotNull LineChartModel model) {
-    this(model);
-    myReducer = reducer;
+  public LineChart(@NotNull LineChartModel model) {
+    this(model, new DefaultLineChartReducer());
   }
 
   /**
@@ -260,7 +248,9 @@ public class LineChart extends AnimatedComponent {
   @Override
   protected void draw(Graphics2D g2d, Dimension dim) {
     long now = System.nanoTime();
-    if (now - myLastCount > 1000000000) {
+    long drawStartTime = now;
+
+    if (now - myLastCount > 1e9) {
       myLastDraws = myDraws;
       myLastRedraws = myRedraws;
       myDraws = 0;
@@ -305,6 +295,8 @@ public class LineChart extends AnimatedComponent {
 
     // 2nd pass - call each custom renderer instances to redraw any regions/lines as needed.
     myCustomRenderers.forEach(renderer -> renderer.renderLines(this, g2d, transformedPaths, myLinePathConfigs));
+
+    addDebugInfo("Draw time: %.2fms", (System.nanoTime() - drawStartTime) / 1e6);
   }
 
   public static void drawLines(Graphics2D g2d, List<Path2D> transformedPaths, List<LineConfig> configs, boolean grayScale) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.common.datareducer;
+package com.android.tools.adtui.chart.linechart;
 
-import com.android.tools.adtui.chart.linechart.LineConfig;
 import org.junit.Test;
 
 import java.awt.*;
@@ -26,12 +25,12 @@ import java.util.ArrayList;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public class LineChartReducerTest {
+public class DefaultLineChartReducerTest {
   private static final float EPS = 1e-6f;
-  // LineChartReducer reduces Path2D, so it means that points are in screen coordinates.
+  // DefaultLineChartReducer reduces Path2D, so it means that points are in screen coordinates.
   // FAKE_HEIGHT is needed to convert from screen coordinates to cartesian coordinates.
   private static int FAKE_HEIGHT = 100;
-  private final LineChartReducer myReducer = new LineChartReducer();
+  private final DefaultLineChartReducer myReducer = new DefaultLineChartReducer();
   private LineConfig config = new LineConfig(Color.RED);
 
   @Test
@@ -123,7 +122,7 @@ public class LineChartReducerTest {
     assertPointsEquals(expected, result);
   }
 
-  private static void convertToScreenCoordinates(float points[][]) {
+  private static void convertToScreenCoordinates(float[][] points) {
     for (int i = 0; i < points.length; ++i) {
       points[i][1] = FAKE_HEIGHT - points[i][1];
     }
