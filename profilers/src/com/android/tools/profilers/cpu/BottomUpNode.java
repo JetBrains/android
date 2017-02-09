@@ -154,11 +154,11 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
   }
 
   @Override
-  public String getPackage() {
+  public String getClassName() {
     if (myIsRoot) {
       return "";
     }
     MethodModel method = myPathNodes.get(0).getData();
-    return (method == null ? "" : method.getNameSpace());
+    return (method == null ? "" : method.getClassName());
   }
 }
