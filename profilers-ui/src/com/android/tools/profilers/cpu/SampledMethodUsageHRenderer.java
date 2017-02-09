@@ -25,15 +25,15 @@ import java.util.regex.Pattern;
 public class SampledMethodUsageHRenderer extends HRenderer<MethodModel> {
 
   protected boolean isMethodPlatform(MethodModel method) {
-    return method.getNameSpace().startsWith("android.");
+    return method.getClassName().startsWith("android.");
   }
 
   protected boolean isMethodVendor(MethodModel method) {
-    return method.getNameSpace().startsWith("java.") ||
-           method.getNameSpace().startsWith("sun.") ||
-           method.getNameSpace().startsWith("javax.") ||
-           method.getNameSpace().startsWith("apple.") ||
-           method.getNameSpace().startsWith("com.apple.");
+    return method.getClassName().startsWith("java.") ||
+           method.getClassName().startsWith("sun.") ||
+           method.getClassName().startsWith("javax.") ||
+           method.getClassName().startsWith("apple.") ||
+           method.getClassName().startsWith("com.apple.");
   }
 
   @Override
@@ -70,13 +70,13 @@ public class SampledMethodUsageHRenderer extends HRenderer<MethodModel> {
   @Override
   protected String generateFittingText(MethodModel node, Rectangle2D rect, FontMetrics fontMetrics) {
     // Try: java.lang.String.toString
-    String fullyQualified = node.getNameSpace() + "." + node.getName();
+    String fullyQualified = node.getClassName() + "." + node.getName();
     if (fontMetrics.stringWidth(fullyQualified) < rect.getWidth()) {
       return fullyQualified;
     }
 
     // Try: j.l.s.toString
-    String abbrevPackage = getShortPackageName(node.getNameSpace()) + "." + node.getName();
+    String abbrevPackage = getShortPackageName(node.getClassName()) + "." + node.getName();
     if (fontMetrics.stringWidth(abbrevPackage) < rect.getWidth()) {
       return abbrevPackage;
     }
