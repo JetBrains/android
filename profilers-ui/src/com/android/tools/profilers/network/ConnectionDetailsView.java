@@ -24,6 +24,8 @@ import com.android.tools.adtui.model.legend.FixedLegend;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profilers.ProfilerMonitor;
+import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.common.StackTraceView;
 import com.android.tools.profilers.common.TabsPanel;
 import com.google.common.collect.ImmutableMap;
@@ -56,6 +58,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongFunction;
@@ -83,6 +86,12 @@ public class ConnectionDetailsView extends JPanel {
   @NotNull
   private final NetworkProfilerStageView myStageView;
 
+  @NotNull
+  private final AspectObserver myObserver;
+
+  @NotNull
+  private final TabsPanel myTabsPanel;
+
   public ConnectionDetailsView(@NotNull NetworkProfilerStageView stageView) {
     super(new BorderLayout());
     myStageView = stageView;
@@ -94,7 +103,7 @@ public class ConnectionDetailsView extends JPanel {
     // where main contents span the whole area and a close button fits into the top right
     JPanel rootPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
 
-    TabsPanel tabsPanel = stageView.getIdeComponents().createTabsPanel();
+    myTabsPanel = stageView.getIdeComponents().createTabsPanel(this::tabSelectionChanged);
 
     TabularLayout layout = new TabularLayout("*").setVGap(PAGE_VGAP);
     myResponsePanel = new JPanel(layout);
@@ -112,27 +121,51 @@ public class ConnectionDetailsView extends JPanel {
       }
     });
 
-    tabsPanel.addTab("Response", responseScroll);
+    myTabsPanel.addTab("Response", responseScroll);
 
     myHeadersPanel = new JPanel(new VerticalFlowLayout(0, PAGE_VGAP));
     myHeadersPanel.setName("Headers");
     JBScrollPane headersScroll = new JBScrollPane(myHeadersPanel);
     headersScroll.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT);
     headersScroll.getHorizontalScrollBar().setUnitIncrement(SCROLL_UNIT);
-    tabsPanel.addTab("Headers", headersScroll);
+    myTabsPanel.addTab("Headers", headersScroll);
 
-    myStackTraceView = myStageView.getIdeComponents().createStackView(null);
+    myStackTraceView = myStageView.getIdeComponents().createStackView(this::updateCodeLocation);
     myStackTraceView.getComponent().setName("StackTrace");
-    tabsPanel.addTab("Call Stack", myStackTraceView.getComponent());
+    myTabsPanel.addTab("Call Stack", myStackTraceView.getComponent());
 
     IconButton closeIcon = new IconButton("Close", AllIcons.Actions.Close, AllIcons.Actions.CloseHovered);
     InplaceButton closeButton = new InplaceButton(closeIcon, e -> this.update((HttpData)null));
     closeButton.setMinimumSize(closeButton.getPreferredSize()); // Prevent layout phase from squishing this button
 
     rootPanel.add(closeButton, new TabularLayout.Constraint(0, 1));
-    rootPanel.add(tabsPanel.getComponent(), new TabularLayout.Constraint(0, 0, 2, 2));
+    rootPanel.add(myTabsPanel.getComponent(), new TabularLayout.Constraint(0, 0, 2, 2));
 
     add(rootPanel);
+
+    myObserver = new AspectObserver();
+    myStageView.getStage().getAspect().addDependency(myObserver)
+      .onChange(NetworkProfilerAspect.CODE_LOCATION, this::updateStackTraceView);
+  }
+
+  private void tabSelectionChanged() {
+    JComponent comp = myTabsPanel.getSelectedComponent();
+    if (myStackTraceView != null && comp != myStackTraceView.getComponent()) {
+      myStageView.getStage().setSelectedCodeLocation(null);
+    }
+  }
+
+  private void updateStackTraceView() {
+    CodeLocation newLocation = myStageView.getStage().getSelectedCodeLocation();
+    if (Objects.equals(myStackTraceView.getSelectedLocation(), newLocation)) {
+      return;
+    }
+    myStackTraceView.selectCodeLocation(newLocation);
+  }
+
+  private void updateCodeLocation() {
+    CodeLocation location = myStackTraceView.getSelectedLocation();
+    myStageView.getStage().setSelectedCodeLocation(location);
   }
 
   /**
@@ -154,7 +187,7 @@ public class ConnectionDetailsView extends JPanel {
       myHeadersPanel.add(new JSeparator());
       myHeadersPanel.add(createHeaderSection("Request Headers", httpData.getRequestHeaders()));
 
-      myStackTraceView.setStackFrames(httpData.getTrace());
+      myStackTraceView.setStackFrames(httpData.getStackTrace().getCodeLocations());
     }
     setVisible(httpData != null);
     revalidate();

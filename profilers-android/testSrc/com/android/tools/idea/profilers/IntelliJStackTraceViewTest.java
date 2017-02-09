@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.common.StackFrameParser;
 import com.intellij.openapi.components.BaseComponent;
 import com.intellij.openapi.components.ComponentConfig;
 import com.intellij.openapi.extensions.ExtensionPointName;
