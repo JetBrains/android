@@ -41,10 +41,12 @@ import java.util.concurrent.Executor;
 public class AdbDeviceFileSystem implements DeviceFileSystem {
   @NotNull private final AdbDeviceFileSystemService myService;
   @NotNull private final IDevice myDevice;
+  @NotNull private final AdbFileListing myFileListing;
 
   public AdbDeviceFileSystem(@NotNull AdbDeviceFileSystemService service, @NotNull IDevice device) {
     myService = service;
     myDevice = device;
+    myFileListing = new AdbFileListing(myDevice, service.getTaskExecutor());
   }
 
   boolean isDevice(@Nullable IDevice device) {
@@ -54,6 +56,11 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
   @NotNull
   IDevice getDevice() {
     return myDevice;
+  }
+
+  @NotNull
+  public AdbFileListing getAdbFileListing() {
+    return myFileListing;
   }
 
   @NotNull
@@ -75,12 +82,21 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
   @NotNull
   @Override
   public ListenableFuture<DeviceFileEntry> getRootDirectory() {
-    FileListingService.FileEntry root = myDevice.getFileListingService().getRoot();
-    if (root == null) {
-      return Futures.immediateFailedFuture(new IllegalStateException("ADB device is invalid"));
-    }
-    DeviceFileEntry result = new AdbDeviceFileEntry(this, root, null);
-    return Futures.immediateFuture(result);
+    SettableFuture<DeviceFileEntry> futureResult = SettableFuture.create();
+
+    getTaskExecutor().addCallback(getAdbFileListing().getRoot(), new FutureCallback<AdbFileListingEntry>() {
+      @Override
+      public void onSuccess(@Nullable AdbFileListingEntry result) {
+        assert result != null;
+        futureResult.set(new AdbDeviceFileEntry(AdbDeviceFileSystem.this, result, null));
+      }
+      @Override
+      public void onFailure(@NotNull Throwable t) {
+        futureResult.setException(t);
+      }
+    });
+
+    return futureResult;
   }
 
   @NotNull
