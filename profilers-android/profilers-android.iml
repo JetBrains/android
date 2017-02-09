@@ -21,5 +21,6 @@
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="lang-api" />
     <orderEntry type="module" module-name="ddmlib" />
+    <orderEntry type="module" module-name="platform-impl" />
   </component>
 </module>
