@@ -34,9 +34,9 @@ import java.util.*;
 public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTreeNode {
   @Nullable protected MemoryObjectTreeNode<T> myParent;
 
-  @Nullable private Comparator<MemoryObjectTreeNode<T>> myComparator = null;
+  @NotNull protected List<MemoryObjectTreeNode<T>> myChildren = new ArrayList<>();
 
-  @NotNull private List<MemoryObjectTreeNode<T>> myChildren = new ArrayList<>();
+  @Nullable protected Comparator<MemoryObjectTreeNode<T>> myComparator = null;
 
   @NotNull private final T myAdapter;
 

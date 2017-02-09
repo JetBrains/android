@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static com.android.tools.profilers.memory.MemoryInstanceView.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -43,9 +44,9 @@ public class MemoryInstanceViewTest {
   private static final String MOCK_CLASS_NAME = "MockClass";
 
   private static final List<InstanceObject> INSTANCE_OBJECT_LIST = Arrays.asList(
-    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance1", "string1", 2, 3, 4),
-    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance2", "string2", 5, 6, 7),
-    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance3", "string3", Integer.MAX_VALUE, 9, 10));
+    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance1", "string1", 0, 2, 3, 4),
+    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance2", "string2", 1, 5, 6, 7),
+    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance3", "string3", 5, Integer.MAX_VALUE, 9, 10));
 
   private static final ClassObject MOCK_CLASS = MemoryProfilerTestBase.mockClassObject(MOCK_CLASS_NAME, 1, 2, 3, INSTANCE_OBJECT_LIST);
 
@@ -120,14 +121,18 @@ public class MemoryInstanceViewTest {
 
   @Test
   public void testGoToInstance() {
+    InstanceObject instance = MemoryProfilerTestBase.mockInstanceObject("instanceClass", "instance", null, 1, 1, 2, 3);
+    assertEquals(1, instance.getFieldCount());
+    assertEquals(1, instance.getFields().size());
+
     // Setup a Class-Instance-Fields hierarchy so that the instance contains a field of a different class
-    FieldObject field = MemoryProfilerTestBase.mockFieldObject("fieldClass", "fieldLabel", "field");
+    FieldObject field = instance.getFields().get(0);
     ClassObject fieldClass = MemoryProfilerTestBase.mockClassObject("fieldClass", 1, 2, 3, Collections.singletonList(field));
     HeapObject fieldHeap = MemoryProfilerTestBase.mockHeapObject("fieldHeap", Collections.singletonList(fieldClass));
+
     when(field.getClassObject()).thenReturn(fieldClass);
     when(fieldClass.getHeapObject()).thenReturn(fieldHeap);
-    InstanceObject instance = MemoryProfilerTestBase.mockInstanceObject("instanceClass", "instance", null, 1, 2, 3);
-    when(instance.getFields()).thenReturn(Collections.singletonList(field));
+
     ClassObject instanceClass = MemoryProfilerTestBase.mockClassObject("instanceClass", 1, 2, 3, Collections.singletonList(instance));
 
     MemoryInstanceView view = new MemoryInstanceView(myStage, myFakeIdeProfilerComponents);
@@ -159,7 +164,7 @@ public class MemoryInstanceViewTest {
   @Test
   public void navigationTest() {
     final String testClassName = "com.Foo";
-    InstanceObject mockInstance = MemoryProfilerTestBase.mockInstanceObject(testClassName, "TestInstance", null, 1, 2, 3);
+    InstanceObject mockInstance = MemoryProfilerTestBase.mockInstanceObject(testClassName, "TestInstance", null, 0, 1, 2, 3);
     ClassObject mockClass = MemoryProfilerTestBase.mockClassObject(testClassName, 4, 5, 6, Collections.singletonList(mockInstance));
     List<ClassObject> mockClassObjects = Collections.singletonList(mockClass);
     HeapObject mockHeap = MemoryProfilerTestBase.mockHeapObject("TestHeap", mockClassObjects);
@@ -206,5 +211,21 @@ public class MemoryInstanceViewTest {
                                     new String[]{Integer.toString(instance.getShallowSize())},
                                     new String[]{Long.toString(instance.getRetainedSize())});
     }
+  }
+
+  @Test
+  public void testInstanceTreeNodeExpansion() {
+    InstanceTreeNode instanceTreeNode0 = new InstanceTreeNode(INSTANCE_OBJECT_LIST.get(0));
+    InstanceTreeNode instanceTreeNode1 = new InstanceTreeNode(INSTANCE_OBJECT_LIST.get(1));
+    InstanceTreeNode instanceTreeNode2 = new InstanceTreeNode(INSTANCE_OBJECT_LIST.get(2));
+    assertEquals(0, instanceTreeNode0.getActualChildren().size());
+    assertEquals(0, instanceTreeNode1.getActualChildren().size());
+    assertEquals(0, instanceTreeNode2.getActualChildren().size());
+    instanceTreeNode0.expandNode();
+    instanceTreeNode1.expandNode();
+    instanceTreeNode2.expandNode();
+    assertEquals(0, instanceTreeNode0.getActualChildren().size());
+    assertEquals(1, instanceTreeNode1.getActualChildren().size());
+    assertEquals(5, instanceTreeNode2.getActualChildren().size());
   }
 }

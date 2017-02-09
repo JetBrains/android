@@ -235,6 +235,23 @@ class HeapDumpInstanceObject implements InstanceObject {
     return myInstance == null ? MemoryObject.INVALID_VALUE : myInstance.getTotalRetainedSize();
   }
 
+  @Override
+  public int getFieldCount() {
+    if (myInstance instanceof ClassInstance) {
+      ClassInstance classInstance = (ClassInstance)myInstance;
+      return classInstance.getValues().size();
+    }
+    else if (myInstance instanceof ArrayInstance) {
+      ArrayInstance arrayInstance = (ArrayInstance)myInstance;
+      return arrayInstance.getLength();
+    }
+    else if (myInstance instanceof ClassObj) {
+      ClassObj classObj = (ClassObj)myInstance;
+      return classObj.getStaticFieldValues().size();
+    }
+    return 0;
+  }
+
   @NotNull
   @Override
   public List<FieldObject> getFields() {
