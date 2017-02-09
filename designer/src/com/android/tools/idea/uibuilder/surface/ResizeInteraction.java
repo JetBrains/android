@@ -22,7 +22,6 @@ import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -52,9 +51,9 @@ public class ResizeInteraction extends Interaction {
   /** The resize handler for the layout view */
   private ResizeHandler myResizeHandler;
 
-  public ResizeInteraction(@NotNull SceneView sceneView, @NotNull SceneComponent component, @NotNull SelectionHandle handle) {
+  public ResizeInteraction(@NotNull SceneView sceneView, @NotNull NlComponent component, @NotNull SelectionHandle handle) {
     mySceneView = sceneView;
-    myComponent = component.getNlComponent();
+    myComponent = component;
     myHorizontalEdge = handle.getHorizontalEdge();
     myVerticalEdge = handle.getVerticalEdge();
   }

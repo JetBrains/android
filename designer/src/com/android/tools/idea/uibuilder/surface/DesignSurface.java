@@ -752,7 +752,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myFileEditorDelegate = new WeakReference<>(fileEditor);
   }
 
-  public SceneView getSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
+  public SceneView getSceneView(int x, int y) {
     return getCurrentSceneView();
   }
 

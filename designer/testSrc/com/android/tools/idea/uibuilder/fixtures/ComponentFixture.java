@@ -18,12 +18,10 @@ package com.android.tools.idea.uibuilder.fixtures;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SegmentType;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 
@@ -97,11 +95,6 @@ public class ComponentFixture {
   @NotNull
   public NlComponent getComponent() {
     return myComponent;
-  }
-
-  @Nullable
-  public SceneComponent getSceneComponent() {
-    return myScreenFixture.getScreen().getScene().getSceneComponent(myComponent);
   }
 
   @NotNull

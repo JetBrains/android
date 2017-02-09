@@ -18,15 +18,11 @@ package com.android.tools.idea.uibuilder.handlers.preference;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.handlers.HandlerTestFactory;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.scene.Scene;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.awt.*;
@@ -35,114 +31,135 @@ import java.util.List;
 
 import static com.android.SdkConstants.PreferenceTags.PREFERENCE_CATEGORY;
 import static com.android.SdkConstants.PreferenceTags.PREFERENCE_SCREEN;
+import static org.junit.Assert.assertEquals;
 
-public final class PreferenceScreenDragHandlerTest extends PreferenceScreenTestCase {
-  public void testUpdate() {
+public final class PreferenceScreenDragHandlerTest {
+  @Test
+  public void update() {
     PreferenceGroupDragHandler handler = newPreferenceScreenDragHandler(newPreferenceScreen());
 
-    handler.update(180, 345, 0);
-    assertEquals(PREFERENCE_CATEGORY, handler.myGroup.getNlComponent().getTagName());
+    handler.update(360, 690, 0);
+    assertEquals(PREFERENCE_CATEGORY, handler.myGroup.getTagName());
 
-    handler.update(180, 356, 0);
-    assertEquals(PREFERENCE_SCREEN, handler.myGroup.getNlComponent().getTagName());
+    handler.update(360, 711, 0);
+    assertEquals(PREFERENCE_SCREEN, handler.myGroup.getTagName());
 
-    handler.update(180, 370, 0);
-    assertEquals(PREFERENCE_SCREEN, handler.myGroup.getNlComponent().getTagName());
+    handler.update(360, 712, 0);
+    assertEquals(PREFERENCE_SCREEN, handler.myGroup.getTagName());
+
+    handler.update(360, 740, 0);
+    assertEquals(PREFERENCE_SCREEN, handler.myGroup.getTagName());
   }
 
-  public void testUpdateAdjacentCategories() {
-    NlModel model = model("model.xml", preferenceScreen(0, 162, 768, 548).children(
-      checkBoxPreference(0, 162, 768, 102),
-      preferenceCategory(0, 266, 768, 65)
-        .id("@+id/category1")
-        .unboundedChildren(checkBoxPreference(0, 333, 768, 102)),
-      preferenceCategory(0, 437, 768, 65)
-        .id("@+id/category2")
-        .unboundedChildren(checkBoxPreference(0, 504, 768, 102)),
-      checkBoxPreference(0, 608, 768, 102))).build();
+  @Test
+  public void updateAdjacentCategories() {
+    NlComponent category1 = PreferenceScreenTestFactory.newPreferenceCategory(0, 266, 768, 65);
+    category1.addChild(PreferenceScreenTestFactory.newCheckBoxPreference(0, 333, 768, 102));
 
-    PreferenceGroupDragHandler handler = newPreferenceScreenDragHandler(model);
+    NlComponent category2 = PreferenceScreenTestFactory.newPreferenceCategory(0, 437, 768, 65);
+    category2.addChild(PreferenceScreenTestFactory.newCheckBoxPreference(0, 504, 768, 102));
 
-    handler.update(180, 205, 0);
-    assertEquals(model.find("category1"), handler.myGroup.getNlComponent());
+    NlComponent screen = newPreferenceScreen(0, 162, 768, 548);
 
-    handler.update(180, 230, 0);
-    assertEquals(model.find("category2"), handler.myGroup.getNlComponent());
+    screen.addChild(PreferenceScreenTestFactory.newCheckBoxPreference(0, 162, 768, 102));
+    screen.addChild(category1);
+    screen.addChild(category2);
+    screen.addChild(PreferenceScreenTestFactory.newCheckBoxPreference(0, 608, 768, 102));
+
+    PreferenceGroupDragHandler handler = newPreferenceScreenDragHandler(screen);
+
+    handler.update(360, 410, 0);
+    assertEquals(category1, handler.myGroup);
+
+    handler.update(360, 460, 0);
+    assertEquals(category2, handler.myGroup);
   }
 
-  public void testDrawDropPreviewLine() {
-    PreferenceGroupDragHandler handler = newPreferenceScreenDragHandler(newPreferenceScreen());
-    NlGraphics graphics = Mockito.mock(NlGraphics.class);
-
-    handler.update(180, 345, 0);
-    handler.drawDropPreviewLine(graphics);
-
-    handler.update(180, 370, 0);
-    handler.drawDropPreviewLine(graphics);
-
-    Mockito.verify(graphics).drawBottomDp(new Rectangle(0, 304, 384, 52));
-    Mockito.verify(graphics).drawTopDp(new Rectangle(0, 356, 384, 52));
-  }
-
-  public void testDrawDropRecipientLines() {
+  @Test
+  public void drawDropPreviewLine() {
     PreferenceGroupDragHandler handler = newPreferenceScreenDragHandler(newPreferenceScreen());
     NlGraphics graphics = Mockito.mock(NlGraphics.class);
 
-    handler.update(180, 251, 0);
+    handler.update(360, 690, 0);
+    handler.drawDropPreviewLine(graphics);
+
+    handler.update(360, 740, 0);
+    handler.drawDropPreviewLine(graphics);
+
+    Mockito.verify(graphics).drawBottom(new Rectangle(0, 607, 768, 104));
+    Mockito.verify(graphics).drawTop(new Rectangle(0, 711, 768, 104));
+  }
+
+  @Test
+  public void drawDropRecipientLines() {
+    PreferenceGroupDragHandler handler = newPreferenceScreenDragHandler(newPreferenceScreen());
+    NlGraphics graphics = Mockito.mock(NlGraphics.class);
+
+    handler.update(360, 502, 0);
     handler.drawDropRecipientLines(graphics);
 
-    Rectangle bounds = new Rectangle(0, 166, 384, 190);
+    Rectangle bounds = new Rectangle(0, 332, 768, 379);
 
-    Mockito.verify(graphics).drawTopDp(bounds);
-    Mockito.verify(graphics).drawLeftDp(bounds);
-    Mockito.verify(graphics).drawRightDp(bounds);
-    Mockito.verify(graphics).drawBottomDp(bounds);
+    Mockito.verify(graphics).drawTop(bounds);
+    Mockito.verify(graphics).drawLeft(bounds);
+    Mockito.verify(graphics).drawRight(bounds);
+    Mockito.verify(graphics).drawBottom(bounds);
   }
 
-  public void testDrawDropZoneLinesPointerIsBetweenFirstAndSecondChildren() {
+  @Test
+  public void drawDropZoneLinesPointerIsBetweenFirstAndSecondChildren() {
     PreferenceGroupDragHandler handler = newPreferenceScreenDragHandler(newPreferenceScreen());
     NlGraphics graphics = Mockito.mock(NlGraphics.class);
 
-    handler.update(180, 251, 0);
+    handler.update(360, 502, 0);
     handler.drawDropZoneLines(graphics);
 
-    List<SceneComponent> preferences = handler.myGroup.getChildren();
+    List<NlComponent> preferences = handler.myGroup.getChildren();
 
-    Mockito.verify(graphics).drawTop(preferences.get(0).getNlComponent());
-    Mockito.verify(graphics).drawTop(preferences.get(2).getNlComponent());
+    Mockito.verify(graphics).drawTop(preferences.get(0));
+    Mockito.verify(graphics).drawTop(preferences.get(2));
   }
 
-  public void testDrawDropZoneLinesPointerIsBetweenSecondAndThirdChildren() {
+  @Test
+  public void drawDropZoneLinesPointerIsBetweenSecondAndThirdChildren() {
     PreferenceGroupDragHandler handler = newPreferenceScreenDragHandler(newPreferenceScreen());
     NlGraphics graphics = Mockito.mock(NlGraphics.class);
 
-    handler.update(180, 303, 0);
+    handler.update(360, 606, 0);
     handler.drawDropZoneLines(graphics);
 
-    List<SceneComponent> preferences = handler.myGroup.getChildren();
+    List<NlComponent> preferences = handler.myGroup.getChildren();
 
-    Mockito.verify(graphics).drawTop(preferences.get(0).getNlComponent());
-    Mockito.verify(graphics).drawTop(preferences.get(1).getNlComponent());
+    Mockito.verify(graphics).drawTop(preferences.get(0));
+    Mockito.verify(graphics).drawTop(preferences.get(1));
   }
 
   @NotNull
-  private NlModel newPreferenceScreen() {
-    return model("model.xml",
-                 preferenceScreen(0, 162, 768, 755).children(
-                   checkBoxPreference(0, 162, 768, 168),
-                   preferenceCategory(),
-                   checkBoxPreference(0, 711, 768, 102),
-                   checkBoxPreference(0, 815, 768, 102))).build();
+  private static NlComponent newPreferenceScreen() {
+    NlComponent screen = newPreferenceScreen(0, 162, 768, 755);
+
+    screen.addChild(PreferenceScreenTestFactory.newCheckBoxPreference(0, 162, 768, 168));
+    screen.addChild(PreferenceScreenTestFactory.newPreferenceCategory());
+    screen.addChild(PreferenceScreenTestFactory.newCheckBoxPreference(0, 711, 768, 102));
+    screen.addChild(PreferenceScreenTestFactory.newCheckBoxPreference(0, 815, 768, 102));
+
+    return screen;
   }
 
   @NotNull
-  private PreferenceGroupDragHandler newPreferenceScreenDragHandler(@NotNull NlModel model) {
-    ScreenFixture screenFixture = surface().screen(model).withScale(1);
-    Scene scene = Scene.createScene(model, screenFixture.getScreen());
-    scene.buildDisplayList(new DisplayList(), 0);
+  @SuppressWarnings("SameParameterValue")
+  private static NlComponent newPreferenceScreen(int x, int y, int width, int height) {
+    NlComponent screen = HandlerTestFactory.newNlComponent(PREFERENCE_SCREEN);
+    screen.setBounds(x, y, width, height);
 
-    ViewEditor editor = editor(screenFixture.getScreen());
-    SceneComponent component = scene.getRoot();
-    return new PreferenceScreenDragHandler(editor, new ViewGroupHandler(), component, Collections.singletonList(component), DragType.MOVE);
+    return screen;
+  }
+
+  @NotNull
+  private static PreferenceGroupDragHandler newPreferenceScreenDragHandler(@NotNull NlComponent group) {
+    ViewEditor editor = PreferenceScreenTestFactory.mockEditor();
+    List<NlComponent> preferences = Collections.singletonList(Mockito.mock(NlComponent.class));
+
+    return new PreferenceScreenDragHandler(editor, new ViewGroupHandler(), group, preferences, DragType.MOVE);
   }
 }

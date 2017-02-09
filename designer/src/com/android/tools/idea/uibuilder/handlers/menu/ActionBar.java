@@ -28,9 +28,7 @@ final class ActionBar {
   private final List<NlComponent> myItems;
   private final List<NlComponent> myOverflowItems;
 
-  @AndroidCoordinate
   private final Rectangle myItemBounds;
-  @AndroidCoordinate
   private final Rectangle myOverflowItemBounds;
 
   ActionBar(@NotNull NlComponent group) {
@@ -72,7 +70,6 @@ final class ActionBar {
       });
   }
 
-  @AndroidCoordinate
   @Nullable
   private static Rectangle getBounds(@NotNull List<NlComponent> items) {
     if (items.isEmpty()) {
@@ -96,13 +93,11 @@ final class ActionBar {
     return myOverflowItems;
   }
 
-  @AndroidCoordinate
   @Nullable
   Rectangle getItemBounds() {
     return myItemBounds;
   }
 
-  @AndroidCoordinate
   @Nullable
   Rectangle getOverflowItemBounds() {
     return myOverflowItemBounds;

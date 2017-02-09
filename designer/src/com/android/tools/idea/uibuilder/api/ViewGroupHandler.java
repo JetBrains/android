@@ -17,7 +17,10 @@ package com.android.tools.idea.uibuilder.api;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.XmlBuilder;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.tools.idea.uibuilder.model.FillPolicy;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.SegmentType;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -122,8 +125,8 @@ public class ViewGroupHandler extends ViewHandler {
    */
   @Nullable
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
-                                       @NotNull SceneComponent layout,
-                                       @NotNull List<SceneComponent> components,
+                                       @NotNull NlComponent layout,
+                                       @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
     return null;
   }

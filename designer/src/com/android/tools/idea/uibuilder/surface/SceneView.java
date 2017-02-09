@@ -40,6 +40,8 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
 
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOVERING_SIZE;
+
 /**
  * View of a {@link Scene} used in a {@link DesignSurface}.
  */
