@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.handlers.grid;
 
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SegmentType;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 public class GridLayoutHandler extends ViewGroupHandler {
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
-                                       @NotNull SceneComponent layout,
-                                       @NotNull List<SceneComponent> components,
+                                       @NotNull NlComponent layout,
+                                       @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
     return new GridDragHandler(editor, this, layout, components, type);
   }

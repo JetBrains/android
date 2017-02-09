@@ -71,7 +71,7 @@ public class SelectionHandles implements Iterable<SelectionHandle> {
   private void createHandles() {
     ResizePolicy resizability = ResizePolicy.getResizePolicy(myComponent);
     if (resizability.isResizable()) {
-      myHandles = new ArrayList<>(8);
+      myHandles = new ArrayList<SelectionHandle>(8);
       boolean left = resizability.leftAllowed();
       boolean right = resizability.rightAllowed();
       boolean top = resizability.topAllowed();

@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.handlers.menu;
 
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.google.common.base.MoreObjects;
 import com.intellij.openapi.util.IconLoader;
 import icons.AndroidIcons;
@@ -34,8 +33,8 @@ public class MenuHandler extends ViewGroupHandler {
   @Nullable
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
-                                       @NotNull SceneComponent group,
-                                       @NotNull List<SceneComponent> items,
+                                       @NotNull NlComponent group,
+                                       @NotNull List<NlComponent> items,
                                        @NotNull DragType type) {
     return new GroupDragHandler(editor, this, group, items, type);
   }

@@ -17,15 +17,13 @@ package com.android.tools.idea.uibuilder.handlers.grid;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.api.*;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.Insets;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.google.common.annotations.VisibleForTesting;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.List;
@@ -35,10 +33,10 @@ final class GridDragHandler extends DragHandler {
   private int row;
   private int column;
 
-  GridDragHandler(@NotNull ViewEditor editor, @NotNull ViewGroupHandler handler, @NotNull SceneComponent layout,
-                  @NotNull List<SceneComponent> components, @NotNull DragType type) {
+  GridDragHandler(@NotNull ViewEditor editor, @NotNull ViewGroupHandler handler, @NotNull NlComponent layout,
+                  @NotNull List<NlComponent> components, @NotNull DragType type) {
     super(editor, handler, layout, components, type);
-    info = new GridInfo(layout.getNlComponent());
+    info = new GridInfo(layout);
   }
 
   @Override
@@ -67,34 +65,32 @@ final class GridDragHandler extends DragHandler {
 
   @VisibleForTesting
   int getStartRow() {
-    return info.getRow(editor.dpToPx(startY));
+    return info.getRow(startY);
   }
 
   @VisibleForTesting
   int getStartColumn() {
-    return info.getColumn(editor.dpToPx(startX));
+    return info.getColumn(startX);
   }
 
   @Override
-  public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers) {
+  public String update(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
     String successful = super.update(x, y, modifiers);
 
-    row = info.getRow(editor.dpToPx(y));
-    column = info.getColumn(editor.dpToPx(x));
+    row = info.getRow(y);
+    column = info.getColumn(x);
 
     return successful;
   }
 
   @Override
   public void paint(@NotNull NlGraphics graphics) {
-    Insets padding = layout.getNlComponent().getPadding();
+    Insets padding = layout.getPadding();
 
-    @AndroidCoordinate int layoutX1 = editor.dpToPx(layout.getDrawX()) + padding.left;
-    @AndroidCoordinate int layoutY1 = editor.dpToPx(layout.getDrawY()) + padding.top;
-    @AndroidCoordinate int layoutX2 =
-      editor.dpToPx(layout.getDrawX()) + padding.left + editor.dpToPx(layout.getDrawWidth()) - padding.width() - 1;
-    @AndroidCoordinate int layoutY2 =
-      editor.dpToPx(layout.getDrawY()) + padding.top + editor.dpToPx(layout.getDrawHeight()) - padding.height() - 1;
+    int layoutX1 = layout.x + padding.left;
+    int layoutY1 = layout.y + padding.top;
+    int layoutX2 = layout.x + padding.left + layout.w - padding.width() - 1;
+    int layoutY2 = layout.y + padding.top + layout.h - padding.height() - 1;
 
     graphics.useStyle(NlDrawingStyle.DROP_ZONE);
 
@@ -107,8 +103,7 @@ final class GridDragHandler extends DragHandler {
     }
 
     graphics.useStyle(NlDrawingStyle.DROP_RECIPIENT);
-    graphics.drawRect(layoutX1, layoutY1, editor.dpToPx(layout.getDrawWidth()) - padding.width(),
-                      editor.dpToPx(layout.getDrawHeight()) - padding.height());
+    graphics.drawRect(layoutX1, layoutY1, layout.w - padding.width(), layout.h - padding.height());
 
     graphics.useStyle(info.cellHasChild(row, column) ? NlDrawingStyle.INVALID : NlDrawingStyle.DROP_ZONE_ACTIVE);
 
@@ -116,7 +111,6 @@ final class GridDragHandler extends DragHandler {
     graphics.fillRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
   }
 
-  @AndroidCoordinate
   private Rectangle getActiveDropZoneRectangle() {
     int startRow = row;
     int startColumn = column;

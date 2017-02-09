@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,7 +83,7 @@ public class Coordinates {
    * system) of the given x coordinate in the Android screen coordinate system in Dip
    */
   @SwingCoordinate
-  public static int getSwingXDip(@NotNull SceneView view, @AndroidDpCoordinate int androidDpX) {
+  public static int getSwingXDip(@NotNull ScreenView view, @AndroidDpCoordinate int androidDpX) {
     return getSwingX(view, dpToPx(view, androidDpX));
   }
 
@@ -91,7 +92,7 @@ public class Coordinates {
    * system) of the given x coordinate in the Android screen coordinate system in Dip
    */
   @SwingCoordinate
-  public static int getSwingYDip(@NotNull SceneView view, @AndroidDpCoordinate int androidDpY) {
+  public static int getSwingYDip(@NotNull ScreenView view, @AndroidDpCoordinate int androidDpY) {
     return getSwingY(view, dpToPx(view, androidDpY));
   }
 
