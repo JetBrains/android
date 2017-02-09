@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.workbench;
 
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.workbench.AttachedToolWindow.DragEvent;
 import com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType;
 import com.google.common.collect.ImmutableList;
@@ -150,12 +151,16 @@ public class WorkBenchTest {
 
   @Test
   public void testComponentResize() {
-    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.WIDTH", -1)).isEqualTo(DEFAULT_SIDE_WIDTH);
-    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.WIDTH", -1)).isEqualTo(DEFAULT_SIDE_WIDTH);
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.UNSCALED.WIDTH", -1))
+      .isEqualTo(AdtUiUtils.unscale(DEFAULT_SIDE_WIDTH));
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.UNSCALED.WIDTH", -1))
+      .isEqualTo(AdtUiUtils.unscale(DEFAULT_SIDE_WIDTH));
     mySplitter.setFirstSize(400);
     fireComponentResize(myContent);
-    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.WIDTH", -1)).isEqualTo(400);
-    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.WIDTH", -1)).isEqualTo(DEFAULT_SIDE_WIDTH);
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.UNSCALED.WIDTH", -1))
+      .isEqualTo(AdtUiUtils.unscale(400));
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.UNSCALED.WIDTH", -1))
+      .isEqualTo(AdtUiUtils.unscale(DEFAULT_SIDE_WIDTH));
   }
 
   private static void fireComponentResize(@NotNull JComponent component) {
@@ -294,7 +299,7 @@ public class WorkBenchTest {
 
     fireButtonDragged(dragImage, 10, 20, 1052, 40);
     assertThat(dragImage.getParent()).isNotNull();
-    assertThat(dragImage.getX()).isEqualTo(1034);
+    assertThat(dragImage.getX()).isEqualTo(1055 - myToolWindow1.getMinimizedButton().getPreferredSize().width);
     assertThat(dragImage.getY()).isEqualTo(20);
     verify(myRightMinimizePanel).drag(eq(myToolWindow1), eq(20));
 
