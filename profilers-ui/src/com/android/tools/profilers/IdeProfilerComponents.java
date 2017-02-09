@@ -68,4 +68,7 @@ public interface IdeProfilerComponents {
                              @NotNull Supplier<String> dialogTitleSupplier,
                              @NotNull Supplier<String> extensionSupplier,
                              @NotNull Consumer<File> saveToFile);
+
+  @NotNull
+  FileViewer createFileViewer(@NotNull File file);
 }
