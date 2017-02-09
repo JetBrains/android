@@ -16,6 +16,7 @@
 package com.android.tools.profilers.common;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
@@ -34,4 +35,7 @@ public interface TabsPanel {
   void removeTab(@NotNull JComponent content);
 
   void removeAll();
+
+  @Nullable
+  JComponent getSelectedComponent();
 }
