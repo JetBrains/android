@@ -16,6 +16,8 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.model.AspectModel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -23,7 +25,11 @@ import java.util.List;
 import static com.android.tools.profilers.StudioProfilers.INVALID_PROCESS_ID;
 
 public class StudioMonitorStage extends Stage {
+
+  @NotNull
   private List<ProfilerMonitor> myMonitors;
+
+  @Nullable
   private ProfilerMonitor myTooltip;
 
   enum Aspect {
@@ -36,11 +42,12 @@ public class StudioMonitorStage extends Stage {
     return myAspect;
   }
 
+  @Nullable
   public ProfilerMonitor getTooltip() {
     return myTooltip;
   }
 
-  public StudioMonitorStage(StudioProfilers profiler) {
+  public StudioMonitorStage(@NotNull StudioProfilers profiler) {
     super(profiler);
     myMonitors = new LinkedList<>();
   }
@@ -70,12 +77,16 @@ public class StudioMonitorStage extends Stage {
     return ProfilerMode.NORMAL;
   }
 
+  @NotNull
   public List<ProfilerMonitor> getMonitors() {
     return myMonitors;
   }
 
-  public void setTooltip(ProfilerMonitor tooltip) {
-    myTooltip = tooltip;
-    myAspect.changed(Aspect.TOOLTIP);
+  public void setTooltip(@Nullable ProfilerMonitor tooltip) {
+    if (tooltip != myTooltip) {
+      myTooltip = tooltip;
+      myMonitors.forEach(monitor -> monitor.setFocus(monitor == tooltip));
+      myAspect.changed(Aspect.TOOLTIP);
+    }
   }
 }

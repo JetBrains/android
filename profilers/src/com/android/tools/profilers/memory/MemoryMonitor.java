@@ -67,6 +67,7 @@ public class MemoryMonitor extends ProfilerMonitor {
     myProfilers.getUpdater().unregister(myTooltipLegend);
   }
 
+  @Override
   public void expand() {
     myProfilers.setStage(new MemoryProfilerStage(myProfilers));
   }

@@ -29,8 +29,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
@@ -80,11 +78,5 @@ public class CpuMonitorView extends ProfilerMonitorView<CpuMonitor> {
     container.add(legendPanel, new TabularLayout.Constraint(0, 0));
     container.add(leftAxis, new TabularLayout.Constraint(0, 0));
     container.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
-    container.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseReleased(MouseEvent e) {
-        getMonitor().expand();
-      }
-    });
   }
 }
