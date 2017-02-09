@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.model.AspectObserver;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -22,14 +23,29 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 
-public abstract class ProfilerMonitorView<T extends ProfilerMonitor> {
+public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends AspectObserver {
 
   private static final int MINIMUM_MONITOR_HEIGHT = JBUI.scale(50);
 
   @NotNull private final T myMonitor;
 
+  private JPanel myContainer;
+
   public ProfilerMonitorView(@NotNull T monitor) {
     myMonitor = monitor;
+    myContainer = new JBPanel();
+    myContainer.setOpaque(true);
+    myContainer.setBorder(ProfilerLayout.MONITOR_BORDER);
+    myContainer.setMinimumSize(new Dimension(0, MINIMUM_MONITOR_HEIGHT));
+
+    myMonitor.addDependency(this).onChange(ProfilerMonitor.Aspect.FOCUS, this::focusChanged);
+    focusChanged();
+  }
+
+
+  private void focusChanged() {
+    boolean highlight = myMonitor.isFocused() && myMonitor.canExpand();
+    myContainer.setBackground(highlight ? ProfilerColors.MONITOR_FOCUSED : ProfilerColors.MONITOR_BACKGROUND);
   }
 
   @NotNull
@@ -38,13 +54,8 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> {
   }
 
   public final JComponent initialize() {
-    JPanel container = new JBPanel();
-    container.setOpaque(true);
-    container.setBackground(ProfilerColors.MONITOR_BACKGROUND);
-    container.setBorder(ProfilerLayout.MONITOR_BORDER);
-    container.setMinimumSize(new Dimension(0, MINIMUM_MONITOR_HEIGHT));
-    populateUi(container);
-    return container;
+    populateUi(myContainer);
+    return myContainer;
   }
 
   /**

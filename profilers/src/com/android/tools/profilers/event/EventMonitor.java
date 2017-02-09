@@ -69,4 +69,9 @@ public class EventMonitor extends ProfilerMonitor {
   public String getName() {
     return "EVENTS";
   }
+
+  @Override
+  public boolean canExpand() {
+    return false;
+  }
 }
