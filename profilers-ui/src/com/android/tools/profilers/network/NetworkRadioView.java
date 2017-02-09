@@ -31,6 +31,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.EnumMap;
 
+import static com.android.tools.profilers.ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS;
 import static com.android.tools.profilers.ProfilerLayout.MONITOR_BORDER;
 import static com.android.tools.profilers.network.NetworkRadioDataSeries.RadioState;
 
@@ -74,7 +75,7 @@ public class NetworkRadioView {
     JLabel label = new JLabel(LABEL);
     label.setVerticalAlignment(SwingConstants.TOP);
 
-    LegendComponentModel legendModel = new LegendComponentModel();
+    LegendComponentModel legendModel = new LegendComponentModel(LEGEND_UPDATE_FREQUENCY_MS);
     Legend wifiLegend = new FixedLegend(RadioState.WIFI.toString());
     Legend highLegend = new FixedLegend(RadioState.HIGH.toString());
     Legend lowLegend = new FixedLegend(RadioState.LOW.toString());

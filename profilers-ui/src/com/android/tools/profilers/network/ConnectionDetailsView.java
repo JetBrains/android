@@ -23,6 +23,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.legend.FixedLegend;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.common.StackTraceView;
 import com.android.tools.profilers.common.TabsPanel;
 import com.google.common.collect.ImmutableMap;
@@ -253,7 +254,7 @@ public class ConnectionDetailsView extends JPanel {
     long sendingTime = sendingEndTime - httpData.getStartTimeUs();
     Legend sentLegend = new FixedLegend(String.format("Sent: %s", TIME_FORMATTER.apply(sendingTime)));
     Legend receivedLegend = new FixedLegend(String.format("Received: %s", TIME_FORMATTER.apply(receivingTime)));
-    LegendComponentModel legendModel = new LegendComponentModel();
+    LegendComponentModel legendModel = new LegendComponentModel(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
     legendModel.add(sentLegend);
     legendModel.add(receivedLegend);
 

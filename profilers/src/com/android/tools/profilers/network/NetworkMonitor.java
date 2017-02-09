@@ -24,12 +24,16 @@ import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.BYTES_RECEIVED;
+import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.BYTES_SENT;
+
 public class NetworkMonitor extends ProfilerMonitor {
 
   private static final BaseAxisFormatter BANDWIDTH_AXIS_FORMATTER_L1 = new NetworkTrafficFormatter(1, 2, 5);
   private final NetworkUsage myNetworkUsage;
   private final NetworkLegends myLegends;
   private final AxisComponentModel myTrafficAxis;
+  private final NetworkLegends myTooltipLegends;
 
   public NetworkMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
@@ -39,9 +43,11 @@ public class NetworkMonitor extends ProfilerMonitor {
     myTrafficAxis = new AxisComponentModel(myNetworkUsage.getTrafficRange(), BANDWIDTH_AXIS_FORMATTER_L1);
     myTrafficAxis.setClampToMajorTicks(true);
 
-    myLegends = new NetworkLegends(myNetworkUsage, getTimeline().getDataRange());
+    myLegends = new NetworkLegends(myNetworkUsage, getTimeline().getDataRange(), false);
+    myTooltipLegends = new NetworkLegends(myNetworkUsage, getTimeline().getTooltipRange(), true);
   }
 
+  @Override
   @NotNull
   public String getName() {
     return "NETWORK";
@@ -52,6 +58,7 @@ public class NetworkMonitor extends ProfilerMonitor {
     myProfilers.getUpdater().unregister(myNetworkUsage);
     myProfilers.getUpdater().unregister(myTrafficAxis);
     myProfilers.getUpdater().unregister(myLegends);
+    myProfilers.getUpdater().unregister(myTooltipLegends);
   }
 
   @Override
@@ -59,6 +66,7 @@ public class NetworkMonitor extends ProfilerMonitor {
     myProfilers.getUpdater().register(myNetworkUsage);
     myProfilers.getUpdater().register(myTrafficAxis);
     myProfilers.getUpdater().register(myLegends);
+    myProfilers.getUpdater().register(myTooltipLegends);
   }
 
   public void expand() {
@@ -77,14 +85,19 @@ public class NetworkMonitor extends ProfilerMonitor {
     return myLegends;
   }
 
+  public NetworkLegends getTooltipLegends() {
+    return myTooltipLegends;
+  }
+
   public static class NetworkLegends extends LegendComponentModel {
 
     @NotNull private final SeriesLegend myRxLegend;
     @NotNull private final SeriesLegend myTxLegend;
 
-    public NetworkLegends(@NotNull NetworkUsage usage, @NotNull Range range) {
-      myTxLegend = new SeriesLegend(usage.getTxSeries(), BANDWIDTH_AXIS_FORMATTER_L1, range);
-      myRxLegend = new SeriesLegend(usage.getRxSeries(), BANDWIDTH_AXIS_FORMATTER_L1, range);
+    public NetworkLegends(@NotNull NetworkUsage usage, @NotNull Range range, boolean hightlight) {
+      super(hightlight ? 0 : LEGEND_UPDATE_FREQUENCY_MS);
+      myTxLegend = new SeriesLegend(usage.getTxSeries(), BANDWIDTH_AXIS_FORMATTER_L1, range, BYTES_SENT.getLabel(hightlight));
+      myRxLegend = new SeriesLegend(usage.getRxSeries(), BANDWIDTH_AXIS_FORMATTER_L1, range, BYTES_RECEIVED.getLabel(hightlight));
       add(myTxLegend);
       add(myRxLegend);
     }
