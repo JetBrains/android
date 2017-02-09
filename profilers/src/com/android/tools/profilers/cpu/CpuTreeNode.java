@@ -103,5 +103,5 @@ public abstract class CpuTreeNode<T extends CpuTreeNode> {
 
   abstract public String getMethodName();
 
-  abstract public String getPackage();
+  abstract public String getClassName();
 }

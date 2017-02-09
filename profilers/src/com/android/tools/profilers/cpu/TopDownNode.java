@@ -70,8 +70,8 @@ class TopDownNode extends CpuTreeNode<TopDownNode> {
   }
 
   @Override
-  public String getPackage() {
+  public String getClassName() {
     MethodModel data = getNodes().get(0).getData();
-    return data == null ? "" : data.getNameSpace();
+    return data == null ? "" : data.getClassName();
   }
 }

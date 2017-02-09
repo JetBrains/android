@@ -36,19 +36,19 @@ public class BottomUpTreeModelTest {
   @Test
   public void testExpand() {
     DefaultMutableTreeNode root = (DefaultMutableTreeNode)myModel.getRoot();
-    checkTraverseOrder(root, " +Root +:main - +:A +:main - +:C - - +:B +:A - +:main - - +:C +:main - - -");
-    myModel.expand(findNodeOnPath(root, "Root", ":B"));
-    checkTraverseOrder(root, " +Root +:main - +:A +:main - +:C - - +:B +:A +:C - +:main - - +:main - - +:C +:main - - -");
+    checkTraverseOrder(root, " +Root +.main - +.A +.main - +.C - - +.B +.A - +.main - - +.C +.main - - -");
+    myModel.expand(findNodeOnPath(root, "Root", ".B"));
+    checkTraverseOrder(root, " +Root +.main - +.A +.main - +.C - - +.B +.A +.C - +.main - - +.main - - +.C +.main - - -");
   }
 
   @Test
   public void nodeExpandedTwice() {
     DefaultMutableTreeNode root = (DefaultMutableTreeNode)myModel.getRoot();
-    checkTraverseOrder(root, " +Root +:main - +:A +:main - +:C - - +:B +:A - +:main - - +:C +:main - - -");
-    myModel.expand(findNodeOnPath(root, "Root", ":B"));
-    checkTraverseOrder(root, " +Root +:main - +:A +:main - +:C - - +:B +:A +:C - +:main - - +:main - - +:C +:main - - -");
-    myModel.expand(findNodeOnPath(root, "Root", ":B"));
-    checkTraverseOrder(root, " +Root +:main - +:A +:main - +:C - - +:B +:A +:C - +:main - - +:main - - +:C +:main - - -");
+    checkTraverseOrder(root, " +Root +.main - +.A +.main - +.C - - +.B +.A - +.main - - +.C +.main - - -");
+    myModel.expand(findNodeOnPath(root, "Root", ".B"));
+    checkTraverseOrder(root, " +Root +.main - +.A +.main - +.C - - +.B +.A +.C - +.main - - +.main - - +.C +.main - - -");
+    myModel.expand(findNodeOnPath(root, "Root", ".B"));
+    checkTraverseOrder(root, " +Root +.main - +.A +.main - +.C - - +.B +.A +.C - +.main - - +.main - - +.C +.main - - -");
   }
 
   @Test
@@ -56,12 +56,12 @@ public class BottomUpTreeModelTest {
     DefaultMutableTreeNode root = (DefaultMutableTreeNode)myModel.getRoot();
 
     myRange.set(35, 40);
-    checkTraverseOrder(root, " +Root +:main - +:B +:main - - -");
+    checkTraverseOrder(root, " +Root +.main - +.B +.main - - -");
 
-    BottomUpNode toCheckNode = findBottomUpNodeOnPath((BottomUpNode)root.getUserObject(), "Root", ":B", ":A");
+    BottomUpNode toCheckNode = findBottomUpNodeOnPath((BottomUpNode)root.getUserObject(), "Root", ".B", ".A");
 
     assertEquals(0, toCheckNode.getChildren().size());
-    myModel.expand(findNodeOnPath(root, "root", ":B"));
+    myModel.expand(findNodeOnPath(root, "root", ".B"));
     assertEquals(2, toCheckNode.getChildren().size());
   }
 
