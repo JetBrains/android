@@ -30,7 +30,7 @@ public interface IdeProfilerComponents {
   LoadingPanel createLoadingPanel();
 
   @NotNull
-  TabsPanel createTabsPanel(@Nullable Runnable onSelectionChange);
+  TabsPanel createTabsPanel();
 
   @NotNull
   StackTraceView createStackView(@Nullable Runnable prenavigate);
