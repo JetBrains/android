@@ -158,7 +158,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   @Test
   public void testMemoryObjectSelection() {
     final String dummyClassName = "DUMMY_CLASS1";
-    InstanceObject mockInstance = mockInstanceObject(dummyClassName, "DUMMY_INSTANCE", null, 1, 2, 3);
+    InstanceObject mockInstance = mockInstanceObject(dummyClassName, "DUMMY_INSTANCE", null, 0, 1, 2, 3);
     ClassObject mockKlass = mockClassObject(dummyClassName, 1, 2, 3, Collections.singletonList(mockInstance));
     HeapObject mockHeap = mockHeapObject("DUMMY_HEAP1", Arrays.asList(mockKlass));
     CaptureObject mockCapture = mockCaptureObject("DUMMY_CAPTURE1", 5, 10, Arrays.asList(mockHeap), true);

@@ -58,8 +58,8 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   public void testCaptureAndHeapView() throws Exception {
     final String dummyClassName1 = "DUMMY_CLASS1";
     final String dummyClassName2 = "DUMMY_CLASS2";
-    InstanceObject mockInstance1 = mockInstanceObject(dummyClassName1, "DUMMY_INSTANCE", null, 1, 2, 3);
-    InstanceObject mockInstance2 = mockInstanceObject(dummyClassName2, "DUMMY_INSTANCE", null, 4, 5, 6);
+    InstanceObject mockInstance1 = mockInstanceObject(dummyClassName1, "DUMMY_INSTANCE", null, 0, 1, 2, 3);
+    InstanceObject mockInstance2 = mockInstanceObject(dummyClassName2, "DUMMY_INSTANCE", null, 0, 4, 5, 6);
     ClassObject mockKlass1 = mockClassObject(dummyClassName1, 1, 2, 3, Collections.singletonList(mockInstance1));
     ClassObject mockKlass2 = mockClassObject(dummyClassName2, 4, 5, 6, Collections.singletonList(mockInstance2));
     HeapObject mockHeap1 = mockHeapObject("DUMMY_HEAP1", Arrays.asList(mockKlass1, mockKlass2));
