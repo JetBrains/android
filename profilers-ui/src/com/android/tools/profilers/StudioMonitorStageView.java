@@ -77,6 +77,8 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     Range viewRange = stage.getStudioProfilers().getTimeline().getViewRange();
 
     myTooltip = new JPanel(new BorderLayout());
+    myTooltip.setMinimumSize(new Dimension(200, 10));
+
     TooltipComponent tooltip = new TooltipComponent(tooltipRange, viewRange, myTooltip);
 
     myTooltipBinder = new ViewBinder<>();
