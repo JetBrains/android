@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.uibuilder.api.DragHandler;
+import com.android.tools.idea.uibuilder.api.DragType;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.annotations.NonNull;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
+import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -32,24 +35,24 @@ public class AdapterViewHandler extends ViewGroupHandler {
   @Nullable
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
-                                       @NotNull SceneComponent layout,
-                                       @NotNull List<SceneComponent> components,
+                                       @NotNull NlComponent layout,
+                                       @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
     return new DragHandler(editor, this, layout, components, type) {
       @Nullable
       @Override
-      public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers) {
+      public String update(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
         super.update(x, y, modifiers);
 
         return String.format(
           "%1$s cannot be configured via XML; add content to the AdapterView using Java code",
-          layout.getNlComponent().getTagName());
+          layout.getTagName());
       }
 
       @Override
       public void paint(@NotNull NlGraphics graphics) {
         graphics.useStyle(NlDrawingStyle.INVALID);
-        graphics.drawRectDp(layout.getDrawX(), layout.getDrawY(), layout.getDrawWidth(), layout.getDrawHeight());
+        graphics.drawRect(layout.x, layout.y, layout.w, layout.h);
       }
     };
   }

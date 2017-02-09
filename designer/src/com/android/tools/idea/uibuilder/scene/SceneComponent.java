@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.scene;
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.decorator.SceneDecorator;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
@@ -82,12 +81,10 @@ public class SceneComponent {
 
   private Notch.Provider myNotchProvider;
 
-  @AndroidDpCoordinate
   public int getCenterX() {
     return myCurrentLeft + (myCurrentRight - myCurrentLeft) / 2;
   }
 
-  @AndroidDpCoordinate
   public int getCenterY() {
     return myCurrentTop + (myCurrentBottom - myCurrentTop) / 2;
   }
@@ -131,7 +128,7 @@ public class SceneComponent {
      *
      * @param v the value
      */
-    public void setValue(@AndroidDpCoordinate int v) {
+    public void setValue(int v) {
       value = v;
       target = v;
       startTime = 0;
@@ -314,7 +311,7 @@ public class SceneComponent {
     return myAnimatedDrawHeight.getValue(time);
   }
 
-  public void setPosition(@AndroidDpCoordinate int dx, @AndroidDpCoordinate int dy) {
+  public void setPosition(int dx, int dy) {
     myAnimatedDrawX.setValue(dx);
     myAnimatedDrawY.setValue(dy);
   }
@@ -348,7 +345,6 @@ public class SceneComponent {
     }
   }
 
-  @AndroidDpCoordinate
   public int getBaseline() {
     return myScene.pxToDp(myNlComponent.getBaseline());
   }
@@ -645,13 +641,5 @@ public class SceneComponent {
       return null;
     }
     return  myNlComponent.viewInfo.getClassName();
-  }
-
-  public boolean containsX(@AndroidDpCoordinate int xDp) {
-    return getDrawX() <= xDp && xDp <= getDrawX() + getDrawWidth();
-  }
-
-  public boolean containsY(@AndroidDpCoordinate int yDp) {
-    return getDrawY() <= yDp && yDp <= getDrawY() + getDrawHeight();
   }
 }

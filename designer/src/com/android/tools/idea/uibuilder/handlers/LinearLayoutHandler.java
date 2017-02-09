@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.DirectViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
@@ -24,9 +25,9 @@ import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.model.Insets;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
+import com.intellij.psi.xml.XmlTag;
 import icons.AndroidDesignerIcons;
 import icons.AndroidIcons;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
@@ -105,13 +106,76 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     return VALUE_VERTICAL.equals(orientation);
   }
 
+  /**
+   * Returns the current orientation, regardless of whether it has been defined in XML
+   *
+   * @param component The LinearLayout to look up the orientation for
+   * @return "horizontal" or "vertical" depending on the current orientation of the
+   *         linear layout
+   */
+  private static String getCurrentOrientation(@NotNull final NlComponent component) {
+    String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
+    if (orientation == null || orientation.length() == 0) {
+      orientation = VALUE_HORIZONTAL;
+    }
+    return orientation;
+  }
+
+  private void distributeWeights(NlComponent parentNode, NlComponent[] targets) {
+    // Any XML to get weight sum?
+    String weightSum = parentNode.getAttribute(ANDROID_URI, ATTR_WEIGHT_SUM);
+    double sum = -1.0;
+    if (weightSum != null) {
+      // Distribute
+      try {
+        sum = Double.parseDouble(weightSum);
+      } catch (NumberFormatException nfe) {
+        // Just keep using the default
+      }
+    }
+    int numTargets = targets.length;
+    double share;
+    if (sum <= 0.0) {
+      // The sum will be computed from the children, so just
+      // use arbitrary amount
+      share = 1.0;
+    } else {
+      share = sum / numTargets;
+    }
+    String value = formatFloatAttribute((float)share);
+    String sizeAttribute = isVertical(parentNode) ?
+                           ATTR_LAYOUT_HEIGHT : ATTR_LAYOUT_WIDTH;
+    for (NlComponent target : targets) {
+      target.setAttribute(ANDROID_URI, ATTR_LAYOUT_WEIGHT, value);
+      // Also set the width/height to 0dp to ensure actual equal
+      // size (without this, only the remaining space is
+      // distributed)
+      if (VALUE_WRAP_CONTENT.equals(target.getAttribute(ANDROID_URI, sizeAttribute))) {
+        target.setAttribute(ANDROID_URI, sizeAttribute, VALUE_ZERO_DP);
+      }
+    }
+  }
+
+  private void clearWeights(NlComponent parentNode) {
+    // Clear attributes
+    String sizeAttribute = isVertical(parentNode)
+                           ? ATTR_LAYOUT_HEIGHT : ATTR_LAYOUT_WIDTH;
+    for (NlComponent target : parentNode.getChildren()) {
+      target.setAttribute(ANDROID_URI, ATTR_LAYOUT_WEIGHT, null);
+      String size = target.getAttribute(ANDROID_URI, sizeAttribute);
+      if (size != null && size.startsWith("0")) { //$NON-NLS-1$
+        target.setAttribute(ANDROID_URI, sizeAttribute, VALUE_WRAP_CONTENT);
+      }
+    }
+  }
+
   @Override
   @Nullable
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
-                                       @NotNull SceneComponent layout,
-                                       @NotNull List<SceneComponent> components,
+                                       @NotNull NlComponent layout,
+                                       @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
-    if (layout.getDrawWidth() == 0 || layout.getDrawHeight() == 0) {
+    if (layout.w == 0 || layout.h == 0) {
       return null;
     }
     return new LinearDragHandler(editor, layout, components, type);
@@ -124,7 +188,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     private final boolean myVertical;
 
     /**
-     * Insert points (dp + index)
+     * Insert points (pixels + index)
      */
     private final List<MatchPos> myIndices;
 
@@ -136,13 +200,11 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     /**
      * Current marker X position
      */
-    @AndroidDpCoordinate
     private Integer myCurrX;
 
     /**
      * Current marker Y position
      */
-    @AndroidDpCoordinate
     private Integer myCurrY;
 
     /**
@@ -159,38 +221,33 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     /**
      * width of match line if it's a horizontal one
      */
-    @AndroidDpCoordinate
     private Integer myWidth;
 
     /**
      * height of match line if it's a vertical one
      */
-    @AndroidDpCoordinate
     private Integer myHeight;
 
 
     public LinearDragHandler(@NotNull ViewEditor editor,
-                             @NotNull SceneComponent layout,
-                             @NotNull List<SceneComponent> components,
+                             @NotNull NlComponent layout,
+                             @NotNull List<NlComponent> components,
                              @NotNull DragType type) {
       super(editor, LinearLayoutHandler.this, layout, components, type);
       assert !components.isEmpty();
 
-      myVertical = isVertical(layout.getNlComponent());
+      myVertical = isVertical(layout);
 
       // Prepare a list of insertion points: X coordinates for horizontal, Y for
       // vertical.
-      myIndices = new ArrayList<>();
+      myIndices = new ArrayList<MatchPos>();
 
-      @AndroidDpCoordinate
-      int last = myVertical
-                 ? layout.getDrawY() + editor.pxToDp(layout.getNlComponent().getPadding().top)
-                 : layout.getDrawX() + editor.pxToDp(layout.getNlComponent().getPadding().left);
+      int last = myVertical ? layout.y + layout.getPadding().top : layout.x + layout.getPadding().left;
       int pos = 0;
       boolean lastDragged = false;
       mySelfPos = -1;
-      for (SceneComponent it : layout.getChildren()) {
-        if (it.getDrawWidth() > 0 && it.getDrawHeight() > 0) {
+      for (NlComponent it : layout.getChildren()) {
+        if (it.w > 0 && it.h > 0) {
           boolean isDragged = components.contains(it);
 
           // We don't want to insert drag positions before or after the
@@ -199,7 +256,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
           // when you drag near its current position we show a match right
           // where it's already positioned.
           if (isDragged) {
-            @AndroidDpCoordinate int v = myVertical ? it.getDrawY() + (it.getDrawHeight() / 2) : it.getDrawX() + (it.getDrawWidth() / 2);
+            int v = myVertical ? it.y + (it.h / 2) : it.x + (it.w / 2);
             mySelfPos = pos;
             myIndices.add(new MatchPos(v, pos++));
           }
@@ -212,12 +269,12 @@ public class LinearLayoutHandler extends ViewGroupHandler {
           else {
             // Add an insertion point between the last point and the
             // start of this child
-            @AndroidDpCoordinate int v = myVertical ? it.getDrawY() : it.getDrawX();
+            int v = myVertical ? it.y : it.x;
             v = (last + v) / 2;
             myIndices.add(new MatchPos(v, pos++));
           }
 
-          last = myVertical ? (it.getDrawY() + it.getDrawHeight()) : (it.getDrawX() + it.getDrawWidth());
+          last = myVertical ? (it.y + it.h) : (it.x + it.w);
           lastDragged = isDragged;
         }
         else {
@@ -230,7 +287,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
       // Finally add an insert position after all the children - unless of
       // course we happened to be dragging the last element
       if (!lastDragged) {
-        @AndroidDpCoordinate int v = last + 1;
+        int v = last + 1;
         myIndices.add(new MatchPos(v, pos));
       }
 
@@ -239,19 +296,19 @@ public class LinearLayoutHandler extends ViewGroupHandler {
 
     @Nullable
     @Override
-    public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @InputEventMask int modifiers) {
+    public String update(@AndroidCoordinate int x, @AndroidCoordinate int y, @InputEventMask int modifiers) {
       super.update(x, y, modifiers);
 
       boolean isVertical = myVertical;
 
-      @AndroidDpCoordinate int bestDist = Integer.MAX_VALUE;
+      int bestDist = Integer.MAX_VALUE;
       int bestIndex = Integer.MIN_VALUE;
       Integer bestPos = null;
 
       for (MatchPos index : myIndices) {
-        @AndroidDpCoordinate int i = index.getDistance();
+        int i = index.getDistance();
         int pos = index.getPosition();
-        @AndroidDpCoordinate int dist = (isVertical ? y : x) - i;
+        int dist = (isVertical ? y : x) - i;
         if (dist < 0) {
           dist = -dist;
         }
@@ -267,16 +324,16 @@ public class LinearLayoutHandler extends ViewGroupHandler {
 
       if (bestIndex != Integer.MIN_VALUE) {
         if (isVertical) {
-          myCurrX = layout.getDrawX() + layout.getDrawWidth() / 2;
+          myCurrX = layout.x + layout.w / 2;
           myCurrY = bestIndex;
-          myWidth = layout.getDrawWidth();
+          myWidth = layout.w;
           myHeight = null;
         }
         else {
           myCurrX = bestIndex;
-          myCurrY = layout.getDrawY() + layout.getDrawHeight() / 2;
+          myCurrY = layout.y + layout.h / 2;
           myWidth = null;
-          myHeight = layout.getDrawHeight();
+          myHeight = layout.h;
         }
 
         myInsertPos = bestPos;
@@ -287,15 +344,15 @@ public class LinearLayoutHandler extends ViewGroupHandler {
 
     @Override
     public void paint(@NotNull NlGraphics gc) {
-      @AndroidCoordinate Insets padding = layout.getNlComponent().getPadding();
-      @AndroidDpCoordinate int layoutX = layout.getDrawX() + editor.pxToDp(padding.left);
-      @AndroidDpCoordinate int layoutW = layout.getDrawWidth() - editor.pxToDp(padding.width());
-      @AndroidDpCoordinate int layoutY = layout.getDrawY() + editor.pxToDp(padding.top);
-      @AndroidDpCoordinate int layoutH = layout.getDrawHeight() - editor.pxToDp(padding.height());
+      Insets padding = layout.getPadding();
+      int layoutX = layout.x + padding.left;
+      int layoutW = layout.w - padding.width();
+      int layoutY = layout.y + padding.top;
+      int layoutH = layout.h - padding.height();
 
       // Highlight the receiver
       gc.useStyle(NlDrawingStyle.DROP_RECIPIENT);
-      gc.drawRectDp(layoutX, layoutY, layoutW, layoutH);
+      gc.drawRect(layoutX, layoutY, layoutW, layoutH);
 
       gc.useStyle(NlDrawingStyle.DROP_ZONE);
 
@@ -303,7 +360,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
       int selfPos = mySelfPos;
 
       for (MatchPos it : myIndices) {
-        @AndroidDpCoordinate int i = it.getDistance();
+        int i = it.getDistance();
         int pos = it.getPosition();
         // Don't show insert drop zones for "self"-index since that one goes
         // right through the center of the widget rather than in a sibling
@@ -311,92 +368,91 @@ public class LinearLayoutHandler extends ViewGroupHandler {
         if (pos != selfPos) {
           if (isVertical) {
             // draw horizontal lines
-            gc.drawLineDp(layoutX, i, layoutW, i);
+            gc.drawLine(layoutX, i, layoutW, i);
           }
           else {
             // draw vertical lines
-            gc.drawLineDp(i, layoutY, i, layoutH);
+            gc.drawLine(i, layoutY, i, layoutH);
           }
         }
       }
 
-      @AndroidDpCoordinate Integer currX = myCurrX;
-      @AndroidDpCoordinate Integer currY = myCurrY;
+      Integer currX = myCurrX;
+      Integer currY = myCurrY;
 
       if (currX != null && currY != null) {
         gc.useStyle(NlDrawingStyle.DROP_ZONE_ACTIVE);
 
-        @AndroidDpCoordinate int x = currX;
-        @AndroidDpCoordinate int y = currY;
+        int x = currX;
+        int y = currY;
 
-        SceneComponent be = components.get(0);
+        NlComponent be = components.get(0);
 
         // Draw a clear line at the closest drop zone (unless we're over the
         // dragged element itself)
         if (myInsertPos != selfPos || selfPos == -1) {
           gc.useStyle(NlDrawingStyle.DROP_PREVIEW);
           if (myWidth != null) {
-            @AndroidDpCoordinate int width = myWidth;
-            @AndroidDpCoordinate int fromX = x - width / 2;
-            @AndroidDpCoordinate int toX = x + width / 2;
-            gc.drawLineDp(fromX, y, toX, y);
+            int width = myWidth;
+            int fromX = x - width / 2;
+            int toX = x + width / 2;
+            gc.drawLine(fromX, y, toX, y);
           }
           else if (myHeight != null) {
-            @AndroidDpCoordinate int height = myHeight;
-            @AndroidDpCoordinate int fromY = y - height / 2;
-            @AndroidDpCoordinate int toY = y + height / 2;
-            gc.drawLineDp(x, fromY, x, toY);
+            int height = myHeight;
+            int fromY = y - height / 2;
+            int toY = y + height / 2;
+            gc.drawLine(x, fromY, x, toY);
           }
         }
 
-        if (be.getDrawWidth() > 0 && be.getDrawHeight() > 0) {
+        if (be.w > 0 && be.h > 0) {
           boolean isLast = myInsertPos == myNumPositions - 1;
 
           // At least the first element has a bound. Draw rectangles for
           // all dropped elements with valid bounds, offset at the drop
           // point.
-          @AndroidDpCoordinate int offsetX;
-          @AndroidDpCoordinate int offsetY;
+          int offsetX;
+          int offsetY;
           if (isVertical) {
-            offsetX = layoutX - be.getDrawX();
-            offsetY = currY - be.getDrawY() - (isLast ? 0 : (be.getDrawHeight() / 2));
+            offsetX = layoutX - be.x;
+            offsetY = currY - be.y - (isLast ? 0 : (be.h / 2));
 
           }
           else {
-            offsetX = currX - be.getDrawX() - (isLast ? 0 : (be.getDrawWidth() / 2));
-            offsetY = layoutY - be.getDrawY();
+            offsetX = currX - be.x - (isLast ? 0 : (be.w / 2));
+            offsetY = layoutY - be.y;
           }
 
           gc.useStyle(NlDrawingStyle.DROP_PREVIEW);
-          for (SceneComponent element : components) {
-            if (element.getDrawWidth() > 0 && element.getDrawHeight() > 0 &&
-                (element.getDrawWidth() > layoutW || element.getDrawHeight() > layoutH) &&
+          for (NlComponent element : components) {
+            if (element.w > 0 && element.h > 0 && (element.w > layoutW || element.h > layoutH) &&
                 layout.getChildCount() == 0) {
               // The bounds of the child does not fully fit inside the target.
               // Limit the bounds to the layout bounds (but only when there
               // are no children, since otherwise positioning around the existing
               // children gets difficult)
-              @AndroidDpCoordinate final int px, py, pw, ph;
-              if (element.getDrawWidth() > layoutW) {
+              final int px, py, pw, ph;
+              if (element.w > layoutW) {
                 px = layoutX;
                 pw = layoutW;
               }
               else {
-                px = element.getDrawX() + offsetX;
-                pw = element.getDrawWidth();
+                px = element.x + offsetX;
+                pw = element.w;
               }
-              if (element.getDrawHeight() > layoutH) {
+              if (element.h > layoutH) {
                 py = layoutY;
                 ph = layoutH;
               }
               else {
-                py = element.getDrawY() + offsetY;
-                ph = element.getDrawHeight();
+                py = element.y + offsetY;
+                ph = element.h;
               }
-              gc.drawRectDp(px, py, pw, ph);
+              gc.drawRect(px, py, pw, ph);
             }
             else {
-              drawElement(gc, element.getNlComponent(), editor.dpToPx(offsetX), editor.dpToPx(offsetY));
+              drawElement(gc, element, offsetX, offsetY);
             }
           }
         }
@@ -414,7 +470,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
      * @param offsetY   a vertical delta to add to the current bounds of the element when
      *                  drawing it
      */
-    public void drawElement(NlGraphics gc, NlComponent component, @AndroidCoordinate int offsetX, @AndroidCoordinate int offsetY) {
+    public void drawElement(NlGraphics gc, NlComponent component, int offsetX, int offsetY) {
       if (component.w > 0 && component.h > 0) {
         gc.drawRect(component.x + offsetX, component.y + offsetY, component.w, component.h);
       }
@@ -432,17 +488,16 @@ public class LinearLayoutHandler extends ViewGroupHandler {
 
   /** A possible match position */
   private static class MatchPos {
-    /** The dp distance */
-    @AndroidDpCoordinate private final int myDistance;
+    /** The pixel distance */
+    private final int myDistance;
     /** The position among siblings */
     private final int myPosition;
 
-    public MatchPos(@AndroidDpCoordinate int distance, int position) {
+    public MatchPos(int distance, int position) {
       myDistance = distance;
       myPosition = position;
     }
 
-    @AndroidDpCoordinate
     private int getDistance() {
       return myDistance;
     }
@@ -549,15 +604,20 @@ public class LinearLayoutHandler extends ViewGroupHandler {
                                @Nullable SegmentType verticalEdgeType) {
       super(editor, handler, component, horizontalEdgeType, verticalEdgeType);
 
-      unweightedSizes = editor.measureChildren(layout, (n, namespace, localName) -> {
-        // Clear out layout weights; we need to measure the unweighted sizes
-        // of the children
-        if (ATTR_LAYOUT_WEIGHT.equals(localName) && ANDROID_URI.equals(namespace)) {
-          return ""; //$NON-NLS-1$
-        }
+      unweightedSizes = editor.measureChildren(layout, new RenderTask.AttributeFilter() {
+                                                 @Override
+                                                 public String getAttribute(@NotNull XmlTag n,
+                                                                            @Nullable String namespace,
+                                                                            @NotNull String localName) {
+                                                   // Clear out layout weights; we need to measure the unweighted sizes
+                                                   // of the children
+                                                   if (ATTR_LAYOUT_WEIGHT.equals(localName) && ANDROID_URI.equals(namespace)) {
+                                                     return ""; //$NON-NLS-1$
+                                                   }
 
-        return null;
-      });
+                                                   return null;
+                                                 }
+                                               });
       // Compute total required size required by the siblings *without* weights
       totalLength = 0;
       final boolean isVertical = isVertical(layout);
@@ -595,7 +655,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     /** Marks that the given node should be cleared when applying the new size */
     void clearWeight(NlComponent n) {
       if (mClearWeights == null) {
-        mClearWeights = new ArrayList<>();
+        mClearWeights = new ArrayList<NlComponent>();
       }
       mClearWeights.add(n);
     }
@@ -820,7 +880,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
    */
   private static float getWeightSum(@NotNull NlComponent linearLayout) {
     String weightSum = linearLayout.getAttribute(ANDROID_URI, ATTR_WEIGHT_SUM);
-    float sum;
+    float sum = -1.0f;
     if (weightSum != null) {
       // Distribute
       try {

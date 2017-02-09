@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
+import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SegmentType;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -31,19 +31,19 @@ public class FrameLayoutHandler extends ViewGroupHandler {
   @Override
   @Nullable
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
-                                       @NotNull SceneComponent layout,
-                                       @NotNull List<SceneComponent> components,
+                                       @NotNull NlComponent layout,
+                                       @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
     return new FrameDragHandler(editor, this, layout, components, type) {
     };
   }
 
-  protected static class FrameDragHandler extends DragHandler {
+  protected class FrameDragHandler extends DragHandler {
 
     protected FrameDragHandler(@NotNull ViewEditor editor,
                                @NotNull ViewGroupHandler handler,
-                               @NotNull SceneComponent layout,
-                               @NotNull List<SceneComponent> components,
+                               @NotNull NlComponent layout,
+                               @NotNull List<NlComponent> components,
                                @NotNull DragType type) {
       super(editor, handler, layout, components, type);
     }
@@ -51,18 +51,18 @@ public class FrameLayoutHandler extends ViewGroupHandler {
     @Override
     public void paint(@NotNull NlGraphics graphics) {
       graphics.useStyle(NlDrawingStyle.DROP_RECIPIENT);
-      graphics.drawRectDp(layout.getDrawX(), layout.getDrawY(), layout.getDrawWidth(), layout.getDrawHeight());
+      graphics.drawRect(layout.x, layout.y, layout.w, layout.h);
 
 
-      for (SceneComponent component : components) {
+      for (NlComponent component : components) {
         // Place all elements at (0,0) in the FrameLayout
-        int x = layout.getDrawX();
-        int y = layout.getDrawY();
-        int w = component.getDrawWidth();
-        int h = component.getDrawHeight();
+        int x = layout.x;
+        int y = layout.y;
+        int w = component.w;
+        int h = component.h;
 
         graphics.useStyle(NlDrawingStyle.DROP_PREVIEW);
-        graphics.drawRectDp(x, y, w, h);
+        graphics.drawRect(x, y, w, h);
       }
     }
   }
