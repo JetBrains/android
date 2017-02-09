@@ -53,11 +53,11 @@ final class HeapDumpFieldObject extends HeapDumpInstanceObject implements FieldO
     myField = field;
     Type type = myField.getField().getType();
     if (type == Type.OBJECT) {
-      if (myField.getValue() == null) {
+      if (instance == null || myField.getValue() == null) {
         myValueType = ClassObject.ValueType.NULL;
-        myShallowSize = INVALID_VALUE;
-        myRetainedSize = INVALID_VALUE;
-        myDepth = INVALID_VALUE;
+        myShallowSize = 0;
+        myRetainedSize = 0;
+        myDepth = Integer.MAX_VALUE;
       }
       else {
         assert myField.getValue() == instance;
@@ -70,6 +70,7 @@ final class HeapDumpFieldObject extends HeapDumpInstanceObject implements FieldO
         else {
           myValueType = ClassObject.ValueType.OBJECT;
         }
+
         myShallowSize = instance.getSize();
         myRetainedSize = instance.getTotalRetainedSize();
         myDepth = instance.getDistanceToGcRoot();

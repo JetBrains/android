@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -154,9 +155,14 @@ public abstract class MemoryProfilerTestBase {
   static InstanceObject mockInstanceObject(@NotNull String className,
                                            @NotNull String label,
                                            @Nullable String toString,
+                                           int fieldCount,
                                            int depth,
                                            int shallowSize,
                                            long retainedSize) {
+    List<FieldObject> mockedFields = new ArrayList<>(fieldCount);
+    for (int i = 0; i < fieldCount; i++) {
+      mockedFields.add(mockFieldObject(className, label, "field" + i));
+    }
     InstanceObject object = mock(InstanceObject.class);
     when(object.getClassName()).thenReturn(className);
     when(object.getDisplayLabel()).thenReturn(label);
@@ -164,6 +170,8 @@ public abstract class MemoryProfilerTestBase {
     when(object.getDepth()).thenReturn(depth);
     when(object.getShallowSize()).thenReturn(shallowSize);
     when(object.getRetainedSize()).thenReturn(retainedSize);
+    when(object.getFields()).thenReturn(mockedFields);
+    when(object.getFieldCount()).thenReturn(fieldCount);
     when(object.getCallStack()).thenReturn(MemoryProfiler.AllocationStack.newBuilder()
                                              .addStackFrames(MemoryProfiler.AllocationStack.StackFrame.newBuilder().build()).build());
     when(object.getReferenceAttributes()).thenReturn(Arrays.asList(InstanceObject.InstanceAttribute.values()));
@@ -204,7 +212,7 @@ public abstract class MemoryProfilerTestBase {
                                                            long retainedSize,
                                                            int instancesCount) {
     List<InstanceObject> instances = IntStream.range(0, instancesCount)
-      .mapToObj(i -> mockInstanceObject(className, "instance" + i, null, 0, shallowSize, retainedSize / (long)instancesCount))
+      .mapToObj(i -> mockInstanceObject(className, "instance" + i, null, 0, 0, shallowSize, retainedSize / (long)instancesCount))
       .collect(toList());
     return mockClassObject(className, size, shallowSize, retainedSize, instances);
   }

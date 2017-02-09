@@ -53,9 +53,9 @@ public class HeapDumpFieldObjectTest {
     assertEquals("field0", fieldObject.getFieldName());
     assertEquals(ClassObject.ValueType.NULL, fieldObject.getValueType());
     assertEquals(String.format(FieldObject.FIELD_DISPLAY_FORMAT, "field0", "{null}"), fieldObject.getDisplayLabel());
-    assertEquals(FieldObject.INVALID_VALUE, fieldObject.getDepth());
-    assertEquals(FieldObject.INVALID_VALUE, fieldObject.getShallowSize());
-    assertEquals(FieldObject.INVALID_VALUE, fieldObject.getRetainedSize());
+    assertEquals(Integer.MAX_VALUE, fieldObject.getDepth());
+    assertEquals(0, fieldObject.getShallowSize());
+    assertEquals(0, fieldObject.getRetainedSize());
     assertNull(fieldObject.getClassName());
     assertFalse(fieldObject.getIsPrimitive());
   }
