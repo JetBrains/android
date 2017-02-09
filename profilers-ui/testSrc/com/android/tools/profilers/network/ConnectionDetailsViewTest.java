@@ -19,7 +19,7 @@ import com.android.testutils.TestResources;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.common.ThreadId;
+import com.android.tools.profilers.common.StackTraceModel;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
@@ -32,8 +32,6 @@ import java.util.Collections;
 import java.util.stream.Stream;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
 
 public class ConnectionDetailsViewTest {
 
@@ -86,24 +84,31 @@ public class ConnectionDetailsViewTest {
 
   @Test
   public void contentsAreEmptyWhenDataIsNull() {
+    AspectObserver observer = new AspectObserver();
+    final int[] stackFramesChangedCount = {0};
+    myView.getStackTraceView().getModel().addDependency(observer)
+      .onChange(StackTraceModel.Aspect.STACK_FRAMES, () -> stackFramesChangedCount[0]++);
+
     File file = TestResources.getFile(this.getClass(), "/icons/garbage-event.png");
     HttpData data = getBuilderFromHttpData(DEFAULT_DATA).build();
     data.setResponsePayloadFile(file);
+
+    assertThat(stackFramesChangedCount[0]).isEqualTo(0);
     myView.update(data);
+    assertThat(stackFramesChangedCount[0]).isEqualTo(1);
 
     Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    JComponent response = (JComponent) stream.filter(c -> "Response".equals(c.getName())).findFirst().get();
+    JComponent response = (JComponent)stream.filter(c -> "Response".equals(c.getName())).findFirst().get();
     assertThat(response.getComponentCount()).isNotEqualTo(0);
-    verify(myView.getStackTraceView()).clearStackFrames();
-    verify(myView.getStackTraceView()).setStackFrames(ThreadId.INVALID_THREAD_ID, data.getStackTrace().getCodeLocations());
-    reset(myView.getStackTraceView());
+    assertThat(myView.getStackTraceView().getModel().getCodeLocations()).isNotEmpty();
 
     myView.update((HttpData)null);
+    assertThat(stackFramesChangedCount[0]).isEqualTo(2);
+
     stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    response = (JComponent) stream.filter(c -> "Response".equals(c.getName())).findFirst().get();
+    response = (JComponent)stream.filter(c -> "Response".equals(c.getName())).findFirst().get();
     assertThat(response.getComponentCount()).isEqualTo(0);
-    verify(myView.getStackTraceView()).clearStackFrames();
-    verify(myView.getStackTraceView(), never()).setStackFrames(anyString());
+    assertThat(myView.getStackTraceView().getModel().getCodeLocations()).isEmpty();
   }
 
   @Test
@@ -126,7 +131,7 @@ public class ConnectionDetailsViewTest {
     HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
     myView.update(data);
     stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    JLabel value = (JLabel) stream.filter(c -> valueName.equals(c.getName())).findFirst().get();
+    JLabel value = (JLabel)stream.filter(c -> valueName.equals(c.getName())).findFirst().get();
     assertThat(value.getText()).isEqualTo("111");
   }
 
@@ -143,7 +148,7 @@ public class ConnectionDetailsViewTest {
     assertThat(stream.anyMatch(c -> "URL".equals(c.getName()))).isFalse();
     myView.update(DEFAULT_DATA);
     stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    JTextArea value = (JTextArea) stream.filter(c -> "URL".equals(c.getName())).findFirst().get();
+    JTextArea value = (JTextArea)stream.filter(c -> "URL".equals(c.getName())).findFirst().get();
     assertThat(value.getText()).isEqualTo("dumbUrl");
   }
 
@@ -155,7 +160,7 @@ public class ConnectionDetailsViewTest {
     HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
     myView.update(data);
     stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    JLabel value = (JLabel) stream.filter(c -> valueName.equals(c.getName())).findFirst().get();
+    JLabel value = (JLabel)stream.filter(c -> valueName.equals(c.getName())).findFirst().get();
     assertThat(value.getText()).isEqualTo("222B");
   }
 
@@ -199,11 +204,17 @@ public class ConnectionDetailsViewTest {
 
   @Test
   public void callStackViewHasProperValueFromData() {
-    assertThat(myView.getStackTraceView().getCodeLocations().size()).isEqualTo(0);
+    AspectObserver observer = new AspectObserver();
+    final int[] stackFramesChangedCount = {0};
+    myView.getStackTraceView().getModel().addDependency(observer)
+      .onChange(StackTraceModel.Aspect.STACK_FRAMES, () -> stackFramesChangedCount[0]++);
+
+    assertThat(stackFramesChangedCount[0]).isEqualTo(0);
+    assertThat(myView.getStackTraceView().getModel().getCodeLocations().size()).isEqualTo(0);
 
     myView.update(DEFAULT_DATA);
-    verify(myView.getStackTraceView()).clearStackFrames();
-    verify(myView.getStackTraceView()).setStackFrames(ThreadId.INVALID_THREAD_ID, DEFAULT_DATA.getStackTrace().getCodeLocations());
+    assertThat(stackFramesChangedCount[0]).isEqualTo(1);
+    assertThat(myView.getStackTraceView().getModel().getCodeLocations()).isEqualTo(DEFAULT_DATA.getStackTrace().getCodeLocations());
   }
 
   @Test
@@ -215,13 +226,13 @@ public class ConnectionDetailsViewTest {
     // Expands Profiler Mode
     myStage.getStudioProfilers().getTimeline().getSelectionRange().set(0, 10);
 
-    boolean modeChanged[] = {false};
+    boolean[] modeChanged = {false};
     AspectObserver observer = new AspectObserver();
     myStage.getStudioProfilers().addDependency(observer).onChange(ProfilerAspect.MODE, () -> modeChanged[0] = true);
 
     assertThat(modeChanged[0]).isFalse();
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
-    myView.getStackTraceView().selectCodeLocation(data.getStackTrace().getCodeLocations().get(0));
+    myView.getStackTraceView().getModel().setSelectedIndex(0);
     assertThat(modeChanged[0]).isTrue();
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
   }

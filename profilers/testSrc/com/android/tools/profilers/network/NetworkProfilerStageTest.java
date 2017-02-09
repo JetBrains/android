@@ -18,7 +18,7 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.common.StackTraceModel;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf3jarjar.ByteString;
 import org.junit.Before;
@@ -37,7 +37,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 
-public class NetworkProfilerStageTest extends AspectObserver {
+public class NetworkProfilerStageTest {
   private static final ImmutableList<NetworkProfilerData> FAKE_DATA =
     new ImmutableList.Builder<NetworkProfilerData>()
       .add(FakeNetworkService.newSpeedData(0, 1, 2))
@@ -226,8 +226,9 @@ public class NetworkProfilerStageTest extends AspectObserver {
       .setResponsePayloadId("payloadId");
     HttpData data = builder.build();
 
+    AspectObserver observer = new AspectObserver();
     final boolean[] connectionChanged = {false};
-    myStage.getAspect().addDependency(this).onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, () ->
+    myStage.getAspect().addDependency(observer).onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, () ->
       connectionChanged[0] = true
     );
 
@@ -259,10 +260,10 @@ public class NetworkProfilerStageTest extends AspectObserver {
 
     NetworkProfilerStage spyStage = spy(myStage);
 
+    AspectObserver observer = new AspectObserver();
     final boolean[] connectionChanged = {false};
-    spyStage.getAspect().addDependency(this).onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, () ->
-      connectionChanged[0] = true
-    );
+    spyStage.getAspect().addDependency(observer).
+      onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, () -> connectionChanged[0] = true);
 
     doThrow(IOException.class).when(spyStage).getConnectionPayload(any(ByteString.class), any(HttpData.class));
     spyStage.setSelectedConnection(data);
@@ -283,17 +284,15 @@ public class NetworkProfilerStageTest extends AspectObserver {
   public void stackLineNavigation() {
     HttpData data = FAKE_HTTP_DATA.get(0);
     assertEquals(2, data.getStackTrace().getCodeLocations().size());
-    CodeLocation location = data.getStackTrace().getCodeLocations().get(0);
+    myStage.getStackTraceModel().setStackFrames(data.getStackTrace().getTrace());
 
     final boolean[] navigated = {false};
-    myStage.getAspect().addDependency(this).onChange(NetworkProfilerAspect.CODE_LOCATION, () ->
-      navigated[0] = true
-    );
+    AspectObserver observer = new AspectObserver();
+    myStage.getStackTraceModel().addDependency(observer)
+      .onChange(StackTraceModel.Aspect.SELECTED_LOCATION, () -> navigated[0] = true);
 
     final boolean[] modeChanged = {false};
-    myStage.getStudioProfilers().addDependency(this).onChange(ProfilerAspect.MODE, () ->
-      modeChanged[0] = true
-    );
+    myStage.getStudioProfilers().addDependency(observer).onChange(ProfilerAspect.MODE, () -> modeChanged[0] = true);
 
     // This expands profiler mode
     myStage.getStudioProfilers().getTimeline().getSelectionRange().set(0, 10);
@@ -301,7 +300,7 @@ public class NetworkProfilerStageTest extends AspectObserver {
     assertFalse(navigated[0]);
     assertFalse(modeChanged[0]);
     assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
-    myStage.setSelectedCodeLocation(location);
+    myStage.getStackTraceModel().setSelectedIndex(0);
     assertTrue(navigated[0]);
     assertTrue(modeChanged[0]);
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
@@ -309,7 +308,7 @@ public class NetworkProfilerStageTest extends AspectObserver {
     navigated[0] = false;
     modeChanged[0] = false;
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
-    myStage.setSelectedCodeLocation(null);
+    myStage.getStackTraceModel().clearSelection();
     assertTrue(navigated[0]);
     assertTrue(modeChanged[0]);
     assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());

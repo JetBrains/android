@@ -19,13 +19,11 @@ import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TreeWalker;
-import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.legend.FixedLegend;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profilers.ProfilerMonitor;
-import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.common.FileViewer;
 import com.android.tools.profilers.common.StackTraceView;
 import com.android.tools.profilers.common.TabsPanel;
@@ -56,7 +54,6 @@ import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
 import java.io.File;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
@@ -84,9 +81,6 @@ public class ConnectionDetailsView extends JPanel {
 
   @NotNull
   private final NetworkProfilerStageView myStageView;
-
-  @NotNull
-  private final AspectObserver myObserver;
 
   @NotNull
   private final TabsPanel myTabsPanel;
@@ -129,7 +123,7 @@ public class ConnectionDetailsView extends JPanel {
     headersScroll.getHorizontalScrollBar().setUnitIncrement(SCROLL_UNIT);
     myTabsPanel.addTab("Headers", headersScroll);
 
-    myStackTraceView = myStageView.getIdeComponents().createStackView(this::updateCodeLocation);
+    myStackTraceView = myStageView.getIdeComponents().createStackView(stageView.getStage().getStackTraceModel());
     myStackTraceView.getComponent().setName("StackTrace");
     myTabsPanel.addTab("Call Stack", myStackTraceView.getComponent());
 
@@ -141,23 +135,6 @@ public class ConnectionDetailsView extends JPanel {
     rootPanel.add(myTabsPanel.getComponent(), new TabularLayout.Constraint(0, 0, 2, 2));
 
     add(rootPanel);
-
-    myObserver = new AspectObserver();
-    myStageView.getStage().getAspect().addDependency(myObserver)
-      .onChange(NetworkProfilerAspect.CODE_LOCATION, this::updateStackTraceView);
-  }
-
-  private void updateStackTraceView() {
-    CodeLocation newLocation = myStageView.getStage().getSelectedCodeLocation();
-    if (Objects.equals(myStackTraceView.getSelectedLocation(), newLocation)) {
-      return;
-    }
-    myStackTraceView.selectCodeLocation(newLocation);
-  }
-
-  private void updateCodeLocation() {
-    CodeLocation location = myStackTraceView.getSelectedLocation();
-    myStageView.getStage().setSelectedCodeLocation(location);
   }
 
   /**
@@ -168,7 +145,6 @@ public class ConnectionDetailsView extends JPanel {
     setBackground(JBColor.background());
     myResponsePanel.removeAll();
     myHeadersPanel.removeAll();
-    myStackTraceView.clearStackFrames();
 
     if (httpData != null) {
       Optional<File> payloadFile = Optional.ofNullable(httpData.getResponsePayloadFile());
@@ -181,7 +157,10 @@ public class ConnectionDetailsView extends JPanel {
       myHeadersPanel.add(new JSeparator());
       myHeadersPanel.add(createHeaderSection("Request Headers", httpData.getRequestHeaders()));
 
-      myStackTraceView.setStackFrames(ThreadId.INVALID_THREAD_ID, httpData.getStackTrace().getCodeLocations());
+      myStackTraceView.getModel().setStackFrames(ThreadId.INVALID_THREAD_ID, httpData.getStackTrace().getCodeLocations());
+    }
+    else {
+      myStackTraceView.getModel().clearStackFrames();
     }
     setVisible(httpData != null);
     revalidate();

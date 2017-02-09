@@ -21,10 +21,7 @@ import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.common.CodeLocation;
-import com.android.tools.profilers.common.ContextMenuItem;
-import com.android.tools.profilers.common.StackTraceView;
-import com.android.tools.profilers.common.TabsPanel;
+import com.android.tools.profilers.common.*;
 import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject.InstanceAttribute;
@@ -76,7 +73,13 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     myIdeProfilerComponents = ideProfilerComponents;
 
     myTabsPanel = ideProfilerComponents.createTabsPanel();
-    myStackTraceView = ideProfilerComponents.createStackView(() -> myStage.setProfilerMode(ProfilerMode.NORMAL));
+    myStackTraceView = ideProfilerComponents.createStackView(new StackTraceModel());
+    myStackTraceView.getModel().addDependency(this).onChange(
+      StackTraceModel.Aspect.SELECTED_LOCATION, () -> {
+        if (myStackTraceView.getModel().getSelectedType() == StackTraceModel.Type.STACK_FRAME) {
+          myStage.setProfilerMode(ProfilerMode.NORMAL);
+        }
+      });
 
     myAttributeColumns.put(
       InstanceObject.InstanceAttribute.LABEL,
@@ -193,8 +196,8 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       List<CodeLocation> stackFrames = callStack.getStackFramesList().stream()
         .map((frame) -> new CodeLocation(frame.getClassName(), frame.getFileName(), frame.getMethodName(), frame.getLineNumber() - 1))
         .collect(Collectors.toList());
-      myStackTraceView.setStackFrames(instance.getAllocationThreadId(), stackFrames);
-      myTabsPanel.addTab("Callstack", myStackTraceView.getComponent());
+      myStackTraceView.getModel().setStackFrames(instance.getAllocationThreadId(), stackFrames);
+        myTabsPanel.addTab("Callstack", myStackTraceView.getComponent());
       hasContent = true;
     }
 

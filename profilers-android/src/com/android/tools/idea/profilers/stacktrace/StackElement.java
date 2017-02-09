@@ -22,5 +22,5 @@ public interface StackElement {
   /**
    * @param preNavigate A callback that will be invoked just prior to actual navigation to the returned {@link Navigatable}, if it occurs.
    */
-  void navigate(@Nullable Runnable preNavigate);
+  void navigate();
 }
