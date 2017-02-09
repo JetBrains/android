@@ -38,16 +38,16 @@ public class TopDownNodeTest {
     //    +-F
 
     TopDownNode topDown = new TopDownNode(root);
-    assertEquals(":A", topDown.getId());
+    assertEquals(".A", topDown.getId());
     assertEquals(2, topDown.getChildren().size());
-    assertEquals(":B", topDown.getChildren().get(0).getId());
+    assertEquals(".B", topDown.getChildren().get(0).getId());
     assertEquals(3, topDown.getChildren().get(0).getChildren().size());
-    assertEquals(":D", topDown.getChildren().get(0).getChildren().get(0).getId());
-    assertEquals(":E", topDown.getChildren().get(0).getChildren().get(1).getId());
-    assertEquals(":G", topDown.getChildren().get(0).getChildren().get(2).getId());
-    assertEquals(":C", topDown.getChildren().get(1).getId());
+    assertEquals(".D", topDown.getChildren().get(0).getChildren().get(0).getId());
+    assertEquals(".E", topDown.getChildren().get(0).getChildren().get(1).getId());
+    assertEquals(".G", topDown.getChildren().get(0).getChildren().get(2).getId());
+    assertEquals(".C", topDown.getChildren().get(1).getId());
     assertEquals(1, topDown.getChildren().get(1).getChildren().size());
-    assertEquals(":F", topDown.getChildren().get(1).getChildren().get(0).getId());
+    assertEquals(".F", topDown.getChildren().get(1).getChildren().get(0).getId());
   }
 
   @Test
@@ -72,15 +72,15 @@ public class TopDownNodeTest {
   @Test
   public void testTreeData() {
     MethodModel rootModel = new MethodModel("A");
-    rootModel.setNamespace("com.package");
+    rootModel.setClassName("com.package");
     TopDownNode topDown = new TopDownNode(new HNode<>(rootModel, 0, 10));
 
-    assertEquals("com.package", topDown.getPackage());
+    assertEquals("com.package", topDown.getClassName());
     assertEquals("A", topDown.getMethodName());
 
     // Cover the case of null data
     topDown = new TopDownNode(new HNode<>());
-    assertEquals("", topDown.getPackage());
+    assertEquals("", topDown.getClassName());
     assertEquals("", topDown.getMethodName());
   }
 

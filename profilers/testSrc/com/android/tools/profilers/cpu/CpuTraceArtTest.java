@@ -47,15 +47,17 @@ public class CpuTraceArtTest {
 
     HNode<MethodModel> node = graphs.values().iterator().next();
 
-    assertEquals("AsyncTask #1:", node.getData().getId());
+    assertEquals("AsyncTask #1.", node.getData().getId());
 
-    expectedChildrenIds(node, "android/os/Debug:startMethodTracing", "com/test/android/traceview/Basic:foo",
-                        "android/os/Debug:stopMethodTracing");
+    expectedChildrenIds(node, "android/os/Debug.startMethodTracing(Ljava/lang/String;)V",
+                        "com/test/android/traceview/Basic.foo()V",
+                        "android/os/Debug.stopMethodTracing()V");
 
-    expectedChildrenIds(node.getFirstChild(), "android/os/Debug:startMethodTracing");
-    expectedChildrenIds(node.getChildren().get(1), "com/test/android/traceview/Basic:bar");
-    expectedChildrenIds(node.getChildren().get(2), "dalvik/system/VMDebug:stopMethodTracing");
-    expectedChildrenIds(node.getFirstChild().getChildren().get(0), "dalvik/system/VMDebug:startMethodTracing");
+    expectedChildrenIds(node.getFirstChild(), "android/os/Debug.startMethodTracing(Ljava/lang/String;II)V");
+    expectedChildrenIds(node.getChildren().get(1), "com/test/android/traceview/Basic.bar()I");
+    expectedChildrenIds(node.getChildren().get(2), "dalvik/system/VMDebug.stopMethodTracing()V");
+    expectedChildrenIds(node.getFirstChild().getChildren().get(0),
+                        "dalvik/system/VMDebug.startMethodTracing(Ljava/lang/String;II)V");
   }
 
   private static void expectedChildrenIds(HNode<MethodModel> node, String... ids) {
