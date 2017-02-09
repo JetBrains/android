@@ -29,6 +29,7 @@ import org.fest.swing.core.matcher.DialogMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JButtonFixture;
+import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
@@ -51,19 +52,29 @@ public final class TranslationsEditorFixture {
 
   @NotNull
   public ActionButtonFixture getAddKeyButton() {
-    GenericTypeMatcher<ActionButton> matcher = new GenericTypeMatcher<ActionButton>(ActionButton.class) {
-      @Override
-      protected boolean isMatching(@NotNull ActionButton button) {
-        return "Add Key".equals(button.getAction().getTemplatePresentation().getText());
-      }
-    };
-
-    return new ActionButtonFixture(myRobot, GuiTests.waitUntilShowingAndEnabled(myRobot, myTranslationsEditor, matcher));
+    return newActionButtonFixture("Add Key");
   }
 
   @NotNull
   public AddKeyDialogFixture getAddKeyDialog() {
     return new AddKeyDialogFixture(myRobot, myRobot.finder().find(DialogMatcher.withTitle("Add Key")));
+  }
+
+  public void clickRemoveLocaleItem(@NotNull String text) {
+    newActionButtonFixture("Remove Locale").click();
+    new JListFixture(myRobot, "localeList").clickItem(text);
+  }
+
+  @NotNull
+  private ActionButtonFixture newActionButtonFixture(@NotNull String text) {
+    GenericTypeMatcher<ActionButton> matcher = new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull ActionButton button) {
+        return text.equals(button.getAction().getTemplatePresentation().getText());
+      }
+    };
+
+    return new ActionButtonFixture(myRobot, GuiTests.waitUntilShowingAndEnabled(myRobot, myTranslationsEditor, matcher));
   }
 
   public void clickFilterKeysComboBoxItem(@NotNull String text) {
