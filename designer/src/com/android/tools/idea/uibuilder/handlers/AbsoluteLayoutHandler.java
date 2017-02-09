@@ -15,20 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SegmentType;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.List;
-import java.util.Locale;
 
 import static com.android.SdkConstants.*;
 
@@ -37,19 +34,19 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
   @Override
   @Nullable
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
-                                       @NotNull SceneComponent layout,
-                                       @NotNull List<SceneComponent> components,
+                                       @NotNull NlComponent layout,
+                                       @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
     return new DragHandler(editor, this, layout, components, type) {
       @Override
       public void paint(@NotNull NlGraphics graphics) {
-        @AndroidDpCoordinate int deltaX = lastX - startX;
-        @AndroidDpCoordinate int deltaY = lastY - startY;
-        for (SceneComponent component : components) {
-          int x = editor.dpToPx(component.getDrawX() + deltaX);
-          int y = editor.dpToPx(component.getDrawY() + deltaY);
-          int w = editor.dpToPx(component.getDrawWidth());
-          int h = editor.dpToPx(component.getDrawHeight());
+        int deltaX = lastX - startX;
+        int deltaY = lastY - startY;
+        for (NlComponent component : components) {
+          int x = component.x + deltaX;
+          int y = component.y + deltaY;
+          int w = component.w;
+          int h = component.h;
 
           graphics.useStyle(NlDrawingStyle.DROP_PREVIEW);
           graphics.drawRect(x, y, w, h);
@@ -61,14 +58,12 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
         // TODO: Remove all existing layout parameters; if you're dragging from one layout type to another, you don't
         // want stale layout parameters (e.g. layout_alignLeft from a previous RelativeLayout in a new GridLayout, and so on.)
 
-        @AndroidDpCoordinate int deltaX = editor.pxToDp(x) - startX;
-        @AndroidDpCoordinate int deltaY = editor.pxToDp(y) - startY;
+        int deltaX = x - startX;
+        int deltaY = y - startY;
 
-        for (SceneComponent component : components) {
-          component.getNlComponent().setAttribute(ANDROID_URI, ATTR_LAYOUT_X,
-                                                  String.format(Locale.US, VALUE_N_DP, component.getDrawX() - layout.getDrawX() + deltaX));
-          component.getNlComponent().setAttribute(ANDROID_URI, ATTR_LAYOUT_Y,
-                                                  String.format(Locale.US, VALUE_N_DP, component.getDrawY() - layout.getDrawY() + deltaY));
+        for (NlComponent component : components) {
+          component.setAttribute(ANDROID_URI, ATTR_LAYOUT_X, editor.pxToDpWithUnits(component.x - layout.x + deltaX));
+          component.setAttribute(ANDROID_URI, ATTR_LAYOUT_Y, editor.pxToDpWithUnits(component.y - layout.y + deltaY));
         }
         insertComponents(-1, insertType);
       }

@@ -412,8 +412,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       component.addTarget(new GuidelineTarget(isHorizontal));
       if (isHorizontal) {
         component.addTarget(new GuidelineAnchorTarget(AnchorTarget.Type.TOP, true));
-      }
-      else {
+      } else {
         component.addTarget(new GuidelineAnchorTarget(AnchorTarget.Type.LEFT, false));
       }
       component.addTarget(new GuidelineCycleTarget(isHorizontal));
@@ -427,8 +426,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       component.addTarget(new ResizeTarget(ResizeTarget.Type.RIGHT_TOP));
       component.addTarget(new ResizeTarget(ResizeTarget.Type.RIGHT_BOTTOM));
       component.setNotchProvider(new ConstraintLayoutComponentNotchProvider());
-    }
-    else {
+    } else {
       component.addTarget(new LassoTarget());
       component.setNotchProvider(new ConstraintLayoutNotchProvider());
     }
@@ -437,14 +435,15 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     component.addTarget(new AnchorTarget(AnchorTarget.Type.RIGHT, showAnchors));
     component.addTarget(new AnchorTarget(AnchorTarget.Type.BOTTOM, showAnchors));
     if (!isParent) {
-      ActionTarget previousAction = (ActionTarget)component.addTarget(new ClearConstraintsTarget(null));
+      ActionTarget previousAction = (ActionTarget) component.addTarget(new ClearConstraintsTarget(null));
       int baseline = component.getNlComponent().getBaseline();
       if (baseline <= 0 && component.getNlComponent().viewInfo != null) {
         baseline = component.getNlComponent().viewInfo.getBaseLine();
       }
       if (baseline > 0) {
         component.addTarget(new AnchorTarget(AnchorTarget.Type.BASELINE, showAnchors));
-        ActionTarget baselineActionTarget = new ActionTarget(previousAction, (SceneComponent c) -> c.setShowBaseline(!c.canShowBaseline()));
+        ActionTarget baselineActionTarget = new ActionTarget(previousAction, (SceneComponent c) -> {
+          c.setShowBaseline(!c.canShowBaseline()); });
         baselineActionTarget.setActionType(DrawAction.BASELINE);
         component.addTarget(baselineActionTarget);
         previousAction = baselineActionTarget;
@@ -474,8 +473,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    */
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
-                                       @NotNull SceneComponent layout,
-                                       @NotNull List<SceneComponent> components,
+                                       @NotNull NlComponent layout,
+                                       @NotNull java.util.List<NlComponent> components,
                                        @NotNull DragType type) {
     return new SceneDragHandler(editor, this, layout, components, type);
   }
@@ -556,7 +555,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       }
       NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface())
         .logAction(LayoutEditorEvent.LayoutEditorEventType.CLEAR_ALL_CONSTRAINTS);
-      ViewEditorImpl viewEditor = (ViewEditorImpl)editor;
+      ViewEditorImpl viewEditor = (ViewEditorImpl) editor;
       Scene scene = viewEditor.getSceneView().getScene();
       scene.clearAttributes();
     }
@@ -570,6 +569,35 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @InputEventMask int modifiers) {
       presentation.setIcon(AndroidIcons.SherpaIcons.DeleteConstraint);
       presentation.setLabel("Clear All Constraints");
+    }
+  }
+
+  private static class LockConstraints extends DirectViewAction {
+    @Override
+    public void perform(@NotNull ViewEditor editor,
+                        @NotNull ViewHandler handler,
+                        @NotNull NlComponent component,
+                        @NotNull List<NlComponent> selectedChildren,
+                        @InputEventMask int modifiers) {
+      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
+      if (model == null) {
+        return;
+      }
+      if (model.getSelection().getWidgets().size() == 1) {
+        WidgetsScene scene = model.getScene();
+        scene.toggleLockConstraints((model.getSelection().getWidgets().get(0)));
+      }
+    }
+
+    @Override
+    public void updatePresentation(@NotNull ViewActionPresentation presentation,
+                                   @NotNull ViewEditor editor,
+                                   @NotNull ViewHandler handler,
+                                   @NotNull NlComponent component,
+                                   @NotNull List<NlComponent> selectedChildren,
+                                   @InputEventMask int modifiers) {
+      presentation.setIcon(AndroidIcons.SherpaIcons.LockConstraints);
+      presentation.setLabel("Locks auto inferred constraints");
     }
   }
 
@@ -848,7 +876,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
         };
       }
     }
-
     @Override
     public void perform(@NotNull ViewEditor editor,
                         @NotNull ViewHandler handler,
@@ -912,7 +939,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    * Update the given component if one of its constraint points to one of the component deleted
    *
    * @param component the component we want to check
-   * @param deleted   the list of components that are deleted
+   * @param deleted the list of components that are deleted
    */
   private void willDelete(NlComponent component, @NotNull List<NlComponent> deleted) {
     final int count = deleted.size();
@@ -922,4 +949,5 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       ConstraintComponentUtilities.updateOnDelete(component, id);
     }
   }
+
 }
