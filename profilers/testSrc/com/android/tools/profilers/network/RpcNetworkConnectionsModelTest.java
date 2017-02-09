@@ -108,7 +108,7 @@ public class RpcNetworkConnectionsModelTest {
       assertEquals(FAKE_DATA.get((int)id).getEndTimeUs(), data.getEndTimeUs());
       assertEquals(FAKE_DATA.get((int)id).getMethod(), data.getMethod());
       assertEquals(FAKE_DATA.get((int)id).getUrl(), data.getUrl());
-      assertEquals(FAKE_DATA.get((int)id).getTrace(), data.getTrace());
+      assertEquals(FAKE_DATA.get((int)id).getStackTrace().getTrace(), data.getStackTrace().getTrace());
       assertEquals(FAKE_DATA.get((int)id).getResponsePayloadId(), data.getResponsePayloadId());
       assertEquals(FAKE_DATA.get((int)id).getResponseField("connId"), data.getResponseField("connId"));
       ImmutableMap<String, String> requestHeaders = data.getRequestHeaders();

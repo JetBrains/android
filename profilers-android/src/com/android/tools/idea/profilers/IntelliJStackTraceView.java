@@ -17,6 +17,7 @@ package com.android.tools.idea.profilers;
 
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.common.StackFrameParser;
 import com.android.tools.profilers.common.StackTraceView;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
@@ -124,10 +125,37 @@ public class IntelliJStackTraceView implements StackTraceView {
     stackFrames.forEach(stackFrame -> myListModel.addElement(myGenerator.apply(myProject, stackFrame)));
   }
 
-  @Override
   @NotNull
+  @Override
   public JComponent getComponent() {
     return myScrollPane;
+  }
+
+  @Nullable
+  @Override
+  public CodeLocation getSelectedLocation() {
+    int index = myListView.getSelectedIndex();
+    if (index < 0 || index >= myListModel.size()) {
+      return null;
+    }
+    return myListModel.get(index).getCodeLocation();
+  }
+
+  @Override
+  public boolean selectCodeLocation(@Nullable CodeLocation location) {
+    if (location == null) {
+      myListView.clearSelection();
+      return false;
+    }
+
+    for (int i = 0; i < myListModel.size(); ++i) {
+      if (myListModel.getElementAt(i).getCodeLocation().equals(location)) {
+        myListView.setSelectedIndex(i);
+        return true;
+      }
+    }
+    myListView.clearSelection();
+    return false;
   }
 
   @NotNull
