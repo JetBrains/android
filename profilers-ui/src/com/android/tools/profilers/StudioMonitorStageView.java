@@ -38,6 +38,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Bird eye view displaying high-level information across all profilers.
@@ -46,8 +48,14 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
 
   @Nullable
   private MonitorTooltipView myMonitorTooltipView;
+  @NotNull
   private final ViewBinder<StudioMonitorStageView, ProfilerMonitor, MonitorTooltipView> myTooltipBinder;
+  @NotNull
   private final JPanel myTooltip;
+
+  @NotNull
+  @SuppressWarnings("FieldCanBeLocal") // We need to keep a reference to the sub-views. If they got collected, they'd stop updating the UI.
+  private final List<ProfilerMonitorView> myViews;
 
   public StudioMonitorStageView(@NotNull StudioProfilersView profilersView, @NotNull StudioMonitorStage stage) {
     super(profilersView, stage);
@@ -89,6 +97,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
 
     stage.getAspect().addDependency(this).onChange(StudioMonitorStage.Aspect.TOOLTIP, this::tooltipChanged);
 
+    myViews = new ArrayList<>(stage.getMonitors().size());
     int rowIndex = 0;
     for (ProfilerMonitor monitor : stage.getMonitors()) {
       ProfilerMonitorView view = binder.build(profilersView, monitor);
@@ -99,11 +108,22 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
         public void mouseEntered(MouseEvent e) {
           stage.setTooltip(monitor);
         }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+          stage.setTooltip(null);
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+          monitor.expand();
+        }
       });
       int weight = (int)(view.getVerticalWeight() * 100f);
       layout.setRowSizing(rowIndex, (weight > 0) ? weight + "*" : "Fit");
       monitors.add(component, new TabularLayout.Constraint(rowIndex, 0));
       rowIndex++;
+      myViews.add(view);
     }
 
     StudioProfilers profilers = stage.getStudioProfilers();
@@ -119,11 +139,15 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
   private void tooltipChanged() {
     if (myMonitorTooltipView != null) {
       myMonitorTooltipView.dispose();
+      myMonitorTooltipView = null;
     }
-    myMonitorTooltipView = myTooltipBinder.build(this, getStage().getTooltip());
-    Component component = myMonitorTooltipView.createComponent();
     myTooltip.removeAll();
-    myTooltip.add(component, BorderLayout.CENTER);
+    ProfilerMonitor tooltip = getStage().getTooltip();
+    if (tooltip != null) {
+      myMonitorTooltipView = myTooltipBinder.build(this, tooltip);
+      Component component = myMonitorTooltipView.createComponent();
+      myTooltip.add(component, BorderLayout.CENTER);
+    }
     myTooltip.repaint();
   }
 

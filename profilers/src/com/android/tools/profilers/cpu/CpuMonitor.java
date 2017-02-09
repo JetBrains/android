@@ -65,6 +65,7 @@ public class CpuMonitor extends ProfilerMonitor {
     myProfilers.getUpdater().register(myTooltipLegends);
   }
 
+  @Override
   public void expand() {
     myProfilers.setStage(new CpuProfilerStage(myProfilers));
   }
