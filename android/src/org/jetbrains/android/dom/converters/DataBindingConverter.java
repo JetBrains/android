@@ -28,6 +28,7 @@ import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.CustomReferenceConverter;
 import com.intellij.util.xml.GenericDomValue;
@@ -326,6 +327,19 @@ public class DataBindingConverter extends ResolvingConverter<PsiClass> implement
     @Override
     public String getCanonicalText() {
       return myReferenceTo;
+    }
+
+    @Override
+    public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException {
+      if (element instanceof PsiClass) {
+        PsiClass psiClass = (PsiClass)element;
+        String newName = psiClass.getQualifiedName();
+        ElementManipulator<PsiElement> manipulator = ElementManipulators.getManipulator(myElement);
+        if (manipulator != null) {
+          return manipulator.handleContentChange(myElement, newName);
+        }
+      }
+      return super.bindToElement(element);
     }
   }
 
