@@ -63,7 +63,7 @@ public class VisualTests {
         dialog.addTest(new SunburstVisualTest());
         dialog.addTest(new TimelineVisualTest());
         dialog.addTest(new EventVisualTest());
-        dialog.addTest(new DataReducerVisualTest());
+        dialog.addTest(new LineChartReducerVisualTest());
         dialog.addTest(new StateChartReducerVisualTest());
         dialog.setTitle("Visual Tests");
         dialog.pack();

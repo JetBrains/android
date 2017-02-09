@@ -37,10 +37,9 @@ import java.util.List;
 
 // TODO: Add scrolling support to LineCharts
 // TODO: As SelectionComponent used only for zooming mechanism, consider replacing it with only zooming without selection
-public class DataReducerVisualTest extends VisualTest {
+public class LineChartReducerVisualTest extends VisualTest {
   private static final int AXIS_SIZE = 80;
 
-  private Range myGlobalXRange;
   private Range myViewXRange;
   private Range mySelectionXRange;
 
@@ -60,12 +59,11 @@ public class DataReducerVisualTest extends VisualTest {
 
   @Override
   protected List<Updatable> createModelList() {
-    myGlobalXRange = new Range(0, 0);
     myViewXRange = new Range(0, 0);
     mySelectionXRange = new Range();
 
     myLineChartModel = new LineChartModel();
-    myLineChart = new LineChart((shape, config) -> shape, myLineChartModel);
+    myLineChart = new LineChart(myLineChartModel, (path, config) -> path);
     myOptimizedLineChartModel = new LineChartModel();
     myOptimizedLineChart = new LineChart(myOptimizedLineChartModel);
 
@@ -93,20 +91,19 @@ public class DataReducerVisualTest extends VisualTest {
 
   @Override
   public String getName() {
-    return "DataReducer";
+    return "LineChartReducer";
   }
 
   private void addData(int variance, int count) {
     for (int i = 0; i < count; ++i) {
       ImmutableList<SeriesData<Long>> data = myData.getAllData();
-      long x = data.isEmpty() ? 0 : data.get(data.size() - 1).x + 1;
+      long x = data.isEmpty() ? (long)(Math.random() * 4) : data.get(data.size() - 1).x + 1;
       long last = data.isEmpty() ? 0 : data.get(data.size() - 1).value;
       float delta = ((float)Math.random() - 0.5f) * variance;
       // Make sure not to add negative numbers.
       long current = Math.max(last + (long)delta, 0);
       myData.add(x, current);
-      myViewXRange.setMax(x + 1);
-      myGlobalXRange.setMax(x + 1);
+      myViewXRange.setMax(x + 4);
     }
   }
 
@@ -155,7 +152,7 @@ public class DataReducerVisualTest extends VisualTest {
       }
     }));
 
-    controls.add(VisualTest.createVariableSlider("Sample Size", 10, 10000, new VisualTests.Value() {
+    controls.add(VisualTest.createVariableSlider("Sample Size", 10, 100000, new VisualTests.Value() {
       @Override
       public void set(int v) {
         mySampleSize = v;
