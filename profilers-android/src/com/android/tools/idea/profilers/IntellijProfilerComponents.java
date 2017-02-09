@@ -81,8 +81,8 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
 
   @NotNull
   @Override
-  public TabsPanel createTabsPanel(@Nullable Runnable onSelectionChange) {
-    return new IntellijTabsPanel(myProject, onSelectionChange);
+  public TabsPanel createTabsPanel() {
+    return new IntellijTabsPanel(myProject);
   }
 
   @NotNull
