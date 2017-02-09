@@ -30,7 +30,7 @@ public class BottomUpTreeModelTest {
   @Before
   public void setUp() {
     myRange = new Range(0, 40);
-    myModel = new BottomUpTreeModel(myRange, new BottomUpNode(BottomUpNodeTest.createTree()));
+    myModel = new BottomUpTreeModel(myRange, new BottomUpNode(BottomUpNodeTest.createComplexTree()));
   }
 
   @Test
