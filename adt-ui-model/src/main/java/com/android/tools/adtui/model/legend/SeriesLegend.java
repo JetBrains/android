@@ -35,11 +35,20 @@ public final class SeriesLegend implements Legend {
   @NotNull private final Range myRange;
   @NotNull private final RangedContinuousSeries mySeries;
   @NotNull private final BaseAxisFormatter myFormatter;
+  @NotNull private final String myName;
 
   public SeriesLegend(@NotNull RangedContinuousSeries series, @NotNull BaseAxisFormatter formatter, @NotNull Range range) {
+    this(series, formatter, range, series.getName());
+  }
+
+  public SeriesLegend(@NotNull RangedContinuousSeries series,
+                      @NotNull BaseAxisFormatter formatter,
+                      @NotNull Range range,
+                      @NotNull String name) {
     myRange = range;
     mySeries = series;
     myFormatter = formatter;
+    myName = name;
   }
 
   @Nullable
@@ -65,6 +74,6 @@ public final class SeriesLegend implements Legend {
   @Override
   @NotNull
   public String getName() {
-    return mySeries.getName();
+    return myName;
   }
 }

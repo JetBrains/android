@@ -33,6 +33,7 @@ public final class ProfilerTimeline implements Updatable {
   @NotNull private final Range myDataRangeUs;
   @NotNull private final Range myViewRangeUs;
   @NotNull private final Range mySelectionRangeUs;
+  @NotNull private final Range myTooltipRangeUs;
   @NotNull private RelativeTimeConverter myRelativeTimeConverter;
   private boolean myStreaming;
   private boolean myCanStream = true;
@@ -42,6 +43,7 @@ public final class ProfilerTimeline implements Updatable {
     myDataRangeUs = new Range(0, 0);
     myViewRangeUs = new Range(0, 0);
     mySelectionRangeUs = new Range(); // Empty range
+    myTooltipRangeUs = new Range(); // Empty range
     myRelativeTimeConverter = converter;
   }
 
@@ -95,6 +97,10 @@ public final class ProfilerTimeline implements Updatable {
 
   public Range getSelectionRange() {
     return mySelectionRangeUs;
+  }
+
+  public Range getTooltipRange() {
+    return myTooltipRangeUs;
   }
 
   @Override

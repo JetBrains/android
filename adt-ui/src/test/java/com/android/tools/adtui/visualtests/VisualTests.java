@@ -52,6 +52,7 @@ public class VisualTests {
   public static void main(String[] args) throws Exception {
     SwingUtilities.invokeAndWait(() -> {
         VisualTestsDialog dialog = new VisualTestsDialog();
+        dialog.addTest(new TooltipVisualTest());
         dialog.addTest(new LineChartVisualTest());
         dialog.addTest(new FlameGraphVisualTest());
         dialog.addTest(new AccordionVisualTest());

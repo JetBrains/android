@@ -68,7 +68,7 @@ public class CpuMonitorView extends ProfilerMonitorView<CpuMonitor> {
     lineChart.configure(cpuUsage.getCpuSeries(), config);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
-    CpuMonitor.CpuMonitorLegends legends = getMonitor().getLegends();
+    CpuMonitor.Legends legends = getMonitor().getLegends();
     LegendComponent legend = new LegendComponent(legends);
     legend.configure(legends.getCpuLegend(), new LegendConfig(config));
 

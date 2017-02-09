@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.model.AspectModel;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -22,6 +24,21 @@ import static com.android.tools.profilers.StudioProfilers.INVALID_PROCESS_ID;
 
 public class StudioMonitorStage extends Stage {
   private List<ProfilerMonitor> myMonitors;
+  private ProfilerMonitor myTooltip;
+
+  enum Aspect {
+    TOOLTIP
+  }
+
+  private AspectModel<Aspect> myAspect = new AspectModel<>();
+
+  public AspectModel<Aspect> getAspect() {
+    return myAspect;
+  }
+
+  public ProfilerMonitor getTooltip() {
+    return myTooltip;
+  }
 
   public StudioMonitorStage(StudioProfilers profiler) {
     super(profiler);
@@ -55,5 +72,10 @@ public class StudioMonitorStage extends Stage {
 
   public List<ProfilerMonitor> getMonitors() {
     return myMonitors;
+  }
+
+  public void setTooltip(ProfilerMonitor tooltip) {
+    myTooltip = tooltip;
+    myAspect.changed(Aspect.TOOLTIP);
   }
 }
