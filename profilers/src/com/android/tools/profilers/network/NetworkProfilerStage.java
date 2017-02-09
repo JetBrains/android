@@ -25,7 +25,7 @@ import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.common.StackTraceModel;
 import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf3jarjar.ByteString;
@@ -47,9 +47,7 @@ public class NetworkProfilerStage extends Stage {
   @Nullable
   private HttpData mySelectedConnection;
 
-  @Nullable
-  private CodeLocation mySelectedCodeLocation;
-
+  private AspectObserver myAspectObserver = new AspectObserver();
   private AspectModel<NetworkProfilerAspect> myAspect = new AspectModel<>();
 
   StateChartModel<NetworkRadioDataSeries.RadioState> myRadioState;
@@ -64,11 +62,13 @@ public class NetworkProfilerStage extends Stage {
   private final AxisComponentModel myTrafficAxis;
   private final AxisComponentModel myConnectionsAxis;
   private final EventMonitor myEventMonitor;
+  private final StackTraceModel myStackTraceModel = new StackTraceModel();
 
   public NetworkProfilerStage(StudioProfilers profilers) {
     super(profilers);
 
-    NetworkRadioDataSeries radioDataSeries = new NetworkRadioDataSeries(profilers.getClient().getNetworkClient(), profilers.getProcessId(), getStudioProfilers().getSession());
+    NetworkRadioDataSeries radioDataSeries =
+      new NetworkRadioDataSeries(profilers.getClient().getNetworkClient(), profilers.getProcessId(), getStudioProfilers().getSession());
     myRadioState = new StateChartModel<>();
     myRadioState.addSeries(new RangedSeries<>(getStudioProfilers().getTimeline().getViewRange(), radioDataSeries));
 
@@ -83,31 +83,28 @@ public class NetworkProfilerStage extends Stage {
     myLegends = new NetworkStageLegends(myDetailedNetworkUsage, profilers.getTimeline().getDataRange());
 
     myEventMonitor = new EventMonitor(profilers);
+
+    myStackTraceModel.addDependency(myAspectObserver)
+      .onChange(StackTraceModel.Aspect.SELECTED_LOCATION, profilers::modeChanged);
   }
 
   @Override
   public ProfilerMode getProfilerMode() {
-    if (mySelectedCodeLocation != null) {
+    if (myStackTraceModel.getSelectedType() == StackTraceModel.Type.STACK_FRAME) {
       return ProfilerMode.NORMAL;
     }
     boolean noSelection = getStudioProfilers().getTimeline().getSelectionRange().isEmpty();
     return mySelectedConnection == null && noSelection ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED;
   }
 
-  public void setSelectedCodeLocation(@Nullable CodeLocation location) {
-    mySelectedCodeLocation = location;
-    getAspect().changed(NetworkProfilerAspect.CODE_LOCATION);
-    getStudioProfilers().modeChanged();
-  }
-
-  @Nullable
-  public CodeLocation getSelectedCodeLocation() {
-    return mySelectedCodeLocation;
-  }
-
   @NotNull
   public NetworkConnectionsModel getConnectionsModel() {
     return myConnectionsModel;
+  }
+
+  @NotNull
+  public StackTraceModel getStackTraceModel() {
+    return myStackTraceModel;
   }
 
   /**
@@ -123,12 +120,12 @@ public class NetworkProfilerStage extends Stage {
       try {
         File file = getConnectionPayload(payload, data);
         data.setResponsePayloadFile(file);
-      } catch (IOException e) {
+      }
+      catch (IOException e) {
         return;
       }
     }
     mySelectedConnection = data;
-    setSelectedCodeLocation(null);
     getStudioProfilers().modeChanged();
     getAspect().changed(NetworkProfilerAspect.ACTIVE_CONNECTION);
   }

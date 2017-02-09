@@ -21,8 +21,4 @@ public enum NetworkProfilerAspect {
    * means that currently no connection is active (perhaps recently deselected).
    */
   ACTIVE_CONNECTION,
-  /**
-   * When the user navigated to a stack trace line or stack trace view is out of focus.
-   */
-  CODE_LOCATION,
 }
