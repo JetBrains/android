@@ -115,6 +115,8 @@ public final class TooltipComponent extends AnimatedComponent {
     g.draw(path);
 
     Dimension size = myComponent.getPreferredSize();
+    Dimension minSize = myComponent.getMinimumSize();
+    size = new Dimension(Math.max(size.width, minSize.width), Math.max(size.height, minSize.height));
 
     g.setColor(Color.WHITE);
     int gap = 10;
