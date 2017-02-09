@@ -37,14 +37,15 @@ public class BottomUpNodeTest {
     new ExpectedNode(":main", 15.0, 5.0),
     new ExpectedNode(":C", 5.0, 5.0),
     new ExpectedNode(":main", 5.0, 5.0),
-    new ExpectedNode(":C", 10.0, 5.0),
-    new ExpectedNode(":main", 10.0, 5.0),
     new ExpectedNode(":B", 15.0, 0.0),
-    new ExpectedNode(":main", 5.0, 0.0),
     new ExpectedNode(":A", 10.0, 0.0),
     new ExpectedNode(":main", 5.0, 0.0),
     new ExpectedNode(":C", 5.0, 0.0),
-    new ExpectedNode(":main", 5.0, 0.0));
+    new ExpectedNode(":main", 5.0, 0.0),
+    new ExpectedNode(":main", 5.0, 0.0),
+    new ExpectedNode(":C", 10.0, 5.0),
+    new ExpectedNode(":main", 10.0, 5.0)
+  );
 
   private List<BottomUpNode> myTraverseOrder;
 
@@ -54,7 +55,7 @@ public class BottomUpNodeTest {
   }
 
   @Test
-  public void tesBottomUpNode() {
+  public void testBottomUpNode() {
     Range viewRange = new Range(0, 40);
     BottomUpNode bottomUpNode = new BottomUpNode(createTree());
     traverse(bottomUpNode);
