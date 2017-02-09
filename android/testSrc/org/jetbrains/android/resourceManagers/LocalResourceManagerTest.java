@@ -33,7 +33,7 @@ public class LocalResourceManagerTest extends AndroidGradleTestCase {
     generateSources();
   }
 
-  public void ignore_testGetAttributeDefinitionsWithLibraryNames() {
+  public void testGetAttributeDefinitionsWithLibraryNames() {
     VfsUtil.markDirtyAndRefresh(false, true, false, getProject().getBaseDir());
     LocalResourceManager manager = ModuleResourceManagers.getInstance(myAndroidFacet).getLocalResourceManager();
     AttributeDefinitions defs = manager.getAttributeDefinitions();
