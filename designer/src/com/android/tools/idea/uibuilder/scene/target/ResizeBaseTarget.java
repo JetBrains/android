@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.scene.target;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -26,6 +25,7 @@ import com.android.tools.idea.uibuilder.scene.draw.DrawResize;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,17 +33,17 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 
 /**
- * Implements a resize handle for the ConstraintLayout viewgroup
+ * Base class for resizing targets.
  */
-public class ResizeTarget extends BaseTarget {
+public abstract class ResizeBaseTarget extends BaseTarget {
 
-  private final Type myType;
-  private final int mySize = 2;
+  protected final Type myType;
+  protected final int mySize = 2;
 
-  private int mStartX1;
-  private int mStartY1;
-  private int mStartX2;
-  private int mStartY2;
+  protected int myStartX1;
+  protected int myStartY1;
+  protected int myStartX2;
+  protected int myStartY2;
 
   public Type getType() {
     return myType;
@@ -56,7 +56,7 @@ public class ResizeTarget extends BaseTarget {
   //region Constructor
   /////////////////////////////////////////////////////////////////////////////
 
-  public ResizeTarget(@NotNull Type type) {
+  public ResizeBaseTarget(@NotNull Type type) {
     myType = type;
   }
 
@@ -89,7 +89,6 @@ public class ResizeTarget extends BaseTarget {
     int mw = l + w / 2;
     int mh = t + h / 2;
     switch (myType) {
-      /* unused for the moment
       case LEFT: {
         myLeft = l - size;
         myTop = mh - size;
@@ -114,7 +113,6 @@ public class ResizeTarget extends BaseTarget {
         myRight = mw + size;
         myBottom = b + size;
       } break;
-      */
       case LEFT_TOP: {
         myLeft = l - size;
         myTop = t - size;
@@ -151,6 +149,14 @@ public class ResizeTarget extends BaseTarget {
   @Override
   public Cursor getMouseCursor() {
     switch (myType) {
+      case LEFT:
+        return Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR);
+      case RIGHT:
+        return Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR);
+      case TOP:
+        return Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR);
+      case BOTTOM:
+        return Cursor.getPredefinedCursor(Cursor.S_RESIZE_CURSOR);
       case LEFT_TOP:
         return Cursor.getPredefinedCursor(Cursor.NW_RESIZE_CURSOR);
       case LEFT_BOTTOM:
@@ -165,7 +171,7 @@ public class ResizeTarget extends BaseTarget {
   }
 
   @Override
-  public void render(@NotNull DisplayList list, SceneContext sceneContext) {
+  public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
     if (!myComponent.getScene().allowsTarget(this)) {
       return;
     }
@@ -173,56 +179,7 @@ public class ResizeTarget extends BaseTarget {
     DrawResize.add(list, sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? DrawResize.OVER : DrawResize.NORMAL);
   }
 
-  private void updateWidth(@NotNull AttributesTransaction attributes, int w) {
-    if (w < 0) {
-      w = 0;
-    }
-    String position = String.format(SdkConstants.VALUE_N_DP, w);
-    attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH, position);
-  }
-
-  private void updateHeight(@NotNull AttributesTransaction attributes, int h) {
-    if (h < 0) {
-      h = 0;
-    }
-    String position = String.format(SdkConstants.VALUE_N_DP, h);
-    attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT, position);
-  }
-
-  private void updatePositionX(@NotNull AttributesTransaction attributes, int x) {
-    String positionX = String.format(SdkConstants.VALUE_N_DP, x);
-    attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, positionX);
-  }
-
-  private void updatePositionY(@NotNull AttributesTransaction attributes, int y) {
-    String positionY = String.format(SdkConstants.VALUE_N_DP, y);
-    attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, positionY);
-  }
-
-  private void updateAttributes(@NotNull AttributesTransaction attributes, int x, int y) {
-    switch (myType) {
-      case RIGHT_TOP: {
-        updateWidth(attributes, x - mStartX1);
-        updatePositionY(attributes, y - myComponent.getParent().getDrawY());
-        updateHeight(attributes, mStartY2 - y);
-      } break;
-      case RIGHT_BOTTOM: {
-        updateWidth(attributes, x - mStartX1);
-        updateHeight(attributes, y - mStartY1);
-      } break;
-      case LEFT_TOP: {
-        updatePositionX(attributes, x - myComponent.getParent().getDrawX());
-        updateWidth(attributes, mStartX2 - x);
-        updatePositionY(attributes, y - myComponent.getParent().getDrawY());
-        updateHeight(attributes, mStartY2 - y);
-      } break;
-      case LEFT_BOTTOM: {
-        updatePositionX(attributes, x - myComponent.getParent().getDrawX());
-        updateWidth(attributes, mStartX2 - x);
-        updateHeight(attributes, y - mStartY1);
-      } break;
-    }
-  }
+  protected abstract void updateAttributes(@NotNull AttributesTransaction attributes, int x, int y);
 
   //endregion
   /////////////////////////////////////////////////////////////////////////////
@@ -236,10 +193,10 @@ public class ResizeTarget extends BaseTarget {
 
   @Override
   public void mouseDown(int x, int y) {
-    mStartX1 = myComponent.getDrawX();
-    mStartY1 = myComponent.getDrawY();
-    mStartX2 = myComponent.getDrawX() + myComponent.getDrawWidth();
-    mStartY2 = myComponent.getDrawY() + myComponent.getDrawHeight();
+    myStartX1 = myComponent.getDrawX();
+    myStartY1 = myComponent.getDrawY();
+    myStartX2 = myComponent.getDrawX() + myComponent.getDrawWidth();
+    myStartY2 = myComponent.getDrawY() + myComponent.getDrawHeight();
   }
 
   @Override
@@ -262,8 +219,8 @@ public class ResizeTarget extends BaseTarget {
     Project project = nlModel.getProject();
     XmlFile file = nlModel.getFile();
 
-    String label = "Constraint";
-    WriteCommandAction action = new WriteCommandAction(project, label, file) {
+    String commandName = "Resize " + StringUtil.getShortName(component.getTagName());
+    WriteCommandAction action = new WriteCommandAction(project, commandName, file) {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
         attributes.commit();
