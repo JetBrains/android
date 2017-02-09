@@ -42,8 +42,7 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
     focusChanged();
   }
 
-
-  private void focusChanged() {
+  protected void focusChanged() {
     boolean highlight = myMonitor.isFocused() && myMonitor.canExpand();
     myContainer.setBackground(highlight ? ProfilerColors.MONITOR_FOCUSED : ProfilerColors.MONITOR_BACKGROUND);
   }
