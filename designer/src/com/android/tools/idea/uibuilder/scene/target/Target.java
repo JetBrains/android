@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.scene.target;
 
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.ScenePicker;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
@@ -43,9 +42,9 @@ public interface Target {
   void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext);
   void setOver(boolean over);
 
-  void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y);
-  void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget);
-  void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget);
+  void mouseDown(int x, int y);
+  void mouseDrag(int x, int y, @Nullable Target closestTarget);
+  void mouseRelease(int x, int y, @Nullable Target closestTarget);
 
   SceneComponent getComponent();
 

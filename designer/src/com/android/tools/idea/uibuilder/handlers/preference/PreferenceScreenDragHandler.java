@@ -20,8 +20,8 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,14 +33,13 @@ import java.util.Optional;
 import static com.android.SdkConstants.PreferenceTags.PREFERENCE_CATEGORY;
 
 final class PreferenceScreenDragHandler extends PreferenceGroupDragHandler {
-  private final SceneComponent myInitialGroup;
-  @AndroidDpCoordinate
-  private final Map<SceneComponent, Rectangle> myInitialPreferenceToBoundsMap;
+  private final NlComponent myInitialGroup;
+  private final Map<NlComponent, Rectangle> myInitialPreferenceToBoundsMap;
 
   PreferenceScreenDragHandler(@NotNull ViewEditor editor,
                               @NotNull ViewGroupHandler handler,
-                              @NotNull SceneComponent group,
-                              @NotNull List<SceneComponent> preferences,
+                              @NotNull NlComponent group,
+                              @NotNull List<NlComponent> preferences,
                               @NotNull DragType type) {
     super(editor, handler, group, preferences, type);
 
@@ -50,7 +49,7 @@ final class PreferenceScreenDragHandler extends PreferenceGroupDragHandler {
 
   @Nullable
   @Override
-  public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers) {
+  public String update(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
     String message = super.update(x, y, modifiers);
 
     if (message != null) {
@@ -70,8 +69,8 @@ final class PreferenceScreenDragHandler extends PreferenceGroupDragHandler {
     // If a preference category child of the preference screen contains the pointer, the myGroup field is set to the category and this drag
     // handler acts like a PreferenceCategoryDragHandler. If a category no longer contains the pointer, the field is reset to the screen.
 
-    Optional<SceneComponent> category = myInitialPreferenceToBoundsMap.keySet().stream()
-      .filter(preference -> preference.getNlComponent().getTagName().equals(PREFERENCE_CATEGORY)
+    Optional<NlComponent> category = myInitialPreferenceToBoundsMap.keySet().stream()
+      .filter(preference -> preference.getTagName().equals(PREFERENCE_CATEGORY)
                             && myInitialPreferenceToBoundsMap.get(preference).contains(x, y))
       .findFirst();
 
@@ -103,7 +102,7 @@ final class PreferenceScreenDragHandler extends PreferenceGroupDragHandler {
 
   @Override
   void drawDropRecipientLines(@NotNull NlGraphics graphics) {
-    List<SceneComponent> preferences = myGroup.getChildren();
+    List<NlComponent> preferences = myGroup.getChildren();
 
     if (preferences.isEmpty()) {
       return;
@@ -112,15 +111,15 @@ final class PreferenceScreenDragHandler extends PreferenceGroupDragHandler {
     graphics.useStyle(NlDrawingStyle.DROP_RECIPIENT);
     Rectangle bounds = getBounds(myGroup);
 
-    if (lastY >= getMidpointY(preferences.get(0)) || myGroup.getNlComponent().getTagName().equals(PREFERENCE_CATEGORY)) {
-      graphics.drawTopDp(bounds);
+    if (lastY >= getMidpointY(preferences.get(0)) || myGroup.getTagName().equals(PREFERENCE_CATEGORY)) {
+      graphics.drawTop(bounds);
     }
 
-    graphics.drawLeftDp(bounds);
-    graphics.drawRightDp(bounds);
+    graphics.drawLeft(bounds);
+    graphics.drawRight(bounds);
 
     if (lastY < getMidpointY(preferences.get(preferences.size() - 1))) {
-      graphics.drawBottomDp(bounds);
+      graphics.drawBottom(bounds);
     }
   }
 
@@ -130,6 +129,6 @@ final class PreferenceScreenDragHandler extends PreferenceGroupDragHandler {
     // the first child is never a drop zone line because it's always either a drop preview line or a recipient line. Hence 1 for the
     // starting index. In a preference category, the top of the first child may be a drop zone line because the top of the preference
     // category title is always a drop recipient line. Hence 0.
-    drawDropZoneLines(graphics, myGroup.getNlComponent().getTagName().equals(PREFERENCE_CATEGORY) ? 0 : 1);
+    drawDropZoneLines(graphics, myGroup.getTagName().equals(PREFERENCE_CATEGORY) ? 0 : 1);
   }
 }
