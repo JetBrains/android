@@ -20,5 +20,9 @@ public enum NetworkProfilerAspect {
    * Aspect associated with a single, focused connection. The connection may be {@code null}, which
    * means that currently no connection is active (perhaps recently deselected).
    */
-  ACTIVE_CONNECTION
+  ACTIVE_CONNECTION,
+  /**
+   * When the user navigated to a stack trace line or stack trace view is out of focus.
+   */
+  CODE_LOCATION,
 }
