@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.explorer.adbimpl;
 
-import com.android.ddmlib.FileListingService;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,11 +31,11 @@ public class AdbDeviceFileEntry implements DeviceFileEntry {
   public static final String SYMBOLIC_LINK_INFO_PREFIX = "-> ";
 
   @NotNull protected final AdbDeviceFileSystem myDevice;
-  @NotNull protected final FileListingService.FileEntry myEntry;
+  @NotNull protected final AdbFileListingEntry myEntry;
   @Nullable protected final AdbDeviceFileEntry myParent;
 
   public AdbDeviceFileEntry(@NotNull AdbDeviceFileSystem device,
-                            @NotNull FileListingService.FileEntry entry,
+                            @NotNull AdbFileListingEntry entry,
                             @Nullable AdbDeviceFileEntry parent) {
     myDevice = device;
     myEntry = entry;
@@ -88,7 +87,8 @@ public class AdbDeviceFileEntry implements DeviceFileEntry {
 
     try {
       return Long.parseLong(size);
-    } catch (NumberFormatException e) {
+    }
+    catch (NumberFormatException e) {
       AdbDeviceFileSystemService.LOGGER.warn(String.format("Error paring size string \"%s\"", size), e);
       return -1;
     }
@@ -101,12 +101,12 @@ public class AdbDeviceFileEntry implements DeviceFileEntry {
 
   @Override
   public boolean isFile() {
-    return myEntry.getType() == FileListingService.TYPE_FILE || myEntry.getType() == FileListingService.TYPE_LINK;
+    return myEntry.isFile();
   }
 
   @Override
   public boolean isSymbolicLink() {
-    return myEntry.getType() == FileListingService.TYPE_LINK || myEntry.getType() == FileListingService.TYPE_DIRECTORY_LINK;
+    return myEntry.isSymbolicLink();
   }
 
   @Nullable
@@ -117,7 +117,7 @@ public class AdbDeviceFileEntry implements DeviceFileEntry {
     }
 
     String info = myEntry.getInfo();
-    if (!info.startsWith(SYMBOLIC_LINK_INFO_PREFIX)) {
+    if (StringUtil.isEmpty(info) || !info.startsWith(SYMBOLIC_LINK_INFO_PREFIX)) {
       return null;
     }
     return info.substring(SYMBOLIC_LINK_INFO_PREFIX.length());
@@ -128,23 +128,25 @@ public class AdbDeviceFileEntry implements DeviceFileEntry {
   public ListenableFuture<List<DeviceFileEntry>> getEntries() {
     SettableFuture<List<DeviceFileEntry>> futureResult = SettableFuture.create();
 
-    myDevice.getTaskExecutor().execute(() -> {
-      try {
-        FileListingService.FileEntry[] children =
-          myDevice.getDevice().getFileListingService().getChildrenSync(myEntry);
-
-        List<DeviceFileEntry> result = Arrays.stream(children)
-          .map(x -> new AdbDeviceFileEntry(myDevice, x, this))
+    ListenableFuture<List<AdbFileListingEntry>> futureChildren = myDevice.getAdbFileListing().getChildren(myEntry);
+    myDevice.getTaskExecutor().addCallback(futureChildren, new FutureCallback<List<AdbFileListingEntry>>() {
+      @Override
+      public void onSuccess(@Nullable List<AdbFileListingEntry> result) {
+        assert result != null;
+        List<DeviceFileEntry> children = result.stream()
+          .map(x -> new AdbDeviceFileEntry(myDevice, x, AdbDeviceFileEntry.this))
           .collect(Collectors.toList());
+        futureResult.set(children);
+      }
 
-        futureResult.set(result);
-      } catch (Throwable t) {
+      @Override
+      public void onFailure(@NotNull Throwable t) {
         futureResult.setException(t);
       }
     });
 
     return futureResult;
-  }
+ }
 
   public static class AdbPermissions implements Permissions {
     private final String myValue;
