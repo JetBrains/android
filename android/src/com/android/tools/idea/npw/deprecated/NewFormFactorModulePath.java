@@ -33,9 +33,9 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.android.util.InstantApps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.android.SdkConstants.GRADLE_PLUGIN_AIA_VERSION;
 import static com.android.tools.idea.npw.AddAndroidActivityPath.KEY_SELECTED_TEMPLATE;
 import static com.android.tools.idea.npw.ConfigureFormFactorStep.NUM_ENABLED_FORM_FACTORS_KEY;
 import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_CREATE_ACTIVITY;
@@ -60,7 +59,6 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
  * Module creation for a given form factor
  */
 public class NewFormFactorModulePath extends DynamicWizardPath {
-  private static final String AIA_SDK_ENV_VAR = "WH_SDK";
   private static final Logger LOG = Logger.getInstance(NewFormFactorModulePath.class);
   private static final Key<Boolean> CREATE_ACTIVITY_KEY = createKey(ATTR_CREATE_ACTIVITY, PATH, Boolean.class);
 
@@ -80,9 +78,6 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   private static final String RELATIVE_SRC_ROOT = FileUtil.join(TemplateWizard.MAIN_FLAVOR_SOURCE_PATH, TemplateWizard.JAVA_SOURCE_PATH);
   private static final String RELATIVE_TEST_ROOT = FileUtil.join(TemplateWizard.TEST_SOURCE_PATH, TemplateWizard.JAVA_SOURCE_PATH);
 
-  private static String AIA_SDK_LOCATION = System.getenv(AIA_SDK_ENV_VAR);
-  private static String AIA_PLUGIN_VERSION = GRADLE_PLUGIN_AIA_VERSION;
-
   private final FormFactor myFormFactor;
   private final File myTemplateFile;
   private final Disposable myDisposable;
@@ -91,18 +86,6 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   private TemplateParameterStep2 myParameterStep;
   private String myDefaultModuleName = null;
   private boolean myGradleSyncIfNecessary = true;
-
-  // Can't directly set environment variables in Java so need this for testing.
-  @TestOnly
-  public static void setAiaSdkLocation(String value) {
-    AIA_SDK_LOCATION = value;
-  }
-
-  // Need to be able to override this value for testing.
-  @TestOnly
-  public static void setAiaPluginVersion(String value) {
-    AIA_PLUGIN_VERSION = value;
-  }
 
   public static List<NewFormFactorModulePath> getAvailableFormFactorModulePaths(@NotNull Disposable disposable) {
     TemplateManager manager = TemplateManager.getInstance();
@@ -146,7 +129,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     myState.put(CREATE_ACTIVITY_KEY, false);
     myState.put(IS_INSTANT_APP_KEY, false);
 
-    myState.put(AIA_SDK_ENABLED_KEY, isNotEmpty(AIA_SDK_LOCATION));
+    myState.put(AIA_SDK_ENABLED_KEY, isNotEmpty(InstantApps.getAiaSdkLocation()));
 
     addStep(new ConfigureAndroidModuleStepDynamic(myDisposable, myFormFactor));
     addStep(new ConfigureInstantModuleStep(myDisposable, myFormFactor));
@@ -315,7 +298,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     boolean isInstantApp = myState.getNotNull(IS_INSTANT_APP_KEY, false);
 
     if (isInstantApp) {
-      myState.put(GRADLE_PLUGIN_VERSION_KEY, AIA_PLUGIN_VERSION);
+      myState.put(GRADLE_PLUGIN_VERSION_KEY, InstantApps.getAiaPluginVersion());
       myState.put(SPLIT_NAME_KEY, moduleName);
     }
 

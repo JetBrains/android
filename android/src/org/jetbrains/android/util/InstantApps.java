@@ -25,11 +25,16 @@ import com.intellij.openapi.module.ModuleManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
+import static com.android.SdkConstants.GRADLE_PLUGIN_AIA_VERSION;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 public class InstantApps {
+  private static final String AIA_SDK_ENV_VAR = "WH_SDK";
+  private static String AIA_SDK_LOCATION = System.getenv(AIA_SDK_ENV_VAR);
+  private static String AIA_PLUGIN_VERSION = GRADLE_PLUGIN_AIA_VERSION;
 
   @Nullable
   public static Module findInstantAppBaseSplit(@NotNull AndroidFacet facet) {
@@ -60,5 +65,25 @@ public class InstantApps {
       defaultUrl = isEmpty(foundUrl) ? defaultUrl : foundUrl;
     }
     return defaultUrl;
+  }
+
+  public static String getAiaSdkLocation() {
+    return AIA_SDK_LOCATION;
+  }
+
+  // Can't directly set environment variables in Java so need this for testing.
+  @TestOnly
+  public static void setAiaSdkLocation(String value) {
+    AIA_SDK_LOCATION = value;
+  }
+
+  public static String getAiaPluginVersion() {
+    return AIA_PLUGIN_VERSION;
+  }
+
+  // Need to be able to override this value for testing.
+  @TestOnly
+  public static void setAiaPluginVersion(String value) {
+    AIA_PLUGIN_VERSION = value;
   }
 }
