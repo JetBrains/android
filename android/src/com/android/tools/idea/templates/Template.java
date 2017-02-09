@@ -365,7 +365,11 @@ public class Template {
 
     try {
       processFile(context, new File(TEMPLATE_XML_NAME));
-      if (!context.showWarnings() || context.getWarnings().isEmpty()) {
+      if (context.getWarnings().isEmpty()) {
+        return true;
+      }
+      if (!context.showWarnings()) {
+        LOG.warn("WARNING: " + context.getWarnings());
         return true;
       }
       if (!context.getProject().isInitialized() && myTemplateRoot.getPath().contains(GOOGLE_GLASS_PATH_19)) {

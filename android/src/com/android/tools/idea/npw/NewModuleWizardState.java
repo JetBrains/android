@@ -89,6 +89,7 @@ public class NewModuleWizardState extends TemplateWizardState {
     put(ATTR_IS_LAUNCHER, false);
     put(ATTR_CREATE_ICONS, false);
     put(ATTR_IS_NEW_PROJECT, true);
+    put(ATTR_THEME_EXISTS, true);
     put(ATTR_CREATE_ACTIVITY, true);
     put(ATTR_IS_LIBRARY_MODULE, false);
 
