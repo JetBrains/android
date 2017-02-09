@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.util;
+package com.android.tools.idea.instantapp;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
+import static com.android.tools.idea.instantapp.InstantApps.findInstantAppBaseSplit;
+import static com.android.tools.idea.instantapp.InstantApps.getDefaultInstantAppUrl;
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
-import static org.jetbrains.android.util.InstantApps.findInstantAppBaseSplit;
-import static org.jetbrains.android.util.InstantApps.getDefaultInstantAppUrl;
 
 public class InstantAppsTest extends AndroidGradleTestCase {
 
