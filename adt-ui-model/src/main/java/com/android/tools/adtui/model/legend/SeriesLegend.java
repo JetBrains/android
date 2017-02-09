@@ -60,7 +60,7 @@ public final class SeriesLegend implements Legend {
       return null;
     }
 
-    SeriesData<Long> key = new SeriesData<>(TimeUnit.MICROSECONDS.toNanos((long)time), 0L);
+    SeriesData<Long> key = new SeriesData<>((long)time, 0L);
     int index = Collections.binarySearch(data, key, (left, right) -> {
       long diff = left.x - right.x;
       return (diff == 0) ? 0 : (diff < 0) ? -1 : 1;
