@@ -26,7 +26,7 @@ public interface StackTraceView {
 
   void setStackFrames(@NotNull String stackString);
 
-  void setStackFrames(@NotNull List<CodeLocation> stackFrames);
+  void setStackFrames(@NotNull ThreadId threadId, @NotNull List<CodeLocation> stackFrames);
 
   @NotNull
   JComponent getComponent();

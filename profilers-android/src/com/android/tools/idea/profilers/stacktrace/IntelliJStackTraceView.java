@@ -13,23 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers;
+package com.android.tools.idea.profilers.stacktrace;
 
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.common.StackFrameParser;
 import com.android.tools.profilers.common.StackTraceView;
+import com.android.tools.profilers.common.ThreadId;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.pom.Navigatable;
-import com.intellij.psi.search.scope.NonProjectFilesScope;
 import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.FileColorManager;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,12 +40,14 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
+import static com.android.tools.profilers.common.ThreadId.INVALID_THREAD_ID;
+import static com.intellij.ui.SimpleTextAttributes.*;
+import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+
 public class IntelliJStackTraceView implements StackTraceView {
   @NotNull
   private final Project myProject;
-
-  @NotNull
-  private final FileColorManager myFileColorManager;
 
   @NotNull
   private final BiFunction<Project, CodeLocation, StackNavigation> myGenerator;
@@ -56,28 +56,26 @@ public class IntelliJStackTraceView implements StackTraceView {
   private final JBScrollPane myScrollPane;
 
   @NotNull
-  private final DefaultListModel<StackNavigation> myListModel;
+  private final DefaultListModel<StackElement> myListModel;
 
   @NotNull
   private final JBList myListView;
 
   public IntelliJStackTraceView(@NotNull Project project, @Nullable Runnable preNavigate) {
-    this(project, preNavigate, FileColorManager.getInstance(project), IntelliJStackNavigation::new);
+    this(project, preNavigate, IntelliJStackNavigation::new);
   }
 
   @VisibleForTesting
   IntelliJStackTraceView(@NotNull Project project,
                          @Nullable Runnable preNavigate,
-                         @NotNull FileColorManager fileColorManager,
                          @NotNull BiFunction<Project, CodeLocation, StackNavigation> stackNavigationGenerator) {
     myProject = project;
-    myFileColorManager = fileColorManager;
     myGenerator = stackNavigationGenerator;
     myListModel = new DefaultListModel<>();
     myListView = new JBList(myListModel);
     myListView.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myListView.setBackground(ProfilerColors.MONITOR_BACKGROUND);
-    myListView.setCellRenderer(new StackFrameRenderer());
+    myListView.setCellRenderer(new StackElementRenderer());
     myScrollPane = new JBScrollPane(myListView);
     myScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     myScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -88,15 +86,8 @@ public class IntelliJStackTraceView implements StackTraceView {
         return;
       }
 
-      StackNavigation navigation = myListModel.getElementAt(index);
-      Navigatable[] navigatables = navigation.getNavigatable(preNavigate);
-      if (navigatables != null) {
-        for (Navigatable navigatable : navigatables) {
-          if (navigatable.canNavigate()) {
-            navigatable.navigate(false);
-          }
-        }
-      }
+      StackElement element = myListModel.getElementAt(index);
+      element.navigate(preNavigate);
     });
   }
 
@@ -107,7 +98,7 @@ public class IntelliJStackTraceView implements StackTraceView {
 
   @Override
   public void setStackFrames(@NotNull String stackString) {
-    setStackFrames(Arrays.stream(stackString.split("\\n")).map(
+    setStackFrames(INVALID_THREAD_ID, Arrays.stream(stackString.split("\\n")).map(
       stackFrame -> {
         StackFrameParser parser = new StackFrameParser(stackFrame);
         return new CodeLocation(parser.getClassName(), parser.getFileName(), parser.getMethodName(), parser.getLineNumber() - 1);
@@ -115,7 +106,7 @@ public class IntelliJStackTraceView implements StackTraceView {
   }
 
   @Override
-  public void setStackFrames(@Nullable List<CodeLocation> stackFrames) {
+  public void setStackFrames(@NotNull ThreadId threadId, @Nullable List<CodeLocation> stackFrames) {
     clearStackFrames();
 
     if (stackFrames == null || stackFrames.isEmpty()) {
@@ -123,6 +114,9 @@ public class IntelliJStackTraceView implements StackTraceView {
     }
 
     stackFrames.forEach(stackFrame -> myListModel.addElement(myGenerator.apply(myProject, stackFrame)));
+    if (threadId != INVALID_THREAD_ID) {
+      myListModel.addElement(new ThreadElement(threadId));
+    }
   }
 
   @NotNull
@@ -138,7 +132,8 @@ public class IntelliJStackTraceView implements StackTraceView {
     if (index < 0 || index >= myListModel.size()) {
       return null;
     }
-    return myListModel.get(index).getCodeLocation();
+    StackElement renderable = myListModel.get(index);
+    return renderable instanceof StackNavigation ? ((StackNavigation)renderable).getCodeLocation() : null;
   }
 
   @Override
@@ -149,7 +144,8 @@ public class IntelliJStackTraceView implements StackTraceView {
     }
 
     for (int i = 0; i < myListModel.size(); ++i) {
-      if (myListModel.getElementAt(i).getCodeLocation().equals(location)) {
+      StackElement renderable = myListModel.getElementAt(i);
+      if (renderable instanceof StackNavigation && ((StackNavigation)renderable).getCodeLocation().equals(location)) {
         myListView.setSelectedIndex(i);
         return true;
       }
@@ -163,7 +159,10 @@ public class IntelliJStackTraceView implements StackTraceView {
   public List<CodeLocation> getCodeLocations() {
     List<CodeLocation> locations = new ArrayList<>(myListModel.getSize());
     for (int i = 0; i < myListModel.size(); i++) {
-      locations.add(myListModel.get(i).getCodeLocation());
+      Object element = myListModel.get(i);
+      if (element instanceof StackNavigation) {
+        locations.add(((StackNavigation)element).getCodeLocation());
+      }
     }
     return locations;
   }
@@ -174,7 +173,7 @@ public class IntelliJStackTraceView implements StackTraceView {
     return myListView;
   }
 
-  private class StackFrameRenderer extends ColoredListCellRenderer {
+  private static class StackElementRenderer extends ColoredListCellRenderer {
     @Override
     protected void customizeCellRenderer(@NotNull JList list,
                                          Object value,
@@ -192,37 +191,32 @@ public class IntelliJStackTraceView implements StackTraceView {
       }
 
       if (value instanceof StackNavigation) {
-        StackNavigation navigation = (StackNavigation)value;
-        VirtualFile classFile = navigation.findClassFile();
-
-        if (!selected) {
-          Color c;
-          if (classFile != null && classFile.isValid()) {
-            c = myFileColorManager.getFileColor(classFile);
-          }
-          else {
-            c = myFileColorManager.getScopeColor(NonProjectFilesScope.NAME);
-          }
-
-          if (c != null) {
-            setBackground(c);
-          }
-        }
-
-        SimpleTextAttributes textAttribute =
-          selected || (classFile != null && ProjectFileIndex.SERVICE.getInstance(myProject).isInSource(classFile))
-          ? SimpleTextAttributes.REGULAR_ATTRIBUTES
-          : SimpleTextAttributes.GRAY_ATTRIBUTES;
-        CodeLocation location = navigation.getCodeLocation();
-        append(navigation.getMethodName(), textAttribute);
-        append(":" + Integer.toString(location.getLineNumber() + 1) + ", ", textAttribute);
-        append(navigation.getSimpleClassName(), textAttribute);
-        append(" (" + navigation.getPackageName() + ")",
-               selected ? SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES : SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES);
+        renderStackNavigation((StackNavigation)value, selected);
+      }
+      else if (value instanceof ThreadElement) {
+        renderThreadElement((ThreadElement)value, selected);
       }
       else {
-        append(value.toString(), SimpleTextAttributes.ERROR_ATTRIBUTES);
+        append(value.toString(), ERROR_ATTRIBUTES);
       }
+    }
+
+    private void renderStackNavigation(@NotNull StackNavigation navigation, boolean selected) {
+      setIcon(PlatformIcons.METHOD_ICON);
+      SimpleTextAttributes textAttribute = selected || navigation.isInContext() ? REGULAR_ATTRIBUTES : GRAY_ATTRIBUTES;
+      CodeLocation location = navigation.getCodeLocation();
+      append(navigation.getMethodName(), textAttribute, navigation.getMethodName());
+      String lineNumberText = ":" + Integer.toString(location.getLineNumber() + 1) + ", ";
+      append(lineNumberText, textAttribute, lineNumberText);
+      append(navigation.getSimpleClassName(), textAttribute, navigation.getSimpleClassName());
+      String packageName = " (" + navigation.getPackageName() + ")";
+      append(packageName, selected ? REGULAR_ITALIC_ATTRIBUTES : GRAYED_ITALIC_ATTRIBUTES, packageName);
+    }
+
+    private void renderThreadElement(@NotNull ThreadElement threadElement, boolean selected) {
+      setIcon(AllIcons.Debugger.ThreadSuspended);
+      String text = "<Thread " + threadElement.getThreadId().getThreadId() + ">";
+      append(text, selected ? REGULAR_ATTRIBUTES : GRAY_ATTRIBUTES, text);
     }
   }
 }
