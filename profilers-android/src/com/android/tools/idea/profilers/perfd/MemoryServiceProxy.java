@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers.perfd;
 
 import com.android.annotations.Nullable;
+import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.tools.adtui.model.DurationData;
 import com.android.tools.idea.profilers.LegacyAllocationTracker;
@@ -363,6 +364,20 @@ public class MemoryServiceProxy extends PerfdProxyService {
     }
   }
 
+  public void forceGarbageCollection(ForceGarbageCollectionRequest request, StreamObserver<ForceGarbageCollectionResponse> observer) {
+    if (myDevice.isOnline()) {
+      int processId = request.getProcessId();
+      for (Client client : myDevice.getClients()) {
+        if (processId == client.getClientData().getPid()) {
+          client.executeGarbageCollector();
+          break;
+        }
+      }
+    }
+    observer.onNext(ForceGarbageCollectionResponse.newBuilder().build());
+    observer.onCompleted();
+  }
+
   @Override
   public ServerServiceDefinition getServiceDefinition() {
     Map<MethodDescriptor, ServerCallHandler> overrides = new HashMap<>();
@@ -393,6 +408,10 @@ public class MemoryServiceProxy extends PerfdProxyService {
     overrides.put(MemoryServiceGrpc.METHOD_GET_ALLOCATION_DUMP,
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     getAllocationDump((DumpDataRequest)request, (StreamObserver)observer);
+                  }));
+    overrides.put(MemoryServiceGrpc.METHOD_FORCE_GARBAGE_COLLECTION,
+                  ServerCalls.asyncUnaryCall((request, observer) -> {
+                    forceGarbageCollection((ForceGarbageCollectionRequest)request, (StreamObserver)observer);
                   }));
 
     return generatePassThroughDefinitions(overrides, myServiceStub);
