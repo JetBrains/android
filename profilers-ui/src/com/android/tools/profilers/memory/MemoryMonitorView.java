@@ -19,6 +19,7 @@ import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.ProfilerMonitorView;
 import com.android.tools.profilers.StudioProfilersView;
 import com.intellij.ui.components.JBPanel;
@@ -63,6 +64,9 @@ public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
     LineConfig memoryConfig = new LineConfig(ProfilerColors.MEMORY_TOTAL).setFilled(true);
     lineChart.configure(usage.getTotalMemorySeries(), memoryConfig);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
+    lineChart.setMaxLineColor(ProfilerColors.MONITOR_MAX_LINE);
+    lineChart.setMaxLineMargin(40);
+    getMonitor().addDependency(this).onChange(ProfilerMonitor.Aspect.FOCUS, () -> lineChart.setShowMaxLine(getMonitor().isFocused()));
 
     MemoryMonitor.MemoryLegend legends = getMonitor().getMemoryLegend();
     LegendComponent legend = new LegendComponent(legends);
