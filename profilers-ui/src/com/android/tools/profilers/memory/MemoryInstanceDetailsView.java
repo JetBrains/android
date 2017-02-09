@@ -75,7 +75,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::instanceChanged);
     myIdeProfilerComponents = ideProfilerComponents;
 
-    myTabsPanel = ideProfilerComponents.createTabsPanel(null);
+    myTabsPanel = ideProfilerComponents.createTabsPanel();
     myStackTraceView = ideProfilerComponents.createStackView(() -> myStage.setProfilerMode(ProfilerMode.NORMAL));
 
     myAttributeColumns.put(

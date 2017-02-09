@@ -19,12 +19,12 @@ import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TreeWalker;
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.legend.FixedLegend;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profilers.ProfilerMonitor;
-import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.common.StackTraceView;
 import com.android.tools.profilers.common.TabsPanel;
@@ -103,7 +103,7 @@ public class ConnectionDetailsView extends JPanel {
     // where main contents span the whole area and a close button fits into the top right
     JPanel rootPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
 
-    myTabsPanel = stageView.getIdeComponents().createTabsPanel(this::tabSelectionChanged);
+    myTabsPanel = stageView.getIdeComponents().createTabsPanel();
 
     TabularLayout layout = new TabularLayout("*").setVGap(PAGE_VGAP);
     myResponsePanel = new JPanel(layout);
@@ -146,13 +146,6 @@ public class ConnectionDetailsView extends JPanel {
     myObserver = new AspectObserver();
     myStageView.getStage().getAspect().addDependency(myObserver)
       .onChange(NetworkProfilerAspect.CODE_LOCATION, this::updateStackTraceView);
-  }
-
-  private void tabSelectionChanged() {
-    JComponent comp = myTabsPanel.getSelectedComponent();
-    if (myStackTraceView != null && comp != myStackTraceView.getComponent()) {
-      myStageView.getStage().setSelectedCodeLocation(null);
-    }
   }
 
   private void updateStackTraceView() {

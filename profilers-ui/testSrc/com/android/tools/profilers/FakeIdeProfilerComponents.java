@@ -63,7 +63,7 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
 
   @NotNull
   @Override
-  public TabsPanel createTabsPanel(@Nullable Runnable onSelectionChange) {
+  public TabsPanel createTabsPanel() {
     return new TabsPanel() {
       private JTabbedPane myTabbedPane = new JTabbedPane();
 
