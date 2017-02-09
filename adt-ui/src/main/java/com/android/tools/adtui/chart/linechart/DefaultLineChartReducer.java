@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.common.datareducer;
+package com.android.tools.adtui.chart.linechart;
 
-import com.android.tools.adtui.chart.linechart.LineConfig;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 
 /**
- * The {@link LineChartReducer} is used by {@code LineChart} component to be able
- * to render faster by reducing its data.
+ * Implementation of {@link LineChartReducer}.
  * The basic idea behind this algorithm is to reduce number of points to available pixels.
  * For every pixel it draws 4 points: the first point, the last point,
  * the points with minimum and maximum Y coordinates within a pixel.
  * It draws similar shape with the original, because of the fact that width of a line is 1px.
  */
-public class LineChartReducer implements DataReducer {
+class DefaultLineChartReducer implements LineChartReducer {
   private static final float EPS  = 1e-6f;
 
   /**
@@ -37,6 +35,7 @@ public class LineChartReducer implements DataReducer {
    */
   private static int PATH_ITERATOR_COORDS_COUNT = 6;
 
+  @NotNull
   @Override
   public Path2D reduce(@NotNull Path2D path, @NotNull LineConfig config) {
     if (path.getCurrentPoint() == null) {
