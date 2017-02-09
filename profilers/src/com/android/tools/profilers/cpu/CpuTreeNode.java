@@ -17,7 +17,6 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
-import com.google.common.collect.Iterables;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -28,12 +27,12 @@ public abstract class CpuTreeNode<T extends CpuTreeNode> {
    * References to HNode that are used to extract information from to represent this CpuTreeNode,
    * such as {@link #getTotal()}, {@link #getChildrenTotal()}, etc...
    */
-  private final List<HNode<MethodModel>> myNodes = new ArrayList<>();
+  protected final List<HNode<MethodModel>> myNodes = new ArrayList<>();
   private final List<T> myChildren = new ArrayList<>();
 
   private final String myId;
-  private double myTotal = 0;
-  private double myChildrenTotal = 0;
+  protected double myTotal = 0;
+  protected double myChildrenTotal = 0;
 
   public CpuTreeNode(String id) {
     myId = id;
@@ -76,17 +75,21 @@ public abstract class CpuTreeNode<T extends CpuTreeNode> {
     return getTotal() - getChildrenTotal();
   }
 
-  public void update(Range range) {
+  public void update(@NotNull Range range) {
     myTotal = 0.0;
     myChildrenTotal = 0;
-    for (HNode<MethodModel> node : myNodes) {
-      Range intersection = range.getIntersection(new Range(node.getStart(), node.getEnd()));
-      myTotal += intersection.isEmpty() ? 0 : intersection.getLength();
+
+    for (HNode<MethodModel> node: myNodes) {
+      myTotal += getIntersection(range, node);
       for (HNode<MethodModel> child : node.getChildren()) {
-        intersection = range.getIntersection(new Range(child.getStart(), child.getEnd()));
-        myChildrenTotal += intersection.isEmpty() ? 0 : intersection.getLength();
+        myChildrenTotal += getIntersection(range, child);
       }
     }
+  }
+
+  protected static double getIntersection(@NotNull Range range, @NotNull HNode<MethodModel> node) {
+    Range intersection = range.getIntersection(new Range(node.getStart(), node.getEnd()));
+    return intersection.isEmpty() ? 0.0 : intersection.getLength();
   }
 
   public boolean inRange(Range range) {
