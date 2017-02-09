@@ -15,16 +15,22 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
+import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.StartupManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.tools.idea.gradle.util.Projects.open;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.invokeLater;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 
@@ -51,11 +57,35 @@ class SyncResultHandler {
 
   void onSyncFinished(@NotNull SyncExecutionCallback callback,
                       @NotNull ProgressIndicator indicator,
-                      @Nullable GradleSyncListener syncListener) {
+                      @Nullable GradleSyncListener syncListener,
+                      boolean isProjectNew) {
     SyncAction.ProjectModels models = callback.getModels();
     if (models != null) {
       try {
         setUpProject(myProject, models, indicator, syncListener);
+        Runnable runnable = () -> {
+          boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
+          if (isProjectNew && (!isTest || !GradleProjectImporter.ourSkipSetupFromTest)) {
+            open(myProject);
+          }
+          if (!isTest) {
+            myProject.save();
+          }
+          if (isProjectNew) {
+            // We need to do this because AndroidGradleProjectComponent#projectOpened is being called when the project is created, instead
+            // of when the project is opened. When 'projectOpened' is called, the project is not fully configured, and it does not look
+            // like it is Gradle-based, resulting in listeners (e.g. modules added events) not being registered. Here we force the
+            // listeners to be registered.
+            AndroidGradleProjectComponent projectComponent = AndroidGradleProjectComponent.getInstance(myProject);
+            projectComponent.configureGradleProject();
+          }
+        };
+        if (ApplicationManager.getApplication().isUnitTestMode()) {
+          runnable.run();
+        }
+        else {
+          invokeLater(myProject, runnable);
+        }
       }
       catch (Throwable e) {
         notifyAndLogSyncError(nullToUnknownErrorCause(getRootCauseMessage(e)), e, syncListener);
@@ -86,7 +116,9 @@ class SyncResultHandler {
       }
 
       PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
-      myPostSyncProjectSetup.setUpProject(request, indicator);
+      StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> {
+        myPostSyncProjectSetup.setUpProject(request, indicator);
+      });
     }
     catch (Throwable e) {
       notifyAndLogSyncError(nullToUnknownErrorCause(getRootCauseMessage(e)), e, syncListener);
