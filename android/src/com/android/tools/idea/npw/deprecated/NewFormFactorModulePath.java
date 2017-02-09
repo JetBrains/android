@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.deprecated;
 
 import com.android.builder.model.SourceProvider;
+import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.npw.*;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
@@ -33,7 +34,6 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.android.util.InstantApps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

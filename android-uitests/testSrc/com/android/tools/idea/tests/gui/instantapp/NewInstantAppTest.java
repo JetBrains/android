@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.instantapp;
 
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
+import com.android.tools.idea.instantapp.InstantAppUrlFinder;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
@@ -27,7 +28,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.Confi
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.InstantAppUrlFinder;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -38,11 +38,11 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 
 import static com.android.SdkConstants.GRADLE_PLUGIN_AIA_VERSION;
+import static com.android.tools.idea.instantapp.InstantApps.setAiaPluginVersion;
+import static com.android.tools.idea.instantapp.InstantApps.setAiaSdkLocation;
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.google.common.truth.Truth.assertThat;
 import static java.lang.System.getenv;
-import static org.jetbrains.android.util.InstantApps.setAiaPluginVersion;
-import static org.jetbrains.android.util.InstantApps.setAiaSdkLocation;
 
 /**
  * Test that newly created Instant App projects do not have errors in them
