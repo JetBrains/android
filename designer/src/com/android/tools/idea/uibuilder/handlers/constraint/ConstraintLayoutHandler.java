@@ -421,10 +421,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     if (!isParent) {
       DragTarget dragTarget = new DragTarget();
       component.addTarget(dragTarget);
-      component.addTarget(new ResizeTarget(ResizeTarget.Type.LEFT_TOP));
-      component.addTarget(new ResizeTarget(ResizeTarget.Type.LEFT_BOTTOM));
-      component.addTarget(new ResizeTarget(ResizeTarget.Type.RIGHT_TOP));
-      component.addTarget(new ResizeTarget(ResizeTarget.Type.RIGHT_BOTTOM));
+      component.addTarget(new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_TOP));
+      component.addTarget(new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM));
+      component.addTarget(new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP));
+      component.addTarget(new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM));
       component.setNotchProvider(new ConstraintLayoutComponentNotchProvider());
     } else {
       component.addTarget(new LassoTarget());
