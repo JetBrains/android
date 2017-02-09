@@ -350,13 +350,13 @@ class CpuCaptureView {
         if (node != null) {
           if (node.getMethodName().isEmpty()) {
             setIcon(AllIcons.Debugger.ThreadSuspended);
-            append(node.getPackage());
+            append(node.getClassName());
           }
           else {
             setIcon(PlatformIcons.METHOD_ICON);
             append(node.getMethodName() + "()");
-            if (node.getPackage() != null) {
-              append(" (" + node.getPackage() + ")", new SimpleTextAttributes(STYLE_PLAIN, JBColor.GRAY));
+            if (node.getClassName() != null) {
+              append(" (" + node.getClassName() + ")", new SimpleTextAttributes(STYLE_PLAIN, JBColor.GRAY));
             }
           }
         }
