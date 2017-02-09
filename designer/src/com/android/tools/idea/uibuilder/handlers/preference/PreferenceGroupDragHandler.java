@@ -21,8 +21,7 @@ import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -35,18 +34,16 @@ import java.util.stream.Collectors;
 import static com.android.SdkConstants.PreferenceTags.PREFERENCE_CATEGORY;
 
 abstract class PreferenceGroupDragHandler extends DragHandler {
-  SceneComponent myGroup;
-  @AndroidDpCoordinate
-  Map<SceneComponent, Rectangle> myPreferenceToBoundsMap;
-  SceneComponent myActivePreference;
+  NlComponent myGroup;
+  Map<NlComponent, Rectangle> myPreferenceToBoundsMap;
+  NlComponent myActivePreference;
 
-  @AndroidDpCoordinate
   private int myDividerHeight;
 
   PreferenceGroupDragHandler(@NotNull ViewEditor editor,
                              @NotNull ViewGroupHandler handler,
-                             @NotNull SceneComponent group,
-                             @NotNull List<SceneComponent> preferences,
+                             @NotNull NlComponent group,
+                             @NotNull List<NlComponent> preferences,
                              @NotNull DragType type) {
     super(editor, handler, group, preferences, type);
     myGroup = group;
@@ -59,36 +56,35 @@ abstract class PreferenceGroupDragHandler extends DragHandler {
     ViewInfo view = ViewInfoUtils.findListView(editor.getRootViews());
     assert view != null;
 
-    myDividerHeight = editor.pxToDp(((ListView)view.getViewObject()).getDividerHeight());
+    myDividerHeight = ((ListView)view.getViewObject()).getDividerHeight();
   }
 
   @NotNull
-  final Map<SceneComponent, Rectangle> getPreferenceToBoundsMap(@NotNull SceneComponent group) {
+  final Map<NlComponent, Rectangle> getPreferenceToBoundsMap(@NotNull NlComponent group) {
     return group.getChildren().stream().collect(Collectors.toMap(Function.identity(), this::getBounds));
   }
 
-  @AndroidDpCoordinate
   @NotNull
-  final Rectangle getBounds(@NotNull SceneComponent preference) {
-    int height = preference.getDrawHeight() + myDividerHeight;
+  final Rectangle getBounds(@NotNull NlComponent preference) {
+    int height = preference.h + myDividerHeight;
 
-    if (preference.getNlComponent().getTagName().equals(PREFERENCE_CATEGORY)) {
+    if (preference.getTagName().equals(PREFERENCE_CATEGORY)) {
       height += preference.getChildren().stream()
-        .mapToInt(child -> child.getDrawHeight() + myDividerHeight)
+        .mapToInt(child -> child.h + myDividerHeight)
         .sum();
     }
 
-    return new Rectangle(preference.getDrawX(), preference.getDrawY(), preference.getDrawWidth(), height);
+    return new Rectangle(preference.x, preference.y, preference.w, height);
   }
 
   final void updateActivePreference() {
-    List<SceneComponent> preferences = myGroup.getChildren();
+    List<NlComponent> preferences = myGroup.getChildren();
 
-    if (lastY < preferences.get(0).getDrawY()) {
+    if (lastY < preferences.get(0).y) {
       myActivePreference = preferences.get(0);
     }
     else {
-      Optional<SceneComponent> activePreference = myPreferenceToBoundsMap.keySet().stream()
+      Optional<NlComponent> activePreference = myPreferenceToBoundsMap.keySet().stream()
         .filter(preference -> myPreferenceToBoundsMap.get(preference).contains(lastX, lastY))
         .findFirst();
 
@@ -108,10 +104,10 @@ abstract class PreferenceGroupDragHandler extends DragHandler {
     Rectangle bounds = myPreferenceToBoundsMap.get(myActivePreference);
 
     if (lastY < getMidpointY(bounds)) {
-      graphics.drawTopDp(bounds);
+      graphics.drawTop(bounds);
     }
     else {
-      graphics.drawBottomDp(bounds);
+      graphics.drawBottom(bounds);
     }
   }
 
@@ -120,37 +116,37 @@ abstract class PreferenceGroupDragHandler extends DragHandler {
   abstract void drawDropZoneLines(@NotNull NlGraphics graphics);
 
   final void drawDropZoneLines(@NotNull NlGraphics graphics, int startingIndex) {
-    List<SceneComponent> preferences = myGroup.getChildren();
+    List<NlComponent> preferences = myGroup.getChildren();
 
     if (preferences.isEmpty()) {
       return;
     }
 
     graphics.useStyle(NlDrawingStyle.DROP_ZONE);
-    @AndroidDpCoordinate int midpointY = getMidpointY(myActivePreference);
+    int midpointY = getMidpointY(myActivePreference);
 
     for (int i = startingIndex, size = preferences.size(); i < size; i++) {
-      SceneComponent preference = preferences.get(i);
+      NlComponent preference = preferences.get(i);
 
       if (i != 0 && myActivePreference == preferences.get(i - 1)) {
         if (lastY < midpointY) {
-          graphics.drawTop(preference.getNlComponent());
+          graphics.drawTop(preference);
         }
       }
       else if (myActivePreference == preference) {
         if (lastY >= midpointY) {
-          graphics.drawTop(preference.getNlComponent());
+          graphics.drawTop(preference);
         }
       }
       else {
-        graphics.drawTop(preference.getNlComponent());
+        graphics.drawTop(preference);
       }
     }
   }
 
   @Override
   public final void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType type) {
-    List<SceneComponent> preferences = myGroup.getChildren();
+    List<NlComponent> preferences = myGroup.getChildren();
 
     if (preferences.isEmpty()) {
       insertComponents(-1, type);
@@ -166,12 +162,10 @@ abstract class PreferenceGroupDragHandler extends DragHandler {
     insertComponents(i == preferences.size() ? -1 : i, type);
   }
 
-  @AndroidDpCoordinate
-  final int getMidpointY(@NotNull SceneComponent preference) {
+  final int getMidpointY(@NotNull NlComponent preference) {
     return getMidpointY(myPreferenceToBoundsMap.get(preference));
   }
 
-  @AndroidDpCoordinate
   static int getMidpointY(@NotNull Rectangle bounds) {
     return bounds.y + bounds.height / 2;
   }

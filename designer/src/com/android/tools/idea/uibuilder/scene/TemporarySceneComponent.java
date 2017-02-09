@@ -28,7 +28,6 @@ public class TemporarySceneComponent extends SceneComponent {
     super(scene, component);
     addTarget(new DragDndTarget());
     scene.setAnimate(false);
-    scene.getRoot().addChild(this);
     updateFrom(component);
     scene.setAnimate(true);
   }

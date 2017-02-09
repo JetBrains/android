@@ -20,8 +20,8 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,15 +31,15 @@ import java.util.List;
 final class PreferenceCategoryDragHandler extends PreferenceGroupDragHandler {
   PreferenceCategoryDragHandler(@NotNull ViewEditor editor,
                                 @NotNull ViewGroupHandler handler,
-                                @NotNull SceneComponent category,
-                                @NotNull List<SceneComponent> preferences,
+                                @NotNull NlComponent category,
+                                @NotNull List<NlComponent> preferences,
                                 @NotNull DragType type) {
     super(editor, handler, category, preferences, type);
   }
 
   @Nullable
   @Override
-  public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers) {
+  public String update(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
     String message = super.update(x, y, modifiers);
 
     if (message != null) {
@@ -58,7 +58,7 @@ final class PreferenceCategoryDragHandler extends PreferenceGroupDragHandler {
   void drawDropPreviewLine(@NotNull NlGraphics graphics) {
     if (myGroup.getChildren().isEmpty()) {
       graphics.useStyle(NlDrawingStyle.DROP_PREVIEW);
-      graphics.drawBottomDp(getBounds(myGroup));
+      graphics.drawBottom(getBounds(myGroup));
     }
     else {
       super.drawDropPreviewLine(graphics);
@@ -70,14 +70,14 @@ final class PreferenceCategoryDragHandler extends PreferenceGroupDragHandler {
     graphics.useStyle(NlDrawingStyle.DROP_RECIPIENT);
     Rectangle bounds = getBounds(myGroup);
 
-    graphics.drawTopDp(bounds);
-    graphics.drawLeftDp(bounds);
-    graphics.drawRightDp(bounds);
+    graphics.drawTop(bounds);
+    graphics.drawLeft(bounds);
+    graphics.drawRight(bounds);
 
-    List<SceneComponent> preferences = myGroup.getChildren();
+    List<NlComponent> preferences = myGroup.getChildren();
 
     if (!preferences.isEmpty() && lastY < getMidpointY(preferences.get(preferences.size() - 1))) {
-      graphics.drawBottomDp(bounds);
+      graphics.drawBottom(bounds);
     }
   }
 

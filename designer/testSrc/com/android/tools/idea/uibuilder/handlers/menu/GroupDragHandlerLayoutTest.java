@@ -19,13 +19,8 @@ import com.android.ide.common.rendering.api.ViewType;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
-import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.scene.Scene;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.TemporarySceneComponent;
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.intellij.openapi.command.WriteCommandAction;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
@@ -46,10 +41,9 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
 
     NlComponent menuComponent = model("menu.xml", menuDescriptor).build().getComponents().get(0);
     NlComponent item = Mockito.mock(NlComponent.class);
-    Mockito.when(item.getTagName()).thenReturn(TAG_ITEM);
 
     DragHandler handler = newGroupDragHandler(menuComponent, item);
-    handler.update(350, 50, 0);
+    handler.update(700, 100, 0);
     WriteCommandAction.runWriteCommandAction(getProject(), () -> handler.commit(700, 100, 0, InsertType.MOVE_INTO));
 
     Iterator<NlComponent> i = menuComponent.getChildren().iterator();
@@ -70,10 +64,9 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
 
     NlComponent menuComponent = model("menu.xml", menuDescriptor).build().getComponents().get(0);
     NlComponent item = Mockito.mock(NlComponent.class);
-    Mockito.when(item.getTagName()).thenReturn(TAG_ITEM);
 
     DragHandler handler = newGroupDragHandler(menuComponent, item);
-    handler.update(300, 50, 0);
+    handler.update(600, 100, 0);
     WriteCommandAction.runWriteCommandAction(getProject(), () -> handler.commit(600, 100, 0, InsertType.MOVE_INTO));
 
     Iterator<NlComponent> i = menuComponent.getChildren().iterator();
@@ -119,15 +112,10 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
   }
 
   @NotNull
-  private DragHandler newGroupDragHandler(@NotNull NlComponent menu, @NotNull NlComponent item) {
-    ScreenFixture screenFixture = surface().screen(menu.getModel()).withScale(1);
-    Scene scene = Scene.createScene(menu.getModel(), screenFixture.getScreen());
-    scene.buildDisplayList(new DisplayList(), 0);
-
-    List<SceneComponent> itemAsList = Collections.singletonList(new TemporarySceneComponent(scene, item));
-    ViewEditor editor = editor(screenFixture.getScreen());
+  private static DragHandler newGroupDragHandler(@NotNull NlComponent menu, @NotNull NlComponent item) {
+    List<NlComponent> itemAsList = Collections.singletonList(item);
+    ViewEditor editor = Mockito.mock(ViewEditor.class);
     Mockito.when(editor.getModel()).thenReturn(Mockito.mock(NlModel.class));
-    return new GroupDragHandler(editor, new ViewGroupHandler(), scene.getSceneComponent(menu), itemAsList,
-                                DragType.MOVE);
+    return new GroupDragHandler(editor, new ViewGroupHandler(), menu, itemAsList, DragType.MOVE);
   }
 }

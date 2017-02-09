@@ -15,16 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.uibuilder.graphics.NlGraphics;
+import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Handler involved in drag &amp; drop operations. Subclassed and returned by
@@ -34,13 +31,13 @@ import java.util.stream.Collectors;
 public abstract class DragHandler {
   @NotNull protected final ViewEditor editor;
   @NotNull protected final ViewGroupHandler handler;
-  @NotNull protected final List<SceneComponent> components;
-  @NotNull protected SceneComponent layout;
+  @NotNull protected final List<NlComponent> components;
+  @NotNull protected NlComponent layout;
   @NotNull protected DragType type = DragType.COPY;
-  @AndroidDpCoordinate protected int startX;
-  @AndroidDpCoordinate protected int startY;
-  @AndroidDpCoordinate protected int lastX;
-  @AndroidDpCoordinate protected int lastY;
+  @AndroidCoordinate protected int startX;
+  @AndroidCoordinate protected int startY;
+  @AndroidCoordinate protected int lastX;
+  @AndroidCoordinate protected int lastY;
   protected int lastModifiers;
 
   /**
@@ -54,8 +51,8 @@ public abstract class DragHandler {
    */
   protected DragHandler(@NotNull ViewEditor editor,
                         @NotNull ViewGroupHandler handler,
-                        @NotNull SceneComponent layout,
-                        @NotNull List<SceneComponent> components,
+                        @NotNull NlComponent layout,
+                        @NotNull List<NlComponent> components,
                         @NotNull DragType type) {
     this.editor = editor;
     this.handler = handler;
@@ -98,7 +95,7 @@ public abstract class DragHandler {
    * @param y         the y coordinate in the Android screen pixel coordinate system
    * @param modifiers the modifier key state
    */
-  public void start(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers) {
+  public void start(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
     startX = x;
     startY = y;
     lastModifiers = modifiers;
@@ -114,7 +111,7 @@ public abstract class DragHandler {
    * message describing the problem to be shown to the user) if not
    */
   @Nullable
-  public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers) {
+  public String update(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
     lastX = x;
     lastY = y;
     lastModifiers = modifiers;
@@ -139,9 +136,8 @@ public abstract class DragHandler {
   protected final void insertComponents(int insertIndex, @NotNull InsertType insertType) {
     NlComponent before = null;
     if (insertIndex != -1 && insertIndex < layout.getChildCount()) {
-      before = layout.getNlComponent().getChild(insertIndex);
+      before = layout.getChild(insertIndex);
     }
-    List<NlComponent> nlComponents = components.stream().map(SceneComponent::getNlComponent).collect(Collectors.toList());
-    editor.getModel().addComponents(nlComponents, layout.getNlComponent(), before, insertType);
+    editor.getModel().addComponents(components, layout, before, insertType);
   }
 }

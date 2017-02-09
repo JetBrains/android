@@ -126,7 +126,6 @@ public class Scene implements ModelListener, SelectionListener {
    * @param px the pixel amount
    * @return the converted Dp amount
    */
-  @AndroidCoordinate
   public int pxToDp(@AndroidCoordinate int px) {
     return (int)(0.5f + px / myDpiFactor);
   }
@@ -137,7 +136,6 @@ public class Scene implements ModelListener, SelectionListener {
    * @param dp the Dp amount
    * @return the converted Android pixels amount
    */
-  @AndroidCoordinate
   public int dpToPx(@AndroidDpCoordinate int dp) {
     return (int)(0.5f + dp * myDpiFactor);
   }
@@ -222,13 +220,13 @@ public class Scene implements ModelListener, SelectionListener {
     return myMouseCursor;
   }
 
-  public void setDnDComponent(@Nullable SceneComponent component) {
-    if (component == null || component != myDnDComponent) {
+  public void setDnDComponent(NlComponent component) {
+    SceneComponent existingComponent = getSceneComponent(component);
+    if ((component == null) || (existingComponent != myDnDComponent)) {
       // We are here to reset the dnd component
       if (myDnDComponent != null) {
         if (myDnDComponent instanceof TemporarySceneComponent) {
           myDnDComponent.removeFromParent();
-          mySceneComponents.remove(myDnDComponent, myDnDComponent.getNlComponent());
         } else {
           int pos = myDnDComponent.findTarget(DragDndTarget.class);
           if (pos != -1) {
@@ -240,8 +238,16 @@ public class Scene implements ModelListener, SelectionListener {
     }
 
     if (component != null) {
-      myDnDComponent = component;
-      myDnDComponent.addTarget(new DragDndTarget());
+      if (existingComponent == null) {
+        myDnDComponent = new TemporarySceneComponent(this, component);
+        if (myRoot != null) {
+          myRoot.addChild(myDnDComponent);
+        }
+      }
+      else {
+        myDnDComponent = existingComponent;
+        myDnDComponent.addTarget(new DragDndTarget());
+      }
     }
   }
 
@@ -342,12 +348,6 @@ public class Scene implements ModelListener, SelectionListener {
   public void addComponent(@NotNull SceneComponent component) {
     mySceneComponents.put(component.getNlComponent(), component);
   }
-
-  public void removeComponent(SceneComponent component) {
-    component.removeFromParent();
-    mySceneComponents.remove(component.getNlComponent(), component);
-  }
-
 
   /**
    * Update the Scene with the components in the given NlModel. This method needs to be called in the dispatch thread.
@@ -1136,9 +1136,5 @@ public class Scene implements ModelListener, SelectionListener {
     }
     myFindListener.find(transform, myRoot, x, y);
     return myFindListener.getClosestComponent();
-  }
-
-  public Collection<SceneComponent> getSceneComponents() {
-    return mySceneComponents.values();
   }
 }
