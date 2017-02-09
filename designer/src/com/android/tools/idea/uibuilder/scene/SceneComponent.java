@@ -93,7 +93,7 @@ public class SceneComponent {
   }
 
   /////////////////////////////////////////////////////////////////////////////
-  //region Constructor
+  //region Constructor & toString
   /////////////////////////////////////////////////////////////////////////////
 
   public SceneComponent(@NotNull Scene scene, @NotNull NlComponent component) {
@@ -104,6 +104,11 @@ public class SceneComponent {
     myDecorator = SceneDecorator.get(component);
     myAllowsAutoconnect = !myNlComponent.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE);
     myAllowsFixedPosition = !myNlComponent.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE);
+  }
+
+  @Override
+  public String toString() {
+    return getNlComponent().toString();
   }
 
   //endregion
