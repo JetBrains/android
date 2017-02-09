@@ -17,7 +17,6 @@ package com.android.tools.idea.npw.deprecated;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.npw.*;
-import com.android.tools.idea.npw.instantapp.ConfigureInstantModuleStep;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
