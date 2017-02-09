@@ -56,6 +56,10 @@ public interface InstanceObject extends MemoryObject {
     return INVALID_VALUE;
   }
 
+  default int getFieldCount() {
+    return 0;
+  }
+
   @NotNull
   default List<FieldObject> getFields() {
     return Collections.emptyList();
