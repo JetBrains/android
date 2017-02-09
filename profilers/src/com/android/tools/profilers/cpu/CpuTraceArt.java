@@ -56,7 +56,9 @@ public class CpuTraceArt {
     node.setDepth(depth);
 
     MethodModel method = new MethodModel(data.getMethod(call.getMethodId()).methodName);
-    method.setNamespace(data.getMethod(call.getMethodId()).className);
+    method.setClassName(data.getMethod(call.getMethodId()).className);
+    method.setSignature(data.getMethod(call.getMethodId()).signature);
+
     node.setData(method);
 
     for (Call callee : call.getCallees()) {

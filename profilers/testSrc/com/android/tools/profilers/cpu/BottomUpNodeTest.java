@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
+import com.google.common.truth.Expect;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
@@ -32,20 +33,20 @@ public class BottomUpNodeTest {
   @Test
   public void testComplexBottomUpNode() {
     List<ExpectedNode> expectedNodes = Arrays.asList(
-      new ExpectedNode("Root", 40.0, 30.0),
-      new ExpectedNode(":main", 40.0, 30.0),
-      new ExpectedNode(":A", 20.0, 10.0),
-      new ExpectedNode(":main", 15.0, 5.0),
-      new ExpectedNode(":C", 5.0, 5.0),
-      new ExpectedNode(":main", 5.0, 5.0),
-      new ExpectedNode(":B", 15.0, 0.0),
-      new ExpectedNode(":A", 10.0, 0.0),
-      new ExpectedNode(":main", 5.0, 0.0),
-      new ExpectedNode(":C", 5.0, 0.0),
-      new ExpectedNode(":main", 5.0, 0.0),
-      new ExpectedNode(":main", 5.0, 0.0),
-      new ExpectedNode(":C", 10.0, 5.0),
-      new ExpectedNode(":main", 10.0, 5.0)
+      ExpectedNode.newRoot(40.0, 30.0),
+      new ExpectedNode("main", 40.0, 30.0),
+      new ExpectedNode("A", 20.0, 10.0),
+      new ExpectedNode("main", 15.0, 5.0),
+      new ExpectedNode("C", 5.0, 5.0),
+      new ExpectedNode("main", 5.0, 5.0),
+      new ExpectedNode("B", 15.0, 0.0),
+      new ExpectedNode("A", 10.0, 0.0),
+      new ExpectedNode("main", 5.0, 0.0),
+      new ExpectedNode("C", 5.0, 0.0),
+      new ExpectedNode("main", 5.0, 0.0),
+      new ExpectedNode("main", 5.0, 0.0),
+      new ExpectedNode("C", 10.0, 5.0),
+      new ExpectedNode("main", 10.0, 5.0)
     );
     traverseAndCheck(createComplexTree(), expectedNodes);
   }
@@ -59,22 +60,22 @@ public class BottomUpNodeTest {
   @Test
   public void testNodeHasManyDirectCallers() {
     List<ExpectedNode> expectedNodes = Arrays.asList(
-      new ExpectedNode("Root", 20.0, 15.0),
-      new ExpectedNode(":main", 20.0, 15.0),
+      ExpectedNode.newRoot(20.0, 15.0),
+      new ExpectedNode("main", 20.0, 15.0),
       // Subtree of node "A"
-      new ExpectedNode(":A", 10.0, 5.0),
-      new ExpectedNode(":main", 10.0, 5.0),
+      new ExpectedNode("A", 10.0, 5.0),
+      new ExpectedNode("main", 10.0, 5.0),
 
       // Subtree of node "B"
-      new ExpectedNode(":B", 10.0, 1.0),
-      new ExpectedNode(":A", 5.0, 1.0),
-      new ExpectedNode(":main", 5.0, 1.0),
-      new ExpectedNode(":main", 5.0, 0.0),
+      new ExpectedNode("B", 10.0, 1.0),
+      new ExpectedNode("A", 5.0, 1.0),
+      new ExpectedNode("main", 5.0, 1.0),
+      new ExpectedNode("main", 5.0, 0.0),
       // Subtree of node "C"
-      new ExpectedNode(":C", 1.0, 0.0),
-      new ExpectedNode(":B", 1.0, 0.0),
-      new ExpectedNode(":A", 1.0, 0.0),
-      new ExpectedNode(":main", 1.0, 0.0)
+      new ExpectedNode("C", 1.0, 0.0),
+      new ExpectedNode("B", 1.0, 0.0),
+      new ExpectedNode("A", 1.0, 0.0),
+      new ExpectedNode("main", 1.0, 0.0)
     );
 
     // Construct the tree
@@ -96,26 +97,26 @@ public class BottomUpNodeTest {
   @Test
   public void testDirectRecursion() {
     List<ExpectedNode> expectedNodes = Arrays.asList(
-      new ExpectedNode("Root", 20.0, 15.0),
-      new ExpectedNode(":main", 20.0, 15.0),
+      ExpectedNode.newRoot(20.0, 15.0),
+      new ExpectedNode("main", 20.0, 15.0),
       // Subtree of node "A"
-      new ExpectedNode(":A", 15.0, 10.0),
-      new ExpectedNode(":main", 15.0, 10.0),
+      new ExpectedNode("A", 15.0, 10.0),
+      new ExpectedNode("main", 15.0, 10.0),
 
       // Subtree of Node "B"
-      new ExpectedNode(":B", 10, 0),
-      new ExpectedNode(":A", 10.0, 5.0),
-      new ExpectedNode(":main", 10.0, 5.0),
+      new ExpectedNode("B", 10, 0),
+      new ExpectedNode("A", 10.0, 5.0),
+      new ExpectedNode("main", 10.0, 5.0),
 
       // "B" -> "B"
-      new ExpectedNode(":B", 5.0, 0.0),
+      new ExpectedNode("B", 5.0, 0.0),
       // "A" -> "B" -> "B"
-      new ExpectedNode(":A", 5.0, 2.0),
-      new ExpectedNode(":main", 5.0, 2.0),
+      new ExpectedNode("A", 5.0, 2.0),
+      new ExpectedNode("main", 5.0, 2.0),
       // "B" -> "B" -> "B"
-      new ExpectedNode(":B", 2.0, 0.0),
-      new ExpectedNode(":A", 2.0, 0.0),
-      new ExpectedNode(":main", 2.0, 0.0)
+      new ExpectedNode("B", 2.0, 0.0),
+      new ExpectedNode("A", 2.0, 0.0),
+      new ExpectedNode("main", 2.0, 0.0)
     );
     // Construct the tree
     HNode<MethodModel> root = newHNode("main", 0, 20);
@@ -131,34 +132,34 @@ public class BottomUpNodeTest {
   @Test
   public void testIndirectRecursion() {
     List<ExpectedNode> expectedNodes = Arrays.asList(
-      new ExpectedNode("Root", 30.0, 20.0),
-      new ExpectedNode(":main", 30.0, 20.0),
+      ExpectedNode.newRoot(30.0, 20.0),
+      new ExpectedNode("main", 30.0, 20.0),
 
       // Subtree of the node "A"
       // A
-      new ExpectedNode(":A", 20.0, 6.0),
+      new ExpectedNode("A", 20.0, 6.0),
       // main -> A
-      new ExpectedNode(":main", 20.0, 15.0),
+      new ExpectedNode("main", 20.0, 15.0),
       // B -> A
-      new ExpectedNode(":B", 10.0, 1.0),
+      new ExpectedNode("B", 10.0, 1.0),
       // A -> B -> A
-      new ExpectedNode(":A", 10.0, 1.0),
+      new ExpectedNode("A", 10.0, 1.0),
       // main -> A -> B -> A
-      new ExpectedNode(":main", 10.0, 1.0),
+      new ExpectedNode("main", 10.0, 1.0),
 
       // Subtree of the node "B"
       // B
-      new ExpectedNode(":B", 15.0, 9.0),
+      new ExpectedNode("B", 15.0, 9.0),
       // A -> B
-      new ExpectedNode(":A", 15.0, 9.0),
+      new ExpectedNode("A", 15.0, 9.0),
       // main -> A -> B
-      new ExpectedNode(":main", 15.0, 10.0),
+      new ExpectedNode("main", 15.0, 10.0),
       // B -> A -> B
-      new ExpectedNode(":B", 1.0, 0.0),
+      new ExpectedNode("B", 1.0, 0.0),
       // A -> B -> A -> B
-      new ExpectedNode(":A", 1.0, 0.0),
+      new ExpectedNode("A", 1.0, 0.0),
       // main -> A -> B -> A -> B
-      new ExpectedNode(":main", 1.0, 0.0)
+      new ExpectedNode("main", 1.0, 0.0)
     );
 
     // Construct the tree
@@ -178,48 +179,48 @@ public class BottomUpNodeTest {
   @Test
   public void testStaticRecursion() {
     List<ExpectedNode> expectedNodes = Arrays.asList(
-      new ExpectedNode("Root", 40.0, 35.0),
-      new ExpectedNode(":main", 40.0, 35.0),
+      ExpectedNode.newRoot(40.0, 35.0),
+      new ExpectedNode("main", 40.0, 35.0),
 
       // Subtree of the node "A"
       // A
-      new ExpectedNode(":A", 25.0, 20.0),
+      new ExpectedNode("A", 25.0, 20.0),
       // main -> A
-      new ExpectedNode(":main", 25.0, 20.0),
+      new ExpectedNode("main", 25.0, 20.0),
 
       // Subtree of the node "B"
       // B
-      new ExpectedNode(":B", 23.0, 10.0),
+      new ExpectedNode("B", 23.0, 10.0),
       // A -> B
-      new ExpectedNode(":A", 20.0, 10.0),
+      new ExpectedNode("A", 20.0, 10.0),
       // main -> A -> B
-      new ExpectedNode(":main", 20.0, 10.0),
+      new ExpectedNode("main", 20.0, 10.0),
       // C -> B
-      new ExpectedNode(":C", 3.0, 0.0),
+      new ExpectedNode("C", 3.0, 0.0),
       // D -> C -> B
-      new ExpectedNode(":D", 3.0, 0.0),
+      new ExpectedNode("D", 3.0, 0.0),
       // main -> D -> C -> B
-      new ExpectedNode(":main", 3.0, 0.0),
+      new ExpectedNode("main", 3.0, 0.0),
 
       // Subtree of the node "C"
       // C
-      new ExpectedNode(":C", 15.0, 3.0),
+      new ExpectedNode("C", 15.0, 3.0),
       // B -> C
-      new ExpectedNode(":B", 10.0, 0.0),
+      new ExpectedNode("B", 10.0, 0.0),
       // A -> B -> C
-      new ExpectedNode(":A", 10.0, 0.0),
+      new ExpectedNode("A", 10.0, 0.0),
       // main -> A -> B -> C
-      new ExpectedNode(":main", 10.0, 0.0),
+      new ExpectedNode("main", 10.0, 0.0),
       // D -> C
-      new ExpectedNode(":D", 5.0, 3.0),
+      new ExpectedNode("D", 5.0, 3.0),
       // main -> D -> C
-      new ExpectedNode(":main", 5.0, 3.0),
+      new ExpectedNode("main", 5.0, 3.0),
 
       // Subtree of the node "D"
       // D
-      new ExpectedNode(":D", 10.0, 5.0),
+      new ExpectedNode("D", 10.0, 5.0),
       // main -> D
-      new ExpectedNode(":main", 10.0, 5.0)
+      new ExpectedNode("main", 10.0, 5.0)
     );
 
     HNode<MethodModel> root = newHNode("main", 0, 40);
@@ -255,7 +256,7 @@ public class BottomUpNodeTest {
 
     BottomUpNode node = new BottomUpNode(root);
 
-    BottomUpNode nodeA = node.getChildren().stream().filter(n -> n.getId().equals(":A")).findAny().orElseThrow(AssertionError::new);
+    BottomUpNode nodeA = node.getChildren().stream().filter(n -> n.getId().equals(".A")).findAny().orElseThrow(AssertionError::new);
     nodeA.update(new Range(0, 100));
     assertEquals(100, nodeA.getTotal(), EPS);
     assertEquals(61, nodeA.getChildrenTotal(), EPS);
@@ -330,10 +331,20 @@ public class BottomUpNodeTest {
     private double myTotal;
     private double myChildrenTotal;
 
-    private ExpectedNode(String id, double total, double childrenTotal) {
-      myId = id;
+    private ExpectedNode(String method, double total, double childrenTotal) {
+      myId = new MethodModel(method).getId();
       myTotal = total;
       myChildrenTotal = childrenTotal;
+    }
+
+    private ExpectedNode(double total, double childrenTotal) {
+      myId = "Root";
+      myTotal = total;
+      myChildrenTotal = childrenTotal;
+    }
+
+    private static ExpectedNode newRoot(double total, double childrenTotal) {
+      return new ExpectedNode(total, childrenTotal);
     }
   }
 }
