@@ -20,8 +20,11 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profilers.cpu.CpuMonitor;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.memory.MemoryMonitor;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.network.NetworkMonitor;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
@@ -102,6 +105,42 @@ public class StudioProfilersViewTest {
     // Test the third monitor goes to network profiling
     myUi.mouse.click(points.get(2).x + 1, points.get(2).y + 1);
     assertTrue(myProfilers.getStage() instanceof NetworkProfilerStage);
+  }
+
+  @Test
+  public void testMonitorTooltip() throws IOException {
+    assertTrue(myProfilers.getStage() instanceof StudioMonitorStage);
+    StudioMonitorStage stage = (StudioMonitorStage)myProfilers.getStage();
+
+    List<Point> points = new TreeWalker(myView.getComponent()).descendantStream()
+      .filter(d -> d instanceof LineChart)
+      .map(c -> myUi.getPosition(c))
+      .collect(Collectors.toList());
+    // Test that we have three monitors
+    assertEquals(3, points.size());
+
+    // cpu monitoring
+    myUi.mouse.moveTo(points.get(0).x + 1, points.get(0).y + 1);
+    assertTrue(stage.getTooltip() instanceof CpuMonitor);
+    assertTrue(stage.getTooltip().isFocused());
+    stage.getMonitors().forEach(monitor -> assertEquals(monitor == stage.getTooltip(), monitor.isFocused()));
+
+    // memory monitoring
+    myUi.mouse.moveTo(points.get(1).x + 1, points.get(1).y + 1);
+    assertTrue(stage.getTooltip() instanceof MemoryMonitor);
+    assertTrue(stage.getTooltip().isFocused());
+    stage.getMonitors().forEach(monitor -> assertEquals(monitor == stage.getTooltip(), monitor.isFocused()));
+
+    // network monitoring
+    myUi.mouse.moveTo(points.get(2).x + 1, points.get(2).y + 1);
+    assertTrue(stage.getTooltip() instanceof NetworkMonitor);
+    assertTrue(stage.getTooltip().isFocused());
+    stage.getMonitors().forEach(monitor -> assertEquals(monitor == stage.getTooltip(), monitor.isFocused()));
+
+    // no tooltip
+    myUi.mouse.moveTo(0, 0);
+    assertNull(stage.getTooltip());
+    stage.getMonitors().forEach(monitor -> assertFalse(monitor.isFocused()));
   }
 
   @Test

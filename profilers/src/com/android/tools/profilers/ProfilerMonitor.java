@@ -15,18 +15,24 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.model.AspectModel;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * A component of the StudioMonitor stage. This represents the part of each profiler that is shown
  * when monitoring an app (aka L1).
  */
-public abstract class ProfilerMonitor {
+public abstract class ProfilerMonitor extends AspectModel<ProfilerMonitor.Aspect> {
+
+  public enum Aspect {
+    FOCUS
+  }
 
   public static final int LEGEND_UPDATE_FREQUENCY_MS = 100;
 
   @NotNull
   protected final StudioProfilers myProfilers;
+  private boolean myFocus;
 
   public ProfilerMonitor(@NotNull StudioProfilers profilers) {
     myProfilers = profilers;
@@ -46,5 +52,23 @@ public abstract class ProfilerMonitor {
     return myProfilers;
   }
 
+  public void expand() {
+  }
+
+  public boolean canExpand() {
+    return true;
+  }
+
   public abstract String getName();
+
+  public void setFocus(boolean focus) {
+    if (focus != myFocus) {
+      myFocus = focus;
+      changed(Aspect.FOCUS);
+    }
+  }
+
+  public boolean isFocused() {
+    return myFocus;
+  }
 }

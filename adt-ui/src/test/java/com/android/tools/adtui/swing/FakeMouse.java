@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
@@ -34,6 +35,7 @@ public final class FakeMouse {
   @NotNull
   private final FakeUi myUi;
   @Nullable Cursor myCursor;
+  @Nullable Component myFocus;
 
   /**
    * Created by {@link FakeUi}.
@@ -73,6 +75,24 @@ public final class FakeMouse {
     }
 
     dragTo(myCursor.x + xDelta, myCursor.y + yDelta);
+  }
+
+  public void moveTo(int x, int y) {
+    FakeUi.RelativePoint point = myUi.targetMouseEvent(x, y);
+    Component target = point == null ? null : point.component;
+    if (target != myFocus) {
+      if (myFocus != null) {
+        Point converted = myUi.toRelative(myFocus, x, y);
+        dispatchMouseEvent(new FakeUi.RelativePoint(myFocus, converted.x, converted.y), MouseEvent.MOUSE_EXITED, 0, 0);
+      }
+      if (target != null) {
+        dispatchMouseEvent(point, MouseEvent.MOUSE_ENTERED, 0, 0);
+      }
+    }
+    if (target != null) {
+      dispatchMouseEvent(point, MouseEvent.MOUSE_MOVED, 0, 0);
+    }
+    myFocus = target;
   }
 
   public void release() {
@@ -133,11 +153,15 @@ public final class FakeMouse {
   }
 
   private void dispatchMouseEvent(int eventType, int x, int y, Button button) {
-    //noinspection MagicConstant (modifier code is valid, from FakeKeyboard class)
     FakeUi.RelativePoint point = myUi.targetMouseEvent(x, y);
+    dispatchMouseEvent(point, eventType, button.mask, button.code);
+  }
+
+  private void dispatchMouseEvent(FakeUi.RelativePoint point, int eventType, int modifiers, int button) {
+    //noinspection MagicConstant (modifier code is valid, from FakeKeyboard class)
     MouseEvent event = new MouseEvent(myUi.getRoot(), eventType, System.nanoTime(),
-                                      myKeyboard.toModifiersCode() | button.mask,
-                                      point.x, point.y, 1, false, button.code);
+                                      myKeyboard.toModifiersCode() | modifiers,
+                                      point.x, point.y, 1, false, button);
     point.component.dispatchEvent(event);
   }
 

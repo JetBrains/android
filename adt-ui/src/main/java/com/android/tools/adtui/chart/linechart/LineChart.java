@@ -33,6 +33,9 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static java.awt.BasicStroke.CAP_SQUARE;
+import static java.awt.BasicStroke.JOIN_MITER;
+
 public class LineChart extends AnimatedComponent {
 
   @NotNull final LineChartModel myModel;
@@ -52,6 +55,13 @@ public class LineChart extends AnimatedComponent {
 
   @NotNull
   private final List<LineChartCustomRenderer> myCustomRenderers = new ArrayList<>();
+
+  @NotNull
+  private Color myMaxLineColor = Color.BLACK;
+
+  private int myMaxLineMargin;
+
+  private boolean myShowMaxLine;
 
   /**
    * The color of the next line to be inserted, if not specified, is picked from {@code COLORS}
@@ -272,6 +282,12 @@ public class LineChart extends AnimatedComponent {
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     AffineTransform scale = AffineTransform.getScaleInstance(dim.getWidth(), dim.getHeight());
 
+    if (myShowMaxLine) {
+      g2d.setColor(myMaxLineColor);
+      g2d.setStroke(new BasicStroke(1, CAP_SQUARE, JOIN_MITER, 10, new float[]{3.0f, 3.0f}, 0.0f));
+      g2d.drawLine(myMaxLineMargin, 0, dim.width, 0);
+    }
+
     // Cache the transformed line paths for reuse below.
     List<Path2D> transformedPaths = new ArrayList<>(myLinePaths.size());
     for (int i = 0; i < myLinePaths.size(); ++i) {
@@ -323,6 +339,18 @@ public class LineChart extends AnimatedComponent {
         g2d.draw(path);
       }
     }
+  }
+
+  public void setShowMaxLine(boolean showMaxLine) {
+    myShowMaxLine = showMaxLine;
+  }
+
+  public void setMaxLineColor(@NotNull Color maxLineColor) {
+    myMaxLineColor = maxLineColor;
+  }
+
+  public void setMaxLineMargin(int maxLineMargin) {
+    myMaxLineMargin = maxLineMargin;
   }
 }
 
