@@ -22,6 +22,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.ProfilerMonitorView;
 import com.android.tools.profilers.StudioProfilersView;
 import com.intellij.ui.components.JBPanel;
@@ -67,6 +68,9 @@ public class NetworkMonitorView extends ProfilerMonitorView<NetworkMonitor> {
     LineConfig sentConfig = new LineConfig(ProfilerColors.NETWORK_SENDING_COLOR).setLegendIconType(LegendConfig.IconType.LINE);
     lineChart.configure(usage.getTxSeries(), sentConfig);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
+    lineChart.setMaxLineColor(ProfilerColors.MONITOR_MAX_LINE);
+    lineChart.setMaxLineMargin(40);
+    getMonitor().addDependency(this).onChange(ProfilerMonitor.Aspect.FOCUS, () -> lineChart.setShowMaxLine(getMonitor().isFocused()));
 
     NetworkMonitor.NetworkLegends legends = getMonitor().getLegends();
     LegendComponent legend = new LegendComponent(legends);

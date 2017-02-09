@@ -22,6 +22,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.ProfilerMonitorView;
 import com.android.tools.profilers.StudioProfilersView;
 import com.intellij.ui.components.JBPanel;
@@ -62,6 +63,10 @@ public class CpuMonitorView extends ProfilerMonitorView<CpuMonitor> {
 
     CpuUsage cpuUsage = getMonitor().getThisProcessCpuUsage();
     final LineChart lineChart = new LineChart(cpuUsage);
+    lineChart.setMaxLineColor(ProfilerColors.MONITOR_MAX_LINE);
+    lineChart.setMaxLineMargin(40);
+    getMonitor().addDependency(this).onChange(ProfilerMonitor.Aspect.FOCUS, () -> lineChart.setShowMaxLine(getMonitor().isFocused()));
+
     LineConfig config = new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true).setLegendIconType(LegendConfig.IconType.NONE);
     lineChart.configure(cpuUsage.getCpuSeries(), config);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
