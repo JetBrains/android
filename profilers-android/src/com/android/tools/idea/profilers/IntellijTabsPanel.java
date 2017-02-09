@@ -18,7 +18,6 @@ package com.android.tools.idea.profilers;
 import com.android.tools.profilers.common.TabsPanel;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.tabs.TabInfo;
-import com.intellij.ui.tabs.TabsListener;
 import com.intellij.ui.tabs.impl.JBTabsImpl;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
@@ -30,21 +29,10 @@ import java.util.Map;
 public class IntellijTabsPanel implements TabsPanel {
   @NotNull private final JBTabsImpl myTabsImpl;
   @NotNull private final Map<JComponent, TabInfo> myTabsCache;
-  @Nullable private final Runnable myOnSelectionChanges;
 
-  IntellijTabsPanel(@NotNull Project project, @Nullable Runnable onSelectionChanges) {
-    myOnSelectionChanges = onSelectionChanges;
+  IntellijTabsPanel(@NotNull Project project) {
     myTabsImpl = new JBTabsImpl(project);
     myTabsCache = new HashMap<>();
-
-    myTabsImpl.addListener(new TabsListener.Adapter() {
-      @Override
-      public void selectionChanged(TabInfo oldSelection, TabInfo newSelection) {
-        if (myOnSelectionChanges != null) {
-          myOnSelectionChanges.run();
-        }
-      }
-    });
   }
 
   @NotNull
