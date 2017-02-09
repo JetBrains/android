@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -87,6 +88,11 @@ public final class FakeUi {
       component = component.getParent();
     }
     return new Point(rx, ry);
+  }
+
+  public Point toRelative(Component component, int x, int y) {
+    Point position = getPosition(component);
+    return new Point(x - position.x, y - position.y);
   }
 
   private RelativePoint findTarget(Component component, int x, int y) {

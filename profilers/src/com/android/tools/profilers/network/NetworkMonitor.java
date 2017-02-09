@@ -69,6 +69,7 @@ public class NetworkMonitor extends ProfilerMonitor {
     myProfilers.getUpdater().register(myTooltipLegends);
   }
 
+  @Override
   public void expand() {
     myProfilers.setStage(new NetworkProfilerStage(myProfilers));
   }
