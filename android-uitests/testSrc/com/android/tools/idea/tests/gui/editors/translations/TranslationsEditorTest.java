@@ -17,17 +17,15 @@ package com.android.tools.idea.tests.gui.editors.translations;
 
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MultilineStringEditorDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.AddKeyDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
 import com.intellij.notification.Notification;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.EmptyClipboardOwner;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.KeyPressInfo;
@@ -48,14 +46,14 @@ import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.stream.IntStream;
 
 import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab.EDITOR;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 @RunWith(GuiTestRunner.class)
 public final class TranslationsEditorTest {
@@ -134,9 +132,28 @@ public final class TranslationsEditorTest {
   }
 
   @Test
+  public void removeLocale() {
+    IdeFrameFixture frame = myGuiTest.ideFrame();
+
+    VirtualFile debugValuesEn = frame.findFileByRelativePath("app/src/debug/res/values-en", false);
+    assert debugValuesEn != null;
+
+    VirtualFile mainValuesEn = frame.findFileByRelativePath("app/src/main/res/values-en", false);
+    assert mainValuesEn != null;
+
+    myTranslationsEditor.clickRemoveLocaleItem("en");
+
+    Object expected = Arrays.asList("English (en) in United Kingdom (GB)", "Hebrew (iw)", "Tamil (ta)", "Chinese (zh) in China (CN)");
+    assertEquals(expected, myTranslationsEditor.locales());
+
+    assertFalse(debugValuesEn.exists());
+    assertFalse(mainValuesEn.exists());
+  }
+
+  @Test
   public void showKeysNeedingTranslationForEnglish() {
     myTranslationsEditor.clickFilterKeysComboBoxItem("Show Keys Needing a Translation for English (en)");
-    assertEquals(Arrays.asList("app_name", "cancel"), myTranslationsEditor.keys());
+    assertEquals(Collections.singletonList("cancel"), myTranslationsEditor.keys());
   }
 
   @Test

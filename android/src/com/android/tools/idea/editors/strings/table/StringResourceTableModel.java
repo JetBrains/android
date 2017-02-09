@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.table.AbstractTableModel;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -68,6 +69,11 @@ public class StringResourceTableModel extends AbstractTableModel {
   @NotNull
   public StringResourceKey getKey(int row) {
     return myKeys.get(row);
+  }
+
+  @NotNull
+  public Collection<Locale> getLocales() {
+    return myLocales;
   }
 
   @Nullable
