@@ -222,7 +222,7 @@ class HeapDumpInstanceObject implements InstanceObject {
 
   @Override
   public int getDepth() {
-    return myInstance == null ? MemoryObject.INVALID_VALUE : myInstance.getDistanceToGcRoot();
+    return myInstance == null ? Integer.MAX_VALUE : myInstance.getDistanceToGcRoot();
   }
 
   @Override

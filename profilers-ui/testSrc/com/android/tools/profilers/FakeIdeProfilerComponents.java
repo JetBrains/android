@@ -201,7 +201,7 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     }
 
     @Override
-    public void setStackFrames(@NotNull List<CodeLocation> stackFrames) {
+    public void setStackFrames(@NotNull ThreadId threadId, @NotNull List<CodeLocation> stackFrames) {
 
     }
 

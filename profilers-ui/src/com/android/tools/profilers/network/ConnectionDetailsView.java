@@ -29,6 +29,7 @@ import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.common.FileViewer;
 import com.android.tools.profilers.common.StackTraceView;
 import com.android.tools.profilers.common.TabsPanel;
+import com.android.tools.profilers.common.ThreadId;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
@@ -180,7 +181,7 @@ public class ConnectionDetailsView extends JPanel {
       myHeadersPanel.add(new JSeparator());
       myHeadersPanel.add(createHeaderSection("Request Headers", httpData.getRequestHeaders()));
 
-      myStackTraceView.setStackFrames(httpData.getStackTrace().getCodeLocations());
+      myStackTraceView.setStackFrames(ThreadId.INVALID_THREAD_ID, httpData.getStackTrace().getCodeLocations());
     }
     setVisible(httpData != null);
     revalidate();

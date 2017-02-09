@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers;
+package com.android.tools.idea.profilers.stacktrace;
 
 import com.android.tools.idea.actions.PsiClassNavigation;
 import com.android.tools.profilers.common.CodeLocation;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.StubVirtualFile;
 import com.intellij.pom.Navigatable;
@@ -60,6 +61,28 @@ final class IntelliJStackNavigation implements StackNavigation {
   }
 
   @Override
+  public void navigate(@Nullable Runnable preNavigate) {
+    Navigatable[] navigatables;
+    if (myCodeLocation.getLineNumber() > 0) {
+      navigatables =
+        PsiClassNavigation.getNavigationForClass(myProject, preNavigate, myCodeLocation.getClassName(), myCodeLocation.getLineNumber());
+    }
+    else {
+      navigatables = PsiClassNavigation.getNavigationForClass(myProject, preNavigate, myCodeLocation.getClassName());
+    }
+
+    if (navigatables == null) {
+      return;
+    }
+
+    for (Navigatable navigatable : navigatables) {
+      if (navigatable.canNavigate()) {
+        navigatable.navigate(false);
+      }
+    }
+  }
+
+  @Override
   @NotNull
   public String getPackageName() {
     return myPackageName;
@@ -78,19 +101,13 @@ final class IntelliJStackNavigation implements StackNavigation {
   }
 
   @Override
-  @Nullable
-  public Navigatable[] getNavigatable(@Nullable Runnable preNavigate) {
-    if (myCodeLocation.getLineNumber() > 0) {
-      return PsiClassNavigation.getNavigationForClass(myProject, preNavigate, myCodeLocation.getClassName(), myCodeLocation.getLineNumber());
-    }
-    else {
-      return PsiClassNavigation.getNavigationForClass(myProject, preNavigate, myCodeLocation.getClassName());
-    }
+  public boolean isInContext() {
+    VirtualFile classFile = findClassFile();
+    return classFile != null && ProjectFileIndex.SERVICE.getInstance(myProject).isInSource(classFile);
   }
 
-  @Override
   @Nullable
-  public VirtualFile findClassFile() {
+  VirtualFile findClassFile() {
     //noinspection UseVirtualFileEquals
     if (myCachedClassFile != UNRESOLVED_CLASS_FILE) {
       return myCachedClassFile;

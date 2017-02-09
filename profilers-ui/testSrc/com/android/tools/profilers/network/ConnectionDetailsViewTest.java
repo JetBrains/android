@@ -19,6 +19,7 @@ import com.android.testutils.TestResources;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.common.ThreadId;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
@@ -94,7 +95,7 @@ public class ConnectionDetailsViewTest {
     JComponent response = (JComponent) stream.filter(c -> "Response".equals(c.getName())).findFirst().get();
     assertThat(response.getComponentCount()).isNotEqualTo(0);
     verify(myView.getStackTraceView()).clearStackFrames();
-    verify(myView.getStackTraceView()).setStackFrames(data.getStackTrace().getCodeLocations());
+    verify(myView.getStackTraceView()).setStackFrames(ThreadId.INVALID_THREAD_ID, data.getStackTrace().getCodeLocations());
     reset(myView.getStackTraceView());
 
     myView.update((HttpData)null);
@@ -202,7 +203,7 @@ public class ConnectionDetailsViewTest {
 
     myView.update(DEFAULT_DATA);
     verify(myView.getStackTraceView()).clearStackFrames();
-    verify(myView.getStackTraceView()).setStackFrames(DEFAULT_DATA.getStackTrace().getCodeLocations());
+    verify(myView.getStackTraceView()).setStackFrames(ThreadId.INVALID_THREAD_ID, DEFAULT_DATA.getStackTrace().getCodeLocations());
   }
 
   @Test
