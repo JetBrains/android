@@ -23,6 +23,7 @@ import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -32,6 +33,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
+import com.intellij.ui.GuiUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,8 +44,6 @@ import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
-import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 
@@ -93,7 +93,7 @@ public class SdkSync {
       ValidationResult validationResult = validateAndroidSdk(projectAndroidSdkPath, true);
       if (!validationResult.success) {
         // If we have the IDE default SDK and we don't have a valid project SDK, update local.properties with default SDK path and exit.
-        invokeAndWaitIfNeeded(new Runnable() {
+        ApplicationManager.getApplication().invokeAndWait(new Runnable() {
           @Override
           public void run() {
             if (!ApplicationManager.getApplication().isUnitTestMode()) {
@@ -140,7 +140,7 @@ public class SdkSync {
                                  "Note that switching SDKs could cause compile errors if the selected SDK doesn't have the " +
                                  "necessary Android platforms or build tools.",
                                  ideAndroidSdkPath.getPath(), projectAndroidSdkPath.getPath());
-      invokeAndWaitIfNeeded(new Runnable() {
+      ApplicationManager.getApplication().invokeAndWait(new Runnable() {
         @Override
         public void run() {
           // We need to pass the project, so on Mac, the "Mac sheet" showing this message shows inside the IDE during UI tests, otherwise
@@ -209,9 +209,9 @@ public class SdkSync {
     // Just to be on the safe side, we update local.properties.
     setProjectSdk(localProperties, projectAndroidSdkPath);
 
-    invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> {
+    GuiUtils.invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> {
       myIdeSdks.setAndroidSdkPath(projectAndroidSdkPath, null);
-    }));
+    }), ModalityState.defaultModalityState());
   }
 
   private static void setProjectSdk(@NotNull LocalProperties localProperties, @NotNull File androidSdkPath) {
@@ -255,12 +255,7 @@ public class SdkSync {
     @Nullable
     File selectValidSdkPath() {
       Ref<File> pathRef = new Ref<>();
-      invokeAndWaitIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          findValidSdkPath(pathRef);
-        }
-      });
+      ApplicationManager.getApplication().invokeAndWait(() -> findValidSdkPath(pathRef));
       return pathRef.get();
     }
 

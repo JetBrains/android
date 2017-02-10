@@ -26,12 +26,16 @@ import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.Alarm;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.messages.MessageBusConnection;
-import org.jetbrains.android.compiler.*;
+import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
+import org.jetbrains.android.compiler.AndroidCompileUtil;
+import org.jetbrains.android.compiler.AndroidPrecompileTask;
+import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidResourceFilesListener;
 import org.jetbrains.annotations.NotNull;
@@ -90,34 +94,12 @@ public class AndroidProjectComponent extends AbstractProjectComponent {
   }
 
   private void createAlarmForAutogeneration() {
+    DumbService service = DumbService.getInstance(myProject);
     final Alarm alarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, myDisposable);
     alarm.addRequest(new Runnable() {
       @Override
       public void run() {
-        final Map<AndroidFacet, Collection<AndroidAutogeneratorMode>> facetsToProcess = new HashMap<>();
-
-        final Module[] modules = ModuleManager.getInstance(myProject).getModules();
-        final Module[] modulesCopy = Arrays.copyOf(modules, modules.length);
-
-        for (Module module : modulesCopy) {
-          final AndroidFacet facet = AndroidFacet.getInstance(module);
-
-          if (facet != null && ModuleSourceAutogenerating.getInstance(facet) != null) {
-            final Set<AndroidAutogeneratorMode> modes = EnumSet.noneOf(AndroidAutogeneratorMode.class);
-
-            for (AndroidAutogeneratorMode mode : AndroidAutogeneratorMode.values()) {
-              ModuleSourceAutogenerating autogenerating = ModuleSourceAutogenerating.getInstance(facet);
-              if (autogenerating != null && (autogenerating.cleanRegeneratingState(mode) || autogenerating.isGeneratedFileRemoved(mode))) {
-                modes.add(mode);
-              }
-            }
-
-            if (modes.size() > 0) {
-              facetsToProcess.put(facet, modes);
-            }
-          }
-        }
-
+        Map<AndroidFacet, Collection<AndroidAutogeneratorMode>> facetsToProcess = service.runReadActionInSmartMode(() -> checkGenerate());
         if (facetsToProcess.size() > 0) {
           generate(facetsToProcess);
         }
@@ -126,6 +108,32 @@ public class AndroidProjectComponent extends AbstractProjectComponent {
         }
       }
     }, 2000);
+  }
+
+  private Map<AndroidFacet, Collection<AndroidAutogeneratorMode>> checkGenerate() {
+    if (myProject.isDisposed()) return Collections.emptyMap();
+
+    final Map<AndroidFacet, Collection<AndroidAutogeneratorMode>> facetsToProcess = new HashMap<>();
+
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      final AndroidFacet facet = AndroidFacet.getInstance(module);
+
+      if (facet != null && ModuleSourceAutogenerating.getInstance(facet) != null) {
+        final Set<AndroidAutogeneratorMode> modes = EnumSet.noneOf(AndroidAutogeneratorMode.class);
+
+        for (AndroidAutogeneratorMode mode : AndroidAutogeneratorMode.values()) {
+          ModuleSourceAutogenerating autogenerating = ModuleSourceAutogenerating.getInstance(facet);
+          if (autogenerating != null && (autogenerating.cleanRegeneratingState(mode) || autogenerating.isGeneratedFileRemoved(mode))) {
+            modes.add(mode);
+          }
+        }
+
+        if (modes.size() > 0) {
+          facetsToProcess.put(facet, modes);
+        }
+      }
+    }
+    return facetsToProcess;
   }
 
   private void generate(final Map<AndroidFacet, Collection<AndroidAutogeneratorMode>> facetsToProcess) {

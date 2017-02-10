@@ -16,12 +16,12 @@
 package com.android.tools.idea.folding;
 
 import com.intellij.application.options.editor.CodeFoldingOptionsProvider;
-import com.intellij.application.options.editor.XmlFoldingSettings;
 import com.intellij.openapi.options.BeanConfigurable;
 
 public class AndroidCodeFoldingOptionsProvider extends BeanConfigurable<AndroidFoldingSettings> implements CodeFoldingOptionsProvider {
   public AndroidCodeFoldingOptionsProvider() {
     super(AndroidFoldingSettings.getInstance());
-    checkBox("COLLAPSE_ANDROID_TEXT", "Android String References");
+    AndroidFoldingSettings settings = getInstance();
+    checkBox("Android String References", settings::isCollapseAndroidStrings, settings::setCollapseAndroidStrings);
   }
 }

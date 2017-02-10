@@ -49,8 +49,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootAdapter;
 import com.intellij.openapi.roots.ModuleRootEvent;
+import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
@@ -305,7 +305,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     }
   }
 
-  private static class MyAndroidPlatformListener extends ModuleRootAdapter {
+  private static class MyAndroidPlatformListener implements ModuleRootListener {
     private final Project myProject;
     private final AndroidLogcatView myView;
 
@@ -332,12 +332,9 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
 
       if (!Comparing.equal(myPrevPlatform, newPlatform)) {
         myPrevPlatform = newPlatform;
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            if (!window.isDisposed() && window.isVisible()) {
-              myView.activate();
-            }
+        ApplicationManager.getApplication().invokeLater(() -> {
+          if (!window.isDisposed() && window.isVisible()) {
+            myView.activate();
           }
         });
       }

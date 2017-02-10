@@ -16,13 +16,12 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Device;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
-import com.intellij.openapi.fileChooser.FileSaverDescriptor;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.ActionEvent;

@@ -644,7 +644,7 @@ public class EditorFixture {
     GOTO_IMPLEMENTATION("GotoImplementation"),
     ;
 
-    /** The {@code id} of an action mapped to a keyboard shortcut in, for example, {@code Keymap_Default.xml}. */
+    /** The {@code id} of an action mapped to a keyboard shortcut in, for example, {@code $default.xml}. */
     @NotNull private final String id;
 
     EditorAction(@NotNull String actionId) {

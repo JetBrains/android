@@ -29,7 +29,7 @@ import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.util.KeyValue;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
@@ -42,7 +42,7 @@ import java.util.Map;
 
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static org.easymock.classextension.EasyMock.*;
+import static org.easymock.EasyMock.*;
 
 /**
  * Tests for {@link AndroidGradleBuildProcessParametersProvider}.
@@ -117,9 +117,9 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
   }
 
   public void testPopulateHttpProxyProperties() {
-    List<KeyValue<String, String>> properties = Lists.newArrayList();
-    properties.add(KeyValue.create("http.proxyHost", "proxy.android.com"));
-    properties.add(KeyValue.create("http.proxyPort", "8080"));
+    List<Pair<String, String>> properties = Lists.newArrayList();
+    properties.add(Pair.create("http.proxyHost", "proxy.android.com"));
+    properties.add(Pair.create("http.proxyPort", "8080"));
 
     List<String> jvmArgList = Lists.newArrayList();
     AndroidGradleBuildProcessParametersProvider.populateHttpProxyProperties(jvmArgList, properties);

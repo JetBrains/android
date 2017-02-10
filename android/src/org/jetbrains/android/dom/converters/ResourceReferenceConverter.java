@@ -547,7 +547,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
               if (VALUE_RESOURCE_TYPES.contains(resType) && resType != ResourceType.LAYOUT) { // layouts: aliases only
                 fixes.add(new CreateValueResourceQuickFix(facet, resType, resourceName, context.getFile(), false));
               }
-              return fixes.toArray(new LocalQuickFix[fixes.size()]);
+              return fixes.toArray(LocalQuickFix.EMPTY_ARRAY);
             }
           }
         }

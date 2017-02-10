@@ -144,7 +144,7 @@ public class SelectNdkDialog extends DialogWrapper {
     }
     descriptor.setTitle("Choose Android NDK Location");
 
-    myNdkTextFieldWithButton.addBrowseFolderListener(null, new ComponentWithBrowseButton.BrowseFolderActionListener<JTextField>(
+    myNdkTextFieldWithButton.addActionListener(new ComponentWithBrowseButton.BrowseFolderActionListener<JTextField>(
       "Select Android NDK Home", null, myNdkTextFieldWithButton, null, descriptor, TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT));
   }
 

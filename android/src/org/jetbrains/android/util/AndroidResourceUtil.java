@@ -594,7 +594,7 @@ public class AndroidResourceUtil {
         result.addAll(resources.getStrings());
         break;
       case PLURALS:
-        result.addAll(resources.getPluralss());
+        result.addAll(resources.getPluralses());
         break;
       case DRAWABLE:
         result.addAll(resources.getDrawables());

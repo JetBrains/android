@@ -36,7 +36,7 @@
   <item name="android.text.TextUtils boolean isEmpty(java.lang.CharSequence) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
-  <item name="android.text.TextUtils boolean stringOrSpannedString(java.lang.CharSequence)">
+  <item name="android.text.TextUtils java.lang.CharSequence stringOrSpannedString(java.lang.CharSequence)">
     <annotation name="org.jetbrains.annotations.Contract">
       <val name="value" val="&quot;null&gt;null;!null&gt;!null&quot;" />
     </annotation>

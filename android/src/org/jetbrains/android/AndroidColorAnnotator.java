@@ -59,6 +59,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTagValue;
 import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.EmptyIcon;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.dom.resources.ResourceElement;
@@ -476,7 +477,7 @@ public class AndroidColorAnnotator implements Annotator {
     @Override
     public Icon getIcon() {
       final Color color = getCurrentColor();
-      return color == null ? EmptyIcon.create(ICON_SIZE) : new ColorIcon(ICON_SIZE, color);
+      return color == null ? JBUI.scale(EmptyIcon.create(ICON_SIZE)) : JBUI.scale(new ColorIcon(ICON_SIZE, color));
     }
 
     @Nullable

@@ -159,6 +159,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
 
   @Nullable
   protected AndroidSdkData createTestSdkManager() {
+    VfsRootAccess.allowRootAccess(getTestRootDisposable(), TestUtils.getSdk().toString());
     Sdk androidSdk = createLatestAndroidSdk();
     AndroidSdkAdditionalData data = AndroidSdks.getInstance().getAndroidSdkAdditionalData(androidSdk);
     if (data != null) {

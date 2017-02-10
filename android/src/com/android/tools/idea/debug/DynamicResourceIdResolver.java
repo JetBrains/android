@@ -89,8 +89,12 @@ public class DynamicResourceIdResolver implements ResourceIdResolver {
         }
       }
       catch (EvaluateException e) {
-        LOG.warn("Unexpected error while invoking Resources.getResourceName()", e);
-        // continue and try this on other object references
+        ObjectReference exception = e.getExceptionFromTargetVM();
+        // do not log Resources$NotFoundException
+        if (exception == null || !DebuggerUtils.instanceOf(exception.type(), "android.content.res.Resources$NotFoundException")) {
+          LOG.warn("Unexpected error while invoking Resources.getResourceName()", e);
+          // continue and try this on other object references
+        }
       }
     }
 

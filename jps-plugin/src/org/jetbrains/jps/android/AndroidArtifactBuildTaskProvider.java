@@ -1,6 +1,7 @@
 package org.jetbrains.jps.android;
 
-import com.intellij.util.Base64Converter;
+import com.intellij.openapi.vfs.CharsetToolkit;
+import com.intellij.util.Base64;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactSigningMode;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
@@ -98,11 +99,11 @@ public class AndroidArtifactBuildTaskProvider extends ArtifactBuildTaskProvider 
                                   : "";
       final String keyStorePassword = myProps.getKeyStorePassword();
       final String plainKeyStorePassword = keyStorePassword != null && keyStorePassword.length() > 0
-                                           ? Base64Converter.decode(keyStorePassword) : null;
+                                           ? new String(Base64.decode(keyStorePassword), CharsetToolkit.UTF8_CHARSET) : null;
 
       final String keyPassword = myProps.getKeyPassword();
       final String plainKeyPassword = keyPassword != null && keyPassword.length() > 0
-                                      ? Base64Converter.decode(keyPassword) : null;
+                                      ? new String(Base64.decode(keyStorePassword), CharsetToolkit.UTF8_CHARSET) : null;
       try {
         final Map<AndroidCompilerMessageKind,List<String>> messages =
           AndroidCommonUtils.buildArtifact(artifactName, messagePrefix, sdkLocation, platform.getTarget(), artifactFilePath,

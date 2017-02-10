@@ -90,14 +90,14 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   private LocalQuickFix[] getLocalQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message,
                                              @Nullable Object extraData) {
     final AndroidLintQuickFix[] fixes = getQuickFixes(startElement, endElement, message, extraData);
-    final LocalQuickFix[] result = new LocalQuickFix[fixes.length];
+    final List<LocalQuickFix> result = new ArrayList<>(fixes.length);
 
-    for (int i = 0; i < fixes.length; i++) {
-      if (fixes[i].isApplicable(startElement, endElement, AndroidQuickfixContexts.BatchContext.TYPE)) {
-        result[i] = new MyLocalQuickFix(fixes[i]);
+    for (AndroidLintQuickFix fix : fixes) {
+      if (fix.isApplicable(startElement, endElement, AndroidQuickfixContexts.BatchContext.TYPE)) {
+        result.add(new MyLocalQuickFix(fix));
       }
     }
-    return result;
+    return result.toArray(LocalQuickFix.EMPTY_ARRAY);
   }
 
   @Override
@@ -266,7 +266,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       if (ourIssue2InspectionShortName == null) {
         ourIssue2InspectionShortName = new HashMap<>();
 
-        final InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getInspectionProfile();
+        final InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
 
         for (InspectionToolWrapper e : profile.getInspectionTools(null)) {
           final String shortName = e.getShortName();

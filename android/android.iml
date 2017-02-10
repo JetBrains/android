@@ -26,7 +26,6 @@
     <orderEntry type="module" module-name="properties" />
     <orderEntry type="library" name="xpp3-1.1.4-min" level="project" />
     <orderEntry type="module" module-name="testng" />
-    <orderEntry type="library" exported="" name="asm" level="project" />
     <orderEntry type="module" module-name="android-common" exported="" />
     <orderEntry type="module" module-name="android-rt" />
     <orderEntry type="module" module-name="java-indexing-api" />
@@ -79,33 +78,7 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="lang-api" />
-    <orderEntry type="module-library">
-      <library name="Gradle">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-base-services-3.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-base-services-groovy-3.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-core-3.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-messaging-3.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-model-core-3.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-model-groovy-3.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-resources-3.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-native-3.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-tooling-api-3.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-wrapper-3.2.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-3.2-src.zip!/gradle-3.2/subprojects/base-services-groovy/src/main/java" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-3.2-src.zip!/gradle-3.2/subprojects/base-services/src/main/java" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-3.2-src.zip!/gradle-3.2/subprojects/core/src/main/java" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-3.2-src.zip!/gradle-3.2/subprojects/messaging/src/main/java" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-3.2-src.zip!/gradle-3.2/subprojects/native/src/main/java" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-3.2-src.zip!/gradle-3.2/subprojects/resources/src/main/java" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-3.2-src.zip!/gradle-3.2/subprojects/tooling-api/src/main/java" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-3.2-src.zip!/gradle-3.2/subprojects/wrapper/src/main/java" />
-        </SOURCES>
-      </library>
-    </orderEntry>
+    <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="module" module-name="gradle" />
     <orderEntry type="module" module-name="layoutlib" />
     <orderEntry type="module" module-name="sherpa-solver" />

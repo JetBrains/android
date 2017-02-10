@@ -900,7 +900,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
 
     final MavenProject projectForExternalApklib = new MavenProject(vDepArtifactFile);
     final MavenGeneralSettings generalSettings = mavenProjectsManager.getGeneralSettings();
-    final MavenProjectReader mavenProjectReader = new MavenProjectReader();
+    final MavenProjectReader mavenProjectReader = new MavenProjectReader(project);
 
     final MavenProjectReaderProjectLocator locator = new MavenProjectReaderProjectLocator() {
       @Nullable

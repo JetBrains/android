@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -93,6 +94,15 @@ public class NlComponentTreeTest extends LayoutTestCase {
       }
     }
     return null;
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    Disposer.dispose(myModel);
+    reset(myScreen, mySurface);
+    myModel = null;
+    myTree = null;
+    super.tearDown();
   }
 
   public void testTreeStructure() {

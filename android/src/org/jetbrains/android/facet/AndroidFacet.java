@@ -41,6 +41,7 @@ import com.intellij.ProjectTopics;
 import com.intellij.facet.*;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -204,6 +205,10 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   public void setProjectType(int type) {
     getProperties().PROJECT_TYPE = type;
+  }
+
+  public static boolean hasAndroid(@NotNull Project project) {
+    return ReadAction.compute(() -> !project.isDisposed() && ProjectFacetManager.getInstance(project).hasFacets(ID));
   }
 
   /**

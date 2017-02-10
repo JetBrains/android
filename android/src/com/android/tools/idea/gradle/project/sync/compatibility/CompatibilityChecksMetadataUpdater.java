@@ -51,7 +51,7 @@ public class CompatibilityChecksMetadataUpdater extends ApplicationComponent.Ada
 
     if (checkInterval != CheckInterval.NONE) {
       Application app = ApplicationManager.getApplication();
-      app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
+      app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
         @Override
         public void appFrameCreated(String[] commandLineArgs, @NotNull Ref<Boolean> willOpenProject) {
           long lastUpdateCheck = PropertiesComponent.getInstance().getOrInitLong(LAST_CHECK_TIMESTAMP_PROPERTY_NAME, -1);

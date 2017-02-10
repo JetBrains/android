@@ -35,7 +35,7 @@ public class AndroidFoldingSettings implements PersistentStateComponent<AndroidF
     COLLAPSE_ANDROID_TEXT = value;
   }
 
-  @SuppressWarnings({"WeakerAccess"}) public boolean COLLAPSE_ANDROID_TEXT = true;
+  @SuppressWarnings("WeakerAccess") public boolean COLLAPSE_ANDROID_TEXT = true;
 
   @Override
   public AndroidFoldingSettings getState() {
