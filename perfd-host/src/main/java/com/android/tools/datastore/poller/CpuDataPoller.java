@@ -20,6 +20,8 @@ import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import io.grpc.StatusRuntimeException;
 
+import java.util.List;
+
 /**
  * This class gathers sets up a CPUProfilerService and forward all commands to the connected channel with the exception of getData.
  * The get data command will pull data locally cached from the connected service.
@@ -44,36 +46,42 @@ public class CpuDataPoller extends PollRunner {
 
   @Override
   public void poll() throws StatusRuntimeException {
-    CpuProfiler.CpuDataRequest.Builder dataRequestBuilder = CpuProfiler.CpuDataRequest.newBuilder()
+    long getDataStartNs = myDataRequestStartTimestampNs;
+    CpuProfiler.CpuDataRequest.Builder request = CpuProfiler.CpuDataRequest.newBuilder()
       .setProcessId(myProcessId)
-      .setStartTimestamp(myDataRequestStartTimestampNs)
+      .setStartTimestamp(getDataStartNs)
       .setEndTimestamp(Long.MAX_VALUE);
-    CpuProfiler.CpuDataResponse response = myPollingService.getData(dataRequestBuilder.build());
-
-    // TODO: Perfd should return all the thread activities data with the StartTime and EndTime already updated
-    // to refelect the lifetime of the thread.
+    CpuProfiler.CpuDataResponse response = myPollingService.getData(request.build());
     for (CpuProfiler.CpuProfilerData data : response.getDataList()) {
-      myDataRequestStartTimestampNs = data.getBasicInfo().getEndTimestamp();
+      getDataStartNs = Math.max(getDataStartNs, data.getBasicInfo().getEndTimestamp());
       myCpuTable.insert(data);
-      if (data.getDataCase() == CpuProfiler.CpuProfilerData.DataCase.THREAD_ACTIVITIES) {
-        CpuProfiler.ThreadActivities activities = data.getThreadActivities();
-        if (activities != null) {
-          for (CpuProfiler.ThreadActivity activity : activities.getActivitiesList()) {
-            int tid = activity.getTid();
-            CpuProfiler.GetThreadsResponse.Thread.Builder builder =
-              myCpuTable.getThreadResponseByIdOrNull(data.getBasicInfo().getProcessId(), tid);
-            if (builder == null) {
-              builder = CpuProfiler.GetThreadsResponse.Thread.newBuilder().setName(activity.getName()).setTid(tid);
-            }
-            CpuProfiler.ThreadActivity.State state = activity.getNewState();
-            CpuProfiler.GetThreadsResponse.State converted = CpuProfiler.GetThreadsResponse.State.valueOf(state.toString());
-            builder.addActivities(CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
-                                    .setTimestamp(activity.getTimestamp())
-                                    .setNewState(converted));
-            myCpuTable.insertOrReplace(data.getBasicInfo().getProcessId(), tid, builder);
-          }
-        }
-      }
     }
+
+    long getThreadsStartNs = myDataRequestStartTimestampNs;
+    CpuProfiler.GetThreadsRequest.Builder threadsRequest = CpuProfiler.GetThreadsRequest.newBuilder()
+      .setProcessId(myProcessId)
+      .setStartTimestamp(getThreadsStartNs)
+      .setEndTimestamp(Long.MAX_VALUE);
+    CpuProfiler.GetThreadsResponse threadsResponse = myPollingService.getThreads(threadsRequest.build());
+
+    if (myDataRequestStartTimestampNs == Long.MIN_VALUE) {
+      // Store the very first snapshot in the database.
+      CpuProfiler.GetThreadsResponse.ThreadSnapshot snapshot = threadsResponse.getInitialSnapshot();
+      getThreadsStartNs = Math.max(getThreadsStartNs, snapshot.getTimestamp());
+      myCpuTable.insertSnapshot(myProcessId, snapshot.getTimestamp(), snapshot.getThreadsList());
+    }
+
+    // Store all the thread activities in the database.
+    for (CpuProfiler.GetThreadsResponse.Thread thread : threadsResponse.getThreadsList()) {
+      List<CpuProfiler.GetThreadsResponse.ThreadActivity> activities = thread.getActivitiesList();
+      int count = thread.getActivitiesCount();
+      if (count > 0) {
+        CpuProfiler.GetThreadsResponse.ThreadActivity last = activities.get(count - 1);
+        getThreadsStartNs = Math.max(getThreadsStartNs, last.getTimestamp());
+      }
+
+      myCpuTable.insertActivities(myProcessId, thread.getTid(), thread.getName(), activities);
+    }
+    myDataRequestStartTimestampNs = Math.max(Math.max(myDataRequestStartTimestampNs + 1, getDataStartNs), getThreadsStartNs);
   }
 }

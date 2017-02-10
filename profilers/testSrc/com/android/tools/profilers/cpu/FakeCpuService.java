@@ -158,11 +158,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
   @Override
   public void getData(CpuProfiler.CpuDataRequest request, StreamObserver<CpuProfiler.CpuDataResponse> responseObserver) {
     CpuProfiler.CpuDataResponse.Builder response = CpuProfiler.CpuDataResponse.newBuilder();
-    if (myEmptyUsageData) {
-      // Add another type of data to the response
-      CpuProfiler.ThreadActivities.Builder activities = CpuProfiler.ThreadActivities.newBuilder();
-      response.addData(CpuProfiler.CpuProfilerData.newBuilder().setThreadActivities(activities));
-    } else {
+    if (!myEmptyUsageData) {
       // Add first usage data
       CpuProfiler.CpuUsageData.Builder cpuUsageData = CpuProfiler.CpuUsageData.newBuilder();
       cpuUsageData.setElapsedTimeInMillisec(0);
