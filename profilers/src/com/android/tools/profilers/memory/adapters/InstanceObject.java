@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profilers.common.ThreadId;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +46,7 @@ public interface InstanceObject extends MemoryObject {
   String getClassName();
 
   default int getDepth() {
-    return INVALID_VALUE;
+    return Integer.MAX_VALUE;
   }
 
   default int getShallowSize() {
@@ -63,6 +64,11 @@ public interface InstanceObject extends MemoryObject {
   @NotNull
   default List<FieldObject> getFields() {
     return Collections.emptyList();
+  }
+
+  @NotNull
+  default ThreadId getAllocationThreadId() {
+    return ThreadId.INVALID_THREAD_ID;
   }
 
   @Nullable

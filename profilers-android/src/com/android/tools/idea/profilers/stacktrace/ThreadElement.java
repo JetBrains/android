@@ -13,29 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers;
+package com.android.tools.idea.profilers.stacktrace;
 
-import com.android.tools.profilers.common.CodeLocation;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.pom.Navigatable;
+import com.android.tools.profilers.common.ThreadId;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface StackNavigation {
-  String UNKONWN_CLASS = "<unkonwn class>";
-  String UNKNOWN_PACKAGE = "<unknown package>";
-  String NO_PACKAGE = "<no package>";
-  String UNKNOWN_METHOD = "<unknown method>";
+final class ThreadElement implements StackElement {
+  @NotNull private final ThreadId myThreadId;
 
-  @NotNull CodeLocation getCodeLocation();
+  ThreadElement(@NotNull ThreadId threadId) {
+    myThreadId = threadId;
+  }
 
-  @NotNull String getPackageName();
+  @Override
+  public void navigate(@Nullable Runnable preNavigate) {
 
-  @NotNull String getSimpleClassName();
+  }
 
-  @NotNull String getMethodName();
-
-  @Nullable Navigatable[] getNavigatable(@Nullable Runnable preNavigate);
-
-  @Nullable VirtualFile findClassFile();
+  @NotNull
+  public ThreadId getThreadId() {
+    return myThreadId;
+  }
 }
