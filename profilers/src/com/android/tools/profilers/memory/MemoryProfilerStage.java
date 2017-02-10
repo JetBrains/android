@@ -109,7 +109,7 @@ public class MemoryProfilerStage extends Stage {
     myObjectsAxis = new AxisComponentModel(myDetailedMemoryUsage.getObjectsRange(), OBJECT_COUNT_AXIS_FORMATTER);
     myObjectsAxis.setClampToMajorTicks(true);
 
-    myLegends = new MemoryStageLegends(myDetailedMemoryUsage, profilers.getTimeline().getDataRange());
+    myLegends = new MemoryStageLegends(profilers, myDetailedMemoryUsage, profilers.getTimeline().getDataRange());
 
     myGcCount = new DurationDataModel<>(new RangedSeries<>(viewRange, new GcStatsDataSeries(myClient, myProcessId, mySessionData)));
     myGcCount.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries());
@@ -348,6 +348,7 @@ public class MemoryProfilerStage extends Stage {
 
   public static class MemoryStageLegends extends LegendComponentModel {
 
+    @NotNull private final StudioProfilers myProfilers;
     @NotNull private final SeriesLegend myJavaLegend;
     @NotNull private final SeriesLegend myNativeLegend;
     @NotNull private final SeriesLegend myGraphicsLegend;
@@ -357,7 +358,7 @@ public class MemoryProfilerStage extends Stage {
     @NotNull private final SeriesLegend myTotalLegend;
     @NotNull private final SeriesLegend myObjectsLegend;
 
-    public MemoryStageLegends(@NotNull DetailedMemoryUsage usage, @NotNull Range range) {
+    public MemoryStageLegends(@NotNull StudioProfilers profilers, @NotNull DetailedMemoryUsage usage, @NotNull Range range) {
       super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
       myJavaLegend = new SeriesLegend(usage.getJavaSeries(), MEMORY_AXIS_FORMATTER, range);
       myNativeLegend = new SeriesLegend(usage.getNativeSeries(), MEMORY_AXIS_FORMATTER, range);
@@ -375,7 +376,10 @@ public class MemoryProfilerStage extends Stage {
       add(myStackLegend);
       add(myCodeLegend);
       add(myOtherLegend);
-      add(myObjectsLegend);
+
+      myProfilers = profilers;
+      myProfilers.addDependency(this).onChange(ProfilerAspect.AGENT, this::agentStatusChanged);
+      agentStatusChanged();
     }
 
     @NotNull
@@ -416,6 +420,15 @@ public class MemoryProfilerStage extends Stage {
     @NotNull
     public SeriesLegend getObjectsLegend() {
       return myObjectsLegend;
+    }
+
+    private void agentStatusChanged() {
+      if (myProfilers.isAgentAttached()) {
+        add(myObjectsLegend);
+      }
+      else {
+        remove(myObjectsLegend);
+      }
     }
   }
 }

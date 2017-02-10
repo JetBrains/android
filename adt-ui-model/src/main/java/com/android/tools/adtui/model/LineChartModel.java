@@ -81,6 +81,10 @@ public class LineChartModel extends AspectModel<LineChartModel.Aspect> implement
     mySeries.add(series);
   }
 
+  public void remove(RangedContinuousSeries series) {
+    mySeries.remove(series);
+  }
+
   @NotNull
   public List<RangedContinuousSeries> getSeries() {
     return mySeries;
