@@ -18,6 +18,7 @@ package com.android.tools.idea.actions;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
+import com.android.tools.idea.project.CustomProjectTypeImporter;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
@@ -52,8 +53,8 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.eclipse.GradleImport.isEclipseProjectDir;
 import static com.android.tools.idea.gradle.project.AdtModuleImporter.isAdtProjectLocation;
-import static com.android.tools.idea.gradle.util.Projects.canImportAsGradleProject;
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
+import static com.android.tools.idea.gradle.util.Projects.canImportAsGradleProject;
 import static com.intellij.ide.impl.NewProjectUtil.createFromWizard;
 import static com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER;
 import static com.intellij.openapi.roots.ui.configuration.ModulesProvider.EMPTY_MODULES_PROVIDER;
@@ -103,15 +104,11 @@ public class AndroidImportProjectAction extends AnAction {
           if (!wizard.showAndGet()) {
             return;
           }
-          //noinspection ConstantConditions
           createFromWizard(wizard, null);
         }
       }
     }
-    catch (IOException exception) {
-      handleImportException(e.getProject(), exception);
-    }
-    catch (ConfigurationException exception) {
+    catch (IOException | ConfigurationException exception) {
       handleImportException(e.getProject(), exception);
     }
   }
@@ -135,6 +132,7 @@ public class AndroidImportProjectAction extends AnAction {
     };
     descriptor.setHideIgnored(false);
     descriptor.setTitle(WIZARD_TITLE);
+    //noinspection DialogTitleCapitalization
     descriptor.setDescription(WIZARD_DESCRIPTION);
     return descriptor;
   }
@@ -187,6 +185,9 @@ public class AndroidImportProjectAction extends AnAction {
       gradleImporter.importProject(file);
     }
     else {
+      if (CustomProjectTypeImporter.getMain().importFileAsProject(file)) {
+        return null;
+      }
       return importWithExtensions(file);
     }
     return null;
@@ -236,12 +237,7 @@ public class AndroidImportProjectAction extends AnAction {
         doCreate(wizard);
       }
       catch (final IOException e) {
-        invokeLaterIfNeeded(new Runnable() {
-          @Override
-          public void run() {
-            Messages.showErrorDialog(e.getMessage(), "Project Initialization Failed");
-          }
-        });
+        invokeLaterIfNeeded(() -> Messages.showErrorDialog(e.getMessage(), "Project Initialization Failed"));
       }
     }
   }
