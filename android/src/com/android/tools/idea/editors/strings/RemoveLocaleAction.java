@@ -17,10 +17,13 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.ui.Icons;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.util.ScalableIcon;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -32,15 +35,10 @@ final class RemoveLocaleAction extends AnAction {
   private final AndroidFacet myFacet;
 
   RemoveLocaleAction(@NotNull JTable table, @NotNull AndroidFacet facet) {
-    super("Remove Locale", null, AndroidIcons.Globe);
+    super("Remove Locale", null, Icons.newLayeredIcon(AndroidIcons.Globe, (ScalableIcon)AllIcons.ToolbarDecorator.Remove));
 
     myTable = table;
     myFacet = facet;
-  }
-
-  @Override
-  public boolean displayTextInToolbar() {
-    return true;
   }
 
   @Override

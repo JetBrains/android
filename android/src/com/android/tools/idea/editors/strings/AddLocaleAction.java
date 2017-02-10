@@ -19,10 +19,13 @@ import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.ui.Icons;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.util.ScalableIcon;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -37,15 +40,10 @@ final class AddLocaleAction extends AnAction {
   private final AndroidFacet myFacet;
 
   AddLocaleAction(@NotNull StringResourceTable table, @NotNull AndroidFacet facet) {
-    super("Add Locale", null, AndroidIcons.Globe);
+    super("Add Locale", null, Icons.newLayeredIcon(AndroidIcons.Globe, (ScalableIcon)AllIcons.ToolbarDecorator.Add));
 
     myTable = table;
     myFacet = facet;
-  }
-
-  @Override
-  public boolean displayTextInToolbar() {
-    return true;
   }
 
   @Override
