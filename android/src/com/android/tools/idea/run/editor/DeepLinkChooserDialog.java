@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.instantapp.InstantAppUrlFinder;
 import com.android.tools.idea.model.MergedManifest;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -34,7 +35,6 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.InstantAppUrlFinder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,7 +42,7 @@ import javax.swing.*;
 import java.awt.event.MouseEvent;
 import java.util.List;
 
-import static org.jetbrains.android.util.InstantApps.findInstantAppBaseSplit;
+import static com.android.tools.idea.instantapp.InstantApps.findInstantAppBaseSplit;
 
 public class DeepLinkChooserDialog extends DialogWrapper {
 
@@ -77,7 +77,7 @@ public class DeepLinkChooserDialog extends DialogWrapper {
         }
       }
     }
-    myList = new JBList(ArrayUtil.toStringArray(deepLinks));
+    myList = new JBList((Object[])ArrayUtil.toStringArray(deepLinks));
     myList.setEmptyText("None found in AndroidManifest.xml");
     init();
   }
