@@ -16,8 +16,8 @@
 package com.android.tools.idea.res;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.fileTypes.FontFileType;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.fileTypes.FileType;
@@ -75,17 +75,9 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
     if (fileType == StdFileTypes.JAVA) { // fail fast for vital file type
       return false;
     }
-    if (fileType == StdFileTypes.XML) {
-      return true;
-    }
-
     // TODO: ensure that only android compatible images are recognized.
-    if (fileType.isBinary()) {
-      return fileType == ImageFileTypeManager.getInstance().getImageFileType() ||
-             fileType == FontFileType.INSTANCE;
-    }
-
-    return false;
+    return fileType == StdFileTypes.XML ||
+           fileType.isBinary() && fileType == ImageFileTypeManager.getInstance().getImageFileType();
   }
 
   static boolean isRelevantFile(@NotNull VirtualFile file) {
