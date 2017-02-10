@@ -26,7 +26,6 @@ import com.google.common.collect.Maps;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
-
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -35,13 +34,10 @@ import java.util.function.Consumer;
  * The data is populated from polling the service passed into the connectService function.
  */
 public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase implements ServicePassThrough  {
-
-  private ProfilerServiceGrpc.ProfilerServiceBlockingStub myPollingService;
   private Map<ManagedChannel, ProfilerDevicePoller> myPollers = Maps.newHashMap();
   private Consumer<Runnable> myFetchExecutor;
   private ProfilerTable myTable = new ProfilerTable();
   private DataStoreService myService;
-
 
   public ProfilerService(@NotNull DataStoreService service, Consumer<Runnable> fetchExecutor) {
     myService = service;
@@ -52,16 +48,18 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   public void getCurrentTime(Profiler.TimeRequest request, StreamObserver<Profiler.TimeResponse> observer) {
     // This function can get called before the datastore is connected to a device as such we need to check
     // if we have a connection before attempting to get the time.
-    if (myPollingService != null) {
-      observer.onNext(myPollingService.getCurrentTime(request));
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(request.getSession());
+    if (client != null) {
+      observer.onNext(client.getCurrentTime(request));
     }
     observer.onCompleted();
   }
 
   @Override
   public void getVersion(Profiler.VersionRequest request, StreamObserver<Profiler.VersionResponse> observer) {
-    if (myPollingService != null) {
-      observer.onNext(myPollingService.getVersion(request));
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(request.getSession());
+    if (client != null) {
+      observer.onNext(client.getVersion(request));
     }
     observer.onCompleted();
   }
@@ -81,8 +79,9 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   }
 
   public void startMonitoring(ManagedChannel channel) {
-    myPollingService = ProfilerServiceGrpc.newBlockingStub(channel);
-    myPollers.put(channel, new ProfilerDevicePoller(myService, myTable, myPollingService));
+    assert !myPollers.containsKey(channel);
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub stub = ProfilerServiceGrpc.newBlockingStub(channel);
+    myPollers.put(channel, new ProfilerDevicePoller(myService, myTable, stub));
     myFetchExecutor.accept(myPollers.get(channel));
   }
 
@@ -97,13 +96,8 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   public void getBytes(Profiler.BytesRequest request, StreamObserver<Profiler.BytesResponse> responseObserver) {
     // TODO: This should check a local cache of files (either in a database or on disk) before
     // making the request against the device
-    responseObserver.onNext(myPollingService.getBytes(request));
+    responseObserver.onNext(myService.getProfilerClient(request.getSession()).getBytes(request));
     responseObserver.onCompleted();
-  }
-
-  @Override
-  public void connectService(ManagedChannel channel) {
-    //Handled via startMonitoring.
   }
 
   @Override

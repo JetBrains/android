@@ -15,6 +15,7 @@
  */
 package com.android.tools.datastore.database;
 
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.google.protobuf3jarjar.InvalidProtocolBufferException;
 import com.intellij.openapi.diagnostic.Logger;
@@ -46,10 +47,10 @@ public class EventsTable extends DatastoreTable<EventsTable.EventStatements> {
   public void initialize(Connection connection) {
     super.initialize(connection);
     try {
-      createTable("Events_Activity", "Id INTEGER NOT NULL", "AppId INTEGER NOT NULL", "Data BLOB");
-      createTable("Events_System", "Id INTEGER NOT NULL", "AppId INTEGER NOT NULL", "StartTime INTEGER", "EndTime INTEGER", "Data BLOB");
-      createIndex("Events_Activity", "Id", "AppId");
-      createIndex("Events_System", "Id", "AppId");
+      createTable("Events_Activity", "Id INTEGER NOT NULL", "AppId INTEGER NOT NULL", "Session STRING NOT NULL", "Data BLOB");
+      createTable("Events_System", "Id INTEGER NOT NULL", "AppId INTEGER NOT NULL", "Session STRING NOT NULL", "StartTime INTEGER", "EndTime INTEGER", "Data BLOB");
+      createIndex("Events_Activity", "Id", "AppId", "Session");
+      createIndex("Events_System", "Id", "AppId", "Session");
     }
     catch (SQLException ex) {
       getLogger().error(ex);
@@ -59,21 +60,21 @@ public class EventsTable extends DatastoreTable<EventsTable.EventStatements> {
   @Override
   public void prepareStatements(Connection connection) {
     try {
-      createStatement(EventStatements.FIND_ACTIVITY, "SELECT Data from Events_Activity WHERE Id = ? AND AppId = ?");
-      createStatement(EventStatements.INSERT_ACTIVITY, "INSERT OR REPLACE INTO Events_Activity (Id, AppId, Data) values (?, ?, ?)");
+      createStatement(EventStatements.FIND_ACTIVITY, "SELECT Data from Events_Activity WHERE Id = ? AND AppId = ? AND Session = ?");
+      createStatement(EventStatements.INSERT_ACTIVITY, "INSERT OR REPLACE INTO Events_Activity (Id, AppId, Session, Data) values (?, ?, ?, ?)");
       createStatement(EventStatements.INSERT_SYSTEM,
-                      "INSERT OR REPLACE INTO Events_System (Id, AppId, StartTime, EndTime, Data) values ( ?, ?, ?, ?, ?)");
+                      "INSERT OR REPLACE INTO Events_System (Id, AppId, Session, StartTime, EndTime, Data) values ( ?, ?, ?, ?, ?, ?)");
       createStatement(EventStatements.QUERY_SYSTEM,
-                      "SELECT Data from Events_System WHERE AppId = ? AND (EndTime >= ? OR EndTime = 0) AND StartTime < ?;");
-      createStatement(EventStatements.QUERY_ACTIVITY, "SELECT Data from Events_Activity WHERE AppId = ?");
+                      "SELECT Data from Events_System WHERE Session = ? AND AppId = ? AND (EndTime >= ? OR EndTime = 0) AND StartTime < ?;");
+      createStatement(EventStatements.QUERY_ACTIVITY, "SELECT Data from Events_Activity WHERE AppId = ? AND Session = ?");
     }
     catch (SQLException ex) {
       getLogger().error(ex);
     }
   }
 
-  public EventProfiler.ActivityData findActivityDataOrNull(long appId, long id) {
-    ResultSet results = executeQuery(EventStatements.FIND_ACTIVITY, id, appId);
+  public EventProfiler.ActivityData findActivityDataOrNull(long appId, long id, Common.Session session) {
+    ResultSet results = executeQuery(EventStatements.FIND_ACTIVITY, id, appId, session);
     List<EventProfiler.ActivityData> datas = getActivityDataFromResultSet(results);
     if (datas.size() != 0) {
       return datas.get(0);
@@ -81,17 +82,17 @@ public class EventsTable extends DatastoreTable<EventsTable.EventStatements> {
     return null;
   }
 
-  public void insertOrReplace(long id, EventProfiler.ActivityData activity) {
-    execute(EventStatements.INSERT_ACTIVITY, id, activity.getProcessId(), activity.toByteArray());
+  public void insertOrReplace(long id, Common.Session session, EventProfiler.ActivityData activity) {
+    execute(EventStatements.INSERT_ACTIVITY, id, activity.getProcessId(), session, activity.toByteArray());
   }
 
-  public List<EventProfiler.ActivityData> getActivityDataByApp(long appId) {
-    ResultSet results = executeQuery(EventStatements.QUERY_ACTIVITY, appId);
+  public List<EventProfiler.ActivityData> getActivityDataByApp(long appId, Common.Session session) {
+    ResultSet results = executeQuery(EventStatements.QUERY_ACTIVITY, appId, session);
     return getActivityDataFromResultSet(results);
   }
 
-  public void insertOrReplace(long id, EventProfiler.SystemData activity) {
-    execute(EventStatements.INSERT_SYSTEM, id, activity.getProcessId(), activity.getStartTimestamp(), activity.getEndTimestamp(),
+  public void insertOrReplace(long id, Common.Session session, EventProfiler.SystemData activity) {
+    execute(EventStatements.INSERT_SYSTEM, id, activity.getProcessId(), session, activity.getStartTimestamp(), activity.getEndTimestamp(),
             activity.toByteArray());
   }
 
@@ -99,7 +100,7 @@ public class EventsTable extends DatastoreTable<EventsTable.EventStatements> {
     List<EventProfiler.SystemData> events = new ArrayList<>();
     try {
       ResultSet results =
-        executeQuery(EventStatements.QUERY_SYSTEM, request.getProcessId(), request.getStartTimestamp(), request.getEndTimestamp());
+        executeQuery(EventStatements.QUERY_SYSTEM, request.getSession(), request.getProcessId(), request.getStartTimestamp(), request.getEndTimestamp());
       while (results.next()) {
         EventProfiler.SystemData.Builder data = EventProfiler.SystemData.newBuilder();
         data.mergeFrom(results.getBytes(1));

@@ -15,15 +15,19 @@
  */
 package com.android.tools.datastore.service;
 
+import com.android.tools.datastore.DataStoreDatabase;
+import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.DatastoreTable;
 import com.android.tools.datastore.database.EventsTable;
 import com.android.tools.datastore.poller.EventDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.List;
@@ -36,18 +40,20 @@ import java.util.function.Consumer;
  */
 public class EventService extends EventServiceGrpc.EventServiceImplBase implements ServicePassThrough {
 
-  private EventServiceGrpc.EventServiceBlockingStub myEventPollingService;
   private EventsTable myEventsTable = new EventsTable();
   private Map<Integer, PollRunner> myRunners = new HashMap<>();
   private Consumer<Runnable> myFetchExecutor;
-  public EventService(Consumer<Runnable> fetchExecutor) {
+  private DataStoreService myService;
+  public EventService(@NotNull DataStoreService dataStoreService, Consumer<Runnable> fetchExecutor) {
     myFetchExecutor = fetchExecutor;
+    myService = dataStoreService;
   }
 
   @Override
   public void getActivityData(EventProfiler.EventDataRequest request, StreamObserver<EventProfiler.ActivityDataResponse> responseObserver) {
     EventProfiler.ActivityDataResponse.Builder response = EventProfiler.ActivityDataResponse.newBuilder();
-    List<EventProfiler.ActivityData> activites = myEventsTable.getActivityDataByApp(request.getProcessId());
+    Common.Session session = request.getSession();
+    List<EventProfiler.ActivityData> activites = myEventsTable.getActivityDataByApp(request.getProcessId(), session);
     for (EventProfiler.ActivityData data : activites) {
       // We always return information about an activity to the caller. This is so the caller can choose to act on this
       // information or drop it.
@@ -95,10 +101,11 @@ public class EventService extends EventServiceGrpc.EventServiceImplBase implemen
 
   @Override
   public void startMonitoringApp(EventProfiler.EventStartRequest request, StreamObserver<EventProfiler.EventStartResponse> observer) {
-    observer.onNext(myEventPollingService.startMonitoringApp(request));
+    observer.onNext(myService.getEventClient(request.getSession()).startMonitoringApp(request));
     observer.onCompleted();
     int processId = request.getProcessId();
-    myRunners.put(processId, new EventDataPoller(processId, myEventsTable, myEventPollingService));
+    Common.Session session = request.getSession();
+    myRunners.put(processId, new EventDataPoller(processId, session, myEventsTable, myService.getEventClient(session)));
     myFetchExecutor.accept(myRunners.get(processId));
   }
 
@@ -110,17 +117,13 @@ public class EventService extends EventServiceGrpc.EventServiceImplBase implemen
     // Our polling service can get shutdown if we unplug the device.
     // This should be the only function that gets called as StudioProfilers attempts
     // to stop monitoring the last app it was monitoring.
-    if (!((ManagedChannel)myEventPollingService.getChannel()).isShutdown()) {
-      observer.onNext(myEventPollingService.stopMonitoringApp(request));
-    } else {
+    EventServiceGrpc.EventServiceBlockingStub service = myService.getEventClient(request.getSession());
+    if (service == null) {
       observer.onNext(EventProfiler.EventStopResponse.getDefaultInstance());
+    } else {
+      observer.onNext(service.stopMonitoringApp(request));
     }
     observer.onCompleted();
-  }
-
-  @Override
-  public void connectService(ManagedChannel channel) {
-    myEventPollingService = EventServiceGrpc.newBlockingStub(channel);
   }
 
   @Override

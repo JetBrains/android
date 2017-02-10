@@ -17,6 +17,7 @@ package com.android.tools.datastore.poller;
 
 import com.android.tools.adtui.model.DurationData;
 import com.android.tools.datastore.database.MemoryTable;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.google.protobuf3jarjar.ByteString;
@@ -38,14 +39,18 @@ public class MemoryDataPoller extends PollRunner {
   private MemoryTable myMemoryTable;
 
   private int myProcessId = -1;
+  // TODO: Key data off device session.
+  private Common.Session mySession;
   private Consumer<Runnable> myFetchExecutor;
 
   public MemoryDataPoller(int processId,
+                          Common.Session session,
                           MemoryTable table,
                           MemoryServiceGrpc.MemoryServiceBlockingStub pollingService,
                           Consumer<Runnable> fetchExecutor) {
     super(POLLING_DELAY_NS);
     myProcessId = processId;
+    mySession = session;
     myMemoryTable = table;
     myPollingService = pollingService;
     myFetchExecutor = fetchExecutor;
