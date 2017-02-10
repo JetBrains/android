@@ -17,6 +17,7 @@ package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.service.CpuService;
+import com.android.tools.datastore.DataStoreService;
 import com.android.tools.profiler.proto.*;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.profiler.proto.CpuProfiler;
@@ -81,24 +82,30 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     .setSystemCpuTimeInMillisec(ONE_SECOND_MS * 2)
     .build();
 
-  private CpuService myCpuService = new CpuService(getPollTicker()::run);
+  private DataStoreService myDataStoreService = mock(DataStoreService.class);
+  private CpuService myCpuService = new CpuService(myDataStoreService, getPollTicker()::run);
 
   @Rule
   public TestGrpcService<FakeCpuService> myService = new TestGrpcService<>(myCpuService, new FakeCpuService(), new FakeProfilerService());
 
   @Before
   public void setUp() {
-    CpuProfiler.CpuStartRequest request = CpuProfiler.CpuStartRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
-      .build();
-    myCpuService.startMonitoringApp(request, mock(StreamObserver.class));
+    when(myDataStoreService.getCpuClient(any())).thenReturn(CpuServiceGrpc.newBlockingStub(myService.getChannel()));
+    when(myDataStoreService.getProfilerClient(any())).thenReturn(ProfilerServiceGrpc.newBlockingStub(myService.getChannel()));
+    startMonitoringApp();
   }
 
   @After
   public void tearDown() {
-    CpuProfiler.CpuStopRequest request = CpuProfiler.CpuStopRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
-      .build();
+    stopMonitoringApp();
+  }
+  private void startMonitoringApp() {
+    CpuProfiler.CpuStartRequest request = CpuProfiler.CpuStartRequest.newBuilder().setSession(DataStorePollerTest.SESSION).build();
+    myCpuService.startMonitoringApp(request, mock(StreamObserver.class));
+  }
+
+  private void stopMonitoringApp() {
+    CpuProfiler.CpuStopRequest request = CpuProfiler.CpuStopRequest.newBuilder().setSession(DataStorePollerTest.SESSION).build();
     myCpuService.stopMonitoringApp(request, mock(StreamObserver.class));
   }
 

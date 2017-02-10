@@ -15,18 +15,17 @@
  */
 package com.android.tools.datastore.service;
 
+import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.CpuTable;
 import com.android.tools.datastore.database.DatastoreTable;
 import com.android.tools.datastore.poller.CpuDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
-import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profiler.proto.ProfilerServiceGrpc;
+import com.android.tools.profiler.proto.*;
 import com.google.protobuf3jarjar.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -37,21 +36,15 @@ import java.util.function.Consumer;
  */
 public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements ServicePassThrough {
 
-  private ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerService;
-  private CpuServiceGrpc.CpuServiceBlockingStub myPollingService;
   private Map<Integer, PollRunner> myRunners = new HashMap<>();
   private Consumer<Runnable> myFetchExecutor;
   private CpuTable myCpuTable = new CpuTable();
   private long myStartTraceTimestamp = -1;
+  private DataStoreService myService;
 
-  public CpuService(Consumer<Runnable> fetchExecutor) {
+  public CpuService(@NotNull DataStoreService dataStoreService, Consumer<Runnable> fetchExecutor) {
     myFetchExecutor = fetchExecutor;
-  }
-
-  @Override
-  public void connectService(ManagedChannel channel) {
-    myPollingService = CpuServiceGrpc.newBlockingStub(channel);
-    myProfilerService = ProfilerServiceGrpc.newBlockingStub(channel);
+    myService = dataStoreService;
   }
 
   @Override
@@ -102,10 +95,10 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   public void startMonitoringApp(CpuProfiler.CpuStartRequest request, StreamObserver<CpuProfiler.CpuStartResponse> observer) {
     // Start monitoring request needs to happen before we begin the poller to inform the device that we are going to be requesting
     // data for a specific process id.
-    observer.onNext(myPollingService.startMonitoringApp(request));
+    observer.onNext(myService.getCpuClient(request.getSession()).startMonitoringApp(request));
     observer.onCompleted();
     int processId = request.getProcessId();
-    myRunners.put(processId, new CpuDataPoller(processId, myCpuTable, myPollingService));
+    myRunners.put(processId, new CpuDataPoller(processId, myCpuTable, myService.getCpuClient(request.getSession())));
     myFetchExecutor.accept(myRunners.get(processId));
   }
 
@@ -116,10 +109,11 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     // Our polling service can get shutdown if we unplug the device.
     // This should be the only function that gets called as StudioProfilers attempts
     // to stop monitoring the last app it was monitoring.
-    if (!((ManagedChannel)myPollingService.getChannel()).isShutdown()) {
-      observer.onNext(myPollingService.stopMonitoringApp(request));
-    } else {
+    CpuServiceGrpc.CpuServiceBlockingStub service = myService.getCpuClient(request.getSession());
+    if (service == null) {
       observer.onNext(CpuProfiler.CpuStopResponse.getDefaultInstance());
+    } else {
+      observer.onNext(service.stopMonitoringApp(request));
     }
     observer.onCompleted();
   }
@@ -128,19 +122,19 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   public void startProfilingApp(CpuProfiler.CpuProfilingAppStartRequest request,
                                 StreamObserver<CpuProfiler.CpuProfilingAppStartResponse> observer) {
     // TODO: start time shouldn't be keep in a variable here, but passed through request/response instead.
-    myStartTraceTimestamp = getCurrentDeviceTimeNs(request.getSession().getDeviceSerial());
-    observer.onNext(myPollingService.startProfilingApp(request));
+    myStartTraceTimestamp = getCurrentDeviceTimeNs(request.getSession());
+    observer.onNext(myService.getCpuClient(request.getSession()).startProfilingApp(request));
     observer.onCompleted();
   }
 
   @Override
   public void stopProfilingApp(CpuProfiler.CpuProfilingAppStopRequest request,
                                StreamObserver<CpuProfiler.CpuProfilingAppStopResponse> observer) {
-    CpuProfiler.CpuProfilingAppStopResponse response = myPollingService.stopProfilingApp(request);
+    CpuProfiler.CpuProfilingAppStopResponse response = myService.getCpuClient(request.getSession()).stopProfilingApp(request);
     CpuProfiler.TraceInfo trace = CpuProfiler.TraceInfo.newBuilder()
       .setTraceId(response.getTraceId())
       .setFromTimestamp(myStartTraceTimestamp)
-      .setToTimestamp(getCurrentDeviceTimeNs(request.getSession().getDeviceSerial()))
+      .setToTimestamp(getCurrentDeviceTimeNs(request.getSession()))
       .build();
     myCpuTable.insertTrace(trace, response.getTrace());
     myStartTraceTimestamp = -1;
@@ -164,8 +158,8 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     observer.onCompleted();
   }
 
-  private long getCurrentDeviceTimeNs(String serial) {
-    return myProfilerService.getCurrentTime(Profiler.TimeRequest.newBuilder().setDeviceSerial(serial).build()).getTimestampNs();
+  private long getCurrentDeviceTimeNs(Common.Session session) {
+    return myService.getProfilerClient(session).getCurrentTime(Profiler.TimeRequest.newBuilder().setSession(session).build()).getTimestampNs();
   }
 
   @Override
