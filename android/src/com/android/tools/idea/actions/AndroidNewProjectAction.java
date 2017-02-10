@@ -49,7 +49,7 @@ public class AndroidNewProjectAction extends AnAction implements DumbAware {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    if (WizardUtils.isNpwModelWizardEnabled(e)) {
+    if (WizardUtils.isNpwModelWizardEnabled(e, WizardUtils.Feature.NEW_PROJECT)) {
       NewProjectModel model = new NewProjectModel();
       ModelWizard wizard = new ModelWizard.Builder()
         .addStep(new ConfigureAndroidProjectStep(model))

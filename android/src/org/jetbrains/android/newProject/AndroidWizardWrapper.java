@@ -53,8 +53,7 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
 
   @Override
   public String getPresentableName() {
-    if (WizardUtils.isNpwModelWizardEnabled())
-    {
+    if (WizardUtils.isNpwModelWizardEnabled(WizardUtils.Feature.NEW_MODULE)) {
       return "Android (Legacy)";
     }
     return "Android";
