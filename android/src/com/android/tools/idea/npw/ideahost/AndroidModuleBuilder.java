@@ -76,7 +76,7 @@ public final class AndroidModuleBuilder extends ModuleBuilder implements WizardD
 
   @Override
   public String getPresentableName() {
-    if (WizardUtils.isNpwModelWizardEnabled()) {
+    if (WizardUtils.isNpwModelWizardEnabled(WizardUtils.Feature.NEW_MODULE)) {
       return "Android (New)";
     }
     return MODULE_NAME;
@@ -122,7 +122,7 @@ public final class AndroidModuleBuilder extends ModuleBuilder implements WizardD
   @Nullable
   @Override
   public ModuleWizardStep getCustomOptionsStep(WizardContext context, Disposable parentDisposable) {
-    if (!WizardUtils.isNpwModelWizardEnabled()) {
+    if (!WizardUtils.isNpwModelWizardEnabled(WizardUtils.Feature.NEW_MODULE)) {
       return null;
     }
     if (myWizardAdapter == null) {
