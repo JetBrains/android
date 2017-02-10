@@ -206,6 +206,7 @@ public class CpuProfilerStage extends Stage {
       .setAppPkgName(getStudioProfilers().getProcess().getName()) // TODO: Investigate if this is the right way of choosing the app
       .setProfiler(CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART) // TODO: support simpleperf
       .setMode(myProfilingMode)
+      .setSession(getStudioProfilers().getSession())
       .build();
 
     setCaptureState(CaptureState.STARTING);
@@ -230,6 +231,7 @@ public class CpuProfilerStage extends Stage {
     CpuProfiler.CpuProfilingAppStopRequest request = CpuProfiler.CpuProfilingAppStopRequest.newBuilder()
       .setAppPkgName(getStudioProfilers().getProcess().getName()) // TODO: Investigate if this is the right way of choosing the app
       .setProfiler(CpuProfiler.CpuProfilingAppStopRequest.Profiler.ART) // TODO: support simpleperf
+      .setSession(getStudioProfilers().getSession())
       .build();
 
     setCaptureState(CaptureState.STOPPING);
