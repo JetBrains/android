@@ -78,6 +78,7 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
   private void requestHttpRequest(long connectionId, @NotNull HttpData.Builder httpBuilder) {
     NetworkProfiler.HttpDetailsRequest request = NetworkProfiler.HttpDetailsRequest.newBuilder()
       .setConnId(connectionId)
+      .setSession(mySession)
       .setType(NetworkProfiler.HttpDetailsRequest.Type.REQUEST)
       .build();
     NetworkProfiler.HttpDetailsResponse.Request result = myNetworkService.getHttpDetails(request).getRequest();
@@ -90,6 +91,7 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
   private void requestHttpResponseBody(long connectionId, @NotNull HttpData.Builder httpBuilder) {
     NetworkProfiler.HttpDetailsRequest request = NetworkProfiler.HttpDetailsRequest.newBuilder()
       .setConnId(connectionId)
+      .setSession(mySession)
       .setType(NetworkProfiler.HttpDetailsRequest.Type.RESPONSE_BODY)
       .build();
     NetworkProfiler.HttpDetailsResponse response = myNetworkService.getHttpDetails(request);
@@ -107,6 +109,7 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
 
     Profiler.BytesRequest request = Profiler.BytesRequest.newBuilder()
       .setId(data.getResponsePayloadId())
+      .setSession(mySession)
       .build();
 
     Profiler.BytesResponse response = myProfilerService.getBytes(request);
@@ -116,6 +119,7 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
   private void requestHttpResponse(long connectionId, @NotNull HttpData.Builder httpBuilder) {
     NetworkProfiler.HttpDetailsRequest request = NetworkProfiler.HttpDetailsRequest.newBuilder()
       .setConnId(connectionId)
+      .setSession(mySession)
       .setType(NetworkProfiler.HttpDetailsRequest.Type.RESPONSE)
       .build();
     NetworkProfiler.HttpDetailsResponse response = myNetworkService.getHttpDetails(request);
