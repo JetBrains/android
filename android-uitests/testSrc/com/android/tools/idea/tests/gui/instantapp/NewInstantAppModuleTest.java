@@ -42,13 +42,13 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
+import static com.android.tools.idea.instantapp.InstantApps.setAiaSdkLocation;
 import static com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep.SAVED_COMPANY_DOMAIN;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static java.lang.System.getenv;
-import static org.jetbrains.android.util.InstantApps.setAiaSdkLocation;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
