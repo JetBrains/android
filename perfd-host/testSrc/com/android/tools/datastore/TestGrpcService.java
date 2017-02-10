@@ -70,7 +70,6 @@ public final class TestGrpcService<S extends BindableService> extends ExternalRe
     myTestFile = new File("/tmp/datastoredb");
     myDatabase = new DataStoreDatabase(myTestFile.getAbsolutePath());
     myDatabase.registerTable(myDataStoreService.getDatastoreTable());
-    myDataStoreService.connectService(getChannel());
   }
 
   @Override
