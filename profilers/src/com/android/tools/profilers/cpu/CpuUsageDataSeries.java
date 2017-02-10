@@ -61,10 +61,6 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
     CpuProfiler.CpuDataResponse response = myClient.getData(dataRequestBuilder.build());
     CpuProfiler.CpuProfilerData lastCpuData = null;
     for (CpuProfiler.CpuProfilerData data : response.getDataList()) {
-      if (data.getDataCase() != CpuProfiler.CpuProfilerData.DataCase.CPU_USAGE) {
-        // No data to be handled.
-        continue;
-      }
       long dataTimestamp = TimeUnit.NANOSECONDS.toMicros(data.getBasicInfo().getEndTimestamp());
 
       // If lastCpuData is null, it means the first CPU usage data was read. Assign it to lastCpuData and go to the next iteration.

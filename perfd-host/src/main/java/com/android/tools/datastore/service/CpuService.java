@@ -27,7 +27,9 @@ import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -61,23 +63,8 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   @Override
   public void getThreads(CpuProfiler.GetThreadsRequest request, StreamObserver<CpuProfiler.GetThreadsResponse> observer) {
     CpuProfiler.GetThreadsResponse.Builder response = CpuProfiler.GetThreadsResponse.newBuilder();
-    List<CpuProfiler.GetThreadsResponse.Thread.Builder> threadData = myCpuTable.getThreadsDataByRequest(request);
-    long from = request.getStartTimestamp();
-    long to = request.getEndTimestamp();
-    for (CpuProfiler.GetThreadsResponse.Thread.Builder builder : threadData) {
-      int count = builder.getActivitiesCount();
-      if (count > 0) {
-        // If they overlap
-        CpuProfiler.GetThreadsResponse.ThreadActivity first = builder.getActivities(0);
-        CpuProfiler.GetThreadsResponse.ThreadActivity last = builder.getActivities(count - 1);
-
-        //TODO Add a test that captures the exact behavior this is trying to catch.
-        boolean include = !(last.getTimestamp() < from && last.getNewState() == CpuProfiler.GetThreadsResponse.State.DEAD);
-        if (include) {
-          response.addThreads(builder);
-        }
-      }
-    }
+    // TODO: make it consistent with perfd and return the activities and the snapshot separately
+    response.addAllThreads(myCpuTable.getThreadsDataByRequest(request));
     observer.onNext(response.build());
     observer.onCompleted();
   }
