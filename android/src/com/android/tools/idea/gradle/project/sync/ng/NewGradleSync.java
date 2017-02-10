@@ -46,7 +46,7 @@ public class NewGradleSync implements GradleSync {
   @Override
   public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
     if (ApplicationManager.getApplication().isUnitTestMode()) {
-      sync(listener, new EmptyProgressIndicator());
+      sync(listener, new EmptyProgressIndicator(), request.isNewProject());
       return;
     }
     Task task = createSyncTask(request, listener);
@@ -59,19 +59,20 @@ public class NewGradleSync implements GradleSync {
     String title = "Gradle Sync"; // TODO show Gradle feedback
 
     ProgressExecutionMode executionMode = request.getProgressExecutionMode();
+    boolean isNewProject = request.isNewProject();
     switch (executionMode) {
       case MODAL_SYNC:
         return new Task.Modal(myProject, title, true) {
           @Override
           public void run(@NotNull ProgressIndicator indicator) {
-            sync(listener, indicator);
+            sync(listener, indicator, isNewProject);
           }
         };
       case IN_BACKGROUND_ASYNC:
         return new Task.Backgroundable(myProject, title, true) {
           @Override
           public void run(@NotNull ProgressIndicator indicator) {
-            sync(listener, indicator);
+            sync(listener, indicator, isNewProject);
           }
         };
       default:
@@ -79,12 +80,11 @@ public class NewGradleSync implements GradleSync {
     }
   }
 
-  private void sync(@Nullable GradleSyncListener syncListener, @NotNull ProgressIndicator indicator) {
+  private void sync(@Nullable GradleSyncListener syncListener, @NotNull ProgressIndicator indicator, boolean isNewProject) {
     SyncExecutionCallback callback = mySyncExecutor.syncProject(indicator);
     // @formatter:off
-    callback.doWhenDone(() -> myResultHandler.onSyncFinished(callback, indicator, syncListener))
+    callback.doWhenDone(() -> myResultHandler.onSyncFinished(callback, indicator, syncListener, isNewProject))
             .doWhenRejected(() -> myResultHandler.onSyncFailed(callback, syncListener));
     // @formatter:on
   }
-
 }
