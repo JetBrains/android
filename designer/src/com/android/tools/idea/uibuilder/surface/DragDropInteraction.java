@@ -73,11 +73,6 @@ public class DragDropInteraction extends Interaction {
   private final List<SceneComponent> myDraggedComponents;
 
   /**
-   * Temporary components that need to be deleted once the interaction is done so the real ones can be created.
-   */
-  private final List<SceneComponent> myTemporaryComponents;
-
-  /**
    * The current view group handler, if any. This is the layout widget we're dragging over (or the
    * nearest layout widget containing the non-layout views we're dragging over
    */
@@ -109,11 +104,9 @@ public class DragDropInteraction extends Interaction {
   private DnDTransferItem myTransferItem;
 
   public DragDropInteraction(@NotNull DesignSurface designSurface,
-                             @NotNull List<SceneComponent> dragged,
-                             List<SceneComponent> temporaryComponents) {
+                             @NotNull List<SceneComponent> dragged) {
     myDesignSurface = designSurface;
     myDraggedComponents = dragged;
-    myTemporaryComponents = temporaryComponents;
   }
 
   public void setType(DragType type) {
@@ -150,7 +143,6 @@ public class DragDropInteraction extends Interaction {
     super.end(x, y, modifiers, canceled);
     moveTo(x, y, modifiers, !canceled);
     mySceneView = myDesignSurface.getSceneView(x, y);
-    myTemporaryComponents.forEach(component -> mySceneView.getScene().removeComponent(component));
     if (mySceneView != null && !canceled) {
       mySceneView.getModel().notifyModified(NlModel.ChangeType.DND_END);
     }

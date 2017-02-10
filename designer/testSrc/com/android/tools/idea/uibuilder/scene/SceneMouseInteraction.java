@@ -19,24 +19,21 @@ import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Encapsulates basic mouse interaction on a Scene
  */
 public class SceneMouseInteraction {
   private final Scene myScene;
-  private final ScreenView myScreenView;
   float myLastX;
   float myLastY;
   DisplayList myDisplayList = new DisplayList();
 
-  public SceneMouseInteraction(Scene scene, ScreenView screenView) {
+  public SceneMouseInteraction(Scene scene) {
     myScene = scene;
-    myScreenView = screenView;
     repaint();
   }
 
@@ -53,7 +50,7 @@ public class SceneMouseInteraction {
   public void mouseDown(String componentId, Class targetClass, int pos) {
     SceneComponent component = myScene.getSceneComponent(componentId);
     if (component != null) {
-      ArrayList<Target> targets = component.getTargets();
+      List<Target> targets = component.getTargets();
       int n = 0;
       for (Target target : targets) {
         if (targetClass.isInstance(target)) {
@@ -137,7 +134,7 @@ public class SceneMouseInteraction {
   public void mouseRelease(String componentId, Class targetClass, int pos) {
     SceneComponent component = myScene.getSceneComponent(componentId);
     if (component != null) {
-      ArrayList<Target> targets = component.getTargets();
+      List<Target> targets = component.getTargets();
       int n = 0;
       for (Target target : targets) {
         if (targetClass.isInstance(target)) {

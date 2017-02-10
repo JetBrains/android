@@ -636,7 +636,7 @@ public class InteractionManager {
             else {
               dragged = Collections.singletonList(component);
             }
-            interaction = new DragDropInteraction(mySurface, dragged, ImmutableList.of());
+            interaction = new DragDropInteraction(mySurface, dragged);
           }
         }
         startInteraction(x, y, interaction, modifiers);
@@ -810,7 +810,7 @@ public class InteractionManager {
         for (NlComponent draggedNlComponent : draggedNl) {
           SceneComponent component = scene.getSceneComponent(draggedNlComponent);
           if (component == null) {
-            component = new TemporarySceneComponent(scene, draggedNlComponent);
+            component = sceneView.getSceneBuilder().createTemporaryComponent(draggedNlComponent);
             temporaryComponents.add(component);
           }
           dragged.add(component);
@@ -823,7 +823,7 @@ public class InteractionManager {
                                 Coordinates.getAndroidYDip(sceneView, myLastMouseY) - component.getDrawHeight() / 2 + yOffset);
           yOffset += component.getDrawHeight();
         }
-        DragDropInteraction interaction = new DragDropInteraction(mySurface, dragged, temporaryComponents);
+        DragDropInteraction interaction = new DragDropInteraction(mySurface, dragged);
         interaction.setType(dragType);
         interaction.setTransferItem(item);
         startInteraction(myLastMouseX, myLastMouseY, interaction, 0);
@@ -943,7 +943,7 @@ public class InteractionManager {
         components.get(index).y = dragged.get(index).getNlComponent().y;
       }
       dragged.clear();
-      components.forEach(nl -> dragged.add(new TemporarySceneComponent(sceneView.getScene(), nl)));
+      components.forEach(nl -> dragged.add(sceneView.getSceneBuilder().createTemporaryComponent(nl)));
       return insertType;
     }
 
