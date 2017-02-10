@@ -32,10 +32,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.instantapp.InstantApps.getDefaultInstantAppUrl;
 import static com.android.tools.idea.run.AndroidRunConfiguration.DO_NOTHING;
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY;
 import static com.android.tools.idea.run.util.LaunchUtils.isWatchFaceApp;
-import static org.jetbrains.android.util.InstantApps.getDefaultInstantAppUrl;
 
 public class AndroidRunConfigurations {
   @NotNull
