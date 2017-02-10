@@ -44,6 +44,7 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.text.DefaultEditorKit;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -110,7 +111,7 @@ public final class TranslationsEditorTest {
     AddKeyDialogFixture dialog = myTranslationsEditor.getAddKeyDialog();
     dialog.getDefaultValueTextField().enterText("action_settings");
     dialog.getKeyTextField().enterText("action_settings");
-    dialog.getResourceFolderComboBox().selectItem("app/src/debug/res");
+    dialog.getResourceFolderComboBox().selectItem(toResourceName("app/src/debug/res"));
     dialog.getOkButton().click();
 
     Object expected = Arrays.asList("action_settings", "action_settings", "app_name", "app_name", "cancel", "hello_world");
@@ -127,7 +128,7 @@ public final class TranslationsEditorTest {
     dialog.getKeyTextField().enterText("action_settings");
     dialog.getOkButton().click();
 
-    dialog.waitUntilErrorLabelFound("action_settings already exists in app/src/main/res");
+    dialog.waitUntilErrorLabelFound(toResourceName("action_settings already exists in app/src/main/res"));
     dialog.getCancelButton().click();
   }
 
@@ -238,11 +239,11 @@ public final class TranslationsEditorTest {
   public void resourceFolderColumn() {
     JTableFixture table = myTranslationsEditor.getTable();
 
-    assertEquals("app/src/main/res", table.valueAt(TableCell.row(0).column(RESOURCE_FOLDER_COLUMN)));
-    assertEquals("app/src/debug/res", table.valueAt(TableCell.row(1).column(RESOURCE_FOLDER_COLUMN)));
-    assertEquals("app/src/main/res", table.valueAt(TableCell.row(2).column(RESOURCE_FOLDER_COLUMN)));
-    assertEquals("app/src/main/res", table.valueAt(TableCell.row(3).column(RESOURCE_FOLDER_COLUMN)));
-    assertEquals("app/src/main/res", table.valueAt(TableCell.row(4).column(RESOURCE_FOLDER_COLUMN)));
+    assertEquals(toResourceName("app/src/main/res"), table.valueAt(TableCell.row(0).column(RESOURCE_FOLDER_COLUMN)));
+    assertEquals(toResourceName("app/src/debug/res"), table.valueAt(TableCell.row(1).column(RESOURCE_FOLDER_COLUMN)));
+    assertEquals(toResourceName("app/src/main/res"), table.valueAt(TableCell.row(2).column(RESOURCE_FOLDER_COLUMN)));
+    assertEquals(toResourceName("app/src/main/res"), table.valueAt(TableCell.row(3).column(RESOURCE_FOLDER_COLUMN)));
+    assertEquals(toResourceName("app/src/main/res"), table.valueAt(TableCell.row(4).column(RESOURCE_FOLDER_COLUMN)));
   }
 
   @Test
@@ -319,5 +320,11 @@ public final class TranslationsEditorTest {
       .findFirst();
 
     return optionalKeyStroke.orElseThrow(() -> new IllegalArgumentException(actionMapKey.toString()));
+  }
+
+  @NotNull
+  private static String toResourceName(@NotNull String resName) {
+    // Windows and Linux use a different file path separator
+    return resName.replace('/', File.separatorChar);
   }
 }
