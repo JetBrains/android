@@ -24,6 +24,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
@@ -53,8 +54,7 @@ public class HighlightInfos {
   public static List<HighlightInfo> getHighlightInfos(@NotNull Project project, @NotNull File pathInProject, @NotNull Predicate<HighlightInfo> filter)
     throws InterruptedException {
 
-    VirtualFile rootDirectory = project.getBaseDir();
-    VirtualFile file = rootDirectory.findFileByRelativePath(pathInProject.getPath());
+    VirtualFile file = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(new File(project.getBasePath(), pathInProject.getPath()));
     assertNotNull(file);
 
     Editor editor = FileEditorManager.getInstance(project).openTextEditor(new OpenFileDescriptor(project, file, 0), false);
