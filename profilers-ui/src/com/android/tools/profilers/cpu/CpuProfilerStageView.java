@@ -113,7 +113,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     axisPanel.add(rightAxis, BorderLayout.EAST);
     monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
 
-    SelectionModel selectionModel = new SelectionModel(timeline.getSelectionRange(), timeline.getViewRange());
+    SelectionModel selectionModel = new SelectionModel(
+      timeline.getSelectionRange(),
+      timeline.getViewRange(),
+      getStage().getTraceDurations());
     SelectionComponent selection = new SelectionComponent(selectionModel);
     final JPanel overlayPanel = new JBPanel(new BorderLayout());
     overlayPanel.setOpaque(false);
