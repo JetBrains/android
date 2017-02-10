@@ -16,6 +16,8 @@
 package com.android.tools.idea.profilers.perfd;
 
 import com.android.annotations.Nullable;
+import com.android.ddmlib.Client;
+import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.DurationData;
@@ -76,6 +78,7 @@ public class MemoryServiceProxyTest {
   private boolean myAllocationTrackingState;
   private LegacyAllocationConverter myAllocationConverter;
   private boolean myReturnNullTrackingData;
+  private IDevice myDevice;
 
   @Before
   public void setUp() {
@@ -85,15 +88,15 @@ public class MemoryServiceProxyTest {
     myParsingDoneLatch = new CountDownLatch(1);
     myAllocationConverter = new LegacyAllocationConverter();
 
-    IDevice mockDevice = mock(IDevice.class);
-    when(mockDevice.getSerialNumber()).thenReturn("Serial");
-    when(mockDevice.getName()).thenReturn("Device");
+    myDevice = mock(IDevice.class);
+    when(myDevice.getSerialNumber()).thenReturn("Serial");
+    when(myDevice.getName()).thenReturn("Device");
     // api version < 26  to enable legacy tracking features.
-    when(mockDevice.getVersion()).thenReturn(new AndroidVersion(1, "Version"));
-    when(mockDevice.isOnline()).thenReturn(true);
+    when(myDevice.getVersion()).thenReturn(new AndroidVersion(1, "Version"));
+    when(myDevice.isOnline()).thenReturn(true);
 
     ManagedChannel mockChannel = InProcessChannelBuilder.forName("MemoryServiceProxyTest").build();
-    myProxy = new MemoryServiceProxy(mockDevice, mockChannel, Runnable::run, (device, process) -> getTracker(device, process));
+    myProxy = new MemoryServiceProxy(myDevice, mockChannel, Runnable::run, (device, process) -> getTracker(device, process));
 
     // Monitoring two processes simultaneously
     myProxy.startMonitoringApp(
@@ -268,6 +271,40 @@ public class MemoryServiceProxyTest {
     myProxy.getAllocationDump(dumpRequest, observer2);
     verify(observer2, times(1)).onNext(expected2);
     verify(observer2, times(1)).onCompleted();
+  }
+
+  @Test
+  public void testForceGarbageCollection() {
+    Client client = mock(Client.class);
+    ClientData clientData = mock(ClientData.class);
+    when(client.getClientData()).thenReturn(clientData);
+    when(clientData.getPid()).thenReturn(123);
+    when(myDevice.getClients()).thenReturn(new Client[]{client});
+    myProxy.forceGarbageCollection(ForceGarbageCollectionRequest.newBuilder().setProcessId(123).build(), mock(StreamObserver.class));
+    verify(client, times(1)).executeGarbageCollector();
+  }
+
+  @Test
+  public void testForceGarbageCollectionWhenDeviceOffline() {
+    when(myDevice.isOnline()).thenReturn(false);
+    Client client = mock(Client.class);
+    ClientData clientData = mock(ClientData.class);
+    when(client.getClientData()).thenReturn(clientData);
+    when(clientData.getPid()).thenReturn(123);
+    when(myDevice.getClients()).thenReturn(new Client[]{client});
+    myProxy.forceGarbageCollection(ForceGarbageCollectionRequest.newBuilder().setProcessId(123).build(), mock(StreamObserver.class));
+    verify(client, never()).executeGarbageCollector();
+  }
+
+  @Test
+  public void testForceGarbageCollectionWhenClientIsNull() {
+    Client client = mock(Client.class);
+    ClientData clientData = mock(ClientData.class);
+    when(client.getClientData()).thenReturn(clientData);
+    when(clientData.getPid()).thenReturn(123);
+    when(myDevice.getClients()).thenReturn(new Client[0]);
+    myProxy.forceGarbageCollection(ForceGarbageCollectionRequest.newBuilder().setProcessId(123).build(), mock(StreamObserver.class));
+    verify(client, never()).executeGarbageCollector();
   }
 
   private LegacyAllocationTracker getTracker(IDevice device, int processId) {

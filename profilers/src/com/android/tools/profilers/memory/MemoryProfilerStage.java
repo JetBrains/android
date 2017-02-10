@@ -190,6 +190,11 @@ public class MemoryProfilerStage extends Stage {
     }
   }
 
+  public void forceGarbageCollection(@NotNull Executor executor) {
+    executor.execute(() -> myClient.forceGarbageCollection(
+      MemoryProfiler.ForceGarbageCollectionRequest.newBuilder().setProcessId(myProcessId).setSession(mySessionData).build()));
+  }
+
   public DurationDataModel<CaptureDurationData<HeapDumpCaptureObject>> getHeapDumpSampleDurations() {
     return myHeapDumpDurations;
   }

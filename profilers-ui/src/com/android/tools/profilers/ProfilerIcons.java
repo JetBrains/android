@@ -29,6 +29,10 @@ public class ProfilerIcons {
 
   public static final Icon BACK_ARROW = load("/icons/back-arrow.png");
 
+  public static final Icon FORCE_GARBAGE_COLLECTION = load("/icons/force-garbage-collection.png");
+
+  public static final Icon HEAP_DUMP = load("/icons/heap-dump.png");
+
   // Collections of constant, do not instantiate.
   private ProfilerIcons() {}
 
