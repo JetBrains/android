@@ -160,7 +160,7 @@ public class AdbFileListingTest {
     assertEntry(rootEntries, "charger", entry -> {
       assertThat(entry).isNotNull();
       assertThat(entry.isDirectory()).isFalse();
-      assertThat(entry.isFile()).isTrue();
+      assertThat(entry.isFile()).isFalse();
       assertThat(entry.isSymbolicLink()).isTrue();
       assertThat(entry.getPermissions()).isEqualTo("lrwxrwxrwx");
       assertThat(entry.getOwner()).isEqualTo("root");
@@ -172,7 +172,7 @@ public class AdbFileListingTest {
 
     assertEntry(rootEntries, "etc", entry -> {
       assertThat(entry).isNotNull();
-      assertThat(entry.isDirectory()).isTrue();
+      assertThat(entry.isDirectory()).isFalse();
       assertThat(entry.isFile()).isFalse();
       assertThat(entry.isSymbolicLink()).isTrue();
       assertThat(entry.getPermissions()).isEqualTo("lrwxrwxrwx");
@@ -200,6 +200,36 @@ public class AdbFileListingTest {
     thrown.expect(ExecutionException.class);
     thrown.expectCause(IsInstanceOf.instanceOf(ShellCommandUnresponsiveException.class));
     waitForFuture(fileListing.getChildren(root));
+  }
+
+  @Test
+  public void testIsDirectoryLink() throws Exception {
+    // Prepare
+    IDevice device = createMockNexus7Device();
+    Executor taskExecutor = PooledThreadExecutor.INSTANCE;
+    AdbFileListing fileListing = new AdbFileListing(device, taskExecutor);
+
+    // Act
+    AdbFileListingEntry root = waitForFuture(fileListing.getRoot());
+    List<AdbFileListingEntry> rootEntries = waitForFuture(fileListing.getChildren(root));
+
+    // Assert
+    assertThat(rootEntries).isNotNull();
+    assertDirectoryLink(fileListing, rootEntries, "charger", false);
+    assertDirectoryLink(fileListing, rootEntries, "d", true);
+    assertDirectoryLink(fileListing, rootEntries, "etc", true);
+    assertDirectoryLink(fileListing, rootEntries, "sdcard", true);
+    assertDirectoryLink(fileListing, rootEntries, "tombstones", false);
+    assertDirectoryLink(fileListing, rootEntries, "vendor", true);
+  }
+
+  private static void assertDirectoryLink(@NotNull AdbFileListing fileListing,
+                                          @NotNull List<AdbFileListingEntry> entries,
+                                          @NotNull String name,
+                                          boolean value) throws Exception {
+    AdbFileListingEntry entry = entries.stream().filter(x -> name.equals(x.getName())).findFirst().orElse(null);
+    assertThat(entry).isNotNull();
+    assertThat(waitForFuture(fileListing.isDirectoryLink(entry))).isEqualTo(value);
   }
 
   private static void assertEntry(@NotNull List<AdbFileListingEntry> entries,

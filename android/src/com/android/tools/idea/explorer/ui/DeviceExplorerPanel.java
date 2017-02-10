@@ -217,10 +217,10 @@ public class DeviceExplorerPanel {
     @NotNull
     private static Icon getIconForImpl(@NotNull DeviceFileEntryNode node) {
       DeviceFileEntry entry = node.getEntry();
-      if (entry.isDirectory()) {
+      if (entry.isDirectory() || node.isSymbolicLinkToDirectory()) {
         return AllIcons.Nodes.Folder;
       }
-      else if (entry.isFile()) {
+      else if (entry.isFile() || entry.isSymbolicLink()) {
         LightVirtualFile file = new LightVirtualFile(entry.getName());
         Icon ftIcon = file.getFileType().getIcon();
         return ftIcon == null ? AllIcons.FileTypes.Any_type : ftIcon;
