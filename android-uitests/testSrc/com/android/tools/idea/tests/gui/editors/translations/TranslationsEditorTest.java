@@ -166,7 +166,7 @@ public final class TranslationsEditorTest {
 
   @Test
   public void filterByText() {
-    myTranslationsEditor.clickFilterKeysComboBoxItem("Filter by text");
+    myTranslationsEditor.clickFilterKeysComboBoxItem("Filter by Text");
 
     DialogBuilderFixture dialog = DialogBuilderFixture.find(myGuiTest.robot());
     new JTextComponentFixture(myGuiTest.robot(), myGuiTest.robot().finder().findByType(dialog.target(), JTextField.class))
