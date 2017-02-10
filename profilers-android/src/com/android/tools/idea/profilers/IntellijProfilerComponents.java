@@ -83,26 +83,26 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
 
   @NotNull
   @Override
-  public StackTraceView createStackView(@Nullable Runnable prenavigate) {
-    return new IntelliJStackTraceView(myProject, prenavigate);
+  public StackTraceView createStackView(@NotNull StackTraceModel model) {
+    return new IntelliJStackTraceView(myProject, model);
   }
 
   @Override
   public void installNavigationContextMenu(@NotNull JComponent component,
                                            @NotNull Supplier<CodeLocation> codeLocationSupplier,
-                                           @Nullable Runnable preNavigate) {
+                                           @Nullable Runnable navigationCallback) {
     component.putClientProperty(DataManager.CLIENT_PROPERTY_DATA_PROVIDER, (DataProvider)dataId -> {
       if (CommonDataKeys.NAVIGATABLE_ARRAY.is(dataId)) {
-        CodeLocation frame = codeLocationSupplier.get();
-        if (frame == null) {
+        CodeLocation location = codeLocationSupplier.get();
+        if (location == null) {
           return null;
         }
 
-        if (frame.getLineNumber() > 0) {
-          return PsiClassNavigation.getNavigationForClass(myProject, preNavigate, frame.getClassName(), frame.getLineNumber());
+        if (location.getLineNumber() > 0) {
+          return PsiClassNavigation.getNavigationForClass(myProject, location.getClassName(), location.getLineNumber());
         }
         else {
-          return PsiClassNavigation.getNavigationForClass(myProject, preNavigate, frame.getClassName());
+          return PsiClassNavigation.getNavigationForClass(myProject, location.getClassName());
         }
       }
       else if (CommonDataKeys.PROJECT.is(dataId)) {
@@ -112,7 +112,7 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
     });
 
     DefaultActionGroup popupGroup = createOrGetActionGroup(component);
-    popupGroup.add(new EditMultipleSourcesAction());
+    popupGroup.add(new EditMultipleSourcesAction(navigationCallback));
   }
 
   @Override

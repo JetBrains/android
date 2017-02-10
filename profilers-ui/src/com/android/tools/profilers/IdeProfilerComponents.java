@@ -33,7 +33,7 @@ public interface IdeProfilerComponents {
   TabsPanel createTabsPanel();
 
   @NotNull
-  StackTraceView createStackView(@Nullable Runnable prenavigate);
+  StackTraceView createStackView(@NotNull StackTraceModel model);
 
   /**
    * Installs an IntelliJ context menu on a {@link JComponent}.
@@ -41,11 +41,11 @@ public interface IdeProfilerComponents {
    * @param component            The target {@link JComponent} that the context menu is to be installed on.
    * @param codeLocationSupplier A {@link Supplier} of the desired code to navigate to. When the supplier is resolved, the system is not
    *                             necessarily ready to conduct the navigation (i.e. displaying the menu popup, awaiting user input).
-   * @param preNavigate          A runnable callback invoked just prior to the actual act of navigating to the code.
+   * @param navigationCallback   A runnable callback invoked just prior to the actual act of navigating to the code.
    */
   void installNavigationContextMenu(@NotNull JComponent component,
                                     @NotNull Supplier<CodeLocation> codeLocationSupplier,
-                                    @Nullable Runnable preNavigate);
+                                    @Nullable Runnable navigationCallback);
 
   /**
    * Installs a generic IntelliJ context menu on a {@code component} from the specified {@code contextMenu}.

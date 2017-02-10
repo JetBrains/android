@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.profilers.stacktrace;
 
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.common.CodeLocation;
-import com.android.tools.profilers.common.StackFrameParser;
+import com.android.tools.profilers.common.StackTraceModel;
 import com.android.tools.profilers.common.StackTraceView;
 import com.android.tools.profilers.common.ThreadId;
 import com.google.common.annotations.VisibleForTesting;
@@ -30,24 +31,20 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 
-import static com.android.tools.profilers.common.ThreadId.INVALID_THREAD_ID;
 import static com.intellij.ui.SimpleTextAttributes.*;
-import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
-import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
-public class IntelliJStackTraceView implements StackTraceView {
+public class IntelliJStackTraceView extends AspectObserver implements StackTraceView {
   @NotNull
   private final Project myProject;
+
+  @NotNull
+  private final StackTraceModel myModel;
 
   @NotNull
   private final BiFunction<Project, CodeLocation, StackNavigation> myGenerator;
@@ -61,15 +58,16 @@ public class IntelliJStackTraceView implements StackTraceView {
   @NotNull
   private final JBList myListView;
 
-  public IntelliJStackTraceView(@NotNull Project project, @Nullable Runnable preNavigate) {
-    this(project, preNavigate, IntelliJStackNavigation::new);
+  public IntelliJStackTraceView(@NotNull Project project, @NotNull StackTraceModel model) {
+    this(project, model, IntelliJStackNavigation::new);
   }
 
   @VisibleForTesting
   IntelliJStackTraceView(@NotNull Project project,
-                         @Nullable Runnable preNavigate,
+                         @NotNull StackTraceModel model,
                          @NotNull BiFunction<Project, CodeLocation, StackNavigation> stackNavigationGenerator) {
     myProject = project;
+    myModel = model;
     myGenerator = stackNavigationGenerator;
     myListModel = new DefaultListModel<>();
     myListView = new JBList(myListModel);
@@ -83,88 +81,56 @@ public class IntelliJStackTraceView implements StackTraceView {
     myListView.addListSelectionListener(e -> {
       int index = myListView.getLeadSelectionIndex();
       if (index < 0 || index >= myListView.getItemsCount() || myListView.getItemsCount() == 0) {
+        myModel.clearSelection();
         return;
       }
 
       StackElement element = myListModel.getElementAt(index);
-      element.navigate(preNavigate);
+      element.navigate();
+      myModel.setSelectedIndex(index);
     });
+
+    myModel.addDependency(this).
+      onChange(StackTraceModel.Aspect.STACK_FRAMES, () -> {
+        List<CodeLocation> stackFrames = myModel.getCodeLocations();
+        myListModel.removeAllElements();
+        myListView.clearSelection();
+        stackFrames.forEach(stackFrame -> myListModel.addElement(myGenerator.apply(myProject, stackFrame)));
+
+        ThreadId threadId = myModel.getThreadId();
+        if (!threadId.equals(ThreadId.INVALID_THREAD_ID)) {
+          myListModel.addElement(new ThreadElement(threadId));
+        }
+      })
+      .onChange(StackTraceModel.Aspect.SELECTED_LOCATION, () -> {
+        int index = myModel.getSelectedIndex();
+        if (myModel.getSelectedType() == StackTraceModel.Type.INVALID) {
+          if (myListView.getSelectedIndex() != -1) {
+            myListView.clearSelection();
+          }
+        }
+        else if (index >= 0 && index < myListView.getItemsCount()) {
+          if (myListView.getSelectedIndex() != index) {
+            myListView.setSelectedIndex(index);
+          }
+        }
+        else {
+          throw new IndexOutOfBoundsException(
+            "View has " + myListView.getItemsCount() + " elements while aspect is changing to index " + index);
+        }
+      });
   }
 
+  @NotNull
   @Override
-  public void clearStackFrames() {
-    myListModel.removeAllElements();
-  }
-
-  @Override
-  public void setStackFrames(@NotNull String stackString) {
-    setStackFrames(INVALID_THREAD_ID, Arrays.stream(stackString.split("\\n")).map(
-      stackFrame -> {
-        StackFrameParser parser = new StackFrameParser(stackFrame);
-        return new CodeLocation(parser.getClassName(), parser.getFileName(), parser.getMethodName(), parser.getLineNumber() - 1);
-      }).collect(Collectors.toList()));
-  }
-
-  @Override
-  public void setStackFrames(@NotNull ThreadId threadId, @Nullable List<CodeLocation> stackFrames) {
-    clearStackFrames();
-
-    if (stackFrames == null || stackFrames.isEmpty()) {
-      return;
-    }
-
-    stackFrames.forEach(stackFrame -> myListModel.addElement(myGenerator.apply(myProject, stackFrame)));
-    if (threadId != INVALID_THREAD_ID) {
-      myListModel.addElement(new ThreadElement(threadId));
-    }
+  public StackTraceModel getModel() {
+    return myModel;
   }
 
   @NotNull
   @Override
   public JComponent getComponent() {
     return myScrollPane;
-  }
-
-  @Nullable
-  @Override
-  public CodeLocation getSelectedLocation() {
-    int index = myListView.getSelectedIndex();
-    if (index < 0 || index >= myListModel.size()) {
-      return null;
-    }
-    StackElement renderable = myListModel.get(index);
-    return renderable instanceof StackNavigation ? ((StackNavigation)renderable).getCodeLocation() : null;
-  }
-
-  @Override
-  public boolean selectCodeLocation(@Nullable CodeLocation location) {
-    if (location == null) {
-      myListView.clearSelection();
-      return false;
-    }
-
-    for (int i = 0; i < myListModel.size(); ++i) {
-      StackElement renderable = myListModel.getElementAt(i);
-      if (renderable instanceof StackNavigation && ((StackNavigation)renderable).getCodeLocation().equals(location)) {
-        myListView.setSelectedIndex(i);
-        return true;
-      }
-    }
-    myListView.clearSelection();
-    return false;
-  }
-
-  @NotNull
-  @Override
-  public List<CodeLocation> getCodeLocations() {
-    List<CodeLocation> locations = new ArrayList<>(myListModel.getSize());
-    for (int i = 0; i < myListModel.size(); i++) {
-      Object element = myListModel.get(i);
-      if (element instanceof StackNavigation) {
-        locations.add(((StackNavigation)element).getCodeLocation());
-      }
-    }
-    return locations;
   }
 
   @VisibleForTesting
@@ -203,7 +169,7 @@ public class IntelliJStackTraceView implements StackTraceView {
 
     private void renderStackNavigation(@NotNull StackNavigation navigation, boolean selected) {
       setIcon(PlatformIcons.METHOD_ICON);
-      SimpleTextAttributes textAttribute = selected || navigation.isInContext() ? REGULAR_ATTRIBUTES : GRAY_ATTRIBUTES;
+      SimpleTextAttributes textAttribute = selected || navigation.isInUserCode() ? REGULAR_ATTRIBUTES : GRAY_ATTRIBUTES;
       CodeLocation location = navigation.getCodeLocation();
       append(navigation.getMethodName(), textAttribute, navigation.getMethodName());
       String lineNumberText = ":" + Integer.toString(location.getLineNumber() + 1) + ", ";
