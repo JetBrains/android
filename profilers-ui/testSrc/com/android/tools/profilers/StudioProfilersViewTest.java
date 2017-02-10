@@ -28,6 +28,7 @@ import com.android.tools.profilers.network.NetworkMonitor;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -43,7 +44,7 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.*;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class StudioProfilersViewTest {
@@ -76,40 +77,40 @@ public class StudioProfilersViewTest {
     StageView view = myView.getStageView();
 
     myProfilers.setStage(stage);
-    assertEquals(view, myView.getStageView());
+    assertThat(myView.getStageView()).isEqualTo(view);
   }
 
   @Test
   public void testMonitorExpansion() throws IOException {
-    assertTrue(myProfilers.getStage() instanceof StudioMonitorStage);
+    assertThat(myProfilers.getStage()).isInstanceOf(StudioMonitorStage.class);
 
     List<Point> points = new TreeWalker(myView.getComponent()).descendantStream()
       .filter(d -> d instanceof LineChart)
       .map(c -> myUi.getPosition(c))
       .collect(Collectors.toList());
     // Test that we have three monitors
-    assertEquals(3, points.size());
+    assertThat(points.size()).isEqualTo(3);
 
     // Test the first monitor goes to cpu profiling
     myUi.mouse.click(points.get(0).x + 1, points.get(0).y + 1);
-    assertTrue(myProfilers.getStage() instanceof CpuProfilerStage);
+    assertThat(myProfilers.getStage()).isInstanceOf(CpuProfilerStage.class);
     myProfilers.setMonitoringStage();
 
     myUi.layout();
     // Test the second monitor goes to memory profiling
     myUi.mouse.click(points.get(1).x + 1, points.get(1).y + 1);
-    assertTrue(myProfilers.getStage() instanceof MemoryProfilerStage);
+    assertThat(myProfilers.getStage()).isInstanceOf(MemoryProfilerStage.class);
     myProfilers.setMonitoringStage();
 
     myUi.layout();
     // Test the third monitor goes to network profiling
     myUi.mouse.click(points.get(2).x + 1, points.get(2).y + 1);
-    assertTrue(myProfilers.getStage() instanceof NetworkProfilerStage);
+    assertThat(myProfilers.getStage()).isInstanceOf(NetworkProfilerStage.class);
   }
 
   @Test
   public void testMonitorTooltip() throws IOException {
-    assertTrue(myProfilers.getStage() instanceof StudioMonitorStage);
+    assertThat(myProfilers.getStage()).isInstanceOf(StudioMonitorStage.class);
     StudioMonitorStage stage = (StudioMonitorStage)myProfilers.getStage();
 
     List<Point> points = new TreeWalker(myView.getComponent()).descendantStream()
@@ -117,30 +118,30 @@ public class StudioProfilersViewTest {
       .map(c -> myUi.getPosition(c))
       .collect(Collectors.toList());
     // Test that we have three monitors
-    assertEquals(3, points.size());
+    assertThat(points.size()).isEqualTo(3);
 
     // cpu monitoring
     myUi.mouse.moveTo(points.get(0).x + 1, points.get(0).y + 1);
-    assertTrue(stage.getTooltip() instanceof CpuMonitor);
-    assertTrue(stage.getTooltip().isFocused());
-    stage.getMonitors().forEach(monitor -> assertEquals(monitor == stage.getTooltip(), monitor.isFocused()));
+    assertThat(stage.getTooltip()).isInstanceOf(CpuMonitor.class);
+    assertThat(stage.getTooltip().isFocused()).isTrue();
+    stage.getMonitors().forEach(monitor -> assertThat(monitor.isFocused()).isEqualTo(monitor == stage.getTooltip()));
 
     // memory monitoring
     myUi.mouse.moveTo(points.get(1).x + 1, points.get(1).y + 1);
-    assertTrue(stage.getTooltip() instanceof MemoryMonitor);
-    assertTrue(stage.getTooltip().isFocused());
-    stage.getMonitors().forEach(monitor -> assertEquals(monitor == stage.getTooltip(), monitor.isFocused()));
+    assertThat(stage.getTooltip()).isInstanceOf(MemoryMonitor.class);
+    assertThat(stage.getTooltip().isFocused()).isTrue();
+    stage.getMonitors().forEach(monitor -> assertThat(monitor.isFocused()).isEqualTo(monitor == stage.getTooltip()));
 
     // network monitoring
     myUi.mouse.moveTo(points.get(2).x + 1, points.get(2).y + 1);
-    assertTrue(stage.getTooltip() instanceof NetworkMonitor);
-    assertTrue(stage.getTooltip().isFocused());
-    stage.getMonitors().forEach(monitor -> assertEquals(monitor == stage.getTooltip(), monitor.isFocused()));
+    assertThat(stage.getTooltip()).isInstanceOf(NetworkMonitor.class);
+    assertThat(stage.getTooltip().isFocused()).isTrue();
+    stage.getMonitors().forEach(monitor -> assertThat(monitor.isFocused()).isEqualTo(monitor == stage.getTooltip()));
 
     // no tooltip
     myUi.mouse.moveTo(0, 0);
-    assertNull(stage.getTooltip());
-    stage.getMonitors().forEach(monitor -> assertFalse(monitor.isFocused()));
+    assertThat(stage.getTooltip()).isNull();
+    stage.getMonitors().forEach(monitor -> assertThat(monitor.isFocused()).isFalse());
   }
 
   @Test
@@ -150,7 +151,7 @@ public class StudioProfilersViewTest {
     // Null device
     Profiler.Device device = null;
     Component component = renderer.getListCellRendererComponent(list, device, 0, false, false);
-    assertEquals(renderer.getEmptyText(), component.toString());
+    assertThat(component.toString()).isEqualTo(renderer.getEmptyText());
 
     // Standard case
     device = Profiler.Device.newBuilder()
@@ -158,7 +159,7 @@ public class StudioProfilersViewTest {
       .setSerial("1234")
       .build();
     component = renderer.getListCellRendererComponent(list, device, 0, false, false);
-    assertEquals("Model (1234)", component.toString());
+    assertThat(component.toString()).isEqualTo("Model (1234)");
 
     // Suffix not serial
     device = Profiler.Device.newBuilder()
@@ -166,7 +167,7 @@ public class StudioProfilersViewTest {
       .setSerial("1234")
       .build();
     component = renderer.getListCellRendererComponent(list, device, 0, false, false);
-    assertEquals("Model-9999 (1234)", component.toString());
+    assertThat(component.toString()).isEqualTo("Model-9999 (1234)");
 
     // Suffix serial
     device = Profiler.Device.newBuilder()
@@ -174,7 +175,7 @@ public class StudioProfilersViewTest {
       .setSerial("1234")
       .build();
     component = renderer.getListCellRendererComponent(list, device, 0, false, false);
-    assertEquals("Model (1234)", component.toString());
+    assertThat(component.toString()).isEqualTo("Model (1234)");
   }
 
   @Test
@@ -184,7 +185,7 @@ public class StudioProfilersViewTest {
     // Null process
     Profiler.Process process = null;
     Component component = renderer.getListCellRendererComponent(list, process, 0, false, false);
-    assertEquals(renderer.getEmptyText(), component.toString());
+    assertThat(component.toString()).isEqualTo(renderer.getEmptyText());
 
     // Process
     process = Profiler.Process.newBuilder()
@@ -192,7 +193,7 @@ public class StudioProfilersViewTest {
       .setPid(1234)
       .build();
     component = renderer.getListCellRendererComponent(list, process, 0, false, false);
-    assertEquals("MyProcessName (1234)", component.toString());
+    assertThat(component.toString()).isEqualTo("MyProcessName (1234)");
   }
 
   @Test
@@ -274,7 +275,7 @@ public class StudioProfilersViewTest {
         for (Object previous : path) {
           error += " > \"" + previous + "\" :: " + previous.getClass().getName() + "\n";
         }
-        assertFalse(error, true);
+        Assert.fail(error);
       }
     }
     if (!object.getClass().isArray() && (name.startsWith("java.lang") || name.startsWith("io.grpc"))) {
