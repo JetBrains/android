@@ -16,6 +16,7 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
+import com.android.tools.idea.project.CustomProjectTypeImporter;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.IdeBundle;
@@ -110,8 +111,14 @@ public class AndroidOpenFileAction extends DumbAwareAction {
         }
       }
 
+      if (CustomProjectTypeImporter.getMain().importFileAsProject(file)) {
+        return;
+      }
+
       FileType type = getKnownFileTypeOrAssociate(file, project);
-      if (type == null) return;
+      if (type == null) {
+        return;
+      }
 
       if (project != null) {
         openFile(file, project);
