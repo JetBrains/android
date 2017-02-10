@@ -24,10 +24,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.android.tools.idea.instantapp.InstantApps.setAiaSdkLocation;
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.google.common.truth.Truth.assertThat;
 import static java.lang.System.getenv;
-import static org.jetbrains.android.util.InstantApps.setAiaSdkLocation;
 
 /**
  * Test that UI is correctly enabled / disabled when WH_SDK environment variable is set
