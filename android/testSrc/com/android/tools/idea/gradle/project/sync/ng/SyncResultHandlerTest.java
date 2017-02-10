@@ -61,7 +61,7 @@ public class SyncResultHandlerTest extends IdeaTestCase {
     ProjectSetup projectSetup = mock(ProjectSetup.class);
     when(myProjectSetupFactory.create(project)).thenReturn(projectSetup);
 
-    myResultHandler.onSyncFinished(mySyncCallback, myIndicator, mySyncListener);
+    myResultHandler.onSyncFinished(mySyncCallback, myIndicator, mySyncListener, false);
 
     verify(mySyncState).setupStarted();
     verify(mySyncState, never()).syncFailed(any());
