@@ -368,13 +368,13 @@ public class MemoryProfilerStage extends Stage {
       myTotalLegend = new SeriesLegend(usage.getTotalMemorySeries(), MEMORY_AXIS_FORMATTER, range);
       myObjectsLegend = new SeriesLegend(usage.getObjectsSeries(), OBJECT_COUNT_AXIS_FORMATTER, range);
 
+      add(myTotalLegend);
       add(myJavaLegend);
       add(myNativeLegend);
       add(myGraphicsLegend);
       add(myStackLegend);
       add(myCodeLegend);
       add(myOtherLegend);
-      add(myTotalLegend);
       add(myObjectsLegend);
     }
 
