@@ -30,6 +30,7 @@ import com.intellij.openapi.roots.LanguageLevelModuleExtension;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.pom.java.LanguageLevel;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
@@ -145,6 +146,31 @@ public class NewProjectTest {
       "        Missing support for Firebase App Indexing",
       "            AndroidManifest.xml",
       "                App is not indexable by Google Search; consider adding at least one Activity with an ACTION-VIEW intent filter. See issue explanation for more details."));
+  }
+
+  @RunIn(TestGroup.UNRELIABLE)
+  @Test
+  public void testNoWarningsInNewProjectWithCpp() {
+    // Creates a new project with c++, and checks that if we run Analyze > Inspect Code, there are no warnings.
+    // This checks that our (default) project templates are warnings-clean.
+    // The test then proceeds to make a couple of edits and checks that these do not generate additional
+    // warnings either.
+    IdeFrameFixture ideFrame = newProject("Test Application").withCpp().create();
+    assertThat(ideFrame.getModuleNames()).containsExactly("app", "TestApplication");
+
+    // Workaround for Windows specific issue when using 'Inspect Code' feature.
+    // See NewInstantAppTest.testNoWarningsInDefaultNewInstantAppProjects
+    GuiTask.execute(() -> guiTest.ideFrame().getProject().save());
+
+    String inspectionResults = guiTest.ideFrame()
+      .openFromMenu(InspectCodeDialogFixture::find, "Analyze", "Inspect Code...")
+      .clickOk()
+      .getResults();
+
+    // TODO Disable spell checking before running inspection, then compare for equality like testNoWarningsInNewProjects does.
+    // These two strings are categories that are very common when there will be some problem compiling.
+    assertThat(inspectionResults).doesNotContain("Declaration order");
+    assertThat(inspectionResults).doesNotContain("Unused code");
   }
 
   @Test
@@ -285,6 +311,7 @@ public class NewProjectTest {
     private String myMinSdk = "15";
     private String myName = "TestProject";
     private String myDomain = "com.android";
+    private boolean myCpp = false;
     private boolean myWaitForSync = true;
 
     private NewProjectDescriptor(@NotNull String name) {
@@ -312,6 +339,11 @@ public class NewProjectTest {
      */
     NewProjectDescriptor withActivity(@NotNull String activity) {
       myActivity = activity;
+      return this;
+    }
+
+    NewProjectDescriptor withCpp() {
+      myCpp = true;
       return this;
     }
 
@@ -353,7 +385,7 @@ public class NewProjectTest {
         .createNewProject();
 
       ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard.getConfigureAndroidProjectStep();
-      configureAndroidProjectStep.enterApplicationName(myName).enterCompanyDomain(myDomain).enterPackageName(myPkg);
+      configureAndroidProjectStep.enterApplicationName(myName).enterCompanyDomain(myDomain).enterPackageName(myPkg).setCppSupport(myCpp);
       guiTest.setProjectPath(configureAndroidProjectStep.getLocationInFileSystem());
       newProjectWizard.clickNext();
 
@@ -364,6 +396,11 @@ public class NewProjectTest {
       newProjectWizard.clickNext();
 
       newProjectWizard.getChooseOptionsForNewFileStep().enterActivityName(myActivity);
+
+      if (myCpp) {
+        newProjectWizard.clickNext();
+      }
+
       newProjectWizard.clickFinish();
 
       if (myWaitForSync) {
