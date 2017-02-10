@@ -18,11 +18,13 @@ package com.android.tools.idea.editors.strings;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.table.*;
 import com.android.tools.idea.rendering.Locale;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
+import com.intellij.openapi.ui.DialogBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,6 +69,23 @@ final class FilterKeysAction extends ComboBoxAction {
       @Override
       public void actionPerformed(@Nullable AnActionEvent event) {
         myTable.setRowFilter(new NeedsTranslationsRowFilter());
+      }
+    });
+
+    group.add(new AnAction("Filter by Text", "Filter the translations editor table keys by text", AllIcons.General.Filter) {
+      @Override
+      public void actionPerformed(@Nullable AnActionEvent e) {
+        JTextField textField = new JTextField();
+        DialogBuilder builder = new DialogBuilder();
+        builder.setTitle("Filter by Text");
+        builder.setCenterPanel(textField);
+        builder.setPreferredFocusComponent(textField);
+        if (builder.showAndGet()) {
+          String filterString = textField.getText();
+          if (!filterString.isEmpty()) {
+            myTable.setRowFilter(new TextRowFilter(filterString));
+          }
+        }
       }
     });
 

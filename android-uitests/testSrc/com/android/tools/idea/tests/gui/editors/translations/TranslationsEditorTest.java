@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.editors.translations;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.framework.fixture.DialogBuilderFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MultilineStringEditorDialogFixture;
@@ -161,6 +162,18 @@ public final class TranslationsEditorTest {
   public void showOnlyHebrew() {
     myTranslationsEditor.clickFilterLocalesComboBoxItem("Show Hebrew (iw)");
     assertEquals(Collections.singletonList("Hebrew (iw)"), myTranslationsEditor.locales());
+  }
+
+  @Test
+  public void filterByText() {
+    myTranslationsEditor.clickFilterKeysComboBoxItem("Filter by text");
+
+    DialogBuilderFixture dialog = DialogBuilderFixture.find(myGuiTest.robot());
+    new JTextComponentFixture(myGuiTest.robot(), myGuiTest.robot().finder().findByType(dialog.target(), JTextField.class))
+      .enterText("world");
+    dialog.clickOk();
+
+    assertEquals(Collections.singletonList("hello_world"), myTranslationsEditor.keys());
   }
 
   @Test
