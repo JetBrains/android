@@ -15,8 +15,7 @@
  */
 package com.android.tools.adtui;
 
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.SelectionModel;
+import com.android.tools.adtui.model.*;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
@@ -84,10 +83,8 @@ public final class SelectionComponent extends AnimatedComponent {
         Dimension size = getSize();
         int x = e.getX();
 
-        float myStartX = rangeToX(myModel.getSelectionRange().getMin());
-        float myEndX = rangeToX(myModel.getSelectionRange().getMax());
-        double startXPos = size.getWidth() * myStartX;
-        double endXPos = size.getWidth() * myEndX;
+        double startXPos = rangeToX(myModel.getSelectionRange().getMin(), size);
+        double endXPos = rangeToX(myModel.getSelectionRange().getMax(), size);
         if (startXPos - HANDLE_WIDTH < x && x < startXPos) {
           myMode = Mode.ADJUST_MIN;
         }
@@ -111,6 +108,7 @@ public final class SelectionComponent extends AnimatedComponent {
           myModel.fireSelectionEvent();
         }
         myMode = Mode.NONE;
+        opaqueRepaint();
       }
     });
     this.addMouseMotionListener(new MouseMotionAdapter() {
@@ -119,39 +117,35 @@ public final class SelectionComponent extends AnimatedComponent {
         double pressed = xToRange(myMousePressed);
         double current = xToRange(e.getX());
         double rangeDelta = current - pressed;
+        double min = myModel.getSelectionRange().getMin();
+        double max = myModel.getSelectionRange().getMax();
         switch (myMode) {
           case ADJUST_MIN:
-            if (current > myModel.getSelectionRange().getMax()) {
-              double oldMin = myModel.getSelectionRange().getMin();
-              myModel.getSelectionRange().setMin(myModel.getSelectionRange().getMax());
-              myModel.getSelectionRange().setMax(oldMin + rangeDelta);
+            if (min + rangeDelta > max) {
+              myModel.set(max, min + rangeDelta);
               myMode = Mode.ADJUST_MAX;
             }
             else {
-              myModel.getSelectionRange().setMin(myModel.getSelectionRange().getMin() + rangeDelta);
+              myModel.set(min + rangeDelta, max);
             }
             myMousePressed = e.getX();
             break;
           case ADJUST_MAX:
-            if (current < myModel.getSelectionRange().getMin()) {
-              double oldMax = myModel.getSelectionRange().getMax();
-              myModel.getSelectionRange().setMax(myModel.getSelectionRange().getMin());
-              myModel.getSelectionRange().setMin(oldMax + rangeDelta);
+            if (max + rangeDelta < min) {
+              myModel.set(max + rangeDelta, min);
               myMode = Mode.ADJUST_MIN;
             }
             else {
-              myModel.getSelectionRange().setMax(myModel.getSelectionRange().getMax() + rangeDelta);
+              myModel.set(min, max + rangeDelta);
             }
             myMousePressed = e.getX();
             break;
           case MOVE:
-            myModel.getSelectionRange().setMax(myModel.getSelectionRange().getMax() + rangeDelta);
-            myModel.getSelectionRange().setMin(myModel.getSelectionRange().getMin() + rangeDelta);
+            myModel.set(min + rangeDelta, max + rangeDelta);
             myMousePressed = e.getX();
             break;
           case CREATE:
-            myModel.getSelectionRange().setMin(pressed < current ? pressed : current);
-            myModel.getSelectionRange().setMax(pressed < current ? current : pressed);
+            myModel.set(pressed < current ? pressed : current, pressed < current ? current : pressed);
             break;
           case NONE:
             break;
@@ -177,9 +171,9 @@ public final class SelectionComponent extends AnimatedComponent {
     return x / getSize().getWidth() * range.getLength() + range.getMin();
   }
 
-  private float rangeToX(double value) {
+  private float rangeToX(double value, Dimension dim) {
     Range range = myModel.getRange();
-    return (float)((value - range.getMin()) / (range.getMax() - range.getMin()));
+    return  (float)(dim.getWidth() * ((value - range.getMin()) / (range.getMax() - range.getMin())));
   }
 
   @Override
@@ -187,10 +181,8 @@ public final class SelectionComponent extends AnimatedComponent {
     if (myModel.getSelectionRange().isEmpty()) {
       return;
     }
-    float myStartX = rangeToX(myModel.getSelectionRange().getMin());
-    float myEndX = rangeToX(myModel.getSelectionRange().getMax());
-    float startXPos = (float)(myStartX * dim.getWidth());
-    float endXPos = (float)(myEndX * dim.getWidth());
+    float startXPos = rangeToX(myModel.getSelectionRange().getMin(), dim);
+    float endXPos = rangeToX(myModel.getSelectionRange().getMax(), dim);
 
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     g.setColor(DEFAULT_SELECTION_COLOR);
