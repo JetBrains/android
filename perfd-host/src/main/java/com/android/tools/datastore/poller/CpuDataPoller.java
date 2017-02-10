@@ -15,23 +15,10 @@
  */
 package com.android.tools.datastore.poller;
 
-import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.CpuTable;
-import com.android.tools.datastore.database.DatastoreTable;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profiler.proto.ProfilerServiceGrpc;
-import com.google.protobuf3jarjar.ByteString;
-import io.grpc.ManagedChannel;
-import io.grpc.ServerServiceDefinition;
 import io.grpc.StatusRuntimeException;
-import io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-import java.util.concurrent.RunnableFuture;
 
 /**
  * This class gathers sets up a CPUProfilerService and forward all commands to the connected channel with the exception of getData.

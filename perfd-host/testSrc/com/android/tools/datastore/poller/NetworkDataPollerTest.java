@@ -16,6 +16,7 @@
 package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.DataStorePollerTest;
+import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.NetworkService;
 import com.android.tools.profiler.proto.Common;
@@ -29,7 +30,9 @@ import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class NetworkDataPollerTest extends DataStorePollerTest {
 
@@ -90,15 +93,16 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
                .build())
     .build();
 
-  private NetworkService myNetworkDataPoller = new NetworkService(getPollTicker()::run);
+  private DataStoreService myDataStoreService = mock(DataStoreService.class);
+  private NetworkService myNetworkDataPoller = new NetworkService(myDataStoreService, getPollTicker()::run);
 
   @Rule
   public TestGrpcService<FakeNetworkService> myService = new TestGrpcService<>(myNetworkDataPoller, new FakeNetworkService());
 
   @Before
   public void setUp() throws Exception {
-    myNetworkDataPoller
-      .startMonitoringApp(NetworkProfiler.NetworkStartRequest.newBuilder().setProcessId(TEST_APP_ID).build(), mock(StreamObserver.class));
+    when(myDataStoreService.getNetworkClient(any())).thenReturn(NetworkServiceGrpc.newBlockingStub(myService.getChannel()));
+    myNetworkDataPoller.startMonitoringApp(NetworkProfiler.NetworkStartRequest.newBuilder().setProcessId(TEST_APP_ID).build(), mock(StreamObserver.class));
   }
 
   @After

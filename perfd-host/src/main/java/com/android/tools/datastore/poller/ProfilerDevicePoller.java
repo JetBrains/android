@@ -58,7 +58,7 @@ public class ProfilerDevicePoller extends PollRunner {
           .setBootId(device.getBootId())
           .setDeviceSerial(device.getSerial())
           .build();
-
+        myService.setConnectedClients(session, (ManagedChannel)myPollingService.getChannel());
         Profiler.GetProcessesRequest processesRequest =
           Profiler.GetProcessesRequest.newBuilder().setSession(session).build();
         Profiler.GetProcessesResponse processesResponse = myPollingService.getProcesses(processesRequest);
@@ -84,8 +84,8 @@ public class ProfilerDevicePoller extends PollRunner {
       // then we disconnect the channel.
       for(Common.Session session : myActiveProcesses.keySet()) {
         killProcesses(session, myActiveProcesses.get(session));
+        myService.disconnect(session);
       }
-      myService.disconnect((ManagedChannel)myPollingService.getChannel());
     }
   }
 

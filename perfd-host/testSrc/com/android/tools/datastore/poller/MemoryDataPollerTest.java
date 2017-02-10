@@ -31,7 +31,9 @@ import org.junit.*;
 import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class MemoryDataPollerTest extends DataStorePollerTest {
 
@@ -75,7 +77,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     .build();
 
   private DataStoreService myDataStore = mock(DataStoreService.class);
-  private MemoryService myMemoryService = new MemoryService(getPollTicker()::run);
+  private MemoryService myMemoryService = new MemoryService(myDataStore, getPollTicker()::run);
   private FakeMemoryService myFakeMemoryService = new FakeMemoryService();
 
   @Rule
@@ -83,8 +85,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
   @Before
   public void setUp() throws Exception {
-    // TODO: Abstract to TestGrpcService
-    myMemoryService.connectService(myService.getChannel());
+    when(myDataStore.getMemoryClient(any())).thenReturn(MemoryServiceGrpc.newBlockingStub(myService.getChannel()));
     startMonitoringApp();
     getPollTicker().run();
   }

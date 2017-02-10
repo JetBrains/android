@@ -33,6 +33,8 @@ import org.junit.Test;
 import java.util.Map;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 public class ProfilerServiceTest extends DataStorePollerTest {
 
@@ -74,6 +76,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
   @Before
   public void setUp() throws Exception {
     myProfilerService.startMonitoring(myService.getChannel());
+    when(myDataStore.getProfilerClient(any())).thenReturn(ProfilerServiceGrpc.newBlockingStub(myService.getChannel()));
   }
 
   @After

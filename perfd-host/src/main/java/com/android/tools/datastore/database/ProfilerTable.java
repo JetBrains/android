@@ -39,6 +39,11 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
     SELECT_DEVICE,
   }
 
+  // Need to have a lock due to processes being updated and queried at the same time.
+  // If a process is being queried, while one is being updated it will not get
+  // returned in the query results, this results in the UI flickering.
+  private Object myLock = new Object();
+
   private static Logger getLogger() {
     return Logger.getInstance(ProfilerTable.class);
   }
@@ -71,42 +76,53 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
   }
 
   public Profiler.GetDevicesResponse getDevices(Profiler.GetDevicesRequest request) {
-    Profiler.GetDevicesResponse.Builder responseBuilder = Profiler.GetDevicesResponse.newBuilder();
-    ResultSet results = executeQuery(ProfilerStatements.SELECT_DEVICE, Long.MIN_VALUE, Long.MAX_VALUE);
-    try {
-      while (results.next()) {
-        responseBuilder.addDevice(Profiler.Device.parseFrom(results.getBytes(1)));
+    synchronized (myLock) {
+      Profiler.GetDevicesResponse.Builder responseBuilder = Profiler.GetDevicesResponse.newBuilder();
+      ResultSet results = executeQuery(ProfilerStatements.SELECT_DEVICE, Long.MIN_VALUE, Long.MAX_VALUE);
+      try {
+        while (results.next()) {
+          responseBuilder.addDevice(Profiler.Device.parseFrom(results.getBytes(1)));
+        }
       }
-    } catch (InvalidProtocolBufferException | SQLException ex) {
-      getLogger().error(ex);
+      catch (InvalidProtocolBufferException | SQLException ex) {
+        getLogger().error(ex);
+      }
+      return responseBuilder.build();
     }
-    return responseBuilder.build();
   }
 
   public Profiler.GetProcessesResponse getProcesses(Profiler.GetProcessesRequest request) {
-    Profiler.GetProcessesResponse.Builder responseBuilder = Profiler.GetProcessesResponse.newBuilder();
-    ResultSet results = executeQuery(ProfilerStatements.SELECT_PROCESS, request.getSession().toString().hashCode(), Long.MIN_VALUE, Long.MAX_VALUE);
-    try {
-      while (results.next()) {
-        byte[] data = results.getBytes(1);
-        Profiler.Process process = data == null ? Profiler.Process.getDefaultInstance() : Profiler.Process.parseFrom(data);
-        responseBuilder.addProcess(process);
+    synchronized (myLock) {
+      Profiler.GetProcessesResponse.Builder responseBuilder = Profiler.GetProcessesResponse.newBuilder();
+      ResultSet results =
+        executeQuery(ProfilerStatements.SELECT_PROCESS, request.getSession().toString().hashCode(), Long.MIN_VALUE, Long.MAX_VALUE);
+      try {
+        while (results.next()) {
+          byte[] data = results.getBytes(1);
+          Profiler.Process process = data == null ? Profiler.Process.getDefaultInstance() : Profiler.Process.parseFrom(data);
+          responseBuilder.addProcess(process);
+        }
       }
-    } catch (InvalidProtocolBufferException | SQLException ex) {
-      getLogger().error(ex);
+      catch (InvalidProtocolBufferException | SQLException ex) {
+        getLogger().error(ex);
+      }
+      return responseBuilder.build();
     }
-    return responseBuilder.build();
   }
 
   public void insertOrUpdateDevice(Profiler.Device device) {
-    //TODO: Update start/end times with times polled from device.
-    //End time always equals now, start time comes from device. This way if we get disconnected we still have an accurate end time.
-    execute(ProfilerStatements.INSERT_DEVICE, device.getSerial().hashCode(), 0L, 0L, device.toByteArray());
+    synchronized (myLock) {
+      //TODO: Update start/end times with times polled from device.
+      //End time always equals now, start time comes from device. This way if we get disconnected we still have an accurate end time.
+      execute(ProfilerStatements.INSERT_DEVICE, device.getSerial().hashCode(), 0L, 0L, device.toByteArray());
+    }
   }
 
   public void insertOrUpdateProcess(Common.Session session, Profiler.Process process) {
-    //TODO: Properly set end time. Here the end time comes from the device, or is set to now, so we don't leave
-    //end times open.
-    execute(ProfilerStatements.INSERT_PROCESS, session.toString().hashCode(), process.getPid(), 0L, 0L, process.toByteArray());
+    synchronized (myLock) {
+      //TODO: Properly set end time. Here the end time comes from the device, or is set to now, so we don't leave
+      //end times open.
+      execute(ProfilerStatements.INSERT_PROCESS, session.toString().hashCode(), process.getPid(), 0L, 0L, process.toByteArray());
+    }
   }
 }

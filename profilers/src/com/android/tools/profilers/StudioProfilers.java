@@ -146,11 +146,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       Set<Profiler.Device> devices = new HashSet<>(response.getDeviceList());
       Map<Profiler.Device, List<Profiler.Process>> newProcesses = new HashMap<>();
       for (Profiler.Device device : devices) {
-        mySessionData = Common.Session.newBuilder()
-        .setDeviceSerial(device.getSerial())
-        .setBootId(device.getBootId())
-        .build();
-        Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder().setSession(mySessionData).build();
+        Common.Session session = Common.Session.newBuilder()
+          .setDeviceSerial(device.getSerial())
+          .setBootId(device.getBootId())
+          .build();
+        Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder().setSession(session).build();
         Profiler.GetProcessesResponse processes = myClient.getProfilerClient().getProcesses(request);
 
         //TODO: Have the UI handle dead processes properly
@@ -190,8 +190,15 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       changed(ProfilerAspect.DEVICES);
 
       if (myDevice != null) {
+        mySessionData = Common.Session.newBuilder()
+          .setDeviceSerial(myDevice.getSerial())
+          .setBootId(myDevice.getBootId())
+          .build();
+
         // TODO: getTimes should take the device
-        Profiler.TimeResponse times = myClient.getProfilerClient().getCurrentTime(Profiler.TimeRequest.getDefaultInstance());
+        Profiler.TimeResponse times = myClient.getProfilerClient().getCurrentTime(Profiler.TimeRequest.newBuilder()
+                                                                                    .setSession(getSession())
+                                                                                    .build());
         myRelativeTimeConverter = new RelativeTimeConverter(times.getTimestampNs() - TimeUnit.SECONDS.toNanos(TIMELINE_BUFFER));
         myTimeline.reset(myRelativeTimeConverter);
         myTimeline.setStreaming(true);

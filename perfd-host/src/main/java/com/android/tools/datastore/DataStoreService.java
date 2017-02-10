@@ -17,6 +17,7 @@ package com.android.tools.datastore;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.datastore.service.*;
+import com.android.tools.profiler.proto.*;
 import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.ManagedChannel;
 import io.grpc.Server;
@@ -27,7 +28,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -36,12 +39,12 @@ import java.util.function.Consumer;
 public class DataStoreService {
   private static final Logger LOG = Logger.getInstance(DataStoreService.class.getCanonicalName());
   private DataStoreDatabase myDatabase;
-  private ManagedChannel myChannel;
   private ServerBuilder myServerBuilder;
   private Server myServer;
   private List<ServicePassThrough> myServices = new ArrayList<>();
   private Consumer<Runnable> myFetchExecutor;
   private ProfilerService myProfilerService;
+  private Map<Common.Session, DataStoreClient> myConnectedClients = new HashMap<>();
 
   /**
    * @param fetchExecutor A callback which is given a {@link Runnable} for each datastore service.
@@ -69,10 +72,10 @@ public class DataStoreService {
   public void createPollers() {
     myProfilerService = new ProfilerService(this, myFetchExecutor);
     registerService(myProfilerService);
-    registerService(new EventService(myFetchExecutor));
-    registerService(new CpuService(myFetchExecutor));
-    registerService(new MemoryService(myFetchExecutor));
-    registerService(new NetworkService(myFetchExecutor));
+    registerService(new EventService(this, myFetchExecutor));
+    registerService(new CpuService(this, myFetchExecutor));
+    registerService(new MemoryService(this, myFetchExecutor));
+    registerService(new NetworkService(this, myFetchExecutor));
   }
 
   /**
@@ -88,45 +91,119 @@ public class DataStoreService {
   }
 
   /**
-   * This function connects all the services registered in the datastore to the device.
-   */
-  private void connectServices() {
-    for (ServicePassThrough service : myServices) {
-      // Tell service how to connect to device RPC to start polling.
-      service.connectService(myChannel);
-    }
-  }
-
-  /**
-   * Note - Previously connect/disconnect was done through a ProfilerService rpc call in which this receives only a port number. Passing
-   * in a ManagedChannel directly allows the caller to optimize the channel best suited for the server (In-process vs Netty channels).
+   * When a new device is connected this function tells the DataStore how to connect to that device and creates a channel for the device.
+   *
+   * @param devicePort forwarded port for the datastore to connect to perfd on.
    */
   public void connect(@NotNull ManagedChannel channel) {
-    myChannel = channel;
     myProfilerService.startMonitoring(channel);
-    connectServices();
   }
 
   /**
    * Disconnect from the specified channel.
-   * TODO: currently we just support the same channel that was passed into connect. mutli-device workflow needs to handle this.
    */
-  public void disconnect(@Nullable ManagedChannel channel) {
-    assert channel == myChannel;
-    if (myChannel != null) {
-      myChannel.shutdownNow();
+  public void disconnect(@NotNull Common.Session session) {
+    if(myConnectedClients.containsKey(session)) {
+      ManagedChannel channel = myConnectedClients.remove(session).getChannel();
+      channel.shutdownNow();
+      myProfilerService.stopMonitoring(channel);
     }
-    myProfilerService.stopMonitoring(channel);
-    myChannel = null;
   }
 
   public void shutdown() {
     myServer.shutdownNow();
+    for(DataStoreClient client : myConnectedClients.values()) {
+      client.shutdownNow();
+    }
+    myConnectedClients.clear();
     myDatabase.disconnect();
   }
 
   @VisibleForTesting
   List<ServicePassThrough> getRegisteredServices() {
     return myServices;
+  }
+
+  public void setConnectedClients(Common.Session session, ManagedChannel channel) {
+    if (!myConnectedClients.containsKey(session)) {
+      myConnectedClients.put(session, new DataStoreClient(channel));
+    }
+  }
+
+  public CpuServiceGrpc.CpuServiceBlockingStub getCpuClient(Common.Session session) {
+    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getCpuClient() : null;
+  }
+
+  public EventServiceGrpc.EventServiceBlockingStub getEventClient(Common.Session session) {
+    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getEventClient() : null;
+  }
+
+  public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient(Common.Session session) {
+    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getNetworkClient() : null;
+  }
+
+  public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient(Common.Session session) {
+    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getMemoryClient() : null;
+  }
+
+  public ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerClient(Common.Session session) {
+    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getProfilerClient() : null;
+  }
+
+
+  /**
+   * This class is used to manage the stub to each service per device.
+   */
+  private static class DataStoreClient {
+
+    @NotNull private final ManagedChannel myChannel;
+    @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerClient;
+    @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myMemoryClient;
+    @NotNull private final CpuServiceGrpc.CpuServiceBlockingStub myCpuClient;
+    @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkClient;
+    @NotNull private final EventServiceGrpc.EventServiceBlockingStub myEventClient;
+    @NotNull private final EnergyServiceGrpc.EnergyServiceBlockingStub myEnergyClient;
+
+    public DataStoreClient(@NotNull ManagedChannel channel) {
+      myChannel = channel;
+      myProfilerClient = ProfilerServiceGrpc.newBlockingStub(channel);
+      myMemoryClient = MemoryServiceGrpc.newBlockingStub(channel);
+      myCpuClient = CpuServiceGrpc.newBlockingStub(channel);
+      myNetworkClient = NetworkServiceGrpc.newBlockingStub(channel);
+      myEventClient = EventServiceGrpc.newBlockingStub(channel);
+      myEnergyClient = EnergyServiceGrpc.newBlockingStub(channel);
+    }
+    public ManagedChannel getChannel() {
+      return myChannel;
+    }
+
+    @NotNull
+    public ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerClient() {
+      return myProfilerClient;
+    }
+
+    @NotNull
+    public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient() {
+      return myMemoryClient;
+    }
+
+    @NotNull
+    public CpuServiceGrpc.CpuServiceBlockingStub getCpuClient() {
+      return myCpuClient;
+    }
+
+    @NotNull
+    public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient() {
+      return myNetworkClient;
+    }
+
+    @NotNull
+    public EventServiceGrpc.EventServiceBlockingStub getEventClient() {
+      return myEventClient;
+    }
+
+    public void shutdownNow() {
+      myChannel.shutdownNow();
+    }
   }
 }
