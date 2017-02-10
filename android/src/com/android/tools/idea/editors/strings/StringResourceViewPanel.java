@@ -216,6 +216,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     group.add(new AddLocaleAction(myTable, myFacet));
     group.add(new RemoveLocaleAction(myTable, myFacet));
     group.add(new FilterKeysAction(myTable));
+    group.add(new FilterLocalesAction(myTable));
     group.add(new BrowserHelpAction("Translations editor", "https://developer.android.com/r/studio-ui/translations-editor.html"));
 
     return toolbar;
