@@ -97,12 +97,20 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     JToolBar toolBar = new JToolBar();
     toolBar.setFloatable(false);
     toolBar.add(backButton);
-    toolBar.add(myAllocationButton);
 
-    JButton triggerHeapDumpButton = new JButton("Heap Dump");
+    JButton forceGarbageCollectionButton = new JButton();
+    forceGarbageCollectionButton.setIcon(ProfilerIcons.FORCE_GARBAGE_COLLECTION);
+    forceGarbageCollectionButton.setToolTipText("Triggers a garbage collection event");
+    forceGarbageCollectionButton.addActionListener(e -> getStage().forceGarbageCollection(SwingUtilities::invokeLater));
+    toolBar.add(forceGarbageCollectionButton);
+
+    JButton triggerHeapDumpButton = new JButton();
+    triggerHeapDumpButton.setIcon(ProfilerIcons.HEAP_DUMP);
     triggerHeapDumpButton.setToolTipText("Takes an Hprof snapshot of the application memory");
     triggerHeapDumpButton.addActionListener(e -> getStage().requestHeapDump(SwingUtilities::invokeLater));
     toolBar.add(triggerHeapDumpButton);
+
+    toolBar.add(myAllocationButton);
 
     return toolBar;
   }
