@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.util;
+package com.android.tools.idea.instantapp;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.model.MergedManifest;
