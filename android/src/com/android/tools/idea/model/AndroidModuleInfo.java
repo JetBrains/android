@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
-import static org.jetbrains.android.util.InstantApps.findInstantAppBaseSplit;
+import static com.android.tools.idea.instantapp.InstantApps.findInstantAppBaseSplit;
 
 /**
  * Android information about a module, such as its application package, its minSdkVersion, and so on. This
