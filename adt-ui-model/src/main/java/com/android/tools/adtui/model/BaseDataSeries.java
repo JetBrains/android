@@ -43,7 +43,7 @@ public abstract class BaseDataSeries<E> implements DataSeries<E> {
   @Override
   public ImmutableList<SeriesData<E>> getDataForXRange(Range xRange) {
     //If the size of our data is 0, early return an empty list.
-    if(size() == 0) {
+    if(size() == 0 || xRange.isEmpty()) {
       return getDataSubList(0, 0);
     }
 
