@@ -16,45 +16,38 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.tools.idea.actions.BrowserHelpAction;
-import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.res.MultiResourceRepository;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.Reason;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.ui.popup.JBPopup;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
-import com.intellij.refactoring.safeDelete.SafeDeleteHandler;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.table.JBTable;
-import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -69,9 +62,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntSupplier;
 
@@ -221,124 +211,14 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     JComponent toolbarComponent = toolbar.getComponent();
     toolbarComponent.setName("toolbar");
 
-    final AnAction addKeyAction = new AnAction("Add Key", "", AllIcons.ToolbarDecorator.Add) {
-      @Override
-      public void update(AnActionEvent e) {
-        e.getPresentation().setEnabled(myTable.getData() != null);
-      }
-
-      @Override
-      public void actionPerformed(AnActionEvent e) {
-        StringResourceData data = myTable.getData();
-        assert data != null;
-
-        NewStringKeyDialog dialog = new NewStringKeyDialog(myFacet, ImmutableSet.copyOf(data.getKeys()));
-        if (dialog.showAndGet()) {
-          StringsWriteUtils.createItem(myFacet, dialog.getResFolder(), null, dialog.getKey(), dialog.getDefaultValue(), true);
-        }
-      }
-    };
-
-    group.add(addKeyAction);
-    group.add(new RemoveKeysAction());
-    group.add(new AddLocaleAction());
+    group.add(new AddKeyAction(myTable, myFacet));
+    group.add(new RemoveKeysAction(this));
+    group.add(new AddLocaleAction(myTable, myFacet));
     group.add(new RemoveLocaleAction(myTable, myFacet));
     group.add(new FilterKeysAction(myTable));
     group.add(new BrowserHelpAction("Translations editor", "https://developer.android.com/r/studio-ui/translations-editor.html"));
 
     return toolbar;
-  }
-
-  private final class RemoveKeysAction extends AnAction {
-    private RemoveKeysAction() {
-      super("Remove Keys", "", AllIcons.ToolbarDecorator.Remove);
-    }
-
-    @Override
-    public void update(@NotNull AnActionEvent event) {
-      event.getPresentation().setEnabled(myTable.getSelectedRowCount() != 0);
-    }
-
-    @Override
-    public void actionPerformed(@NotNull AnActionEvent event) {
-      Project project = event.getProject();
-      assert project != null;
-
-      PsiElement[] elements = Arrays.stream(myTable.getSelectedRowModelIndices())
-        .mapToObj(index -> ((StringResourceTableModel)myTable.getModel()).getStringResourceAt(index).getKey())
-        .flatMap(key -> myResourceRepository.getItems(key).stream())
-        .map(item -> LocalResourceRepository.getItemTag(project, item))
-        .toArray(PsiElement[]::new);
-
-      SafeDeleteHandler.invoke(project, elements, LangDataKeys.MODULE.getData(event.getDataContext()), true, null);
-    }
-  }
-
-  private final class AddLocaleAction extends AnAction {
-    private AddLocaleAction() {
-      super("Add Locale", "", AndroidIcons.Globe);
-    }
-
-    @Override
-    public boolean displayTextInToolbar() {
-      return true;
-    }
-
-    @Override
-    public void update(@NotNull AnActionEvent event) {
-      long count = ((StringResourceTableModel)myTable.getModel()).getKeys().stream()
-        .filter(key -> key.getDirectory() != null)
-        .count();
-
-      event.getPresentation().setEnabled(count != 0);
-    }
-
-    @Override
-    public void actionPerformed(@NotNull AnActionEvent event) {
-      StringResourceData data = myTable.getData();
-      assert data != null;
-
-      List<Locale> missingLocales = LocaleMenuAction.getAllLocales();
-      missingLocales.removeAll(data.getLocales());
-      missingLocales.sort(Locale.LANGUAGE_NAME_COMPARATOR);
-
-      JList list = new LocaleList(missingLocales);
-
-      JBPopup popup = JBPopupFactory.getInstance().createListPopupBuilder(list)
-        .setItemChoosenCallback(() -> createItem(list))
-        .createPopup();
-
-      popup.showUnderneathOf(event.getInputEvent().getComponent());
-    }
-
-    private void createItem(@NotNull JList list) {
-      StringResource resource = findResource();
-      StringResourceKey key = resource.getKey();
-
-      VirtualFile directory = key.getDirectory();
-      assert directory != null;
-
-      String value = resource.getDefaultValueAsString();
-      StringsWriteUtils.createItem(myFacet, directory, (Locale)list.getSelectedValue(), key.getName(), value, true);
-    }
-
-    @NotNull
-    private StringResource findResource() {
-      StringResourceData data = myTable.getData();
-      assert data != null;
-
-      StringResourceKey key = new StringResourceKey("app_name", myFacet.getAllResourceDirectories().get(0));
-
-      if (data.containsKey(key)) {
-        return data.getStringResource(key);
-      }
-
-      Optional<StringResource> optionalResource = data.getResources().stream()
-        .filter(resource -> resource.getKey().getDirectory() != null)
-        .findFirst();
-
-      return optionalResource.orElseThrow(IllegalStateException::new);
-    }
   }
 
   private void initTable() {
@@ -370,6 +250,11 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
   StringResourceTable getTable() {
     return myTable;
+  }
+
+  @NotNull
+  StringResourceRepository getRepository() {
+    return myResourceRepository;
   }
 
   @Override
