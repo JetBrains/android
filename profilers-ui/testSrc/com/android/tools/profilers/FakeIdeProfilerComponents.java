@@ -18,7 +18,6 @@ package com.android.tools.profilers;
 import com.android.tools.profilers.common.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.mockito.Mockito;
 
 import javax.swing.*;
 import java.awt.*;
@@ -96,22 +95,18 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     };
   }
 
-  /**
-   * This creates a mocked version of a {@link StackTraceViewStub} such that code that uses {@link IdeProfilerComponents} can be tested.
-   * @return a mocked {@link StackTraceViewStub}
-   */
   @NotNull
   @Override
-  public StackTraceView createStackView(@Nullable Runnable preNavigate) {
-    return Mockito.spy(new StackTraceViewStub(preNavigate));
+  public StackTraceView createStackView(@NotNull StackTraceModel model) {
+    return new StackTraceViewStub(model);
   }
 
   @Override
   public void installNavigationContextMenu(@NotNull JComponent component,
                                            @NotNull Supplier<CodeLocation> codeLocationSupplier,
-                                           @Nullable Runnable preNavigate) {
+                                           @Nullable Runnable navigationCallback) {
     assertFalse(myComponentNavigations.containsKey(component));
-    myComponentNavigations.put(component, new ComponentNavigations(codeLocationSupplier, preNavigate));
+    myComponentNavigations.put(component, new ComponentNavigations(codeLocationSupplier, navigationCallback));
   }
 
   @Override
@@ -139,7 +134,7 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
   }
 
   @Nullable
-  public Runnable getPreNavigate(@NotNull JComponent component) {
+  public Runnable getNavigationCallback(@NotNull JComponent component) {
     assertTrue(myComponentNavigations.containsKey(component));
     return myComponentNavigations.get(component).myPreNavigate;
   }
@@ -183,51 +178,22 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
   }
 
   public static class StackTraceViewStub implements StackTraceView {
-    private Runnable myPreNavigate;
-    private CodeLocation myLocation;
+    private StackTraceModel myModel = new StackTraceModel();
 
-    public StackTraceViewStub(Runnable preNavigate) {
-      myPreNavigate = preNavigate;
+    public StackTraceViewStub(@NotNull StackTraceModel model) {
+      myModel = model;
     }
 
+    @NotNull
     @Override
-    public void clearStackFrames() {
-
-    }
-
-    @Override
-    public void setStackFrames(@NotNull String stackString) {
-
-    }
-
-    @Override
-    public void setStackFrames(@NotNull ThreadId threadId, @NotNull List<CodeLocation> stackFrames) {
-
+    public StackTraceModel getModel() {
+      return myModel;
     }
 
     @NotNull
     @Override
     public JComponent getComponent() {
       return new JPanel();
-    }
-
-    @Nullable
-    @Override
-    public CodeLocation getSelectedLocation() {
-      return myLocation;
-    }
-
-    @Override
-    public boolean selectCodeLocation(@Nullable CodeLocation location) {
-      myLocation = location;
-      myPreNavigate.run();
-      return location != null;
-    }
-
-    @NotNull
-    @Override
-    public List<CodeLocation> getCodeLocations() {
-      return new ArrayList<>();
     }
   }
 }

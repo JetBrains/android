@@ -61,14 +61,14 @@ final class IntelliJStackNavigation implements StackNavigation {
   }
 
   @Override
-  public void navigate(@Nullable Runnable preNavigate) {
+  public void navigate() {
     Navigatable[] navigatables;
     if (myCodeLocation.getLineNumber() > 0) {
       navigatables =
-        PsiClassNavigation.getNavigationForClass(myProject, preNavigate, myCodeLocation.getClassName(), myCodeLocation.getLineNumber());
+        PsiClassNavigation.getNavigationForClass(myProject, myCodeLocation.getClassName(), myCodeLocation.getLineNumber());
     }
     else {
-      navigatables = PsiClassNavigation.getNavigationForClass(myProject, preNavigate, myCodeLocation.getClassName());
+      navigatables = PsiClassNavigation.getNavigationForClass(myProject, myCodeLocation.getClassName());
     }
 
     if (navigatables == null) {
@@ -101,7 +101,7 @@ final class IntelliJStackNavigation implements StackNavigation {
   }
 
   @Override
-  public boolean isInContext() {
+  public boolean isInUserCode() {
     VirtualFile classFile = findClassFile();
     return classFile != null && ProjectFileIndex.SERVICE.getInstance(myProject).isInSource(classFile);
   }

@@ -39,5 +39,5 @@ public interface StackNavigation extends StackElement {
   /**
    * @return true if the destination of this element's {@link CodeLocation} is in the current user's work context (e.g. {@link com.intellij.openapi.project.Project})
    */
-  boolean isInContext();
+  boolean isInUserCode();
 }
