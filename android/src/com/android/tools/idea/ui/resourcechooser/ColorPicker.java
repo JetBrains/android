@@ -368,7 +368,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       myColorSuggestionPreview.setVisible(true);
       String toolTip = "<html>Change to <b>" + MaterialColorUtils.getMaterialName(myClosestColor);
       myColorSuggestionPreview.setToolTipText(toolTip);
-      myColorSuggestionPreview.setIcon(new ColorIcon(JBUI.scale(12), myClosestColor));
+      myColorSuggestionPreview.setIcon(JBUI.scale(new ColorIcon(12, myClosestColor)));
     }
     else {
       myColorSuggestionPreview.setVisible(false);

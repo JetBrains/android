@@ -33,7 +33,10 @@ import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.HtmlBuilderHelper;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.res.*;
+import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.ProjectResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceNameValidator;
 import com.android.tools.idea.ui.SearchField;
 import com.android.tools.lint.checks.IconDetector;
 import com.android.tools.swing.ui.SwatchComponent;
@@ -2234,8 +2237,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
       // Post menu
       JBPopupFactory factory = JBPopupFactory.getInstance();
-      ListPopup popup = factory.createActionGroupPopup(null, group, context, JBPopupFactory.ActionSelectionAid.SPEEDSEARCH, true, null,
-                                                       10);
+      ListPopup popup = factory.createActionGroupPopup(null, group, context, true, null, 10);
       popup.showUnderneathOf(source);
     }
 

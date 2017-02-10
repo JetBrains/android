@@ -74,7 +74,6 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.*;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.wm.impl.IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN;
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static java.lang.Boolean.TRUE;
 
 /**
@@ -164,7 +163,7 @@ public final class Projects {
                               @NotNull DataNode<ProjectData> projectInfo,
                               @NotNull Collection<DataNode<ModuleData>> modulesToImport,
                               @Nullable PostSyncProjectSetup.Request setupRequest) {
-    invokeAndWaitIfNeeded((Runnable)() -> {
+    ApplicationManager.getApplication().invokeAndWait(() -> {
       SyncMessages.getInstance(project).removeProjectMessages();
 
       ApplicationManager.getApplication().runWriteAction(() -> {
@@ -230,7 +229,7 @@ public final class Projects {
       }
       return;
     }
-    invokeAndWaitIfNeeded((Runnable)() -> ApplicationManager.getApplication().runWriteAction(() -> {
+    ApplicationManager.getApplication().invokeAndWait(() -> ApplicationManager.getApplication().runWriteAction(() -> {
       if (!project.isDisposed()) {
         ProjectRootManagerEx.getInstanceEx(project).mergeRootsChangesDuring(changes);
       }

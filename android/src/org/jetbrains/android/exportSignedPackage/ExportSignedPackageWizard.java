@@ -34,6 +34,7 @@ import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.ide.wizard.CommitStepException;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompileStatusNotification;
@@ -48,6 +49,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.GuiUtils;
 import org.jetbrains.android.AndroidCommonBundle;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -394,7 +396,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         return;
       }
     }
-    invokeLaterIfNeeded(new Runnable() {
+    GuiUtils.invokeLaterIfNeeded(new Runnable() {
       @Override
       public void run() {
         String title = AndroidBundle.message("android.export.package.wizard.title");
@@ -422,7 +424,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
           Messages.showInfoMessage(project, AndroidBundle.message("android.export.package.success.message", apkFile), title);
         }
       }
-    });
+    }, ModalityState.defaultModalityState());
   }
 
   @SuppressWarnings({"IOResourceOpenedButNotSafelyClosed"})

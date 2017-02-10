@@ -2,6 +2,7 @@ package org.jetbrains.jps.android.builder;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.android.AndroidJpsProjectUtil;
 import org.jetbrains.jps.android.AndroidJpsUtil;
 import org.jetbrains.jps.android.model.JpsAndroidModuleExtension;
 import org.jetbrains.jps.builders.BuildTargetLoader;
@@ -34,7 +35,7 @@ public abstract class AndroidBuildTargetType<T extends AndroidBuildTarget> exten
   @NotNull
   @Override
   public List<T> computeAllTargets(@NotNull JpsModel model) {
-    if (!AndroidJpsUtil.isAndroidProjectWithoutGradleFacet(model.getProject())) {
+    if (!AndroidJpsProjectUtil.isAndroidProjectWithoutGradleFacet(model.getProject())) {
       return Collections.emptyList();
     }
     final List<T> targets = new ArrayList<T>();

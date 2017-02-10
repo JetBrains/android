@@ -33,7 +33,7 @@ public class ModuleManagerStub extends ModuleManagerImpl {
   private Module[] myModules;
 
   public ModuleManagerStub(Project project, Module[] modules) {
-    super(project, project.getMessageBus());
+    super(project);
     myModules = modules;
   }
 

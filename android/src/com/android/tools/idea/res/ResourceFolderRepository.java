@@ -962,25 +962,31 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       }
       myPendingScans.add(psiFile);
     }
-    ApplicationManager.getApplication().invokeLater(() -> ApplicationManager.getApplication().runWriteAction(() -> {
-      boolean rescan;
-      synchronized (SCAN_LOCK) {
-        // Handled by {@link #sync()} after the {@link #rescan} call and before invokeLater ?
-        rescan = myPendingScans != null && myPendingScans.contains(psiFile);
+    ApplicationManager.getApplication().invokeLater(() -> {
+      if (!psiFile.isValid()) {
+        return;
       }
-      if (rescan) {
-        rescanImmediately(psiFile, folderType);
+
+      ApplicationManager.getApplication().runWriteAction(() -> {
+        boolean rescan;
         synchronized (SCAN_LOCK) {
-          // myPendingScans can't be null here because the only method which clears it
-          // is sync() which also requires a write lock, and we've held the write lock
-          // since null checking it above
-          myPendingScans.remove(psiFile);
-          if (myPendingScans.isEmpty()) {
-            myPendingScans = null;
+          // Handled by {@link #sync()} after the {@link #rescan} call and before invokeLater ?
+          rescan = myPendingScans != null && myPendingScans.contains(psiFile);
+        }
+        if (rescan) {
+          rescanImmediately(psiFile, folderType);
+          synchronized (SCAN_LOCK) {
+            // myPendingScans can't be null here because the only method which clears it
+            // is sync() which also requires a write lock, and we've held the write lock
+            // since null checking it above
+            myPendingScans.remove(psiFile);
+            if (myPendingScans.isEmpty()) {
+              myPendingScans = null;
+            }
           }
         }
-      }
-    }));
+      });
+    });
   }
 
   @Override

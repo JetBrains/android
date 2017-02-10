@@ -22,12 +22,18 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectRootModificationTracker;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.util.Consumer;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -67,7 +73,14 @@ public class GradleProjectInfo {
    * Gradle-specific.
    */
   public boolean isBuildWithGradle() {
-    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+    return ApplicationManager.getApplication().runReadAction(
+      (Computable<Boolean>)() -> !myProject.isDisposed() && CachedValuesManager.getManager(myProject).getCachedValue(myProject,
+           () -> CachedValueProvider.Result.create(calcIsBuildWithGradle(myProject),
+                                                   ProjectRootModificationTracker.getInstance(myProject))));
+  }
+
+  private static boolean calcIsBuildWithGradle(@NotNull Project project) {
+    ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
       if (Projects.isBuildWithGradle(module)) {
         return true;
@@ -75,7 +88,7 @@ public class GradleProjectInfo {
     }
     // See https://code.google.com/p/android/issues/detail?id=203384
     // This could be a project without modules. Check that at least it synced with Gradle.
-    return GradleSyncState.getInstance(myProject).getSummary().getSyncTimestamp() != -1L;
+    return GradleSyncState.getInstance(project).getSummary().getSyncTimestamp() != -1L;
   }
 
   /**
@@ -85,21 +98,33 @@ public class GradleProjectInfo {
   public List<Module> getAndroidModules() {
     ImmutableList.Builder<Module> modules = ImmutableList.builder();
 
-    for (Module module :  ModuleManager.getInstance(myProject).getModules()) {
-      if (AndroidFacet.getInstance(module) != null && GradleFacet.getInstance(module) != null) {
-        modules.add(module);
+    ReadAction.run(() -> {
+      if (myProject.isDisposed()) {
+        return;
       }
-    }
+
+      for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+        if (AndroidFacet.getInstance(module) != null && GradleFacet.getInstance(module) != null) {
+          modules.add(module);
+        }
+      }
+    });
     return modules.build();
   }
 
   public void forEachAndroidModule(@NotNull Consumer<AndroidFacet> consumer) {
-    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null && GradleFacet.getInstance(module) != null) {
-        consumer.consume(androidFacet);
+    ReadAction.run(() -> {
+      if (myProject.isDisposed()) {
+        return;
       }
-    }
+
+      for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+        if (androidFacet != null && GradleFacet.getInstance(module) != null) {
+          consumer.consume(androidFacet);
+        }
+      }
+    });
   }
 
   @Nullable

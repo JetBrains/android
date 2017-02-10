@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;

@@ -28,7 +28,7 @@ public interface Resources extends AndroidDomElement {
   List<StringElement> getStrings();
   StringElement addString();
 
-  List<Plurals> getPluralss();
+  List<Plurals> getPluralses();
   Plurals addPlurals();
 
   List<ScalarResourceElement> getColors();

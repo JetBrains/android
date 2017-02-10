@@ -5,10 +5,10 @@ import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.build.BuildConfigGenerator;
 import com.android.tools.idea.fileTypes.AndroidRenderscriptFileType;
+import com.android.tools.idea.lang.aidl.AidlFileType;
 import com.intellij.compiler.impl.CompilerUtil;
 import com.intellij.compiler.impl.ModuleCompileScope;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.openapi.diagnostic.Logger;
@@ -28,7 +28,6 @@ import org.jetbrains.android.compiler.tools.AndroidRenderscript;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import com.android.tools.idea.lang.aidl.AidlFileType;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidCommonUtils;
@@ -708,7 +707,7 @@ public class AndroidAutogenerator {
         run[0] = !project.isDisposed() &&
                  ReadonlyStatusHandler.ensureFilesWritable(project, filesToCheck.toArray(new VirtualFile[filesToCheck.size()]));
       }
-    }, ModalityState.defaultModalityState());
+    });
 
     return run[0];
   }

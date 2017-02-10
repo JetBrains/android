@@ -30,6 +30,7 @@ import com.android.tools.idea.run.InstalledPatchCache;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.hash.HashCode;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -178,6 +179,8 @@ public class InstantRunBuilderTest {
   @After
   public void tearDown() throws Exception {
     FileUtil.delete(myApk);
+    Disposer.dispose(myInstalledPatchCache);
+    Disposer.dispose(myInstalledApkCache);
   }
 
   @Test

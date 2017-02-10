@@ -16,7 +16,6 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.SupportAnnotationDetector;
-import com.intellij.codeInsight.FileModificationService;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.util.TextRange;
@@ -85,7 +84,7 @@ public class AndroidLintCheckResultInspection extends AndroidLintInspectionBase 
         return;
       }
       final PsiFile file = methodCall.getContainingFile();
-      if (file == null || !FileModificationService.getInstance().prepareFileForWrite(file)) {
+      if (file == null) {
         return;
       }
 

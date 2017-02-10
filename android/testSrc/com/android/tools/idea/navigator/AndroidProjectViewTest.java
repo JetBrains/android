@@ -49,7 +49,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     loadProject("projects/navigator/packageview/simple");
 
     myPane = createPane();
-    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), myTestRootDisposable);
+    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
 
     Queryable.PrintInfo printInfo = new Queryable.PrintInfo();
     PsiDirectory dir = getBaseFolder();
@@ -145,7 +145,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     loadProject("projects/navigator/packageview/simple");
 
     myPane = createPane();
-    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), myTestRootDisposable);
+    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
 
     // Select the node app/res/values/dimens.xml, which groups together 3 dimens.xml files
     Object element = findElementForPath(structure, "app (Android)", "res", "values", "dimens.xml (3)");
@@ -165,7 +165,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     loadProject("projects/navigator/packageview/simple");
 
     myPane = createPane();
-    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), myTestRootDisposable);
+    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
 
     // Select the node app/res/drawable/is_launcher.png, which groups together 2 ic_launcher.png files.
     Object element = findElementForPath(structure, "app (Android)", "res", "drawable", "ic_launcher.png (2)");
@@ -205,7 +205,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     loadProject("projects/navigator/packageview/commonroots");
 
     myPane = createPane();
-    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), myTestRootDisposable);
+    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
 
     Queryable.PrintInfo printInfo = new Queryable.PrintInfo();
     PsiDirectory dir = getBaseFolder();

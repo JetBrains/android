@@ -28,7 +28,7 @@ import com.intellij.compiler.server.BuildProcessParametersProvider;
 import com.intellij.execution.configurations.CommandLineTokenizer;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.KeyValue;
+import com.intellij.openapi.util.Pair;
 import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
@@ -142,17 +142,16 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
   }
 
   private static void addHttpProxySettings(@NotNull List<String> jvmArgs) {
-    List<KeyValue<String, String>> proxyProperties = HttpConfigurable.getJvmPropertiesList(false, null);
-    populateHttpProxyProperties(jvmArgs, proxyProperties);
+    populateHttpProxyProperties(jvmArgs, HttpConfigurable.getInstance().getJvmProperties(false, null));
   }
 
   @VisibleForTesting
-  static void populateHttpProxyProperties(List<String> jvmArgs, List<KeyValue<String, String>> properties) {
+  static void populateHttpProxyProperties(List<String> jvmArgs, List<Pair<String, String>> properties) {
     int propertyCount = properties.size();
     for (int i = 0; i < propertyCount; i++) {
-      KeyValue<String, String> property = properties.get(i);
+      Pair<String, String> property = properties.get(i);
       String name = HTTP_PROXY_PROPERTY_PREFIX + i;
-      String value = property.getKey() + HTTP_PROXY_PROPERTY_SEPARATOR + property.getValue();
+      String value = property.first + HTTP_PROXY_PROPERTY_SEPARATOR + property.second;
       jvmArgs.add(createJvmArg(name, value));
     }
   }

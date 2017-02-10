@@ -16,6 +16,7 @@
 package com.android.tools.idea.ddms;
 
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.Executor;
 
@@ -26,7 +27,7 @@ public class EdtExecutor implements Executor {
   }
 
   @Override
-  public void execute(Runnable runnable) {
+  public void execute(@NotNull Runnable runnable) {
     // Note: Application.invokeLater() takes the ModalityState into account, but we don't need that here.
     UIUtil.invokeLaterIfNeeded(runnable);
   }

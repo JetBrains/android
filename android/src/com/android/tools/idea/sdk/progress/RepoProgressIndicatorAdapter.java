@@ -17,7 +17,7 @@ package com.android.tools.idea.sdk.progress;
 
 import com.android.repository.api.ProgressIndicator;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.NonCancelableSection;
+import com.intellij.openapi.progress.ProgressManager;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -53,7 +53,7 @@ public class RepoProgressIndicatorAdapter implements ProgressIndicator {
   @Override
   public boolean isCancellable() {
     // This isn't actually accurate, but it doesn't seem like there's a general way to do it.
-    return !(myWrappedIndicator instanceof NonCancelableSection);
+    return !ProgressManager.getInstance().isInNonCancelableSection();
   }
 
   @Override

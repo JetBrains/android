@@ -25,6 +25,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
+import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
@@ -118,6 +119,12 @@ public class AllocationsEditor implements FileEditor {
   @Override
   public String getName() {
     return "AllocationsView";
+  }
+
+  @NotNull
+  @Override
+  public FileEditorState getState(@NotNull FileEditorStateLevel level) {
+    return FileEditorState.INSTANCE;
   }
 
   @Override

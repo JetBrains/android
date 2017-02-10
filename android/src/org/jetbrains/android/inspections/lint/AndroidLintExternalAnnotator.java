@@ -12,7 +12,6 @@ import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.utils.SdkUtils;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
-import com.intellij.codeInsight.FileModificationService;
 import com.intellij.codeInsight.daemon.DaemonBundle;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInsight.intention.HighPriorityAction;
@@ -34,6 +33,7 @@ import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.*;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -189,7 +189,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
         continue;
       }
 
-      final InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getInspectionProfile();
+      final InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
       final boolean enabled = context != null ? profile.isToolEnabled(key, context) : profile.isToolEnabled(key);
 
       if (!enabled) {
@@ -212,6 +212,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
       return;
     }
     final Project project = file.getProject();
+    if (DumbService.isDumb(project)) return;
 
     for (ProblemData problemData : state.getProblems()) {
       final Issue issue = problemData.getIssue();
@@ -374,6 +375,12 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
       return myDisableInspectionToolAction.startInWriteAction();
     }
 
+    @Nullable
+    @Override
+    public PsiElement getElementToMakeWritable(@NotNull PsiFile file) {
+      return myDisableInspectionToolAction.getElementToMakeWritable(file);
+    }
+
     @Override
     public Icon getIcon(@IconFlags int flags) {
       return myDisableInspectionToolAction.getIcon(flags);
@@ -410,7 +417,6 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
 
     @Override
     public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-      FileModificationService.getInstance().prepareFileForWrite(file);
       myQuickFix.apply(myStartElement, myEndElement, AndroidQuickfixContexts.EditorContext.getInstance(editor));
     }
 

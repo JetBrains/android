@@ -48,6 +48,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -144,6 +145,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
       // However, should be a different item
       assertNotSame(item, newItem);
     });
+    UIUtil.dispatchAllInvocationEvents();
   }
 
   // Regression test for https://code.google.com/p/android/issues/detail?id=57090
