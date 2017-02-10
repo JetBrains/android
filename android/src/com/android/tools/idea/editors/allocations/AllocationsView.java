@@ -560,7 +560,7 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
       }
     }
 
-    return PsiClassNavigation.getNavigationForClass(myProject, null, className, lineNumber);
+    return PsiClassNavigation.getNavigationForClass(myProject, className, lineNumber);
   }
 
   public static class NodeTableCellRenderer extends ColoredTableCellRenderer {

@@ -31,7 +31,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class PsiClassNavigation implements NavigationItem {
   @NotNull private PsiFile myPsiFile;
-  @Nullable private Runnable myPreNavigate;
   private int myOffset;
   private int myLine;
 
@@ -47,14 +46,11 @@ public class PsiClassNavigation implements NavigationItem {
 
   /**
    * Resolves a fully qualified class name to a {@link com.intellij.pom.Navigatable}
-   * @param preNavigate A {@link Runnable} that will be run just prior to the actual navigation.
    * @param className   A fully qualified class name.
    * @return an array of navigatable objects, resolving to all possible matches of the className
    */
   @Nullable
-  public static PsiClassNavigation[] getNavigationForClass(@NotNull Project project,
-                                                           @Nullable Runnable preNavigate,
-                                                           @Nullable String className) {
+  public static PsiClassNavigation[] getNavigationForClass(@NotNull Project project, @Nullable String className) {
     if (className == null || className.isEmpty()) {
       return null;
     }
@@ -65,17 +61,13 @@ public class PsiClassNavigation implements NavigationItem {
     for (int i = 0; i < resolvedClasses.length; ++i) {
       PsiClass c = resolvedClasses[i];
       navigatables[i] = new PsiClassNavigation(c.getContainingFile(), c.getTextOffset(), -1);
-      navigatables[i].myPreNavigate = preNavigate;
     }
 
     return navigatables;
   }
 
   @Nullable
-  public static PsiClassNavigation[] getNavigationForClass(@NotNull Project project,
-                                                           @Nullable Runnable preNavigate,
-                                                           @Nullable String className,
-                                                           int line) {
+  public static PsiClassNavigation[] getNavigationForClass(@NotNull Project project, @Nullable String className, int line) {
     if (className == null || className.isEmpty()) {
       return null;
     }
@@ -86,7 +78,6 @@ public class PsiClassNavigation implements NavigationItem {
     for (int i = 0; i < psiClasses.length; ++i) {
       PsiClass c = psiClasses[i];
       navigatables[i] = new PsiClassNavigation(c.getContainingFile(), -1, line);
-      navigatables[i].myPreNavigate = preNavigate;
     }
 
     return navigatables;
@@ -154,7 +145,7 @@ public class PsiClassNavigation implements NavigationItem {
   private static PsiClass[] getPsiClassesForOuterClass(@NotNull Project project, @NotNull String className) {
     String outerClassName = getOuterClassName(className);
     if (outerClassName == null) {
-      return new PsiClass[0];
+      return PsiClass.EMPTY_ARRAY;
     }
 
     JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
@@ -232,10 +223,6 @@ public class PsiClassNavigation implements NavigationItem {
 
   @Override
   public void navigate(boolean requestFocus) {
-    if (myPreNavigate != null) {
-      myPreNavigate.run();
-    }
-
     OpenFileDescriptor fileDescriptor = myOffset >= 0
                                         ? new OpenFileDescriptor(myPsiFile.getProject(), myPsiFile.getVirtualFile(), myOffset)
                                         : new OpenFileDescriptor(myPsiFile.getProject(), myPsiFile.getVirtualFile(), myLine, 0);
