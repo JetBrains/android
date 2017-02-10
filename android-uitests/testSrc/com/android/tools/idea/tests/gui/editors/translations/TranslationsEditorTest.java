@@ -157,6 +157,12 @@ public final class TranslationsEditorTest {
   }
 
   @Test
+  public void showOnlyHebrew() {
+    myTranslationsEditor.clickFilterLocalesComboBoxItem("Show Hebrew (iw)");
+    assertEquals(Collections.singletonList("Hebrew (iw)"), myTranslationsEditor.locales());
+  }
+
+  @Test
   public void setModel() {
     StringResourceTable table = (StringResourceTable)myTranslationsEditor.getTable().target();
     OptionalInt optionalWidth = table.getKeyColumnPreferredWidth();
