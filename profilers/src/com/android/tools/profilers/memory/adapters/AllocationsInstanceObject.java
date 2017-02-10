@@ -15,7 +15,10 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profilers.common.ThreadId;
+import com.android.tools.profilers.memory.adapters.ClassObject.ValueType;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,25 +26,25 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 
 final class AllocationsInstanceObject implements InstanceObject {
-  @NotNull static final Map<String, ClassObject.ValueType> ourTypeMap = ImmutableMap.<String, ClassObject.ValueType>builder()
-    .put("boolean", ClassObject.ValueType.BOOLEAN)
-    .put("byte", ClassObject.ValueType.BYTE)
-    .put("char", ClassObject.ValueType.CHAR)
-    .put("short", ClassObject.ValueType.SHORT)
-    .put("int", ClassObject.ValueType.INT)
-    .put("long", ClassObject.ValueType.LONG)
-    .put("float", ClassObject.ValueType.FLOAT)
-    .put("double", ClassObject.ValueType.DOUBLE)
+  @NotNull static final Map<String, ValueType> ourTypeMap = ImmutableMap.<String, ValueType>builder()
+    .put("boolean", ValueType.BOOLEAN)
+    .put("byte", ValueType.BYTE)
+    .put("char", ValueType.CHAR)
+    .put("short", ValueType.SHORT)
+    .put("int", ValueType.INT)
+    .put("long", ValueType.LONG)
+    .put("float", ValueType.FLOAT)
+    .put("double", ValueType.DOUBLE)
     .build();
 
-  @NotNull private final MemoryProfiler.AllocationEvent myEvent;
+  @NotNull private final AllocationEvent myEvent;
   @NotNull private final AllocationsClassObject myAllocationsClassObject;
-  @NotNull private final MemoryProfiler.AllocationStack myCallStack;
-  @NotNull private final ClassObject.ValueType myValueType;
+  @NotNull private final AllocationStack myCallStack;
+  @NotNull private final ValueType myValueType;
 
-  public AllocationsInstanceObject(@NotNull MemoryProfiler.AllocationEvent event,
+  public AllocationsInstanceObject(@NotNull AllocationEvent event,
                                    @NotNull AllocationsClassObject allocationsClassObject,
-                                   @NotNull MemoryProfiler.AllocationStack callStack) {
+                                   @NotNull AllocationStack callStack) {
     myEvent = event;
     myAllocationsClassObject = allocationsClassObject;
     myCallStack = callStack;
@@ -49,10 +52,10 @@ final class AllocationsInstanceObject implements InstanceObject {
     String className = myAllocationsClassObject.getName();
     if (className.contains(".")) {
       if (className.equals(ClassObject.JAVA_LANG_STRING)) {
-        myValueType = ClassObject.ValueType.STRING;
+        myValueType = ValueType.STRING;
       }
       else {
-        myValueType = ClassObject.ValueType.OBJECT;
+        myValueType = ValueType.OBJECT;
       }
     }
     else {
@@ -60,7 +63,7 @@ final class AllocationsInstanceObject implements InstanceObject {
       if (getIsArray()) {
         trimmedClassName = className.substring(0, className.length() - "[]".length());
       }
-      myValueType = ourTypeMap.getOrDefault(trimmedClassName, ClassObject.ValueType.OBJECT);
+      myValueType = ourTypeMap.getOrDefault(trimmedClassName, ValueType.OBJECT);
     }
   }
 
@@ -87,15 +90,21 @@ final class AllocationsInstanceObject implements InstanceObject {
     return myEvent.getSize();
   }
 
+  @Override
+  @NotNull
+  public ThreadId getAllocationThreadId() {
+    return new ThreadId(myEvent.getThreadId());
+  }
+
   @NotNull
   @Override
-  public MemoryProfiler.AllocationStack getCallStack() {
+  public AllocationStack getCallStack() {
     return myCallStack;
   }
 
   @NotNull
   @Override
-  public ClassObject.ValueType getValueType() {
+  public ValueType getValueType() {
     return myValueType;
   }
 
