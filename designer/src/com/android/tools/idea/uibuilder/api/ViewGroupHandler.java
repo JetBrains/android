@@ -212,7 +212,7 @@ public class ViewGroupHandler extends ViewHandler {
    *
    * @param component
    */
-  public void clearAttributes(SceneComponent component) {
+  public void clearAttributes(NlComponent component) {
     // do nothing
   }
 }

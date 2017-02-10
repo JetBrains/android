@@ -492,14 +492,7 @@ public class SceneComponent {
    * Clear our attributes (delegating the action to our view handler)
    */
   public void clearAttributes() {
-    if (myViewGroupHandler != null) {
-      myViewGroupHandler.clearAttributes(this);
-    }
-    int count = myChildren.size();
-    for (int i = 0; i < count; i++) {
-      SceneComponent child = myChildren.get(i);
-      child.clearAttributes();
-    }
+    getNlComponent().clearAttributes();
   }
 
   @NotNull

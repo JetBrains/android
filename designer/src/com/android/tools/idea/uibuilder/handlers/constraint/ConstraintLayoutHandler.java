@@ -459,7 +459,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    * @param component
    */
   @Override
-  public void clearAttributes(SceneComponent component) {
+  public void clearAttributes(NlComponent component) {
     ConstraintComponentUtilities.clearAttributes(component);
   }
 

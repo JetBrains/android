@@ -19,9 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -236,12 +234,12 @@ public class ConstraintComponentUtilities {
     }
   }
 
-  public static void clearAttributes(SceneComponent component) {
-    AttributesTransaction transaction = component.getNlComponent().startAttributeTransaction();
+  public static void clearAttributes(NlComponent component) {
+    AttributesTransaction transaction = component.startAttributeTransaction();
     clearAllAttributes(component, transaction);
     transaction.apply();
 
-    NlModel nlModel = component.getNlComponent().getModel();
+    NlModel nlModel = component.getModel();
     Project project = nlModel.getProject();
     XmlFile file = nlModel.getFile();
 
@@ -313,7 +311,7 @@ public class ConstraintComponentUtilities {
     }
   }
 
-  private static void clearAllAttributes(SceneComponent component, AttributesTransaction transaction) {
+  private static void clearAllAttributes(NlComponent component, AttributesTransaction transaction) {
     clearAttributes(SdkConstants.SHERPA_URI, ourLeftAttributes, transaction);
     clearAttributes(SdkConstants.SHERPA_URI, ourTopAttributes, transaction);
     clearAttributes(SdkConstants.SHERPA_URI, ourRightAttributes, transaction);
@@ -323,8 +321,10 @@ public class ConstraintComponentUtilities {
     transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
     transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null);
     clearAttributes(SdkConstants.ANDROID_URI, ourMarginAttributes, transaction);
-    setDpAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, transaction, component.getOffsetParentX());
-    setDpAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, transaction, component.getOffsetParentY());
+    int offsetX = Coordinates.pxToDp(component.getModel(), component.x - (component.isRoot() ? 0 : component.getParent().x));
+    int offsetY = Coordinates.pxToDp(component.getModel(), component.y - (component.isRoot() ? 0 : component.getParent().y));
+    setDpAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, transaction, offsetX);
+    setDpAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, transaction, offsetY);
   }
 
   public static void updateOnDelete(NlComponent component, String targetId) {
