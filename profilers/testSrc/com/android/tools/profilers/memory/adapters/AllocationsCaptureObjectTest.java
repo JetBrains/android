@@ -111,8 +111,8 @@ public class AllocationsCaptureObjectTest {
     InstanceObject instance0 = klass0.getInstances().get(0);
     InstanceObject instance1 = klass1.getInstances().get(0);
     // Note: allocation records contains no depth/fields/references information
-    verifyInstance(instance0, "test.klass0", -1, 0, 0, 1);
-    verifyInstance(instance1, "test.klass1", -1, 0, 0, 1);
+    verifyInstance(instance0, "test.klass0", Integer.MAX_VALUE, 0, 0, 1);
+    verifyInstance(instance1, "test.klass1", Integer.MAX_VALUE, 0, 0, 1);
 
     AllocationStack.StackFrame frame0 = instance0.getCallStack().getStackFramesList().get(0);
     AllocationStack.StackFrame frame1 = instance1.getCallStack().getStackFramesList().get(0);

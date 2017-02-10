@@ -193,7 +193,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       List<CodeLocation> stackFrames = callStack.getStackFramesList().stream()
         .map((frame) -> new CodeLocation(frame.getClassName(), frame.getFileName(), frame.getMethodName(), frame.getLineNumber() - 1))
         .collect(Collectors.toList());
-      myStackTraceView.setStackFrames(stackFrames);
+      myStackTraceView.setStackFrames(instance.getAllocationThreadId(), stackFrames);
       myTabsPanel.addTab("Callstack", myStackTraceView.getComponent());
       hasContent = true;
     }
@@ -305,6 +305,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
         assert selection != null && ((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter() instanceof InstanceObject;
         InstanceObject instance = (InstanceObject)((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
         ClassObject klass = instance.getClassObject();
+        assert klass != null;
         myStage.selectHeap(klass.getHeapObject());
         myStage.selectClass(klass);
         myStage.selectInstance(instance);
