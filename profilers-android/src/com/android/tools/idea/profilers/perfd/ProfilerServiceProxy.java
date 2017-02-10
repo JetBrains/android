@@ -41,7 +41,7 @@ import static com.android.ddmlib.Client.CHANGE_NAME;
  * This enables us to support legacy workflows based on device's API levels.
  */
 public class ProfilerServiceProxy extends PerfdProxyService
-  implements AndroidDebugBridge.IClientChangeListener {
+  implements AndroidDebugBridge.IClientChangeListener, AndroidDebugBridge.IDeviceChangeListener {
 
   private ProfilerServiceGrpc.ProfilerServiceBlockingStub myServiceStub;
   private final IDevice myDevice;
@@ -63,11 +63,13 @@ public class ProfilerServiceProxy extends PerfdProxyService
     myProcesses = new ArrayList<>();
     updateProcesses();
 
+    AndroidDebugBridge.addDeviceChangeListener(this);
     AndroidDebugBridge.addClientChangeListener(this);
   }
 
   @Override
   public void disconnect() {
+    AndroidDebugBridge.removeDeviceChangeListener(this);
     AndroidDebugBridge.removeClientChangeListener(this);
   }
 
@@ -81,6 +83,23 @@ public class ProfilerServiceProxy extends PerfdProxyService
     Profiler.GetProcessesResponse response = Profiler.GetProcessesResponse.newBuilder().addAllProcess(myProcesses).build();
     responseObserver.onNext(response);
     responseObserver.onCompleted();
+  }
+
+  @Override
+  public void deviceConnected(@NonNull IDevice device) {
+    // Don't care
+  }
+
+  @Override
+  public void deviceDisconnected(@NonNull IDevice device) {
+    // Don't care
+  }
+
+  @Override
+  public void deviceChanged(@NonNull IDevice device, int changeMask) {
+    if ((changeMask & IDevice.CHANGE_CLIENT_LIST) != 0) {
+      updateProcesses();
+    }
   }
 
   @Override
