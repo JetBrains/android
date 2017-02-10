@@ -26,7 +26,6 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.google.protobuf3jarjar.ByteString;
-import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 
 import java.util.HashMap;
@@ -209,5 +208,12 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   @Override
   public DatastoreTable getDatastoreTable() {
     return myMemoryTable;
+  }
+
+  @Override
+  public void forceGarbageCollection(ForceGarbageCollectionRequest request, StreamObserver<ForceGarbageCollectionResponse> observer) {
+    MemoryServiceGrpc.MemoryServiceBlockingStub service = myService.getMemoryClient(request.getSession());
+    observer.onNext(service.forceGarbageCollection(request));
+    observer.onCompleted();
   }
 }
