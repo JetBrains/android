@@ -35,18 +35,10 @@ public class LegendComponentModel extends AspectModel<LegendComponentModel.Aspec
   @NotNull
   private List<Legend> myLegends;
 
-  @NotNull
-  private final ArrayList<String> myCurrentLegendValues;
-
   public LegendComponentModel(int updateFrequencyMs) {
     mFrequencyMillis = updateFrequencyMs;
     mLastUpdate = 0;
-    myCurrentLegendValues = new ArrayList<>();
     myLegends = new ArrayList<>();
-  }
-
-  public ArrayList<String> getValues() {
-    return myCurrentLegendValues;
   }
 
   @NotNull
@@ -56,19 +48,20 @@ public class LegendComponentModel extends AspectModel<LegendComponentModel.Aspec
 
   @Override
   public void update(long elapsedNs) {
-      long now = System.currentTimeMillis();
-      if (now - mLastUpdate > mFrequencyMillis) {
-        mLastUpdate = now;
-        myCurrentLegendValues.clear();
-        for (Legend data : myLegends) {
-          myCurrentLegendValues.add(data.getName());
-        }
-        changed(Aspect.LEGEND);
-      }
+    long now = System.currentTimeMillis();
+    if (now - mLastUpdate > mFrequencyMillis) {
+      mLastUpdate = now;
+      changed(Aspect.LEGEND);
+    }
   }
 
   public void add(@NotNull Legend legend) {
     myLegends.add(legend);
+    changed(Aspect.LEGEND);
+  }
+
+  public void remove(@NotNull Legend legend) {
+    myLegends.remove(legend);
     changed(Aspect.LEGEND);
   }
 }

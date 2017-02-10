@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
@@ -203,5 +204,59 @@ final public class StudioProfilersTest {
 
     assertEquals(TimeUnit.SECONDS.toMicros(dataNow), profilers.getTimeline().getDataRange().getMin(), 0.001);
     assertEquals(TimeUnit.SECONDS.toMicros(dataNow + 5), profilers.getTimeline().getDataRange().getMax(), 0.001);
+  }
+
+  @Test
+  public void testAgentStatusChange() throws Exception {
+    FakeTimer timer = new FakeTimer();
+    AgentStatusAspectObserver observer = new AgentStatusAspectObserver();
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
+    profilers.addDependency(observer).onChange(ProfilerAspect.AGENT, observer::AgentStatusChanged);
+
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertFalse(profilers.isAgentAttached());
+    assertEquals(0, observer.getAgentStatusChangedCount());
+
+    // Test that status changes if no process is selected does nothing
+    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertNull(profilers.getProcess());
+    assertFalse(profilers.isAgentAttached());
+    assertEquals(0, observer.getAgentStatusChangedCount());
+
+    // Test that agent status change fires after a process is selected.
+    Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
+    Profiler.Process process = Profiler.Process.newBuilder()
+      .setPid(20)
+      .setState(Profiler.Process.State.ALIVE)
+      .setName("FakeProcess")
+      .build();
+    myProfilerService.addDevice(device);
+    Common.Session session = Common.Session.newBuilder()
+      .setBootId(device.getBootId())
+      .setDeviceSerial(device.getSerial())
+      .build();
+    myProfilerService.addProcess(session, process);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertEquals(process, profilers.getProcess());
+    assertTrue(profilers.isAgentAttached());
+    assertEquals(1, observer.getAgentStatusChangedCount());
+
+    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.DETACHED);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertFalse(profilers.isAgentAttached());
+    assertEquals(2, observer.getAgentStatusChangedCount());
+  }
+
+  private static class AgentStatusAspectObserver extends AspectObserver {
+    private int myAgentStatusChangedCount;
+
+    void AgentStatusChanged() {
+      myAgentStatusChangedCount++;
+    }
+
+    int getAgentStatusChangedCount() {
+      return myAgentStatusChangedCount;
+    }
   }
 }

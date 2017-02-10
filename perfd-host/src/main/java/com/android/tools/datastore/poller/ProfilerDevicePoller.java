@@ -21,7 +21,6 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.Profiler.Device;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
-import com.google.common.collect.Maps;
 import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
 
@@ -64,13 +63,18 @@ public class ProfilerDevicePoller extends PollRunner {
         Profiler.GetProcessesResponse processesResponse = myPollingService.getProcesses(processesRequest);
         // Gather the list of last known active processes.
         Set<Profiler.Process> deadProcesses = myActiveProcesses.containsKey(session) ? myActiveProcesses.get(session) : new HashSet<>();
-        Set<Profiler.Process> newProcesses  = new HashSet<>();
+        Set<Profiler.Process> newProcesses = new HashSet<>();
         for (Profiler.Process process : processesResponse.getProcessList()) {
           myTable.insertOrUpdateProcess(session, process);
           newProcesses.add(process);
           // Remove any new processes from the list of last known processes.
           // Any processes that remain in the list is our list of dead processes.
           deadProcesses.remove(process);
+
+          Profiler.AgentStatusRequest agentStatusRequest =
+            Profiler.AgentStatusRequest.newBuilder().setProcessId(process.getPid()).setSession(session).build();
+          Profiler.AgentStatusResponse agentStatusResponse = myPollingService.getAgentStatus(agentStatusRequest);
+          myTable.updateAgentStatus(session, process, agentStatusResponse);
         }
 
         //TODO: think about moving this to the device proxy.
@@ -82,7 +86,7 @@ public class ProfilerDevicePoller extends PollRunner {
       // We expect this to get called when connection to the device is lost.
       // To properly clean up the state we first set all ALIVE processes to DEAD
       // then we disconnect the channel.
-      for(Common.Session session : myActiveProcesses.keySet()) {
+      for (Common.Session session : myActiveProcesses.keySet()) {
         killProcesses(session, myActiveProcesses.get(session));
         myService.disconnect(session);
       }
