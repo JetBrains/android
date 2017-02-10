@@ -15,70 +15,116 @@
  */
 package com.android.tools.idea.explorer.adbimpl;
 
-import com.android.ddmlib.FileListingService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.ddmlib.FileListingService.TYPE_DIRECTORY_LINK;
-import static com.android.ddmlib.FileListingService.TYPE_FILE;
-import static com.android.ddmlib.FileListingService.TYPE_LINK;
-
+/**
+ * Immutable snapshot of a file entry in the file system of a device:
+ * Once acquired, a instance of {@link AdbFileListingEntry} never changes
+ * and is not linked back to the originating device.
+ */
 public class AdbFileListingEntry {
-  @NotNull private FileListingService.FileEntry myAdbEntry;
+  @NotNull private final String myPath;
+  @NotNull private EntryKind myKind;
+  @Nullable private final String myPermissions;
+  @Nullable private final String myOwner;
+  @Nullable private final String myGroup;
+  @Nullable private final String myDate;
+  @Nullable private final String myTime;
+  @Nullable private final String mySize;
+  @Nullable private final String myExtraInfo;
 
-  public AdbFileListingEntry(@NotNull FileListingService.FileEntry adbEntry) {
-    myAdbEntry = adbEntry;
+  public enum EntryKind {
+    FILE,
+    DIRECTORY,
+    FILE_LINK,
+    DIRECTORY_LINK,
+    BLOCK,
+    CHARACTER,
+    SOCKET,
+    FIFO,
+    OTHER,
   }
 
-  @NotNull
-  public FileListingService.FileEntry getAdbEntry() {
-    return myAdbEntry;
-  }
-
-  @NotNull
-  public String getName() {
-    return myAdbEntry.getName();
-  }
-
-  @Nullable
-  public String getPermissions() {
-    return myAdbEntry.getPermissions();
-  }
-
-  @Nullable
-  public String getDate() {
-    return myAdbEntry.getDate();
-  }
-
-  @Nullable
-  public String getTime() {
-    return myAdbEntry.getTime();
-  }
-
-  @Nullable
-  public String getSize() {
-    return myAdbEntry.getSize();
-  }
-
-  @Nullable
-  public String getInfo() {
-    return myAdbEntry.getInfo();
+  public AdbFileListingEntry(@NotNull String path,
+                             @NotNull EntryKind kind,
+                             @Nullable String permissions,
+                             @Nullable String owner,
+                             @Nullable String group,
+                             @Nullable String date,
+                             @Nullable String time,
+                             @Nullable String size,
+                             @Nullable String extraInfo) {
+    myPath = path;
+    myKind = kind;
+    myPermissions = permissions;
+    myOwner = owner;
+    myGroup = group;
+    myDate = date;
+    myTime = time;
+    mySize = size;
+    myExtraInfo = extraInfo;
   }
 
   @NotNull
   public String getFullPath() {
-    return myAdbEntry.getFullPath();
+    return myPath;
+  }
+
+  @NotNull
+  public String getName() {
+    return AdbPathUtil.getFileName(myPath);
+  }
+
+  @NotNull
+  public EntryKind getKind() {
+    return myKind;
+  }
+
+  @Nullable
+  public String getPermissions() {
+    return myPermissions;
+  }
+
+  @Nullable
+  public String getOwner() {
+    return myOwner;
+  }
+
+  @Nullable
+  public String getGroup() {
+    return myGroup;
+  }
+
+  @Nullable
+  public String getDate() {
+    return myDate;
+  }
+
+  @Nullable
+  public String getTime() {
+    return myTime;
+  }
+
+  @Nullable
+  public String getSize() {
+    return mySize;
+  }
+
+  @Nullable
+  public String getInfo() {
+    return myExtraInfo;
   }
 
   public boolean isDirectory() {
-    return myAdbEntry.isDirectory();
+    return myKind == EntryKind.DIRECTORY || myKind == EntryKind.DIRECTORY_LINK;
   }
 
   public boolean isFile() {
-    return myAdbEntry.getType() == TYPE_FILE || myAdbEntry.getType() == TYPE_LINK;
+    return myKind == EntryKind.FILE || myKind == EntryKind.FILE_LINK;
   }
 
   public boolean isSymbolicLink() {
-    return myAdbEntry.getType() == TYPE_DIRECTORY_LINK || myAdbEntry.getType() == TYPE_LINK;
+    return myKind == EntryKind.FILE_LINK || myKind == EntryKind.DIRECTORY_LINK;
   }
 }
