@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers;
+package com.android.tools.idea.profilers.stacktrace;
 
 import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.common.StackFrameParser;
+import com.android.tools.profilers.common.ThreadId;
 import com.intellij.openapi.components.BaseComponent;
 import com.intellij.openapi.components.ComponentConfig;
 import com.intellij.openapi.extensions.ExtensionPointName;
@@ -73,8 +74,7 @@ public class IntelliJStackTraceViewTest {
   @Before
   public void before() {
     myRunnableCheck = new RunnableCheck();
-    myStackView = new IntelliJStackTraceView(myProject, myRunnableCheck, new FileColorManagerMock(),
-                                             (project, location) -> new FakeStackNavigation(location));
+    myStackView = new IntelliJStackTraceView(myProject, myRunnableCheck, (project, location) -> new FakeStackNavigation(location));
   }
 
   @Test
@@ -104,8 +104,18 @@ public class IntelliJStackTraceViewTest {
     List<CodeLocation> viewLocations = myStackView.getCodeLocations();
     assertEquals(CODE_LOCATIONS, viewLocations);
 
-    myStackView.setStackFrames(CODE_LOCATIONS);
-    assertEquals(CODE_LOCATIONS, CODE_LOCATIONS);
+    myStackView.setStackFrames(ThreadId.INVALID_THREAD_ID, CODE_LOCATIONS);
+    viewLocations = myStackView.getCodeLocations();
+    assertEquals(CODE_LOCATIONS, viewLocations);
+
+    myStackView.setStackFrames(new ThreadId(5), CODE_LOCATIONS);
+    viewLocations = myStackView.getCodeLocations();
+    assertEquals(CODE_LOCATIONS, viewLocations);
+    ListModel model = myStackView.getListView().getModel();
+    assertEquals(CODE_LOCATIONS.size() + 1, model.getSize());
+    Object threadElement = model.getElementAt(model.getSize() - 1);
+    assertTrue(threadElement instanceof ThreadElement);
+    assertEquals(new ThreadId(5), ((ThreadElement)threadElement).getThreadId());
   }
 
   @Test
@@ -366,16 +376,14 @@ public class IntelliJStackTraceViewTest {
       return "";
     }
 
-    @Nullable
     @Override
-    public Navigatable[] getNavigatable(@Nullable Runnable preNavigate) {
-      return new Navigatable[]{myNavigatable};
+    public boolean isInContext() {
+      return false;
     }
 
-    @Nullable
     @Override
-    public VirtualFile findClassFile() {
-      return null;
+    public void navigate(@Nullable Runnable preNavigate) {
+      myNavigatable.navigate(false);
     }
 
     @NotNull

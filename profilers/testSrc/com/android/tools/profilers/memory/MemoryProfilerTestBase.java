@@ -19,6 +19,7 @@ import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.common.ThreadId;
 import com.android.tools.profilers.memory.adapters.*;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -170,6 +171,7 @@ public abstract class MemoryProfilerTestBase {
     when(object.getDepth()).thenReturn(depth);
     when(object.getShallowSize()).thenReturn(shallowSize);
     when(object.getRetainedSize()).thenReturn(retainedSize);
+    when(object.getAllocationThreadId()).thenReturn(ThreadId.INVALID_THREAD_ID);
     when(object.getFields()).thenReturn(mockedFields);
     when(object.getFieldCount()).thenReturn(fieldCount);
     when(object.getCallStack()).thenReturn(MemoryProfiler.AllocationStack.newBuilder()
@@ -191,6 +193,7 @@ public abstract class MemoryProfilerTestBase {
     when(object.getShallowSize()).thenReturn(shallowSize);
     when(object.getRetainedSize()).thenReturn(retainedSize);
     when(object.getReferences()).thenReturn(referrers);
+    when(object.getAllocationThreadId()).thenReturn(ThreadId.INVALID_THREAD_ID);
     when(object.getReferenceFieldNames()).thenReturn(Collections.emptyList());
     when(object.getReferenceAttributes()).thenReturn(Arrays.asList(InstanceObject.InstanceAttribute.values()));
     when(object.getCallStack()).thenReturn(stack == null ? MemoryProfiler.AllocationStack.newBuilder().build() : stack);
@@ -203,6 +206,7 @@ public abstract class MemoryProfilerTestBase {
     when(object.getClassName()).thenReturn(className);
     when(object.getDisplayLabel()).thenReturn(label);
     when(object.getFieldName()).thenReturn(fieldName);
+    when(object.getAllocationThreadId()).thenReturn(ThreadId.INVALID_THREAD_ID);
     return object;
   }
 

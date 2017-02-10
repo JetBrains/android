@@ -17,6 +17,7 @@ package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.actions.EditMultipleSourcesAction;
 import com.android.tools.idea.actions.PsiClassNavigation;
+import com.android.tools.idea.profilers.stacktrace.IntelliJStackTraceView;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.common.*;
 import com.intellij.icons.AllIcons;
@@ -26,10 +27,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.components.JBLoadingPanel;
-import com.intellij.ui.tabs.TabInfo;
-import com.intellij.ui.tabs.TabsListener;
-import com.intellij.ui.tabs.impl.JBTabsImpl;
-import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
