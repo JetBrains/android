@@ -34,7 +34,6 @@ import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.WidgetDraw;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
-import com.android.tools.sherpa.interaction.MouseInteraction;
 import com.android.tools.sherpa.scout.Scout;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetsScene;
@@ -595,7 +594,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
         Logger.getInstance(ConstraintLayoutHandler.class).warn("Error in inferring constraints", e);
       }
       model.saveToXML(true);
-      model.setNeedsAnimateConstraints(ConstraintAnchor.SCOUT_CREATOR);
     }
 
     @Override
@@ -817,7 +815,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
     public void setMargin() {
       Scout.setMargin(myMarginPopup.getValue());
-      MouseInteraction.setMargin(myMarginPopup.getValue());
     }
 
     private void updateIcon() {

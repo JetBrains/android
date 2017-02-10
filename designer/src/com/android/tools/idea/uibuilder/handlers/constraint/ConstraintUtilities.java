@@ -1010,19 +1010,6 @@ public class ConstraintUtilities {
   }
 
   /**
-   * Set a margin on a connected anchor
-   *
-   * @param widget the widget we operate on
-   * @param margin the margin to set
-   * @param type   the type of the anchor
-   */
-  private static void setMargin(@NotNull ConstraintWidget widget, int margin, @NotNull ConstraintAnchor.Type type) {
-    if (widget.getAnchor(type).isConnected()) {
-      widget.getAnchor(type).setMargin(margin);
-    }
-  }
-
-  /**
    * Update the constraint widget with the component information (coming from XML)
    *
    * @param scene           the scene of components. Can be null.
@@ -1526,14 +1513,6 @@ public class ConstraintUtilities {
   }
 
   /**
-   * Rollback any temporary XML changes in the passed {@link NlModel}
-   */
-  public static void rollbackXMLChanges(@NotNull NlModel nlModel) {
-    // TODO: Allow rollback without having to start a new transaction
-    nlModel.getComponents().forEach(component -> component.startAttributeTransaction().rollback());
-  }
-
-  /**
    * Returns a component paired to the given widget, but only if it is a valid
    * component for us to work on.
    *
@@ -1545,9 +1524,8 @@ public class ConstraintUtilities {
                                        @NotNull ConstraintWidget widget) {
     WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
     NlComponent component = (NlComponent)companion.getWidgetModel();
-    boolean isDroppedWidget = (model.getDragDropWidget() == widget);
     boolean isInsideConstraintLayout = isWidgetInsideConstraintLayout(widget);
-    if (!isDroppedWidget && (widget.isRoot() || widget.isRootContainer() || !isInsideConstraintLayout)) {
+    if (widget.isRoot() || widget.isRootContainer() || !isInsideConstraintLayout) {
       return null;
     }
     return component;
@@ -1565,13 +1543,12 @@ public class ConstraintUtilities {
                                                          @NotNull NlAttributesHolder transaction) {
     WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
     NlComponent component = (NlComponent)companion.getWidgetModel();
-    boolean isDroppedWidget = (model.getDragDropWidget() == widget);
     boolean isInsideConstraintLayout = isWidgetInsideConstraintLayout(widget);
-    if (!isDroppedWidget && (widget.isRoot() || widget.isRootContainer() || !isInsideConstraintLayout)) {
+    if (widget.isRoot() || widget.isRootContainer() || !isInsideConstraintLayout) {
       return null;
     }
 
-    if (isInsideConstraintLayout || isDroppedWidget) {
+    if (isInsideConstraintLayout) {
       setEditorPosition(widget, transaction, widget.getX(), widget.getY());
     }
     else {
