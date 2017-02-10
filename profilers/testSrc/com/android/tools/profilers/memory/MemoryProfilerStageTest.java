@@ -307,7 +307,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   @Test
   public void testAgentStatusUpdatesObjectSeries() {
     // Test that agent status change fires after a process is selected.
-    Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
+    Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").setState(Profiler.Device.State.ONLINE).build();
     Profiler.Process process = Profiler.Process.newBuilder()
       .setPid(20)
       .setState(Profiler.Process.State.ALIVE)
