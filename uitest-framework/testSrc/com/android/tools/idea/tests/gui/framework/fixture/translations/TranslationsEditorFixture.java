@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MultilineStringEditorDialogFixture;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import org.fest.swing.core.ComponentFinder;
 import org.fest.swing.core.ComponentMatcher;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -45,9 +44,12 @@ public final class TranslationsEditorFixture {
   private final Robot myRobot;
   private final Container myTranslationsEditor;
 
+  private final JButtonFixture myFilterKeysComboBox;
+
   public TranslationsEditorFixture(@NotNull Robot robot) {
     myRobot = robot;
     myTranslationsEditor = (Container)robot.finder().findByName("translationsEditor");
+    myFilterKeysComboBox = getButton("Show All Keys");
   }
 
   @NotNull
@@ -78,21 +80,23 @@ public final class TranslationsEditorFixture {
   }
 
   public void clickFilterKeysComboBoxItem(@NotNull String text) {
-    clickComboBoxItem("Show All Keys", text);
+    clickComboBoxItem(myFilterKeysComboBox, text);
   }
 
   public void clickFilterLocalesComboBoxItem(@NotNull String text) {
-    clickComboBoxItem("Show All Locales", text);
+    clickComboBoxItem(getButton("Show All Locales"), text);
   }
 
-  private void clickComboBoxItem(@NotNull String comboBoxLabel, @NotNull String text) {
-    ComponentFinder finder = myRobot.finder();
-
+  private JButtonFixture getButton(@NotNull String text) {
     ComponentMatcher componentTextEqualsShowAllKeys =
-      component -> component instanceof AbstractButton && ((AbstractButton)component).getText().equals(comboBoxLabel);
+      component -> component instanceof AbstractButton && ((AbstractButton)component).getText().equals(text);
 
-    new JButtonFixture(myRobot, (JButton)finder.find(myTranslationsEditor, componentTextEqualsShowAllKeys)).click();
-    GuiTests.clickPopupMenuItemMatching(t -> t.equals(text), finder.findByName(myTranslationsEditor, "toolbar"), myRobot);
+    return new JButtonFixture(myRobot, (JButton)myRobot.finder().find(myTranslationsEditor, componentTextEqualsShowAllKeys));
+  }
+
+  private void clickComboBoxItem(@NotNull JButtonFixture button, @NotNull String text) {
+    button.click();
+    GuiTests.clickPopupMenuItemMatching(t -> t.equals(text), myRobot.finder().findByName(myTranslationsEditor, "toolbar"), myRobot);
   }
 
   @NotNull

@@ -65,10 +65,17 @@ final class FilterKeysAction extends ComboBoxAction {
       }
     });
 
+    group.add(new AnAction("Show Translatable Keys") {
+      @Override
+      public void actionPerformed(@Nullable AnActionEvent event) {
+        myTable.setRowFilter(new NeedsTranslationsRowFilter(true));
+      }
+    });
+
     group.add(new AnAction("Show Keys Needing Translations") {
       @Override
       public void actionPerformed(@Nullable AnActionEvent event) {
-        myTable.setRowFilter(new NeedsTranslationsRowFilter());
+        myTable.setRowFilter(new NeedsTranslationsRowFilter(false));
       }
     });
 
