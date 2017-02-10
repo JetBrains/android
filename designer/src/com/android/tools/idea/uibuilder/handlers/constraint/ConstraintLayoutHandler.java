@@ -392,13 +392,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   }
 
   /**
-   * Add resize and anchor targets on the given component
-   *
-   * @param component the component we'll add targets on
-   * @param isParent
+   * Create resize and anchor targets for the given component
    */
   @Override
-  public void addTargets(@NotNull SceneComponent component, boolean isParent) {
+  @NotNull
+  public List<Target> createTargets(@NotNull SceneComponent component, boolean isParent) {
+    List<Target> result = new ArrayList<>();
     boolean showAnchors = !isParent;
     NlComponent nlComponent = component.getNlComponent();
     if (nlComponent.viewInfo != null
@@ -408,48 +407,50 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       if (orientation != null && orientation.equalsIgnoreCase(SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL)) {
         isHorizontal = false;
       }
-      component.addTarget(new GuidelineTarget(isHorizontal));
+      result.add(new GuidelineTarget(isHorizontal));
       if (isHorizontal) {
-        component.addTarget(new GuidelineAnchorTarget(AnchorTarget.Type.TOP, true));
+        result.add(new GuidelineAnchorTarget(AnchorTarget.Type.TOP, true));
       }
       else {
-        component.addTarget(new GuidelineAnchorTarget(AnchorTarget.Type.LEFT, false));
+        result.add(new GuidelineAnchorTarget(AnchorTarget.Type.LEFT, false));
       }
-      component.addTarget(new GuidelineCycleTarget(isHorizontal));
-      return;
+      result.add(new GuidelineCycleTarget(isHorizontal));
+      return result;
     }
-    if (!isParent) {
+    if (showAnchors) {
       DragTarget dragTarget = new DragTarget();
-      component.addTarget(dragTarget);
-      component.addTarget(new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_TOP));
-      component.addTarget(new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM));
-      component.addTarget(new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP));
-      component.addTarget(new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM));
+      result.add(dragTarget);
+      result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_TOP));
+      result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM));
+      result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP));
+      result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM));
       component.setNotchProvider(new ConstraintLayoutComponentNotchProvider());
     }
     else {
-      component.addTarget(new LassoTarget());
+      result.add(new LassoTarget());
       component.setNotchProvider(new ConstraintLayoutNotchProvider());
     }
-    component.addTarget(new AnchorTarget(AnchorTarget.Type.LEFT, showAnchors));
-    component.addTarget(new AnchorTarget(AnchorTarget.Type.TOP, showAnchors));
-    component.addTarget(new AnchorTarget(AnchorTarget.Type.RIGHT, showAnchors));
-    component.addTarget(new AnchorTarget(AnchorTarget.Type.BOTTOM, showAnchors));
-    if (!isParent) {
-      ActionTarget previousAction = (ActionTarget)component.addTarget(new ClearConstraintsTarget(null));
+    result.add(new AnchorTarget(AnchorTarget.Type.LEFT, showAnchors));
+    result.add(new AnchorTarget(AnchorTarget.Type.TOP, showAnchors));
+    result.add(new AnchorTarget(AnchorTarget.Type.RIGHT, showAnchors));
+    result.add(new AnchorTarget(AnchorTarget.Type.BOTTOM, showAnchors));
+    if (showAnchors) {
+      ActionTarget previousAction = new ClearConstraintsTarget(null);
+      result.add(previousAction);
       int baseline = component.getNlComponent().getBaseline();
       if (baseline <= 0 && component.getNlComponent().viewInfo != null) {
         baseline = component.getNlComponent().viewInfo.getBaseLine();
       }
       if (baseline > 0) {
-        component.addTarget(new AnchorTarget(AnchorTarget.Type.BASELINE, showAnchors));
+        result.add(new AnchorTarget(AnchorTarget.Type.BASELINE, true));
         ActionTarget baselineActionTarget = new ActionTarget(previousAction, (SceneComponent c) -> c.setShowBaseline(!c.canShowBaseline()));
         baselineActionTarget.setActionType(DrawAction.BASELINE);
-        component.addTarget(baselineActionTarget);
+        result.add(baselineActionTarget);
         previousAction = baselineActionTarget;
       }
-      component.addTarget(new ChainCycleTarget(previousAction, null));
+      result.add(new ChainCycleTarget(previousAction, null));
     }
+    return result;
   }
 
   /**

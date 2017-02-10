@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.target.DragDndTarget;
+import com.android.tools.idea.uibuilder.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 /**
- * Component used during Drag and Drop
+ * A mechanism for adding {@link Target}s to {@link SceneComponent}s.
  */
-public abstract class TemporarySceneComponent extends SceneComponent {
-
-  public TemporarySceneComponent(@NotNull Scene scene, @NotNull NlComponent component) {
-    super(scene, component);
-    addTarget(new DragDndTarget());
-    scene.setAnimate(false);
-    scene.getRoot().addChild(this);
-    init();
-    scene.setAnimate(true);
-  }
-
-  abstract void init();
+public interface TargetProvider {
+  @NotNull
+  List<Target> createTargets(@NotNull SceneComponent component, boolean parent);
 }

@@ -16,15 +16,13 @@
 package com.android.tools.idea.uibuilder;
 
 import android.view.View;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.resources.Density;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDragEventBuilder;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDropEventBuilder;
 import com.android.tools.idea.uibuilder.fixtures.MouseEventBuilder;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneBuilder;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
@@ -157,7 +155,7 @@ public class LayoutTestUtilities {
     when(screenView.getY()).thenReturn(y);
 
     when(surface.getSceneView(anyInt(), anyInt())).thenReturn(screenView);
-    Scene scene = Scene.createScene(model, screenView);
+    Scene scene = new LayoutlibSceneBuilder(model, screenView).build();
     scene.buildDisplayList(new DisplayList(), 0);
     when(screenView.getScene()).thenReturn(scene);
     return screenView;
