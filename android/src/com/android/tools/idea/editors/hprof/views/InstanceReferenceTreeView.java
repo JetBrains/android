@@ -449,7 +449,7 @@ public final class InstanceReferenceTreeView implements DataProvider {
       }
     }
 
-    return PsiClassNavigation.getNavigationForClass(myProject, null, className);
+    return PsiClassNavigation.getNavigationForClass(myProject, className);
   }
 
   public void addGoToInstanceListener(@NotNull GoToInstanceListener listener) {

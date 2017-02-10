@@ -36,7 +36,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-import static com.android.tools.profilers.memory.MemoryInstanceView.*;
+import static com.android.tools.profilers.memory.MemoryInstanceView.InstanceTreeNode;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -182,9 +182,9 @@ public class MemoryInstanceViewTest {
     String codeLocationClassName = codeLocation.getClassName();
     assertEquals(testClassName, codeLocationClassName);
 
-    Runnable preNavigate = myFakeIdeProfilerComponents.getPreNavigate(instanceTree);
-    assertNotNull(preNavigate);
-    preNavigate.run();
+    Runnable navigationCallback = myFakeIdeProfilerComponents.getNavigationCallback(instanceTree);
+    assertNotNull(navigationCallback);
+    navigationCallback.run();
     verify(myStage).setProfilerMode(ProfilerMode.NORMAL);
   }
 

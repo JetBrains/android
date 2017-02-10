@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.profilers.stacktrace;
 
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.common.StackFrameParser;
+import com.android.tools.profilers.common.StackTraceModel;
 import com.android.tools.profilers.common.ThreadId;
 import com.intellij.openapi.components.BaseComponent;
-import com.intellij.openapi.components.ComponentConfig;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
-import com.intellij.psi.PsiFile;
-import com.intellij.ui.FileColorManager;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.messages.MessageBus;
 import org.jetbrains.annotations.NonNls;
@@ -38,10 +37,8 @@ import org.junit.Test;
 import org.picocontainer.PicoContainer;
 
 import javax.swing.*;
-import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -68,13 +65,11 @@ public class IntelliJStackTraceViewTest {
 
   private final Project myProject = ProjectStub.getInstance();
 
-  private RunnableCheck myRunnableCheck;
   private IntelliJStackTraceView myStackView;
 
   @Before
   public void before() {
-    myRunnableCheck = new RunnableCheck();
-    myStackView = new IntelliJStackTraceView(myProject, myRunnableCheck, (project, location) -> new FakeStackNavigation(location));
+    myStackView = new IntelliJStackTraceView(myProject, new StackTraceModel(), (project, location) -> new FakeStackNavigation(location));
   }
 
   @Test
@@ -100,16 +95,16 @@ public class IntelliJStackTraceViewTest {
 
   @Test
   public void setStackFramesTest() {
-    myStackView.setStackFrames(STACK_STRING);
-    List<CodeLocation> viewLocations = myStackView.getCodeLocations();
+    myStackView.getModel().setStackFrames(STACK_STRING);
+    List<CodeLocation> viewLocations = myStackView.getModel().getCodeLocations();
     assertEquals(CODE_LOCATIONS, viewLocations);
 
-    myStackView.setStackFrames(ThreadId.INVALID_THREAD_ID, CODE_LOCATIONS);
-    viewLocations = myStackView.getCodeLocations();
+    myStackView.getModel().setStackFrames(ThreadId.INVALID_THREAD_ID, CODE_LOCATIONS);
+    viewLocations = myStackView.getModel().getCodeLocations();
     assertEquals(CODE_LOCATIONS, viewLocations);
 
-    myStackView.setStackFrames(new ThreadId(5), CODE_LOCATIONS);
-    viewLocations = myStackView.getCodeLocations();
+    myStackView.getModel().setStackFrames(new ThreadId(5), CODE_LOCATIONS);
+    viewLocations = myStackView.getModel().getCodeLocations();
     assertEquals(CODE_LOCATIONS, viewLocations);
     ListModel model = myStackView.getListView().getModel();
     assertEquals(CODE_LOCATIONS.size() + 1, model.getSize());
@@ -120,34 +115,21 @@ public class IntelliJStackTraceViewTest {
 
   @Test
   public void clickComponentTest() throws InvocationTargetException, InterruptedException {
+    AspectObserver observer = new AspectObserver();
+    final int[] invocationCount = {0};
+    myStackView.getModel().addDependency(observer).onChange(StackTraceModel.Aspect.SELECTED_LOCATION, () -> invocationCount[0]++);
+
     JList list = myStackView.getListView();
     assertEquals(ListSelectionModel.SINGLE_SELECTION, list.getSelectionModel().getSelectionMode());
-    assertEquals(0, myRunnableCheck.getInvocationCount());
+    assertEquals(0, invocationCount[0]);
     assertEquals(-1, list.getSelectedIndex());
 
-    myStackView.setStackFrames(STACK_STRING);
-    assertEquals(CODE_LOCATIONS.size(), myStackView.getCodeLocations().size());
+    myStackView.getModel().setStackFrames(STACK_STRING);
+    assertEquals(CODE_LOCATIONS.size(), myStackView.getModel().getCodeLocations().size());
 
     list.setSelectedIndex(0);
     assertTrue(list.getSelectedValue() instanceof FakeStackNavigation);
-    assertEquals(1, ((FakeStackNavigation)list.getSelectedValue()).getNavigatable().getInvocationCount());
-  }
-
-  private static class RunnableCheck implements Runnable {
-    private int myInvocationCount = 0;
-
-    @Override
-    public void run() {
-      myInvocationCount++;
-    }
-
-    public int getInvocationCount() {
-      return myInvocationCount;
-    }
-
-    public void clearInvocationCount() {
-      myInvocationCount = 0;
-    }
+    assertEquals(1, invocationCount[0]);
   }
 
   /**
@@ -262,16 +244,6 @@ public class IntelliJStackTraceViewTest {
       return o -> isDisposed();
     }
 
-    @NotNull
-    public ComponentConfig[] getComponentConfigurations() {
-      return new ComponentConfig[0];
-    }
-
-    @Nullable
-    public Object getComponent(final ComponentConfig componentConfig) {
-      return null;
-    }
-
     @Override
     public boolean isOpen() {
       return false;
@@ -302,16 +274,10 @@ public class IntelliJStackTraceViewTest {
     public <T> T[] getExtensions(@NotNull final ExtensionPointName<T> extensionPointName) {
       throw new UnsupportedOperationException("getExtensions()");
     }
-
-    public ComponentConfig getConfig(Class componentImplementation) {
-      throw new UnsupportedOperationException("Method getConfig not implemented in " + getClass());
-    }
   }
 
   private static class FakeNavigatable implements Navigatable {
     @NotNull private final CodeLocation myCodeLocation;
-
-    private int myInvocationCount = 0;
 
     public FakeNavigatable(@NotNull CodeLocation codeLocation) {
       myCodeLocation = codeLocation;
@@ -319,7 +285,6 @@ public class IntelliJStackTraceViewTest {
 
     @Override
     public void navigate(boolean requestFocus) {
-      myInvocationCount++;
     }
 
     @Override
@@ -330,15 +295,6 @@ public class IntelliJStackTraceViewTest {
     @Override
     public boolean canNavigateToSource() {
       return true;
-    }
-
-    @NotNull
-    public CodeLocation getCodeLocation() {
-      return myCodeLocation;
-    }
-
-    public int getInvocationCount() {
-      return myInvocationCount;
     }
   }
 
@@ -377,101 +333,13 @@ public class IntelliJStackTraceViewTest {
     }
 
     @Override
-    public boolean isInContext() {
+    public boolean isInUserCode() {
       return false;
     }
 
     @Override
-    public void navigate(@Nullable Runnable preNavigate) {
+    public void navigate() {
       myNavigatable.navigate(false);
-    }
-
-    @NotNull
-    public FakeNavigatable getNavigatable() {
-      return myNavigatable;
-    }
-  }
-
-  private static class FileColorManagerMock extends FileColorManager {
-    @Override
-    public boolean isEnabled() {
-      return false;
-    }
-
-    @Override
-    public void setEnabled(boolean enabled) {
-
-    }
-
-    @Override
-    public boolean isEnabledForTabs() {
-      return false;
-    }
-
-    @Override
-    public boolean isEnabledForProjectView() {
-      return false;
-    }
-
-    @Override
-    public Project getProject() {
-      return null;
-    }
-
-    @Nullable
-    @Override
-    public Color getColor(@NotNull String name) {
-      return null;
-    }
-
-    @Override
-    public Collection<String> getColorNames() {
-      return null;
-    }
-
-    @Nullable
-    @Override
-    public Color getFileColor(@NotNull PsiFile file) {
-      return null;
-    }
-
-    @Nullable
-    @Override
-    public Color getFileColor(@NotNull VirtualFile file) {
-      return null;
-    }
-
-    @Nullable
-    @Override
-    public Color getScopeColor(@NotNull String scopeName) {
-      return null;
-    }
-
-    @Override
-    public boolean isShared(@NotNull String scopeName) {
-      return false;
-    }
-
-    @Override
-    public boolean isColored(@NotNull String scopeName, boolean shared) {
-      return false;
-    }
-
-    @Nullable
-    @Override
-    public Color getRendererBackground(VirtualFile file) {
-      return null;
-    }
-
-    @Nullable
-    @Override
-    public Color getRendererBackground(PsiFile file) {
-      return null;
-    }
-
-    @Override
-    public void addScopeColor(@NotNull String scopeName, @NotNull String colorName, boolean isProjectLevel) {
-
     }
   }
 }

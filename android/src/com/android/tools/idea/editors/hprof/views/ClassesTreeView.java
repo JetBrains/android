@@ -534,7 +534,7 @@ public final class ClassesTreeView implements DataProvider, Disposable {
         className = className.substring(0, arrayIndex);
       }
 
-      return PsiClassNavigation.getNavigationForClass(myProject, null, className);
+      return PsiClassNavigation.getNavigationForClass(myProject, className);
     }
 
     return null;

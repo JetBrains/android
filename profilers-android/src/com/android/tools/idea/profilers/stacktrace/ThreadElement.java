@@ -17,7 +17,6 @@ package com.android.tools.idea.profilers.stacktrace;
 
 import com.android.tools.profilers.common.ThreadId;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 final class ThreadElement implements StackElement {
   @NotNull private final ThreadId myThreadId;
@@ -27,7 +26,7 @@ final class ThreadElement implements StackElement {
   }
 
   @Override
-  public void navigate(@Nullable Runnable preNavigate) {
+  public void navigate() {
 
   }
 

@@ -733,7 +733,7 @@ public final class InstancesTreeView implements DataProvider, Disposable {
       }
     }
 
-    return PsiClassNavigation.getNavigationForClass(myProject, null, className);
+    return PsiClassNavigation.getNavigationForClass(myProject, className);
   }
 
   @Override
