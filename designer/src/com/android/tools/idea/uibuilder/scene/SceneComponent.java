@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
+import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.decorator.SceneDecorator;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
@@ -317,6 +318,8 @@ public class SceneComponent {
   public void setPosition(@AndroidDpCoordinate int dx, @AndroidDpCoordinate int dy) {
     myAnimatedDrawX.setValue(dx);
     myAnimatedDrawY.setValue(dy);
+    getNlComponent().x = Coordinates.dpToPx(getNlComponent().getModel(), dx);
+    getNlComponent().y = Coordinates.dpToPx(getNlComponent().getModel(), dy);
   }
 
   @NotNull
@@ -645,5 +648,13 @@ public class SceneComponent {
       return null;
     }
     return  myNlComponent.viewInfo.getClassName();
+  }
+
+  public boolean containsX(@AndroidDpCoordinate int xDp) {
+    return getDrawX() <= xDp && xDp <= getDrawX() + getDrawWidth();
+  }
+
+  public boolean containsY(@AndroidDpCoordinate int yDp) {
+    return getDrawY() <= yDp && yDp <= getDrawY() + getDrawHeight();
   }
 }
